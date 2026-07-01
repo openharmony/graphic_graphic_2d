@@ -93,6 +93,8 @@ public:
     static bool GetUIFirstOcclusionEnabled();
     static bool GetUIFirstOcclusionDebugEnabled();
     static bool GetCropRectDebugOverlayEnabled();
+    static bool GetLayerSplitterEnable();
+    static bool GetLayerSplitterDfxEnable();
 };
 
 } // namespace Rosen

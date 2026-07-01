@@ -2046,7 +2046,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderFilterBase>& val)
 {
     if (val == nullptr) {
-        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
         if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderFilterBase write end failed");
             return false;
@@ -2073,7 +2073,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRend
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderMaskBase>& val)
 {
     if (val == nullptr) {
-        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
         if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderFilterBase write end failed");
             return false;
@@ -2100,7 +2100,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRend
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderShaderBase>& val)
 {
     if (val == nullptr) {
-        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderShaderBase is nullptr");
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSNGRenderShaderBase is nullptr");
         if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderShaderBase write end failed");
             return false;
@@ -2127,7 +2127,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRend
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderShapeBase>& val)
 {
     if (val == nullptr) {
-        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderShapeBase is nullptr");
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSNGRenderShapeBase is nullptr");
         if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderShapeBase write end failed");
             return false;

@@ -38,6 +38,19 @@
 #include "utils/point3.h"
 #include "utils/rect.h"
 
+#if defined(HISTOGRAM_MANAGEMENT_ENABLE) && (HISTOGRAM_MANAGEMENT_ENABLE == 1)
+#include "histogram_plugin_macros.h"
+#define API_STATS_HISTOGRAM(...) \
+    do { \
+        static std::atomic<uint32_t> times{0}; \
+        if (times.fetch_add(1, std::memory_order_relaxed) % 1024 == 0) { \
+            HISTOGRAM_BOOLEAN(__VA_ARGS__); \
+        } \
+    } while (0)
+#else
+#define API_STATS_HISTOGRAM(...)
+#endif
+
 namespace OHOS::Rosen {
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 using namespace Media;

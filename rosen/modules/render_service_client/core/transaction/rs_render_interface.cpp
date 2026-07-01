@@ -208,6 +208,11 @@ bool RSRenderInterface::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> b
     // need consider stability
     if (beginNode->GetNodeState() == RSNodeState::INACTIVE) {
         beginNode->RebuildTree();
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        if (auto uiContext = beginNode->GetRSUIContext()) {
+            uiContext->FlushCanvasDrawingNodeBuffers();
+        }
+#endif
         captureConfig.isSync = true;
     }
     captureConfig.uiCaptureInRangeParam.endNodeId = endNode->GetId();
@@ -243,10 +248,11 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
         ROSEN_LOGW("RSRenderInterface::TakeSurfaceCaptureSoloNodeList rsnode is nullpter return");
         return pixelMapIdPairVector;
     }
-    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
+    auto type = node->GetType();
+    if (!((type == RSUINodeType::ROOT_NODE) ||
+          (type == RSUINodeType::CANVAS_NODE) ||
+          (type == RSUINodeType::CANVAS_DRAWING_NODE) ||
+          (type == RSUINodeType::SURFACE_NODE))) {
         ROSEN_LOGE("RSRenderInterface::TakeSurfaceCaptureSoloNodeList unsupported node type return");
         return pixelMapIdPairVector;
     }
@@ -670,14 +676,14 @@ void RSRenderInterface::SetFreeMultiWindowStatus(bool enable)
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<Surface> RSRenderInterface::GetCanvasSurface(NodeId nodeId)
+sptr<Surface> RSRenderInterface::CreateCanvasDrawingNodeSurface(NodeId nodeId)
 {
-    return renderPipelineClient_->GetCanvasSurface(nodeId);
+    return renderPipelineClient_->CreateCanvasDrawingNodeSurface(nodeId);
 }
 
-void RSRenderInterface::RemoveCanvasSurface(NodeId nodeId)
+void RSRenderInterface::ReleaseCanvasDrawingNodeSurface(NodeId nodeId)
 {
-    renderPipelineClient_->RemoveCanvasSurface(nodeId);
+    renderPipelineClient_->ReleaseCanvasDrawingNodeSurface(nodeId);
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE
 

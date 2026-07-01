@@ -107,6 +107,8 @@ private:
     sptr<SurfaceBuffer> currBuffer_ = nullptr;
     bool bufferCleared_ = false;
     std::atomic<uint64_t> pendingTunnelLayerCreatedGeneration_ = 0;
+    uint32_t tunnelLayerProperty_ = 0;
+    bool hasSetTunnel_ = false;
 
     int32_t CreateLayer(const std::shared_ptr<RSLayer> &rsLayer);
     void CloseLayer();

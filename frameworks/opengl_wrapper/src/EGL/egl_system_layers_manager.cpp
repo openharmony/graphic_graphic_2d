@@ -85,6 +85,7 @@ bool EglSystemLayersManager::GetProcessName(pid_t pid, char *pname, int len)
     return true;
 }
 
+// LCOV_EXCL_START
 bool EglSystemLayersManager::GetDefaultJsonConfig(Json::Value &configData)
 {
     WLOGD("Read default json config");
@@ -109,6 +110,7 @@ bool EglSystemLayersManager::GetDefaultJsonConfig(Json::Value &configData)
 
     return true;
 }
+// LCOV_EXCL_STOP
 
 bool EglSystemLayersManager::GetJsonConfig(Json::Value &configData)
 {

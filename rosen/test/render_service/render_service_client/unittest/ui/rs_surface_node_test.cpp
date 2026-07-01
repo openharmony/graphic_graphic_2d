@@ -1779,6 +1779,20 @@ HWTEST_F(RSSurfaceNodeTest, SetColorSpace, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetColorSpaceWithoutContextTest
+ * @tc.desc: Test SetColorSpace without RSUIContext
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeTest, SetColorSpaceWithoutContextTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config, true, nullptr);
+    surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(surfaceNode->colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
  * @tc.name: SetSKipDraw
  * @tc.desc: Test function SetSkipDraw
  * @tc.type: FUNC
@@ -2331,6 +2345,36 @@ HWTEST_F(RSSurfaceNodeTest, DumpSubClass004, TestSize.Level1)
     EXPECT_FALSE(out.empty());
     EXPECT_TRUE(out.find("isShadowNode[true") != std::string::npos);
     EXPECT_TRUE(out.find("existsDuplicateModifier[true") != std::string::npos);
+}
+
+/**
+ * @tc.name: SetStaticCached001
+ * @tc.desc: Test SetStaticCached with the same false value branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetStaticCached001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_FALSE(surfaceNode->isStaticFreeze_);
+    surfaceNode->SetStaticCached(false);
+    EXPECT_FALSE(surfaceNode->isStaticFreeze_);
+}
+
+/**
+ * @tc.name: SetStaticCached002
+ * @tc.desc: Test SetStaticCached from false to true branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetStaticCached002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_FALSE(surfaceNode->isStaticFreeze_);
+    surfaceNode->SetStaticCached(true);
+    EXPECT_TRUE(surfaceNode->isStaticFreeze_);
 }
 
 /**

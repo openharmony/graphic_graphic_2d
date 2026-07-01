@@ -1652,6 +1652,30 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_ProtectedLayer, Function
 }
 
 /**
+ * @tc.name: UpdateHwcNodeVcldInfo_AncoLayer
+ * @tc.desc: Test UpdateHwcNodeVcldInfo when layer is AncoLayer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeVcldInfo_AncoLayer, Function | SmallTest | Level2)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    uniHwcPrevalidateUtil.isVcldEnabled_ = true;
+
+    NodeId hwcNodeId = 0;
+    auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcNodeId);
+    hwcNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+
+    NodeId parentId = 1;
+    auto parentNode = std::make_shared<RSRenderNode>(parentId);
+    parentNode->GetMutableRenderProperties().SetCornerRadius({10.0f, 10.0f, 10.0f, 10.0f});
+
+    RSUniHwcComputeUtil::UpdateHwcNodeVcldInfo(hwcNode, parentNode);
+
+    ASSERT_FALSE(hwcNode->GetVcldInfo().enable);
+}
+
+/**
  * @tc.name: UpdateHwcNodeVcldInfo_ZeroCornerRadius
  * @tc.desc: Test UpdateHwcNodeVcldInfo when corner radius is zero
  * @tc.type: FUNC

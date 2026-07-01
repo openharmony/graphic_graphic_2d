@@ -21,12 +21,43 @@
 #include <functional>
 #include <utility>
 
+#include "utils/text_log.h"
 #include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Symbol {
 namespace {
+bool GetUint16FromCJSON(const cJSON* item, uint16_t& out)
+{
+    if (!cJSON_IsNumber(item) || item->valueint < 0 || item->valueint > UINT16_MAX) {
+        TEXT_LOGE("Invalid uint16 value from cJSON");
+        return false;
+    }
+    out = static_cast<uint16_t>(item->valueint);
+    return true;
+}
+
+bool GetUint32FromCJSON(const cJSON* item, uint32_t& out)
+{
+    if (!cJSON_IsNumber(item) || item->valuedouble < 0 || item->valuedouble > UINT32_MAX) {
+        TEXT_LOGE("Invalid uint32 value from cJSON");
+        return false;
+    }
+    out = static_cast<uint32_t>(item->valuedouble);
+    return true;
+}
+
+bool GetIntFromCJSON(const cJSON* item, int& out)
+{
+    if (!cJSON_IsNumber(item) || item->valuedouble < INT_MIN || item->valuedouble > INT_MAX) {
+        TEXT_LOGE("Invalid int value from cJSON");
+        return false;
+    }
+    out = static_cast<int>(item->valuedouble);
+    return true;
+}
+
 
 constexpr char SPECIAL_ANIMATIONS[] = "special_animations";
 constexpr char COMMON_ANIMATIONS[] = "common_animations";
@@ -155,11 +186,7 @@ bool SymbolConfigParser::ParseSymbolLayersGrouping(const cJSON* root,
 bool SymbolConfigParser::ParseOneSymbolNativeCase(const char* key, const cJSON* root, uint16_t& nativeGlyphId)
 {
     cJSON* item = cJSON_GetObjectItem(root, key);
-    if (item == nullptr || !cJSON_IsNumber(item)) {
-        return false;
-    }
-    nativeGlyphId = static_cast<uint16_t>(item->valueint);
-    return true;
+    return GetUint16FromCJSON(item, nativeGlyphId);
 }
 
 void SymbolConfigParser::ParseComponets(const cJSON* root, std::vector<size_t>& components)
@@ -177,9 +204,7 @@ void SymbolConfigParser::SymbolGlyphCase(const char* key, const cJSON* root,
     RSSymbolLayersGroups& symbolLayersGroups)
 {
     cJSON* item = cJSON_GetObjectItem(root, key);
-    if (item != nullptr && cJSON_IsNumber(item)) {
-        symbolLayersGroups.symbolGlyphId = static_cast<uint16_t>(item->valueint);
-    }
+    GetUint16FromCJSON(item, symbolLayersGroups.symbolGlyphId);
 }
 
 void SymbolConfigParser::ParseLayers(const cJSON* root, std::vector<std::vector<size_t>>& layers)
@@ -547,9 +572,7 @@ void SymbolConfigParser::ParseSymbolAnimationPara(const cJSON* root, RSAnimation
         }
 
         if (strcmp(key, ANIMATION_MODE) == 0) {
-            if (cJSON_IsNumber(item)) {
-                animationPara.animationMode = static_cast<uint16_t>(item->valueint);
-            }
+            GetUint16FromCJSON(item, animationPara.animationMode);
         } else if (strcmp(key, COMMON_SUB_TYPE) == 0 && cJSON_IsString(item)) {
             ParseSymbolCommonSubType(item, animationPara);
         } else if (strcmp(key, GROUP_PARAMETERS) == 0 && cJSON_IsArray(item)) {
@@ -627,18 +650,12 @@ void SymbolConfigParser::PiecewiseParaCurveCase(const cJSON* item, RSPiecewisePa
 
 void SymbolConfigParser::PiecewiseParaDurationCase(const cJSON* item, RSPiecewiseParameter& piecewiseParameter)
 {
-    if (item == nullptr || !cJSON_IsNumber(item)) {
-        return;
-    }
-    piecewiseParameter.duration = static_cast<uint32_t>(item->valuedouble);
+    GetUint32FromCJSON(item, piecewiseParameter.duration);
 }
 
 void SymbolConfigParser::PiecewiseParaDelayCase(const cJSON* item, RSPiecewiseParameter& piecewiseParameter)
 {
-    if (item == nullptr || !cJSON_IsNumber(item)) {
-        return;
-    }
-    piecewiseParameter.delay = static_cast<int>(item->valuedouble);
+    GetIntFromCJSON(item, piecewiseParameter.delay);
 }
 
 void SymbolConfigParser::ParseSymbolCurveArgs(const cJSON* obj, RSPiecewiseParameter& piecewiseParameter)

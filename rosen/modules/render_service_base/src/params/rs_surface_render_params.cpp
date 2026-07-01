@@ -281,6 +281,18 @@ void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer,
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
+void RSSurfaceRenderParams::UpdateBuffer(const sptr<SurfaceBuffer>& buffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect)
+{
+    preBuffer_ = buffer_;
+    preBufferOwnerCount_ = bufferOwnerCount_;
+    buffer_ = buffer;
+    bufferOwnerCount_ = bufferOwnerCount;
+    damageRect_ = damageRect;
+    needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+}
+
 sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
 {
     return buffer_;

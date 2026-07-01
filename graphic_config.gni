@@ -270,15 +270,6 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/platform/config.gni")) {
   }
 }
 
-graphic_2d_modifiers_draw_configs = {
-}
-if (path_exists("//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifiers_draw_config.gni")) {
-  graphic_2d_modifiers_draw_configs = {
-    import(
-        "//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifiers_draw_config.gni")
-  }
-}
-
 graphic_2d_subtree_config = {}
 
 if (path_exists("//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config.gni")) {

@@ -26,7 +26,7 @@ class ParagraphLineFetcher {
 public:
     virtual ~ParagraphLineFetcher() = default;
     virtual size_t GetLineBreak(size_t startIndex, SkScalar width) const = 0;
-    virtual std::unique_ptr<TextLineBase> CreateLine(size_t startIndex, size_t count) = 0;
+    virtual std::shared_ptr<TextLineBase> CreateLine(size_t startIndex, size_t count) = 0;
     virtual std::unique_ptr<Paragraph> GetTempParagraph() = 0;
     virtual size_t GetUnicodeSize() const = 0;
 };

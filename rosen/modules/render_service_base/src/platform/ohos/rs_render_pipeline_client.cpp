@@ -1035,37 +1035,37 @@ int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<Surface> RSRenderPipelineClient::GetCanvasSurface(NodeId nodeId)
+sptr<Surface> RSRenderPipelineClient::CreateCanvasDrawingNodeSurface(NodeId nodeId)
 {
     if (!RSSystemProperties::IsUseVulkan()) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetCanvasSurface Vulkan not enabled");
+        ROSEN_LOGE("RSRenderPipelineClient::CreateCanvasDrawingNodeSurface Vulkan not enabled");
         return nullptr;
     }
     auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
     if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetCanvasSurface renderPipeline is nullptr");
+        ROSEN_LOGE("RSRenderPipelineClient::CreateCanvasDrawingNodeSurface renderPipeline is nullptr");
         return nullptr;
     }
-    sptr<Surface> surface = renderPipeline->GetCanvasSurface(nodeId);
+    sptr<Surface> surface = renderPipeline->CreateCanvasDrawingNodeSurface(nodeId);
     if (surface == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetCanvasSurface remote surface is nullptr");
+        ROSEN_LOGE("RSRenderPipelineClient::CreateCanvasDrawingNodeSurface remote surface is nullptr");
         return nullptr;
     }
     return surface;
 }
 
-void RSRenderPipelineClient::RemoveCanvasSurface(NodeId nodeId)
+void RSRenderPipelineClient::ReleaseCanvasDrawingNodeSurface(NodeId nodeId)
 {
     if (!RSSystemProperties::IsUseVulkan()) {
-        ROSEN_LOGE("RSRenderPipelineClient::RemoveCanvasSurface Vulkan not enabled");
+        ROSEN_LOGE("RSRenderPipelineClient::ReleaseCanvasDrawingNodeSurface Vulkan not enabled");
         return;
     }
     auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
     if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::RemoveCanvasSurface renderPipeline is nullptr");
+        ROSEN_LOGE("RSRenderPipelineClient::ReleaseCanvasDrawingNodeSurface renderPipeline is nullptr");
         return;
     }
-    renderPipeline->RemoveCanvasSurface(nodeId);
+    renderPipeline->ReleaseCanvasDrawingNodeSurface(nodeId);
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE
 

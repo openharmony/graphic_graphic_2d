@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_effect_utils.h"
+#include "property/rs_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -57,6 +58,11 @@ bool RSEffectUtils::IsOffscreenForFilterCache(RSRenderNode& node)
     // align with quickprepare offscreenCanvasNodeId_ logic, only check canvasRenderNode and unionRenderNode.
     return (node.GetType() == RSRenderNodeType::CANVAS_NODE || node.GetType() == RSRenderNodeType::UNION_NODE) && (
         node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE || node.IsForegroundFilterEnable());
+}
+
+bool RSEffectUtils::HasBackgroundDependentFilter(const RSProperties& properties)
+{
+    return properties.GetBackgroundFilter() || properties.GetMaterialFilter() || properties.GetNeedDrawBehindWindow();
 }
 } // namespace Rosen
 } // namespace OHOS

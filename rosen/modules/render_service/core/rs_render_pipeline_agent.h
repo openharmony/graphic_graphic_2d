@@ -140,6 +140,7 @@ public:
         std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled = false);
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
+    void NotifyWindowModeTypeEvent(uint8_t windowModeType);
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop);
     ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled);
@@ -236,8 +237,8 @@ public:
     );
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    sptr<Surface> GetCanvasSurface(NodeId nodeId, pid_t remotePid);
-    void RemoveCanvasSurface(NodeId nodeId, pid_t remotePid);
+    sptr<Surface> CreateCanvasDrawingNodeSurface(NodeId nodeId, pid_t remotePid);
+    void ReleaseCanvasDrawingNodeSurface(NodeId nodeId, pid_t remotePid);
 #endif
     bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid);
     bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,

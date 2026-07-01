@@ -1771,4 +1771,38 @@ HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBufferTest, TestSize
     EXPECT_NE(ret, 0);
 }
 #endif
+
+/**
+ * @tc.name: NotifyWindowModeTypeEvent001
+ * @tc.desc: Verify NotifyWindowModeTypeEvent when pipeline is valid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, NotifyWindowModeTypeEvent001, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    auto mainThread = RSMainThread::Instance();
+    renderPipeline->mainThread_ = mainThread;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+ 
+    uint8_t windowModeType = 1;
+    agent->NotifyWindowModeTypeEvent(windowModeType);
+}
+ 
+/**
+ * @tc.name: NotifyWindowModeTypeEvent002
+ * @tc.desc: Verify NotifyWindowModeTypeEvent when pipeline is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, NotifyWindowModeTypeEvent002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+ 
+    uint8_t windowModeType = 0;
+    agent->NotifyWindowModeTypeEvent(windowModeType);
+}
 } // namespace OHOS::Rosen

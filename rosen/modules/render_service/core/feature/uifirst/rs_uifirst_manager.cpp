@@ -1375,7 +1375,8 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         }
         auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (surfaceChild && surfaceChild->IsMainWindowType() &&
-            surfaceChild->ShouldPaint() && canvasNodeNum == 0) {
+            surfaceChild->ShouldPaint() && canvasNodeNum == 0 &&
+            !surfaceChild->IsNotifyUIBufferAvailable()) {
             mainwindowNum++;
             if (IsContentAppWindow(surfaceChild)) {
                 hasContentAppWindow = true;
@@ -1876,18 +1877,6 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     return isNeedAssignToSubThread;
 }
 
-// Vm app not use uifirst when it is focused
-bool RSUifirstManager::IsVMSurfaceName(std::string surfaceName)
-{
-    for (auto& item : vmAppNameSet_) {
-        if (surfaceName.find(item) != std::string::npos) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 // NonFocusWindow, may reuse last image cache
 bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
@@ -1914,9 +1903,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     // open app with modal window animation, close uifirst
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
     bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
-    if (optFocus && (node.GetHasSharedTransitionNode() ||
-        (RSUifirstManager::Instance().IsVMSurfaceName(surfaceName) && !animation) ||
-        !animation || modalAnimation)) {
+    if (optFocus && (node.GetHasSharedTransitionNode() || !animation || modalAnimation)) {
         RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
             surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
         return false;
@@ -2381,40 +2368,30 @@ void RSUifirstManager::CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHw
     if (enabledType == SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB) {
         return;
     }
-    if (node.IsAppWindow()) {
-        auto hwcNodes = node.GetChildHardwareEnabledNodes();
-        if (hwcNodes.empty()) {
-            return;
+    auto hwcNodes = node.GetChildHardwareEnabledNodes();
+    if (hwcNodes.empty()) {
+        return;
+    }
+    if (IsSubHighPriorityType(node)) {
+        enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+        return;
+    }
+    if (node.IsRosenWeb()) {
+        enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
+        return;
+    }
+    for (auto hwcNode : hwcNodes) {
+        auto hwcNodePtr = hwcNode.lock();
+        if (!hwcNodePtr) {
+            continue;
         }
-        if (IsSubHighPriorityType(node)) {
-            enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
-            return;
-        }
-        if (node.IsRosenWeb()) {
+        if (hwcNodePtr->IsRosenWeb()) {
             enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
             return;
         }
-        for (auto hwcNode : hwcNodes) {
-            auto hwcNodePtr = hwcNode.lock();
-            if (!hwcNodePtr) {
-                continue;
-            }
-            if (hwcNodePtr->IsRosenWeb()) {
-                enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
-                return;
-            }
-            if (IsSubHighPriorityType(*hwcNodePtr)) {
-                enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
-                return;
-            }
-        }
-    } else if (node.IsLeashWindow()) {
-        for (auto& child : *(node.GetChildren())) {
-            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode == nullptr) {
-                continue;
-            }
-            CheckHwcChildrenType(*surfaceNode, enabledType);
+        if (IsSubHighPriorityType(*hwcNodePtr)) {
+            enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+            return;
         }
     }
 }

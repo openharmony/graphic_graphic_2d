@@ -16,11 +16,31 @@
 #include "command_modifier/rs_canvas_node_command_modifier.h"
 
 #include "command/rs_canvas_node_command.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 #include "ui/rs_canvas_node.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
+
+namespace {
+// Convert the stored cmd list into a Drawing::DrawCmdListPtr ready to be pushed to render.
+// Returns nullptr if neither drawingCmdList nor simpleDrawCmdList is available.
+Drawing::DrawCmdListPtr PrepareDrawCmdList(Drawing::DrawCmdListPtr& drawingCmdList,
+    SimpleDrawCmdListPtr& simpleDrawCmdList)
+{
+    if (drawingCmdList) {
+        simpleDrawCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawingCmdList);
+        auto result = drawingCmdList;
+        drawingCmdList = nullptr;
+        return result;
+    }
+    if (simpleDrawCmdList) {
+        return simpleDrawCmdList->ConvertToDrawCmdList();
+    }
+    return nullptr;
+}
+} // namespace
 
 void HdrPresentCmdModifier::UpdateToRender()
 {
@@ -64,21 +84,35 @@ void FinishRecordCmdModifier::UpdateToRender()
 {
     auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
     if (!node) return;
+
+    auto drawCmdList = PrepareDrawCmdList(param_.drawingCmdList_, param_.simpleDrawCmdList_);
+    if (!drawCmdList) {
+        ROSEN_LOGE("FinishRecordCmdModifier::UpdateToRender() simpleDrawCmdList_ is nullptr");
+        return;
+    }
+
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeUpdateRecording>(
-        node->GetId(), param_.drawCmdList_, param_.modifierType_);
+        node->GetId(), drawCmdList, param_.modifierType_);
     AddCommand(command, node->IsRenderServiceNode());
 }
 
-void DrawOnNodeCmdModifier::UpdateToRender()
+void DrawOnNodeCmdModifier::UpdateToRender() // only go foreground call this func
 {
     auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
     if (!node) return;
+
+    auto drawCmdList = PrepareDrawCmdList(param_.drawingCmdList_, param_.simpleDrawCmdList_);
+    if (!drawCmdList) {
+        ROSEN_LOGE("DrawOnNodeCmdModifier::UpdateToRender() simpleDrawCmdList_ is nullptr");
+        return;
+    }
+
     std::unique_ptr<RSCommand> clearRecordingCommand = std::make_unique<RSCanvasNodeClearRecording>(
         node->GetId());
     AddCommand(clearRecordingCommand, node->IsRenderServiceNode());
 
     std::unique_ptr<RSCommand> updateRecordingCommand = std::make_unique<RSCanvasNodeUpdateRecording>(
-        node->GetId(), param_.drawCmdList_, param_.modifierType_);
+        node->GetId(), drawCmdList, param_.modifierType_);
     AddCommand(updateRecordingCommand, node->IsRenderServiceNode());
 }
 
@@ -86,12 +120,19 @@ RSCmdModifier::UpdateResult DrawOnNodeCmdModifier::UpdateToRenderWithResult()
 {
     auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
     if (!node) return false;
+
+    auto drawCmdList = PrepareDrawCmdList(param_.drawingCmdList_, param_.simpleDrawCmdList_);
+    if (!drawCmdList) {
+        ROSEN_LOGE("DrawOnNodeCmdModifier::UpdateToRenderWithResult() simpleDrawCmdList_ is nullptr");
+        return false;
+    }
+
     std::unique_ptr<RSCommand> clearRecordingCommand = std::make_unique<RSCanvasNodeClearRecording>(
         node->GetId());
     AddCommand(clearRecordingCommand, node->IsRenderServiceNode());
 
     std::unique_ptr<RSCommand> updateRecordingCommand = std::make_unique<RSCanvasNodeUpdateRecording>(
-        node->GetId(), param_.drawCmdList_, param_.modifierType_);
+        node->GetId(), drawCmdList, param_.modifierType_);
     return AddCommand(updateRecordingCommand, node->IsRenderServiceNode());
 }
 
@@ -120,8 +161,10 @@ void ClearRecordingCmdModifier::DumpParam(std::string& out) const
 void FinishRecordCmdModifier::DumpParam(std::string& out) const
 {
     out += "{drawCmdList:";
-    if (param_.drawCmdList_) {
-        out += "[size:" + std::to_string(param_.drawCmdList_->GetSize()) + "]";
+    if (param_.simpleDrawCmdList_) {
+        out += "[simple size:" + std::to_string(param_.simpleDrawCmdList_->GetSize()) + "]";
+    } else if (param_.drawingCmdList_) {
+        out += "[drawing]";
     } else {
         out += "null";
     }
@@ -131,8 +174,10 @@ void FinishRecordCmdModifier::DumpParam(std::string& out) const
 void DrawOnNodeCmdModifier::DumpParam(std::string& out) const
 {
     out += "{drawCmdList:";
-    if (param_.drawCmdList_) {
-        out += "[size:" + std::to_string(param_.drawCmdList_->GetSize()) + "]";
+    if (param_.simpleDrawCmdList_) {
+        out += "[simple size:" + std::to_string(param_.simpleDrawCmdList_->GetSize()) + "]";
+    } else if (param_.drawingCmdList_) {
+        out += "[drawing]";
     } else {
         out += "null";
     }

@@ -12,37 +12,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "gtest/gtest.h"
-
 #include "animation/rs_transition.h"
 #include "animation/rs_transition_effect.h"
 #include "common/rs_color.h"
-#include "rs_animation_base_test.h"
 #include "rs_animation_test_utils.h"
-#include "ui/rs_ui_context_manager.h"
-
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_context.h"
 using namespace testing;
 using namespace testing::ext;
-
 namespace OHOS {
 namespace Rosen {
 using namespace ANIMATIONTEST;
-class RSTransitionTest : public RSAnimationBaseTest {
+class RSTransitionTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+    std::shared_ptr<RSUIContext> rsUIContext;
+    std::shared_ptr<RSCanvasNode> canvasNode;
 };
-
-void RSTransitionTest::SetUpTestCase()
+void RSTransitionTest::SetUp()
 {
-    RSAnimationBaseTest::SetUpTestCase();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
 }
-void RSTransitionTest::TearDownTestCase()
+void RSTransitionTest::TearDown()
 {
-    RSAnimationBaseTest::TearDownTestCase();
+    canvasNode->RemoveAllAnimations();
 }
-
 /**
  * @tc.name: SetTransitionEffectTest
  * @tc.desc: Verify the SetTransitionEffect
@@ -51,8 +50,6 @@ void RSTransitionTest::TearDownTestCase()
 HWTEST_F(RSTransitionTest, SetTransitionEffectTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSTransitionTest SetTransitionEffectTest start";
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSTransition transition(rsUIContext, nullptr, false);
     ASSERT_FALSE(transition.effect_);
     auto effect = RSTransitionEffect::Create();
@@ -60,7 +57,6 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest, TestSize.Level1)
     ASSERT_TRUE(transition.effect_);
     GTEST_LOG_(INFO) << "RSTransitionTest SetTransitionEffectTest end";
 }
-
 /**
  * @tc.name: SetTransitionEffectTest001
  * @tc.desc: Verify the SetTransitionEffect of TransitionTest
@@ -72,22 +68,17 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init SetTransitionEffect
      */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::EMPTY, true);
     /**
      * @tc.steps: step2. start SetTransitionEffect test
      */
     transition->SetTransitionEffect(RSTransitionEffect::Create()->Rotate(TRANSITION_EFFECT_ROTATE));
-
     EXPECT_FALSE(transition == nullptr);
     EXPECT_FALSE(transition->IsStarted());
     transition->Start(canvasNode);
     EXPECT_TRUE(transition->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest SetTransitionEffectTest001 end";
 }
-
 /**
  * @tc.name: SetTransitionEffectTest002
  * @tc.desc: Verify the SetTransitionEffect of TransitionTest
@@ -99,8 +90,6 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest002, TestSize.Level1)
     /**
      * @tc.steps: step1. init SetTransitionEffect
      */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::EMPTY, true);
     /**
      * @tc.steps: step2. start SetTransitionEffect test
@@ -110,10 +99,8 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest002, TestSize.Level1)
     EXPECT_FALSE(transition->IsStarted());
     transition->Start(canvasNode);
     EXPECT_TRUE(transition->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest SetTransitionEffectTest002 end";
 }
-
 /**
  * @tc.name: SetTransitionEffectTest003
  * @tc.desc: Verify the SetTransitionEffect of RSTransitionTest
@@ -125,8 +112,6 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest003, TestSize.Level1)
     /**
      * @tc.steps: step1. init SetTransitionEffect
      */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::EMPTY, true);
     /**
      * @tc.steps: step2. start SetTransitionEffect test
@@ -136,10 +121,8 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest003, TestSize.Level1)
     EXPECT_FALSE(transition->IsStarted());
     transition->Start(canvasNode);
     EXPECT_TRUE(transition->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest SetTransitionEffectTest003 end";
 }
-
 /**
  * @tc.name: SetTimingCurveTest001
  * @tc.desc: Verify the SetTimingCurve of RSTransitionTest
@@ -151,8 +134,6 @@ HWTEST_F(RSTransitionTest, SetTimingCurveTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init GetTimingCurve
      */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::OPACITY, true);
     transition->SetTimingCurve(RSAnimationTimingCurve::DEFAULT);
     /**
@@ -162,10 +143,8 @@ HWTEST_F(RSTransitionTest, SetTimingCurveTest001, TestSize.Level1)
     EXPECT_FALSE(transition->IsStarted());
     transition->Start(canvasNode);
     EXPECT_TRUE(transition->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest SetTimingCurveTest001 end";
 }
-
 /**
  * @tc.name: SetTimingCurveTest002
  * @tc.desc: Verify the SetTimingCurveTest of RSTransitionTest
@@ -177,8 +156,6 @@ HWTEST_F(RSTransitionTest, SetTimingCurveTest002, TestSize.Level1)
     /**
      * @tc.steps: step1. init GetTimingCurve
      */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::OPACITY, true);
     transition->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
     /**
@@ -188,10 +165,8 @@ HWTEST_F(RSTransitionTest, SetTimingCurveTest002, TestSize.Level1)
     EXPECT_FALSE(transition->IsStarted());
     transition->Start(canvasNode);
     EXPECT_TRUE(transition->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest SetTimingCurveTest002 end";
 }
-
 /**
  * @tc.name: SetTimingCurveTest003
  * @tc.desc: Verify the SetTimingCurveTest of RSTransitionTest
@@ -203,8 +178,6 @@ HWTEST_F(RSTransitionTest, SetTimingCurveTest003, TestSize.Level1)
     /**
      * @tc.steps: step1. init GetTimingCurve
      */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto transition = std::make_shared<RSTransition>(rsUIContext, RSTransitionEffect::SCALE, true);
     transition->SetTimingCurve(RSAnimationTimingCurve::EASE_IN);
     /**
@@ -214,10 +187,8 @@ HWTEST_F(RSTransitionTest, SetTimingCurveTest003, TestSize.Level1)
     EXPECT_FALSE(transition->IsStarted());
     transition->Start(canvasNode);
     EXPECT_TRUE(transition->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest SetTimingCurveTest003 end";
 }
-
 /**
  * @tc.name: RSNodeAnimateTest001
  * @tc.desc: Verify the RSNodeAnimate of RSTransitionTest
@@ -229,9 +200,7 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init RSNodeAnimate
      */
-    auto rsUIContext = rsUiDirector->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    
+    auto rootNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto effect = RSTransitionEffect::Create()->Translate({500.f, 300.f, 0.f});
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetBoundsWidth(200.f);
@@ -240,20 +209,17 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest001, TestSize.Level1)
     newCanvasNode->SetTransitionEffect(effect);
     RSAnimationTimingProtocol protocol;
     auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
-        [&newCanvasNode]() {
+        [&newCanvasNode, &rootNode]() {
         rootNode->AddChild(newCanvasNode, -1);
     });
-
     /**
      * @tc.steps: step2. start RSNodeAnimate test
      */
     ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest001 end";
 }
-
 /**
  * @tc.name: RSNodeAnimateTest002
  * @tc.desc: Verify the RSNodeAnimate of RSTransitionTest
@@ -265,9 +231,7 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest002, TestSize.Level1)
     /**
      * @tc.steps: step1. init RSNodeAnimate
      */
-    auto rsUIContext = rsUiDirector->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    
+    auto rootNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto effect = RSTransitionEffect::Create()->Opacity(0.5f);
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
@@ -279,17 +243,14 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest002, TestSize.Level1)
         [&newCanvasNode]() {
         newCanvasNode->SetVisible(false);
     });
-
     /**
      * @tc.steps: step2. start RSNodeAnimate test
      */
     ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest002 end";
 }
-
 /**
  * @tc.name: RSNodeAnimateTest003
  * @tc.desc: Verify the RSNodeAnimate of RSTransitionTest
@@ -301,9 +262,7 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest003, TestSize.Level1)
     /**
      * @tc.steps: step1. init RSNodeAnimate
      */
-    auto rsUIContext = rsUiDirector->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    
+    auto rootNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
@@ -320,10 +279,8 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest003, TestSize.Level1)
     ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest003 end";
 }
-
 /**
  * @tc.name: RSNodeAnimateTest004
  * @tc.desc: Verify the RSNodeAnimate of RSTransitionTest
@@ -335,9 +292,7 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest004, TestSize.Level1)
     /**
      * @tc.steps: step1. init RSNodeAnimate
      */
-    auto rsUIContext = rsUiDirector->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    
+    auto rootNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto animationCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto effect = RSTransitionEffect::Create()->Translate({500.f, 300.f, 0.f});
     animationCanvasNode->SetBoundsWidth(200.f);
@@ -346,20 +301,17 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest004, TestSize.Level1)
     animationCanvasNode->SetTransitionEffect(effect);
     RSAnimationTimingProtocol protocol;
     auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
-        [&animationCanvasNode]() {
+        [&animationCanvasNode, &rootNode]() {
         rootNode->AddChild(animationCanvasNode, -1);
     });
-
     /**
      * @tc.steps: step2. start RSNodeAnimate test
      */
     ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     ASSERT_TRUE(animations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest004 end";
 }
-
 /**
  * @tc.name: RSNodeAnimateTest005
  * @tc.desc: Verify the RSNodeAnimate of RSTransitionTest
@@ -371,9 +323,7 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest005, TestSize.Level1)
     /**
      * @tc.steps: step1. init RSNodeAnimate
      */
-    auto rsUIContext = rsUiDirector->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    
+    auto rootNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto animationCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto effect = RSTransitionEffect::Create()->Opacity(0.5f);
     animationCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
@@ -385,17 +335,14 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest005, TestSize.Level1)
         [&animationCanvasNode]() {
         animationCanvasNode->SetVisible(false);
     });
-
     /**
      * @tc.steps: step2. start RSNodeAnimate test
      */
     ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     ASSERT_TRUE(animations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest005 end";
 }
-
 /**
  * @tc.name: RSNodeAnimateTest006
  * @tc.desc: Verify the RSNodeAnimate of RSTransitionTest
@@ -407,9 +354,7 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest006, TestSize.Level1)
     /**
      * @tc.steps: step1. init RSNodeAnimate
      */
-    auto rsUIContext = rsUiDirector->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    
+    auto rootNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto animationCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
     animationCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
@@ -426,7 +371,6 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest006, TestSize.Level1)
     ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     ASSERT_TRUE(animations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
-    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest006 end";
 }
 } // namespace Rosen

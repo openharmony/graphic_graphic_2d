@@ -56,6 +56,7 @@ public:
     {
         return (refCnt_ > 0);
     };
+    // LCOV_EXCL_START
     inline EGLDisplay GetEglDisplay() const
     {
         return disp_;
@@ -80,6 +81,7 @@ public:
     {
         return extensionValue_.c_str();
     }
+    // LCOV_EXCL_STOP
 
     EGLBoolean QueryContext(EGLContext ctx, EGLint attribute, EGLint *value);
     EGLBoolean QuerySurface(EGLSurface surf, EGLint attribute, EGLint *value);

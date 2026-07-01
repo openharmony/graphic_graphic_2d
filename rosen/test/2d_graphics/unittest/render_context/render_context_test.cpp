@@ -358,4 +358,19 @@ HWTEST_F(RenderContextTest, DamageFrameTest002, Level1)
     auto rects = {rect};
     renderContext->DamageFrame(rects);
 }
+
+/**
+ * @tc.name: ConvertColorGamutToColorSpaceTest001
+ * @tc.desc: Verify ConvertColorGamutToColorSpace with different gamuts
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, ConvertColorGamutToColorSpaceTest001, Level1)
+{
+    EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_DCI_P3), nullptr);
+    EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3), nullptr);
+    EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_ADOBE_RGB), nullptr);
+    EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_BT2020), nullptr);
+    EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_BT2100_HLG), nullptr);
+    EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_SRGB), nullptr);
+}
 } // namespace OHOS::Rosen

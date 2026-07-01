@@ -38,7 +38,8 @@ public:
 
     ~RSUnionRenderNode() override;
 
-    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+        bool isParentPrepareInReverseOrder = false) override;
 
     void AddUnionChild(NodeId id);
     void RemoveUnionChild(NodeId id);

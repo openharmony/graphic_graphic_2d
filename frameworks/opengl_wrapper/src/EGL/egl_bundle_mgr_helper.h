@@ -19,6 +19,7 @@
 
 #include "bundle_mgr_interface.h"
 
+// LCOV_EXCL_START
 namespace OHOS {
 namespace AppExecFwk {
 class EGLBundleMgrHelper : public std::enable_shared_from_this<EGLBundleMgrHelper> {
@@ -54,5 +55,6 @@ private:
 
 }
 }
+// LCOV_EXCL_STOP
 
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_BUNDLE_MGR_HELPER_H

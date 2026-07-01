@@ -43,14 +43,6 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, R
     RS_LOGE("RSUniRenderEngine::DrawSurfaceNodeWithParams is not support");
 }
 
-void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
-{
-    canvas.Save();
-    canvas.ConcatMatrix(params.matrix);
-    DrawImage(canvas, params);
-    canvas.Restore();
-}
-
 void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params, PreProcessFunc preProcess,
     PostProcessFunc postProcess)
@@ -78,6 +70,14 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     } else {
         DrawBuffer(canvas, params);
     }
+    canvas.Restore();
+}
+
+void RSUniRenderEngine::DrawCanvasDrawingNodeWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
+{
+    canvas.Save();
+    canvas.ConcatMatrix(params.matrix);
+    DrawImage(canvas, params);
     canvas.Restore();
 }
 

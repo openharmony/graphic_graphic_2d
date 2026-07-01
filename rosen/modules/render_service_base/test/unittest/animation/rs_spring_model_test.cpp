@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "animation/rs_spring_model.h"
+#include "common/rs_common_def.h"
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
@@ -343,6 +344,31 @@ HWTEST_F(RSSpringModelTest, RSSpringModelRRectTest001, TestSize.Level1)
     EXPECT_TRUE(duration != 0.0f);
 
     GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRRectTest001 end";
+}
+
+HWTEST_F(RSSpringModelTest, ROSENLEWithEpsilonLessThanThreshold, TestSize.Level1)
+{
+    EXPECT_TRUE(ROSEN_LE(0.0f, 0.0f, 0.001f));
+    EXPECT_TRUE(ROSEN_LE(-0.5f, 0.0f, 0.001f));
+    EXPECT_TRUE(ROSEN_LE(0.0005f, 0.0f, 0.001f));
+}
+
+HWTEST_F(RSSpringModelTest, ROSENLEWithEpsilonGreaterThanThreshold, TestSize.Level1)
+{
+    EXPECT_FALSE(ROSEN_LE(0.001f, 0.0f, 0.001f));
+    EXPECT_FALSE(ROSEN_LE(0.002f, 0.0f, 0.001f));
+    EXPECT_FALSE(ROSEN_LE(1.0f, 0.0f, 0.001f));
+}
+
+HWTEST_F(RSSpringModelTest, ROSENLEWithCustomEpsilon, TestSize.Level1)
+{
+    float springMinDampingRatio = 1e-4f;
+    float springMinResponse = 1e-8f;
+    EXPECT_TRUE(ROSEN_LE(0.0f, 0.0f, springMinDampingRatio));
+    EXPECT_FALSE(ROSEN_LE(springMinDampingRatio, 0.0f, springMinDampingRatio));
+    EXPECT_FALSE(ROSEN_LE(0.001f, 0.0f, springMinDampingRatio));
+    EXPECT_TRUE(ROSEN_LE(0.0f, 0.0f, springMinResponse));
+    EXPECT_FALSE(ROSEN_LE(springMinResponse, 0.0f, springMinResponse));
 }
 } // namespace Rosen
 } // namespace OHOS

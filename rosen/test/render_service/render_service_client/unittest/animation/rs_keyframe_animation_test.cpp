@@ -15,7 +15,6 @@
 
 #include "gtest/gtest.h"
 #include "animation/rs_keyframe_animation.h"
-#include "ui/rs_ui_context_manager.h"
 #include <sys/types.h>
 #include <unistd.h>
 #ifdef ROSEN_OHOS
@@ -32,12 +31,21 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSUIContext> CreateRSUIContext();
 };
 
 void RSKeyframeAnimationTest::SetUpTestCase() {}
 void RSKeyframeAnimationTest::TearDownTestCase() {}
 void RSKeyframeAnimationTest::SetUp() {}
 void RSKeyframeAnimationTest::TearDown() {}
+
+std::shared_ptr<RSUIContext> RSKeyframeAnimationTest::CreateRSUIContext()
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    return rsUIContext;
+}
 
 /**
  * @tc.name: AddKeyFrameTest001
@@ -47,8 +55,7 @@ void RSKeyframeAnimationTest::TearDown() {}
 HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, Level1)
 {
     auto value = std::make_shared<RSProperty<float>>();
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSKeyframeAnimation rsKeyframeAnimation(rsUIContext, value);
     RSAnimationTimingCurve timingCurve;
     rsKeyframeAnimation.AddKeyFrame(1.f, value, timingCurve);
@@ -63,8 +70,7 @@ HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, Level1)
 HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest002, Level1)
 {
     auto value = std::make_shared<RSProperty<float>>();
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSKeyframeAnimation rsKeyframeAnimation(rsUIContext, value);
     RSAnimationTimingCurve timingCurve;
 

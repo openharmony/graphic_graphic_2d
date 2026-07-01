@@ -138,5 +138,35 @@ HWTEST_F(RSRenderInterfaceTest, GetMaxGpuBufferSize005, TestSize.Level1)
     int32_t ret = RSInterfaces::GetInstance().GetMaxGpuBufferSize(maxWidth, maxHeight);
     EXPECT_GE(ret, -1);
 }
+
+/**
+ * @tc.name: TakeUICaptureInRangeWithConfigInactiveNodeTest
+ * @tc.desc: Test TakeUICaptureInRangeWithConfig with inactive node to trigger FlushCanvasDrawingNodeBuffers
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ6NM
+ */
+HWTEST_F(RSRenderInterfaceTest, TakeUICaptureInRangeWithConfigInactiveNodeTest, TestSize.Level1)
+{
+    class TestSurfaceCapture : public SurfaceCaptureCallback {
+    public:
+        TestSurfaceCapture() {}
+        ~TestSurfaceCapture() {}
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelMap) override {}
+        void OnSurfaceCaptureHDR(
+            std::shared_ptr<Media::PixelMap> pixelMap, std::shared_ptr<Media::PixelMap> pixelMapHDR) override
+        {}
+    };
+    auto callback = std::make_shared<TestSurfaceCapture>();
+    auto canvasNodeBegin = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
+    auto canvasNodeEnd = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
+    bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    canvasNodeBegin->nodeState_ = RSNodeState::INACTIVE;
+    RSSurfaceCaptureConfig captureConfig;
+    auto res = rsRenderInterface_->TakeUICaptureInRangeWithConfig(
+        canvasNodeBegin, canvasNodeEnd, false, callback, captureConfig);
+    RSSystemProperties::isUniRenderEnabled_ = backupProperty;
+    EXPECT_EQ(res, true);
+}
 #endif
 } // namespace OHOS::Rosen

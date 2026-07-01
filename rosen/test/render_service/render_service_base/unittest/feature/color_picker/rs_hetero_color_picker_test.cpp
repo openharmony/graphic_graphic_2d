@@ -72,6 +72,8 @@ public:
 #endif
     MOCK_METHOD(void, SetHeadroom, (float headroom), (override));
     MOCK_METHOD(float, GetHeadroom, (), (const, override));
+    MOCK_METHOD(void, SetHdrScale, (float hdrColorScale), (override));
+    MOCK_METHOD(float, GetHdrScale, (), (const, override));
     MOCK_METHOD(int, Width, (), (const, override));
     MOCK_METHOD(int, Height, (), (const, override));
     MOCK_METHOD(Drawing::TileGranularity, GetRenderAreaGranularity, (), (override));

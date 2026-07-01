@@ -305,4 +305,48 @@ HWTEST_F(RSHwcContextTest, GetMutableSolidLayerConfig002, TestSize.Level1)
     mutableConfig.erase("com.test.solid_default");
     EXPECT_EQ(mutableConfig.size(), 0);
 }
+
+/**
+ * @tc.name: SetWindowModeType001
+ * @tc.desc: Test SetWindowModeType001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, SetWindowModeType001, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig = {{"com.test.app", "2"}};
+    std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.test.app", "2"}};
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+ 
+    std::vector<std::string> pkgs;
+    pkgs.push_back("com.test.app");
+    uint8_t windowModeType = 1;
+ 
+    hwcContext->CheckPackageInConfigList(pkgs);
+    hwcContext->SetWindowModeType(windowModeType);
+    EXPECT_EQ(hwcContext->windowModeType_, windowModeType);
+}
+ 
+/**
+ * @tc.name: IsSourceTuningConfig001
+ * @tc.desc: Test IsSourceTuningConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, IsSourceTuningConfig001, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig = {{"com.test.app", "2"}};
+    std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.test.app", "2"}};
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+    hwcContext->sourceTuningConfig_["com.test.app"] = "2";
+    
+    bool result = hwcContext->IsSourceTuningConfig("com.test.app");
+    EXPECT_TRUE(result);
+    result = hwcContext->IsSourceTuningConfig("com.test1.app");
+    EXPECT_FALSE(result);
+    result = hwcContext->IsHwcSourceTuningConfig("com.test.app");
+    EXPECT_TRUE(result);
+    result = hwcContext->IsHwcSourceTuningConfig("com.test1.app");
+    EXPECT_FALSE(result);
+}
 } // namespace OHOS::Rosen

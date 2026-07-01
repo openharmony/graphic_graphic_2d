@@ -926,10 +926,8 @@ private:
     static void TestLoadSubTree(const ArgList& args);
     static void TestClearSubTree(const ArgList& args);
 
-    static void MarshalSelfDrawingBuffers(std::stringstream& data, bool isBetaRecording);
-    static void UnmarshalSelfDrawingBuffers();
-    static void RenderToReadableBuffer(std::shared_ptr<RSSurfaceRenderNode> node, sptr<SurfaceBuffer> toSurfaceBuffer);
-    static void SurfaceNodeUpdateBuffer(std::shared_ptr<RSRenderNode> node, sptr<SurfaceBuffer> buffer);
+    static void MarshalSelfDrawingNodes(bool isBetaRecording);
+    static void UnmarshalSelfDrawingNodes();
 
     static void InitTrace3D(const ArgList& args);
     static void StopTrace3D();

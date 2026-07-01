@@ -220,5 +220,19 @@ HWTEST_F(HwcParamTest, IsSolidLayerEnable001, Function | SmallTest | Level1)
     HWCParam::SetSolidLayerEnable(false);
     ASSERT_FALSE(HWCParam::IsSolidLayerEnable());
 }
+ 
+/**
+ * @tc.name: IsSplitScreenSourceTuning001
+ * @tc.desc: Verify the IsSplitScreenSourceTuning function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, IsSplitScreenSourceTuning001, Function | SmallTest | Level1)
+{
+    HWCParam::SetSplitScreenSourceTuning(true);
+    ASSERT_TRUE(HWCParam::IsSplitScreenSourceTuning());
+    HWCParam::SetSplitScreenSourceTuning(false);
+    ASSERT_FALSE(HWCParam::IsSplitScreenSourceTuning());
+}
 } // namespace Rosen
 } // namespace OHOS

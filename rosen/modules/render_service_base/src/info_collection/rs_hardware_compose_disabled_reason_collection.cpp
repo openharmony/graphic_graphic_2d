@@ -14,6 +14,7 @@
  */
 
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,6 +35,11 @@ HwcDisabledReasonCollection::~HwcDisabledReasonCollection() noexcept
 void HwcDisabledReasonCollection::UpdateHwcDisabledReasonForDFX(NodeId id,
     int32_t disabledReason, const std::string& nodeName)
 {
+    if (disabledReason < 0 || disabledReason >= static_cast<int32_t>(HwcDisabledReasons::DISABLED_REASON_LENGTH)) {
+        RS_LOGD("HwcDisabledReasonCollection::UpdateHwcDisabledReasonForDFX disabledReason: %{public}d is invalid!",
+            disabledReason);
+        return;
+    }
     std::lock_guard<std::mutex> lock(hwcDisabledReasonMtx_);
     auto& hwcDisabledReasonInfo = hwcDisabledReasonInfoMap_[id];
     ++hwcDisabledReasonInfo.disabledReasonStatistics[disabledReason];

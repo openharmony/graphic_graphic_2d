@@ -325,6 +325,8 @@ private:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
 
+    void NotifyWindowModeTypeEvent(uint8_t windowModeType) override;
+
     ErrCode NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
         const std::vector<std::pair<std::string, std::string>>& newConfig) override;
 

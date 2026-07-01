@@ -578,4 +578,429 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationWithNullManager001, T
     EXPECT_EQ(displayNode->GetAnimationManager(), nullptr);
     EXPECT_FALSE(displayNode->IsOnlyHDRAnimation());
 }
+
+/**
+ * @tc.name: IsInBlendModeGroupNonlinearTest
+ * @tc.desc: Verify IsInBlendModeGroup with NonlinearBlendModes group
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, IsInBlendModeGroupNonlinearTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    // Nonlinear modes should return true
+    EXPECT_TRUE(displayNode->IsInBlendModeGroup(
+        static_cast<int>(RSColorBlendMode::SCREEN), RSLogicalDisplayRenderNode::NonlinearBlendModes));
+
+    // Non-nonlinear modes should return false
+    EXPECT_FALSE(displayNode->IsInBlendModeGroup(
+        static_cast<int>(RSColorBlendMode::SRC), RSLogicalDisplayRenderNode::NonlinearBlendModes));
+
+    // Boundary: negative and large values
+    EXPECT_FALSE(displayNode->IsInBlendModeGroup(-1, RSLogicalDisplayRenderNode::NonlinearBlendModes));
+}
+
+/**
+ * @tc.name: IsInBlendModeGroupMultipleGroupsTest
+ * @tc.desc: Verify IsInBlendModeGroup across Child, Empty, Parent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, IsInBlendModeGroupMultipleGroupsTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    EXPECT_TRUE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::SRC_OVER),
+        RSLogicalDisplayRenderNode::ChildBlendModes));
+    EXPECT_FALSE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::NONE),
+        RSLogicalDisplayRenderNode::EmptyBlendModes));
+    EXPECT_TRUE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::SRC_IN),
+        RSLogicalDisplayRenderNode::ParentBlendModes));
+}
+
+/**
+ * @tc.name: HasNonlinearBlendModeTest
+ * @tc.desc: Verify HasNonlinearBlendMode with all linear and nonlinear modes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HasNonlinearBlendModeTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    // Nonlinear modes
+    EXPECT_TRUE(displayNode->HasNonlinearBlendMode(static_cast<int>(RSColorBlendMode::SCREEN)));
+
+    // Linear modes
+    EXPECT_FALSE(displayNode->HasNonlinearBlendMode(static_cast<int>(RSColorBlendMode::SRC)));
+
+    // Boundary
+    EXPECT_FALSE(displayNode->HasNonlinearBlendMode(100));
+}
+
+/**
+ * @tc.name: HasChildBlendModeTest
+ * @tc.desc: Verify HasChildBlendMode for all ChildBlendModes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HasChildBlendModeTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    EXPECT_TRUE(displayNode->HasChildBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER)));
+    EXPECT_FALSE(displayNode->HasChildBlendMode(static_cast<int>(RSColorBlendMode::PLUS)));
+}
+
+/**
+ * @tc.name: HasEmptyBlendModeTest
+ * @tc.desc: Verify HasEmptyBlendMode for all EmptyBlendModes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HasEmptyBlendModeTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    EXPECT_TRUE(displayNode->HasEmptyBlendMode(static_cast<int>(RSColorBlendMode::XOR)));
+    EXPECT_FALSE(displayNode->HasEmptyBlendMode(static_cast<int>(RSColorBlendMode::DST)));
+    EXPECT_FALSE(displayNode->HasEmptyBlendMode(0));
+}
+
+/**
+ * @tc.name: HasParentBlendModeTest
+ * @tc.desc: Verify HasParentBlendMode for all ParentBlendModes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HasParentBlendModeTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    EXPECT_TRUE(displayNode->HasParentBlendMode(static_cast<int>(RSColorBlendMode::SRC)));
+    EXPECT_FALSE(displayNode->HasParentBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER)));
+}
+
+/**
+ * @tc.name: IncreaseBlendModeNodeTest
+ * @tc.desc: Verify IncreaseBlendModeNode increments counter correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, IncreaseBlendModeNodeTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+
+    displayNode->IncreaseBlendModeNode(nodeId);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 1);
+
+    displayNode->IncreaseBlendModeNode(nodeId);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 2);
+
+    // Different node id
+    NodeId nodeId2 = nodeId + 1;
+    displayNode->IncreaseBlendModeNode(nodeId2);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 3);
+
+    // Multiple increments for same node
+    displayNode->IncreaseBlendModeNode(nodeId);
+    displayNode->IncreaseBlendModeNode(nodeId);
+    displayNode->IncreaseBlendModeNode(nodeId);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 6);
+}
+
+/**
+ * @tc.name: RemoveBlendModeNodeTest
+ * @tc.desc: Verify RemoveBlendModeNode removes node from map correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, RemoveBlendModeNodeTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    // Decrease non-existing node should not crash
+    displayNode->RemoveBlendModeNode(nodeId);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+
+    // Increase then decrease
+    displayNode->IncreaseBlendModeNode(nodeId);
+    displayNode->IncreaseBlendModeNode(nodeId);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 2);
+
+    displayNode->RemoveBlendModeNode(nodeId);
+    // After decrease, node is removed entirely
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+
+    // Multiple node ids
+    NodeId nodeId2 = nodeId + 1;
+    NodeId nodeId3 = nodeId + 2;
+    displayNode->IncreaseBlendModeNode(nodeId);
+    displayNode->IncreaseBlendModeNode(nodeId2);
+    displayNode->IncreaseBlendModeNode(nodeId3);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 3);
+
+    displayNode->RemoveBlendModeNode(nodeId2);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 2);
+
+    displayNode->RemoveBlendModeNode(nodeId);
+    displayNode->RemoveBlendModeNode(nodeId3);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+}
+
+/**
+ * @tc.name: GetDstAlphaBlendModeNodeCountTest
+ * @tc.desc: Verify GetDstAlphaBlendModeNodeCount returns correct sum
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetDstAlphaBlendModeNodeCountTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    // Initially 0
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0);
+
+    // Single node multiple increments
+    displayNode->IncreaseBlendModeNode(nodeId);
+    displayNode->IncreaseBlendModeNode(nodeId);
+    displayNode->IncreaseBlendModeNode(nodeId);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 3);
+
+    // Multiple nodes
+    NodeId nodeId2 = nodeId + 1;
+    displayNode->IncreaseBlendModeNode(nodeId2);
+    displayNode->IncreaseBlendModeNode(nodeId2);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 5);
+
+    // Remove one node
+    displayNode->RemoveBlendModeNode(nodeId);
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 2);
+}
+
+/**
+ * @tc.name: CheckAncestorChildBlendModeBlendZeroEmptyCurrentTest
+ * @tc.desc: Verify CheckAncestorChildBlendMode when blendMode==0 and current is Empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, CheckAncestorChildBlendModeBlendZeroEmptyCurrentTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        0, static_cast<int>(RSColorBlendMode::SRC), false, false));
+
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        0, static_cast<int>(RSColorBlendMode::DST_ATOP), false, false));
+
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        0, static_cast<int>(RSColorBlendMode::XOR), false, false));
+}
+
+/**
+ * @tc.name: CheckAncestorChildBlendModeBlendZeroNonEmptyParentTest
+ * @tc.desc: Verify CheckAncestorChildBlendMode when blendMode==0, current not Empty, but IsParentBlendMode=true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, CheckAncestorChildBlendModeBlendZeroNonEmptyParentTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    // blendMode=0, current=SRC_IN (not Empty), IsParentBlendMode=true
+    // -> isParent=true, then check HasChildBlendMode(0)
+    // 0 is NONE which is not in ChildBlendModes => false
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        0, static_cast<int>(RSColorBlendMode::SRC_IN), false, true));
+
+    // blendMode=0, current=DST_OUT (not Empty), IsParentBlendMode=true
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        0, static_cast<int>(RSColorBlendMode::DST_OUT), false, true));
+}
+
+/**
+ * @tc.name: CheckAncestorChildBlendModeNonZeroParentBlendModeTest
+ * @tc.desc: Verify CheckAncestorChildBlendMode for non-zero blendMode with ParentBlendMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, CheckAncestorChildBlendModeNonZeroParentBlendModeTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::DST_OVER),
+        static_cast<int>(RSColorBlendMode::SRC), false, false));
+
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::SRC_OUT),
+        static_cast<int>(RSColorBlendMode::SRC_IN), false, false));
+
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::SRC),
+        static_cast<int>(RSColorBlendMode::DST_OUT), false, false));
+}
+
+/**
+ * @tc.name: CheckAncestorChildBlendModeNonParentBlendModeTest
+ * @tc.desc: Verify CheckAncestorChildBlendMode returns false when current is not ParentBlendMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, CheckAncestorChildBlendModeNonParentBlendModeTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::SRC_OVER),
+        static_cast<int>(RSColorBlendMode::DST), false, false));
+
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::DST_OVER),
+        static_cast<int>(RSColorBlendMode::SRC_OVER), false, false));
+
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::DST_OVER),
+        static_cast<int>(RSColorBlendMode::CLEAR), false, false));
+
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::SRC_OVER),
+        static_cast<int>(RSColorBlendMode::PLUS), false, false));
+}
+
+/**
+ * @tc.name: CheckAncestorChildBlendModeNonChildBlendModeTest
+ * @tc.desc: Verify CheckAncestorChildBlendMode when ParentBlendMode but not Child
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, CheckAncestorChildBlendModeNonChildBlendModeTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::DST),
+        static_cast<int>(RSColorBlendMode::SRC), false, false));
+
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::CLEAR),
+        static_cast<int>(RSColorBlendMode::SRC_IN), false, false));
+
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::PLUS),
+        static_cast<int>(RSColorBlendMode::XOR), false, false));
+}
+
+/**
+ * @tc.name: CheckAncestorChildBlendModeOverrideFlagsTest
+ * @tc.desc: Verify CheckAncestorChildBlendMode with IsEmptyBlendMode and IsParentBlendMode flags
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, CheckAncestorChildBlendModeOverrideFlagsTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    // blendMode=0, current=DST (not Empty), IsEmptyBlendMode=true => should return true
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        0, static_cast<int>(RSColorBlendMode::DST), true, false));
+
+    // blendMode=0, current=None (not Empty), IsEmptyBlendMode=true => should return true
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        0, static_cast<int>(RSColorBlendMode::NONE), true, false));
+
+    // blendMode=SRC (is Child), current=DST (not Parent), IsParentBlendMode=true => should return true
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::SRC),
+        static_cast<int>(RSColorBlendMode::DST), false, true));
+
+    // blendMode=DST_OVER (is Child), current=CLEAR (not Parent), IsParentBlendMode=true => should return true
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::DST_OVER),
+        static_cast<int>(RSColorBlendMode::CLEAR), false, true));
+
+    // blendMode=SRC (is Child), IsParentBlendMode=false, current=DST_IN (is Parent) => should return true
+    EXPECT_TRUE(displayNode->CheckAncestorChildBlendMode(
+        static_cast<int>(RSColorBlendMode::SRC),
+        static_cast<int>(RSColorBlendMode::DST_IN), false, false));
+}
+
+/**
+ * @tc.name: CheckAncestorChildBlendModeBoundaryTest
+ * @tc.desc: Verify CheckAncestorChildBlendMode with boundary values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, CheckAncestorChildBlendModeBoundaryTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(displayNode, nullptr);
+
+    // blendMode=0, current not Empty, not Parent, with empty flag false
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        0, static_cast<int>(RSColorBlendMode::SRC_OVER), false, false));
+
+    // blendMode=0, current=DARKEN (not Empty), not Parent
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        0, static_cast<int>(RSColorBlendMode::DARKEN), false, false));
+
+    // Non-zero blendMode not in ChildBlendModes
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        -1, static_cast<int>(RSColorBlendMode::SRC), false, false));
+
+    EXPECT_FALSE(displayNode->CheckAncestorChildBlendMode(
+        100, static_cast<int>(RSColorBlendMode::SRC_IN), false, false));
+}
+
 } // namespace OHOS::Rosen

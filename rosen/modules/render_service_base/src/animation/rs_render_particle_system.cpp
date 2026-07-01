@@ -15,9 +15,11 @@
 
 #include "animation/rs_render_particle_system.h"
 
+#include <algorithm>
 #include <cstddef>
 
 #include "animation/rs_particle_ripple_field.h"
+#include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
 RSRenderParticleSystem::RSRenderParticleSystem(
@@ -91,6 +93,87 @@ void RSRenderParticleSystem::UpdateParticle(
             }
         }
     }
+}
+
+void RSRenderParticleSystem::Warmup(int64_t totalTimeNs,
+    std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles, std::vector<std::shared_ptr<RSImage>>& imageVector)
+{
+    if (totalTimeNs <= 0) {
+        return;
+    }
+    WarmupFields(totalTimeNs);
+    for (auto& emitter : emitters_) {
+        WarmupEmitter(emitter, totalTimeNs, activeParticles);
+    }
+    imageVector = imageVector_;
+}
+
+void RSRenderParticleSystem::WarmupFields(int64_t totalTimeNs)
+{
+    const float totalSec = static_cast<float>(totalTimeNs) / NS_TO_S;
+    if (particleRippleFields_ != nullptr) {
+        for (auto& rf : particleRippleFields_->rippleFields_) {
+            if (rf != nullptr) {
+                rf->lifeTime_ = 0.f;
+            }
+        }
+        particleRippleFields_->UpdateAllRipples(totalSec);
+    }
+    if (particleFields_ != nullptr) {
+        for (auto& f : particleFields_->fields_) {
+            if (f != nullptr && f->GetType() == ParticleFieldType::RIPPLE) {
+                static_cast<ParticleRippleField*>(f.get())->lifeTime_ = 0.f;
+            }
+        }
+        particleFields_->UpdateAll(totalSec);
+    }
+}
+
+void RSRenderParticleSystem::WarmupEmitter(const std::shared_ptr<RSRenderParticleEmitter>& emitter,
+    int64_t totalTimeNs, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles)
+{
+    constexpr int MAX_EMIT_RATE = 5000;
+    constexpr int64_t INFINITE_LIFE_NS = -1 * NS_PER_MS;
+    constexpr int MAX_FILL_PER_EMITTER = 20000;
+    if (emitter == nullptr) {
+        return;
+    }
+    const auto& params = emitter->GetParticleParams();
+    if (params == nullptr) {
+        return;
+    }
+    int emitRate = std::min(params->GetEmitRate(), MAX_EMIT_RATE);
+    if (emitRate <= 0) {
+        return;
+    }
+    int maxParticle = params->GetParticleCount();
+    bool infiniteCount = (maxParticle < 0);
+    int64_t lifeStartNs = params->GetLifeTimeStartValue();
+    int64_t lifeEndNs = params->GetLifeTimeEndValue();
+    bool infiniteLife = (lifeStartNs == INFINITE_LIFE_NS && lifeEndNs == INFINITE_LIFE_NS);
+    const float totalSec = static_cast<float>(totalTimeNs) / NS_TO_S;
+    float emittedF = static_cast<float>(emitRate) * totalSec;
+    if (!infiniteCount) {
+        emittedF = std::min(emittedF, static_cast<float>(maxParticle));
+    }
+    int emittedCount = std::min(static_cast<int>(emittedF), MAX_FILL_PER_EMITTER);
+    for (int k = 0; k < emittedCount; k++) {
+        int64_t activeTimeNs = static_cast<int64_t>(static_cast<float>(k) / static_cast<float>(emitRate) * NS_TO_S);
+        if (activeTimeNs > totalTimeNs || (!infiniteLife && activeTimeNs >= lifeEndNs)) {
+            break;
+        }
+        auto particle = std::make_shared<RSRenderParticle>(params);
+        if (particleFields_) {
+            UpdateToActiveTime(particle, particleFields_, activeTimeNs);
+        } else {
+            UpdateToActiveTime(
+                particle, particleNoiseFields_, particleRippleFields_, particleVelocityFields_, activeTimeNs);
+        }
+        if (particle->IsAlive()) {
+            activeParticles.push_back(particle);
+        }
+    }
+    emitter->SetEmittedCount(emittedF);
 }
 
 bool RSRenderParticleSystem::IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles)

@@ -32,6 +32,7 @@ public:
     ~RSRenderServiceListener() override;
     void OnBufferAvailable() override;
     void OnTunnelHandleChange() override;
+    void OnTunnelLayerInfoChanged(const TunnelLayerState& state) override;
     void OnCleanCache(uint32_t *bufSeqNum) override;
     void OnGoBackground() override;
     void OnTransformChange() override;
@@ -53,7 +54,7 @@ private:
     std::shared_ptr<RSComposerClientManager> composerClientManager_;
     uint64_t nodeId_ = 0;
 
-    void ConsumeBufferToKeepQueueRunning(std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
+    void ConsumeBufferToKeepQueueRunning(std::weak_ptr<RSSurfaceHandler> surfaceHandler);
     void ProcessPendingCallbacks();
     std::string name_;
     std::mutex pendingStateMutex_;

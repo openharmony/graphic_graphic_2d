@@ -70,10 +70,7 @@ public:
         needDraw_ = flag;
     }
 
-    std::shared_ptr<Drawing::Image> Snapshot() const override
-    {
-        return image_;
-    }
+    std::shared_ptr<Drawing::Image> Snapshot() const override;
 
     RSRenderNodeDrawableType GetDrawableType() const override
     {
@@ -82,8 +79,6 @@ public:
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     sptr<IConsumerSurface> GetConsumerSurface() const;
-
-    void DrawCustomContent(Drawing::Canvas& canvas) override;
 #endif
 
 protected:
@@ -101,12 +96,14 @@ private:
     bool ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
     bool GpuContextResetGL(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
     bool GpuContextResetVK(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
-    Drawing::TextureOrigin GetTextureOrigin();
+    Drawing::TextureOrigin GetTextureOrigin() const;
     void DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds);
     void ResetResource();
     bool CreateCpuSurface(const Drawing::ImageInfo& imageInfo);
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas);
+    void DrawCustomContent(Drawing::Canvas& canvas);
+    void DrawCustomContentForCapture(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    std::shared_ptr<Drawing::Image> CreateImageFromBuffer(sptr<SurfaceBuffer> buffer) const;
 #endif
 #ifdef RS_ENABLE_VK
     bool ReleaseSurfaceVK(int width, int height, bool& isDmaBackendTexture);
@@ -128,8 +125,8 @@ private:
 #endif // RS_ENABLE_VK
 
     bool ResetSurfaceforPlayback(int width, int height);
-    bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
-    std::shared_ptr<Drawing::GPUContext> GetGpuContext();
+    bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext) const;
+    std::shared_ptr<Drawing::GPUContext> GetGpuContext() const;
     NodeId GetNodeIdForMemTag();
     bool IsNeedResetSurface() const;
     void FlushForGL(float width, float height, std::shared_ptr<RSContext> context,

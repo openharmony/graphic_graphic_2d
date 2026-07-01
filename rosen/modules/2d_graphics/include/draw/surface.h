@@ -243,6 +243,8 @@ public:
 
     sk_sp<SkSurface> GetSkSurface() const;
 
+    void SetHdrScale(float hdrScale);
+    float GetHdrScale() const;
 private:
     template<typename T>
     T* GetImpl() const

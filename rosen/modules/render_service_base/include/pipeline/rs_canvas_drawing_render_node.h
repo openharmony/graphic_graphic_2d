@@ -166,6 +166,7 @@ private:
 
     friend class RSCanvasDrawingNodeCommandHelper;
     friend class RSRenderNode;
+    friend class RSPipelineDumper;
 };
 
 } // namespace Rosen

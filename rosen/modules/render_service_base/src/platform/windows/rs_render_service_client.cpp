@@ -594,6 +594,10 @@ void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vec
 {
 }
 
+void RSRenderServiceClient::NotifyWindowModeTypeEvent(uint8_t windowModeType)
+{
+}
+
 void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
     const std::vector<std::pair<std::string, std::string>>& newConfig)
 {

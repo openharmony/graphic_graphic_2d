@@ -51,12 +51,14 @@ void RSDynamicLayerSkipController::Init(const RectI& screenRect, bool globalDisa
     occluderInstanceRootNodeId_ = INVALID_NODEID;
     targetSelfDrawingSurface_.clear();
     visitedRenderNodeCount_ = 0;
+    lastFrameHasFullScreenSurface_ = hasFullScreenSurface_;
+    hasFullScreenSurface_ = false;
 }
 
 void RSDynamicLayerSkipController::CheckNodeDrawProperty(RSRenderNode& node)
 {
     // functions to decide whether a node has draw content or not.
-    if (node.layerContentBits_[LayerDrawContent::UPDATE]) {
+    if (GetBit(node, LayerDrawContent::UPDATE)) {
         visitedRenderNodeCount_++;
         bool nodeVisible = ROSEN_NE(node.GetGlobalAlpha(), 0.f) && !node.IsPureContainer() && node.ShouldPaint();
         bool hasValidDrawableSlot = false;
@@ -73,28 +75,18 @@ void RSDynamicLayerSkipController::CheckNodeDrawProperty(RSRenderNode& node)
             || HasDrawContentDrawableInRange(
                 node, RSDrawableSlot::EXTRA_PROPERTIES_BEGIN, RSDrawableSlot::EXTRA_PROPERTIES_END);
         }
-        node.layerContentBits_[LayerDrawContent::SELF] = nodeVisible && hasValidDrawableSlot;
-        node.layerContentBits_[LayerDrawContent::UPDATE] = false;
-    }
-    MarkParentSubTreeHasDrawContent(node);
-}
-
-void RSDynamicLayerSkipController::MarkParentSubTreeHasDrawContent(RSRenderNode& node) const
-{
-    if (!node.layerContentBits_[LayerDrawContent::SELF] && !node.layerContentBits_[LayerDrawContent::SUBTREE]) {
-        return;
-    }
-    auto parent = node.GetParent().lock();
-    if (parent && !parent->layerContentBits_[LayerDrawContent::SUBTREE]) {
-        parent->layerContentBits_[LayerDrawContent::SUBTREE] = true;
-        MarkParentSubTreeHasDrawContent(*parent);
+        SetBit(node, LayerDrawContent::SELF, nodeVisible && hasValidDrawableSlot);
+        // self-drawing surface node is considered to has draw content.
+        auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+        OrBit(node, LayerDrawContent::SELF, surfaceNode && surfaceNode->IsSelfDrawingType());
+        SetBit(node, LayerDrawContent::UPDATE, false);
     }
 }
 
 bool RSDynamicLayerSkipController::HasDrawContentDrawableInRange(
     const RSRenderNode& node, RSDrawableSlot begin, RSDrawableSlot end) const
 {
-    if (node.drawableVec_ == nullptr) {
+    if (UNLIKELY(node.drawableVec_ == nullptr)) {
         return false;
     }
     auto& drawableVec = *node.drawableVec_;
@@ -107,31 +99,62 @@ bool RSDynamicLayerSkipController::HasDrawContentDrawableInRange(
     });
 }
 
+void RSDynamicLayerSkipController::VisitRenderNodeInner(std::shared_ptr<RSRenderNode> node, bool needTraverse)
+{
+    if (UNLIKELY(node == nullptr)) {
+        return;
+    }
+
+    CheckNodeDrawProperty(*node);
+    auto children = node->GetSortedChildren();
+    if (needTraverse && children != nullptr && GetBit(*node, LayerDrawContent::SUBTREE_UPDATE)) {
+        SetBit(*node, LayerDrawContent::SUBTREE_UPDATE, false);
+        SetBit(*node, LayerDrawContent::SUBTREE, false);
+        std::for_each((*children).begin(), (*children).end(), [this, &node](const auto& child) {
+            VisitRenderNodeInner(child, true);
+            OrBit(*node, LayerDrawContent::SUBTREE, child == nullptr ?
+                false : GetBit(*child, LayerDrawContent::SUBTREE) || GetBit(*child, LayerDrawContent::SELF));
+        });
+    }
+    if (!globalOccluderDetected_) {
+        // for canvas node above surface node, check its prop without considering its subtree.
+        // for surface node and other nodes below it, check its prop and also its subtree.
+        bool occluderDetected =
+        (!needTraverse && GetBit(*node, LayerDrawContent::SELF)) ||
+        (needTraverse && (GetBit(*node, LayerDrawContent::SELF) || GetBit(*node, LayerDrawContent::SUBTREE)));
+        if (occluderDetected) {
+            globalOccluderDetected_ = true;
+            occluderInstanceRootNodeId_ = node->GetInstanceRootNodeId();
+            RS_TRACE_NAME_FMT("%s node[%" PRIu64 "] is detected as global occluder", __func__, node->GetId());
+        }
+    }
+}
+
 void RSDynamicLayerSkipController::VisitRenderNode(std::shared_ptr<RSSurfaceRenderNode> surfaceNode, RSRenderNode& node)
 {
+    if (!lastFrameHasFullScreenSurface_ || globalOccluderDetected_) {
+        return;
+    }
     if (surfaceNode && surfaceNode->GetSkipDraw()) {
         RS_OPTIONAL_TRACE_NAME_FMT("%s visit node:%s, which will skip draw", __func__, surfaceNode->GetName().c_str());
         return;
     }
-    CheckNodeDrawProperty(node);
-    if (node.IsInstanceOf<RSSurfaceRenderNode>()) {
-        auto& surfaceNodeRef = static_cast<RSSurfaceRenderNode&>(node);
-        node.layerContentBits_[LayerDrawContent::SELF] =
-            node.layerContentBits_[LayerDrawContent::SELF] || surfaceNodeRef.IsSelfDrawingType();
-    }
-    if (!globalOccluderDetected_ &&
-        (node.layerContentBits_[LayerDrawContent::SELF] || node.layerContentBits_[LayerDrawContent::SUBTREE])) {
-            globalOccluderDetected_ = true;
-            occluderInstanceRootNodeId_ = surfaceNode == nullptr ? INVALID_NODEID : surfaceNode->GetId();
-            RS_TRACE_NAME_FMT("%s visit node:[%" PRIu64 "]. This node is detected as global occluder",
-                __func__, node.GetId());
+    if (surfaceNode == nullptr) {
+        // for canvas node above surface node, check its prop without traverse its subtree.
+        VisitRenderNodeInner(node.shared_from_this(), false);
+    } else if (surfaceNode->GetId() == node.GetId()) {
+        // for surfaceNode, traverse itself and its subtree.
+        VisitRenderNodeInner(node.shared_from_this(), true);
     }
 }
 
-bool RSDynamicLayerSkipController::HasFullScreenSelfDrawingSurface(RSSurfaceRenderNode& rootNode) const
+bool RSDynamicLayerSkipController::HasFullScreenSelfDrawingSurface(RSSurfaceRenderNode& rootNode)
 {
+    if (rootNode.GetSurfaceWindowType() != SurfaceWindowType::DEFAULT_WINDOW) {
+        return false;
+    }
     const auto& childrenHardwareEnabledNodes = rootNode.GetChildHardwareEnabledNodes();
-    return std::any_of(childrenHardwareEnabledNodes.begin(), childrenHardwareEnabledNodes.end(),
+    bool hasFullScreenSurface = std::any_of(childrenHardwareEnabledNodes.begin(), childrenHardwareEnabledNodes.end(),
         [screenRect = screenRect_](const auto& childNode) {
             auto nodePtr = childNode.lock();
             if (!nodePtr) {
@@ -141,12 +164,14 @@ bool RSDynamicLayerSkipController::HasFullScreenSelfDrawingSurface(RSSurfaceRend
                 "Fullscreen surface?[%" PRIu64 "] dst: %s", nodePtr->GetId(), nodePtr->GetDstRect().ToString().c_str());
             return nodePtr->GetDstRect() == screenRect;
         });
+    hasFullScreenSurface_ = hasFullScreenSurface_ || hasFullScreenSurface;
+    return hasFullScreenSurface;
 }
 
 void RSDynamicLayerSkipController::DetectScreenLayerValidityInner(
     std::shared_ptr<RSRenderNode> node, Occlusion::Region& targetArea, int32_t totalTargetCount)
 {
-    if (node == nullptr) {
+    if (UNLIKELY(node == nullptr)) {
         return;
     }
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
@@ -157,14 +182,14 @@ void RSDynamicLayerSkipController::DetectScreenLayerValidityInner(
         targetArea.OrSelf(Occlusion::Rect(surfaceNode->GetDstRect()));
     } else if (targetSelfDrawingSurface_.size() < static_cast<size_t>(totalTargetCount)) {
         // case2: for other render nodes, if there are still self-drawing nodes, recording detailed information.
-        if (node->layerContentBits_[LayerDrawContent::SELF]) {
+        if (GetBit(*node, LayerDrawContent::SELF)) {
             targetArea.SubSelf(Occlusion::Rect(node->GetAbsDrawRect()));
             RS_OPTIONAL_TRACE_NAME_FMT("Detected Occluder[%" PRIu64 "]: %s.",
                 node->GetId(), node->GetAbsDrawRect().ToString().c_str());
         }
     } else {
         // case3: for other render nodes, if self-drawing nodes are all visited, recording rough information.
-        if (node->layerContentBits_[LayerDrawContent::SELF] || node->layerContentBits_[LayerDrawContent::SUBTREE]) {
+        if (GetBit(*node, LayerDrawContent::SELF) || GetBit(*node, LayerDrawContent::SUBTREE)) {
             const auto& boundsGeo = node->GetRenderProperties().GetBoundsGeometry();
             auto nodeSubtreeRect =
                 boundsGeo->MapAbsRect(node->selfDrawRect_.JoinRect(node->childrenRect_.ConvertTo<float>()));
@@ -191,11 +216,11 @@ void RSDynamicLayerSkipController::DetectScreenLayerValidity(RSSurfaceRenderNode
                                   rootNode.IsAppWindow() &&
                                   hasFullScreenSelfDrawingSurface &&
                                   (!globalOccluderDetected_ || occluderInstanceRootNodeId_ == rootNode.GetId()) &&
-                                  targetSelfDrawingSurface_.empty();
+                                  targetSelfDrawingSurface_.empty() && lastFrameHasFullScreenSurface_;
     if (!shouldProceedDetection) {
-        RS_OPTIONAL_TRACE_NAME_FMT("%s skip detect node:[%s], isApp[%d] hasFullSurface[%d] occluderDetected[%d]",
-            __func__, rootNode.GetName().c_str(), rootNode.IsAppWindow(), hasFullScreenSelfDrawingSurface,
-            globalOccluderDetected_);
+        RS_OPTIONAL_TRACE_NAME_FMT("%s skip detect node:[%s], isApp[%d] hasFullSurface[%d] occluderDetected[%d]"
+            " fullscreen mode[%d]", __func__, rootNode.GetName().c_str(), rootNode.IsAppWindow(),
+            hasFullScreenSelfDrawingSurface, globalOccluderDetected_, lastFrameHasFullScreenSurface_);
         return;
     }
 
@@ -232,7 +257,7 @@ void RSDynamicLayerSkipController::VerifyScreenLayerValidity(float screenNodeGlo
         [screenNodeGlobalZOrder](const auto& surfaceWeakPtr) {
             auto surfacePtr = surfaceWeakPtr.lock();
             auto surfaceHandler = surfacePtr ? surfacePtr->GetRSSurfaceHandler() : nullptr;
-            if (surfacePtr == nullptr || surfaceHandler == nullptr) {
+            if (UNLIKELY(surfacePtr == nullptr || surfaceHandler == nullptr)) {
                 return true;
             }
             if (surfacePtr->IsHardwareForcedDisabled()) {

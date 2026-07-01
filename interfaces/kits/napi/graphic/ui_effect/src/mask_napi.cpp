@@ -60,12 +60,20 @@ bool ParsePixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMa
             return false;
         }
         pixelMap = tempPixelMap->GetPixelNapiInner();
+        if (pixelMap == nullptr) {
+            MASK_LOG_E("Get PixelMapNapi pixelMap is nullptr!");
+            return false;
+        }
         return true;
     }
 
     ret = napi_instanceof(env, argv, constructor, &isInstance);
     if (ret == napi_ok && isInstance) {
         pixelMap = Media::PixelMapNapi::GetPixelMap(env, argv);
+        if (pixelMap == nullptr) {
+            MASK_LOG_E("Get PixelMap pixelMap is nullptr!");
+            return false;
+        }
         return true;
     }
 
@@ -250,13 +258,16 @@ bool ParseWaveGradientMask(
 bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<float>& colors, std::vector<float>& positions)
 {
     bool isArray = false;
-    napi_is_array(env, valuesArray, &isArray);
-    if (!isArray) {
+    if (napi_is_array(env, valuesArray, &isArray) != napi_ok || !isArray) {
         return false;
     }
 
     uint32_t length = 0;
     if (napi_get_array_length(env, valuesArray, &length) != napi_ok) {
+        return false;
+    }
+    if (length > NUM_1000) {
+        MASK_LOG_E("ParseValueArray length %{public}u exceeds limit 1000", length);
         return false;
     }
     colors.reserve(length);

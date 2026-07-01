@@ -3004,6 +3004,14 @@
     "connectionType": 1
   },
   {
+    "testCaseDesc": "NOTIFY_WINDOW_MODE_TYPE_EVENT_TEST_001",
+    "interfaceName": "NOTIFY_WINDOW_MODE_TYPE_EVENT",
+    "inputParams": "WriteUint8",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC",
+    "connectionType": 1
+  },
+  {
     "testCaseDesc": "NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID_TEST_001",
     "interfaceName": "NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID",
     "inputParams": "WriteUint32;WriteUint64AndEventInfoPairVector",

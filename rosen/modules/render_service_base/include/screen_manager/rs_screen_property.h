@@ -62,6 +62,8 @@ enum class ScreenPropertyType : uint32_t {
     SCREEN_FRAME_GRAVITY,
     MULTI_SURFACE_CONFIGS,  // Multi-surface virtual screen: vector of SurfaceRegionConfig
     IS_MAIN_SCREEN,
+    IS_ROG_RESOLUTION,
+    IS_HDI_ROG_ENABLE,
 
     SCREEN_PROPERTY_TYPE_SIZE,  // record num of property type
 };
@@ -141,6 +143,8 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::MULTI_SURFACE_CONFIGS, MultiSurfaceCon
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::MULTI_SURFACE_CONFIGS, void*, nullptr);
 #endif
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_MAIN_SCREEN, bool, false);
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_ROG_RESOLUTION, bool, false);
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_HDI_ROG_ENABLE, bool, false);
 
 class ScreenPropertyBase : public Parcelable {
 public:
@@ -240,6 +244,8 @@ public:
     bool IsScreenSwitching() const;
     Gravity GetFrameGravity() const;
     bool IsMainScreen() const;
+    bool IsRogResolution() const;
+    bool GetHdiRogEnable() const;
 
     ScreenInfo GetScreenInfo() const;
 
@@ -281,7 +287,7 @@ private:
         return property->Get();
     }
 
-    std::map<ScreenPropertyType, sptr<ScreenPropertyBase>> screenProperties_;
+    std::unordered_map<ScreenPropertyType, sptr<ScreenPropertyBase>> screenProperties_;
 
     friend class RSScreenThreadSafeProperty;
 };

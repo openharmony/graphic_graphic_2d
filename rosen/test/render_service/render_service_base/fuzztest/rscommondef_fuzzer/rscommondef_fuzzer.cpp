@@ -72,6 +72,7 @@ bool DoInline(const uint8_t* data, size_t size)
     ROSEN_GNE(valuex, valuey);
     ROSEN_GE(valuex, valuey);
     ROSEN_LE(valuex, valuey);
+    ROSEN_LE(valuex, valuey, epsilon);
 
     uint64_t id = GetData<uint64_t>();
     ExtractPid(id);

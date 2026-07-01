@@ -28,13 +28,14 @@ namespace OHOS {
 namespace Rosen {
 namespace {
     constexpr size_t CLEANUP_THRESHOLD = 500;
+    // Thread-safety: all Instance/ReleaseInstance calls are serialized on RSMainThread
+    // (uni-render) or RSRenderThread (non-uni) via the RSRenderNodeGC bucket drain mechanism.
+    // Do NOT call these from other threads without re-adding mutex protection.
     std::unordered_map<NodeId, std::unique_ptr<RSPointLightManager>> g_managersLUT;
-    std::mutex g_mutex;
 }
 
 const std::unique_ptr<RSPointLightManager>& RSPointLightManager::Instance(NodeId logicalDisplayNodeId)
 {
-    std::lock_guard<std::mutex> lock(g_mutex);
     auto it = g_managersLUT.find(logicalDisplayNodeId);
     if (it != g_managersLUT.end()) {
         return it->second;
@@ -45,7 +46,6 @@ const std::unique_ptr<RSPointLightManager>& RSPointLightManager::Instance(NodeId
 
 void RSPointLightManager::ReleaseInstance(NodeId logicalDisplayNodeId)
 {
-    std::lock_guard<std::mutex> lock(g_mutex);
     auto it = g_managersLUT.find(logicalDisplayNodeId);
     if (it != g_managersLUT.end()) {
         it->second.reset();

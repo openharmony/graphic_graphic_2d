@@ -218,6 +218,7 @@ private:
     friend class RSRenderCurveAnimation;
     friend class RSRenderTimeDrivenGroupAnimator;
     friend class RSModifierManager;
+    friend class RSAnimationManager;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

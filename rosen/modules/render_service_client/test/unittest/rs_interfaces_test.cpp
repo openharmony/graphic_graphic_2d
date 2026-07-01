@@ -1525,6 +1525,20 @@ HWTEST_F(RSInterfacesTest, NotifyPackageEvent001, Function | SmallTest | Level0)
 }
 
 /*
+ * @tc.name: NotifyWindowModeTypeEvent001
+ * @tc.desc: Notify window mode type event to render service client
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyWindowModeTypeEvent001, Function | SmallTest | Level0)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint8_t windowModeType = 1;
+    rsInterfaces->NotifyWindowModeTypeEvent(windowModeType);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: NotifyAppStrategyConfigChangeEvent001
  * @tc.desc: Notify current package list to hgm
  * @tc.type: FUNC

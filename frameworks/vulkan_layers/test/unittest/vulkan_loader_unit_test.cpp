@@ -84,6 +84,7 @@ public:
     static inline PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
     static inline PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
     static inline PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
+    static inline PFN_vkGetPhysicalDeviceFeatures2 vkGetPhysicalDeviceFeatures2;
     static inline PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
     static inline PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
     static inline PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
@@ -1814,4 +1815,99 @@ HWTEST_F(VulkanLoaderUnitTest, vkCreateDevice_HuaweiHdrVivid_Test, TestSize.Leve
         vkDestroyDevice(logicalDevice, nullptr);
     }
 }
+
+/**
+* @tc.name: test vkGetPhysicalDeviceFeatures2
+* @tc.desc: test vkGetPhysicalDeviceFeatures2 basic call
+* @tc.type: FUNC
+* @tc.require: issueI6SKRO
+*/
+HWTEST_F(VulkanLoaderUnitTest, vkGetPhysicalDeviceFeatures2_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        vkGetPhysicalDeviceFeatures2 = reinterpret_cast<PFN_vkGetPhysicalDeviceFeatures2>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceFeatures2"));
+        EXPECT_NE(vkGetPhysicalDeviceFeatures2, nullptr);
+
+        VkPhysicalDeviceFeatures2 features = {};
+        features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        features.pNext = nullptr;
+        vkGetPhysicalDeviceFeatures2(physicalDevice_, &features);
+    }
+}
+
+/**
+* @tc.name: test vkGetPhysicalDeviceFeatures2 with HDR vivid features
+* @tc.desc: test vkGetPhysicalDeviceFeatures2 with VkPhysicalDeviceHdrVividFeaturesHUAWEI in pNext chain
+* @tc.type: FUNC
+* @tc.require: issueI6SKRO
+*/
+HWTEST_F(VulkanLoaderUnitTest, vkGetPhysicalDeviceFeatures2_HdrVivid_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        vkGetPhysicalDeviceFeatures2 = reinterpret_cast<PFN_vkGetPhysicalDeviceFeatures2>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceFeatures2"));
+        EXPECT_NE(vkGetPhysicalDeviceFeatures2, nullptr);
+
+        VkPhysicalDeviceHdrVividFeaturesHUAWEI vividFeatures = {};
+        vividFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HDR_VIVID_FEATURES_HUAWEI;
+        vividFeatures.pNext = nullptr;
+        vividFeatures.hdrVivid = VK_FALSE;
+
+        VkPhysicalDeviceFeatures2 features = {};
+        features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        features.pNext = &vividFeatures;
+
+        vkGetPhysicalDeviceFeatures2(physicalDevice_, &features);
+        EXPECT_EQ(vividFeatures.hdrVivid, VK_TRUE);
+    }
+}
+
+/**
+* @tc.name: test vkGetPhysicalDeviceFeatures2KHR
+* @tc.desc: test vkGetPhysicalDeviceFeatures2KHR basic call
+* @tc.type: FUNC
+* @tc.require: issueI6SKRO
+*/
+HWTEST_F(VulkanLoaderUnitTest, vkGetPhysicalDeviceFeatures2KHR_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        auto vkGetPhysicalDeviceFeatures2KHR = reinterpret_cast<PFN_vkGetPhysicalDeviceFeatures2>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceFeatures2KHR"));
+        EXPECT_NE(vkGetPhysicalDeviceFeatures2KHR, nullptr);
+
+        VkPhysicalDeviceFeatures2 features = {};
+        features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        features.pNext = nullptr;
+        vkGetPhysicalDeviceFeatures2KHR(physicalDevice_, &features);
+    }
+}
+
+/**
+* @tc.name: test vkGetPhysicalDeviceFeatures2KHR with HDR vivid features
+* @tc.desc: test vkGetPhysicalDeviceFeatures2KHR with VkPhysicalDeviceHdrVividFeaturesHUAWEI in pNext chain
+* @tc.type: FUNC
+* @tc.require: issueI6SKRO
+*/
+HWTEST_F(VulkanLoaderUnitTest, vkGetPhysicalDeviceFeatures2KHR_HdrVivid_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        auto vkGetPhysicalDeviceFeatures2KHR = reinterpret_cast<PFN_vkGetPhysicalDeviceFeatures2>(
+            vkGetInstanceProcAddr(instance_, "vkGetPhysicalDeviceFeatures2KHR"));
+        EXPECT_NE(vkGetPhysicalDeviceFeatures2KHR, nullptr);
+
+        VkPhysicalDeviceHdrVividFeaturesHUAWEI vividFeatures = {};
+        vividFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HDR_VIVID_FEATURES_HUAWEI;
+        vividFeatures.pNext = nullptr;
+        vividFeatures.hdrVivid = VK_FALSE;
+
+        VkPhysicalDeviceFeatures2 features = {};
+        features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        features.pNext = &vividFeatures;
+
+        vkGetPhysicalDeviceFeatures2KHR(physicalDevice_, &features);
+        EXPECT_EQ(vividFeatures.hdrVivid, VK_TRUE);
+    }
+}
+
 } // namespace vulkan::loader

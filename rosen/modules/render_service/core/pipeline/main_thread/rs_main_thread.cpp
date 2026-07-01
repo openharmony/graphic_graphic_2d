@@ -330,6 +330,7 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
         return;
     }
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().SendRcdMessage(id, screenProperty);
         RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
             [id, &processor, &rcdInfo](void) {
                 auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id);
@@ -541,12 +542,14 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
         ProcessDelegateCompositeCommand();
         ConsumeAndUpdateAllNodes();
+        RSLayerSplitManager::GetInstance()->Reset(vsyncId_);
         ClearNeedDropframePidList();
         if (renderThreadParams_) {
             renderThreadParams_->ClearWhiteListRect();
         }
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
+        RSLayerSplitManager::GetInstance()->MoveSplitSurfaceNode();
         RsFrameBlurPredict::GetInstance().AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
         UpdateSubSurfaceCnt();
         Animate(timestamp_);
@@ -849,6 +852,7 @@ void RSMainThread::CleanRenderNodes(pid_t remotePid) noexcept
     RS_PROFILER_KILL_PID_END();
 
     RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+    context.DestoryUIRenderDirectorByPid(remotePid);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -901,7 +905,7 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
 
 bool RSMainThread::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
-    RS_LOGI("GetMaxGpuBufferSize: start query GPU buffer size limits");
+    RS_LOGD("GetMaxGpuBufferSize: start query GPU buffer size limits");
 
 #if !defined(RS_ENABLE_GL) && !defined(RS_ENABLE_VK)
     RS_LOGE("GetMaxGpuBufferSize: No GPU backend enabled");
@@ -1678,11 +1682,6 @@ void RSMainThread::ProcessCommandForUniRender()
         CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);
     }
     DelayedSingleton<RSFrameRateVote>::GetInstance()->SetTransactionFlags(transactionFlags);
-    if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
-        doDirectComposition_ = false;
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by transactionDataEffective not empty");
-        UpdateDoDirectCompositionFlagForDelegateMode(transactionDataEffective);
-    }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     if (transactionFlags != "") {
         transactionFlags_ = transactionFlags;
@@ -1709,6 +1708,11 @@ void RSMainThread::ProcessCommandForUniRender()
         if (isWebCommandOnly_ && doDirectComposition_) {
             transactionDataEffective->clear();
         } else {
+            if (!RSLayerSplitManager::GetInstance()->CheckDoDirectCompositionWithSplitLayer(
+                transactionDataEffective, doDirectComposition_)) {
+                doDirectComposition_ = false;
+                RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by transactionDataEffective not empty");
+            }
             RSBackgroundThread::Instance().PostTask([transactionDataEffective]() {
                 RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
                 transactionDataEffective->clear();
@@ -2031,12 +2035,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 comsumeResult = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
                     *surfaceHandler, timestamp_, dropFrameConfig,
                     parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
-                if (comsumeResult) {
-                    tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
-                }
-                if (!comsumeResult) {
-                    tunnelRouteArbiter_->AbandonNormalClaim(surfaceNode);
-                }
+                tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
             } else if (outcome == RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT) {
                 comsumeResult = true;
             }
@@ -3173,7 +3172,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 processor->CreateLayer(*surfaceNode, *params);
                 // buffer is synced to directComposition
                 params->SetBufferSynced(true);
-                RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId()).OnRenderCommitDone();
             }
         }
         rsLuminance.SetHdrStatus(screenId,
@@ -3182,6 +3180,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             screenNode->SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
         }
         RSLuminanceControl::Get().HdrDimmingPostProcess(screenId);
+        screenNode->SetLastDisplayHdrStatus(screenNode->GetDisplayHdrStatus());
         RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
         auto rcdInfo = std::make_unique<RcdInfo>();
         DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenNode->GetScreenProperty());
@@ -4143,7 +4142,7 @@ void RSMainThread::UpdateDirectCompositionByAnimate(bool animateNeedRequestNextV
     // to false.
     if (animateNeedRequestNextVsync || (!animateNeedRequestNextVsync && lastAnimateNeedRequestNextVsync_)) {
         doDirectComposition_ = false;
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by animate");
+        RS_TRACE_NAME("hwc debug: disable directComposition by animate");
     }
     lastAnimateNeedRequestNextVsync_ = animateNeedRequestNextVsync;
 }
@@ -6068,6 +6067,13 @@ void RSMainThread::TransitionDataMutexUnlock()
 void RSMainThread::CheckPackageInConfigList(const std::vector<std::string>& packageList)
 {
     hwcContext_->CheckPackageInConfigList(packageList);
+}
+
+void RSMainThread::SetWindowModeType(uint8_t windowModeType)
+{
+    if (HWCParam::IsSplitScreenSourceTuning()) {
+        hwcContext_->SetWindowModeType(windowModeType);
+    }
 }
 
 void RSMainThread::AddSurfaceFpsOp(const SurfaceFpsOp& op)

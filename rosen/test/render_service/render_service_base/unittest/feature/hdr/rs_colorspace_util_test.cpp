@@ -161,4 +161,106 @@ HWTEST_F(RSColorSpaceUtilTest, ColorSpaceNameToGraphicGamut001, TestSize.Level1)
     EXPECT_EQ(gamut, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
 #endif
 }
+
+/**
+ * @tc.name: ConvertColorGamutToSpaceType001
+ * @tc.desc: Test ConvertColorGamutToSpaceType with standard gamuts
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorSpaceUtilTest, ConvertColorGamutToSpaceType001, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    HDIV::CM_ColorSpaceType colorSpaceType;
+    bool ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_SRGB_FULL);
+ 
+    ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_STANDARD_BT601, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_BT601_EBU_FULL);
+ 
+    ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_STANDARD_BT709, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_BT709_FULL);
+#endif
+}
+ 
+/**
+ * @tc.name: ConvertColorGamutToSpaceType002
+ * @tc.desc: Test ConvertColorGamutToSpaceType with wide gamut
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorSpaceUtilTest, ConvertColorGamutToSpaceType002, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    HDIV::CM_ColorSpaceType colorSpaceType;
+    bool ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_ADOBERGB_FULL);
+ 
+    ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_P3_FULL);
+ 
+    ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_P3_FULL);
+#endif
+}
+ 
+/**
+ * @tc.name: ConvertColorGamutToSpaceType003
+ * @tc.desc: Test ConvertColorGamutToSpaceType with BT2020 and HDR
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorSpaceUtilTest, ConvertColorGamutToSpaceType003, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    HDIV::CM_ColorSpaceType colorSpaceType;
+    bool ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_DISPLAY_BT2020_SRGB);
+ 
+    ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2100_PQ, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_BT2020_PQ_FULL);
+ 
+    ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2100_HLG, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_BT2020_HLG_FULL);
+ 
+    ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, colorSpaceType);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(colorSpaceType, HDIV::CM_DISPLAY_BT2020_SRGB);
+#endif
+}
+ 
+/**
+ * @tc.name: ConvertColorGamutToSpaceType004
+ * @tc.desc: Test ConvertColorGamutToSpaceType with invalid gamut
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorSpaceUtilTest, ConvertColorGamutToSpaceType004, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    HDIV::CM_ColorSpaceType colorSpaceType;
+    bool ret = RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE, colorSpaceType);
+    EXPECT_FALSE(ret);
+#endif
+}
 } // namespace OHOS::Rosen

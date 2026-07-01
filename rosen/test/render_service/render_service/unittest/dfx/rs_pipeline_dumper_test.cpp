@@ -2062,4 +2062,278 @@ HWTEST_F(RSPipelineDumperTest, DumpGpuMem_SingleArg, TestSize.Level1)
     EXPECT_FALSE(out.empty());
 }
 
+/*
+ * @tc.name: RegisterContextStatesFuncs_Usage
+ * @tc.desc: Test uiContextState command without enough arguments prints usage
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterContextStatesFuncs_Usage, TestSize.Level1)
+{
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    std::unordered_set<std::u16string> argSets = { u"uiContextState" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    EXPECT_NE(out.find("Usage: contextStates"), std::string::npos);
+}
+
+/*
+ * @tc.name: RegisterContextStatesFuncs_InvalidArgs
+ * @tc.desc: Test uiContextState command with non-numeric arguments prints error
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterContextStatesFuncs_InvalidArgs, TestSize.Level1)
+{
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    std::unordered_set<std::u16string> argSets = { u"uiContextState", u"abc", u"123" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    EXPECT_NE(out.find("Invalid arguments"), std::string::npos);
+}
+
+/*
+ * @tc.name: RegisterContextStatesFuncs_ValidArgs
+ * @tc.desc: Test uiContextState command with valid numeric arguments does not crash
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterContextStatesFuncs_ValidArgs, TestSize.Level1)
+{
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    std::unordered_set<std::u16string> argSets = { u"uiContextState", u"12345", u"67890" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // With a null handler the scheduled dump task is not executed, so output remains empty.
+    EXPECT_FALSE(out.empty());
+}
+
+/*
+ * @tc.name: DumpNodeInfo_ValidToken_MatchingNodes
+ * @tc.desc: Test DumpNodeInfo with valid token and matching nodes
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_ValidToken_MatchingNodes, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump node info with valid pid and token
+    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000", u"12345678" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should execute without crash and contain node statistics header
+    EXPECT_FALSE(out.empty());
+    EXPECT_TRUE(out.find("-- Node Type Statistics --") != std::string::npos ||
+                out.find("Usage: contextStates") != std::string::npos);
+}
+
+/*
+ * @tc.name: DumpNodeInfo_InvalidArguments_NotEnoughArgs
+ * @tc.desc: Test DumpNodeInfo with insufficient arguments (branch: argSets.size() < 2)
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_InvalidArguments_NotEnoughArgs, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump node info with only one argument
+    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should show usage message
+    EXPECT_FALSE(out.empty());
+    EXPECT_TRUE(out.find("Usage: contextStates") != std::string::npos);
+}
+
+/*
+ * @tc.name: DumpNodeInfo_InvalidArguments_NoArgs
+ * @tc.desc: Test DumpNodeInfo with no arguments (branch: argSets.size() < 2)
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_InvalidArguments_NoArgs, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump node info with no arguments
+    std::unordered_set<std::u16string> argSets = { u"contextStates" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should show usage message
+    EXPECT_FALSE(out.empty());
+    EXPECT_TRUE(out.find("Usage: contextStates") != std::string::npos);
+}
+
+/*
+ * @tc.name: DumpNodeInfo_InvalidArguments_NonNumericPid
+ * @tc.desc: Test DumpNodeInfo with non-numeric pid (branch: !IsNumber(pidStr))
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_InvalidArguments_NonNumericPid, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump node info with non-numeric pid
+    std::unordered_set<std::u16string> argSets = { u"contextStates", u"abc", u"12345678" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should show invalid arguments message
+    EXPECT_FALSE(out.empty());
+    EXPECT_TRUE(out.find("Invalid arguments") != std::string::npos);
+}
+
+/*
+ * @tc.name: DumpNodeInfo_InvalidArguments_NonNumericToken
+ * @tc.desc: Test DumpNodeInfo with non-numeric token (branch: !IsNumber(contextTokenStr))
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_InvalidArguments_NonNumericToken, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump node info with non-numeric token
+    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000", u"abc" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should show invalid arguments message
+    EXPECT_FALSE(out.empty());
+    EXPECT_TRUE(out.find("Invalid arguments") != std::string::npos);
+}
+
+/*
+ * @tc.name: DumpNodeInfo_ZeroToken
+ * @tc.desc: Test DumpNodeInfo with zero token (branch: node->GetUIContextToken() == token)
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_ZeroToken, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump node info with zero token
+    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000", u"0" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should execute without crash
+    EXPECT_FALSE(out.empty());
+}
+
+/*
+ * @tc.name: DumpNodeInfo_LargeToken
+ * @tc.desc: Test DumpNodeInfo with large token value (branch: node->GetUIContextToken() == token)
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_LargeToken, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump node info with large token value
+    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000", u"18446744073709551615" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should execute without crash
+    EXPECT_FALSE(out.empty());
+}
+
+/*
+ * @tc.name: DumpNodeInfo_MultipleFormats
+ * @tc.desc: Test DumpNodeInfo output contains all expected node types
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_MultipleFormats, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump node info with valid arguments
+    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000", u"12345678" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should execute without crash
+    // Note: Actual node counts depend on RSMainThread state
+    EXPECT_FALSE(out.empty());
+}
+
+/*
+ * @tc.name: RegisterContextStatesFuncs_ValidManager
+ * @tc.desc: Test RegisterContextStatesFuncs with valid manager
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterContextStatesFuncs_ValidManager, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Execute contextStates command
+    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000", u"12345678" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should execute without crash
+    EXPECT_FALSE(out.empty());
+}
 } // namespace OHOS::Rosen

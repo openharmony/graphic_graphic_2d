@@ -34,7 +34,7 @@ namespace Rosen {
  * It is created on demand when the first lifecycle state sync command is received
  * and removed when DESTROYED state is received.
  */
-class RSUIRenderDirector {
+class RSB_EXPORT RSUIRenderDirector {
 public:
     explicit RSUIRenderDirector(uint64_t token);
     ~RSUIRenderDirector() = default;

@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#include <chrono>
+#include <thread>
+
 #include "gtest/gtest.h"
 
 #include "command/rs_animation_command.h"
@@ -571,6 +574,57 @@ HWTEST_F(RSUIContextTest, RebuildStateTest, TestSize.Level1)
     EXPECT_EQ(uiContext->GetRebuildState(), RebuildState::Normal);
 }
 
+/**
+ * @tc.name: WaitForRebuildNormal_AlreadyNormal
+ * @tc.desc: Test WaitForRebuildNormal returns true immediately when state is Normal.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSUIContextTest, WaitForRebuildNormal_AlreadyNormal, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->SetRebuildState(RebuildState::Normal);
+    EXPECT_TRUE(uiContext->WaitForRebuildNormal(0));
+}
+
+/**
+ * @tc.name: WaitForRebuildNormal_Timeout
+ * @tc.desc: Test WaitForRebuildNormal returns false when Rebuilding and timeout expires.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSUIContextTest, WaitForRebuildNormal_Timeout, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->SetRebuildState(RebuildState::Rebuilding);
+    EXPECT_FALSE(uiContext->WaitForRebuildNormal(0));
+}
+
+/**
+ * @tc.name: WaitForRebuildNormal_NotifyWakes
+ * @tc.desc: Test WaitForRebuildNormal wakes up when another thread sets state to Normal.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSUIContextTest, WaitForRebuildNormal_NotifyWakes, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->SetRebuildState(RebuildState::Rebuilding);
+
+    std::thread notifier([uiContext]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        uiContext->SetRebuildState(RebuildState::Normal);
+    });
+    EXPECT_TRUE(uiContext->WaitForRebuildNormal(1000));
+    notifier.join();
+}
+
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 /**
  * @tc.name: FlushCanvasDrawingNodeBuffersTest
@@ -667,4 +721,43 @@ HWTEST_F(RSUIContextTest, ModifiersDrawThreadAccessorsTest, TestSize.Level1)
 }
 #endif
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: FlushCanvasDrawingNodeBuffersTest001
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers with canvasDrawingNodeUpdated false
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    rsUIContext->canvasDrawingNodeUpdated_ = false;
+    rsUIContext->FlushCanvasDrawingNodeBuffers();
+}
+ 
+/**
+ * @tc.name: FlushCanvasDrawingNodeBuffersTest002
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers with null transaction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest002, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    rsUIContext->canvasDrawingNodeUpdated_ = true;
+    rsUIContext->rsTransactionHandler_ = nullptr;
+    rsUIContext->FlushCanvasDrawingNodeBuffers();
+}
+ 
+/**
+ * @tc.name: FlushCanvasDrawingNodeBuffersTest003
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers with canvasDrawingNodeBufferFlushed true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest003, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    rsUIContext->canvasDrawingNodeUpdated_ = true;
+    rsUIContext->canvasDrawingNodeBufferFlushed_ = true;
+    rsUIContext->FlushCanvasDrawingNodeBuffers();
+}
+#endif
 } // namespace OHOS::Rosen

@@ -39,6 +39,23 @@ namespace Rosen {
 class RSNode;
 class RSUIContext;
 
+struct TransformPropertyValues {
+    float positionZ = 0.f;
+    Vector2f pivot = Vector2f(0.5f, 0.5f);
+    float pivotZ = 0.f;
+    Quaternion quaternion = Quaternion();
+    float rotation = 0.f;
+    float rotationX = 0.f;
+    float rotationY = 0.f;
+    float cameraDistance = 0.f;
+    Vector2f translate = Vector2f(0.f, 0.f);
+    float translateZ = 0.f;
+    Vector2f scale = Vector2f(1.f, 1.f);
+    float scaleZ = 1.f;
+    Vector3f skew = Vector3f(0.f, 0.f, 0.f);
+    Vector4f persp = Vector4f(0.f, 0.f, 0.f, 1.f);
+};
+
 /**
  * @class RSModifierExtractor
  *
@@ -684,6 +701,7 @@ public:
      */
     int GetColorBlendApplyType() const;
 
+    TransformPropertyValues GetAllTransformPropertyValues() const;
     /**
      * @brief Generates debugging information.
      *

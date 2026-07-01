@@ -536,13 +536,14 @@ int32_t HdiLayer::SetTunnelLayerId()
 
 int32_t HdiLayer::SetTunnelLayerProperty()
 {
-    if (prevRSLayer_ != nullptr) {
-        if (rsLayer_->GetTunnelLayerProperty() == prevRSLayer_->GetTunnelLayerProperty()) {
-            return GRAPHIC_DISPLAY_SUCCESS;
-        }
+    uint32_t property = hasSetTunnel_ ? rsLayer_->GetTunnelLayerProperty() : 0;
+    if (hasSetTunnel_ && tunnelLayerProperty_ == property) {
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
+    tunnelLayerProperty_ = property;
+    hasSetTunnel_ = true;
 
-    int32_t ret = device_->SetTunnelLayerProperty(screenId_, layerId_, rsLayer_->GetTunnelLayerProperty());
+    int32_t ret = device_->SetTunnelLayerProperty(screenId_, layerId_, property);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         return ret;
     }

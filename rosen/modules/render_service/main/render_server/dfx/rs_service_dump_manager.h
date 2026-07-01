@@ -54,6 +54,7 @@ const std::list<std::u16string> processDumpList = {
     u"flushJankStatsRs",
     u"client",
     u"rsLogFlag",
+    u"uiContextState",
 #ifdef RS_ENABLE_VK
     u"vktextureLimit",
 #endif

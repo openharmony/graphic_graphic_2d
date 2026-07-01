@@ -12,6 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cfloat>
+#include <cmath>
+#include <cstdint>
 #include "filter_napi.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
@@ -1182,9 +1185,14 @@ napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info in
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio parsing double fail"));
 
-    if (std::isnan(brightnessRatio)) {
-        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio brightnessRatio is nan");
+    if (std::isnan(brightnessRatio) || std::isinf(brightnessRatio)) {
+        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio brightnessRatio is nan or inf");
         brightnessRatio = 1.0;
+    }
+    if (brightnessRatio > FLT_MAX) {
+        brightnessRatio = FLT_MAX;
+    } else if (brightnessRatio < -FLT_MAX) {
+        brightnessRatio = -FLT_MAX;
     }
 
     Filter* filterObj = nullptr;
@@ -1689,11 +1697,11 @@ napi_value FilterNapi::SetMotionBlur(napi_env env, napi_callback_info info)
         if (napi_is_array(env, argv[NUM_1], &isArray) == napi_ok && isArray) {
             uint32_t arraySize = 0;
             napi_get_array_length(env, argv[NUM_1], &arraySize);
-            if (arraySize >= NUM_2) {
-                napi_value anchorX = nullptr;
-                napi_value anchorY = nullptr;
-                napi_get_element(env, argv[NUM_1], NUM_0, &anchorX);
-                napi_get_element(env, argv[NUM_1], NUM_1, &anchorY);
+            napi_value anchorX = nullptr;
+            napi_value anchorY = nullptr;
+            if (arraySize >= NUM_2 &&
+                napi_get_element(env, argv[NUM_1], NUM_0, &anchorX) == napi_ok &&
+                napi_get_element(env, argv[NUM_1], NUM_1, &anchorY) == napi_ok) {
                 anchor[0] = GetSpecialValue(env, anchorX);
                 anchor[1] = GetSpecialValue(env, anchorY);
             }
@@ -1702,7 +1710,9 @@ napi_value FilterNapi::SetMotionBlur(napi_env env, napi_callback_info info)
     para->SetAnchor(anchor);
 
     int32_t sampleCount = 8;
-    sampleCount = static_cast<int32_t>(GetSpecialIntValue(env, argv[NUM_2]));
+    uint32_t rawSampleCount = GetSpecialIntValue(env, argv[NUM_2]);
+    sampleCount = (rawSampleCount > static_cast<uint32_t>(INT32_MAX))
+        ? INT32_MAX : static_cast<int32_t>(rawSampleCount);
     para->SetSampleCount(sampleCount);
 
     Filter* filterObj = nullptr;

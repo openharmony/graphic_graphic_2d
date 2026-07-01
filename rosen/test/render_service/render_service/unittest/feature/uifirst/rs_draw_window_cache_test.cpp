@@ -43,7 +43,7 @@ void RSDrawWindowCacheTest::TearDownTestCase() {}
 void RSDrawWindowCacheTest::SetUp() {}
 void RSDrawWindowCacheTest::TearDown() {}
 
-#if defined(ROSEN_OHS) && defined(RS_ENABLE_VK)
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 static sptr<SurfaceBuffer> CreateSurfaceBuffer(int width, int height)
 {
     sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
@@ -51,7 +51,7 @@ static sptr<SurfaceBuffer> CreateSurfaceBuffer(int width, int height)
         .width = static_cast<int32_t>(width),
         .height = static_cast<int32_t>(height),
         .strideAlignment = 0x8,
-        .format = GRAPIC_PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA |
             BUFFER_USAGE_MEM_MMZ_CACHE | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE,
         .timeout = 0,
@@ -209,7 +209,7 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow002, TestSize.Level1)
  * @tc.name: DealWithCachedWindow003
  * @tc.desc: Test DealWithCachedWindow when image create success
  * @tc.type: FUNC
- * @tc.require: issueICCSTG
+ * @tc.require: issueIAVLLE
  */
 HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow003, TestSize.Level1)
 {
@@ -239,9 +239,9 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow003, TestSize.Level1)
     std::shared_ptr<Drawing::GPUContext> gpuContext(drawingContext);
 
     sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBuffer(10, 10);
-    OHNativeWindowBuffer* nativeWindowBuffer = CrateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
+    OHNativeWindowBuffer* nativeWindowBuffer = CreteNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
     auto backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer,
-        surfaceBuffer->GetWidth, surfaceBuffer->GetHeight(), false);
+        surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
     DestroyNativeWindowBuffer(nativeWindowBuffer);
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     auto cleanupHelper = new NativeBufferUtils::VulkanCleanupHelper(

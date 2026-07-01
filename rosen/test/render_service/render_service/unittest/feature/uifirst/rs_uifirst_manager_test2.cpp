@@ -592,6 +592,12 @@ HWTEST_F(RSUifirstManagerTest2, CheckHwcChildrenType, TestSize.Level1)
     surfaceNode->GenerateFullChildrenList();
     uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
     ASSERT_EQ(enabledType, SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB);
+
+    {
+        auto surfaceNode3 = RSTestUtil::CreateSurfaceNode();
+        surfaceNode->childHardwareEnabledNodes_.push_back(surfaceNode3);
+    }
+    uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
     surfaceNode->ResetChildHardwareEnabledNodes();
 }
 

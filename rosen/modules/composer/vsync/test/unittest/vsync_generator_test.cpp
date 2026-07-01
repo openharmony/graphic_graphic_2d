@@ -847,6 +847,20 @@ HWTEST_F(VSyncGeneratorTest, UpdateMode003, Function | MediumTest| Level0)
 }
 
 /*
+* Function: UpdateMode004
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call UpdateMode
+ */
+HWTEST_F(VSyncGeneratorTest, UpdateMode004, Function | MediumTest| Level0)
+{
+    sptr<impl::VSyncGenerator> generatorImpl = new impl::VSyncGenerator();
+    generatorImpl->dvsyncPeriodRecord_ = 1;
+    ASSERT_EQ(generatorImpl->UpdateMode(0, 0, 0), VSYNC_ERROR_API_FAILED);
+}
+
+/*
 * Function: AddListener001
 * Type: Function
 * Rank: Important(2)

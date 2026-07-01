@@ -1096,6 +1096,7 @@ napi_value JsFont::OnCreatePathForText(napi_env env, napi_callback_info info)
     std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
     std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
     realFont->GetTextPath(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
+    API_STATS_HISTOGRAM("Arkgraphics2d.Font.getTextPath", 1);
     return JsPath::CreateJsPath(env, path);
 }
 

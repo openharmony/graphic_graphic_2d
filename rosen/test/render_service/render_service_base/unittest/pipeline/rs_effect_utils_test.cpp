@@ -20,6 +20,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_effect_utils.h"
+#include "render/rs_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -205,6 +206,85 @@ HWTEST_F(RSEffectUtilsTest, UpdateFilterRenderContextInSkippedSubTree003, TestSi
     node->UpdateFilterRenderContextInSkippedSubTree(*subTreeRoot, INVALID_NODEID, clipRect, clipRect, filterContext);
 
     EXPECT_EQ(filterContext.absMatrix.Get(0), identityMatrix.Get(0));
+}
+
+/**
+ * @tc.name: HasBackgroundDependentFilter001
+ * @tc.desc: test HasBackgroundDependentFilter with no background effect
+ * @tc.type: FUNC
+ * @tc.require: issue24634
+ */
+HWTEST_F(RSEffectUtilsTest, HasBackgroundDependentFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(RSEffectUtils::HasBackgroundDependentFilter(properties));
+}
+
+/**
+ * @tc.name: HasBackgroundDependentFilter002
+ * @tc.desc: test HasBackgroundDependentFilter with background filter
+ * @tc.type: FUNC
+ * @tc.require: issue24634
+ */
+HWTEST_F(RSEffectUtilsTest, HasBackgroundDependentFilter002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.backgroundFilter_ = RSFilter::CreateBlurFilter(10.0f, 10.0f);
+    EXPECT_TRUE(RSEffectUtils::HasBackgroundDependentFilter(properties));
+}
+
+/**
+ * @tc.name: HasBackgroundDependentFilter003
+ * @tc.desc: test HasBackgroundDependentFilter with material filter
+ * @tc.type: FUNC
+ * @tc.require: issue24634
+ */
+HWTEST_F(RSEffectUtilsTest, HasBackgroundDependentFilter003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GetEffect().materialFilter_ = RSFilter::CreateMaterialFilter(10.0f, 10.0f, 10.0f, 0xff000000);
+    EXPECT_TRUE(RSEffectUtils::HasBackgroundDependentFilter(properties));
+}
+
+/**
+ * @tc.name: HasBackgroundDependentFilter004
+ * @tc.desc: test HasBackgroundDependentFilter with needDrawBehindWindow
+ * @tc.type: FUNC
+ * @tc.require: issue24634
+ */
+HWTEST_F(RSEffectUtilsTest, HasBackgroundDependentFilter004, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetNeedDrawBehindWindow(true);
+    EXPECT_TRUE(RSEffectUtils::HasBackgroundDependentFilter(properties));
+}
+
+/**
+ * @tc.name: HasBackgroundDependentFilter005
+ * @tc.desc: test HasBackgroundDependentFilter with multiple effects
+ * @tc.type: FUNC
+ * @tc.require: issue24634
+ */
+HWTEST_F(RSEffectUtilsTest, HasBackgroundDependentFilter005, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.backgroundFilter_ = RSFilter::CreateBlurFilter(10.0f, 10.0f);
+    properties.GetEffect().materialFilter_ = RSFilter::CreateMaterialFilter(10.0f, 10.0f, 10.0f, 0xff000000);
+    properties.SetNeedDrawBehindWindow(true);
+    EXPECT_TRUE(RSEffectUtils::HasBackgroundDependentFilter(properties));
+}
+
+/**
+ * @tc.name: HasBackgroundDependentFilter006
+ * @tc.desc: test HasBackgroundDependentFilter with false needDrawBehindWindow
+ * @tc.type: FUNC
+ * @tc.require: issue24634
+ */
+HWTEST_F(RSEffectUtilsTest, HasBackgroundDependentFilter006, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetNeedDrawBehindWindow(false);
+    EXPECT_FALSE(RSEffectUtils::HasBackgroundDependentFilter(properties));
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -623,7 +623,7 @@ ohos_source_set("render_service_base_src") {
     defines += [ "ENABLE_EXPORT_MACRO" ]
   }
 
-  if (!build_ohos_sdk) {
+  if (!build_ohos_sdk && !is_arkui_x) {
     sources += [
       "src/transaction/transaction.cpp",
     ]

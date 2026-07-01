@@ -158,6 +158,7 @@ private:
     bool CheckQueryTarget(napi_env env, GLenum target, uint32_t& index);
     bool CheckStorageInternalFormat(napi_env env, GLenum internalFormat);
     bool CheckTransformFeedbackBuffer(GLenum target, WebGLBuffer* buffer);
+    bool CheckClearBufferOffsetValid(int64_t srcOffset, size_t requiredSize, size_t bufferByteLen);
     napi_value HandleFrameBufferPname(
         napi_env env, GLenum target, GLenum attachment, GLenum pname, WebGLAttachment* attachmentObject);
 

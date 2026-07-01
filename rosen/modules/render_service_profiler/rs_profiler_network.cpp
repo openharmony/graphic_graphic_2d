@@ -328,7 +328,7 @@ void Network::Send(Socket& socket)
             break;
         }
         
-        if (socket.SendWhenReady(data.data(), data.size())) {
+        if (socket.Send(data.data(), data.size())) {
             ResetPing();
         }
     }
@@ -390,11 +390,7 @@ void Network::Receive(Socket& socket)
     }
 
     Packet packet { Packet::UNKNOWN };
-    auto wannaReceive = Packet::HEADER_SIZE;
-    socket.Receive(packet.Begin(), wannaReceive);
-
-    if (wannaReceive == 0) {
-        HRPW("Network: Receive: Invalid header");
+    if (!socket.Receive(packet.Begin(), Packet::HEADER_SIZE)) {
         return;
     }
 
@@ -405,7 +401,9 @@ void Network::Receive(Socket& socket)
 
     std::vector<char> data;
     data.resize(size);
-    socket.ReceiveWhenReady(data.data(), data.size());
+    if (!socket.Receive(data.data(), data.size())) {
+        return;
+    }
 
     if (packet.IsBinary()) {
         ProcessBinary(data);

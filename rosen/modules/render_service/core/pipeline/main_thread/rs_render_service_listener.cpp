@@ -17,6 +17,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
@@ -50,7 +51,7 @@ void RSRenderServiceListener::OnBufferAvailable()
     auto node = surfaceBufferInterface_.lock();
     if (node == nullptr) {
         RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
-        ConsumeBufferToKeepQueueRunning(surfaceHandler);
+        ConsumeBufferToKeepQueueRunning(surfaceHandler_);
         return;
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, nodeId_);
@@ -125,7 +126,7 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSu
         int64_t desiredPresentTimestamp = 0;
         RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
         auto node = surfaceBufferInterface_.lock();
-        if (!node->GetDelegateMode()) {
+        if (node != nullptr && !node->GetDelegateMode()) {
             RSMainThread::Instance()->RequestNextVSync("Selfdrawing", 0, desiredPresentTimestamp);
         }
     }
@@ -145,6 +146,14 @@ void RSRenderServiceListener::OnTunnelHandleChange()
     }
     node->OnTunnelHandleChange();
     RSMainThread::Instance()->RequestNextVSync();
+}
+
+void RSRenderServiceListener::OnTunnelLayerInfoChanged(const TunnelLayerState& state)
+{
+    RSTunnelRuntimeStore::SetLayerInfo(nodeId_, state.tunnelLayerId, state.property);
+    RS_LOGD("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelLayerInfoChanged id = %{public}" PRIu64
+        ", tunnelLayerId = %{public}" PRIu64 ", property = %{public}u",
+        nodeId_, state.tunnelLayerId, state.property);
 }
 
 void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
@@ -267,12 +276,16 @@ void RSRenderServiceListener::OnDropBuffer()
     RS_LOGD("RsDebug RSRenderServiceListener::OnDropBuffer node id:%{public}" PRIu64, nodeId_);
     handler->SetBufferDropped(true);
 }
- 
-void RSRenderServiceListener::ConsumeBufferToKeepQueueRunning(std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
+
+void RSRenderServiceListener::ConsumeBufferToKeepQueueRunning(std::weak_ptr<RSSurfaceHandler> surfaceHandler)
 {
-    surfaceHandler->IncreaseAvailableBuffer();
-    if (surfaceHandler->GetAvailableBufferCount() > 0) {
-        std::weak_ptr<RSSurfaceHandler> weakHandler = surfaceHandler;
+    auto handler = surfaceHandler.lock();
+    if (handler == nullptr) {
+        return;
+    }
+    handler->IncreaseAvailableBuffer();
+    if (handler->GetAvailableBufferCount() > 0) {
+        std::weak_ptr<RSSurfaceHandler> weakHandler = handler;
         RSMainThread::Instance()->PostTask([weakHandler, nodeId = nodeId_]() {
             RS_TRACE_NAME_FMT("OnBufferAvailable acquire buffer begin nodeId: %" PRId64, nodeId);
             auto handler = weakHandler.lock();
@@ -289,8 +302,7 @@ void RSRenderServiceListener::ConsumeBufferToKeepQueueRunning(std::shared_ptr<RS
             IConsumerSurface::AcquireBufferReturnValue returnValue;
             auto ret = consumer->AcquireBuffer(returnValue, 0, false);
             if (ret != SURFACE_ERROR_OK) {
-                RS_LOGE("RSRenderServiceListener::ConsumeBufferToKeepQueueRunning PostTask AcquireBuffer failed, "
-                        "nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
+                RS_LOGE("PostTask AcquireBuffer failed, nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
                 return;
             }
             handler->SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
@@ -311,8 +323,7 @@ void RSRenderServiceListener::ConsumeBufferToKeepQueueRunning(std::shared_ptr<RS
 
             ret = consumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
             if (ret != SURFACE_ERROR_OK) {
-                RS_LOGE("RSRenderServiceListener::ConsumeBufferToKeepQueueRunning PostTask ReleaseBuffer failed, "
-                        "nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
+                RS_LOGE("ReleaseBuffer failed, nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
                 return;
             }
         });

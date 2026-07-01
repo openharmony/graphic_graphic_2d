@@ -28,6 +28,11 @@ public:
     RSRenderParticleEmitter(std::shared_ptr<ParticleRenderParams> particleParams);
     void PreEmit();
     void EmitParticle(int64_t deltaTime);
+    void SetEmittedCount(float count)
+    {
+        particleCount_ = count;
+        spawnNum_ = 0.f;
+    }
     const std::vector<std::shared_ptr<RSRenderParticle>>& GetParticles();
     bool IsEmitterFinish();
     const std::shared_ptr<ParticleRenderParams>& GetParticleParams()

@@ -1036,12 +1036,7 @@ void HdiOutput::ClearRecoveredInvalidTunnelSurfaceIdsLocked()
             ++iter;
             continue;
         }
-        auto rsLayer = layerIter->second->GetRSLayer();
-        if (rsLayer != nullptr && !IsTunnelLayerRequestedLocked(rsLayer)) {
-            iter = invalidTunnelSurfaceIds_.erase(iter);
-            continue;
-        }
-        ++iter;
+        iter = invalidTunnelSurfaceIds_.erase(iter);
     }
 }
 

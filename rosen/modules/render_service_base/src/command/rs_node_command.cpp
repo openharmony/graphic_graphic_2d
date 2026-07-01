@@ -407,13 +407,14 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node == nullptr) {
+        RS_TRACE_NAME_FMT("MarkLayer fail node not found isLayer:%d id:%llu", isLayer, nodeId);
         return;
     }
     // only support canvas node mark
     bool isCanvasNode = node->GetType() == RSRenderNodeType::CANVAS_NODE;
     bool isSupportLayer = isLayer && isCanvasNode && !RSLayerCacheManagerBase::IsNodeUnSupportLayer(node);
     if (isSupportLayer) {
-        RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isLayer:%d id:%llu", isLayer, node->GetId());
+        RS_TRACE_NAME_FMT("MarkLayer isLayer:%d, isSupportLayer:%d, id:%llu", isLayer, isSupportLayer, node->GetId());
         RS_LOGI_IF(
             DEBUG_NODE, "RSRenderNode::MarkLayer isLayer:%{public}d id:%{public}" PRIu64 "", isLayer, node->GetId());
 
@@ -438,6 +439,23 @@ void RSNodeCommandHelper::ReSortChildrenByZIndex(RSContext& context, NodeId node
     if (node) {
         node->ReSortChildrenByZIndex();
     }
+}
+
+bool RSNodeCommandHelper::CheckPropertyType(RSRenderPropertyBase& prop,
+    RSPropertyType updateType, NodeId nodeId)
+{
+    if (prop.GetPropertyType() != updateType) {
+        TypeErrorInfoPrint(nodeId, prop.GetId(), updateType, prop.GetPropertyType());
+        return false;
+    }
+    return true;
+}
+
+__attribute__((noinline)) void RSNodeCommandHelper::TypeErrorInfoPrint(NodeId nodeId,
+    PropertyId propId, RSPropertyType updateType, RSPropertyType propType)
+{
+    ROSEN_LOGE("UpdateProperty type mismatch, nodeId=%{public}" PRIu64 ", propertyId=%{public}" PRIu64
+        " update type:%{public}hhu, property type:%{public}hhu", nodeId, propId, updateType, propType);
 }
 } // namespace Rosen
 } // namespace OHOS

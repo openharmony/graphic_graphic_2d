@@ -359,4 +359,25 @@ HWTEST_F(BootVideoPlayerTest, OnError_ErrorCallback_CalledCorrectly, TestSize.Le
     cb->OnError(TEST_ERROR_CODE, "test error");
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: SetCallback_NullCallback_UserDataNotChanged
+ * @tc.desc: Verify SetCallback does not change userData_ when cb is nullptr (false branch of if).
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootVideoPlayerTest, SetCallback_NullCallback_UserDataNotChanged, TestSize.Level1)
+{
+    PlayerParams params;
+    int flag = 0;
+    BootAnimationCallback callback_ = {
+        .userData = this,
+        .callback = [&flag](void*) { flag = 1; },
+    };
+    params.callback = &callback_;
+    std::shared_ptr<BootVideoPlayer> player = std::make_shared<BootVideoPlayer>(params);
+    ASSERT_NE(player, nullptr);
+    void* originalUserData = player->userData_;
+    player->SetCallback(nullptr);
+    EXPECT_EQ(player->userData_, originalUserData);
+}
 }

@@ -1323,7 +1323,6 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     RS_LOGI("RsDebug RSRenderPipeline::CreateNodeAndSurface node"
             "id:%{public}" PRIu64 " name:%{public}s surface id:%{public}" PRIu64 " name:%{public}s",
         node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
-    ConfigureForceTunnelLayer(config, surface);
     auto defaultUsage = surface->GetDefaultUsage();
     auto nodeId = node->GetId();
     bool isUseSelfDrawBufferUsage = RSSystemProperties::GetSelfDrawingDirtyRegionEnabled() &&
@@ -1366,6 +1365,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
         return ERR_INVALID_VALUE;
     }
+    ConfigureForceTunnelLayer(config, surface);
 
     RS_TRACE_NAME_FMT("RSRenderPipelineAgent::CreateNodeAndSurface, nodeId: %" PRIu64 ", uniqueId: %" PRIu64
                       "", nodeId, surface->GetUniqueId());
@@ -1497,6 +1497,16 @@ void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& p
         renderPipeline->GetMainThread()->CheckPackageInConfigList(packageList);
         renderPipeline->imageEnhanceManager_->CheckPackageInConfigList(packageList);
     });
+}
+
+void RSRenderPipelineAgent::NotifyWindowModeTypeEvent(uint8_t windowModeType)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (pipeline != nullptr) {
+        pipeline->PostMainThreadTask([this, pipeline, windowModeType] {
+            pipeline->GetMainThread()->SetWindowModeType(windowModeType);
+        });
+    }
 }
 
 ErrCode RSRenderPipelineAgent::SetLayerTop(const std::string &nodeIdStr, bool isTop)
@@ -1919,6 +1929,14 @@ bool RSRenderPipelineAgent::GetBehindWindowFilterEnabled()
 ErrCode RSRenderPipelineAgent::SetApsConfigParams(
     ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
+    if (event == ApsEventType::SPLIT_LAYER) {
+        if (auto layerSplitManager = RSLayerSplitManager::GetInstance(); layerSplitManager != nullptr) {
+            auto it = params.find("ENABLE");
+            bool enabled = (it != params.end() && it->second == "true");
+            layerSplitManager->SetEnabled(enabled);
+        }
+        return ERR_OK;
+    }
     return ERR_OK;
 }
 
@@ -2525,27 +2543,28 @@ int32_t RSRenderPipelineAgent::UpdateFrameStabilityDetection(
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<Surface> RSRenderPipelineAgent::GetCanvasSurface(NodeId nodeId, pid_t remotePid)
+sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeId, pid_t remotePid)
 {
     auto rsRenderPipeline = rsRenderPipeline_.lock();
     if (rsRenderPipeline == nullptr) {
-        RS_LOGW("RSRenderPipelineAgent::GetCanvasSurface, pipeline is nullptr");
+        RS_LOGW("RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface, pipeline is nullptr");
         return nullptr;
     }
     if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
         return nullptr;
     }
     if (ExtractPid(nodeId) != remotePid) {
-        RS_LOGE("GetCanvasSurface: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d", nodeId, remotePid);
+        RS_LOGE("CreateCanvasDrawingNodeSurface: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d", nodeId,
+            remotePid);
         return nullptr;
     }
     auto bundleName = GetBundleName(remotePid);
     if (!NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled()) {
-        RS_LOGE("GetCanvasSurface: ccm disabled, nodeId=%{public}" PRIu64, nodeId);
+        RS_LOGE("CreateCanvasDrawingNodeSurface: ccm disabled, nodeId=%{public}" PRIu64, nodeId);
         return nullptr;
     }
     if (!bundleName.empty() && !NodeMemReleaseParam::IsCanvasBufferEnabled(bundleName)) {
-        RS_LOGE("GetCanvasSurface: bundleName ccm blacklist, nodeId=%{public}" PRIu64, nodeId);
+        RS_LOGE("CreateCanvasDrawingNodeSurface: bundleName ccm blacklist, nodeId=%{public}" PRIu64, nodeId);
         return nullptr;
     }
  
@@ -2553,23 +2572,23 @@ sptr<Surface> RSRenderPipelineAgent::GetCanvasSurface(NodeId nodeId, pid_t remot
     auto task = [&producerPurface, nodeId, mainThread = rsRenderPipeline->GetMainThread()]() -> void {
         auto rsContext = mainThread->GetWeakContext().lock();
         if (rsContext == nullptr) {
-            RS_LOGE("GetCanvasSurface: null rsContext, nodeId=%{public}" PRIu64, nodeId);
+            RS_LOGE("CreateCanvasDrawingNodeSurface: null rsContext, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
         auto surfaceHandler = CreateCanvasSurfaceHandler(nodeId);
         if (surfaceHandler == nullptr) {
-            RS_LOGE("GetCanvasSurface: null surfaceHandler, nodeId=%{public}" PRIu64, nodeId);
+            RS_LOGE("CreateCanvasDrawingNodeSurface: null surfaceHandler, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
         auto consumerSurface = surfaceHandler->GetConsumer();
         sptr<IBufferProducer> producer = consumerSurface->GetProducer();
         if (producer == nullptr) {
-            RS_LOGE("GetCanvasSurface: null producer, nodeId=%{public}" PRIu64, nodeId);
+            RS_LOGE("CreateCanvasDrawingNodeSurface: null producer, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
         producerPurface = Surface::CreateSurfaceAsProducer(producer);
         if (producerPurface == nullptr) {
-            RS_LOGE("GetCanvasSurface: null producerPurface, nodeId=%{public}" PRIu64, nodeId);
+            RS_LOGE("CreateCanvasDrawingNodeSurface: null producerPurface, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
  
@@ -2588,25 +2607,26 @@ sptr<Surface> RSRenderPipelineAgent::GetCanvasSurface(NodeId nodeId, pid_t remot
     return producerPurface;
 }
  
-void RSRenderPipelineAgent::RemoveCanvasSurface(NodeId nodeId, pid_t remotePid)
+void RSRenderPipelineAgent::ReleaseCanvasDrawingNodeSurface(NodeId nodeId, pid_t remotePid)
 {
     auto rsRenderPipeline = rsRenderPipeline_.lock();
     if (rsRenderPipeline == nullptr) {
-        RS_LOGW("RSRenderPipelineAgent::RemoveCanvasSurface, pipeline is nullptr");
+        RS_LOGW("RSRenderPipelineAgent::ReleaseCanvasDrawingNodeSurface, pipeline is nullptr");
         return;
     }
     if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
         return;
     }
     if (ExtractPid(nodeId) != remotePid) {
-        RS_LOGE("RemoveCanvasSurface: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d", nodeId, remotePid);
+        RS_LOGE("ReleaseCanvasDrawingNodeSurface: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d", nodeId,
+            remotePid);
         return;
     }
  
     auto task = [nodeId, mainThread = rsRenderPipeline->GetMainThread()]() -> void {
         auto rsContext = mainThread->GetWeakContext().lock();
         if (rsContext == nullptr) {
-            RS_LOGE("RemoveCanvasSurface: null rsContext, nodeId=%{public}" PRIu64, nodeId);
+            RS_LOGE("ReleaseCanvasDrawingNodeSurface: null rsContext, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
         auto& nodeMap = rsContext->GetMutableNodeMap();

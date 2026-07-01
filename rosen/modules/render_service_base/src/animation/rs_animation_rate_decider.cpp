@@ -45,8 +45,9 @@ void RSAnimationRateDecider::AddDecisionElement(PropertyId id, const PropertyVal
     if (velocity != nullptr) {
         data = velocity->Clone();
     }
-    if (decisionElements_.find(id) != decisionElements_.end()) {
-        auto& element = decisionElements_[id];
+    auto it = decisionElements_.find(id);
+    if (it != decisionElements_.end()) {
+        auto& element = it->second;
         if (data != nullptr) {
             element.first = element.first ? element.first + data : data;
         }

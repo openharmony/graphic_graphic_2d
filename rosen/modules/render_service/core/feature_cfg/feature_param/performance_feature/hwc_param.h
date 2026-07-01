@@ -30,6 +30,7 @@ public:
     static bool IsSolidLayerEnable();
     static bool IsSolidLayerInMultiWindowEnable();
     static bool IsDisableHwcInScaleScene();
+    static bool IsSplitScreenSourceTuning();
     static const std::unordered_map<std::string, std::string>& GetSourceTuningForAppMap();
     static const std::unordered_map<std::string, std::string>& GetSolidColorLayerMap();
 
@@ -40,12 +41,14 @@ protected:
     static void SetDisableHwcOnExpandScreen(bool isEnable);
     static void SetSolidLayerInMultiWindowEnable(bool isEnable);
     static void SetDisableHwcInScaleScene(bool isEnable);
+    static void SetSplitScreenSourceTuning(bool isEnable);
 
 private:
     inline static bool isSolidLayerEnable_ = false;
     inline static bool isSolidLayerInMultiWindowEnable_ = false;
     inline static bool isDisableHwcOnExpandScreen_ = false;
     inline static bool isDisableHwcInScaleScene_ = false;
+    inline static bool isSplitScreenSourceTuning_ = false;
     inline static std::unordered_map<std::string, std::string> sourceTuningMap_;
     inline static std::unordered_map<std::string, std::string> solidColorLayerMap_;
 

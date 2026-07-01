@@ -45,7 +45,7 @@ constexpr int32_t PIXEL_ALPHA_TYPE_OPAQUE = 2;
 constexpr int32_t PIXEL_MAP_HEIGHT = 4;
 constexpr int32_t PIXEL_MAP_WIDTH = 4;
 constexpr int32_t PIXEL_FORMAT_RGBA_8888 = 4;
-constexpr size_t PIXEL_MAP_DATA_LENGTH = 16;
+constexpr size_t PIXEL_MAP_DATA_LENGTH = 64;
 constexpr int32_t INVALID_MASK_TYPE = 99;
 
 enum TestCaseIndex {
@@ -97,7 +97,12 @@ OH_PixelmapNative* CreatePixelMap()
     OH_PixelmapInitializationOptions_SetHeight(ops, PIXEL_MAP_HEIGHT);
     OH_PixelmapInitializationOptions_SetWidth(ops, PIXEL_MAP_WIDTH);
     OH_PixelmapInitializationOptions_SetPixelFormat(ops, PIXEL_FORMAT_RGBA_8888);
-    uint8_t data[] = { 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255 };
+    uint8_t data[] = {
+        255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255,
+        255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255,
+        255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255,
+        255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255
+    };
     size_t dataLength = PIXEL_MAP_DATA_LENGTH;
     OH_PixelmapNative *pixelMap = nullptr;
     OH_PixelmapNative_CreatePixelmap(data, dataLength, ops, &pixelMap);

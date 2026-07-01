@@ -22,11 +22,11 @@
 
 #include "drawable/rs_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/multi_screen/rs_multi_screen_util.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_logical_display_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_render_node.h"
-#include "feature/multi_screen/rs_multi_screen_util.h"
 
 namespace OHOS::Rosen {
 class RSScreenRenderParams;
@@ -74,11 +74,6 @@ private:
     void UpdateMainSizeFromContentRect(RSLogicalDisplayRenderParams* params, float& mainWidth, float& mainHeight);
     void ScaleAndRotateMirrorForWiredScreen(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
     void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
-    void DrawMirror(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
-        RSRenderThreadParams& uniParam);
-    void DrawMirrorCopy(RSLogicalDisplayRenderParams& params,
-        std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
-    void DrawExpandDisplay(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false,
         bool useCanvasSize = true, bool fixFormat = false);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
@@ -143,8 +138,8 @@ private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::LOGICAL_DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
 
-    // display drawing path dfx
-    DrawingPath lastFrameDrawingPath_ = DrawingPath::INVALID;
+    // display render strategy dfx
+    RenderStrategy lastFrameRenderStrategy_ = RenderStrategy::INVALID;
 
     friend class RSMultiScreenUtil;
 };

@@ -167,6 +167,30 @@ GraphicColorGamut RSColorSpaceUtil::PrimariesToGraphicGamut(HDIV::CM_ColorPrimar
             return GRAPHIC_COLOR_GAMUT_SRGB;
     }
 }
+
+bool RSColorSpaceUtil::ConvertColorGamutToSpaceType(
+    const GraphicColorGamut& colorGamut, HDIV::CM_ColorSpaceType& colorSpaceType)
+{
+    static const std::map<GraphicColorGamut, HDIV::CM_ColorSpaceType> COLOR_GAMUT_TO_SPACE_TYPE_MAP {
+        { GRAPHIC_COLOR_GAMUT_STANDARD_BT601, HDIV::CM_BT601_EBU_FULL },
+        { GRAPHIC_COLOR_GAMUT_STANDARD_BT709, HDIV::CM_BT709_FULL },
+        { GRAPHIC_COLOR_GAMUT_SRGB, HDIV::CM_SRGB_FULL },
+        { GRAPHIC_COLOR_GAMUT_ADOBE_RGB, HDIV::CM_ADOBERGB_FULL },
+        { GRAPHIC_COLOR_GAMUT_DISPLAY_P3, HDIV::CM_P3_FULL },
+        { GRAPHIC_COLOR_GAMUT_DCI_P3, HDIV::CM_P3_FULL },
+        { GRAPHIC_COLOR_GAMUT_BT2020, HDIV::CM_DISPLAY_BT2020_SRGB },
+        { GRAPHIC_COLOR_GAMUT_BT2100_PQ, HDIV::CM_BT2020_PQ_FULL },
+        { GRAPHIC_COLOR_GAMUT_BT2100_HLG, HDIV::CM_BT2020_HLG_FULL },
+        { GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, HDIV::CM_DISPLAY_BT2020_SRGB },
+    };
+ 
+    auto it = COLOR_GAMUT_TO_SPACE_TYPE_MAP.find(colorGamut);
+    if (it != COLOR_GAMUT_TO_SPACE_TYPE_MAP.end()) {
+        colorSpaceType = it->second;
+        return true;
+    }
+    return false;
+}
 #endif
 } // namespace Rosen
 } // namespace OHOS

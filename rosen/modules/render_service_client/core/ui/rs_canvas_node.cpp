@@ -27,6 +27,7 @@
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_recording_canvas.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_ui_context.h"
@@ -170,7 +171,7 @@ void RSCanvasNode::FinishRecording()
 void RSCanvasNode::OnFinishRecording(Drawing::DrawCmdListPtr& drawCmdList, ModifierNG::RSModifierType modifierType)
 {
     SetRSCmdProperty<FinishRecordCmdModifier>(FinishRecordCmdParam{
-        drawCmdList, static_cast<uint16_t>(modifierType)
+        static_cast<uint16_t>(modifierType), drawCmdList
     });
 }
 
@@ -195,7 +196,7 @@ void RSCanvasNode::DrawOnNode(ModifierNG::RSModifierType type, DrawFunc func)
     }
     auto modifierType = static_cast<uint16_t>(type);
     auto result = SetRSCmdPropertyWithResult<DrawOnNodeCmdModifier>(DrawOnNodeCmdParam{
-        recording, modifierType
+        modifierType, recording
     });
     if (std::holds_alternative<bool>(result) && std::get<bool>(result)) {
         recordingUpdated_ = true;

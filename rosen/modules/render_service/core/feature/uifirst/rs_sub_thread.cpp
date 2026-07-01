@@ -275,6 +275,49 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
     return nullptr;
 }
 
+std::pair<bool, float> RSSubThread::GetHdrParams(RSSurfaceRenderParams* renderParams, bool isHdrSurface,
+    NodeId surfaceId)
+{
+    bool backToFP16 = true;
+    float hdrScale = 1.0f;
+#ifdef ROSEN_OHOS
+    auto ancestorDrawable = renderParams->GetAncestorScreenDrawable().lock();
+    if (!ancestorDrawable) {
+        RS_LOGE("RSSubThread::GetHdrParams ancestorDrawable is nullptr");
+        return {backToFP16, hdrScale};
+    }
+
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(ancestorDrawable);
+    if (!screenDrawable) {
+        RS_LOGE("RSSubThread::GetHdrParams screenDrawable is nullptr");
+        return {backToFP16, hdrScale};
+    }
+
+    auto* screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    if (!screenParams) {
+        RS_LOGE("RSSubThread::GetHdrParams screenParams is nullptr");
+        return {backToFP16, hdrScale};
+    }
+
+    bool hasHwcHdr = screenParams->GetHasForceHwcHdrSurface() || screenParams->GetExistHWCNode();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto renderNode = nodeMap.GetRenderNode<const RSSurfaceRenderNode>(surfaceId);
+    if (!renderNode) {
+        RS_LOGE("RSSubThread::GetHdrParams surfaceNode is nullptr");
+        return {backToFP16, hdrScale};
+    }
+    
+    auto displayNodeId = renderNode->GetLogicalDisplayNodeId();
+    auto displayNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId);
+    if (!displayNode) {
+        RS_LOGE("RSSubThread::GetHdrParams displayNode is nullptr");
+        return {backToFP16, hdrScale};
+    }
+    backToFP16 = RSHdrUtil::NeedBackToFP16(displayNodeId, screenParams);
+#endif
+    return {backToFP16, backToFP16 ? 1.0 : screenParams->GetHdrBrightnessRatio()};
+}
+
 void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
     if (!nodeDrawable) {
@@ -285,11 +328,17 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     auto cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_);
     bool isHdrSurface = false;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
-    if (surfaceParams != nullptr) {
-        isHdrSurface = surfaceParams->GetHDRPresent();
-    }
+    float hdrScale = 1.0f;
+    
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(rsSubThreadCache.GetTargetColorGamut()) &&
         RSUifirstManager::Instance().GetUiFirstSwitch();
+    if (surfaceParams != nullptr) {
+        isHdrSurface = surfaceParams->GetHDRPresent();
+        if (isHdrSurface && !isScRGBEnable) {
+            auto params = GetHdrParams(surfaceParams, isHdrSurface, nodeDrawable->GetId());
+            hdrScale = params.second;
+        }
+    }
     bool isNeedFP16 = isHdrSurface || isScRGBEnable;
     bool bufferFormatNeedUpdate = RSHdrUtil::BufferFormatNeedUpdate(cacheSurface, isNeedFP16);
     bool bufferColorSpaceChange =
@@ -302,7 +351,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
                 static_cast<int>(rsSubThreadCache.GetCacheSurfaceColorSpace()));
         }
         DrawableV2::RsSubThreadCache::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
-        rsSubThreadCache.InitCacheSurface(grContext_.get(), nodeDrawable, func, threadIndex_, isNeedFP16);
+        rsSubThreadCache.InitCacheSurface(grContext_.get(), nodeDrawable, func, threadIndex_, {isNeedFP16, hdrScale});
         cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_);
     }
 

@@ -89,13 +89,18 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
 std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
     double* coordinates, uint32_t &errorCode)
 {
-    if (pixmap == nullptr) {
-        EFFECT_LOG_E("[ColorPicker]failed to create ColorPicker with null pixmap.");
+    if (pixmap == nullptr || coordinates == nullptr) {
+        EFFECT_LOG_E("[ColorPicker]failed to create ColorPicker with null pixmap or coordinates.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
 
     std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
+    if (scaledPixelMap == nullptr) {
+        EFFECT_LOG_E("[ColorPicker]failed to scale pixelmap, scaledPixelMap is nullptr.");
+        errorCode = ERR_EFFECT_INVALID_VALUE;
+        return nullptr;
+    }
     std::shared_ptr<ColorPicker> colorPicker = std::make_shared<ColorPicker>(scaledPixelMap, coordinates);
     errorCode = SUCCESS;
     return colorPicker;
@@ -183,10 +188,17 @@ Media::Rect ColorPicker::BuildRegionRect(const std::shared_ptr<Media::PixelMap>&
     }
     int32_t width = pixmap->GetWidth();
     int32_t height = pixmap->GetHeight();
-    int32_t left = static_cast<int32_t>(width * coordinates[0]);
-    int32_t top = static_cast<int32_t>(height * coordinates[1]);
-    int32_t right = static_cast<int32_t>(width * coordinates[2]);
-    int32_t bottom = static_cast<int32_t>(height * coordinates[3]);
+    double coordLeft = std::clamp(coordinates[0], 0.0, 1.0);
+    double coordTop = std::clamp(coordinates[1], 0.0, 1.0);
+    double coordRight = std::clamp(coordinates[2], 0.0, 1.0);
+    double coordBottom = std::clamp(coordinates[3], 0.0, 1.0);
+    int32_t left = static_cast<int32_t>(width * coordLeft);
+    int32_t top = static_cast<int32_t>(height * coordTop);
+    int32_t right = static_cast<int32_t>(width * coordRight);
+    int32_t bottom = static_cast<int32_t>(height * coordBottom);
+    if (left >= right || top >= bottom) {
+        return rect;
+    }
     rect.left = left;
     rect.top = top;
     rect.width = right - left;
@@ -280,6 +292,9 @@ uint32_t ColorPicker::RGB2GRAY(uint32_t color) const
 // Calculate Lightness Variance
 uint32_t ColorPicker::CalcGrayVariance() const
 {
+    if (colorValLen_ == 0) {
+        return 0;
+    }
     long long int grayVariance = 0;
 
     ColorManager::Color color;
@@ -309,6 +324,9 @@ double ColorPicker::CalcRelaticeLuminance(uint32_t color) const
 
 double ColorPicker::CalcContrastRatioWithWhite() const
 {
+    if (colorValLen_ == 0) {
+        return 0.0;
+    }
     double lightColorDegree = 0;
     for (size_t i = 0; i < featureColors_.size(); i++) {
         // 0.05 is used to calculate contrast ratio.

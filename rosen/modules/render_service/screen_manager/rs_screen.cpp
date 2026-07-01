@@ -458,12 +458,18 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
         return;
     }
 
-    if (width < property_.GetPhyWidth() && height < property_.GetPhyHeight() &&
-        hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
-        RS_LOGE("%{public}s: hdi set screen rog resolution failed.", __func__);
-        return;
+    if (width < property_.GetPhyWidth() && height < property_.GetPhyHeight()) {
+        if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
+            RS_LOGE("%{public}s: hdi set screen rog resolution failed.", __func__);
+            UPDATE_PROPERTY(HdiRogEnable, false);
+            return;
+        }
+        UPDATE_PROPERTY(HdiRogEnable, true);
+    } else {
+        UPDATE_PROPERTY(HdiRogEnable, false);
     }
     isRogResolution_ = true;
+    UPDATE_PROPERTY(IsRogResolution, true);
     UPDATE_PROPERTY(Resolution, std::make_pair(width, height));
     UpdateSamplingScale(property_.GetPhyWidth(), property_.GetPhyHeight(), width, height);
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}u,"
@@ -497,6 +503,8 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
         return StatusCode::INVALID_ARGUMENTS;
     }
     isRogResolution_ = false;
+    UPDATE_PROPERTY(IsRogResolution, false);
+    UPDATE_PROPERTY(HdiRogEnable, false);
     UPDATE_PROPERTY(Resolution, std::make_pair(width, height));
     UpdateSamplingScale(phyWidth, phyHeight, width, height);
     return StatusCode::SUCCESS;

@@ -597,6 +597,7 @@ napi_value JsMatrix::OnSetMatrix(napi_env env, napi_callback_info info)
         }
 
         *m_matrix = *matrix;
+        API_STATS_HISTOGRAM("Arkgraphics2d.Matrix.setMatrix", 1);
         return nullptr;
     }
 
@@ -626,6 +627,7 @@ napi_value JsMatrix::OnSetMatrix(napi_env env, napi_callback_info info)
     m_matrix->SetMatrix(matrixPara[ARGC_ZERO], matrixPara[ARGC_ONE], matrixPara[ARGC_TWO],
         matrixPara[ARGC_THREE], matrixPara[ARGC_FOUR], matrixPara[ARGC_FIVE], matrixPara[ARGC_SIX],
         matrixPara[ARGC_SEVEN], matrixPara[ARGC_EIGHT]);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Matrix.setMatrix", 1);
     return nullptr;
 }
 
@@ -697,6 +699,7 @@ napi_value JsMatrix::OnIsEqual(napi_env env, napi_callback_info info)
         return CreateJsValue(env, false);
     }
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Matrix.isEqual", 1);
     return CreateJsValue(env, m_matrix->operator == (*jsMatrix->GetMatrix()));
 }
 

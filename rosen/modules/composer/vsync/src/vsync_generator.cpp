@@ -776,6 +776,11 @@ void VSyncGenerator::SubScribeSystemAbility()
 VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t referenceTime)
 {
     std::lock_guard<std::mutex> locker(mutex_);
+    // when dvsync delay, not do updatemode
+    if (dvsyncPeriodRecord_ != 0) {
+        RS_TRACE_NAME_FMT("UpdateMode, dvsync is delay, not do updatemode");
+        return VSYNC_ERROR_API_FAILED;
+    }
     RS_TRACE_NAME_FMT("UpdateMode, period:%" PRId64 ", phase:%" PRId64 ", referenceTime:%" PRId64 ", "
         " referenceTimeOffsetPulseNum:%d", period, phase, referenceTime, referenceTimeOffsetPulseNum_);
     if (period < 0 || referenceTime < 0) {
@@ -946,45 +951,47 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
         uint32_t refreshrate = rateVec.second;
         RS_TRACE_NAME_FMT("linkerId:%" PRIu64 ", refreshrate:%u", linkerId, refreshrate);
     }
-    std::lock_guard<std::mutex> locker(mutex_);
-    if ((vsyncMode_ != VSYNC_MODE_LTPO) && (pendingVsyncMode_ != VSYNC_MODE_LTPO)) {
-        ScopedBytrace trace("it's not ltpo mode.");
-        return VSYNC_ERROR_NOT_SUPPORT;
+    VsyncError ret = VSYNC_ERROR_OK;
+    {
+        std::lock_guard<std::mutex> locker(mutex_);
+        if ((vsyncMode_ != VSYNC_MODE_LTPO) && (pendingVsyncMode_ != VSYNC_MODE_LTPO)) {
+            ScopedBytrace trace("it's not ltpo mode.");
+            return VSYNC_ERROR_NOT_SUPPORT;
+        }
+        if (pulse_ == 0) {
+            ScopedBytrace trace("pulse is not ready!!!");
+            VLOGE("pulse is not ready!!!");
+            return VSYNC_ERROR_API_FAILED;
+        }
+
+        ret = SetExpectNextVsyncTimeInternal(expectNextVsyncTime);
+
+        ChangeVSyncTE(generatorRefreshRate);
+
+        if ((generatorRefreshRate <= 0 || (vsyncMaxRefreshRate_ % generatorRefreshRate != 0))) {
+            RS_TRACE_NAME_FMT("Not support this refresh rate: %u", generatorRefreshRate);
+            VLOGE("Not support this refresh rate: %{public}u", generatorRefreshRate);
+            return VSYNC_ERROR_NOT_SUPPORT;
+        }
+
+        if (changingRefreshRates_.cb == nullptr) {
+            changingRefreshRates_ = listenerRefreshRates;
+        } else {
+            UpdateChangeRefreshRatesLocked(listenerRefreshRates);
+        }
+        needChangeRefreshRates_ = true;
+
+        changingPhaseOffset_ = listenerPhaseOffset;
+        needChangePhaseOffset_ = true;
+
+        if (changingGeneratorRefreshRate_ != 0 || generatorRefreshRate != currRefreshRate_) {
+            changingGeneratorRefreshRate_ = generatorRefreshRate;
+            needChangeGeneratorRefreshRate_ = true;
+        } else {
+            RS_TRACE_NAME_FMT("refreshRateNotChanged, generatorRefreshRate:%u, currRefreshRate_:%u",
+                generatorRefreshRate, currRefreshRate_);
+        }
     }
-    if (pulse_ == 0) {
-        ScopedBytrace trace("pulse is not ready!!!");
-        VLOGE("pulse is not ready!!!");
-        return VSYNC_ERROR_API_FAILED;
-    }
-
-    VsyncError ret = SetExpectNextVsyncTimeInternal(expectNextVsyncTime);
-
-    ChangeVSyncTE(generatorRefreshRate);
-
-    if ((generatorRefreshRate <= 0 || (vsyncMaxRefreshRate_ % generatorRefreshRate != 0))) {
-        RS_TRACE_NAME_FMT("Not support this refresh rate: %u", generatorRefreshRate);
-        VLOGE("Not support this refresh rate: %{public}u", generatorRefreshRate);
-        return VSYNC_ERROR_NOT_SUPPORT;
-    }
-
-    if (changingRefreshRates_.cb == nullptr) {
-        changingRefreshRates_ = listenerRefreshRates;
-    } else {
-        UpdateChangeRefreshRatesLocked(listenerRefreshRates);
-    }
-    needChangeRefreshRates_ = true;
-
-    changingPhaseOffset_ = listenerPhaseOffset;
-    needChangePhaseOffset_ = true;
-
-    if (changingGeneratorRefreshRate_ != 0 || generatorRefreshRate != currRefreshRate_) {
-        changingGeneratorRefreshRate_ = generatorRefreshRate;
-        needChangeGeneratorRefreshRate_ = true;
-    } else {
-        RS_TRACE_NAME_FMT("refreshRateNotChanged, generatorRefreshRate:%u, currRefreshRate_:%u",
-            generatorRefreshRate, currRefreshRate_);
-    }
-
     WaitForTimeoutConNotifyLockedForRefreshRate();
     return ret;
 }

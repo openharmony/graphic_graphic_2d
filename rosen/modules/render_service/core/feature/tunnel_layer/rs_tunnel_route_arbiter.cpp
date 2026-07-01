@@ -61,7 +61,8 @@ const RSSurfaceRenderParams* GetSurfaceParams(RSSurfaceRenderNode& node)
 #endif
 }
 
-RSTunnelRuntimeState::LastFrameRouteSnapshot BuildSnapshot(RSSurfaceRenderNode& node)
+RSTunnelRuntimeState::LastFrameRouteSnapshot BuildSnapshot(RSSurfaceRenderNode& node,
+    RSTunnelRuntimeState& tunnelRuntime)
 {
     RSTunnelRuntimeState::LastFrameRouteSnapshot snapshot;
     auto* params = GetSurfaceParams(node);
@@ -81,11 +82,7 @@ RSTunnelRuntimeState::LastFrameRouteSnapshot BuildSnapshot(RSSurfaceRenderNode& 
         }
     }
     snapshot.hwcEnabled = !node.IsHardwareForcedDisabled();
-    uint64_t tunnelLayerId = 0;
-    uint32_t tunnelProperty = TUNNEL_PROP_INVALID;
-    RSTunnelRuntimeStore::GetLayerInfoOrDefault(node.GetId(), tunnelLayerId, tunnelProperty);
-    snapshot.tunnelLayerId = tunnelLayerId;
-    snapshot.tunnelProperty = tunnelProperty;
+    tunnelRuntime.GetLayerInfo(snapshot.tunnelLayerId, snapshot.tunnelProperty);
     return snapshot;
 }
 
@@ -267,7 +264,8 @@ void CaptureRouteSnapshot(RSSurfaceRenderNode& node)
             __func__, node.GetId(), params == nullptr ? "no_params" : "no_buffer");
         return;
     }
-    RSTunnelRuntimeStore::GetOrCreate(node.GetId()).UpdateLastFrameRouteSnapshot(BuildSnapshot(node));
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node.GetId());
+    tunnelRuntime.UpdateLastFrameRouteSnapshot(BuildSnapshot(node, tunnelRuntime));
 }
 #else  // ROSEN_CROSS_PLATFORM
 RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& /* node */)

@@ -55,14 +55,15 @@ void RSWindowKeyFrameRenderNode::OnTreeStateChanged()
 }
 // LCOV_EXCL_STOP
 
-void RSWindowKeyFrameRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSWindowKeyFrameRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;
     }
 
     ApplyModifiers();
-    visitor->QuickPrepareWindowKeyFrameRenderNode(*this);
+    visitor->QuickPrepareWindowKeyFrameRenderNode(*this, isParentPrepareInReverseOrder);
 }
 
 void RSWindowKeyFrameRenderNode::SetLinkedNodeId(NodeId nodeId)

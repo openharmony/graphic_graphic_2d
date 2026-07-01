@@ -29,6 +29,7 @@ const xmlChar NODE_NAME_SINGLE_PARAM[] = "FeatureSingleParam";
 const xmlChar NODE_NAME_SWITCH[] = "FeatureSwitch";
 const xmlChar SOLIDLAYER_IN_MULTI_WINDOW_ENABLED[] = "SolidLayerInMultiWindowEnabled";
 const xmlChar DISABLE_IN_SCALE_SCENE[] = "IsDisableInScaleScene";
+const xmlChar SPLIT_SCREEN_SOURCE_TUNING[] = "SplitScreenSourceTuning";
 
 const xmlChar ATTRIBUTE_NAME[] = "name";
 const xmlChar ATTRIBUTE_VALUE[] = "value";
@@ -226,6 +227,30 @@ HWTEST_F(HwcParamParseTest, TestParseHwcInternal004, TestSize.Level1)
     node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
  
     ret = hwcParamParse.ParseHwcInternal(featureParam, node);
+    EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: TestParseHwcInternal005
+ * @tc.desc: Verify the ParseHwcInternal function for SplitScreenSourceTuning
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamParseTest, TestParseHwcInternal005, TestSize.Level1)
+{
+    xmlNode node;
+    node.xmlChildrenNode = nullptr;
+    node.name = NODE_NAME_SWITCH;
+    node.type = XML_ELEMENT_NODE;
+ 
+    xmlAttribute attrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, reinterpret_cast<const xmlChar*>("1"), nullptr);
+    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_NAME, SPLIT_SCREEN_SOURCE_TUNING, &attrVal);
+    node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
+ 
+    FeatureParamMapType featureParam;
+    featureParam["HwcConfig"] = std::make_shared<HWCParam>();
+    HWCParamParse hwcParamParse;
+    int32_t ret = hwcParamParse.ParseHwcInternal(featureParam, node);
     EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
 }
 }

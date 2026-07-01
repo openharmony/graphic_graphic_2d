@@ -5798,7 +5798,16 @@ void RSProperties::CheckGreyCoef()
 // blend with background
 void RSProperties::SetColorBlendMode(int colorBlendMode)
 {
+    bool oldBlendMode = GetColorBlendMode();
     GetEffect().colorBlendMode_ = std::clamp<int>(colorBlendMode, 0, static_cast<int>(RSColorBlendMode::MAX));
+    if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(backref_.lock())) {
+        if (oldBlendMode != GetColorBlendMode() && node->IsOnTheTree()) {
+            if (!node->GetNewOnTree()) {
+                node->UpdateDisplayBlendModeMap(false, node->GetLogicalDisplayNodeId());
+            }
+            node->UpdateDisplayBlendModeMap(true, node->GetLogicalDisplayNodeId());
+        }
+    }
     if (GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE)) {
         isDrawn_ = true;
     }

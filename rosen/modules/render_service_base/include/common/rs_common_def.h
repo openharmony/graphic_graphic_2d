@@ -119,6 +119,11 @@ inline bool ROSEN_LE(float left, float right) // less or equal
     return (left - right) < epsilon;
 }
 
+inline bool ROSEN_LE(float left, float right, float epsilon)
+{
+    return (left - right) < epsilon;
+}
+
 /**
  * Bitmask enumeration for hierarchical type identification
  * Descendant types must include all ancestor bits following the rules:

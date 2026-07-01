@@ -681,71 +681,72 @@ void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& f
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
+    RSRenderParams* targetPtr = target.get();
     if (dirtyType_.test(RSRenderParamsDirtyType::MATRIX_DIRTY)) {
-        target->matrix_.Swap(matrix_);
+        targetPtr->matrix_.Swap(matrix_);
         dirtyType_.reset(RSRenderParamsDirtyType::MATRIX_DIRTY);
     }
     if (dirtyType_.test(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY)) {
-        target->drawingCacheType_ = drawingCacheType_;
+        targetPtr->drawingCacheType_ = drawingCacheType_;
         dirtyType_.reset(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
     }
-    target->alpha_ = alpha_;
-    target->boundsRect_ = boundsRect_;
-    target->frameRect_ = frameRect_;
-    target->shouldPaint_ = shouldPaint_;
-    target->contentEmpty_ = contentEmpty_;
-    target->hasSandBox_ = hasSandBox_;
-    target->localDrawRect_ = localDrawRect_;
-    target->id_ = id_;
-    target->frameGravity_ = frameGravity_;
-    target->childHasVisibleFilter_ = childHasVisibleFilter_;
-    target->childHasVisibleEffect_ = childHasVisibleEffect_;
+    targetPtr->alpha_ = alpha_;
+    targetPtr->boundsRect_ = boundsRect_;
+    targetPtr->frameRect_ = frameRect_;
+    targetPtr->shouldPaint_ = shouldPaint_;
+    targetPtr->contentEmpty_ = contentEmpty_;
+    targetPtr->hasSandBox_ = hasSandBox_;
+    targetPtr->localDrawRect_ = localDrawRect_;
+    targetPtr->id_ = id_;
+    targetPtr->frameGravity_ = frameGravity_;
+    targetPtr->childHasVisibleFilter_ = childHasVisibleFilter_;
+    targetPtr->childHasVisibleEffect_ = childHasVisibleEffect_;
     // use flag in render param and staging render param to determine if cache should be updated
     // (flag in render param may be not used because of occlusion skip, so we need to update cache in next frame)
-    target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
-    target->shadowRect_ = shadowRect_;
+    targetPtr->isDrawingCacheChanged_ = targetPtr->isDrawingCacheChanged_ || isDrawingCacheChanged_;
+    targetPtr->shadowRect_ = shadowRect_;
     if (renderGroupCache_) {
-        target->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
+        targetPtr->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
     }
-    target->isRepaintBoundary_ = isRepaintBoundary_;
-    target->alphaOffScreen_ = alphaOffScreen_;
-    target->hdrBrightness_ = hdrBrightness_;
-    target->hdrStatus_ = hdrStatus_;
-    target->childHasVisibleHDRContent_ = childHasVisibleHDRContent_;
-    target->nodeColorSpace_ = nodeColorSpace_;
-    target->needFilter_ = needFilter_;
-    target->renderNodeType_ = renderNodeType_;
-    target->globalAlpha_ = globalAlpha_;
-    target->effectNodeShouldPaint_ = effectNodeShouldPaint_;
-    target->hasGlobalCorner_ = hasGlobalCorner_;
-    target->hasBlurFilter_ = hasBlurFilter_;
-    target->foregroundFilterCache_ = foregroundFilterCache_;
-    if (target->foregroundFilterCache_) {
-        target->foregroundFilterCache_->OnSync();
+    targetPtr->isRepaintBoundary_ = isRepaintBoundary_;
+    targetPtr->alphaOffScreen_ = alphaOffScreen_;
+    targetPtr->hdrBrightness_ = hdrBrightness_;
+    targetPtr->hdrStatus_ = hdrStatus_;
+    targetPtr->childHasVisibleHDRContent_ = childHasVisibleHDRContent_;
+    targetPtr->nodeColorSpace_ = nodeColorSpace_;
+    targetPtr->needFilter_ = needFilter_;
+    targetPtr->renderNodeType_ = renderNodeType_;
+    targetPtr->globalAlpha_ = globalAlpha_;
+    targetPtr->effectNodeShouldPaint_ = effectNodeShouldPaint_;
+    targetPtr->hasGlobalCorner_ = hasGlobalCorner_;
+    targetPtr->hasBlurFilter_ = hasBlurFilter_;
+    targetPtr->foregroundFilterCache_ = foregroundFilterCache_;
+    if (targetPtr->foregroundFilterCache_) {
+        targetPtr->foregroundFilterCache_->OnSync();
     }
-    target->isOpincSuggestFlag_ = isOpincSuggestFlag_;
-    target->isOpincSupportFlag_ = isOpincSupportFlag_;
-    target->isOpincRootFlag_ = isOpincRootFlag_;
-    target->isOpincStateChanged_ = target->isOpincStateChanged_ || isOpincStateChanged_;
-    target->isLayerPartRenderEnable_ = isLayerPartRenderEnable_;
-    target->layerPartRenderCurrentFrameDirtyRegion_ = layerPartRenderCurrentFrameDirtyRegion_;
-    target->startingWindowFlag_ = startingWindowFlag_;
-    target->isDoubleSided_ = isDoubleSided_;
-    target->absDrawRect_ = absDrawRect_;
-    target->firstLevelNodeId_ = firstLevelNodeId_;
-    target->uifirstRootNodeId_ = uifirstRootNodeId_;
-    target->instanceRootNodeId_ = instanceRootNodeId_;
-    target->instanceRootNodeName_ = instanceRootNodeName_;
-    target->absRotation_ = absRotation_;
-    target->hasUnobscuredUEC_ = hasUnobscuredUEC_;
+    targetPtr->isOpincSuggestFlag_ = isOpincSuggestFlag_;
+    targetPtr->isOpincSupportFlag_ = isOpincSupportFlag_;
+    targetPtr->isOpincRootFlag_ = isOpincRootFlag_;
+    targetPtr->isOpincStateChanged_ = targetPtr->isOpincStateChanged_ || isOpincStateChanged_;
+    targetPtr->isLayerPartRenderEnable_ = isLayerPartRenderEnable_;
+    targetPtr->layerPartRenderCurrentFrameDirtyRegion_ = layerPartRenderCurrentFrameDirtyRegion_;
+    targetPtr->startingWindowFlag_ = startingWindowFlag_;
+    targetPtr->isDoubleSided_ = isDoubleSided_;
+    targetPtr->absDrawRect_ = absDrawRect_;
+    targetPtr->firstLevelNodeId_ = firstLevelNodeId_;
+    targetPtr->uifirstRootNodeId_ = uifirstRootNodeId_;
+    targetPtr->instanceRootNodeId_ = instanceRootNodeId_;
+    targetPtr->instanceRootNodeName_ = instanceRootNodeName_;
+    targetPtr->absRotation_ = absRotation_;
+    targetPtr->hasUnobscuredUEC_ = hasUnobscuredUEC_;
 
     // [Attention] Only used in PC window resize scene now
-    target->windowKeyFrameNodeDrawable_ = windowKeyFrameNodeDrawable_;
+    targetPtr->windowKeyFrameNodeDrawable_ = windowKeyFrameNodeDrawable_;
 
     // used for DFX
-    target->isOnTheTree_ = isOnTheTree_;
+    targetPtr->isOnTheTree_ = isOnTheTree_;
 
-    target->screensWithSubTreeWhitelist_ = screensWithSubTreeWhitelist_;
+    targetPtr->screensWithSubTreeWhitelist_ = screensWithSubTreeWhitelist_;
     needSync_ = false;
 }
 

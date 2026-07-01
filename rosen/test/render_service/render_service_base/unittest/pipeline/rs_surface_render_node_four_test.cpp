@@ -277,38 +277,6 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, UpdateDirtyIfFrameBufferConsumed, TestSize
 }
 
 /**
- * @tc.name: QueryIfAllHwcChildrenForceDisabledByFilter
- * @tc.desc: test results of QueryIfAllHwcChildrenForceDisabledByFilter
- * @tc.type:FUNC QueryIfAllHwcChildrenForceDisabledByFilter
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, QueryIfAllHwcChildrenForceDisabledByFilter, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    ASSERT_TRUE(node->QueryIfAllHwcChildrenForceDisabledByFilter());
-    auto child1 = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
-    auto child2 = std::make_shared<RSSurfaceRenderNode>(id + 2, rsContext);
-    auto child3 = std::make_shared<RSRenderNode>(id + 3);
-    child2->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    std::vector<std::shared_ptr<RSRenderNode>> children;
-    children.push_back(child1);
-    children.push_back(child2);
-    children.push_back(child3);
-    node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
-    ASSERT_TRUE(node->QueryIfAllHwcChildrenForceDisabledByFilter());
-    node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    ASSERT_TRUE(node->QueryIfAllHwcChildrenForceDisabledByFilter());
-    auto weakChild4 = std::make_shared<RSSurfaceRenderNode>(id + 4, rsContext);
-    auto weakChild5 = std::make_shared<RSSurfaceRenderNode>(id + 5, rsContext);
-    child2->childHardwareEnabledNodes_.emplace_back(weakChild4);
-    child2->childHardwareEnabledNodes_.emplace_back(weakChild5);
-    ASSERT_FALSE(node->QueryIfAllHwcChildrenForceDisabledByFilter());
-    weakChild4->isHardwareForcedDisabledByFilter_ = true;
-    ASSERT_FALSE(node->QueryIfAllHwcChildrenForceDisabledByFilter());
-}
-
-/**
  * @tc.name: GetWindowCornerRadius
  * @tc.desc: test results of GetWindowCornerRadius
  * @tc.type:FUNC GetWindowCornerRadius

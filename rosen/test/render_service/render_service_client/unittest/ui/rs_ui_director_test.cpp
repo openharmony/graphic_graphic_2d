@@ -1442,6 +1442,125 @@ HWTEST_F(RSUIDirectorTest, DestroyStateTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GoStopFromCreateStateTest
+ * @tc.desc: Test GoStop from CREATE state sets state to STOP without executing stop logic
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoStopFromCreateStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->GoCreate();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+}
+
+/**
+ * @tc.name: GoStopIdempotentTest
+ * @tc.desc: Test GoStop is idempotent when called repeatedly from BACKGROUND
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoStopIdempotentTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->GoBackground();
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+}
+
+/**
+ * @tc.name: GoDestroyNoCrashTest
+ * @tc.desc: Test GoDestroy can be called without crashing
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoDestroyNoCrashTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->GoDestroy();
+    SUCCEED();
+}
+
+/**
+ * @tc.name: GoDestroyStateUnchangedTest
+ * @tc.desc: Test GoDestroy does not change current lifecycle state
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoDestroyStateUnchangedTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    auto stateBefore = director->GetCurrentState();
+    director->GoDestroy();
+    EXPECT_EQ(director->GetCurrentState(), stateBefore);
+
+    director->GoBackground();
+    stateBefore = director->GetCurrentState();
+    director->GoDestroy();
+    EXPECT_EQ(director->GetCurrentState(), stateBefore);
+
+    director->GoStop();
+    stateBefore = director->GetCurrentState();
+    director->GoDestroy();
+    EXPECT_EQ(director->GetCurrentState(), stateBefore);
+}
+
+/**
+ * @tc.name: GetCurrentStateInitialTest
+ * @tc.desc: Test GetCurrentState returns FOREGROUND after RSUIDirector creation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetCurrentStateInitialTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::FOREGROUND);
+}
+
+/**
+ * @tc.name: GetCurrentStateTransitionTest
+ * @tc.desc: Test GetCurrentState reflects lifecycle state transitions
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetCurrentStateTransitionTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+
+    director->GoResume();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::RESUME);
+
+    director->GoForeground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::FOREGROUND);
+
+    director->Destroy();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+}
+
+/**
+ * @tc.name: GetCurrentStateAfterGoDestroyTest
+ * @tc.desc: Test GetCurrentState remains unchanged after GoDestroy
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetCurrentStateAfterGoDestroyTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->GoDestroy();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::FOREGROUND);
+}
+
+/**
  * @tc.name: SetRSRootNodeUpdatesRootNodeIdTest
  * @tc.desc: Test SetRSRootNode updates rootNodeId_ in RSUIContext
  * @tc.type: FUNC

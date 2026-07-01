@@ -2027,6 +2027,45 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetCacheEnabledForRotationStubTest
 }
 
 /**
+ * @tc.name: NotifyWindowModeTypeEventStubTest001
+ * @tc.desc: Test NotifyWindowModeTypeEvent stub with valid windowModeType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, NotifyWindowModeTypeEventStubTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint8(1));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT);
+ 
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+ 
+/**
+ * @tc.name: NotifyWindowModeTypeEventStubTest002
+ * @tc.desc: Test NotifyWindowModeTypeEvent stub when ReadUint8 fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, NotifyWindowModeTypeEventStubTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT);
+ 
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: SetHdrForceHwcEnabledStubTest001
  * @tc.desc: Test SetHdrForceHwcEnabled stub with enabled = true
  * @tc.type: FUNC

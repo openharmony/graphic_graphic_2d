@@ -73,7 +73,14 @@ void RSAnimationTest::SetUp()
     canvasNode->SetFrame(ANIMATION_START_BOUNDS);
 }
 
-void RSAnimationTest::TearDown() {}
+void RSAnimationTest::TearDown()
+{
+    if (canvasNode) {
+        canvasNode->RemoveAllAnimations();
+    }
+    canvasNode = nullptr;
+    rsUIContext = nullptr;
+}
 
 /**
  * @tc.name: AnimationGetId001

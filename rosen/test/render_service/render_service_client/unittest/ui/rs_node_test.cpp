@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+#include <chrono>
 #include <memory>
+#include <thread>
 
 #include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "gmock/gmock.h"
@@ -42,6 +44,8 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
+#include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
 #include "ui_effect/effect/include/background_color_effect_para.h"
 #include "ui_effect/effect/include/border_light_effect_para.h"
@@ -8926,4 +8930,190 @@ HWTEST_F(RSNodeTest, SetMaterialShaderDetachPropertyTest, TestSize.Level1)
 
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: CheckMultiThreadAccess001
+ * @tc.desc: test results of CheckMultiThreadAccess
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CheckMultiThreadAccess001, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    rsNode->SetSkipCheckInMultiInstance(false);
+    rsNode->rsUIContext_ = nullptr;
+    std::string func = "";
+    ASSERT_TRUE(rsNode->CheckMultiThreadAccess(func));
+}
+
+/**
+ * @tc.name: CheckMultiThreadAccess002
+ * @tc.desc: test results of CheckMultiThreadAccess
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CheckMultiThreadAccess002, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    rsNode->SetSkipCheckInMultiInstance(false);
+    rsNode->rsUIContext_->token_ = gettid();
+    std::string func = "";
+    ASSERT_FALSE(rsNode->CheckMultiThreadAccess(func));
+}
+
+/*
+ * @tc.name: SetBoundsAndFrame001
+ * @tc.desc: Test SetBoundsAndFrame with float and Vector4f parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetBoundsAndFrame001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    Vector4f newBounds(50.0f, 60.0f, 300.0f, 400.0f);
+    Vector4f newFrame(25.0f, 35.0f, 300.0f, 400.0f);
+    rsNode->SetBoundsAndFrame(newBounds, newFrame);
+    auto bounds = rsNode->GetStagingProperties().GetBounds();
+    auto frame = rsNode->GetStagingProperties().GetFrame();
+    EXPECT_TRUE(ROSEN_EQ(bounds.x_, 50.0f));
+    EXPECT_TRUE(ROSEN_EQ(frame.x_, 25.0f));
+}
+
+/**
+ * @tc.name: SetBoundsAndFrame002
+ * @tc.desc: Test SetBoundsAndFrame called multiple times (modifier exists branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetBoundsAndFrame002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->compositeLayerUtils_ =
+        std::make_shared<RSCompositeLayerUtils>(surfaceNode, static_cast<uint32_t>(TopLayerZOrder::POINTER_WINDOW));
+
+    Vector4f newBounds1(0.0f, 0.0f, 300.0f, 400.0f);
+    Vector4f newFrame1(0.0f, 0.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds1, newFrame1);
+
+    Vector4f newBounds2(30.0f, 0.0f, 300.0f, 400.0f);
+    Vector4f newFrame2(0.0f, 0.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds2, newFrame2);
+
+    Vector4f newBounds3(30.0f, 30.0f, 300.0f, 400.0f);
+    Vector4f newFrame3(0.0f, 0.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds3, newFrame3);
+
+    Vector4f newBounds4(30.0f, 30.0f, 300.0f, 400.0f);
+    Vector4f newFrame4(15.0f, 0.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds4, newFrame4);
+
+    Vector4f newBounds5(30.0f, 30.0f, 300.0f, 400.0f);
+    Vector4f newFrame5(15.0f, 15.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds5, newFrame5);
+
+    auto bounds = surfaceNode->GetStagingProperties().GetBounds();
+    auto frame = surfaceNode->GetStagingProperties().GetFrame();
+    EXPECT_TRUE(ROSEN_EQ(bounds.x_, 30.0f));
+    EXPECT_TRUE(ROSEN_EQ(bounds.y_, 30.0f));
+    EXPECT_TRUE(ROSEN_EQ(frame.x_, 15.0f));
+    EXPECT_TRUE(ROSEN_EQ(frame.y_, 15.0f));
+}
+
+/**
+ * @tc.name: CheckAndWaitForNodeRebuild_NoContext_ReturnsTrue
+ * @tc.desc: Test CheckAndWaitForNodeRebuild returns true when RSUIContext is null.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, CheckAndWaitForNodeRebuild_NoContext_ReturnsTrue, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->rsUIContext_ = nullptr;
+    EXPECT_TRUE(rsNode->CheckAndWaitForNodeRebuild());
+}
+
+/**
+ * @tc.name: CheckAndWaitForNodeRebuild_ActiveNormal_ReturnsTrue
+ * @tc.desc: Test CheckAndWaitForNodeRebuild returns true for active node in Normal state.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, CheckAndWaitForNodeRebuild_ActiveNormal_ReturnsTrue, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    rsNode->rsUIContext_ = uiContext;
+
+    rsNode->SetNodeState(RSNodeState::ACTIVE);
+    EXPECT_TRUE(rsNode->CheckAndWaitForNodeRebuild());
+}
+
+/**
+ * @tc.name: CheckAndWaitForNodeRebuild_ActiveRebuilding_WaitsAndReturnsTrue
+ * @tc.desc: Test CheckAndWaitForNodeRebuild waits and returns true when Rebuilding turns Normal.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, CheckAndWaitForNodeRebuild_ActiveRebuilding_WaitsAndReturnsTrue, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    rsNode->rsUIContext_ = uiContext;
+
+    rsNode->SetNodeState(RSNodeState::ACTIVE);
+    uiContext->SetRebuildState(RebuildState::Rebuilding);
+
+    std::thread notifier([uiContext]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        uiContext->SetRebuildState(RebuildState::Normal);
+    });
+    EXPECT_TRUE(rsNode->CheckAndWaitForNodeRebuild());
+    notifier.join();
+}
+
+/**
+ * @tc.name: HasCreateRenderNodeInRS_DefaultTrue
+ * @tc.desc: Test HasCreateRenderNodeInRS returns true for a default non-texture-export node.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, HasCreateRenderNodeInRS_DefaultTrue, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    EXPECT_TRUE(rsNode->HasCreateRenderNodeInRS());
+}
+
+/**
+ * @tc.name: SetTextureExport_BasicFlow
+ * @tc.desc: Test SetTextureExport toggles texture export flag without crashing.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, SetTextureExport_BasicFlow, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    EXPECT_FALSE(rsNode->IsTextureExportNode());
+
+    rsNode->SetTextureExport(true);
+    EXPECT_TRUE(rsNode->IsTextureExportNode());
+
+    // Duplicate call with the same value should be a no-op.
+    rsNode->SetTextureExport(true);
+    EXPECT_TRUE(rsNode->IsTextureExportNode());
+
+    rsNode->SetTextureExport(false);
+    EXPECT_FALSE(rsNode->IsTextureExportNode());
+}
+
 } // namespace OHOS::Rosen

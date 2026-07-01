@@ -678,6 +678,15 @@ public:
     }
     void DumpCurrentFrameLayer() const override {}
 
+    void SetSplitLayerTag(bool splitLayerTag) override
+    {
+        splitLayerTag_ = splitLayerTag;
+    }
+    bool GetSplitLayerTag() const override
+    {
+        return splitLayerTag_;
+    }
+
 private:
     RSLayerId id_ = 0;
     bool isNeedComposition_ = false;
@@ -727,6 +736,7 @@ private:
     bool layerCopybit_ = false;
     bool needBilinear_ = false;
     bool isMaskLayer_ = false;
+    bool splitLayerTag_ = false;
     uint64_t nodeId_ = 0;
     uint32_t ancoFlags_ = 0;
     LayerMask layerMask_ {};
@@ -9385,6 +9395,40 @@ HWTEST_F(RsRenderComposerTest, MarkTunnelSurfaceInvalid_ValidSurfaceId_ForwardsT
     composer->MarkTunnelSurfaceInvalid(surfaceId);
     EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 1u);
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) > 0);
+
+    composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ @ tc.name: HandleTunnelCommitFailure_DoesNotDestroyLayer
+ @ tc.desc: Test HandleTunnelCommitFailure marks surface invalid but does NOT destroy layer
+ @ tc.type: FUNC
+*/
+HWTEST_F(RsRenderComposerTest, HandleTunnelCommitFailure_DoesNotDestroyLayer, TestSize.Level1)
+{
+    constexpr uint32_t screenId = 0;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, screenProperty);
+
+    constexpr uint64_t surfaceId = 90003;
+    constexpr uint64_t nodeId = 80003;
+    constexpr uint64_t tunnelLayerGeneration = 100;
+
+    auto rsLayer = std::make_shared<RSRenderSurfaceLayer>();
+    rsLayer->SetSurfaceUniqueId(surfaceId);
+    rsLayer->SetNodeId(nodeId);
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    rsLayer->SetTunnelLayerGeneration(tunnelLayerGeneration);
+    output->RegisterCreatedLayerLocked(surfaceId, hdiLayer, rsLayer, false);
+    ASSERT_EQ(output->surfaceIdMap_.count(surfaceId), 1u);
+
+    composer->HandleTunnelCommitFailure(surfaceId);
+
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) > 0);
+    EXPECT_EQ(output->surfaceIdMap_.count(surfaceId), 1u);
 
     composer->uniRenderEngine_ = nullptr;
 }

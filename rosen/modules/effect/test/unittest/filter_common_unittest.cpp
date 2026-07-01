@@ -272,5 +272,155 @@ HWTEST_F(FilterCommonUnittest, FilterCommon_Clear002, TestSize.Level1)
     ASSERT_TRUE(filter->effectFilters_.size() == 2);
     ASSERT_TRUE(filter->srcPixelMap_ != nullptr);
 }
+
+/**
+ * @tc.name: FilterCommon_SetColorMatrixOverflow
+ * @tc.desc: Ensure SetColorMatrix returns false when matrix size exceeds limit.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_SetColorMatrixOverflow, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_SetColorMatrixOverflow start";
+    std::unique_ptr<PixelMap> pixMap = CreatePixelMap();
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<FilterCommon> filter = FilterCommon::CreateEffect(std::move(pixMap), errorCode);
+    ASSERT_TRUE(errorCode == SUCCESS);
+    ASSERT_TRUE(filter != nullptr);
+
+    std::vector<float> overflowMatrix(25, 0.0f);
+    ASSERT_TRUE(filter->SetColorMatrix(overflowMatrix, errorCode) == false);
+    ASSERT_TRUE(errorCode == ERR_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: FilterCommon_BlurNullConstructor
+ * @tc.desc: Ensure Blur returns false when sConstructor_ is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_BlurNullConstructor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_BlurNullConstructor start";
+    FilterCommon::sConstructor_ = nullptr;
+    ASSERT_TRUE(FilterCommon::Blur(5.0f) == false);
+}
+
+/**
+ * @tc.name: FilterCommon_InvertNullConstructor
+ * @tc.desc: Ensure Invert returns false when sConstructor_ is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_InvertNullConstructor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_InvertNullConstructor start";
+    FilterCommon::sConstructor_ = nullptr;
+    ASSERT_TRUE(FilterCommon::Invert() == false);
+}
+
+/**
+ * @tc.name: FilterCommon_BrightnessNullConstructor
+ * @tc.desc: Ensure Brightness returns false when sConstructor_ is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_BrightnessNullConstructor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_BrightnessNullConstructor start";
+    FilterCommon::sConstructor_ = nullptr;
+    ASSERT_TRUE(FilterCommon::Brightness(0.5f) == false);
+}
+
+/**
+ * @tc.name: FilterCommon_GrayscaleNullConstructor
+ * @tc.desc: Ensure Grayscale returns false when sConstructor_ is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_GrayscaleNullConstructor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_GrayscaleNullConstructor start";
+    FilterCommon::sConstructor_ = nullptr;
+    ASSERT_TRUE(FilterCommon::Grayscale() == false);
+}
+
+/**
+ * @tc.name: FilterCommon_CreateSDFNullConstructor
+ * @tc.desc: Ensure CreateSDF returns false when sConstructor_ is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_CreateSDFNullConstructor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_CreateSDFNullConstructor start";
+    FilterCommon::sConstructor_ = nullptr;
+    ASSERT_TRUE(FilterCommon::CreateSDF(64, true) == false);
+}
+
+/**
+ * @tc.name: FilterCommon_SetColorMatrixNullConstructor
+ * @tc.desc: Ensure SetColorMatrix returns false when sConstructor_ is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_SetColorMatrixNullConstructor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_SetColorMatrixNullConstructor start";
+    FilterCommon::sConstructor_ = nullptr;
+    uint32_t errorCode = SUCCESS;
+    std::vector<float> matrix { -1.0, 0, 0, 0, 1, 0, -1.0, 0, 0, 1, 0, 0, -1.0, 0, 1, 0, 0, 0, 1, 0 };
+    ASSERT_TRUE(FilterCommon::SetColorMatrix(matrix, errorCode) == false);
+    ASSERT_TRUE(errorCode == ERR_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: FilterCommon_GetEffectPixelMapNullConstructor
+ * @tc.desc: Ensure GetEffectPixelMap returns nullptr when sConstructor_ is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_GetEffectPixelMapNullConstructor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_GetEffectPixelMapNullConstructor start";
+    FilterCommon::sConstructor_ = nullptr;
+    ASSERT_TRUE(FilterCommon::GetEffectPixelMap() == nullptr);
+}
+
+/**
+ * @tc.name: FilterCommon_AddNextFilterLimit
+ * @tc.desc: Ensure AddNextFilter does not exceed MAX_FILTER_COUNT limit.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_AddNextFilterLimit, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_AddNextFilterLimit start";
+    std::unique_ptr<PixelMap> pixMap = CreatePixelMap();
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<FilterCommon> filter = FilterCommon::CreateEffect(std::move(pixMap), errorCode);
+    ASSERT_TRUE(errorCode == SUCCESS);
+    ASSERT_TRUE(filter != nullptr);
+
+    filter->effectFilters_.clear();
+    for (size_t i = 0; i < FilterCommon::MAX_FILTER_COUNT; i++) {
+        auto blur = EffectImageFilter::Blur(1.0f, Drawing::TileMode::DECAL);
+        filter->AddNextFilter(blur);
+    }
+    ASSERT_TRUE(filter->effectFilters_.size() == FilterCommon::MAX_FILTER_COUNT);
+
+    auto extraBlur = EffectImageFilter::Blur(1.0f, Drawing::TileMode::DECAL);
+    filter->AddNextFilter(extraBlur);
+    ASSERT_TRUE(filter->effectFilters_.size() == FilterCommon::MAX_FILTER_COUNT);
+}
 } // namespace Rosen
 } // namespace OHOS

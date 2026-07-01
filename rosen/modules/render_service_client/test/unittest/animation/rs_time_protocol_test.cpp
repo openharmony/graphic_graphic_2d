@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_animation_base_test.h"
-#include "rs_animation_test_utils.h"
+#include "gtest/gtest.h"
 
 #include "animation/rs_animation_timing_protocol.h"
 
@@ -23,9 +22,8 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-using namespace ANIMATIONTEST;
 
-class RSAnimationProtocolTest : public RSAnimationBaseTest {
+class RSAnimationProtocolTest : public testing::Test {
 };
 
 /**

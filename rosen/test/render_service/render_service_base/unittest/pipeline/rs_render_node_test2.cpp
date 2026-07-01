@@ -712,6 +712,28 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRectAndDirtyRegion002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateDrawRectAndDirtyRegion003
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateDrawRectAndDirtyRegion003, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI clipRect{0, 0, 1000, 1000};
+    Drawing::Matrix matrix;
+    auto& properties = node.GetMutableRenderProperties();
+    properties.clipToBounds_ = true;
+    properties.clipToFrame_ = true;
+    properties.geoDirty_ = true;
+    node.srcOrClipedAbsDrawRectChangeFlag_ = true;
+    node.shouldPaint_ = true;
+    node.isLastVisible_ = true;
+    ASSERT_EQ(node.UpdateDrawRectAndDirtyRegion(*rsDirtyManager, false, clipRect, matrix), true);
+}
+
+/**
  * @tc.name: UpdateDrawRect001
  * @tc.desc: test
  * @tc.type: FUNC
@@ -724,7 +746,11 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRect001, TestSize.Level1)
     Drawing::Matrix matrix;
     RSRenderNode parentNode(id + 1, context);
     bool accumGeoDirty = true;
-    node.UpdateDrawRect(accumGeoDirty, clipRect, matrix);
+    auto parent = node.GetCurCloneNodeParent().lock();
+    if (parent == nullptr) {
+        parent = node.GetParent().lock();
+    }
+    node.UpdateDrawRect(accumGeoDirty, clipRect, matrix, parent);
     ASSERT_TRUE(true);
 }
 
@@ -742,7 +768,11 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRect002, TestSize.Level1)
     auto& properties = node.GetMutableRenderProperties();
     properties.sandbox_ = std::make_unique<Sandbox>();
     bool accumGeoDirty = true;
-    node.UpdateDrawRect(accumGeoDirty, clipRect, matrix);
+    auto parent = node.GetCurCloneNodeParent().lock();
+    if (parent == nullptr) {
+        parent = node.GetParent().lock();
+    }
+    node.UpdateDrawRect(accumGeoDirty, clipRect, matrix, parent);
     ASSERT_TRUE(true);
 }
 
@@ -3544,9 +3574,12 @@ HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers001
     node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
     node->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    auto logFlag = RSLogManager::GetInstance().logFlag_;
+    RSLogManager::GetInstance().logFlag_ = FLAG_DEBUG_NODE;
 
     node->ApplyModifiers();
     ASSERT_FALSE(node->renderProperties_.GetUseUnion());
+    RSLogManager::GetInstance().logFlag_ = logFlag;
 }
 
 /**

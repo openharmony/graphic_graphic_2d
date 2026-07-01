@@ -357,6 +357,10 @@ ohos_unittest("RSGraphicTest") {
     "-Dprotected=public",
   ]
 
+  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
+    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
+  }
+
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

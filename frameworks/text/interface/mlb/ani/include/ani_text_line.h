@@ -26,7 +26,7 @@ namespace OHOS::Text::ANI {
 class AniTextLine final {
 public:
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
-    static ani_object CreateTextLine(ani_env* env, Rosen::TextLineBase* textLine);
+    static ani_object CreateTextLine(ani_env* env, std::shared_ptr<Rosen::TextLineBase> textLine);
 
 private:
     static ani_int GetGlyphCount(ani_env* env, ani_object object);

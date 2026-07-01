@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "animation/rs_render_curve_animation.h"
+#include "animation/rs_render_particle_animation.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
 
@@ -479,6 +480,63 @@ HWTEST_F(RSAnimationManagerTest, DestroyInRender005, TestSize.Level1)
     animationManager.DestroyInRender(0, context->weak_from_this());
     EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == nullptr);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender005 end";
+}
+
+/**
+ * @tc.name: AnimateMarksParticleStartTimeOnBackground001
+ * @tc.desc: An infinite particle animation that is skipped in the background must be marked to realign its
+ *           start time on the next foreground frame once its start time has been consumed, while an
+ *           already-pending mark is left untouched.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, AnimateMarksParticleStartTimeOnBackground001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AnimateMarksParticleStartTimeOnBackground001 start";
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
+    auto particleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(particleAnimation != nullptr);
+    particleAnimation->SetRepeatCount(-1);
+
+    RSAnimationManager animationManager;
+    animationManager.AddAnimation(particleAnimation);
+
+    int64_t leftDelayTime = 0;
+    EXPECT_TRUE(particleAnimation->GetNeedUpdateStartTime());
+    animationManager.Animate(0, leftDelayTime, true, RSSurfaceNodeAbilityState::BACKGROUND);
+    EXPECT_TRUE(particleAnimation->GetNeedUpdateStartTime());
+
+    particleAnimation->SetStartTime(0);
+    EXPECT_FALSE(particleAnimation->GetNeedUpdateStartTime());
+    animationManager.Animate(0, leftDelayTime, true, RSSurfaceNodeAbilityState::BACKGROUND);
+    EXPECT_TRUE(particleAnimation->GetNeedUpdateStartTime());
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AnimateMarksParticleStartTimeOnBackground001 end";
+}
+
+/**
+ * @tc.name: DestroyInRenderRebuildsInfiniteParticle001
+ * @tc.desc: DestroyInRender must tear down an infinite particle animation (detach and clear) so it is
+ *           rebuilt on foreground, taking the particle-specific teardown path.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, DestroyInRenderRebuildsInfiniteParticle001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRenderRebuildsInfiniteParticle001 start";
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
+    auto particleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(particleAnimation != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    particleAnimation->Attach(renderNode.get());
+    particleAnimation->SetRepeatCount(-1);
+
+    RSAnimationManager animationManager;
+    animationManager.AddAnimation(particleAnimation);
+
+    auto context = std::make_shared<RSContext>();
+    animationManager.DestroyInRender(0, context->weak_from_this());
+    EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRenderRebuildsInfiniteParticle001 end";
 }
 
 } // namespace Rosen

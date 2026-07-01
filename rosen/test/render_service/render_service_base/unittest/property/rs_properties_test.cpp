@@ -4704,16 +4704,13 @@ HWTEST_F(RSPropertiesTest, IsDistortionKValidBoundary001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetPixelStretchNullopt001, TestSize.Level1)
 {
     RSProperties properties;
-    // First set a valid value
     Vector4f stretch(1.f, 2.f, 3.f, 4.f);
     properties.SetPixelStretch(stretch);
     EXPECT_FALSE(properties.GetPixelStretch().IsZero());
 
-    // Set nullopt: should not clear existing para_ (new code only allocates on has_value && !IsZero)
     std::optional<Vector4f> nulloptStretch = std::nullopt;
     properties.SetPixelStretch(nulloptStretch);
-    // para_ still holds the previously set value
-    EXPECT_FALSE(properties.GetPixelStretch().IsZero());
+    EXPECT_TRUE(properties.GetPixelStretch().IsZero());
 }
 
 /**
@@ -4910,8 +4907,7 @@ HWTEST_F(RSPropertiesTest, SetPixelStretchPercentNullopt001, TestSize.Level1)
 
     std::optional<Vector4f> nulloptPercent = std::nullopt;
     properties.SetPixelStretchPercent(nulloptPercent);
-    // para_ still holds the previously set value
-    EXPECT_FALSE(properties.GetPixelStretchPercent().IsZero());
+    EXPECT_TRUE(properties.GetPixelStretchPercent().IsZero());
 }
 
 /**

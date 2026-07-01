@@ -94,7 +94,8 @@ private:
  
 GRAPHIC_TEST(CanvasDrawingNodeTest, CONTENT_DISPLAY_TEST, CanvasDrawingNode_DrawContent_Test)
 {
-    auto testNode1 = RSCanvasDrawingNode::Create(true);
+    auto uiContext = RSGraphicTestDirector::Instance().GetRSUIContext();
+    auto testNode1 = RSCanvasDrawingNode::Create(true, false, uiContext);
     int width = 1000;
     int height = 1000;
     auto node = std::static_pointer_cast<RSCanvasNode>(testNode1);
@@ -103,6 +104,9 @@ GRAPHIC_TEST(CanvasDrawingNodeTest, CONTENT_DISPLAY_TEST, CanvasDrawingNode_Draw
     auto modifier1 = std::make_shared<TestContentStyleModifier>();
     testNode1->AddModifier(modifier1);
     GetRootNode()->AddChild(testNode1);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    uiContext->FlushCanvasDrawingNodeBuffers();
+#endif
     RegisterNode(testNode1);
  
     Media::InitializationOptions opts;
@@ -114,7 +118,7 @@ GRAPHIC_TEST(CanvasDrawingNodeTest, CONTENT_DISPLAY_TEST, CanvasDrawingNode_Draw
     Drawing::Rect pixelMapRect(0, 0, 500, 500);
     testNode1->GetPixelmap(pixelmap, nullptr, &pixelMapRect);
  
-    auto testNode2 = RSCanvasNode::Create(true);
+    auto testNode2 = RSCanvasNode::Create(true, false, uiContext);
     setNode(testNode2, { 500, 500, 500, 500 }, Vector4<Color>(Color(0, 255, 0)));
     testNode2->SetBgImageWidth(500);
     testNode2->SetBgImageHeight(500);

@@ -93,6 +93,7 @@ public:
 
     // Hgm
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
+    void NotifyWindowModeTypeEvent(uint8_t windowModeType) override;
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom) override;
     uint32_t GetRealtimeRefreshRate(ScreenId screenId) override;
     void SetShowRefreshRateEnabled(bool enabled, int32_t type) override;

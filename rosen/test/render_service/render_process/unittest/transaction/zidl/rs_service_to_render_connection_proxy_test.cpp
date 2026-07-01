@@ -1888,6 +1888,82 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyPackageEvent_SendRequestFai
     mockProxy->NotifyPackageEvent(listSize, packageList);
 }
 
+// ==================== NotifyWindowModeTypeEvent Tests ====================
+ 
+/**
+ * @tc.name: NotifyWindowModeTypeEvent_ValidValue
+ * @tc.desc: Test NotifyWindowModeTypeEvent with valid windowModeType
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyWindowModeTypeEvent_ValidValue, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+ 
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
+ 
+    uint8_t windowModeType = 1;
+    mockProxy->NotifyWindowModeTypeEvent(windowModeType);
+}
+ 
+/**
+ * @tc.name: NotifyWindowModeTypeEvent_MaxValue
+ * @tc.desc: Test NotifyWindowModeTypeEvent with maximum windowModeType value
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyWindowModeTypeEvent_MaxValue, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+ 
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
+ 
+    uint8_t windowModeType = 255;
+    mockProxy->NotifyWindowModeTypeEvent(windowModeType);
+}
+ 
+/**
+ * @tc.name: NotifyWindowModeTypeEvent_SendRequestFail
+ * @tc.desc: Test NotifyWindowModeTypeEvent when SendRequest fails
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyWindowModeTypeEvent_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+ 
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+ 
+    uint8_t windowModeType = 1;
+    mockProxy->NotifyWindowModeTypeEvent(windowModeType);
+}
+ 
+/**
+ * @tc.name: NotifyWindowModeTypeEvent_MultipleCalls
+ * @tc.desc: Test NotifyWindowModeTypeEvent with multiple successive calls
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyWindowModeTypeEvent_MultipleCalls, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+ 
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
+ 
+    mockProxy->NotifyWindowModeTypeEvent(0);
+    mockProxy->NotifyWindowModeTypeEvent(1);
+    mockProxy->NotifyWindowModeTypeEvent(2);
+    mockProxy->NotifyWindowModeTypeEvent(3);
+}
+
 // ==================== ReportGameStateData Tests ====================
 
 /**

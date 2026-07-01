@@ -214,6 +214,7 @@ bool RSHpaeOfflineDevice::IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRender
         CheckAndPostPreAllocBuffersTask(context);
         return false;
     }
+    context->invalidFrames = 0; // avoid task being cleared
     return true;
 }
 

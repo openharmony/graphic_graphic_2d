@@ -15,6 +15,15 @@ import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
+declare_args() {
+  # Enables API call metrics for ArkGraphics 2D Drawing NAPI.
+  arkgraphic2d_drawing_api_metrics = true
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.hiviewdfx_api_metrics)) {
+    arkgraphic2d_drawing_api_metrics = false
+  }
+}
+
 group("drawingnapi") {
   deps = [
     ":drawing_napi",
@@ -166,6 +175,10 @@ if (is_arkui_x) {
     external_deps = [ "napi:ace_napi" ]
 
     if (current_os == "ohos" || current_os == "ohos_ng") {
+      if (arkgraphic2d_drawing_api_metrics) {
+        external_deps += [ "api_metrics:histogrammanager" ]
+        defines += [ "HISTOGRAM_MANAGEMENT_ENABLE=1" ]
+      }
       sanitize = {
         boundary_sanitize = true
         integer_overflow = true

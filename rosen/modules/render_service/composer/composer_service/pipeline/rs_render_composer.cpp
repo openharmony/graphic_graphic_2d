@@ -1292,7 +1292,6 @@ void RSRenderComposer::HandleTunnelCommitFailure(uint64_t surfaceId)
     uint64_t nodeId = hdiOutput_->GetNodeIdBySurfaceId(surfaceId);
     uint64_t tunnelLayerGeneration = hdiOutput_->GetTunnelLayerGenerationBySurfaceId(surfaceId);
     hdiOutput_->MarkTunnelSurfaceInvalid(surfaceId);
-    hdiOutput_->DestroyLayerBySurfaceId(surfaceId);
     if (nodeId == 0) {
         RS_LOGW("%{public}s can not find nodeId, surfaceId:%{public}" PRIu64, __func__, surfaceId);
         return;

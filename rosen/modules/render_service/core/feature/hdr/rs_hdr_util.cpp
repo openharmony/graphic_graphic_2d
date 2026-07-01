@@ -139,7 +139,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
     }
     float targetScaler = 1.0f;
     auto hdrStatus = HdrStatus::NO_HDR;
-    float hdrDimmingFactor = rsLuminance.HdrDimmingProcess(screenId, surfaceNode.GetId());
+    float hdrDimmingFactor = rsLuminance.HdrDimmingProcess(screenId, surfaceNode);
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
         hdrStatus = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(surfaceBuffer);
@@ -166,6 +166,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
+    scaler = std::min(scaler, rsLuminance.GetSurfaceNodeMaxScaler(surfaceNode, screenId, hdrStatus));
 #ifndef ROSEN_CROSS_PLATFORM
     if (ROSEN_GNE(sdrNits, 0.0f)) {
         scaler = std::clamp(scaler, 1.0f, displayNits / sdrNits);
@@ -568,6 +569,24 @@ bool RSHdrUtil::IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfi
         }
     }
     return false;
+}
+
+bool RSHdrUtil::NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams)
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto displayNode = nodeMap.GetRenderNode<const RSLogicalDisplayRenderNode>(id);
+    if (!displayNode) {
+        RS_LOGE("RSHdrUtil::NeedBackToFP16 displayNode is nullptr");
+        return true;
+    }
+    bool hasHwcHdr = screenParams->GetHasForceHwcHdrSurface() || screenParams->GetExistHWCNode();
+    auto colorSpace = screenParams->GetNewColorSpace();
+    if (!RSSystemProperties::GetEdrGainEnabled() || RSLuminanceControl::Get().IsHardwareHdrDisabled() ||
+        hasHwcHdr || colorSpace != GRAPHIC_COLOR_GAMUT_SRGB) {
+        return true;
+    }
+    int dstAlphaCount = displayNode->GetDstAlphaBlendModeNodeCount();
+    return dstAlphaCount > 0;
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

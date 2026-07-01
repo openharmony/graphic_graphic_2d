@@ -110,7 +110,7 @@ std::string RenderContextVK::CleanAllShaderCache() const
 
 bool RenderContextVK::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
-    LOGI("RenderContextVK::QueryMaxGpuBufferSize: using Vulkan backend");
+    LOGD("RenderContextVK::QueryMaxGpuBufferSize: using Vulkan backend");
     auto& vkContext = RsVulkanContext::GetSingleton();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
     if (physicalDevice == VK_NULL_HANDLE) {
@@ -124,7 +124,7 @@ bool RenderContextVK::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHei
     maxWidth = deviceProperties.limits.maxImageDimension2D;
     maxHeight = deviceProperties.limits.maxImageDimension2D;
 
-    LOGI("RenderContextVK::QueryMaxGpuBufferSize: Vulkan max image dimension = %u", maxWidth);
+    LOGD("RenderContextVK::QueryMaxGpuBufferSize: Vulkan max image dimension = %u", maxWidth);
     return true;
 }
 } // namespace Rosen

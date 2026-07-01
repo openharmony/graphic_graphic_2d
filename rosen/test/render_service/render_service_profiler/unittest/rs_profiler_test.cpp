@@ -71,7 +71,8 @@ public:
     ~TestRSCanvasDrawingRenderNode() override = default;
 
     void ApplyModifiers() override {}
-    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override {}
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+        bool isParentPrepareInReverseOrder = false) override {}
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override {}
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override {}
     void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override {}
@@ -221,8 +222,7 @@ HWTEST_F(RSProfilerTest, MarshalSelfDrawingBuffersTest, Level1)
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     auto& nodeMap = context->GetMutableNodeMap();
     nodeMap.RegisterRenderNode(rsSurfaceRenderNode);
-    std::stringstream stream;
-    RSProfiler::MarshalSelfDrawingBuffers(stream, false);
+    RSProfiler::MarshalSelfDrawingNodes(false);
     ASSERT_TRUE(rsSurfaceRenderNode->IsSelfDrawingType());
     ASSERT_TRUE(rsSurfaceRenderNode->GetAbsRect().IsEmpty());
 }
@@ -244,7 +244,7 @@ HWTEST_F(RSProfilerTest, UnmarshalSelfDrawingBuffersTest, Level1)
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     auto& nodeMap = context->GetMutableNodeMap();
     nodeMap.RegisterRenderNode(rsSurfaceRenderNode);
-    RSProfiler::UnmarshalSelfDrawingBuffers();
+    RSProfiler::UnmarshalSelfDrawingNodes();
     ASSERT_TRUE(Utils::IsNodeIdPatched(rsSurfaceRenderNode->GetId()));
     ASSERT_TRUE(rsSurfaceRenderNode->IsSelfDrawingType());
     ASSERT_TRUE(rsSurfaceRenderNode->GetAbsRect().IsEmpty());

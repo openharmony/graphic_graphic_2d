@@ -17,10 +17,9 @@
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RENDER_THREAD_RS_MODIFIERS_DRAW_THREAD_H
 
 #include <future>
-#include <mutex>
 
 #include "event_handler.h"
-#include "modifier_render_thread/rs_canvas_modifiers_draw.h"
+#include "modifier_render_thread/rs_canvas_modifiers_draw_agent.h"
 #include "modifier_render_thread/rs_modifiers_draw.h"
 #include "refbase.h"
 
@@ -29,6 +28,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSUIContext;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -62,12 +62,10 @@ public:
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&&) = delete;
 
-    bool IsStarted();
-    void Destroy();
+private:
+    void Start();
 
     void PostTask(const std::function<void()>&& task, const std::string& name = std::string(), int64_t delayTime = 0);
-    void PostSyncTask(const std::function<void()>&& task);
-    void RemoveTask(const std::string& name);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -77,35 +75,16 @@ public:
         return std::move(taskFuture);
     }
 
-    template<typename Task, typename Return = std::invoke_result_t<Task>>
-    std::future<Return> ScheduleSyncTask(Task&& task)
-    {
-        auto [scheduledTask, taskFuture] = Detail::ScheduledTask<Task>::Create(std::forward<Task&&>(task));
-        PostSyncTask([scheduledTask_(std::move(scheduledTask))]() { scheduledTask_->Run(); });
-        return std::move(taskFuture);
-    }
-
-    void CommitTransaction(std::shared_ptr<RSCanvasModifiersDraw> canvasModifiersDraw,
+    void CommitTransaction(std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent,
         std::shared_ptr<RSRenderPipelineClient> renderPiplineClient, std::unique_ptr<RSTransactionData> transactionData,
         uint32_t& transactionDataIndex);
-
-    void Block();
-    void Unblock();
-
-private:
-    void Start();
-    void ClearResource();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::shared_ptr<RSModifiersDraw> modifiersDraw_ = nullptr;
-
     bool started_ = false;
-    std::mutex startMutex_;
 
-    std::mutex mdtMutex_;
-    std::condition_variable mdtCV_;
-    bool canBlockMdt_ = false;
+    friend class RSUIContext;
 };
 } // namespace Rosen
 } // namespace OHOS

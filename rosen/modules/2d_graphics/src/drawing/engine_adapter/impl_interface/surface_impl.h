@@ -84,6 +84,8 @@ public:
     virtual int Height() const = 0;
     virtual TileGranularity GetRenderAreaGranularity() = 0;
     virtual sk_sp<SkSurface> GetSkSurface() const = 0;
+    virtual void SetHdrScale(float hdrColorScale) = 0;
+    virtual float GetHdrScale() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

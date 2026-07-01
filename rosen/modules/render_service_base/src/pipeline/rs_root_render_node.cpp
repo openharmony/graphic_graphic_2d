@@ -98,7 +98,8 @@ void RSRootRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->PrepareRootRenderNode(*this);
 }
 
-void RSRootRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSRootRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;

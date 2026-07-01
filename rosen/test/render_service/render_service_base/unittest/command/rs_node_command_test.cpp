@@ -18,6 +18,7 @@
 #include "include/command/rs_node_command.h"
 #include "include/command/rs_surface_node_command.h"
 #include "include/pipeline/rs_surface_render_node.h"
+#include "modifier/rs_render_property.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_render_params.h"
 #include "parameters.h"
@@ -908,5 +909,54 @@ HWTEST_F(RSNodeCommandTest, SetUIFirstSwitchTest002, TestSize.Level1)
     ASSERT_NE(canvasNode, nullptr);
     auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
     ASSERT_EQ(surfaceNode, nullptr);
+}
+
+/**
+ * @tc.name: UpdatePropertyTypeMismatch001
+ * @tc.desc: Test UpdateProperty with type mismatch - property type is float but update with int.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMismatch001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    PropertyId propertyId = 100;
+
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+
+    auto floatProperty = std::make_shared<RSRenderProperty<float>>(1.0f, propertyId);
+    node->RegisterProperty(floatProperty);
+    EXPECT_FALSE(RSNodeCommandHelper::CheckPropertyType(*floatProperty, RSPropertyType::BOOL, nodeId));
+
+    float initialValue = floatProperty->Get();
+    RSNodeCommandHelper::UpdateProperty<bool>(context, nodeId, true, propertyId, UPDATE_TYPE_OVERWRITE);
+
+    EXPECT_EQ(floatProperty->Get(), initialValue);
+}
+
+/**
+ * @tc.name: UpdatePropertyTypeMatch001
+ * @tc.desc: Test UpdateProperty with correct type match - float property with float value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMatch001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 2;
+    PropertyId propertyId = 200;
+
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+
+    auto floatProperty = std::make_shared<RSRenderProperty<float>>(0.0f, propertyId);
+    node->RegisterProperty(floatProperty);
+    EXPECT_TRUE(RSNodeCommandHelper::CheckPropertyType(*floatProperty, RSPropertyType::FLOAT, nodeId));
+
+    RSNodeCommandHelper::UpdateProperty<float>(context, nodeId, 42.5f, propertyId, UPDATE_TYPE_OVERWRITE);
+
+    EXPECT_EQ(floatProperty->Get(), 42.5f);
 }
 } // namespace OHOS::Rosen

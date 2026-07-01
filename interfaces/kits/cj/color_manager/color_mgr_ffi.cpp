@@ -37,6 +37,8 @@ RetDataCString CJ_ColorMgrCreateByColorSpace(uint32_t colorSpaceName, int64_t* i
     auto native = FFIData::Create<CjColorManager>(ptr);
     if (native == nullptr) {
         *id = 0;
+        ret.code = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE));
+        ret.data = ::Utils::MallocCString("Inner error.");
         return ret;
     }
     CMLOGI("[ColorMgr] CJ_ColorMgrCreateByColorSpace success");
@@ -64,6 +66,7 @@ uint32_t CJ_ColorMgrGetColorSpaceName(int64_t id, int32_t* errCode)
     CMLOGI("[ColorMgr] CJ_ColorMgrGetColorSpaceName start");
     auto native = FFIData::GetData<CjColorManager>(id);
     if (native == nullptr) {
+        *errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE));
         return 0;
     }
     CMLOGI("[ColorMgr] CJ_ColorMgrGetColorSpaceName success");
@@ -75,6 +78,7 @@ float* CJ_ColorMgrGetWhitePoint(int64_t id, int32_t* errCode)
     CMLOGI("[ColorMgr] CJ_ColorMgrGetWhitePoint start");
     auto native = FFIData::GetData<CjColorManager>(id);
     if (native == nullptr) {
+        *errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE));
         return nullptr;
     }
     CMLOGI("[ColorMgr] CJ_ColorMgrGetWhitePoint success");
@@ -84,6 +88,7 @@ float* CJ_ColorMgrGetWhitePoint(int64_t id, int32_t* errCode)
     }
     float* res = static_cast<float*>(malloc(2 * sizeof(float)));
     if (res == nullptr) {
+        *errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE));
         return res;
     }
     for (size_t i = 0; i < DIMES_2; i++) {
@@ -98,6 +103,7 @@ float CJ_ColorMgrGetGamma(int64_t id, int32_t* errCode)
     CMLOGI("[ColorMgr] CJ_ColorMgrGetGamma start");
     auto native = FFIData::GetData<CjColorManager>(id);
     if (native == nullptr) {
+        *errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE));
         return 0;
     }
     CMLOGI("[ColorMgr] CJ_ColorMgrGetGamma success");

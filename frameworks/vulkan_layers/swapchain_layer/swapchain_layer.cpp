@@ -1935,6 +1935,31 @@ VKAPI_ATTR VkResult VKAPI_CALL EnumerateDeviceExtensionProperties(
                                                                                    pCount, pProperties);
 }
 
+VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(
+ 	VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures2* pFeatures)
+{
+    DispatchKey key = GetDispatchKey(physicalDevice);
+    LayerData* curLayerData = GetLayerDataPtr(key);
+    if (curLayerData->instanceDispatchTable->GetPhysicalDeviceFeatures2) {
+        curLayerData->instanceDispatchTable->GetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
+    } else if (curLayerData->instanceDispatchTable->GetPhysicalDeviceFeatures2KHR) {
+        curLayerData->instanceDispatchTable->GetPhysicalDeviceFeatures2KHR(physicalDevice, pFeatures);
+    } else {
+        SWLOGE("Func vkGetPhysicalDeviceFeatures2 and vkGetPhysicalDeviceFeatures2KHR are both null.");
+        return;
+    }
+
+    VkBaseOutStructure* featureStruct = reinterpret_cast<VkBaseOutStructure*>(pFeatures->pNext);
+    while (featureStruct != nullptr) {
+        if (featureStruct->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HDR_VIVID_FEATURES_HUAWEI) {
+            VkPhysicalDeviceHdrVividFeaturesHUAWEI* vividFeature =
+                reinterpret_cast<VkPhysicalDeviceHdrVividFeaturesHUAWEI*>(featureStruct);
+            vividFeature->hdrVivid = VK_TRUE;
+        }
+        featureStruct = reinterpret_cast<VkBaseOutStructure*>(featureStruct->pNext);
+    }
+}
+
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL GetPhysicalDeviceProcAddr(VkInstance instance, const char* funcName)
 {
     if (instance == VK_NULL_HANDLE) {
@@ -2165,6 +2190,10 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL GetInstanceProcAddr(VkInstance instance
     }
     if (strcmp("vkEnumerateDeviceExtensionProperties", funcName) == 0) {
         return reinterpret_cast<PFN_vkVoidFunction>(EnumerateDeviceExtensionProperties);
+    }
+    if (strcmp("vkGetPhysicalDeviceFeatures2", funcName) == 0 ||
+        strcmp("vkGetPhysicalDeviceFeatures2KHR", funcName) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(GetPhysicalDeviceFeatures2);
     }
 
     if (instance == VK_NULL_HANDLE) {
