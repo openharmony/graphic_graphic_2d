@@ -24,9 +24,13 @@
 #include "feature/hwc/hpea_offline/rs_gpu_offline_thread.h"
 #include "feature/hwc/hpea_offline/rs_offline_device.h"
 #include "feature/hwc/hpea_offline/rs_offline_util.h"
-#include "surface_buffer.h"
+#include "feature/hwc/hpea_offline/rs_offline_result.h"
+#include "params/rs_surface_render_params.h"
+
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "surface_buffer.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -52,7 +56,7 @@ public:
 
 private:
     sptr<SurfaceBuffer> CreateSurfaceBuffer(int32_t width, int32_t height);
-    void SetRSSurfaceHandlerBuffer(sptr<SurfaceBuffer> &surfaceBuffer, std::shared_ptr<SurfaceHandler> surfaceHandler);
+    void SetRSSurfaceHandlerBuffer(sptr<SurfaceBuffer> &surfaceBuffer, std::shared_ptr<RSSurfaceHandler> surfaceHandler);
 };
 
 sptr<SurfaceBuffer> RSGPUOfflineDeviceTest::CreateSurfaceBuffer(int32_t width, int32_t height)
@@ -62,7 +66,7 @@ sptr<SurfaceBuffer> RSGPUOfflineDeviceTest::CreateSurfaceBuffer(int32_t width, i
         .width = width,
         .height = height,
         .strideAlignment = 0x8,
-        .format = GRAPHIC_PIX_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA |
             BUFFER_USAGE_MEM_MMZ_CACHE | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE,
         .timeout = 0,
@@ -74,13 +78,13 @@ sptr<SurfaceBuffer> RSGPUOfflineDeviceTest::CreateSurfaceBuffer(int32_t width, i
 }
 
 void RSGPUOfflineDeviceTest::SetRSSurfaceHandlerBuffer(sptr<SurfaceBuffer> &surfaceBuffer,
-        std::shared_ptr<SurfaceHandler> surfaceHandler)
+        std::shared_ptr<RSSurfaceHandler> surfaceHandler)
 {
     surfaceBuffer->SetMetadata(ATTRKEY_HDR_STATIC_METADATA, g_hdrStatucMetadataVec);
     sptr<SyncFence> fence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
     Rect damage = {0, 0, BUFFER_WIDTH, BUFFER_HEIGHT};
-    sufaceHandler->SetBuffer(surfaceHandler, fence, damage, timestamp);
+    surfaceHandler->SetBuffer(surfaceBuffer, fence, damage, timestamp);
 }
 
 void RSGPUOfflineDeviceTest::SetUpTestCase() {}
@@ -131,7 +135,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, GetSingleBufferModeValidConsumerNoneTest001, Le
     EXPECT_NE(device, nullptr);
 
     auto surfaceHandler = std::make_shared<RSSurfaceHandler>(TEST_NODE_ID);
-    auto consumer = IConsumerSurface::create("test_switch_none");
+    auto consumer = IConsumerSurface::Create("test_switch_none");
     if (consumer == nullptr) {
         return;
     }
@@ -153,7 +157,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, GetSingleBufferModeValidConsumerToSingleTest001
     EXPECT_NE(device, nullptr);
 
     auto surfaceHandler = std::make_shared<RSSurfaceHandler>(TEST_NODE_ID);
-    auto consumer = IConsumerSurface::create("test_switch_single");
+    auto consumer = IConsumerSurface::Create("test_switch_single");
     if (consumer == nullptr) {
         return;
     }
@@ -175,7 +179,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, GetSingleBufferModeValidConsumerToMultiTest001,
     EXPECT_NE(device, nullptr);
 
     auto surfaceHandler = std::make_shared<RSSurfaceHandler>(TEST_NODE_ID);
-    auto consumer = IConsumerSurface::create("test_switch_multi");
+    auto consumer = IConsumerSurface::Create("test_switch_multi");
     if (consumer == nullptr) {
         return;
     }
@@ -197,7 +201,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, GetSingleBufferModeValidConsumerMaxValueTest001
     EXPECT_NE(device, nullptr);
 
     auto surfaceHandler = std::make_shared<RSSurfaceHandler>(TEST_NODE_ID);
-    auto consumer = IConsumerSurface::create("test_switch_max");
+    auto consumer = IConsumerSurface::Create("test_switch_max");
     if (consumer == nullptr) {
         return;
     }
@@ -219,7 +223,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, GetSingleBufferModeNegativeTest001, Level1)
     EXPECT_NE(device, nullptr);
 
     auto surfaceHandler = std::make_shared<RSSurfaceHandler>(TEST_NODE_ID);
-    auto consumer = IConsumerSurface::create("test_switch_negative");
+    auto consumer = IConsumerSurface::Create("test_switch_negative");
     if (consumer == nullptr) {
         return;
     }
@@ -244,7 +248,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, UpdateContextSkipDrawSwitchTypeNotNoneTest001, 
     RSSurfaceRenderNodeConfig config;
     config.id = TEST_NODE_ID;
 
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->week_from_this());
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     surfaceNode->InitRenderParams();
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
     sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBuffer(BUFFER_WIDTH, BUFFER_HEIGHT);
@@ -282,7 +286,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, UpdateContextSkipDrawSwitchTypeNoneTest001, Lev
     RSSurfaceRenderNodeConfig config;
     config.id = TEST_NODE_ID;
 
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->week_from_this());
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     surfaceNode->InitRenderParams();
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
     sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBuffer(BUFFER_WIDTH, BUFFER_HEIGHT);
@@ -297,7 +301,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, UpdateContextSkipDrawSwitchTypeNoneTest001, Lev
 
     offlineContext->hasDrawn = true;
     auto saveDrawParams = offlineContext->drawParams;
-    EXPECT_EQ(saveDrawParams.switchType,SingleBufferMode::SINGLE_BUFFER_MODE_NONE)
+    EXPECT_EQ(saveDrawParams.switchType, SingleBufferMode::SINGLE_BUFFER_MODE_NONE);
     offlineContext->drawParams = saveDrawParams;
     bool senconResult = device->UpdateContext(surfaceNode, offlineContext);
     EXPECT_TRUE(senconResult);
@@ -319,7 +323,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, UpdateContextSkipDrawSwitchTypeToMultiTest001, 
     RSSurfaceRenderNodeConfig config;
     config.id = TEST_NODE_ID;
 
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->week_from_this());
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     surfaceNode->InitRenderParams();
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
     sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBuffer(BUFFER_WIDTH, BUFFER_HEIGHT);
@@ -329,7 +333,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, UpdateContextSkipDrawSwitchTypeToMultiTest001, 
     EXPECT_NE(offlineContext, nullptr);
 
     offlineContext->hasDrawn = false;
-    bool firstResult = device->UpdateContext(surfaceNode, offlineContext);
+    device->UpdateContext(surfaceNode, offlineContext);
 
     offlineContext->hasDrawn = true;
     offlineContext->drawParams.switchType = SingleBufferMode::SINGLE_BUFFER_MODE_TO_MULTI;
@@ -337,7 +341,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, UpdateContextSkipDrawSwitchTypeToMultiTest001, 
     bool result = device->UpdateContext(surfaceNode, offlineContext);
     EXPECT_TRUE(result);
     EXPECT_FALSE(offlineContext->skipDraw);
-    EXPECT_FALSE(offlineContext->hasDraw);
+    EXPECT_FALSE(offlineContext->hasDrawn);
 }
 
 /**
@@ -357,7 +361,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, CollectDrawParamsSwitchTypeTest001, Level1)
     RSSurfaceRenderNodeConfig config;
     config.id = TEST_NODE_ID;
 
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->week_from_this());
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     surfaceNode->InitRenderParams();
 
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
