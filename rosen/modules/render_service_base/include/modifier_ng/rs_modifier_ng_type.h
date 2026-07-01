@@ -70,6 +70,7 @@ enum class RSModifierType : uint16_t {
     COLOR_PICKER = 37,
     MATERIAL_SHADER = 38,
     OVERLAY_NG_SHADER = 39,
+    USE_UNION = 40,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -149,6 +150,7 @@ public:
             case RSModifierType::MATERIAL_SHADER: return "MaterialShader";
             case RSModifierType::COLOR_PICKER : return "ColorPicker";
             case RSModifierType::OVERLAY_NG_SHADER: return "OverlayNGShader";
+            case RSModifierType::USE_UNION: return "UseUnion";
             case RSModifierType::CHILDREN: return "Children";
             default: return "Invalid";
         }

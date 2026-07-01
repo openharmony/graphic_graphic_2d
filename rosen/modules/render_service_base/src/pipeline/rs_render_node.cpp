@@ -1923,8 +1923,8 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(materialShader, boundsRect));
     const auto& backgroundNGShader = GetRenderProperties().GetBackgroundNGShader();
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(backgroundNGShader, boundsRect));
-    const auto& coverageNGShader = GetRenderProperties().GetCoverageNGShader();
-    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(coverageNGShader, boundsRect));
+    const auto& overlayNGShader = GetRenderProperties().GetOverlayNGShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(overlayNGShader, boundsRect));
 }
 
 void RSRenderNode::UpdateBufferDirtyRegion()

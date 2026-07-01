@@ -76,9 +76,9 @@ float RSCoverageNGShaderModifier::GetBloom() const
     return Getter<float>(RSPropertyType::BLOOM, {});
 }
 
-void RSCoverageNGShaderModifier::SetCoverageNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader)
+void RSCoverageNGShaderModifier::SetCoverageNGShader(const std::shared_ptr<RSNGShaderBase>& coverageShader)
 {
-    Setter<RSProperty, std::shared_ptr<RSNGShaderBase>>(RSPropertyType::COVERAGE_NG_SHADER, overlayShader);
+    Setter<RSProperty, std::shared_ptr<RSNGShaderBase>>(RSPropertyType::COVERAGE_NG_SHADER, coverageShader);
 }
 
 std::shared_ptr<RSNGShaderBase> RSCoverageNGShaderModifier::GetCoverageNGShader() const

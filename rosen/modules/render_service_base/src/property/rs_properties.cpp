@@ -4523,9 +4523,9 @@ void RSProperties::SetBloom(float bloomIntensity)
     contentDirty_ = true;
 }
 
-void RSProperties::SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader)
+void RSProperties::SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& coverageShader)
 {
-    GetEffect().coRenderShader_ = overlayShader;
+    GetEffect().coRenderShader_ = coverageShader;
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;

@@ -500,7 +500,7 @@ float RSModifierExtractor::GetLightIntensity() const
 
 Vector4f RSModifierExtractor::GetLightPosition() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, OVERLAY_NG_SHADER, LIGHT_POSITION, (Vector4f(0.f)), =);
+    GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, COVERAGE_NG_SHADER, LIGHT_POSITION, (Vector4f(0.f)), =);
 }
 
 float RSModifierExtractor::GetIlluminatedBorderWidth() const
@@ -520,7 +520,7 @@ float RSModifierExtractor::GetBloom() const
 
 Color RSModifierExtractor::GetLightColor() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(Color, OVERLAY_NG_SHADER, LIGHT_COLOR, (RgbPalette::White()), =);
+    GET_PROPERTY_FROM_MODIFIERS_NG(Color, COVERAGE_NG_SHADER, LIGHT_COLOR, (RgbPalette::White()), =);
 }
 
 int RSModifierExtractor::GetColorBlendMode() const

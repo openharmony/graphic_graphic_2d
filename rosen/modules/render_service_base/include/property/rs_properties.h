@@ -773,7 +773,7 @@ public:
     void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
     void SetIlluminatedType(int illuminatedType);
     void SetBloom(float bloomIntensity);
-    void SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader);
+    void SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& coverageShader);
     void SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader);
 
     float GetLightIntensity() const;

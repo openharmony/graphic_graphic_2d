@@ -60,18 +60,18 @@ private:
     std::shared_ptr<Drawing::ShaderEffect> sdfShaderEffect_;
     Drawing::Rect sdfDrawRect_;
     Drawing::Rect stagingSdfDrawRect_;
-    RectF drawRect_;
-    RectF stagingDrawRect_;
-
+   
     Drawing::RoundRect borderRRect_ = {};
     Drawing::RoundRect contentRRect_ = {};
-
+    
     bool needSync_ = false;
     float displayHeadroom_ = 0.0f;
-
-    // OverlayShader Drawable
+    
+    // CoverageShader Drawable
     std::shared_ptr<RSNGRenderShaderBase> stagingCoverageShader_;
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
+    RectF drawRect_;
+    RectF stagingDrawRect_;
 
     void DrawLight(Drawing::Canvas* canvas) const;
     void ProcessLightSourcesData(std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray,

@@ -47,7 +47,7 @@ bool RSOverlayNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     stagingShader_ = shader;
     stagingCornerRadius_ = properties.GetCornerRadius().x_;
     stagingNodeId_ = node.GetId();
-    RSPropertyDrawableUtils::ApplySDFShapeToShader(properties, shader, node.GetId());
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, node.GetId());
 
     auto bounds = properties.GetBoundsRect();
     stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(shader, bounds);
