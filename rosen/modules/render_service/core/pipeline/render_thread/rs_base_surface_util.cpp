@@ -231,8 +231,6 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(RSSurfaceHandler&
     auto nodeId = surfaceHandler.GetNodeId();
     surfaceHandler.ResetCurrentFrameBufferConsumed();
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
-        RS_LOGE(
-            "RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple: Invalid buffer count, nodeId=%{public}" PRIu64, nodeId);
         return true;
     }
     const auto& consumer = surfaceHandler.GetConsumer();

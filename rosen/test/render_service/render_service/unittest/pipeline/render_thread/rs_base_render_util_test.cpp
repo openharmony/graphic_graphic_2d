@@ -2123,4 +2123,16 @@ HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_AllBranchesCoveredTe
     colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(INVALID_PIXEL_FMT);
     ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
 }
+
+/*
+ * @tc.name: ConsumeAndUpdateBufferSimple_001
+ * @tc.desc: Test ConsumeAndUpdateBufferSimple
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBufferSimple_001, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSSurfaceHandler surfaceHandler(id);
+    ASSERT_EQ(true, RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(surfaceHandler, 0));
+}
 } // namespace OHOS::Rosen
