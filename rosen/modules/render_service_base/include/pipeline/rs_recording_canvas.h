@@ -27,6 +27,7 @@ namespace Media {
 class PixelMap;
 }
 namespace Rosen {
+struct DrawingSurfaceBufferInfo;
 class RSB_EXPORT ExtendRecordingCanvas : public Drawing::RecordingCanvas {
 public:
     ExtendRecordingCanvas(int32_t width, int32_t weight, bool addDrawOpImmediate = true);

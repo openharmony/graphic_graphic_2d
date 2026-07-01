@@ -41,10 +41,10 @@ RSSimpleDrawCmdList::RSSimpleDrawCmdList() = default;
 
 Drawing::DrawCmdListPtr RSSimpleDrawCmdList::ConvertToDrawCmdList() const
 {
-    auto recordingCanvas_ = ExtendRecordingCanvas::Obtain(10, 10, true);
+    auto recordingCanvas_ = ExtendRecordingCanvas::Obtain(width_, height_, true);
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!drawOpItems_.empty()) {
-        Drawing::Rect tmpRect;
+        Drawing::Rect tmpRect(0, 0, width_, height_);
         for (auto op : drawOpItems_) {
             if (op) {
                 op->Playback(recordingCanvas_.get(), &tmpRect);
