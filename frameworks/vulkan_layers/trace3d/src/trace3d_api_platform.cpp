@@ -28,10 +28,22 @@ trace3d::api::RetCodePlatform PlatformHrpServiceOpenFile(
     if (!dirInfo || !dirInfo->subDir || !dirInfo->subDir2 || !fileName || !outSvcRetCode || !outFd) {
         return trace3d::api::RET_PLATFORM_ERR_INVALID_PARAM;
     }
-    uint32_t flagsFiltered = (flags&trace3d::api::HRP_SERVICE_FILE_FLAG_RDONLY) ? O_RDONLY : 0;
-    flagsFiltered |= (flags&trace3d::api::HRP_SERVICE_FILE_FLAG_WRONLY) ? O_WRONLY : 0;
-    flagsFiltered |= (flags&trace3d::api::HRP_SERVICE_FILE_FLAG_RDWR) ? O_RDWR : 0;
-    flagsFiltered |= (flags&trace3d::api::HRP_SERVICE_FILE_FLAG_CREAT) ? O_CREAT : 0;
+
+    uint32_t flagsFiltered = 0;
+    if (flags & trace3d::api::HRP_SERVICE_FILE_FLAG_RDWR) {
+        flagsFiltered = static_cast<uint32_t>(O_RDWR);
+    } else if (flags & trace3d::api::HRP_SERVICE_FILE_FLAG_WRONLY) {
+        flagsFiltered = static_cast<uint32_t>(O_WRONLY);
+    } else if (flags & trace3d::api::HRP_SERVICE_FILE_FLAG_RDONLY) {
+        flagsFiltered = static_cast<uint32_t>(O_RDONLY); 
+    } else {
+        return trace3d::api::RET_PLATFORM_ERR_INVALID_PARAM;
+    }
+
+    if (flags & trace3d::api::HRP_SERVICE_FILE_FLAG_CREAT) {
+        flagsFiltered |= static_cast<uint32_t>(O_CREAT);
+    }
+
 #if defined(TRACE_LOADER_OHOS)
     auto rsClient = std::static_pointer_cast<OHOS::Rosen::RSRenderServiceClient>(
         OHOS::Rosen::RSIRenderClient::CreateRenderServiceClient());

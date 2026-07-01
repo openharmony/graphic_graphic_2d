@@ -44,7 +44,8 @@ size_t GetFileSize(const char *fileName)
 
 void *DlopenSharedLibrary(const char *libFullName)
 {
-    if (libFullName == nullptr) {
+    if (UNLIKELY(libFullName == nullptr)) {
+        TRACE3D_LOGE("%s: DlopenSharedLibrary: libFullName is null!\n", __FUNCTION__);
         return nullptr;
     }
     void *handle = nullptr;

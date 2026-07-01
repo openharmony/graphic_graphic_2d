@@ -141,10 +141,13 @@ uint64_t ExtractTrace3DNumber(const std::string& str)
         return static_cast<uint64_t>(-1);
     }
     const char* start = str.c_str() + colonPos + 1;
+    if (*start == '-') {
+        return static_cast<uint64_t>(-1);
+    }
     char* end = nullptr;
     errno = 0;
     uint64_t result = strtoull(start, &end, 10);
-    if (errno != 0 || end == start) {
+    if (errno != 0 || end == start || *end != '\0') {
         return static_cast<uint64_t>(-1);
     }
     return result;
