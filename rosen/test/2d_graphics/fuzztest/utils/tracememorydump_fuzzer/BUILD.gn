@@ -42,6 +42,8 @@ ohos_fuzztest("TraceMemoryDumpFuzzTest") {
 
   deps = [ "../../../../../modules/2d_graphics:2d_graphics" ]
 
+  external_deps = [ "graphic_surface:surface" ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

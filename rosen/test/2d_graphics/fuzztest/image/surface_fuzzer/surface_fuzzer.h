@@ -16,6 +16,6 @@
 #ifndef TEST_FUZZTEST_SURFACE_FUZZER_H
 #define TEST_FUZZTEST_SURFACE_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "surface_fuzzer.h"
+#define FUZZ_PROJECT_NAME "surface_fuzzer"
 
 #endif // TEST_FUZZTEST_SURFACE_FUZZER_H

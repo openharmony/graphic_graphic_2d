@@ -18,7 +18,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
-#include <iostream>
 
 #include "get_object.h"
 
@@ -287,9 +286,7 @@ bool GPUContextFuzzTest007(const uint8_t* data, size_t size)
     gpuContext->GetUpdatedMemoryMap(out);
 
     bool enabled = GetObject<bool>();
-    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled, []() {
-        std::cout << "SetGpuMemoryAsyncReclaimerSwitch Fuzz Test.\n";
-    });
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled, []() {});
 
     auto callback = [](pid_t, size_t, bool) { return true; };
     uint64_t limitSize = GetObject<uint64_t>();

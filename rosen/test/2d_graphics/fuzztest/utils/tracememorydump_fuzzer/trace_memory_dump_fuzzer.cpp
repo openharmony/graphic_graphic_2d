@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "get_object.h"
+#include "surface_buffer.h"
 #include "skia_adapter/skia_canvas.h"
 #include "utils/memory_stream.h"
 #include "image/trace_memory_dump.h"
@@ -30,6 +31,7 @@ namespace Rosen {
 namespace {
 constexpr size_t MATH_ONE = 1;
 constexpr size_t ARRAY_MAX_SIZE = 5000;
+constexpr int32_t NATIVE_BUFFER_MAX_SIZE = 64;
 } // namespace
 
 namespace Drawing {
@@ -78,14 +80,14 @@ void TraceMemoryDumpFuzzTest001(const uint8_t* data, size_t size)
 {
     // DDGRBuilder::Init
     BuilderFlags flags = BuilderFlags::HAS_COLORS_BUILDER_FLAG;
-    int vertCounts = GetObject<uint32_t>() % ARRAY_MAX_SIZE + MATH_ONE;
-    int indexCount = GetObject<uint32_t>() % ARRAY_MAX_SIZE + MATH_ONE;
+    uint32_t vertCounts = GetObject<uint32_t>() % ARRAY_MAX_SIZE + MATH_ONE;
+    uint32_t indexCount = GetObject<uint32_t>() % ARRAY_MAX_SIZE + MATH_ONE;
     Vertices::Builder builder(VertexMode::TRIANGLEFAN_VERTEXMODE, vertCounts, indexCount, static_cast<uint32_t>(flags));
     // MakeCopy
     std::unique_ptr<Point[]> points = std::make_unique<Point[]>(vertCounts);
     std::unique_ptr<Point[]> texs = std::make_unique<Point[]>(vertCounts);
     std::unique_ptr<ColorQuad[]> colors = std::make_unique<ColorQuad[]>(vertCounts);
-    for (int i = 0; i < vertCounts; i++) {
+    for (uint32_t i = 0; i < vertCounts; i++) {
         points[i] = {GetObject<scalar>(), GetObject<scalar>()};
         texs[i] = {GetObject<scalar>(), GetObject<scalar>()};
         colors[i] = GetObject<ColorQuad>();
@@ -93,7 +95,7 @@ void TraceMemoryDumpFuzzTest001(const uint8_t* data, size_t size)
     auto ver = builder.Detach();
     ver->MakeCopy(VertexMode::TRIANGLEFAN_VERTEXMODE, vertCounts, points.get(), texs.get(), colors.get());
     std::unique_ptr<uint16_t[]> indices = std::make_unique<uint16_t[]>(indexCount);
-    for (int i = 0; i < indexCount; i++) {
+    for (uint32_t i = 0; i < indexCount; i++) {
         indices[i] = GetObject<uint16_t>();
     }
     ver->MakeCopy(VertexMode::TRIANGLEFAN_VERTEXMODE, vertCounts, points.get(), texs.get(), colors.get(),
@@ -103,21 +105,32 @@ void TraceMemoryDumpFuzzTest001(const uint8_t* data, size_t size)
     ver->Deserialize(dataPtr);
 
     // DDGRData::BuildFromOHNativeBuffer
-    OH_NativeBuffer *NativeBuffer = nullptr;
+    OH_NativeBuffer_Config config {
+        .width = static_cast<int32_t>(GetObject<uint32_t>() % NATIVE_BUFFER_MAX_SIZE + MATH_ONE),
+        .height = static_cast<int32_t>(GetObject<uint32_t>() % NATIVE_BUFFER_MAX_SIZE + MATH_ONE),
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA
+    };
+    std::unique_ptr<OH_NativeBuffer, decltype(&OH_NativeBuffer_Unreference)> nativeBuffer(
+        OH_NativeBuffer_Alloc(&config), OH_NativeBuffer_Unreference);
     size_t pandaSize = GetObject<size_t>();
     std::shared_ptr<Data> imageData = std::make_shared<Data>();
-    imageData->BuildFromOHNativeBuffer(NativeBuffer, pandaSize);
+    if (nativeBuffer != nullptr) {
+        imageData->BuildFromOHNativeBuffer(nativeBuffer.get(), pandaSize);
+    }
     // DDGRData::BuildUninitialized
     Bitmap bmp;
-    int width = GetObject<int>() % ARRAY_MAX_SIZE;
-    int height = GetObject<int>() % ARRAY_MAX_SIZE;
+    int32_t width = static_cast<int32_t>(GetObject<uint32_t>() % ARRAY_MAX_SIZE + MATH_ONE);
+    int32_t height = static_cast<int32_t>(GetObject<uint32_t>() % ARRAY_MAX_SIZE + MATH_ONE);
     BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
-    bmp.Build(width, height, format); // bitmap width and height
+    if (!bmp.Build(width, height, format)) {
+        return;
+    }
     bmp.ClearWithColor(GetObject<ColorQuad>());
     Image image;
     image.BuildFromBitmap(bmp);
-    size_t rowBytes = image.GetImageInfo().GetBytesPerPixel() * image.GetWidth();
-    dataPtr->BuildUninitialized(rowBytes * image.GetHeight());
+    size_t rowBytes = image.GetImageInfo().GetBytesPerPixel() * static_cast<size_t>(image.GetWidth());
+    dataPtr->BuildUninitialized(rowBytes * static_cast<size_t>(image.GetHeight()));
 }
 } // namespace Drawing
 } // namespace Rosen
