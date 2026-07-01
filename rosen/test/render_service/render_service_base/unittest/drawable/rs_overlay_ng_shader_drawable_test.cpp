@@ -61,7 +61,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnGenerateAndOnUpdateTest001, Te
         IlluminatedType::NORMAL_BORDER_CONTENT;
     EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest12), nullptr);
     renderNodeTest12.renderProperties_.GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest12), nullptr);
 }
 
@@ -87,7 +87,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest001, TestSize.Level1)
     std::shared_ptr<RSIlluminated> illuminatedPtrTest2 = std::make_shared<RSIlluminated>();
     EXPECT_NE(illuminatedPtrTest2, nullptr);
     illuminatedPtrTest2->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedPtrTest2->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
     propertiesTest2.GetEffect().illuminatedPtr_ = illuminatedPtrTest2;
 
@@ -129,7 +129,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest002, TestSize.Level1)
     std::shared_ptr<RSIlluminated> illuminatedPtrTest1 = std::make_shared<RSIlluminated>();
     EXPECT_NE(illuminatedPtrTest1, nullptr);
     illuminatedPtrTest1->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedPtrTest1->illuminatedType_ = IlluminatedType::BLEND_BORDER_CONTENT;
     propertiesTest1.GetEffect().illuminatedPtr_ = illuminatedPtrTest1;
     std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> pointLightDrawableTest1 =
@@ -140,7 +140,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest002, TestSize.Level1)
     std::shared_ptr<RSIlluminated> illuminatedPtrTest2 = std::make_shared<RSIlluminated>();
     EXPECT_NE(illuminatedPtrTest2, nullptr);
     illuminatedPtrTest2->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedPtrTest2->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
     propertiesTest2.GetEffect().illuminatedPtr_ = illuminatedPtrTest2;
     std::shared_ptr<RSObjAbsGeometry> boundsGeo = std::make_shared<RSObjAbsGeometry>();
@@ -172,7 +172,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest003, TestSize.Level1)
     std::shared_ptr<RSIlluminated> illuminatedPtrTest1 = std::make_shared<RSIlluminated>();
     EXPECT_NE(illuminatedPtrTest1, nullptr);
     illuminatedPtrTest1->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedPtrTest1->illuminatedType_ = IlluminatedType::BLEND_BORDER_CONTENT;
     propertiesTest1.GetEffect().illuminatedPtr_ = illuminatedPtrTest1;
     std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> pointLightDrawableTest1 =
@@ -843,7 +843,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, RSOverlayNGShaderDrawableOnUpdat
     EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest), nullptr);
 
     renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest), nullptr);
 
     auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
@@ -868,7 +868,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateTest001, TestSize.Level1
     renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
     illuminated->illuminatedType_ = IlluminatedType::BORDER;
     illuminated->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     
     EXPECT_TRUE(pointLightDrawableTest->OnUpdate(renderNodeTest));
 }
@@ -890,7 +890,8 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateTest002, TestSize.Level1
     illuminated->illuminatedType_ = IlluminatedType::CONTENT;
     auto lightSource = std::make_shared<RSLightSource>();
     lightSource->SetLightIntensity(2.0f);
-    illuminated->lightSourcesAndPosMap_.emplace(lightSource, Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+    illuminated->lightSourcesAndPosMap_.emplace(
+        0, std::make_pair(*lightSource, Vector4f(1.0f, 1.0f, 1.0f, 1.0f)));
     
     EXPECT_TRUE(pointLightDrawableTest->OnUpdate(renderNodeTest));
 }
@@ -994,7 +995,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateWithOverlayShaderAndIllu
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
     illuminated->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
     illuminated->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
     
     EXPECT_TRUE(pointLightDrawableTest->OnUpdate(renderNodeTest));
@@ -1583,7 +1584,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateSDFShapeTest001, TestSiz
     renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
     illuminated->illuminatedType_ = IlluminatedType::BORDER;
     illuminated->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
 
     EXPECT_TRUE(drawable->OnUpdate(renderNodeTest));
     EXPECT_NE(drawable->stagingSDFShaderEffect_, nullptr);
@@ -1605,7 +1606,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateSDFShapeTest002, TestSiz
     renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
     illuminated->illuminatedType_ = IlluminatedType::BORDER;
     illuminated->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
 
     EXPECT_TRUE(drawable->OnUpdate(renderNodeTest));
     EXPECT_EQ(drawable->stagingSDFShaderEffect_, nullptr);

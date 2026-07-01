@@ -505,8 +505,8 @@ bool RSOverlayNGShaderDrawable::OnUpdate(const RSRenderNode& node)
         return true;
     }
     stagingLightSourcesAndPosVec_.reserve(lightSourcesAndPosMap.size());
-    for (auto& [lightSourcePtr, pos] : lightSourcesAndPosMap) {
-        stagingLightSourcesAndPosVec_.emplace_back(std::move(*lightSourcePtr), std::move(pos));
+    for (auto& [id, entry] : lightSourcesAndPosMap) {
+        stagingLightSourcesAndPosVec_.emplace_back(entry.first, entry.second);
     }
     stagingIlluminatedType_ = illuminatedPtr->GetIlluminatedType();
     stagingBorderWidth_ = std::max(0.0f, std::ceil(properties.GetIlluminatedBorderWidth()));

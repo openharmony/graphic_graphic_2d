@@ -482,7 +482,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
     auto illuminatedPtr = illuminatedNode->GetMutableRenderProperties().GetIlluminated();
     EXPECT_TRUE(illuminatedPtr != nullptr);
     illuminatedPtr->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedMap[0] = illuminatedNode;
     std::shared_ptr<RSRenderNode> lightSourceNode = std::make_shared<RSRenderNode>(1);
     dirtyList.push_back(lightSourceNode);
@@ -558,7 +558,7 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        lightSourceNode->GetId(), std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
@@ -618,7 +618,7 @@ HWTEST_F(RSPointLightManagerTest, CollectPreviousFrameIlluminatedNodesTest001, T
     EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
 
     sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     instance->CollectPreviousFrameIlluminatedNodes();
     EXPECT_FALSE(instance->previousFrameIlluminatedNodeMap_.empty());
 }
@@ -654,7 +654,7 @@ HWTEST_F(RSPointLightManagerTest, ProcessLostIlluminationNodeTest001, TestSize.L
     
     sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     instance->ProcessLostIlluminationNode();
     EXPECT_FALSE(sharedRenderNode->IsDirty());
 
