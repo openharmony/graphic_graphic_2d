@@ -86,11 +86,15 @@ void RSTunnelRuntimeState::Clear()
         std::lock_guard<std::mutex> lock(mutex_);
         pendingBuffer = pendingBuffer_;
         pendingBuffer_ = RSSurfaceHandler::SurfaceBufferEntry();
+        tunnelLayerId_ = 0; 
+        tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
     }
     SetBuilding();
     ReleasePendingBuffer(pendingBuffer);
 #else
     std::lock_guard<std::mutex> lock(mutex_);
+    tunnelLayerId_ = 0; 
+    tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
     SetBuilding();
 #endif
     ClearCommittedTunnelBuffer();
