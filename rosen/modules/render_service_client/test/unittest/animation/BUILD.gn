@@ -58,6 +58,7 @@ ohos_unittest("RSAnimationTest1") {
     "rs_implicit_animator_test.cpp",
     "rs_interactive_implict_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
+    "rs_particle_animation_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]
