@@ -22,8 +22,8 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_backlight_thread_test.cpp",
     "rs_background_thread_test.cpp",
+    "rs_backlight_thread_test.cpp",
     "rs_color_test.cpp",
     "rs_event_def_test.cpp",
     "rs_common_hook_test.cpp",
