@@ -1408,7 +1408,11 @@ HWTEST_F(RSSurfaceNodeTest, IsSelfDrawingNodeTest, TestSize.Level1)
     if (RSUniRenderJudgement::IsUniRender()) {
         RSSurfaceNode::SharedPtr surfaceNode1 = RSSurfaceNode::Create(c, false);
         ASSERT_NE(surfaceNode1, nullptr);
+#ifdef RS_ENABLE_UNI_RENDER
+        EXPECT_TRUE(surfaceNode1->IsSelfDrawingNode());
+#else
         EXPECT_FALSE(surfaceNode1->IsSelfDrawingNode());
+#endif
     }
 }
 

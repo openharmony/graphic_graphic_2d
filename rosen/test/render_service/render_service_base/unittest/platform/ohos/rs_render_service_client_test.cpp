@@ -239,7 +239,11 @@ HWTEST_F(RSServiceClientTest, ExecuteSynchronousTask001, TestSize.Level1)
 HWTEST_F(RSServiceClientTest, GetUniRenderEnabled001, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
+#ifdef RS_ENABLE_UNI_RENDER
+    ASSERT_EQ(rsClient->GetUniRenderEnabled(), true);
+#else
     ASSERT_EQ(rsClient->GetUniRenderEnabled(), false);
+#endif
 }
 
 /**

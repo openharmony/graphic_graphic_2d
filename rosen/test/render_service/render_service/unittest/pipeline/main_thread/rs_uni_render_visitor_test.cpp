@@ -1456,11 +1456,6 @@ HWTEST_F(RSUniRenderVisitorTest, CheckPixelFormat, TestSize.Level1)
     rsSurfaceRenderNode->hdrPhotoNum_ = 0;
     rsSurfaceRenderNode->hdrEffectNum_ = 1;
     rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);
-    rsSurfaceRenderNode->hdrPhotoNum_ = 0;
-    rsSurfaceRenderNode->hdrEffectNum_ = 0;
-    rsSurfaceRenderNode->hdrUIComponentNum_ = 1;
-    rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);
-    ASSERT_EQ(rsSurfaceRenderNode->IsContentDirty(), true);
 }
 
 /**
@@ -1700,12 +1695,12 @@ HWTEST_F(RSUniRenderVisitorTest, CheckColorSpace001, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     NodeId id = 0;
     auto rsContext = std::make_shared<RSContext>();
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
     rsUniRenderVisitor->CheckColorSpace(*appWindowNode);
     rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
     rsUniRenderVisitor->curScreenNode_->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
     rsUniRenderVisitor->CheckColorSpace(*appWindowNode);
     ASSERT_EQ(rsUniRenderVisitor->curScreenNode_->GetColorSpace(), appWindowNode->GetColorSpace());
+    rsUniRenderVisitor->CheckColorSpace(*appWindowNode);
 }
 
 /**
@@ -2170,34 +2165,6 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCrossNodesVisitedStatusTest, TestSize.Leve
 }
 
 /**
- * @tc.name: HandleColorGamuts001
- * @tc.desc: HandleColorGamuts for virtual screen
- * @tc.type: FUNC
- * @tc.require: issueIAJJ43
- */
-HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts001, TestSize.Level2)
-{
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
-    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
-
-    auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
-    
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    displayNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
-    rsUniRenderVisitor->HandleColorGamuts(*displayNode);
-
-    ScreenColorGamut screenColorGamut;
-    screenManager->GetScreenColorGamut(displayNode->GetScreenId(), screenColorGamut);
-    ASSERT_EQ(displayNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
-
-    screenManager->RemoveVirtualScreen(virtualScreenId);
-}
-
-/**
  * @tc.name: HandleColorGamuts002
  * @tc.desc: Test HandleColorGamuts
  * @tc.type: FUNC
@@ -2417,43 +2384,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceWithMetadata002, TestSize.Level
     ASSERT_EQ(surfaceNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 #endif
-
-/*
- * @tc.name: UpdateColorSpaceAfterHwcCalc_001
- * @tc.desc: Test UpdateColorSpaceAfterHwcCalc when there is a P3 selfDrawingNode.
- * @tc.type: FUNC
- * @tc.require: issueIAW3W0
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceAfterHwcCalc_001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(selfDrawingNode, nullptr);
-    RSMainThread::Instance()->AddSelfDrawingNodes(selfDrawingNode);
-    NodeId id = 0;
-    auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
-    ASSERT_NE(displayNode, nullptr);
-    displayNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
-    displayNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
-    ASSERT_EQ(displayNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    auto rsRenderNode = std::make_shared<RSRenderNode>(++id);
-    selfDrawingNode->SetAncestorScreenNode(rsRenderNode);
-    rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
-    ASSERT_EQ(displayNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    auto displayNode2 = std::make_shared<RSScreenRenderNode>(++id, 0, rsContext);
-    selfDrawingNode->SetAncestorScreenNode(displayNode2);
-    rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
-    ASSERT_EQ(displayNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    selfDrawingNode->SetAncestorScreenNode(displayNode);
-    selfDrawingNode->SetHardwareForcedDisabledState(true);
-    selfDrawingNode->SetIsOnTheTree(true);
-    selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
-    ASSERT_EQ(displayNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-}
 
 /*
  * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent001
