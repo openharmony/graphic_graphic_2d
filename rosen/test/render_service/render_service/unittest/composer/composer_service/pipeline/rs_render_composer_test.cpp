@@ -9432,5 +9432,31 @@ HWTEST_F(RsRenderComposerTest, HandleTunnelCommitFailure_DoesNotDestroyLayer, Te
 
     composer->uniRenderEngine_ = nullptr;
 }
+
+/**
+ @ tc.name: SetTunnelLayerProperty
+ @ tc.desc: Test set tunnel layer property
+ @ tc.type: FUNC
+*/
+HWTEST_F(RsRenderComposerTest, SetTunnelLayerProperty, TestSize.Level1)
+{
+    constexpr uint32_t screenId = 0;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, screenProperty);
+
+    constexpr uint64_t surfaceId = 90004;
+    constexpr uint64_t nodeId = 80004;
+
+    auto rsLayer = std::make_shared<RSRenderSurfaceLayer>();
+    rsLayer->SetSurfaceUniqueId(surfaceId);
+    rsLayer->SetNodeId(nodeId);
+    rsLayer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    EXPECT_EQ(hdiLayer->SetTunnelLayerProperty(), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    composer->uniRenderEngine_ = nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS

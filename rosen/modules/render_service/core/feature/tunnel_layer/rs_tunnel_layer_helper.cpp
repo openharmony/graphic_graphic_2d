@@ -407,6 +407,9 @@ RSLayerPtr RSTunnelLayerHelper::CreateTunnelLayer(const std::shared_ptr<RSSurfac
         return nullptr;
     }
     auto composerContext = composerClient->GetComposerContext();
+    if (!composerContext) {
+        return nullptr;
+    }
     RSLayerPtr layer = RSSurfaceLayer::Create(node->GetId(), composerContext);
     if (!layer) {
         return nullptr;
@@ -420,7 +423,7 @@ RSLayerPtr RSTunnelLayerHelper::CreateTunnelLayer(const std::shared_ptr<RSSurfac
     if (uniRsLayer) {
         uniBufferCount = uniRsLayer->GetBufferOwnerCount();
     }
-    if (uniBufferCount) {
+    if (uniBufferCount && layer->GetBuffer()) {
         uniBufferCount->InsertUniOnDrawSet(layer->GetRSLayerId(), layer->GetBuffer()->GetBufferId());
     }
     return layer;
