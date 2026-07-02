@@ -36,6 +36,7 @@ ohos_shared_library("hdr_capability_utils") {
   external_deps = [
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   cflags_cc = [ "-std=c++17" ]
@@ -74,6 +75,7 @@ ohos_shared_library("hdrcapability_napi") {
   external_deps = [
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   cflags_cc = [ "-std=c++17" ]
