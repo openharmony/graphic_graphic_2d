@@ -43,7 +43,6 @@
 #include "syspara/parameter.h"
 #include "syspara/parameters.h"
 
-#include "common/rs_backlight_thread.h"
 #include "common/rs_singleton.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/rs_render_node_gc.h"
