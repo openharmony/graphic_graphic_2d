@@ -507,7 +507,6 @@ ohos_source_set("render_service_base_src") {
       "src/command/rs_display_node_command.cpp",
       "src/command/rs_frame_rate_linker_command.cpp",
       "src/feature/window_keyframe/rs_window_keyframe_node_command.cpp",
-      "src/command/rs_union_node_command.cpp",
 
       #common
       "src/common/rs_thread_handler_generic.cpp",
@@ -552,7 +551,6 @@ ohos_source_set("render_service_base_src") {
       "src/screen_manager/rs_virtual_screen_resolution.cpp",
 
       "src/pipeline/rs_logical_display_render_node.cpp",
-      "src/pipeline/rs_union_render_node.cpp", # union render node is not supported in arkui-x
       "src/effect/rs_render_mask_base.cpp",
       "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
       "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
