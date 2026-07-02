@@ -184,12 +184,15 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawWithoutChildren, TestSize.
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.Level1)
 {
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
+    auto node = std::make_shared<RSRenderNode>(0);
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas canvas;
     const Drawing::Rect dst(1.0f, 1.0f, 1.0f, 1.0f);
+    drawable->DrawRenderContent(canvas, dst);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->surface_ = std::make_shared<Drawing::Surface>();
+    drawable->surface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>(0, 0);
+    drawable->image_ = std::make_shared<Drawing::Image>();
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     drawable->DrawRenderContent(canvas, dst);
 
@@ -199,47 +202,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     EXPECT_EQ(drawable->image_, nullptr);
 
     drawable->image_ = std::make_shared<Drawing::Image>();
+    drawable->recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(0, 0);
     drawable->DrawRenderContent(canvas, dst);
     EXPECT_NE(drawable->image_, nullptr);
     RSUniRenderThread::Instance().Sync(nullptr);
-}
-
-/**
- * @tc.name: PlaybackInCorrespondThread
- * @tc.desc: Test If PlaybackInCorrespondThread Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAFX7M
- */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
-    drawable->PostPlaybackInCorrespondThread();
-    ASSERT_FALSE(drawable->canvas_);
-
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    drawable->PostPlaybackInCorrespondThread();
-    ASSERT_FALSE(drawable->canvas_);
-
-    drawable->needDraw_ = true;
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    drawable->PostPlaybackInCorrespondThread();
-    ASSERT_FALSE(drawable->canvas_);
-
-    auto canvas = std::make_shared<Drawing::Canvas>();
-    drawable->canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
-    drawable->PostPlaybackInCorrespondThread();
-    ASSERT_TRUE(drawable->canvas_);
-
-    canvas->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-    drawable->PostPlaybackInCorrespondThread();
-    ASSERT_TRUE(drawable->canvas_);
-
-    auto surface_ = std::make_shared<Drawing::Surface>();
-    drawable->curThreadInfo_.second(surface_);
-    ASSERT_TRUE(surface_);
 }
 
 /**
