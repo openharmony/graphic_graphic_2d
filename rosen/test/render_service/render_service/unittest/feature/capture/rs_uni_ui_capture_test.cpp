@@ -314,7 +314,11 @@ HWTEST_F(RSUniUiCaptureTest, CreateSurface, TestSize.Level1)
     EXPECT_NE(buffer, nullptr);
     pixelMap->SetPixelsAddr(buffer, nullptr, bufferSize, Media::AllocatorType::HEAP_ALLOC, nullptr);
     RSOffscreenRenderThread::Instance().handler_.reset();
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelMap));
+#else
     EXPECT_NE(nullptr, rsUniUICapture.CreateSurface(pixelMap));
+#endif
 }
 
 /**
