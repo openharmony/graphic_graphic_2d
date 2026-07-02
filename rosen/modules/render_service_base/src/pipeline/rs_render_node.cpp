@@ -3342,11 +3342,9 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_EFFECT))) {
         ProcessBehindWindowAfterApplyModifiers();
     }
-#ifndef ROSEN_ARKUI_X
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_UNION))) {
         RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(shared_from_this());
     }
-#endif
     if UNLIKELY(debugMode) {
         RS_COLD_LOGI("RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
             " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(), isTextureExportNode_);
@@ -4097,9 +4095,7 @@ void RSRenderNode::OnTreeStateChanged()
     if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
         ProcessBehindWindowOnTreeStateChanged();
     }
-#ifndef ROSEN_ARKUI_X
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(shared_from_this());
-#endif
 }
 
 void RSRenderNode::HandleNodeRemovedFromTree()
