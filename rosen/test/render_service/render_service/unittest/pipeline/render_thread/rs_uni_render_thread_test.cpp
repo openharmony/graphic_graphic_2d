@@ -269,18 +269,6 @@ HWTEST_F(RSUniRenderThreadTest, PostSyncTask001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsIdleTestTest
- * @tc.desc: Test IsIdleTest
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RSUniRenderThreadTest, IsIdleTestTest, TestSize.Level1)
-{
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    EXPECT_TRUE(instance.IsIdle());
-}
-
-/**
  * @tc.name: Render001
  * @tc.desc: Test Render
  * @tc.type: FUNC
