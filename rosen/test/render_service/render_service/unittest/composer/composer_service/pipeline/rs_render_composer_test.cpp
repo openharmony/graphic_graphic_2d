@@ -15,7 +15,7 @@
 
 #include <atomic>
 #include <chrono>
-#include <gtest/gtest.h> 
+#include <gtest/gtest.h>
 
 #include "../layer_backend/mock_hdi_device.h"
 #include "hdi_output.h"
