@@ -602,6 +602,8 @@ HWTEST_F(RSRenderParticleAnimationTest, AnimateTest, TestSize.Level1)
     renderParticleAnimation.target_ = renderNode.get();
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     renderParticleAnimation.property_ = property;
+    renderParticleAnimation.Start();
+    renderParticleAnimation.SetStartTime(0);
     int64_t time = 1;
     int64_t delay = 0;
 
