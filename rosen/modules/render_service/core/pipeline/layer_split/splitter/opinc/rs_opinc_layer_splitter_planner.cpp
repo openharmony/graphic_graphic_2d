@@ -367,7 +367,7 @@ bool RSOpincLayerSplitterPlanner::UpdateBufferBounds()
             dstRect_.GetWidth(), dstRect_.GetHeight());
     } else if (planStatus_ == PlanStatus::PREPARE || planStatus_ == PlanStatus::ON) {
         if (!isUpdateBuffer_) {
-            auto matrix = geoMatrix->GetAbsMatrix();
+            auto matrix = geoPtr->GetAbsMatrix();
             float scaleX = matrix.Get(Drawing::Matrix::SCALE_X);
             float scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
             LAYER_SPLIT_LOGD("%{public}s scale=[%f, %f]", __func__, scaleX, scaleY);
