@@ -68,9 +68,6 @@ group("unittest") {
   if (graphic_2d_feature_overlay_display_enable) {
     deps += [ ":OverlayDisplayTest" ]
   }
-  if (graphic_2d_feature_enable_vulkan) {
-    deps += [ ":RSVKImageManagerTest" ]
-  }
   if (graphic_2d_feature_tv_metadata_enable) {
     deps += [ ":TvMetadataTest" ]
   }
