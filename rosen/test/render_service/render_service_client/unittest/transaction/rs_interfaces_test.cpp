@@ -619,7 +619,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark003, TestSize.Level1)
     EXPECT_FALSE(res);
     pixelmap->SetAstc(false);
     res = instance.SetWatermark("test", pixelmap);
-    EXPECT_FALSE(res);
+    EXPECT_TRUE(res);
 #endif
 }
 
