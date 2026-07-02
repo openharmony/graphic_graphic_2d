@@ -224,14 +224,15 @@ HWTEST_F(PropertiesTest, OnApplyModifiersTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateFilterTest
+ * @tc.name: UpdateFilterTest001
  * @tc.desc: test results of UpdateFilter
  * @tc.type: FUNC
  * @tc.require: issueI9W24N
  */
-HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
+HWTEST_F(PropertiesTest, UpdateFilterTest001, TestSize.Level1)
 {
     RSProperties properties;
+    std::shared_ptr<RSFilter> filter;
     properties.GetEffect().shadow_ = std::make_optional<RSShadow>();
     properties.GetEffect().shadow_->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
     properties.UpdateFilter();
@@ -244,12 +245,14 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
     properties.GetEffect().isSpherizeValid_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
     properties.GetEffect().isSpherizeValid_ = false;
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
     properties.GetEffect().isAttractionValid_ = true;
@@ -259,12 +262,23 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.GetEffect().isAttractionValid_ = false;
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
     properties.GetEffect().shadow_->imageMask_ = false;
     properties.UpdateFilter();
     EXPECT_TRUE(!properties.foregroundFilter_);
+}
 
+/**
+ * @tc.name: UpdateFilterTest002
+ * @tc.desc: test results of UpdateFilter
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, UpdateFilterTest002, TestSize.Level1)
+{
+    RSProperties properties;
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
     properties.GetEffect().motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.UpdateFilter();
