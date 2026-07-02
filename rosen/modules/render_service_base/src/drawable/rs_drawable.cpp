@@ -200,7 +200,9 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
         HasPropertyDrawableInRange(
             drawableVec, RSDrawableSlot::TRANSITION_PROPERTIES_BEGIN, RSDrawableSlot::TRANSITION_PROPERTIES_END) ||
         HasPropertyDrawableInRange(
-            drawableVec, RSDrawableSlot::EXTRA_PROPERTIES_BEGIN, RSDrawableSlot::EXTRA_PROPERTIES_END);
+            drawableVec, RSDrawableSlot::EXTRA_PROPERTIES_BEGIN, RSDrawableSlot::EXTRA_PROPERTIES_END) ||
+        HasPropertyDrawableInRange(
+            drawableVec, RSDrawableSlot::OVERLAY_PROPERTIES_BEGIN, RSDrawableSlot::OVERLAY_PROPERTIES_END);
     if (nodeNotEmpty) {
         // Set NODE_NOT_EMPTY flag if any drawable (include frame/bg/fg/transition/extra) is set
         result |= DrawableVecStatus::NODE_NOT_EMPTY;

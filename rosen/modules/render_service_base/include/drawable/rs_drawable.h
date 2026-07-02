@@ -129,6 +129,9 @@ enum class RSDrawableSlot : int8_t {
     // post-foreground properties, can be clipped by ClipToBounds
     EXTRA_PROPERTIES_BEGIN      = COVERAGE_NG_SHADER,
     EXTRA_PROPERTIES_END        = PIXEL_STRETCH,
+    // post-foreground properties, can not be clipped by ClipToBounds
+    OVERLAY_PROPERTIES_BEGIN    = OVERLAY_NG_SHADER,
+    OVERLAY_PROPERTIES_END      = OVERLAY_NG_SHADER,
 
     MAX = RESTORE_ALL + 1,
 };
