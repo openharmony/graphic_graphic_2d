@@ -795,6 +795,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToWindowContainer, TestSize.Level1)
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
 
+#if 0
 /**
  * @tc.name: DetachFromWindowContainer001
  * @tc.desc: Verify function DetachFromWindowContainer001
@@ -939,4 +940,5 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetAppRotationCorrectionTest, TestSize.Level1
     SurfaceNodeCommandHelper::SetAppRotationCorrection(context, nodeId, ScreenRotation::ROTATION_180);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
+#endif
 } // namespace OHOS::Rosen

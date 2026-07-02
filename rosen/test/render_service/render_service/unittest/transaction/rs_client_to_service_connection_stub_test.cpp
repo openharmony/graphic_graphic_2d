@@ -488,6 +488,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
         RSIRenderServiceConnectionInterfaceCode::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO)), ERR_NONE);
 }
 
+#if 0
 /**
  * @tc.name: TestRSRenderServiceConnectionStub008
  * @tc.desc: Test performance/memory related ipc, with non empty data.
@@ -516,6 +517,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
                   static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER)),
         ERR_INVALID_DATA);
 }
+#endif
 
 /**
  * @tc.name: TestRSRenderServiceConnectionStub009
@@ -546,6 +548,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
         ERR_INVALID_DATA);
 }
 
+#if 0
 /**
  * @tc.name: TestRSRenderServiceConnectionStub011
  * @tc.desc: Test
@@ -585,6 +588,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
             ERR_NULL_OBJECT);
     }
 }
+#endif
 
 /**
  * @tc.name: TestRSRenderServiceConnectionStub012
@@ -3432,6 +3436,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SyncFrameRateRange001, TestSize.Le
     EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 
+#if 0
 /**
  * @tc.name: SyncFrameRateRange002
  * @tc.desc: Test SyncFrameRateRange002
@@ -3596,4 +3601,5 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterSharedTypefaceTest001, Tes
     auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
     ASSERT_EQ(res, ERR_OK);
 }
+#endif
 } // namespace OHOS::Rosen

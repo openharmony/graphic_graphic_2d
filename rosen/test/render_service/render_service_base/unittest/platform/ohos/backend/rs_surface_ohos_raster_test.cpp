@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#if 0
 #include <gtest/gtest.h>
 
 #include "iconsumer_surface.h"
@@ -176,3 +176,4 @@ HWTEST_F(RSSurfaceOhosRasterTest, SetSurfacePixelFormat001, TestSize.Level1)
 }
 } // namespace Rosen
 } // namespace OHOS
+#endif

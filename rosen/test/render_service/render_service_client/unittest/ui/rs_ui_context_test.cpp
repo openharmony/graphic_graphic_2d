@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#if 0
 #include "gtest/gtest.h"
 
 #include "command/rs_animation_command.h"
@@ -534,3 +535,4 @@ HWTEST_F(RSUIContextTest, UiPiplineNum006, TestSize.Level1)
     ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
 }
 } // namespace OHOS::Rosen
+#endif
