@@ -349,5 +349,6 @@ DECLARE_SHADER(SpatialGlassEffect, SPATIAL_GLASS_EFFECT,
     ADD_PROPERTY_TAG(SpatialGlassEffect, SdPos),
     ADD_PROPERTY_TAG(SpatialGlassEffect, SdNeg),
     ADD_PROPERTY_TAG(SpatialGlassEffect, SdfShape),
-    ADD_PROPERTY_TAG(SpatialGlassEffect, DepthImage)
+    ADD_PROPERTY_TAG(SpatialGlassEffect, DepthImage),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, EnableSDFCache)
 );
