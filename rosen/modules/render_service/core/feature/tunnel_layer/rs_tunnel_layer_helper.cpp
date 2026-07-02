@@ -289,6 +289,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     commitInfo.buffer = pendingBuffer.buffer;
     commitInfo.acquireFence = pendingBuffer.acquireFence;
     if (!CommitBuffer(commitInfo, composerClientManager, releaseFence)) {
+        tunnelRuntime.SetLayerInfo(0, TUNNEL_PROP_INVALID);
         tunnelRuntime.SetBuilding();
         if (fallbackOnFailure) {
             PreparePendingTunnelBufferForFallback(surfaceHandler, pendingBuffer);
