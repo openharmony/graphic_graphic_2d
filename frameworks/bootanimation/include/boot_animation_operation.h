@@ -55,6 +55,9 @@ private:
     void PlayPicture(const std::string& path);
     void PlaySound(const std::string& path);
     void StopBootAnimation();
+private:
+    bool InitRsGlCtx();
+    bool InitRsVulkanCtx();
 
 private:
     bool isSoundEnabled_ = true;
