@@ -84,7 +84,6 @@ public:
     void OnTreeStateChanged() override {}
     void UpdateNodeColorSpace() override {}
     void MarkNodeColorSpace(int8_t colorSpace) override {}
-    void SetIsDepthBackground(bool isDepthBackground) override {}
 };
 
 class RSProfilerTest : public testing::Test {
