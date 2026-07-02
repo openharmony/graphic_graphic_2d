@@ -357,7 +357,11 @@ void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId no
     const std::string& name, bool isEnabled)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetWatermarkEnabled(name, isEnabled);
+        if (isEnabled) {
+            node->SetWatermarkEnabled(name, isEnabled);
+        } else {
+            node->ClearWatermarkEnabled(name, SurfaceWatermarkType::SYSTEM_WATER_MARK);
+        }
     }
 }
 
