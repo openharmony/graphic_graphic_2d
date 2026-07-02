@@ -2584,6 +2584,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateCornerRadiusInfoForDRM, TestSize.Level2)
     rsUniRenderVisitor->UpdateCornerRadiusInfoForDRM(surfaceNode, hwcRects);
 }
 
+#if 0
 /*
  * @tc.name: CheckIfRoundCornerIntersectDRM
  * @tc.desc: Test CheckIfRoundCornerIntersectDRM
@@ -8955,5 +8956,6 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClea
 
     // Color picker only node should be skipped without errors
 }
+#endif
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

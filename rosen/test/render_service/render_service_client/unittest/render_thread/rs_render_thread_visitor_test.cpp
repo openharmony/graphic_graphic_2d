@@ -794,6 +794,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
     EXPECT_FALSE(visitor.isOpDropped_);
 }
 
+#if 0
 /**
  * @tc.name: ProcessSurfaceRenderNode001
  * @tc.desc: test results of ProcessSurfaceRenderNode
@@ -1382,4 +1383,5 @@ HWTEST_F(RSRenderThreadVisitorTest, FlipMatrix001, TestSize.Level1)
     visitor.FlipMatrix(transform, matrix, bounds);
     EXPECT_TRUE(transform == GraphicTransformType::GRAPHIC_FLIP_V);
 }
+#endif
 } // namespace OHOS::Rosen

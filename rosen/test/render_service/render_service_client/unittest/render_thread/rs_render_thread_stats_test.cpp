@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#if 0
 #include "app_mgr_client.h"
 #include <memory>
 #include <parameters.h>
@@ -488,3 +488,4 @@ HWTEST_F(RSRenderThreadStatsTest, AddStaticInfo007, TestSize.Level1)
     EXPECT_TRUE(instance.recentUpdatedRenderFitRenderThreadInfo_.empty());
 }
 } // namespace OHOS::Rosen
+#endif

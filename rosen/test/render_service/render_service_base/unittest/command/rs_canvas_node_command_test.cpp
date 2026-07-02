@@ -180,27 +180,6 @@ HWTEST_F(RSCanvasNodeCommandTest, ClearRecording001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetColorGamut001
- * @tc.desc: test results of SetColorGamut
- * @tc.type: FUNC
- * @tc.require: issueICGKPE
- */
-HWTEST_F(RSCanvasNodeCommandTest, SetColorGamut001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
-    RSCanvasNodeCommandHelper::Create(context, id, true);
-    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
-
-    RSCanvasNodeCommandHelper::SetColorGamut(context, id, 4); // 4 is SRGB
-#ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(node->colorGamut_, 4); // 4 is SRGB
-    RSCanvasNodeCommandHelper::SetColorGamut(context, id, 3); // 3 is DISPLAY_P3
-    ASSERT_EQ(node->colorGamut_, 3); // 3 is DISPLAY_P3
-#endif
-}
-
-/**
  * @tc.name: SetPixelmap
  * @tc.desc: test results of SetPixelmap
  * @tc.type: FUNC

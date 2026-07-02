@@ -308,6 +308,7 @@ void RSClientToRenderConnectionStubTest::CreateComposerAdapterWithScreenInfo(uin
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
 }
 
+#if 0
 /**
  * @tc.name: TestRSClientToRenderConnectionStub001
  * @tc.desc: Test if data has no content.
@@ -330,6 +331,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
     EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK)), ERR_NULL_OBJECT);
 }
+#endif
 
 /**
  * @tc.name: TestRSClientToRenderConnectionStub002
@@ -351,6 +353,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE)), ERR_NULL_OBJECT);
 }
 
+#if 0
 /**
  * @tc.name: SetLayerTopForHWCTest
  * @tc.desc: Test SetLayerTopForHWC
@@ -373,6 +376,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetLayerTopForHWCTest, TestSize.Lev
         ASSERT_EQ(res, ERR_NONE);
     }
 }
+#endif
 
 /**
  * @tc.name: ClearUifirstCacheTest

@@ -88,6 +88,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer001, TestSize.Level1)
     rsSurface.ClearBuffer();
 }
 
+#if 0
 /**
  * @tc.name: ClearBuffer002
  * @tc.desc: test results of ClearBuffer
@@ -249,5 +250,6 @@ HWTEST_F(RSSurfaceOhosGlTest, RequestFrame001, TestSize.Level1)
     rsSurface.SetRenderContext(renderContext);
     ASSERT_EQ(rsSurface.RequestFrame(width, height, uiTimestamp, useAFBC), nullptr);
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

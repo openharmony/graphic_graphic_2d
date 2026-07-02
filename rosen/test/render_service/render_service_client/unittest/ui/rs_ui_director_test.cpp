@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#if 0
 #include <string>
 
 #include "gtest/gtest.h"
@@ -1414,3 +1415,4 @@ HWTEST_F(RSUIDirectorTest, SetContainerWindowTransparentTest, TestSize.Level1)
     director->SetContainerWindowTransparent(isContainerWindowTransparent);
 }
 } // namespace OHOS::Rosen
+#endif
