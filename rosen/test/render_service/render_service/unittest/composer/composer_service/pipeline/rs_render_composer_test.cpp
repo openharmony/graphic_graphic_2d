@@ -9458,6 +9458,5 @@ HWTEST_F(RsRenderComposerTest, SetTunnelLayerProperty, TestSize.Level1)
     EXPECT_EQ(hdiLayer->SetTunnelLayerProperty(), GRAPHIC_DISPLAY_NOT_SUPPORT);
     composer->uniRenderEngine_ = nullptr;
 }
-
 } // namespace Rosen
 } // namespace OHOS
