@@ -1185,7 +1185,7 @@ HWTEST_F(RSMultiRenderProcessManagerTest, HandleRenderProcessDeath001, TestSize.
     multiProcessManager_->serviceToRenderConnections_[TEST_TOKEN] = nullptr;
     multiProcessManager_->connectToRenderConnections_[TEST_TOKEN] = nullptr;
     multiProcessManager_->composerToRenderConnections_[TEST_TOKEN] = nullptr;
-    multiProcessManager_->groupIdToRenderProcessUniqueId_[TEST_GROUP_ID] = TEST_TOKEN;
+    multiProcessManager_->groupIdToRenderProcessUniqueId_.insert({TEST_GROUP_ID, TEST_TOKEN});
     auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
     multiProcessManager_->processToScreenOutputMap_[TEST_TOKEN].emplace_back(TEST_SCREEN_ID, output);
     multiProcessManager_->HandleRenderProcessDeath(TEST_TOKEN);
@@ -1444,7 +1444,7 @@ HWTEST_F(RSMultiRenderProcessManagerTest, OnRemoteDiedNormalPath001, TestSize.Le
     localManager->serviceToRenderConnections_[TEST_TOKEN] = serviceConn;
     localManager->connectToRenderConnections_[TEST_TOKEN] = nullptr;
     localManager->composerToRenderConnections_[TEST_TOKEN] = nullptr;
-    localManager->groupIdToRenderProcessUniqueId_[TEST_GROUP_ID] = TEST_TOKEN;
+    localManager->groupIdToRenderProcessUniqueId_.insert({TEST_GROUP_ID, TEST_TOKEN});
     auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
     localManager->processToScreenOutputMap_[TEST_TOKEN].emplace_back(TEST_SCREEN_ID, output);
     wptr<IRemoteObject> token = serviceConn->AsObject();
@@ -1867,4 +1867,18 @@ HWTEST_F(RSMultiRenderProcessManagerTest, ProcessUniqueIdInContainers001, TestSi
     EXPECT_EQ(tokenMap.count(TEST_TOKEN), 0u);
 }
 
+/**
+ * @tc.name: GetValidRenderProcessUniqueIdByPidLocked003
+ * @tc.desc: Test GetValidRenderProcessUniqueIdByPidLocked when tokens exist but pid does not match
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GetValidRenderProcessUniqueIdByPidLocked003, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->AddValidRenderProcessUniqueId(TEST_TOKEN);
+    multiProcessManager_->AddValidRenderProcessUniqueId(TEST_TOKEN_2);
+    auto result = multiProcessManager_->GetValidRenderProcessUniqueByPidLocked(TEST_PID_3);
+    EXPECT_FALSE(result.has_value());
+}
 } // namespace OHOS::Rosen

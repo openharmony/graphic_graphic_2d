@@ -108,7 +108,8 @@ std::optional<ProcessUniqueId> RSMultiRenderProcessManager::GetRenderProcessUniq
     return GetRenderProcessUniqueIdByGroupIdLocked(groupId);
 }
 
-std::optional<ProcessUniqueId> RSMultiRenderProcessManager::GetRenderProcessUniqueIdByGroupIdLocked(GroupId groupId) const
+std::optional<ProcessUniqueId> RSMultiRenderProcessManager::GetRenderProcessUniqueIdByGroupIdLocked(
+    GroupId groupId) const
 {
     // without lock version
     if (auto iter = groupIdToRenderProcessUniqueId_.find(groupId); iter != groupIdToRenderProcessUniqueId_.end()) {
@@ -467,14 +468,16 @@ sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderC
     return GetConnectToRenderConnByUniqueIdLocked(optionalToken.value());
 }
 
-sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GetServiceToRenderConnByUniqueId(ProcessUniqueId token) const
+sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GetServiceToRenderConnByUniqueId(
+    ProcessUniqueId token) const
 {
     // lock version
     std::lock_guard<std::mutex> lock(mutex_);
     return GetServiceToRenderConnByUniqueIdLocked(token);
 }
 
-sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GotServiceToRenderConnByUniqueId(ProcessUniqueId token) const
+sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GotServiceToRenderConnByUniqueId(
+    ProcessUniqueId token) const
 {
     // Must success, or gonna throw an exception if failed. Caller must ensure token is valid.
     std::lock_guard<std::mutex> lock(mutex_);
@@ -495,14 +498,16 @@ sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GetServiceToRend
     return nullptr;
 }
 
-sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderConnByUniqueId(ProcessUniqueId token) const
+sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderConnByUniqueId(
+    ProcessUniqueId token) const
 {
     // lock version
     std::lock_guard<std::mutex> lock(mutex_);
     return GetConnectToRenderConnByUniqueIdLocked(token);
 }
 
-sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GotConnectToRenderConnByUniqueId(ProcessUniqueId token) const
+sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GotConnectToRenderConnByUniqueId(
+    ProcessUniqueId token) const
 {
     // Must success, or gonna throw an exception if failed. Caller must ensure token is valid.
     std::lock_guard<std::mutex> lock(mutex_);
@@ -744,7 +749,7 @@ void RSMultiRenderProcessManager::AddScreenOutputToProcessLocked(ProcessUniqueId
     RS_LOGI("AddScreenOutputToProcess screenId %{public}" PRIu64 " token %{public}u timeStamp %{public}" PRIu64
         "replaced=%{public}d", screenId, token.GetPid(), token.GetTimestamp(), existing != screenOutputs.end());
 }
-
+ 
 void RSMultiRenderProcessManager::RemoveScreenOutputFromProcess(ProcessUniqueId token, ScreenId screenId)
 {
     std::lock_guard<std::mutex> lock(mutex_);

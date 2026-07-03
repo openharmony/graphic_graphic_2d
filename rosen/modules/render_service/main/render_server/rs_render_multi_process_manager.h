@@ -161,8 +161,10 @@ private:
         composerToRenderConnections_;
     std::unordered_map<ProcessUniqueId, sptr<RSIServiceToRenderConnection>, ProcessUniqueId::Hash>
         serviceToRenderConnections_;
-    std::unordered_map<ProcessUniqueId, sptr<RSIConnectToRenderProcess>, ProcessUniqueId::Hash> connectToRenderConnections_;
-    std::unordered_map<ProcessUniqueId, std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>, ProcessUniqueId::Hash>
+    std::unordered_map<ProcessUniqueId, sptr<RSIConnectToRenderProcess>, ProcessUniqueId::Hash>
+        connectToRenderConnections_;
+    std::unordered_map<ProcessUniqueId,
+        std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>, ProcessUniqueId::Hash>
         processToScreenOutputMap_;
     std::function<void(std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>&)> renderProcessDeathCallback_;
 
