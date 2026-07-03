@@ -160,7 +160,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSScreenRender
     Occlusion::Region drawnRegion;
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
         RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
-            damageRegion, drawnRegion, screenDrawable, std::nullopt, false);
+            damageRegion, damageRegion, screenDrawable, std::nullopt, false);
         GetSampledDamageAndDrawnRegion(screenInfo, damageRegion,
             isDirtyAlignEnabled && damageRegion.GetSize() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD,
             damageRegion, drawnRegion);
@@ -184,6 +184,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSScreenRender
         Occlusion::Region surfaceRect = Occlusion::Region(Occlusion::Rect(dirtyManager->GetSurfaceRect()));
         damageRegion.AndSelf(surfaceRect);
     }
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // overlay display expand dirty region
     RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, drawnRegion, damageRegion);
@@ -423,13 +424,13 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
 void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer, RectF& localBounds)
 {
     if (buffer == nullptr) {
-        RS_LOGE("buffer or surface is nullptr");
+        RS_LOGE("buffer is nullptr");
         return;
     }
     uint32_t srcWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
     uint32_t srcHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
-    float newWidth = 0.0f;
-    float newHeight = 0.0f;
+    float newWidth = 0;
+    float newHeight = 0;
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
@@ -511,7 +512,7 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
                 params.srcRect.GetLeft() + params.srcRect.GetWidth(),
                 params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
     }
-    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown name: srcRect [%{public}f %{public}f %{public}f %{public}f]",
+    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown srcRect [%{public}f %{public}f %{public}f %{public}f]",
         params.srcRect.GetLeft(), params.srcRect.GetTop(), params.srcRect.GetWidth(), params.srcRect.GetHeight());
 }
 
@@ -965,6 +966,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
         // if rotation fixed, no need to calculate scaling mode, it is contained in dstRect
         return params;
     }
+
     RSAncoManager::UpdateCropRectForAnco(layer->GetAncoFlags(), layer->GetAncoSrcRect(),
         { buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), buffer->GetFormat() }, params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
@@ -1197,7 +1199,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
 
         int syncFenceFd = -1;
         NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, syncFenceFd);
-        acquireFence = sptr<SyncFence>(new SyncFence(fenceFd));
+        acquireFence = sptr<SyncFence>(new SyncFence(syncFenceFd));
 
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
 #ifdef HETERO_HDR_ENABLE
@@ -1302,6 +1304,7 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
             return;
         }
     }
+
     // continue to traverse.
     for (const auto& child : *node->GetSortedChildren()) {
         TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData, isUnobscured);
@@ -1852,6 +1855,5 @@ BufferDrawParam RSUniRenderUtil::ProcessCanvasBySurfaceNode(
     canvas.DetachBrush();
     return params;
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -53,7 +53,7 @@ static inline sptr<SyncFence> TryMergeFence(sptr<SyncFence> fence1, sptr<SyncFen
     // caller use fence2 not nullptr
     if (fence1 && fence1->Get() != -1 && fence1->Wait(0) != 0) {
         fenceRet = SyncFence::MergeFence("bufferFence", fence1, fence2);
-        RS_OPTIONAL_TRACE_NAME_FMT("TryMergeFence %d fence %d success", fence1 ? fence1->Get() : -1, fence2->Get());
+        RS_OPTIONAL_TRACE_NAME_FMT("TryMergeFence %d fence %d", fence1 ? fence1->Get() : -1, fence2->Get());
     }
     return fenceRet;
 }
@@ -372,7 +372,6 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
             RS_LOGE("RSBufferManager::ReleaseUniOnDrawBuffers layer: %{public}" PRIu64 " has been released", layerId);
             continue;
         }
-
         for (const auto bufferId : bufferIdSet) {
             if (decedSet.find(bufferId) != decedSet.end()) {
                 continue;
@@ -395,6 +394,7 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
             bufferOwnerCount->OnBufferReleased();
         }
     }
+
     uniBufferCount->uniOnDrawBuffersMap_.clear();
 }
 
@@ -416,8 +416,8 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     }
 
     auto mergedFence = TryMergeFence(info.mergedFences_);
-    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseBufferById bufferId %" PRIu64 " Fence %d, seqnum=%u",
-        buffer->GetBufferId(), mergedFence ? mergedFence->Get() : -1, buffer->GetSeqNum());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseBufferById bufferId %" PRIu64 " Fence %d",
+        buffer->GetBufferId(), mergedFence ? mergedFence->Get() : -1);
     auto ret = consumer->ReleaseBuffer(buffer, mergedFence);
     if (ret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGD("RSBufferManager::ReleaseBufferById ReleaseBuffer failed(bufferId:%{public}" PRIu64

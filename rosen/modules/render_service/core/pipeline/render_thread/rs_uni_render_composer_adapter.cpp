@@ -34,11 +34,10 @@
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "rs_surface_layer.h"
-#include "rs_surface_rcd_layer.h"
 #include "rs_trace.h"
 #include "rs_render_composer_manager.h"
 #include "rs_surface_layer.h"
+#include "rs_surface_rcd_layer.h"
 #include "rs_uni_render_util.h"
 #include "string_utils.h"
 #include "surface_type.h"
@@ -1125,12 +1124,12 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
     }
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
-    RS_OPTIONAL_TRACE_NAME("RSUniRenderComposerAdapter::CreateLayer DisplayNode");
+    RS_OPTIONAL_TRACE_NAME("RSUniRenderComposerAdapter::CreateLayer ScreenNode");
     if (!screenDrawable->IsSurfaceCreated()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLY fail, screenDrawable's surfaceCreated is nullptr");
         return nullptr;
     }
-    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " available buffer:%{public}d",
+    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer screenNode id:%{public}" PRIu64 " available buffer:%{public}d",
         node.GetId(), surfaceHandler->GetAvailableBufferCount());
     if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
@@ -1142,10 +1141,10 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         dirtyRegions.emplace_back(dirtyManager->GetCurrentFrameDirtyRegion());
     }
     ComposeInfo info = BuildComposeInfo(*screenDrawable, dirtyRegions);
-    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayNode zorder:%d bufferFormat:%d", info.zOrder,
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer screenNode zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());
     if (info.buffer) {
-        RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " dst [%{public}d %{public}d"
+        RS_LOGD("RSUniRenderComposerAdapter::CreateLayer screenNode id:%{public}" PRIu64 " dst [%{public}d %{public}d"
             " %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d] surfaceBuffer"
             " [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d, bufferFormat:%d",
             node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w,

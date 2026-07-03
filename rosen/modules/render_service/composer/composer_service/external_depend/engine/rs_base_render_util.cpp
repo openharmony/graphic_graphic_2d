@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1152,7 +1151,7 @@ void RSBaseRenderUtil::GetRotationLockParam(RSSurfaceRenderNode& node,
 
     totalRotationCorrectionDegree = (screenDegree + logicalDegree + appDegree) % ROUND_ANGLE;
 
-    RS_LOGD("RSBaseRenderUtil::GetRotationLockParam NodeId:%" PRIu64 ", screenCorrectionDegree:%{public}d"
+    RS_LOGD("RSBaseRenderUtil::GetRotationLockParam NodeId:%{public}" PRIu64 ", screenCorrectionDegree:%{public}d"
         ", logicalCorrectionDegree:%{public}d, appCorrectionDegree:%{public}d, totalCorrectionDegree:%{public}d",
         node.GetId(), screenDegree, logicalDegree, appDegree, totalRotationCorrectionDegree);
 
@@ -1249,7 +1248,6 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
             std::swap(localBounds.width_, localBounds.height_);
         }
     } else {
-        RS_OPTIONAL_TRACE_NAME("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity old version");
         params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform,
             localBounds, bufferBounds, gravity));
         if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
@@ -1358,7 +1356,7 @@ bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, s
 
     Drawing::ImageInfo imageInfo(buffer->GetWidth(), buffer->GetHeight(),
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
-    bitmap.InstallPixels(imageInfo, newBuffer.data(), buffer->GetWidth() * 4);
+    bitmap.InstallPixels(imageInfo, newBuffer.data(), buffer->GetWidth() * 4); // 4 is color channel
     return true;
 }
 
@@ -1370,7 +1368,7 @@ bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::B
     return true;
 }
 
-Drawing::BitmapFormat RSBaseRenderUtil::GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,\
+Drawing::BitmapFormat RSBaseRenderUtil::GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,
     const Drawing::AlphaType alphaType)
 {
     Drawing::BitmapFormat format;
@@ -1408,8 +1406,8 @@ std::atomic<pid_t> RSBaseRenderUtil::lastSendingPid_ = 0;
 std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
     MessageParcel& parcel, uint32_t parcelNumber)
 {
-    RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber);
     RS_TRACE_NAME("UnMarsh RSTransactionData: data size:" + std::to_string(parcel.GetDataSize()));
+    RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber);
     auto transactionData = parcel.ReadParcelable<RSTransactionData>();
     if (!transactionData) {
         RS_TRACE_NAME("UnMarsh RSTransactionData fail!");
@@ -1777,5 +1775,6 @@ pid_t RSBaseRenderUtil::GetLastSendingPid()
     lastSendingPid_.store(0, std::memory_order_release);
     return pid;
 }
+
 } // namespace Rosen
 } // namespace OHOS
