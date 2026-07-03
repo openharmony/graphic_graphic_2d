@@ -77,7 +77,6 @@ public:
     }
     bool IsDeviceValid() const
     {
-        std::lock_guard<std::mutex> lock(backlightDeviceMutex_);
         return device_ != nullptr;
     }
     /* for RS end */
