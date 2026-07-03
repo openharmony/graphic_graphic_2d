@@ -311,16 +311,6 @@ bool RSUIContext::WaitForRebuildNormal(uint32_t timeoutMs)
     return true;
 }
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-void RSUIContext::UnblockUIThread()
-{
-    std::unique_lock<std::mutex> uiLock(uiMutex_);
-    if (canBlockUIThread_) {
-        canBlockUIThread_ = false;
-        uiCV_.notify_all();
-    }
-}
-
 void RSUIContext::PostLastModifiersDrawThreadTask()
 {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
@@ -334,6 +324,16 @@ void RSUIContext::PostLastModifiersDrawThreadTask()
         RS_TRACE_NAME_FMT("RSUIContext::PostLastModifiersDrawThreadTask Token: %" PRIu64, self->GetToken());
     });
 #endif
+}
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+void RSUIContext::UnblockUIThread()
+{
+    std::unique_lock<std::mutex> uiLock(uiMutex_);
+    if (canBlockUIThread_) {
+        canBlockUIThread_ = false;
+        uiCV_.notify_all();
+    }
 }
 
 CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
