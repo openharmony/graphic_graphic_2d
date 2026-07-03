@@ -56,6 +56,7 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_node_command.h"
+#include "command/rs_spatial_effect_command.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -71,6 +72,7 @@
 #include "modifier_ng/appearance/rs_compositing_filter_modifier.h"
 #include "modifier_ng/appearance/rs_dynamic_light_up_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
+#include "modifier_ng/appearance/rs_spatial_effect_modifier.h"
 #include "modifier_ng/appearance/rs_hdr_brightness_modifier.h"
 #include "modifier_ng/appearance/rs_mask_modifier.h"
 #include "modifier_ng/appearance/rs_outline_modifier.h"
@@ -162,6 +164,7 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::CANVAS_NODE,         "CanvasNode"},
     {RSUINodeType::ROOT_NODE,           "RootNode"},
     {RSUINodeType::EFFECT_NODE,         "EffectNode"},
+    {RSUINodeType::DEPTH_NODE,          "DepthNode"},
     {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
     {RSUINodeType::UNION_NODE,          "UnionNode"},
     {RSUINodeType::WINDOW_KEYFRAME_NODE, "WindowKeyFrameNode"},
@@ -3478,9 +3481,61 @@ void RSNode::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId
     });
 }
 
-void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectVariantPara>& para) {}
+void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectVariantPara>& para)
+{
+    if (!para) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::SPATIAL_EFFECT);
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_DEPTH);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_TOP);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_TOP);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT);
+        }
+        return;
+    }
 
-void RSNode::SetIsDepthBackground(bool isDepthBackground) {}
+    if (!para->PerspectiveEnabled()) {
+        SetPropertyNG<ModifierNG::RSSpatialEffectModifier,
+            &ModifierNG::RSSpatialEffectModifier::SetSpatialEffectDepth>(std::get<float>(para->position));
+        SetPropertyNG<ModifierNG::RSSpatialEffectModifier,
+            &ModifierNG::RSSpatialEffectModifier::SetSpatialEffectOcclusionWeight>(para->occlusionWeight);
+
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::SPATIAL_EFFECT);
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_TOP);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_TOP);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM);
+        }
+    } else {
+        const auto& corners = std::get<SpatialEffectPara::CornerPositions>(para->position);
+        SetPropertyNG<ModifierNG::RSSpatialEffectModifier,
+            &ModifierNG::RSSpatialEffectModifier::SetSpatialEffectLeftTop>(
+                corners[SpatialEffectPara::LEFT_TOP_INDEX]);
+        SetPropertyNG<ModifierNG::RSSpatialEffectModifier,
+            &ModifierNG::RSSpatialEffectModifier::SetSpatialEffectRightTop>(
+                corners[SpatialEffectPara::RIGHT_TOP_INDEX]);
+        SetPropertyNG<ModifierNG::RSSpatialEffectModifier,
+            &ModifierNG::RSSpatialEffectModifier::SetSpatialEffectLeftBottom>(
+                corners[SpatialEffectPara::LEFT_BOTTOM_INDEX]);
+        SetPropertyNG<ModifierNG::RSSpatialEffectModifier,
+            &ModifierNG::RSSpatialEffectModifier::SetSpatialEffectRightBottom>(
+                corners[SpatialEffectPara::RIGHT_BOTTOM_INDEX]);
+
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::SPATIAL_EFFECT);
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_DEPTH);
+        }
+    }
+}
 
 void RSNode::MarkAllExtendModifierDirty()
 {
@@ -4190,6 +4245,13 @@ void RSNode::SetIsCrossNode(bool isCrossNode)
 {
     SetRSCmdProperty<IsCrossNodeCmdModifier>(IsCrossNodeCmdParam{
         isCrossNode
+    });
+}
+
+void RSNode::SetIsDepthBackground(bool isDepthBackground)
+{
+    SetRSCmdProperty<IsDepthBackgroundCmdModifier>(IsDepthBackgroundCmdParam{
+        isDepthBackground
     });
 }
 

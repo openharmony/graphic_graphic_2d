@@ -76,6 +76,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/appearance_particle_effect_test.cpp",
   "rs_display_effect/property_display/appearance_pixelstretch_test.cpp",
   "rs_display_effect/property_display/appearance_point_light_test.cpp",
+  "rs_display_effect/property_display/appearance_spatial_effect_test.cpp",
   "rs_display_effect/property_display/appearance_shadow_test.cpp",
   "rs_display_effect/property_display/appearance_spherize_test.cpp",
   "rs_display_effect/property_display/appearance_visibility_test.cpp",

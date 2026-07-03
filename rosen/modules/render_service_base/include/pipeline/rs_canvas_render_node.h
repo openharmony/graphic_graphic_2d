@@ -80,6 +80,7 @@ public:
         return isNewOnTree_;
     }
     void OnSetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap);
+    void SetIsDepthBackground(bool isDepthBackground) override;
 
     void SetColorGamut(uint32_t colorGamut);
     uint32_t GetColorGamut();

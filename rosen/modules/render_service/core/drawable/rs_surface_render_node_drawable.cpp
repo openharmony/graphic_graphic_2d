@@ -755,6 +755,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
+    if (surfaceParams->IsDepthSrc()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw is skipped as depth source");
+        return;
+    }
     if (surfaceParams->IsUnobscuredUIExtension() && !UIExtensionNeedToDraw()) {
         RS_LOGE("Current Unobsucred UEC[%{public}s,%{public}" PRIu64 "] needn't to draw",
             name_.c_str(), surfaceParams->GetId());
@@ -1140,6 +1144,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfaceParams is nullptr");
+        return;
+    }
+    if (surfaceParams->IsDepthSrc()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::OnCapture is skipped as depth source");
         return;
     }
 

@@ -24,10 +24,13 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_depth_render_params.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
+#include "property/rs_properties_def.h"
+#include "property/rs_spatial_effect_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
 #include "render/rs_particles_drawable.h"
@@ -704,6 +707,311 @@ bool RSParticleDrawable::OnUpdate(const RSRenderNode& node)
 
     cachedDrawable_->Draw(canvas, bounds);
     return true;
+}
+
+RSDrawable::Ptr RSSpatialEffectDrawable::OnGenerate(const RSRenderNode& node)
+{
+    auto ret = std::make_shared<RSSpatialEffectDrawable>();
+    if (ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+
+bool RSSpatialEffectDrawable::OnUpdate(const RSRenderNode& node)
+{
+    auto depthNode = RSSpatialEffectManager::Instance()->GetAncestorDepthNode(node).lock();
+    if (!depthNode) {
+        RS_LOGE("RSSpatialEffectDrawable::OnUpdate no depth node ancestor");
+        return false;
+    }
+
+    if (auto depthRenderNode = depthNode->template ReinterpretCastTo<RSDepthRenderNode>()) {
+        if (depthRenderNode->GetDepthSpaceType() == DepthSpaceType::GLOBAL) {
+            depthNode = RSSpatialEffectManager::Instance()->GetMasterGlobalDepthNode(
+                depthRenderNode->GetLogicalDisplayNodeId()).lock();
+            if (!depthNode) {
+                ROSEN_LOGE("RSSpatialEffectDrawable::OnUpdate global depthNode not found");
+                return false;
+            }
+        }
+    } else {
+        RS_LOGE("RSSpatialEffectDrawable::OnUpdate not a depth node type");
+        return false;
+    }
+
+    auto depthDrawable = depthNode->GetRenderDrawable();
+    if (!depthDrawable) {
+        RS_LOGE("RSSpatialEffectDrawable::OnUpdate no drawable in depth node ancestor");
+        return false;
+    }
+    stagingDepthNodeDrawable_ = depthDrawable->weak_from_this();
+    const auto& renderProperties = node.GetRenderProperties();
+    stagingSpatialEffectPara_ = renderProperties.GetSpatialEffectVariantPara();
+    stagingSpatialEffectDstPoints_ = renderProperties.GetSpatialEffectDstPoints();
+    needSync_ = true;
+    return true;
+}
+
+void RSSpatialEffectDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    depthNodeDrawable_ = stagingDepthNodeDrawable_;
+    spatialEffectPara_ = std::move(stagingSpatialEffectPara_);
+    spatialEffectDstPoints_ = std::move(stagingSpatialEffectDstPoints_);
+    needSync_ = false;
+}
+
+constexpr float SafeReciprocal(float x) noexcept
+{
+    constexpr float EPSILON = 1e-6f;
+    float clamped = std::copysign(std::max(std::abs(x), EPSILON), x);
+    return 1.f / clamped;
+}
+
+float GetNormalizedValueByNearFar(float value, const Vector2f& nearFar)
+{
+    float disp = SafeReciprocal(value);
+    float nearInv = SafeReciprocal(nearFar.x_);
+    float farInv = SafeReciprocal(nearFar.y_);
+    return (nearInv - farInv) * SafeReciprocal(disp - farInv);
+}
+
+Vector4f RSSpatialEffectDrawable::CalcDepthPlane(const RSDepthRenderParams& params,
+    const SpatialEffectVariantPara& variantPara, const std::optional<std::vector<Drawing::Point>>& dstPoints,
+    const Drawing::RectI drawRect)
+{
+    bool isSurfaceCase = params.GetDepthSrcSurfaceDrawable().lock() != nullptr;
+    const auto& cameraPara = params.GetDepthCameraPara();
+    Vector2f nearFar = cameraPara.has_value() ?
+        Vector2f(cameraPara->zNear - cameraPara->position.z_, cameraPara->zFar - cameraPara->position.z_) :
+        Vector2f(0.1f, 100.f);
+    if (!variantPara.PerspectiveEnabled()) {
+        auto& depth = std::get<float>(variantPara.position);
+        float disp = isSurfaceCase ? SafeReciprocal(GetNormalizedValueByNearFar(-depth, nearFar))
+            : SafeReciprocal(-depth);
+        return Vector4f(0.f, 0.f, 1.f, -disp);
+    }
+
+    const auto& cornerPositions = std::get<SpatialEffectPara::CornerPositions>(variantPara.position);
+    auto& leftTopPoint = cornerPositions[SpatialEffectPara::LEFT_TOP_INDEX];
+    float leftTopDisp = isSurfaceCase ? SafeReciprocal(GetNormalizedValueByNearFar(-leftTopPoint.z_, nearFar))
+        : SafeReciprocal(-leftTopPoint.z_);
+    Vector4f defaultPlane = Vector4f(0.f, 0.f, 1.f, -leftTopDisp);
+    constexpr int POINT_COUNT = 3;
+    if (dstPoints.value().size() < POINT_COUNT) {
+        return defaultPlane;
+    }
+
+    std::vector<Drawing::Point> absDstPoints;
+    params.GetBackgroundMatrix().MapPoints(absDstPoints, dstPoints.value(), dstPoints.value().size());
+
+    const std::array<Vector3f, POINT_COUNT> corners = { cornerPositions[SpatialEffectPara::LEFT_TOP_INDEX],
+        cornerPositions[SpatialEffectPara::RIGHT_TOP_INDEX], cornerPositions[SpatialEffectPara::RIGHT_BOTTOM_INDEX] };
+
+    std::array<Vector3f, POINT_COUNT> uvInvZPoints;
+    for (int i = 0; i < POINT_COUNT; ++i) {
+        float localX = absDstPoints[i].GetX() - drawRect.GetLeft();
+        float localY = absDstPoints[i].GetY() - drawRect.GetTop();
+        float invZ = isSurfaceCase ? SafeReciprocal(GetNormalizedValueByNearFar(-corners[i].z_, nearFar))
+            : SafeReciprocal(-corners[i].z_);
+        uvInvZPoints[i] = Vector3f(localX, localY, invZ);
+    }
+
+    Vector3f vec1 = uvInvZPoints[1] - uvInvZPoints[0];
+    Vector3f vec2 = uvInvZPoints[2] - uvInvZPoints[0];
+    Vector3f normal = vec1.Cross(vec2);
+    constexpr float EPSILON = 1e-6f;
+    if (normal.GetSqrLength() < EPSILON) {
+        ROSEN_LOGE("RSSpatialEffectDrawable::CalcDepthPlane: points collinear");
+        return defaultPlane;
+    }
+    normal.Normalize();
+    float d = -normal.Dot(uvInvZPoints[0]);
+    return Vector4f(normal.x_, normal.y_, normal.z_, d);
+}
+
+struct ImageParameter {
+    float ratio;
+    float srcW;
+    float srcH;
+    float frameW;
+    float frameH;
+    float dstW;
+    float dstH;
+};
+
+void RSSpatialEffectDrawable::CalcDepthMapMatrix(
+    Drawing::Matrix& outMatrix, const Drawing::RectI& drawRect, const RSDepthRenderParams& params) const
+{
+    // step1: calculate the transform matrix for depth map
+    Drawing::Matrix imageMatrix = params.GetImageMatrix();
+
+    // step2: calculate the inverse matrix when draw image
+    Drawing::Matrix drawMatrixInv;
+    drawMatrixInv.Translate(-drawRect.GetLeft(), -drawRect.GetTop());
+
+    // step3: apply the same transformation to the depth map as to the background image
+    const auto& bgMat = params.GetBackgroundMatrix();
+
+    // preconcate all matrix
+    outMatrix = Drawing::Matrix();
+    outMatrix.PreConcat(drawMatrixInv);
+    outMatrix.PreConcat(bgMat);
+    outMatrix.PreConcat(imageMatrix);
+    return;
+}
+
+Drawing::RectI CalculateDrawRect(
+    Drawing::Canvas* canvas, const Drawing::Rect* rect, const RSDepthRenderParams& depthRenderParams)
+{
+    Drawing::Rect relativeRect = rect != nullptr ? *rect : canvas->GetLocalClipBounds();
+    auto mat = canvas->GetTotalMatrix();
+    Drawing::Rect absRect;
+    mat.MapRect(absRect, relativeRect);
+    Drawing::RectI drawRect = absRect.RoundOut();
+    drawRect.MakeOutset(1, 1);
+    return drawRect;
+}
+
+bool RSSpatialEffectDrawable::IsParamsValid() const
+{
+    if (!spatialEffectPara_.has_value()) {
+        RS_LOGE("RSSpatialEffectDrawable::IsParamsValid: spatialEffectPara_ is null");
+        return false;
+    }
+
+    if (spatialEffectPara_->PerspectiveEnabled() && !spatialEffectDstPoints_.has_value()) {
+        RS_LOGE("RSSpatialEffectDrawable::IsParamsValid: spatialEffectDstPoints_ is null");
+        return false;
+    }
+    return true;
+}
+
+std::shared_ptr<Drawing::Image> RSSpatialEffectDrawable::CaptureSurfaceSnapshot(const RSDepthRenderParams& depthParam,
+    Drawing::Canvas* canvas, const Drawing::Rect* rect, Drawing::RectI& outDrawRect) const
+{
+    outDrawRect = CalculateDrawRect(canvas, rect, depthParam);
+    auto surface = canvas->GetSurface();
+    if (surface == nullptr) {
+        RS_LOGE("RSSpatialEffectDrawable::CaptureSurfaceSnapshot surface is nullptr");
+        return nullptr;
+    }
+
+    outDrawRect.Intersect(Drawing::RectI(0, 0, surface->Width(), surface->Height()));
+    auto backgroundImage = surface->GetImageSnapshot(outDrawRect);
+    if (backgroundImage == nullptr) {
+        RS_LOGE("RSSpatialEffectDrawable::CaptureSurfaceSnapshot take snapshot failed");
+        return nullptr;
+    }
+
+    return backgroundImage;
+}
+
+std::shared_ptr<Drawing::Image> RSSpatialEffectDrawable::CreateOcclusionImage(const RSDepthRenderParams& depthParam,
+    Drawing::Canvas* canvas,const Drawing::RectI& drawRect, std::shared_ptr<Drawing::Image> backgroundImage) const
+{
+    const auto& cameraPara = depthParam.GetDepthCameraPara();
+    Vector2f nearFar = cameraPara.has_value() ?
+        Vector2f(cameraPara->zNear - cameraPara->position.z_, cameraPara->zFar - cameraPara->position.z_) :
+        Vector2f(0.1f, 100.f);
+    const auto& depthImage = depthParam.GetDepthImage();
+    if (depthImage == nullptr) {
+        RS_LOGE("RSSpatialEffectDrawable::CreateOcclusionImage depth image is nullptr");
+        return nullptr;
+    }
+
+    Drawing::Matrix depthMapMatrix;
+    CalcDepthMapMatrix(depthMapMatrix, drawRect, depthParam);
+    auto depthPlane = CalcDepthPlane(depthParam, spatialEffectPara_.value(), spatialEffectDstPoints_, drawRect);
+    Vector2f normalizedNearFar = {0.0, 0.0};
+    bool isSurfaceCase = depthParam.GetDepthSrcSurfaceDrawable().lock() != nullptr;
+    normalizedNearFar.x_ = isSurfaceCase ? GetNormalizedValueByNearFar(nearFar.x_, nearFar) : nearFar.x_;
+    normalizedNearFar.y_ = isSurfaceCase ? GetNormalizedValueByNearFar(nearFar.y_, nearFar) : nearFar.y_;
+    auto occlusionImage = RSPropertyDrawableUtils::DrawDepthOcclusion(canvas, backgroundImage, depthImage,
+        depthPlane, normalizedNearFar, spatialEffectPara_->occlusionWeight, depthMapMatrix);
+    if (occlusionImage == nullptr) {
+        ROSEN_LOGE("RSSpatialEffectDrawable::CreateOcclusionImage: DrawDepthOcclusion failed or no need to draw");
+        return nullptr;
+    }
+
+    return occlusionImage;
+}
+
+void RSSpatialEffectDrawable::RenderOcclusionEffect(Drawing::Canvas* canvas, const Drawing::RectI& drawRect,
+    std::shared_ptr<Drawing::Image> occlusionImage) const
+{
+    if (!occlusionImage) {
+        return;
+    }
+
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    auto drawFunc = [occlusionImage, drawRect](Drawing::Canvas& canvas) {
+        canvas.Save();
+        canvas.ResetMatrix();
+        Drawing::Brush brush;
+        canvas.AttachBrush(brush);
+        canvas.DrawImage(*occlusionImage, drawRect.GetLeft(), drawRect.GetTop(), Drawing::SamplingOptions());
+        canvas.DetachBrush();
+        canvas.Restore();
+    };
+    paintFilterCanvas->CustomSaveLayer(drawFunc);
+}
+
+bool RSSpatialEffectDrawable::IsNeedSkipOcclusion(const RSDepthRenderParams& depthParam) const
+{
+    if (!ROSEN_LE(spatialEffectPara_->occlusionWeight, 0.0f)) {
+        RS_LOGD("RSSpatialEffectDrawable::IsNeedSkipOcclusion: occlusionWeight > 0, need to draw occlusion");
+        return false;
+    }
+
+    const SpatialEffectVariantPara& variantPara = spatialEffectPara_.value();
+    if (!variantPara.PerspectiveEnabled()) {
+        return false;
+    }
+    const auto& cornerPositions = std::get<SpatialEffectPara::CornerPositions>(variantPara.position);
+    const auto& cameraPara = depthParam.GetDepthCameraPara();
+    Vector2f nearFar = cameraPara.has_value() ?
+        Vector2f(cameraPara->zNear - cameraPara->position.z_, cameraPara->zFar - cameraPara->position.z_) :
+        Vector2f(0.1f, 100.f);
+    for (const auto& point : cornerPositions) {
+        if (-point.z_ < nearFar.x_ || -point.z_ > nearFar.y_) {
+            RS_LOGD("RSSpatialEffectDrawable::IsNeedSkipOcclusion: plane not in NearFar, need to draw occlusion");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void RSSpatialEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
+{
+    if (!IsParamsValid()) {
+        return;
+    }
+
+    auto depthNodeDrawable = depthNodeDrawable_.lock();
+    if (!depthNodeDrawable) {
+        RS_LOGE("RSSpatialEffectDrawable::OnDraw depth node drawable is nullptr");
+        return;
+    }
+
+    const auto& depthRenderParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    if (!depthRenderParams) {
+        RS_LOGE("RSSpatialEffectDrawable::OnDraw depth params is nullptr");
+        return;
+    }
+
+    if (IsNeedSkipOcclusion(*depthRenderParams)) {
+        return;
+    }
+
+    Drawing::RectI drawRect;
+    auto backgroundImage = CaptureSurfaceSnapshot(*depthRenderParams, canvas, rect, drawRect);
+    auto occlusionImage = CreateOcclusionImage(*depthRenderParams, canvas, drawRect, backgroundImage);
+    RenderOcclusionEffect(canvas, drawRect, occlusionImage);
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

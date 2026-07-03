@@ -15,6 +15,9 @@
 
 #include "ui/rs_depth_node.h"
 
+#include "command_modifier/rs_depth_node_command_modifier.h"
+#include "command/rs_depth_node_command.h"
+#include "modifier_ng/appearance/rs_depth_space_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 
@@ -23,25 +26,54 @@ namespace Rosen {
 RSDepthNode::SharedPtr RSDepthNode::Create(bool isRenderServiceNode, bool isTextureExportNode,
     std::shared_ptr<RSUIContext> rsUIContext)
 {
+    RS_LOGD("RSDepthNode::Create");
     SharedPtr node(new RSDepthNode(isRenderServiceNode, isTextureExportNode, rsUIContext));
+    if (rsUIContext != nullptr) {
+        rsUIContext->GetMutableNodeMap().RegisterNode(node);
+    } else {
+        RSNodeMap::MutableInstance().RegisterNode(node);
+    }
+
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDepthNodeCreate>(node->GetId(), isTextureExportNode);
+    node->AddCommand(command, node->IsRenderServiceNode());
+    node->SetUIContextToken();
+
     return node;
 }
 
-void RSDepthNode::SetDepthSpaceType(DepthSpaceType spaceType) {}
+void RSDepthNode::CreateRenderNode()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDepthNodeCreate>(GetId(), IsTextureExportNode());
+    AddCommand(command, IsRenderServiceNode());
+}
 
-void RSDepthNode::SetDepthImage(const std::shared_ptr<RSImage>& depthImage) {}
+void RSDepthNode::SetDepthSpaceType(DepthSpaceType depthSpaceType)
+{
+    SetRSCmdProperty<DepthSpaceTypeCmdModifier>(DepthSpaceTypeCmdParam{depthSpaceType});
+}
 
-void RSDepthNode::SetDepthCameraPara(const DepthCameraPara& cameraPara) {}
+void RSDepthNode::SetDepthImage(const std::shared_ptr<RSImage>& depthImage)
+{
+    SetPropertyNG<ModifierNG::RSDepthSpaceModifier, &ModifierNG::RSDepthSpaceModifier::SetDepthImage>(depthImage);
+}
 
-void RSDepthNode::SetDepthLightPara(const DepthLightPara& lightPara) {}
+void RSDepthNode::SetDepthCameraPara(const DepthCameraPara& cameraPara)
+{
+    SetPropertyNG<ModifierNG::RSDepthSpaceModifier, &ModifierNG::RSDepthSpaceModifier::SetDepthCameraPara>(cameraPara);
+}
 
-void RSDepthNode::SetDepthImageMatrix(const Matrix3f& imageMatrix) {}
+void RSDepthNode::SetDepthLightPara(const DepthLightPara& lightPara)
+{
+    SetPropertyNG<ModifierNG::RSDepthSpaceModifier, &ModifierNG::RSDepthSpaceModifier::SetDepthLightPara>(lightPara);
+}
+
+void RSDepthNode::SetDepthImageMatrix(const Matrix3f& imageMatrix)
+{
+    SetPropertyNG<ModifierNG::RSDepthSpaceModifier, &ModifierNG::RSDepthSpaceModifier::SetDepthImageMatrix>(
+        imageMatrix);
+}
 
 RSDepthNode::RSDepthNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
     : RSNode(isRenderServiceNode, isTextureExportNode, rsUIContext) {}
-
-void RSDepthNode::CreateRenderNode()
-{
-}
 } // namespace Rosen
 } // namespace OHOS

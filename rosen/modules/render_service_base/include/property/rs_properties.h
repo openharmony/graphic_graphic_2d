@@ -28,6 +28,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
 #include "property/rs_properties_def.h"
+#include "property/rs_spatial_effect_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_filter_cache_manager.h"
@@ -55,6 +56,10 @@ class RSShadowDrawable;
 #ifdef RS_ENABLE_GPU
 class RSFilterDrawable;
 #endif
+}
+namespace Drawing {
+struct GECameraIntrinsics;
+struct GECameraExtrinsics;
 }
 class RSB_EXPORT RSProperties final {
 public:
@@ -377,6 +382,30 @@ public:
     void SetDynamicLightUpDegree(const std::optional<float>& degree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
 
+    void SetDepthImage(const std::shared_ptr<RSImage>& image);
+    std::shared_ptr<RSImage> GetDepthImage() const;
+    void SetDepthCameraPara(const DepthCameraPara& depthCameraPara);
+    std::optional<DepthCameraPara> GetDepthCameraPara() const;
+    void SetDepthLightPara(const DepthLightPara& depthLightPara);
+    std::optional<DepthLightPara> GetDepthLightPara() const;
+    void SetDepthImageMatrix(const Matrix3f& imageMatrix);
+    std::optional<Matrix3f> GetDepthImageMatrix() const;
+    void SetSpatialEffectDepth(float depth);
+    void SetSpatialEffectLeftTop(const Vector3f& leftTop);
+    void SetSpatialEffectRightTop(const Vector3f& rightTop);
+    void SetSpatialEffectLeftBottom(const Vector3f& leftBottom);
+    void SetSpatialEffectRightBottom(const Vector3f& rightBottom);
+    void SetSpatialEffectOcclusionWeight(float occlusionWeight);
+    void SetDepthEffectPara(const std::optional<DepthEffectPara>& depthEffectPara);
+    std::optional<DepthEffectPara> GetDepthEffectPara() const;
+    void SetSpatialEffectPara(const std::optional<SpatialEffectPara>& spatialEffectPara);
+    std::optional<SpatialEffectPara> GetSpatialEffectPara() const;
+    void SetSpatialEffectVariantPara(const std::optional<SpatialEffectVariantPara>& spatialEffectVariantPara);
+    std::optional<SpatialEffectVariantPara> GetSpatialEffectVariantPara() const;
+    bool GetSpatialEffectOcclusionEnabled() const;
+    void SetSpatialEffectDstPoints(const std::optional<std::vector<Drawing::Point>>& dstPoints);
+    std::optional<std::vector<Drawing::Point>> GetSpatialEffectDstPoints() const;
+
     void SetBackgroundNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetBackgroundNGFilter() const;
 
@@ -673,13 +702,36 @@ public:
     RectF GetBoundsRect() const;
     NodeId GetRenderNodeId() const;
 
+
+    /**
+     * @brief Parameters used for computing spatial effect matrices.
+     *
+     * @param rectSelf      Bounds of the current node.
+     * @param depNodeRect   Bounds of the depth node.
+     * @param cornerPoints  Target 3D positions after SpatialEffect transformation (World Space).
+     */
+    struct SpatialEffectMatrixParams {
+        RectF rectSelf;
+        RectF depNodeRect;
+        std::array<Vector3f, 4> cornerPoints;
+    };
+
+    struct SpatialEffectPerspectiveResults {
+        Drawing::Matrix transformMatrix;
+        std::array<Drawing::Point, 4> dstPoints;
+    };
+
+    void ApplySpatialEffectMatrix();
+    static SpatialEffectPerspectiveResults CalculateSpatialEffectMatrix(const SpatialEffectMatrixParams& params,
+        const Drawing::GECameraIntrinsics& intrinsics, const Drawing::GECameraExtrinsics& extrinsics);
+
     bool IsDirty() const;
     bool IsGeoDirty() const;
-    bool IsParentGeoDirty() const;
-    void SetParentGeoDirty(bool parentGeoDirty);
     bool IsCurGeoDirty() const;
     bool IsContentDirty() const;
     bool IsSubTreeAllDirty() const;
+    bool IsParentGeoDirty() const;
+    void SetParentGeoDirty(bool parentGeoDirty);
 
     void SetSpherize(float spherizeDegree);
     float GetSpherize() const;
@@ -889,6 +941,8 @@ public:
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
     RRect GetRRectForSDF() const;
+    void SetGeoDirty();
+
 private:
     struct CommonEffectParams {
         bool isAttractionValid_ = false;
@@ -957,6 +1011,13 @@ private:
         std::shared_ptr<RSNGRenderShaderBase> olRenderShader_ = nullptr; // for overlay shader
         std::shared_ptr<RSNGRenderShaderBase> mtRenderShader_ = nullptr; // for material shader
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;
+        std::shared_ptr<RSImage> depthImage_ = nullptr;
+        std::optional<DepthCameraPara> depthCameraPara_ = std::nullopt;
+        std::optional<DepthLightPara> depthLightPara_ = std::nullopt;
+        std::optional<Matrix3f> depthImageMatrix_ = std::nullopt;
+        std::optional<SpatialEffectVariantPara> spatialEffectVariantPara_ = std::nullopt;
+        float spatialEffectOcclusionWeight_ = 0.0f;
+        std::optional<std::vector<Drawing::Point>> spatialEffectDstPoints_ = std::nullopt;
         bool useUnion_ = false;
         float unionSpacing_ = 0.f;
     };
@@ -1112,6 +1173,10 @@ private:
     void UpdateFilter();
     void UpdateForegroundFilter();
     void UpdateBackgroundShader();
+
+    void ProcessSpatialEffectDstPoints(const SpatialEffectPerspectiveResults& perspectiveResults,
+        const RectF& depNodeRect, const Drawing::Matrix& absMatrixDep,
+        const std::shared_ptr<RSRenderNode>& renderNode);
 
     Drawing::Matrix prevAbsMatrix_;
 

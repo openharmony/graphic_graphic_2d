@@ -1724,6 +1724,15 @@ public:
         isContainerWindowTransparent_ = isContainerWindowTransparent;
     }
 
+    void SetIsDepthResource(bool isDepthResource);
+
+    bool GetIsDepthResource() const
+    {
+        return isDepthResource_;
+    }
+
+    void SetIsDepthBackground(bool isDepthBackground) override;
+
     bool IsContainerWindowTransparent() const
     {
         return isContainerWindowTransparent_;
@@ -2113,6 +2122,7 @@ private:
     bool isFilterCacheStatusChanged_ = false;
     bool isTreatedAsTransparent_ = false;
     bool isContainerWindowTransparent_ = false;
+    bool isDepthResource_ = false;
     // only used in hardware enabled pointer window, when gpu -> hardware composer
     bool isNodeDirtyInLastFrame_ = true;
     bool isNodeDirty_ = true;

@@ -2009,6 +2009,13 @@ public:
     void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
 
     /**
+     * @brief Mark the node for layer part rendering optimization
+     *
+     * @param isLayerPartRender true to enable layer part rendering optimization; false to disable
+     */
+    void MarkLayerPartRender(bool isLayerPartRender);
+
+    /**
      * @brief Set the spatial effect parameters of the node
      *
      * @param para spatial effect parameters
@@ -2021,13 +2028,6 @@ public:
      * @param isDepthBackground True if the node is a depth background node
      */
     void SetIsDepthBackground(bool isDepthBackground);
-
-    /**
-     * @brief Mark the node for layer part rendering optimization
-     *
-     * @param isLayerPartRender true to enable layer part rendering optimization; false to disable
-     */
-    void MarkLayerPartRender(bool isLayerPartRender);
 
     void ReSortChildrenByZIndex();
 

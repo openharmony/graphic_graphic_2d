@@ -25,6 +25,7 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_draw_cmd_list.h"
+#include "property/rs_spatial_effect_def.h"
 
 namespace OHOS {
 namespace Rosen {

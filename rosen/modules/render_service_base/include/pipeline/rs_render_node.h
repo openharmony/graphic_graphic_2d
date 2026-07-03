@@ -356,6 +356,8 @@ public:
 
     void SetChildHasSharedTransition(bool val);
     bool ChildHasSharedTransition() const;
+    void SetChildHasSpatialEffect(bool val);
+    bool ChildHasSpatialEffect() const;
 
     // type-safe reinterpret_cast
     template<typename T>
@@ -688,6 +690,13 @@ public:
     void SetCommandExecuted(bool commandExecuted)
     {
         commandExecuted_ = commandExecuted;
+    }
+
+    virtual void SetIsDepthBackground(bool) {}
+
+    bool GetIsDepthBackground() const noexcept
+    {
+        return isDepthBackground_;
     }
 
     void SetDrawRegion(const std::shared_ptr<RectF>& rect);
@@ -1225,6 +1234,8 @@ protected:
     bool srcOrClipedAbsDrawRectChangeFlag_ = false;
     bool startingWindowFlag_ = false;
     bool childHasSharedTransition_ = false;
+    bool childHasSpatialEffect_ = false;
+    bool isDepthBackground_ = false;
     bool isFirstLevelCrossNode_ = false;
     WeakPtr curCloneNodeParent_;
     std::atomic<bool> isStaticCached_ = false;
@@ -1473,6 +1484,7 @@ private:
     friend class RSMainThread;
     friend class RSPointerWindowManager;
     friend class RSModifierDrawable;
+    friend class RSProperties;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;
     friend class RSRenderThread;

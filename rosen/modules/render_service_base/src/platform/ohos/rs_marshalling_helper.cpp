@@ -3223,6 +3223,44 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     return true;
 }
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const DepthCameraPara& val)
+{
+    return Marshalling(parcel, val.position) && Marshalling(parcel, val.quaternion) && Marshalling(parcel, val.yFov) &&
+        Marshalling(parcel, val.zNear) && Marshalling(parcel, val.zFar) && Marshalling(parcel, val.offset);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, DepthCameraPara& val)
+{
+    return Unmarshalling(parcel, val.position) && Unmarshalling(parcel, val.quaternion) &&
+        Unmarshalling(parcel, val.yFov) && Unmarshalling(parcel, val.zNear) && Unmarshalling(parcel, val.zFar) &&
+        Unmarshalling(parcel, val.offset);
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const DepthLightPara& val)
+{
+    return Marshalling(parcel, val.direction) && Marshalling(parcel, val.color) && Marshalling(parcel, val.intensity);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, DepthLightPara& val)
+{
+    return Unmarshalling(parcel, val.direction) && Unmarshalling(parcel, val.color) &&
+        Unmarshalling(parcel, val.intensity);
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SpatialEffectPara& val)
+{
+    return Marshalling(parcel, val.leftTop) && Marshalling(parcel, val.rightTop) &&
+        Marshalling(parcel, val.leftBottom) && Marshalling(parcel, val.rightBottom) &&
+        Marshalling(parcel, val.occlusionWeight);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SpatialEffectPara& val)
+{
+    return Unmarshalling(parcel, val.leftTop) && Unmarshalling(parcel, val.rightTop) &&
+        Unmarshalling(parcel, val.leftBottom) && Unmarshalling(parcel, val.rightBottom) &&
+        Unmarshalling(parcel, val.occlusionWeight);
+}
+
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
     {                                                                                       \
@@ -3338,7 +3376,10 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<Vector2f>)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<Vector4f>)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Media::PixelMap>)             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, DepthCameraPara)                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, DepthLightPara)                               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, SpatialEffectPara)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 

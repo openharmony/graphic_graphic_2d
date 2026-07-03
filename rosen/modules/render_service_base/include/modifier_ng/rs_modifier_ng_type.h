@@ -68,8 +68,10 @@ enum class RSModifierType : uint16_t {
     FOREGROUND_SHADER = 35,
     MATERIAL_FILTER = 36,
     COLOR_PICKER = 37,
-    MATERIAL_SHADER = 38,
-    USE_UNION = 39,
+    DEPTH_SPACE = 38,
+    SPATIAL_EFFECT = 39,
+    MATERIAL_SHADER = 40,
+    USE_UNION = 41,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -131,6 +133,8 @@ public:
             case RSModifierType::BLENDER: return "Blender";
             case RSModifierType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             case RSModifierType::PARTICLE_EFFECT: return "ParticleEffect";
+            case RSModifierType::DEPTH_SPACE: return "DepthSpace";
+            case RSModifierType::SPATIAL_EFFECT: return "SpatialEffect";
             case RSModifierType::COMPOSITING_FILTER: return "CompositingFilter";
             case RSModifierType::BACKGROUND_FILTER: return "BackgroundFilter";
             case RSModifierType::FOREGROUND_FILTER: return "ForegroundFilter";
@@ -337,6 +341,16 @@ public:
             case RSPropertyType::COLOR_ADAPTIVE : return "ColorAdaptive";
             case RSPropertyType::DOUBLE_SIDED: return "DoubleSided";
             case RSPropertyType::CHILDREN: return "Children";
+            case RSPropertyType::DEPTH_IMAGE: return "DepthImage";
+            case RSPropertyType::DEPTH_CAMERA_PARA: return "DepthCameraPara";
+            case RSPropertyType::DEPTH_LIGHT_PARA: return "DepthLightPara";
+            case RSPropertyType::DEPTH_IMAGE_MATRIX: return "DepthImageMatrix";
+            case RSPropertyType::SPATIAL_EFFECT_DEPTH: return "SpatialEffectDepth";
+            case RSPropertyType::SPATIAL_EFFECT_LEFT_TOP: return "SpatialEffectLeftTop";
+            case RSPropertyType::SPATIAL_EFFECT_RIGHT_TOP: return "SpatialEffectRightTop";
+            case RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM: return "SpatialEffectLeftBottom";
+            case RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM: return "SpatialEffectRightBottom";
+            case RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT: return "SpatialEffectOcclusionWeight";
             case RSPropertyType::MATERIAL_SHADER: return "MaterialShader";
             default: return "Unknown";
         }

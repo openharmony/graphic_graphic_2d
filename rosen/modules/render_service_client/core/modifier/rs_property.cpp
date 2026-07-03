@@ -677,6 +677,24 @@ void RSProperty<Drawing::DrawCmdListPtr>::UpdateToRender(
 }
 
 template<>
+void RSProperty<DepthCameraPara>::UpdateToRender(const DepthCameraPara& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyDepthCameraPara, value, type);
+}
+
+template<>
+void RSProperty<DepthLightPara>::UpdateToRender(const DepthLightPara& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyDepthLightPara, value, type);
+}
+
+template<>
+void RSProperty<SpatialEffectPara>::UpdateToRender(const SpatialEffectPara& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertySpatialEffectPara, value, type);
+}
+
+template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {
