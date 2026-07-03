@@ -3463,8 +3463,8 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
         (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || RSOpincManager::IsSuggestOpincNode(node) ||
             properties.IsShadowValid() || properties.IsBgBrightnessValid() || properties.IsColorBlendModeValid() ||
             properties.IsColorBlendApplyTypeOffscreen() || properties.GetLinearGradientBlurPara() != nullptr ||
-            properties.IsFgBrightnessValid() || properties.GetForegroundFilter() != nullptr || properties.GetFilter() ||
-            node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+            properties.IsFgBrightnessValid() || properties.GetForegroundFilter() != nullptr ||
+            properties.GetFilter() != nullptr || node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*nodeParent, true);
     }
