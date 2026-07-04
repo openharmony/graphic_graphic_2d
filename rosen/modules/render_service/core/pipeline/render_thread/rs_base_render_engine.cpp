@@ -721,7 +721,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-   if (NeedYcbcrChannelSwap(params)) {
+    if (NeedYcbcrChannelSwap(params)) {
         RS_LOGD("DrawImage: YCbCr channel swap needed, bufferFormat=%{public}d, useCPU=%{public}d, isVulkan=%{public}d",
             static_cast<int32_t>(params.buffer->GetFormat()),
             static_cast<int32_t>(params.useCPU),
@@ -778,7 +778,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         if (existingFilter) {
             auto composed = Drawing::ColorFilter::CreateComposeColorFilter(*luminanceColorFilter, *existingFilter);
             filter.SetColorFilter(composed);
-            RS_LOGD("DrawImage(VPE): composed luminance with existing color filter (brightness=%{public}.2f)", params.brightnessRatio);
+            RS_LOGD("DrawImage: composed luminance with existing color filter");
         } else {
             filter.SetColorFilter(luminanceColorFilter);
         }
