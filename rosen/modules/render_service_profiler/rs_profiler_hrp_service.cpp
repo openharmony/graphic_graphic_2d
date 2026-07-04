@@ -31,9 +31,9 @@ static RetCodeHrpService ValidateOpenFlags(uint32_t flags)
     if (flags & ~allowedFlags) {
         return RET_HRP_SERVICE_ERR_INVALID_PARAM;
     }
-    
+
     uint32_t accessMode = flags & static_cast<uint32_t>(O_ACCMODE);
-    
+
     if (accessMode != static_cast<uint32_t>(O_RDONLY) &&
         accessMode != static_cast<uint32_t>(O_WRONLY) &&
         accessMode != static_cast<uint32_t>(O_RDWR)) {
