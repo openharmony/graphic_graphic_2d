@@ -851,51 +851,6 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     }
 }
 
-bool RSUniHwcVisitor::IsBackgroundFilterUnderSurface(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-    const std::shared_ptr<RSRenderNode>& filterNode)
-{
-    auto buildRSRenderNodePath =
-        [this](const std::shared_ptr<RSRenderNode>& startNode) -> std::stack<std::shared_ptr<RSRenderNode>> {
-        std::stack<std::shared_ptr<RSRenderNode>> nodeStack;
-        auto currentNode = startNode;
-        while (currentNode && currentNode != uniRenderVisitor_.curSurfaceNode_) {
-            nodeStack.push(currentNode);
-            currentNode = currentNode->GetParent().lock();
-        }
-        if (currentNode != nullptr) {
-            nodeStack.push(currentNode);
-        }
-        return nodeStack;
-    };
-    std::stack<std::shared_ptr<RSRenderNode>> surfaceNodeStack = buildRSRenderNodePath(hwcNode);
-    std::stack<std::shared_ptr<RSRenderNode>> filterNodeStack = buildRSRenderNodePath(filterNode);
-    if (surfaceNodeStack.top() != filterNodeStack.top()) {
-        return false;
-    }
-
-    std::shared_ptr<RSRenderNode> publicParentNode = nullptr;
-    while (surfaceNodeStack.size() > 1 && filterNodeStack.size() > 1 &&
-        surfaceNodeStack.top() == filterNodeStack.top()) {
-        publicParentNode = surfaceNodeStack.top();
-        surfaceNodeStack.pop();
-        filterNodeStack.pop();
-    }
-    if (!publicParentNode) {
-        return false;
-    }
-
-    auto surfaceParent = surfaceNodeStack.top();
-    auto filterParent = filterNodeStack.top();
-    if (surfaceParent == filterParent) {
-        return (surfaceParent != hwcNode && filterParent == filterNode);
-    } else {
-        uint32_t surfaceZOrder = surfaceParent->GetHwcRecorder().GetZOrderForHwcEnableByFilter();
-        uint32_t filterZOrder = filterParent->GetHwcRecorder().GetZOrderForHwcEnableByFilter();
-        return publicParentNode->GetCurFrameInfoDetail().curFrameReverseChildren ?
-            (filterZOrder > surfaceZOrder) : (filterZOrder < surfaceZOrder);
-    }
-}
-
 bool RSUniHwcVisitor::IsHveBlurFilterEnabled(
     const RSRenderNode& filterNode, const RectI& filterRect, RSSurfaceRenderNode& hwcNode)
 {
