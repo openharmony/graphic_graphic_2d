@@ -91,20 +91,21 @@ bool HdiDeviceImpl::Init()
         HLOGE("%{public}s:get display_composer_service remote object failed!", __func__);
         usleep(GET_COMPOSER_DELAY_TIME);
     }
-    if (g_composer_v5 == nullptr && g_composer == nullptr) {
-        g_composer_v5 = Composer::V1_5::IDisplayComposerInterface::Get();
-        if (g_composer_v5 == nullptr) {
-            HLOGW("Composer::V1_5::IDisplayComposerInterface::Get fail");
-            g_composer = Composer::V1_4::IDisplayComposerInterface::Get();
-            if (g_composer == nullptr) {
-                HLOGE("Composer::V1_4::IDisplayComposerInterface::Get fail, return nullptr.");
-                return false;
-            }
-        } else {
-            g_composer = g_composer_v5;
-        }
+    if (g_composer != nullptr) {
+        return true;
     }
-    return true;
+    g_composer_v5 = Composer::V1_5::IDisplayComposerInterface::Get();
+    if (g_composer_v5 != nullptr) {
+        g_composer = g_composer_v5;
+        return true;
+    }
+    HLOGW("Composer::V1_5::IDisplayComposerInterface::Get fail, fallback to lower version");
+    g_composer = Composer::V1_4::IDisplayComposerInterface::Get();
+    if (g_composer != nullptr) {
+        return true;
+    }
+    HLOGE("Composer::V1_4::IDisplayComposerInterface::Get fail, no available composer interface.");
+    return false;
 }
 
 void HdiDeviceImpl::Destroy()
