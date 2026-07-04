@@ -44,6 +44,8 @@ ohos_unittest("vulkan_loader_unit_test") {
     "hilog:libhilog",
     "vulkan-headers:vulkan_headers",
     "zlib:libz",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"

@@ -88,6 +88,8 @@ ohos_executable("bootanimation") {
     "samgr:samgr_proxy",
     "zlib:libz",
     "skia:skia_canvaskit",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (player_framework_enable) {

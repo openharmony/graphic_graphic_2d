@@ -346,6 +346,8 @@ ohos_unittest("RSGraphicTest") {
     "libpng:libpng",
     "window_manager:libdm",
     "zlib:libz",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   defines += gpu_defines

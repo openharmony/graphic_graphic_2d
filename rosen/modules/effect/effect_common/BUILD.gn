@@ -57,6 +57,8 @@ ohos_shared_library("effect_common") {
     "hilog:libhilog",
     "image_framework:image_native",
     "graphic_surface:surface",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   sources = [
     "src/color_picker_common.cpp",

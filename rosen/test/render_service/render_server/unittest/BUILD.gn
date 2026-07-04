@@ -84,6 +84,8 @@ ohos_unittest("RSRenderServiceAgentTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -160,6 +162,8 @@ ohos_unittest("RSRenderProcessManagerAgentTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -236,6 +240,8 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -461,6 +467,8 @@ ohos_unittest("RSMultiRenderProcessManagerTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -544,6 +552,8 @@ ohos_unittest("RenderServiceTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     # Add memmgr client dependency when memory manager integration is enabled soft_vsync_manager

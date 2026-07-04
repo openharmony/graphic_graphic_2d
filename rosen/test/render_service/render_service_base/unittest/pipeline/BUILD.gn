@@ -479,6 +479,8 @@ ohos_unittest("RSDrawCmdTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "skia:skia_canvaskit",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   subsystem_name = "graphic"

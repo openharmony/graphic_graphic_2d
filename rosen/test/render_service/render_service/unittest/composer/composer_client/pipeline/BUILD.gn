@@ -99,6 +99,8 @@ ohos_unittest("RSLayerContextTest") {
     "memmgr:memmgrclient",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -192,6 +194,8 @@ ohos_unittest("RSRenderComposerClientTest") {
     "selinux_adapter:librestorecon",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

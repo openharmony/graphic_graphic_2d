@@ -52,6 +52,8 @@ ohos_fuzztest("GpuContextFuzzTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "openssl:libcrypto_shared",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   part_name = "graphic_2d"

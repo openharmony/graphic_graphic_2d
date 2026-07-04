@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#include <GLES/gl.h>
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
 #include "surface_buffer_impl.h"
 #include "gtest/gtest.h"
 #include "image_source.h"

@@ -41,6 +41,8 @@ template("effect_ndk_source_set") {
       "hilog:libhilog",
       "image_framework:image",
       "graphics_effect:graphics_effect_core",
+      "egl:libEGL",
+      "opengles:libGLES",
     ]
 
     public_deps = [

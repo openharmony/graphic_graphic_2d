@@ -166,6 +166,8 @@ ohos_unittest("RSRenderToServiceConnectionStubTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     if (use_memmgr_plugin) {
@@ -253,6 +255,8 @@ ohos_unittest("RSRenderToServiceConnectionTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     if (use_memmgr_plugin) {
@@ -331,6 +335,8 @@ ohos_unittest("RSRenderConnectParcelInfoTest") {
         "ipc:ipc_core",
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     if (use_memmgr_plugin) {

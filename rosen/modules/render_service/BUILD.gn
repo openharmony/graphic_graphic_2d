@@ -632,6 +632,8 @@ ohos_shared_library("librender_service") {
     "window_manager:libwsutils",
     "qos_manager:concurrent_task_client",
     "config_policy:configpolicy_util",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (graphic_2d_feature_enable_vulkan) {

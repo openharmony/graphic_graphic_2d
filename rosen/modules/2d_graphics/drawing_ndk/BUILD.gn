@@ -74,6 +74,10 @@ template("drawing_ndk_source_set") {
     deps = [ "$rosen_text_root/interface/ndk_src:text_ndk" ]
     public_external_deps = [ "jsoncpp:jsoncpp" ]
     external_deps = [ "napi:ace_napi" ]
+    external_deps += [
+      "egl:libEGL",
+      "opengles:libGLES",
+    ]
     configs = [ ":export_config" ]
     sources = [
       "$drawing_ndk_src_dir/drawing_bitmap.cpp",

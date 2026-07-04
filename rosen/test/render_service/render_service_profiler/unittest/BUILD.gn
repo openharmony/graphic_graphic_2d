@@ -114,6 +114,8 @@ ohos_unittest("RSProfilerBaseTest") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ffrt:libffrt",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -276,6 +278,8 @@ ohos_unittest("RSProfilerTest") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
