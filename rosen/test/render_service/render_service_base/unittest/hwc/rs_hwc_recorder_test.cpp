@@ -166,20 +166,6 @@ HWTEST_F(RSHwcRecorderTest, IsIntersectWithPreviousFilter_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAndGetZOrderForHwcEnableByFilterTest
- * @tc.desc: test SetZOrderForHwcEnableByFilter and GetZOrderForHwcEnableByFilter
- * @tc.type: FUNC
- * @tc.require: issuesICKNNB
- */
-HWTEST_F(RSHwcRecorderTest, SetAndGetZOrderForHwcEnableByFilterTest, TestSize.Level1)
-{
-    NodeId id = 0;
-    RSSurfaceRenderNode node(id);
-    node.GetHwcRecorder().SetZOrderForHwcEnableByFilter(1);
-    ASSERT_EQ(node.GetHwcRecorder().GetZOrderForHwcEnableByFilter(), 1);
-}
-
-/**
  * @tc.name: SetNeedForceUpdateHwcNodes_001
  * @tc.desc: test SetNeedForceUpdateHwcNodes and GetNeedForceUpdateHwcNodes
  * @tc.type: FUNC
