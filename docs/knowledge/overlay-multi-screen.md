@@ -32,26 +32,32 @@
 
 `RSMultiScreenUtil` 提供静态方法，处理多屏渲染路径选择：
 
-关键枚举 `DrawingPath`：
+关键枚举 `RenderStrategy`：
 
 - `DRAW_AS_MAIN_SCREEN`：按主屏绘制
-- `DRAW_VIRTUAL_EXTEND_DISPLAY`：虚拟扩展显示
-- `DRAW_VIRTUAL_MIRROR_COPY`：虚拟镜像复制
+- `DRAW_VIRTUAL_EXTEND`：虚拟扩展显示
+- `DRAW_VIRTUAL_MIRROR_FROM_CACHE`：虚拟镜像从缓存复制
 - `DRAW_VIRTUAL_MIRROR_REBUILD`：虚拟镜像重建
-- `DRAW_WIRED_MIRROR_COPY`：有线镜像复制
-- `DRAW_WIRED_MIRROR_REBUILD`：有线镜像重建
+- `DRAW_PHYSICAL_MIRROR_FROM_CACHE`：物理镜像从缓存复制
+- `DRAW_PHYSICAL_MIRROR_REBUILD`：物理镜像重建
 
 核心方法：
 
-- `HandleMirrorDisplay`：处理镜像显示（逻辑显示节点）
+- `HandleMirrorDisplay`：处理镜像显示（逻辑显示节点），按 `CompositeType` 分发到物理或虚拟镜像路径
 - `HandleMirrorScreen`：处理镜像屏幕（屏幕节点）
 - `HandleVirtualExtendDisplay`：处理虚拟扩展显示
 - `HandleVirtualExtendScreen`：处理虚拟扩展屏幕
-- `DumpDrawingPath`：DFX 打印绘制路径
+- `DumpRenderStrategy`：DFX 打印绘制策略变更
 
-内部区分：
-- `DrawWiredMirrorDisplay` / `DrawWiredMirrorCopy` / `DrawWiredMirrorRebuild`：有线镜像的三种绘制方式
-- `DrawVirtualMirrorDisplay`：虚拟镜像显示
+内部分发：
+
+- `DrawPhysicalMirrorDisplay`：物理镜像显示入口，根据 `isRedraw` 条件分发：
+  - `isRedraw`（debug 模式、cacheImage 为空、或有线屏 onDraw 且有特殊层）→ `DrawPhysicalMirrorRebuild`
+  - 否则 → `DrawPhysicalMirrorFromCache`
+- `DrawVirtualMirrorDisplay`：虚拟镜像显示入口，根据 `rebuildReasonFlag` 位集分发：
+  - 任一标志置位（特殊层、HDR、cacheImage 为空、静屏、屏幕关闭、色彩过滤）→ `DrawVirtualMirrorRebuild`
+  - 否则 → `DrawVirtualMirrorFromCache`
+- `DrawVirtualExtend`：虚拟扩展绘制
 
 `MultiScreenParams` 结构体持有屏幕和逻辑显示的 Drawable/Params 对，用于多屏渲染参数传递。
 
@@ -60,15 +66,14 @@
 | 决策 | 代码体现 | 设计意图 |
 | --- | --- | --- |
 | Overlay 通过动态 so 加载 | `LoadLibrary` / `soHandle_` | Overlay 后处理逻辑闭源或产品差异化，动态加载解耦编译依赖 |
-| 多屏绘制路径枚举化 | `DrawingPath` 枚举 | 多屏场景绘制方式多样，枚举清晰表达路径，便于 DFX 和调试 |
-| 镜像区分 Copy 和 Rebuild | `DRAW_VIRTUAL_MIRROR_COPY` / `REBUILD` | Copy 直接复制像素，Rebuild 重新渲染，根据场景选择性能最优路径 |
-| 有线镜像独立处理 | `DrawWiredMirror*` 系列方法 | 有线镜像涉及硬件缩放和延迟，处理逻辑与虚拟镜像不同 |
+| 多屏绘制路径枚举化 | `RenderStrategy` 枚举 | 多屏场景绘制方式多样，枚举清晰表达路径，便于 DFX 和调试 |
+| 镜像区分 FromCache 和 Rebuild | `DRAW_PHYSICAL_MIRROR_FROM_CACHE` / `REBUILD`、`DRAW_VIRTUAL_MIRROR_FROM_CACHE` / `REBUILD` | FromCache 直接复制缓存像素，Rebuild 重新渲染整帧，根据场景选择性能最优路径 |
+| 物理镜像入口统一分发 | `DrawPhysicalMirrorDisplay` → `DrawPhysicalMirrorFromCache` / `DrawPhysicalMirrorRebuild` | 入口统一判断 isRedraw 条件后分发，避免外部多处重复判断 |
+| 虚拟镜像入口位集分发 | `DrawVirtualMirrorDisplay` → `rebuildReasonFlag` → `FromCache` / `Rebuild` | 用 bitset 累积多个 rebuild 原因，任一标志触发即走 Rebuild，逻辑清晰可扩展 |
 | Overlay 脏区域扩展 | `ExpandDirtyRegion` | 后处理效果可能影响原始脏区域外的像素，需要扩展脏区域保证显示正确 |
 
 ## 待补充背景
 
 - Overlay so 的具体接口定义和加载时机
-- `DrawingPath` 各路径的选择条件和性能差异
-- 有线镜像 Copy vs Rebuild 的触发条件
 - 虚拟扩展屏的完整渲染流程
 - Overlay 显示模式的模式值定义
