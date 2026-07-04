@@ -780,9 +780,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     globalZOrder_ = 0.0f;
     appWindowZOrder_ = 0;
     hasSkipLayer_ = false;
-    hwcVisitor_->curZOrderForHwcEnableByFilter_ = 0;
     hwcVisitor_->solidLayerHwcEnableCount_ = 0;
-    node.GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
     if (!(RSMainThread::Instance()->IsRequestedNextVSync())) {
         RS_OPTIONAL_TRACE_NAME_FMT("do not request next vsync");
         needRequestNextVsync_ = false;
@@ -2258,7 +2256,6 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             curDirty_ = child->IsDirty();
             curContainerDirty_ = curContainerDirty_ || child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
-            child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             if (node.IsParentTreeDirty()) {
                 child->SetParentTreeDirty(true);
             }
@@ -2280,7 +2277,6 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             rsScreenNodeChildNum_++;
             curDirty_ = child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
-            child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             child->QuickPrepare(shared_from_this(), false);
 #ifdef SUBTREE_PARALLEL_ENABLE
             node.MergeSubtreeParallelNodes(*child);
