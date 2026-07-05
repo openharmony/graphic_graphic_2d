@@ -26,28 +26,12 @@ std::shared_ptr<RsHdrCollection> g_rshdrcollection = nullptr;
 
 namespace {
 constexpr uint8_t DO_METHOD_HANDLE_HDR_STATE = 0;
-constexpr uint8_t DO_METHOD_RESET_HDR_ON_DURATION = 1;
-constexpr uint8_t DO_METHOD_GET_HDR_ON_DURATION = 2;
-constexpr uint8_t TARGET_SIZE = 3;
+constexpr uint8_t TARGET_SIZE = 1;
 
 void DoHandleHdrState(FuzzedDataProvider& fdp)
 {
     bool isHdrOn = fdp.ConsumeBool();
     g_rshdrcollection->HandleHdrState(isHdrOn);
-}
-
-void DoResetHdrOnDuration(FuzzedDataProvider& fdp)
-{
-    // LCOV_EXCL_START
-    g_rshdrcollection->ResetHdrOnDuration();
-    // LCOV_EXCL_STOP
-}
-
-void DoGetHdrOnDuration(FuzzedDataProvider& fdp)
-{
-    // LCOV_EXCL_START
-    g_rshdrcollection->GetHdrOnDuration();
-    // LCOV_EXCL_STOP
 }
 
 } // namespace
@@ -73,12 +57,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     switch (tarPos) {
         case OHOS::Rosen::DO_METHOD_HANDLE_HDR_STATE:
             OHOS::Rosen::DoHandleHdrState(fdp);
-            break;
-        case OHOS::Rosen::DO_METHOD_RESET_HDR_ON_DURATION:
-            OHOS::Rosen::DoResetHdrOnDuration(fdp);
-            break;
-        case OHOS::Rosen::DO_METHOD_GET_HDR_ON_DURATION:
-            OHOS::Rosen::DoGetHdrOnDuration(fdp);
             break;
         default:
             return -1;
