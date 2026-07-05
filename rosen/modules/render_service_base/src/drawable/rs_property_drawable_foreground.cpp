@@ -766,7 +766,7 @@ void RSSpatialEffectDrawable::OnSync()
 
 constexpr float SafeReciprocal(float x) noexcept
 {
-    constexpr static float EPSILON = 1e-6f;
+    constexpr float EPSILON = 1e-6f;
     float clamped = std::copysign(std::max(std::abs(x), EPSILON), x);
     return 1.f / clamped;
 }

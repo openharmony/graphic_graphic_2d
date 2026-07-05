@@ -451,7 +451,6 @@ void RSProperties::ApplySpatialEffectMatrix()
 
     auto cameraPara = masterGlobalDepNode ? masterGlobalDepNode->GetMutableRenderProperties().GetDepthCameraPara()
         : propertiesDep.GetDepthCameraPara();
-
     if (!cameraPara.has_value()) {
         ROSEN_LOGE("ApplySpatialEffectMatrix: depth camera parameters missing");
         return;
