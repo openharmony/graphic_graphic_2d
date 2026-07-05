@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
 module_output_path =
     "graphic_2d/graphic_2d/rosen_engine/render_service/pipeline"
@@ -61,7 +62,8 @@ group("unittest") {
     ":RSLayerSplitSurfaceBufferTest",
     ":RSOpincSplitControllerTest",
     ":RSOpincLayerSplitterProcessorTest",
-    ":RSSplitSurfaceTest"
+    ":RSSplitSurfaceTest",
+    ":RSCanvasDrawingNodeBufferConsumerListenerTest",
   ]
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [ ":RSRenderTaskTest" ]
@@ -1526,6 +1528,36 @@ ohos_unittest("RSSplitSurfaceTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+}
+
+## Build RSCanvasDrawingNodeBufferConsumerListenerTest
+ohos_unittest("RSCanvasDrawingNodeBufferConsumerListenerTest") {
+  module_out_path = module_output_path
+  sources = []
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:display_commontype_idl_headers",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
+    sources += [
+      "main_thread/rs_canvas_drawing_node_buffer_consumer_listener_test.cpp",
+    ]
+    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
   }
 }
 

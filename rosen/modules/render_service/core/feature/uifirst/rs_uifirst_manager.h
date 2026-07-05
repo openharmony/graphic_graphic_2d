@@ -52,6 +52,9 @@ public:
     void AddProcessDoneNode(NodeId id);
     void AddPurgedNode(NodeId id);
     void AddProcessSkippedNode(NodeId id);
+    void AddFirstFrameCacheGeneratedNode(NodeId id);
+    bool IsFirstFrameCacheGeneratedNode(NodeId id);
+    void RemoveFirstFrameCacheGeneratedNode(NodeId id);
     void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
         MultiThreadCacheType cacheType);
     void AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node);
@@ -372,6 +375,10 @@ private:
     std::unordered_set<NodeId> subthreadProcessSkippedNode_;
     std::mutex purgedNodeMutex_;
     std::unordered_set<NodeId> purgedNode_;
+
+    // Add in RT, query/remove in Main Thread; protected by firstFrameCacheMutex_.
+    std::mutex firstFrameCacheMutex_;
+    std::unordered_set<NodeId> firstFrameCacheGeneratedNodes_;
 
     // pending post node: collect in main, use&clear in RT
     PendingPostNodeMap pendingPostNodes_;

@@ -6930,52 +6930,6 @@ HWTEST_F(RSMainThreadTest, AnimateWithAnimationManager, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSMainThreadTest AnimateWithAnimationManager end";
 }
-
-/**
- * @tc.name: RequestDelayedVSyncForAnimation_BasicFunction001
- * @tc.desc: Test RequestDelayedVSyncForAnimation basic function with normal parameters.
- *           This method was updated in commit 974b560f with optimization (pre-calculate maxDelayFromTimestamp).
- * @tc.type:FUNC
- */
-HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_BasicFunction001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_BasicFunction001 start";
-
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    int64_t minLeftDelayTime = 100;
-    uint64_t timestamp = 1000000;
-    int64_t nextFrameTime = 0;
-
-    mainThread->RequestDelayedVSyncForAnimation(minLeftDelayTime, timestamp, nextFrameTime);
-
-    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_BasicFunction001 end";
-}
-
-/**
- * @tc.name: RequestDelayedVSyncForAnimation_DelayOverflowClamp001
- * @tc.desc: Test RequestDelayedVSyncForAnimation when delayTimeNs > maxDelayFromTimestamp.
- *           Line 3842 branch: if (delayTimeNs > maxDelayFromTimestamp) -> true
- *           When timestamp is near INT64_MAX, maxDelayFromTimestamp is small,
- *           delayTimeNs can exceed it and should be clamped.
- * @tc.type:FUNC
- */
-HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_DelayOverflowClamp001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 start";
-
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    int64_t minLeftDelayTime = 18;
-    uint64_t timestamp = static_cast<uint64_t>(INT64_MAX - 500000);
-    int64_t nextFrameTime = 0;
-
-    mainThread->RequestDelayedVSyncForAnimation(minLeftDelayTime, timestamp, nextFrameTime);
-
-    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 end";
-}
 /**
  * @tc.name: InitCreatePipelineTimeCallbackTest001
  * @tc.desc: Test InitCreatePipelineTimeCallback with nullptr
@@ -7011,5 +6965,6 @@ HWTEST_F(RSMainThreadTest, SetWindowModeType001, TestSize.Level1)
     HWCParam::SetSplitScreenSourceTuning(false);
     mainThread->SetWindowModeType(1);
 }
+
 } // namespace OHOS::Rosen
 #endif

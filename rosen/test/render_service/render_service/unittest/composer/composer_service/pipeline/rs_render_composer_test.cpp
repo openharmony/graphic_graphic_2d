@@ -15,7 +15,9 @@
 
 #include <atomic>
 #include <chrono>
+#include <future>
 #include <gtest/gtest.h>
+#include <memory>
 
 #include "../layer_backend/mock_hdi_device.h"
 #include "hdi_output.h"
@@ -3280,22 +3282,33 @@ HWTEST_F(RsRenderComposerTest, SurfaceDump_Branches, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. call with valid hdiOutput_
- *                  2. call with null hdiOutput_
+ * CaseDescription: 1. call with valid hdiOutput_ to verify asynchronous dispatch
+ *                  2. call with null hdiOutput_ to verify early return
  */
 HWTEST_F(RsRenderComposerTest, SetScreenBacklight_Branches, TestSize.Level1)
 {
-    // Verify initial hdiOutput_ is not null
-    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    constexpr uint32_t asyncLevel = 80u;
+    auto output = rsRenderComposer_->hdiOutput_;
+    ASSERT_NE(output, nullptr);
+    auto originalDevice = output->device_;
+    output->device_ = hdiDeviceMock_;
 
-    // Call with valid hdiOutput_
-    rsRenderComposer_->SetScreenBacklight(50);
+    constexpr auto waitTimeout = std::chrono::seconds(1);
+    auto taskFinished = std::make_shared<std::promise<void>>();
+    auto taskFuture = taskFinished->get_future();
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(output->GetScreenId(), asyncLevel))
+        .WillOnce([taskFinished](uint32_t, uint32_t) {
+            taskFinished->set_value();
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+    rsRenderComposer_->SetScreenBacklight(asyncLevel);
+    EXPECT_EQ(taskFuture.wait_for(waitTimeout), std::future_status::ready);
 
-    // Call with null hdiOutput_
-    auto backup = rsRenderComposer_->hdiOutput_;
     rsRenderComposer_->hdiOutput_ = nullptr;
     rsRenderComposer_->SetScreenBacklight(0);
-    rsRenderComposer_->hdiOutput_ = backup;
+    EXPECT_EQ(rsRenderComposer_->hdiOutput_, nullptr);
+    rsRenderComposer_->hdiOutput_ = output;
+    output->device_ = originalDevice;
 }
 
 /**

@@ -627,6 +627,24 @@ HWTEST_F(RSUIContextTest, WaitForRebuildNormal_NotifyWakes, TestSize.Level1)
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 /**
+ * @tc.name: PostLastModifiersDrawThreadTaskTest
+ * @tc.desc: Test PostLastModifiersDrawThreadTask
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, PostLastModifiersDrawThreadTaskTest, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(rsUIContext, nullptr);
+    ASSERT_EQ(rsUIContext->modifiersDrawThread_ != nullptr, RSSystemProperties::GetHybridRenderCanvasEnabled());
+    rsUIContext->PostLastModifiersDrawThreadTask();
+    ASSERT_EQ(rsUIContext->modifiersDrawThread_ != nullptr, RSSystemProperties::GetHybridRenderCanvasEnabled());
+    rsUIContext->modifiersDrawThread_ = nullptr;
+    rsUIContext->PostLastModifiersDrawThreadTask();
+    ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+}
+
+/**
  * @tc.name: FlushCanvasDrawingNodeBuffersTest
  * @tc.desc: Test FlushCanvasDrawingNodeBuffers early return when hybrid canvas disabled
  * @tc.type: FUNC

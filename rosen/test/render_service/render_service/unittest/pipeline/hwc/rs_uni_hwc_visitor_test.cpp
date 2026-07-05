@@ -798,6 +798,127 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_004, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateHwcNodeEnableByFilterIntersection_001
+ * @tc.desc: Test UpdateHwcNodeEnableByFilterIntersection when the filter node is not on the tree,
+ *           the filter rect is not collected so the hwcNode below is not disabled.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterIntersection_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    constexpr NodeId screenNodeId = 1;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    // hwcNode on the tree whose absRect intersects the filter rect below
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->isOnTheTree_ = true;
+    hwcNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI(0, 0, 100, 100);
+
+    // filter node NOT on the tree, marked as a filter with a valid intersecting filter rect
+    auto filterNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->isOnTheTree_ = false;
+    filterNode->GetHwcRecorder().SetBlendWithBackground(true);
+    filterNode->GetHwcRecorder().SetGlobalHwcFilterRect(RectI(0, 0, 100, 100));
+
+    // reverse iteration order: [hwcNode, filterNode] -> filterNode is processed first
+    rsUniRenderVisitor->curScreenNode_->GetAllHwcNodeAndFilterNode().push_back(hwcNode);
+    rsUniRenderVisitor->curScreenNode_->GetAllHwcNodeAndFilterNode().push_back(filterNode);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterIntersection();
+    // the filter is not on the tree, so it is not collected and cannot disable the hwcNode
+    EXPECT_FALSE(hwcNode->isHardwareForcedDisabled_);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFilterIntersection_002
+ * @tc.desc: Test UpdateHwcNodeEnableByFilterIntersection when the filter node is on the tree,
+ *           the filter rect is collected so the hwcNode below is disabled.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterIntersection_002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    constexpr NodeId screenNodeId = 1;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    // hwcNode on the tree whose absRect intersects the filter rect below
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->isOnTheTree_ = true;
+    hwcNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI(0, 0, 100, 100);
+
+    // filter node ON the tree, marked as a filter with a valid intersecting filter rect
+    auto filterNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->isOnTheTree_ = true;
+    filterNode->GetHwcRecorder().SetBlendWithBackground(true);
+    filterNode->GetHwcRecorder().SetGlobalHwcFilterRect(RectI(0, 0, 100, 100));
+
+    // reverse iteration order: [hwcNode, filterNode] -> filterNode is processed first and collected
+    rsUniRenderVisitor->curScreenNode_->GetAllHwcNodeAndFilterNode().push_back(hwcNode);
+    rsUniRenderVisitor->curScreenNode_->GetAllHwcNodeAndFilterNode().push_back(filterNode);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterIntersection();
+    // the filter is on the tree, so it is collected and disables the hwcNode below
+    EXPECT_TRUE(hwcNode->isHardwareForcedDisabled_);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFilterIntersection_003
+ * @tc.desc: Test UpdateHwcNodeEnableByFilterIntersection when the filter node is on the tree but
+ *           the filter rect is empty, the filter is skipped so the hwcNode is not disabled.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterIntersection_003, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    constexpr NodeId screenNodeId = 1;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->isOnTheTree_ = true;
+    hwcNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI(0, 0, 100, 100);
+
+    // filter node on the tree with an empty filter rect and empty oldDirtyInSurface
+    auto filterNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->isOnTheTree_ = true;
+    filterNode->GetHwcRecorder().SetBlendWithBackground(true);
+    filterNode->SetOldDirtyInSurface(RectI(0, 0, 0, 0));
+
+    rsUniRenderVisitor->curScreenNode_->GetAllHwcNodeAndFilterNode().push_back(hwcNode);
+    rsUniRenderVisitor->curScreenNode_->GetAllHwcNodeAndFilterNode().push_back(filterNode);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterIntersection();
+    // the filter rect is empty so the filter is skipped and the hwcNode is not disabled
+    EXPECT_FALSE(hwcNode->isHardwareForcedDisabled_);
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelf_001
  * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelf when hwcNode is hardware forced disabled.
  * @tc.type: FUNC

@@ -1400,5 +1400,25 @@ HWTEST_F(EffectImageChainUnittest, DrawNativeBufferWithScaling001, TestSize.Leve
     OH_NativeBuffer_Unreference(dstBuffer);
 }
 
+/**
+* @tc.name: DestructorTest001
+* @tc.desc: Test EffectImageChain::~EffectImageChain
+* @tc.type: FUNC
+*/
+HWTEST_F(EffectImageChainUnittest, DestructorTest001, TestSize.Level1)
+{
+    auto image1 = std::make_shared<EffectImageChain>();
+    image1->renderContext_ = RenderContext::Create();
+    ASSERT_NE(image1->renderContext_, nullptr);
+    image1->renderContext_->Init();
+    image1->forceReleaseGpuContext_ = false;
+
+    auto image2 = std::make_shared<EffectImageChain>();
+    image2->renderContext_ = RenderContext::Create();
+    ASSERT_NE(image2->renderContext_, nullptr);
+    image2->renderContext_->Init();
+    image2->forceReleaseGpuContext_ = true;
+}
+
 } // namespace Rosen
 } // namespace OHOS

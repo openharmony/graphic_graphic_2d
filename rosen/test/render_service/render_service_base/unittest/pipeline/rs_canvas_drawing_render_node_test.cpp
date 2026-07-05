@@ -353,25 +353,25 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurface, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     int width = 1;
     int height = 1;
-    RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-    rsCanvasDrawingRenderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    rsCanvasDrawingRenderNode.ResetSurface(width, height, height);
-    ASSERT_EQ(rsCanvasDrawingRenderNode.surface_, nullptr);
+    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    rsCanvasDrawingRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    rsCanvasDrawingRenderNode->ResetSurface(width, height, height);
+    ASSERT_EQ(rsCanvasDrawingRenderNode->surface_, nullptr);
 
-    rsCanvasDrawingRenderNode.surface_ = std::make_shared<Drawing::Surface>();
-    rsCanvasDrawingRenderNode.ResetSurface(width, height, height);
-    ASSERT_EQ(rsCanvasDrawingRenderNode.surface_, nullptr);
+    rsCanvasDrawingRenderNode->surface_ = std::make_shared<Drawing::Surface>();
+    rsCanvasDrawingRenderNode->ResetSurface(width, height, height);
+    ASSERT_EQ(rsCanvasDrawingRenderNode->surface_, nullptr);
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     Drawing::Canvas canvas(1024, 1096);
     RSPaintFilterCanvas paintCanvas(&canvas);
     EXPECT_TRUE(paintCanvas.GetGPUContext() == nullptr);
-    auto ret = rsCanvasDrawingRenderNode.ResetSurface(canvas.GetWidth() + 10, canvas.GetHeight() + 10, paintCanvas);
+    auto ret = rsCanvasDrawingRenderNode->ResetSurface(canvas.GetWidth() + 10, canvas.GetHeight() + 10, paintCanvas);
     EXPECT_TRUE(ret);
 
     paintCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     EXPECT_TRUE(paintCanvas.GetGPUContext() != nullptr);
-    ret = rsCanvasDrawingRenderNode.ResetSurface(canvas.GetWidth() + 20, canvas.GetHeight() + 20, paintCanvas);
+    ret = rsCanvasDrawingRenderNode->ResetSurface(canvas.GetWidth() + 20, canvas.GetHeight() + 20, paintCanvas);
     EXPECT_TRUE(ret);
 #endif
 }

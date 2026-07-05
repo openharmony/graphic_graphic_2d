@@ -55,7 +55,7 @@ if (current_os == "ohos") {
     if (is_arkui_x) {
       deps += [
         "$arkui_root/napi:ace_napi",
-        "$arkui_root/node:node_header_notice",
+        "//third_party/node:node_header_notice",
       ]
       include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
     } else {
@@ -93,7 +93,7 @@ if (current_os == "ohos") {
     if (is_arkui_x) {
       deps += [
         "//foundation/arkui/napi:ace_napi",
-        "$arkui_root/node:node_header_notice",
+        "//third_party/node:node_header_notice",
       ]
       public_deps = [ "//third_party/skia:skia_$platform" ]
     } else {
@@ -141,7 +141,7 @@ template("colorspacemanager_napi_source_set") {
     if (is_arkui_x) {
       deps = [
         "$arkui_root/napi:ace_napi",
-        "$arkui_root/node:node_header_notice",
+        "//third_party/node:node_header_notice",
       ]
       include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
       deps += [ "//third_party/skia:skia_$platform" ]
@@ -189,7 +189,7 @@ template("sendablecolorspacemanager_napi_source_set") {
     if (is_arkui_x) {
       deps = [
         "$arkui_root/napi:ace_napi",
-        "$arkui_root/node:node_header_notice",
+        "//third_party/node:node_header_notice",
       ]
       include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
     } else {

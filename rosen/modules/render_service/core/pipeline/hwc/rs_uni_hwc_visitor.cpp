@@ -302,6 +302,7 @@ void RSUniHwcVisitor::ProcessSolidLayerDisabled(RSSurfaceRenderNode& node)
             node.IsHardwareEnableHint();
         if (!isSpecialNodeType || node.IsRosenWeb()) {
             auto parentNode = node.GetParent().lock();
+            // The following trace is relied on by DFX, do not modify its content, format, or order.
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "background color alpha < 1", node.GetName().c_str(), node.GetId(),
                 parentNode ? parentNode->GetId() : 0);
@@ -957,7 +958,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterIntersection()
             continue;
         }
         bool isFilter = RSUniHwcComputeUtil::IsBlendNeedFilter(*node);
-        if (isFilter) {
+        if (isFilter && node->IsOnTheTree()) {
             auto filterRect = node->GetConstHwcRecorder().GetGlobalHwcFilterRect().IsEmpty() ?
                 node->GetOldDirtyInSurface() : node->GetConstHwcRecorder().GetGlobalHwcFilterRect();
             if (filterRect.IsEmpty()) {
@@ -1018,6 +1019,7 @@ void RSUniHwcVisitor::CheckHwcNodeFilterIntersection(
             continue;
         }
         auto parentNode = hwcNode->GetParent().lock();
+        // The following trace is relied on by DFX, do not modify its content, format, or order.
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64" parentId:%" PRIu64
             " disabled by filter rect, filterId:%" PRIu64, hwcNode->GetName().c_str(),
             hwcNode->GetId(), parentNode ? parentNode->GetId() : 0, filterNode->GetId());

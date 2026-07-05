@@ -70,7 +70,6 @@ const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
     if (isUniRender) {
         if (rsModifierManager_ == nullptr) {
             rsModifierManager_ = std::make_shared<RSModifierManager>();
-            rsModifierManager_->SetRSUIContext(weak_from_this());
         }
         return rsModifierManager_;
     } else {
@@ -85,7 +84,6 @@ const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
         }
 
         auto rsModifierManager = std::make_shared<RSModifierManager>();
-        rsModifierManager->SetRSUIContext(weak_from_this());
         rsModifierManagerMap_.emplace(gettid(), rsModifierManager);
         return rsModifierManager;
     }
@@ -145,23 +143,17 @@ void RSUIContext::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& anima
 
 void RSUIContext::SetRequestVsyncCallback(const std::function<void()>& callback)
 {
-    std::lock_guard<std::mutex> lock(requestVsyncCallbackMutex_);
     requestVsyncCallback_ = callback;
 }
 
 void RSUIContext::RequestVsyncCallback()
 {
-    std::function<void()> callback;
-    {
-        std::lock_guard<std::mutex> lock(requestVsyncCallbackMutex_);
-        callback = requestVsyncCallback_;
-    }
-    if (callback == nullptr) {
+    if (requestVsyncCallback_ == nullptr) {
         ROSEN_LOGE("RSUIContext::RequestVsyncCallback failed requestVsyncCallback_ is null, token=%{public}" PRIu64 "",
             token_);
         return;
     }
-    callback();
+    requestVsyncCallback_();
 }
 
 void RSUIContext::SetUITaskRunner(const TaskRunner& uiTaskRunner)
@@ -309,6 +301,21 @@ bool RSUIContext::WaitForRebuildNormal(uint32_t timeoutMs)
         return false;
     }
     return true;
+}
+
+void RSUIContext::PostLastModifiersDrawThreadTask()
+{
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled() || modifiersDrawThread_ == nullptr) {
+        return;
+    }
+    auto self = shared_from_this();
+    // Critical: hold strong reference to RSUIContext in task to delay its destruction,
+    // ensuring all tasks in modifiersDrawThread_ complete and avoiding task loss.
+    modifiersDrawThread_->PostTask([self]() {
+        RS_TRACE_NAME_FMT("RSUIContext::PostLastModifiersDrawThreadTask Token: %" PRIu64, self->GetToken());
+    });
+#endif
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE

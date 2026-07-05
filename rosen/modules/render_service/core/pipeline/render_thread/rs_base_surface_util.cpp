@@ -230,7 +230,8 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(RSSurfaceHandler&
 {
     auto nodeId = surfaceHandler.GetNodeId();
     surfaceHandler.ResetCurrentFrameBufferConsumed();
-    if (surfaceHandler.GetAvailableBufferCount() <= 0) {
+    auto availableBufferCount = surfaceHandler.GetAvailableBufferCount();
+    if (availableBufferCount <= 0) {
         return true;
     }
     const auto& consumer = surfaceHandler.GetConsumer();
@@ -238,7 +239,15 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(RSSurfaceHandler&
         RS_LOGE("RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple: null consumer, nodeId=%{public}" PRIu64, nodeId);
         return false;
     }
- 
+
+    while (availableBufferCount > 1) {
+        bool dropped = DropFirstFlushedBuffer(surfaceHandler, nodeId);
+        availableBufferCount = surfaceHandler.GetAvailableBufferCount();
+        if (!dropped) {
+            break;
+        }
+    }
+
     std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
         IConsumerSurface::AcquireBufferReturnValue returnValue;
@@ -292,6 +301,35 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(RSSurfaceHandler&
     surfaceHandler.ConsumeAndUpdateBuffer(*surfaceBuffer);
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
+    return true;
+}
+
+bool RSBaseSurfaceUtil::DropFirstFlushedBuffer(RSSurfaceHandler& surfaceHandler, NodeId nodeId)
+{
+    if (surfaceHandler.GetAvailableBufferCount() <= 1) {
+        return false;
+    }
+    const auto& consumer = surfaceHandler.GetConsumer();
+    if (consumer == nullptr) {
+        return false;
+    }
+    IConsumerSurface::AcquireBufferReturnValue returnValue;
+    auto ret = consumer->AcquireBuffer(returnValue, 0, false);
+    if (ret != SURFACE_ERROR_OK) {
+        RS_LOGE("RSBaseSurfaceUtil::DropFirstFlushedBuffer: AcquireBuffer fail, ret=%{public}u, nodeId=%{public}"
+            PRIu64, ret, nodeId);
+        return false;
+    }
+    surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
+    if (returnValue.buffer == nullptr) {
+        return false;
+    }
+    ret = consumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
+    if (ret != SURFACE_ERROR_OK) {
+        RS_LOGE("RSBaseSurfaceUtil::DropFirstFlushedBuffer: ReleaseBuffer fail, ret=%{public}u, nodeId=%{public}"
+            PRIu64, ret, nodeId);
+        return false;
+    }
     return true;
 }
 } // namespace Rosen

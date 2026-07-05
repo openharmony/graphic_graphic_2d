@@ -26,7 +26,6 @@ ohos_unittest("RSAnimationTest") {
   sources = [
     "rs_animation_callback_test.cpp",
     "rs_animation_test.cpp",
-    "rs_modifier_manager_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]

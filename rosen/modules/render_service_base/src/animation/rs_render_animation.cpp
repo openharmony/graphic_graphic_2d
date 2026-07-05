@@ -344,7 +344,7 @@ void RSRenderAnimation::AnimateOnGroupWaiting(int64_t time, bool isCustom)
     }
 }
 
-bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom, bool isOnTree)
+bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom)
 {
     // calculateAnimationValue_ is embedded modify for stat animate frame drop
     calculateAnimationValue_ = true;
@@ -383,7 +383,7 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool is
 
     // convert time to fraction
     auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =
-        animationFraction_.GetAnimationFraction(time, minLeftDelayTime, isCustom, isOnTree);
+        animationFraction_.GetAnimationFraction(time, minLeftDelayTime, isCustom);
     currentFraction_ = fraction;
     if (isInStartDelay) {
         calculateAnimationValue_ = false;

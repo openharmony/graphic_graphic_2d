@@ -1977,32 +1977,6 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest008, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnDrawAbnormalProcessTest
- * @tc.desc: Test OnDraw with abnormal process check
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
-{
-    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-
-    // Mark process as abnormal
-    pid_t pid = ExtractPid(id);
-    MemorySnapshot::Instance().SetAbnormalProcess(pid);
-
-    // OnDraw should return early for abnormal process
-    drawable->OnDraw(paintFilterCanvas);
-    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
-    ASSERT_TRUE(isAbnormal);
-
-    // Clean up
-    std::set<pid_t> exitedPids = {pid};
-    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
-}
-
-/**
  * @tc.name: ShouldClipHoleTest
  * @tc.desc: Test SetShouldClipHole and ShouldClipHole methods
  * @tc.type: FUNC

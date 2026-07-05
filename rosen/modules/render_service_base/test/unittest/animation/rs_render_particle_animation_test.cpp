@@ -110,7 +110,7 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate001, TestSize.Level1)
         std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
     ASSERT_TRUE(renderParticleAnimation != nullptr);
     int64_t leftDelayTime = 0;
-    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S, leftDelayTime, false, true);
+    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S, leftDelayTime);
     EXPECT_TRUE(particleAnimate);
 
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
@@ -609,20 +609,20 @@ HWTEST_F(RSRenderParticleAnimationTest, AnimateTest, TestSize.Level1)
 
     // case1: invisible
     renderNode->GetMutableRenderProperties().SetVisible(false);
-    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay, false, true));
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
 
     // case2: particleSystem_ is null
     renderNode->GetMutableRenderProperties().SetVisible(true);
-    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay, false, true));
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
 
     // case3: particleSystem_ not null
     renderParticleAnimation.particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
     renderParticleAnimation.target_ = nullptr;
-    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay, false, true));
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
 
     // case4: property_ not null
     renderParticleAnimation.target_ = renderNode.get();
-    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay, false, true));
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
 }
 
 /**

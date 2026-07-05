@@ -40,8 +40,6 @@ private:
     static void CollectBuffersForClean(
         std::set<uint64_t>& bufferCacheSet, std::shared_ptr<RSSurfaceHandler> surfaceHandler);
 
-    static void DropFirstFlushedBuffer(std::weak_ptr<RSSurfaceHandler> weakHandler, NodeId nodeId);
-
     std::weak_ptr<RSContext> rsContext_ = {};
     std::weak_ptr<RSCanvasDrawingRenderNode> node_ = {};
     NodeId nodeId_ = 0;

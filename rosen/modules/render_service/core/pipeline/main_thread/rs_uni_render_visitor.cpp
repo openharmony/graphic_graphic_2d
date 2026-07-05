@@ -3596,7 +3596,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
             properties.IsShadowValid() || properties.IsBgBrightnessValid() || properties.IsColorBlendModeValid() ||
             properties.IsColorBlendApplyTypeOffscreen() || properties.GetLinearGradientBlurPara() != nullptr ||
             properties.IsFgBrightnessValid() || properties.GetForegroundFilter() != nullptr ||
-            node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+            properties.GetFilter() != nullptr || node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*nodeParent, true);
     }
