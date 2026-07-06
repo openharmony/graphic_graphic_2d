@@ -86,8 +86,8 @@ void FinishRecordCmdModifier::UpdateToRender()
     if (!node) return;
 
     auto drawCmdList = PrepareDrawCmdList(param_.drawingCmdList_, param_.simpleDrawCmdList_);
-    if (!drawCmdList) {
-        ROSEN_LOGE("FinishRecordCmdModifier::UpdateToRender() simpleDrawCmdList_ is nullptr");
+    if (drawCmdList && drawCmdList->IsEmpty()) {
+        ROSEN_LOGE("FinishRecordCmdModifier::UpdateToRender() simpleDrawCmdList_ is empty");
         return;
     }
 
@@ -102,8 +102,8 @@ void DrawOnNodeCmdModifier::UpdateToRender() // only go foreground call this fun
     if (!node) return;
 
     auto drawCmdList = PrepareDrawCmdList(param_.drawingCmdList_, param_.simpleDrawCmdList_);
-    if (!drawCmdList) {
-        ROSEN_LOGE("DrawOnNodeCmdModifier::UpdateToRender() simpleDrawCmdList_ is nullptr");
+    if (drawCmdList && drawCmdList->IsEmpty()) {
+        ROSEN_LOGE("DrawOnNodeCmdModifier::UpdateToRender() simpleDrawCmdList_ is empty");
         return;
     }
 
@@ -122,8 +122,8 @@ RSCmdModifier::UpdateResult DrawOnNodeCmdModifier::UpdateToRenderWithResult()
     if (!node) return false;
 
     auto drawCmdList = PrepareDrawCmdList(param_.drawingCmdList_, param_.simpleDrawCmdList_);
-    if (!drawCmdList) {
-        ROSEN_LOGE("DrawOnNodeCmdModifier::UpdateToRenderWithResult() simpleDrawCmdList_ is nullptr");
+    if (drawCmdList && drawCmdList->IsEmpty()) {
+        ROSEN_LOGE("DrawOnNodeCmdModifier::UpdateToRenderWithResult() simpleDrawCmdList_ is empty");
         return false;
     }
 
