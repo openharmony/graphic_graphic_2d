@@ -681,12 +681,7 @@ void VSyncDistributor::ConnectionsPostEvent(std::vector<sptr<VSyncConnection>> &
             && !isDvsyncController) {
             actualPeriod = period * static_cast<int64_t>(generatorRefreshRate / conns[i]->refreshRate_);
         }
-        if (vsyncMode_ == VSYNC_MODE_LTPS && conns[i]->highPriorityState_ &&
-            conns[i]->highPriorityRate_ > 0 && !isDvsyncController) {
-            actualPeriod = period * conns[i]->highPriorityRate_;
-            SCOPED_DEBUG_TRACE_FMT("VSYNC_MODE_LTPS highPriorityRate: %d period: %d, actualPeriod: %d",
-                conns[i]->highPriorityRate_, period, actualPeriod);
-        }
+        ComputeActualPeriod(conns[i], period, actualPeriod, isDvsyncController);
         // Start of DVSync
         if (DVSyncCheckSkipAndUpdateTs(conns[i], timestamp)) {
             TriggerNext(conns[i]);
@@ -699,6 +694,18 @@ void VSyncDistributor::ConnectionsPostEvent(std::vector<sptr<VSyncConnection>> &
             continue;
         }
         ConnPostEvent(conns[i], timestamp, actualPeriod, vsyncCount);
+    }
+}
+
+void VSyncDistributor::ComputeActualPeriod(sptr<VSyncConnection> &con, int64_t period, int64_t &actualPeriod,
+    bool isDvsyncController)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    if (vsyncMode_ == VSYNC_MODE_LTPS && con->highPriorityState_ &&
+        con->highPriorityRate_ > 0 && !isDvsyncController) {
+        actualPeriod = period * con->highPriorityRate_;
+        SCOPED_DEBUG_TRACE_FMT("VSYNC_MODE_LTPS highPriorityRate: %d period: " PRId64 ", actualPeriod: " PRId64,
+            con->highPriorityRate_, period, actualPeriod);
     }
 }
 
