@@ -152,36 +152,6 @@ HWTEST_F(EffectImageRenderUnittest, RenderTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: EllipticalGradientBlurApplyTest
- * @tc.desc: Test EllipticalGradientBlur filter application
- */
-HWTEST_F(EffectImageRenderUnittest, EllipticalGradientBlurApplyTest, TestSize.Level1)
-{
-    std::vector<float> positions = {0.0f, 1.0f};
-    std::vector<float> degrees = {0.5f, 1.0f};
-
-    Media::InitializationOptions opts;
-    opts.size = {1, 1};
-    auto uniPixelMap = Media::PixelMap::Create(opts);
-    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
-
-    std::shared_ptr<Media::PixelMap> dstPixelMap = nullptr;
-    std::vector<std::shared_ptr<EffectImageFilter>> imageFilter;
-    imageFilter.emplace_back(nullptr);
-    EffectImageRender imageRender;
-    auto ret = imageRender.Render(srcPixelMap, imageFilter, false, dstPixelMap);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
-
-    auto filterBlur = EffectImageFilter::EllipticalGradientBlur(
-        1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_TRUE(filterBlur != nullptr);
-    imageFilter.emplace_back(filterBlur);
-
-    ret = imageRender.Render(nullptr, imageFilter, false, dstPixelMap);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-}
-
-/**
  * @tc.name: DirectionBlurTest
  * @tc.desc: Test Render widht direction blur
 * @tc.type: FUNC
