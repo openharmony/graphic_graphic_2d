@@ -42,6 +42,7 @@ void RSAnimationProtocolTest::SetUp()
 {
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
     rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
 }
 
 void RSAnimationProtocolTest::TearDown() {}
