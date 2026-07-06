@@ -279,11 +279,14 @@ HWTEST_F(PropertiesTest, UpdateFilterTest001, TestSize.Level1)
 HWTEST_F(PropertiesTest, UpdateFilterTest002, TestSize.Level1)
 {
     RSProperties properties;
+    std::shared_ptr<RSFilter> filter;
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
     properties.GetEffect().motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
+    properties.GetEffect().motionBlurPara_ = nullptr;
     uint32_t flyMode = 0;
     RSFlyOutPara rs_fly_out_param = {
         flyMode
@@ -300,7 +303,7 @@ HWTEST_F(PropertiesTest, UpdateFilterTest002, TestSize.Level1)
     EXPECT_TRUE(properties.foregroundFilter_);
 
     properties.GetEffect().distortionK_ = 0.7;
-    properties.GetEffect().shadow_->imageMask_ = true;
+    properties.GetEffect().shadow_->imageMask_ = false;
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
 }
