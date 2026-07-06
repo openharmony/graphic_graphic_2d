@@ -319,3 +319,30 @@ rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_g
 
 [vulkan]
 frameworks/vulkan_layers/swapchain_layer/swapchain_layer.cpp @GaoPan_t
+
+[depth_component]
+rosen/modules/render_service/core/drawable/rs_depth_render_node_drawable.h @chuandalijie
+rosen/modules/render_service/core/drawable/rs_depth_render_node_drawable.cpp @chuandalijie
+rosen/modules/render_service_base/include/command/rs_depth_node_command.h @chuandalijie
+rosen/modules/render_service_base/include/command/rs_spatial_effect_command.h @chuandalijie
+rosen/modules/render_service_base/include/modifier_ng/appearance/rs_depth_space_render_modifier.h @chuandalijie
+rosen/modules/render_service_base/include/modifier_ng/appearance/rs_spatial_effect_render_modifier.h @chuandalijie
+rosen/modules/render_service_base/include/params/rs_depth_render_params.h @chuandalijie
+rosen/modules/render_service_base/include/pipeline/rs_depth_render_node.h @chuandalijie
+rosen/modules/render_service_base/include/property/rs_spatial_effect_def.h @chuandalijie
+rosen/modules/render_service_base/include/property/rs_spatial_effect_manager.h @chuandalijie
+rosen/modules/render_service_base/src/command/rs_depth_node_command.cpp @chuandalijie
+rosen/modules/render_service_base/src/command/rs_spatial_effect_command.cpp @chuandalijie
+rosen/modules/render_service_base/src/modifier_ng/appearance/rs_depth_space_render_modifier.cpp @chuandalijie
+rosen/modules/render_service_base/src/modifier_ng/appearance/rs_spatial_effect_render_modifier.cpp @chuandalijie
+rosen/modules/render_service_base/src/params/rs_depth_render_params.cpp @chuandalijie
+rosen/modules/render_service_base/src/pipeline/rs_depth_render_node.cpp @chuandalijie
+rosen/modules/render_service_base/src/property/rs_spatial_effect_manager.cpp @chuandalijie
+rosen/modules/render_service_client/core/command_modifier/rs_depth_node_command_modifier.h @chuandalijie
+rosen/modules/render_service_client/core/command_modifier/rs_depth_node_command_modifier.cpp @chuandalijie
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_depth_space_modifier.h @chuandalijie
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_depth_space_modifier.cpp @chuandalijie
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_spatial_effect_modifier.h @chuandalijie
+rosen/modules/render_service_client/core/modifier_ng/appearance/rs_spatial_effect_modifier.cpp @chuandalijie
+rosen/modules/render_service_client/core/ui/rs_depth_node.h @chuandalijie
+rosen/modules/render_service_client/core/ui/rs_depth_node.cpp @chuandalijie
