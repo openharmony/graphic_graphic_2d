@@ -84,7 +84,6 @@ ohos_unittest("RSAnimationTest2") {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
   sources = [
-    "rs_animation_base_test.cpp",
     "rs_motion_path_option_test.cpp",
     "rs_node_animate_supplement_test.cpp",
     "rs_path_animation_test.cpp",

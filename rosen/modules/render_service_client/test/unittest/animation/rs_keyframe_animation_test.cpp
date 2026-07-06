@@ -37,6 +37,7 @@ HWTEST_F(RSKeyframeAnimationTest, RebuildInRender001, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATIONTEST::ANIMATION_START_BOUNDS);
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
     auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
     keyframeAnimation->SetRebuildParam({0.5f, false});
     keyframeAnimation->RebuildInRender();

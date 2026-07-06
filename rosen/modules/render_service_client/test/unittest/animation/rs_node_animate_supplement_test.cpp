@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_animation_base_test.h"
+#include "gtest/gtest.h"
 #include "rs_animation_test_utils.h"
 
 #include "animation/rs_animation_timing_protocol.h"
@@ -24,7 +24,7 @@
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_animation_callback.h"
 #include "render/rs_path.h"
-#include "ui/rs_ui_context_manager.h"
+#include "ui/rs_ui_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -32,8 +32,28 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 using namespace ANIMATIONTEST;
-class RSNodeAnimateTest : public RSAnimationBaseTest {
+
+class RSNodeAnimateTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+
+    std::shared_ptr<RSUIContext> rsUIContext;
 };
+
+void RSNodeAnimateTest::SetUpTestCase() {}
+void RSNodeAnimateTest::TearDownTestCase() {}
+
+void RSNodeAnimateTest::SetUp()
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+}
+
+void RSNodeAnimateTest::TearDown() {}
 
 class RSNodeMock : public RSNode {
 public:
@@ -64,16 +84,13 @@ public:
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest001 start";
-    /**
-     * @tc.steps: step1. init
-     */
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
 
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve;
-    RSNode::OpenImplicitAnimation(rsUiDirector->GetRSUIContext(), protocol, curve);
-    RSNode::CloseImplicitAnimation(rsUiDirector->GetRSUIContext());
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, curve);
+    RSNode::CloseImplicitAnimation(rsUIContext);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest001 end";
 }
 
@@ -85,20 +102,17 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest001, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest002 start";
-    /**
-     * @tc.steps: step1. init
-     */
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve;
     std::function<void()> callback = nullptr;
     
-    RSNode::Animate(rsUiDirector->GetRSUIContext(), protocol, curve, callback);
+    RSNode::Animate(rsUIContext, protocol, curve, callback);
     callback = []() {
         std::cout << "RSNodeAnimateTest RSNodeAnimateSupplementTest002 callback" << std::endl;
     };
-    RSNode::Animate(rsUiDirector->GetRSUIContext(), protocol, curve, callback);
+    RSNode::Animate(rsUIContext, protocol, curve, callback);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest002 end";
 }
 
@@ -110,16 +124,11 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest002, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest003 start";
-    /**
-     * @tc.steps: step1. init
-     */
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
     node->AddAnimation(nullptr);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, endProperty);
     curveAnimation->SetDuration(300);
     node->AddAnimation(curveAnimation);
@@ -140,11 +149,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest003, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest004, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest004 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
     node->AddAnimation(nullptr);
@@ -172,9 +176,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest004, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest009, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest009 start";
-    /**
-     * @tc.steps: step1. init
-     */
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
     node->SetMask(nullptr);
@@ -189,9 +190,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest009, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest010, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest010 start";
-    /**
-     * @tc.steps: step1. init
-     */
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
     node->SetVisible(false);
@@ -221,11 +219,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest010, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest013, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest013 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
     node->DumpNode(1);
@@ -245,15 +238,12 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest013, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest014, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest014 start";
-    /**
-     * @tc.steps: step1. init
-     */
     auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
-    RSNode::OpenImplicitAnimation(rsUiDirector->GetRSUIContext(), protocol, RSAnimationTimingCurve::LINEAR);
-    RSNode::CloseImplicitAnimation(rsUiDirector->GetRSUIContext());
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, RSAnimationTimingCurve::LINEAR);
+    RSNode::CloseImplicitAnimation(rsUIContext);
     PropertyCallback callback1;
     std::weak_ptr<RSNode> weak = node;
     callback1 = [weak]() {
@@ -262,17 +252,17 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest014, TestSize.Level1)
             node2->SetAlpha(0.2f);
         }
     };
-    RSNode::AddKeyFrame(rsUiDirector->GetRSUIContext(), 0.1f, RSAnimationTimingCurve::LINEAR, callback1);
-    RSNode::AddKeyFrame(rsUiDirector->GetRSUIContext(), 0.2f, callback1);
+    RSNode::AddKeyFrame(rsUIContext, 0.1f, RSAnimationTimingCurve::LINEAR, callback1);
+    RSNode::AddKeyFrame(rsUIContext, 0.2f, callback1);
     PropertyCallback callback2;
-    RSNode::Animate(rsUiDirector->GetRSUIContext(), protocol, RSAnimationTimingCurve::LINEAR, callback2);
+    RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::LINEAR, callback2);
     callback1 = [weak]() {
         auto node2 = weak.lock();
         if (node2) {
             node2->SetAlpha(0.3f);
         }
     };
-    RSNode::Animate(rsUiDirector->GetRSUIContext(), protocol, RSAnimationTimingCurve::LINEAR, callback2);
+    RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::LINEAR, callback2);
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest014 end";
 }
 
@@ -284,11 +274,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest014, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest015, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest015 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSCurveAnimation> curveAnimation;
@@ -310,11 +295,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest015, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest016, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest016 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSCurveAnimation> curveAnimation;
@@ -335,9 +315,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest016, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest019, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest019 start";
-    /**
-     * @tc.steps: step1. init
-     */
     auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSMask> mask = std::make_shared<RSMask>();
@@ -357,16 +334,13 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest019, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest022, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest022 start";
-    /**
-     * @tc.steps: step1. init
-     */
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
 
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve;
-    RSNode::OpenImplicitAnimation(rsUiDirector->GetRSUIContext(), protocol, curve);
-    RSNode::CloseImplicitCancelAnimation(rsUiDirector->GetRSUIContext());
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, curve);
+    RSNode::CloseImplicitCancelAnimation(rsUIContext);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest022 end";
 }
 
@@ -378,15 +352,12 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest022, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest023, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest023 start";
-    /**
-     * @tc.steps: step1. init
-     */
     auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
-    RSNode::OpenImplicitAnimation(rsUiDirector->GetRSUIContext(), protocol, RSAnimationTimingCurve::LINEAR);
-    RSNode::CloseImplicitAnimation(rsUiDirector->GetRSUIContext());
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, RSAnimationTimingCurve::LINEAR);
+    RSNode::CloseImplicitAnimation(rsUIContext);
     PropertyCallback callback1;
     std::weak_ptr<RSNode> weak = node;
     callback1 = [weak]() {
@@ -395,17 +366,17 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest023, TestSize.Level1)
             node2->SetAlpha(0.2f);
         }
     };
-    RSNode::AddKeyFrame(rsUiDirector->GetRSUIContext(), 0.1f, RSAnimationTimingCurve::LINEAR, callback1);
-    RSNode::AddKeyFrame(rsUiDirector->GetRSUIContext(), 0.2f, callback1);
+    RSNode::AddKeyFrame(rsUIContext, 0.1f, RSAnimationTimingCurve::LINEAR, callback1);
+    RSNode::AddKeyFrame(rsUIContext, 0.2f, callback1);
     PropertyCallback callback2;
-    RSNode::Animate(rsUiDirector->GetRSUIContext(), protocol, RSAnimationTimingCurve::LINEAR, callback2);
+    RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::LINEAR, callback2);
     callback1 = [weak]() {
         auto node2 = weak.lock();
         if (node2) {
             node2->SetAlpha(0.3f);
         }
     };
-    RSNode::Animate(rsUiDirector->GetRSUIContext(), protocol, RSAnimationTimingCurve::LINEAR, callback2);
+    RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::LINEAR, callback2);
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest023 end";
 }
 
@@ -417,7 +388,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest023, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest024, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest024 start";
-    auto rsUIContext = rsUiDirector->GetRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
     auto rsImplicitAnimator = rsUIContext->GetRSImplicitAnimator();
     ASSERT_NE(rsImplicitAnimator, nullptr);
@@ -440,8 +410,8 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest025, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest025 start";
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve;
-    RSNode::OpenImplicitAnimation(rsUiDirector->GetRSUIContext(), protocol, curve);
-    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUiDirector->GetRSUIContext());
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, curve);
+    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUIContext);
     EXPECT_EQ(ret, CancelAnimationStatus::INCORRECT_PARAM_TYPE);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest025 end";
 }
@@ -457,8 +427,8 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest026, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve;
     protocol.SetDuration(0);
-    RSNode::OpenImplicitAnimation(rsUiDirector->GetRSUIContext(), protocol, curve);
-    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUiDirector->GetRSUIContext());
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, curve);
+    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUIContext);
     EXPECT_EQ(ret, CancelAnimationStatus::EMPTY_PENDING_SYNC_LIST);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest026 end";
 }
@@ -471,7 +441,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest026, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, CloseImplicitCancelAnimation_WithNodeExceptionSensitive, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimation_WithNodeExceptionSensitive start";
-    auto rsUIContext = rsUiDirector->GetRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
 
     RSAnimationTimingProtocol protocol;
@@ -523,7 +492,6 @@ HWTEST_F(RSNodeAnimateTest, CloseImplicitCancelAnimationReturnStatus_WithNullCon
 HWTEST_F(RSNodeAnimateTest, CloseImplicitCancelAnimationReturnStatus_WithNodeExceptionSensitive, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimationReturnStatus_WithNodeExceptionSensitive start";
-    auto rsUIContext = rsUiDirector->GetRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
 
     RSAnimationTimingProtocol protocol;
