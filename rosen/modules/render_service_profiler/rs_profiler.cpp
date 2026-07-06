@@ -16,6 +16,7 @@
 #include "rs_profiler.h"
 
 #include <cstddef>
+#include <cerrno>
 #include <fstream>
 #include <filesystem>
 #include <numeric>
@@ -139,7 +140,17 @@ uint64_t ExtractTrace3DNumber(const std::string& str)
     if (colonPos == std::string::npos || colonPos + 1 >= str.length()) {
         return static_cast<uint64_t>(-1);
     }
-    return std::stoull(str.substr(colonPos + 1));
+    const char* start = str.c_str() + colonPos + 1;
+    if (*start == '-') {
+        return static_cast<uint64_t>(-1);
+    }
+    char* end = nullptr;
+    errno = 0;
+    uint64_t result = strtoull(start, &end, 10);
+    if (errno != 0 || end == start || *end != '\0') {
+        return static_cast<uint64_t>(-1);
+    }
+    return result;
 }
 
 Trace3DCoreParamValue CreateAndUpdateTraceParam(const std::vector<std::string>& args,
@@ -1370,9 +1381,19 @@ void RSProfiler::HiddenSpaceTurnOn()
         HiddenSpaceTurnOff();
     }
 
-    const auto root = GetRenderNode(Utils::PatchNodeId(0));
-    if (!root || !root->GetChildrenCount()) {
-        HRPE("HiddenSpaceTurnOn: Invalid mock root");
+    std::vector<RSRenderNode::SharedPtr> mockDisplays;
+    if (const auto mockRoot = GetRenderNode(Utils::PatchNodeId(0))) {
+        for (const auto& child : mockRoot->GetChildrenList()) {
+            const auto screen = child.lock();
+            const auto display = screen ? screen->GetFirstChild() : nullptr;
+            if (display && display->GetChildrenCount()) {
+                mockDisplays.push_back(display);
+            }
+        }
+    }
+
+    if (mockDisplays.empty()) {
+        HRPE("HiddenSpaceTurnOn: Mock logical displays not found");
         return;
     }
 
@@ -1382,19 +1403,13 @@ void RSProfiler::HiddenSpaceTurnOn()
         return;
     }
 
-    const std::vector<RSRenderNode::SharedPtr> empty;
-    const auto count = std::min(static_cast<uint32_t>(displays.size()), root->GetChildrenCount());
-    for (uint32_t i = 0; i < count; i++) {
-        const auto newScreen = std::next(root->GetChildrenList().begin(), i)->lock();
-        const auto newDisplay = newScreen ? newScreen->GetFirstChild() : nullptr;
-        if (newDisplay && newDisplay->GetChildrenCount()) {
-            const auto& oldDisplay = displays[i];
-            const auto oldChildren = oldDisplay->GetChildren();
-            displayChildren_[oldDisplay] = oldChildren ? *oldChildren : empty;
-            oldDisplay->ClearChildren();
-            for (const auto& node : newDisplay->GetChildrenList()) {
-                oldDisplay->AddChild(node.lock());
-            }
+    for (uint32_t i = 0; i < std::min(mockDisplays.size(), displays.size()); i++) {
+        const auto& display = displays[i];
+        const auto children = display->GetChildren();
+        displayChildren_[display] = children ? *children : std::vector<RSRenderNode::SharedPtr> {};
+        display->ClearChildren();
+        for (const auto& node : mockDisplays[i]->GetChildrenList()) {
+            display->AddChild(node.lock());
         }
     }
 

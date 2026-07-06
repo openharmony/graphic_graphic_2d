@@ -18,10 +18,4 @@ rg -n 'group\("test|group\("unittest|ohos_unittest|ohos_fuzztest' <dir>
 
 验证建议：
 
-- 完整 OpenHarmony 根环境下，从源码根执行：
-
-```sh
-prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> <target>
-```
-
-- 单仓环境取消编译环节，做 `BUILD.gn` 引用检查、路径/符号核对和 `git diff --check`。
+- 做 `BUILD.gn` 引用检查、路径/符号核对和 `git diff --check`。

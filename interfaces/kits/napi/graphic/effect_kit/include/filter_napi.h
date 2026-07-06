@@ -25,7 +25,6 @@
 namespace OHOS {
 namespace Rosen {
 enum class DrawingError;
-static std::mutex getPixelMapAsyncCompleteMutex_;
 class FilterNapi {
 public:
     FilterNapi();
@@ -40,6 +39,7 @@ public:
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
     static napi_value CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::PixelMap> pixelMap);
+    std::mutex getPixelMapAsyncCompleteMutex_;
     std::mutex renderMutex_;
 
 private:
@@ -66,8 +66,8 @@ private:
     std::vector<std::shared_ptr<EffectImageFilter>> effectFilters_;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<Media::PixelMap> dstPixelMap_ = nullptr;
-    napi_env env_;
-    napi_ref wrapper_;
+    napi_env env_ = nullptr;
+    napi_ref wrapper_ = nullptr;
 };
 }
 }

@@ -63,6 +63,7 @@ void RSAnimationSupplementTest::SetUp()
 {
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
     rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
 }
 
 void RSAnimationSupplementTest::TearDown() {}
@@ -903,44 +904,6 @@ HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest022, TestSize.Level1)
     std::optional<Vector2f> vec(Vector2f(1.f, 1.f));
     node->SetSandBox(vec);
     GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest022 end";
-}
-
-/**
- * @tc.name: AnimationSupplementTest023
- * @tc.desc: Verify the setcallback of Animation
- * @tc.type: FUNC
- */
-HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest023, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest023 start";
-    Vector4f vec1(1.f, 1.f, 1.f, 1.f);
-    NodeId nodeId = 1;
-    NodeId childNode = 2;
-    auto node = RSProxyNode::Create(nodeId);
-    auto child = RSProxyNode::Create(childNode);
-    node->SetBounds(vec1);
-    node->SetFrame(vec1);
-    node->SetBounds(1.f, 1.f, 1.f, 1.f);
-    node->SetBoundsWidth(1.f);
-    node->SetBoundsHeight(1.f);
-    node->SetFrame(1.f, 1.f, 1.f, 1.f);
-    node->SetFramePositionX(1.f);
-    node->SetFramePositionY(1.f);
-    node->GetType();
-    node->AddChild(child, 1);
-    node->RemoveChild(child);
-    node->ClearChildren();
-
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto localRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    auto localRsUiDirector = RSUIDirector::Create(connectToRenderRemote, localRsUIContext);
-    localRsUiDirector->FlushAnimationStartTime(1);
-    localRsUiDirector->HasUIRunningAnimation();
-
-    Vector4 vec = { 0.f, 0.f, 0.f, 0.f };
-    vec.IsNearEqual(vec1, 1.f);
-    EXPECT_TRUE(vec.IsZero());
-    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest023 end";
 }
 
 class MyNewData : public RSArithmetic<MyNewData> {

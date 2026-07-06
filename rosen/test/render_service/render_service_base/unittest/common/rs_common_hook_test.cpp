@@ -123,22 +123,6 @@ HWTEST_F(RsCommonHookTest, SetAndGetBundleNameTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFilterUnderHwcConfigByAppTest
- * @tc.desc: test results of SetFilterUnderHwcConfigByApp and GetFilterUnderHwcConfigByApp
- * @tc.type: FUNC
- * @tc.require: issuesICKNNB
- */
-HWTEST_F(RsCommonHookTest, SetAndGetFilterUnderHwcConfigByAppTest, TestSize.Level1)
-{
-    const std::string collaborationBundleName = "com.example.devicecollaboration";
-    auto result = RsCommonHook::Instance().GetFilterUnderHwcConfigByApp(collaborationBundleName);
-    EXPECT_EQ(result, "");
-    RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(collaborationBundleName, "1");
-    auto result1 = RsCommonHook::Instance().GetFilterUnderHwcConfigByApp(collaborationBundleName);
-    EXPECT_EQ(result1, "1");
-}
-
-/**
  * @tc.name: SetAndGetOverlappedHwcNodeInAppEnabledConfig
  * @tc.desc: test results of SetOverlappedHwcNodeInAppEnabledConfig and GetOverlappedHwcNodeInAppEnabledConfig
  * @tc.type: FUNC

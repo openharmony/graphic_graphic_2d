@@ -170,6 +170,8 @@ bool RuntimeShaderFuzzTest(const uint8_t* data, size_t size)
 
     std::shared_ptr<Drawing::RuntimeEffect> runtimeshader =
         Drawing::RuntimeEffect::CreateForShader(prog);
+    std::shared_ptr<Drawing::RuntimeEffect> runtimeshader2 =
+        Drawing::RuntimeEffect::CreateForES3Shader(prog);
     std::shared_ptr<Drawing::RuntimeShaderBuilder> builder =
         std::make_shared<Drawing::RuntimeShaderBuilder>(runtimeshader);
     Rosen::Drawing::Image image;
@@ -189,11 +191,36 @@ bool RuntimeShaderFuzzTest(const uint8_t* data, size_t size)
 
     float val1 = GetObject<float>();
     float val2 = GetObject<float>();
+    float val3 = GetObject<float>();
+    float val4 = GetObject<float>();
     builder->SetUniform("coefficient1", val1);
     builder->SetUniform("coefficient2", val2);
+    builder->SetUniformVec4("coefficient2", val1, val2, val3, val4);
 
     bool isOpaque = GetObject<bool>();
     std::shared_ptr<Drawing::ShaderEffect> shader = builder->MakeShader(&matrix, isOpaque);
+
+    GPUContext gpuContext;
+    CMSTransferFuncType cmsTransferFuncType = CMSTransferFuncType::SRGB;
+    CMSMatrixType cmsMatrixType = CMSMatrixType::SRGB;
+    switch (GetObject<std::uint32_t>() % 4) {
+        case 0: cmsTransferFuncType = CMSTransferFuncType::SRGB; break;
+        case 1: cmsTransferFuncType = CMSTransferFuncType::DOT2; break;
+        case 2: cmsTransferFuncType = CMSTransferFuncType::LINEAR; break;
+        case 3: cmsTransferFuncType = CMSTransferFuncType::REC2020; break;
+    }
+    switch (GetObject<std::uint32_t>() % 5) {
+        case 0: cmsMatrixType = CMSMatrixType::SRGB; break;
+        case 1: cmsMatrixType = CMSMatrixType::ADOBE_RGB; break;
+        case 2: cmsMatrixType = CMSMatrixType::DCIP3; break;
+        case 3: cmsMatrixType = CMSMatrixType::REC2020; break;
+        case 4: cmsMatrixType = CMSMatrixType::XYZ; break;
+    }
+    std::shared_ptr<ColorSpace> colorSpace =  ColorSpace::CreateRGB(cmsTransferFuncType, cmsMatrixType);
+    ColorType colorType = (ColorType) (GetObject<std::uint32_t>() % 11);
+    AlphaType alphaType = (AlphaType) (GetObject<std::uint32_t>() % 4);
+    ImageInfo imageInfo = ImageInfo(GetObject<int>(), GetObject<int>(), colorType, alphaType, colorSpace);
+    std::shared_ptr<Drawing::Image> blurImage(builder->MakeImage(&gpuContext, &matrix, imageInfo, GetObject<bool>()));
 
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);

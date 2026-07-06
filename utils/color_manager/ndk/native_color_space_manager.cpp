@@ -51,9 +51,24 @@ namespace {
         { ColorSpaceName::DISPLAY_P3_HLG, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_HLG },
         { ColorSpaceName::DISPLAY_P3_PQ, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_PQ },
         { ColorSpaceName::DISPLAY_BT2020_SRGB, OHOS::ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB },
+        { ColorSpaceName::BT2020_LOG_FULL, OHOS::ColorManager::ColorSpaceName::H_LOG_FULL},
         { ColorSpaceName::BT2020_LOG_LIMIT, OHOS::ColorManager::ColorSpaceName::H_LOG },
         { ColorSpaceName::CUSTOM, OHOS::ColorManager::ColorSpaceName::CUSTOM },
     };
+
+    const std::map<OHOS::ColorManager::ColorSpaceName, ColorSpaceName> NATIVE_TO_OH_COLOR_SPACE_NAME_MAP {
+        { OHOS::ColorManager::ColorSpaceName::H_LOG_FULL, ColorSpaceName::BT2020_LOG_FULL },
+        { OHOS::ColorManager::ColorSpaceName::H_LOG, ColorSpaceName::BT2020_LOG_LIMIT },
+    };
+ 
+    int GetOHColorSpaceName(OHOS::ColorManager::ColorSpaceName csName)
+    {
+        auto it = NATIVE_TO_OH_COLOR_SPACE_NAME_MAP.find(csName);
+        if (it != NATIVE_TO_OH_COLOR_SPACE_NAME_MAP.end()) {
+            return it->second;
+        }
+        return csName;
+    }
 
     void OHPrimariesToColorSpacePrimaries(
         const ColorSpacePrimaries& primaries, OHOS::ColorManager::ColorSpacePrimaries& csPrimaries)
@@ -134,7 +149,7 @@ int OH_NativeColorSpaceManager_GetColorSpaceName(
             OHOS::ColorManager::CMErrorCode::CM_ERROR_INVALID_PARAM);
         return 0;
     }
-    return nativeCPM->GetInnerColorSpace().GetColorSpaceName();
+    return GetOHColorSpaceName(nativeCPM->GetInnerColorSpace().GetColorSpaceName());
 }
 
 WhitePointArray OH_NativeColorSpaceManager_GetWhitePoint(

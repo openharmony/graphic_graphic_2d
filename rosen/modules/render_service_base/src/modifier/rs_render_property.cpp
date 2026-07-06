@@ -898,14 +898,16 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::OnAttach(RSRenderNo
 {
     if (stagingValue_) {
         stagingValue_->Attach(node, modifier);
+        stagingValue_->SetOwnerId(reinterpret_cast<uintptr_t>(this));
     }
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::OnDetach()
 {
-    if (stagingValue_) {
+    if (stagingValue_ && stagingValue_->GetOwnerId() == reinterpret_cast<uintptr_t>(this)) {
         stagingValue_->Detach();
+        stagingValue_->SetOwnerId(0); // clear stale owner id so a reused address can't match later
     }
 }
 
@@ -924,12 +926,15 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::Set(
     // PLANNING: node_ is only used in this function, find alternative way detach/attach values, and remove the node_
     // member variable.
     auto node = node_.lock();
-    if (node && stagingValue_) {
+    const auto self = reinterpret_cast<uintptr_t>(this);
+    if (node && stagingValue_ && stagingValue_->GetOwnerId() == self) {
         stagingValue_->Detach();
+        stagingValue_->SetOwnerId(0); // clear stale owner id so a reused address can't match later
     }
     stagingValue_ = value;
     if (node && value) {
         value->Attach(*node, modifier_.lock());
+        value->SetOwnerId(self);
     }
     OnChange();
 }

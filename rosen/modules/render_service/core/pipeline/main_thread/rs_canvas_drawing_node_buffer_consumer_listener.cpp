@@ -17,6 +17,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_base_surface_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -48,8 +49,11 @@ void RSCanvasDrawingNodeBufferConsumerListener::OnBufferAvailable()
     surfaceHandler->IncreaseAvailableBuffer();
     if (surfaceHandler->GetAvailableBufferCount() > 1) {
         std::weak_ptr<RSSurfaceHandler> weakHandler = surfaceHandler;
-        RSMainThread::Instance()->PostTask(
-            [weakHandler, nodeId = nodeId_]() { DropFirstFlushedBuffer(weakHandler, nodeId); });
+        RSMainThread::Instance()->PostTask([weakHandler, nodeId = nodeId_]() {
+            if (auto surfaceHandler = weakHandler.lock()) {
+                RSBaseSurfaceUtil::DropFirstFlushedBuffer(*surfaceHandler, nodeId);
+            }
+        });
     }
     rsContext->RequestVsync();
 }
@@ -136,38 +140,6 @@ std::shared_ptr<RSSurfaceHandler> RSCanvasDrawingNodeBufferConsumerListener::Get
         surfaceHandler = rsContext->GetMutableNodeMap().GetSurfaceHandler(nodeId_, false);
     }
     return surfaceHandler;
-}
-
-void RSCanvasDrawingNodeBufferConsumerListener::DropFirstFlushedBuffer(
-    std::weak_ptr<RSSurfaceHandler> weakHandler, NodeId nodeId)
-{
-    auto surfaceHandler = weakHandler.lock();
-    if (surfaceHandler == nullptr) {
-        return;
-    }
-    if (surfaceHandler->GetAvailableBufferCount() <= 1) {
-        return;
-    }
-    const auto& consumer = surfaceHandler->GetConsumer();
-    if (consumer == nullptr) {
-        return;
-    }
-    IConsumerSurface::AcquireBufferReturnValue returnValue;
-    auto ret = consumer->AcquireBuffer(returnValue, 0, false);
-    if (ret != SURFACE_ERROR_OK) {
-        RS_LOGE("RSCanvasDrawingNodeBufferConsumerListener::DropFirstFlushedBuffer: AcquireBuffer fail, "
-            "ret=%{public}u, nodeId=%{public}" PRIu64, ret, nodeId);
-        return;
-    }
-    surfaceHandler->SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
-    if (returnValue.buffer == nullptr) {
-        return;
-    }
-    ret = consumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
-    if (ret != SURFACE_ERROR_OK) {
-        RS_LOGE("RSCanvasDrawingNodeBufferConsumerListener::DropFirstFlushedBuffer: ReleaseBuffer fail, "
-            "ret=%{public}u, nodeId=%{public}" PRIu64, ret, nodeId);
-    }
 }
 } // namespace Rosen
 } // namespace OHOS

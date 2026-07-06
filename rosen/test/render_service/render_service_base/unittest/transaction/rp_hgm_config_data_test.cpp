@@ -375,10 +375,85 @@ HWTEST_F(RPHgmConfigDataTest, MarshallingTest002, TestSize.Level1)
     ASSERT_FALSE(rpHgmConfigData.Marshalling(parcel12));
 
     Parcel parcel13;
+    SetLeftSize(parcel13, 102);
+    ASSERT_FALSE(rpHgmConfigData.Marshalling(parcel13));
+
+    Parcel parcel14;
+    SetLeftSize(parcel14, 107);
+    ASSERT_FALSE(rpHgmConfigData.Marshalling(parcel14));
+
+    Parcel parcel15;
     if (auto& hgmCore = HgmCore::Instance(); hgmCore.mPolicyConfigData_ != nullptr) {
-        SetLeftSize(parcel13, 102);
+        SetLeftSize(parcel15, 112);
     }
-    ASSERT_TRUE(rpHgmConfigData.Marshalling(parcel13));
+    ASSERT_TRUE(rpHgmConfigData.Marshalling(parcel15));
+}
+
+/**
+ * @tc.name: MarshallingComponentPowerConfigTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RPHgmConfigDataTest, MarshallingComponentPowerConfigTest, TestSize.Level1)
+{
+    RPHgmConfigData rpHgmConfigData;
+    Parcel parcel1;
+    SetLeftSize(parcel1, 100);
+    ASSERT_TRUE(rpHgmConfigData.MarshallingComponentPowerConfig(parcel1));
+
+    std::unordered_map<std::string, int32_t> configMap;
+    for (int32_t i = 0; i < 11; i++) {
+        configMap[std::to_string(i)] = i;
+    }
+    rpHgmConfigData.SetComponentPowerConfig(configMap);
+    Parcel parcel2;
+    SetLeftSize(parcel2, 100);
+    ASSERT_TRUE(rpHgmConfigData.MarshallingComponentPowerConfig(parcel2));
+
+    rpHgmConfigData.SetComponentPowerConfig({ { "configKey", 0 } });
+    for (uint32_t i = 0; i < 50; i++) {
+        Parcel parcel;
+        SetLeftSize(parcel, i * 4);
+        if (i < 6) {
+            ASSERT_FALSE(rpHgmConfigData.MarshallingComponentPowerConfig(parcel));
+        } else {
+            ASSERT_TRUE(rpHgmConfigData.MarshallingComponentPowerConfig(parcel));
+        }
+    }
+}
+
+/**
+ * @tc.name: UnmarshallingComponentPowerConfigTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RPHgmConfigDataTest, UnmarshallingComponentPowerConfigTest, TestSize.Level1)
+{
+    RPHgmConfigData rpHgmConfigData;
+    Parcel parcel1;
+    ASSERT_FALSE(rpHgmConfigData.UnmarshallingComponentPowerConfig(parcel1));
+
+    Parcel parcel2;
+    parcel2.WriteUint32(100);
+    ASSERT_FALSE(rpHgmConfigData.UnmarshallingComponentPowerConfig(parcel2));
+
+    Parcel parcel3;
+    parcel3.WriteUint32(1);
+    ASSERT_FALSE(rpHgmConfigData.UnmarshallingComponentPowerConfig(parcel3));
+
+    Parcel parcel4;
+    parcel4.WriteUint32(1);
+    parcel4.WriteString("configKey");
+    ASSERT_FALSE(rpHgmConfigData.UnmarshallingComponentPowerConfig(parcel4));
+
+    Parcel parcel5;
+    parcel5.WriteUint32(1);
+    parcel5.WriteString("configKey");
+    // configValue
+    parcel5.WriteUint32(1);
+    ASSERT_TRUE(rpHgmConfigData.UnmarshallingComponentPowerConfig(parcel5));
 }
 } // namespace Rosen
 } // namespace OHOS

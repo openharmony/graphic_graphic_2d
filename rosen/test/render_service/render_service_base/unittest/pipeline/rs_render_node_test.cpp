@@ -22,6 +22,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
+#include "drawable/rs_coverage_ng_shader_drawable.h"
 #include "drawable/rs_overlay_ng_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
@@ -1758,11 +1759,34 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest2, TestSize.Level1)
 
 /**
  * @tc.name: UpdatePointLightDirtySlotTest3
- * @tc.desc: Test UpdatePointLightDirtySlot with OVERLAY_NG_SHADER drawable set
+ * @tc.desc: Test UpdatePointLightDirtySlot with COVERAGE_NG_SHADER drawable set
  * @tc.type: FUNC
  * @tc.require: issueI9T3XY
  */
 HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest3, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    context = sContext;
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COVERAGE_NG_SHADER)] = coverageDrawable;
+    EXPECT_TRUE(node->dirtySlots_.empty());
+    auto coverageShader = std::make_shared<RSNGRenderAIBarRectHalo>();
+    node->GetMutableRenderProperties().SetCoverageNGShader(coverageShader);
+    node->UpdatePointLightDirtySlot();
+    EXPECT_FALSE(node->dirtySlots_.empty());
+    EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::COVERAGE_NG_SHADER) > 0);
+}
+
+/**
+ * @tc.name: UpdateOverlayNGShaderDirtySlotTest1
+ * @tc.desc: test results of UpdateOverlayNGShaderDirtySlot
+ * @tc.type: FUNC
+ * @tc.require: issueI9SCBR
+ */
+HWTEST_F(RSRenderNodeTest, UpdateOverlayNGShaderDirtySlotTest1, TestSize.Level1)
 {
     auto sContext = std::make_shared<RSContext>();
     context = sContext;
@@ -1774,7 +1798,7 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest3, TestSize.Level1)
     EXPECT_TRUE(node->dirtySlots_.empty());
     auto overlayShader = std::make_shared<RSNGRenderAIBarRectHalo>();
     node->GetMutableRenderProperties().SetOverlayNGShader(overlayShader);
-    node->UpdatePointLightDirtySlot();
+    node->UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::OVERLAY_NG_SHADER);
     EXPECT_FALSE(node->dirtySlots_.empty());
     EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::OVERLAY_NG_SHADER) > 0);
 }
@@ -3864,21 +3888,21 @@ HWTEST_F(RSRenderNodeTest, IsPureBackgroundColorTest, TestSize.Level1)
     for (auto i = static_cast<int8_t>(RSDrawableSlot::SAVE_ALL); i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
         drawableVec[i] = nullptr;
     }
-    bool result = rsRenderNode->IsPureBackgroundColor();
+    bool result = rsRenderNode->IsPureBackgroundColor(false);
     EXPECT_TRUE(result);
 
     drawableVec[static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] = std::make_shared<DrawableTest>();
-    result = rsRenderNode->IsPureBackgroundColor();
+    result = rsRenderNode->IsPureBackgroundColor(false);
     EXPECT_TRUE(result);
 
     drawableVec[static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] = nullptr;
-    result = rsRenderNode->IsPureBackgroundColor();
+    result = rsRenderNode->IsPureBackgroundColor(false);
     EXPECT_TRUE(result);
 
     for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
         drawableVec[i] = std::make_shared<DrawableTest>();
     }
-    result = rsRenderNode->IsPureBackgroundColor();
+    result = rsRenderNode->IsPureBackgroundColor(false);
     EXPECT_FALSE(result);
 }
 
@@ -3895,20 +3919,20 @@ HWTEST_F(RSRenderNodeTest, IsPureBackgroundColorTest002, TestSize.Level1)
     auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
 
     drawableVec[static_cast<int8_t>(RSDrawableSlot::BLENDER)] = std::make_shared<DrawableTest>();
-    bool result = rsRenderNode->IsPureBackgroundColor();
+    bool result = rsRenderNode->IsPureBackgroundColor(false);
     EXPECT_FALSE(result);
 
     auto& property = rsRenderNode->GetMutableRenderProperties();
     property.SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
-    result = rsRenderNode->IsPureBackgroundColor();
+    result = rsRenderNode->IsPureBackgroundColor(false);
     EXPECT_TRUE(result);
 
     property.SetColorBlendApplyType(static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
-    result = rsRenderNode->IsPureBackgroundColor();
+    result = rsRenderNode->IsPureBackgroundColor(false);
     EXPECT_FALSE(result);
 
     drawableVec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_SHADER)] = std::make_shared<DrawableTest>();
-    result = rsRenderNode->IsPureBackgroundColor();
+    result = rsRenderNode->IsPureBackgroundColor(false);
     EXPECT_FALSE(result);
 }
 

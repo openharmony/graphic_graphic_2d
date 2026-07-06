@@ -22,6 +22,7 @@
 #include "render/rs_image_cache.h"
 
 #include "pipeline/rs_draw_cmd.h"
+#include "pipeline/rs_recording_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -565,6 +566,397 @@ HWTEST_F(RSDrawCmdTest, RSExtendImageObjectDumpTest, TestSize.Level1)
     desc = "dump ";
     extendImageObject.Dump(desc);
     EXPECT_NE(desc, "dump ");
+}
+
+/**
+ * @tc.name: RSExtendImageObjectRecord001
+ * @tc.desc: test RSExtendImageObject::Record with image+data path and pixelmap path
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendImageObjectRecord001, TestSize.Level1)
+{
+    ExtendRecordingCanvas canvas(1, 1);
+    auto cmdList = canvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect(0, 0, 10, 10);
+    Drawing::SamplingOptions sampling;
+    Drawing::AdaptiveImageInfo info;
+
+    // isWithParam=true: built from image+data, both non-null -> records an op
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Data> data = std::make_shared<Drawing::Data>();
+    RSExtendImageObject objImage(image, data, info);
+    auto sizeBefore = cmdList->GetSize();
+    objImage.Record(canvas, rect, sampling, true);
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+    sizeBefore = cmdList->GetSize();
+
+    // isWithParam=false on image object: rsImage_ holds no pixelmap -> guarded no-op
+    objImage.Record(canvas, rect, sampling, false);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+
+    // isWithParam=false: built from a real pixelmap -> records an op
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapT, nullptr);
+    RSExtendImageObject objPixelMap(pixelMapT, info);
+    sizeBefore = cmdList->GetSize();
+    objPixelMap.Record(canvas, rect, sampling, false);
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+    sizeBefore = cmdList->GetSize();
+
+    // isWithParam=true on pixelmap object: image_/data_ null -> guarded no-op
+    objPixelMap.Record(canvas, rect, sampling, true);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+}
+
+/**
+ * @tc.name: RSExtendImageBaseObjRecord001
+ * @tc.desc: test RSExtendImageBaseObj::Record
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendImageBaseObjRecord001, TestSize.Level1)
+{
+    ExtendRecordingCanvas extendCanvas(1, 1);
+    auto cmdList = extendCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect src(0, 0, 5, 5);
+    Drawing::Rect dst(0, 0, 10, 10);
+    Drawing::SamplingOptions sampling;
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapT, nullptr);
+    RSExtendImageBaseObj obj(pixelMapT, src, dst);
+    ASSERT_NE(obj.rsImage_, nullptr);
+
+    auto sizeBefore = cmdList->GetSize();
+    obj.Record(extendCanvas, sampling);
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+
+    obj.rsImage_->SetPixelMap(nullptr);
+    sizeBefore = cmdList->GetSize();
+    obj.Record(extendCanvas, sampling);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+}
+
+/**
+ * @tc.name: RSExtendImageNineObjectRecord001
+ * @tc.desc: test RSExtendImageNineObject::Record
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendImageNineObjectRecord001, TestSize.Level1)
+{
+    ExtendRecordingCanvas extendCanvas(1, 1);
+    auto cmdList = extendCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::RectI center;
+    Drawing::Rect dst(0, 0, 10, 10);
+    Drawing::FilterMode filterMode = Drawing::FilterMode::NEAREST;
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapT, nullptr);
+    RSExtendImageNineObject obj(pixelMapT);
+    ASSERT_NE(obj.rsImage_, nullptr);
+
+    auto sizeBefore = cmdList->GetSize();
+    obj.Record(extendCanvas, center, dst, filterMode);
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+
+    obj.rsImage_->SetPixelMap(nullptr);
+    sizeBefore = cmdList->GetSize();
+    obj.Record(extendCanvas, center, dst, filterMode);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+}
+
+/**
+ * @tc.name: RSExtendImageLatticeObjectRecord001
+ * @tc.desc: test RSExtendImageLatticeObject::Record
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendImageLatticeObjectRecord001, TestSize.Level1)
+{
+    ExtendRecordingCanvas extendCanvas(1, 1);
+    auto cmdList = extendCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Lattice lattice;
+    lattice.fXCount = 0;
+    lattice.fYCount = 0;
+    Drawing::Rect dst(0, 0, 10, 10);
+    Drawing::FilterMode filterMode = Drawing::FilterMode::NEAREST;
+
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapT, nullptr);
+    RSExtendImageLatticeObject obj(pixelMapT);
+    ASSERT_NE(obj.rsImage_, nullptr);
+
+    auto sizeBefore = cmdList->GetSize();
+    obj.Record(extendCanvas, lattice, dst, filterMode);
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+
+    obj.rsImage_->SetPixelMap(nullptr);
+    sizeBefore = cmdList->GetSize();
+    obj.Record(extendCanvas, lattice, dst, filterMode);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+}
+
+/**
+ * @tc.name: DrawImageWithParmOpItemPlayback001
+ * @tc.desc: test DrawImageWithParmOpItem::Playback RECORDING / playback / null-handle branches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawImageWithParmOpItemPlayback001, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Data> data = std::make_shared<Drawing::Data>();
+    Drawing::AdaptiveImageInfo info;
+    Drawing::SamplingOptions sampling;
+    Drawing::Paint paint;
+    Drawing::DrawImageWithParmOpItem item(image, data, info, sampling, paint);
+    ASSERT_NE(item.objectHandle_, nullptr);
+
+    ExtendRecordingCanvas recCanvas(1, 1);
+    auto cmdList = recCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect(0, 0, 10, 10);
+    auto sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);   // RECORDING branch -> Record -> op recorded
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+
+    Drawing::Canvas plainCanvas;
+    item.Playback(&plainCanvas, &rect); // else branch -> Playback
+
+    item.objectHandle_ = nullptr;       // null objectHandle_ guard
+    ASSERT_EQ(item.objectHandle_, nullptr);
+    sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+    item.Playback(&plainCanvas, &rect);
+}
+
+/**
+ * @tc.name: DrawPixelMapWithParmOpItemPlayback001
+ * @tc.desc: test DrawPixelMapWithParmOpItem::Playback RECORDING / playback / null-handle branches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawPixelMapWithParmOpItemPlayback001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapT, nullptr);
+    Drawing::AdaptiveImageInfo info;
+    Drawing::SamplingOptions sampling;
+    Drawing::Paint paint;
+    Drawing::DrawPixelMapWithParmOpItem item(pixelMapT, info, sampling, paint);
+    ASSERT_NE(item.objectHandle_, nullptr);
+
+    ExtendRecordingCanvas recCanvas(1, 1);
+    auto cmdList = recCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect(0, 0, 10, 10);
+    auto sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);   // RECORDING branch -> Record -> op recorded
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+
+    Drawing::Canvas plainCanvas;
+    item.Playback(&plainCanvas, &rect); // else branch -> Playback
+
+    item.objectHandle_ = nullptr;       // null objectHandle_ guard
+    ASSERT_EQ(item.objectHandle_, nullptr);
+    sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+    item.Playback(&plainCanvas, &rect);
+}
+
+/**
+ * @tc.name: DrawPixelMapRectOpItemPlayback001
+ * @tc.desc: test DrawPixelMapRectOpItem::Playback RECORDING / playback / null-handle branches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawPixelMapRectOpItemPlayback001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapT, nullptr);
+    Drawing::Rect src(0, 0, 5, 5);
+    Drawing::Rect dst(0, 0, 10, 10);
+    Drawing::SamplingOptions sampling;
+    Drawing::Paint paint;
+    Drawing::DrawPixelMapRectOpItem item(pixelMapT, src, dst, sampling,
+        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paint);
+    ASSERT_NE(item.objectHandle_, nullptr);
+
+    ExtendRecordingCanvas recCanvas(1, 1);
+    auto cmdList = recCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect(0, 0, 10, 10);
+    auto sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);   // RECORDING branch -> Record -> op recorded
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+
+    Drawing::Canvas plainCanvas;
+    item.Playback(&plainCanvas, &rect); // else branch -> Playback
+
+    item.objectHandle_ = nullptr;       // null objectHandle_ guard
+    ASSERT_EQ(item.objectHandle_, nullptr);
+    sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+    item.Playback(&plainCanvas, &rect);
+}
+
+/**
+ * @tc.name: DrawPixelMapNineOpItemPlayback001
+ * @tc.desc: test DrawPixelMapNineOpItem::Playback RECORDING / playback / null-handle branches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawPixelMapNineOpItemPlayback001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapT, nullptr);
+    Drawing::RectI center;
+    Drawing::Rect dst(0, 0, 10, 10);
+    Drawing::Paint paint;
+    Drawing::DrawPixelMapNineOpItem item(pixelMapT, center, dst, Drawing::FilterMode::NEAREST, paint);
+    ASSERT_NE(item.objectHandle_, nullptr);
+
+    ExtendRecordingCanvas recCanvas(1, 1);
+    auto cmdList = recCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect(0, 0, 10, 10);
+    auto sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);   // RECORDING branch -> Record -> op recorded
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+
+    Drawing::Canvas plainCanvas;
+    item.Playback(&plainCanvas, &rect); // else branch -> Playback (DrawImageNine, null-guarded)
+
+    item.objectHandle_ = nullptr;       // null objectHandle_ guard
+    ASSERT_EQ(item.objectHandle_, nullptr);
+    sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+    item.Playback(&plainCanvas, &rect);
+}
+
+/**
+ * @tc.name: DrawPixelMapLatticeOpItemPlayback001
+ * @tc.desc: test DrawPixelMapLatticeOpItem::Playback RECORDING / playback / null-handle branches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawPixelMapLatticeOpItemPlayback001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapT, nullptr);
+    Drawing::Lattice lattice;
+    lattice.fXCount = 0;
+    lattice.fYCount = 0;
+    Drawing::Rect dst(0, 0, 10, 10);
+    Drawing::Paint paint;
+    Drawing::DrawPixelMapLatticeOpItem item(pixelMapT, lattice, dst, Drawing::FilterMode::NEAREST, paint);
+    ASSERT_NE(item.objectHandle_, nullptr);
+
+    ExtendRecordingCanvas recCanvas(1, 1);
+    auto cmdList = recCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect(0, 0, 10, 10);
+    auto sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);   // RECORDING branch -> Record -> op recorded
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+
+    Drawing::Canvas plainCanvas;
+    item.Playback(&plainCanvas, &rect); // else branch -> Playback (DrawImageLattice, null-guarded)
+
+    item.objectHandle_ = nullptr;       // null objectHandle_ guard
+    ASSERT_EQ(item.objectHandle_, nullptr);
+    sizeBefore = cmdList->GetSize();
+    item.Playback(&recCanvas, &rect);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+    item.Playback(&plainCanvas, &rect);
+}
+
+/**
+ * @tc.name: BaseRecordDefault001
+ * @tc.desc: test the default no-op Record() inherited from the four Extend image base classes
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, BaseRecordDefault001, TestSize.Level1)
+{
+    class TestImageObject : public Drawing::ExtendImageObject {
+    public:
+        void Playback(Drawing::Canvas&, const Drawing::Rect&, const Drawing::SamplingOptions&, bool) override {}
+    };
+    class TestImageBaseObj : public Drawing::ExtendImageBaseObj {
+    public:
+        void Playback(Drawing::Canvas&, const Drawing::Rect&, const Drawing::SamplingOptions&,
+            Drawing::SrcRectConstraint) override {}
+    };
+    class TestImageNineObject : public Drawing::ExtendImageNineObject {
+    public:
+        void Playback(Drawing::Canvas&, const Drawing::RectI&, const Drawing::Rect&, Drawing::FilterMode) override {}
+    };
+    class TestImageLatticeObject : public Drawing::ExtendImageLatticeObject {
+    public:
+        void Playback(Drawing::Canvas&, const Drawing::Lattice&, const Drawing::Rect&, Drawing::FilterMode) override {}
+    };
+
+    ExtendRecordingCanvas canvas(1, 1);
+    auto cmdList = canvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect(0, 0, 10, 10);
+    Drawing::Rect dst(0, 0, 10, 10);
+    Drawing::RectI center;
+    Drawing::Lattice lattice;
+    lattice.fXCount = 0;
+    lattice.fYCount = 0;
+    Drawing::SamplingOptions sampling;
+    auto sizeBefore = cmdList->GetSize();
+
+    // base default Record() bodies are empty no-ops: the cmdlist must stay unchanged
+    TestImageObject imgObj;
+    imgObj.Record(canvas, rect, sampling, false);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+
+    TestImageBaseObj baseObj;
+    baseObj.Record(canvas, sampling);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+
+    TestImageNineObject nineObj;
+    nineObj.Record(canvas, center, dst, Drawing::FilterMode::NEAREST);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+
+    TestImageLatticeObject latticeObj;
+    latticeObj.Record(canvas, lattice, dst, Drawing::FilterMode::NEAREST);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
 }
 
 #ifdef RS_ENABLE_VK

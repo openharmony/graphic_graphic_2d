@@ -691,7 +691,7 @@ typedef enum OH_Drawing_TypographyAttributeId {
      * The default value is false.
      * @since 26.0.0
      */
-    TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT = 0,
+    TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT = 0,
 } OH_Drawing_TypographyAttributeId;
 
 /**

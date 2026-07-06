@@ -59,19 +59,18 @@
 #include "utils/system_properties.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #ifdef RES_SCHED_ENABLE
+#include <sched.h>
 #include <iservice_registry.h>
 #include "concurrent_task_client.h"
 #include "if_system_ability_manager.h"
 #include "system_ability_definition.h"
+#include "res_type.h"
+#include "res_sched_client.h"
 #endif
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
 #endif
-
-#include <sched.h>
-#include "res_sched_client.h"
-#include "res_type.h"
 
 #ifdef MHC_ENABLE
 #include "rs_mhc_manager.h"

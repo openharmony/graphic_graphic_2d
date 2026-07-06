@@ -137,6 +137,27 @@ void RSUifirstManager::AddProcessSkippedNode(NodeId id)
     subthreadProcessSkippedNode_.insert(id);
 }
 
+void RSUifirstManager::AddFirstFrameCacheGeneratedNode(NodeId id)
+{
+    if (id == INVALID_NODEID) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(firstFrameCacheMutex_);
+    firstFrameCacheGeneratedNodes_.insert(id);
+}
+
+bool RSUifirstManager::IsFirstFrameCacheGeneratedNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(firstFrameCacheMutex_);
+    return firstFrameCacheGeneratedNodes_.count(id) > 0;
+}
+
+void RSUifirstManager::RemoveFirstFrameCacheGeneratedNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(firstFrameCacheMutex_);
+    firstFrameCacheGeneratedNodes_.erase(id);
+}
+
 void RSUifirstManager::AddPurgedNode(NodeId id)
 {
     if (id == INVALID_NODEID) {
@@ -1727,8 +1748,9 @@ void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiTh
 {
     // purpose: to avoid that RT waits uifirst cache long time when switching to uifirst first frame,
     // draw and cache win in RT on first frame, then use RT thread cache to draw until uifirst cache ready.
+    bool firstFrameCacheGenerated = IsFirstFrameCacheGeneratedNode(node.GetId());
     if (node.GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONE &&
-        !node.GetSubThreadAssignable()) {
+        (!node.GetSubThreadAssignable() || !firstFrameCacheGenerated)) {
         RS_TRACE_NAME_FMT("AssignMainThread selfAndParentShouldPaint: %d, skipDraw: %d",
             node.GetSelfAndParentShouldPaint(), node.GetSkipDraw());
         UifirstStateChange(node, MultiThreadCacheType::NONE); // mark as draw win in RT thread
@@ -1743,6 +1765,9 @@ void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiTh
             node.RegisterTreeStateChangeCallback(func);
         }
     } else {
+        if (firstFrameCacheGenerated) {
+            RemoveFirstFrameCacheGeneratedNode(node.GetId());
+        }
         UifirstStateChange(node, cacheType);
     }
 }
@@ -2178,6 +2203,7 @@ void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
     RSUifirstManager::Instance().DisableUifirstNode(node);
     RSUifirstManager::Instance().ForceClearSubthreadRes();
     RSUifirstManager::Instance().RemoveCardNodes(node.GetId());
+    RSUifirstManager::Instance().RemoveFirstFrameCacheGeneratedNode(node.GetId());
 }
 
 void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)

@@ -402,7 +402,7 @@ public:
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime);
 
     bool IsFoldScreenSwitching() const;
-    bool IsMultiDisplay() const;
+    bool IsMultiDisplay();
 
     bool GetMultiDisplayChange() const
     {
@@ -520,7 +520,6 @@ private:
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
-    void RequestDelayedVSyncForAnimation(int64_t minLeftDelayTime, uint64_t timestamp, int64_t nextFrameTime);
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
     void Render();
@@ -641,8 +640,8 @@ private:
     void PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSSurfaceHandler> surfaceHandler);
 
-    void UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
-    void UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
+    bool UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
+    bool UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
     void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor);
     void TraverseNodeForDelegateMode();
     void UpdateZorderForDelegateMode();

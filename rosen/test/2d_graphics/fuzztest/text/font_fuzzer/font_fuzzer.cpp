@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@ constexpr size_t EFING_SIZE = 3;
 constexpr size_t HINTING_SIZE = 4;
 constexpr size_t MAX_SIZE = 5000;
 constexpr size_t TEXTUTF8_SIZE = 128;
+constexpr float DEFAULT_FONT_SIZE = 100.0f;
 } // namespace
 namespace Drawing {
 
@@ -249,15 +250,14 @@ bool FontFuzzTest009(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    Font font;
-    uint32_t count = GetObject<uint32_t>() % MAX_SIZE;
-    for (size_t i = 0; i < count; i++) {
-        Path *path = new Path();
-        uint16_t glyph = GetObject<uint16_t>();
-        font.GetPathForGlyph(glyph, path);
-        delete path;
+    auto typeface = Drawing::Typeface::MakeDefault();
+    if (typeface == nullptr) {
+        return false;
     }
+    auto font = Drawing::Font(typeface, DEFAULT_FONT_SIZE, 1.0f, 0.0f);
+    auto glyphId = font.UnicharToGlyph(GetObject<char>());
+    Drawing::Path path;
+    font.GetPathForGlyph(glyphId, &path);
     return true;
 }
 

@@ -150,7 +150,10 @@ void HgmFrameRateMgrTest::SetUp()
     }
 }
 
-void HgmFrameRateMgrTest::TearDown() {}
+void HgmFrameRateMgrTest::TearDown()
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+}
 
 class CustomHgmCallback : public IRemoteStub<RSIHgmConfigChangeCallback> {
 public:
@@ -236,11 +239,23 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
 
     hgmCore.isLtpoMode_.store(true);
+    frameRateMgr.isLtpoScreenStrategyId_.store(false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, true);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, true);
+    frameRateMgr.isLtpoScreenStrategyId_.store(true);
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, true);
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, false);
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, true);
     hgmCore.isLtpoMode_.store(false);
+    frameRateMgr.isLtpoScreenStrategyId_.store(false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, true);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, true);
+    frameRateMgr.isLtpoScreenStrategyId_.store(true);
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, true);
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, false);
@@ -829,6 +844,8 @@ HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Lev
     frameRateMgr.SetAceAnimatorVote(linker);
     linker->SetAnimatorExpectedFrameRate(OLED_60_HZ);
     frameRateMgr.SetAceAnimatorVote(linker);
+    linker->SetAnimatorExpectedFrameRate(-1);
+    frameRateMgr.SetAceAnimatorVote(linker);
 }
 
 /**
@@ -1105,6 +1122,10 @@ HWTEST_F(HgmFrameRateMgrTest, SetTimeoutParamsFromConfig, Function | SmallTest |
     ASSERT_EQ(time1, std::chrono::milliseconds(3000));
     ASSERT_EQ(time2, std::chrono::milliseconds(600));
 
+    configData->timeoutStrategyConfig_["up_timeout_ms"] = "error";
+    configData->timeoutStrategyConfig_["rs_idle_timeout_ms"] = "error";
+    mgr.SetTimeoutParamsFromConfig(configData);
+
     int32_t upTimeoutMs = 2000;
     int32_t rsIdleTimeoutMs = 300;
     configData->timeoutStrategyConfig_["up_timeout_ms"] = "2000";
@@ -1125,7 +1146,24 @@ HWTEST_F(HgmFrameRateMgrTest, SetTimeoutParamsFromConfig, Function | SmallTest |
  */
 HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level0)
 {
+    int32_t width = 685;
+    int32_t height = 1218;
+    uint32_t rate = 120;
+    int32_t mode = 1;
+    int32_t width0 = 685;
+    int32_t height0 = 1218;
+    uint32_t rate0 = 60;
+    int32_t mode0 = 0;
+    ScreenId screenId = 10;
+    ScreenSize screenSize = { 720, 1080, 685, 1218 };
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
+    std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
+    modeList.push_back({width0, height0, rate0, mode0});
+    modeList.push_back({width, height, rate, mode});
+    bool isSelfOwnedScreen = true;
+    auto addScreen = HgmCore::Instance().AddScreen(10, 0, screenSize, isSelfOwnedScreen, modeList);
     HgmFrameRateManager mgr;
+    mgr.curScreenId_ = screenId;
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
     PolicyConfigData::SupportedModeConfig supportedMode = {{ "test", { OLED_60_HZ, OLED_120_HZ } }};
     PolicyConfigData::SupportedModeConfig supportedMode1 = {{ "StylusPen", { OLED_60_HZ, OLED_120_HZ } }};
@@ -1153,7 +1191,9 @@ HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level0)
 
         std::vector<uint32_t> expectedVec = { OLED_60_HZ, OLED_120_HZ };
         supportedModeConfig["StylusPen"] = expectedVec;
-        ASSERT_NO_FATAL_FAILURE({mgr.GetStylusVec(configData);});
+        mgr.GetStylusVec(configData);
+        ASSERT_FALSE(mgr.stylusVec_.empty());
+        HgmCore::Instance().RemoveScreen(screenId);
     }
 }
 
@@ -1403,6 +1443,7 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | L
 
     frameRateMgr->frameVoter_.isDragScene_ = true;
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
+    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 120);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
@@ -1435,10 +1476,10 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPageUrlVote, Function | SmallTest | Level0)
 {
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     pid_t pid = 0;
-    std::string strategy;
+    std::string strategy = "";
     bool isAddVote = true;
-    std::string packageName;
-    std::string pageName;
+    std::string packageName = "";
+    std::string pageName = "";
     bool isEnter = true;
     frameRateMgr->ProcessPageUrlVote(pid, strategy, isAddVote);
     frameRateMgr->CleanPageUrlVote(pid);
@@ -1551,6 +1592,16 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     frameRateMgr->HandleTouchTask(DEFAULT_PID, POINTER_ACTION_PROXIMITY_IN, 1);
     frameRateMgr->HandleTouchTask(DEFAULT_PID, POINTER_ACTION_PROXIMITY_OUT, 1);
 
+    hgmCore.mPolicyConfigData_ == nullptr;
+    frameRateMgr->HandleTouchTask(DEFAULT_PID, POINTER_ACTION_PROXIMITY_IN, 1);
+    frameRateMgr->HandleTouchTask(DEFAULT_PID, POINTER_ACTION_PROXIMITY_OUT, 1);
+
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    parser->mParsedData_ = std::make_unique<PolicyConfigData>();
+    parser->xmlDocument_ = StringToXmlDoc(TEST_XML_CONTENT_1);
+    parser->Parse();
+    parser->xmlDocument_ = StringToXmlDoc(TEST_XML_CONTENT);
+    parser->Parse();
     EXPECT_EQ(mgr.touchManager_.pkgName_, "");
 }
 
@@ -1877,6 +1928,63 @@ HWTEST_F(HgmFrameRateMgrTest, TriggerAdaptiveVsyncUpdateCallback, Function | Sma
     mgr.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     mgr.TriggerAdaptiveVsyncUpdateCallback();
     ASSERT_EQ(mgr.lastIsAdaptive_.load(), SupportASStatus::NOT_SUPPORT);
+}
+
+/**
+ * @tc.name: SetSchedulerPreferredFps
+ * @tc.desc: Verify the result of SetSchedulerPreferredFps
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, SetSchedulerPreferredFps, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    mgr.schedulePreferredFps_ = OLED_60_HZ;
+    mgr.SetSchedulerPreferredFps(OLED_60_HZ);
+    mgr.SetSchedulerPreferredFps(OLED_120_HZ);
+    ASSERT_EQ(mgr.schedulePreferredFps_, OLED_120_HZ);
+}
+
+/**
+ * @tc.name: GetSupportedRefreshRates
+ * @tc.desc: Verify the result of GetSupportedRefreshRates
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, GetSupportedRefreshRates, Function | SmallTest | Level2)
+{
+    int32_t width = 685;
+    int32_t height = 1218;
+    uint32_t rate = 120;
+    int32_t mode = 1;
+    int32_t width0 = 685;
+    int32_t height0 = 1218;
+    uint32_t rate0 = 60;
+    int32_t mode0 = 0;
+    ScreenId screenId = 10;
+    ScreenSize screenSize = { 720, 1080, 685, 1218 };
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
+    std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
+    modeList.push_back({width0, height0, rate0, mode0});
+    modeList.push_back({width, height, rate, mode});
+    bool isSelfOwnedScreen = true;
+    auto addScreen = HgmCore::Instance().AddScreen(10, 0, screenSize, isSelfOwnedScreen, modeList);
+    HgmFrameRateManager mgr;
+    mgr.curScreenId_ = screenId;
+    std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
+    PolicyConfigData::SupportedModeConfig supportedModes = {
+        { "test1", { OLED_30_HZ, OLED_60_HZ, OLED_120_HZ } },
+        { "test2", {} }
+    };
+    configData->supportedModeConfigs_["LTPO-DEFAULT"] = supportedModes;
+    std::vector<uint32_t> targetVec;
+    mgr.GetSupportedRefreshRates(configData, "test3", targetVec, true);
+    ASSERT_EQ(targetVec.size(), 0);
+    mgr.GetSupportedRefreshRates(configData, "test2", targetVec, true);
+    ASSERT_EQ(targetVec.size(), 0);
+    mgr.GetSupportedRefreshRates(configData, "test1", targetVec, true);
+    ASSERT_EQ(targetVec.size(), 2);
+    HgmCore::Instance().RemoveScreen(10);
 }
 
 /**

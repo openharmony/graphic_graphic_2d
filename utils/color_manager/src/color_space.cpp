@@ -74,6 +74,7 @@ const std::map<ColorSpaceName, ColorSpace> NamedColorSpace = {
     { ColorSpaceName::NTSC_1953, CS_NTSC_1953 },
     { ColorSpaceName::PRO_PHOTO_RGB, CS_PRO_PHOTO_RGB },
     { ColorSpaceName::H_LOG, CS_H_LOG },
+    { ColorSpaceName::H_LOG_FULL, CS_H_LOG },
 };
 
 ColorSpace::ColorSpace(ColorSpaceName name)

@@ -33,10 +33,17 @@
 
 namespace OHOS::Rosen {
 
-RSOpincLayerSplitterProcessor::RSOpincLayerSplitterProcessor() {}
+RSOpincLayerSplitterProcessor::RSOpincLayerSplitterProcessor()
+{
+    drawDfxEnabled_ = RSSystemParameters::GetLayerSplitterDfxEnable();
+}
 
 void RSOpincLayerSplitterProcessor::Sync(const std::shared_ptr<RSLayerSplitterPlanner>& layerSplitterPlanner)
 {
+    if (layerSplitterPlanner == nullptr) {
+        planStatus_ = PlanStatus::OFF;
+        return;
+    }
     planStatus_ = layerSplitterPlanner->GetPlanStatus();
 
     srcRect_ = layerSplitterPlanner->GetSrcRect();
@@ -64,15 +71,16 @@ void RSOpincLayerSplitterProcessor::RequestFrame(RSSurfaceRenderParams& params)
     }
 
     splitSurface_->RequestFrame(params);
+    DrawDfx();
 }
 
 void RSOpincLayerSplitterProcessor::DrawDfx()
 {
-    if (!RSSystemParameters::GetLayerSplitterDfxEnable()) {
+    if (!drawDfxEnabled_) {
         return;
     }
 
-    if (planStatus_ != PlanStatus::PREPARE) {
+    if (planStatus_ != PlanStatus::ON) {
         return;
     }
 
@@ -103,7 +111,7 @@ void RSOpincLayerSplitterProcessor::RecordNodeWithCacheImage(NodeId nodeId)
         return;
     }
 
-    if (!requestController_->CheckNeedRequest()) {
+    if (UNLIKELY(!requestController_) || !requestController_->CheckNeedRequest()) {
         return;
     }
 

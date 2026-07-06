@@ -81,6 +81,34 @@ bool PathEffectFuzzTest(const uint8_t* data, size_t size)
     }
     return true;
 }
+
+/*
+ * 测试以下 PathEffect 接口：
+ * 1. Deserialize(...)
+ */
+bool PathEffectFuzzTest001(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    Path path;
+    path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
+    path.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    path.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    path.Close();
+    Drawing::scalar intervals[] = { 50.0f, 50.0f };
+    std::shared_ptr<Drawing::PathEffect> dash =
+        PathEffect::CreateDashPathEffect(intervals, 2, 1); // intervals.size = 2
+    if (dash == nullptr) {
+        return false;
+    }
+    std::shared_ptr<Drawing::Data> dataRef = dash->Serialize();
+    if (dataRef == nullptr) {
+        return false;
+    }
+    dash->Deserialize(dataRef);
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -90,5 +118,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::Drawing::PathEffectFuzzTest(data, size);
+    OHOS::Rosen::Drawing::PathEffectFuzzTest001(data, size);
     return 0;
 }

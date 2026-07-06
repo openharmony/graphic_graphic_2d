@@ -164,10 +164,10 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable002, TestSize.Level1)
  */
 HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
 {
-    NodeId id = 1;
-    RSCanvasDrawingRenderNode node(id);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    ASSERT_NE(node, nullptr);
     ASSERT_EQ(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE), nullptr);
+        DrawableV2::RSCustomModifierDrawable::OnGenerate(*node, ModifierNG::RSModifierType::CONTENT_STYLE), nullptr);
 
     auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
     auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
@@ -177,7 +177,7 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
     modifier1->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = property;
     auto indexProperty = std::make_shared<RSRenderProperty<int16_t>>(2, 0);
     modifier1->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty;
-    node.AddModifier(modifier1);
+    node->AddModifier(modifier1);
 
     auto propertyTwo = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     propertyTwo->GetRef() = std::make_shared<RSSimpleDrawCmdList>(1, 1);
@@ -186,11 +186,11 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
     modifier2->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = propertyTwo;
     auto indexProperty2 = std::make_shared<RSRenderProperty<int16_t>>(1, 1);
     modifier2->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty2;
-    node.AddModifier(modifier2);
+    node->AddModifier(modifier2);
 
-    node.AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
+    node->AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
     auto drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE));
+        DrawableV2::RSCustomModifierDrawable::OnGenerate(*node, ModifierNG::RSModifierType::CONTENT_STYLE));
     ASSERT_NE(drawable, nullptr);
 
     auto canvas = std::make_shared<Drawing::Canvas>();
@@ -214,10 +214,10 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
     drawable->OnDraw(canvas.get(), rect.get());
     ASSERT_NE(drawable, nullptr);
 
-    node.GetMutableRenderProperties().SetFrameGravity(Gravity::CENTER);
-    auto customModifiers = node.GetModifiersNG(drawable->modifierTypeNG_);
+    node->GetMutableRenderProperties().SetFrameGravity(Gravity::CENTER);
+    auto customModifiers = node->GetModifiersNG(drawable->modifierTypeNG_);
     EXPECT_EQ(customModifiers.empty(), false);
-    drawable->OnUpdate(node);
+    drawable->OnUpdate(*node);
     drawable->OnSync();
     EXPECT_EQ(drawable->isCanvasNode_, false);
     EXPECT_EQ(drawable->gravity_, Gravity::CENTER);
@@ -235,10 +235,10 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
  */
 HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable003, TestSize.Level1)
 {
-    NodeId id = 1;
-    RSCanvasDrawingRenderNode node(id);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    ASSERT_NE(node, nullptr);
     ASSERT_EQ(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE), nullptr);
+        DrawableV2::RSCustomModifierDrawable::OnGenerate(*node, ModifierNG::RSModifierType::CONTENT_STYLE), nullptr);
 
     auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
     auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
@@ -249,7 +249,7 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable003, TestSize.Level1)
     modifier1->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = property;
     auto indexProperty = std::make_shared<RSRenderProperty<int16_t>>(2, 0);
     modifier1->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty;
-    node.AddModifier(modifier1);
+    node->AddModifier(modifier1);
 
     auto propertyTwo = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     propertyTwo->GetRef() = std::make_shared<RSSimpleDrawCmdList>(1, 1);
@@ -258,10 +258,10 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable003, TestSize.Level1)
     modifier2->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = propertyTwo;
     auto indexProperty2 = std::make_shared<RSRenderProperty<int16_t>>(1, 1);
     modifier2->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty2;
-    node.AddModifier(modifier2);
-    node.AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
+    node->AddModifier(modifier2);
+    node->AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
     auto drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE));
+        DrawableV2::RSCustomModifierDrawable::OnGenerate(*node, ModifierNG::RSModifierType::CONTENT_STYLE));
     ASSERT_NE(drawable, nullptr);
 
     drawable->isCanvasNode_ = true;
@@ -277,10 +277,10 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable003, TestSize.Level1)
     drawable->OnDraw(canvas.get(), rect.get());
     ASSERT_NE(drawable, nullptr);
 
-    node.GetMutableRenderProperties().SetFrameGravity(Gravity::CENTER);
-    auto customModifiers = node.GetModifiersNG(drawable->modifierTypeNG_);
+    node->GetMutableRenderProperties().SetFrameGravity(Gravity::CENTER);
+    auto customModifiers = node->GetModifiersNG(drawable->modifierTypeNG_);
     EXPECT_EQ(customModifiers.empty(), false);
-    drawable->OnUpdate(node);
+    drawable->OnUpdate(*node);
     drawable->OnSync();
     EXPECT_EQ(drawable->isCanvasNode_, false);
     EXPECT_EQ(drawable->gravity_, Gravity::CENTER);

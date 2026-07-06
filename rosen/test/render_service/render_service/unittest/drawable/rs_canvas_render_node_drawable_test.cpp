@@ -637,8 +637,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level
     
     // OnDraw should return early for abnormal process
     drawable->OnDraw(canvas);
-    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
-    ASSERT_TRUE(isAbnormal);
+    ASSERT_EQ(drawable->GetDrawSkipType(), DrawSkipType::MEMORYOVER_SKIP);
     
     // Clean up
     std::set<pid_t> exitedPids = {pid};

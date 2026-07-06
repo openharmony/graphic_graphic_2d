@@ -228,6 +228,7 @@ void RSFrameRateVote::VoteRate(pid_t pid, std::string eventName, uint32_t rate)
         voterRateFunc_("EVENT_STATUS", "true");
         voterRateFunc_("REFRESH_RATE", std::to_string(rate));
     }
+    RS_TRACE_FUNC();
 }
 
 void RSFrameRateVote::CancelVoteRate(pid_t pid, std::string eventName)
@@ -241,6 +242,7 @@ void RSFrameRateVote::CancelVoteRate(pid_t pid, std::string eventName)
         voterRateFunc_("EVENT_NAME", eventName);
         voterRateFunc_("EVENT_STATUS", "false");
     }
+    RS_TRACE_FUNC();
 }
 
 void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
@@ -314,7 +316,7 @@ bool RSFrameRateVote::CheckAvailableBufferCount(int32_t bufferCount)
     bufferCountIndex_ = (bufferCountIndex_ + 1) % bufferCountHistorySize;
 
     int32_t count = 0;
-    for (int32_t i = 0; i < bufferCountHistorySize; i++) {
+    for (uint32_t i = 0; i < bufferCountHistorySize; i++) {
         if (bufferCountHistory_[i] > NORMAL_BUFFER_COUNT) {
             count++;
         }

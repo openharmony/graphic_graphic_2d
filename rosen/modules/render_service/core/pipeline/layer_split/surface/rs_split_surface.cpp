@@ -189,11 +189,12 @@ void SplitSurface::SetBufferNull()
     }
 
     splitSurfaceNode_->UpdateBuffer();
+    isDfxDrawed_ = false;
 }
 
 void SplitSurface::DrawDfx(Drawing::Color color)
 {
-    if (splitCanvas_ == nullptr) {
+    if (splitCanvas_ == nullptr || isDfxDrawed_) {
         return;
     }
     Drawing::Brush rectBrush;
@@ -205,6 +206,7 @@ void SplitSurface::DrawDfx(Drawing::Color color)
     splitCanvas_->AttachBrush(rectBrush);
     splitCanvas_->DrawRect(rect);
     splitCanvas_->DetachBrush();
+    isDfxDrawed_ = true;
 }
 
 void SplitSurface::FlushFrame()

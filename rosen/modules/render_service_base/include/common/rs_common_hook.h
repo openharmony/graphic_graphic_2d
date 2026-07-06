@@ -48,9 +48,6 @@ public:
     void SetTvPlayerBundleName(const std::string& bundleName);
     const std::string& GetTvPlayerBundleName() const;
 
-    void SetFilterUnderHwcConfigByApp(const std::string& appName, const std::string& val);
-    std::string_view GetFilterUnderHwcConfigByApp(const std::string& appName);
-
     // use in updating hwcnode hardware state with background alpha
     void SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcNodeSkippedFlag);
     void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
@@ -98,8 +95,6 @@ private:
     std::atomic<bool> isForceSRGBOutput_{false};
 
     std::string tvPlayerBundleName_;
-
-    std::unordered_map<std::string, std::string> filterUnderHwcConfig_;
 
     std::unordered_map<std::string, std::string> overlappedHwcNodeInAppEnabledConfig_;
 

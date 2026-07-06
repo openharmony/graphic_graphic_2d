@@ -575,7 +575,7 @@ public:
     RSB_EXPORT static void AddAnimationFinish(AnimationId id, int64_t timestamp_ns);
 
     RSB_EXPORT static RetCodeHrpService HrpServiceOpenFile(const HrpServiceDirInfo& dirInfo,
-        const std::string& fileName, int32_t flags, int& outFd);
+        const std::string& fileName, uint32_t flags, int& outFd);
     RSB_EXPORT static RetCodeHrpService HrpServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
 

@@ -19,6 +19,7 @@
 #include "modifier/rs_showing_properties_freezer.h"
 #include "render/rs_filter.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,11 +35,20 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    std::shared_ptr<RSUIContext> rsUIContext;
 };
 
 void RSShowingPropertiesFreezerTest::SetUpTestCase() {}
 void RSShowingPropertiesFreezerTest::TearDownTestCase() {}
-void RSShowingPropertiesFreezerTest::SetUp() {}
+
+void RSShowingPropertiesFreezerTest::SetUp()
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+}
+
 void RSShowingPropertiesFreezerTest::TearDown() {}
 
 /**
@@ -49,7 +59,7 @@ void RSShowingPropertiesFreezerTest::TearDown() {}
 HWTEST_F(RSShowingPropertiesFreezerTest, GetBoundsTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBoundsTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetBounds(Vector4f(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
     auto result = canvasNode->GetShowingProperties().GetBounds();
     ASSERT_TRUE(result.has_value());
@@ -65,7 +75,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBoundsTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetFrameTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFrameTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetFrame(Vector4f(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
     auto result = canvasNode->GetShowingProperties().GetFrame();
     ASSERT_TRUE(result.has_value());
@@ -81,7 +91,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetFrameTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetPositionZTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPositionZTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetPositionZ(SHOWING_FLOAT_NUM);
     auto result = canvasNode->GetShowingProperties().GetPositionZ();
     ASSERT_TRUE(result.has_value());
@@ -97,7 +107,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetPositionZTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetPivotTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPivotTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetPivot(Vector2f(SHOWING_FLOAT_NUM, 0.f));
     auto result1 = canvasNode->GetShowingProperties().GetPivot();
     ASSERT_TRUE(result1.has_value());
@@ -118,7 +128,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetPivotTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetRotationTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetRotationTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
 
     canvasNode->SetRotation(Quaternion(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
     auto result1 = canvasNode->GetShowingProperties().GetQuaternion();
@@ -150,7 +160,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetRotationTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetCameraDistanceTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetCameraDistanceTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetCameraDistance(SHOWING_FLOAT_NUM);
     auto result = canvasNode->GetShowingProperties().GetCameraDistance();
     ASSERT_TRUE(result.has_value());
@@ -166,7 +176,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetCameraDistanceTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetTranslateTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetTranslateTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetTranslate(Vector2f(SHOWING_FLOAT_NUM, 0.f));
     auto result1 = canvasNode->GetShowingProperties().GetTranslate();
     ASSERT_TRUE(result1.has_value());
@@ -188,7 +198,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetTranslateTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetScaleTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetScaleTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetScale(Vector2f(SHOWING_FLOAT_NUM, 0.f));
     auto result = canvasNode->GetShowingProperties().GetScale();
     ASSERT_TRUE(result.has_value());
@@ -204,7 +214,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetScaleTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetScaleZTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetScaleZTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetScaleZ(5.f);
     auto result = canvasNode->GetShowingProperties().GetScaleZ();
     ASSERT_TRUE(result.has_value());
@@ -220,7 +230,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetScaleZTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetSkewTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetSkewTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetSkew(Vector3f(SHOWING_FLOAT_NUM, 0.f, 1.f));
     auto result = canvasNode->GetShowingProperties().GetSkew();
     ASSERT_TRUE(result.has_value());
@@ -236,7 +246,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetSkewTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetPerspTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPerspTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetPersp(Vector4f(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
     auto result = canvasNode->GetShowingProperties().GetPersp();
     ASSERT_TRUE(result.has_value());
@@ -252,7 +262,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetPerspTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetAlphaTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetAlphaTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetAlpha(SHOWING_FLOAT_NUM);
     auto result = canvasNode->GetShowingProperties().GetAlpha();
     ASSERT_TRUE(result.has_value());
@@ -268,7 +278,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetAlphaTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetCornerRadiusTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetCornerRadiusTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetCornerRadius(Vector4f(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
     auto result = canvasNode->GetShowingProperties().GetCornerRadius();
     ASSERT_TRUE(result.has_value());
@@ -284,7 +294,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetCornerRadiusTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetColorTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetForegroundColor(SK_ColorRED);
     auto result1 = canvasNode->GetShowingProperties().GetForegroundColor();
     ASSERT_TRUE(result1.has_value());
@@ -308,7 +318,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetColorTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetBgImageTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBgImageTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
 
     canvasNode->SetBgImageWidth(SHOWING_FLOAT_NUM);
     auto result1 = canvasNode->GetShowingProperties().GetBgImageWidth();
@@ -341,7 +351,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBgImageTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBorderTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetBorderColor(SK_ColorRED);
     auto result1 = canvasNode->GetShowingProperties().GetBorderColor();
     ASSERT_TRUE(result1.has_value());
@@ -363,7 +373,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetShadowTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetShadowTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto result = canvasNode->GetShowingProperties().GetShadowAlpha();
     ASSERT_TRUE(result == std::nullopt);
     canvasNode->SetShadowColor(SK_ColorRED);
@@ -391,7 +401,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetShadowTest, TestSize.Level1)
     ASSERT_TRUE(result5.has_value());
     EXPECT_FLOAT_EQ(result5.value(), SHOWING_FLOAT_NUM);
 
-    canvasNode = RSCanvasNode::Create();
+    canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetShadowRadius(SHOWING_FLOAT_NUM);
     auto result6 = canvasNode->GetShowingProperties().GetShadowRadius();
     ASSERT_TRUE(result6.has_value());
@@ -408,7 +418,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetShadowTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetDegreeTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetSpherizeDegree(SHOWING_FLOAT_NUM);
     auto result1 = canvasNode->GetShowingProperties().GetSpherizeDegree();
     ASSERT_TRUE(result1.has_value());
@@ -434,7 +444,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
 HWTEST_F(RSShowingPropertiesFreezerTest, GetHDRUIBrightnessTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetHDRUIBrightnessTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetHDRUIBrightness(SHOWING_FLOAT_NUM);
     auto result1 = canvasNode->GetShowingProperties().GetHDRUIBrightness();
     ASSERT_TRUE(result1.has_value());
@@ -450,7 +460,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetHDRUIBrightnessTest, TestSize.Level1
 HWTEST_F(RSShowingPropertiesFreezerTest, GetAttractionValueTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetAttractionValueTest start";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetAttractionEffect(SHOWING_FLOAT_NUM, Vector2f(SHOWING_FLOAT_NUM, 0.f));
     auto result1 = canvasNode->GetShowingProperties().GetAttractionFractionValue();
     ASSERT_TRUE(result1.has_value());
@@ -459,7 +469,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetAttractionValueTest, TestSize.Level1
     ASSERT_TRUE(result2.has_value());
     EXPECT_FLOAT_EQ(result2.value().x_, SHOWING_FLOAT_NUM);
 
-    canvasNode = RSCanvasNode::Create();
+    canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     float showingFloatNumber = 200.f;
     canvasNode->SetAttractionEffectFraction(showingFloatNumber);
     auto result3 = canvasNode->GetShowingProperties().GetAttractionFractionValue();

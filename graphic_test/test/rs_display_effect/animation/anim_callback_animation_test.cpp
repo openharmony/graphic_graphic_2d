@@ -30,6 +30,7 @@ class AnimationTest : public RSGraphicTest {
 private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;
+
 public:
     // called before each tests
     void BeforeEach() override

@@ -28,10 +28,22 @@ trace3d::api::RetCodePlatform PlatformHrpServiceOpenFile(
     if (!dirInfo || !dirInfo->subDir || !dirInfo->subDir2 || !fileName || !outSvcRetCode || !outFd) {
         return trace3d::api::RET_PLATFORM_ERR_INVALID_PARAM;
     }
-    int32_t flagsFiltered = (flags&trace3d::api::HRP_SERVICE_FILE_FLAG_RDONLY) ? O_RDONLY : 0;
-    flagsFiltered |= (flags&trace3d::api::HRP_SERVICE_FILE_FLAG_WRONLY) ? O_WRONLY : 0;
-    flagsFiltered |= (flags&trace3d::api::HRP_SERVICE_FILE_FLAG_RDWR) ? O_RDWR : 0;
-    flagsFiltered |= (flags&trace3d::api::HRP_SERVICE_FILE_FLAG_CREAT) ? O_CREAT : 0;
+
+    uint32_t flagsFiltered = 0;
+    if (flags & trace3d::api::HRP_SERVICE_FILE_FLAG_RDWR) {
+        flagsFiltered = static_cast<uint32_t>(O_RDWR);
+    } else if (flags & trace3d::api::HRP_SERVICE_FILE_FLAG_WRONLY) {
+        flagsFiltered = static_cast<uint32_t>(O_WRONLY);
+    } else if (flags & trace3d::api::HRP_SERVICE_FILE_FLAG_RDONLY) {
+        flagsFiltered = static_cast<uint32_t>(O_RDONLY);
+    } else {
+        return trace3d::api::RET_PLATFORM_ERR_INVALID_PARAM;
+    }
+
+    if (flags & trace3d::api::HRP_SERVICE_FILE_FLAG_CREAT) {
+        flagsFiltered |= static_cast<uint32_t>(O_CREAT);
+    }
+
 #if defined(TRACE_LOADER_OHOS)
     auto rsClient = std::static_pointer_cast<OHOS::Rosen::RSRenderServiceClient>(
         OHOS::Rosen::RSIRenderClient::CreateRenderServiceClient());
@@ -41,7 +53,8 @@ trace3d::api::RetCodePlatform PlatformHrpServiceOpenFile(
     int retFd = -1;
     OHOS::Rosen::HrpServiceDirInfo rosenDirInfo{OHOS::Rosen::HrpServiceGetDirType((uint32_t)dirInfo->baseDirType),
         dirInfo->subDir, dirInfo->subDir2};
-    auto svcRetCode = rsClient->ProfilerServiceOpenFile(rosenDirInfo, fileName, flagsFiltered, retFd);
+    auto svcRetCode = rsClient->ProfilerServiceOpenFile(rosenDirInfo, fileName,
+        static_cast<int32_t>(flagsFiltered), retFd);
     *outSvcRetCode = (int32_t)svcRetCode;
     if (svcRetCode < OHOS::Rosen::RET_HRP_SERVICE_SUCCESS || retFd == -1) {
         if (retFd != -1) {

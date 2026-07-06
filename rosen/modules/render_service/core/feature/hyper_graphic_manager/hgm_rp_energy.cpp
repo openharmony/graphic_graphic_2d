@@ -87,7 +87,7 @@ void HgmRPEnergy::AddEnergyCommonData(EnergyEvent event, const std::string& key,
         energyCommonData_[event] = { { key, value } };
         return;
     }
-    dataMapIter->second.emplace(key, value);
+    dataMapIter->second[key] = value;
 }
 
 void HgmRPEnergy::StatisticAnimationTime(uint64_t timestamp)

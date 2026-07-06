@@ -338,7 +338,7 @@ public:
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
-        void UpdateBuffer();
+    void UpdateBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -2011,11 +2011,6 @@ public:
 
     void SetHDRType(uint32_t hdrType);
     uint32_t GetHDRType() const;
-
-    void SetRSSurfaceHandler(std::shared_ptr<RSSurfaceHandler> surfaceHandler)
-    {
-        surfaceHandler_ = surfaceHandler;
-    }
 
     void SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW);
     Vector4f GetDelegateDstRect();

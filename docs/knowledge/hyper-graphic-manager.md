@@ -265,20 +265,7 @@ HGM 还会接收外部 IPC 输入参与帧率决策，典型链路如下：
 
 ## 验证建议
 
-文档或知识路由变更只需检查路径和锚点。代码行为变更优先从以下命令中选择最近目标：
-
-```sh
-prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> \
-  //foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager
-prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> \
-  //foundation/graphic/graphic_2d/rosen/test/hyper_graphic_manager/unittest:unittest
-prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> \
-  //foundation/graphic/graphic_2d/rosen/test/hyper_graphic_manager/unittest:hgm_frame_voter_test
-prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> \
-  //foundation/graphic/graphic_2d/rosen/test/hyper_graphic_manager/unittest:frame_rate_manager_test
-```
-
-上述命令从 OpenHarmony 源码根目录执行，`<product-name>` 以当前 out 目录或 CI 配置为准。
+文档或知识路由变更只需检查路径和锚点。
 
 涉及真实刷新率、LTPO、HWC、功耗或显示效果时，需要补充真实设备验证。
 记录至少包含产品名、

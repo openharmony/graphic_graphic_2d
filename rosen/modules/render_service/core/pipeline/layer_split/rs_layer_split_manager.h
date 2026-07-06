@@ -45,16 +45,15 @@ public:
     RSLayerSplitManager(RSLayerSplitManager&&) = delete;
     RSLayerSplitManager& operator=(RSLayerSplitManager&&) = delete;
 
-    void Reset(uint64_t vsyncId);
+    void Reset();
     void MoveSplitSurfaceNode();
     void RecordSplitNode(std::shared_ptr<RSRenderNode> node);
     void CheckNeedLeave();
     void CheckSplitNodeIntersectFilter(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     void UpdatePlanAndDirtyRegion(std::shared_ptr<RSDirtyRegionManager> dirtyManager);
-    void Sync(uint64_t vsyncId);
-    void DrawDfx(std::shared_ptr<RSPaintFilterCanvas> canvas, uint64_t vsyncId);
-    bool CheckDoDirectCompositionWithSplitLayer(
-        std::shared_ptr<TransactionDataMap> transactionDataEffective, bool doDirectComposition);
+    void Sync();
+    bool CheckOpIncNodeFromCommand(std::unique_ptr<RSTransactionData>& rsTransactionData);
+    bool CheckDoDirectCompositionWithSplitLayer();
     void InitSplitSurface(const ScreenInfo& screenInfo);
     void SetEnabled(bool isEnabled);
 

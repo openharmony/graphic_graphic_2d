@@ -92,8 +92,8 @@ public:
         int duration = 500; // the animation lasts for 0.5 second
         protocol.SetDuration(duration);
         auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-        std::shared_ptr<RSUIContext> rsUIContext;
-        RSNode::Animate(rsUIContext, protocol, timingCurve, [&]() {
+        auto rsUiContext = RSGraphicTestDirector::Instance().GetRSUIContext();
+        RSNode::Animate(rsUiContext, protocol, timingCurve, [&]() {
             canvasNode->SetTranslate(translate);
         }, []() {
             std::cout << "animation finish callback" << std::endl;
@@ -547,8 +547,9 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter13)
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
-GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
+GRAPHIC_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
 {
+    SetCaptureCrop({0, 0, screenSize.x_, screenSize.y_});
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
     auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
@@ -559,7 +560,8 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
     movingNode->SetBounds(DEFAULT_BOUNDS);
     movingNode->SetTranslate({ 0, 0 });
     movingNode->SetBackgroundColor(COLOR_RED);
-    DoAnimation(movingNode, DEFAULT_TRANSLATE);
+    // set deterministic final state for stable baseline instead of real animation
+    movingNode->SetTranslate(DEFAULT_TRANSLATE);
     testNode->AddChild(movingNode);
 
     SubWindowOptions opts;
@@ -578,7 +580,6 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -587,8 +588,9 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
-GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
+GRAPHIC_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
 {
+    SetCaptureCrop({0, 0, screenSize.x_, screenSize.y_});
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
     auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
@@ -611,7 +613,6 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -620,8 +621,9 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
-GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
+GRAPHIC_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
 {
+    SetCaptureCrop({0, 0, screenSize.x_, screenSize.y_});
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
     auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
@@ -659,7 +661,6 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -668,8 +669,9 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
-GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
+GRAPHIC_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
 {
+    SetCaptureCrop({0, 0, screenSize.x_, screenSize.y_});
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
     auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
@@ -687,7 +689,8 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
     movingNode->SetBounds(DEFAULT_BOUNDS);
     movingNode->SetTranslate({ 0, 0 });
     movingNode->SetBackgroundColor(COLOR_RED);
-    DoAnimation(movingNode, DEFAULT_TRANSLATE);
+    // set deterministic final state for stable baseline instead of real animation
+    movingNode->SetTranslate(DEFAULT_TRANSLATE);
     GetRootNode()->AddChildToSubWindow(subId, movingNode);
 
     Vector4f bounds3 = { 0, 800, 400, 400 }; // second moving node, below the first one
@@ -696,12 +699,12 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
     movingNode2->SetBounds(bounds3);
     movingNode2->SetTranslate({ 0, 0 });
     movingNode2->SetBackgroundColor(COLOR_BLUE);
-    DoAnimation(movingNode2, DEFAULT_TRANSLATE);
+    // set deterministic final state for stable baseline instead of real animation
+    movingNode2->SetTranslate(DEFAULT_TRANSLATE);
     GetRootNode()->AddChildToSubWindow(subId, movingNode2);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 } // namespace OHOS::Rosen

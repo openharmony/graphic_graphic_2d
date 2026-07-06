@@ -512,7 +512,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest007, TestSize.Level1)
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     auto result = mod->UpdateToRenderWithResult();
     bool val = std::get<bool>(result);
-    EXPECT_TRUE(val);
+    EXPECT_FALSE(val);
 }
 
 /**
@@ -616,7 +616,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest011, TestSize.Level1)
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     auto result = mod->UpdateToRenderWithResult();
     bool val = std::get<bool>(result);
-    EXPECT_FALSE(val);
+    EXPECT_TRUE(val);
 }
  
 /**

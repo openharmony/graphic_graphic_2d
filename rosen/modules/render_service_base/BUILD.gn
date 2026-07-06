@@ -139,6 +139,7 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/appearance/rs_border_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_color_picker_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_compositing_filter_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_coverage_ng_shader_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_dynamic_light_up_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_foreground_filter_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_hdr_brightness_render_modifier.cpp",
@@ -191,6 +192,7 @@ ohos_source_set("render_service_base_src") {
 
     #common
     "src/common/rs_background_thread.cpp",
+    "src/common/rs_backlight_thread.cpp",
     "src/common/rs_color.cpp",
     "src/common/rs_event_def.cpp",
     "src/common/rs_common_tools.cpp",
@@ -450,6 +452,7 @@ ohos_source_set("render_service_base_src") {
     sources += [
       #drawable
       "src/drawable/rs_color_picker_drawable.cpp",
+      "src/drawable/rs_coverage_ng_shader_drawable.cpp",
       "src/drawable/rs_drawable.cpp",
       "src/drawable/rs_material_shader_drawable.cpp",
       "src/drawable/rs_misc_drawable.cpp",
@@ -507,7 +510,6 @@ ohos_source_set("render_service_base_src") {
       "src/command/rs_display_node_command.cpp",
       "src/command/rs_frame_rate_linker_command.cpp",
       "src/feature/window_keyframe/rs_window_keyframe_node_command.cpp",
-      "src/command/rs_union_node_command.cpp",
 
       #common
       "src/common/rs_thread_handler_generic.cpp",
@@ -552,7 +554,6 @@ ohos_source_set("render_service_base_src") {
       "src/screen_manager/rs_virtual_screen_resolution.cpp",
 
       "src/pipeline/rs_logical_display_render_node.cpp",
-      "src/pipeline/rs_union_render_node.cpp", # union render node is not supported in arkui-x
       "src/effect/rs_render_mask_base.cpp",
       "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
       "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",

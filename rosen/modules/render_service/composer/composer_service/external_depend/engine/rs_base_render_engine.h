@@ -115,6 +115,7 @@ public:
     // 3-phase flush: allows splitting Flush into discrete steps for pipeline parallelism.
     // Must be called in order: FlushGpu -> SubmitGpu -> FlushBuffer.
     // Do not mix with Flush(). If you start a 3-phase sequence, complete it with FlushBuffer().
+
     bool FlushGpu() noexcept;
     bool SubmitGpu() noexcept;
     bool FlushBuffer() noexcept;
@@ -324,7 +325,6 @@ public:
 #endif
 
 protected:
-
     static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
     static inline std::atomic_bool isHighContrastEnabled_ = false;

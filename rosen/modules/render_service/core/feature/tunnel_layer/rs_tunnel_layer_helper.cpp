@@ -29,6 +29,7 @@
 #include "platform/common/rs_log.h"
 #include "rs_composer_client_manager.h"
 #include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -407,6 +408,9 @@ RSLayerPtr RSTunnelLayerHelper::CreateTunnelLayer(const std::shared_ptr<RSSurfac
         return nullptr;
     }
     auto composerContext = composerClient->GetComposerContext();
+    if (!composerContext) {
+        return nullptr;
+    }
     RSLayerPtr layer = RSSurfaceLayer::Create(node->GetId(), composerContext);
     if (!layer) {
         return nullptr;
@@ -420,7 +424,7 @@ RSLayerPtr RSTunnelLayerHelper::CreateTunnelLayer(const std::shared_ptr<RSSurfac
     if (uniRsLayer) {
         uniBufferCount = uniRsLayer->GetBufferOwnerCount();
     }
-    if (uniBufferCount) {
+    if (uniBufferCount && layer->GetBuffer()) {
         uniBufferCount->InsertUniOnDrawSet(layer->GetRSLayerId(), layer->GetBuffer()->GetBufferId());
     }
     return layer;
@@ -457,10 +461,7 @@ RSTunnelLayerHelper::ListenerHandleResult RSTunnelLayerHelper::HandleListenerBuf
         return result;
     }
     if (tunnelState != RSTunnelRuntimeState::TunnelState::ACTIVE) {
-        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, nodeId=%" PRIu64 ", reason=state, state=%s",
-            __func__, node->GetId(), ToTunnelStateName(tunnelState));
-        RS_LOGD("TUNNEL_DEBUG %{public}s rejected, nodeId:%{public}" PRIu64
-            ", reason:state, state:%{public}s",
+        RS_OPTIONAL_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, nodeId=%" PRIu64 ", reason=state, state=%s",
             __func__, node->GetId(), ToTunnelStateName(tunnelState));
         return result;
     }

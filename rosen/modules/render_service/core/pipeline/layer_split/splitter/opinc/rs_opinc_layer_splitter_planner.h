@@ -39,7 +39,6 @@ public:
     void UpdateScreenDirtyRegion(std::shared_ptr<RSDirtyRegionManager> curScreenDirtyManager) override;
 
     // for direct composition
-    bool CheckDoDirectCompositionWithSplitLayer(std::shared_ptr<TransactionDataMap> transactionDataEffective) override;
     bool CheckOpIncNodeFromCommand(NodeId nodeId) override;
     std::pair<bool, Vector4f> GetBoundsFromModifier(const std::shared_ptr<RSRenderNode>& node) override;
     bool CheckCanDoDirectComposition() override;

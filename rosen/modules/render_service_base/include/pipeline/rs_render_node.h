@@ -1268,6 +1268,7 @@ private:
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
     bool lastFrameSubTreeSkipped_ = false;
+    std::shared_ptr<RSAnimationManager> animationManager_;
     bool curFrameHasAnimation_ = false;
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
@@ -1375,7 +1376,6 @@ private:
     Drawing::Matrix oldAbsMatrix_;
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
     bool released_ = false;
-    std::shared_ptr<RSAnimationManager> animationManager_;
     RSOpincCache opincCache_;
     std::unique_ptr<RSOpincRootCache> opincRootCache_ = nullptr;
     std::unique_ptr<RSLayerPartRenderCache> layerPartRenderCache_ = nullptr;

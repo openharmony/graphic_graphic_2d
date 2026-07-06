@@ -1218,5 +1218,21 @@ HWTEST_F(RSSystemPropertiesTest, CanvasDrawingNodeDmaTest, TestSize.Level1)
     system::SetParameter("persist.sys.graphic.canvas_drawing_node_render_dma", "0");
     EXPECT_FALSE(RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled());
 }
+
+/**
+ * @tc.name: GetHybridRenderCanvasEnabledTest
+ * @tc.desc: GetHybridRenderCanvasEnabled Test - covers all combinations of
+ *           hybrid_render_canvas_drawing_node_enabled parameter. GPU API type
+ *           and device type are compile-time constants and cannot be mocked.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledTest, TestSize.Level1)
+{
+    auto deviceType = system::GetParameter("const.product.devicetype", "phone");
+    bool isPhone = deviceType == "phone";
+    bool useVulkan = RSSystemProperties::IsUseVulkan();
+    auto value = system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
+    EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), value && useVulkan && isPhone);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef RS_OPINC_SPLIT_NODE_SELECTOR_H
 #define RS_OPINC_SPLIT_NODE_SELECTOR_H
 

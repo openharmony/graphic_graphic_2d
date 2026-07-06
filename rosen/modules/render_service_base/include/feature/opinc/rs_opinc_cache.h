@@ -59,12 +59,10 @@ public:
 
     const RectI& GetLayerPartRenderOldAbsDrawRect() const;
 private:
-    // opinc state
     bool subTreeSupportFlag_ = true;
     bool curNodeTreeSupportFlag_ = false;
     bool hasUnstableOpincNode_ = false;
 
-    // layer part render
     bool isUnchangeMarkInApp_ = false;
     bool isMaterialNode_ = false;
     bool layerPartRenderDirtyFlag_ = false;

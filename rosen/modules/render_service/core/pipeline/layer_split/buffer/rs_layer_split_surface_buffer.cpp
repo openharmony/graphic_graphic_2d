@@ -71,12 +71,11 @@ void RSSplitSurfaceBuffer::Init(bool isHebc)
     }
 
     if (grContext_ == nullptr) {
-        if (uniRenderEngine->GetRenderContext()) {
-            grContext_ = uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext();
-        } else {
+        if (!uniRenderEngine->GetRenderContext()) {
             LAYER_SPLIT_LOGE("Exception: context is nullptr");
             return;
         }
+        grContext_ = uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext();
     }
 
     if (!surfaceCreated_) {
@@ -107,7 +106,7 @@ void RSSplitSurfaceBuffer::Init(bool isHebc)
 
 void RSSplitSurfaceBuffer::PreAllocateBuffer()
 {
-    RS_TRACE_NAME("RSSplitSurfaceBuffer::PreAllocateBuffer");
+    RS_OPTIONAL_TRACE_NAME("RSSplitSurfaceBuffer::PreAllocateBuffer");
 
     if (isBufferPreAllocated_.load(std::memory_order_acquire)) {
         return;
@@ -149,7 +148,7 @@ void RSSplitSurfaceBuffer::PreAllocateBuffer()
 
 void RSSplitSurfaceBuffer::PreAllocateBufferImpl(const BufferRequestConfig& bufferConfig)
 {
-    RS_TRACE_NAME("RSSplitSurfaceBuffer::PreAllocateBufferImpl");
+    RS_OPTIONAL_TRACE_NAME("RSSplitSurfaceBuffer::PreAllocateBufferImpl");
 
     if (isBufferPreAllocated_.load(std::memory_order_acquire)) {
         isPreAllocInProgress_.store(false, std::memory_order_release);
@@ -275,7 +274,7 @@ bool RSSplitSurfaceBuffer::ReleaseBuffer()
             surfaceHandler_->GetNodeId(), ret);
     }
     surfaceHandler_->SetAvailableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
-    LAYER_SPLIT_LOGE("RsDebug %{public}s (node: %{public}" PRIu64 "), drop one frame", __func__,
+    LAYER_SPLIT_LOGD("RsDebug %{public}s (node: %{public}" PRIu64 "), drop one frame", __func__,
         surfaceHandler_->GetNodeId());
 
     return true;

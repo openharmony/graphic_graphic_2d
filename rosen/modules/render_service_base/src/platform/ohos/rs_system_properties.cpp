@@ -1618,7 +1618,6 @@ bool RSSystemProperties::GetTextureExportDFXEnabled()
 bool RSSystemProperties::GetHybridRenderDfxEnabled()
 {
     static bool hybridRenderDfxEnabled =
-        OHOS::system::GetParameter("const.product.devicetype", "phone") == "phone" &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_dfx_enabled", false);
     return hybridRenderDfxEnabled;
 }
@@ -1626,7 +1625,9 @@ bool RSSystemProperties::GetHybridRenderDfxEnabled()
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
     static bool canvasEnabled =
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
+        Drawing::SystemProperties::IsUseVulkan() &&
+        system::GetParameter("const.product.devicetype", "phone") == "phone" &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
     return canvasEnabled;
 }
 
@@ -1836,7 +1837,7 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
 
 bool RSSystemProperties::GetUsePrimList()
 {
-    static bool usePrimList = OHOS::system::GetBoolParameter("persist.sys.graphic.useprimlist", true);
+    static bool usePrimList = OHOS::system::GetBoolParameter("persist.sys.graphic.useprimlist", false);
     return usePrimList;
 }
 

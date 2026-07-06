@@ -780,9 +780,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     globalZOrder_ = 0.0f;
     appWindowZOrder_ = 0;
     hasSkipLayer_ = false;
-    hwcVisitor_->curZOrderForHwcEnableByFilter_ = 0;
     hwcVisitor_->solidLayerHwcEnableCount_ = 0;
-    node.GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
     if (!(RSMainThread::Instance()->IsRequestedNextVSync())) {
         RS_OPTIONAL_TRACE_NAME_FMT("do not request next vsync");
         needRequestNextVsync_ = false;
@@ -2258,7 +2256,6 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             curDirty_ = child->IsDirty();
             curContainerDirty_ = curContainerDirty_ || child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
-            child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             if (node.IsParentTreeDirty()) {
                 child->SetParentTreeDirty(true);
             }
@@ -2280,7 +2277,6 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             rsScreenNodeChildNum_++;
             curDirty_ = child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
-            child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             child->QuickPrepare(shared_from_this(), false);
 #ifdef SUBTREE_PARALLEL_ENABLE
             node.MergeSubtreeParallelNodes(*child);
@@ -2707,9 +2703,6 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, Req
         }
         if ((it.second == RequestCompositionType::OFFLINE_DEVICE ||
             it.second == RequestCompositionType::OFFLINE_VCLD_OFF) &&
-#ifdef HETERO_HDR_ENABLE
-            !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
-#endif
             RSOfflineProcessor::GetOfflineProcessor().IsRSOfflineProcessorReady(node,
                 OfflineDeviceType::HPAE_OFFLINE_DEVICE)) {
             node->SetDeviceOfflineEnable(true);
@@ -3547,7 +3540,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
             properties.IsShadowValid() || properties.IsBgBrightnessValid() || properties.IsColorBlendModeValid() ||
             properties.IsColorBlendApplyTypeOffscreen() || properties.GetLinearGradientBlurPara() != nullptr ||
             properties.IsFgBrightnessValid() || properties.GetForegroundFilter() != nullptr ||
-            node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+            properties.GetFilter() != nullptr || node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*nodeParent, true);
     }

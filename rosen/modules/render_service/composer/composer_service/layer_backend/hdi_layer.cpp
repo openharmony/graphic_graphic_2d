@@ -536,6 +536,9 @@ int32_t HdiLayer::SetTunnelLayerId()
 
 int32_t HdiLayer::SetTunnelLayerProperty()
 {
+    if (layerType_ != GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL) {
+        return GRAPHIC_DISPLAY_NOT_SUPPORT;
+    }
     uint32_t property = hasSetTunnel_ ? rsLayer_->GetTunnelLayerProperty() : 0;
     if (hasSetTunnel_ && tunnelLayerProperty_ == property) {
         return GRAPHIC_DISPLAY_SUCCESS;

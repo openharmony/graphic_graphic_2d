@@ -350,12 +350,6 @@ HWC 禁用的触发条件（详见 `hwc-prevalidate.md`）：
 
 ## 验证建议
 
-构建命令从 OpenHarmony 源码根目录执行：
-
-```sh
-./build.sh --product-name <product-name> --build-target graphic_2d --ccache
-```
-
 就近测试目标：
 - 单测：`rs_hdr_util_test`
 - 真实设备验证：需要支持 HDR 的设备

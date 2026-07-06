@@ -32,7 +32,6 @@ public:
     virtual void UpdateScreenDirtyRegion(std::shared_ptr<RSDirtyRegionManager> curScreenDirtyManager) = 0;
 
     // for direct composition
-    virtual bool CheckDoDirectCompositionWithSplitLayer(std::shared_ptr<TransactionDataMap> transactionDataEffective);
     virtual bool CheckOpIncNodeFromCommand(NodeId nodeId) = 0;
     virtual std::pair<bool, Vector4f> GetBoundsFromModifier(const std::shared_ptr<RSRenderNode>& node) = 0;
     virtual bool CheckCanDoDirectComposition() = 0;

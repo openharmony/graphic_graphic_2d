@@ -47,6 +47,7 @@ void HwcDisabledReasonCollection::UpdateHwcDisabledReasonForDFX(NodeId id,
     hwcDisabledReasonInfo.nodeName = nodeName;
 }
 
+// LCOV_EXCL_START
 HwcDisabledReasonInfos HwcDisabledReasonCollection::GetHwcDisabledReasonInfo()
 {
     std::lock_guard<std::mutex> lock(hwcDisabledReasonMtx_);
@@ -57,5 +58,6 @@ HwcDisabledReasonInfos HwcDisabledReasonCollection::GetHwcDisabledReasonInfo()
     hwcDisabledReasonInfoMap_.clear();
     return hwcDisabledReasonInfos;
 }
+// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS

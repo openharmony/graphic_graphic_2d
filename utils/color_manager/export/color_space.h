@@ -96,6 +96,7 @@ enum ColorSpaceName : uint32_t {
     SMPTE_C = 36,
     CUSTOM = 5,
     H_LOG = 37,
+    H_LOG_FULL = 38,
 };
 
 enum GamutMappingMode : uint32_t {

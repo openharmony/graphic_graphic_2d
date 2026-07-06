@@ -34,9 +34,9 @@ public:
 
     Color FindAppBackgroundColor(RSSurfaceRenderNode& node);
     bool CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& node,
-        const RectI& nodeAbsRect, Color& nodeBgColor);
+        const RectI& nodeAbsRect, Color& nodeBgColor, bool isSplitEnabled = false);
     bool CheckSubTreeOcclusion(const std::shared_ptr<RSRenderNode>& branchNode,
-        const RectI& nodeAbsRect, std::stack<Color>& nodeBgColor);
+        const RectI& nodeAbsRect, std::stack<Color>& nodeBgColor, bool isSplitEnabled = false);
     void ProcessSolidLayerDisabled(RSSurfaceRenderNode& node);
     void ProcessSolidLayerEnabled(RSSurfaceRenderNode& node);
 
@@ -60,8 +60,6 @@ public:
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdateTransparentHwcNodeEnable(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
-    bool IsBackgroundFilterUnderSurface(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-        const std::shared_ptr<RSRenderNode>& filterNode);
     bool IsHveBlurFilterEnabled(const RSRenderNode& filterNode, const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
     void UpdateHwcNodeEnableByColorPicker();
     void UpdateHwcNodeEnableByFilterIntersection();
@@ -113,9 +111,6 @@ private:
     // Solid Layer
     bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
     bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
-    bool IsSurfaceInsideRect(const RectI& innerRect, const RectI& outerRect,
-        int bottomTolerance, bool enableTolerance) const;
-    bool IsSplitEnabled() const;
 
     // Sourcetuning
     bool IsTargetSourceTuning(RSSurfaceRenderNode& node);
@@ -132,8 +127,6 @@ private:
 
     // Track surfaces that have ColorPicker tasks this frame with their rects for intersection checking
     std::unordered_map<NodeId, std::pair<NodeId, RectI>> colorPickerHwcDisabledSurfaces_;
-
-    uint32_t curZOrderForHwcEnableByFilter_ = 0;
 
     size_t solidLayerHwcEnableCount_ = 0;
 

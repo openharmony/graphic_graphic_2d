@@ -31,6 +31,9 @@
 #include <parameters.h>
 #include <hilog/log.h>
 
+#define LIKELY(exp) (__builtin_expect((exp) != 0, true))
+#define UNLIKELY(exp) (__builtin_expect((exp) != 0, false))
+
 #define LOADER_TAG "TRACE3D_LOADER"
 
 #undef LOG_DOMAIN

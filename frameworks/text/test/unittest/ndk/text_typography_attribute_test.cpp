@@ -869,17 +869,17 @@ HWTEST_F(NdkTypographyTest, NdkTypographyForceReuseRasterResultTest001, TestSize
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     ASSERT_NE(typography, nullptr);
     bool value = true;
-    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
         OH_DRAWING_SUCCESS);
     EXPECT_FALSE(value);
-    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, true),
+    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, true),
         OH_DRAWING_SUCCESS);
-    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
         OH_DRAWING_SUCCESS);
     EXPECT_TRUE(value);
-    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, false),
+    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, false),
         OH_DRAWING_SUCCESS);
-    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
         OH_DRAWING_SUCCESS);
     EXPECT_FALSE(value);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -896,10 +896,10 @@ HWTEST_F(NdkTypographyTest, NdkTypographyForceReuseRasterResultTest001, TestSize
 HWTEST_F(NdkTypographyTest, NdkTypographyForceReuseRasterResultTest002, TestSize.Level0)
 {
     EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(
-        nullptr, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, true), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+        nullptr, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, true), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     bool value = false;
     EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(
-        nullptr, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+        nullptr, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     OH_Drawing_TypographyAttributeId invalidId = static_cast<OH_Drawing_TypographyAttributeId>(999);
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -912,11 +912,11 @@ HWTEST_F(NdkTypographyTest, NdkTypographyForceReuseRasterResultTest002, TestSize
     OH_Drawing_TypographyHandlerAddText(handler, DEFAULT_TEXT);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     ASSERT_NE(typography, nullptr);
-    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, nullptr),
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, nullptr),
         OH_DRAWING_ERROR_INCORRECT_PARAMETER);
-    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(nullptr, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(nullptr, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
         OH_DRAWING_ERROR_INCORRECT_PARAMETER);
-    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(nullptr, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, true),
+    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(nullptr, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, true),
         OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(typography, invalidId, true),
         OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
@@ -947,7 +947,7 @@ HWTEST_F(NdkTypographyTest, NdkTypographyForceReuseRasterResultTest003, TestSize
     OH_Drawing_TypographyHandlerAddText(handler, DEFAULT_TEXT);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     ASSERT_NE(typography, nullptr);
-    OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, true);
+    OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, true);
     OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
     OH_Drawing_BitmapBuild(bitmap, 600, 200, nullptr);
