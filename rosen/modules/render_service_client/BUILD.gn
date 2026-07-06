@@ -122,6 +122,7 @@ template("render_service_client_source_set") {
       "core/modifier_ng/appearance/rs_border_modifier.cpp",
       "core/modifier_ng/appearance/rs_color_picker_modifier.cpp",
       "core/modifier_ng/appearance/rs_compositing_filter_modifier.cpp",
+      "core/modifier_ng/appearance/rs_coverage_ng_shader_modifier.cpp",
       "core/modifier_ng/appearance/rs_dynamic_light_up_modifier.cpp",
       "core/modifier_ng/appearance/rs_foreground_filter_modifier.cpp",
       "core/modifier_ng/appearance/rs_hdr_brightness_modifier.cpp",

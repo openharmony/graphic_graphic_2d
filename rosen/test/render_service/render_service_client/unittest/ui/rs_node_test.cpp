@@ -7020,6 +7020,20 @@ HWTEST_F(RSNodeTest, SetFunTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetOverlayNGShader
+ * @tc.desc: test results of SetOverlayNGShader
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetOverlayNGShader, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSNGShaderBase> overlayShader = RSNGShaderBase::Create(RSNGEffectType::AIBAR_RECT_HALO);
+    rsNode->SetOverlayNGShader(overlayShader);
+    EXPECT_NE(overlayShader, nullptr);
+}
+
+/**
  * @tc.name: SetAiInvert
  * @tc.desc: test results of SetAiInvert
  * @tc.type: FUNC

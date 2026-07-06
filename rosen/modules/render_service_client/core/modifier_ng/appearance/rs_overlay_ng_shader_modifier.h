@@ -30,20 +30,6 @@ public:
         return Type;
     };
 
-    void SetLightIntensity(float lightIntensity);
-    float GetLightIntensity() const;
-    void SetLightColor(const Color lightColor);
-    Color GetLightColor() const;
-    void SetLightPosition(const Vector4f& lightPosition);
-    Vector4f GetLightPosition() const;
-    void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
-    float GetIlluminatedBorderWidth() const;
-    void SetIlluminatedType(int illuminatedType);
-    int GetIlluminatedType() const;
-    void SetBloom(float bloomIntensity);
-    float GetBloom() const;
-
-    // Overlay Shader
     void SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayNGShader);
     std::shared_ptr<RSNGShaderBase> GetOverlayNGShader() const;
 };

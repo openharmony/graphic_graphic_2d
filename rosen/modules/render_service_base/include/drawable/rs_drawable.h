@@ -100,7 +100,7 @@ enum class RSDrawableSlot : int8_t {
     FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
-    OVERLAY_NG_SHADER,
+    COVERAGE_NG_SHADER,
     BORDER,
     OVERLAY,
     PARTICLE_EFFECT,
@@ -108,6 +108,7 @@ enum class RSDrawableSlot : int8_t {
 
     // Restore state
     RESTORE_CLIP_TO_BOUNDS,
+    OVERLAY_NG_SHADER,
     RESTORE_BLENDER,
     RESTORE_FOREGROUND_FILTER,
     RESTORE_ALL,
@@ -126,8 +127,11 @@ enum class RSDrawableSlot : int8_t {
     FG_PROPERTIES_BEGIN         = BINARIZATION,
     FG_PROPERTIES_END           = FG_RESTORE_BOUNDS - 1,
     // post-foreground properties, can be clipped by ClipToBounds
-    EXTRA_PROPERTIES_BEGIN      = OVERLAY_NG_SHADER,
+    EXTRA_PROPERTIES_BEGIN      = COVERAGE_NG_SHADER,
     EXTRA_PROPERTIES_END        = PIXEL_STRETCH,
+    // post-foreground properties, can not be clipped by ClipToBounds
+    OVERLAY_PROPERTIES_BEGIN    = OVERLAY_NG_SHADER,
+    OVERLAY_PROPERTIES_END      = OVERLAY_NG_SHADER,
 
     MAX = RESTORE_ALL + 1,
 };

@@ -16,66 +16,6 @@
 #include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 
 namespace OHOS::Rosen::ModifierNG {
-void RSOverlayNGShaderModifier::SetLightIntensity(float lightIntensity)
-{
-    Setter(RSPropertyType::LIGHT_INTENSITY, lightIntensity);
-}
-
-float RSOverlayNGShaderModifier::GetLightIntensity() const
-{
-    return Getter<float>(RSPropertyType::LIGHT_INTENSITY, {});
-}
-
-void RSOverlayNGShaderModifier::SetLightColor(const Color lightColor)
-{
-    Setter(RSPropertyType::LIGHT_COLOR, lightColor);
-}
-
-Color RSOverlayNGShaderModifier::GetLightColor() const
-{
-    return Getter<Color>(RSPropertyType::LIGHT_COLOR, {});
-}
-
-void RSOverlayNGShaderModifier::SetLightPosition(const Vector4f& lightPosition)
-{
-    Setter(RSPropertyType::LIGHT_POSITION, lightPosition);
-}
-
-Vector4f RSOverlayNGShaderModifier::GetLightPosition() const
-{
-    return Getter<Vector4f>(RSPropertyType::LIGHT_POSITION, {});
-}
-
-void RSOverlayNGShaderModifier::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
-{
-    Setter(RSPropertyType::ILLUMINATED_BORDER_WIDTH, illuminatedBorderWidth);
-}
-
-float RSOverlayNGShaderModifier::GetIlluminatedBorderWidth() const
-{
-    return Getter<float>(RSPropertyType::ILLUMINATED_BORDER_WIDTH, {});
-}
-
-void RSOverlayNGShaderModifier::SetIlluminatedType(int illuminatedType)
-{
-    Setter<RSProperty>(RSPropertyType::ILLUMINATED_TYPE, illuminatedType);
-}
-
-int RSOverlayNGShaderModifier::GetIlluminatedType() const
-{
-    return Getter<int>(RSPropertyType::ILLUMINATED_TYPE, {});
-}
-
-void RSOverlayNGShaderModifier::SetBloom(float bloomIntensity)
-{
-    Setter(RSPropertyType::BLOOM, bloomIntensity);
-}
-
-float RSOverlayNGShaderModifier::GetBloom() const
-{
-    return Getter<float>(RSPropertyType::BLOOM, {});
-}
-
 void RSOverlayNGShaderModifier::SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader)
 {
     Setter<RSProperty, std::shared_ptr<RSNGShaderBase>>(RSPropertyType::OVERLAY_NG_SHADER, overlayShader);
