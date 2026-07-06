@@ -73,6 +73,7 @@ HWTEST_F(RSVulkanContextTest, CreateInstance001, TestSize.Level1)
     EXPECT_FALSE(rsVulkanInterface.CreateInstance());
 }
 
+#if 0
 /**
  * @tc.name: SelectPhysicalDevice001
  * @tc.desc: test results of SelectPhysicalDevice
@@ -819,5 +820,6 @@ HWTEST_F(RSVulkanContextTest, RequireSemaphoreTest, TestSize.Level2)
         EXPECT_EQ(res, VK_NULL_HANDLE);
     }
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

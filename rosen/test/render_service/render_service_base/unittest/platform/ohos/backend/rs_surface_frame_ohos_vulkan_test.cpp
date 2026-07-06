@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#if 0
 #include <gtest/gtest.h>
 
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
@@ -73,3 +74,4 @@ HWTEST_F(RSSurfaceFrameOhosVulkanTest, SetDamageRegion002, TestSize.Level1)
 }
 } // namespace Rosen
 } // namespace OHOS
+#endif

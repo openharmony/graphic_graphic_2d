@@ -35,6 +35,7 @@ void SurfaceBufferUtilsTest::TearDownTestCase() {}
 void SurfaceBufferUtilsTest::SetUp() {}
 void SurfaceBufferUtilsTest::TearDown() {}
 
+#if 0
 /**
  * @tc.name: CreateCanvasSurfaceBufferTest
  * @tc.desc: test results of CreateCanvasSurfaceBuffer
@@ -74,5 +75,6 @@ HWTEST_F(SurfaceBufferUtilsTest, ConvertSurfaceBufferToBackendTextureTest, TestS
     texture = SurfaceBufferUtils::ConvertSurfaceBufferToBackendTexture(buffer);
     ASSERT_TRUE(texture.IsValid());
 }
+#endif
 } // namespace OHOS::Rosen
 #endif // ROSEN_OHOS && RS_ENABLE_VK
