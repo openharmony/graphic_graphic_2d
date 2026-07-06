@@ -156,13 +156,6 @@
 
 ## 验证建议
 
-构建命令从 OpenHarmony 源码根目录执行。单仓环境取消编译环节，只做可执行静态验证。
-
-```sh
-prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> <target>
-git diff --check
-```
-
 按改动范围列最近目标：
 
 - 模块构建：`<target>`

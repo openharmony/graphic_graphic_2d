@@ -46,33 +46,8 @@
 3. 涉及渲染链路时，按客户端节点树、transaction/IPC、服务端节点树、drawable、
    渲染线程、GPU/HWC 合成的顺序追踪数据流。
 4. 小步修改，就近复用已有日志、错误码、智能指针、锁、线程投递和测试夹具。
-5. 先判断是否可定位 OpenHarmony 源码根；单仓环境取消编译环节，只做可执行静态验证。
-6. 完整源码环境按“构建和验证”选择最近构建或测试目标；
-   涉及真实显示效果时补充设备验证结果。
-7. 按“完成定义”输出结果。
-8. 提交和 push 前按“提交和推送”要求完成检查。
-
-## 构建和验证
-
-构建命令只从 OpenHarmony 源码根目录执行。
-若当前路径或父级没有 `build.sh` 和 `prebuilts/build-tools/`，视为单仓环境，取消编译环节，
-改做 `git diff --check`、`rg` 路径/符号核对、JSON/YAML 检查或 BUILD target 引用检查；
-不要伪造构建结论。
-
-```sh
-./build.sh --product-name <product-name> --build-target graphic_2d --ccache
-prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> \
-  //foundation/graphic/graphic_2d/<path>:<target>
-git diff --check
-```
-
-- `out/` 只代表已有产品输出；不能仅凭缺少 `out/` 判定为单仓。
-- 产品名以已有 `out/`、当前任务说明、CI 或远程构建命令为准；`rk3568` 只是常见示例。
-- 只改文档不构建，做路径、链接和空白检查即可。
-- 代码改动优先构建最近 GN target；执行前确认 target 存在，并使用完整
-  `//foundation/graphic/graphic_2d/...` 前缀。
-- 构建失败先记录首个真实编译错误；需要设备、XTS 或显示效果验证时，在最终回复说明缺口。
-- macOS 本地通常只做静态检查；编译、设备测试和 XTS 使用 Linux CI、远程构建机或明确设备环境。
+5. 按“完成定义”输出结果。
+6. 提交和 push 前按“提交和推送”要求完成检查。
 
 ## 项目约束
 
@@ -100,8 +75,6 @@ Agent 自主边界：
   不得拆提交绕过。
 - 可自主完成：文档、知识路由、注释、局部测试补充和单模块小修。
 - 可自主推进但需说明风险：同一模块累计不超过 5 个文件，行为边界清晰且可验证。
-- 单仓或缺少 OpenHarmony 根环境时，不因无法编译而默认阻塞；
-  编译环节按“构建和验证”取消。
 - 单仓可自主完成的静态验证包括 `git diff --check`、`rg` 路径/符号核对、JSON/YAML 校验、
   BUILD 引用检查和头文件依赖检索。
 - 若远程 CI 或构建机入口已给出，按该入口验证并记录结果；未给出时不要臆造 CI 结论。
@@ -168,7 +141,5 @@ Co-Authored-By: Agent
 - 列出已执行的构建、单测、fuzz、XTS 或真实设备验证命令；未执行时说明原因。
 - XTS 目标或真实设备验证无法确认时，列出缺口和需要人工确认的问题。
 - 说明本次自主边界级别和累计改动文件数。
-- 当前为单仓环境时，说明取消编译的原因和替代静态检查；
-  完整 OpenHarmony 根环境时，说明使用的产品和 target。
 - 涉及提交或 push 时，说明适用门禁（按 `docs/review-gates/README.md` 判定）的检视结果，
   以及 commit message 是否符合提交约定。
