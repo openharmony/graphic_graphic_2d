@@ -1878,7 +1878,7 @@ HWTEST_F(RSMultiRenderProcessManagerTest, GetValidRenderProcessUniqueIdByPidLock
     ASSERT_NE(multiProcessManager_, nullptr);
     multiProcessManager_->AddValidRenderProcessUniqueId(TEST_TOKEN);
     multiProcessManager_->AddValidRenderProcessUniqueId(TEST_TOKEN_2);
-    auto result = multiProcessManager_->GetValidRenderProcessUniqueByPidLocked(TEST_PID_3);
+    auto result = multiProcessManager_->GetValidRenderProcessUniqueIdByPidLocked(TEST_PID_3);
     EXPECT_FALSE(result.has_value());
 }
 } // namespace OHOS::Rosen
