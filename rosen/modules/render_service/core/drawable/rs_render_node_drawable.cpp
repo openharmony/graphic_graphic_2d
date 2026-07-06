@@ -245,14 +245,20 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     int32_t updateTimes = 0;
     bool needUpdateCache = CheckIfNeedUpdateCache(params, updateTimes);
     params.SetNeedUpdateCache(needUpdateCache);
-    if (!needUpdateCache) {
-        ClearDrawingCacheContiUpdateTimeMap();
-    }
     int32_t continuousUpdateTimes = 0;
     {
         std::lock_guard<std::mutex> lock(drawingCacheContiUpdateTimeMapMutex_);
-        if (drawingCacheContinuousUpdateTimeMap_.count(nodeId_) > 0) {
-            continuousUpdateTimes = drawingCacheContinuousUpdateTimeMap_.at(nodeId_);
+        auto iter = drawingCacheContinuousUpdateTimeMap_.find(nodeId_);
+        if (iter != drawingCacheContinuousUpdateTimeMap_.end()) {
+            auto& info = iter->second;
+            uint64_t currentVsyncId = RSUniRenderThread::Instance().GetVsyncId();
+            // Reset counter only when a new frame arrives AND cache content hasn't changed.
+            // Same-frame re-entry (needUpdateCache=false because cache was just updated) must not reset.
+            if (info.vsyncId != currentVsyncId && !needUpdateCache) {
+                drawingCacheContinuousUpdateTimeMap_.erase(iter);
+            } else {
+                continuousUpdateTimes = info.count;
+            }
         }
     }
     if (needUpdateCache && params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
@@ -1330,7 +1336,14 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
     {
         std::lock_guard<std::mutex> lock(drawingCacheContiUpdateTimeMapMutex_);
-        drawingCacheContinuousUpdateTimeMap_[nodeId_]++;
+        uint64_t currentVsyncId = RSUniRenderThread::Instance().GetVsyncId();
+        auto& info = drawingCacheContinuousUpdateTimeMap_[nodeId_];
+        // A node may be visited multiple times per vsync (e.g. layer cache + normal draw);
+        // only increment once per frame so count reflects consecutive VSYNC frames.
+        if (info.vsyncId != currentVsyncId) {
+            info.count++;
+            info.vsyncId = currentVsyncId;
+        }
     }
     {
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);

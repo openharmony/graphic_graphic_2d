@@ -226,7 +226,11 @@ private:
     static inline std::mutex drawingCacheMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
     static inline std::mutex drawingCacheContiUpdateTimeMapMutex_;
-    static inline std::unordered_map<NodeId, int32_t> drawingCacheContinuousUpdateTimeMap_;
+    struct DrawingCacheContinuousUpdateInfo {
+        int32_t count = 0;
+        uint64_t vsyncId = UINT64_MAX;
+    };
+    static inline std::unordered_map<NodeId, DrawingCacheContinuousUpdateInfo> drawingCacheContinuousUpdateTimeMap_;
 
     static thread_local bool isOpDropped_;
     static thread_local bool occlusionCullingEnabled_;
