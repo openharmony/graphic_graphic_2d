@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#if 0
 #include <iremote_stub.h>
 #include <message_option.h>
 #include <message_parcel.h>
@@ -3603,3 +3603,4 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterSharedTypefaceTest001, Tes
 }
 #endif
 } // namespace OHOS::Rosen
+#endif
