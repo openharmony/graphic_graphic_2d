@@ -624,6 +624,7 @@ ohos_source_set("render_service_base_src") {
       "ffrt:libffrt",
       "ability_runtime:app_manager",
     ]
+    public_external_deps = [ "hisysevent:libhisysevent" ]
   }
 
   if (enable_compiler_rust) {
@@ -875,10 +876,10 @@ ohos_shared_library("librender_service_base") {
   ]
 
   if (rosen_is_ohos) {
-    external_deps += [ "hisysevent:libhisysevent" ]
     public_external_deps += [
       "c_utils:utils",
       "graphic_surface:sync_fence",
+      "hisysevent:libhisysevent",
       "image_framework:image_native",
       "skia:skia_canvaskit",
     ]
