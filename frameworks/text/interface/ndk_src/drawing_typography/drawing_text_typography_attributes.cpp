@@ -39,12 +39,12 @@ OH_Drawing_ErrorCode GetForceReuseRasterResult(const Typography* typography, boo
 
 static std::unordered_map<OH_Drawing_TypographyAttributeId, TypographyBoolSetter>
     g_typographyBoolSetters = {
-        { TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, SetForceReuseRasterResult },
+        { TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, SetForceReuseRasterResult },
     };
 
 static std::unordered_map<OH_Drawing_TypographyAttributeId, TypographyBoolGetter>
     g_typographyBoolGetters = {
-        { TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, GetForceReuseRasterResult },
+        { TYPOGRAPHY_ATTR_B_FORCE_REUSE_RASTER_RESULT, GetForceReuseRasterResult },
     };
 }
 
