@@ -22,10 +22,11 @@ std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> RSLayerCac
 
 bool RSLayerCacheManagerBase::IsNodeUnSupportLayer(std::shared_ptr<RSRenderNode> node)
 {
-    if (!node->GetStagingRenderParams()) {
+    auto renderParams = node.GetStagingRenderParams();
+    if (!renderParams) {
         return false;
     }
-    auto layerParams = node->GetStagingRenderParams()->GetLayerParams();
+    auto layerParams = renderParams->GetLayerParams();
     if (layerParams) {
         return layerParams->isUnSupportLayer;
     }
@@ -34,10 +35,11 @@ bool RSLayerCacheManagerBase::IsNodeUnSupportLayer(std::shared_ptr<RSRenderNode>
 
 bool RSLayerCacheManagerBase::IsNodeUnSupportLayer(RSRenderNode& node)
 {
-    if (!node.GetStagingRenderParams()) {
+    auto renderParams = node.GetStagingRenderParams();
+    if (!renderParams) {
         return false;
     }
-    auto layerParams = node.GetStagingRenderParams()->GetLayerParams();
+    auto layerParams = renderParams->GetLayerParams();
     if (layerParams) {
         return layerParams->isUnSupportLayer;
     }
@@ -46,8 +48,9 @@ bool RSLayerCacheManagerBase::IsNodeUnSupportLayer(RSRenderNode& node)
 
 void RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(RSRenderNode& node, bool isUnSupportLayer)
 {
-    if (node.GetStagingRenderParams()) {
-        node.GetStagingRenderParams()->SetLayerParamsIsUnSupportLayer(isUnSupportLayer);
+    auto renderParams = node.GetStagingRenderParams();
+    if (renderParams) {
+        renderParams->SetLayerParamsIsUnSupportLayer(isUnSupportLayer);
     }
 }
 } // namespace Rosen
