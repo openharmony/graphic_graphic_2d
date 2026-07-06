@@ -840,7 +840,7 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
     }
     dstPixelMap_ = std::shared_ptr<Media::PixelMap>(dstPixelMap.release());
 
-    EFFECT_LOG_I("Init w %{public}d, h %{public}d, f %{public}d, alpha %{public}d, useDMA 1",
+    EFFECT_LOG_D("Init w %{public}d, h %{public}d, f %{public}d, alpha %{public}d, useDMA 1",
         opts.size.width, opts.size.height, srcPixelMap_->GetPixelFormat(), srcPixelMap_->GetAlphaType());
     return DrawingError::ERR_OK;
 }
