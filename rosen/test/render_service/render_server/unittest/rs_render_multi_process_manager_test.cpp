@@ -19,8 +19,12 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "render_server/rs_render_multi_process_manager.h"
+#include "rs_render_pipeline_agent.h"
 #include "render_server/rs_render_service.h"
 #include "screen_manager/rs_screen_property.h"
+#include "transaction/rs_service_to_render_connection.h"
+#include "transaction/rs_connect_to_render_process.h"
+#include "rs_composer_to_render_connection.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -29,6 +33,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr pid_t TEST_PID = 1234;
 constexpr pid_t TEST_PID_2 = 5678;
+constexpr pid_t TEST_PID_3 = 124435;
 constexpr ScreenId TEST_SCREEN_ID = 100;
 constexpr ScreenId TEST_VIRTUAL_SCREEN_ID = 300;
 constexpr ScreenId TEST_ASSOCIATED_SCREEN_ID = 400;
@@ -58,14 +63,30 @@ void RSMultiRenderProcessManagerTest::SetUpTestCase()
 
 void RSMultiRenderProcessManagerTest::TearDownTestCase()
 {
-    delete multiProcessManager_;
-    multiProcessManager_ = nullptr;
+    if (multiProcessManager_ != nullptr) {
+        multiProcessManager_->deathRecipients_.clear();
+        delete multiProcessManager_;
+        multiProcessManager_ = nullptr;
+    }
     delete renderService_;
     renderService_ = nullptr;
 }
 
 void RSMultiRenderProcessManagerTest::SetUp() {}
-void RSMultiRenderProcessManagerTest::TearDown() {}
+void RSMultiRenderProcessManagerTest::TearDown()
+{
+    if (multiProcessManager_ != nullptr) {
+        multiProcessManager_->serviceToRenderConnections_.clear();
+        multiProcessManager_->connectToRenderConnections_.clear();
+        multiProcessManager_->composerToRenderConnections_.clear();
+        multiProcessManager_->groupIdToRenderProcessPid_.clear();
+        multiProcessManager_->pidToScreenOutputMap_.clear();
+        multiProcessManager_->virtualToPhysicalScreenMap_.clear();
+        multiProcessManager_->pendingScreenConnectInfos_.clear();
+        multiProcessManager_->renderProcessReadyPromises_.clear();
+        multiProcessManager_->subprocessDeathTimes_.clear();
+    }
+}
 
 /**
  * @tc.name: CreateMultiProcessManagerTest001
@@ -227,8 +248,7 @@ HWTEST_F(RSMultiRenderProcessManagerTest, UpdateAndGetGroupIdToPid002, TestSize.
 HWTEST_F(RSMultiRenderProcessManagerTest, GetServiceToRenderConns001, TestSize.Level1)
 {
     ASSERT_NE(multiProcessManager_, nullptr);
-    auto conns = multiProcessManager_->GetServiceToRenderConns();
-    EXPECT_TRUE(conns.empty());
+    EXPECT_EQ(multiProcessManager_->serviceToRenderConnections_.size(), 0u);
 }
 
 /**
@@ -313,6 +333,44 @@ HWTEST_F(RSMultiRenderProcessManagerTest, GetConnectToRenderConnByPidLocked001, 
     ASSERT_NE(multiProcessManager_, nullptr);
     auto conn = multiProcessManager_->GetConnectToRenderConnByPidLocked(TEST_PID);
     EXPECT_EQ(conn, nullptr);
+}
+
+/**
+ * @tc.name: GotComposerToRenderConnByPid001
+ * @tc.desc: Test GotComposerToRenderConnByPid throws when pid not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GotComposerToRenderConnByPid001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    EXPECT_EQ(multiProcessManager_->composerToRenderConnections_.count(TEST_PID), 0u);
+}
+
+/**
+ * @tc.name: GotServiceToRenderConnByPid001
+ * @tc.desc: Test GotServiceToRenderConnByPid throws when pid not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GotServiceToRenderConnByPid001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto conn = multiProcessManager_->GetServiceToRenderConnByPid(TEST_PID);
+    ASSERT_EQ(conn, nullptr);
+}
+
+/**
+ * @tc.name: GotConnectToRenderConnByPid001
+ * @tc.desc: Test GotConnectToRenderConnByPid throws when pid not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GotConnectToRenderConnByPid001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto conn = multiProcessManager_->GetConnectToRenderConnByPid(TEST_PID);
+    ASSERT_EQ(conn, nullptr);
 }
 
 /**
@@ -733,47 +791,6 @@ HWTEST_F(RSMultiRenderProcessManagerTest, GetConnectToRenderConnection002, TestS
 }
 
 /**
- * @tc.name: SetRenderProcessReadyPromise001
- * @tc.desc: Test SetRenderProcessReadyPromise sets connections and fulfills promise
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, SetRenderProcessReadyPromise001, TestSize.Level1)
-{
-    ASSERT_NE(multiProcessManager_, nullptr);
-    multiProcessManager_->renderProcessReadyPromises_[TEST_PID] = std::promise<bool>();
-    sptr<RSIServiceToRenderConnection> serviceConn = nullptr;
-    sptr<RSIConnectToRenderProcess> connectConn = nullptr;
-    multiProcessManager_->SetRenderProcessReadyPromise(TEST_PID, serviceConn, connectConn);
-    EXPECT_EQ(multiProcessManager_->renderProcessReadyPromises_.count(TEST_PID), 0u);
-    EXPECT_EQ(multiProcessManager_->serviceToRenderConnections_.count(TEST_PID), 1u);
-    EXPECT_EQ(multiProcessManager_->connectToRenderConnections_.count(TEST_PID), 1u);
-    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
-    multiProcessManager_->connectToRenderConnections_.erase(TEST_PID);
-}
-
-/**
- * @tc.name: SetRenderProcessReadyPromise002
- * @tc.desc: Test SetRenderProcessReadyPromise overwrites existing connections
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, SetRenderProcessReadyPromise002, TestSize.Level1)
-{
-    ASSERT_NE(multiProcessManager_, nullptr);
-    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = nullptr;
-    multiProcessManager_->connectToRenderConnections_[TEST_PID] = nullptr;
-    multiProcessManager_->renderProcessReadyPromises_[TEST_PID] = std::promise<bool>();
-    sptr<RSIServiceToRenderConnection> serviceConn = nullptr;
-    sptr<RSIConnectToRenderProcess> connectConn = nullptr;
-    multiProcessManager_->SetRenderProcessReadyPromise(TEST_PID, serviceConn, connectConn);
-    EXPECT_EQ(multiProcessManager_->serviceToRenderConnections_.count(TEST_PID), 1u);
-    EXPECT_EQ(multiProcessManager_->connectToRenderConnections_.count(TEST_PID), 1u);
-    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
-    multiProcessManager_->connectToRenderConnections_.erase(TEST_PID);
-}
-
-/**
  * @tc.name: GetPendingScreenPropertyWithPromise001
  * @tc.desc: Test GetPendingScreenProperty returns property when promise exists
  * @tc.type: FUNC
@@ -789,6 +806,176 @@ HWTEST_F(RSMultiRenderProcessManagerTest, GetPendingScreenPropertyWithPromise001
     auto result = multiProcessManager_->GetPendingScreenProperty(TEST_PID);
     ASSERT_NE(result, nullptr);
     multiProcessManager_->renderProcessReadyPromises_.erase(TEST_PID);
+}
+
+// Newly Added Phase2
+
+HWTEST_F(RSMultiRenderProcessManagerTest, OnScreenPropertyChanged003, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = nullptr;
+    sptr<ScreenPropertyBase> property = sptr<ScreenProperty<bool>>::MakeSptr();
+    multiProcessManager_->OnScreenPropertyChanged(
+        TEST_SCREEN_ID, ScreenPropertyType::IS_VIRTUAL, property);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    renderService_->renderModeConfig_ = nullptr;
+}
+
+HWTEST_F(RSMultiRenderProcessManagerTest, OnScreenDisconnected003, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    sptr<RSIServiceToRenderConnection> conn = nullptr;
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = conn;
+    multiProcessManager_->OnScreenDisconnected(TEST_SCREEN_ID);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    renderService_->renderModeConfig_ = nullptr;
+}
+
+HWTEST_F(RSMultiRenderProcessManagerTest, OnVirtualScreenConnected002, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_ASSOCIATED_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    sptr<RSIServiceToRenderConnection> conn = nullptr;
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = conn;
+    sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
+    multiProcessManager_->OnVirtualScreenConnected(
+        TEST_VIRTUAL_SCREEN_ID, TEST_ASSOCIATED_SCREEN_ID, property);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->virtualToPhysicalScreenMap_.clear();
+    renderService_->renderModeConfig_ = nullptr;
+}
+
+HWTEST_F(RSMultiRenderProcessManagerTest, OnVirtualScreenDisconnected003, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_ASSOCIATED_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    sptr<RSIServiceToRenderConnection> conn = nullptr;
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = conn;
+    multiProcessManager_->InsertVirtualToPhysicalScreenMap(
+        TEST_VIRTUAL_SCREEN_ID, TEST_ASSOCIATED_SCREEN_ID);
+    multiProcessManager_->OnVirtualScreenDisconnected(TEST_VIRTUAL_SCREEN_ID);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->virtualToPhysicalScreenMap_.clear();
+    renderService_->renderModeConfig_ = nullptr;
+}
+
+HWTEST_F(RSMultiRenderProcessManagerTest, OnVirtualScreenConnected003, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_ASSOCIATED_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSServiceToRenderConnection> serviceConn =
+        sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = serviceConn;
+    multiProcessManager_->InsertVirtualToPhysicalScreenMap(
+        TEST_VIRTUAL_SCREEN_ID, TEST_ASSOCIATED_SCREEN_ID);
+    constexpr ScreenId OLD_PHYSICAL_SCREEN_ID = 500;
+    multiProcessManager_->InsertVirtualToPhysicalScreenMap(
+        TEST_VIRTUAL_SCREEN_ID, OLD_PHYSICAL_SCREEN_ID);
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = serviceConn;
+    sptr<RSIServiceToRenderConnection> oldScreenConn = nullptr;
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = oldScreenConn;
+    sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
+    multiProcessManager_->OnVirtualScreenConnected(
+        TEST_VIRTUAL_SCREEN_ID, TEST_ASSOCIATED_SCREEN_ID, property);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->virtualToPhysicalScreenMap_.clear();
+    renderService_->renderModeConfig_ = nullptr;
+}
+
+HWTEST_F(RSMultiRenderProcessManagerTest, OnVirtualScreenConnected004, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_ASSOCIATED_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
+    renderProcess->runner_ = runner;
+    renderProcess->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    renderProcess->renderPipeline_ = pipeline;
+    auto renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*renderProcess);
+    sptr<RSServiceToRenderConnection> serviceConn =
+        sptr<RSServiceToRenderConnection>::MakeSptr(renderProcessAgent, renderPipelineAgent);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = serviceConn;
+    sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
+    multiProcessManager_->OnVirtualScreenConnected(
+        TEST_VIRTUAL_SCREEN_ID, TEST_ASSOCIATED_SCREEN_ID, property);
+    EXPECT_EQ(multiProcessManager_->pidToScreenOutputMap_.count(TEST_PID), 1u);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->pidToScreenOutputMap_.erase(TEST_PID);
+    multiProcessManager_->virtualToPhysicalScreenMap_.clear();
+    renderService_->renderModeConfig_ = nullptr;
+}
+
+HWTEST_F(RSMultiRenderProcessManagerTest, OnVirtualScreenConnected005, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_ASSOCIATED_SCREEN_ID, TEST_GROUP_ID_2)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
+    renderProcess->runner_ = runner;
+    renderProcess->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    renderProcess->renderPipeline_ = pipeline;
+    auto renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*renderProcess);
+    sptr<RSServiceToRenderConnection> serviceConn =
+        sptr<RSServiceToRenderConnection>::MakeSptr(renderProcessAgent, renderPipelineAgent);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = serviceConn;
+    sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
+    multiProcessManager_->OnVirtualScreenConnected(
+        TEST_VIRTUAL_SCREEN_ID, TEST_ASSOCIATED_SCREEN_ID, property);
+    EXPECT_EQ(multiProcessManager_->pidToScreenOutputMap_.count(TEST_PID), 0u);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->virtualToPhysicalScreenMap_.clear();
+    renderService_->renderModeConfig_ = nullptr;
 }
 
 /**
@@ -850,7 +1037,7 @@ HWTEST_F(RSMultiRenderProcessManagerTest, GetComposerToRenderConnByPidLocked001,
 
 /**
  * @tc.name: GetComposerToRenderConnByPidLocked002
- * @tc.desc: Test GetComposerToRenderConnByPidLocked returns connection when found
+ * @tc.desc: Test GetComposerToRenderConnByPidLocked returns nullptr when found but value is nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -865,20 +1052,20 @@ HWTEST_F(RSMultiRenderProcessManagerTest, GetComposerToRenderConnByPidLocked002,
 }
 
 /**
- * @tc.name: SetRenderProcessReadyPromise003
- * @tc.desc: Test SetRenderProcessReadyPromise returns false when promise not found
+ * @tc.name: GetComposerToRenderConnByPidLocked003
+ * @tc.desc: Test GetComposerToRenderConnByPidLocked returns non-nullptr when found with valid value
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMultiRenderProcessManagerTest, SetRenderProcessReadyPromise003, TestSize.Level1)
+HWTEST_F(RSMultiRenderProcessManagerTest, GetComposerToRenderConnByPidLocked003, TestSize.Level1)
 {
     ASSERT_NE(multiProcessManager_, nullptr);
-    sptr<RSIServiceToRenderConnection> serviceConn = nullptr;
-    sptr<RSIConnectToRenderProcess> connectConn = nullptr;
-    auto result = multiProcessManager_->SetRenderProcessReadyPromise(TEST_PID, serviceConn, connectConn);
-    EXPECT_FALSE(result);
-    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
-    multiProcessManager_->connectToRenderConnections_.erase(TEST_PID);
+    sptr<IRSComposerToRenderConnection> storedConn = sptr<RSComposerToRenderConnection>::MakeSptr();
+    multiProcessManager_->composerToRenderConnections_[TEST_PID] = storedConn;
+    auto conn = multiProcessManager_->GetComposerToRenderConnByPidLocked(TEST_PID);
+    ASSERT_NE(conn, nullptr);
+    EXPECT_EQ(conn, storedConn);
+    multiProcessManager_->composerToRenderConnections_.erase(TEST_PID);
 }
 
 /**
@@ -909,24 +1096,6 @@ HWTEST_F(RSMultiRenderProcessManagerTest, CheckAndHandleSubprocessDeathOverflow0
     multiProcessManager_->subprocessDeathTimes_.push_back(oldTime);
     multiProcessManager_->CheckAndHandleSubprocessDeathOverflow();
     EXPECT_EQ(multiProcessManager_->subprocessDeathTimes_.size(), 1u);
-    multiProcessManager_->subprocessDeathTimes_.clear();
-}
-
-/**
- * @tc.name: CheckAndHandleSubprocessDeathOverflow003
- * @tc.desc: Test CheckAndHandleSubprocessDeathOverflow when count exceeds threshold
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, CheckAndHandleSubprocessDeathOverflow003, TestSize.Level1)
-{
-    ASSERT_NE(multiProcessManager_, nullptr);
-    multiProcessManager_->subprocessDeathTimes_.clear();
-    for (int i = 0; i < 3; i++) {
-        multiProcessManager_->subprocessDeathTimes_.push_back(std::chrono::steady_clock::now());
-    }
-    multiProcessManager_->CheckAndHandleSubprocessDeathOverflow();
-    EXPECT_GT(multiProcessManager_->subprocessDeathTimes_.size(), 2u);
     multiProcessManager_->subprocessDeathTimes_.clear();
 }
 
@@ -1027,46 +1196,272 @@ HWTEST_F(RSMultiRenderProcessManagerTest, HandleRenderProcessDeath002, TestSize.
 }
 
 /**
- * @tc.name: UnregisterDeathRecipient001
- * @tc.desc: Test UnregisterDeathRecipient when not found
+ * @tc.name: SetRenderProcessReadyPromise001
+ * @tc.desc: Test SetRenderProcessReadyPromise returns false when promise not found
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMultiRenderProcessManagerTest, UnregisterDeathRecipient001, TestSize.Level1)
+HWTEST_F(RSMultiRenderProcessManagerTest, SetRenderProcessReadyPromise001, TestSize.Level1)
 {
-    ASSERT_NE(multiProcessManager_, nullptr);
-    multiProcessManager_->UnregisterDeathRecipient(TEST_PID);
-    EXPECT_EQ(multiProcessManager_->deathRecipients_.count(TEST_PID), 0u);
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    auto localManager = sptr<RSMultiRenderProcessManager>::MakeSptr(*renderService);
+    ASSERT_NE(localManager, nullptr);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSIServiceToRenderConnection> serviceConn = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+    sptr<RSIConnectToRenderProcess> connectConn = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);
+    auto result = localManager->SetRenderProcessReadyPromise(TEST_PID, serviceConn, connectConn);
+    EXPECT_FALSE(result);
+    localManager->serviceToRenderConnections_.erase(TEST_PID);
+    localManager->connectToRenderConnections_.erase(TEST_PID);
 }
 
 /**
- * @tc.name: UnregisterDeathRecipient002
- * @tc.desc: Test UnregisterDeathRecipient removes recipient
+ * @tc.name: HandleExistingGroup001
+ * @tc.desc: Test HandleExistingGroup returns nullptr when serviceToRenderConnection is nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMultiRenderProcessManagerTest, UnregisterDeathRecipient002, TestSize.Level1)
+HWTEST_F(RSMultiRenderProcessManagerTest, HandleExistingGroup001, TestSize.Level1)
 {
     ASSERT_NE(multiProcessManager_, nullptr);
-    auto deathRecipient = sptr<RSMultiRenderProcessManager::RenderProcessDeathRecipient>::MakeSptr(
-        TEST_PID, wptr<RSMultiRenderProcessManager>(multiProcessManager_));
-    multiProcessManager_->deathRecipients_[TEST_PID] = deathRecipient;
-    multiProcessManager_->UnregisterDeathRecipient(TEST_PID);
-    EXPECT_EQ(multiProcessManager_->deathRecipients_.count(TEST_PID), 0u);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = nullptr;
+    multiProcessManager_->composerToRenderConnections_[TEST_PID] = nullptr;
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    auto result = multiProcessManager_->OnScreenConnected(TEST_SCREEN_ID, output, property);
+    EXPECT_EQ(result, nullptr);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->composerToRenderConnections_.erase(TEST_PID);
+    renderService_->renderModeConfig_ = nullptr;
 }
 
 /**
- * @tc.name: RenderProcessDeathRecipientOnRemoteDied001
- * @tc.desc: Test RenderProcessDeathRecipient::OnRemoteDied when token is nullptr
+ * @tc.name: HandleExistingGroup002
+ * @tc.desc: Test HandleExistingGroup returns nullptr when composerToRenderConn is nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMultiRenderProcessManagerTest, RenderProcessDeathRecipientOnRemoteDied001, TestSize.Level1)
+HWTEST_F(RSMultiRenderProcessManagerTest, HandleExistingGroup002, TestSize.Level1)
 {
     ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSServiceToRenderConnection> serviceConn = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = serviceConn;
+    multiProcessManager_->composerToRenderConnections_[TEST_PID] = nullptr;
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    auto result = multiProcessManager_->OnScreenConnected(TEST_SCREEN_ID, output, property);
+    EXPECT_EQ(result, nullptr);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->composerToRenderConnections_.erase(TEST_PID);
+    renderService_->renderModeConfig_ = nullptr;
+}
+
+/**
+ * @tc.name: HandleExistingGroup003
+ * @tc.desc: Test HandleExistingGroup returns nullptr when connectToRender is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, HandleExistingGroup003, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSServiceToRenderConnection> serviceConn = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = serviceConn;
+    multiProcessManager_->composerToRenderConnections_[TEST_PID] = nullptr;
+    multiProcessManager_->connectToRenderConnections_[TEST_PID] = nullptr;
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    auto result = multiProcessManager_->OnScreenConnected(TEST_SCREEN_ID, output, property);
+    EXPECT_EQ(result, nullptr);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->composerToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->connectToRenderConnections_.erase(TEST_PID);
+    renderService_->renderModeConfig_ = nullptr;
+}
+
+/**
+ * @tc.name: HandleExistingGroup004
+ * @tc.desc: Test HandleExistingGroup returns nullptr when NotifyScreenConnectInfoToRender fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, HandleExistingGroup004, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    renderService_->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    multiProcessManager_->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSServiceToRenderConnection> serviceConn = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = serviceConn;
+    multiProcessManager_->composerToRenderConnections_[TEST_PID] = nullptr;
+    multiProcessManager_->connectToRenderConnections_[TEST_PID] = nullptr;
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    auto result = multiProcessManager_->OnScreenConnected(TEST_SCREEN_ID, output, property);
+    EXPECT_EQ(result, nullptr);
+    multiProcessManager_->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->composerToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->connectToRenderConnections_.erase(TEST_PID);
+    renderService_->renderModeConfig_ = nullptr;
+}
+
+/**
+ * @tc.name: HandleExistingGroup005
+ * @tc.desc: Test HandleExistingGroup AddScreenOutputToProcess is called
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, HandleExistingGroup005, TestSize.Level1)
+{
+    auto localRenderService = std::make_unique<RSRenderService>();
+    auto localManager = std::make_unique<RSMultiRenderProcessManager>(*localRenderService);
+    ASSERT_NE(localManager, nullptr);
+    localRenderService->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .SetScreenIdToGroupId(TEST_SCREEN_ID, TEST_GROUP_ID)
+        .Build();
+    localManager->UpdateGroupIdToRenderProcessPid(TEST_GROUP_ID, TEST_PID);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSServiceToRenderConnection> serviceConn = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+    localManager->serviceToRenderConnections_[TEST_PID] = serviceConn;
+    auto composerConn = sptr<RSComposerToRenderConnection>::MakeSptr();
+    localManager->composerToRenderConnections_[TEST_PID] = composerConn;
+    localManager->connectToRenderConnections_[TEST_PID] = nullptr;
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    localManager->AddScreenOutputToProcess(TEST_PID, TEST_SCREEN_ID, output);
+    EXPECT_EQ(localManager->pidToScreenOutputMap_.count(TEST_PID), 1u);
+    localManager->groupIdToRenderProcessPid_.erase(TEST_GROUP_ID);
+    localManager->serviceToRenderConnections_.erase(TEST_PID);
+    localManager->composerToRenderConnections_.erase(TEST_PID);
+    localManager->connectToRenderConnections_.erase(TEST_PID);
+    localManager->pidToScreenOutputMap_.erase(TEST_PID);
+    localRenderService->renderModeConfig_ = nullptr;
+}
+
+/**
+ * @tc.name: OnRemoteDiedTokenCannotBePromoted001
+ * @tc.desc: Test OnRemoteDied when token.promote() returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, OnRemoteDiedTokenCannotBePromoted001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    auto localManager = sptr<RSMultiRenderProcessManager>::MakeSptr(*renderService);
+    ASSERT_NE(localManager, nullptr);
+    sptr<IRemoteObject> remoteObj = nullptr;
+    wptr<IRemoteObject> token = remoteObj;
     auto deathRecipient = sptr<RSMultiRenderProcessManager::RenderProcessDeathRecipient>::MakeSptr(
-        TEST_PID, wptr<RSMultiRenderProcessManager>(multiProcessManager_));
-    wptr<IRemoteObject> token = nullptr;
+        TEST_PID, wptr<RSMultiRenderProcessManager>(localManager));
     deathRecipient->OnRemoteDied(token);
+}
+
+/**
+ * @tc.name: OnRemoteDiedManagerDestroyed001
+ * @tc.desc: Test OnRemoteDied when manager has been destroyed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, OnRemoteDiedManagerDestroyed001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    auto localManager = sptr<RSMultiRenderProcessManager>::MakeSptr(*renderService);
+    ASSERT_NE(localManager, nullptr);
+    sptr<RSMultiRenderProcessManager::RenderProcessDeathRecipient> deathRecipient =
+        sptr<RSMultiRenderProcessManager::RenderProcessDeathRecipient>::MakeSptr(
+            TEST_PID, wptr<RSMultiRenderProcessManager>(localManager));
+    sptr<IRemoteObject> remoteObj = nullptr;
+    wptr<IRemoteObject> token = remoteObj;
+    deathRecipient->OnRemoteDied(token);
+}
+
+HWTEST_F(RSMultiRenderProcessManagerTest, OnRemoteDiedNormalPath001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    auto localManager = sptr<RSMultiRenderProcessManager>::MakeSptr(*renderService);
+    ASSERT_NE(localManager, nullptr);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSServiceToRenderConnection> serviceConn =
+        sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+    sptr<RSMultiRenderProcessManager::RenderProcessDeathRecipient> deathRecipient =
+        sptr<RSMultiRenderProcessManager::RenderProcessDeathRecipient>::MakeSptr(
+            TEST_PID, wptr<RSMultiRenderProcessManager>(localManager));
+    localManager->serviceToRenderConnections_[TEST_PID] = serviceConn;
+    localManager->connectToRenderConnections_[TEST_PID] = nullptr;
+    localManager->composerToRenderConnections_[TEST_PID] = nullptr;
+    localManager->groupIdToRenderProcessPid_[TEST_GROUP_ID] = TEST_PID;
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    localManager->pidToScreenOutputMap_[TEST_PID].emplace_back(TEST_SCREEN_ID, output);
+    wptr<IRemoteObject> token = serviceConn->AsObject();
+    deathRecipient->OnRemoteDied(token);
+    EXPECT_EQ(localManager->serviceToRenderConnections_.count(TEST_PID), 0u);
+    EXPECT_EQ(localManager->connectToRenderConnections_.count(TEST_PID), 0u);
+    EXPECT_EQ(localManager->composerToRenderConnections_.count(TEST_PID), 0u);
+    EXPECT_EQ(localManager->groupIdToRenderProcessPid_.count(TEST_GROUP_ID), 0u);
+    EXPECT_EQ(localManager->pidToScreenOutputMap_.count(TEST_PID), 0u);
+}
+
+HWTEST_F(RSMultiRenderProcessManagerTest, RegisterDeathRecipientAddFailed001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    auto localManager = sptr<RSMultiRenderProcessManager>::MakeSptr(*renderService);
+    ASSERT_NE(localManager, nullptr);
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+    sptr<RSServiceToRenderConnection> serviceConn =
+        sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+    localManager->RegisterDeathRecipient(TEST_PID_3, serviceConn->AsObject());
+    EXPECT_EQ(localManager->deathRecipients_.count(TEST_PID_3), 0u);
+}
+
+HWTEST_F(RSMultiRenderProcessManagerTest, OnVirtualScreenConnected006, TestSize.Level1)
+{
+    auto localRenderService = std::make_unique<RSRenderService>();
+    auto localManager = std::make_unique<RSMultiRenderProcessManager>(*localRenderService);
+    ASSERT_NE(localManager, nullptr);
+    localRenderService->renderModeConfig_ = RenderModeConfigBuilder()
+        .SetIsMultiProcessModeEnabled(true)
+        .SetDefaultRenderProcess(TEST_GROUP_ID)
+        .Build();
+    sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
+    localManager->OnVirtualScreenConnected(
+        TEST_VIRTUAL_SCREEN_ID, TEST_ASSOCIATED_SCREEN_ID, property);
 }
 } // namespace OHOS::Rosen

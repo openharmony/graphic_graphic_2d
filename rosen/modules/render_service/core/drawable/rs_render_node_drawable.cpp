@@ -128,10 +128,6 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
-        RS_LOGE("RSRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
-        return;
-    }
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     if (canvas.GetUICapture() && captureParam.captureFinished_) {
         return;
@@ -502,7 +498,7 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     if (layerSplitterProcessor_ != nullptr) {
         if (layerSplitterProcessor_->NeedDrawSplitCanvas(canvas, GetId())) {
             DrawCachedImage(*(layerSplitterProcessor_->GetSplitCanvas()), params);
-            RS_LOGW("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas");
+            RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas");
         }
         if (layerSplitterProcessor_->CanSkipOpIncNodeDraw(GetId())) {
             return;

@@ -23,7 +23,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "animation/rs_frame_rate_range.h"
 #include "hgm_update_callback.h"
 #include "screen_manager/screen_types.h"
 
@@ -39,11 +38,12 @@ constexpr int64_t IDEAL_PULSE144 = 2314815; // 2.314815ms
 const std::string HGM_CONFIG_TYPE_THERMAL_SUFFIX = "_THERMAL";
 const std::string HGM_CONFIG_TYPE_DRAGSLIDE_SUFFIX = "_DRAGSLIDE";
 const std::string HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX = "_THROWSLIDE";
-// {Suffix, {Priority, State}}
+
+// { Suffix, { Priority, State } }
 const std::unordered_map<std::string, std::pair<int32_t, bool>> HGM_CONFIG_SCREENEXT_STRATEGY_MAP = {
-    {HGM_CONFIG_TYPE_THERMAL_SUFFIX, {1, false}},
-    {HGM_CONFIG_TYPE_DRAGSLIDE_SUFFIX, {2, false}},
-    {HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX, {3, false}},
+    { HGM_CONFIG_TYPE_THERMAL_SUFFIX, { 1, false } },
+    { HGM_CONFIG_TYPE_DRAGSLIDE_SUFFIX, { 2, false } },
+    { HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX, { 3, false } },
 };
 
 enum OledRefreshRate {
@@ -117,7 +117,7 @@ enum class DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
     TOUCH_EXT_ENABLED = 2, // touch extend program
-    TOUCH_EXT_ENABLED_LTPO_FIRST = 4, // diff with 2: touch up 100ms period if has VOTER_LTPO then skip VOTER_TOUCH
+    TOUCH_EXT_ENABLED_LTPO_FIRST = 4, // diff with 2:touch up 100ms period if has VOTER_LTPO then skip VOTER_TOUCH
 };
 
 enum class MultiAppStrategyType {
@@ -293,7 +293,8 @@ public:
     const PolicyConfigData::ScreenSetting& GetScreenSetting() const override;
     const PolicyConfigData::DynamicSettingMap& GetAceSceneDynamicSettingMap() const override;
 
-    HgmErrCode GetAppStrategyConfig(const std::string& pkgName, int32_t appType,
+    HgmErrCode GetAppStrategyConfig(const std::string& pkgName,
+                                    int32_t appType,
                                     PolicyConfigData::StrategyConfig& strategyRes) const override;
 
     HgmErrCode GetDynamicAppStrategyConfig(const std::string& pkgName,

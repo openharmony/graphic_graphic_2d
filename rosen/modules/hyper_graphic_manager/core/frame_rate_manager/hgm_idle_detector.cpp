@@ -63,7 +63,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
         return;
     }
 
-    std::string validSurfaceType;
+    std::string validSurfaceType = "";
     bool hasValidFramework = false;
     switch (uiFwkType) {
         case UIFWKType::FROM_UNKNOWN:

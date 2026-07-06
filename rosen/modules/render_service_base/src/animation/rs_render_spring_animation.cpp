@@ -155,7 +155,7 @@ void RSRenderSpringAnimation::InheritSpringAnimation(
     // meanwhile, align run time for both spring animations, prepare for status inheritance
     int64_t delayTime = 0;
     if (prevAnimation == nullptr ||
-        prevAnimation->Animate(animationFraction_.GetLastFrameTime(), delayTime, isCustom, true)) {
+        prevAnimation->Animate(animationFraction_.GetLastFrameTime(), delayTime, isCustom)) {
         blendDuration_ = 0;
         return;
     }

@@ -82,6 +82,8 @@ HWTEST_F(FontParserTest, FontParserTest2, TestSize.Level0)
     std::ifstream fileStream(FILE_NAME.c_str());
     if (fileStream.is_open()) {
         EXPECT_NE(visibilityFonts.size(), 0);
+        EXPECT_EQ(visibilityFonts[0].index, 0);
+        EXPECT_FALSE(visibilityFonts[0].localFamilyName.empty());
         fileStream.close();
     } else {
         EXPECT_EQ(visibilityFonts.size(), 0);

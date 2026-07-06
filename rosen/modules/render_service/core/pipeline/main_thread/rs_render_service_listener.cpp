@@ -151,6 +151,7 @@ void RSRenderServiceListener::OnTunnelHandleChange()
 void RSRenderServiceListener::OnTunnelLayerInfoChanged(const TunnelLayerState& state)
 {
     RSTunnelRuntimeStore::SetLayerInfo(nodeId_, state.tunnelLayerId, state.property);
+    RSTunnelLayerHelper::BeginTunnelBuilding(nodeId_, state.tunnelLayerId, state.property);
     RS_LOGD("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelLayerInfoChanged id = %{public}" PRIu64
         ", tunnelLayerId = %{public}" PRIu64 ", property = %{public}u",
         nodeId_, state.tunnelLayerId, state.property);

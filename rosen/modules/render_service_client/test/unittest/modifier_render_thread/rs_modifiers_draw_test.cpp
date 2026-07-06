@@ -42,6 +42,7 @@ HWTEST_F(RSModifiersDrawTest, ConvertTransaction_EmptyTransactionConfigList001, 
     auto transactionData = std::make_unique<RSTransactionData>();
     std::vector<RSTransactionConfig> transactionConfigList;
     modifiersDraw.ConvertTransaction(transactionData, transactionConfigList);
+    EXPECT_EQ(transactionConfigList.size(), 0);
 }
 
 HWTEST_F(RSModifiersDrawTest, ConvertTransaction_NonTransactionBufferCommand001, TestSize.Level1)
@@ -56,6 +57,7 @@ HWTEST_F(RSModifiersDrawTest, ConvertTransaction_NonTransactionBufferCommand001,
     auto command = std::make_unique<TransactionBufferCommand>();
     payload.emplace_back(12345, FollowType::FOLLOW_TO_PARENT, std::move(command));
     modifiersDraw.ConvertTransaction(transactionData, transactionConfigList);
+    EXPECT_EQ(transactionConfigList.size(), 0);
 }
 
 HWTEST_F(RSModifiersDrawTest, ConvertTransaction_TransactionBufferCommand001, TestSize.Level1)
@@ -85,6 +87,7 @@ HWTEST_F(RSModifiersDrawTest, ConvertTransaction_NullCommandInPayload001, TestSi
     std::unique_ptr<RSCommand> nullCommand;
     payload.emplace_back(12345, FollowType::FOLLOW_TO_PARENT, std::move(nullCommand));
     modifiersDraw.ConvertTransaction(transactionData, transactionConfigList);
+    EXPECT_EQ(transactionConfigList.size(), 1);
 }
 } // namespace Rosen
 } // namespace OHOS

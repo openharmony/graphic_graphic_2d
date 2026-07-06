@@ -2123,4 +2123,47 @@ HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_AllBranchesCoveredTe
     colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(INVALID_PIXEL_FMT);
     ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
 }
+
+/*
+ * @tc.name: ConsumeAndUpdateBufferSimple_001
+ * @tc.desc: Test ConsumeAndUpdateBufferSimple
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBufferSimple_001, TestSize.Level2)
+{
+    NodeId id = 0;
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(id);
+    ASSERT_EQ(surfaceHandler->GetAvailableBufferCount(), 0);
+    ASSERT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(*surfaceHandler, 0));
+    surfaceHandler->IncreaseAvailableBuffer();
+    ASSERT_EQ(surfaceHandler->GetAvailableBufferCount(), 1);
+    ASSERT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(*surfaceHandler, 0));
+    surfaceHandler->consumer_ = IConsumerSurface::Create();
+    surfaceHandler->IncreaseAvailableBuffer();
+    surfaceHandler->IncreaseAvailableBuffer();
+    ASSERT_EQ(surfaceHandler->GetAvailableBufferCount(), 3);
+    ASSERT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(*surfaceHandler, 0));
+}
+
+/*
+ * @tc.name: DropFirstFlushedBufferTest
+ * @tc.desc: Test DropFirstFlushedBuffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderUtilTest, DropFirstFlushedBufferTest, TestSize.Level2)
+{
+    NodeId id = 0;
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(id);
+    ASSERT_EQ(surfaceHandler->GetAvailableBufferCount(), 0);
+    ASSERT_FALSE(RSBaseSurfaceUtil::DropFirstFlushedBuffer(*surfaceHandler, id));
+    surfaceHandler->IncreaseAvailableBuffer();
+    ASSERT_EQ(surfaceHandler->GetAvailableBufferCount(), 1);
+    ASSERT_FALSE(RSBaseSurfaceUtil::DropFirstFlushedBuffer(*surfaceHandler, id));
+    surfaceHandler->IncreaseAvailableBuffer();
+    ASSERT_EQ(surfaceHandler->GetAvailableBufferCount(), 2);
+    ASSERT_FALSE(RSBaseSurfaceUtil::DropFirstFlushedBuffer(*surfaceHandler, id));
+    surfaceHandler->consumer_ = IConsumerSurface::Create();
+    ASSERT_EQ(surfaceHandler->GetAvailableBufferCount(), 2);
+    ASSERT_FALSE(RSBaseSurfaceUtil::DropFirstFlushedBuffer(*surfaceHandler, id));
+}
 } // namespace OHOS::Rosen

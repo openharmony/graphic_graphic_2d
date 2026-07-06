@@ -44,6 +44,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, SetCacheDir_Basic001, TestSize.Level1)
 {
     auto agent = std::make_shared<RSCanvasModifiersDrawAgent>();
     agent->SetCacheDir("/test/cache");
+    EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, OnNodeCreate_Basic001, TestSize.Level1)
@@ -52,6 +53,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, OnNodeCreate_Basic001, TestSize.Level1)
     NodeId nodeId = 12345;
     std::weak_ptr<RSRenderInterface> weakInterface;
     agent->OnNodeCreate(nodeId, weakInterface);
+    EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, OnNodeRelease_Basic001, TestSize.Level1)
@@ -60,6 +62,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, OnNodeRelease_Basic001, TestSize.Level1
     NodeId nodeId = 12345;
     std::weak_ptr<RSRenderInterface> weakInterface;
     agent->OnNodeRelease(nodeId, weakInterface);
+    EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, OnNodeStateChanged_InactiveState001, TestSize.Level1)
@@ -67,6 +70,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, OnNodeStateChanged_InactiveState001, Te
     auto agent = std::make_shared<RSCanvasModifiersDrawAgent>();
     NodeId nodeId = 67890;
     agent->OnNodeStateChanged(nodeId, RSNodeState::INACTIVE);
+    EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, OnNodeStateChanged_ActiveState001, TestSize.Level1)
@@ -74,6 +78,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, OnNodeStateChanged_ActiveState001, Test
     auto agent = std::make_shared<RSCanvasModifiersDrawAgent>();
     NodeId nodeId = 67890;
     agent->OnNodeStateChanged(nodeId, RSNodeState::ACTIVE);
+    EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, ResetSurface_Basic001, TestSize.Level1)
@@ -81,6 +86,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, ResetSurface_Basic001, TestSize.Level1)
     auto agent = std::make_shared<RSCanvasModifiersDrawAgent>();
     NodeId nodeId = 12345;
     agent->ResetSurface(nodeId, 100, 100, false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, ResetSurface_SizeOutOfGpuLimit001, TestSize.Level1)
@@ -88,6 +94,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, ResetSurface_SizeOutOfGpuLimit001, Test
     auto agent = std::make_shared<RSCanvasModifiersDrawAgent>();
     NodeId nodeId = 12345;
     agent->ResetSurface(nodeId, 100, 100, true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, GetBitmap_Basic001, TestSize.Level1)
@@ -114,12 +121,14 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, UpdateCanvasContent_Basic001, TestSize.
     auto agent = std::make_shared<RSCanvasModifiersDrawAgent>();
     NodeId nodeId = 12345;
     agent->UpdateCanvasContent(nodeId, nullptr);
+    EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, SubmitAndCollectCanvasBuffers_Basic001, TestSize.Level1)
 {
     auto agent = std::make_shared<RSCanvasModifiersDrawAgent>();
     agent->SubmitAndCollectCanvasBuffers();
+    EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, SwapTransactionConfigList_Basic001, TestSize.Level1)

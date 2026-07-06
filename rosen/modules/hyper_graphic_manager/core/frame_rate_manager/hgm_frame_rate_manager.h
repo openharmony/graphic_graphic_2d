@@ -139,15 +139,16 @@ public:
     // Adaptive Vsync
     int32_t AdaptiveStatus() const;
     bool IsSupportASConfig() const { return isAdaptive_.load() == SupportASStatus::SUPPORT_AS; }
-    void UpdateASStateForFps(bool state);
     bool IsNeedAdaptiveAfterUpdateMode();
-    // called by RSHardwareThread
+    void UpdateASStateForFps(bool state);
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); }
     void SetIsGameNodeOnTree(bool isGameNodeOnTree) { isGameNodeOnTree_.store(isGameNodeOnTree); }
     void SetAdaptiveVsyncUpdateCallback(std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback);
 
+    // called by RSHardwareThread
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
+
     void SetForceUpdateCallback(std::function<void(bool)> forceUpdateCallback);
     void Init(sptr<VSyncController> rsController, sptr<VSyncController> appController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appDistributor);
@@ -155,7 +156,6 @@ public:
 
     // called by RSMainThread
     void ProcessPendingRefreshRate(uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, bool isUiDvsyncOn);
-
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     HgmIdleDetector& GetIdleDetector() { return idleDetector_; }
@@ -184,7 +184,6 @@ public:
 
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
-
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
 private:
@@ -314,11 +313,11 @@ private:
     std::atomic<bool> asStateForFps_ = false;
     // Does current game require Adaptive Sync
     int32_t isGameSupportAS_ = SupportASStatus::NOT_SUPPORT;
+    // if current game's self drawing node is on tree,default false
+    std::atomic<bool> isGameNodeOnTree_ = false;
     std::atomic<int32_t> lastIsAdaptive_ = SupportASStatus::NOT_SUPPORT;
     std::string lastGameNodeName_;
     std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback_ = nullptr;
-    // if current game's self drawing node is on tree,default false
-    std::atomic<bool> isGameNodeOnTree_ = false;
 
     std::atomic<uint64_t> timestamp_ = 0;
 

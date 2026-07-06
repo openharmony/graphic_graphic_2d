@@ -62,6 +62,13 @@ HWTEST_F(RSContentStyleModifierNGTypeTest, FlushContentModifierImmediatelyTest00
 {
     auto modifier = std::make_shared<RSContentStyleModifier>();
     modifier->FlushContentModifierImmediately();
+    EXPECT_EQ(modifier->node_.lock(), nullptr);
+ 
+    auto modifier = std::make_shared<RSContentStyleModifier>();
+    auto node = std::make_shared<RSNode>(0);
+    modifier->node_ = node;
+    modifier->FlushContentModifierImmediately();
+    EXPECT_EQ(modifier->node_.lock()->GetRSUIContext(), nullptr);
 }
  
 /**
@@ -89,18 +96,6 @@ HWTEST_F(RSContentStyleModifierNGTypeTest, RenderInClientTest002, TestSize.Level
     auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     bool ret = modifier->RenderInClient(drawCmdList, node);
     EXPECT_FALSE(ret);
-}
- 
-/**
- * @tc.name: FlushContentModifierImmediatelyTest002
- * @tc.desc: Test FlushContentModifierImmediately with non-canvas drawing node
- * @tc.type: FUNC
- */
-HWTEST_F(RSContentStyleModifierNGTypeTest, FlushContentModifierImmediatelyTest002, TestSize.Level1)
-{
-    auto node = std::make_shared<RSNode>(0);
-    auto modifier = std::make_shared<RSContentStyleModifier>();
-    modifier->FlushContentModifierImmediately();
 }
 #endif
 } // namespace OHOS::Rosen

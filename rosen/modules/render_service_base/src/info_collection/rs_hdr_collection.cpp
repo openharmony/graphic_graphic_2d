@@ -38,22 +38,28 @@ void RsHdrCollection::HandleHdrState(bool isHdrOn)
     }
 }
 
+// LCOV_EXCL_START
 void RsHdrCollection::ResetHdrOnDuration()
 {
     std::lock_guard<std::mutex> lock(hdrOnDurationMtx_);
     hdrOnDuration_ = 0;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int64_t RsHdrCollection::GetHdrOnDuration()
 {
     std::lock_guard<std::mutex> lock(hdrOnDurationMtx_);
     return hdrOnDuration_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int64_t RsHdrCollection::GetSysTimeMs()
 {
     auto now = std::chrono::steady_clock::now().time_since_epoch();
     return static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
 }
+// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS

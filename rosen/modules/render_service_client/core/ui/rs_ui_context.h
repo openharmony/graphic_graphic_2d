@@ -259,6 +259,7 @@ private:
     RSUIContext& operator=(const RSUIContext&&) = delete;
 
     void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, std::string& out);
+    void PostLastModifiersDrawThreadTask();
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     CommitTransactionCallback CreateCommitTransactionCallback();
@@ -299,7 +300,6 @@ private:
     TaskRunner taskRunner_ = TaskRunner();
     sptr<IRemoteObject> connectToRenderRemote_;
     std::function<void()> requestVsyncCallback_;
-    std::mutex requestVsyncCallbackMutex_;
     std::mutex implicitAnimatorMutex_;
     std::mutex uiPipelineNumMutex_;
     int32_t uiPipelineNum_ = UI_PiPLINE_NUM_UNDEFINED;

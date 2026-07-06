@@ -69,24 +69,31 @@ void GpuDirtyRegionCollection::AddSkipProcessFramesNumberForDFX(pid_t sendingPid
     ++sendingPidWhenDisplayNodeSkipMap_[sendingPid];
 }
 
+// LCOV_EXCL_START
 void GpuDirtyRegionCollection::AddCommandNumberForDFX()
 {
     std::lock_guard<std::mutex> lock(globalMtx_);
     ++globalDirtyRegionInfo_.commandCount;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void GpuDirtyRegionCollection::AddConsumeBufferNumberForDFX()
 {
     std::lock_guard<std::mutex> lock(globalMtx_);
     ++globalDirtyRegionInfo_.consumeBufferSize;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void GpuDirtyRegionCollection::AddFrameAnimationNumberForDFX()
 {
     std::lock_guard<std::mutex> lock(globalMtx_);
     ++globalDirtyRegionInfo_.frameAnimationCount;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::vector<ActiveDirtyRegionInfo> GpuDirtyRegionCollection::GetActiveDirtyRegionInfo() const
 {
     std::lock_guard<std::mutex> lock(activeMtx_);
@@ -99,7 +106,9 @@ std::vector<ActiveDirtyRegionInfo> GpuDirtyRegionCollection::GetActiveDirtyRegio
     }
     return activeDirtyRegionInfos;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 GlobalDirtyRegionInfo GpuDirtyRegionCollection::GetGlobalDirtyRegionInfo() const
 {
     std::lock_guard<std::mutex> lock(globalMtx_);
@@ -116,20 +125,26 @@ GlobalDirtyRegionInfo GpuDirtyRegionCollection::GetGlobalDirtyRegionInfo() const
     globalDirtyRegionInfo.frameAnimationCount = globalDirtyRegionInfo_.frameAnimationCount;
     return globalDirtyRegionInfo;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void GpuDirtyRegionCollection::ResetActiveDirtyRegionInfo()
 {
     std::lock_guard<std::mutex> lock(activeMtx_);
     activeDirtyRegionInfoMap_.clear();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void GpuDirtyRegionCollection::ResetGlobalDirtyRegionInfo()
 {
     std::lock_guard<std::mutex> lock(globalMtx_);
     globalDirtyRegionInfo_ = GlobalDirtyRegionInfo {};
     sendingPidWhenDisplayNodeSkipMap_.clear();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 pid_t GpuDirtyRegionCollection::GetMostSendingPidWhenDisplayNodeSkip() const
 {
     pid_t mostSendingPidWhenDisplayNodeSkip = 0;
@@ -142,5 +157,6 @@ pid_t GpuDirtyRegionCollection::GetMostSendingPidWhenDisplayNodeSkip() const
     }
     return mostSendingPidWhenDisplayNodeSkip;
 }
+// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS

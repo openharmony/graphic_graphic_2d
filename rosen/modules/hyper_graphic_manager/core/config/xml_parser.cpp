@@ -718,7 +718,7 @@ int32_t XMLParser::ParsePerformanceConfig(
 std::string XMLParser::ExtractPropertyValue(const std::string& propName, xmlNode& node)
 {
     HGM_LOGD("XMLParser extracting value : %{public}s", propName.c_str());
-    std::string propValue;
+    std::string propValue = "";
     xmlChar* tempValue = nullptr;
 
     if (xmlHasProp(&node, reinterpret_cast<const xmlChar*>(propName.c_str()))) {
@@ -808,7 +808,7 @@ int32_t XMLParser::ParsePageUrlStrategy(xmlNode& node,
     return EXEC_SUCCESS;
 }
 
-bool XMLParser::BuildStrategyConfig(xmlNode& currNode, PolicyConfigData::StrategyConfig& strategy)
+bool XMLParser::BuildStrategyConfig(xmlNode &currNode, PolicyConfigData::StrategyConfig &strategy)
 {
     auto min = ExtractPropertyValue("min", currNode);
     auto max = ExtractPropertyValue("max", currNode);

@@ -196,19 +196,6 @@ bool RsCommonHook::IsHwcSolidColorLayerConfig(const std::string& bundleName)
     return hwcSolidLayerConfigFromHgm_.find(bundleName) != hwcSolidLayerConfigFromHgm_.end();
 }
 
-void RsCommonHook::SetFilterUnderHwcConfigByApp(const std::string& appName, const std::string& val)
-{
-    filterUnderHwcConfig_[appName] = val;
-}
-
-std::string_view RsCommonHook::GetFilterUnderHwcConfigByApp(const std::string& appName)
-{
-    if (auto it = filterUnderHwcConfig_.find(appName); it != filterUnderHwcConfig_.end()) {
-        return it->second;
-    }
-    return "";
-}
-
 void RsCommonHook::SetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName, const std::string& val)
 {
     overlappedHwcNodeInAppEnabledConfig_.insert_or_assign(appName, val);

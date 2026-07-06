@@ -179,6 +179,11 @@ void RSGraphicTest::TestCaseCapture(bool isScreenshot)
         ::testing::UnitTest::GetInstance()->current_test_info();
     const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
         testInfo->test_case_name(), testInfo->name());
+    if (extInfo == nullptr) {
+        LOGE("RSGraphicTest::TestCaseCapture no testinfo %{public}s-%{public}s",
+            testInfo->test_case_name(), testInfo->name());
+        return;
+    }
 
     bool useDisplayCapture = isScreenshot ||
         (captureScope_ == CaptureScope::FULL_DISPLAY) ||
@@ -186,6 +191,14 @@ void RSGraphicTest::TestCaseCapture(bool isScreenshot)
     auto pixelMap = RSGraphicTestDirector::Instance().TakeScreenCaptureAndWait(
         RSParameterParse::Instance().surfaceCaptureWaitTime, useDisplayCapture);
     if (pixelMap) {
+        if (hasCaptureCrop_) {
+            pixelMap->crop({
+                static_cast<int32_t>(captureCrop_.x_),
+                static_cast<int32_t>(captureCrop_.y_),
+                static_cast<int32_t>(captureCrop_.z_),
+                static_cast<int32_t>(captureCrop_.w_)
+            });
+        }
         std::string filename = GetImageSavePath(extInfo->filePath);
         filename += testInfo->test_case_name();
         if (!extInfo->isMultiple) {
@@ -243,6 +256,7 @@ void RSGraphicTest::TearDown()
     }
 
     AfterEach();
+    ClearCaptureCrop();
 
     if (isDynamicTest) {
         PlaybackStop();
@@ -397,6 +411,18 @@ bool RSGraphicTest::RemoveSubWindow(SubWindowId id)
 void RSGraphicTest::SetCaptureScope(CaptureScope scope)
 {
     captureScope_ = scope;
+}
+
+void RSGraphicTest::SetCaptureCrop(const Vector4f& cropRect)
+{
+    captureCrop_ = cropRect;
+    hasCaptureCrop_ = true;
+}
+
+void RSGraphicTest::ClearCaptureCrop()
+{
+    hasCaptureCrop_ = false;
+    captureCrop_ = {0, 0, 0, 0};
 }
 } // namespace Rosen
 } // namespace OHOS

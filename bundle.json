@@ -80,6 +80,7 @@
           "resource_management",
           "api_metrics",
           "napi",
+          "node",
           "samgr",
           "hdf_core",
           "hilog",

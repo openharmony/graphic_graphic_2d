@@ -81,6 +81,7 @@ HWTEST_F(RSCanvasModifiersDrawableTest, ReleaseProducerSurface_NullRenderInterfa
     drawable.nodeId_ = 12345;
     std::weak_ptr<RSRenderInterface> weakInterface;
     drawable.ReleaseProducerSurface(weakInterface);
+    EXPECT_EQ(drawable.producerSurface_, nullptr);
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, ResetSurface_NullProducerSurface001, TestSize.Level1)
@@ -347,6 +348,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, StartThread_Idempotent001, TestSize.Level1)
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->StartThread();
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, PostTask_StartsThreadIfNotStarted001, TestSize.Level1)
@@ -382,6 +384,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, RemoveTask_DoesNothingWhenThreadNotStarted00
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->RemoveTask("NonExistentTask");
+    EXPECT_FALSE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, SetCacheDir_Basic001, TestSize.Level1)
@@ -389,6 +392,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, SetCacheDir_Basic001, TestSize.Level1)
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->SetCacheDir("/test/cache");
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, OnNodeCreate_Basic001, TestSize.Level1)
@@ -398,6 +402,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, OnNodeCreate_Basic001, TestSize.Level1)
     NodeId nodeId = 12345;
     std::weak_ptr<RSRenderInterface> weakInterface;
     canvasModifiersDraw->OnNodeCreate(nodeId, weakInterface);
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, OnNodeRelease_Basic001, TestSize.Level1)
@@ -407,6 +412,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, OnNodeRelease_Basic001, TestSize.Level1)
     NodeId nodeId = 12345;
     std::weak_ptr<RSRenderInterface> weakInterface;
     canvasModifiersDraw->OnNodeRelease(nodeId, weakInterface);
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, OnNodeStateChanged_InactiveState001, TestSize.Level1)
@@ -415,6 +421,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, OnNodeStateChanged_InactiveState001, TestSiz
     canvasModifiersDraw->StartThread();
     NodeId nodeId = 67890;
     canvasModifiersDraw->OnNodeStateChanged(nodeId, RSNodeState::INACTIVE);
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, OnNodeStateChanged_ActiveState001, TestSize.Level1)
@@ -423,6 +430,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, OnNodeStateChanged_ActiveState001, TestSize.
     canvasModifiersDraw->StartThread();
     NodeId nodeId = 67890;
     canvasModifiersDraw->OnNodeStateChanged(nodeId, RSNodeState::ACTIVE);
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, ResetSurface_TriggersBufferCleanup001, TestSize.Level1)
@@ -431,6 +439,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, ResetSurface_TriggersBufferCleanup001, TestS
     canvasModifiersDraw->StartThread();
     NodeId nodeId = 12345;
     canvasModifiersDraw->ResetSurface(nodeId, 100, 100, true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, GetBitmap_Basic001, TestSize.Level1)
@@ -460,6 +469,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_Basic001, TestSize.Level
     canvasModifiersDraw->StartThread();
     NodeId nodeId = 12345;
     canvasModifiersDraw->UpdateCanvasContent(nodeId, nullptr);
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, SwapTransactionConfigList_ExchangesLists001, TestSize.Level1)
@@ -491,6 +501,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, DestroyCanvasSemaphore_HandlesEmptyList001, 
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->DestroyCanvasSemaphore();
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffers_SchedulesRecurringTask001, TestSize.Level1)
@@ -498,6 +509,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffers_SchedulesRecurringTask001, 
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->CleanFreeBuffers(1000, false);
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffers_RemovesTaskWhenImmediately001, TestSize.Level1)
@@ -505,6 +517,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffers_RemovesTaskWhenImmediately0
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->CleanFreeBuffers(1000, true);
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffersImmediately_SchedulesImmediateCleanup001, TestSize.Level1)
@@ -512,6 +525,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, CleanFreeBuffersImmediately_SchedulesImmedia
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->CleanFreeBuffersImmediately();
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, DoCleanFreeBuffers_EmptyDrawableMap001, TestSize.Level1)
@@ -519,6 +533,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, DoCleanFreeBuffers_EmptyDrawableMap001, Test
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->DoCleanFreeBuffers(1000);
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollectCanvasBuffers_EmptyMap001, TestSize.Level1)
@@ -526,6 +541,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollectCanvasBuffers_EmptyMap001, T
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+    EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollectCanvasBuffers_WithSemaphore001, TestSize.Level1)

@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_EFFECT_RS_RENDER_SHAPE_BASE_H
 #define RENDER_SERVICE_BASE_EFFECT_RS_RENDER_SHAPE_BASE_H
 
+#include <cstdint>
+
 #include "effect/rs_render_effect_template.h"
 #include "effect/rs_render_property_tag.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -39,8 +41,18 @@ public:
 
     const RectF& GetTransformDrawRect() const { return transformDrawRect_; }
 
+    // Owner identity: the render property instance that Attached this shape (its `this` pointer
+    // as uintptr_t). Only that property cascades Detach (see RSRenderProperty<shape>::OnDetach).
+    // Borrowers (ONLY_VALUE, no Attach) skip, so a shared SDFShape borrowed by e.g.
+    // FrostedGlass.Shape won't be Detach'd by the borrower and won't unregister inner
+    // sub-properties still used by the real owner. Uses the instance pointer (not GetId()) so
+    // default-constructed sub-properties (id 0) don't collide.
+    uintptr_t GetOwnerId() const { return ownerId_; }
+    void SetOwnerId(uintptr_t id) { ownerId_ = id; }
+
 protected:
     RectF transformDrawRect_;
+    uintptr_t ownerId_ = 0;
 
 private:
     friend class RSNGRenderShapeHelper;

@@ -1444,4 +1444,259 @@ HWTEST_F(RSRenderPropertyTest, RSNGRenderShapeBaseSetOnlyValue, TestSize.Level1)
     prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     EXPECT_EQ(prop->stagingValue_, testShader);
 }
+
+// ----------------- SDFShape ownerId lifecycle (owner on shape object) -----------------
+// Invariants under test: Attach/SetOwnerId are paired; only the owner property
+// (ownerId_ == this) cascades Detach on OnDetach/Set(DETACHATTACH); borrowers using
+// ONLY_VALUE never Attach/SetOwnerId and thus never cascade. Sub-properties of an
+// SDF_RRECT_SHAPE are registered with id 0, so node->GetProperty(0) observes the
+// cascade effect (registered after Attach, gone after owner Detach).
+
+/**
+ * @tc.name: ShapeOwnerIdDefaultAndAccessor
+ * @tc.desc: ownerId_ defaults to 0 and round-trips via Set/Get
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeOwnerIdDefaultAndAccessor, TestSize.Level1)
+{
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shape, nullptr);
+    EXPECT_EQ(shape->GetOwnerId(), 0u);
+    shape->SetOwnerId(0x1234u);
+    EXPECT_EQ(shape->GetOwnerId(), 0x1234u);
+}
+
+/**
+ * @tc.name: ShapeOnAttachSetsOwnerIdToSelf
+ * @tc.desc: OnAttach records the attaching property's this as ownerId and registers sub-properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeOnAttachSetsOwnerIdToSelf, TestSize.Level1)
+{
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shape, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shape, id);
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node);
+    EXPECT_EQ(shape->GetOwnerId(), reinterpret_cast<uintptr_t>(prop.get()));
+    EXPECT_NE(node->GetProperty(0), nullptr); // sub-property registered
+    EXPECT_NE(node->GetProperty(id), nullptr); // property itself registered
+}
+
+/**
+ * @tc.name: ShapeOnAttachNullStagingValueNoOp
+ * @tc.desc: OnAttach is a no-op when stagingValue_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeOnAttachNullStagingValueNoOp, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>();
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node); // stagingValue_ null, OnAttach must not touch any shape
+    EXPECT_EQ(node->GetProperty(id), nullptr); // property itself still registered
+}
+
+/**
+ * @tc.name: ShapeOnDetachCascadesWhenOwnerMatches
+ * @tc.desc: OnDetach cascades Detach to the shape only when ownerId equals self
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeOnDetachCascadesWhenOwnerMatches, TestSize.Level1)
+{
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shape, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shape, id);
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node);
+    ASSERT_NE(node->GetProperty(0), nullptr);
+    prop->Detach();
+    EXPECT_EQ(node->GetProperty(0), nullptr); // cascade unregistered sub-property
+}
+
+/**
+ * @tc.name: ShapeOnDetachSkipsWhenOwnerMismatch
+ * @tc.desc: OnDetach skips cascade when ownerId differs from self, preserving sub-properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeOnDetachSkipsWhenOwnerMismatch, TestSize.Level1)
+{
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shape, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shape, id);
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node);
+    shape->SetOwnerId(reinterpret_cast<uintptr_t>(prop.get()) + 1); // owned by another instance
+    prop->Detach();
+    EXPECT_NE(node->GetProperty(0), nullptr); // cascade skipped, sub-property preserved
+}
+
+/**
+ * @tc.name: ShapeOnDetachNullStagingValueNoOp
+ * @tc.desc: OnDetach is a no-op when stagingValue_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeOnDetachNullStagingValueNoOp, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>();
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node);
+    prop->Detach(); // no crash, no cascade
+    EXPECT_EQ(node->GetProperty(id), nullptr);
+}
+
+/**
+ * @tc.name: ShapeSetDetachAttachCascadesOldAndAttachesNew
+ * @tc.desc: Set(OVERWRITE) detaches the old owner shape and attaches the new one
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeSetDetachAttachCascadesOldAndAttachesNew, TestSize.Level1)
+{
+    auto shapeA = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto shapeB = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shapeA, nullptr);
+    ASSERT_NE(shapeB, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shapeA, id);
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node);
+    prop->Set(shapeB);
+    EXPECT_EQ(prop->stagingValue_, shapeB);
+    EXPECT_EQ(shapeB->GetOwnerId(), reinterpret_cast<uintptr_t>(prop.get()));
+    EXPECT_NE(node->GetProperty(0), nullptr); // new shape sub-property registered
+}
+
+/**
+ * @tc.name: ShapeSetDetachAttachSkipsCascadeWhenOwnerMismatch
+ * @tc.desc: Set(OVERWRITE) skips detaching the old shape when its ownerId differs from self
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeSetDetachAttachSkipsCascadeWhenOwnerMismatch, TestSize.Level1)
+{
+    auto shapeA = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto shapeB = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shapeA, nullptr);
+    ASSERT_NE(shapeB, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shapeA, id);
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node);
+    shapeA->SetOwnerId(reinterpret_cast<uintptr_t>(prop.get()) + 1); // not owned by this prop
+    prop->Set(shapeB);
+    EXPECT_EQ(prop->stagingValue_, shapeB);
+    EXPECT_EQ(shapeB->GetOwnerId(), reinterpret_cast<uintptr_t>(prop.get()));
+    EXPECT_NE(node->GetProperty(0), nullptr); // old shapeA sub-property kept (cascade skipped)
+}
+
+/**
+ * @tc.name: ShapeSetDetachAttachNoDetachWhenStagingValueNull
+ * @tc.desc: Set(OVERWRITE) does not detach when stagingValue_ is null, then attaches the new value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeSetDetachAttachNoDetachWhenStagingValueNull, TestSize.Level1)
+{
+    auto shapeB = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shapeB, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>();
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node); // stagingValue_ null, OnAttach no-op
+    prop->Set(shapeB);
+    EXPECT_EQ(prop->stagingValue_, shapeB);
+    EXPECT_EQ(shapeB->GetOwnerId(), reinterpret_cast<uintptr_t>(prop.get()));
+    EXPECT_NE(node->GetProperty(0), nullptr);
+}
+
+/**
+ * @tc.name: ShapeSetDetachAttachNoDetachNoAttachWhenNodeNull
+ * @tc.desc: Set(OVERWRITE) neither detaches nor attaches when the node is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeSetDetachAttachNoDetachNoAttachWhenNodeNull, TestSize.Level1)
+{
+    auto shapeA = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto shapeB = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shapeA, nullptr);
+    ASSERT_NE(shapeB, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shapeA, id);
+    prop->Set(shapeB); // never Attached, node_ null
+    EXPECT_EQ(prop->stagingValue_, shapeB);
+    EXPECT_EQ(shapeB->GetOwnerId(), 0u); // SetOwnerId not called
+}
+
+/**
+ * @tc.name: ShapeSetDetachAttachNoAttachWhenValueNull
+ * @tc.desc: Set(OVERWRITE) detaches the old shape but does not attach a null value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeSetDetachAttachNoAttachWhenValueNull, TestSize.Level1)
+{
+    auto shapeA = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shapeA, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shapeA, id);
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node);
+    ASSERT_NE(node->GetProperty(0), nullptr);
+    prop->Set(nullptr);
+    EXPECT_EQ(prop->stagingValue_, nullptr);
+    EXPECT_EQ(node->GetProperty(0), nullptr); // old shapeA sub-property unregistered
+}
+
+/**
+ * @tc.name: ShapeSetEarlyReturnWhenValueEqualsStaging
+ * @tc.desc: Set returns early when value equals stagingValue_, leaving ownerId untouched
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeSetEarlyReturnWhenValueEqualsStaging, TestSize.Level1)
+{
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shape, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shape, id);
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node);
+    auto ownerBefore = shape->GetOwnerId();
+    prop->Set(shape); // same value, early return
+    EXPECT_EQ(prop->stagingValue_, shape);
+    EXPECT_EQ(shape->GetOwnerId(), ownerBefore);
+}
+
+/**
+ * @tc.name: ShapeSetOnlyValueEarlyReturn
+ * @tc.desc: Set(ONLY_VALUE) updates stagingValue_ without attaching or setting ownerId
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeSetOnlyValueEarlyReturn, TestSize.Level1)
+{
+    auto shapeA = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto shapeB = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shapeA, nullptr);
+    ASSERT_NE(shapeB, nullptr);
+    auto prop = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shapeA, id);
+    auto node = std::make_shared<RSRenderNode>(1);
+    prop->Attach(*node);
+    prop->Set(shapeB, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_EQ(prop->stagingValue_, shapeB);
+    EXPECT_EQ(shapeB->GetOwnerId(), 0u); // borrower path, no SetOwnerId
+    EXPECT_EQ(shapeA->GetOwnerId(), reinterpret_cast<uintptr_t>(prop.get())); // old owner unchanged
+}
+
+/**
+ * @tc.name: ShapeBorrowerDetachPreservesOwnerSubProperties
+ * @tc.desc: Borrower (ONLY_VALUE) Detach skips cascade and keeps owner's sub-properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, ShapeBorrowerDetachPreservesOwnerSubProperties, TestSize.Level1)
+{
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shape, nullptr);
+    auto node = std::make_shared<RSRenderNode>(1);
+    auto ownerProp = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(shape, id);
+    ownerProp->Attach(*node);
+    ASSERT_EQ(shape->GetOwnerId(), reinterpret_cast<uintptr_t>(ownerProp.get()));
+    ASSERT_NE(node->GetProperty(0), nullptr);
+    // borrower shares the same shape via ONLY_VALUE: no Attach, no SetOwnerId
+    auto borrowerProp = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>();
+    borrowerProp->Set(shape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    borrowerProp->Detach(); // must skip cascade
+    EXPECT_NE(node->GetProperty(0), nullptr); // owner sub-properties preserved
+    EXPECT_EQ(shape->GetOwnerId(), reinterpret_cast<uintptr_t>(ownerProp.get()));
+    ownerProp->Detach(); // owner now cascades
+    EXPECT_EQ(node->GetProperty(0), nullptr);
+}
 } // namespace OHOS::Rosen

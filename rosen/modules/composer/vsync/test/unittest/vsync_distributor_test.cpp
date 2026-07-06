@@ -1328,6 +1328,35 @@ HWTEST_F(VSyncDistributorTest, ConnectionsPostEventTest004, Function | MediumTes
 }
 
 /*
+* Function: ComputeActualPeriodTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test ComputeActualPeriod
+ */
+HWTEST_F(VSyncDistributorTest, ComputeActualPeriodTest, Function | MediumTest| Level3)
+{
+    auto mode = vsyncDistributor->vsyncMode_;
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPO;
+    sptr<VSyncConnection> con = sptr<VSyncConnection>::MakeSptr(vsyncDistributor, "TestComputeActualPeriod");
+    con->highPriorityState_ = false;
+    con->highPriorityRate_ = -1; // -1 = disable mode
+    int64_t period = 1000000; // 1000000ns == 1.0ms
+    int64_t actualPeriod = 0;
+    bool isDvsyncController = false;
+    vsyncDistributor->ComputeActualPeriod(con, period, actualPeriod, isDvsyncController);
+    ASSERT_EQ(actualPeriod, 0);
+
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    con->highPriorityState_ = true;
+    con->highPriorityRate_ = 2; // 2 = active mode
+    vsyncDistributor->ComputeActualPeriod(con, period, actualPeriod, isDvsyncController);
+    ASSERT_EQ(actualPeriod, 2000000);
+
+    vsyncDistributor->vsyncMode_ = mode;
+}
+
+/*
 * Function: DisableDVSyncControllerTest001
 * Type: Function
 * Rank: Important(2)

@@ -387,8 +387,8 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
         auto allTypeDescription = finalRange.GetAllTypeDescription();
         HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
-        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%u],"
-            " desc: [%s]", frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
+        RS_TRACE_NAME_FMT("%s: isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d], desc: [%s]",
+            __func__, frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
         DeliverRefreshRateVote(
             { "VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo() }, ADD_VOTE);
     } else {
@@ -475,7 +475,6 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
 
     UpdateGuaranteedPlanVote(timestamp_);
     idleDetector_.ResetAceAnimatorExpectedFrameRate();
-
     // changeGenerator only once in a single vsync period
     if (!changeGeneratorRateValid_.load()) {
         return;
@@ -703,7 +702,6 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         }
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
-        RS_TRACE_NAME_FMT("%s: stylusVec size = %zu", __func__, stylusVec_.size());
         HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
@@ -832,7 +830,6 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::TOUCH_EVENT);
     }
-
     // if hover frame up switch is open, POINTER_ACTION_PROXIMITY_IN and
     // POINTER_ACTION_PROXIMITY_OUT need to transform to TOUCH_DOWN and TOUCH_UP
     if (auto configData = HgmCore::Instance().GetPolicyConfigData();
@@ -843,7 +840,6 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
             touchStatus = TOUCH_UP;
         }
     }
-
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         HGM_LOGD("[touch manager] down");
         PolicyConfigData::StrategyConfig strategyRes;
@@ -960,7 +956,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 
 void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& activeRect)
 {
-    RS_TRACE_NAME_FMT("%s: screenId:%d activeRect(%d, %d, %d, %d)",
+    RS_TRACE_NAME_FMT("%s: screenId:%" PRIu64 " activeRect(%d, %d, %d, %d)",
         __func__, id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     auto& hgmCore = HgmCore::Instance();
     if (auto screen = hgmCore.GetScreen(id);
@@ -1034,8 +1030,7 @@ void HgmFrameRateManager::HandleScreenExtStrategyChange(bool status, const std::
 
     std::string curScreenStrategyId = GetCurScreenExtStrategyId();
     if (curScreenStrategyId != curScreenStrategyId_) {
-        RS_TRACE_NAME_FMT("%s: type:%s, status:%d",
-            __func__, curScreenStrategyId.c_str(), status);
+        RS_TRACE_NAME_FMT("%s: type:%s, status:%d", __func__, curScreenStrategyId.c_str(), status);
         HILOG_COMM_INFO("HgmFrameRateManager::HandleScreenExtStrategyChange type:%{public}s, status:%{public}d",
             curScreenStrategyId.c_str(), status);
         curScreenStrategyId_ = curScreenStrategyId;

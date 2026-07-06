@@ -57,9 +57,9 @@ public:
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     uint32_t bufferWidth_;
     uint32_t bufferHeight_;
+    bool isDfxDrawed_ = false;
 };
 
 } // namespace OHOS::Rosen
 
 #endif // RS_SPLIT_SURFACE_H
-

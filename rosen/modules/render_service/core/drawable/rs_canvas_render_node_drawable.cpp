@@ -81,11 +81,12 @@ bool RSCanvasRenderNodeDrawable::IsUiRangeCaptureEndNode()
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
+    SetDrawSkipType(DrawSkipType::NONE);
     if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
         RS_LOGE("RSCanvasRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
+        SetDrawSkipType(DrawSkipType::MEMORYOVER_SKIP);
         return;
     }
-    SetDrawSkipType(DrawSkipType::NONE);
     // Draw only when should paint is valid or when this node is the end node of the range ui-capture
     bool shouldPaint = ShouldPaint() || (canvas.GetUICapture() && IsUiRangeCaptureEndNode());
     if (!shouldPaint) {

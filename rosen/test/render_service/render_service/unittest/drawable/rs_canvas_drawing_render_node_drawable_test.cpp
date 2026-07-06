@@ -1084,16 +1084,18 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestS
     drawable->renderParams_->shouldPaint_ = true;
     drawable->renderParams_->contentEmpty_ = false;
 
+    // Mark process as abnormal
     pid_t pid = ExtractPid(nodeId);
     MemorySnapshot::Instance().SetAbnormalProcess(pid);
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     
+    // OnDraw should return early for abnormal process
     drawable->OnDraw(canvas);
-    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
-    ASSERT_TRUE(isAbnormal);
+    ASSERT_EQ(drawable->GetDrawSkipType(), DrawSkipType::MEMORYOVER_SKIP);
     
+    // Clean up
     std::set<pid_t> exitedPids = {pid};
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1134,6 +1136,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentTest, TestSize.
     auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
     params->SetBufferDraw(true);
     drawable->DrawCustomContent(canvas);
+    ASSERT_EQ(drawable->surface_, nullptr);
 }
  
 /**
@@ -1178,6 +1181,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCaptureImageBufferDrawTest, 
     drawable->DrawCaptureImage(canvas);
     drawable->image_ = std::make_shared<Drawing::Image>();
     drawable->DrawCaptureImage(canvas);
+    ASSERT_EQ(drawable->surface_, nullptr);
 }
  
 /**

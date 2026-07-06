@@ -99,6 +99,8 @@ struct JankFrames {
     float lastTotalHitchTimeSteady_ = 0;
     float maxHitchTime_ = 0;
     float lastMaxHitchTime_ = 0;
+    std::vector<int32_t> jankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
+ 	std::vector<int32_t> lastJankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
     Rosen::DataBaseRs info_;
 };
 
@@ -207,6 +209,7 @@ private:
     void SetAnimationTraceEnd(JankFrames& jankFrames);
     void CheckAnimationTraceTimeout();
     void ClearAllAnimation();
+    std::string GetJankCountStr(const std::vector<int32_t>& jankCount) const;
     std::string GetSceneDescription(const DataBaseRs& info) const;
     std::pair<int64_t, std::string> GetAnimationId(const DataBaseRs& info) const;
     int32_t GetTraceIdInit(const DataBaseRs& info, int64_t setTimeSteady);

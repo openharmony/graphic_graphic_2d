@@ -18,6 +18,7 @@
 #include <memory>
 #include <unistd.h>
 
+#include "common/rs_backlight_thread.h"
 #include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
@@ -1510,11 +1511,14 @@ void RSRenderComposer::HitchsDump(std::string& dumpString, std::string& layerArg
 
 void RSRenderComposer::SetScreenBacklight(uint32_t level)
 {
-    if (hdiOutput_ == nullptr) {
+    auto hdiOutput = hdiOutput_;
+    if (hdiOutput == nullptr) {
         RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);
         return;
     }
-    hdiOutput_->SetScreenBacklight(level);
+    RSBacklightThread::Instance().PostTask([hdiOutput, level]() {
+        hdiOutput->SetScreenBacklight(level);
+    });
 }
 
 void RSRenderComposer::SetScreenLinearMatrix(const std::vector<float>& matrix)

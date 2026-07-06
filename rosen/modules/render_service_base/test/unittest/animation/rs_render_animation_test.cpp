@@ -79,9 +79,9 @@ public:
     {
         return state_;
     }
-    bool Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom, bool isOnTree = true) override
+    bool Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom) override
     {
-        return RSRenderAnimation::Animate(time, minLeftDelayTime, isCustom, isOnTree);
+        return RSRenderAnimation::Animate(time, minLeftDelayTime, isCustom);
     }
     void SetAsGroupAnimationChild()
     {
@@ -989,7 +989,7 @@ HWTEST_F(RSRenderAnimationTest, AnimateWithGroupWaiting, TestSize.Level1)
 
     // Call Animate - should call AnimateOnGroupWaiting and return false
     int64_t minLeftDelayTime = 100;
-    bool result = renderAnimation->Animate(200, minLeftDelayTime, false, true);
+    bool result = renderAnimation->Animate(200, minLeftDelayTime, false);
 
     EXPECT_FALSE(result);
     EXPECT_TRUE(renderAnimation->IsGroupWaiting());

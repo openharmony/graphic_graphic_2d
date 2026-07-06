@@ -31,7 +31,7 @@ RSLayerSplitManager* RSLayerSplitManager::GetInstance()
 RSLayerSplitManager::RSLayerSplitManager()
 {
     isGlobalEnabled_ = RSSystemParameters::GetLayerSplitterEnable();
-    LAYER_SPLIT_LOGI("%{public}s isGlobalEnabled: %{public}d", __func__, isGlobalEnabled_);
+    LAYER_SPLIT_LOGD("%{public}s isGlobalEnabled: %{public}d", __func__, isGlobalEnabled_);
 }
 
 void RSLayerSplitManager::SetEnabled(bool isEnabled)
@@ -40,12 +40,11 @@ void RSLayerSplitManager::SetEnabled(bool isEnabled)
         return;
     }
     isEnabled_ = isEnabled;
-    LAYER_SPLIT_LOGI("%{public}s isEnabled: %{public}d", __func__, isEnabled_);
+    LAYER_SPLIT_LOGD("%{public}s isEnabled: %{public}d", __func__, isEnabled_);
 }
 
-void RSLayerSplitManager::Reset(uint64_t vsyncId)
+void RSLayerSplitManager::Reset()
 {
-    LAYER_SPLIT_LOGD("Reset vsync:%{public}" PRIu64, vsyncId);
     if (isEnabled_ && selectorVec_.empty()) {
         selectorVec_.emplace_back(OpincSplitNodeSelector::GetInstance());
     } else if (!isEnabled_ && !selectorVec_.empty()) {
@@ -138,7 +137,7 @@ void RSLayerSplitManager::UpdatePlanAndDirtyRegion(std::shared_ptr<RSDirtyRegion
     }
 }
 
-void RSLayerSplitManager::Sync(uint64_t vsyncId)
+void RSLayerSplitManager::Sync()
 {
     std::vector<NodeId> nodeId2RemoveVec;
 
@@ -177,33 +176,35 @@ void RSLayerSplitManager::Sync(uint64_t vsyncId)
     }
 }
 
-void RSLayerSplitManager::DrawDfx(std::shared_ptr<RSPaintFilterCanvas> canvas, uint64_t vsyncId)
+bool RSLayerSplitManager::CheckOpIncNodeFromCommand(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
-    if (!canvas) {
-        return;
-    }
-    for (const auto& [id, planner] : plannerMap_) {
-        auto processorIt = processorMap_.find(id);
-        if (processorIt == processorMap_.end() || !processorIt->second) {
-            continue;
-        }
-        processorIt->second->DrawDfx();
-    }
-}
-
-bool RSLayerSplitManager::CheckDoDirectCompositionWithSplitLayer(
-    std::shared_ptr<TransactionDataMap> transactionDataEffective, bool doDirectComposition)
-{
-    if (!doDirectComposition) {
-        return false;
-    }
-
     if (plannerMap_.empty()) {
         return false;
     }
 
     for (const auto& [id, planner] : plannerMap_) {
-        if (!planner->CheckDoDirectCompositionWithSplitLayer(transactionDataEffective)) {
+        for (auto& [nodeId, followType, command] : rsTransactionData->GetPayload()) {
+            if (command == nullptr) {
+                continue;
+            }
+
+            if (!planner->CheckOpIncNodeFromCommand(command->GetNodeId())) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool RSLayerSplitManager::CheckDoDirectCompositionWithSplitLayer()
+{
+    if (plannerMap_.empty()) {
+        return false;
+    }
+
+    for (const auto& [id, planner] : plannerMap_) {
+        if (!planner->CheckCanDoDirectComposition()) {
             return false;
         }
     }

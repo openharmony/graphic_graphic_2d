@@ -25,7 +25,6 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_trace.h"
 
-#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
@@ -103,7 +102,7 @@ const std::unordered_set<RSDrawableSlot> edrDrawableSlots = {
     RSDrawableSlot::BACKGROUND_NG_SHADER,
     RSDrawableSlot::COMPOSITING_FILTER,
     RSDrawableSlot::BLENDER,
-    RSDrawableSlot::OVERLAY_NG_SHADER,
+    RSDrawableSlot::COVERAGE_NG_SHADER,
 };
 
 // ensure the corresponding drawable type inherits from RSFilterDrawable.
@@ -1134,7 +1133,6 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", VsyncId: " + std::to_string(curFrameInfoDetail_.curFrameVsyncId);
         out += ", IsSubTreeSkipped: " + std::to_string(curFrameInfoDetail_.curFrameSubTreeSkipped);
         out += ", ReverseChildren: " + std::to_string(curFrameInfoDetail_.curFrameReverseChildren);
-        out += ", zOrder: " + std::to_string(hwcRecorder_.GetZOrderForHwcEnableByFilter());
         out += ", hasDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SELF]);
         out += ", hasChildrenDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SUBTREE]);
         out += ", allHwcAndFilterNode: {";
@@ -1711,15 +1709,11 @@ void RSRenderNode::FallbackAnimationsToRoot()
         }
 
         animation->Detach(true);
+        // avoid infinite loop for fallback animation
+        animation->SetRepeatCount(1);
         if (animation->IsGroupAnimationChild()) {
             animation->Attach(target.get());
             animation->RemoveFromGroupAnimator();
-        }
-        if (animation->GetRepeatCount() == -1) {
-            RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace("Node destructor: finish infinite animations",
-                animation->GetTargetId(), animation->GetAnimationId(), false);
-            animation->Finish();
-            continue;
         }
         target->AddAnimation(std::move(animation));
     }
@@ -3342,11 +3336,9 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_EFFECT))) {
         ProcessBehindWindowAfterApplyModifiers();
     }
-#ifndef ROSEN_ARKUI_X
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_UNION))) {
         RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(shared_from_this());
     }
-#endif
     if UNLIKELY(debugMode) {
         RS_COLD_LOGI("RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
             " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(), isTextureExportNode_);
@@ -4097,9 +4089,7 @@ void RSRenderNode::OnTreeStateChanged()
     if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
         ProcessBehindWindowOnTreeStateChanged();
     }
-#ifndef ROSEN_ARKUI_X
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(shared_from_this());
-#endif
 }
 
 void RSRenderNode::HandleNodeRemovedFromTree()
@@ -4410,10 +4400,7 @@ void RSRenderNode::DestroyAnimationInRender()
 
 void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    if (!animationManager_) {
-        animationManager_ = std::make_shared<RSAnimationManager>();
-    }
-    animationManager_->AddAnimation(animation);
+    GetOrCreateAnimationManager()->AddAnimation(animation);
 }
 
 RectI RSRenderNode::GetOldDirty() const
@@ -4949,12 +4936,12 @@ void RSRenderNode::UpdateDrawableEnableEDR()
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
     auto& drawablePtr =
-        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::OVERLAY_NG_SHADER));
+        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::COVERAGE_NG_SHADER));
     if (!drawablePtr) {
         return;
     }
     drawablePtr->OnUpdate(*shared_from_this());
-    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::OVERLAY_NG_SHADER);
+    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COVERAGE_NG_SHADER);
     // The illuminated node has no attribute changes, so it does not call applymodifier, and consequently does not
     // call SetEnableHdrEffect. Therefore, here we need call SetEnableHdrEffect.
     SetEnableHdrEffect(drawablePtr->GetEnableEDR());

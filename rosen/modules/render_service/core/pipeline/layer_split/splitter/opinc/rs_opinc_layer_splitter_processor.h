@@ -50,6 +50,7 @@ private:
     RectF srcRect_;
     RectF dstRect_;
     std::shared_ptr<RequestController> requestController_ = nullptr;
+    bool drawDfxEnabled_ = false;
 };
 
 } // namespace OHOS::Rosen

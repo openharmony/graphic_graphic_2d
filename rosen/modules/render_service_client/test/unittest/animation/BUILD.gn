@@ -26,7 +26,6 @@ ohos_unittest("RSAnimationTest") {
   sources = [
     "rs_animation_callback_test.cpp",
     "rs_animation_test.cpp",
-    "rs_modifier_manager_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]
@@ -58,6 +57,7 @@ ohos_unittest("RSAnimationTest1") {
     "rs_implicit_animator_test.cpp",
     "rs_interactive_implict_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
+    "rs_particle_animation_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]
@@ -84,7 +84,6 @@ ohos_unittest("RSAnimationTest2") {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
   sources = [
-    "rs_animation_base_test.cpp",
     "rs_motion_path_option_test.cpp",
     "rs_node_animate_supplement_test.cpp",
     "rs_path_animation_test.cpp",

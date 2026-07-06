@@ -143,6 +143,7 @@ enum class DrawSkipType : uint8_t {
     SCREEN_STATE_INVALID = 35,
     SCREEN_FREEZE = 36,
     BACKFACE_SKIP = 37,
+    MEMORYOVER_SKIP = 38,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {

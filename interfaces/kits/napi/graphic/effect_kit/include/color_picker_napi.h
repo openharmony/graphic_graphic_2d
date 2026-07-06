@@ -93,7 +93,7 @@ private:
     static thread_local std::shared_ptr<ColorPicker> sColorPicker_;
 
     // native var
-    std::shared_ptr<ColorPicker> nativeColorPicker_;
+    std::shared_ptr<ColorPicker> nativeColorPicker_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

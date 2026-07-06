@@ -1831,6 +1831,77 @@ HWTEST_F(RSMainThreadTest, IsMultiDisplayTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsMultiDisplayTest004
+ * @tc.desc: Test IsMultiDisplay when single RSScreenRenderNode has internal connection type
+ * @tc.type: FUNC
+ * @tc.require: issue#24667
+ */
+HWTEST_F(RSMainThreadTest, IsMultiDisplayTest004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    ASSERT_FALSE(mainThread->IsMultiDisplay());
+
+    mainThread->isMultiDisplayChange_ = false;
+    ASSERT_FALSE(mainThread->GetMultiDisplayChange());
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(100, 0, rsContext->weak_from_this());
+    auto childNode = std::make_shared<RSRenderNode>(300, true);
+    node->AddChild(childNode);
+    node->screenProperty_.Set<ScreenPropertyType::CONNECTION_TYPE>(
+        static_cast<uint32_t>(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL));
+    auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+    ASSERT_FALSE(mainThread->IsMultiDisplay());
+    ASSERT_FALSE(mainThread->GetMultiDisplayChange());
+
+    nodeMap.UnregisterRenderNode(node->GetId());
+    ASSERT_FALSE(mainThread->IsMultiDisplay());
+}
+
+/**
+ * @tc.name: IsMultiDisplayTest005
+ * @tc.desc: Test IsMultiDisplay when multiple RSScreenRenderNode with different connection types
+ * @tc.type: FUNC
+ * @tc.require: issue#24667
+ */
+HWTEST_F(RSMainThreadTest, IsMultiDisplayTest005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    ASSERT_FALSE(mainThread->IsMultiDisplay());
+
+    mainThread->isMultiDisplayChange_ = false;
+    ASSERT_FALSE(mainThread->GetMultiDisplayChange());
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node1 = std::make_shared<RSScreenRenderNode>(100, 0, rsContext->weak_from_this());
+    auto childNode1 = std::make_shared<RSRenderNode>(301, true);
+    node1->AddChild(childNode1);
+    node1->screenProperty_.Set<ScreenPropertyType::CONNECTION_TYPE>(
+        static_cast<uint32_t>(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL));
+
+    auto node2 = std::make_shared<RSScreenRenderNode>(200, 0, rsContext->weak_from_this());
+    auto childNode2 = std::make_shared<RSRenderNode>(302, true);
+    node2->AddChild(childNode2);
+    node2->screenProperty_.Set<ScreenPropertyType::CONNECTION_TYPE>(
+        static_cast<uint32_t>(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL));
+
+    auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node1);
+    nodeMap.RegisterRenderNode(node2);
+    ASSERT_TRUE(mainThread->IsMultiDisplay());
+    ASSERT_TRUE(mainThread->GetMultiDisplayChange());
+
+    nodeMap.UnregisterRenderNode(node1->GetId());
+    nodeMap.UnregisterRenderNode(node2->GetId());
+    ASSERT_FALSE(mainThread->IsMultiDisplay());
+}
+
+/**
  * @tc.name: HandlePowerStatusChangedTest001
  * @tc.desc: Test HandlePowerStatusChanged when ScreenPropertyType is not POWER_STATUS
  * @tc.type: FUNC
@@ -6930,52 +7001,6 @@ HWTEST_F(RSMainThreadTest, AnimateWithAnimationManager, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSMainThreadTest AnimateWithAnimationManager end";
 }
-
-/**
- * @tc.name: RequestDelayedVSyncForAnimation_BasicFunction001
- * @tc.desc: Test RequestDelayedVSyncForAnimation basic function with normal parameters.
- *           This method was updated in commit 974b560f with optimization (pre-calculate maxDelayFromTimestamp).
- * @tc.type:FUNC
- */
-HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_BasicFunction001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_BasicFunction001 start";
-
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    int64_t minLeftDelayTime = 100;
-    uint64_t timestamp = 1000000;
-    int64_t nextFrameTime = 0;
-
-    mainThread->RequestDelayedVSyncForAnimation(minLeftDelayTime, timestamp, nextFrameTime);
-
-    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_BasicFunction001 end";
-}
-
-/**
- * @tc.name: RequestDelayedVSyncForAnimation_DelayOverflowClamp001
- * @tc.desc: Test RequestDelayedVSyncForAnimation when delayTimeNs > maxDelayFromTimestamp.
- *           Line 3842 branch: if (delayTimeNs > maxDelayFromTimestamp) -> true
- *           When timestamp is near INT64_MAX, maxDelayFromTimestamp is small,
- *           delayTimeNs can exceed it and should be clamped.
- * @tc.type:FUNC
- */
-HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_DelayOverflowClamp001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 start";
-
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    int64_t minLeftDelayTime = 18;
-    uint64_t timestamp = static_cast<uint64_t>(INT64_MAX - 500000);
-    int64_t nextFrameTime = 0;
-
-    mainThread->RequestDelayedVSyncForAnimation(minLeftDelayTime, timestamp, nextFrameTime);
-
-    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 end";
-}
 /**
  * @tc.name: InitCreatePipelineTimeCallbackTest001
  * @tc.desc: Test InitCreatePipelineTimeCallback with nullptr
@@ -7011,5 +7036,6 @@ HWTEST_F(RSMainThreadTest, SetWindowModeType001, TestSize.Level1)
     HWCParam::SetSplitScreenSourceTuning(false);
     mainThread->SetWindowModeType(1);
 }
+
 } // namespace OHOS::Rosen
 #endif

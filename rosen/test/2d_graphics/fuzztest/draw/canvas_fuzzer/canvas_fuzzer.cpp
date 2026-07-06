@@ -14,24 +14,136 @@
  */
 
 #include "canvas_fuzzer.h"
+
 #include <cstddef>
 #include <cstdint>
+#include <memory>
+
 #include "get_object.h"
+
 #include "draw/canvas.h"
 #include "draw/color.h"
-#include "draw/ui_color.h"
+#include "draw/core_canvas.h"
 #include "effect/particle_builder.h"
-#include "text/font.h"
+#include "image/gpu_context.h"
+#include "image/picture.h"
 #include "text/glyph_cache.h"
+#include "text/font.h"
+#include "text/hm_symbol.h"
+#include "text/rs_xform.h"
+#include "utils/matrix.h"
+#include "utils/point3.h"
+#include "utils/round_rect.h"
+#include "utils/sampling_options.h"
+#include "utils/scalar.h"
+#include "utils/vertices.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 static constexpr int32_t BITMAP_WIDTH = 300;
 static constexpr int32_t BITMAP_HEIGHT = 300;
-static constexpr size_t  MAX_SIZE = 5000;
+static constexpr size_t MAX_SIZE = 5000;
 constexpr size_t COLORFORMAT_SIZE = 12;
 constexpr size_t ALPHAFORMAT_SIZE = 4;
+static constexpr int32_t BITMAP_WIDTH_MAX_SIZE = 5000;
+static constexpr int32_t BITMAP_HEIGHT_MAX_SIZE = 5000;
+static constexpr int32_t RGBA_CHANNELS_NUM = 4;
+
+class DDGRSDFShapeBaseTest : public Drawing::SDFShapeBase {
+public:
+    const std::string& Getshader() const override
+    {
+        return shaderCode_;
+    }
+
+    void SetShader(const std::string& shader)
+    {
+        static const std::string prefix(R"(uniform float width;
+            vec4 fillStroke(float d, float th, vec3 fillCol, vec3 strokeCol)
+            {
+                float w = 2.0 / width;
+                float a1 = step(0., -d);
+                float a2 = smoothstep(-w-th, -th, d) * smoothstep(w-th, th, d);
+                vec3 col = mix(fillCol, strokeCol, a2);
+                float a = max(a1, a2);
+                return vec4(col, a);
+            }
+            vec4 shading(float d)
+            {
+                const vec3 fillCol = vec3(0.85, 0.8, 0.95);
+                const vec3 strokeCol = vec3(0.9, 0.9, 1.);
+                const float thickness = 0.001; // thickness of stroke
+                vec4 col = vec4(0.);
+                col = fillStroke(d, thickness, fillCol, strokeCol);
+                return col;
+            })");
+        shaderCode_ = prefix + shader;
+    }
+
+    float GetSize() const override
+    {
+        return 0.0f;
+    }
+    float GetTranslateX() const override
+    {
+        return 0.0f;
+    }
+    float GetTranslateY() const override
+    {
+        return 0.0f;
+    }
+    int GetParaNum() const override
+    {
+        return 0;
+    }
+    int GetFillType() const override
+    {
+        return 0;
+    }
+    std::vector<float> GetPara() const override
+    {
+        return {};
+    }
+    std::vector<float> GetTransPara() const override
+    {
+        return {};
+    }
+    std::vector<float> GetColorPara() const override
+    {
+        return {};
+    }
+    void SetBoundsRect(const Rect&) override {}
+    Rect GetBoundsRect() const override
+    {
+        Rect rect(1, 1, 1, 1);
+        return rect;
+    }
+    int GetShapeId() const override
+    {
+        return 0;
+    }
+    void SetTransparent(int) override {}
+    int GetTransparent() const override
+    {
+        return 0;
+    }
+    std::vector<float> GetPaintPara() const override
+    {
+        return {};
+    }
+    std::vector<float> GetPointAndColorPara() const override
+    {
+        return {};
+    }
+    void UpdateTime(float) override {}
+    void BuildShader() override {}
+    void SetSize(float) override {}
+    void SetTranslate(float, float) override {}
+
+private:
+    std::string shaderCode_;
+};
 
 bool CanvasFuzzTest(const uint8_t* data, size_t size)
 {
@@ -170,11 +282,335 @@ bool CanvasFuzzTest003(const uint8_t* data, size_t size)
     Bitmap bitmap;
     uint32_t colorType = GetObject<uint32_t>();
     uint32_t alphaType = GetObject<uint32_t>();
-    BitmapFormat format {static_cast<ColorType>(colorType % COLORFORMAT_SIZE),
-                         static_cast<AlphaType>(alphaType % ALPHAFORMAT_SIZE) };
-    bitmap.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    BitmapFormat format { static_cast<ColorType>(colorType % COLORFORMAT_SIZE),
+                          static_cast<AlphaType>(alphaType % ALPHAFORMAT_SIZE) };
+    if (!bitmap.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format)) { // bitmap width and height
+        return false;
+    }
     canvas.Bind(bitmap);
     canvas.IsOpaque();
+    return true;
+}
+
+bool CanvasFuzzTest004(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    BuilderFlags flags = BuilderFlags::HAS_COLORS_BUILDER_FLAG;
+    int32_t indexCount = 0;
+    int32_t vertexCount = 3;
+    Point points[] = { { GetObject<scalar>(), GetObject<scalar>() }, { GetObject<scalar>(), GetObject<scalar>() },
+        { GetObject<scalar>(), GetObject<scalar>() } };
+    Brush brush;
+    brush.SetColor(GetObject<ColorQuad>());
+    Drawing::Vertices::Builder builder(
+        Drawing::VertexMode::TRIANGLES_VERTEXMODE, vertexCount, indexCount, static_cast<uint32_t>(flags));
+    if (!builder.IsValid()) {
+        return false;
+    }
+    Drawing::Point* posPtr = builder.Positions();
+    if (posPtr == nullptr) {
+        return false;
+    }
+    for (int32_t i = 0; i < vertexCount; i++) {
+        posPtr[i] = points[i] + Drawing::Point(GetObject<scalar>(), GetObject<scalar>());
+    }
+    canvas.AttachBrush(brush);
+    canvas.DrawVertices(*builder.Detach(), Drawing::BlendMode::DST);
+    canvas.DetachBrush();
+
+    // OpCalculateAfter
+    auto rect = Rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    canvas.OpCalculateAfter(rect);
+
+    Matrix matrix;
+    canvas.OpCalculateBefore(matrix);
+
+    canvas.QuickReject(rect);
+
+    bool doSave = GetObject<bool>();
+    AutoCanvasRestore(canvas, doSave);
+    return true;
+}
+
+bool CanvasFuzzTest005(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    std::shared_ptr<Drawing::Canvas> canvasPtr = std::make_shared<Drawing::Canvas>();
+    OverDrawCanvas canvas2(canvasPtr);
+    std::shared_ptr<GPUContext> gpuContext = std::make_shared<GPUContext>();
+    canvas2.SetGrContext(gpuContext);
+
+    // BuildOverDraw
+    canvas.BuildOverDraw(canvasPtr);
+
+    Path path;
+    path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
+    Path path1;
+    path1.MoveTo(GetObject<scalar>(), GetObject<scalar>());
+    path1.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    path = path1;
+
+    bool doSave = GetObject<bool>();
+    AutoCanvasRestore(canvas, doSave);
+    return true;
+}
+
+bool CanvasFuzzTest006(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Rect rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    scalar sigma = GetObject<scalar>();
+    float saturation = GetObject<float>();
+    float brightness = GetObject<float>();
+    HpsBlurParameter hpsArgs(rect, rect, sigma, saturation, brightness);
+    Canvas canvas;
+    canvas.CalcHpsBluredImageDimension(hpsArgs);
+
+    // DrawAtlas
+    Bitmap bmp;
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    if (!bmp.Build(static_cast<int32_t>(GetObject<uint32_t>() % BITMAP_WIDTH),
+        static_cast<int32_t>(GetObject<uint32_t>() % BITMAP_HEIGHT), format)) {
+        return false;
+    }
+    bmp.ClearWithColor(GetObject<ColorQuad>());
+    Image image;
+    image.BuildFromBitmap(bmp);
+    Brush brush;
+    brush.SetAntiAlias(true);
+    RSXform rsxform[] = { RSXform::Make(
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()) };
+    Rect tex[] = { rect };
+    ColorQuad colors[] = { GetObject<ColorQuad>() };
+    canvas.AttachBrush(brush);
+    canvas.DrawAtlas(
+        &image, rsxform, tex, colors, 1, Drawing::BlendMode::SRC_IN, SamplingOptions(FilterMode::NEAREST), nullptr);
+    canvas.DrawBlurImage(image, hpsArgs);
+    canvas.DetachBrush();
+    bool doSave = GetObject<bool>();
+    AutoCanvasRestore(canvas, doSave);
+    return true;
+}
+
+bool CanvasFuzzTest007(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    Matrix matrix;
+    matrix.SetMatrix(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    Path path;
+    path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
+    Point3 planeParams { GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>() };
+    Point3 devLightPos { GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>() };
+    scalar lightRadius = GetObject<scalar>();
+    ShadowFlags flag = GetObject<ShadowFlags>();
+    bool isLimitElevation = GetObject<bool>();
+    auto rect = Rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    canvas.GetLocalShadowBounds(matrix, path, planeParams, devLightPos, lightRadius, flag, isLimitElevation, rect);
+    bool doSave = GetObject<bool>();
+    AutoCanvasRestore(canvas, doSave);
+    return true;
+}
+
+bool CanvasFuzzTest008(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    Brush brush;
+    brush.SetColor(GetObject<ColorQuad>());
+    canvas.AttachBrush(brush);
+    auto p = Point(GetObject<scalar>(), GetObject<scalar>());
+    canvas.DrawCircle(p, GetObject<scalar>());
+    canvas.DrawColor(GetObject<ColorQuad>());
+
+    Bitmap bmp;
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    bmp.Build(GetObject<uint32_t>() % BITMAP_WIDTH, GetObject<uint32_t>() % BITMAP_HEIGHT,
+        format); // bitmap width and height
+    bmp.ClearWithColor(GetObject<ColorQuad>());
+    Image image;
+    image.BuildFromBitmap(bmp);
+    SamplingOptions sampling = SamplingOptions(FilterMode::NEAREST, MipmapMode::NEAREST);
+    canvas.DrawImage(image, GetObject<scalar>(), GetObject<scalar>(), sampling);
+
+    Lattice lattice {};
+    auto rect = Rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    canvas.DrawImageLattice(&image, lattice, rect, FilterMode::LINEAR);
+
+    canvas.DrawImageNine(&image,
+        RectI(GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>()), rect,
+        FilterMode::NEAREST);
+
+    RoundRect rrect = RoundRect(rect, GetObject<scalar>(), GetObject<scalar>());
+    RoundRect rrect1 = RoundRect(rect, GetObject<scalar>(), GetObject<scalar>());
+    canvas.DrawNestedRoundRect(rrect, rrect1);
+
+    Point cubics[12] = { { GetObject<scalar>(), GetObject<scalar>() }, { GetObject<scalar>(), GetObject<scalar>() },
+        { GetObject<scalar>(), GetObject<scalar>() }, { GetObject<scalar>(), GetObject<scalar>() },
+        { GetObject<scalar>(), GetObject<scalar>() }, { GetObject<scalar>(), GetObject<scalar>() },
+        { GetObject<scalar>(), GetObject<scalar>() }, { GetObject<scalar>(), GetObject<scalar>() },
+        { GetObject<scalar>(), GetObject<scalar>() }, { GetObject<scalar>(), GetObject<scalar>() },
+        { GetObject<scalar>(), GetObject<scalar>() }, { GetObject<scalar>(), GetObject<scalar>() } };
+    ColorQuad colors[RGBA_CHANNELS_NUM] = { GetObject<ColorQuad>(), GetObject<ColorQuad>(), GetObject<ColorQuad>(),
+        GetObject<ColorQuad>() };
+    Point texCoords[4] = { { GetObject<scalar>(), GetObject<scalar>() }, { GetObject<scalar>(), GetObject<scalar>() },
+        { GetObject<scalar>(), GetObject<scalar>() }, { GetObject<scalar>(), GetObject<scalar>() } };
+    canvas.DrawPatch(cubics, colors, texCoords, BlendMode::PLUS);
+    std::shared_ptr<Picture> picture = std::make_shared<Picture>();
+    canvas.DrawPicture(*picture.get());
+    bool doSave = GetObject<bool>();
+    AutoCanvasRestore(canvas, doSave);
+    return true;
+}
+
+bool CanvasFuzzTest009(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+
+    uint32_t count = GetObject<uint32_t>();
+    bool flag = GetObject<bool>();
+    canvas.AddCanvas(&canvas);
+    canvas.RemoveAll();
+    canvas.RestoreToCount(count);
+    canvas.GetRecordingState();
+    canvas.SetRecordingState(flag);
+    Bitmap bmp;
+    int32_t width = static_cast<int32_t>(GetObject<uint32_t>() % BITMAP_WIDTH_MAX_SIZE);
+    int32_t height = static_cast<int32_t>(GetObject<uint32_t>() % BITMAP_HEIGHT_MAX_SIZE);
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    if (!bmp.Build(width, height, format)) {
+        return false;
+    }
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    canvas.Bind(bmp);
+    return true;
+}
+
+bool CanvasFuzzTest010(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    uint32_t count = GetObject<uint32_t>();
+    bool flag = GetObject<bool>();
+    canvas.AddCanvas(&canvas);
+    canvas.RemoveAll();
+    canvas.RestoreToCount(count);
+    canvas.GetRecordingState();
+    canvas.SetRecordingState(flag);
+    Bitmap bmp;
+    int32_t width = static_cast<int32_t>(GetObject<uint32_t>() % BITMAP_WIDTH_MAX_SIZE);
+    int32_t height = static_cast<int32_t>(GetObject<uint32_t>() % BITMAP_HEIGHT_MAX_SIZE);
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    if (!bmp.Build(width, height, format)) {
+        return false;
+    }
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    void* pixels = bmp.GetPixels();
+    if (pixels == nullptr) {
+        return false;
+    }
+    canvas.ReadPixels(bmp.GetImageInfo(), pixels, static_cast<size_t>(bmp.GetRowBytes()), 0, 0);
+
+    return true;
+}
+
+bool CanvasFuzzTest011(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    uint32_t count = GetObject<uint32_t>();
+    bool flag = GetObject<bool>();
+    canvas.AddCanvas(&canvas);
+    canvas.RemoveAll();
+    canvas.RestoreToCount(count);
+    canvas.GetRecordingState();
+    canvas.SetRecordingState(flag);
+    Bitmap bmp;
+    int32_t width = static_cast<int32_t>(GetObject<uint32_t>() % BITMAP_WIDTH_MAX_SIZE);
+    int32_t height = static_cast<int32_t>(GetObject<uint32_t>() % BITMAP_HEIGHT_MAX_SIZE);
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    if (!bmp.Build(width, height, format)) {
+        return false;
+    }
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    canvas.DrawBitmap(bmp, 0, 0);
+
+    return true;
+}
+
+bool CanvasFuzzTest012(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    auto rect = Rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    canvas.DrawPie(rect, GetObject<scalar>(), GetObject<scalar>());
+    canvas.DrawPoint(Point(GetObject<scalar>(), GetObject<scalar>()));
+    DDGRSDFShapeBaseTest shape;
+    static const std::string str(
+        R"(float sdCircle(vec2 p, float r) {
+            return length(p) - r;
+        }
+
+        vec4 main(vec2 drawing_coord)
+        {
+            vec2 p = drawing_coord.xy / width;
+            p.y = 1.0 - p.y; // Flip y-coordinate
+            p -= 0.5;
+            p *= 2.0;
+            vec2 p0 = p;
+            float d1 = sdCircle(p0, 0.6);
+            vec4 col = shading(d1);
+            return vec4(col.rgb * col.a, col.a);
+        })");
+    shape.SetShader(str);
+    canvas.DrawSdf(shape);
+
+    DrawingHMSymbolData drawingHMSymbolData;
+    Path path;
+    drawingHMSymbolData.path_ = path;
+    DrawingRenderGroup group;
+    int32_t max = 5000;
+    std::vector<size_t> layerIndex { GetObject<size_t>() % max };
+    std::vector<size_t> maskIndex { GetObject<size_t>() % max };
+    DrawingGroupInfo info = { layerIndex, maskIndex };
+    group.groupInfos = { info };
+    drawingHMSymbolData.symbolInfo_.renderGroups = { group };
+    Point locate;
+    canvas.DrawSymbol(drawingHMSymbolData, locate);
+
+    bool doSave = GetObject<bool>();
+    AutoCanvasRestore(canvas, doSave);
     return true;
 }
 
@@ -281,7 +717,7 @@ bool CanvasFuzzTestUIColor(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
- 
+
     Canvas canvas;
     float red = GetObject<float>();
     float green = GetObject<float>();
@@ -315,7 +751,7 @@ bool CanvasFuzzTestDrawSingleCharacterWithFeatures(const uint8_t* data, size_t s
     canvas.DrawSingleCharacterWithFeatures(text, font, x, y, features);
     canvas.DrawSingleCharacterWithFeatures(text, font, x, y, nullptr);
     if (text != nullptr) {
-        delete [] text;
+        delete[] text;
         text = nullptr;
     }
     GlyphCache::Instance().Clear();
@@ -361,6 +797,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest003(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest004(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest005(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest006(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest007(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest008(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest009(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest010(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest011(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest012(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestHpsEdgeLight(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestInsertOpaqueRegion(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestDrawSingleCharacterWithFeatures(data, size);

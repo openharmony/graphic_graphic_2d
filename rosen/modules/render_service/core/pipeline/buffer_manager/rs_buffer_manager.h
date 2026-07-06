@@ -82,7 +82,7 @@ public:
             bufferCollector_->OnCanvasDrawBuffer(consumer, buffer, bufferOwnerCount);
         }
     }
-    void OnDrawEnd(sptr<SyncFence> canvasAcquireFence, bool needDump = false)
+    void OnDrawEnd(sptr<SyncFence> canvasAcquireFence)
     {
         if (bufferCollector_ != nullptr) {
             bufferCollector_->SetAcquireFence(canvasAcquireFence);
@@ -125,7 +125,6 @@ private:
 
     mutable std::mutex screenNodeBufferReleasedMutex_;
     std::map<uint64_t, PendingReleaseBufferInfo> pendingReleaseBuffers_;
-
     static inline thread_local std::unique_ptr<RSBufferCollectorHelper> bufferCollector_ = nullptr;
 };
 } // OHOS

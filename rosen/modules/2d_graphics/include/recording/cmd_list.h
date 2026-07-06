@@ -46,6 +46,8 @@ public:
     virtual ~ExtendImageObject() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling, bool isBackground = false) = 0;
+    virtual void Record(Canvas& canvas, const Rect& rect,
+        const SamplingOptions& sampling, bool isWithParam = false) {};
     virtual void SetNodeId(NodeId id) {};
     virtual void SetPaint(Paint paint) {};
     virtual void Purge() {};
@@ -62,6 +64,8 @@ public:
     virtual ~ExtendImageBaseObj() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect, const SamplingOptions& sampling,
         SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) = 0;
+    virtual void Record(Canvas& canvas, const SamplingOptions& sampling,
+        SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) {};
     virtual void SetNodeId(NodeId id) {};
     virtual void Purge() {};
 };
@@ -71,6 +75,8 @@ public:
     virtual ~ExtendImageNineObject() = default;
     virtual void Playback(Canvas& canvas, const RectI& center, const Rect& dst,
         FilterMode filterMode = FilterMode::NEAREST) = 0;
+    virtual void Record(Canvas& canvas, const RectI& center, const Rect& dst,
+        FilterMode filterMode) {};
     virtual void SetNodeId(NodeId id) {};
     virtual void Purge() {};
 };
@@ -80,6 +86,8 @@ public:
     virtual ~ExtendImageLatticeObject() = default;
     virtual void Playback(Canvas& canvas, const Lattice& lattice, const Rect& dst,
         FilterMode filterMode = FilterMode::NEAREST) = 0;
+    virtual void Record(Canvas& canvas, const Lattice& lattice, const Rect& dst,
+        FilterMode filterMode) {};
     virtual void SetNodeId(NodeId id) {};
     virtual void Purge() {};
 };

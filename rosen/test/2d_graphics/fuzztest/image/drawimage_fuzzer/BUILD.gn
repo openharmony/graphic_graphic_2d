@@ -22,7 +22,10 @@ ohos_fuzztest("DrawImageFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file = "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/image/drawimage_fuzzer"
 
-  sources = ["draw_image_fuzzer.cpp"]
+  sources = [
+    "get_object.h",
+    "draw_image_fuzzer.cpp"
+  ]
 
   cflags = [
     "-g",

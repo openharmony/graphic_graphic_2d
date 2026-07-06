@@ -78,7 +78,9 @@ const uint8_t DO_REGISTER_CANVAS_CALLBACK = 14;
 const uint8_t DO_SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER = 15;
 const uint8_t DO_GET_SCREEN_HDR_STATUS = 16;
 const uint8_t DO_SET_SCREEN_FRAME_GRAVITY = 17;
-const uint8_t TARGET_SIZE = 18;
+const uint8_t DO_CREATE_CANVAS_DRAWING_NODE_SURFACE = 18;
+const uint8_t DO_RELEASE_CANVAS_DRAWING_NODE_SURFACE = 19;
+const uint8_t TARGET_SIZE = 20;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -723,6 +725,34 @@ void DoSubmitCanvasPreAllocatedBuffer()
     toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 #endif
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+void DoCreateCanvasDrawingNodeSurface()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    NodeId nodeId = GetData<NodeId>();
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel.WriteUint64(nodeId);
+    dataParcel.RewindRead(0);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoReleaseCanvasDrawingNodeSurface()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    NodeId nodeId = GetData<NodeId>();
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel.WriteUint64(nodeId);
+    dataParcel.RewindRead(0);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
 
@@ -844,6 +874,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
             OHOS::Rosen::DoSubmitCanvasPreAllocatedBuffer();
+#endif
+            break;
+        case OHOS::Rosen::DO_CREATE_CANVAS_DRAWING_NODE_SURFACE:
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+            OHOS::Rosen::DoCreateCanvasDrawingNodeSurface();
+#endif
+            break;
+        case OHOS::Rosen::DO_RELEASE_CANVAS_DRAWING_NODE_SURFACE:
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+            OHOS::Rosen::DoReleaseCanvasDrawingNodeSurface();
 #endif
             break;
         default:

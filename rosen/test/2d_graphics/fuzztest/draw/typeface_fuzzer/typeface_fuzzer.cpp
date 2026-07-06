@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -113,10 +113,12 @@ bool TypefaceFuzzTest003(const uint8_t* data, size_t size)
 
     FontArguments args;
     args.SetCollectionIndex(index);
-    std::shared_ptr<Typeface> typeface2 = Typeface::MakeFromStream(std::move(memoryStream), args);
+    auto memoryStreamWithArgs =
+        std::make_unique<MemoryStream>(reinterpret_cast<const void*>(fontData), length, copyData);
+    std::shared_ptr<Typeface> typeface2 = Typeface::MakeFromStream(std::move(memoryStreamWithArgs), args);
     std::shared_ptr<Typeface> typeface3 = Typeface::MakeFromStream(nullptr, args);
     if (fontData != nullptr) {
-        delete [] fontData;
+        delete[] fontData;
         fontData = nullptr;
     }
     return true;
@@ -178,6 +180,8 @@ bool TypefaceFuzzTest004(const uint8_t* data, size_t size)
 /*
  * 测试以下 Typeface 接口：
  * 1. MakeFromName(const char* familyName, const FontStyle& style)
+ * 2. GetVariationDesignPosition(FontArguments::VariationPosition::Coordinate coordinates[], int coordinateCount)
+ * 3. SetHash(uint32_t hash)
  */
 bool TypefaceFuzzTest005(const uint8_t* data, size_t size)
 {
@@ -196,8 +200,20 @@ bool TypefaceFuzzTest005(const uint8_t* data, size_t size)
     uint32_t slant = GetObject<uint32_t>();
     FontStyle fontStyle = FontStyle(weight, width, static_cast<FontStyle::Slant>(slant % SLANT_SIZE));
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromName(familyName, fontStyle);
+    if (typeface == nullptr) {
+        typeface = Typeface::MakeDefault();
+    }
+    typeface->SetHash(GetObject<uint32_t>());
+    typeface->SetFd(GetObject<int32_t>());
+    typeface->GetFontIndex();
+    std::vector<uint8_t> typefaceData(data, data + size);
+    Typeface::Deserialize(typefaceData.data(), typefaceData.size());
+    uint64_t shareId = GetObject<uint64_t>();
+    SharedTypeface sharedTypeface(shareId, typeface);
+    typeface->GetVariationDesignPosition(
+        sharedTypeface.coords_.data(), static_cast<int>(sharedTypeface.coords_.size()));
     if (familyName != nullptr) {
-        delete [] familyName;
+        delete[] familyName;
         familyName = nullptr;
     }
     return true;
@@ -239,8 +255,8 @@ bool TypefaceFuzzTest006(const uint8_t* data, size_t size)
     for (size_t i = 0; i < streamLength; i++) {
         streamData[i] = GetObject<char>();
     }
-    auto memoryStream = std::make_unique<MemoryStream>(
-        reinterpret_cast<const void*>(streamData), streamLength, true);
+    auto memoryStream = std::make_unique<MemoryStream>(reinterpret_cast<const void*>(streamData),
+        streamLength, true);
     defaultTypeface->UpdateStream(std::move(memoryStream));
 
     Typeface::AssembleFullHash(GetObject<uint32_t>(), GetObject<uint32_t>());
@@ -248,11 +264,11 @@ bool TypefaceFuzzTest006(const uint8_t* data, size_t size)
     defaultTypeface->GetFullHash();
 
     if (path != nullptr) {
-        delete [] path;
+        delete[] path;
         path = nullptr;
     }
     if (streamData != nullptr) {
-        delete [] streamData;
+        delete[] streamData;
         streamData = nullptr;
     }
     return true;

@@ -156,6 +156,7 @@ rs_display_effect_sources = [
 ]
 rs_effect_feature_sources = [
   "rs_effect_feature/effect_background_blur_test.cpp",
+  "rs_effect_feature/effect_light_up_effect_test.cpp",
   "rs_effect_feature/effect_ai_bar_glow_test.cpp",
   "rs_effect_feature/effect_aurora_noise_test.cpp",
   "rs_effect_feature/effect_linear_gradient_blur_test.cpp",

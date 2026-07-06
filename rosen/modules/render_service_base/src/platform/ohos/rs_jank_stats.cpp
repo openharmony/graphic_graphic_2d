@@ -312,6 +312,7 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, ui
     jankFrames.lastMaxSeqMissedFrames_ = jankFrames.maxSeqMissedFrames_;
     jankFrames.lastMaxFrameOccurenceTimeSteady_ = jankFrames.maxFrameOccurenceTimeSteady_;
     jankFrames.lastMaxFrameRefreshRate_ = jankFrames.maxFrameRefreshRate_;
+    jankFrames.lastJankCount_ = jankFrames.jankCount_;
     if (dynamicRefreshRate == 0) {
         dynamicRefreshRate = STANDARD_REFRESH_RATE;
     }
@@ -342,6 +343,11 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, ui
         jankFrames.totalMissedFrames_ += missedFramesToReport;
         jankFrames.seqMissedFrames_ += missedFramesToReport;
         jankFrames.maxSeqMissedFrames_ = std::max<int32_t>(jankFrames.maxSeqMissedFrames_, jankFrames.seqMissedFrames_);
+        // 统计丢帧直方图
+        if (!jankFrames.isFirstFrame_ && jankFrames.jankCount_.size() >= 1) {
+            size_t jankIndex = std::min(static_cast<size_t>(missedFramesToReport), jankFrames.jankCount_.size()) - 1;
+            jankFrames.jankCount_[jankIndex]++;
+        }
     } else {
         jankFrames.seqMissedFrames_ = 0;
     }
@@ -523,6 +529,7 @@ void RSJankStats::SetReportEventResponse(const DataBaseRs& info)
     jankFrames.isFirstFrameTemp_ = true;
     jankFrames.traceId_ = GetTraceIdInit(info, setTimeSteady);
     jankFrames.isDisplayAnimator_ = info.isDisplayAnimator;
+    jankFrames.jankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
     animateJankFrames_.emplace(animationId, jankFrames);
 }
 
@@ -718,7 +725,8 @@ void RSJankStats::ReportEventJankFrameWithoutDelay(const JankFrames& jankFrames)
         jankFrames.maxTechFrameTimeSteady_, jankFrames.maxRealFrameTimeSteady_,
         jankFrames.maxFrameRefreshRate_, GetSceneDescription(info).c_str(), shaderTimeStr.c_str());
     RSBackgroundThread::Instance().PostTask([
-        jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart, maxHitchTimeFromStart, duration, shaderTimeStr]() {
+        jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart,
+ 	    maxHitchTimeFromStart, duration, shaderTimeStr, this]() {
         RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread");
         RSHiSysEvent::EventWrite(RSEventName::INTERACTION_RENDER_JANK, RSEventType::RS_STATISTIC,
             "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
@@ -733,7 +741,7 @@ void RSJankStats::ReportEventJankFrameWithoutDelay(const JankFrames& jankFrames)
             "MAX_HITCH_TIME_SINCE_START", static_cast<uint64_t>(maxHitchTimeFromStart),
             "DURATION", static_cast<uint64_t>(duration),
             "MAX_FRAME_REFRESH_RATE", static_cast<int32_t>(jankFrames.maxFrameRefreshRate_),
-            "SHADER_TIME", shaderTimeStr);
+            "SHADER_TIME", shaderTimeStr, "JANK_COUNT", GetJankCountStr(jankFrames.jankCount_));
     });
 }
 
@@ -760,7 +768,8 @@ void RSJankStats::ReportEventJankFrameWithDelay(const JankFrames& jankFrames) co
         jankFrames.lastMaxTechFrameTimeSteady_, jankFrames.lastMaxRealFrameTimeSteady_,
         jankFrames.lastMaxFrameRefreshRate_, GetSceneDescription(info).c_str(), shaderTimeStr.c_str());
     RSBackgroundThread::Instance().PostTask([
-        jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart, maxHitchTimeFromStart, duration, shaderTimeStr]() {
+        jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart,
+ 	    maxHitchTimeFromStart, duration, shaderTimeStr, this]() {
         RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread");
         RSHiSysEvent::EventWrite(RSEventName::INTERACTION_RENDER_JANK, RSEventType::RS_STATISTIC,
             "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
@@ -777,7 +786,7 @@ void RSJankStats::ReportEventJankFrameWithDelay(const JankFrames& jankFrames) co
             "MAX_HITCH_TIME_SINCE_START", static_cast<uint64_t>(maxHitchTimeFromStart),
             "DURATION", static_cast<uint64_t>(duration),
             "MAX_FRAME_REFRESH_RATE", static_cast<int32_t>(jankFrames.lastMaxFrameRefreshRate_),
-            "SHADER_TIME", shaderTimeStr);
+            "SHADER_TIME", shaderTimeStr, "JANK_COUNT", GetJankCountStr(jankFrames.lastJankCount_));
     });
 }
 
@@ -1113,6 +1122,20 @@ void RSJankStats::ClearAllAnimation()
     explicitAnimationTotal_ = 0;
     implicitAnimationTotal_ = 0;
     animateJankFrames_.clear();
+}
+
+std::string RSJankStats::GetJankCountStr(const std::vector<int32_t>& jankCount) const
+{
+        std::stringstream jankStr;
+        jankStr << "[";
+        for (size_t i = 0; i < jankCount.size(); ++i) {
+            if (i > 0) {
+                jankStr << ",";
+            }
+            jankStr << jankCount[i];
+        }
+        jankStr << "]";
+        return jankStr.str();
 }
 
 std::string RSJankStats::GetSceneDescription(const DataBaseRs& info) const

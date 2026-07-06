@@ -53,12 +53,16 @@ if (current_os == "ohos") {
     external_deps = []
 
     if (is_arkui_x) {
-      deps += [ "$arkui_root/napi:ace_napi" ]
+      deps += [
+        "$arkui_root/napi:ace_napi",
+        "//third_party/node:node_header_notice",
+      ]
       include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
     } else {
       external_deps += [
         "hilog:libhilog",
         "napi:ace_napi",
+        "node:node_header_notice",
       ]
     }
 
@@ -87,11 +91,17 @@ if (current_os == "ohos") {
     
     deps = []
     if (is_arkui_x) {
-      deps += [ "//foundation/arkui/napi:ace_napi" ]
+      deps += [
+        "//foundation/arkui/napi:ace_napi",
+        "//third_party/node:node_header_notice",
+      ]
       public_deps = [ "//third_party/skia:skia_$platform" ]
     } else {
       external_deps = [ "skia:skia_canvaskit" ]
-      external_deps += [ "napi:ace_napi" ]
+      external_deps += [
+        "napi:ace_napi",
+        "node:node_header_notice",
+      ]
     }
     deps += [ "$rosen_root/modules/platform:hilog" ]
     cflags_cc = [ "-std=c++17" ]
@@ -129,13 +139,17 @@ template("colorspacemanager_napi_source_set") {
     external_deps = []
 
     if (is_arkui_x) {
-      deps = [ "$arkui_root/napi:ace_napi" ]
+      deps = [
+        "$arkui_root/napi:ace_napi",
+        "//third_party/node:node_header_notice",
+      ]
       include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
       deps += [ "//third_party/skia:skia_$platform" ]
     } else {
       external_deps += [
         "hilog:libhilog",
         "napi:ace_napi",
+        "node:node_header_notice",
       ]
       external_deps += [ "skia:skia_canvaskit" ]
     }
@@ -173,12 +187,16 @@ template("sendablecolorspacemanager_napi_source_set") {
     external_deps = []
 
     if (is_arkui_x) {
-      deps = [ "$arkui_root/napi:ace_napi" ]
+      deps = [
+        "$arkui_root/napi:ace_napi",
+        "//third_party/node:node_header_notice",
+      ]
       include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
     } else {
       external_deps += [
         "hilog:libhilog",
         "napi:ace_napi",
+        "node:node_header_notice",
       ]
     }
 
