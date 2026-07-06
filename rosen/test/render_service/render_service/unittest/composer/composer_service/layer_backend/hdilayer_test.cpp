@@ -26,7 +26,7 @@ using namespace testing::ext;
 #define WIDTH_VAL 50
 #define HEIGHT_VAL 50
 
-namespace OHOS {
+namespace OHOS { 
 namespace Rosen {
 class HdiLayerTest : public testing::Test {
 public:
