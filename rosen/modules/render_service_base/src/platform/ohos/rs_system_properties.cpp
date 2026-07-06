@@ -1837,7 +1837,7 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
 
 bool RSSystemProperties::GetUsePrimList()
 {
-    static bool usePrimList = OHOS::system::GetBoolParameter("persist.sys.graphic.useprimlist", true);
+    static bool usePrimList = OHOS::system::GetBoolParameter("persist.sys.graphic.useprimlist", false);
     return usePrimList;
 }
 
