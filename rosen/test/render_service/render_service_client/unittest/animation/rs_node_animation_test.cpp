@@ -29,7 +29,6 @@
 #include "pipeline/rs_node_map.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
-#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -49,12 +48,21 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSUIContext> CreateRSUIContext();
 };
 
 void RSNodeAnimationTest::SetUpTestCase() {}
 void RSNodeAnimationTest::TearDownTestCase() {}
 void RSNodeAnimationTest::SetUp() {}
 void RSNodeAnimationTest::TearDown() {}
+
+std::shared_ptr<RSUIContext> RSNodeAnimationTest::CreateRSUIContext()
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    return rsUIContext;
+}
 
 /**
  * @tc.name: FallbackAnimationsToContext001
@@ -85,8 +93,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext001, TestSize.Level1)
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+        auto rsUIContext = CreateRSUIContext();
     rsNode->rsUIContext_ = rsUIContext;
 
     AnimationId id = 1;
@@ -109,8 +116,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext002, TestSize.Level1)
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext003, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+        auto rsUIContext = CreateRSUIContext();
     rsNode->rsUIContext_ = rsUIContext;
 
     AnimationId id = 1;
@@ -135,8 +141,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext003, TestSize.Level1)
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext004, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+        auto rsUIContext = CreateRSUIContext();
     rsNode->rsUIContext_ = rsUIContext;
 
     // Create multiple animations
@@ -173,8 +178,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext004, TestSize.Level1)
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext005, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+        auto rsUIContext = CreateRSUIContext();
     rsNode->rsUIContext_ = rsUIContext;
 
     AnimationId id = 1;
@@ -199,8 +203,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext005, TestSize.Level1)
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext006, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+        auto rsUIContext = CreateRSUIContext();
     rsNode->rsUIContext_ = rsUIContext;
 
     AnimationId id = 1;
@@ -225,8 +228,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext006, TestSize.Level1)
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext007, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+        auto rsUIContext = CreateRSUIContext();
     rsNode->rsUIContext_ = rsUIContext;
 
     AnimationId id = 1;
@@ -253,8 +255,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot, TestSize.Level1)
 
     EXPECT_EQ(rsNode->motionPathOption_, nullptr);
 
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     rsNode->rsUIContext_ = rsUIContext;
 
     bool isRenderServiceNode = true;
@@ -291,8 +292,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot002, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
     bool isRenderServiceNode = true;
     auto target = std::make_shared<RSNode>(isRenderServiceNode);
@@ -329,8 +329,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot002, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot003, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
     bool isRenderServiceNode = true;
     auto target = std::make_shared<RSNode>(isRenderServiceNode);
@@ -355,8 +354,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot003, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot004, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
     bool isRenderServiceNode = true;
     auto target = std::make_shared<RSNode>(isRenderServiceNode);
@@ -381,8 +379,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot004, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot005, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
     bool isRenderServiceNode = true;
     auto target = std::make_shared<RSNode>(isRenderServiceNode);
@@ -404,8 +401,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot005, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithGroupAnimator001, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -438,8 +434,7 @@ HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithGroupAnimator001, TestSiz
  */
 HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithNoneAnimator001, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -470,8 +465,7 @@ HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithNoneAnimator001, TestSize
  */
 HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithGroupAnimator002, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -495,8 +489,7 @@ HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithGroupAnimator002, TestSiz
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithGroupAnimator001, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
@@ -523,8 +516,7 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithGroupAnimator001, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithGroupAnimator002, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
@@ -550,8 +542,7 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithGroupAnimator002, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsGroupAnimator001, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -581,8 +572,7 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsGroupAnimator001, TestSiz
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsWithoutGroup001, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -609,8 +599,7 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsWithoutGroup001, TestSize
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentCallbackGroupAnimator001, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
@@ -634,8 +623,7 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentCallbackGroupAnimator001, TestSi
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithNoneAnimator001, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;

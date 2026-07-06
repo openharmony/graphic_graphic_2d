@@ -24,7 +24,7 @@ class LineTypography {
 public:
     virtual ~LineTypography() = default;
     virtual size_t GetLineBreak(size_t startIndex, double width) const = 0;
-    virtual std::unique_ptr<TextLineBase> CreateLine(size_t startIndex, size_t count) = 0;
+    virtual std::shared_ptr<TextLineBase> CreateLine(size_t startIndex, size_t count) = 0;
     virtual std::unique_ptr<Typography> GetTempTypography() = 0;
     virtual void* GetLineFetcher() const = 0;
     virtual size_t GetUnicodeSize() const = 0;

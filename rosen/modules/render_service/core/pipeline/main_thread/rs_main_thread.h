@@ -43,6 +43,7 @@
 #include "memory/rs_memory_graphic.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/layer_split/rs_layer_split_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/hwc/rs_direct_composition_helper.h"
 #include "pipeline/hwc/rs_hwc_context.h"
@@ -401,7 +402,7 @@ public:
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime);
 
     bool IsFoldScreenSwitching() const;
-    bool IsMultiDisplay() const;
+    bool IsMultiDisplay();
 
     bool GetMultiDisplayChange() const
     {
@@ -478,6 +479,8 @@ public:
         return aibarNodes_;
     }
 
+    void SetWindowModeType(uint8_t windowModeType);
+
     uint64_t GetVsyncId() const { return vsyncId_; }
 
     // for surface fps op
@@ -517,7 +520,6 @@ private:
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
-    void RequestDelayedVSyncForAnimation(int64_t minLeftDelayTime, uint64_t timestamp, int64_t nextFrameTime);
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
     void Render();
@@ -638,8 +640,8 @@ private:
     void PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSSurfaceHandler> surfaceHandler);
 
-    void UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
-    void UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
+    bool UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
+    bool UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
     void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor);
     void TraverseNodeForDelegateMode();
     void UpdateZorderForDelegateMode();

@@ -86,11 +86,12 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
 
 void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    SetDrawSkipType(DrawSkipType::NONE);
     if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
+        SetDrawSkipType(DrawSkipType::MEMORYOVER_SKIP);
         return;
     }
-    SetDrawSkipType(DrawSkipType::NONE);
     std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
@@ -163,7 +164,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             static_cast<float>(surfaceParams.width), static_cast<float>(surfaceParams.height), nodeId_)) {
             if (bufferDraw) {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-                DrawCustomContent(*captureCanvas);
+                DrawCustomContentForCapture(*captureCanvas, bounds);
 #endif
             } else {
                 DrawContent(*captureCanvas, bounds);
@@ -201,9 +202,33 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+sptr<IConsumerSurface> RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface() const
+{
+    if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
+        return nullptr;
+    }
+
+    auto nodeSp = renderNode_.lock();
+    if (nodeSp == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null node, nodeId=%{public}" PRIu64, GetId());
+        return nullptr;
+    }
+    auto canvasDrawingNode = std::static_pointer_cast<const RSCanvasDrawingRenderNode>(nodeSp);
+    auto surfaceHandler = canvasDrawingNode->GetSurfaceHandler();
+    if (surfaceHandler == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null surfaceHandler, nodeId=%{public}" PRIu64,
+            GetId());
+        return nullptr;
+    }
+    return surfaceHandler->GetConsumer();
+}
+
 void RSCanvasDrawingRenderNodeDrawable::DrawCustomContent(Drawing::Canvas& canvas)
 {
     if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
+        return;
+    }
+    if (renderParams_ == nullptr) {
         return;
     }
 
@@ -212,29 +237,58 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCustomContent(Drawing::Canvas& canva
     }
 
     SetNeedDraw(false);
-    if (renderParams_ != nullptr && renderParams_->GetBuffer() != nullptr) {
-        auto rsCanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
-        DealWithSelfDrawingNodeBuffer(*rsCanvas);
+    Drawing::Matrix matrix;
+    auto& frameRect = renderParams_->GetFrameRect();
+    if (RSPropertiesPainter::GetGravityMatrix(renderParams_->GetFrameGravity(),
+        { frameRect.GetLeft(), frameRect.GetTop(), frameRect.GetWidth(), frameRect.GetHeight() },
+        renderParams_->GetBounds().GetWidth(), renderParams_->GetBounds().GetHeight(), matrix)) {
+        canvas.ConcatMatrix(matrix);
+    }
+    if (renderParams_->GetBuffer() == nullptr) {
+        return;
+    }
+    auto rsCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    auto bufferDrawParam = RSUniRenderUtil::CreateBufferDrawParam(*this, false, rsCanvas->GetParallelThreadId());
+    RSAutoCanvasRestore arc(rsCanvas);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.GetRenderEngine()->DrawCanvasDrawingNodeWithParams(*rsCanvas, bufferDrawParam);
+    uniRenderThread.OnDrawBuffer(GetConsumerSurface(), bufferDrawParam.buffer, renderParams_->GetBufferOwnerCount());
+}
+
+void RSCanvasDrawingRenderNodeDrawable::DrawCustomContentForCapture(Drawing::Canvas& canvas, const Drawing::Rect& rect)
+{
+    auto buffer = renderParams_->GetBuffer();
+    if (auto image = CreateImageFromBuffer(buffer)) {
+        canvas.DrawImageRect(*image,
+            Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()), rect,
+            Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE));
     }
 }
 
-void RSCanvasDrawingRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas)
+std::shared_ptr<Drawing::Image> RSCanvasDrawingRenderNodeDrawable::CreateImageFromBuffer(
+    sptr<SurfaceBuffer> buffer) const
 {
-    if (renderParams_ == nullptr) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer: null renderParams, nodeId=%{public}"
-            PRIu64, GetId());
-        return;
+    if (buffer == nullptr) {
+        return nullptr;
     }
-    auto bufferDrawParam = RSUniRenderUtil::CreateBufferDrawParam(*this, false, canvas.GetParallelThreadId());
-    if (bufferDrawParam.buffer == nullptr) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer: null buffer, nodeId=%{public}" PRIu64,
-            GetId());
-        return;
+    auto gpuContext = GetGpuContext();
+    if (gpuContext == nullptr) {
+        return nullptr;
     }
-    RSAutoCanvasRestore arc(&canvas);
-    auto& uniRenderThread = RSUniRenderThread::Instance();
-    uniRenderThread.GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, bufferDrawParam);
-    uniRenderThread.OnDrawBuffer(GetConsumerSurface(), bufferDrawParam.buffer, renderParams_->GetBufferOwnerCount());
+    auto backendTexture = SurfaceBufferUtils::ConvertSurfaceBufferToBackendTexture(buffer);
+    if (!backendTexture.IsValid()) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::CreateImageFromBuffer: ConvertSurfaceBufferToBackendTexture failed,"
+            " nodeId=%{public}" PRIu64, GetId());
+        return nullptr;
+    }
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    if (!image->BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(), GetTextureOrigin(), format, nullptr)) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::CreateImageFromBuffer: BuildFromTexture failed, "
+            "nodeId=%{public}" PRIu64, GetId());
+        return nullptr;
+    }
+    return image;
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE
 
@@ -662,6 +716,7 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(Drawing::GPUContext
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
     auto image = std::make_shared<Drawing::Image>();
     bool ret = image->BuildFromTexture(*grContext, backendTexture_.GetTextureInfo(), origin, info, nullptr);
+    if (image) image->SetHdrScale(image_->GetHdrScale());
     if (!ret) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetBitmap image BuildFromTexture failed");
         return bitmap;
@@ -778,6 +833,18 @@ void RSCanvasDrawingRenderNodeDrawable::ReleaseCaptureImage()
 
 void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& canvas)
 {
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (renderParams_ != nullptr) {
+        auto params = static_cast<RSCanvasDrawingRenderParams*>(renderParams_.get());
+        if (params->IsBufferDraw()) {
+            if (auto image = CreateImageFromBuffer(params->GetBuffer())) {
+                canvas.DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+            }
+            return;
+        }
+    }
+#endif
+
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!image_) {
         OnDraw(canvas);
@@ -813,6 +880,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage BuildFromTexture failed");
         return;
     }
+    captureImage_->SetHdrScale(image_->GetHdrScale());
     canvas.DrawImage(*captureImage_, 0, 0, Drawing::SamplingOptions());
 #endif
 }
@@ -1085,7 +1153,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForGL(int width, int height,
     return true;
 }
 
-bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext)
+bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext) const
 {
     auto realTid = gettid();
     if (realTid == RSUniRenderThread::Instance().GetTid()) {
@@ -1104,7 +1172,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContext(std::shared_ptr<Drawin
     return true;
 }
 
-std::shared_ptr<Drawing::GPUContext> RSCanvasDrawingRenderNodeDrawable::GetGpuContext()
+std::shared_ptr<Drawing::GPUContext> RSCanvasDrawingRenderNodeDrawable::GetGpuContext() const
 {
     if (canvas_ != nullptr) {
         return canvas_->GetGPUContext();
@@ -1275,6 +1343,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage(std::shared_pt
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage BuildFromTexture failed");
             return false;
         }
+        image->SetHdrScale(image_->GetHdrScale());
     }
     return true;
 }
@@ -1314,6 +1383,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
         ClearPreSurface(preSurface);
         return false;
     }
+    preImageInNewContext->SetHdrScale(image_->GetHdrScale());
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (preImageInNewContext->IsTextureBacked()) {
             RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture preImageInNewContext "
@@ -1340,7 +1410,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
 }
 #endif
 
-Drawing::TextureOrigin RSCanvasDrawingRenderNodeDrawable::GetTextureOrigin()
+Drawing::TextureOrigin RSCanvasDrawingRenderNodeDrawable::GetTextureOrigin() const
 {
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         return Drawing::TextureOrigin::BOTTOM_LEFT;
@@ -1380,26 +1450,24 @@ void RSCanvasDrawingRenderNodeDrawable::ClearCustomResource()
 #endif
 }
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<IConsumerSurface> RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface() const
+std::shared_ptr<Drawing::Image> RSCanvasDrawingRenderNodeDrawable::Snapshot() const
 {
-    if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
-        return nullptr;
+    bool bufferDraw = false;
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    sptr<SurfaceBuffer> buffer = nullptr;
+    if (renderParams_ != nullptr) {
+        auto params = static_cast<RSCanvasDrawingRenderParams*>(renderParams_.get());
+        bufferDraw = params->IsBufferDraw();
+        buffer = params->GetBuffer();
     }
-
-    auto nodeSp = renderNode_.lock();
-    if (nodeSp == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null node, nodeId=%{public}" PRIu64, GetId());
-        return nullptr;
-    }
-    auto canvasDrawingNode = std::static_pointer_cast<const RSCanvasDrawingRenderNode>(nodeSp);
-    auto surfaceHandler = canvasDrawingNode->GetSurfaceHandler();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null surfaceHandler, nodeId=%{public}" PRIu64,
-            GetId());
-        return nullptr;
-    }
-    return surfaceHandler->GetConsumer();
-}
 #endif
+    if (bufferDraw) {
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        return CreateImageFromBuffer(buffer);
+#endif
+    } else {
+        return image_;
+    }
+    return nullptr;
+}
 } // namespace OHOS::Rosen::DrawableV2

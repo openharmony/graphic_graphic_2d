@@ -373,6 +373,20 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(
     return { ScreenPropertyType::IS_MAIN_SCREEN, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetIsRogResolution(bool isRogResolution)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::IS_ROG_RESOLUTION>(isRogResolution);
+    return { ScreenPropertyType::IS_ROG_RESOLUTION, prop };
+}
+
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetHdiRogEnable(bool isHdiRogEnable)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::IS_HDI_ROG_ENABLE>(isHdiRogEnable);
+    return { ScreenPropertyType::IS_HDI_ROG_ENABLE, prop };
+}
+
 ScreenId RSScreenThreadSafeProperty::GetId() const
 {
     return property_->GetScreenId();
@@ -645,6 +659,18 @@ bool RSScreenThreadSafeProperty::IsMainScreen() const
 {
     SharedLock lock(propertyMutex_);
     return property_->IsMainScreen();
+}
+
+bool RSScreenThreadSafeProperty::IsRogResolution() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->IsRogResolution();
+}
+
+bool RSScreenThreadSafeProperty::GetHdiRogEnable() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetHdiRogEnable();
 }
 
 ScreenInfo RSScreenThreadSafeProperty::GetScreenInfo() const

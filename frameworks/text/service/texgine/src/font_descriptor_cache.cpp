@@ -246,6 +246,26 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
     }
 }
 
+void FontDescriptorCache::CollectGenericFontPaths(std::unordered_set<std::string>& fontPaths)
+{
+    TextEngine::FontConfigJson fcj;
+    fcj.ParseFile();
+    auto fontPtr = fcj.GetFontConfigJsonInfo();
+    if (fontPtr == nullptr || fontPtr->fontDirSet.empty()) {
+        return;
+    }
+    const auto& rootPath = fontPtr->fontDirSet[0];
+    for (const auto& item : fontPtr->genericSet) {
+        fontPaths.insert(rootPath + item.path);
+    }
+    if (fontPtr->fallbackGroupSet.empty()) {
+        return;
+    }
+    for (const auto& info : fontPtr->fallbackGroupSet[0].fallbackInfoSet) {
+        fontPaths.insert(rootPath + info.path);
+    }
+}
+
 void FontDescriptorCache::GetFontPathsByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontPaths)
 {
     int32_t fontType = 0;
@@ -254,19 +274,8 @@ void FontDescriptorCache::GetFontPathsByType(const int32_t& systemFontType, std:
         return;
     }
     uint32_t fontCategory = static_cast<uint32_t>(fontType);
-    TextEngine::FontConfigJson fcj;
     if ((fontCategory & TextEngine::FontParser::SystemFontType::GENERIC) != 0) {
-        fcj.ParseFile();
-        auto fontPtr = fcj.GetFontConfigJsonInfo();
-        if (fontPtr != nullptr) {
-            auto rootPath = fontPtr->fontDirSet[0];
-            for (const auto& item : fontPtr->genericSet) {
-                fontPaths.insert(rootPath + item.path);
-            }
-            for (const auto& info : fontPtr->fallbackGroupSet[0].fallbackInfoSet) {
-                fontPaths.insert(rootPath + info.path);
-            }
-        }
+        CollectGenericFontPaths(fontPaths);
     }
     if ((fontCategory & TextEngine::FontParser::SystemFontType::STYLISH) != 0) {
         auto& list = parser_.GetFontSet();

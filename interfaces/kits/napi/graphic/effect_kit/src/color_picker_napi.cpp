@@ -62,11 +62,11 @@ thread_local std::shared_ptr<ColorPicker> ColorPickerNapi::sColorPicker_ = nullp
 
 // context
 struct ColorPickerAsyncContext {
-    napi_env env;
-    napi_async_work work;
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    uint32_t status;
+    napi_env env = nullptr;
+    napi_async_work work = nullptr;
+    napi_deferred deferred = nullptr;
+    napi_ref callbackRef = nullptr;
+    uint32_t status = ERROR;
     // build error msg
     napi_value errorMsg = {nullptr};
     ColorPickerNapi *nConstructor = {nullptr};
@@ -74,7 +74,7 @@ struct ColorPickerAsyncContext {
     std::shared_ptr<Media::PixelMap> rPixelMap = {nullptr};
     ColorManager::Color color;
     bool regionFlag = {false};
-    double coordinatesBuffer[4];
+    double coordinatesBuffer[4] = {0.0, 0.0, 1.0, 1.0};
 };
 
 static void BuildMsgOnError(napi_env env,
@@ -241,7 +241,9 @@ void ColorPickerNapi::Destructor(napi_env env, void* nativeObject, void* finaliz
 napi_value ColorPickerNapi::CreateColorPickerFromPtr(napi_env env, std::shared_ptr<ColorPicker> picker)
 {
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
+    napi_status status = napi_create_object(env, &objValue);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && objValue != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi CreateColorPickerFromPtr create object fail"));
 
     ColorPickerNapi* pColorPickerNapi = new (std::nothrow) ColorPickerNapi();
     if (pColorPickerNapi == nullptr) {
@@ -249,7 +251,7 @@ napi_value ColorPickerNapi::CreateColorPickerFromPtr(napi_env env, std::shared_p
     }
     pColorPickerNapi->env_ = env;
     pColorPickerNapi->nativeColorPicker_ = picker;
-    auto status = napi_wrap_s(env, objValue, pColorPickerNapi, ColorPickerNapi::Destructor, nullptr,
+    status = napi_wrap_s(env, objValue, pColorPickerNapi, ColorPickerNapi::Destructor, nullptr,
         &ColorPickerNapi::NAPI_TYPE_TAG, nullptr);
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, pColorPickerNapi,
         EFFECT_LOG_E("ColorPickerNapi CreateColorPickerFromPtr wrap fail"));
@@ -610,12 +612,16 @@ napi_value BuildJsColor(napi_env env, ColorManager::Color& color)
     napi_value clrBlue = nullptr;
     napi_value clrAlpha = nullptr;
 
-    napi_create_object(env, &result);
+    napi_status objStatus = napi_create_object(env, &result);
+    if (objStatus != napi_ok || result == nullptr) {
+        EFFECT_LOG_E("BuildJsColor create object fail");
+        return nullptr;
+    }
 
-    int colorRed = static_cast<int>(color.r * 255.0f);
-    int colorGreen = static_cast<int>(color.g * 255.0f);
-    int colorBlue = static_cast<int>(color.b * 255.0f);
-    int colorAlpha = static_cast<int>(color.a * 255.0f);
+    int colorRed = static_cast<int>(std::clamp(color.r * 255.0f, 0.0f, 255.0f));
+    int colorGreen = static_cast<int>(std::clamp(color.g * 255.0f, 0.0f, 255.0f));
+    int colorBlue = static_cast<int>(std::clamp(color.b * 255.0f, 0.0f, 255.0f));
+    int colorAlpha = static_cast<int>(std::clamp(color.a * 255.0f, 0.0f, 255.0f));
 
     napi_create_int32(env, colorRed, &clrRed);
     napi_set_named_property(env, result, "red", clrRed);

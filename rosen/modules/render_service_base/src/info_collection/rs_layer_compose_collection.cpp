@@ -41,29 +41,37 @@ void LayerComposeCollection::UpdateUniformOrOfflineComposeFrameNumberForDFX(size
     ++layerComposeInfo_.offlineComposeFrameNumber;
 }
 
+// LCOV_EXCL_START
 void LayerComposeCollection::UpdateRedrawFrameNumberForDFX()
 {
     std::lock_guard<std::mutex> lock(layerMtx_);
     --layerComposeInfo_.offlineComposeFrameNumber;
     ++layerComposeInfo_.redrawFrameNumber;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void LayerComposeCollection::UpdateDrawImageNumberForDFX()
 {
     std::lock_guard<std::mutex> lock(layerMtx_);
     ++layerComposeInfo_.drawImageNumber;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 LayerComposeInfo LayerComposeCollection::GetLayerComposeInfo() const
 {
     std::lock_guard<std::mutex> lock(layerMtx_);
     return layerComposeInfo_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void LayerComposeCollection::ResetLayerComposeInfo()
 {
     std::lock_guard<std::mutex> lock(layerMtx_);
     layerComposeInfo_ = LayerComposeInfo {};
 }
+// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS

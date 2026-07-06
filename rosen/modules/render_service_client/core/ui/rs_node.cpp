@@ -50,6 +50,7 @@
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_implicit_animator.h"
+#include "animation/rs_particle_animation.h"
 #include "animation/rs_property_animation.h"
 #include "animation/rs_render_particle_animation.h"
 #include "command/rs_base_node_command.h"
@@ -190,8 +191,8 @@ RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, st
       showingPropertiesFreezer_(id, rsUIContext)
 {
     InitUniRenderEnabled();
-    if (auto rsUIContextPtr = rsUIContext_) {
-        auto transaction = rsUIContextPtr->GetRSTransaction();
+    if (rsUIContext_) {
+        auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr && g_isUniRenderEnabled && isTextureExportNode) {
             std::call_once(flag_, [transaction]() {
                 auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
@@ -279,11 +280,10 @@ RSNode::~RSNode()
 
 std::shared_ptr<RSTransactionHandler> RSNode::GetRSTransaction() const
 {
-    auto rsUIContext = rsUIContext_;
-    if (!rsUIContext) {
+    if (!rsUIContext_) {
         return nullptr;
     }
-    return rsUIContext->GetRSTransaction();
+    return rsUIContext_->GetRSTransaction();
 }
 
 void RSNode::OpenImplicitAnimation(const std::shared_ptr<RSUIContext> rsUIContext,
@@ -534,8 +534,7 @@ void RSNode::ExecuteWithoutAnimation(const PropertyCallback& callback, const std
 
 void RSNode::FallbackAnimationsToContext()
 {
-    auto rsUIContext = rsUIContext_;
-    if (rsUIContext == nullptr) {
+    if (rsUIContext_ == nullptr) {
         ROSEN_LOGE("RSNode::FallbackAnimationsToContext, rsUIContext is null!");
         return;
     }
@@ -548,7 +547,7 @@ void RSNode::FallbackAnimationsToContext()
         if (!animation || (animation->GetRepeatCount() == -1 && animation->IsUiAnimation())) {
             continue;
         }
-        rsUIContext->AddAnimationInner(std::move(animation));
+        rsUIContext_->AddAnimationInner(std::move(animation));
     }
     animations_.clear();
 }
@@ -846,7 +845,43 @@ void RSNode::MarkLayer(bool isLayer)
     AddCommand(command, IsRenderServiceNode());
 }
 
+void RSNode::SetBoundsAndFrame(const Vector4f& bounds, const Vector4f& frame)
+{
+    if (auto surfaceNode = ReinterpretCastTo<RSSurfaceNode>()) {
+        auto compositeLayerUtils = surfaceNode->GetCompositeLayerUtils();
+        if (compositeLayerUtils) {
+            compositeLayerUtils->UpdateVirtualNodeBounds(bounds);
+        }
+    }
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        SetBoundsInner(bounds);
+        SetFrameInner(frame);
+    }
+
+    OnBoundsSizeChanged();
+    if (bounds.x_ != 0 || bounds.y_ != 0 || frame.x_ != 0 || frame.y_ != 0) {
+        SetDrawNode();
+        SetDrawNodeType(DrawNodeType::MergeableType);
+    }
+}
+
 // Bounds
+void RSNode::SetBoundsInner(const Vector4f& bounds)
+{
+    auto modifier = GetModifierCreatedBySetter(ModifierNG::RSBoundsModifier::Type);
+    // Create corresponding modifier if not exist
+    if (modifier == nullptr) {
+        modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+        std::static_pointer_cast<ModifierNG::RSBoundsModifier>(modifier)->SetBounds(bounds);
+        modifiersNGCreatedBySetter_.emplace(ModifierNG::RSBoundsModifier::Type, modifier);
+        AddModifier(modifier);
+    } else {
+        std::static_pointer_cast<ModifierNG::RSBoundsModifier>(modifier)->SetBounds(bounds);
+        NotifyPageNodeChanged();
+    }
+}
+
 void RSNode::SetBounds(const Vector4f& bounds)
 {
     if (auto surfaceNode = ReinterpretCastTo<RSSurfaceNode>()) {
@@ -917,6 +952,21 @@ void RSNode::SetBoundsHeight(float height)
 }
 
 // Frame
+void RSNode::SetFrameInner(const Vector4f& frame)
+{
+    auto modifier = GetModifierCreatedBySetter(ModifierNG::RSFrameModifier::Type);
+    // Create corresponding modifier if not exist
+    if (modifier == nullptr) {
+        modifier = std::make_shared<ModifierNG::RSFrameModifier>();
+        std::static_pointer_cast<ModifierNG::RSFrameModifier>(modifier)->SetFrame(frame);
+        modifiersNGCreatedBySetter_.emplace(ModifierNG::RSFrameModifier::Type, modifier);
+        AddModifier(modifier);
+    } else {
+        std::static_pointer_cast<ModifierNG::RSFrameModifier>(modifier)->SetFrame(frame);
+        NotifyPageNodeChanged();
+    }
+}
+
 void RSNode::SetFrame(const Vector4f& bounds)
 {
     SetPropertyNG<ModifierNG::RSFrameModifier, &ModifierNG::RSFrameModifier::SetFrame>(bounds);
@@ -1530,36 +1580,35 @@ void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyT
 // Set ParticleParams
 void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback)
 {
+    RemoveParticleAnimations();
+
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
     for (size_t i = 0; i < particleParams.size(); i++) {
         particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
     }
 
     SetParticleDrawRegion(particleParams);
-    auto property = std::make_shared<RSProperty<int>>();
-    auto propertyId = property->GetId();
-    auto uiAnimation = std::make_shared<RSDummyAnimation>(rsUIContext_);
-    auto animationId = uiAnimation->GetId();
-    AddAnimation(uiAnimation);
-    if (finishCallback != nullptr) {
-        uiAnimation->SetFinishCallback(std::make_shared<AnimationFinishCallback>(finishCallback));
-    }
-    auto animation =
-        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
-    // set token to RSRenderParticleAnimation
-    if (rsUIContext_ != nullptr) {
-        animation->SetParticleAnimationToken(rsUIContext_->GetToken());
-    } else {
-        ROSEN_LOGE("multi-instance, RSNode [%{public}" PRIu64 "] without RSUIContext "
-            "when creating particle animation [%{public}" PRIu64 "]", GetId(), animationId);
-    }
     ModifierId modifierId = ModifierNG::RSModifier::GenerateModifierId();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticleNG>(GetId(), modifierId, animation);
-    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-    if (NeedForcedSendToRemote()) {
-        std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSAnimationCreateParticleNG>(GetId(), modifierId, animation);
-        AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+    auto animation = std::make_shared<RSParticleAnimation>(rsUIContext_, std::move(particlesRenderParams), modifierId);
+    if (finishCallback != nullptr) {
+        animation->SetFinishCallback(finishCallback);
+    }
+    AddAnimation(animation);
+}
+
+void RSNode::RemoveParticleAnimations()
+{
+    std::vector<std::shared_ptr<RSAnimation>> particleAnimations;
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        for (const auto& [animationId, animation] : animations_) {
+            if (animation != nullptr && animation->IsParticleAnimation()) {
+                particleAnimations.emplace_back(animation);
+            }
+        }
+    }
+    for (const auto& animation : particleAnimations) {
+        RemoveAnimationInner(animation);
     }
 }
 
@@ -3231,7 +3280,7 @@ void RSNode::ClearAllModifiers()
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    for (auto [id, modifier] : modifiersNG_) {
+    for (auto& [id, modifier] : modifiersNG_) {
         if (modifier) {
             modifier->OnDetach();
         }
@@ -3388,16 +3437,20 @@ std::shared_ptr<RSNode> RSNode::GetNodeInMap(NodeId id) const
 
 bool RSNode::CheckMultiThreadAccess(const std::string& func) const
 {
-    if (isSkipCheckInMultiInstance_) {
+    if LIKELY(isSkipCheckInMultiInstance_) {
         return true;
     }
-    auto rsContext = rsUIContext_;
-    if (rsContext == nullptr) {
+    return CheckMultiThreadContextAccess(func);
+}
+
+bool RSNode::CheckMultiThreadContextAccess(const std::string& func) const
+{
+    if (rsUIContext_ == nullptr) {
         return true;
     }
 #ifdef ROSEN_OHOS
     thread_local auto tid = gettid();
-    if ((tid != ExtractTid(rsContext->GetToken()))) {
+    if ((tid != ExtractTid(rsUIContext_->GetToken()))) {
         ROSEN_LOGE("RSNode::CheckMultiThreadAccess nodeId is %{public}" PRIu64 ", func:%{public}s is not "
                    "correspond tid is "
                    "%{public}d context "
@@ -3406,7 +3459,7 @@ bool RSNode::CheckMultiThreadAccess(const std::string& func) const
             GetId(),
             func.c_str(),
             tid,
-            ExtractTid(rsContext->GetToken()),
+            ExtractTid(rsUIContext_->GetToken()),
             GetType());
         return false;
     }
@@ -4291,6 +4344,12 @@ void RSNode::RebuildTree()
     if (GetNodeState() != RSNodeState::INACTIVE) {
         return;
     }
+    if (auto rsUIContext = GetRSUIContext()) {
+        rsUIContext->SetRebuildState(RebuildState::Rebuilding);
+    }
+    if (isTextureExportNode_) {
+        return;
+    }
     _RebuildTreeInternal();
 }
 
@@ -4337,6 +4396,29 @@ void RSNode::_RebuildTreeLevel(const std::vector<std::tuple<RSNode*, RSNode*, si
     _RebuildTreeLevel(nextLevel);
 }
 
+bool RSNode::CheckAndWaitForNodeRebuild()
+{
+    auto rsUIContext = GetRSUIContext();
+    if (rsUIContext == nullptr) {
+        return true;
+    }
+    if (nodeState_ == RSNodeState::ACTIVE) {
+        RebuildState states = rsUIContext->GetRebuildState();
+        if (states == RebuildState::Normal) {
+            return true;
+        } else {
+            return rsUIContext->WaitForRebuildNormal();
+        }
+    }
+    RebuildTree();
+    if (auto transaction = GetRSTransaction()) {
+        transaction->FlushImplicitTransaction();
+    }
+    rsUIContext->GetRSRenderInterface()->RegisterTransactionDataCallback(
+        rsUIContext->GetToken(), 0, [rsUIContext]() { rsUIContext->SetRebuildState(RebuildState::Normal); });
+    return rsUIContext->WaitForRebuildNormal();
+}
+
 void RSNode::SetExportTypeChangedCallback(ExportTypeChangedCallback callback)
 {
     exportTypeChangedCallback_ = callback;
@@ -4353,6 +4435,10 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
     }
     if (exportTypeChangedCallback_) {
         exportTypeChangedCallback_(isTextureExportNode);
+    }
+    if (GetNodeState() == RSNodeState::INACTIVE) {
+        RebuildTree();
+        return;
     }
     if ((isTextureExportNode_ && !hasCreateRenderNodeInRT_) ||
         (!isTextureExportNode_ && !hasCreateRenderNodeInRS_)) {

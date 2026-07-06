@@ -330,6 +330,7 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
         return;
     }
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().SendRcdMessage(id, screenProperty);
         RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
             [id, &processor, &rcdInfo](void) {
                 auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id);
@@ -541,12 +542,14 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
         ProcessDelegateCompositeCommand();
         ConsumeAndUpdateAllNodes();
+        RSLayerSplitManager::GetInstance()->Reset();
         ClearNeedDropframePidList();
         if (renderThreadParams_) {
             renderThreadParams_->ClearWhiteListRect();
         }
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
+        RSLayerSplitManager::GetInstance()->MoveSplitSurfaceNode();
         RsFrameBlurPredict::GetInstance().AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
         UpdateSubSurfaceCnt();
         Animate(timestamp_);
@@ -849,6 +852,7 @@ void RSMainThread::CleanRenderNodes(pid_t remotePid) noexcept
     RS_PROFILER_KILL_PID_END();
 
     RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+    context.DestoryUIRenderDirectorByPid(remotePid);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -1678,10 +1682,10 @@ void RSMainThread::ProcessCommandForUniRender()
         CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);
     }
     DelayedSingleton<RSFrameRateVote>::GetInstance()->SetTransactionFlags(transactionFlags);
+    bool delegateModeFlag = doDirectComposition_ ? true : false;
+    bool splitLayerFlag = doDirectComposition_ ? true : false;
     if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
-        doDirectComposition_ = false;
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by transactionDataEffective not empty");
-        UpdateDoDirectCompositionFlagForDelegateMode(transactionDataEffective);
+        delegateModeFlag &= UpdateDoDirectCompositionFlagForDelegateMode(transactionDataEffective);
     }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     if (transactionFlags != "") {
@@ -1703,9 +1707,18 @@ void RSMainThread::ProcessCommandForUniRender()
                 } else {
                     ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
                 }
-                UpdateDoDirectCompositionFlagForDelegateMode(rsTransaction);
+                delegateModeFlag &= UpdateDoDirectCompositionFlagForDelegateMode(rsTransaction);
+                splitLayerFlag &= RSLayerSplitManager::GetInstance()->CheckOpIncNodeFromCommand(rsTransaction);
             }
         }
+
+        splitLayerFlag &= RSLayerSplitManager::GetInstance()->CheckDoDirectCompositionWithSplitLayer();
+        if (!delegateModeFlag && !splitLayerFlag) {
+            doDirectComposition_ = false;
+            RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by delegateMode or splitLayer not enabled and "
+                "transactionDataEffective not empty");
+        }
+
         if (isWebCommandOnly_ && doDirectComposition_) {
             transactionDataEffective->clear();
         } else {
@@ -1766,31 +1779,34 @@ void RSMainThread::ProcessCommandForUniRender()
     });
 }
 
-void RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(
+bool RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(
     std::shared_ptr<TransactionDataMap>& transactionDataEffective)
 {
 #ifndef ROSEN_CROSS_PLATFORM
     isWebCommandOnly_ =
         RsDelegateCompositeCallbackManager::GetInstance().CheckIsDelegateCompositeOnly(transactionDataEffective);
-    if (isWebCommandOnly_ && !doDirectComposition_) {
-        doDirectComposition_ = true;
-    }
+    return isWebCommandOnly_;
 #endif
+    return false;
 }
 
-void RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData)
+bool RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (doDirectComposition_ && transactionData) {
+    if (!isWebCommandOnly_) {
+        return false;
+    }
+    if (transactionData) {
         if (!RsDelegateCompositeCallbackManager::GetInstance().CheckSurfaceTransactionIdentity(
             transactionData->GetSendingPid(), transactionData->GetSendingTid())) {
-            doDirectComposition_ = false;
             RS_OPTIONAL_TRACE_FMT("disable doDirectComposition, %u %u",
                 transactionData->GetSendingPid(), transactionData->GetSendingTid());
-            isWebCommandOnly_ = false;
+            return false;
         }
+        return true;
     }
 #endif
+    return false;
 }
 
 void RSMainThread::ProcessDelegateCompositeCommand()
@@ -2031,12 +2047,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 comsumeResult = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
                     *surfaceHandler, timestamp_, dropFrameConfig,
                     parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
-                if (comsumeResult) {
-                    tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
-                }
-                if (!comsumeResult) {
-                    tunnelRouteArbiter_->AbandonNormalClaim(surfaceNode);
-                }
+                tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
             } else if (outcome == RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT) {
                 comsumeResult = true;
             }
@@ -2324,15 +2335,21 @@ bool RSMainThread::IsFoldScreenSwitching() const
     return res;
 }
 
-bool RSMainThread::IsMultiDisplay() const
+bool RSMainThread::IsMultiDisplay()
 {
     uint32_t validCount = 0;
+    uint32_t nonInternalDisplayCount = 0;
     const auto& nodeMap = context_->GetNodeMap();
-    nodeMap.TraverseScreenNodes([&validCount](const auto& node) {
-        if (node && node->GetChildrenCount() > 0) {
-            validCount++;
+    nodeMap.TraverseScreenNodes([&validCount, &nonInternalDisplayCount](const auto& node) {
+        if (!node || node->GetChildrenCount() == 0) {
+            return;
+        }
+        validCount++;
+        if (node->GetScreenProperty().GetConnectionType() != ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL) {
+            nonInternalDisplayCount++;
         }
     });
+    MultiDisplayChange(nonInternalDisplayCount > 0);
     return validCount > 1;
 }
 
@@ -2343,7 +2360,6 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     bool isMultiDisplay = IsMultiDisplay();
-    MultiDisplayChange(isMultiDisplay);
 
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
@@ -2372,7 +2388,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
     isHardwareForcedDisabled_ =
         (!hasProtectedLayer_ &&
- 	     (isHardwareForcedDisabled_ || doWindowAnimate_ || isFoldScreenSwitching ||
+ 	     (isHardwareForcedDisabled_ || isFoldScreenSwitching ||
  	      (isMultiDisplay && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode)) || hasColorFilter)) ||
  	    CheckOverlayDisplayEnable();
     RS_OPTIONAL_TRACE_FMT("hwc debug: CheckIfHardwareForcedDisabled hasProtectedLayer:%d isHardwareForcedDisabled:%d"
@@ -3173,7 +3189,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 processor->CreateLayer(*surfaceNode, *params);
                 // buffer is synced to directComposition
                 params->SetBufferSynced(true);
-                RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId()).OnRenderCommitDone();
             }
         }
         rsLuminance.SetHdrStatus(screenId,
@@ -3182,6 +3197,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             screenNode->SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
         }
         RSLuminanceControl::Get().HdrDimmingPostProcess(screenId);
+        screenNode->SetLastDisplayHdrStatus(screenNode->GetDisplayHdrStatus());
         RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
         auto rcdInfo = std::make_unique<RcdInfo>();
         DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenNode->GetScreenProperty());
@@ -4001,9 +4017,6 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
 
-    // minLeftDelayTime is in milliseconds
-    // For nodes on tree: delayTime only (immediate refresh after delay)
-    // For nodes not on tree: delayTime + remainingTime (complete delay consideration)
     int64_t minLeftDelayTime = RSSystemProperties::GetAnimationDelayOptimizeEnabled() ? INT64_MAX : 0;
     bool hasRunningGroupAnimators = context_->UpdateGroupAnimators(timestamp, minLeftDelayTime);
     if (hasRunningGroupAnimators) {
@@ -4097,7 +4110,26 @@ void RSMainThread::Animate(uint64_t timestamp)
 
     if (needRequestNextVsync) {
         hgmRenderContext_->GetHgmRPEnergy()->StatisticAnimationTime(timestamp / NS_PER_MS);
-        RequestDelayedVSyncForAnimation(minLeftDelayTime, timestamp, nextFrameTime);
+        // greater than one frame time (16.6 ms)
+        constexpr int64_t oneFrameTimeInFPS60 = 17;
+        // maximum delay time 60000 milliseconds, which is equivalent to 60 seconds.
+        constexpr int64_t delayTimeMax = 60000;
+        if (minLeftDelayTime > oneFrameTimeInFPS60) {
+            minLeftDelayTime = std::min(minLeftDelayTime, delayTimeMax);
+            auto RequestNextVSyncTask = [this]() {
+                RS_TRACE_NAME("Animate with delay RequestNextVSync");
+                RequestNextVSync("animate", timestamp_);
+            };
+            RS_TRACE_NAME_FMT("Animate minLeftDelayTime: %ld", minLeftDelayTime);
+            PostTask(RequestNextVSyncTask, "animate_request_next_vsync", minLeftDelayTime - oneFrameTimeInFPS60,
+                AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        } else {
+            // Advance by 0.5 ms to prevent VSync jitter from causing this frame to be missed.
+            constexpr int64_t requestNextFrameAdvanceNs = 500000;
+            int64_t requestNextFrameTime = (nextFrameTime == INT64_MAX) ? 0 : nextFrameTime;
+            requestNextFrameTime -= requestNextFrameAdvanceNs;
+            RequestNextVSync("animate", timestamp_, requestNextFrameTime);
+        }
     } else if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         isImplicitAnimationEnd_ = true;
@@ -4110,40 +4142,13 @@ void RSMainThread::Animate(uint64_t timestamp)
     UpdateDirectCompositionByAnimate(needRequestNextVsync);
 }
 
-void RSMainThread::RequestDelayedVSyncForAnimation(int64_t minLeftDelayTime, uint64_t timestamp, int64_t nextFrameTime)
-{
-    // greater than one frame time (16.6 ms)
-    constexpr int64_t oneFrameTimeInFPS60 = 17;
-    // maximum delay time 60000 milliseconds, which is equivalent to 60 seconds.
-    constexpr int64_t delayTimeMax = 60000;
-    int64_t delayTimeMs = std::min(minLeftDelayTime, delayTimeMax);
-    delayTimeMs = std::min(delayTimeMs, delayTimeMax);
-    if (delayTimeMs > oneFrameTimeInFPS60) {
-        constexpr int64_t nsPerMs = 1000000;
-        int64_t delayTimeNs = (delayTimeMs - oneFrameTimeInFPS60) * nsPerMs;
-        int64_t maxDelayFromTimestamp = INT64_MAX - static_cast<int64_t>(timestamp);
-        if (delayTimeNs > maxDelayFromTimestamp) {
-            delayTimeNs = maxDelayFromTimestamp;
-        }
-        int64_t requestVsyncTime = static_cast<int64_t>(timestamp) + delayTimeNs;
-        RS_TRACE_NAME_FMT("Animate delayTimeMs: %ld, minLeftDelayTime: %ld", delayTimeMs, minLeftDelayTime);
-        RequestNextVSync("animate_delay", static_cast<int64_t>(timestamp), requestVsyncTime);
-    } else {
-        // Advance by 0.5 ms to prevent VSync jitter from causing this frame to be missed.
-        constexpr int64_t requestNextFrameAdvanceNs = 500000;
-        int64_t requestNextFrameTime = (nextFrameTime == INT64_MAX) ? 0 : nextFrameTime;
-        requestNextFrameTime -= requestNextFrameAdvanceNs;
-        RequestNextVSync("animate", timestamp_, requestNextFrameTime);
-    }
-}
-
 void RSMainThread::UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync)
 {
     // if the animation is running or it's on the last frame of the animation, then change the doDirectComposition_ flag
     // to false.
     if (animateNeedRequestNextVsync || (!animateNeedRequestNextVsync && lastAnimateNeedRequestNextVsync_)) {
         doDirectComposition_ = false;
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by animate");
+        RS_TRACE_NAME("hwc debug: disable directComposition by animate");
     }
     lastAnimateNeedRequestNextVsync_ = animateNeedRequestNextVsync;
 }
@@ -6068,6 +6073,13 @@ void RSMainThread::TransitionDataMutexUnlock()
 void RSMainThread::CheckPackageInConfigList(const std::vector<std::string>& packageList)
 {
     hwcContext_->CheckPackageInConfigList(packageList);
+}
+
+void RSMainThread::SetWindowModeType(uint8_t windowModeType)
+{
+    if (HWCParam::IsSplitScreenSourceTuning()) {
+        hwcContext_->SetWindowModeType(windowModeType);
+    }
 }
 
 void RSMainThread::AddSurfaceFpsOp(const SurfaceFpsOp& op)

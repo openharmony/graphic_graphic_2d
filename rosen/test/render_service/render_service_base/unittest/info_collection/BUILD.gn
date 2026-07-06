@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("$graphic_2d_root/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 
 module_output_path = "graphic_2d/graphic_2d/render_service_base/info_collection"
 
@@ -23,6 +23,7 @@ ohos_unittest("RSRenderServiceBaseInfoCollectionTest") {
 
   sources = [
     "rs_gpu_dirty_region_collection_test.cpp",
+    "rs_hardware_compose_disabled_reason_collection_test.cpp",
     "rs_hdr_collection_test.cpp",
   ]
 

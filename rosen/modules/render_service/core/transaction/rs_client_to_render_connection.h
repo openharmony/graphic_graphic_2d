@@ -193,8 +193,8 @@ private:
     void SetFreeMultiWindowStatus(bool enable) override;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    sptr<Surface> GetCanvasSurface(NodeId nodeId) override;
-    void RemoveCanvasSurface(NodeId nodeId) override;
+    sptr<Surface> CreateCanvasDrawingNodeSurface(NodeId nodeId) override;
+    void ReleaseCanvasDrawingNodeSurface(NodeId nodeId) override;
 #endif
     bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid) override;
     bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener, uint64_t listenerId) override;

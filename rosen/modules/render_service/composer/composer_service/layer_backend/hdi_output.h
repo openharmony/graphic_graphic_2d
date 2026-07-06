@@ -72,6 +72,7 @@ public:
     // only used when composer_host dead
     void ResetDevice()
     {
+        std::lock_guard<std::mutex> lock(backlightDeviceMutex_);
         device_ = nullptr;
     }
     bool IsDeviceValid() const
@@ -153,6 +154,8 @@ public:
 
 private:
     HdiDevice *device_ = nullptr;
+    // Synchronizes device_ updates with asynchronous backlight tasks.
+    mutable std::mutex backlightDeviceMutex_;
     sptr<VSyncSampler> sampler_ = nullptr;
 
     std::vector<sptr<SyncFence>> historicalPresentfences_;

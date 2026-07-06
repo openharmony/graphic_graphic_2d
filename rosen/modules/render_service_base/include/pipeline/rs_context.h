@@ -269,6 +269,7 @@ public:
     std::shared_ptr<RSUIRenderDirector> GetUIRenderDirector(pid_t pid, uint64_t token);
     void CreateUIRenderDirector(pid_t pid, uint64_t token);
     void DestroyUIRenderDirector(pid_t pid, uint64_t token);
+    void DestoryUIRenderDirectorByPid(pid_t pid);
 
     std::unordered_map<std::string, pid_t> GetUIFrameworkDirtyNodeNameMap();
 private:

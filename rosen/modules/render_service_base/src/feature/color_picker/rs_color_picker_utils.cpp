@@ -138,6 +138,7 @@ bool ExecColorPick(const std::weak_ptr<IColorPickerManager>& weakManager, ColorP
     // clang-format on
 
     Drawing::ColorQuad colorPicked;
+    image->SetHdrScale(info.hdrScale_);
     if (RSPropertyDrawableUtils::PickColor(gpuCtx, image, colorPicked)) {
         manager->HandleColorUpdate(colorPicked);
         return true;
@@ -165,7 +166,8 @@ std::unique_ptr<ColorPickerInfo> CreateColorPickerInfo(Drawing::Surface* drawing
     auto imageInfo = drawingSurface->GetImageInfo();
     auto colorSpace = imageInfo.GetColorSpace();
     Drawing::BitmapFormat bitmapFormat = { imageInfo.GetColorType(), imageInfo.GetAlphaType() };
-    return std::make_unique<ColorPickerInfo>(colorSpace, bitmapFormat, backendTexture, snapshot, manager);
+    float hdrScale = drawingSurface->GetHdrScale();
+    return std::make_unique<ColorPickerInfo>(colorSpace, bitmapFormat, backendTexture, snapshot, manager, hdrScale);
 }
 
 float CalculateLuminance(Drawing::ColorQuad color)

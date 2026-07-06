@@ -51,13 +51,15 @@ public:
     ~RSUniRenderVisitor() override;
 
     // To prepare nodes between ScreenRenderNode and app nodes.
-    void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) override;
-    void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
-    void QuickPrepareScreenRenderNode(RSScreenRenderNode& node) override;
-    void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override;
-    void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
-    void QuickPrepareUnionRenderNode(RSUnionRenderNode& node) override;
-    void QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRenderNode& node) override;
+    void QuickPrepareEffectRenderNode(RSEffectRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
+    void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
+    void QuickPrepareScreenRenderNode(RSScreenRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
+    void QuickPrepareLogicalDisplayRenderNode(
+        RSLogicalDisplayRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
+    void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
+    void QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
+    void QuickPrepareWindowKeyFrameRenderNode(
+        RSWindowKeyFrameRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
     void QuickPrepareChildren(RSRenderNode& node) override;
 
     void PrepareChildren(RSRenderNode& node) override {};
@@ -155,8 +157,10 @@ private:
     RotationStatus GetRotationStatus() const;
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
+    void CollectHwcAndFilterNodesInSkippedSubTree(RSRenderNode& node);
+    void CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder = false);
     // restore node's flag and filter dirty collection
-    void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
+    void PostPrepare(RSRenderNode& node, bool isParentPrepareInReverseOrder = false, bool subTreeSkipped = false);
     void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
     void CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node);
 
@@ -182,7 +186,8 @@ private:
 
     void UpdateCompositeType(RSScreenRenderNode& node);
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
-    bool NeedPrepareChindrenInReverseOrder(RSRenderNode& node) const;
+    bool IsFilterNode(RSRenderNode& node) const;
+    bool NeedPrepareChildrenInReverseOrder(RSRenderNode& node) const;
     bool IsLeashAndHasMainSubNode(RSRenderNode& node) const;
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
@@ -199,8 +204,7 @@ private:
     bool IsAccessibilityConfigChanged() const;
     bool IsWatermarkFlagChanged() const;
     void UpdateDisplayZoomState();
-    void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
-        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, const RectI& globalHwcFilterRect);
+    void CollectFilterInfoAndUpdateDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
 
     // This function is used for solving display problems caused by dirty blurfilter node half-obscured.
@@ -214,8 +218,7 @@ private:
     void UpdateAncoNodeHWCDisabledState(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
     void UpdateScreenHdrForceHwcState(
         const std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
-    void UpdateHwcNodeDirtyRegionAndCreateLayer(
-        std::shared_ptr<RSSurfaceRenderNode>& node, std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
+    void UpdateHwcNodeDirtyRegionAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
     void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
@@ -224,10 +227,9 @@ void ProcessGpuOfflineForTopLayer(
     void UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode, std::vector<RectI>& hwcRects);
     bool CheckIfRoundCornerIntersectDRM(const float ratio, std::vector<float>& ratioVector,
         const Vector4f& instanceCornerRadius, const RectI& instanceAbsRect, const RectI& hwcAbsRect);
-    void UpdateIfHwcNodesHaveVisibleRegion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces);
+    void UpdateIfHwcNodesHaveVisibleRegion(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
-        bool& hasVisibleHwcNodes, bool& needForceUpdateHwcNodes);
+        const std::weak_ptr<RSSurfaceRenderNode>& hwcNode, bool& hasVisibleHwcNodes, bool& needForceUpdateHwcNodes);
     void PrevalidateHwcNode();
     void UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, RequestCompositionType> &strategy,
         const RSRenderNodeMap& nodeMap);
@@ -376,8 +378,6 @@ void ProcessGpuOfflineForTopLayer(
     void HandleTunnelLayerId(RSSurfaceRenderNode& node);
 
     void UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node);
-
-    void CollectSurfaceLockLayer(RSSurfaceRenderNode& node);
 
     void CheckFilterNeedEnableDebug(RSEffectRenderNode& node, bool hasEffectNodeInParent);
 

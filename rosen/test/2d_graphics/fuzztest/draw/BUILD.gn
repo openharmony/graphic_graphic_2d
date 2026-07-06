@@ -34,5 +34,6 @@ group("fuzztest") {
     "textblobbuilder_fuzzer:fuzztest",
     "primlist_fuzzer:fuzztest",
     "typeface_fuzzer:fuzztest",
+    "staticfactory_fuzzer:fuzztest",
   ]
 }

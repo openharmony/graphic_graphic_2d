@@ -114,11 +114,8 @@ void RSOfflineProcessor::CheckAndPostClearOfflineResourceTask(OfflineDeviceType 
     const std::vector<uint64_t>& offlineNodeIds)
 {
     RS_TRACE_NAME("RSOfflineProcessor::CheckAndPostClearOfflineResourceTask");
-    RS_LOGD("RSOfflineProcessor::CheckAndPostClearOfflineResourceTask for type: %{public}d",
-        static_cast<int>(deviceType));
     auto offlineDevice = GetOrCreateOfflineDevice(deviceType, false);
     if (offlineDevice == nullptr) {
-        RS_LOGD("RSOfflineProcessor::Offline device not ready in clear task");
         return;
     }
     offlineDevice->CheckAndPostClearOfflineResourceTask(offlineNodeIds);

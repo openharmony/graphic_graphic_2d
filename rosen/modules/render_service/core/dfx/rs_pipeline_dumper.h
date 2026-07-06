@@ -60,6 +60,8 @@ private:
 #endif
     void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
     void DumpExistPidMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
+    void DumpNodeInfo(pid_t pid, uint64_t token, std::string& dumpString) const;
+    void DumpUIContextStateInfo(pid_t pid, uint64_t token, std::string& dumpString) const;
     uint32_t GenerateTaskId();
 
     // RS dump init
@@ -70,6 +72,7 @@ private:
     void RegisterBufferFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
     void RegisterSurfaceInfoFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
     void RegisterFpsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
+    void RegisterContextStatesFuncs(std::shared_ptr<RSPipelineDumpManager> rsDumpManager);
 
     void ScheduleTask(std::function<void()> task) const;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;

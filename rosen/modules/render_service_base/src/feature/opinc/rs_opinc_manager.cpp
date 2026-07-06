@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t LAYER_PART_RENDER_DIRTY_MANAGER_BUFFER_AGE = 4;
+[[maybe_unused]] constexpr int TRACE_LEVEL_PRINT_NODEID = 6;
 
 namespace {
 void DisableLayerPartRender(RSRenderNode& node, RSRenderParams& stagingRenderParams)
@@ -162,8 +163,10 @@ void RSOpincManager::UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable
 void RSOpincManager::QuickCheckOpincStable(
     RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode)
 {
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s, nodeId:" PRIu64, __func__, node.GetId());
     const auto* nodeOpincRootCache = node.TryGetOpincRootCachePtr();
     if (!GetOPIncSwitch() || !node.GetOpincCache().HasUnstableOpincNode()) {
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
 
@@ -198,6 +201,7 @@ void RSOpincManager::QuickCheckOpincStable(
         (nodeOpincRootCache != nullptr && nodeOpincRootCache->IsSuggestOpincNode() &&
             !nodeOpincRootCache->IsOpincUnchangeState()));
     hasUnstableOpincNode = node.GetOpincCache().HasUnstableOpincNode();
+    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 OpincUnsupportType RSOpincManager::GetUnsupportReason(RSRenderNode& node)

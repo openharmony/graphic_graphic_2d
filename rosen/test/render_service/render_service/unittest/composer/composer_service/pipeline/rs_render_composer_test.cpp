@@ -15,7 +15,9 @@
 
 #include <atomic>
 #include <chrono>
+#include <future>
 #include <gtest/gtest.h>
+#include <memory>
 
 #include "../layer_backend/mock_hdi_device.h"
 #include "hdi_output.h"
@@ -678,6 +680,15 @@ public:
     }
     void DumpCurrentFrameLayer() const override {}
 
+    void SetSplitLayerTag(bool splitLayerTag) override
+    {
+        splitLayerTag_ = splitLayerTag;
+    }
+    bool GetSplitLayerTag() const override
+    {
+        return splitLayerTag_;
+    }
+
 private:
     RSLayerId id_ = 0;
     bool isNeedComposition_ = false;
@@ -727,6 +738,7 @@ private:
     bool layerCopybit_ = false;
     bool needBilinear_ = false;
     bool isMaskLayer_ = false;
+    bool splitLayerTag_ = false;
     uint64_t nodeId_ = 0;
     uint32_t ancoFlags_ = 0;
     LayerMask layerMask_ {};
@@ -3270,22 +3282,33 @@ HWTEST_F(RsRenderComposerTest, SurfaceDump_Branches, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. call with valid hdiOutput_
- *                  2. call with null hdiOutput_
+ * CaseDescription: 1. call with valid hdiOutput_ to verify asynchronous dispatch
+ *                  2. call with null hdiOutput_ to verify early return
  */
 HWTEST_F(RsRenderComposerTest, SetScreenBacklight_Branches, TestSize.Level1)
 {
-    // Verify initial hdiOutput_ is not null
-    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    constexpr uint32_t asyncLevel = 80u;
+    auto output = rsRenderComposer_->hdiOutput_;
+    ASSERT_NE(output, nullptr);
+    auto originalDevice = output->device_;
+    output->device_ = hdiDeviceMock_;
 
-    // Call with valid hdiOutput_
-    rsRenderComposer_->SetScreenBacklight(50);
+    constexpr auto waitTimeout = std::chrono::seconds(1);
+    auto taskFinished = std::make_shared<std::promise<void>>();
+    auto taskFuture = taskFinished->get_future();
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(output->GetScreenId(), asyncLevel))
+        .WillOnce([taskFinished](uint32_t, uint32_t) {
+            taskFinished->set_value();
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+    rsRenderComposer_->SetScreenBacklight(asyncLevel);
+    EXPECT_EQ(taskFuture.wait_for(waitTimeout), std::future_status::ready);
 
-    // Call with null hdiOutput_
-    auto backup = rsRenderComposer_->hdiOutput_;
     rsRenderComposer_->hdiOutput_ = nullptr;
     rsRenderComposer_->SetScreenBacklight(0);
-    rsRenderComposer_->hdiOutput_ = backup;
+    EXPECT_EQ(rsRenderComposer_->hdiOutput_, nullptr);
+    rsRenderComposer_->hdiOutput_ = output;
+    output->device_ = originalDevice;
 }
 
 /**
@@ -9386,6 +9409,66 @@ HWTEST_F(RsRenderComposerTest, MarkTunnelSurfaceInvalid_ValidSurfaceId_ForwardsT
     EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 1u);
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) > 0);
 
+    composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ @ tc.name: HandleTunnelCommitFailure_DoesNotDestroyLayer
+ @ tc.desc: Test HandleTunnelCommitFailure marks surface invalid but does NOT destroy layer
+ @ tc.type: FUNC
+*/
+HWTEST_F(RsRenderComposerTest, HandleTunnelCommitFailure_DoesNotDestroyLayer, TestSize.Level1)
+{
+    constexpr uint32_t screenId = 0;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, screenProperty);
+
+    constexpr uint64_t surfaceId = 90003;
+    constexpr uint64_t nodeId = 80003;
+    constexpr uint64_t tunnelLayerGeneration = 100;
+
+    auto rsLayer = std::make_shared<RSRenderSurfaceLayer>();
+    rsLayer->SetSurfaceUniqueId(surfaceId);
+    rsLayer->SetNodeId(nodeId);
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    rsLayer->SetTunnelLayerGeneration(tunnelLayerGeneration);
+    output->RegisterCreatedLayerLocked(surfaceId, hdiLayer, rsLayer, false);
+    ASSERT_EQ(output->surfaceIdMap_.count(surfaceId), 1u);
+
+    composer->HandleTunnelCommitFailure(surfaceId);
+
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) > 0);
+    EXPECT_EQ(output->surfaceIdMap_.count(surfaceId), 1u);
+
+    composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ @ tc.name: SetTunnelLayerProperty
+ @ tc.desc: Test set tunnel layer property
+ @ tc.type: FUNC
+*/
+HWTEST_F(RsRenderComposerTest, SetTunnelLayerProperty, TestSize.Level1)
+{
+    constexpr uint32_t screenId = 0;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, screenProperty);
+
+    constexpr uint64_t surfaceId = 90004;
+    constexpr uint64_t nodeId = 80004;
+
+    auto rsLayer = std::make_shared<RSRenderSurfaceLayer>();
+    rsLayer->SetSurfaceUniqueId(surfaceId);
+    rsLayer->SetNodeId(nodeId);
+    rsLayer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    EXPECT_EQ(hdiLayer->SetTunnelLayerProperty(), GRAPHIC_DISPLAY_NOT_SUPPORT);
     composer->uniRenderEngine_ = nullptr;
 }
 } // namespace Rosen

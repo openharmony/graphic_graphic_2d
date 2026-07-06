@@ -832,6 +832,8 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest, Function | MediumTest| Leve
     rsLayer->SetTunnelLayerId(1);
     rsLayer->SetTunnelLayerProperty(1);
     hdiLayer_->rsLayer_ = rsLayer;
+    hdiLayer_->hasSetTunnel_ = true;
+    hdiLayer_->tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
     EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, _)).WillRepeatedly(testing::Return(-1));
     auto ret = hdiLayer_->SetTunnelLayerParameters();
     EXPECT_EQ(ret, -1);
@@ -915,6 +917,39 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest004, Function | MediumTest| L
     EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, TUNNEL_PROP_INVALID)).Times(0);
     auto ret = hdiLayer->SetTunnelLayerParameters();
     EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetTunnelLayerPropertyWithHasSetTunnelFlag
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test SetTunnelLayerProperty with hasSetTunnel_ flag behavior
+ *                  2. first call should set property even when rsLayer returns 0
+ *                  3. subsequent calls should skip if property matches cached value
+ */
+HWTEST_F(HdiLayerTest, SetTunnelLayerPropertyWithHasSetTunnelFlag, Function | MediumTest| Level1)
+{
+    NiceMock<Mock::HdiDeviceMock> hdiDeviceMock;
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    ASSERT_EQ(hdiLayer->SetHdiDeviceMock(&hdiDeviceMock), GRAPHIC_DISPLAY_SUCCESS);
+
+    hdiLayer->hasSetTunnel_ = true;
+    hdiLayer->tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
+ 
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
+    hdiLayer->rsLayer_ = rsLayer;
+ 
+    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, TUNNEL_PROP_BUFFER_ADDR))
+        .WillOnce(testing::Return(0));
+    ASSERT_EQ(hdiLayer->SetTunnelLayerProperty(), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_TRUE(hdiLayer->hasSetTunnel_);
+    ASSERT_EQ(hdiLayer->tunnelLayerProperty_, TUNNEL_PROP_BUFFER_ADDR);
+ 
+    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, TUNNEL_PROP_BUFFER_ADDR)).Times(0);
+    ASSERT_EQ(hdiLayer->SetTunnelLayerProperty(), GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /**

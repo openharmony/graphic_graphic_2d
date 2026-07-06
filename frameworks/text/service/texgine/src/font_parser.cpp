@@ -304,7 +304,7 @@ bool FontParser::ParseTable(
 
 bool FontParser::SetFontDescriptor(const unsigned int languageId)
 {
-        visibilityFonts_.clear();
+    visibilityFonts_.clear();
     std::list<std::string> fontSetCache;
     for (unsigned int i = 0; i < fontSet_.size(); ++i) {
         FontParser::FontDescriptor fontDescriptor;
@@ -316,6 +316,7 @@ bool FontParser::SetFontDescriptor(const unsigned int languageId)
             TEXT_LOGE("Failed to parse file %{public}s", fontDescriptor.path.c_str());
             continue;
         }
+        fontDescriptor.index = typeface->GetFontIndex();
         auto fontStyle = typeface->GetFontStyle();
         fontDescriptor.weight = fontStyle.GetWeight();
         fontDescriptor.width = fontStyle.GetWidth();
@@ -323,8 +324,12 @@ bool FontParser::SetFontDescriptor(const unsigned int languageId)
             TEXT_LOGE("Failed to parse table");
             return false;
         }
+        FillFontDescriptorWithLocalInfo(typeface, fontDescriptor);
+        FillFontDescriptorWithLanguageAndFeatures(typeface, fontDescriptor);
         size_t idx = fontSet_[i].rfind('/');
-        std::string fontName = fontSet_[i].substr(idx + 1, fontSet_[i].size() - idx - 1);
+        std::string fontName = (idx != std::string::npos)
+            ? fontSet_[i].substr(idx + 1)
+            : fontSet_[i];
         if (std::find(fontSetCache.begin(), fontSetCache.end(), fontName) == fontSetCache.end()) {
             fontSetCache.push_back(fontName);
             visibilityFonts_.emplace_back(fontDescriptor);

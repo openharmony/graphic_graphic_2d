@@ -12,6 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <algorithm>
+#include <unordered_set>
+
 #include "rs_trace.h"
 
 #include "pipeline/rs_logical_display_render_node.h"
@@ -50,13 +53,14 @@ void RSLogicalDisplayRenderNode::OnSync()
     RSRenderNode::OnSync();
 }
 
-void RSLogicalDisplayRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSLogicalDisplayRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;
     }
     ApplyModifiers();
-    visitor->QuickPrepareLogicalDisplayRenderNode(*this);
+    visitor->QuickPrepareLogicalDisplayRenderNode(*this, isParentPrepareInReverseOrder);
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->PrepareLight();
 }
 
@@ -461,6 +465,66 @@ float RSLogicalDisplayRenderNode::GetFixedWidth() const
 float RSLogicalDisplayRenderNode::GetFixedHeight() const
 {
     return fixedHeight_;
+}
+
+bool RSLogicalDisplayRenderNode::HasNonlinearBlendMode(int blendMode)
+{
+    return IsInBlendModeGroup(blendMode, NonlinearBlendModes);
+}
+
+bool RSLogicalDisplayRenderNode::HasChildBlendMode(int blendMode)
+{
+    return IsInBlendModeGroup(blendMode, ChildBlendModes);
+}
+
+bool RSLogicalDisplayRenderNode::HasEmptyBlendMode(int blendMode)
+{
+    return IsInBlendModeGroup(blendMode, EmptyBlendModes);
+}
+
+bool RSLogicalDisplayRenderNode::HasParentBlendMode(int blendMode)
+{
+    return IsInBlendModeGroup(blendMode, ParentBlendModes);
+}
+
+void RSLogicalDisplayRenderNode::IncreaseBlendModeNode(NodeId id)
+{
+    blendModeNodeMap_[id]++;
+}
+
+void RSLogicalDisplayRenderNode::RemoveBlendModeNode(NodeId id)
+{
+    auto it = blendModeNodeMap_.find(id);
+    bool needErase = it != blendModeNodeMap_.end();
+    // directly remove id in map
+    if (needErase) {
+        blendModeNodeMap_.erase(it);
+    }
+}
+
+int RSLogicalDisplayRenderNode::GetDstAlphaBlendModeNodeCount() const
+{
+    auto count = 0;
+    for (const auto& node : blendModeNodeMap_) {
+        count += node.second;
+    }
+    return count;
+}
+
+bool RSLogicalDisplayRenderNode::CheckAncestorChildBlendMode(
+    int blendMode, int currentBlendMode, bool IsEmptyBlendMode, bool IsParentBlendMode)
+{
+    if (blendMode == static_cast<int>(RSColorBlendMode::NONE)) {
+        bool isEmpty = HasEmptyBlendMode(currentBlendMode) || IsEmptyBlendMode;
+        if (isEmpty) {
+            return true;
+        }
+    }
+    bool isParent = HasParentBlendMode(currentBlendMode) || IsParentBlendMode;
+    if (!isParent) {
+        return false;
+    }
+    return HasChildBlendMode(blendMode);
 }
 
 } // namespace OHOS::Rosen

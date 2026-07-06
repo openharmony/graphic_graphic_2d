@@ -18,6 +18,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -68,6 +69,23 @@ bool RoundCornerDisplayManager::CheckLayerIsRCD(const std::string& layerName)
         return false;
     }
     return true;
+}
+
+void RoundCornerDisplayManager::SendRcdMessage(NodeId id, const RSScreenProperty& screenProperty)
+{
+    uint32_t left = 0; // render region
+    uint32_t top = 0;
+    uint32_t width = screenProperty.GetWidth();
+    uint32_t height = screenProperty.GetHeight();
+    const auto& activeRect = screenProperty.GetActiveRect();
+    if (!activeRect.IsEmpty()) {
+        left = static_cast<uint32_t>(std::max(0, activeRect.GetLeft()));
+        top = static_cast<uint32_t>(std::max(0, activeRect.GetTop()));
+        width = static_cast<uint32_t>(std::max(0, activeRect.GetWidth()));
+        height = static_cast<uint32_t>(std::max(0, activeRect.GetHeight()));
+    }
+    UpdateDisplayParameter(id, left, top, width, height);
+    UpdateNotchStatus(id, RSSystemParameters::GetHideNotchStatus());
 }
 
 void RoundCornerDisplayManager::AddRoundCornerDisplay(NodeId id)

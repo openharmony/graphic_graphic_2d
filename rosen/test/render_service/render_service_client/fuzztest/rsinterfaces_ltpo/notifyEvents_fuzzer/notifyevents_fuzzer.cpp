@@ -36,7 +36,8 @@ const uint8_t DO_NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT = 4;
 const uint8_t DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 5;
 const uint8_t DO_NOTIFY_TOUCH_EVENT = 6;
 const uint8_t DO_NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE = 7;
-const uint8_t TARGET_SIZE = 8;
+const uint8_t DO_NOTIFY_WINDOW_MODE_TYPE_EVENT = 8;
+const uint8_t TARGET_SIZE = 9;
 constexpr size_t STR_LEN = 10;
 
 void DoNotifyLightFactorStatus(FuzzedDataProvider& fdp)
@@ -109,6 +110,11 @@ void DoNotifyXComponentExpectedFrameRate(FuzzedDataProvider& fdp)
     g_rsInterfaces->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
 }
 
+void DoNotifyWindowModeTypeEvent(FuzzedDataProvider& fdp)
+{
+    uint8_t windowModeType = fdp.ConsumeIntegral<uint8_t>();
+    g_rsInterfaces->NotifyWindowModeTypeEvent(windowModeType);
+}
 } // namespace
 
 } // namespace Rosen
@@ -157,6 +163,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE:
             OHOS::Rosen::DoNotifyXComponentExpectedFrameRate(fdp);
+            break;
+        case OHOS::Rosen::DO_NOTIFY_WINDOW_MODE_TYPE_EVENT:
+            OHOS::Rosen::DoNotifyWindowModeTypeEvent(fdp);
             break;
         default:
             return -1;

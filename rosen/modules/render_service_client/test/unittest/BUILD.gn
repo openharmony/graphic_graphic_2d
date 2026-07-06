@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$rosen_root/modules/render_service_base/config.gni")
 
 module_out_path = "graphic_2d/graphic_2d/render_service_client"
 
@@ -35,7 +36,61 @@ group("unittest") {
     "animation:RSAnimationTest2",
     "animation:RSAnimationTest3",
     "animation:RSAnimationTest4",
+    "animation:RSAnimationTest5",
     "ui_effect:unittest",
+  ]
+
+  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
+    deps += [
+      ":RSCanvasModifiersDrawAgentTest",
+      ":RSCanvasModifiersDrawTest",
+      ":RSModifiersDrawTest",
+      ":RSModifiersDrawThreadTest",
+    ]
+  }
+}
+
+## Build RSCanvasModifiersDrawTest
+ohos_unittest("RSCanvasModifiersDrawTest") {
+  module_out_path = module_out_path
+  sources = [ "modifier_render_thread/rs_canvas_modifiers_draw_test.cpp" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/src" ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [
+    "hilog:libhilog",
+  ]
+}
+ 
+## Build RSCanvasModifiersDrawAgentTest
+ohos_unittest("RSCanvasModifiersDrawAgentTest") {
+  module_out_path = module_out_path
+  sources = [ "modifier_render_thread/rs_canvas_modifiers_draw_agent_test.cpp" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/src" ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [
+    "hilog:libhilog",
+  ]
+}
+ 
+## Build RSModifiersDrawThreadTest
+ohos_unittest("RSModifiersDrawThreadTest") {
+  module_out_path = module_out_path
+  sources = [ "modifier_render_thread/rs_modifiers_draw_thread_test.cpp" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/src" ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [
+    "hilog:libhilog",
+  ]
+}
+ 
+## Build RSModifiersDrawTest
+ohos_unittest("RSModifiersDrawTest") {
+  module_out_path = module_out_path
+  sources = [ "modifier_render_thread/rs_modifiers_draw_test.cpp" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/src" ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [
+    "hilog:libhilog",
   ]
 }
 

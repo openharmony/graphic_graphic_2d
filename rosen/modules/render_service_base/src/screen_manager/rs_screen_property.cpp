@@ -291,6 +291,16 @@ bool RSScreenProperty::IsMainScreen() const
     return Get<ScreenPropertyType::IS_MAIN_SCREEN>();
 }
 
+bool RSScreenProperty::IsRogResolution() const
+{
+    return Get<ScreenPropertyType::IS_ROG_RESOLUTION>();
+}
+
+bool RSScreenProperty::GetHdiRogEnable() const
+{
+    return Get<ScreenPropertyType::IS_HDI_ROG_ENABLE>();
+}
+
 ScreenInfo RSScreenProperty::GetScreenInfo() const
 {
     ScreenInfo info;
@@ -374,6 +384,8 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
         UNMARSHALL_CASE(ScreenPropertyType::SCREEN_SWITCH_STATUS)
         UNMARSHALL_CASE(ScreenPropertyType::SCREEN_FRAME_GRAVITY)
         UNMARSHALL_CASE(ScreenPropertyType::IS_MAIN_SCREEN)
+        UNMARSHALL_CASE(ScreenPropertyType::IS_ROG_RESOLUTION)
+        UNMARSHALL_CASE(ScreenPropertyType::IS_HDI_ROG_ENABLE)
         default:
             RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
     }

@@ -342,6 +342,8 @@ public:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
 
+    void NotifyWindowModeTypeEvent(uint8_t windowModeType);
+
     void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
         const std::vector<std::pair<std::string, std::string>>& newConfig);
 

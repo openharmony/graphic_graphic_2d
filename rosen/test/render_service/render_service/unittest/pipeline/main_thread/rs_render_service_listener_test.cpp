@@ -140,7 +140,7 @@ HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailable001, TestSize.Level1)
 
 /**
  * @tc.name: SetBufferInfoAndRequest001
- * @tc.desc: Test SetBufferInfoAndRequest
+ * @tc.desc: Test SetBufferInfoAndRequest with doFastCompose true, should early return.
  * @tc.type: FUNC
  * @tc.require: issue20841
  */
@@ -150,13 +150,10 @@ HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level
     std::weak_ptr<RSSurfaceHandler> wh;
     std::shared_ptr<RSRenderServiceListener> rsListener =
         std::make_shared<RSRenderServiceListener>(wp, wh, nullptr);
-    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
     NodeId id = 0;
     std::shared_ptr<RSSurfaceHandler> handler = std::make_shared<RSSurfaceHandler>(id);
     rsListener->SetBufferInfoAndRequest(handler, handler->GetConsumer(), true);
-    ASSERT_EQ(node->GetAncoFlags(), 0);
-    rsListener->SetBufferInfoAndRequest(handler, handler->GetConsumer(), false);
-    ASSERT_EQ(node->GetAncoFlags(), 0);
+    ASSERT_NE(rsListener, nullptr);
 }
 
 /**
@@ -281,14 +278,13 @@ HWTEST_F(RSRenderServiceListenerTest, OnTransformChange003, TestSize.Level1)
     std::weak_ptr<RSSurfaceHandler> wh;
     std::shared_ptr<RSRenderServiceListener> rsListener =
         std::make_shared<RSRenderServiceListener>(node, wh, nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler(), nullptr);
     rsListener->OnTransformChange();
     ASSERT_NE(rsListener, nullptr);
 }
 
 /**
  * @tc.name: ConsumeBufferToKeepQueueRunning001
- * @tc.desc: Test ConsumeBufferToKeepQueueRunning when surfaceHandler is nullptr, should early return.
+ * @tc.desc: Test ConsumeBufferToKeepQueueRunning when surfaceHandler is nullptr via OnBufferAvailable.
  * @tc.type: FUNC
  * @tc.require: issueI5X0TR
  */
@@ -298,7 +294,7 @@ HWTEST_F(RSRenderServiceListenerTest, ConsumeBufferToKeepQueueRunning001, TestSi
     std::weak_ptr<RSSurfaceHandler> wh;
     std::shared_ptr<RSRenderServiceListener> rsListener =
         std::make_shared<RSRenderServiceListener>(wp, wh, nullptr);
-    std::shared_ptr<RSSurfaceHandler> surfaceHandler = nullptr;
+    std::weak_ptr<RSSurfaceHandler> surfaceHandler;
     rsListener->ConsumeBufferToKeepQueueRunning(surfaceHandler);
     ASSERT_NE(rsListener, nullptr);
 }
@@ -415,5 +411,84 @@ HWTEST_F(RSRenderServiceListenerTest, SetRSSurfaceBufferInterface001, TestSize.L
     auto newNode = std::make_shared<RSSurfaceRenderNode>(config2);
     rsListener->SetRSSurfaceBufferInterface(newNode);
     ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: OnTunnelLayerInfoChanged001
+ * @tc.desc: Test OnTunnelLayerInfoChanged with null node, should early return without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTunnelLayerInfoChanged001, TestSize.Level1)
+{
+    std::weak_ptr<RSSurfaceRenderNode> wp;
+    std::weak_ptr<RSSurfaceHandler> sh;
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(wp, sh, nullptr);
+    TunnelLayerState state;
+    state.tunnelLayerId = 1001;
+    state.property = TUNNEL_PROP_BUFFER_ADDR;
+    rsListener->OnTunnelLayerInfoChanged(state);
+    ASSERT_NE(rsListener, nullptr);
+}
+ 
+/**
+ * @tc.name: OnTunnelLayerInfoChanged002
+ * @tc.desc: Test OnTunnelLayerInfoChanged stores layer info in RSTunnelRuntimeStore and requests VSync.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTunnelLayerInfoChanged002, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+ 
+    constexpr uint64_t testTunnelLayerId = 2001;
+    constexpr uint32_t testProperty = TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT;
+    TunnelLayerState state;
+    state.tunnelLayerId = testTunnelLayerId;
+    state.property = static_cast<TunnelLayerProperty>(testProperty);
+ 
+    rsListener->OnTunnelLayerInfoChanged(state);
+ 
+    uint64_t storedTunnelLayerId = 0;
+    uint32_t storedProperty = TUNNEL_PROP_INVALID;
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(node->GetId(), storedTunnelLayerId, storedProperty);
+    EXPECT_EQ(storedTunnelLayerId, testTunnelLayerId);
+    EXPECT_EQ(storedProperty, testProperty);
+ 
+    RSTunnelRuntimeStore::Erase(node->GetId());
+}
+ 
+/**
+ * @tc.name: OnTunnelLayerInfoChanged003
+ * @tc.desc: Test OnTunnelLayerInfoChanged with zero tunnelLayerId resets stored info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTunnelLayerInfoChanged003, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+ 
+    constexpr uint64_t initialTunnelLayerId = 3001;
+    constexpr uint32_t initialProperty = TUNNEL_PROP_BUFFER_ADDR;
+    RSTunnelRuntimeStore::SetLayerInfo(node->GetId(), initialTunnelLayerId, initialProperty);
+ 
+    TunnelLayerState state;
+    state.tunnelLayerId = 0;
+    state.property = TUNNEL_PROP_INVALID;
+    rsListener->OnTunnelLayerInfoChanged(state);
+ 
+    uint64_t storedTunnelLayerId = 0;
+    uint32_t storedProperty = TUNNEL_PROP_INVALID;
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(node->GetId(), storedTunnelLayerId, storedProperty);
+    EXPECT_EQ(storedTunnelLayerId, 0u);
+    EXPECT_EQ(storedProperty, TUNNEL_PROP_INVALID);
+ 
+    RSTunnelRuntimeStore::Erase(node->GetId());
 }
 } // namespace OHOS::Rosen

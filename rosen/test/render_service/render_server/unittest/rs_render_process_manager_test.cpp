@@ -73,8 +73,7 @@ public:
         const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property) override
     {
         auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(property->GetScreenId());
-        renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_,
-            output);
+        renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_, output);
         return connectToRenderConnection_->AsObject();
     }
 

@@ -1223,5 +1223,107 @@ HWTEST_F(RSJankStatsTest, SetStartTimeInnerPipelineResetTest001, TestSize.Level1
     EXPECT_EQ(frames.curFrameTotalPipelineTime_, 0);
 }
 
+/**
+ * @tc.name: GetJankCountStrTest
+ * @tc.desc: GetJankCountStr test
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSJankStatsTest, GetJankCountStrTest, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    // Test empty vector
+    std::vector<int32_t> emptyJankCount;
+    EXPECT_EQ(rsJankStats->GetJankCountStr(emptyJankCount), "[]");
+
+    // Test single element
+    std::vector<int32_t> singleJankCount = { 1 };
+    EXPECT_EQ(rsJankStats->GetJankCountStr(singleJankCount), "[1]");
+
+    // Test multiple elements
+    std::vector<int32_t> multiJankCount = { 1, 2, 3, 4, 5 };
+    EXPECT_EQ(rsJankStats->GetJankCountStr(multiJankCount), "[1,2,3,4,5]");
+
+    // Test with zeros
+    std::vector<int32_t> zeroJankCount = { 0, 0, 0 };
+    EXPECT_EQ(rsJankStats->GetJankCountStr(zeroJankCount), "[0,0,0]");
+
+    // Test with negative values
+    std::vector<int32_t> negativeJankCount = { -1, -2, -3 };
+    EXPECT_EQ(rsJankStats->GetJankCountStr(negativeJankCount), "[-1,-2,-3]");
+
+    // Test with boundary values
+    std::vector<int32_t> boundaryJankCount = { INT32_MAX, INT32_MIN };
+    EXPECT_EQ(rsJankStats->GetJankCountStr(boundaryJankCount), "[2147483647,-2147483648]");
+
+    // Test with mixed positive and negative values
+    std::vector<int32_t> mixedJankCount = { -1, 0, 1 };
+    EXPECT_EQ(rsJankStats->GetJankCountStr(mixedJankCount), "[-1,0,1]");
+
+    // Test with large vector
+    std::vector<int32_t> largeJankCount(100, 1);
+    std::string expectedLargeStr = "[";
+    for (int i = 0; i < 100; i++) {
+        if (i > 0) {
+            expectedLargeStr += ",";
+        }
+        expectedLargeStr += "1";
+    }
+    expectedLargeStr += "]";
+    EXPECT_EQ(rsJankStats->GetJankCountStr(largeJankCount), expectedLargeStr);
+}
+
+HWTEST_F(RSJankStatsTest, UpdateJankFrameTestWithJankHistogram, TestSize.Level1)
+{
+    auto rsJankStats = std::make_shared<RSJankStats>();
+    rsJankStats->rsStartTime_ = 0;
+    rsJankStats->rsStartTimeSteady_ = 0;
+    rsJankStats->accumulatedBufferCount_ = 0;
+    rsJankStats->isFirstSetEnd_ = false;
+
+    JankFrames jankFrames;
+    jankFrames.startTime_ = 0;
+    jankFrames.jankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
+
+    jankFrames.isFirstFrame_ = true;
+    rsJankStats->rtLastEndTimeSteady_ = 0;
+    rsJankStats->rtEndTimeSteady_ = 400;
+    rsJankStats->UpdateJankFrame(jankFrames, false, 60);
+    EXPECT_EQ(jankFrames.jankCount_[0], 0);
+
+    jankFrames.isFirstFrame_ = true;
+    jankFrames.jankCount_ = {};
+    rsJankStats->rtLastEndTimeSteady_ = 0;
+    rsJankStats->UpdateJankFrame(jankFrames, false, 60);
+    EXPECT_EQ(jankFrames.jankCount_.size(), 0);
+
+    jankFrames.isFirstFrame_ = false;
+    jankFrames.jankCount_ = {};
+    rsJankStats->rtLastEndTimeSteady_ = 0;
+    rsJankStats->UpdateJankFrame(jankFrames, false, 60);
+    EXPECT_EQ(jankFrames.jankCount_.size(), 0);
+
+    jankFrames.isFirstFrame_ = false;
+    jankFrames.jankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
+    rsJankStats->rtLastEndTimeSteady_ = 0;
+    rsJankStats->UpdateJankFrame(jankFrames, false, 60);
+    EXPECT_EQ(jankFrames.jankCount_[0], 1);
+
+    jankFrames.isFirstFrame_ = false;
+    jankFrames.jankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
+    rsJankStats->rtLastEndTimeSteady_ = 0;
+    rsJankStats->rtEndTimeSteady_ = 600;
+    rsJankStats->UpdateJankFrame(jankFrames, false, 60);
+    EXPECT_EQ(jankFrames.jankCount_[1], 1);
+
+    jankFrames.isFirstFrame_ = false;
+    jankFrames.jankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
+    rsJankStats->rtLastEndTimeSteady_ = 0;
+    rsJankStats->rtEndTimeSteady_ = 1100;
+    rsJankStats->UpdateJankFrame(jankFrames, false, 60);
+    EXPECT_EQ(jankFrames.jankCount_[4], 1);
+}
 } // namespace Rosen
 } // namespace OHOS

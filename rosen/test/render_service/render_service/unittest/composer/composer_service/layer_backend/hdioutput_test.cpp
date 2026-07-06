@@ -2180,10 +2180,18 @@ HWTEST_F(HdiOutputTest, FlushScreen_BufferCacheCountZero, Function | MediumTest 
  */
 HWTEST_F(HdiOutputTest, SetScreenBacklight_And_PowerOnChanged, Function | MediumTest | Level1)
 {
-    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    constexpr uint32_t level = 80u;
     hdiOutput_->device_ = nullptr;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).Times(0);
+    hdiOutput_->SetScreenBacklight(level);
+    testing::Mock::VerifyAndClearExpectations(hdiDeviceMock_);
+
     hdiOutput_->device_ = hdiDeviceMock_;
-    hdiOutput_->SetScreenBacklight(80u);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, level))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    hdiOutput_->SetScreenBacklight(level);
+    hdiOutput_->SetScreenBacklight(level);
 }
 
  /*
@@ -5187,6 +5195,29 @@ HWTEST_F(HdiOutputTest, MarkEraseTunnelSurfaceInvalid_MixedOperations_CorrectSta
     output->EraseTunnelSurfaceInvalid(id2);
     output->EraseTunnelSurfaceInvalid(id3);
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+}
+
+HWTEST_F(HdiOutputTest, ClearRecoveredInvalidTunnelSurfaceIdsLocked_SimplifiedErase, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+ 
+    constexpr uint64_t id1 = 60001;
+    constexpr uint64_t id2 = 60002;
+    constexpr uint64_t id3 = 60003;
+ 
+    output->invalidTunnelSurfaceIds_.insert(id1);
+    output->invalidTunnelSurfaceIds_.insert(id2);
+    output->invalidTunnelSurfaceIds_.insert(id3);
+    ASSERT_EQ(output->invalidTunnelSurfaceIds_.size(), 3u);
+
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    output->surfaceIdMap_[id1] = hdiLayer;
+ 
+    output->ClearRecoveredInvalidTunnelSurfaceIdsLocked();
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 2u);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(id1) == 0);
 }
 } // namespace
 } // namespace Rosen

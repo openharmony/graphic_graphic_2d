@@ -1816,4 +1816,61 @@ HWTEST_F(RSBufferManagerTest, GetValidFence_MixedFencesFirstInvalidTest001, Test
 
     EXPECT_NO_FATAL_FAILURE(mgr->ReleaseBufferById(buffer->GetBufferId()));
 }
+ 
+/**
+ * @tc.name: OnCanvasDrawBuffer_AddRefTraceTest001
+ * @tc.desc: Test OnCanvasDrawBuffer increments refCount via AddRef
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBufferManagerTest, OnCanvasDrawBuffer_AddRefTraceTest001, TestSize.Level1)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    ASSERT_NE(mgr, nullptr);
+ 
+    mgr->OnDrawStart();
+ 
+    auto consumer = IConsumerSurface::Create("test-addref");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+ 
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    bufferOwnerCount->bufferId_ = buffer->GetBufferId();
+    int initialRef = bufferOwnerCount->refCount_.load();
+ 
+    mgr->OnDrawBuffer(consumer, buffer, bufferOwnerCount);
+ 
+    EXPECT_EQ(bufferOwnerCount->refCount_.load(), initialRef + 1);
+}
+ 
+/**
+ * @tc.name: OnCanvasDrawEnd_DecRefTraceTest001
+ * @tc.desc: Test OnCanvasDrawEnd decrements refCount via DecRef
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBufferManagerTest, OnCanvasDrawEnd_DecRefTraceTest001, TestSize.Level1)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    ASSERT_NE(mgr, nullptr);
+ 
+    mgr->OnDrawStart();
+ 
+    auto consumer = IConsumerSurface::Create("test-decref");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+ 
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    bufferOwnerCount->bufferId_ = buffer->GetBufferId();
+    bufferOwnerCount->refCount_.store(2);
+ 
+    mgr->OnDrawBuffer(consumer, buffer, bufferOwnerCount);
+    mgr->OnDrawEnd(SyncFence::InvalidFence());
+ 
+    EXPECT_EQ(bufferOwnerCount->refCount_.load(), 2);
+}
 }

@@ -592,6 +592,12 @@ HWTEST_F(RSUifirstManagerTest2, CheckHwcChildrenType, TestSize.Level1)
     surfaceNode->GenerateFullChildrenList();
     uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
     ASSERT_EQ(enabledType, SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB);
+
+    {
+        auto surfaceNode3 = RSTestUtil::CreateSurfaceNode();
+        surfaceNode->childHardwareEnabledNodes_.push_back(surfaceNode3);
+    }
+    uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
     surfaceNode->ResetChildHardwareEnabledNodes();
 }
 
@@ -2647,5 +2653,75 @@ HWTEST_F(RSUifirstManagerTest2, ProcessSubDoneNode001, TestSize.Level1)
     uifirstManager_.subthreadProcessSkippedNode_.insert(node->GetId());
     uifirstManager_.ProcessSubDoneNode();
     ASSERT_TRUE(uifirstManager_.subthreadProcessSkippedNode_.empty());
+}
+
+/**
+ * @tc.name: AddFirstFrameCacheGeneratedNode001
+ * @tc.desc: Test AddFirstFrameCacheGeneratedNode with INVALID_NODEID (0), early return
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSUifirstManagerTest2, AddFirstFrameCacheGeneratedNode001, TestSize.Level1)
+{
+    NodeId invalidId = 0;
+    uifirstManager_.AddFirstFrameCacheGeneratedNode(invalidId);
+    EXPECT_FALSE(uifirstManager_.IsFirstFrameCacheGeneratedNode(invalidId));
+
+    NodeId validId = 100;
+    uifirstManager_.AddFirstFrameCacheGeneratedNode(validId);
+    EXPECT_TRUE(uifirstManager_.IsFirstFrameCacheGeneratedNode(validId));
+    uifirstManager_.RemoveFirstFrameCacheGeneratedNode(validId);
+}
+
+/**
+ * @tc.name: ProcessFirstFrameCache001
+ * @tc.desc: Test ProcessFirstFrameCache else branch with firstFrameCacheGenerated true
+ *           lastFrameCacheType != NONE enters else branch, firstFrameCacheGenerated true
+ *           triggers RemoveFirstFrameCacheGeneratedNode
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSUifirstManagerTest2, ProcessFirstFrameCache001, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::LEASH_WINDOW);
+    uifirstManager_.AddFirstFrameCacheGeneratedNode(surfaceNode->GetId());
+    ASSERT_TRUE(uifirstManager_.IsFirstFrameCacheGeneratedNode(surfaceNode->GetId()));
+
+    uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::LEASH_WINDOW);
+    EXPECT_FALSE(uifirstManager_.IsFirstFrameCacheGeneratedNode(surfaceNode->GetId()));
+    EXPECT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::LEASH_WINDOW);
+
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONFOCUS_WINDOW);
+    uifirstManager_.AddFirstFrameCacheGeneratedNode(surfaceNode->GetId());
+    ASSERT_TRUE(uifirstManager_.IsFirstFrameCacheGeneratedNode(surfaceNode->GetId()));
+
+    uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::NONFOCUS_WINDOW);
+    EXPECT_FALSE(uifirstManager_.IsFirstFrameCacheGeneratedNode(surfaceNode->GetId()));
+    EXPECT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONFOCUS_WINDOW);
+}
+
+/**
+ * @tc.name: ProcessFirstFrameCache002
+ * @tc.desc: Test ProcessFirstFrameCache else branch with firstFrameCacheGenerated true
+ *           lastFrameCacheType == NONE but subThreadAssignable && firstFrameCacheGenerated
+ *           both true, condition false, enters else branch
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSUifirstManagerTest2, ProcessFirstFrameCache002, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
+    surfaceNode->SetSubThreadAssignable(true);
+    uifirstManager_.AddFirstFrameCacheGeneratedNode(surfaceNode->GetId());
+    ASSERT_TRUE(uifirstManager_.IsFirstFrameCacheGeneratedNode(surfaceNode->GetId()));
+
+    uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::LEASH_WINDOW);
+    EXPECT_FALSE(uifirstManager_.IsFirstFrameCacheGeneratedNode(surfaceNode->GetId()));
 }
 }

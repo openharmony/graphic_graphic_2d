@@ -141,9 +141,10 @@ HWTEST_F(NdkTypographyStyleCompressPuncTest, CompressPunctuationMultiLineHeadMar
     constexpr double lineWidthComp2 = 124.999847;
     constexpr double lineWidthComp3 = 124.999908;
     constexpr double lineWidthComp4 = 124.999969;
+    constexpr double lineWidthComp5 = 124.999786;
     constexpr size_t lineNum = 11;
 
-    double lineWidthsTrue[lineNum] = { lineWidthComp1, lineWidthComp1, lineWidthComp2, lineWidthComp2, lineWidthComp2,
+    double lineWidthsTrue[lineNum] = { lineWidthComp1, lineWidthComp1, lineWidthComp2, lineWidthComp2, lineWidthComp5,
         lineWidthComp2, lineWidthComp3, lineWidthComp4, lineWidthComp4, lineWidthComp4, lineWidthComp4 };
     size_t lineNumberTrue = OH_Drawing_TypographyGetLineCount(typography_);
     size_t lineNumberFalse = OH_Drawing_TypographyGetLineCount(typography2_);
@@ -466,8 +467,9 @@ HWTEST_F(NdkTypographyStyleCompressPuncTest, CompressPunctuationCacheMultiLine, 
     constexpr double lineWidthComp2 = 124.999847;
     constexpr double lineWidthComp3 = 124.999908;
     constexpr double lineWidthComp4 = 124.999969;
+    constexpr double lineWidthComp5 = 124.999786;
     constexpr size_t lineNum = 11;
-    double lineWidthsTrue[lineNum] = { lineWidthComp1, lineWidthComp1, lineWidthComp2, lineWidthComp2, lineWidthComp2,
+    double lineWidthsTrue[lineNum] = { lineWidthComp1, lineWidthComp1, lineWidthComp2, lineWidthComp2, lineWidthComp5,
         lineWidthComp2, lineWidthComp3, lineWidthComp4, lineWidthComp4, lineWidthComp4, lineWidthComp4 };
 
     PrepareWorkForTypographyStyleTest();

@@ -127,6 +127,7 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
             }
         }
     }
+    sharedTexture->SetHdrScale(image->GetHdrScale());
     canvas_->DrawImage(*sharedTexture, 0.f, 0.f, Drawing::SamplingOptions());
     canvas_->SetMatrix(preMatrix);
     canvas_->Flush();
@@ -716,6 +717,11 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
 #endif
 
     auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
+    stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
+#endif
+    stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     if (surfaceHandler_ != nullptr) {
         static uint32_t maxGpuSupportedWidth = 0;
@@ -732,11 +738,6 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
         }
     }
 #endif
-#ifdef RS_ENABLE_GPU
-    stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
-    stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
-#endif
-    stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
     lastResetSurfaceTime_ = std::chrono::time_point_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now()).time_since_epoch().count();
     opCountAfterReset_ = 0;

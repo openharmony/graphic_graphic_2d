@@ -203,8 +203,7 @@ EffectErrorCode LinearGradientMaskTransition(Filter* effectFilter,
         -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX));
     Drawing::GELinearGradientShaderMaskParams geLinearGradientMaskParams{
         fractionStops, startPosition, endPosition};
-    auto transitionMask = std::static_pointer_cast<Drawing::GEShaderMask>(
-        std::make_shared<Drawing::GELinearGradientShaderMask>(geLinearGradientMaskParams));
+    auto transitionMask = std::make_shared<Drawing::GELinearGradientShaderMask>(geLinearGradientMaskParams);
     if (!effectFilter->MaskTransition(topLayerPixelmap, transitionMask, std::clamp(factor, 0.0f, 1.0f), inverse)) {
         return EFFECT_BAD_PARAMETER;
     }
@@ -235,8 +234,7 @@ EffectErrorCode RadialGradientMaskTransition(Filter* effectFilter,
         std::clamp(radialGradientMask->radiusX, 0.0f, RADIAL_GRADIENT_MASK_RADIUS_MAX),
         std::clamp(radialGradientMask->radiusY, 0.0f, RADIAL_GRADIENT_MASK_RADIUS_MAX),
         colors, positions};
-    auto transitionMask = std::static_pointer_cast<Drawing::GEShaderMask>(
-        std::make_shared<Drawing::GERadialGradientShaderMask>(geRadialGradientMaskParams));
+    auto transitionMask = std::make_shared<Drawing::GERadialGradientShaderMask>(geRadialGradientMaskParams);
     if (!effectFilter->MaskTransition(topLayerPixelmap, transitionMask, std::clamp(factor, 0.0f, 1.0f), inverse)) {
         return EFFECT_BAD_PARAMETER;
     }
@@ -405,8 +403,7 @@ EffectErrorCode OH_Filter_GetEffectNativeBuffer(
     if (!dstNativeBuffer || !filter) {
         return EFFECT_BAD_PARAMETER;
     }
-    CastToFilter(filter)->RenderNativeBuffer(false, dstNativeBuffer, syncFenceFd, releaseGpuContext);
-    if (dstNativeBuffer == nullptr) {
+    if (!CastToFilter(filter)->RenderNativeBuffer(false, dstNativeBuffer, syncFenceFd, releaseGpuContext)) {
         return EFFECT_BAD_PARAMETER;
     }
     return EFFECT_SUCCESS;

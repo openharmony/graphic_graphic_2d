@@ -138,10 +138,6 @@ public:
     void OnSurfaceBufferChanged(sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    bool HybridDraw(Drawing::DrawCmdListPtr drawCmdList, ModifierNG::RSPropertyType propertyType);
-#endif
-
 protected:
     RSCanvasDrawingNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
@@ -167,6 +163,7 @@ protected:
  
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     void OnFinishRecording(Drawing::DrawCmdListPtr& drawCmdList, ModifierNG::RSModifierType modifierType) override;
+    bool RenderInClient(Drawing::DrawCmdListPtr drawCmdList) override;
 #endif
 
 private:
@@ -176,16 +173,10 @@ private:
     void RegisterNodeMap() override;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    void CreateProducerSurface();
- 
-    void ResetSurfaceForHybrid(int width, int height);
- 
-    bool GetBitmapForHybrid(Drawing::Bitmap& bitmap);
- 
-    bool GetPixelmapForHybrid(
+    void ResetSurfaceForClientRender(int width, int height);
+
+    bool GetPixelmapForClientRender(
         std::shared_ptr<Media::PixelMap> pixelMap, Drawing::DrawCmdListPtr drawCmdList, const Drawing::Rect* rect);
- 
-    void UpdateCanvasContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer);
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

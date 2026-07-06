@@ -156,6 +156,7 @@ rs_display_effect_sources = [
 ]
 rs_effect_feature_sources = [
   "rs_effect_feature/effect_background_blur_test.cpp",
+  "rs_effect_feature/effect_light_up_effect_test.cpp",
   "rs_effect_feature/effect_ai_bar_glow_test.cpp",
   "rs_effect_feature/effect_aurora_noise_test.cpp",
   "rs_effect_feature/effect_linear_gradient_blur_test.cpp",
@@ -356,6 +357,10 @@ ohos_unittest("RSGraphicTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
+
+  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
+    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
+  }
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

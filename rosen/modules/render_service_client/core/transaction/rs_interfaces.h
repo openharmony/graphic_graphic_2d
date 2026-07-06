@@ -1144,6 +1144,12 @@ public:
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
 
     /**
+     * @brief Notify window mode type event.
+     * @param windowModeType the modeType of window.
+     */
+    void NotifyWindowModeTypeEvent(uint8_t windowModeType);
+
+    /**
      * @brief Notify app strategy config change event.
      * @param pkgName the name of package.
      * @param listSize the size of list.

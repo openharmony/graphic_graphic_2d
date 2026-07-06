@@ -180,6 +180,8 @@ public:
     void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) override {};
     void Dump(std::string& result) const override;
     void DumpCurrentFrameLayer() const override;
+    void SetSplitLayerTag(bool splitLayerTag) override;
+    bool GetSplitLayerTag() const override;
 
     void SetDelegateModeCropRect(const GraphicIRect& crop) override;
     GraphicIRect GetDelegateModeCropRect() override;
@@ -263,6 +265,9 @@ private:
     bool ignoreAlpha_ = false;
     bool isDelegateMode_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
+    // opinc_split begin
+    bool splitLayerTag_ = false;
+    // opinc_split end
     friend class RSSurfaceRCDLayer;
     friend std::shared_ptr<RSLayer> Create(RSLayerId rsLayerId, const std::shared_ptr<RSComposerContext>& context);
 };

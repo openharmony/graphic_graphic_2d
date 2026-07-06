@@ -20,6 +20,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "platform/common/rs_log.h"
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties_def.h"
 #include "screen_manager/screen_types.h"
@@ -28,13 +29,14 @@ namespace OHOS {
 namespace Rosen {
 namespace {
     constexpr size_t CLEANUP_THRESHOLD = 500;
+    // Thread-safety: all Instance/ReleaseInstance calls are serialized on RSMainThread
+    // (uni-render) or RSRenderThread (non-uni) via the RSRenderNodeGC bucket drain mechanism.
+    // Do NOT call these from other threads without re-adding mutex protection.
     std::unordered_map<NodeId, std::unique_ptr<RSPointLightManager>> g_managersLUT;
-    std::mutex g_mutex;
 }
 
 const std::unique_ptr<RSPointLightManager>& RSPointLightManager::Instance(NodeId logicalDisplayNodeId)
 {
-    std::lock_guard<std::mutex> lock(g_mutex);
     auto it = g_managersLUT.find(logicalDisplayNodeId);
     if (it != g_managersLUT.end()) {
         return it->second;
@@ -45,7 +47,6 @@ const std::unique_ptr<RSPointLightManager>& RSPointLightManager::Instance(NodeId
 
 void RSPointLightManager::ReleaseInstance(NodeId logicalDisplayNodeId)
 {
-    std::lock_guard<std::mutex> lock(g_mutex);
     auto it = g_managersLUT.find(logicalDisplayNodeId);
     if (it != g_managersLUT.end()) {
         it->second.reset();
@@ -59,7 +60,9 @@ void RSPointLightManager::RegisterLightSource(const std::shared_ptr<RSRenderNode
         return;
     }
     NodeId nodeId = renderNode->GetId();
-    lightSourceNodeMap_.emplace(nodeId, renderNode->weak_from_this());
+    RS_LOGD("RSPointLightManager::RegisterLightSource nodeId:%{public}" PRIu64 " logicalDisplay:%{public}" PRIu64 "",
+        nodeId, renderNode->GetLogicalDisplayNodeId());
+    lightSourceNodeMap_.insert_or_assign(nodeId, renderNode->weak_from_this());
 }
 
 void RSPointLightManager::RegisterIlluminated(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -68,7 +71,9 @@ void RSPointLightManager::RegisterIlluminated(const std::shared_ptr<RSRenderNode
         return;
     }
     NodeId nodeId = renderNode->GetId();
-    illuminatedNodeMap_.emplace(nodeId, renderNode->weak_from_this());
+    RS_LOGD("RSPointLightManager::RegisterIlluminated nodeId:%{public}" PRIu64 " logicalDisplay:%{public}" PRIu64 "",
+        nodeId, renderNode->GetLogicalDisplayNodeId());
+    illuminatedNodeMap_.insert_or_assign(nodeId, renderNode->weak_from_this());
 }
 
 void RSPointLightManager::UnRegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -77,6 +82,8 @@ void RSPointLightManager::UnRegisterLightSource(const std::shared_ptr<RSRenderNo
         return;
     }
     NodeId nodeId = renderNode->GetId();
+    RS_LOGD("RSPointLightManager::UnRegisterLightSource nodeId:%{public}" PRIu64 " logicalDisplay:%{public}" PRIu64 "",
+        nodeId, renderNode->GetLogicalDisplayNodeId());
     lightSourceNodeMap_.erase(nodeId);
 }
 void RSPointLightManager::UnRegisterIlluminated(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -85,6 +92,8 @@ void RSPointLightManager::UnRegisterIlluminated(const std::shared_ptr<RSRenderNo
         return;
     }
     NodeId nodeId = renderNode->GetId();
+    RS_LOGD("RSPointLightManager::UnRegisterIlluminated nodeId:%{public}" PRIu64 " logicalDisplay:%{public}" PRIu64 "",
+        nodeId, renderNode->GetLogicalDisplayNodeId());
     illuminatedNodeMap_.erase(nodeId);
 }
 void RSPointLightManager::SetChildHasVisibleIlluminated(
@@ -213,8 +222,8 @@ void RSPointLightManager::CheckIlluminated(
     bool isIlluminated = IsLightSourceAffectIlluminatedNode(lightRelativePos,
         illuminatedNode->GetRenderProperties().GetBoundsRect(), lightSourcePtr->GetLightRadius());
     // Mark the nodes as dirty where light added as dirty.
-    if (isIlluminated && !illuminatedPtr->GetLightSourcesAndPosMap().count(lightSourcePtr)) {
-        illuminatedPtr->AddLightSourcesAndPos(lightSourcePtr, lightRelativePos);
+    if (isIlluminated && !illuminatedPtr->GetLightSourcesAndPosMap().count(lightSourceNode->GetId())) {
+        illuminatedPtr->AddLightSourcesAndPos(lightSourceNode->GetId(), *lightSourcePtr, lightRelativePos);
         MarkIlluminatedNodeDirty(illuminatedNode);
     }
 }

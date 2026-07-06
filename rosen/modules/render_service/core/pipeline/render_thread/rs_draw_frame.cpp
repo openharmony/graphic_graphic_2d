@@ -347,6 +347,7 @@ void RSDrawFrame::Sync()
 #ifdef SUBTREE_PARALLEL_ENABLE
     RSParallelManager::Singleton().Sync();
 #endif
+    RSLayerSplitManager::GetInstance()->Sync();
 }
 
 void RSDrawFrame::UnblockMainThread()

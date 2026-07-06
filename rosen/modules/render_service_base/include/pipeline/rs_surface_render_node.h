@@ -279,7 +279,7 @@ public:
     }
 
     // indicate if this node type can enable hardware composer
-    bool IsHardwareEnabledType() const
+    bool IsHardwareEnabledType() const override
     {
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
             IsLayerTop();
@@ -338,11 +338,22 @@ public:
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
+    void UpdateBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
     {
         return isLastFrameHardwareEnabled_;
+    }
+
+    bool IsSplitSurfaceNode() const
+    {
+        return isSplitSurfaceNode_;
+    }
+
+    void SetSplitSurfaceNode(bool isSplitSurfaceNode)
+    {
+        isSplitSurfaceNode_ = isSplitSurfaceNode;
     }
 
     bool IsCurrentFrameHardwareEnabled() const
@@ -666,7 +677,8 @@ public:
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSelfDrawingChild(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec) override;
-    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+        bool isParentPrepareInReverseOrder = false) override;
     // keep specified nodetype preparation
     virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
@@ -1604,7 +1616,6 @@ public:
         return ancestorScreenNode_;
     }
     bool QuerySubAssignable(bool isRotation);
-    bool QueryIfAllHwcChildrenForceDisabledByFilter();
     bool GetHasSharedTransitionNode() const
     {
         return hasSharedTransitionNode_;
@@ -2034,7 +2045,7 @@ private:
     bool IsYUVBufferFormat() const;
     void InitRenderParams() override;
     void UpdateRenderParams() override;
-    void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
+    void UpdateChildHardwareEnabledNode();
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
 
     bool isForcedClipHole() const;
@@ -2112,6 +2123,7 @@ private:
     bool isInFixedRotation_ = false;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
+    bool isSplitSurfaceNode_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool isLastFrameHwcEnabled_ = false;
     bool needCollectHwcNode_ = false;
@@ -2433,6 +2445,7 @@ private:
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
+    friend class SplitSurface;
 };
 } // namespace Rosen
 } // namespace OHOS

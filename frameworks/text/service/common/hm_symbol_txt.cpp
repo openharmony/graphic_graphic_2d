@@ -38,8 +38,8 @@ static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
 
 void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList)
 {
-    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     for (const auto& color : colorList) {
@@ -54,8 +54,8 @@ void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::DrawingSColor>& colo
 
 void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::Color>& colorList)
 {
-    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     for (auto color : colorList) {
@@ -68,8 +68,8 @@ void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::Color>& colorList)
 
 void HMSymbolTxt::SetRenderColor(const Drawing::Color& color)
 {
-    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     auto gradient = std::make_shared<SymbolGradient>();
@@ -82,8 +82,8 @@ void HMSymbolTxt::SetRenderColor(const Drawing::Color& color)
 
 void HMSymbolTxt::SetRenderColor(const Drawing::DrawingSColor& colorList)
 {
-    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     auto gradient = std::make_shared<SymbolGradient>();
@@ -96,6 +96,7 @@ void HMSymbolTxt::SetRenderColor(const Drawing::DrawingSColor& colorList)
 
 void HMSymbolTxt::SetRenderMode(const uint32_t& renderMode)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     switch (renderMode) {
         case RENDER_SINGLE:
             renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
@@ -113,6 +114,7 @@ void HMSymbolTxt::SetRenderMode(const uint32_t& renderMode)
 
 void HMSymbolTxt::SetSymbolEffect(const uint32_t& effectStrategy)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     auto iter = EFFECT_TYPES.find(effectStrategy);
     if (iter != EFFECT_TYPES.end()) {
         effectStrategy_ = iter->second;
@@ -150,41 +152,49 @@ std::vector<ColorPlaceholder> HMSymbolTxt::GetRenderColorPlaceholder() const
 
 Drawing::DrawingSymbolRenderingStrategy HMSymbolTxt::GetRenderMode() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return renderMode_;
 }
 
 Drawing::DrawingEffectStrategy HMSymbolTxt::GetEffectStrategy() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return effectStrategy_;
 }
 
 void HMSymbolTxt::SetAnimationMode(const uint16_t animationMode)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or iteratuve, 0 is hierarchical or cumulative
 }
 
 void HMSymbolTxt::SetRepeatCount(const int repeatCount)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     repeatCount_ = repeatCount;
 }
 
 void HMSymbolTxt::SetAnimationStart(const bool animationStart)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     animationStart_ = animationStart;
 }
 
 uint16_t HMSymbolTxt::GetAnimationMode() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return animationMode_;
 }
 
 int HMSymbolTxt::GetRepeatCount() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return repeatCount_;
 }
 
 bool HMSymbolTxt::GetAnimationStart() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return animationStart_;
 }
 
@@ -210,71 +220,85 @@ std::map<std::string, int> HMSymbolTxt::GetVisualMap() const
 // set common subtype of symbol animation attribute
 void HMSymbolTxt::SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     commonSubType_ = commonSubType;
 }
 
 Drawing::DrawingCommonSubType HMSymbolTxt::GetCommonSubType() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return commonSubType_;
 }
 
 void HMSymbolTxt::SetSymbolType(SymbolType symbolType)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     symbolType_ = symbolType;
 }
 
 SymbolType HMSymbolTxt::GetSymbolType() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return symbolType_;
 }
 
 size_t HMSymbolTxt::GetSymbolUid() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return symbolUid_;
 }
 
 void HMSymbolTxt::SetSymbolUid(const size_t symbolUid)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     symbolUid_ = symbolUid;
 }
 
 const SymbolBitmapType& HMSymbolTxt::GetSymbolBitmap() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return relayoutChangeBitmap_;
 }
 
 void HMSymbolTxt::SetSymbolBitmap(const SymbolBitmapType& symbolStyleBitmap)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     relayoutChangeBitmap_ = symbolStyleBitmap;
 }
 
 SymbolColor HMSymbolTxt::GetSymbolColor() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return symbolColor_;
 }
 
 void HMSymbolTxt::SetSymbolColor(const SymbolColor& symbolColor)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     symbolColor_ = symbolColor;
 }
 
 void HMSymbolTxt::SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     symbolShadow_ = symbolShadow;
 }
 
 const std::optional<SymbolShadow>& HMSymbolTxt::GetSymbolShadow() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return symbolShadow_;
 }
 
 void HMSymbolTxt::SetFirstActive(bool isFirstActive)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     isFirstActive_ = isFirstActive;
 }
 
 bool HMSymbolTxt::GetFirstActive() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return isFirstActive_;
 }
 
@@ -292,6 +316,7 @@ void HMSymbolTxt::SetRenderUIColor(const std::vector<Drawing::UIColor>& uiColors
     }
 }
 
+// Note: Caller must hold lock on this->mutex_ (write) and other.mutex_ (read) before calling
 void HMSymbolTxt::CloneSelf(const HMSymbolTxt& other)
 {
     symbolColor_ = other.symbolColor_;

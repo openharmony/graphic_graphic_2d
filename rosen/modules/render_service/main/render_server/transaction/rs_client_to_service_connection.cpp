@@ -448,7 +448,8 @@ ErrCode RSClientToServiceConnection::SetWatermark(
     }
     auto callingPid = GetCallingPid();
     if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
-        auto data = std::make_shared<SetWatermarkPersistenceData>(callingPid, name, watermark, success);
+        auto data =
+            std::make_shared<SetWatermarkPersistenceData>(callingPid, name, watermark, success, rowCount, colCount);
         ipcPersistenceManager->RegisterWithCallingPid(data);
     }
     for (auto conn : serviceToRenderConns) {
@@ -1741,6 +1742,15 @@ void RSClientToServiceConnection::NotifyPackageEvent(uint32_t listSize, const st
 
     if (hgmContext_ != nullptr) {
         hgmContext_->NotifyPackageEvent(remotePid_, packageList);
+    }
+}
+
+void RSClientToServiceConnection::NotifyWindowModeTypeEvent(uint8_t windowModeType)
+{
+    auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
+    auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
+    if (serviceToRenderConn) {
+        serviceToRenderConn->NotifyWindowModeTypeEvent(windowModeType);
     }
 }
 

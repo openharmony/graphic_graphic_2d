@@ -137,6 +137,27 @@ void RSUifirstManager::AddProcessSkippedNode(NodeId id)
     subthreadProcessSkippedNode_.insert(id);
 }
 
+void RSUifirstManager::AddFirstFrameCacheGeneratedNode(NodeId id)
+{
+    if (id == INVALID_NODEID) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(firstFrameCacheMutex_);
+    firstFrameCacheGeneratedNodes_.insert(id);
+}
+
+bool RSUifirstManager::IsFirstFrameCacheGeneratedNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(firstFrameCacheMutex_);
+    return firstFrameCacheGeneratedNodes_.count(id) > 0;
+}
+
+void RSUifirstManager::RemoveFirstFrameCacheGeneratedNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(firstFrameCacheMutex_);
+    firstFrameCacheGeneratedNodes_.erase(id);
+}
+
 void RSUifirstManager::AddPurgedNode(NodeId id)
 {
     if (id == INVALID_NODEID) {
@@ -1375,7 +1396,8 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         }
         auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (surfaceChild && surfaceChild->IsMainWindowType() &&
-            surfaceChild->ShouldPaint() && canvasNodeNum == 0) {
+            surfaceChild->ShouldPaint() && canvasNodeNum == 0 &&
+            !surfaceChild->IsNotifyUIBufferAvailable()) {
             mainwindowNum++;
             if (IsContentAppWindow(surfaceChild)) {
                 hasContentAppWindow = true;
@@ -1726,8 +1748,9 @@ void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiTh
 {
     // purpose: to avoid that RT waits uifirst cache long time when switching to uifirst first frame,
     // draw and cache win in RT on first frame, then use RT thread cache to draw until uifirst cache ready.
+    bool firstFrameCacheGenerated = IsFirstFrameCacheGeneratedNode(node.GetId());
     if (node.GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONE &&
-        !node.GetSubThreadAssignable()) {
+        (!node.GetSubThreadAssignable() || !firstFrameCacheGenerated)) {
         RS_TRACE_NAME_FMT("AssignMainThread selfAndParentShouldPaint: %d, skipDraw: %d",
             node.GetSelfAndParentShouldPaint(), node.GetSkipDraw());
         UifirstStateChange(node, MultiThreadCacheType::NONE); // mark as draw win in RT thread
@@ -1742,6 +1765,9 @@ void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiTh
             node.RegisterTreeStateChangeCallback(func);
         }
     } else {
+        if (firstFrameCacheGenerated) {
+            RemoveFirstFrameCacheGeneratedNode(node.GetId());
+        }
         UifirstStateChange(node, cacheType);
     }
 }
@@ -1876,18 +1902,6 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     return isNeedAssignToSubThread;
 }
 
-// Vm app not use uifirst when it is focused
-bool RSUifirstManager::IsVMSurfaceName(std::string surfaceName)
-{
-    for (auto& item : vmAppNameSet_) {
-        if (surfaceName.find(item) != std::string::npos) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 // NonFocusWindow, may reuse last image cache
 bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
@@ -1914,9 +1928,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     // open app with modal window animation, close uifirst
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
     bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
-    if (optFocus && (node.GetHasSharedTransitionNode() ||
-        (RSUifirstManager::Instance().IsVMSurfaceName(surfaceName) && !animation) ||
-        !animation || modalAnimation)) {
+    if (optFocus && (node.GetHasSharedTransitionNode() || !animation || modalAnimation)) {
         RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
             surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
         return false;
@@ -2191,6 +2203,7 @@ void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
     RSUifirstManager::Instance().DisableUifirstNode(node);
     RSUifirstManager::Instance().ForceClearSubthreadRes();
     RSUifirstManager::Instance().RemoveCardNodes(node.GetId());
+    RSUifirstManager::Instance().RemoveFirstFrameCacheGeneratedNode(node.GetId());
 }
 
 void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
@@ -2381,40 +2394,30 @@ void RSUifirstManager::CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHw
     if (enabledType == SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB) {
         return;
     }
-    if (node.IsAppWindow()) {
-        auto hwcNodes = node.GetChildHardwareEnabledNodes();
-        if (hwcNodes.empty()) {
-            return;
+    auto hwcNodes = node.GetChildHardwareEnabledNodes();
+    if (hwcNodes.empty()) {
+        return;
+    }
+    if (IsSubHighPriorityType(node)) {
+        enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+        return;
+    }
+    if (node.IsRosenWeb()) {
+        enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
+        return;
+    }
+    for (auto hwcNode : hwcNodes) {
+        auto hwcNodePtr = hwcNode.lock();
+        if (!hwcNodePtr) {
+            continue;
         }
-        if (IsSubHighPriorityType(node)) {
-            enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
-            return;
-        }
-        if (node.IsRosenWeb()) {
+        if (hwcNodePtr->IsRosenWeb()) {
             enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
             return;
         }
-        for (auto hwcNode : hwcNodes) {
-            auto hwcNodePtr = hwcNode.lock();
-            if (!hwcNodePtr) {
-                continue;
-            }
-            if (hwcNodePtr->IsRosenWeb()) {
-                enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
-                return;
-            }
-            if (IsSubHighPriorityType(*hwcNodePtr)) {
-                enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
-                return;
-            }
-        }
-    } else if (node.IsLeashWindow()) {
-        for (auto& child : *(node.GetChildren())) {
-            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode == nullptr) {
-                continue;
-            }
-            CheckHwcChildrenType(*surfaceNode, enabledType);
+        if (IsSubHighPriorityType(*hwcNodePtr)) {
+            enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+            return;
         }
     }
 }

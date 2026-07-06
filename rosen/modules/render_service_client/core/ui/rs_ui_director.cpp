@@ -62,7 +62,7 @@ namespace Rosen {
 constexpr int32_t INSTANCE_ID_UNDEFINED_TASK_RUNNER = 0;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
-
+constexpr int NODE_ID = 1; // Image size difference
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectToRenderRemote,
     std::shared_ptr<RSUIContext> rsUIContext)
@@ -74,7 +74,11 @@ std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectTo
 
 RSUIDirector::~RSUIDirector()
 {
+    auto uiContext = rsUIContext_;
     Destroy();
+    if (uiContext != nullptr) {
+        uiContext->PostLastModifiersDrawThreadTask();
+    }
 }
 
 void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext)
@@ -156,33 +160,7 @@ void RSUIDirector::InitHybridRender()
         transaction->SetCommitTransactionCallback(rsUIContext_->CreateCommitTransactionCallback());
     }
 }
-
-void RSUIDirector::FlushCanvasDrawingNodeBuffers()
-{
-    if (rsUIContext_ != nullptr) {
-        rsUIContext_->FlushCanvasDrawingNodeBuffers();
-    } else {
-        RS_LOGE("RSUIDirector::FlushCanvasDrawingNodeBuffers, null uiContext.");
-    }
-}
 #endif // RS_MODIFIERS_DRAW_ENABLE
-
-void RSUIDirector::OnCanvasDrawingNodeRenderStart(NodeId nodeId)
-{
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    canvasDrawingNodeIds_.emplace(nodeId);
-#endif
-}
-
-void RSUIDirector::OnCanvasDrawingNodeRenderEnd(NodeId nodeId)
-{
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    canvasDrawingNodeIds_.erase(nodeId);
-    if (canvasDrawingNodeIds_.empty()) {
-        FlushCanvasDrawingNodeBuffers();
-    }
-#endif
-}
 
 RSUIDirectorLifecycleState RSUIDirector::GetCurrentState() const
 {
@@ -236,9 +214,10 @@ void RSUIDirector::AddUIDirectorCommand()
     }
 
     auto rootNode = rootNode_.lock();
-    NodeId nodeId = rootNode ? rootNode->GetId() : 0;
+    static pid_t pid = getpid();
+    NodeId nodeId = rootNode ? rootNode->GetId() : (((NodeId)pid << 32) | NODE_ID);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<CommandType>(nodeId, getpid(), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+        std::make_unique<CommandType>(nodeId, pid, rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_TRACE_NAME_FMT(
         "RSUIDirector::AddUIDirectorCommand type is %d, token is %lu", command->GetSubType(), rsUIContext_->GetToken());
     transaction->AddCommand(command, true);
@@ -306,10 +285,10 @@ void RSUIDirector::RebuildNodeTree()
         rootNode->RebuildTree();
         if (rsUIContext_) {
             rsUIContext_->SetRebuildState(RebuildState::Normal);
-        }
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-        FlushCanvasDrawingNodeBuffers();
+            rsUIContext_->FlushCanvasDrawingNodeBuffers();
 #endif
+        }
     }
 }
 
@@ -347,6 +326,7 @@ void RSUIDirector::ExecuteGoForeground(bool isTextureExport)
         isActive_ = true;
         auto node = rootNode_.lock();
         if (node) {
+            node->RebuildTree();
             node->SetEnableRender(true);
         }
         auto surfaceNode = surfaceNode_.lock();
@@ -473,7 +453,10 @@ void RSUIDirector::ReleaseRenderNode()
         if (baseNode->GetType() == RSUINodeType::SURFACE_NODE && baseNode->GetId() == appWindowNodeId) {
             return;
         }
-        if (baseNode->IsTextureExportNode()) {
+        if (baseNode->GetType() == RSUINodeType::SURFACE_NODE && baseNode->IsTextureExportNode()) {
+            return;
+        }
+        if (!baseNode->HasCreateRenderNodeInRS()) {
             return;
         }
         if (baseNode->GetNodeState() != RSNodeState::LAZY_LOAD) {
@@ -648,8 +631,11 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
     if (cacheDir_.empty()) {
         return;
     }
-    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        rsUIContext_->GetCanvasModifiersDrawThread()->SetCacheDir(cacheDir_);
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        return;
+    }
+    if (auto canvasModifiersDrawAgent = rsUIContext_->GetCanvasModifiersDrawAgent()) {
+        canvasModifiersDrawAgent->SetCacheDir(cacheDir_);
     }
 #endif
 }
@@ -699,6 +685,9 @@ void RSUIDirector::FlushModifier()
         modifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
     } else {
         modifierManager = rsUIContext_->GetRSModifierManager();
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        rsUIContext_->FlushCanvasDrawingNodeBuffers();
+#endif
     }
     if (modifierManager == nullptr) {
         return;

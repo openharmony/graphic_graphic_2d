@@ -43,10 +43,6 @@ public:
     // Particle animation does not need to rebuild property value
     void RebuildPropertyValue(float fraction) override {}
 
-    bool IsInfiniteEmit() const;
-    void SoftClearKeepParams();
-    bool IsDormant() const { return isDormant_; }
-
     bool Marshalling(Parcel& parcel) const override;
 
     [[nodiscard]] static RSRenderParticleAnimation* Unmarshalling(Parcel& parcel);
@@ -54,7 +50,7 @@ public:
     {
         return renderParticleVector_;
     }
-    bool Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom = false, bool isOnTree = true) override;
+    bool Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom = false) override;
     void UpdateEmitter(const std::vector<std::shared_ptr<EmitterUpdater>>& emitterUpdater);
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
     void UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields);
@@ -67,6 +63,18 @@ public:
     void SetParticleAnimationToken(uint64_t token)
     {
         SetToken(token);
+    }
+    int64_t GetRunningTimeNs() const
+    {
+        return runningTimeNs_;
+    }
+    void SetRebuildRunningTimeNs(int64_t ns)
+    {
+        rebuildRunningTimeNs_ = ns;
+    }
+    int64_t GetRebuildRunningTimeNs() const
+    {
+        return rebuildRunningTimeNs_;
     }
     template <typename T>
     void UpdateParamsIfChanged(const std::shared_ptr<T>& updaterValue, std::shared_ptr<T>& targetValue)
@@ -82,6 +90,8 @@ protected:
 
 private:
     bool ParseParam(Parcel& parcel) override;
+    void RemoveDrawModifier(RSRenderNode* target);
+    void FillRebuildProgress();
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_;
     std::shared_ptr<RSRenderParticleSystem> particleSystem_;
     RSRenderParticleVector renderParticleVector_;
@@ -89,7 +99,8 @@ private:
     std::shared_ptr<ParticleRippleFields> particleRippleFields_;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_;
     std::shared_ptr<ParticleFieldCollection> particleFields_;
-    bool isDormant_ { false };
+    int64_t runningTimeNs_ = 0;
+    int64_t rebuildRunningTimeNs_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

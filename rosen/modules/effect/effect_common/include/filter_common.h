@@ -23,6 +23,7 @@ namespace OHOS {
 namespace Rosen {
 class FilterCommon {
 public:
+    static constexpr size_t MAX_FILTER_COUNT = 1000;
     static std::shared_ptr<FilterCommon> CreateEffect(
         const std::shared_ptr<Media::PixelMap>& pixmap, uint32_t& errorCode);
     static bool Blur(float radius);

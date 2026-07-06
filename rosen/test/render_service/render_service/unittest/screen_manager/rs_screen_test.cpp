@@ -3533,4 +3533,82 @@ HWTEST_F(RSScreenTest, RemoveSurfaceConfigs_Test002, TestSize.Level1)
     rsScreen->RemoveSurfaceConfigs(emptyIds);
     EXPECT_EQ(rsScreen->property_.GetState(), ScreenState::PRODUCER_SURFACE_ENABLE);
 }
+
+/*
+ * @tc.name: SetRogResolution001
+ * @tc.desc: Test SetRogResolution when dimensions >= physical, HdiRogEnable should be false
+ * @tc.type: FUNC
+ * @tc.require: issues/24560
+ */
+HWTEST_F(RSScreenTest, SetRogResolution001, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_unique<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->property_.SetPhysicalModeParams(10, 10, 0);
+    rsScreen->SetRogResolution(20, 20);
+    EXPECT_EQ(rsScreen->property_.GetHdiRogEnable(), false);
+    EXPECT_EQ(rsScreen->isRogResolution_, true);
+}
+
+/*
+ * @tc.name: SetRogResolution002
+ * @tc.desc: Test SetRogResolution when HDI call succeeds, HdiRogEnable and RogResolution should be true
+ * @tc.type: FUNC
+ * @tc.require: issues/24560
+ */
+HWTEST_F(RSScreenTest, SetRogResolution002, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_unique<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->property_.SetPhysicalModeParams(100, 100, 0);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _))
+        .WillOnce(testing::Return(0));
+    rsScreen->SetRogResolution(50, 50);
+    EXPECT_EQ(rsScreen->property_.GetHdiRogEnable(), true);
+    EXPECT_EQ(rsScreen->property_.IsRogResolution(), true);
+    EXPECT_EQ(rsScreen->isRogResolution_, true);
+}
+
+/*
+ * @tc.name: SetRogResolution003
+ * @tc.desc: Test SetRogResolution when HDI call fails, HdiRogEnable should be false
+ * @tc.type: FUNC
+ * @tc.require: issues/24560
+ */
+HWTEST_F(RSScreenTest, SetRogResolution003, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_unique<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    rsScreen->property_.SetPhysicalModeParams(100, 100, 0);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _))
+        .WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(50, 50);
+    EXPECT_EQ(rsScreen->property_.GetHdiRogEnable(), false);
+    EXPECT_EQ(rsScreen->isRogResolution_, false);
+}
+
+/*
+ * @tc.name: SetIsRogResolution006
+ * @tc.desc: Test SetIsRogResolution resets ROG properties (HdiRogEnable and IsRogResolution become false)
+ * @tc.type: FUNC
+ * @tc.require: issues/24560
+ */
+HWTEST_F(RSScreenTest, SetIsRogResolution006, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_unique<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->property_.SetPhysicalModeParams(3, 4, 0);
+    rsScreen->isRogResolution_ = true;
+    rsScreen->property_.SetHdiRogEnable(true);
+    rsScreen->property_.SetIsRogResolution(true);
+
+    rsScreen->SetResolution(3, 4);
+    EXPECT_EQ(rsScreen->isRogResolution_, false);
+    EXPECT_EQ(rsScreen->property_.GetHdiRogEnable(), false);
+    EXPECT_EQ(rsScreen->property_.IsRogResolution(), false);
+}
 } // namespace OHOS::Rosen

@@ -237,4 +237,31 @@ HWTEST_F(BootAnimationOperationTest, StopBootAnimation_DifferentStates_ExecuteSu
     operation.runner_->Run();
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: InitRsSurfaceNode_NullRsUIDirector_ReturnFalse
+ * @tc.desc: Verify InitRsSurfaceNode returns false when rsUIDirector_ is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootAnimationOperationTest, InitRsSurfaceNode_NullRsUIDirector_ReturnFalse, TestSize.Level1)
+{
+    BootAnimationOperation operation;
+    operation.rsUIDirector_ = nullptr;
+    int32_t degree = 0;
+    bool result = operation.InitRsSurfaceNode(degree);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: InitRsSurface_NullRsSurfaceNode_ReturnFalse
+ * @tc.desc: Verify InitRsSurface returns false when rsSurfaceNode_ is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootAnimationOperationTest, InitRsSurface_NullRsSurfaceNode_ReturnFalse, TestSize.Level1)
+{
+    BootAnimationOperation operation;
+    operation.rsSurfaceNode_ = nullptr;
+    bool result = operation.InitRsSurface();
+    EXPECT_EQ(result, false);
+}
 }

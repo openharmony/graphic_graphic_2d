@@ -56,12 +56,13 @@ struct ColorPickerInfo {
     std::shared_ptr<Drawing::Image> oldImage_;
     std::weak_ptr<IColorPickerManager> manager_;
     int32_t fenceFd_ = -1;
+    float hdrScale_ = 1.0f;
 
     ColorPickerInfo(std::shared_ptr<Drawing::ColorSpace> colorSpace, Drawing::BitmapFormat bitmapFormat,
         Drawing::BackendTexture backendTexture, std::shared_ptr<Drawing::Image> image,
-        std::weak_ptr<IColorPickerManager> manager)
+        std::weak_ptr<IColorPickerManager> manager, float hdrScale = 1.0f)
         : colorSpace_(colorSpace), bitmapFormat_(bitmapFormat), backendTexture_(backendTexture), oldImage_(image),
-          manager_(manager)
+          manager_(manager), hdrScale_(hdrScale)
     {}
 };
 

@@ -25,11 +25,11 @@
 #include "command/rs_canvas_node_command.h"
 #ifndef ROSEN_ARKUI_X
 #include "command/rs_display_node_command.h"
-#include "command/rs_ui_director_command.h"
-#include "command/rs_union_node_command.h"
 #include "feature/window_keyframe/rs_window_keyframe_node_command.h"
 #include "command/rs_frame_rate_linker_command.h"
 #endif
+#include "command/rs_ui_director_command.h"
+#include "command/rs_union_node_command.h"
 #include "command/rs_effect_node_command.h"
 #include "command/rs_node_command.h"
 #include "command/rs_proxy_node_command.h"

@@ -20,6 +20,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_ui_render_director.h"
+#include "command/rs_ui_director_command.h"
 #include "platform/common/rs_log.h"
 
 using namespace testing;
@@ -351,5 +352,88 @@ HWTEST_F(RSContextTest, UIRenderDirectorTest, TestSize.Level1)
     // Branch: destroy the last token, the pid map should be removed.
     rsContext.DestroyUIRenderDirector(pid, token1);
     EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token1), nullptr);
+}
+
+/**
+ * @tc.name: DestoryUIRenderDirectorByPidTest
+ * @tc.desc: Test DestoryUIRenderDirectorByPid removes all directors under a pid.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSContextTest, DestoryUIRenderDirectorByPidTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 100;
+    constexpr uint64_t token1 = 101;
+    constexpr uint64_t token2 = 102;
+
+    rsContext.CreateUIRenderDirector(pid, token1);
+    rsContext.CreateUIRenderDirector(pid, token2);
+    EXPECT_NE(rsContext.GetUIRenderDirector(pid, token1), nullptr);
+    EXPECT_NE(rsContext.GetUIRenderDirector(pid, token2), nullptr);
+
+    rsContext.DestoryUIRenderDirectorByPid(pid);
+    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token1), nullptr);
+    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token2), nullptr);
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperLifecycleTest
+ * @tc.desc: Test RSUIDirectorCommandHelper lifecycle commands create and transition director state.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSContextTest, UIDirectorCommandHelperLifecycleTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 200;
+    constexpr uint64_t token = 201;
+    constexpr NodeId nodeId = 0;
+
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, pid, token);
+    auto director = rsContext.GetUIRenderDirector(pid, token);
+    ASSERT_NE(director, nullptr);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+
+    // Duplicate create should be ignored and not crash.
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, pid, token);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+
+    RSUIDirectorCommandHelper::GoResume(rsContext, nodeId, pid, token);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::RESUME);
+
+    RSUIDirectorCommandHelper::GoForeground(rsContext, nodeId, pid, token);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::FOREGROUND);
+
+    RSUIDirectorCommandHelper::GoBackground(rsContext, nodeId, pid, token);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+
+    RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, pid, token);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+
+    RSUIDirectorCommandHelper::GoDestroy(rsContext, nodeId, pid, token);
+    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperMissingDirectorTest
+ * @tc.desc: Test RSUIDirectorCommandHelper handles missing director gracefully.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSContextTest, UIDirectorCommandHelperMissingDirectorTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 300;
+    constexpr uint64_t token = 301;
+    constexpr NodeId nodeId = 0;
+
+    RSUIDirectorCommandHelper::GoResume(rsContext, nodeId, pid, token);
+    RSUIDirectorCommandHelper::GoForeground(rsContext, nodeId, pid, token);
+    RSUIDirectorCommandHelper::GoBackground(rsContext, nodeId, pid, token);
+    RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, pid, token);
+    RSUIDirectorCommandHelper::GoDestroy(rsContext, nodeId, pid, token);
+
+    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
 }
 } // namespace OHOS::Rosen

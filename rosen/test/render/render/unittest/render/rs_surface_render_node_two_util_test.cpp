@@ -1817,25 +1817,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoUtilTest, GetSurfaceOcclusionRect, TestSize.Level
 }
 
 /**
- * @tc.name: QueryIfAllHwcChildrenForceDisabledByFilter
- * @tc.desc: test results of QueryIfAllHwcChildrenForceDisabledByFilter
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTwoUtilTest, QueryIfAllHwcChildrenForceDisabledByFilter, TestSize.Level1)
-{
-    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    EXPECT_TRUE(testNode->QueryIfAllHwcChildrenForceDisabledByFilter());
-
-    auto childNode1 = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    auto childNode2 = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    testNode->AddChildHardwareEnabledNode(childNode1);
-    testNode->AddChildHardwareEnabledNode(childNode2);
-    childNode1->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    EXPECT_TRUE(testNode->QueryIfAllHwcChildrenForceDisabledByFilter());
-}
-
-/**
  * @tc.name: AccumulateOcclusionRegion
  * @tc.desc: test results of AccumulateOcclusionRegion
  * @tc.type: FUNC

@@ -15,10 +15,30 @@
 
 #include "modifier_render_thread/rs_modifiers_draw.h"
 
+#include "command/rs_delegate_composite_command.h"
+
 namespace OHOS::Rosen {
 void RSModifiersDraw::ConvertTransaction(
     std::unique_ptr<RSTransactionData>& transactionData, std::vector<RSTransactionConfig>& transactionConfigList)
 {
-    return;
+    if (transactionConfigList.empty()) {
+        return;
+    }
+
+    auto& payload = transactionData->GetPayload();
+    for (auto it = payload.rbegin(); it != payload.rend(); ++it) {
+        auto& command = std::get<2>(*it); // The element which index 2 is RSCommand.
+        if (command == nullptr) {
+            continue;
+        }
+        if (command->GetType() != RSCommandType::DELEGATE_COMPOSITE ||
+            command->GetSubType() != RSDelegateCompositeCommandType::TRANSACTION_BUFFER) {
+            continue;
+        }
+
+        auto transactionBufferCommand = static_cast<TransactionBufferCommand*>(command.get());
+        transactionBufferCommand->SetRSTransactionConfigs(transactionConfigList);
+        break;
+    }
 }
 } // namespace OHOS::Rosen

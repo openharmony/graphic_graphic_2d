@@ -21,5 +21,6 @@ group("fuzztest") {
     "picture_fuzzer:fuzztest",
     "pixmap_fuzzer:fuzztest",
     "yuvinfo_fuzzer:fuzztest",
+    "surface_fuzzer:fuzztest",
   ]
 }

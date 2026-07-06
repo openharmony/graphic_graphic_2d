@@ -28,6 +28,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+inline const std::string DEVICE_TYPE_PHONE = "phone";
 constexpr int DEFAULT_CACHE_WIDTH = 1250;
 constexpr int DEFAULT_CACHE_HEIGHT = 2710;
 constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 4;
@@ -919,6 +920,13 @@ bool RSSystemProperties::GetUIFirstEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+int RSSystemProperties::GetEdrGainEnabled()
+{
+    auto deviceType = system::GetParameter("const.product.devicetype", "phone");
+    static bool edrGainEnabled = system::GetParameter("persist.rosen.ui.edrGain.enabled", "1") != "0";
+    return deviceType == DEVICE_TYPE_PHONE && edrGainEnabled;
+}
+
 bool RSSystemProperties::GetUIFirstDirtyEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.dirty.enabled", "1");
@@ -1617,7 +1625,9 @@ bool RSSystemProperties::GetHybridRenderDfxEnabled()
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
     static bool canvasEnabled =
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
+        Drawing::SystemProperties::IsUseVulkan() &&
+        system::GetParameter("const.product.devicetype", "phone") == "phone" &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
     return canvasEnabled;
 }
 

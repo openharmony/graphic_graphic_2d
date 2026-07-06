@@ -379,6 +379,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
+    layer->SetSplitLayerTag(params.GetSplitLayerTag());
     if (offlineResult) {
         SetDeviceOfflineOriginalInfo(layer, params);
     }
@@ -486,8 +487,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetGravity(layerInfo.gravity);
     if (offlineResult) {
         layer->SetCropRect(offlineResult->bufferRect);
-        layer->SetTransform(
-            offlineResult->isGPUOffline ? offlineResult->transformType : GraphicTransformType::GRAPHIC_ROTATE_NONE);
+        layer->SetTransform(offlineResult->transformType);
         layer->SetUseDeviceOffline(true);
     } else {
         layer->SetCropRect(layerInfo.srcRect);

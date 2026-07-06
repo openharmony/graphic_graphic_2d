@@ -99,6 +99,11 @@ protected:
 
     void UpdateToRender() override;
 
+    virtual bool RenderInClient(Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<RSNode> node)
+    {
+        return false;
+    }
+
 private:
     void UpdateProperty(
         std::shared_ptr<RSNode> node, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, PropertyId propertyId);

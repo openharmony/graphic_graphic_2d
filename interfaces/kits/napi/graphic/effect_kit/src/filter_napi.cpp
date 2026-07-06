@@ -44,12 +44,12 @@ namespace {
 namespace OHOS {
 namespace Rosen {
 struct FilterAsyncContext {
-    napi_env env;
-    napi_async_work work;
-    napi_deferred deferred; // promise
-    napi_ref callback;      // callback
+    napi_env env = nullptr;
+    napi_async_work work = nullptr;
+    napi_deferred deferred = nullptr;
+    napi_ref callback = nullptr;
     uint32_t status = SUCCESS;
-    napi_value this_;
+    napi_value this_ = nullptr;
 
     // build error msg
     napi_value errorMsg = nullptr;
@@ -257,6 +257,7 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     FilterNapi* filterNapi = new(std::nothrow) FilterNapi();
     EFFECT_NAPI_CHECK_RET_D(filterNapi != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Constructor filterNapi is nullptr"));
+    filterNapi->env_ = env;
 
     napi_valuetype valueType = napi_undefined;
     valueType = EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]);
@@ -291,6 +292,7 @@ napi_value FilterNapi::CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::
     if (filterNapi == nullptr) {
         return nullptr;
     }
+    filterNapi->env_ = env;
     filterNapi->srcPixelMap_  = pixelMap;
     auto status = napi_wrap_s(env, objValue, filterNapi, FilterNapi::Destructor, nullptr,
         &FilterNapi::NAPI_TYPE_TAG, nullptr);
@@ -357,7 +359,7 @@ void FilterNapi::GetPixelMapAsyncComplete(napi_env env, napi_status status, void
         ctx->status = ERROR;
         napi_create_string_utf8(env, "FilterNapi dst pixel map is null", NAPI_AUTO_LENGTH, &(ctx->errorMsg));
     } else {
-        std::lock_guard<std::mutex> lock(getPixelMapAsyncCompleteMutex_);
+        std::lock_guard<std::mutex> lock(ctx->filterNapi->getPixelMapAsyncCompleteMutex_);
         value = Media::PixelMapNapi::CreatePixelMap(env, ctx->dstPixelMap_);
     }
     FilterAsyncCommonComplete(env, ctx, value);
@@ -509,6 +511,8 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("FilterNapi Blur napi_unwrap fail"));
 
     auto blur = EffectImageFilter::Blur(radius, tileMode);
+    EFFECT_NAPI_CHECK_RET_D(blur != nullptr, nullptr,
+        EFFECT_LOG_E("FilterNapi Blur create filter fail"));
     thisFilter->AddEffectFilter(blur);
     return _this;
 }
@@ -653,6 +657,8 @@ napi_value FilterNapi::EllipticalGradientBlur(napi_env env, napi_callback_info i
         static_cast<float>(maskRadiusY),
         positions,
         degrees);
+    EFFECT_NAPI_CHECK_RET_D(ellipticalGradientBlur != nullptr, nullptr,
+        EFFECT_LOG_E("FilterNapi EllipticalGradientBlur create filter fail"));
     thisFilter->AddEffectFilter(ellipticalGradientBlur);
 
 #ifndef CROSS_PLATFORM
@@ -687,6 +693,8 @@ napi_value FilterNapi::Brightness(napi_env env, napi_callback_info info)
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Brightness napi_unwrap fail"));
     auto brightness = EffectImageFilter::Brightness(fBright);
+    EFFECT_NAPI_CHECK_RET_D(brightness != nullptr, nullptr,
+        EFFECT_LOG_E("FilterNapi Brightness create filter fail"));
     thisFilter->AddEffectFilter(brightness);
 
 #ifndef CROSS_PLATFORM
@@ -706,6 +714,8 @@ napi_value FilterNapi::Grayscale(napi_env env, napi_callback_info info)
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Grayscale napi_unwrap fail"));
     auto grayscale = EffectImageFilter::Grayscale();
+    EFFECT_NAPI_CHECK_RET_D(grayscale != nullptr, nullptr,
+        EFFECT_LOG_E("FilterNapi Grayscale create filter fail"));
     thisFilter->AddEffectFilter(grayscale);
 
 #ifndef CROSS_PLATFORM
@@ -725,6 +735,8 @@ napi_value FilterNapi::Invert(napi_env env, napi_callback_info info)
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Invert napi_unwrap fail"));
     auto invert = EffectImageFilter::Invert();
+    EFFECT_NAPI_CHECK_RET_D(invert != nullptr, nullptr,
+        EFFECT_LOG_E("FilterNapi Invert create filter fail"));
     thisFilter->AddEffectFilter(invert);
 
 #ifndef CROSS_PLATFORM
@@ -786,6 +798,8 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi SetColorMatrix napi_unwrap fail"));
     auto applyColorMatrix = EffectImageFilter::ApplyColorMatrix(colorMatrix);
+    EFFECT_NAPI_CHECK_RET_D(applyColorMatrix != nullptr, nullptr,
+        EFFECT_LOG_E("FilterNapi SetColorMatrix create filter fail"));
     thisFilter->AddEffectFilter(applyColorMatrix);
 
 #ifndef CROSS_PLATFORM

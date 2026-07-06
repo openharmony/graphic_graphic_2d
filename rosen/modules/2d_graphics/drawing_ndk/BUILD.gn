@@ -20,6 +20,16 @@ drawing_root = "$rosen_root/modules/2d_graphics"
 drawing_ndk_include_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/include"
 drawing_ndk_src_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/src"
 drawing_utils_root = "$rosen_root/modules/2d_graphics/drawing_ndk/drawing_utils"
+
+declare_args() {
+  # Enables API call metrics for ArkGraphics 2D Drawing NDK.
+  arkgraphic2d_drawing_ndk_api_metrics = true
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.hiviewdfx_api_metrics)) {
+    arkgraphic2d_drawing_ndk_api_metrics = false
+  }
+}
+
 if (ohos_indep_compiler_enable) {
   drawing_indep_build_path = [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
 }
@@ -144,6 +154,10 @@ template("drawing_ndk_source_set") {
     }
 
     if (platform == "ohos" || platform == "ohos_ng") {
+      if (arkgraphic2d_drawing_ndk_api_metrics) {
+        external_deps += [ "api_metrics:histogrammanager" ]
+        defines += [ "HISTOGRAM_MANAGEMENT_ENABLE=1" ]
+      }
       public_deps += ["$graphic_2d_root/utils/color_manager/ndk:libnative_color_space_manager"]
       defines += [ "OHOS_PLATFORM" ]
       external_deps += [

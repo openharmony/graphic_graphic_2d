@@ -703,7 +703,7 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return arrayObj;
     }
-    std::vector<std::unique_ptr<TextLineBase>> textlines = aniParagraph->typography_->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textlines = aniParagraph->typography_->GetTextLines();
     arrayObj = AniTextUtils::CreateAniArray(env, textlines.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
@@ -716,19 +716,14 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
         if (textline == nullptr) {
             continue;
         }
-        TextLineBase* textLineBasePtr = textline.release();
-        ani_object aniObj = AniTextLine::CreateTextLine(env, textLineBasePtr);
+        ani_object aniObj = AniTextLine::CreateTextLine(env, textline);
         if (AniTextUtils::IsUndefined(env, aniObj)) {
             TEXT_LOGE("Failed to create text line");
-            delete textLineBasePtr;
-            textLineBasePtr = nullptr;
             continue;
         }
         ani_status ret = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set textline item %{public}zu", index);
-            delete textLineBasePtr;
-            textLineBasePtr = nullptr;
             continue;
         }
         index++;

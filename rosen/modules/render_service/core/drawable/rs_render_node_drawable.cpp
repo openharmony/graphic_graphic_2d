@@ -128,10 +128,6 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
-        RS_LOGE("RSRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
-        return;
-    }
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     if (canvas.GetUICapture() && captureParam.captureFinished_) {
         return;
@@ -164,8 +160,6 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     CollectInfoForUnobscuredUEC(canvas);
 
     DrawContent(canvas, bounds);
-
-    DrawCustomContent(canvas);
 
     if (!captureParam.isSoloNodeUiCapture_) {
         DrawChildren(canvas, bounds);
@@ -348,7 +342,6 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
             drawCmdIndex_.renderGroupBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
     }
     DrawContent(canvas, params.GetFrameRect());
-    DrawCustomContent(canvas);
     DrawChildren(canvas, params.GetBounds());
     curDrawingCacheRoot_->SetLastDrawnFilterNodeId(0);
 
@@ -501,6 +494,15 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     if (!curCanvas) {
         RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas is null");
         return;
+    }
+    if (layerSplitterProcessor_ != nullptr) {
+        if (layerSplitterProcessor_->NeedDrawSplitCanvas(canvas, GetId())) {
+            DrawCachedImage(*(layerSplitterProcessor_->GetSplitCanvas()), params);
+            RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas");
+        }
+        if (layerSplitterProcessor_->CanSkipOpIncNodeDraw(GetId())) {
+            return;
+        }
     }
     if (LIKELY(!params.IsRenderGroupIncludeProperty())) {
         DrawBackground(canvas, params.GetBounds());
@@ -1026,6 +1028,9 @@ void RSRenderNodeDrawable::DrawCachedImage(
         RS_LOGE("RSRenderNodeDrawable::DrawCachedImage invalid cacheimage");
         return;
     }
+    if (layerSplitterProcessor_) {
+        layerSplitterProcessor_->RecordNodeWithCacheImage(GetId());
+    }
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
     float scaleX = params.GetCacheSize().x_ / static_cast<float>(cacheImage->GetWidth());
     float scaleY = params.GetCacheSize().y_ / static_cast<float>(cacheImage->GetHeight());
@@ -1269,7 +1274,6 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     ApplyForegroundColorIfNeed(*cacheCanvas, bounds);
     if (LIKELY(!params.IsRenderGroupIncludeProperty())) {
         DrawContent(*cacheCanvas, params.GetFrameRect());
-        DrawCustomContent(*cacheCanvas);
         DrawChildren(*cacheCanvas, bounds);
     } else if (params.GetForegroundFilterCache() != nullptr) {
         DrawCacheWithForegroundFilter(*cacheCanvas, bounds);

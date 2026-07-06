@@ -131,6 +131,7 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
     }
 
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().SendRcdMessage(id, screenProperty);
         RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
             [id, &processor, &rcdInfo](void) {
                 auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id, true);
@@ -485,15 +486,15 @@ void RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(
 
 int32_t RSScreenRenderNodeDrawable::GetBufferAge()
 {
-    return wiredMirrorRenderFrame_ ? wiredMirrorRenderFrame_->GetBufferAge() : 0;
+    return physicalMirrorRenderFrame_ ? physicalMirrorRenderFrame_->GetBufferAge() : 0;
 }
 
 void RSScreenRenderNodeDrawable::SetDamageRegion(const std::vector<RectI>& rects)
 {
-    if (wiredMirrorRenderFrame_ == nullptr) {
+    if (physicalMirrorRenderFrame_ == nullptr) {
         return;
     }
-    wiredMirrorRenderFrame_->SetDamageRegion(rects);
+    physicalMirrorRenderFrame_->SetDamageRegion(rects);
 }
 
 void RSScreenRenderNodeDrawable::SetAccumulateDirtyInSkipFrame(bool accumulateDirtyInSkipFrame)
@@ -908,7 +909,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #ifdef USE_PRIMITIVE
     primListAdapter->PrimDrawSuspend();
 #endif
-
     renderFrame->Flush();
     bufferGuard.SetAcquireFence(renderFrame->GetAcquireFence());
     RS_TRACE_END();

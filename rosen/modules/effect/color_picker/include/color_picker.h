@@ -68,9 +68,9 @@ enum PictureComplexityDegree {
 
 
 struct HSV {
-    int h;  // 色度取值(0-360)
-    double s;  // 饱和度取值 (0-100)
-    double v;  // 亮度取值 (0-100)
+    int h = 0;  // 色度取值(0-360)
+    double s = 0.0;  // 饱和度取值 (0-100)
+    double v = 0.0;  // 亮度取值 (0-100)
 };
 
 class ColorPicker : public ColorExtract {

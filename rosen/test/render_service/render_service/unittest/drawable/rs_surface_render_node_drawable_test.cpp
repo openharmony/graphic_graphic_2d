@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "feature_param/performance_feature/rotateoffscreen_param.h"
 #include "params/rs_effect_render_params.h"
@@ -3206,8 +3207,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Le
 
     // OnDraw should return early for abnormal process
     surfaceDrawable_->OnDraw(*canvas_);
-    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
-    ASSERT_TRUE(isAbnormal);
+    ASSERT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::MEMORYOVER_SKIP);
     
     // Clean up
     std::set<pid_t> exitedPids = {pid};
@@ -3386,5 +3386,50 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCaptureBackFaceSkipTest003, TestSize
     surfaceDrawable_->OnCapture(*canvas_);
 
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
+
+/**
+ * @tc.name: IsUIFirstFirstFrameCacheGenerated001
+ * @tc.desc: clonedSourceNode true makes isUIFirstFirstFrameCacheGenerated false
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsUIFirstFirstFrameCacheGenerated001, TestSize.Level1)
+{
+    RSUniRenderThread::ResetCaptureParam();
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+    if (!rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    }
+
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    ASSERT_NE(surface, nullptr);
+    RSPaintFilterCanvas canvas(surface.get());
+
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+    uniParams->SetIsMirrorScreen(false);
+
+    surfaceParams->SetNeedCacheSurface(true);
+    surfaceParams->isCrossNode_ = false;
+    surfaceParams->clonedSourceNode_ = true;
+    surfaceParams->boundsRect_ = {0.f, 0.f, 100.f, 100.f};
+    surfaceParams->frameRect_ = {0.f, 0.f, 100.f, 100.f};
+
+    RSUifirstManager::Instance().RemoveFirstFrameCacheGeneratedNode(surfaceDrawable_->GetId());
+    surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
+
+    EXPECT_TRUE(surfaceDrawable_->subThreadCache_.GetRSDrawWindowCache().HasCache());
+    EXPECT_FALSE(RSUifirstManager::Instance().IsFirstFrameCacheGeneratedNode(surfaceDrawable_->GetId()));
+
+    surfaceDrawable_->subThreadCache_.GetRSDrawWindowCache().ClearCache();
+    surfaceParams->clonedSourceNode_ = false;
 }
 } // namespace OHOS::Rosen

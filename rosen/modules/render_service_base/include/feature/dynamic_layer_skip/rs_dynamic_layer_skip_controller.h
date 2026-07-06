@@ -21,14 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSDynamicLayerSkipController;
-struct RSB_EXPORT LayerSkipContext {
-    bool screenLayerInvalid_ = false;
-    std::vector<NodeId> relevantSurfaceNodeIds_ = {};
-    void SyncFrom(const RSDynamicLayerSkipController& controller);
-    void Reset();
-};
-
 class RSB_EXPORT RSDynamicLayerSkipController {
 public:
     RSDynamicLayerSkipController() = default;
@@ -39,23 +31,39 @@ public:
 
     void Init(const RectI& screenRect, bool globalDisabled);
 
-    void CheckNodeDrawProperty(RSRenderNode& node);
+    void VisitRenderNode(std::shared_ptr<RSSurfaceRenderNode> surfaceNode, RSRenderNode& node);
 
-    void MarkParentSubTreeHasDrawContent(RSRenderNode& node) const;
+    void DetectScreenLayerValidity(RSSurfaceRenderNode& rootNode);
+
+    void VerifyScreenLayerValidity(float screenNodeGlobalZOrder);
+
+private:
+    void CheckNodeDrawProperty(RSRenderNode& node);
 
     bool HasDrawContentDrawableInRange(const RSRenderNode& node, RSDrawableSlot begin, RSDrawableSlot end) const;
 
-    void VisitRenderNode(std::shared_ptr<RSSurfaceRenderNode> surfaceNode, RSRenderNode& node);
+    bool HasFullScreenSelfDrawingSurface(RSSurfaceRenderNode& rootNode);
+
+    void VisitRenderNodeInner(std::shared_ptr<RSRenderNode> node, bool needTraverse);
 
     void DetectScreenLayerValidityInner(
         std::shared_ptr<RSRenderNode> node, Occlusion::Region& targetArea, int32_t totalTargetCount);
 
-    void DetectScreenLayerValidity(RSSurfaceRenderNode& rootNode);
+    static inline bool GetBit(const RSRenderNode& node, LayerDrawContent contentType)
+    {
+        return node.layerContentBits_[contentType];
+    }
 
-    bool HasFullScreenSelfDrawingSurface(RSSurfaceRenderNode& rootNode) const;
+    static inline void SetBit(RSRenderNode& node, LayerDrawContent contentType, bool value)
+    {
+        node.layerContentBits_[contentType] = value;
+    }
 
-    void VerifyScreenLayerValidity(float screenNodeGlobalZOrder);
-private:
+    static inline void OrBit(RSRenderNode& node, LayerDrawContent contentType, bool value)
+    {
+        node.layerContentBits_[contentType] = node.layerContentBits_[contentType] || value;
+    }
+
     RectI screenRect_;
     bool screenLayerInvalid_ = false;
     bool globalOccluderDetected_ = false;
@@ -63,6 +71,8 @@ private:
     std::vector<RSSurfaceRenderNode::WeakPtr> targetSelfDrawingSurface_ = {};
     bool globalDisabled_ = false;
     int32_t visitedRenderNodeCount_ = 0;
+    bool hasFullScreenSurface_ = false;
+    bool lastFrameHasFullScreenSurface_ = false;
 
     friend struct LayerSkipContext;
 };

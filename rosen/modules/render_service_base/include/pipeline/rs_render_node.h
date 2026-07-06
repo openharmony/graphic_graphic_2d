@@ -18,6 +18,7 @@
 #include <atomic>
 #include <bitset>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <list>
 #include <memory>
@@ -28,6 +29,7 @@
 #include <vector>
 
 #include "display_engine/rs_luminance_control.h"
+#include "feature/dynamic_layer_skip/rs_dynamic_layer_skip_context.h"
 #include "feature/opinc/rs_layer_part_render_cache.h"
 #include "feature/opinc/rs_opinc_cache.h"
 #include "feature/opinc/rs_opinc_root_cache.h"
@@ -91,13 +93,6 @@ struct CurFrameInfoDetail {
     bool curFrameReverseChildren = false;
 };
 
-enum LayerDrawContent : size_t {
-    SELF = 0,       // whether the node itself has draw content
-    SUBTREE = 1,    // whether the subtree has draw content, determined by all its descendants
-    UPDATE = 2,     // whether the node has update content in current frame, used for dynamic layer skip optimization
-    MAX = 3
-};
-
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
@@ -158,6 +153,15 @@ public:
     }
     void RemoveFromTree(bool skipTransition = false);
 
+    virtual bool IsHardwareEnabledType() const
+    {
+        return false;
+    }
+    // manage renderNode's child hardware enabled nodes and filter nodes info
+    std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() { return allHwcNodeAndFilterNode_; }
+    const std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() const { return allHwcNodeAndFilterNode_; }
+    void ClearAllHwcNodeAndFilterNode() { allHwcNodeAndFilterNode_.clear(); }
+
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, int32_t index = -1);
     void RemoveCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, const WeakPtr& newParent);
@@ -181,7 +185,8 @@ public:
                                 bool isUniRender,
                                 bool onlyFirstLevel);
     virtual void CollectSelfDrawingChild(const std::shared_ptr<RSRenderNode>& node, std::vector<NodeId>& vec);
-    virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
+    virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+        bool isParentPrepareInReverseOrder = false);
     void PrepareSelfNodeForApplyModifiers();
     void PrepareChildrenForApplyModifiers();
     // if subtree dirty or child filter need prepare
@@ -475,6 +480,11 @@ public:
         dirtyTypesNG_.set(static_cast<int>(type), true);
     }
 
+    const ModifierNG::ModifierDirtyTypes& GetDirtyTypes() const
+    {
+        return dirtyTypesNG_;
+    }
+
     std::tuple<bool, bool, bool> Animate(
         int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime,
         int64_t period = 0, bool isDisplaySyncEnabled = false);
@@ -590,6 +600,7 @@ public:
     const ModifierNGContainer& GetModifiersNG(ModifierNG::RSModifierType type) const;
     const ModifiersNGMap& GetAllModifiers() const;
     bool HasDrawCmdModifiers() const;
+    bool HasValidDrawCmd(bool isOpincSplit) const;
     bool HasValidDrawCmd() const;
     bool HasContentStyleModifierOnly() const;
 
@@ -609,7 +620,7 @@ public:
     void UpdateSubTreeInfo(const RectI& clipRect);
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
     void NodePostPrepare(
-        std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect);
+        const std::shared_ptr<RSSurfaceRenderNode>& curSurfaceNode, const RectI& clipRect);
 
     void SetStaticCached(bool isStaticCached, bool isMarkedByUI = false);
     virtual bool IsStaticCached() const;
@@ -636,7 +647,7 @@ public:
 
     bool IsPureContainer() const;
     bool IsContentNode() const;
-    bool IsPureBackgroundColor() const;
+    bool IsPureBackgroundColor(bool isOpincSplit) const;
     void SetDrawNodeType(DrawNodeType nodeType);
     DrawNodeType GetDrawNodeType() const;
 
@@ -1257,6 +1268,7 @@ private:
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
     bool lastFrameSubTreeSkipped_ = false;
+    std::shared_ptr<RSAnimationManager> animationManager_;
     bool curFrameHasAnimation_ = false;
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
@@ -1350,6 +1362,8 @@ private:
     std::unique_ptr<FilterRegionInfo> filterRegionInfo_;
     RectI lastFilterRegion_;
 
+    std::deque<WeakPtr> allHwcNodeAndFilterNode_;
+
     ModifiersNGMap modifiersNG_;
     std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
@@ -1362,7 +1376,6 @@ private:
     Drawing::Matrix oldAbsMatrix_;
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
     bool released_ = false;
-    std::shared_ptr<RSAnimationManager> animationManager_;
     RSOpincCache opincCache_;
     std::unique_ptr<RSOpincRootCache> opincRootCache_ = nullptr;
     std::unique_ptr<RSLayerPartRenderCache> layerPartRenderCache_ = nullptr;
@@ -1432,7 +1445,8 @@ private:
     bool UpdateSelfDrawRect();
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
-    void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
+    void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect,
+        const Drawing::Matrix& parentSurfaceMatrix, const SharedPtr& parent);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
@@ -1449,6 +1463,8 @@ private:
     void InitRenderDrawableAndDrawableVec();
 
     void DirtySlotsPartialSync();
+
+    bool HasValidModifierInOpincSplit(int8_t slot) const;
 
     RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();

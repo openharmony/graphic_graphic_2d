@@ -201,18 +201,6 @@ HWTEST_F(RSColorTest, AsBgraIntTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: FromBgraIntTest
- * @tc.desc: Verify function FromBgraInt
- * @tc.type: FUNC
- * @tc.require: issuesI9OX7J
- */
-HWTEST_F(RSColorTest, FromBgraIntTest, TestSize.Level1)
-{
-    auto color = RSColor::FromBgraInt(1);
-    EXPECT_EQ(color.alpha_, 0);
-}
-
-/**
  * @tc.name: BlueTest
  * @tc.desc: Verify function GetBlue SetBlue
  * @tc.type: FUNC

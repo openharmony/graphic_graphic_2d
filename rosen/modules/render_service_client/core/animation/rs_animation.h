@@ -88,6 +88,11 @@ public:
 
     bool IsUiAnimation() const;
 
+    virtual bool IsParticleAnimation() const
+    {
+        return false;
+    }
+
     void InteractivePause();
 
     void InteractiveContinue();

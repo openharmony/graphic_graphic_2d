@@ -38,6 +38,11 @@ public:
     // use in temporary scheme with background alpha
     void CheckPackageInConfigList(const std::vector<std::string>& pkgs);
 
+    void SetWindowModeType(uint8_t windowModeType);
+ 
+    bool IsSourceTuningConfig(const std::string& bundleName);
+    bool IsHwcSourceTuningConfig(const std::string& bundleName);
+
     std::unordered_map<std::string, std::string>& GetMutableSourceTuningConfig()
     {
         return sourceTuningConfig_;
@@ -52,6 +57,9 @@ private:
     std::unordered_map<std::string, std::string> solidLayerConfig_;
     std::unordered_map<std::string, std::string> hwcSourceTuningConfig_;
     std::unordered_map<std::string, std::string> hwcSolidLayerConfig_;
+    uint8_t windowModeType_ = 0;
+    std::vector<std::string> packages_;
+    std::mutex windowModeMutex_;
 };
 } // namespace OHOS::Rosen
 

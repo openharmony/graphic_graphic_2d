@@ -112,7 +112,7 @@ public:
 
     RSAnimatableType CalculateDisplacement(double time) const
     {
-        if (dampingRatio_ <= 0.0f) {
+        if (ROSEN_LE(dampingRatio_, 0.0f, SPRING_MIN_DAMPING_RATIO)) {
             return {};
         }
         double coeffDecay = exp(coeffDecay_ * time);
@@ -133,7 +133,7 @@ public:
 
     float EstimateDuration() const
     {
-        if (dampingRatio_ <= 0.0f || response_ <= 0.0f) {
+        if (ROSEN_LE(dampingRatio_, 0.0f, SPRING_MIN_DAMPING_RATIO) || ROSEN_LE(response_, 0.0f, SPRING_MIN_RESPONSE)) {
             return 0.0f;
         }
 
@@ -183,7 +183,7 @@ protected:
     {
         // sanity check
         dampingRatio_ = std::clamp(dampingRatio_, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
-        if (response_ <= 0) {
+        if (ROSEN_LE(response_, 0.0f, SPRING_MIN_RESPONSE)) {
             response_ = SPRING_MIN_RESPONSE;
         }
         if (minimumAmplitudeRatio_ <= 0) {

@@ -40,7 +40,7 @@ bool RSOverlayNGShaderDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     const auto& shader = properties.GetOverlayNGShader();
-    if (!shader) {
+if (!shader) {
         return false;
     }
     needSync_ = true;

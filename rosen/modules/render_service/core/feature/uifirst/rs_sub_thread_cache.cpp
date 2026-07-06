@@ -35,6 +35,7 @@
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -56,7 +57,6 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
-
 #undef LOG_TAG
 #define LOG_TAG "RsSubThreadCache"
 
@@ -158,9 +158,14 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
         // When the colorType is FP16, the colorspace of the uifirst buffer must be sRGB
         // In other cases, ensure the image's color space matches the target surface's color profile.
         auto colorSpace = Drawing::ColorSpace::CreateSRGB();
-        if (vkTexture != nullptr && vkTexture->format == VK_FORMAT_R16G16B16A16_SFLOAT) {
-            colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
-        } else if (cacheCompletedSurface_) {
+        if (vkTexture != nullptr) {
+            if (vkTexture->format == VK_FORMAT_R16G16B16A16_SFLOAT) {
+                colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+            } else if (vkTexture->format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
+                colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+            }
+        }
+        if (cacheCompletedSurface_ && colorType != Drawing::ColorType::COLORTYPE_RGBA_F16) {
             colorSpace = cacheCompletedSurface_->GetImageInfo().GetColorSpace();
         }
 #endif
@@ -183,6 +188,7 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
                 origin, info, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
         }
 #endif
+        image->SetHdrScale(cacheCompletedSurface_->GetHdrScale());
         return image;
 #endif
     }
@@ -212,6 +218,7 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
     bool ret = cacheImage->BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(),
         origin, info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
+    cacheImage->SetHdrScale(completeImage->GetHdrScale());
     if (!ret) {
         RS_LOGE("GetCompletedImage image BuildFromTexture failed");
         return nullptr;
@@ -307,8 +314,9 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
 
 void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable,
-    ClearCacheSurfaceFunc func, uint32_t threadIndex, bool isNeedFP16)
+    ClearCacheSurfaceFunc func, uint32_t threadIndex, std::pair<bool, float> hdrParam)
 {
+    bool isNeedFP16 = hdrParam.first;
     RS_TRACE_NAME_FMT("InitCacheSurface id:%" PRIu64" targetColorGamut:%d isNeedFP16:%d",
         nodeId_, targetColorGamut_, isNeedFP16);
     if (!nodeDrawable) {
@@ -413,6 +421,9 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
 #else
     cacheSurface_ = Drawing::Surface::MakeRasterN32Premul(width, height);
 #endif
+    if (cacheSurface_) {
+        cacheSurface_->SetHdrScale(hdrParam.second);
+    }
 }
 
 void RsSubThreadCache::ResetUifirst(bool isOnlyClearCache)
@@ -451,11 +462,10 @@ bool RsSubThreadCache::NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams
     int height = 0;
 
     if (surfaceParams) {
-        auto size = surfaceParams->GetCacheSize();
-        width =  surfaceParams->IsUIFirstLeashAllEnable() ?
-            surfaceParams->GetLocalDrawRect().GetWidth() : size.x_;
+        width = surfaceParams->IsUIFirstLeashAllEnable() ?
+            surfaceParams->GetLocalDrawRect().GetWidth() : surfaceParams->GetCacheSize().x_;
         height = surfaceParams->IsUIFirstLeashAllEnable() ?
-            surfaceParams->GetLocalDrawRect().GetHeight() : size.y_;
+            surfaceParams->GetLocalDrawRect().GetHeight() : surfaceParams->GetCacheSize().y_;
     }
 
     if (cacheSurface_ == nullptr) {
@@ -617,9 +627,9 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
         UpdateDirtyRecordCompletedState(false);
         return;
     }
-    bool isShouldContainShadow = surfaceParams->IsUIFirstLeashAllEnable() &&
+    bool isContainShadow = surfaceParams->IsUIFirstLeashAllEnable() &&
         surfaceParams->IsLeashWindow() && syncUifirstDirtyManager_;
-    if (isShouldContainShadow) {
+    if (isContainShadow) {
         auto screenNodeDrawable = surfaceParams->GetAncestorScreenDrawable().lock();
         if (screenNodeDrawable) {
             auto dirtyManager = screenNodeDrawable->GetSyncDirtyManager();
@@ -648,9 +658,7 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
 
 bool RsSubThreadCache::IsDirtyRecordCompleted()
 {
-    bool isDirtyRecordCompleted = isDirtyRecordCompleted_;
-    isDirtyRecordCompleted_ = false;
-    return isDirtyRecordCompleted;
+    return std::exchange(isDirtyRecordCompleted_, false);
 }
 
 void RsSubThreadCache::UpdateDirtyRecordCompletedState(bool isCompleted)
@@ -732,7 +740,7 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
         RS_LOGD("absRect params is err or out of dispaly");
         return false;
     }
-    bool isContainShadow = surfaceParams->IsUIFirstLeashAllEnable() && surfaceParams->IsLeashWindow();
+    bool isContainShadow = surfaceParams->IsUIFirstLeashAllEnable();
     if (isContainShadow) {
         auto localDrawRect = surfaceParams->GetLocalDrawRect();
         absDrawRect.Move(static_cast<int>(localDrawRect.GetLeft()), static_cast<int>(localDrawRect.GetTop()));
@@ -930,11 +938,10 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
         RSAutoCanvasRestore acr(rscanvas);
         const auto& localDrawRect = uifirstParams->GetLocalDrawRect();
         rscanvas->Translate(-1 * localDrawRect.GetLeft(), -1 * localDrawRect.GetTop());
-        cacheSurfaceRect_ = {localDrawRect.GetLeft(), localDrawRect.GetTop(),
-            localDrawRect.GetWidth(), localDrawRect.GetHeight()};
+        cacheSurfaceRect_ = {localDrawRect.GetLeft(), localDrawRect.GetTop(), bounds.GetWidth(), bounds.GetHeight()};
         auto rect = Drawing::Rect(0, 0, localDrawRect.GetWidth(), localDrawRect.GetHeight());
         surfaceDrawable->DrawAllUifirst(*rscanvas, rect);
-        RS_TRACE_NAME_FMT("RsSubThreadCache::SubDraw DrawAllUifirst");
+        RS_TRACE_NAME_FMT("RsSubThreadCache::SubDraw DrawAllUifirst.");
     } else {
         cacheSurfaceRect_ = {0, 0, bounds.GetWidth(), bounds.GetHeight()};
         surfaceDrawable->DrawUifirstContentChildren(*rscanvas, bounds);

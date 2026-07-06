@@ -63,13 +63,14 @@ void RSScreenRenderNode::CollectSurface(
     }
 }
 
-void RSScreenRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSScreenRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;
     }
     ApplyModifiers();
-    visitor->QuickPrepareScreenRenderNode(*this);
+    visitor->QuickPrepareScreenRenderNode(*this, isParentPrepareInReverseOrder);
 }
 
 void RSScreenRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -381,7 +382,6 @@ HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
         return HdrStatus::NO_HDR;
     }
     HdrStatus currentHDRStatus = screenParams->GetScreenHDRStatus();
-    lastDisplayTotalHdrStatus_ = currentHDRStatus;
     return currentHDRStatus;
 }
 // LCOV_EXCL_STOP

@@ -211,6 +211,57 @@ HWTEST_F(RSPointLightManagerTest, RegisterIlluminated002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterLightSource003
+ * @tc.desc: test RegisterLightSource overwrites stale entry when same NodeId re-registers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, RegisterLightSource003, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->lightSourceNodeMap_.clear();
+
+    auto node1 = std::make_shared<RSRenderNode>(1);
+    instance->RegisterLightSource(node1);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(1), 1u);
+    EXPECT_EQ(instance->lightSourceNodeMap_[1].lock().get(), node1.get());
+
+    // Same NodeId, new object (simulates node rebuild)
+    auto node2 = std::make_shared<RSRenderNode>(1);
+    instance->RegisterLightSource(node2);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(1), 1u);
+    EXPECT_EQ(instance->lightSourceNodeMap_[1].lock().get(), node2.get());
+    EXPECT_NE(instance->lightSourceNodeMap_[1].lock().get(), node1.get());
+
+    instance->lightSourceNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RegisterIlluminated003
+ * @tc.desc: test RegisterIlluminated overwrites stale entry when same NodeId re-registers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, RegisterIlluminated003, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+
+    auto node1 = std::make_shared<RSRenderNode>(1);
+    instance->RegisterIlluminated(node1);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(1), 1u);
+    EXPECT_EQ(instance->illuminatedNodeMap_[1].lock().get(), node1.get());
+
+    auto node2 = std::make_shared<RSRenderNode>(1);
+    instance->RegisterIlluminated(node2);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(1), 1u);
+    EXPECT_EQ(instance->illuminatedNodeMap_[1].lock().get(), node2.get());
+    EXPECT_NE(instance->illuminatedNodeMap_[1].lock().get(), node1.get());
+
+    instance->illuminatedNodeMap_.clear();
+}
+
+/**
  * @tc.name: UnRegisterLightSource001
  * @tc.desc: test results of UnRegisterLightSource
  * @tc.type:FUNC
@@ -482,7 +533,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
     auto illuminatedPtr = illuminatedNode->GetMutableRenderProperties().GetIlluminated();
     EXPECT_TRUE(illuminatedPtr != nullptr);
     illuminatedPtr->lightSourcesAndPosMap_.emplace(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     illuminatedMap[0] = illuminatedNode;
     std::shared_ptr<RSRenderNode> lightSourceNode = std::make_shared<RSRenderNode>(1);
     dirtyList.push_back(lightSourceNode);
@@ -558,13 +609,41 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        lightSourceNode->GetId(), std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.clear();
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_TRUE(illuminatedNode->IsDirty());
+}
+
+/**
+ * @tc.name: CheckIlluminated004
+ * @tc.desc: test CheckIlluminated when light source is out of radius (isIlluminated false)
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPointLightManagerTest, CheckIlluminated004, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    auto lightSourceNode = std::make_shared<RSRenderNode>(1);
+    auto illuminatedNode = std::make_shared<RSRenderNode>(0);
+    illuminatedNode->isOnTheTree_ = true;
+
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_->SetLightPosition(
+        Vector4f(100.0f, 100.0f, 1.0f, 0.0f));
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_FALSE(illuminatedNode->IsDirty());
+    EXPECT_TRUE(illuminatedNode->GetMutableRenderProperties().GetIlluminated()
+        ->GetLightSourcesAndPosMap().empty());
 }
 
 /**
@@ -618,7 +697,7 @@ HWTEST_F(RSPointLightManagerTest, CollectPreviousFrameIlluminatedNodesTest001, T
     EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
 
     sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     instance->CollectPreviousFrameIlluminatedNodes();
     EXPECT_FALSE(instance->previousFrameIlluminatedNodeMap_.empty());
 }
@@ -654,7 +733,7 @@ HWTEST_F(RSPointLightManagerTest, ProcessLostIlluminationNodeTest001, TestSize.L
     
     sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
-        lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+        0, std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     instance->ProcessLostIlluminationNode();
     EXPECT_FALSE(sharedRenderNode->IsDirty());
 

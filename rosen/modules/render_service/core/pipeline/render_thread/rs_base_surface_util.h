@@ -44,6 +44,7 @@ public:
         const DropFrameConfig& dropFrameConfig = DropFrameConfig::NoDrop(),
         uint64_t parentNodeId = 0, bool dropFrameByScreenFrozen = false);
     static bool ConsumeAndUpdateBufferSimple(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY);
+    static bool DropFirstFlushedBuffer(RSSurfaceHandler& surfaceHandler, NodeId nodeId);
 };
 } // namespace Rosen
 } // namespace OHOS

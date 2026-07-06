@@ -14,7 +14,7 @@
  */
 
 #include "rs_vsync_rate_reduce_manager.h"
-#include <cstdint>
+
 #include <parameters.h>
 #include <ratio>
 #include <thread>
@@ -442,7 +442,7 @@ void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
     vSyncRateMap_.clear();
     curAllMainAndLeashWindowNodesIds_.clear();
     vRateConditionQualified_ = rsRefreshRate > 0;
-    if (!vRateConditionQualified_) {
+    if (!vRateConditionQualified_.load()) {
         return;
     }
     stagingOneFramePeriod_ = PERIOD_CHECK_THRESHOLD / static_cast<int64_t>(rsRefreshRate);

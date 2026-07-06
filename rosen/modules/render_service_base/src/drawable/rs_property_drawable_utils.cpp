@@ -1021,14 +1021,12 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeShadowBlender(con
 std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeHdrDarkenBlender(const RSHdrDarkenBlenderPara& params)
 {
     static constexpr char prog[] = R"(
-
         uniform float hdrBrightnessRatio;
         uniform float grayscaleFactors_r;
         uniform float grayscaleFactors_g;
         uniform float grayscaleFactors_b;
 
         half4 main(half4 srcColor, half4 dstColor) {
-
             // 1. calc darken result (a=1), original Darken algorithm
             float3 darkenRGB = srcColor.rgb + dstColor.rgb - max(srcColor.rgb * dstColor.a, dstColor.rgb * srcColor.a);
             // 2. calc hdr_extra, extracting colors from HDR layers
@@ -1808,7 +1806,6 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     if (renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
         return;
     }
-#ifndef ROSEN_ARKUI_X
     const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
     auto sdfShape = properties.GetSDFShape();
     if (sdfShape) {
@@ -1826,7 +1823,6 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     drawingFilter->SetNGRenderFilter(filter);
-#endif
 }
 
 std::shared_ptr<RSNGRenderShapeBase> RSPropertyDrawableUtils::CreateDefaultRRectShape(const RRect& sdfRRect,

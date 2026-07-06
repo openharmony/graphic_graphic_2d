@@ -166,18 +166,20 @@ RosenError HdiOutput::Init()
         return ROSEN_ERROR_NOT_INIT;
     }
 
-    if (device_ != nullptr) {
-        return ROSEN_ERROR_OK;
-    }
+    {
+        std::lock_guard<std::mutex> lock(backlightDeviceMutex_);
+        if (device_ != nullptr) {
+            return ROSEN_ERROR_OK;
+        }
+        device_ = HdiDevice::GetInstance();
+        CHECK_DEVICE_NULL(device_);
 
-    device_ = HdiDevice::GetInstance();
-    CHECK_DEVICE_NULL(device_);
-
-    bufferCacheCountMax_ = fbSurface_->GetBufferQueueSize();
-    int32_t ret = device_->SetScreenClientBufferCacheCount(screenId_, bufferCacheCountMax_);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("Set screen client buffer cache count failed, ret is %{public}d", ret);
-        return ROSEN_ERROR_INVALID_OPERATING;
+        bufferCacheCountMax_ = fbSurface_->GetBufferQueueSize();
+        int32_t ret = device_->SetScreenClientBufferCacheCount(screenId_, bufferCacheCountMax_);
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGE("Set screen client buffer cache count failed, ret is %{public}d", ret);
+            return ROSEN_ERROR_INVALID_OPERATING;
+        }
     }
     ClearBufferCache();
     bufferCache_.reserve(bufferCacheCountMax_);
@@ -193,6 +195,7 @@ RosenError HdiOutput::SetHdiOutputDevice(HdiDevice* device)
         return ROSEN_ERROR_INVALID_ARGUMENTS;
     }
 
+    std::lock_guard<std::mutex> lock(backlightDeviceMutex_);
     if (device_ != nullptr) {
         HLOGW("HdiDevice has been changed");
         return ROSEN_ERROR_OK;
@@ -1036,12 +1039,7 @@ void HdiOutput::ClearRecoveredInvalidTunnelSurfaceIdsLocked()
             ++iter;
             continue;
         }
-        auto rsLayer = layerIter->second->GetRSLayer();
-        if (rsLayer != nullptr && !IsTunnelLayerRequestedLocked(rsLayer)) {
-            iter = invalidTunnelSurfaceIds_.erase(iter);
-            continue;
-        }
-        ++iter;
+        iter = invalidTunnelSurfaceIds_.erase(iter);
     }
 }
 
@@ -1629,8 +1627,14 @@ void HdiOutput::Repaint()
 
 void HdiOutput::SetScreenBacklight(uint32_t level)
 {
-    if (device_ != nullptr) {
-        device_->SetScreenBacklight(screenId_, level);
+    std::lock_guard<std::mutex> lock(backlightDeviceMutex_);
+    if (device_ == nullptr) {
+        HLOGW("%{public}s: device_ is nullptr, screenId:%{public}u", __func__, screenId_);
+        return;
+    }
+    int32_t ret = device_->SetScreenBacklight(screenId_, level);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGW("%{public}s failed, screenId:%{public}u, ret:%{public}d", __func__, screenId_, ret);
     }
 }
 

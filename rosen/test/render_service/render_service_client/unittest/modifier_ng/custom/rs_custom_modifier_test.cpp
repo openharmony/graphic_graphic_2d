@@ -334,4 +334,50 @@ HWTEST_F(RSCustomModifierHelperTest, ClearDrawCmdListTest, TestSize.Level1)
         EXPECT_EQ(property->stagingValue_, nullptr);
     }
 }
+
+class TestModifierWithHybridDraw : public ModifierNG::RSContentStyleModifier {
+public:
+    TestModifierWithHybridDraw() = default;
+    ~TestModifierWithHybridDraw() = default;
+ 
+    bool RenderInClient(Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<RSNode> node) override
+    {
+        return true;
+    }
+};
+ 
+/**
+ * @tc.name: UpdateDrawCmdListHybridDrawTest
+ * @tc.desc: Test UpdateDrawCmdList with hybridDraw true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdateDrawCmdListHybridDrawTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<TestModifierWithHybridDraw>();
+    auto node = RSCanvasNode::Create();
+    modifier->OnAttach(*node);
+    modifier->UpdateDrawCmdList();
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(
+        modifier->GetProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
+    ASSERT_NE(property, nullptr);
+    ASSERT_EQ(property->stagingValue_, nullptr);
+}
+ 
+/**
+ * @tc.name: UpdateToRenderHybridDrawTest
+ * @tc.desc: Test UpdateToRender with hybridDraw true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderHybridDrawTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<TestModifierWithHybridDraw>();
+    auto node = RSCanvasNode::Create();
+    modifier->node_ = node;
+    modifier->lastDrawCmdListEmpty_ = false;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto property = std::make_shared<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
+    modifier->properties_[modifier->GetInnerPropertyType()] = property;
+    modifier->UpdateToRender();
+    ASSERT_EQ(property->stagingValue_, nullptr);
+}
 } // namespace OHOS::Rosen

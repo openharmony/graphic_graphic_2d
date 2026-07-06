@@ -82,6 +82,7 @@ enum class FilterQuality;
 namespace ModifierNG {
 class RSModifier;
 class RSCustomModifier;
+class RSContentStyleModifier;
 class RSForegroundFilterModifier;
 class RSBackgroundFilterModifier;
 enum class RSModifierType : uint16_t;
@@ -428,6 +429,16 @@ public:
     const RSModifierExtractor& GetStagingProperties() const;
 
     const RSShowingPropertiesFreezer& GetShowingProperties() const;
+    
+    /**
+     * @brief Sets the bounds and frame of the node without mutex.
+     *
+     * The bounds typically define the position and size of the node within its parent.
+     *
+     * @param bounds A Vector4f representing the new bounds (X, Y, width, height).
+     * @param frame A Vector4f representing the new frame, containing values for x, y, width, and height.
+     */
+    void SetBoundsAndFrame(const Vector4f& bounds, const Vector4f& frame);
 
     /**
      * @brief Sets the bounds of the node.
@@ -2077,6 +2088,13 @@ public:
     void SetHybridRenderCanvas(bool hybridRenderCanvas) {}
     // HybridDraw End
 
+    bool CheckAndWaitForNodeRebuild();
+
+    bool HasCreateRenderNodeInRS() const
+    {
+        return hasCreateRenderNodeInRS_;
+    }
+
 protected:
     explicit RSNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,
@@ -2274,6 +2292,11 @@ protected:
 
     virtual void SetSkipContentModifierDraw(bool skip) {}
 
+    virtual bool RenderInClient(Drawing::DrawCmdListPtr drawCmdList)
+    {
+        return false;
+    }
+
 private:
     static void InitUniRenderEnabled();
 
@@ -2348,6 +2371,7 @@ private:
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void CancelAnimationByProperty(const PropertyId& id, const bool needForceSync = false);
     void RebuildAnimationInRender();
+    void RemoveParticleAnimations();
 
     const std::shared_ptr<RSPropertyBase> GetProperty(const PropertyId& propertyId);
     void RegisterProperty(std::shared_ptr<RSPropertyBase> property);
@@ -2366,6 +2390,8 @@ private:
 
     std::shared_ptr<ModifierNG::RSModifier> GetModifierCreatedBySetter(ModifierNG::RSModifierType modifierType);
 
+    bool CheckMultiThreadContextAccess(const std::string& func) const;
+
     /**
      * @brief Clears all modifiers associated with this node.
      *
@@ -2382,9 +2408,12 @@ private:
 
     bool AddCommandInner(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
         FollowType followType, NodeId nodeId) const;
-
+    
     void _RebuildTreeInternal();
     void _RebuildTreeLevel(const std::vector<std::tuple<RSNode*, RSNode*, size_t>>& level);
+
+    void SetBoundsInner(const Vector4f& bounds);
+    void SetFrameInner(const Vector4f& frame);
 
     uint32_t dirtyType_ = static_cast<uint32_t>(NodeDirtyType::NOT_DIRTY);
 
@@ -2469,14 +2498,16 @@ private:
     friend class RSModifierExtractor;
     friend class ModifierNG::RSModifier;
     friend class ModifierNG::RSCustomModifier;
+    friend class ModifierNG::RSContentStyleModifier;
+    friend class ModifierNG::RSForegroundFilterModifier;
+    friend class ModifierNG::RSBackgroundFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitCancelAnimationParam;
     friend class RSImplicitAnimator;
     friend class RSCurveAnimation;
+    friend class RSParticleAnimation;
     friend class RSAnimation;
-    friend class ModifierNG::RSForegroundFilterModifier;
-    friend class ModifierNG::RSBackgroundFilterModifier;
     template<typename T>
     friend class RSProperty;
     template<typename T>

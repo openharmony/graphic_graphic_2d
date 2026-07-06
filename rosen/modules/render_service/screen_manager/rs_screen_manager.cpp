@@ -530,9 +530,9 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     configs.surfaceConfigs = surfaceConfigs;
 
     ScreenId newId = CreateAndRegisterVirtualScreen(configs, associatedScreenId);
-    RS_LOGI("%{public}s: create virtual screen(id %{public}" PRIu64 "), width %{public}u, height %{public}u."
-        "associatedScreenId %{public}" PRIu64,
-        __func__, newId, width, height, associatedScreenId);
+    RS_LOGI("%{public}s: name[%{public}s], screenId[%{public}" PRIu64 "], width[%{public}u], height[%{public}u], "
+        "hasSurface[%{public}d], associatedScreenId[%{public}" PRIu64 "], flags[%{public}d]",
+        __func__, name.c_str(), newId, width, height, surface != nullptr, associatedScreenId, flags);
     RSSpecialLayerUtils::DumpScreenSpecialLayer(__func__, SpecialLayerType::IS_WHITE_LIST, newId, configs.whiteList);
     return newId;
 }

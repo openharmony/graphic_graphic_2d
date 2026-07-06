@@ -781,6 +781,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE)),
         ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT)),
+        ERR_INVALID_DATA);
 }
 
 /**
@@ -6040,6 +6043,52 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_RemoveVirtualScree
     data.WriteUint64(INVALID_SCREEN_ID);
     data.WriteUint32(0);
     ASSERT_EQ(ERR_NONE, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: NotifyWindowModeTypeEventTest001
+ * @tc.desc: Test NotifyWindowModeTypeEvent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, NotifyWindowModeTypeEventTest001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT);
+    MessageParcel reply;
+    MessageOption option;
+ 
+    // Test 1: Missing interface token
+    MessageParcel data;
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+ 
+    // Test 2: Missing uint8_t data
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: NotifyWindowModeTypeEventTest002
+ * @tc.desc: Test NotifyWindowModeTypeEvent with valid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, NotifyWindowModeTypeEventTest002, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT);
+    MessageParcel reply;
+    MessageOption option;
+ 
+    // Test with valid data
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint8(1);
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
 }
 
 /**

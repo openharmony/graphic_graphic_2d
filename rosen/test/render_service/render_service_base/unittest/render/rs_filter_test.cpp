@@ -245,4 +245,42 @@ HWTEST_F(RSFilterTest, ColorAdaptiveFilter001, TestSize.Level1)
     auto res = RSColorAdaptiveFilter::ApplyFilter(nullptr, nullptr, 0.0f);
     EXPECT_FALSE(res);
 }
+
+/**
+ * @tc.name: OnSyncTest001
+ * @tc.desc: Verify function OnSync of RSFilter base class
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, OnSyncTest001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSFilter>();
+    ASSERT_NE(filter, nullptr);
+    filter->OnSync();
+    EXPECT_EQ(filter->GetFilterType(), RSFilter::NONE);
+}
+
+/**
+ * @tc.name: IsDrawingFilterTest001
+ * @tc.desc: Verify function IsDrawingFilter of RSFilter base class returns false
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, IsDrawingFilterTest001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSFilter>();
+    ASSERT_NE(filter, nullptr);
+    EXPECT_FALSE(filter->IsDrawingFilter());
+
+    auto blurFilter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
+    ASSERT_NE(blurFilter, nullptr);
+    EXPECT_FALSE(blurFilter->IsDrawingFilter());
+
+    auto materialFilter = RSFilter::CreateMaterialFilter(0, 1.0f, BLUR_COLOR_MODE::DEFAULT, 1.0f);
+    ASSERT_NE(materialFilter, nullptr);
+    EXPECT_FALSE(materialFilter->IsDrawingFilter());
+
+    auto lightUpFilter = RSFilter::CreateLightUpEffectFilter(0.5f);
+    ASSERT_NE(lightUpFilter, nullptr);
+    EXPECT_FALSE(lightUpFilter->IsDrawingFilter());
+}
+
 } // namespace OHOS::Rosen

@@ -526,17 +526,17 @@ bool Typography::GetLineFontMetrics(const size_t lineNumber,
     return paragraph_->GetLineFontMetrics(lineNumber, charNumber, fontMetrics);
 }
 
-std::vector<std::unique_ptr<TextLineBase>> Typography::GetTextLines() const
+std::vector<std::shared_ptr<TextLineBase>> Typography::GetTextLines() const
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
     if (!paragraph_) {
         return {};
     }
-    std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph_->GetTextLines();
-    std::vector<std::unique_ptr<TextLineBase>> lines;
+    std::vector<std::shared_ptr<SPText::TextLineBase>> textLines = paragraph_->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> lines;
 
-    for (std::unique_ptr<SPText::TextLineBase>& textLine : textLines) {
-        std::unique_ptr<TextLineBaseImpl> linePtr = std::make_unique<TextLineBaseImpl>(std::move(textLine));
+    for (std::shared_ptr<SPText::TextLineBase>& textLine : textLines) {
+        std::shared_ptr<TextLineBaseImpl> linePtr = std::make_shared<TextLineBaseImpl>(std::move(textLine));
         lines.emplace_back(std::move(linePtr));
     }
     return lines;

@@ -34,9 +34,9 @@ public:
 
     Color FindAppBackgroundColor(RSSurfaceRenderNode& node);
     bool CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& node,
-        const RectI& nodeAbsRect, Color& nodeBgColor);
+        const RectI& nodeAbsRect, Color& nodeBgColor, bool isSplitEnabled = false);
     bool CheckSubTreeOcclusion(const std::shared_ptr<RSRenderNode>& branchNode,
-        const RectI& nodeAbsRect, std::stack<Color>& nodeBgColor);
+        const RectI& nodeAbsRect, std::stack<Color>& nodeBgColor, bool isSplitEnabled = false);
     void ProcessSolidLayerDisabled(RSSurfaceRenderNode& node);
     void ProcessSolidLayerEnabled(RSSurfaceRenderNode& node);
 
@@ -58,21 +58,13 @@ public:
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
         RectI& backgroundAlphaRect, bool& isHardwareEnableByBackgroundAlpha);
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
-        std::shared_ptr<RSSurfaceRenderNode>& appNode);
+        const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdateTransparentHwcNodeEnable(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     bool IsBackgroundFilterUnderSurface(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         const std::shared_ptr<RSRenderNode>& filterNode);
-    void CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-        RSRenderNode& filterNode, uint32_t filterZOrder = 0);
-    void UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-        RSRenderNode& filterNode, uint32_t filterZOrder = 0);
-    void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
     bool IsHveBlurFilterEnabled(const RSRenderNode& filterNode, const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
-    void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
-        RSSurfaceRenderNode& hwcNode);
-    void UpdateHwcNodeEnableByGlobalDirtyFilter(const std::vector<std::pair<NodeId, RectI>>& dirtyFilter,
-        RSSurfaceRenderNode& hwcNode);
     void UpdateHwcNodeEnableByColorPicker();
+    void UpdateHwcNodeEnableByFilterIntersection();
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void UpdatePrepareClip(RSRenderNode& node);
     void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
@@ -108,6 +100,8 @@ private:
     RSUniRenderVisitor& uniRenderVisitor_;
 
     // Functions
+    void CheckHwcNodeFilterIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+        const std::vector<std::pair<std::shared_ptr<RSRenderNode>, RectI>>& filterNodes);
     bool IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
     void UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
         Drawing::Rect& childRectMapped);
@@ -120,6 +114,9 @@ private:
     bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
     bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
 
+    // Sourcetuning
+    bool IsTargetSourceTuning(RSSurfaceRenderNode& node);
+    
     bool IsRectIsInsideOfScreenRect(const RectI& rect) const;
 
     // indicates if hardware composer is totally disabled

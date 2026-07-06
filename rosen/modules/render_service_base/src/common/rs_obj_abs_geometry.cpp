@@ -346,11 +346,14 @@ RectI RSObjAbsGeometry::InflateToRectI(const RectF& rect)
 
 RectF RSObjAbsGeometry::MapRectWithoutRounding(const RectF& rect, const Drawing::Matrix& matrix)
 {
+    Drawing::Matrix::Buffer buffer;
+    matrix.GetAll(buffer);
+
     RectF absRect;
     // Check if the matrix has skew or negative scaling
-    if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_0), 0.f, EPSILON) ||
-        !ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_1), 0.f, EPSILON) ||
-        !ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_2), 0.f, EPSILON)) {
+    if (!ROSEN_EQ(buffer[Drawing::Matrix::PERSP_0], 0.f, EPSILON) ||
+        !ROSEN_EQ(buffer[Drawing::Matrix::PERSP_1], 0.f, EPSILON) ||
+        !ROSEN_EQ(buffer[Drawing::Matrix::PERSP_2], 0.f, EPSILON)) {
         Drawing::RectF src(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
         Drawing::RectF dst;
         matrix.MapRect(dst, src);
@@ -358,8 +361,8 @@ RectF RSObjAbsGeometry::MapRectWithoutRounding(const RectF& rect, const Drawing:
         absRect.top_ = dst.GetTop();
         absRect.width_ = dst.GetRight() - absRect.left_;
         absRect.height_ = dst.GetBottom() - absRect.top_;
-    } else if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
-        !ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_Y), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_Y) < 0)) {
+    } else if (!ROSEN_EQ(buffer[Drawing::Matrix::SKEW_X], 0.f) || (buffer[Drawing::Matrix::SCALE_X] < 0) ||
+        !ROSEN_EQ(buffer[Drawing::Matrix::SKEW_Y], 0.f) || (buffer[Drawing::Matrix::SCALE_Y] < 0)) {
         // Map the rectangle's points to the absolute matrix
         std::vector<Drawing::Point> p(RECT_POINT_NUM);
         p[LEFT_TOP_POINT] = {rect.left_, rect.top_};
@@ -380,10 +383,10 @@ RectF RSObjAbsGeometry::MapRectWithoutRounding(const RectF& rect, const Drawing:
         absRect.height_ = yRange[1] - absRect.top_;
     } else {
         // Calculate the absolute rectangle based on the matrix's translation and scaling
-        Drawing::scalar transX = matrix.Get(Drawing::Matrix::TRANS_X);
-        Drawing::scalar transY = matrix.Get(Drawing::Matrix::TRANS_Y);
-        Drawing::scalar scaleX = matrix.Get(Drawing::Matrix::SCALE_X);
-        Drawing::scalar scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
+        Drawing::scalar transX = buffer[Drawing::Matrix::TRANS_X];
+        Drawing::scalar transY = buffer[Drawing::Matrix::TRANS_Y];
+        Drawing::scalar scaleX = buffer[Drawing::Matrix::SCALE_X];
+        Drawing::scalar scaleY = buffer[Drawing::Matrix::SCALE_Y];
         absRect.left_ = rect.left_ * scaleX + transX;
         absRect.top_ = rect.top_ * scaleY + transY;
         float right = (rect.left_ + rect.width_) * scaleX + transX;

@@ -97,3 +97,6 @@ DECLARE_RSLAYER_CMD(PreBuffer, sptr<SurfaceBuffer>, PRE_BUFFER)
 
 // hpae_offline command
 DECLARE_RSLAYER_CMD(HpaeOriginalInfo, HpaeOriginalInfo, HPAE_ORIGINAL_INFO)
+
+// opinc_split command
+DECLARE_RSLAYER_CMD(SplitLayerTag, bool, SPLIT_LAYER_TAG)

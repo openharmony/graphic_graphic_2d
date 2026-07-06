@@ -110,7 +110,7 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate001, TestSize.Level1)
         std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
     ASSERT_TRUE(renderParticleAnimation != nullptr);
     int64_t leftDelayTime = 0;
-    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S, leftDelayTime, false, true);
+    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S, leftDelayTime);
     EXPECT_TRUE(particleAnimate);
 
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
@@ -602,25 +602,27 @@ HWTEST_F(RSRenderParticleAnimationTest, AnimateTest, TestSize.Level1)
     renderParticleAnimation.target_ = renderNode.get();
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     renderParticleAnimation.property_ = property;
+    renderParticleAnimation.Start();
+    renderParticleAnimation.SetStartTime(0);
     int64_t time = 1;
     int64_t delay = 0;
 
     // case1: invisible
     renderNode->GetMutableRenderProperties().SetVisible(false);
-    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay, false, true));
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
 
     // case2: particleSystem_ is null
     renderNode->GetMutableRenderProperties().SetVisible(true);
-    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay, false, true));
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
 
     // case3: particleSystem_ not null
     renderParticleAnimation.particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
     renderParticleAnimation.target_ = nullptr;
-    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay, false, true));
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
 
     // case4: property_ not null
     renderParticleAnimation.target_ = renderNode.get();
-    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay, false, true));
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
 }
 
 /**
@@ -761,6 +763,66 @@ HWTEST_F(RSRenderParticleAnimationTest, MarshallingWithToken002, TestSize.Level1
     EXPECT_EQ(unmarshalled->GetToken(), 0);
     delete unmarshalled;
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingWithToken002 end";
+}
+
+/**
+ * @tc.name: MarshallingRebuildFields001
+ * @tc.desc: repeatCount and the carried rebuild running time survive a Marshalling/Unmarshalling
+ *           round-trip, so the render->client->render rebuild contract is preserved.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, MarshallingRebuildFields001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingRebuildFields001 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+
+    constexpr int infiniteRepeatCount = -1;
+    constexpr int64_t carriedRunningTimeNs = 1234500000;
+    renderParticleAnimation->SetRepeatCount(infiniteRepeatCount);
+    renderParticleAnimation->SetRebuildRunningTimeNs(carriedRunningTimeNs);
+
+    Parcel parcel;
+    ASSERT_TRUE(renderParticleAnimation->Marshalling(parcel));
+
+    auto unmarshalled = RSRenderParticleAnimation::Unmarshalling(parcel);
+    ASSERT_TRUE(unmarshalled != nullptr);
+    EXPECT_EQ(unmarshalled->GetRepeatCount(), infiniteRepeatCount);
+    EXPECT_EQ(unmarshalled->GetRebuildRunningTimeNs(), carriedRunningTimeNs);
+    delete unmarshalled;
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingRebuildFields001 end";
+}
+
+/**
+ * @tc.name: MarshallingRebuildFields002
+ * @tc.desc: A force field set on the animation survives a Marshalling/Unmarshalling round-trip and
+ *           is seeded into the rebuilt particle system, so the rebuild warmup runs with the field
+ *           present instead of relying on a later re-entry.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, MarshallingRebuildFields002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingRebuildFields002 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+
+    auto rippleFields = std::make_shared<ParticleRippleFields>();
+    rippleFields->AddRippleField(std::make_shared<ParticleRippleField>(Vector2f { 0.f, 0.f }, 100.f, 50.f, 200.f));
+    renderParticleAnimation->UpdateRippleField(rippleFields);
+
+    Parcel parcel;
+    ASSERT_TRUE(renderParticleAnimation->Marshalling(parcel));
+
+    auto unmarshalled = RSRenderParticleAnimation::Unmarshalling(parcel);
+    ASSERT_TRUE(unmarshalled != nullptr);
+    auto system = unmarshalled->GetParticleSystem();
+    ASSERT_TRUE(system != nullptr);
+    EXPECT_TRUE(system->HasAnyField());
+    EXPECT_EQ(system->GetParticleRippleFields()->GetRippleFieldCount(), 1u);
+    delete unmarshalled;
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingRebuildFields002 end";
 }
 
 /**

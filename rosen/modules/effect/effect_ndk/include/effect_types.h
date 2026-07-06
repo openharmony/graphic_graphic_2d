@@ -19,15 +19,14 @@
  *
  * @brief Provides APIs for obtaining effect filter and information.
  *
- * @syscap SystemCapability.Multimedia.Image.Core
  * @since 12
  */
 
 /**
  * @file effect_types.h
  *
- * @brief Declares the data types for effect filter.
- *
+ * @brief This file declares the data types of the image effect filter.
+ * @kit ArkGraphics2D
  * @library libnative_effect.so
  * @syscap SystemCapability.Multimedia.Image.Core
  * @since 12
@@ -44,7 +43,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Defines a effect filter.
+ * @brief Defines a struct for a filter used to generate a filter PixelMap.
  *
  * @since 12
  * @version 1.0
@@ -52,7 +51,7 @@ extern "C" {
 typedef struct OH_Filter OH_Filter;
 
 /**
- * @brief Defines a pixelmap.
+ * @brief Defines a pixel map defined by the image framework.
  *
  * @since 12
  * @version 1.0
@@ -68,15 +67,15 @@ typedef struct OH_PixelmapNative OH_PixelmapNative;
 typedef struct OH_NativeBuffer OH_NativeBuffer;
 
 /**
- * @brief Defines a matrix for create effect filter.
+ * @brief Describes a matrix used to create an effect filter.
  *
  * @since 12
  * @version 1.0
  */
-struct OH_Filter_ColorMatrix {
-    /** val mast be 5*4 */
+typedef struct OH_Filter_ColorMatrix {
+    /** Custom color matrix. The value is a 5 x 4 array. */
     float val[20];
-};
+} OH_Filter_ColorMatrix;
 
 /**
  * @brief Defines 4-channel Color.
@@ -117,37 +116,35 @@ typedef struct {
 } OH_Filter_MapColorByBrightnessParams;
 
 /**
- * @brief Defines a effect filter error code.
+ * @brief Enumerates the status codes that may be used by the effect filter.
  *
  * @since 12
  * @version 1.0
  */
 typedef enum {
-    /** success */
+    /** Operation successful. */
     EFFECT_SUCCESS = 0,
-    /** invalid parameter */
+    /** Invalid parameter. */
     EFFECT_BAD_PARAMETER = 401,
-    /** unsupported operations */
+    /** Unsupported operation. */
     EFFECT_UNSUPPORTED_OPERATION = 7600201,
-    /** unknown error */
+    /** Unknown error. */
     EFFECT_UNKNOWN_ERROR = 7600901,
 } EffectErrorCode;
 
 /**
- * @brief Defines a effect filter tile mode.
+ * @brief Enumerates the tile modes of the shader effect.
  *
  * @since 14
  */
 typedef enum {
-    /** Replicate the edge color if the shader draws outside of its original bounds */
+    /** Replicates the edge color if the shader effect draws outside of its original boundary. */
     CLAMP = 0,
-    /** Repeat the shader's image horizontally and vertically */
+    /** Repeats the shader effect in both horizontal and vertical directions. */
     REPEAT,
-    /** Repeat the shader's image horizontally and vertically,
-     *  alternating mirror images so that adjacent images always seam
-     */
+    /** Repeats the shader effect in both horizontal and vertical directions, alternating mirror images. */
     MIRROR,
-    /** Only draw within the original domain, return transparent-black everywhere else */
+    /** Renders the shader effect only within the original boundary. */
     DECAL,
 } EffectTileMode;
 

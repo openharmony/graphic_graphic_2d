@@ -30,7 +30,7 @@ public:
     static RSAnimationTraceUtils& GetInstance();
     void AddAnimationNameTrace(const std::string& str) const;
     void AddAnimationFinishTrace(
-        const std::string info, const uint64_t nodeId, const uint64_t animationId, bool isAddLogInfo) const;
+        const char* info, const uint64_t nodeId, const uint64_t animationId, bool isAddLogInfo) const;
 
     void AddAnimationCallFinishTrace(const uint64_t nodeId, const uint64_t animationId,
         ModifierNG::RSPropertyType propertyType, bool isAddLogInfo) const;

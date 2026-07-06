@@ -99,7 +99,7 @@ namespace OHOS {
 
         // test
         RSAnimationTraceUtils::GetInstance().AddAnimationNameTrace(nodeName);
-        RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(info, nodeId, animationId, isAddLogInfo);
+        RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(info.c_str(), nodeId, animationId, isAddLogInfo);
         RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(
             nodeId, animationId, propertyType, isAddLogInfo);
         RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(nodeId, nodeName, propertyId, animationId,

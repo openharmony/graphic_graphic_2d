@@ -35,6 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Impl {
 using namespace std;
+constexpr size_t MAX_UNIFORM_COUNT = 65536;
 void WebGL2RenderingContextImpl::Init()
 {
     WebGLRenderingContextBaseImpl::Init();
@@ -979,8 +980,13 @@ napi_value WebGL2RenderingContextImpl::CompressedTexImage3D(
             return NVal::CreateNull(env).val_;
         }
         readData.DumpBuffer(readData.GetBufferDataType());
+        if (srcOffset >= readData.GetBufferLength()) {
+            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
+            return NVal::CreateNull(env).val_;
+        }
+        GLsizei maxLength = readData.GetBufferLength() - srcOffset;
+        length = (srcLengthOverride == 0) ? maxLength : std::min(srcLengthOverride, static_cast<GLuint>(maxLength));
         data = reinterpret_cast<void*>(readData.GetBuffer() + srcOffset);
-        length = static_cast<GLsizei>((srcLengthOverride == 0) ? readData.GetBufferLength() : srcLengthOverride);
     }
     glCompressedTexImage3D(imgArg.target, imgArg.level, imgArg.internalFormat, imgArg.width, imgArg.height,
         imgArg.depth, imgArg.border, length, data);
@@ -1066,14 +1072,30 @@ napi_value WebGL2RenderingContextImpl::ClearBufferV(
     }
 
     bufferData.DumpBuffer(bufferData.GetBufferDataType());
+
+    size_t bufferByteLen = bufferData.GetBufferLength();
+    size_t requiredSize = 0;
+
     switch (type) {
         case BUFFER_DATA_FLOAT_32:
+            requiredSize = 4 * sizeof(GLfloat);
+            if (!CheckClearBufferOffsetValid(srcOffset, requiredSize, bufferByteLen)) {
+                return NVal::CreateNull(env).val_;
+            }
             glClearBufferfv(buffer, drawBuffer, reinterpret_cast<GLfloat*>(bufferData.GetBuffer() + srcOffset));
             break;
         case BUFFER_DATA_INT_32:
+            requiredSize = sizeof(GLint);
+            if (!CheckClearBufferOffsetValid(srcOffset, requiredSize, bufferByteLen)) {
+                return NVal::CreateNull(env).val_;
+            }
             glClearBufferiv(buffer, drawBuffer, reinterpret_cast<GLint*>(bufferData.GetBuffer() + srcOffset));
             break;
         case BUFFER_DATA_UINT_32:
+            requiredSize = sizeof(GLuint);
+            if (!CheckClearBufferOffsetValid(srcOffset, requiredSize, bufferByteLen)) {
+                return NVal::CreateNull(env).val_;
+            }
             glClearBufferuiv(buffer, drawBuffer, reinterpret_cast<GLuint*>(bufferData.GetBuffer() + srcOffset));
             break;
         default:
@@ -1787,6 +1809,12 @@ napi_value WebGL2RenderingContextImpl::GetUniformIndices(napi_env env, napi_valu
     }
     LOGD("WebGL2 getUniformIndices uniformCount %{public}zu", list.size());
 
+    if (list.size() > MAX_UNIFORM_COUNT) {
+        WebGLArg::FreeStringList(list);
+        SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
+        return NVal::CreateNull(env).val_;
+    }
+
     WebGLWriteBufferArg writeBuffer(env);
     napi_value result = NVal::CreateNull(env).val_;
     GLuint* uniformIndices = reinterpret_cast<GLuint*>(writeBuffer.AllocBuffer(list.size() * sizeof(GLuint)));
@@ -2175,6 +2203,17 @@ bool WebGL2RenderingContextImpl::CheckStorageInternalFormat(napi_env env, GLenum
         GL_COMPRESSED_RGBA8_ETC2_EAC,
         GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC,
     });
+}
+
+bool WebGL2RenderingContextImpl::CheckClearBufferOffsetValid(int64_t srcOffset, size_t requiredSize,
+    size_t bufferByteLen)
+{
+    if (srcOffset < 0 || srcOffset + requiredSize > bufferByteLen) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
+            "WebGL2 clearBuffer srcOffset out of bounds");
+        return false;
+    }
+    return true;
 }
 } // namespace Impl
 } // namespace Rosen

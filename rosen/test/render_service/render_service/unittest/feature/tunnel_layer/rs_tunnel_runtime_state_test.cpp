@@ -366,18 +366,18 @@ HWTEST_F(RSTunnelRuntimeStateTest, TryClaimByListenerReturnsClaimedPhase, TestSi
 HWTEST_F(RSTunnelRuntimeStateTest, CommittedTunnelBufferIdLifecycle, TestSize.Level1)
 {
     RSTunnelRuntimeState state;
-    EXPECT_FALSE(state.IsCommittedTunnelBuffer(FIRST_BUFFER_ID));
+    EXPECT_FALSE(state.IsCommittedTunnelBuffer());
 
     state.SetCommittedTunnelBufferId(FIRST_BUFFER_ID);
-    EXPECT_TRUE(state.IsCommittedTunnelBuffer(FIRST_BUFFER_ID));
-    EXPECT_FALSE(state.IsCommittedTunnelBuffer(SECOND_BUFFER_ID));
+    EXPECT_TRUE(state.IsCommittedTunnelBuffer());
+    EXPECT_TRUE(state.IsCommittedTunnelBuffer());
 
     state.ClearCommittedTunnelBuffer();
-    EXPECT_FALSE(state.IsCommittedTunnelBuffer(FIRST_BUFFER_ID));
+    EXPECT_FALSE(state.IsCommittedTunnelBuffer());
 
     state.SetCommittedTunnelBufferId(SECOND_BUFFER_ID);
     state.Clear();
-    EXPECT_FALSE(state.IsCommittedTunnelBuffer(SECOND_BUFFER_ID));
+    EXPECT_FALSE(state.IsCommittedTunnelBuffer());
 }
 
 /**
@@ -470,6 +470,106 @@ HWTEST_F(RSTunnelRuntimeStateTest, RuntimeStoreNonCreatingQueries001, TestSize.L
     ASSERT_TRUE(runtime.SetActiveFromTunnelLayerAvailable(runtime.GetTunnelLayerGeneration()));
     EXPECT_TRUE(RSTunnelRuntimeStore::IsTunnelActive(TEST_NODE_ID));
 
+    RSTunnelRuntimeStore::Erase(TEST_NODE_ID);
+}
+
+/**
+ * @tc.name: InstanceGetLayerInfoMatchesStore001
+ * @tc.desc: test instance GetLayerInfo returns same values as SetLayerInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRuntimeStateTest, InstanceGetLayerInfoMatchesStore001, TestSize.Level1)
+{
+    RSTunnelRuntimeState state;
+    constexpr uint64_t testTunnelLayerId = 6001;
+    constexpr uint32_t testProperty = TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT;
+ 
+    state.SetLayerInfo(testTunnelLayerId, testProperty);
+ 
+    uint64_t outTunnelLayerId = 0;
+    uint32_t outProperty = TUNNEL_PROP_INVALID;
+    state.GetLayerInfo(outTunnelLayerId, outProperty);
+ 
+    EXPECT_EQ(outTunnelLayerId, testTunnelLayerId);
+    EXPECT_EQ(outProperty, testProperty);
+}
+ 
+/**
+ * @tc.name: InstanceGetLayerInfoAfterClear002
+ * @tc.desc: test instance GetLayerInfo returns zeroed values after Clear
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRuntimeStateTest, InstanceGetLayerInfoAfterClear002, TestSize.Level1)
+{
+    RSTunnelRuntimeState state;
+    state.SetLayerInfo(TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_PROPERTY);
+    state.Clear();
+ 
+    uint64_t outTunnelLayerId = TEST_TUNNEL_LAYER_ID;
+    uint32_t outProperty = TEST_TUNNEL_PROPERTY;
+    state.GetLayerInfo(outTunnelLayerId, outProperty);
+ 
+    EXPECT_EQ(outTunnelLayerId, 0u);
+    EXPECT_EQ(outProperty, TUNNEL_PROP_INVALID);
+}
+ 
+/**
+ * @tc.name: InstanceGetTunnelLayerGeneration003
+ * @tc.desc: test instance GetTunnelLayerGeneration returns consistent value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRuntimeStateTest, InstanceGetTunnelLayerGeneration003, TestSize.Level1)
+{
+    RSTunnelRuntimeState state;
+    uint64_t gen1 = state.GetTunnelLayerGeneration();
+    EXPECT_GE(gen1, 1u);
+ 
+    state.SetBuilding();
+    uint64_t gen2 = state.GetTunnelLayerGeneration();
+    EXPECT_NE(gen1, gen2);
+ 
+    uint64_t genAfterBuilding = state.GetTunnelLayerGeneration();
+    state.SetActiveFromTunnelLayerAvailable(genAfterBuilding);
+    uint64_t gen3 = state.GetTunnelLayerGeneration();
+    EXPECT_EQ(genAfterBuilding, gen3);
+}
+ 
+/**
+ * @tc.name: InstanceIsCurrentTunnelLayerGeneration004
+ * @tc.desc: test instance IsCurrentTunnelLayerGeneration correctly identifies current vs stale generations
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRuntimeStateTest, InstanceIsCurrentTunnelLayerGeneration004, TestSize.Level1)
+{
+    RSTunnelRuntimeState state;
+    uint64_t currentGen = state.GetTunnelLayerGeneration();
+ 
+    EXPECT_TRUE(state.IsCurrentTunnelLayerGeneration(currentGen));
+    EXPECT_FALSE(state.IsCurrentTunnelLayerGeneration(currentGen + 1));
+    EXPECT_FALSE(state.IsCurrentTunnelLayerGeneration(0));
+}
+ 
+/**
+ * @tc.name: RuntimeStoreSetLayerInfoUsesInstanceMethod005
+ * @tc.desc: test RSTunnelRuntimeStore::SetLayerInfo propagates to instance GetLayerInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRuntimeStateTest, RuntimeStoreSetLayerInfoUsesInstanceMethod005, TestSize.Level1)
+{
+    RSTunnelRuntimeStore::Erase(TEST_NODE_ID);
+ 
+    constexpr uint64_t storeTunnelLayerId = 7001;
+    constexpr uint32_t storeProperty = TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_RS_FORCE;
+    RSTunnelRuntimeStore::SetLayerInfo(TEST_NODE_ID, storeTunnelLayerId, storeProperty);
+ 
+    auto& runtime = RSTunnelRuntimeStore::GetOrCreate(TEST_NODE_ID);
+    uint64_t outTunnelLayerId = 0;
+    uint32_t outProperty = TUNNEL_PROP_INVALID;
+    runtime.GetLayerInfo(outTunnelLayerId, outProperty);
+ 
+    EXPECT_EQ(outTunnelLayerId, storeTunnelLayerId);
+    EXPECT_EQ(outProperty, storeProperty);
+ 
     RSTunnelRuntimeStore::Erase(TEST_NODE_ID);
 }
 

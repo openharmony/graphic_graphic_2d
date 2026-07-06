@@ -281,7 +281,6 @@ void RSModifier::SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<R
 {
     auto it = g_propertyTypeToThresholdTypeMap.find(type);
     if (it == g_propertyTypeToThresholdTypeMap.end()) {
-        RS_LOGE("RSPropertyType is not exist! type: %{public}d", static_cast<int32_t>(type));
         return;
     }
     if (it->second != ThresholdType::DEFAULT) {

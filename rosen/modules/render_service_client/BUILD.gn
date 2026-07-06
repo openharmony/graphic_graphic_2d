@@ -93,6 +93,7 @@ template("render_service_client_source_set") {
       "core/animation/rs_interactive_implict_animator.cpp",
       "core/animation/rs_interpolating_spring_animation.cpp",
       "core/animation/rs_keyframe_animation.cpp",
+      "core/animation/rs_particle_animation.cpp",
       "core/animation/rs_path_animation.cpp",
       "core/animation/rs_property_animation.cpp",
       "core/animation/rs_spring_animation.cpp",
@@ -254,7 +255,6 @@ template("render_service_client_source_set") {
         "core/ui/rs_display_node.cpp",
         "core/feature/window_keyframe/rs_window_keyframe_node.cpp",
         "core/feature/hyper_graphic_manager/rs_frame_rate_linker.cpp",
-        "core/ui_effect/property/src/rs_ui_mask_base.cpp",
       ]
       defines += [ "CROSS_PLATFORM" ]
     }
@@ -416,7 +416,7 @@ template("render_service_client_source_set") {
         defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
         sources += [
           "core/modifier_render_thread/rs_canvas_modifiers_draw.cpp",
-          "core/modifier_render_thread/rs_canvas_modifiers_draw_thread.cpp",
+          "core/modifier_render_thread/rs_canvas_modifiers_draw_agent.cpp",
           "core/modifier_render_thread/rs_modifiers_draw.cpp",
           "core/modifier_render_thread/rs_modifiers_draw_thread.cpp",
         ]
@@ -424,10 +424,6 @@ template("render_service_client_source_set") {
           "ffrt:libffrt",
           "qos_manager:qos",
         ]
-        if (defined(graphic_2d_modifiers_draw_configs.vendor_root)) {
-          sources += graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources
-          sources -= graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources_del
-        }
       }
     }
 

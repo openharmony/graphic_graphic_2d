@@ -24,6 +24,7 @@
 
 #include "common/rs_vector4.h"
 #include "modifier_ng/custom/rs_content_style_modifier.h"
+#include "ui/rs_canvas_drawing_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -50,4 +51,51 @@ HWTEST_F(RSContentStyleModifierNGTypeTest, RSContentStyleModifierTest, TestSize.
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::CONTENT_STYLE);
     EXPECT_EQ(modifier->GetInnerPropertyType(), ModifierNG::RSPropertyType::CONTENT_STYLE);
 }
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: FlushContentModifierImmediatelyTest001
+ * @tc.desc: Test FlushContentModifierImmediately with expired node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSContentStyleModifierNGTypeTest, FlushContentModifierImmediatelyTest001, TestSize.Level1)
+{
+    auto modifier = std::make_shared<RSContentStyleModifier>();
+    modifier->FlushContentModifierImmediately();
+    EXPECT_EQ(modifier->node_.lock(), nullptr);
+ 
+    auto modifier = std::make_shared<RSContentStyleModifier>();
+    auto node = std::make_shared<RSNode>(0);
+    modifier->node_ = node;
+    modifier->FlushContentModifierImmediately();
+    EXPECT_EQ(modifier->node_.lock()->GetRSUIContext(), nullptr);
+}
+ 
+/**
+ * @tc.name: RenderInClientTest001
+ * @tc.desc: Test RenderInClient with nullptr node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSContentStyleModifierNGTypeTest, RenderInClientTest001, TestSize.Level1)
+{
+    auto modifier = std::make_shared<RSContentStyleModifier>();
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    bool ret = modifier->RenderInClient(drawCmdList, nullptr);
+    EXPECT_FALSE(ret);
+}
+ 
+/**
+ * @tc.name: RenderInClientTest002
+ * @tc.desc: Test RenderInClient with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSContentStyleModifierNGTypeTest, RenderInClientTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingNode>(0);
+    auto modifier = std::make_shared<RSContentStyleModifier>();
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    bool ret = modifier->RenderInClient(drawCmdList, node);
+    EXPECT_FALSE(ret);
+}
+#endif
 } // namespace OHOS::Rosen

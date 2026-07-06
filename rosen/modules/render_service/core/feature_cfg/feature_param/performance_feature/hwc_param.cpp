@@ -79,4 +79,14 @@ void HWCParam::SetDisableHwcInScaleScene(bool isEnable)
 {
     isDisableHwcInScaleScene_ = isEnable;
 }
+
+bool HWCParam::IsSplitScreenSourceTuning()
+{
+    return isSplitScreenSourceTuning_;
+}
+ 
+void HWCParam::SetSplitScreenSourceTuning(bool isEnable)
+{
+    isSplitScreenSourceTuning_ = isEnable;
+}
 } // namespace OHOS::Rosen

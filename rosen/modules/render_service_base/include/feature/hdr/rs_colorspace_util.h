@@ -48,6 +48,9 @@ public:
 
 #ifndef ROSEN_CROSS_PLATFORM
     static GraphicColorGamut PrimariesToGraphicGamut(HDIV::CM_ColorPrimaries primary);
+
+    static bool ConvertColorGamutToSpaceType(
+        const GraphicColorGamut& colorGamut, HDIV::CM_ColorSpaceType& colorSpaceType);
 #endif
 };
 

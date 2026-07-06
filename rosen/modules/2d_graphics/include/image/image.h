@@ -510,6 +510,8 @@ public:
      * @return        headroom value
      */
     float GetHeadroom() const;
+    void SetHdrScale(float hdrScale);
+    float GetHdrScale() const;
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;
 };

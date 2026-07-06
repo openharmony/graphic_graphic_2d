@@ -37,6 +37,8 @@ RetDataCString CJ_ColorMgrCreateByColorSpace(uint32_t colorSpaceName, int64_t* i
     auto native = FFIData::Create<CjColorManager>(ptr);
     if (native == nullptr) {
         *id = 0;
+        ret.code = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE));
+        ret.data = ::Utils::MallocCString("Inner error.");
         return ret;
     }
     CMLOGI("[ColorMgr] CJ_ColorMgrCreateByColorSpace success");

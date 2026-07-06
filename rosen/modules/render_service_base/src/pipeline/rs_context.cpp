@@ -170,6 +170,12 @@ bool RSContext::UpdateGroupAnimators(int64_t timestamp, int64_t& minLeftDelayTim
     return interactiveImplictAnimatorMap_.UpdateGroupAnimators(timestamp, minLeftDelayTime);
 }
 
+void RSContext::DestoryUIRenderDirectorByPid(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(uiRenderDirectorsMutex_);
+    uiRenderDirectors_.erase(pid);
+}
+
 std::unordered_map<std::string, pid_t> RSContext::GetUIFrameworkDirtyNodeNameMap()
 {
     std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeNameMap;

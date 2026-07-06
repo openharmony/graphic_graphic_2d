@@ -111,6 +111,11 @@ void RSServiceToRenderConnection::NotifyPackageEvent(uint32_t listSize, const st
     renderPipelineAgent_->NotifyPackageEvent(packageList);
 }
 
+void RSServiceToRenderConnection::NotifyWindowModeTypeEvent(uint8_t windowModeType)
+{
+    renderPipelineAgent_->NotifyWindowModeTypeEvent(windowModeType);
+}
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 ErrCode RSServiceToRenderConnection::SetOverlayDisplayMode(int32_t mode)
 {

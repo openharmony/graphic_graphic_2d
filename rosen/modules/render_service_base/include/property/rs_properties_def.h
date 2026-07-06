@@ -388,15 +388,15 @@ public:
     {
         return preIlluminatedType_;
     }
-    void AddLightSourcesAndPos(const std::shared_ptr<RSLightSource>& lightSourcePtr, const Vector4f& lightPos)
+    void AddLightSourcesAndPos(NodeId lightSourceNodeId, const RSLightSource& lightSource, const Vector4f& lightPos)
     {
-        lightSourcesAndPosMap_.insert(std::make_pair(lightSourcePtr, lightPos));
+        lightSourcesAndPosMap_.emplace(lightSourceNodeId, std::make_pair(lightSource, lightPos));
     }
     void ClearLightSourcesAndPosMap()
     {
         lightSourcesAndPosMap_.clear();
     }
-    std::unordered_map<std::shared_ptr<RSLightSource>, Vector4f>& GetLightSourcesAndPosMap()
+    std::unordered_map<NodeId, std::pair<RSLightSource, Vector4f>>& GetLightSourcesAndPosMap()
     {
         return lightSourcesAndPosMap_;
     }
@@ -406,9 +406,11 @@ private:
     float bloomIntensity_ = 0.f;
     float illuminatedBorderWidth_ = 0.f;
     IlluminatedType preIlluminatedType_ = IlluminatedType::NONE;
-    // saves the mapping between the light source that illuminates the node and the position of lightSource relative to
-    // the node.
-    std::unordered_map<std::shared_ptr<RSLightSource>, Vector4f> lightSourcesAndPosMap_;
+    // Keyed by the light source node id instead of shared_ptr<RSLightSource>: the same logical light source may be
+    // represented by a different shared_ptr after a subtree rebuild, which would break count()-based dedup and let
+    // the illuminated node co-own a dead light source. A NodeId key stays stable across rebuilds and carries no
+    // ownership; the RSLightSource is snapshotted by value as the pair's first element.
+    std::unordered_map<NodeId, std::pair<RSLightSource, Vector4f>> lightSourcesAndPosMap_;
 };
 
 enum class UseEffectType : int16_t {

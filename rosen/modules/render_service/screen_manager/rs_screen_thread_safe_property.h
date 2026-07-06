@@ -73,6 +73,8 @@ public:
     ResType AddSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
     ResType RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceIds);
     ResType SetAsMainScreen(bool isMainScreen);
+    ResType SetIsRogResolution(bool isRogResolution);
+    ResType SetHdiRogEnable(bool isHdiRogEnable);
 
     ScreenId GetId() const;
     bool IsVirtual() const;
@@ -121,6 +123,8 @@ public:
     std::vector<ScreenColorGamut> GetSupportedColorGamuts() const;
     std::vector<SurfaceRegionConfig> GetMultiSurfaceConfigs() const;
     bool IsMainScreen() const;
+    bool IsRogResolution() const;
+    bool GetHdiRogEnable() const;
 
     ScreenInfo GetScreenInfo() const;
 

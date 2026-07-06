@@ -59,7 +59,7 @@ void OHDrawingRunTest::SetUp()
     typography_ = tc->CreateTypography();
     ASSERT_NE(typography_, nullptr);
     typography_->Layout(layoutWidth_);
-    std::vector<std::unique_ptr<TextLineBase>> textLines = typography_->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLines = typography_->GetTextLines();
     ASSERT_EQ(textLines.size(), 1);
     runs_ = textLines.at(0)->GetGlyphRuns();
 }
@@ -82,7 +82,7 @@ void OHDrawingRunTest::PrepareCreateRunForGlyphDrawing()
     typography_ = tc->CreateTypography();
     ASSERT_NE(typography_, nullptr);
     typography_->Layout(layoutWidthForGlyph_);
-    std::vector<std::unique_ptr<TextLineBase>> textLines = typography_->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLines = typography_->GetTextLines();
     EXPECT_NE(textLines.size(), 0);
     runs_ = textLines.at(0)->GetGlyphRuns();
 }

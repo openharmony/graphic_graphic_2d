@@ -237,6 +237,7 @@ void RSClipToBoundsDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect
             }
             geContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
             Drawing::Rect rectRelative { sdfDrawRect_ };
+            rectRelative.MakeOutset(1, 1);
             RSPaintFilterCanvas::DrawFunc customFunc = [geContainer = geContainer_,
                 rect = rectRelative](Drawing::Canvas& canvas) {
                 auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();

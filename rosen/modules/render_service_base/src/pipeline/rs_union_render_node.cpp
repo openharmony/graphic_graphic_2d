@@ -48,13 +48,14 @@ RSUnionRenderNode::~RSUnionRenderNode()
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
-void RSUnionRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSUnionRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;
     }
     ApplyModifiers();
-    visitor->QuickPrepareUnionRenderNode(*this);
+    visitor->QuickPrepareUnionRenderNode(*this, isParentPrepareInReverseOrder);
 }
 
 void RSUnionRenderNode::AddUnionChild(NodeId id)

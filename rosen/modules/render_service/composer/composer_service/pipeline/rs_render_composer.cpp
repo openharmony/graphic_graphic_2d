@@ -18,6 +18,7 @@
 #include <memory>
 #include <unistd.h>
 
+#include "common/rs_backlight_thread.h"
 #include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
@@ -1292,7 +1293,6 @@ void RSRenderComposer::HandleTunnelCommitFailure(uint64_t surfaceId)
     uint64_t nodeId = hdiOutput_->GetNodeIdBySurfaceId(surfaceId);
     uint64_t tunnelLayerGeneration = hdiOutput_->GetTunnelLayerGenerationBySurfaceId(surfaceId);
     hdiOutput_->MarkTunnelSurfaceInvalid(surfaceId);
-    hdiOutput_->DestroyLayerBySurfaceId(surfaceId);
     if (nodeId == 0) {
         RS_LOGW("%{public}s can not find nodeId, surfaceId:%{public}" PRIu64, __func__, surfaceId);
         return;
@@ -1511,11 +1511,14 @@ void RSRenderComposer::HitchsDump(std::string& dumpString, std::string& layerArg
 
 void RSRenderComposer::SetScreenBacklight(uint32_t level)
 {
-    if (hdiOutput_ == nullptr) {
+    auto hdiOutput = hdiOutput_;
+    if (hdiOutput == nullptr) {
         RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);
         return;
     }
-    hdiOutput_->SetScreenBacklight(level);
+    RSBacklightThread::Instance().PostTask([hdiOutput, level]() {
+        hdiOutput->SetScreenBacklight(level);
+    });
 }
 
 void RSRenderComposer::SetScreenLinearMatrix(const std::vector<float>& matrix)

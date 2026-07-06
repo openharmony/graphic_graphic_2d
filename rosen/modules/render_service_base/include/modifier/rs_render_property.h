@@ -305,6 +305,7 @@ private:
     friend class RSSpringModel;
     friend class RSAnimationTraceUtils;
     friend class ModifierNG::RSRenderModifier;
+    friend class RSNodeCommandHelper;
 };
 
 template<typename T>

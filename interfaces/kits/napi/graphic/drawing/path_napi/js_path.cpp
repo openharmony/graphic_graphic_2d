@@ -820,6 +820,7 @@ napi_value JsPath::OnOffset(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ONE, dy);
     std::shared_ptr<Path> path = std::make_shared<Path>();
     m_path->Offset(path.get(), dx, dy);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Path.offset", 1);
     return CreateJsPath(env, path);
 }
 
@@ -1343,6 +1344,7 @@ napi_value JsPath::OnAddPath(napi_env env, napi_callback_info info)
     }
     if (argc == ARGC_ONE) {
         JS_CALL_DRAWING_FUNC(m_path->AddPath(*jsPath->GetPath(), Drawing::Matrix()));
+        API_STATS_HISTOGRAM("Arkgraphics2d.Path.addPath", 1);
         return nullptr;
     }
     Drawing::Matrix* drawingMatrixPtr = nullptr;
@@ -1360,6 +1362,7 @@ napi_value JsPath::OnAddPath(napi_env env, napi_callback_info info)
     }
     JS_CALL_DRAWING_FUNC(m_path->AddPath(*jsPath->GetPath(),
         drawingMatrixPtr ? *drawingMatrixPtr : Drawing::Matrix()));
+    API_STATS_HISTOGRAM("Arkgraphics2d.Path.addPath", 1);
     return nullptr;
 }
 

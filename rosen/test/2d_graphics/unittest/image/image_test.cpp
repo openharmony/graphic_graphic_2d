@@ -458,6 +458,33 @@ HWTEST_F(ImageTest, GetHeadroom001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHdrScale001
+ * @tc.desc: test for setting HdrScale for Image.
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(ImageTest, SetHdrScale001, TestSize.Level1)
+{
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    image->SetHdrScale(0.5f);
+    ASSERT_EQ(image->GetHdrScale(), 1.0f);
+}
+ 
+/**
+ * @tc.name: GetHdrScale001
+ * @tc.desc: test for getting HdrScale from Image.
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(ImageTest, GetHdrScale001, TestSize.Level1)
+{
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    ASSERT_EQ(image->GetHdrScale(), 1.0f);
+}
+
+/**
  * @tc.name: ScaleImage001
  * @tc.desc: test for Scale Image.
  * @tc.type: FUNC

@@ -37,7 +37,7 @@ private:
     int maxLines_ = 100;
 
     std::unique_ptr<Typography> typography_;
-    std::vector<std::unique_ptr<TextLineBase>> textLine_;
+    std::vector<std::shared_ptr<TextLineBase>> textLine_;
 };
 
 void OHDrawingTextLineBaseTest::SetUp()
@@ -125,7 +125,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest004, TestSize.Level
 HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest005, TestSize.Level0)
 {
     std::string ellipsisStr;
-    std::unique_ptr<TextLineBase> line
+    std::shared_ptr<TextLineBase> line
         = textLine_[0]->CreateTruncatedLine(10, OHOS::Rosen::EllipsisModal::HEAD, ellipsisStr);
     EXPECT_NE(line, nullptr);
     EXPECT_EQ(line->GetGlyphCount(), 5);
@@ -151,10 +151,10 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest005, TestSize.Level
  */
 HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest006, TestSize.Level0)
 {
-    std::unique_ptr<TextLineBase> textLineBase = std::make_unique<AdapterTxt::TextLineBaseImpl>(nullptr);
+    std::shared_ptr<TextLineBase> textLineBase = std::make_shared<AdapterTxt::TextLineBaseImpl>(nullptr);
 
     std::string ellipsisStr;
-    std::unique_ptr<TextLineBase> line
+    std::shared_ptr<TextLineBase> line
         = textLineBase->CreateTruncatedLine(10, OHOS::Rosen::EllipsisModal::HEAD, ellipsisStr);
     EXPECT_EQ(line, nullptr);
 

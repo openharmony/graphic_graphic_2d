@@ -953,6 +953,11 @@ void RSInterfaces::NotifyPackageEvent(uint32_t listSize, const std::vector<std::
     renderServiceClient_->NotifyPackageEvent(listSize, packageList);
 }
 
+void RSInterfaces::NotifyWindowModeTypeEvent(uint8_t windowModeType)
+{
+    renderServiceClient_->NotifyWindowModeTypeEvent(windowModeType);
+}
+
 void RSInterfaces::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
     const std::vector<std::pair<std::string, std::string>>& newConfig)
 {
