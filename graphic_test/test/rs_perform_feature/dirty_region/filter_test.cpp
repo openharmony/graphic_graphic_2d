@@ -92,7 +92,8 @@ public:
         int duration = 500; // the animation lasts for 0.5 second
         protocol.SetDuration(duration);
         auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-        RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(), protocol, timingCurve, [&]() {
+        auto rsUiContext = RSGraphicTestDirector::Instance().GetRSUIContext();
+        RSNode::Animate(rsUiContext, protocol, timingCurve, [&]() {
             canvasNode->SetTranslate(translate);
         }, []() {
             std::cout << "animation finish callback" << std::endl;
