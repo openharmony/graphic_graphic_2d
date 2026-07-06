@@ -47,6 +47,7 @@ public:
         RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
 
     size_t AddImplictAnimation(std::function<void()> callback);
+
     /*
      * @brief add animations form callback
      * @param callback use RSNode::Animate to create animation

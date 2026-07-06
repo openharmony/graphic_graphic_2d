@@ -51,7 +51,10 @@ public:
     void SetDirectionAfterStart(const ForwardDirection& direction);
     void FlipDirection();
     void SetLastFrameTime(int64_t lastFrameTime);
-    void SetAnimationId(AnimationId animationId) { animationId_ = animationId; }
+    void SetAnimationId(AnimationId animationId)
+    {
+        animationId_ = animationId;
+    }
     int64_t GetLastFrameTime() const;
     void ResetFraction();
     void SetRebuildFraction(float fraction, int64_t time, bool isReverseCycle);
