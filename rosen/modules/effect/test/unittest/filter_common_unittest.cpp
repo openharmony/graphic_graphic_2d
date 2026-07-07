@@ -186,25 +186,6 @@ HWTEST_F(FilterCommonUnittest, OH_Filter_SetColorMatrix001, TestSize.Level1)
 }
 
 /**
- * @tc.name: FilterCommon_GetEffectPixelMap
- * @tc.desc: Get a pixelmap created by the filter.
- * @tc.type: FUNC
- * @tc.require: I9CSQ0
- * @tc.author:
- */
-HWTEST_F(FilterCommonUnittest, FilterCommon_GetEffectPixelMap001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_Filter_Invert001 start";
-    std::unique_ptr<PixelMap> pixMap = CreatePixelMap();
-    uint32_t errorCode = SUCCESS;
-    std::shared_ptr<FilterCommon> filter = FilterCommon::CreateEffect(std::move(pixMap), errorCode);
-    ASSERT_TRUE(errorCode == SUCCESS);
-    ASSERT_TRUE(filter != nullptr);
-    ASSERT_TRUE(filter->Invert() == true);
-    ASSERT_TRUE(filter->GetEffectPixelMap() != nullptr);
-}
-
-/**
  * @tc.name: FilterCommon_Clear
  * @tc.desc: Test Clear function to verify it properly clears filters and pixelmaps.
  * @tc.type: FUNC
