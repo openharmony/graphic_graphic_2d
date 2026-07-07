@@ -579,8 +579,13 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect002, TestSize.Leve
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
 
-    properties.foregroundFilterCache_ = std::make_shared<RSFilter>();
-    properties.foregroundFilterCache_->type_ = RSFilter::COLORFUL_SHADOW;
+    if (RSProperties::IS_UNI_RENDER) {
+        properties.foregroundFilterCache_ = std::make_shared<RSFilter>();
+        properties.foregroundFilterCache_->type_ = RSFilter::COLORFUL_SHADOW;
+    } else {
+        properties.foregroundFilter_ = std::make_shared<RSFilter>();
+        properties.foregroundFilter_->type_ = RSFilter::COLORFUL_SHADOW;
+    }
     RSShadow shadow;
     RRect rrect({ 0.0f, 0.0f, 10.0f, 10.0f }, { 1.0f, 1.0f, 1.0f, 1.0f });
     shadow.SetMask(true);
@@ -588,7 +593,7 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect002, TestSize.Leve
     properties.GetEffect().shadow_ = shadow;
     properties.rrect_ = rrect;
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
-    EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
+    EXPECT_FALSE(dirtyForegroundEffect.IsEmpty());
 }
 
 /**

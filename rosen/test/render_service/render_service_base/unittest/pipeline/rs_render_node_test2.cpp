@@ -934,7 +934,11 @@ HWTEST_F(RSRenderNodeTest2, IsFilterCacheValid002, TestSize.Level1)
     EXPECT_FALSE(node.IsFilterCacheValid());
     filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->stagingCacheManager_->isFilterCacheValid_ = true;
-    EXPECT_FALSE(node.IsFilterCacheValid());
+    if (RSProperties::filterCacheEnabled_) {
+        EXPECT_TRUE(node.IsFilterCacheValid());
+    } else {
+        EXPECT_FALSE(node.IsFilterCacheValid());
+    }
 }
 
 /**
