@@ -5853,15 +5853,6 @@ void RSRenderNode::ReSortChildrenByZIndex()
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::AccumulateParentGeoDirty()
-{
-    if (auto parentPtr = GetParent().lock()) {
-        bool parentGeoDirty = parentPtr->GetRenderProperties().IsParentGeoDirty() ||
-            parentPtr->GetRenderProperties().IsCurGeoDirty();
-        GetMutableRenderProperties().SetParentGeoDirty(parentGeoDirty);
-    }
-}
-
 void RSRenderNode::MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
 {
     if (isAccessibilityConfigChanged) {
