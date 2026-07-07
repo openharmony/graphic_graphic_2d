@@ -359,7 +359,7 @@ void RSNGRenderFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEf
     std::shared_ptr<Drawing::GEVisualEffect>& dest)
 {
     if (src == nullptr) {
-        RS_LOGE("RSNGRenderFilterHelper::UpdateCacheData: src is nullptr");
+        RS_LOGD("RSNGRenderFilterHelper::UpdateCacheData: src is nullptr");
         return;
     }
     if (dest == nullptr) {
