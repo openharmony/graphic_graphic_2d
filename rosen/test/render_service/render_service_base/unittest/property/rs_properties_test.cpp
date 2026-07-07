@@ -4964,5 +4964,20 @@ HWTEST_F(RSPropertiesTest, SetPixelStretchPercentNullopt001, TestSize.Level1)
     properties.SetPixelStretchPercent(nulloptPercent);
     EXPECT_TRUE(properties.GetPixelStretchPercent().IsZero());
 }
+
+/**
+ * @tc.name: ParentGeoDirty001
+ * @tc.desc: test IsParentGeoDirty and SetParentGeoDirty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, ParentGeoDirty001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.IsParentGeoDirty());
+    properties.SetParentGeoDirty(true);
+    EXPECT_TRUE(properties.IsParentGeoDirty());
+    properties.SetParentGeoDirty(false);
+    EXPECT_FALSE(properties.IsParentGeoDirty());
+}
 } // namespace Rosen
 } // namespace OHOS
