@@ -56,6 +56,8 @@ ohos_source_set("librender_composer") {
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
     debug = false
+    cfi = true
+    cfi_cross_dso = true
   }
   if (enhanced_opt) {
     configs = [ ":render_service_link_config" ]
@@ -289,4 +291,5 @@ ohos_source_set("librender_composer") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+  branch_protector_ret = "pac_ret"
 }
