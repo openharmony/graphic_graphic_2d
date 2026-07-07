@@ -1197,11 +1197,11 @@ HWTEST_F(RSRenderAnimationTest, Rebuild001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderAnimationTest Rebuild001 start";
     auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
     renderAnimation->Start();
-    float fraction = 0.5f;
-    int64_t time = 1000;
-    renderAnimation->Rebuild(fraction, time, false);
-    EXPECT_FLOAT_EQ(renderAnimation->GetCurrentFraction(), fraction);
-    EXPECT_FLOAT_EQ(renderAnimation->lastRebuildFraction_, fraction);
+    constexpr float TEST_FRACTION = 0.5f;
+    constexpr int64_t TEST_TIME = 1000;
+    renderAnimation->Rebuild(TEST_FRACTION, TEST_TIME, false);
+    EXPECT_FLOAT_EQ(renderAnimation->GetCurrentFraction(), TEST_FRACTION);
+    EXPECT_FLOAT_EQ(renderAnimation->lastRebuildFraction_, TEST_FRACTION);
     GTEST_LOG_(INFO) << "RSRenderAnimationTest Rebuild001 end";
 }
 
@@ -1217,11 +1217,11 @@ HWTEST_F(RSRenderAnimationTest, Rebuild002, TestSize.Level1)
     renderAnimation->Start();
     int64_t minLeftDelayTime = 0;
     renderAnimation->Animate(100, minLeftDelayTime, false);
-    float fraction = 0.3f;
-    int64_t time = 2000;
-    renderAnimation->Rebuild(fraction, time, true);
-    EXPECT_FLOAT_EQ(renderAnimation->GetCurrentFraction(), fraction);
-    EXPECT_FLOAT_EQ(renderAnimation->lastRebuildFraction_, fraction);
+    constexpr float TEST_FRACTION = 0.3f;
+    constexpr int64_t TEST_TIME = 2000;
+    renderAnimation->Rebuild(TEST_FRACTION, TEST_TIME, true);
+    EXPECT_FLOAT_EQ(renderAnimation->GetCurrentFraction(), TEST_FRACTION);
+    EXPECT_FLOAT_EQ(renderAnimation->lastRebuildFraction_, TEST_FRACTION);
     GTEST_LOG_(INFO) << "RSRenderAnimationTest Rebuild002 end";
 }
 
@@ -1235,10 +1235,10 @@ HWTEST_F(RSRenderAnimationTest, Rebuild003, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderAnimationTest Rebuild003 start";
     auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
     renderAnimation->Start();
-    float fraction = 0.7f;
-    int64_t time = 3000;
-    renderAnimation->Rebuild(fraction, time, true);
-    EXPECT_FLOAT_EQ(renderAnimation->GetCurrentFraction(), fraction);
+    constexpr float TEST_FRACTION = 0.7f;
+    constexpr int64_t TEST_TIME = 3000;
+    renderAnimation->Rebuild(TEST_FRACTION, TEST_TIME, true);
+    EXPECT_FLOAT_EQ(renderAnimation->GetCurrentFraction(), TEST_FRACTION);
     GTEST_LOG_(INFO) << "RSRenderAnimationTest Rebuild003 end";
 }
 
