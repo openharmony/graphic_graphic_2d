@@ -178,7 +178,7 @@ void RSLayerSplitManager::Sync()
 
 bool RSLayerSplitManager::CheckOpIncNodeFromCommand(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
-    if (plannerMap_.empty()) {
+    if (plannerMap_.empty() || rsTransactionData == nullptr) {
         return false;
     }
 

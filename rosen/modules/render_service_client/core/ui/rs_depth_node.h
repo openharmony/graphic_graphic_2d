@@ -30,16 +30,17 @@ class RSC_EXPORT RSDepthNode : public RSNode {
 public:
     using WeakPtr = std::weak_ptr<RSDepthNode>;
     using SharedPtr = std::shared_ptr<RSDepthNode>;
+    static inline constexpr RSUINodeType Type = RSUINodeType::DEPTH_NODE;
     RSUINodeType GetType() const override
     {
-        return RSUINodeType::UNKNOW;
+        return Type;
     }
 
     static SharedPtr Create(bool isRenderServiceNode, bool isTextureExportNode,
         std::shared_ptr<RSUIContext> rsUIContext);
     void CreateRenderNode() override;
 
-    void SetDepthSpaceType(DepthSpaceType spaceType);
+    void SetDepthSpaceType(DepthSpaceType depthSpaceType);
     void SetDepthImage(const std::shared_ptr<RSImage>& depthImage);
     void SetDepthCameraPara(const DepthCameraPara& cameraPara);
     void SetDepthLightPara(const DepthLightPara& lightPara);

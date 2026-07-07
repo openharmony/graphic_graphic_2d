@@ -126,6 +126,10 @@ public:
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
         const std::string& shapeTag);
 
+    static std::shared_ptr<Drawing::Image> DrawDepthOcclusion(Drawing::Canvas* canvas,
+        const std::shared_ptr<Drawing::Image>& snapshot, const std::shared_ptr<Drawing::Image>& depthMap,
+        const Vector4f& depthPlane, const Vector2f& nearFar, float occlusionWeight, const Drawing::Matrix& invMatrix);
+
     static std::shared_ptr<RSFilter> GenerateBehindWindowFilter(float radius, float saturation, float brightness,
         RSColor maskColor);
 

@@ -209,6 +209,8 @@ void ParagraphBuilderImpl::ParagraphStyleToSkParagraphStyle(const ParagraphStyle
     skStyle.setFallbackLineSpacing(txt.fallbackLineSpacing);
     skStyle.setOrphanCharOptimization(txt.orphanCharOptimization);
     skStyle.setUseLocaleForTextBreak(txt.useLocaleForTextBreak);
+    skStyle.setDisableSpacingForControlChar(
+        TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API26_VERSION));
 }
 
 skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)

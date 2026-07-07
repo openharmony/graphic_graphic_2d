@@ -650,6 +650,40 @@ void RSRenderProperty<std::vector<Vector2f>>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<std::vector<Vector4f>>::Dump(std::string& out) const
 {}
+template<>
+void RSRenderProperty<DepthCameraPara>::Dump(std::string& out) const
+{
+    const auto& depthCameraPara = Get();
+    std::stringstream ss;
+    ss << "[";
+    const auto& position = depthCameraPara.position;
+    ss << std::fixed << std::setprecision(1) << "position: (" << position.x_ << ", " << position.y_ << ", "
+        << position.z_ << ")";
+    const auto& quaternion = depthCameraPara.quaternion;
+    ss << ", quaternion: (" << quaternion.x_ << ", " << quaternion.y_ << ", " << quaternion.z_ << ", "
+        << quaternion.w_ << ")";
+    ss << ", yFov: " << depthCameraPara.yFov << ", zNear: " << depthCameraPara.zNear
+        << ", zFar: " << depthCameraPara.zFar;
+    const auto& offset = depthCameraPara.offset;
+    ss << ", offset: (" << offset.x_ << ", " << offset.y_ << ")";
+    ss << "]";
+    out += ss.str();
+}
+template<>
+void RSRenderProperty<DepthLightPara>::Dump(std::string& out) const
+{
+    const auto& depthLightPara = Get();
+    std::stringstream ss;
+    ss << "[";
+    const auto& direction = depthLightPara.direction;
+    ss << std::fixed << std::setprecision(1) << "direction: (" << direction.x_ << ", " << direction.y_ << ", "
+        << direction.z_ << ")";
+    const auto& color = depthLightPara.color;
+    ss << ", color: (" << color.x_ << ", " << color.y_ << ", " << color.z_ << ")";
+    ss << ", intensity: " << depthLightPara.intensity;
+    ss << "]";
+    out += ss.str();
+}
 
 template<>
 bool RSRenderAnimatableProperty<float>::IsNearEqual(

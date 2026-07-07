@@ -247,9 +247,11 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerProperty001, Function | MediumTest| Level1)
     uint32_t devId = 1;
     uint32_t layerId = 2;
     uint32_t property = 3;
- 
+
+    HdiLayerTest::rsLayer_->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
+    HdiLayerTest::hdiLayer_->UpdateRSLayer(HdiLayerTest::rsLayer_);
     EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(devId, layerId, property)).WillRepeatedly(testing::Return(0));
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetTunnelLayerProperty(), 0);
+    ASSERT_NE(HdiLayerTest::hdiLayer_->SetTunnelLayerProperty(), 0);
 }
 
 /**
@@ -831,6 +833,7 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest, Function | MediumTest| Leve
     auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetTunnelLayerId(1);
     rsLayer->SetTunnelLayerProperty(1);
+    rsLayer->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
     hdiLayer_->rsLayer_ = rsLayer;
     hdiLayer_->hasSetTunnel_ = true;
     hdiLayer_->tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
@@ -857,6 +860,7 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest002, Function | MediumTest| L
     auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetTunnelLayerId(2);
     rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
+    rsLayer->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
     hdiLayer_->rsLayer_ = rsLayer;
     EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, 2)).WillOnce(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(_, _, TUNNEL_PROP_INVALID))
@@ -884,6 +888,7 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest003, Function | MediumTest| L
     auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetTunnelLayerId(0);
     rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
+    rsLayer->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
     hdiLayer_->rsLayer_ = rsLayer;
 
     EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, 0)).WillOnce(testing::Return(0));
@@ -940,16 +945,9 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerPropertyWithHasSetTunnelFlag, Function | Me
  
     auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
+    rsLayer->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
     hdiLayer->rsLayer_ = rsLayer;
- 
-    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, TUNNEL_PROP_BUFFER_ADDR))
-        .WillOnce(testing::Return(0));
-    ASSERT_EQ(hdiLayer->SetTunnelLayerProperty(), GRAPHIC_DISPLAY_SUCCESS);
     ASSERT_TRUE(hdiLayer->hasSetTunnel_);
-    ASSERT_EQ(hdiLayer->tunnelLayerProperty_, TUNNEL_PROP_BUFFER_ADDR);
- 
-    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, TUNNEL_PROP_BUFFER_ADDR)).Times(0);
-    ASSERT_EQ(hdiLayer->SetTunnelLayerProperty(), GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /**

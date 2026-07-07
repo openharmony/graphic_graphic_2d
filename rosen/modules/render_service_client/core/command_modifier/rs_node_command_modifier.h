@@ -587,6 +587,38 @@ private:
     IsCrossNodeCmdParam param_;
 };
 
+struct IsDepthBackgroundCmdParam {
+    bool isDepthBackground_;
+};
+
+class IsDepthBackgroundCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::IS_DEPTH_BACKGROUND;
+
+    IsDepthBackgroundCmdModifier(std::weak_ptr<RSNode> node, const IsDepthBackgroundCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param) {}
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const IsDepthBackgroundCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const IsDepthBackgroundCmdParam& GetParam() const { return param_; }
+
+private:
+    IsDepthBackgroundCmdParam param_;
+};
+
 struct NodeGroupCmdParam {
     bool isNodeGroup_;
     bool nodeGroupIsForced_;

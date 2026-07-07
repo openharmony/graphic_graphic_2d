@@ -28,6 +28,7 @@
 #include "modifier_ng/appearance/rs_compositing_filter_render_modifier.h"
 #include "modifier_ng/appearance/rs_dynamic_light_up_render_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_render_modifier.h"
+#include "modifier_ng/appearance/rs_depth_space_render_modifier.h"
 #include "modifier_ng/appearance/rs_hdr_brightness_render_modifier.h"
 #include "modifier_ng/appearance/rs_mask_render_modifier.h"
 #include "modifier_ng/appearance/rs_material_filter_render_modifier.h"
@@ -37,6 +38,7 @@
 #include "modifier_ng/appearance/rs_particle_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_render_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_render_modifier.h"
+#include "modifier_ng/appearance/rs_spatial_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_use_union_render_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_render_modifier.h"
@@ -87,6 +89,8 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::BACKGROUND_NG_SHADER,     RSBackgroundNGShaderRenderModifier::ResetProperties },
     { RSModifierType::FOREGROUND_SHADER,        RSForegroundShaderRenderModifier::ResetProperties },
     { RSModifierType::COLOR_PICKER,             RSColorPickerRenderModifier::ResetProperties },
+    { RSModifierType::DEPTH_SPACE,              RSDepthSpaceRenderModifier::ResetProperties },
+    { RSModifierType::SPATIAL_EFFECT,           RSSpatialEffectRenderModifier::ResetProperties },
     { RSModifierType::BOUNDS,                   RSBoundsRenderModifier::ResetProperties },
     { RSModifierType::MATERIAL_FILTER,          RSMaterialFilterRenderModifier::ResetProperties },
     { RSModifierType::MATERIAL_SHADER,          RSMaterialShaderRenderModifier::ResetProperties },
@@ -132,6 +136,8 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier:
     [] { return std::make_shared<RSForegroundShaderRenderModifier>(); },                         // FOREGROUND_SHADER
     [] { return std::make_shared<RSMaterialFilterRenderModifier>(); },                           // MATERIAL_FILTER
     [] { return std::make_shared<RSColorPickerRenderModifier>(); },                              // COLOR_PICKER
+    [] { return std::make_shared<RSDepthSpaceRenderModifier>(); },                               // DEPTH_SPACE
+    [] { return std::make_shared<RSSpatialEffectRenderModifier>(); },                            // SPATIAL_EFFECT
     [] { return std::make_shared<RSMaterialShaderRenderModifier>(); },                           // MATERIAL_SHADER
     [] { return std::make_shared<RSUseUnionRenderModifier>(); },                                 // USE_UNION
     [] { return std::make_shared<RSOverlayNGShaderRenderModifier>(); },                          // OVERLAY_NG_SHADER

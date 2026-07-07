@@ -309,7 +309,7 @@ void RSUniRenderProcessor::CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRend
     }
     GraphicSolidColorLayerProperty solidColorLayerProperty;
     if (layer->GetZorder() > 0) {
-        solidColorLayerProperty.zOrder = layer->GetZorder() - 1;
+        solidColorLayerProperty.zOrder = static_cast<int32_t>(layer->GetZorder()) - 1;
     }
     solidColorLayerProperty.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     auto layerRect = layer->GetLayerSize();

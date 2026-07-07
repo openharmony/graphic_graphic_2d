@@ -1888,6 +1888,27 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest06, TestSize.Leve
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
 
+namespace {
+class BundleApiVersionGuard {
+public:
+    explicit BundleApiVersionGuard(uint32_t version)
+    {
+        prevInitStatus_ = SPText::TextBundleConfigParser::GetInstance().initStatus_;
+        prevApiVersion_ = SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_;
+        SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
+        SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ = version;
+    }
+    ~BundleApiVersionGuard()
+    {
+        SPText::TextBundleConfigParser::GetInstance().initStatus_ = prevInitStatus_;
+        SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ = prevApiVersion_;
+    }
+private:
+    bool prevInitStatus_{false};
+    uint32_t prevApiVersion_{0};
+};
+} // namespace
+
 /*
  * @tc.name: TypographyControlCharLetterSpacingTest001
  * @tc.desc: Test that ZWJ (U+200B) does not trigger letterSpacing
@@ -1895,6 +1916,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest06, TestSize.Leve
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest001, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
     textStyle.letterSpacing = 10;
@@ -1928,6 +1950,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest001, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest002, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
     textStyle.letterSpacing = 10;
@@ -1961,6 +1984,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest002, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest003, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
     textStyle.letterSpacing = 10;
@@ -1985,6 +2009,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest003, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest004, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
     textStyle.letterSpacing = 10;
@@ -2018,6 +2043,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest004, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest005, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
@@ -2064,6 +2090,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest005, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest006, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
     textStyle.letterSpacing = 10;
@@ -2165,6 +2192,7 @@ float getLayoutWidth(const std::u16string& text, float letterSpacing = 0)
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest007, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateGeneralCategoryZeroWidthControlCharacters(controlChars);
 
@@ -2188,6 +2216,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest007, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest008, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateGeneralCategoryNonZeroWidthControlCharacters(controlChars);
 
@@ -2211,6 +2240,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest008, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest009, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateBreakGeneralCategoryNonZeroWidthControlCharacters(controlChars);
 
@@ -2234,6 +2264,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest009, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest010, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateDelGeneralCategoryZeroWidthControlCharacters(controlChars);
 
@@ -2257,6 +2288,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest010, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest011, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateFormatGeneralCategoryZeroWidthControlCharacters(controlChars);
 
@@ -2280,6 +2312,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest011, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest012, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateBidiGeneralCategoryZeroWidthControlCharacters(controlChars);
 
@@ -2321,6 +2354,7 @@ float getLayoutWidthWithWordSpacing(const std::u16string& text, float wordSpacin
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest001, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
     textStyle.wordSpacing = 10;
@@ -2355,6 +2389,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest001, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest002, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
     textStyle.wordSpacing = 10;
@@ -2388,6 +2423,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest002, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest003, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     // "Hello World" has 1 word boundary, wordSpacing applies to 1 gap = 1 * 10 = 10
     std::u16string text = u"Hello World";
     double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
@@ -2401,6 +2437,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest003, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest004, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
     textStyle.wordSpacing = 10;
@@ -2434,6 +2471,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest004, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest005, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
@@ -2480,6 +2518,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest005, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest006, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     // Text with only spaces and control chars: " \u200D " (no word, no wordSpacing triggered)
     std::u16string text = u" \u200D ";
     double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
@@ -2493,6 +2532,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest006, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest007, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateGeneralCategoryZeroWidthControlCharacters(controlChars);
 
@@ -2516,6 +2556,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest007, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest008, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateGeneralCategoryNonZeroWidthControlCharacters(controlChars);
 
@@ -2539,6 +2580,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest008, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest009, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateBreakGeneralCategoryNonZeroWidthControlCharacters(controlChars);
 
@@ -2562,6 +2604,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest009, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest010, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateDelGeneralCategoryZeroWidthControlCharacters(controlChars);
 
@@ -2585,6 +2628,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest010, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest011, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateFormatGeneralCategoryZeroWidthControlCharacters(controlChars);
 
@@ -2608,6 +2652,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest011, Tes
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest012, TestSize.Level0)
 {
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API26_VERSION);
     std::vector<char16_t> controlChars;
     generateBidiGeneralCategoryZeroWidthControlCharacters(controlChars);
 
@@ -2622,6 +2667,76 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest012, Tes
             << " widthDelta=" << std::dec << widthDelta
             << " expected=" << 10;
     }
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest013
+ * @tc.desc: Test that with API18 (feature disabled), ZWJ (U+200B) still triggers letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest013, TestSize.Level0)
+{
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API18_VERSION);
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.letterSpacing = 10;
+    textStyle.fontSize = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    // With API18 the feature is disabled, so ZWJ still triggers letterSpacing;
+    // "你\u200B好" gets one more spacing gap than "你好" → widths should differ.
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderWithCtrl->PushStyle(textStyle);
+    builderWithCtrl->AppendText(u"你\u200B好");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(textStyle);
+    builderNoCtrl->AppendText(u"你好");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(), typographyNoCtrl->GetLongestLineWithIndent()));
+    EXPECT_GT(typographyWithCtrl->GetLongestLineWithIndent(), typographyNoCtrl->GetLongestLineWithIndent());
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest013
+ * @tc.desc: Test that with API18 (feature disabled), ZWSP (U+200B) between spaces triggers extra wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest013, TestSize.Level0)
+{
+    BundleApiVersionGuard apiGuard(SPText::SINCE_API18_VERSION);
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.wordSpacing = 10;
+    textStyle.fontSize = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    // With API18 the feature is disabled, so ZWSP between spaces is treated as a word boundary;
+    // "Hello \u200B World" gets one more wordSpacing than "Hello  World" → widths should differ.
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderWithCtrl->PushStyle(textStyle);
+    builderWithCtrl->AppendText(u"Hello \u200D World");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(textStyle);
+    builderNoCtrl->AppendText(u"Hello  World");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(), typographyNoCtrl->GetLongestLineWithIndent()));
+    EXPECT_GT(typographyWithCtrl->GetLongestLineWithIndent(), typographyNoCtrl->GetLongestLineWithIndent());
 }
 
 /*

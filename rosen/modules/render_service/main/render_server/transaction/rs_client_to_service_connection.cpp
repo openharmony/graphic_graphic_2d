@@ -2614,7 +2614,7 @@ RetCodeHrpService RSClientToServiceConnection::ProfilerServiceOpenFile(const Hrp
         return RET_HRP_SERVICE_ERR_INVALID_PARAM;
     }
 
-    return RSProfiler::HrpServiceOpenFile(dirInfo, fileName, flags, outFd);
+    return RSProfiler::HrpServiceOpenFile(dirInfo, fileName, static_cast<uint32_t>(flags), outFd);
 #else
     outFd = -1;
     return RET_HRP_SERVICE_ERR_UNSUPPORTED;

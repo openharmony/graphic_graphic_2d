@@ -35,14 +35,35 @@ struct DepthCameraPara {
     Vector4f quaternion;
     float yFov = 0.f;
     float zNear = 0.1f;
-    float zFar = 100.f;
+    float zFar = 100.0f;
     Vector2f offset;
+
+    bool operator==(const DepthCameraPara& other) const
+    {
+        return position == other.position && quaternion == other.quaternion && ROSEN_EQ(yFov, other.yFov) &&
+            ROSEN_EQ(zNear, other.zNear) && ROSEN_EQ(zFar, other.zFar) && offset == other.offset;
+    }
 };
 
 struct DepthLightPara {
     Vector3f direction;
     Vector3f color;
-    float intensity = 1.f;
+    float intensity = 0.f;
+
+    bool operator==(const DepthLightPara& other) const
+    {
+        return direction == other.direction && color == other.color && ROSEN_EQ(intensity, other.intensity);
+    }
+};
+
+struct DepthEffectPara {
+    float depth = 0.0f;
+    float occlusionWeight = 0.0f;
+
+    bool operator==(const DepthEffectPara& other) const
+    {
+        return ROSEN_EQ(depth, other.depth) && ROSEN_EQ(occlusionWeight, other.occlusionWeight);
+    }
 };
 
 struct SpatialEffectPara {
@@ -64,15 +85,72 @@ struct SpatialEffectPara {
         CornerPositions corners;
     };
 
-    float occlusionWeight = 0.f;
+    float occlusionWeight = 0.0f;
 
     SpatialEffectPara() {};
     ~SpatialEffectPara() {};
+
+    SpatialEffectPara& operator=(const SpatialEffectPara& other)
+    {
+        leftTop = other.leftTop;
+        rightTop = other.rightTop;
+        leftBottom = other.leftBottom;
+        rightBottom = other.rightBottom;
+        occlusionWeight = other.occlusionWeight;
+        return *this;
+    }
+
+    bool operator==(const SpatialEffectPara& other) const
+    {
+        return leftTop == other.leftTop && rightTop == other.rightTop &&
+            leftBottom == other.leftBottom && rightBottom == other.rightBottom &&
+            ROSEN_EQ(occlusionWeight, other.occlusionWeight);
+    }
 };
 
 struct SpatialEffectVariantPara {
     std::variant<float, SpatialEffectPara::CornerPositions> position;
     float occlusionWeight = 0.0f;
+
+    SpatialEffectVariantPara() = default;
+
+    SpatialEffectVariantPara(const DepthEffectPara& depthEffectPara)
+    {
+        position = depthEffectPara.depth;
+        occlusionWeight = depthEffectPara.occlusionWeight;
+    }
+
+    SpatialEffectVariantPara(const SpatialEffectPara& spatialEffectPara)
+    {
+        position = spatialEffectPara.corners;
+        occlusionWeight = spatialEffectPara.occlusionWeight;
+    }
+
+    bool operator==(const SpatialEffectVariantPara& other) const
+    {
+        if (std::holds_alternative<float>(position) && std::holds_alternative<float>(other.position)) {
+            return ROSEN_EQ(position, other.position) && ROSEN_EQ(occlusionWeight, other.occlusionWeight);
+        }
+
+        if (std::holds_alternative<SpatialEffectPara::CornerPositions>(position) &&
+            std::holds_alternative<SpatialEffectPara::CornerPositions>(other.position)) {
+            const auto& corners = std::get<SpatialEffectPara::CornerPositions>(position);
+            const auto& otherCorners = std::get<SpatialEffectPara::CornerPositions>(other.position);
+            for (uint32_t i = 0; i < SpatialEffectPara::CORNER_NUMBER; i++) {
+                if (!ROSEN_EQ(corners[i], otherCorners[i])) {
+                    return false;
+                }
+            }
+            return ROSEN_EQ(occlusionWeight, other.occlusionWeight);
+        }
+
+        return false;
+    }
+
+    bool PerspectiveEnabled() const
+    {
+        return std::holds_alternative<SpatialEffectPara::CornerPositions>(position);
+    }
 };
 
 } // namespace Rosen

@@ -73,6 +73,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::FOREGROUND_SHADER,            RSDrawableSlot::FOREGROUND_SHADER },
     { ModifierNG::RSModifierType::COLOR_PICKER,                 RSDrawableSlot::COLOR_PICKER },
     { ModifierNG::RSModifierType::MATERIAL_FILTER,              RSDrawableSlot::MATERIAL_FILTER },
+    { ModifierNG::RSModifierType::SPATIAL_EFFECT,               RSDrawableSlot::SPATIAL_EFFECT },
     { ModifierNG::RSModifierType::MATERIAL_SHADER,              RSDrawableSlot::MATERIAL_SHADER },
     { ModifierNG::RSModifierType::OVERLAY_NG_SHADER,            RSDrawableSlot::OVERLAY_NG_SHADER },
     { ModifierNG::RSModifierType::CHILDREN,                     RSDrawableSlot::CHILDREN },
@@ -95,6 +96,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     ModifierGenerator<ModifierNG::RSModifierType::TRANSITION_STYLE>, // TRANSITION_STYLE,
     RSEnvFGColorDrawable::OnGenerate,                                // ENV_FOREGROUND_COLOR,
     RSColorPickerDrawable::OnGenerate,                               // COLOR_PICKER,
+    RSSpatialEffectDrawable::OnGenerate,                             // SPATIAL_EFFECT,
     RSMaterialFilterDrawable::OnGenerate,                            // MATERIAL_FILTER,
     RSShadowDrawable::OnGenerate,                                    // SHADOW,
     RSForegroundFilterDrawable::OnGenerate,                          // FOREGROUND_FILTER
@@ -451,6 +453,11 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
         // CONTENT_STYLE and FOREGROUND_STYLE are used to adapt to FRAME_GRAVITY.
         dirtySlots.emplace(RSDrawableSlot::CONTENT_STYLE);
         dirtySlots.emplace(RSDrawableSlot::FOREGROUND_STYLE);
+    }
+
+    // if spatial effect parameters changed, mark affected drawables as dirty
+    if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::SPATIAL_EFFECT))) {
+        dirtySlots.emplace(RSDrawableSlot::MATERIAL_SHADER);
     }
 
     // if frame changed, mark affected drawables as dirty

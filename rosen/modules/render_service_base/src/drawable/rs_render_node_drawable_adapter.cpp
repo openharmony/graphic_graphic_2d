@@ -26,6 +26,7 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
 #include "params/rs_canvas_drawing_render_params.h"
+#include "params/rs_depth_render_params.h"
 #include "params/rs_effect_render_params.h"
 #include "params/rs_logical_display_render_params.h"
 #include "params/rs_screen_render_params.h"
@@ -169,6 +170,9 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             break;
         case RSRenderNodeType::LOGICAL_DISPLAY_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(sharedPtr->nodeId_);
+            break;
+        case RSRenderNodeType::DEPTH_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSDepthRenderParams>(sharedPtr->nodeId_);
             break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);

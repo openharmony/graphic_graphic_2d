@@ -71,6 +71,7 @@ public:
     {
         return hasHdrPresent_;
     }
+    void SetIsDepthBackground(bool isDepthBackground) override;
     void SetNewOnTree(bool isNewOnTree) override
     {
         isNewOnTree_ = isNewOnTree;

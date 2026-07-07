@@ -38,6 +38,8 @@ ohos_shared_library("libnative_image") {
     boundary_sanitize = true
     integer_overflow = true
     ubsan = true
+    cfi = true
+    cfi_cross_dso = true
   }
   sources = []
   if (surface_enable_gpu) {
@@ -69,5 +71,6 @@ ohos_shared_library("libnative_image") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+  branch_protector_ret = "pac_ret"
 }
 ## Build libnative_image.so }}}

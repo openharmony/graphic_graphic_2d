@@ -23,14 +23,20 @@
 
 namespace OHOS::Rosen {
 
-static RetCodeHrpService ValidateOpenFlags(int32_t flags)
+static RetCodeHrpService ValidateOpenFlags(uint32_t flags)
 {
-    constexpr int32_t allowedFlags = O_RDONLY | O_WRONLY | O_RDWR | O_CREAT;
+    constexpr uint32_t allowedFlags = static_cast<uint32_t>(O_ACCMODE) |
+                                      static_cast<uint32_t>(O_CREAT);
+
     if (flags & ~allowedFlags) {
         return RET_HRP_SERVICE_ERR_INVALID_PARAM;
     }
-    int accessMode = flags & (O_RDONLY | O_WRONLY | O_RDWR);
-    if (accessMode != O_RDONLY && accessMode != O_WRONLY && accessMode != O_RDWR) {
+
+    uint32_t accessMode = flags & static_cast<uint32_t>(O_ACCMODE);
+
+    if (accessMode != static_cast<uint32_t>(O_RDONLY) &&
+        accessMode != static_cast<uint32_t>(O_WRONLY) &&
+        accessMode != static_cast<uint32_t>(O_RDWR)) {
         return RET_HRP_SERVICE_ERR_INVALID_PARAM;
     }
     return RET_HRP_SERVICE_SUCCESS;
@@ -71,7 +77,7 @@ static RetCodeHrpService CreateSubDirs(std::string& path,
 }
 
 RetCodeHrpService RSProfiler::HrpServiceOpenFile(const HrpServiceDirInfo& dirInfo,
-    const std::string& fileName, int32_t flags, int& outFd)
+    const std::string& fileName, uint32_t flags, int& outFd)
 {
     if (!IsHrpServiceEnabled() && !RSSystemProperties::GetProfilerEnabled()) {
         return RET_HRP_SERVICE_ERR_UNSUPPORTED;
@@ -95,7 +101,7 @@ RetCodeHrpService RSProfiler::HrpServiceOpenFile(const HrpServiceDirInfo& dirInf
 
     std::string fullFileName = path + "/" + fileName;
     constexpr int filePermission = 0660;
-    int retFd = open(fullFileName.c_str(), flags, filePermission);
+    int retFd = open(fullFileName.c_str(), static_cast<int>(flags), filePermission);
     if (retFd < 0) {
         return errno == EACCES ? RET_HRP_SERVICE_ERR_STUB_OPEN_FILE_ACCESS_DENIED : RET_HRP_SERVICE_ERR_STUB_OPEN_FILE;
     }

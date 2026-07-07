@@ -108,6 +108,8 @@ template<typename T>
 class RRectT;
 struct PixelMapInfo;
 class RSRenderParticleVector;
+struct DepthCameraPara;
+struct DepthLightPara;
 #ifndef ROSEN_CROSS_PLATFORM
 struct SurfaceRegionConfig;
 #endif
@@ -294,6 +296,8 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
     DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
+    DECLARE_FUNCTION_OVERLOAD(DepthCameraPara)
+    DECLARE_FUNCTION_OVERLOAD(DepthLightPara)
     DECLARE_FUNCTION_OVERLOAD(RSSurfaceRenderNodeConfig)
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)

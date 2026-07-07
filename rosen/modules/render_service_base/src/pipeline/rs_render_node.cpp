@@ -786,6 +786,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     childHasVisibleFilter_ = false;
     childHasVisibleEffect_ = false;
     childHasSharedTransition_ = false;
+    childHasSpatialEffect_ = false;
     visibleFilterChild_.clear();
     visibleEffectChild_.clear();
     childrenRect_.Clear();
@@ -1338,6 +1339,10 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
             out += "LOGICAL_DISPLAY_NODE";
             break;
         }
+        case RSRenderNodeType::DEPTH_NODE: {
+            out += "DEPTH_NODE";
+            break;
+        }
         case RSRenderNodeType::UNION_NODE: {
             out += "UNION_NODE";
             break;
@@ -1563,6 +1568,10 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         SetSubTreeDirty(false);
         SetTreeStateChangeDirty(false);
         UpdateChildrenOutOfRectFlag(false); // collect again
+        return true;
+    }
+    if (childHasSpatialEffect_ &&
+        (GetRenderProperties().IsParentGeoDirty() || GetRenderProperties().IsCurGeoDirty())) {
         return true;
     }
     if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || GetSubSurfaceCnt() > 0) {
@@ -3245,6 +3254,16 @@ void RSRenderNode::SetChildHasSharedTransition(bool val)
 bool RSRenderNode::ChildHasSharedTransition() const
 {
     return childHasSharedTransition_;
+}
+
+void RSRenderNode::SetChildHasSpatialEffect(bool val)
+{
+    childHasSpatialEffect_ = val;
+}
+
+bool RSRenderNode::ChildHasSpatialEffect() const
+{
+    return childHasSpatialEffect_;
 }
 
 void RSRenderNode::MarkForegroundFilterCache()
