@@ -421,7 +421,7 @@ HWTEST_F(RSGPUOfflineDeviceTest, DrawHDRImageSwitchTypeToMultiTest001, Level1)
     bufferOwnerCount->bufferId_ = 888u;
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     Rect damageRect = {0, 0, 100, 100 };
-    surfaceParams.SetBuffer(buffer,bufferOwnerCount, damageRect);
+    surfaceParams.SetBuffer(buffer, bufferOwnerCount, damageRect);
 
     GPUOfflineSubThreadData taskContext;
     taskContext.offlineBuffer = std::make_shared<RSGPUOfflineBuffer>("text", TEST_NODE_ID);
