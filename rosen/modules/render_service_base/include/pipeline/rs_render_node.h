@@ -1125,7 +1125,6 @@ public:
 
     void ReSortChildrenByZIndex();
 
-    void AccumulateParentGeoDirty();
 protected:
     void ResetDirtyStatus();
 

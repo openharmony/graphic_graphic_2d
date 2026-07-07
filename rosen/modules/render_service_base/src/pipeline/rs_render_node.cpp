@@ -1656,11 +1656,8 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
-    if (childHasSpatialEffect_ &&
-        (GetRenderProperties().IsParentGeoDirty() || GetRenderProperties().IsCurGeoDirty())) {
-        return true;
-    }
-    if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || GetSubSurfaceCnt() > 0) {
+    if (childHasSpatialEffect_ || childHasSharedTransition_ ||
+        isAccumulatedClipFlagChanged_ || GetSubSurfaceCnt() > 0) {
         return true;
     }
     if (RSPointLightManager::Instance(GetLogicalDisplayNodeId())->GetChildHasVisibleIlluminated(shared_from_this())) {
@@ -5852,7 +5849,6 @@ void RSRenderNode::ReSortChildrenByZIndex()
 {
     isFullChildrenListValid_ = false;
 }
-
 void RSRenderNode::MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
 {
     if (isAccessibilityConfigChanged) {
