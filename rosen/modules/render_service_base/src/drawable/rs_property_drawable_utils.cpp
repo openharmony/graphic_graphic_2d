@@ -489,21 +489,28 @@ void RSPropertyDrawableUtils::BeginOffscreen(RSPaintFilterCanvas& canvas, const 
     canvas.SetFilterClipBounds(offscreenCanvas->GetFilterClipBounds());
 }
 
-void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
-    const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect)
+std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::EndOffscreen(RSPaintFilterCanvas& canvas)
 {
-    RS_OPTIONAL_TRACE_NAME("DrawForegroundFilter restore");
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::EndOffscreen");
     auto surface = canvas.GetSurface();
     std::shared_ptr<Drawing::Image> imageSnapshot = nullptr;
     if (surface) {
         imageSnapshot = surface->GetImageSnapshot();
     } else {
-        ROSEN_LOGD("RSPropertyDrawableUtils::DrawForegroundFilter Surface null");
+        ROSEN_LOGD("RSPropertyDrawableUtils::EndOffscreen surface null");
     }
-
+    // Swap the canvas back to the main screen surface, undoing BeginOffscreen.
     canvas.RestorePCanvasList();
     canvas.SwapBackMainScreenData();
     canvas.RestoreEnv();
+    return imageSnapshot;
+}
+
+void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect)
+{
+    RS_OPTIONAL_TRACE_NAME("DrawForegroundFilter restore");
+    auto imageSnapshot = EndOffscreen(canvas);
 
     if (rsFilter == nullptr) {
         return;
@@ -549,29 +556,28 @@ void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
     }
 
     if (geContainer != nullptr && frameRect != nullptr) {
-        // Clip on offscreen before snapshot; matrix shifts content and shape equally.
+        // Bake the SDF clip into the snapshot before swap-back; SaveAlpha/SetAlpha(1.0)
+        // isolates the effect from node alpha, restored right after.
+        canvas.SaveAlpha();
+        canvas.SetAlpha(1.0f);
         geContainer->SetGeometry(canvas.GetTotalMatrix(), *frameRect, *frameRect,
             frameRect->GetWidth(), frameRect->GetHeight());
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
         geRender->DrawShaderEffect(canvas, *geContainer, sdfDrawRect);
+        canvas.RestoreAlpha();
     } else {
-        ROSEN_LOGE("Clip SDF failed, geContainer or frameRect is nullptr");
+        ROSEN_LOGD("Clip SDF failed, geContainer or frameRect is nullptr");
     }
 
-    auto surface = canvas.GetSurface();
-    std::shared_ptr<Drawing::Image> imageSnapshot = nullptr;
-    if (surface != nullptr) {
-        imageSnapshot = surface->GetImageSnapshot();
-    } else {
-        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip surface null");
-    }
-    canvas.RestorePCanvasList(); // undo BeginOffscreen
-    canvas.SwapBackMainScreenData();
-    canvas.RestoreEnv();
+    auto imageSnapshot = EndOffscreen(canvas);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip image null");
         return;
     }
+    // Snapshot already carries node opacity and SDF clip; composite at full alpha to avoid
+    // re-applying opacity. RestoreAlpha restores node alpha for later draws.
+    canvas.SaveAlpha();
+    canvas.SetAlpha(1.0f);
     // Composite the SDF-clipped snapshot back to the original canvas.
     Drawing::Rect dstRect(sdfDrawRect.GetLeft(), sdfDrawRect.GetTop(),
         sdfDrawRect.GetRight(), sdfDrawRect.GetBottom());
@@ -579,6 +585,7 @@ void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*imageSnapshot, dstRect, Drawing::SamplingOptions());
     canvas.DetachBrush();
+    canvas.RestoreAlpha();
 }
 
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()

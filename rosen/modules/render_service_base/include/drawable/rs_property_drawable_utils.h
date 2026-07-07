@@ -75,10 +75,16 @@ public:
     static void GetDarkColor(RSColor& color);
     /**
      * @brief Start offscreen rendering by creating a MakeSurface, swapping the canvas,
-     * and pushing the offscreen stack. Pair with DrawForegroundFilter or DrawSdfClip to
-     * snapshot, restore the canvas, and composite the result back.
+     * and pushing the offscreen stack. Pair with EndOffscreen to snapshot and restore
+     * the canvas, then composite the result back (see DrawForegroundFilter/DrawSdfClip).
      */
     static void BeginOffscreen(RSPaintFilterCanvas& canvas, const RectF& bounds);
+    /**
+     * @brief End offscreen started by BeginOffscreen: snapshot the offscreen content and
+     * swap the canvas back to the main screen surface. Returns the snapshot (or nullptr
+     * if the surface was null).
+     */
+    static std::shared_ptr<Drawing::Image> EndOffscreen(RSPaintFilterCanvas& canvas);
     /**
      * @brief Restore the offscreen started by BeginOffscreen for foreground filter:
      * snapshot the offscreen content, restore the canvas, apply the filter, and
