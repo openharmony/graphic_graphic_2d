@@ -34,7 +34,11 @@
 #include "rs_steps_interpolator.h"
 #include "rs_transition.h"
 #include "rs_transition_effect.h"
+
+#include "command/rs_message_processor.h"
 #include "modifier/rs_modifier_manager_map.h"
+#include "transaction/rs_interfaces.h"
+#include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
@@ -102,11 +106,11 @@ public:
         return str;
     }
 
-    void RsDummyAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSDummyAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
     {
         auto dummyAnimation = std::make_shared<RSDummyAnimation>(rsUIContext);
     }
-    void RsAnimationTimingCurveFuzzTest()
+    void RSAnimationTimingCurveFuzzTest()
     {
         float ctrlX1 = GetData<float>();
         float ctrlY1 = GetData<float>();
@@ -130,7 +134,7 @@ public:
         auto copyCurve = std::make_shared<RSAnimationTimingCurve>(stepCurve);
     }
 
-    void RsCurveAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSCurveAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
     {
         float first = GetData<float>();
         float second = GetData<float>();
@@ -166,7 +170,7 @@ public:
         secondCurve->IsFinished();
     }
 
-    void RsKeyframeAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSKeyframeAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
     {
         float first = GetData<float>();
         float second = GetData<float>();
@@ -200,7 +204,7 @@ public:
         keyframe->IsFinished();
     }
 
-    void RsPathAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSPathAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
     {
         float first = GetData<float>();
         float second = GetData<float>();
@@ -249,7 +253,7 @@ public:
         secondPathAnimation->IsFinished();
     }
 
-    void RsMotionPathOptionFuzzTest()
+    void RSMotionPathOptionFuzzTest()
     {
         auto path = GetStringFromData(STR_LEN);
         float beginFraction = GetData<float>();
@@ -269,7 +273,7 @@ public:
         motionPathOption->GetPathNeedAddOrigin();
     }
 
-    void RsSpringAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSSpringAnimationFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
     {
         float first = GetData<float>();
         float second = GetData<float>();
@@ -305,7 +309,7 @@ public:
         secondSpringAnimation->IsFinished();
     }
 
-    void RsTransitionFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSTransitionFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
     {
         float first = GetData<float>();
         float second = GetData<float>();
@@ -333,7 +337,7 @@ public:
         secondTransition->IsFinished();
     }
 
-    void RsTransitionEffectFuzzTest()
+    void RSTransitionEffectFuzzTest()
     {
         float x1 = GetData<float>();
         float x2 = GetData<float>();
@@ -351,7 +355,7 @@ public:
         animation->Rotate(axisAngle);
     }
 
-    void RsImplicitAnimatorFuzzTest()
+    void RSImplicitAnimatorFuzzTest(std::shared_ptr<RSCanvasNode> canvasNode)
     {
         float fraction = GetData<float>();
         auto isTransitionIn = GetData<bool>();
@@ -360,7 +364,6 @@ public:
         float third = GetData<float>();
         float multiplier = GetData<float>();
         auto path = GetStringFromData(STR_LEN);
-        auto canvasNode = RSCanvasNode::Create();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -382,7 +385,7 @@ public:
         implicitAnimator->ApplyAnimationSpeedMultiplier(multiplier);
     }
 
-    void RsImplicitAnimatorParamFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSImplicitAnimatorParamFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
     {
         float fraction = GetData<float>();
         float first = GetData<float>();
@@ -427,14 +430,14 @@ public:
         repeatCallback->Execute();
     }
 
-    void RSInteractiveImplictAnimatorFuzzTest()
+    void RSInteractiveImplictAnimatorFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
     {
         auto position = GetData<RSInteractiveAnimationPosition>();
         auto fraction = GetData<float>();
         const RSAnimationTimingProtocol timingProtocol = {};
 
         auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
-            nullptr, timingProtocol, RSAnimationTimingCurve::DEFAULT);
+            rsUIContext, timingProtocol, RSAnimationTimingCurve::DEFAULT);
         interactiveAnimator->AddImplictAnimation([]() {});
         interactiveAnimator->AddAnimation([]() {});
         interactiveAnimator->StartAnimation();
@@ -474,12 +477,13 @@ public:
     }
 
 
-    void RSAnimation1FuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSAnimation1FuzzTest(std::shared_ptr<RSUIDirector> rsUIDirector, std::shared_ptr<RSCanvasNode> canvasNode)
     {
         // get data
         auto isFirstStart = GetData<bool>();
         auto animationId = GetData<AnimationId>();
 
+        auto rsUIContext = rsUIDirector->GetRSUIContext();
         auto animation = std::make_shared<RSAnimationFuzzMock>(rsUIContext);
         std::function<void()> func = nullptr;
         animation->SetFinishCallback(func);
@@ -503,7 +507,6 @@ public:
         animation->DumpAnimation();
 
         // have target
-        auto canvasNode = RSCanvasNode::Create();
         animation->Start(canvasNode);
         animation->StartInner(canvasNode);
         animation->SetFinishCallback([]() {});
@@ -515,17 +518,17 @@ public:
         animation->UpdateParamToRenderAnimation(renderAnimation);
         animation->StartCustomAnimation(renderAnimation);
         animation->UpdateParamToRenderAnimation(renderAnimation);
-        auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
-        rsUiDirector->SendMessages();
+        rsUIDirector->SendMessages();
     }
 
-    void RSAnimation2FuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSAnimation2FuzzTest(std::shared_ptr<RSUIDirector> rsUIDirector, std::shared_ptr<RSCanvasNode> canvasNode)
     {
         // get data
         auto fraction = GetData<float>();
         auto pos = GetData<RSInteractiveAnimationPosition>();
 
         // do status error
+        auto rsUIContext = rsUIDirector->GetRSUIContext();
         auto animation1 = std::make_shared<RSAnimationFuzzMock>(rsUIContext);
         animation1->Start(nullptr);
         animation1->StartInner(nullptr);
@@ -547,7 +550,6 @@ public:
 
         // have target
         auto animation2 = std::make_shared<RSAnimationFuzzMock>(rsUIContext);
-        auto canvasNode = RSCanvasNode::Create();
         animation2->Start(canvasNode);
         animation2->StartInner(canvasNode);
         animation2->Start(canvasNode);
@@ -570,11 +572,10 @@ public:
         animation3->Start(canvasNode);
         animation3->StartInner(canvasNode);
         animation3->InteractiveFinish(pos);
-        auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
-        rsUiDirector->SendMessages();
+        rsUIDirector->SendMessages();
     }
 
-    void RSAnimation3FuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSAnimation3FuzzTest(std::shared_ptr<RSUIDirector> rsUIDirector, std::shared_ptr<RSCanvasNode> canvasNode)
     {
         // get data
         auto animationId = GetData<AnimationId>();
@@ -595,8 +596,8 @@ public:
         timingProtocol.SetAutoReverse(autoReverse);
 
         // have uianiamtion
+        auto rsUIContext = rsUIDirector->GetRSUIContext();
         auto animation1 = std::make_shared<RSAnimationFuzzMock>(rsUIContext);
-        auto canvasNode = RSCanvasNode::Create();
         auto renderAnimation = std::make_shared<RSRenderAnimationFuzzMock>(animationId);
         animation1->Start(canvasNode);
         animation1->StartInner(canvasNode);
@@ -622,8 +623,7 @@ public:
         animation2->StartCustomAnimation(renderAnimation);
         animation2->InteractiveFinish(pos);
         animation2->InvertStagingValue(isGroupAnimator, timingProtocol);
-        auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
-        rsUiDirector->SendMessages();
+        rsUIDirector->SendMessages();
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
@@ -635,26 +635,40 @@ public:
         g_data = data;
         g_size = size;
         g_pos = 0;
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+        static auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+        static sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+        static auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+        static std::shared_ptr<RSUIDirector> rsUIDirector =
+            OHOS::Rosen::RSUIDirector::Create(connectToRender, rsUIContext);
+        static auto canvasNode = RSCanvasNode::Create();
         // get data
         RSModifierManagerMap::Instance()->GetModifierManager();
-        RsAnimationTimingCurveFuzzTest();
-        RsCurveAnimationFuzzTest(rsUIContext);
-        RsKeyframeAnimationFuzzTest(rsUIContext);
-        RsPathAnimationFuzzTest(rsUIContext);
-        RsMotionPathOptionFuzzTest();
-        RsSpringAnimationFuzzTest(rsUIContext);
-        RsTransitionFuzzTest(rsUIContext);
-        RsTransitionEffectFuzzTest();
-        RsImplicitAnimatorFuzzTest();
-        RsImplicitAnimatorParamFuzzTest(rsUIContext);
+        RSAnimationTimingCurveFuzzTest();
+        RSCurveAnimationFuzzTest(rsUIContext);
+        RSKeyframeAnimationFuzzTest(rsUIContext);
+        RSPathAnimationFuzzTest(rsUIContext);
+        RSMotionPathOptionFuzzTest();
+        RSSpringAnimationFuzzTest(rsUIContext);
+        RSTransitionFuzzTest(rsUIContext);
+        RSTransitionEffectFuzzTest();
+        RSImplicitAnimatorFuzzTest(canvasNode);
+        RSImplicitAnimatorParamFuzzTest(rsUIContext);
         AnimationCallbackFuzzTest();
-        RSInteractiveImplictAnimatorFuzzTest();
+        RSInteractiveImplictAnimatorFuzzTest(rsUIContext);
         RSInterpolatingSpringAnimationFuzzTest(rsUIContext);
-        RSAnimation1FuzzTest(rsUIContext);
-        RSAnimation2FuzzTest(rsUIContext);
-        RSAnimation3FuzzTest(rsUIContext);
+        RSAnimation1FuzzTest(rsUIDirector, canvasNode);
+        RSAnimation2FuzzTest(rsUIDirector, canvasNode);
+        RSAnimation3FuzzTest(rsUIDirector, canvasNode);
+
+        // Clear memory
+        canvasNode->animations_.clear();
+        canvasNode->animatingPropertyNum_.clear();
+        RSMessageProcessor::Instance().GetAllTransactions();
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->implicitCommonTransactionData_ = std::make_unique<RSTransactionData>();
+            transactionProxy->implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
+        }
         return true;
     }
 } // namespace OHOS
