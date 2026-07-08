@@ -239,8 +239,8 @@ bool RSHpaeOfflineDevice::IsOfflineDeviceEnable(std::shared_ptr<RSHpaeOfflineCon
     }
     if (context->heteroEnableFrames < MAX_HETERO_ENABLE_FRAME) {
         RSHeteroHDRManager::Instance().SetHeteroEnable(false);
-        RS_OFFLINE_LOGD("disable offline process, validFrames: %{public}d, (node: %{public}" PRIu64 ").",
-            context->heteroEnableFrames, context->nodeId);
+        RS_OFFLINE_LOGD("disable offline process, validFrames: %{public}zu, (node: %{public}" PRIu64 ").",
+            context->heteroEnableFrames.load(), context->nodeId);
         context->heteroEnableFrames++;
         return false;
     }

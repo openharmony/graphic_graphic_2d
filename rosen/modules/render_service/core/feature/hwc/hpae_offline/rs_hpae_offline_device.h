@@ -109,7 +109,7 @@ public:
     std::atomic<bool> preAllocBufferSucc = false;
     std::atomic<size_t> invalidFrames = 0;
     std::atomic<size_t> maxInvalidFrames = 0;
-    int32_t heteroEnableFrames = 0;
+    std::atomic<size_t> heteroEnableFrames = 0;
     bool isSetHeteroEnable = false;
     std::atomic<bool> skipDraw = false;
     std::atomic<bool> hasDrawn = false;

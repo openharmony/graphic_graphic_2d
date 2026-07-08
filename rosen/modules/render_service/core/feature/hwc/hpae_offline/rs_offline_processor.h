@@ -21,6 +21,7 @@
 #include <map>
 #include <mutex>
 #include <unordered_map>
+#include <deque>
 
 #include "feature/hwc/hpae_offline/rs_offline_result.h"
 #include "feature/hwc/hpae_offline/rs_offline_util.h"
@@ -62,7 +63,8 @@ private:
     mutable std::mutex deviceMutex_;
     std::unordered_map<OfflineDeviceType, std::shared_ptr<RSOfflineDevice>> devicePool_;
     mutable std::mutex deviceTypeMapMutex_;
-    std::map<uint64_t, OfflineDeviceType> deviceTypeMap_;
+    std::unordered_map<uint64_t, OfflineDeviceType> deviceTypeMap_;
+    std::deque<uint64_t> deviceTypeInsertOrder_;
     static constexpr int deviceTypeMapMaxSize_ = 8;
 };
 

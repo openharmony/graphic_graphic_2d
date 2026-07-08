@@ -103,11 +103,17 @@ bool RSOfflineProcessor::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRend
 
     std::lock_guard<std::mutex> lock(deviceTypeMapMutex_);
     if (static_cast<int>(deviceTypeMap_.size()) >= deviceTypeMapMaxSize_) {
-        auto it = deviceTypeMap_.begin();
-        deviceTypeMap_.erase(it);
-        
+        auto oldestNodeId = deviceTypeInsertOrder_.front();
+        deviceTypeInsertOrder_.pop_front();
+        deviceTypeMap_.erase(oldestNodeId);
+        RS_LOGD("RSOfflineProcessor::IsRSOfflineProcessorReady clear deviceTypeMap_: node [%{public}" PRIu64,
+            oldestNodeId);
+
     }
-    deviceTypeMap_.insert(std::make_pair(surfaceNode->GetId(), deviceType));
+    auto resullt = deviceTypeMap_.emplace(surfaceNode->GetId(), deviceType);
+    if (resullt.second) {
+        deviceTypeInsertOrder_.push_back(surfaceNode->GetId());
+    }
     return true;
 }
 
