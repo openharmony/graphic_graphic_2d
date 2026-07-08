@@ -305,7 +305,7 @@ RSAnimationManager::AddAnimation()
 6. **后台/重建** — `DestroyInRender` 对粒子用 `GetRunningTimeNs()` 取 fraction；
    后台无限粒子动画 `needUpdateStartTime_` 复位；`FillRebuildProgress` 用 `Warmup` 预热。
 
-### RSRenderInteractiveImplictAnimatorMap 多实例管理
+### RSRenderInteractiveImplictAnimatorMap 可交互动画管理
 
 - **定义**：`RSRenderInteractiveImplictAnimatorMap`（`rs_render_interactive_implict_animator_map.h`），
   由 `friend RSContext / RSMainThread` 构造， 由 `RSContext` 持有。
@@ -319,6 +319,35 @@ RSAnimationManager::AddAnimation()
   - 组动画：`RSRenderTimeDrivenGroupAnimator::FinishAnimator()` ：结束所有子动画后，主动注销自己。
 
 **线程安全**：服务端map无显示锁，所有访问在RS主线程。客户端 `RSUIContext` 由 `interactiveImplictAnimatorMutex_`保护。
+
+### 窗口动画与 RSNode Transition 的关系
+
+**窗口动画（`RSIWindowAnimationController`，跨进程 IPC，窗口级）**
+
+- 触发：WMS 在 app 启动/切换/返回/最小化/关闭/解锁等窗口生命周期事件时经 Stub/Proxy 调 controller
+  （`OnStartApp`/`OnAppTransition`/`OnAppBackTransition`/`OnMinimizeWindow`/`OnCloseWindow`/`OnScreenUnlock`）。
+- 目标载体：`RSWindowAnimationTarget::surfaceNode_` 反序列化时建为 **ProxyNode**
+  （`RSSurfaceNode::UnmarshallingAsProxyNode`，`rs_window_animation_target.cpp:92`），代理节点并非应用渲染树中的真实节点。
+- Launcher操控代理节点属性实现动画效果，完成后JS调用 `finishedCallback->OnAnimationFinished()` 通知窗口管理器。
+
+**RSNode Transition（`RSTransition` / `RSRenderTransition`，进程内，节点级）**
+
+- 触发：节点树变化（可见性变化/增删子节点）且处于 `animateTo` 隐式块内时，`RSNode::NotifyTransition`
+  → `BeginImplicitTransition`/`CreateImplicitTransition`/`EndImplicitTransition`（`rs_node.cpp:3094`）；
+  需节点已设 `transitionEffect_` 且 `NeedImplicitAnimation()` 为真。
+- 执行：`RSTransition::OnStart` 建 `RSRenderTransition` 并发 `RSAnimationCreateTransition` 命令
+  （`rs_transition.cpp:50/56`）；服务端 `RSRenderTransition::OnAttach` 给目标节点加 transition modifier
+  并按 fraction 驱动（`rs_render_transition.cpp:54-60/35-44`），`OnDetach` 移除。
+- 退场保活：退场 transition 递增 `disappearingTransitionCount_`，移入父节点的 `disappearingChildren_` 保持存活，
+  直到 `disappearingTransitionCount_` 归零后才真正移除。
+
+**关系与优先级**
+
+- 代理节点机制使二者不直接触碰同一对象：窗口动画作用于 ProxyNode/leash（整窗 surface），
+  RSTransition 作用于应用渲染树内具体节点的 modifier。
+- 合成层面是"叠加"而非"二选一"：leash 变换在合成/HWC 层作用于整窗 surface，
+  RSTransition 影响应用渲染帧内节点 modifier，二者可同时作用于同一个 `RSSurfaceNode`。
+- 二者处于不同层级，本仓**无**二者间的显式优先级仲裁代码。
 
 ### 动画取消时的资源清理与回调保证
 
@@ -351,7 +380,3 @@ RSAnimationManager::AddAnimation()
 8. **弹簧提前回调** — `LOGICALLY_FINISHED` 走 `CallLogicallyFinishCallback`，仅 `finishCallback_.reset()`
    释放引用（不置 FINISHED、不移除动画），可使 ArkUI 回调在弹簧近静止时提前触发；
    动画对象要到 `FINISHED` 才从节点移除。
-
-## 待补充背景
-
-- 窗口动画与 RSNode Transition 的关系和优先级。
