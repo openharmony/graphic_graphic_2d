@@ -1157,4 +1157,109 @@ HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest002, TestSize.Level1)
     }
 }
 #endif
+
+/**
+ * @tc.name: RSExtendDrawFuncObjRecord001
+ * @tc.desc: test RSExtendDrawFuncObj::Record with valid drawFunc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendDrawFuncObjRecord001, TestSize.Level1)
+{
+    Drawing::RecordingCanvas::DrawFunc drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
+    RSExtendDrawFuncObj obj(std::move(drawFunc));
+    ExtendRecordingCanvas canvas(1, 1);
+    auto cmdList = canvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    auto sizeBefore = cmdList->GetSize();
+    obj.Record(canvas);
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+}
+
+/**
+ * @tc.name: RSExtendDrawFuncObjRecord002
+ * @tc.desc: test RSExtendDrawFuncObj::Record with empty drawFunc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendDrawFuncObjRecord002, TestSize.Level1)
+{
+    Drawing::RecordingCanvas::DrawFunc emptyFunc = nullptr;
+    RSExtendDrawFuncObj obj(std::move(emptyFunc));
+    ExtendRecordingCanvas canvas(1, 1);
+    auto cmdList = canvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    auto sizeBefore = cmdList->GetSize();
+    obj.Record(canvas);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+}
+
+/**
+ * @tc.name: DrawFuncOpItemPlaybackRecording001
+ * @tc.desc: test DrawFuncOpItem::Playback with RECORDING canvas type calls Record
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawFuncOpItemPlaybackRecording001, TestSize.Level1)
+{
+    Drawing::RecordingCanvas::DrawFunc drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
+    Drawing::DrawFuncOpItem drawFuncOpItem(std::move(drawFunc));
+    ASSERT_NE(drawFuncOpItem.objectHandle_, nullptr);
+
+    ExtendRecordingCanvas recCanvas(1, 1);
+    auto cmdList = recCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect;
+    auto sizeBefore = cmdList->GetSize();
+    drawFuncOpItem.Playback(&recCanvas, &rect);
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+}
+
+/**
+ * @tc.name: DrawFuncOpItemPlaybackRecording002
+ * @tc.desc: test DrawFuncOpItem::Playback with null objectHandle_ returns early
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawFuncOpItemPlaybackRecording002, TestSize.Level1)
+{
+    Drawing::RecordingCanvas::DrawFunc drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
+    Drawing::DrawFuncOpItem drawFuncOpItem(std::move(drawFunc));
+    drawFuncOpItem.objectHandle_ = nullptr;
+
+    ExtendRecordingCanvas recCanvas(1, 1);
+    auto cmdList = recCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect;
+    auto sizeBefore = cmdList->GetSize();
+    drawFuncOpItem.Playback(&recCanvas, &rect);
+    EXPECT_EQ(cmdList->GetSize(), sizeBefore);
+}
+
+/**
+ * @tc.name: DrawSurfaceBufferOpItemPlaybackRecording001
+ * @tc.desc: test DrawSurfaceBufferOpItem::Playback with RECORDING canvas type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawSurfaceBufferOpItemPlaybackRecording001, TestSize.Level1)
+{
+    Drawing::DrawCmdList list;
+    uint32_t surfaceBufferId = 1;
+    int offSetX = 1;
+    int offSetY = 1;
+    int width = 1;
+    int height = 1;
+    pid_t pid = {};
+    uint64_t uid = {};
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    Drawing::Rect srcRect(0, 0, 1, 1);
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
+        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, transform, srcRect, false, paintHandle);
+    Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
+
+    ExtendRecordingCanvas recCanvas(1, 1);
+    auto cmdList = recCanvas.GetDrawCmdList();
+    ASSERT_NE(cmdList, nullptr);
+    Drawing::Rect rect;
+    auto sizeBefore = cmdList->GetSize();
+    drawSurfaceBufferOpItem.Playback(&recCanvas, &rect);
+    EXPECT_GT(cmdList->GetSize(), sizeBefore);
+}
 } // namespace OHOS::Rosen

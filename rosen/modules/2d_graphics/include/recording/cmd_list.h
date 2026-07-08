@@ -96,6 +96,7 @@ class DRAWING_API ExtendDrawFuncObj {
 public:
     virtual ~ExtendDrawFuncObj () = default;
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
+    virtual void Record(Canvas& canvas) {}
 };
 
 #ifdef ROSEN_OHOS

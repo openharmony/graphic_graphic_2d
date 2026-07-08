@@ -183,6 +183,7 @@ public:
     explicit RSExtendDrawFuncObj(Drawing::RecordingCanvas::DrawFunc&& drawFunc) : drawFunc_(std::move(drawFunc)) {}
     ~RSExtendDrawFuncObj() override = default;
     void Playback(Drawing::Canvas* canvas, const Drawing::Rect* rect) override;
+    void Record(Drawing::Canvas& canvas) override;
     bool Marshalling(Parcel& parcel) const;
     static RSExtendDrawFuncObj* Unmarshalling(Parcel& parcel);
 
