@@ -1184,7 +1184,7 @@ uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
 {
     uint32_t refreshRate = GetDefaultScreenRefreshRate();
     if (refreshRate == 0) {
-        RS_LOGE("RSUniRenderThread::GetDynamicRefreshRate refreshRate is invalid");
+        RS_LOGD("RSUniRenderThread::GetDynamicRefreshRate refreshRate is invalid");
         return STANDARD_REFRESH_RATE;
     }
     return refreshRate;
