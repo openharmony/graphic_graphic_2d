@@ -1880,6 +1880,152 @@ HWTEST_F(CmdListHelperTest, ParticleEffectRoundTrip, TestSize.Level1)
     auto retrievedEffect = CmdListHelper::GetParticleEffectFromCmdList(*cmdList, handle);
     EXPECT_TRUE(retrievedEffect);
 }
+
+/**
+ * @tc.name: ValidateLattice001
+ * @tc.desc: Test ValidateLattice with valid lattice data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ValidateLattice001, TestSize.Level1)
+{
+    Lattice lattice;
+    lattice.fXCount = 2;
+    lattice.fYCount = 2;
+    lattice.fXDivs = {10, 20};
+    lattice.fYDivs = {10, 20};
+    // (fXCount+1)*(fYCount+1) = 3*3 = 9
+    lattice.fRectTypes = std::vector<Lattice::RectType>(9, Lattice::RectType::DEFAULT);
+    lattice.fColors = std::vector<Color>(9);
+    EXPECT_TRUE(CmdListHelper::ValidateLattice(lattice));
+}
+
+/**
+ * @tc.name: ValidateLattice002
+ * @tc.desc: Test ValidateLattice with negative fXCount.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ValidateLattice002, TestSize.Level1)
+{
+    Lattice lattice;
+    lattice.fXCount = -1;
+    lattice.fYCount = 2;
+    EXPECT_FALSE(CmdListHelper::ValidateLattice(lattice));
+}
+
+/**
+ * @tc.name: ValidateLattice003
+ * @tc.desc: Test ValidateLattice with negative fYCount.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ValidateLattice003, TestSize.Level1)
+{
+    Lattice lattice;
+    lattice.fXCount = 2;
+    lattice.fYCount = -1;
+    EXPECT_FALSE(CmdListHelper::ValidateLattice(lattice));
+}
+
+/**
+ * @tc.name: ValidateLattice004
+ * @tc.desc: Test ValidateLattice with fXCount exceeding upper bound.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ValidateLattice004, TestSize.Level1)
+{
+    Lattice lattice;
+    lattice.fXCount = 100; // 100 > 5
+    lattice.fYCount = 2;
+    EXPECT_FALSE(CmdListHelper::ValidateLattice(lattice));
+}
+
+/**
+ * @tc.name: ValidateLattice005
+ * @tc.desc: Test ValidateLattice with fXDivs size mismatch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ValidateLattice005, TestSize.Level1)
+{
+    Lattice lattice;
+    lattice.fXCount = 2;
+    lattice.fYCount = 2;
+    lattice.fXDivs = {10}; // size 1 != fXCount 2
+    lattice.fYDivs = {10, 20};
+    EXPECT_FALSE(CmdListHelper::ValidateLattice(lattice));
+}
+
+/**
+ * @tc.name: ValidateLattice006
+ * @tc.desc: Test ValidateLattice with fRectTypes size mismatch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ValidateLattice006, TestSize.Level1)
+{
+    Lattice lattice;
+    lattice.fXCount = 2;
+    lattice.fYCount = 2;
+    lattice.fXDivs = {10, 20};
+    lattice.fYDivs = {10, 20};
+    lattice.fRectTypes = std::vector<Lattice::RectType>(1, Lattice::RectType::DEFAULT); // 1 != 9
+    EXPECT_FALSE(CmdListHelper::ValidateLattice(lattice));
+}
+
+/**
+ * @tc.name: ValidateLattice007
+ * @tc.desc: Test ValidateLattice with fColors size mismatch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ValidateLattice007, TestSize.Level1)
+{
+    Lattice lattice;
+    lattice.fXCount = 2;
+    lattice.fYCount = 2;
+    lattice.fXDivs = {10, 20};
+    lattice.fYDivs = {10, 20};
+    lattice.fRectTypes = std::vector<Lattice::RectType>(9, Lattice::RectType::DEFAULT);
+    lattice.fColors = std::vector<Color>(1); // 1 != 9
+    EXPECT_FALSE(CmdListHelper::ValidateLattice(lattice));
+}
+
+/**
+ * @tc.name: ValidateLattice008
+ * @tc.desc: Test ValidateLattice with empty fRectTypes and fColors (valid scenario).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ValidateLattice008, TestSize.Level1)
+{
+    Lattice lattice;
+    lattice.fXCount = 2;
+    lattice.fYCount = 2;
+    lattice.fXDivs = {10, 20};
+    lattice.fYDivs = {10, 20};
+    // fRectTypes and fColors are empty, which is valid
+    EXPECT_TRUE(CmdListHelper::ValidateLattice(lattice));
+}
+
+/**
+ * @tc.name: ValidateLattice009
+ * @tc.desc: Test ValidateLattice with zero fXCount and fYCount.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ValidateLattice009, TestSize.Level1)
+{
+    Lattice lattice;
+    lattice.fXCount = 0;
+    lattice.fYCount = 0;
+    // (0+1)*(0+1) = 1
+    lattice.fRectTypes = std::vector<Lattice::RectType>(1, Lattice::RectType::DEFAULT);
+    lattice.fColors = std::vector<Color>(1);
+    EXPECT_TRUE(CmdListHelper::ValidateLattice(lattice));
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -16,6 +16,7 @@
 #include "recording/cmd_list_helper.h"
 
 #include <hilog/log.h>
+#include <securec.h>
 
 #include "recording/draw_cmd.h"
 #include "recording/draw_cmd_list.h"
@@ -149,8 +150,20 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
 
     BitmapFormat format = { bitmapHandle.colorType, bitmapHandle.alphaType };
     auto bitmap = std::make_shared<Bitmap>();
-    bitmap->Build(bitmapHandle.width, bitmapHandle.height, format);
-    bitmap->SetPixels(const_cast<void*>(ptr));
+    if (!bitmap->Build(bitmapHandle.width, bitmapHandle.height, format)) {
+        LOGD("Bitmap Build failed!");
+        return nullptr;
+    }
+    size_t expectedSize = bitmap->ComputeByteSize();
+    if (expectedSize > bitmapHandle.size) {
+        LOGE("Bitmap size mismatch: expectedSize %zu, got %zu", expectedSize, bitmapHandle.size);
+        return nullptr;
+    }
+
+    if (memcpy_s(bitmap->GetPixels(), expectedSize, ptr, expectedSize) != EOK) {
+        LOGE("Bitmap memcpy_s failed!");
+        return nullptr;
+    }
 
     return bitmap;
 }
@@ -339,6 +352,42 @@ Lattice CmdListHelper::GetLatticeFromCmdList(const CmdList& cmdList, const Latti
     lattice.fBounds = GetVectorFromCmdList<RectI>(cmdList, latticeHandle.fBounds);
     lattice.fColors = GetVectorFromCmdList<Color>(cmdList, latticeHandle.fColors);
     return lattice;
+}
+
+bool CmdListHelper::ValidateLattice(const Lattice& lattice)
+{
+    if (lattice.fXCount < 0 || lattice.fXCount > 5 || lattice.fYCount < 0 || lattice.fYCount > 5) { // 5: max size.
+        LOGE("ValidateLattice invalid lattice count: fXCount=%d, fYCount=%d",
+             lattice.fXCount, lattice.fYCount);
+        return false;
+    }
+
+    if (lattice.fXDivs.size() != static_cast<size_t>(lattice.fXCount)) {
+        LOGE("ValidateLattice fXDivs size mismatch: expected=%d, actual=%zu",
+             lattice.fXCount, lattice.fXDivs.size());
+        return false;
+    }
+
+    if (lattice.fYDivs.size() != static_cast<size_t>(lattice.fYCount)) {
+        LOGE("ValidateLattice fYDivs size mismatch: expected=%d, actual=%zu",
+             lattice.fYCount, lattice.fYDivs.size());
+        return false;
+    }
+
+    size_t expectedRectCount = static_cast<size_t>((lattice.fXCount + 1) * (lattice.fYCount + 1));
+    if (!lattice.fRectTypes.empty() && lattice.fRectTypes.size() != expectedRectCount) {
+        LOGE("ValidateLattice fRectTypes size mismatch: expected=%zu, actual=%zu",
+             expectedRectCount, lattice.fRectTypes.size());
+        return false;
+    }
+
+    if (!lattice.fColors.empty() && lattice.fColors.size() != expectedRectCount) {
+        LOGE("ValidateLattice fColors size mismatch: expected=%zu, actual=%zu",
+             expectedRectCount, lattice.fColors.size());
+        return false;
+    }
+
+    return true;
 }
 
 SymbolOpHandle CmdListHelper::AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol)
