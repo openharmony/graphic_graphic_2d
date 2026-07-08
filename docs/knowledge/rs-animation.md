@@ -235,7 +235,7 @@ RSAnimationManager::AddAnimation()
 | 参数名 | 参数含义 | 作用 |
 | --- | --- | --- |
 | response | 响应周期 | `naturalAngularVelocity = 2π/response`；response 越大，振荡周期越长、运动越慢 |
-| dampingRatio | 阻尼比 | <1 欠阻尼（有回弹）；=1 临界阻尼（最快无回弹）；>1 过阻尼（缓慢无回弹） |
+| dampingRatio | 阻尼比 | <1 欠阻尼（有回弹/振荡）；=1 临界阻尼（无过冲，以最短时间稳定）；>1 过阻尼（无回弹，缓慢趋近稳定） |
 | initialOffset | 初始偏移量 | 起始位置与目标的位移差，决定初始形变量，影响估算 duration 的振幅基准 |
 | initialVelocity | 初速度 | 影响前段运动；RSSpringAnimation 间继承时由上一动画经 `InheritSpringStatus` 传入 |
 | minimumAmplitudeRatio | 最小振幅比 | 决定何时判定弹簧静止；值越大，弹簧动画越早结束，估算 duration 越短 |
@@ -312,7 +312,7 @@ RSAnimationManager::AddAnimation()
 - **数据结构**：`unordered_map<InteractiveImplictAnimatorId, shared_ptr<RSRenderInteractiveImplictAnimator>>`，
   key为64位ID（高32位PID + 低32位递增计数器）。
 
-**注册**（`RegisterInteractiveImplictAnimator`）：拒绝重复ID，仅首次注册成功。
+**注册**（`RegisterInteractiveImplictAnimator`）：拒绝重复ID，仅第一次注册成功。
 
 **注销**（`UnregisterInteractiveImplictAnimator`）：
   - 非组动画：客户端 `RSInteractiveImplictAnimator` 析构时发送IPC命令 `DestoryInteractiveAnimator`。
@@ -345,8 +345,8 @@ RSAnimationManager::AddAnimation()
 
 - 代理节点机制使二者不直接触碰同一对象：窗口动画作用于 ProxyNode/leash（整窗 surface），
   RSTransition 作用于应用渲染树内具体节点的 modifier。
-- 合成层面是"叠加"而非"二选一"：leash 变换在合成/HWC 层作用于整窗 surface，
-  RSTransition 影响应用渲染帧内节点 modifier，二者可同时作用于同一个 `RSSurfaceNode`。
+- 合成层面是"叠加"而非"二选一"：leash 变换作用于整窗 surface，RSTransition 影响应用渲染帧内节点 modifier，
+  二者可同时作用于同一个 `RSSurfaceNode`。
 - 二者处于不同层级，本仓**无**二者间的显式优先级仲裁代码。
 
 ### 动画取消时的资源清理与回调保证
