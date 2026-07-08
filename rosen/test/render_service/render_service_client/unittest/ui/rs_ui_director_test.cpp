@@ -13,10 +13,6 @@
  * limitations under the License.
  */
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-#undef RS_MODIFIERS_DRAW_ENABLE
-#endif
-
 #include <string>
 
 #include "gtest/gtest.h"
@@ -43,6 +39,11 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#undef RS_MODIFIERS_DRAW_ENABLE
+#endif
+
 class RSUIDirectorTest : public testing::Test {
 public:
 
