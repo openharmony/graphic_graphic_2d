@@ -165,10 +165,10 @@ HWTEST_F(UIFirstParamTest, SetSubThreadFrameRateControlByScene, Function | Small
 {
     UIFirstParam::SetSubThreadFrameRateControlByScene(0);
     EXPECT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 0u);
- 
+
     UIFirstParam::SetSubThreadFrameRateControlByScene(0xFF);
     EXPECT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 0xFFu);
- 
+
     UIFirstParam::SetSubThreadFrameRateControlByScene(252);
     EXPECT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 252u);
 }

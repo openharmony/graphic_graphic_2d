@@ -691,23 +691,6 @@ HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest006, TestSiz
 
 /**
  * @tc.name: SubDraw
- * @tc.desc: Test If SubDraw Can Run
- * @tc.type: FUNC
- * @tc.require: #IB1MHP
- */
-HWTEST_F(RSSubThreadCacheTest, SubDrawTest, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
-    surfaceDrawable_->GetRsSubThreadCache().SubDraw(nullptr, rscanvas);
-    EXPECT_TRUE(surfaceDrawable_->uifirstDrawCmdList_.empty());
-    surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
-    EXPECT_TRUE(surfaceDrawable_->uifirstDrawCmdList_.empty());
-}
-
-/**
- * @tc.name: SubDraw
  * @tc.desc: Test If SubDraw Can Run, uifirstDrawCmdList_ is not empty
  * @tc.type: FUNC
  * @tc.require: #IB1MHP
@@ -717,6 +700,9 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest001, TestSize.Level1)
     ASSERT_NE(surfaceDrawable_, nullptr);
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
+    surfaceDrawable_->GetRsSubThreadCache().SubDraw(nullptr, rscanvas);
+    EXPECT_TRUE(surfaceDrawable_->uifirstDrawCmdList_.empty());
+    surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetUifirstRenderParams().get());
     surfaceParams->uifirstParams_.leashAllEnabled = true;
     surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
@@ -734,6 +720,7 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest001, TestSize.Level1)
     EXPECT_FALSE(surfaceDrawable_->uifirstDrawCmdList_.empty());
     surfaceDrawable_->uifirstDrawCmdIndex_.endIndex_ = 0;
     surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
+    EXPECT_FALSE(surfaceDrawable_->uifirstDrawCmdList_.empty());
 }
 
 

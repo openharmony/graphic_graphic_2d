@@ -197,18 +197,18 @@ HWTEST_F(UIFirstParamParseTest, ParseSubThreadFrameRateControlBySceneTest, TestS
     UIFirstParamParse uifirstParamParse;
     string name = "SubThreadFrameRateControlByScene";
     string value = "test";
- 
+
     UIFirstParam::SetSubThreadFrameRateControlByScene(0xFF);
     auto res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
     ASSERT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 0xFFu);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
- 
+
     value = "0";
     UIFirstParam::SetSubThreadFrameRateControlByScene(0xFF);
     res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
     ASSERT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 0u);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
- 
+
     value = "252";
     UIFirstParam::SetSubThreadFrameRateControlByScene(0xFF);
     res = uifirstParamParse.ParseUIFirstSingleParam(name, value);

@@ -1395,9 +1395,8 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
             continue;
         }
         auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceChild && surfaceChild->IsMainWindowType() &&
-            surfaceChild->ShouldPaint() && canvasNodeNum == 0 &&
-            !surfaceChild->IsNotifyUIBufferAvailable()) {
+        if (surfaceChild && surfaceChild->IsMainWindowType() && surfaceChild->ShouldPaint() &&
+            canvasNodeNum == 0 && !surfaceChild->IsNotifyUIBufferAvailable()) {
             mainwindowNum++;
             if (IsContentAppWindow(surfaceChild)) {
                 hasContentAppWindow = true;
@@ -2556,8 +2555,8 @@ void RSUifirstManager::SetUIFirstLeashAllEnable(RSSurfaceRenderNode& surfaceNode
     const auto& cachedSize = stagingSurfaceParams->GetCacheSize();
     const auto& lastCachedSize = stagingSurfaceParams->GetLastCacheSize();
     bool cacheSizeChanged = ROSEN_NE(cachedSize.x_, lastCachedSize.x_) || ROSEN_NE(cachedSize.y_, lastCachedSize.y_);
-    bool enable = isUIFirstLeashAllEnable_ && !stagingSurfaceParams->IsAttractionValid() &&
-        !cacheSizeChanged && !surfaceNode.GetCurFrameHasAnimation();
+    bool enable = isUIFirstLeashAllEnable_ && stagingSurfaceParams->IsLeashWindow() &&
+        !stagingSurfaceParams->IsAttractionValid() && !cacheSizeChanged && !surfaceNode.GetCurFrameHasAnimation();
     RS_TRACE_NAME_FMT("RSUifirstManager::SetUIFirstLeashAllEnable name[%s], isUIFirstLeashAllEnable[%d],"
         "isAttractionValid[%d], cacheSizeChanged[%d], hasAnimation[%d]",
         surfaceNode.GetName().c_str(), isUIFirstLeashAllEnable_, stagingSurfaceParams->IsAttractionValid(),

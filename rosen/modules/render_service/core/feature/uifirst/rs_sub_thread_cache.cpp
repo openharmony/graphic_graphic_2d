@@ -357,10 +357,9 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
         width = width * uifirstScale;
         height = height * uifirstScale;
     }
-
     auto params = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
     if (params && params->IsUIFirstLeashAllEnable()) {
-        UpdateCacheSurfaceDirtyManager(nodeDrawable.get(), false, false);
+        UpdateCacheSurfaceDirtyManager(nodeDrawable.get(), false, false); // reset dirty rect as buffer size
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
@@ -627,8 +626,7 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
         UpdateDirtyRecordCompletedState(false);
         return;
     }
-    bool isContainShadow = surfaceParams->IsUIFirstLeashAllEnable() &&
-        surfaceParams->IsLeashWindow() && syncUifirstDirtyManager_;
+    bool isContainShadow = surfaceParams->IsUIFirstLeashAllEnable() && syncUifirstDirtyManager_;
     if (isContainShadow) {
         auto screenNodeDrawable = surfaceParams->GetAncestorScreenDrawable().lock();
         if (screenNodeDrawable) {

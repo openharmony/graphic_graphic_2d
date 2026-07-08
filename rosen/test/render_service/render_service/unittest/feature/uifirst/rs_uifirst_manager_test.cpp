@@ -884,8 +884,8 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone001, TestSize.Level1)
     surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     surfaceNode1->firstLevelNodeId_ = surfaceNode1->GetId();
     surfaceNode1->SetSubThreadAssignable(true);
-    // 1. surfaceNode1 only has animation.
     uifirstManager_.AddFirstFrameCacheGeneratedNode(surfaceNode1->GetId());
+    // 1. surfaceNode1 only has animation.
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
     ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::LEASH_WINDOW);
     // 2. surfaceNode1 not has animation.
@@ -1328,7 +1328,7 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CollectSkipSyncNode001
+ * @tc.name: CollectSkipSyncNode002
  * @tc.desc: Test CollectSkipSyncNode
  * @tc.type: FUNC
  * @tc.require: issueIADDL3

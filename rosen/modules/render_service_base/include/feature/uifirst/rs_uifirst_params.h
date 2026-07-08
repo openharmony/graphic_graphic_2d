@@ -17,6 +17,7 @@
 #define RS_UIFIRST_PARAMS_H
 
 #include <atomic>
+
 #include "common/rs_common_def.h"
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
