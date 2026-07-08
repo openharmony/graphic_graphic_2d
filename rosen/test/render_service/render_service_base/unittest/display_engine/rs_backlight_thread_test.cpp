@@ -19,7 +19,7 @@
 
 #include "gtest/gtest.h"
 
-#include "common/rs_backlight_thread.h"
+#include "display_engine/rs_backlight_thread.h"
 
 using namespace testing;
 using namespace testing::ext;

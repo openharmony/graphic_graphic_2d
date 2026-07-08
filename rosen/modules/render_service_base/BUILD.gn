@@ -194,9 +194,11 @@ ohos_source_set("render_service_base_src") {
     #offscreen_render
     "src/offscreen_render/rs_offscreen_render_thread.cpp",
 
+    #display_engine
+    "src/display_engine/rs_backlight_thread.cpp",
+
     #common
     "src/common/rs_background_thread.cpp",
-    "src/common/rs_backlight_thread.cpp",
     "src/common/rs_color.cpp",
     "src/common/rs_event_def.cpp",
     "src/common/rs_common_tools.cpp",

@@ -23,6 +23,7 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_backlight_thread_test.cpp",
     "rs_color_temperature_test.cpp",
     "rs_luminance_control_test.cpp",
   ]
@@ -50,6 +51,7 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "graphic_surface:surface",

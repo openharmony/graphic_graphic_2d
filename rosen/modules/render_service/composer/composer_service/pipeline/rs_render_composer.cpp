@@ -18,11 +18,11 @@
 #include <memory>
 #include <unistd.h>
 
-#include "common/rs_backlight_thread.h"
 #include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "concurrent_task_client.h"
+#include "display_engine/rs_backlight_thread.h"
 #include "engine/rs_base_render_util.h"
 #include "engine/rs_uni_render_engine.h"
 #ifdef RS_ENABLE_EGLIMAGE
