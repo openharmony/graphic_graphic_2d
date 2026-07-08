@@ -5008,7 +5008,12 @@ SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSR
     bool isInSameWindow)
     : inNode_(inNode), outNode_(outNode), inNodeId_(inNode->GetId()), outNodeId_(outNode->GetId()),
       crossApplication_(!isInSameWindow)
-{}
+{
+    RS_LOGI("SharedTransitionParam inNodeId_: %{public}" PRIu64 " outNodeId_: %{public}" PRIu64
+        " crossApplication_: %{public}d", inNodeId_, outNodeId_, crossApplication_);
+    RS_TRACE_NAME_FMT("SharedTransitionParam inNodeId_: %" PRIu64 " outNodeId_: %" PRIu64 " crossApplication_: %d",
+        inNodeId_, outNodeId_, crossApplication_);
+}
 
 RSRenderNode::SharedPtr SharedTransitionParam::GetPairedNode(const NodeId nodeId) const
 {

@@ -3551,6 +3551,8 @@ void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIConte
         ROSEN_LOGE("RSNode::RegisterTransitionPair, rsUIContext is nullptr");
         return;
     }
+    RS_TRACE_NAME_FMT("RSNode::RegisterTransitionPair inNodeId: %" PRIu64 " outNodeId: %" PRIu64 " isInSameWindow: %d",
+        inNodeId, outNodeId, isInSameWindow);
     std::unique_ptr<RSCommand> command = std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId,
         isInSameWindow);
     auto transaction = rsUIContext->GetRSTransaction();
