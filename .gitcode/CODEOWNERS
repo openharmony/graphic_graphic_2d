@@ -172,11 +172,11 @@ rosen/modules/render_service_base/src/transaction/rs_transaction_data.cpp @chuch
 rosen/modules/render_service_base/include/transaction/rs_transaction_data.h @chuchengcheng
 
 [animation]
-interfaces/kits/napi/graphic/animation/window_animation_manager/ @chensiyi_CE
-rosen/modules/animation/window_animation/ @chensiyi_CE
-rosen/modules/render_service_client/core/animation/ @chensiyi_CE
-rosen/modules/render_service_base/include/animation/ @chensiyi_CE
-rosen/modules/render_service_base/src/animation/ @chensiyi_CE
+interfaces/kits/napi/graphic/animation/window_animation_manager/ @wang-luyu4
+rosen/modules/animation/window_animation/ @wang-luyu4
+rosen/modules/render_service_client/core/animation/ @wang-luyu4
+rosen/modules/render_service_base/include/animation/ @wang-luyu4
+rosen/modules/render_service_base/src/animation/ @wang-luyu4
 
 [uifirst]
 rosen/modules/render_service/core/feature/uifirst/ @opasser
