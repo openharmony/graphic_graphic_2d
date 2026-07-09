@@ -755,6 +755,14 @@ void RSExtendDrawFuncObj::Playback(Drawing::Canvas* canvas, const Drawing::Rect*
     }
 }
 
+void RSExtendDrawFuncObj::Record(Drawing::Canvas& canvas)
+{
+    ExtendRecordingCanvas* extendRecordingCanvas = static_cast<ExtendRecordingCanvas*>(&canvas);
+    if (drawFunc_) {
+        extendRecordingCanvas->DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc(drawFunc_));
+    }
+}
+
 bool RSExtendDrawFuncObj::Marshalling(Parcel &parcel) const
 {
     return false;
@@ -1208,7 +1216,12 @@ void DrawFuncOpItem::Marshalling(DrawCmdList& cmdList)
 
 void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    if (objectHandle_) {
+    if (!objectHandle_) {
+        return;
+    }
+    if (canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        objectHandle_->Record(*canvas);
+    } else {
         objectHandle_->Playback(canvas, rect);
     }
 }
@@ -1386,6 +1399,13 @@ void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
     if (auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas->GetRecordingCanvas())) {
         recordingCanvas->DrawSurfaceBuffer(surfaceBufferInfo_);
         return;
+    }
+    if (canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas);
+        if (recordingCanvas) {
+            recordingCanvas->DrawSurfaceBuffer(surfaceBufferInfo_);
+            return;
+        }
     }
     Clear();
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

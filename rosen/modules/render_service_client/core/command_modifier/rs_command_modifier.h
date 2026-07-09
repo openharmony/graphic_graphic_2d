@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_COMMAND_MODIFIER_RS_COMMAND_MODIFIER_H
 #define RENDER_SERVICE_CLIENT_CORE_COMMAND_MODIFIER_RS_COMMAND_MODIFIER_H
 
+#include <atomic>
 #include <memory>
 #include <variant>
 
@@ -121,6 +122,7 @@ public:
 
     RSCmdModifier(std::weak_ptr<RSNode> node) : node_(std::move(node))
     {
+        index_ = GenerateCmdModifierIndex();
     }
     virtual ~RSCmdModifier() = default;
 
@@ -134,9 +136,16 @@ public:
 
     virtual RSCmdModifierType GetType() const = 0;
 
+    uint64_t GetIndex() const
+    {
+        return index_;
+    }
+
+    static uint64_t GenerateCmdModifierIndex();
+
     virtual void DumpParam(std::string& out) const
     {
-        out += "{}";
+        out += "{index:" + std::to_string(index_) + "}";
     }
 
 protected:
@@ -150,6 +159,9 @@ protected:
                     FollowType followType, NodeId nodeId) const;
 
     std::weak_ptr<RSNode> node_;
+    uint64_t index_ = 0;
+
+    friend class RSNode;
 };
 
 } // namespace Rosen
