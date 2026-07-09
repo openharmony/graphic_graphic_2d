@@ -29,6 +29,40 @@ namespace Drawing {
     class GEShaderShape;
 } // namespace Drawing
 
+// Depth guard for shape-tree recursion (Unmarshalling / GenerateGEVisualEffect / CalculateHash).
+// Caps nested shape depth to prevent stack-overflow DoS from attacker-crafted parcels or
+// server-built deep trees (e.g. nested RSUnionRenderNode subtrees, which bypass the deserialization
+// guard). One thread_local counter is shared by all three paths: the GenerateGEVisualEffect<->
+// CalculateHash cross-call in UpdateVisualEffectParamImpl does not double-count, because hash
+// recursion at generate-depth D only spans the subtree below D (depth M-D), so the peak stays at
+// the tree depth M. These paths are synchronous CPU work: do NOT add FFRT/coroutine suspension
+// inside them, or thread_local would stop tracking logical depth after a cross-thread resume.
+class RSShapeRecursionGuard {
+public:
+    static constexpr int32_t MAX_DEPTH = 128;
+    RSShapeRecursionGuard()
+    {
+        ++Depth();
+    }
+    ~RSShapeRecursionGuard()
+    {
+        --Depth();
+    }
+    bool ExceedsLimit() const
+    {
+        return Depth() > MAX_DEPTH;
+    }
+    RSShapeRecursionGuard(const RSShapeRecursionGuard&) = delete;
+    RSShapeRecursionGuard& operator=(const RSShapeRecursionGuard&) = delete;
+
+private:
+    static int32_t& Depth()
+    {
+        static thread_local int32_t depth = 0;
+        return depth;
+    }
+};
+
 class RSB_EXPORT RSNGRenderShapeBase : public RSNGRenderEffectBase<RSNGRenderShapeBase> {
 public:
     virtual ~RSNGRenderShapeBase() = default;
@@ -70,6 +104,10 @@ public:
 
     std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() override
     {
+        RSShapeRecursionGuard guard;
+        if (guard.ExceedsLimit()) {
+            return nullptr;
+        }
         RS_OPTIONAL_TRACE_FMT("RSRenderShape, Type: %s",
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
         auto geShape = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);

@@ -132,6 +132,12 @@ std::shared_ptr<RSNGRenderShapeBase> RSNGRenderShapeBase::Create(RSNGEffectType 
 
 [[nodiscard]] bool RSNGRenderShapeBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShapeBase>& val)
 {
+    RSShapeRecursionGuard guard;
+    if (guard.ExceedsLimit()) {
+        ROSEN_LOGE(
+            "RSNGRenderShapeBase: Unmarshalling depth exceeds limit(%{public}d)", RSShapeRecursionGuard::MAX_DEPTH);
+        return false;
+    }
     std::shared_ptr<RSNGRenderShapeBase> head = nullptr;
     auto current = head;
     for (size_t effectCount = 0; effectCount < EFFECT_COUNT_LIMIT; ++effectCount) {
