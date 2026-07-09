@@ -3550,6 +3550,51 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportGameStateDataTest, TestSize
     mockProxy->ReportGameStateData(info);
 }
 
+/**
+ * @tc.name: SetRogScreenResolution_SendRequestOk
+ * @tc.desc: Test SetRogScreenResolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetRogScreenResolution_SendRequestOk, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+ 
+    // Mock SendRequest to succeed but don't set up parcel properly
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Invoke(
+            [](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+                return NO_ERROR;
+            }));
+ 
+    constexpr uint32_t WIDTH = 1920;
+    constexpr uint32_t HEIGHT = 1080;
+    constexpr ScreenId screenId = 0;
+    ErrCode ret = mockProxy->SetRogScreenResolution(screenId, WIDTH, HEIGHT);
+    EXPECT_EQ(ret, NO_ERROR);
+}
+ 
+/**
+ * @tc.name: SetRogScreenResolution_SendRequestFail
+ * @tc.desc: Test SetRogScreenResolution when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetRogScreenResolution_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+ 
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+ 
+    constexpr uint32_t WIDTH = 1920;
+    constexpr uint32_t HEIGHT = 1080;
+    constexpr ScreenId screenId = 0;
+    ErrCode ret = mockProxy->SetRogScreenResolution(screenId, WIDTH, HEIGHT);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
 // ==================== RegisterSharedTypeface Tests ====================
 
 /**
