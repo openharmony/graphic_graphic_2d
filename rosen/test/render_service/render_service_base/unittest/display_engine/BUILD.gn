@@ -23,7 +23,6 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_backlight_thread_test.cpp",
     "rs_color_temperature_test.cpp",
     "rs_luminance_control_test.cpp",
   ]
@@ -51,7 +50,6 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
 
   external_deps = [
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "graphic_surface:surface",
@@ -82,6 +80,41 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSBacklightThreadTest  ##################################
+ohos_unittest("RSBacklightThreadTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_backlight_thread_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/test/include",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
@@ -91,5 +124,8 @@ config("render_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":RSRenderServiceBaseDisplayEngineTest" ]
+  deps = [
+    ":RSBacklightThreadTest",
+    ":RSRenderServiceBaseDisplayEngineTest",
+  ]
 }
