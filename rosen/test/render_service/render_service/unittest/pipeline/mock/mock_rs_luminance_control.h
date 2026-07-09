@@ -38,6 +38,8 @@ public:
     MOCK_METHOD(float, GetSdrDisplayNits, (ScreenId screenId), (override));
     MOCK_METHOD(float, GetDisplayNits, (ScreenId screenId), (override));
     MOCK_METHOD(double, GetNonlinearRatio, (ScreenId screenId, uint32_t mode), (override));
+    MOCK_METHOD(float, AIHDRCalScaler, (const float& maxContentLightLevel, const std::vector<uint8_t>& dynamicMetadata,
+        const RSSurfaceRenderNode& surfaceNode, const float& ratio, HdrStatus hdrStatus), (override));
     MOCK_METHOD(float, CalScaler, (const float& maxContentLightLevel, const std::vector<uint8_t>& dynamicMetadata,
         const float& ratio, HdrStatus hdrStatus), (override));
     MOCK_METHOD(float, GetSurfaceNodeMaxScaler, (RSSurfaceRenderNode& surfaceNode, ScreenId screenId,
