@@ -109,8 +109,8 @@ bool RSOfflineProcessor::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRend
         RS_LOGD("RSOfflineProcessor::IsRSOfflineProcessorReady clear deviceTypeMap_: node [%{public}" PRIu64,
             oldestNodeId);
     }
-    auto resullt = deviceTypeMap_.emplace(surfaceNode->GetId(), deviceType);
-    if (resullt.second) {
+    auto result = deviceTypeMap_.emplace(surfaceNode->GetId(), deviceType);
+    if (result.second) {
         deviceTypeInsertOrder_.push_back(surfaceNode->GetId());
     }
     return true;
