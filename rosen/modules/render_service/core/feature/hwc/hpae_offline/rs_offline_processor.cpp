@@ -102,7 +102,7 @@ bool RSOfflineProcessor::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRend
     }
 
     std::lock_guard<std::mutex> lock(deviceTypeMapMutex_);
-    if (static_cast<int>(deviceTypeMap_.size()) >= deviceTypeMapMaxSize_) {
+    if (deviceTypeMap_.size() >= deviceTypeMapMaxSize_) {
         auto oldestNodeId = deviceTypeInsertOrder_.front();
         deviceTypeInsertOrder_.pop_front();
         deviceTypeMap_.erase(oldestNodeId);

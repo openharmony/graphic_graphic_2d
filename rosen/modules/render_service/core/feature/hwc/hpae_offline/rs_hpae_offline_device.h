@@ -110,7 +110,7 @@ public:
     std::atomic<size_t> invalidFrames = 0;
     std::atomic<size_t> maxInvalidFrames = 0;
     std::atomic<size_t> heteroEnableFrames = 0;
-    bool isSetHeteroEnable = false;
+    std::atomic<bool> isSetHeteroEnable = false;
     std::atomic<bool> skipDraw = false;
     std::atomic<bool> hasDrawn = false;
     std::mutex offlineConfigMutex;

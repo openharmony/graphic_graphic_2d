@@ -65,7 +65,7 @@ private:
     mutable std::mutex deviceTypeMapMutex_;
     std::unordered_map<uint64_t, OfflineDeviceType> deviceTypeMap_;
     std::deque<uint64_t> deviceTypeInsertOrder_;
-    static constexpr int deviceTypeMapMaxSize_ = 8;
+    static constexpr size_t deviceTypeMapMaxSize_ = 8;
 };
 
 } // namespace Rosen
