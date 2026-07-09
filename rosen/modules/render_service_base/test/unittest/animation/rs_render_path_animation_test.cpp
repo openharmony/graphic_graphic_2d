@@ -658,5 +658,29 @@ HWTEST_F(RSRenderPathAnimationTest, RebuildPropertyValue004, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest RebuildPropertyValue004 end";
 }
 
+/**
+ * @tc.name: OnAnimate007
+ * @tc.desc: Verify OnAnimate with non-VECTOR2F and non-VECTOR4F property type
+ *           triggers the type guard and returns early
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate007, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate007 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
+        property, property1, property2, 1.0f, path);
+    EXPECT_TRUE(renderPathAnimation != nullptr);
+    renderPathAnimation->SetIsNeedPath(true);
+    EXPECT_TRUE(renderPathAnimation->GetOriginValue() != nullptr);
+    EXPECT_TRUE(renderPathAnimation->GetOriginValue()->GetPropertyType() != RSPropertyType::VECTOR2F);
+    EXPECT_TRUE(renderPathAnimation->GetOriginValue()->GetPropertyType() != RSPropertyType::VECTOR4F);
+    renderPathAnimation->OnAnimate(1.0f);
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate007 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS
