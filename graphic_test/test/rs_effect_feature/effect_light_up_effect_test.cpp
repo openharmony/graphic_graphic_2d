@@ -72,6 +72,15 @@ constexpr int COLUMN_COUNT_3 = 3;
 const std::string BG_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 }
 
+struct BlurConfig {
+    uint32_t maskColor = COLOR_MASK_RED;
+    int radius = BLUR_RADIUS_MEDIUM;
+    float saturation = SATURATION_MID;
+    float brightness = BRIGHTNESS_MID;
+    int colorMode = COLOR_MODE_DEFAULT;
+    float alpha = ALPHA_MAX;
+};
+
 class LightUpEffectTest : public RSGraphicTest {
 private:
     const int screenWidth = SCREEN_WIDTH;
@@ -93,56 +102,53 @@ public:
         return testNode;
     }
 
-    auto SetUpBlurDegreeNode(float lightUpDegree, uint32_t maskColor, int radius,
-        float saturation, float brightness, int colorMode)
+    auto SetUpBlurDegreeNode(float lightUpDegree, BlurConfig blur)
     {
         auto testNode =
             SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
         testNode->SetBorderStyle(0, 0, 0, 0);
         testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
         testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-        testNode->SetBackgroundBlurRadius(radius);
-        testNode->SetBackgroundBlurSaturation(saturation);
-        testNode->SetBackgroundBlurBrightness(brightness);
-        testNode->SetBackgroundBlurColorMode(colorMode);
-        testNode->SetBackgroundBlurMaskColor(Color(maskColor));
+        testNode->SetBackgroundBlurRadius(blur.radius);
+        testNode->SetBackgroundBlurSaturation(blur.saturation);
+        testNode->SetBackgroundBlurBrightness(blur.brightness);
+        testNode->SetBackgroundBlurColorMode(blur.colorMode);
+        testNode->SetBackgroundBlurMaskColor(Color(blur.maskColor));
         testNode->SetLightUpEffectDegree(lightUpDegree);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
         return testNode;
     }
 
-    auto SetUpBlurMaskDegreeNode(float lightUpDegree, uint32_t maskColor, int radius,
-        float saturation, float brightness)
+    auto SetUpBlurMaskDegreeNode(float lightUpDegree, BlurConfig blur)
     {
         auto testNode =
             SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
         testNode->SetBorderStyle(0, 0, 0, 0);
         testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
         testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-        testNode->SetBackgroundBlurRadius(radius);
-        testNode->SetBackgroundBlurSaturation(saturation);
-        testNode->SetBackgroundBlurBrightness(brightness);
-        testNode->SetBackgroundBlurMaskColor(Color(maskColor));
+        testNode->SetBackgroundBlurRadius(blur.radius);
+        testNode->SetBackgroundBlurSaturation(blur.saturation);
+        testNode->SetBackgroundBlurBrightness(blur.brightness);
+        testNode->SetBackgroundBlurMaskColor(Color(blur.maskColor));
         testNode->SetLightUpEffectDegree(lightUpDegree);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
         return testNode;
     }
 
-    auto SetUpBlurAlphaDegreeNode(float lightUpDegree, uint32_t maskColor, int radius,
-        float saturation, float brightness, float alpha)
+    auto SetUpBlurAlphaDegreeNode(float lightUpDegree, BlurConfig blur)
     {
         auto testNode =
             SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
         testNode->SetBorderStyle(0, 0, 0, 0);
         testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
         testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-        testNode->SetBackgroundBlurRadius(radius);
-        testNode->SetBackgroundBlurSaturation(saturation);
-        testNode->SetBackgroundBlurBrightness(brightness);
-        testNode->SetBackgroundBlurMaskColor(Color(maskColor));
-        testNode->SetAlpha(alpha);
+        testNode->SetBackgroundBlurRadius(blur.radius);
+        testNode->SetBackgroundBlurSaturation(blur.saturation);
+        testNode->SetBackgroundBlurBrightness(blur.brightness);
+        testNode->SetBackgroundBlurMaskColor(Color(blur.maskColor));
+        testNode->SetAlpha(blur.alpha);
         testNode->SetLightUpEffectDegree(lightUpDegree);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -203,26 +209,26 @@ GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_Extreme_
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Red_ColorMode_Test1)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_HALF, COLOR_MASK_RED, BLUR_RADIUS_MEDIUM,
-        SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_INVALID);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_INVALID };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Red_ColorMode_Test2)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DEFAULT, COLOR_MASK_RED, BLUR_RADIUS_MEDIUM,
-        SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_DEFAULT);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_DEFAULT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Red_ColorMode_Test3)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, COLOR_MASK_RED, BLUR_RADIUS_MEDIUM,
-        SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_ALT);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_ALT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Red_ColorMode_Test4)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DOUBLE, COLOR_MASK_RED, BLUR_RADIUS_MEDIUM,
-        SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_EXTENDED);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_EXTENDED };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DOUBLE, blur);
 }
 
 /*
@@ -230,20 +236,20 @@ GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Red_ColorM
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Green_ColorMode_Test1)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_HALF, COLOR_MASK_GREEN, BLUR_RADIUS_SMALL,
-        SATURATION_MIN, BRIGHTNESS_MIN, COLOR_MODE_DEFAULT);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_SMALL, SATURATION_MIN, BRIGHTNESS_MIN, COLOR_MODE_DEFAULT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Green_ColorMode_Test2)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DEFAULT, COLOR_MASK_GREEN, BLUR_RADIUS_MEDIUM,
-        SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_ALT);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_ALT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Green_ColorMode_Test3)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DOUBLE, COLOR_MASK_GREEN, BLUR_RADIUS_LARGE,
-        SATURATION_MAX, BRIGHTNESS_MAX, COLOR_MODE_DEFAULT);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_LARGE, SATURATION_MAX, BRIGHTNESS_MAX, COLOR_MODE_DEFAULT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DOUBLE, blur);
 }
 
 /*
@@ -251,20 +257,20 @@ GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Green_Colo
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Blue_ColorMode_Test1)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_HALF, COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM,
-        SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_INVALID);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_INVALID };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Blue_ColorMode_Test2)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DEFAULT, COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM,
-        SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_DEFAULT);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_DEFAULT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Blue_ColorMode_Test3)
 {
-    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM,
-        SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_ALT);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_ALT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
 }
 
 /*
@@ -272,26 +278,26 @@ GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Blue_Color
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_MaskColor_Black_Test)
 {
-    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_HALF, COLOR_MASK_BLACK,
-        BLUR_RADIUS_SMALL, SATURATION_MIN, BRIGHTNESS_MIN);
+    BlurConfig blur = { COLOR_MASK_BLACK, BLUR_RADIUS_SMALL, SATURATION_MIN, BRIGHTNESS_MIN };
+    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_MaskColor_White_Test)
 {
-    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_DEFAULT, COLOR_MASK_WHITE,
-        BLUR_RADIUS_MEDIUM, SATURATION_LOW, BRIGHTNESS_LOW);
+    BlurConfig blur = { COLOR_MASK_WHITE, BLUR_RADIUS_MEDIUM, SATURATION_LOW, BRIGHTNESS_LOW };
+    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_MaskColor_Red_Test)
 {
-    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, COLOR_MASK_RED,
-        BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID };
+    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_MaskColor_Transparent_Test)
 {
-    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_DOUBLE, COLOR_MASK_TRANSPARENT,
-        BLUR_RADIUS_LARGE, SATURATION_MAX, BRIGHTNESS_MAX);
+    BlurConfig blur = { COLOR_MASK_TRANSPARENT, BLUR_RADIUS_LARGE, SATURATION_MAX, BRIGHTNESS_MAX };
+    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_DOUBLE, blur);
 }
 
 /*
@@ -299,32 +305,32 @@ GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_MaskColor_
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Min_Test)
 {
-    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_HALF, COLOR_MASK_RED,
-        BLUR_RADIUS_SMALL, SATURATION_MIN, BRIGHTNESS_MIN, ALPHA_MIN);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_SMALL, SATURATION_MIN, BRIGHTNESS_MIN, {}, ALPHA_MIN };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Low_Test)
 {
-    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_DEFAULT, COLOR_MASK_GREEN,
-        BLUR_RADIUS_MEDIUM, SATURATION_LOW, BRIGHTNESS_LOW, ALPHA_LOW);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_MEDIUM, SATURATION_LOW, BRIGHTNESS_LOW, {}, ALPHA_LOW };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Mid_Test)
 {
-    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, COLOR_MASK_BLUE,
-        BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, ALPHA_MID);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, {}, ALPHA_MID };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_High_Test)
 {
-    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_DOUBLE, COLOR_MASK_RED,
-        BLUR_RADIUS_LARGE, SATURATION_HIGH, BRIGHTNESS_HIGH, ALPHA_HIGH);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_LARGE, SATURATION_HIGH, BRIGHTNESS_HIGH, {}, ALPHA_HIGH };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_DOUBLE, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Max_Test)
 {
-    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_LARGE, COLOR_MASK_GREEN,
-        BLUR_RADIUS_LARGE, SATURATION_MAX, BRIGHTNESS_MAX, ALPHA_MAX);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_LARGE, SATURATION_MAX, BRIGHTNESS_MAX, {}, ALPHA_MAX };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_LARGE, blur);
 }
 
 /*
@@ -332,8 +338,8 @@ GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Max_
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Over_Test)
 {
-    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, COLOR_MASK_BLUE,
-        BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, ALPHA_OVER);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, {}, ALPHA_OVER };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
 }
 
 /*
@@ -341,20 +347,20 @@ GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Over
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_ZeroDegree_Test)
 {
-    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_ZERO, COLOR_MASK_RED,
-        BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, ALPHA_MID);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, {}, ALPHA_MID };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_ZERO, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_QuarterDegree_Test)
 {
-    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_QUARTER, COLOR_MASK_GREEN,
-        BLUR_RADIUS_SMALL, SATURATION_LOW, BRIGHTNESS_LOW, ALPHA_LOW);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_SMALL, SATURATION_LOW, BRIGHTNESS_LOW, {}, ALPHA_LOW };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_QUARTER, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_NegativeDegree_Test)
 {
-    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_NEGATIVE, COLOR_MASK_BLUE,
-        BLUR_RADIUS_LARGE, SATURATION_HIGH, BRIGHTNESS_HIGH, ALPHA_HIGH);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_LARGE, SATURATION_HIGH, BRIGHTNESS_HIGH, {}, ALPHA_HIGH };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_NEGATIVE, blur);
 }
 
 /*
