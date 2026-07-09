@@ -4444,7 +4444,7 @@ void RSRenderNode::DestroyColorPickerInRender()
         GetId(), static_cast<uint32_t>(lastContrastColorScheme));
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSColorPickerDestroyInRender>(
-            GetId(), GetUIContextToken(), static_cast<uint8_t>(lastContrastColorScheme));
+            GetId(), ExtractPid(GetId()), GetUIContextToken(), static_cast<uint8_t>(lastContrastColorScheme));
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(GetId()), command);
 }
 

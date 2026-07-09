@@ -210,7 +210,7 @@ public:
     static RSB_EXPORT void SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor);
     using ColorPickerDestroyInRenderProcessor = void (*)(NodeId, uint64_t, ContrastColorScheme);
     static void ColorPickerDestroyInRender(
-        RSContext& context, NodeId nodeId, uint64_t token, uint8_t lastContrastColorScheme);
+        RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint8_t lastContrastColorScheme);
     static RSB_EXPORT void SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor processor);
 
     static void ReSortChildrenByZIndex(RSContext& context, NodeId nodeId);
@@ -484,7 +484,7 @@ ADD_COMMAND(RSColorPickerCallback,
         RSNodeCommandHelper::ColorPickerCallback, NodeId, pid_t, uint64_t, uint32_t))
 ADD_COMMAND(RSColorPickerDestroyInRender,
     ARG(PERMISSION_APP, RS_NODE, COLOR_PICKER_DESTROY_IN_RENDER,
-        RSNodeCommandHelper::ColorPickerDestroyInRender, NodeId, uint64_t, uint8_t))
+        RSNodeCommandHelper::ColorPickerDestroyInRender, NodeId, pid_t, uint64_t, uint8_t))
 
 ADD_COMMAND(RSUpdatePropertyDepthCameraPara,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DEPTH_CAMERA_PARA,
