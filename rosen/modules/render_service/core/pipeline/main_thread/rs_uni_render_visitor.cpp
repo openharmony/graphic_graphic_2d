@@ -2709,15 +2709,6 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
         return;
     }
     {
-        auto iter = std::find_if(strategy.begin(), strategy.end(),
-            [](const auto& elem) {
-            return (elem.second == RequestCompositionType::OFFLINE_DEVICE ||
-                elem.second == RequestCompositionType::OFFLINE_VCLD_OFF);
-        });
-        if (iter == strategy.end()) {
-            RSOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask(
-                OfflineDeviceType::HPAE_OFFLINE_DEVICE);
-        }
         std::vector<uint64_t> offlineNodeIds;
         for (const auto& elem : strategy) {
             if (elem.second == RequestCompositionType::OFFLINE_DEVICE ||
