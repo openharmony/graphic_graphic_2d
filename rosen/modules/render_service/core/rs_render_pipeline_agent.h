@@ -182,6 +182,8 @@ public:
     ErrCode RepaintEverything();
     ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height);
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
+    void UpdateScreenNodesResolution(RSNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height);
+    void AdjustBootAnimationBounds(RSNodeMap& nodeMap, uint32_t width, uint32_t height);
     void Clean(pid_t pid, bool forRefresh = false);
     void SetFreeMultiWindowStatus(bool enable);
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
