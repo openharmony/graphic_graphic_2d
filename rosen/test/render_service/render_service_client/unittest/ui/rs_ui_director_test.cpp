@@ -1686,5 +1686,110 @@ HWTEST_F(RSUIDirectorTest, SetCacheDirHybridCanvasTest, TestSize.Level1)
 }
 #endif
 
+/**
+ * @tc.name: ReleaseRenderNodeTest001
+ * @tc.desc: Test RSUIDirector::ReleaseRenderNode; covers branches:
+ *   !rsUIContext_ -> early return;
+ *   skipDestroyUIContext_ -> early return;
+ *   surfaceNode && IsAppWindow() -> skip release;
+ *   surfaceNode && IsTextureExportNode() -> skip release;
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeTest001, TestSize.Level1)
+{
+    // Branch: !rsUIContext_ -> early return
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->ReleaseRenderNode();
+
+    // Branch: skipDestroyUIContext_ -> early return
+    sptr<IRemoteObject> emptyRemote1;
+    director->rsUIContext_ = std::make_shared<RSUIContext>(1, emptyRemote1);
+    director->skipDestroyUIContext_ = true;
+    director->ReleaseRenderNode();
+
+    // Branch: IsAppWindow() -> skip release
+    auto director2 = CreateRSUIDirector();
+    ASSERT_NE(director2, nullptr);
+    sptr<IRemoteObject> emptyRemote2;
+    director2->rsUIContext_ = std::make_shared<RSUIContext>(2, emptyRemote2);
+    director2->skipDestroyUIContext_ = false;
+    RSSurfaceNodeConfig c;
+    auto appNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        director2->GetRSUIContext());
+    ASSERT_NE(appNode, nullptr);
+    appNode->hasCreateRenderNodeInRS_ = true;
+    director2->ReleaseRenderNode();
+    EXPECT_EQ(appNode->GetNodeState(), RSNodeState::ACTIVE);
+
+    // Branch: IsTextureExportNode() -> skip release
+    auto director3 = CreateRSUIDirector();
+    ASSERT_NE(director3, nullptr);
+    director3->rsUIContext_ = std::make_shared<RSUIContext>(3, emptyRemote2);
+    director3->skipDestroyUIContext_ = false;
+    auto texNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::DEFAULT, true, false,
+        director3->GetRSUIContext());
+    ASSERT_NE(texNode, nullptr);
+    texNode->isTextureExportNode_ = true;
+    texNode->hasCreateRenderNodeInRS_ = true;
+    director3->ReleaseRenderNode();
+    EXPECT_EQ(texNode->GetNodeState(), RSNodeState::ACTIVE);
+}
+
+/**
+ * @tc.name: ReleaseRenderNodeTest002
+ * @tc.desc: Test RSUIDirector::ReleaseRenderNode; covers branches:
+ *   !HasCreateRenderNodeInRS() -> skip release;
+ *   GetNodeState() != LAZY_LOAD -> ReleaseInRender (state becomes INACTIVE);
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeTest002, TestSize.Level1)
+{
+    // Branch: !HasCreateRenderNodeInRS() -> skip release
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    sptr<IRemoteObject> emptyRemote;
+    director->rsUIContext_ = std::make_shared<RSUIContext>(4, emptyRemote);
+    director->skipDestroyUIContext_ = false;
+    RSSurfaceNodeConfig c;
+    auto normalNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::DEFAULT, true, false,
+        director->GetRSUIContext());
+    ASSERT_NE(normalNode, nullptr);
+    normalNode->hasCreateRenderNodeInRS_ = false;
+    director->ReleaseRenderNode();
+    EXPECT_EQ(normalNode->GetNodeState(), RSNodeState::ACTIVE);
+
+    // Branch: GetNodeState() != LAZY_LOAD -> ReleaseInRender
+    auto activeNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::DEFAULT, true, false,
+        director->GetRSUIContext());
+    ASSERT_NE(activeNode, nullptr);
+    activeNode->hasCreateRenderNodeInRS_ = true;
+    director->ReleaseRenderNode();
+    EXPECT_EQ(activeNode->GetNodeState(), RSNodeState::INACTIVE);
+}
+
+/**
+ * @tc.name: ReleaseRenderNodeTest003
+ * @tc.desc: Test RSUIDirector::ReleaseRenderNode; covers branch:
+ *   GetNodeState() == LAZY_LOAD -> skip release;
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeTest003, TestSize.Level1)
+{
+    // Branch: GetNodeState() == LAZY_LOAD -> skip release
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    sptr<IRemoteObject> emptyRemote;
+    director->rsUIContext_ = std::make_shared<RSUIContext>(5, emptyRemote);
+    director->skipDestroyUIContext_ = false;
+    RSSurfaceNodeConfig c;
+    auto lazyNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::DEFAULT, true, false,
+        director->GetRSUIContext());
+    ASSERT_NE(lazyNode, nullptr);
+    lazyNode->hasCreateRenderNodeInRS_ = true;
+    lazyNode->nodeState_ = RSNodeState::LAZY_LOAD;
+    director->ReleaseRenderNode();
+    EXPECT_EQ(lazyNode->GetNodeState(), RSNodeState::LAZY_LOAD);
+}
 #endif
 } // namespace OHOS::Rosen

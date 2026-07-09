@@ -16,6 +16,7 @@
 #include "ui/rs_ui_director.h"
 
 #include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 #include "sandbox_utils.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -442,18 +443,15 @@ void RSUIDirector::ReleaseRenderNode()
         return;
     }
     const auto& map = rsUIContext_->GetNodeMap();
-    NodeId appWindowNodeId = 0;
-    if (auto appWindowNode = GetRSSurfaceNode()) {
-        appWindowNodeId = appWindowNode->GetId();
-    }
-    map.TraversalNodes([appWindowNodeId](const std::shared_ptr<RSBaseNode>& baseNode) {
+    map.TraversalNodes([](const std::shared_ptr<RSBaseNode>& baseNode) {
         if (baseNode == nullptr) {
             return;
         }
-        if (baseNode->GetType() == RSUINodeType::SURFACE_NODE && baseNode->GetId() == appWindowNodeId) {
-            return;
-        }
-        if (baseNode->GetType() == RSUINodeType::SURFACE_NODE && baseNode->IsTextureExportNode()) {
+        auto surfaceNode = baseNode->ReinterpretCastTo<RSSurfaceNode>();
+        if (surfaceNode && (surfaceNode->IsAppWindow() || surfaceNode->IsTextureExportNode())) {
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "RSUIDirector::ReleaseRenderNode skip release AppWindow or TextureExportNode id:%llu, name:%s",
+                surfaceNode->GetId(), surfaceNode->GetName().c_str());
             return;
         }
         if (!baseNode->HasCreateRenderNodeInRS()) {

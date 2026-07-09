@@ -355,6 +355,16 @@ public:
     // such as transparent background.
     void SetHardwareEnableHint(bool enable);
 
+    void SetSurfaceNodeType(RSSurfaceNodeType nodeType);
+    RSSurfaceNodeType GetSurfaceNodeType() const
+    {
+        return surfaceNodeType_;
+    }
+    bool IsAppWindow() const
+    {
+        return surfaceNodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
+    }
+
     /**
      * @brief Determines whether the surfaceNode is a selfDrawing node.
      *

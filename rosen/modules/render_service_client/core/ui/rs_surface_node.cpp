@@ -1223,6 +1223,21 @@ void RSSurfaceNode::SetApiCompatibleVersion(uint32_t version)
     });
 }
 
+void RSSurfaceNode::SetSurfaceNodeType(RSSurfaceNodeType nodeType)
+{
+    if (surfaceNodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
+        surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+        surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
+        return;
+    }
+    if (nodeType == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+        nodeType == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
+        RS_LOGE("RSSurfaceNode::SetSurfaceNodeType prohibition of converting surfaceNodeType to uiExtension");
+        return;
+    }
+    surfaceNodeType_ = nodeType;
+}
+
 void RSSurfaceNode::SetSourceVirtualDisplayId(ScreenId screenId)
 {
     SetRSCmdProperty<VirtualDisplayIdCmdModifier>(VirtualDisplayIdCmdParam{

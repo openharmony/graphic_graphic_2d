@@ -91,6 +91,7 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
             surfaceNode->GetId(), 0, surfaceNode->GetIsOnTheTree(),
         });
     }
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     RS_LOGI("RSRootNode::AttachRSSurfaceNode, SurfaceNode:%{public}" PRIu64 ", Node:%{public}" PRIu64,
         surfaceNode->GetId(), GetId());
 }
