@@ -17,7 +17,6 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <cstdint>
 #include <memory>
-#include <securec.h>
 #include <sstream>
 #include <sys/socket.h>
 
@@ -62,6 +61,7 @@ const uint8_t CALLBACK_TYPE_SIZE = 3;
 void OnVSyncCallbackA(int64_t now, void* data) {}
 void OnVSyncCallbackB(int64_t now, void* data) {}
 void OnVSyncCallbackC(int64_t now, void* data) {}
+sptr<VSyncReceiver> vsyncReceiver_ = nullptr;
 
 VSyncReceiver::FrameCallback CreateFrameCallback(FuzzedDataProvider& fdp)
 {
@@ -114,7 +114,16 @@ sptr<VSyncReceiver> CreateVSyncReceiver()
         return nullptr;
     }
     sptr<VSyncReceiver> vsyncReceiver = new VSyncReceiver(vsyncConnection);
+    vsyncReceiver_ = vsyncReceiver;
     return vsyncReceiver;
+}
+
+void CloseReceiver()
+{
+    if (vsyncReceiver_ == nullptr) {
+        return;
+    }
+    vsyncReceiver_->fd_ = -1;
 }
 
 void DoInit(FuzzedDataProvider& fdp)
@@ -275,5 +284,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         default:
             break;
     }
+    OHOS::Rosen::CloseReceiver();
     return 0;
 }

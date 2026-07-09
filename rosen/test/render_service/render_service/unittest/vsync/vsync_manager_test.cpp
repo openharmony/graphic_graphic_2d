@@ -73,7 +73,7 @@ HWTEST_F(VSyncManagerTest, GetVsyncManagerAgent, Function | MediumTest| Level0)
  */
 HWTEST_F(VSyncManagerTest, GetVsyncAppDistributor, Function | MediumTest| Level0)
 {
-    auto appDistributor = vsyncManager_->GetVSyncAppDistributor();
+    auto appDistributor = vsyncManager_->GetVsyncAppDistributor();
     ASSERT_NE(appDistributor, nullptr);
 }
 
@@ -86,7 +86,7 @@ HWTEST_F(VSyncManagerTest, GetVsyncAppDistributor, Function | MediumTest| Level0
  */
 HWTEST_F(VSyncManagerTest, GetVsyncRSDistributor, Function | MediumTest| Level0)
 {
-    auto rsDistributor = vsyncManager_->GetVSyncRSDistributor();
+    auto rsDistributor = vsyncManager_->GetVsyncRSDistributor();
     ASSERT_NE(rsDistributor, nullptr);
 }
 
@@ -99,7 +99,7 @@ HWTEST_F(VSyncManagerTest, GetVsyncRSDistributor, Function | MediumTest| Level0)
  */
 HWTEST_F(VSyncManagerTest, GetVsyncGenerator, Function | MediumTest| Level0)
 {
-    auto generator = vsyncManager_->GetVSyncGenerator();
+    auto generator = vsyncManager_->GetVsyncGenerator();
     ASSERT_NE(generator, nullptr);
 }
 
@@ -112,7 +112,7 @@ HWTEST_F(VSyncManagerTest, GetVsyncGenerator, Function | MediumTest| Level0)
  */
 HWTEST_F(VSyncManagerTest, GetVsyncRSController, Function | MediumTest| Level0)
 {
-    auto rsController = vsyncManager_->GetVSyncRSController();
+    auto rsController = vsyncManager_->GetVsyncRSController();
     ASSERT_NE(rsController, nullptr);
 }
 
@@ -125,7 +125,7 @@ HWTEST_F(VSyncManagerTest, GetVsyncRSController, Function | MediumTest| Level0)
  */
 HWTEST_F(VSyncManagerTest, GetVsyncAppController, Function | MediumTest| Level0)
 {
-    auto appController = vsyncManager_->GetVSyncAppController();
+    auto appController = vsyncManager_->GetVsyncAppController();
     ASSERT_NE(appController, nullptr);
 }
 
@@ -138,7 +138,7 @@ HWTEST_F(VSyncManagerTest, GetVsyncAppController, Function | MediumTest| Level0)
  */
 HWTEST_F(VSyncManagerTest, GetVsyncSampler, Function | MediumTest| Level0)
 {
-    auto sampler = vsyncManager_->GetVSyncSampler();
+    auto sampler = vsyncManager_->GetVsyncSampler();
     ASSERT_NE(sampler, nullptr);
 }
 

@@ -49,6 +49,7 @@ ohos_fuzztest("vsyncreceiverapi_fuzzer") {
         "eventhandler:libeventhandler",
         "ipc:ipc_core",
         "samgr:samgr_proxy",
+        "c_utils:utils",
     ]
 }
 

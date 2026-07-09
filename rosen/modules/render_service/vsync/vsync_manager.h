@@ -34,20 +34,19 @@ public:
     RSVsyncManager();
     ~RSVsyncManager();
     void SetScreenManager(sptr<RSScreenManager> screenManager);
-    sptr<VSyncDistributor> GetVSyncAppDistributor();
-    sptr<VSyncDistributor> GetVSyncRSDistributor();
-    sptr<VSyncGenerator> GetVSyncGenerator();
-    sptr<VSyncController> GetVSyncRSController();
-    sptr<VSyncController> GetVSyncAppController();
-    sptr<VSyncSampler> GetVSyncSampler();
-    bool init(sptr<RSScreenManager> screenManager, bool isMultiProcessMode = false);
+    sptr<VSyncDistributor> GetVsyncAppDistributor();
+    sptr<VSyncDistributor> GetVsyncRSDistributor();
+    sptr<VSyncGenerator> GetVsyncGenerator();
+    sptr<VSyncController> GetVsyncRSController();
+    sptr<VSyncController> GetVsyncAppController();
+    sptr<VSyncSampler> GetVsyncSampler();
     ScreenId OnScreenConnected(ScreenId screenId, std::shared_ptr<AppExecFwk::EventHandler> handler);
-    void OnScreenDisconnected(ScreenId id, std::shared_ptr<AppExecFwk::EventHandler> handler);
+    void OnScreenDisconnected(ScreenId screenId, std::shared_ptr<AppExecFwk::EventHandler> handler);
     void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property,
         std::shared_ptr<AppExecFwk::EventHandler> handler, bool isFoldScreen);
+    bool init(sptr<RSScreenManager> screenManager, bool isMultiProcessMode = false);
     VsyncError AddRSVsyncConnection(const sptr<VSyncConnection>& connection);
-    sptr<VSyncConnection> CreateRSVSyncConnection(std::string name,
-        const sptr<IRemoteObject>& token = nullptr);
+    sptr<VSyncConnection> CreateRSVSyncConnection(std::string name, const sptr<IRemoteObject>& token = nullptr);
     sptr<RSVsyncManagerAgent> GetVsyncManagerAgent();
 
 private:

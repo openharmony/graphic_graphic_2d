@@ -19,8 +19,7 @@ module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("NativeVsyncFuzzTest") {
-  fuzz_config_file =
-      "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync/test/fuzztest/nativeVsyncFuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/composer/native_vsync/test/fuzztest/nativeVsyncFuzzer"
   module_out_path = module_output_path
 
   include_dirs = [

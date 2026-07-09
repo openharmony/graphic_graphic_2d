@@ -206,6 +206,9 @@ HWTEST_F(VsyncReceiverTest, RegisterFileDescriptorListener, Function | MediumTes
     rsReceiver->fd_ = 10;
     ASSERT_EQ(rsReceiver->Init(needAddFd), VSYNC_ERROR_OK);
     rsReceiver->RegisterFileDescriptorListener(hasVsyncThread, needAddFd);
+    hasVsyncThread = false;
+    needAddFd = true;
+    rsReceiver->RegisterFileDescriptorListener(hasVsyncThread, needAddFd);
     rsReceiver->fd_ = fd;
 }
 
@@ -258,6 +261,28 @@ HWTEST_F(VsyncReceiverTest, RequestNextVSync002, Function | MediumTest| Level3)
 }
 
 /*
+* Function: RequestNextVSync003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestNextVSync
+ */
+HWTEST_F(VsyncReceiverTest, RequestNextVSync003, Function | MediumTest| Level3)
+{
+    onVsyncCount = 0;
+    auto& rsClient = RSInterfaces::GetInstance();
+    auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
+
+    ASSERT_EQ(rsReceiver->Init(), VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    rsReceiver->listener_->SetType(AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC);
+    ASSERT_EQ(rsReceiver->RequestNextVSync(fcb), VSYNC_ERROR_OK);
+}
+
+/*
 * Function: RequestNextVSyncWithMultiCallback
 * Type: Function
 * Rank: Important(2)
@@ -272,6 +297,29 @@ HWTEST_F(VsyncReceiverTest, RequestNextVSyncWithMultiCallback002, Function | Med
     };
     vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb), VSYNC_ERROR_OK);
+    vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: RequestNextVSyncWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestNextVSyncWithMultiCallback after Init.
+ */
+HWTEST_F(VsyncReceiverTest, RequestNextVSyncWithMultiCallback003, Function | MediumTest| Level3)
+{
+    onVsyncCount = 0;
+    auto& rsClient = RSInterfaces::GetInstance();
+    auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
+
+    ASSERT_EQ(rsReceiver->Init(), VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    rsReceiver->listener_->SetType(AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC);
+    ASSERT_EQ(rsReceiver->RequestNextVSyncWithMultiCallback(fcb), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
 }
 

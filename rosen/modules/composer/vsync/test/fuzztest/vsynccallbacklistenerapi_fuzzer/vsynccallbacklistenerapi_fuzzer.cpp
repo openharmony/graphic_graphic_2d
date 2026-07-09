@@ -21,7 +21,6 @@
 #include <functional>
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
-#include <securec.h>
 #include <sstream>
 #include <sys/socket.h>
 #include <sys/stat.h>

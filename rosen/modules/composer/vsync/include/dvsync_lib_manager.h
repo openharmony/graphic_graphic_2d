@@ -46,7 +46,7 @@ using SetDistributorFunc = bool (*)(bool isRs, const sptr<VSyncDistributor>& dis
 using SetConnectionFunc = void (*)(bool isRs, const sptr<VSyncConnection>& connection);
 using DisableVSyncFunc = void (*)(const sptr<VSyncDistributor>& distributor);
 using NeedSkipAndUpdateTsFunc = bool (*)(const sptr<VSyncConnection>& connection, int64_t& timeStamp);
-using NeedSkipUiFunc = bool (*)(sptr<VSyncConnection> connection);
+using NeedSkipUiFunc = bool (*)(const sptr<VSyncConnection>& connection);
 using RecordEnableVsyncFunc = void (*)(const sptr<VSyncDistributor>& distributor);
 using RecordRNVFunc = void (*)(const sptr<VSyncConnection>& connection, const std::string& fromWhom,
     VSyncMode vsyncMode, int64_t lastVSyncTS, int64_t requestVsyncTime);
@@ -114,7 +114,7 @@ public:
     void SetConnection(bool isRs, const sptr<VSyncConnection>& connection);
     void DisableVSync(const sptr<VSyncDistributor>& distributor);
     bool NeedSkipAndUpdateTs(const sptr<VSyncConnection>& connection, int64_t& timeStamp);
-    bool NeedSkipUi(sptr<VSyncConnection> connection);
+    bool NeedSkipUi(const sptr<VSyncConnection>& connection);
     void RecordEnableVsync(const sptr<VSyncDistributor>& distributor);
     void RecordRNV(const sptr<VSyncConnection>& connection, const std::string& fromWhom,
         VSyncMode vsyncMode, int64_t lastVSyncTS, int64_t requestVsyncTime);
@@ -202,7 +202,7 @@ private:
     bool LoadDvsyncDelayFunctions();
     void ClearAllFunctions();
     void ClearDvsyncDelayFunctions();
-    
+
     template<typename FuncPtr>
     bool LoadFunction(const std::string& funcName, FuncPtr& funcPtr)
     {

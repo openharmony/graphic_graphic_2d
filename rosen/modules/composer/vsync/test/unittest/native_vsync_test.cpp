@@ -362,14 +362,13 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_GetPeriod001, Function | MediumTest | L
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call OH_NativeVSync_GetPeriod 
+* CaseDescription: 1. call OH_NativeVSync_GetPeriod
 *                  2. check ret
  */
 HWTEST_F(NativeVsyncTest, OH_NativeVSync_GetPeriod002, Function | MediumTest | Level2)
 {
     ASSERT_NE(OH_NativeVSync_GetPeriod(native_vsync, nullptr), 0);
 }
-
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

@@ -99,8 +99,6 @@ ohos_source_set("libvsync_manager") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "libpng:libpng",
-    "qos_manager:concurrent_task_client",
-    "qos_manager:qos",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",

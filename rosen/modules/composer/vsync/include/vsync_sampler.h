@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
-
 #include <event_handler.h>
 #include <refbase.h>
 #include "graphic_common.h"

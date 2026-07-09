@@ -123,7 +123,7 @@ public:
     VSyncGenerator &operator=(const VSyncGenerator &) = delete;
     VsyncError UpdateMode(int64_t period, int64_t phase, int64_t referenceTime) override;
     VsyncError AddListener(const sptr<Callback>& cb,
-        bool isRS, bool isUrgent, int64_t lastVsyncTime) override;
+        bool isRS = false, bool isUrgent = false, int64_t lastVsyncTime = 0) override;
     VsyncError RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError ChangePhaseOffset(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, int64_t offset) override;
     bool IsEnable() override;
@@ -209,7 +209,6 @@ private:
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);
     void WaitForTimeoutConNotifyLocked();
-    void WaitForTimeoutConNotifyLockedForRefreshRate();
     void WaitForTimeoutConNotifyLockedForListener();
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;

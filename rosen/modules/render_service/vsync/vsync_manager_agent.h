@@ -53,6 +53,7 @@ public:
     bool IsVsyncRSDistributorExist();
     bool IsVsyncAppDistributorExist();
     bool DvsyncNeedSkipRsCommitDelay() const;
+
 private:
     sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
     sptr<VSyncDistributor> rsVsyncDistributor_ = nullptr;
