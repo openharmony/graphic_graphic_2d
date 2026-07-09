@@ -136,4 +136,4 @@ private:
     Drawing::MipmapMode mipmapMode_ = Drawing::MipmapMode::LINEAR;
 };
 } // namespace OHOS::Rosen
-#endif /* EFFECT_IMAGE_CHAIN_H */
+#endif // EFFECT_IMAGE_CHAIN_H
