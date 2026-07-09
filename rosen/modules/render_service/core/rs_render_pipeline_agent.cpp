@@ -2087,39 +2087,49 @@ ErrCode RSRenderPipelineAgent::SetRogScreenResolution(ScreenId screenId, uint32_
         return ERR_INVALID_VALUE;
     }
     auto task = [screenId, width, height, renderPipeline = pipeline]() -> void {
-        auto& nodemap = renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap();
-        auto resolution = std::make_pair(width, height);
-        auto property = sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolution);
-        // 1. Update RSScreenRenderNode.screenInfo and RENDER_RESOLUTION for the target screen
-        nodemap.TraverseScreenNodes([screenId, width, height, property](const std::shared_ptr<RSScreenRenderNode>& node) {
-            if (node && node->GetScreenId() == screenId) {
-                auto screenInfo = node->GetScreenInfo();
-                screenInfo.width = width;
-                screenInfo.height = height;
-                node->SetScreenInfo(screenInfo);
-                node->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION, property);
-                node->SetDirty();
-                RS_LOGI("SetRogScreenResolution, update screenInfo and renderResolution, screenId:%{public}" PRIu64
-                    ", width:%{public}u, height:%{public}u",
-                    screenId, width, height);
-            }
-        });
-        // 2. Adjust boot animation bounds
-        nodemap.TraverseSurfaceNodes([=](const std::shared_ptr<RSSurfaceRenderNode>& node) {
-            if (node && node->GetBootAnimation()) {
-                for (auto modifier : node->GetModifiersNG(ModifierNG::RSModifierType::BOUNDS)) {
-                    if (modifier) {
-                        modifier->Setter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS, {0, 0, width, height});
-                    }
-                }
-                RS_LOGI("SetRogScreenResolution, adjust bootanimation bounds, Bounds:%s",
-                    node->GetRenderProperties().GetBoundsRect().ToString().c_str());
-                node->SetDirty();
-            }
-        });
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap();
+        UpdateScreenNodesResolution(nodeMap, screenId, width, height);
+        AdjustBootAnimationBounds(nodeMap, width, height);
     };
     pipeline->PostMainThreadSyncTask(task);
     return ERR_OK;
+}
+
+void RSRenderPipelineAgent::UpdateScreenNodesResolution(
+    RSNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height)
+{
+    auto resolution = std::make_pair(width, height);
+    auto property = sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolution);
+    auto updateNode = [screenId, width, height, property](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (node && node->GetScreenId() == screenId) {
+            auto screenInfo = node->GetScreenInfo();
+            screenInfo.width = width;
+            screenInfo.height = height;
+            node->SetScreenInfo(screenInfo);
+            node->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION, property);
+            node->SetDirty();
+            RS_LOGI("SetRogScreenResolution, update screenInfo and renderResolution, "
+                "screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u",
+                screenId, width, height);
+        }
+    };
+    nodeMap.TraverseScreenNodes(updateNode);
+}
+ 
+void RSRenderPipelineAgent::AdjustBootAnimationBounds(RSNodeMap& nodeMap, uint32_t width, uint32_t height)
+{
+    nodeMap.TraverseSurfaceNodes([=](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        if (node && node->GetBootAnimation()) {
+            for (auto modifier : node->GetModifiersNG(ModifierNG::RSModifierType::BOUNDS)) {
+                if (modifier) {
+                    modifier->Setter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS, {0, 0, width, height});
+                }
+            }
+            RS_LOGI("SetRogScreenResolution, adjust bootanimation bounds, Bounds:%s",
+                node->GetRenderProperties().GetBoundsRect().ToString().c_str());
+            node->SetDirty();
+        }
+    });
 }
 
 void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
