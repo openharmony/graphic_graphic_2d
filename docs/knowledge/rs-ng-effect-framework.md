@@ -101,8 +101,8 @@ RSNGRenderEffectTemplate<Base, Type, Tags...>   ← 属性绑定层
 
 | 工厂位置 | 约有类型数 |
 | --- | --- |
-| `rs_render_filter_base.cpp` creatorLUT | ~24 Filter |
-| `rs_render_shader_base.cpp` creatorLUT | ~20 Shader |
+| `rs_render_filter_base.cpp` creatorLUT | 25 Filter |
+| `rs_render_shader_base.cpp` creatorLUT | 21 Shader |
 | `rs_render_mask_base.cpp` creatorLUT | ~11 Mask |
 | `rs_render_shape_base.cpp` creatorLUT | ~12 Shape |
 
@@ -127,8 +127,8 @@ node.SetBackgroundNGFilter(effect)
   → effect.Attach(node, modifier)             RSNGRenderFilterTemplate（服务端镜像）
   → IPC Marshalling                         ← IPC Unmarshalling（creatorLUT 重建）
                                               → RSProperties::SetBackgroundNGFilter()
-                                              → ComposeNGRRenderFilter()
-                                                → RSDrawingFilter::SetNGRRenderFilter()
+                                               → ComposeNGRenderFilter()
+                                                 → RSDrawingFilter::SetNGRenderFilter()
                                                 → GenerateAndUpdateGEVisualEffect()
                                                   → RSNGRenderFilterHelper::GenerateGEVisualEffect()
                                                     → CreateGEVisualEffect(type) + SetParam(name, value)

@@ -75,10 +75,12 @@ XML 性能配置键 `"BehindWindowBlur"` 读取并初始化；运行时可通过
 
 1. 前置守卫：`RSSystemProperties::GetEffectMergeEnabled()` 且
    `RSFilterCacheManager::isCCMEffectMergeEnable_` 均为 true 时才进入；
-   否则直接调用 `RSPropertyDrawableUtils::DrawUseEffect` 走通用路径。
+   否则直接 `return`，不执行任何绘制。
 2. 截屏/缓存模式：当 canvas 处于 window-freeze-capture 或 drawing-cache 模式时，
-   清空画布为透明（`Clear(COLOR_TRANSPARENT)`），使后窗模糊区域透出底层已渲染的模糊内容，
-   然后提前返回。
+   - 若 `GetIsDrawingCache() && !GetCacheBehindWindowData()`（drawing-cache 但无后窗缓存数据），
+     直接 `return`，不清空画布。
+   - 否则清空画布为透明（`Clear(COLOR_TRANSPARENT)`），使后窗模糊区域透出底层已渲染的模糊内容，
+     然后提前返回。
 3. 正常绘制路径：调用 `RSPropertyDrawableUtils::DrawUseEffect(canvas, BEHIND_WINDOW)`，
    内部通过 `canvas->GetBehindWindowData()` 获取后窗模糊缓存数据并绘制。
 
@@ -127,6 +129,9 @@ RSPropertyDrawableUtils::DrawUseEffect → 绘制模糊结果
 
 ### Dynamic Layer Skip
 
+> 本节与 Behind Window Filter 属于不同特性，暂放在同一文档中。
+> 长远看可拆分到独立的"节点合并绘制"文档。
+
 `RSDynamicLayerSkipController` 提供动态 Layer 跳过判断：
 
 1. **初始化**：`Init(screenRect, globalDisabled)` 设置屏幕矩形和全局禁用标志
@@ -164,7 +169,7 @@ RSPropertyDrawableUtils::DrawUseEffect → 绘制模糊结果
 | 后窗开关默认启用 | `isBehindWindowFilterEnabledCCM_ = true` | 后窗模糊是默认行为，CCM 可在性能不足时关闭 |
 | 生成端与消费端分离 | `RSBackgroundFilterDrawable` 生成 / `RSUseEffectDrawable` 消费 | 父 Surface 生成模糊缓存，子节点透明留白或消费缓存，避免重复模糊 |
 | BEHIND_WINDOW 不存父节点弱引用 | `OnGenerate` 中 BEHIND_WINDOW 分支仅存类型 | 后窗模糊数据来自 canvas 缓存而非父节点 drawable，无需向上查找 |
-| 截屏/缓存模式下清空透明 | `OnDraw` 中 `Clear(COLOR_TRANSPARENT)` | 让底层已渲染的模糊内容透出，避免在缓存快照中重复合成 |
+| 截屏/缓存模式下清空透明 | `OnDraw` 中 `Clear(COLOR_TRANSPARENT)` | 让底层已渲染的模糊内容透出，避免在缓存快照中重复合成；drawing-cache 无后窗数据时直接返回不清空 |
 | Layer 跳过基于遮挡检测 | `DetectScreenLayerValidity` | 被全屏遮挡的 Layer 无需渲染，跳过可节省 GPU 资源 |
 | 全局禁用标志 | `globalDisabled_` | 某些场景（如调试/性能测试）需要全局禁用 Layer 跳过 |
 | 自绘 Surface 特殊处理 | `targetSelfDrawingSurface_` | 自绘 Surface（如视频/相机）可能不需要模糊后窗，特殊识别 |

@@ -154,7 +154,8 @@ COLOR_PICK_THIS_FRAME ──OnPrepare─────>  PREPARING
 ### 特殊节点处理
 
 - `IsColorPickerOnlyNode`：有 ColorPickerDrawable 但无实际 filter 的节点，
-  在 dirty/visitor 管线中特殊跳过部分 filter 路径以避免无意义的模糊工作。
+  在 dirty/visitor 管线中跳过 filter 缓存清除、脏区域合并和 filter 信息收集逻辑，
+  避免无意义模糊工作。ColorPicker 自身的 HWC 禁用在跳过之前已执行，不受影响。
 - 脱离渲染树时（`rs_render_node.cpp`）：调用 `ResetColorMemory`，
   并将最后的暗色等效模式持久化到节点属性。
 
@@ -175,4 +176,3 @@ COLOR_PICK_THIS_FRAME ──OnPrepare─────>  PREPARING
 
 - Placeholder 映射的完整语义和 ArkUI 使用方式
 - MHC/HPS 硬件加速路径的触发条件和芯片依赖
-- `childrenBlurBehindWindow_` 与 ColorPicker 注册的交互
