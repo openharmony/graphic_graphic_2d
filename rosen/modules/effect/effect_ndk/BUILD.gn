@@ -105,6 +105,7 @@ effect_ndk_source_set("effect_ndk_source_ohos") {
 }
 
 ohos_shared_library("native_effect_ndk") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
