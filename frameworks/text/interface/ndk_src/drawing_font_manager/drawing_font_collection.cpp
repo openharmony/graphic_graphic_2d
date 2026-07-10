@@ -88,16 +88,14 @@ void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection* fontCollection)
         return;
     }
 
-    if (OHOS::Rosen::FontCollectionMgr::GetInstance().FindSharedFontColleciton(fontCollection)) {
-        ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->ClearCaches();
+    auto sharedFontCollection = OHOS::Rosen::FontCollectionMgr::GetInstance().FindSharedFontColleciton(fontCollection);
+    if (sharedFontCollection) {
+        sharedFontCollection->ClearCaches();
         return;
     }
 
-    if (ObjectMgr::GetInstance().HasObject(fontCollection)) {
-        ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->ClearCaches();
-        return;
-    }
-    return;
+    ObjectMgr::GetInstance().WithObject(fontCollection,
+        [](void* ptr) { ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(ptr)->ClearCaches(); });
 }
 
 OH_Drawing_FontCollection* OH_Drawing_GetFontCollectionGlobalInstance(void)
