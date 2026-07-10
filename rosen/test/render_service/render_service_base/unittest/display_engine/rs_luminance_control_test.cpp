@@ -65,13 +65,14 @@ public:
     MOCK_METHOD(bool, IsHardwareHdrDisabled, (bool checkBrightnessRatio, ScreenId screenId), (override));
     MOCK_METHOD(double, GetConfigScaler, (ScreenId screenId, HdrStatus type), (override, const));
     MOCK_METHOD(void, SetDualScreenStatus, (ScreenId screenId, DualScreenStatus dualScreenStatus), (override));
-    MOCK_METHOD(float, HdrDimmingProcess, (ScreenId screenId, RSSurfaceRenderNode& surfaceNode), (override));
+    MOCK_METHOD(float, HdrDimmingProcess, (ScreenId screenId, const RSSurfaceRenderNode& surfaceNode), (override));
     MOCK_METHOD(void, HdrDimmingPostProcess, (ScreenId screenId), (override));
     MOCK_METHOD(int32_t, UpdateMetadataBasedOnScaler, (const sptr<SurfaceBuffer>& input, float scaler,
         HdrStatus hdrStatus), (override));
 
     float CalScaler(const float& maxContentLightLevel,
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) override;
+    float CalAIHDRScaler(const RSSurfaceRenderNode& surfaceNode, const float& ratio, HdrStatus hdrStatus) override;
 };
 
 float MockRSLuminanceControl::CalScaler(const float& maxContentLightLevel,
@@ -83,6 +84,12 @@ float MockRSLuminanceControl::CalScaler(const float& maxContentLightLevel,
     } else {
         return HDR_DEFAULT_SCALER * ratio;
     }
+}
+
+float MockRSLuminanceControl::CalAIHDRScaler(const RSSurfaceRenderNode& surfaceNode,
+    const float& ratio, HdrStatus hdrStatus)
+{
+    return AI_HDR_SCALER;
 }
 
 class RSLuminanceControlTest : public testing::Test {
