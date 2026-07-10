@@ -203,7 +203,7 @@ protected:
     bool SkipDrawByWhiteList(Drawing::Canvas& canvas);
     void SetShouldClipHole(bool value) override;
     bool ShouldClipHole() const override;
-    int32_t GetAndMaybeClearContinuousUpdateCount(uint64_t currentVsyncId, bool needUpdateCache);
+    int32_t GetOrClearContinuousUpdateCount(uint64_t currentVsyncId, bool needUpdateCache);
     void UpdateContinuousUpdateCount(uint64_t vsyncId);
     void ClearDrawingCacheContinuousUpdateTimeMap();
     // !used for render group cache
