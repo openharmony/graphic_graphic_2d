@@ -15,15 +15,25 @@
 
 #include "command/rs_ui_director_command.h"
 
+#include "common/rs_common_def.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_ui_render_director.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+inline bool IsNodeIdMatchPid(NodeId nodeId, pid_t pid)
+{
+    return ExtractPid(nodeId) == pid;
+}
+} // namespace
 
 void RSUIDirectorCommandHelper::GoCreate(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token)
 {
+    if (!IsNodeIdMatchPid(nodeId, pid)) {
+        return;
+    }
     auto director = context.GetUIRenderDirector(pid, token);
     if (director != nullptr) {
         RS_LOGD("RSUIDirectorCommandHelper::GoCreate found director for token: %{public}" PRIu64, token);
@@ -40,6 +50,9 @@ void RSUIDirectorCommandHelper::GoCreate(RSContext& context, NodeId nodeId, pid_
 
 void RSUIDirectorCommandHelper::GoResume(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token)
 {
+    if (!IsNodeIdMatchPid(nodeId, pid)) {
+        return;
+    }
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
         RS_LOGE("RSUIDirectorCommandHelper::GoResume failed to find director for token: %{public}" PRIu64, token);
@@ -50,6 +63,9 @@ void RSUIDirectorCommandHelper::GoResume(RSContext& context, NodeId nodeId, pid_
 
 void RSUIDirectorCommandHelper::GoForeground(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token)
 {
+    if (!IsNodeIdMatchPid(nodeId, pid)) {
+        return;
+    }
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
         RS_LOGE("RSUIDirectorCommandHelper::GoForeground failed to find director for token: %{public}" PRIu64, token);
@@ -60,6 +76,9 @@ void RSUIDirectorCommandHelper::GoForeground(RSContext& context, NodeId nodeId, 
 
 void RSUIDirectorCommandHelper::GoBackground(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token)
 {
+    if (!IsNodeIdMatchPid(nodeId, pid)) {
+        return;
+    }
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
         RS_LOGE("RSUIDirectorCommandHelper::GoBackground failed to find director for token: %{public}" PRIu64, token);
@@ -70,6 +89,9 @@ void RSUIDirectorCommandHelper::GoBackground(RSContext& context, NodeId nodeId, 
 
 void RSUIDirectorCommandHelper::GoStop(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token)
 {
+    if (!IsNodeIdMatchPid(nodeId, pid)) {
+        return;
+    }
     context.GetMutableNodeMap().DestroyTokenNode(pid, token);
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
@@ -81,6 +103,9 @@ void RSUIDirectorCommandHelper::GoStop(RSContext& context, NodeId nodeId, pid_t 
 
 void RSUIDirectorCommandHelper::GoDestroy(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token)
 {
+    if (!IsNodeIdMatchPid(nodeId, pid)) {
+        return;
+    }
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
         ROSEN_LOGW("RSUIDirectorCommandHelper::GoDestroy failed to find director for token: %{public}" PRIu64, token);
