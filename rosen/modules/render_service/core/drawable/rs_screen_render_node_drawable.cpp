@@ -782,7 +782,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #ifdef USE_PRIMITIVE
     auto primListAdapter = std::make_shared<PrimListAdapter>();
     curCanvas_->primListAdapter_ = primListAdapter;
-    AutoDirtyTypesRestore autoDirtyTypesRestore(primListAdapter, *this);
+    AutoDirtyTypesRestore autoDirtyTypesRestore(primListAdapter.get(), *this);
 #endif
 
     auto& layerCacheManager = RSLayerCacheManager::Instance();
