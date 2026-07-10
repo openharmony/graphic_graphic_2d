@@ -2118,7 +2118,7 @@ void RSRenderPipelineAgent::UpdateScreenNodesResolution(
  
 void RSRenderPipelineAgent::AdjustBootAnimationBounds(RSRenderNodeMap& nodeMap, uint32_t width, uint32_t height)
 {
-    auto adjustNode = [=](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+    auto adjustNode = [width, height](const std::shared_ptr<RSSurfaceRenderNode>& node) {
         if (!node || !node->GetBootAnimation()) {
             return;
         }
