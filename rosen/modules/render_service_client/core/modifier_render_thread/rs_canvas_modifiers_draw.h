@@ -119,8 +119,10 @@ public:
 private:
     // Thread-related methods
     void StartThread();
-    void PostTask(const std::function<void()>&& task, const std::string& name = std::string(), int64_t delayTime = 0);
-    void PostSyncTask(const std::function<void()>&& task);
+    void WaitAllTasksFinish();
+    void Destroy();
+    void PostTask(const std::function<void()>& task, const std::string& name = std::string(), int64_t delayTime = 0);
+    void PostSyncTask(const std::function<void()>& task);
     void RemoveTask(const std::string& name);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
@@ -133,6 +135,8 @@ private:
     // End of thread-related methods
 
     void SetCacheDir(const std::string& cacheDir);
+
+    void QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     void OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
 

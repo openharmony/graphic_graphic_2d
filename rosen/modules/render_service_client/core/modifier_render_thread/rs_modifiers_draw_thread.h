@@ -64,8 +64,11 @@ public:
 
 private:
     void Start();
+    void WaitAllTasksFinish();
+    void Destroy();
 
-    void PostTask(const std::function<void()>&& task, const std::string& name = std::string(), int64_t delayTime = 0);
+    void PostTask(const std::function<void()>& task, const std::string& name = std::string(), int64_t delayTime = 0);
+    void PostSyncTask(const std::function<void()>& task);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)

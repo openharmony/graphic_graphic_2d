@@ -26,6 +26,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#include "render_context/render_context.h"
 #include "render_context/shader_cache.h"
 
 namespace OHOS {
@@ -161,7 +162,6 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::Draw()
         RS_LOGE("RSCanvasModifiersDrawable::Draw: Null surfaceFrame, nodeId=%{public}" PRIu64, nodeId_);
         return nullptr;
     }
-    auto drawingSurface = drawingSurface_;
     for (auto& cmdList : *drawCmdListCache_) {
         Playback(cmdList);
         cmdList->ClearOp();
@@ -416,14 +416,37 @@ void RSCanvasModifiersDraw::StartThread()
     RS_LOGI("RSCanvasModifiersDraw::StartThread: Thread started");
 }
 
-void RSCanvasModifiersDraw::PostTask(
-    const std::function<void()>&& task, const std::string& name, int64_t delayTime)
+void RSCanvasModifiersDraw::WaitAllTasksFinish()
+{
+    if (threadStarted_) {
+        PostSyncTask([]() { RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish"); });
+    }
+}
+
+void RSCanvasModifiersDraw::Destroy()
+{
+    if (!threadStarted_) {
+        return;
+    }
+
+    if (handler_ != nullptr) {
+        handler_->RemoveAllEvents();
+        handler_ = nullptr;
+    }
+    if (runner_ != nullptr) {
+        runner_->Stop();
+        runner_ = nullptr;
+    }
+    threadStarted_ = false;
+}
+
+void RSCanvasModifiersDraw::PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime)
 {
     StartThread();
     handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
-void RSCanvasModifiersDraw::PostSyncTask(const std::function<void()>&& task)
+void RSCanvasModifiersDraw::PostSyncTask(const std::function<void()>& task)
 {
     StartThread();
     handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
@@ -445,6 +468,14 @@ void RSCanvasModifiersDraw::SetCacheDir(const std::string& cacheDir)
             ShaderCache::Instance().SetFilePath(path);
             canvasModifiersDraw->cacheDir_ = path;
         }
+    });
+}
+
+void RSCanvasModifiersDraw::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    PostSyncTask([&maxWidth, &maxHeight] {
+        RsVulkanContext::SetRecyclable(true);
+        RenderContext::Create()->QueryMaxGpuBufferSize(maxWidth, maxHeight);
     });
 }
 

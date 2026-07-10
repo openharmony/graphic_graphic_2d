@@ -28,6 +28,11 @@ void RSCanvasModifiersDrawAgent::SetCacheDir(const std::string& cacheDir)
     canvasModifiersDraw_->SetCacheDir(cacheDir);
 }
 
+void RSCanvasModifiersDrawAgent::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    canvasModifiersDraw_->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+}
+
 void RSCanvasModifiersDrawAgent::OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface)
 {
     canvasModifiersDraw_->OnNodeCreate(nodeId, weakRenderInterface);
@@ -73,5 +78,15 @@ void RSCanvasModifiersDrawAgent::SubmitAndCollectCanvasBuffers()
 void RSCanvasModifiersDrawAgent::SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList)
 {
     canvasModifiersDraw_->SwapTransactionConfigList(transactionConfigList);
+}
+
+void RSCanvasModifiersDrawAgent::WaitAllTasksFinish()
+{
+    canvasModifiersDraw_->WaitAllTasksFinish();
+}
+
+void RSCanvasModifiersDrawAgent::Destroy()
+{
+    canvasModifiersDraw_->Destroy();
 }
 } // namespace OHOS::Rosen

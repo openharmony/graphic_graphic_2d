@@ -303,18 +303,18 @@ bool RSUIContext::WaitForRebuildNormal(uint32_t timeoutMs)
     return true;
 }
 
-void RSUIContext::PostLastModifiersDrawThreadTask()
+void RSUIContext::DestroyModifiersDraw()
 {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled() || modifiersDrawThread_ == nullptr) {
         return;
     }
-    auto self = shared_from_this();
-    // Critical: hold strong reference to RSUIContext in task to delay its destruction,
-    // ensuring all tasks in modifiersDrawThread_ complete and avoiding task loss.
-    modifiersDrawThread_->PostTask([self]() {
-        RS_TRACE_NAME_FMT("RSUIContext::PostLastModifiersDrawThreadTask Token: %" PRIu64, self->GetToken());
-    });
+    canvasModifiersDrawAgent_->WaitAllTasksFinish();
+    canvasModifiersDrawAgent_->Destroy();
+    canvasModifiersDrawAgent_ = nullptr;
+    modifiersDrawThread_->WaitAllTasksFinish();
+    modifiersDrawThread_->Destroy();
+    modifiersDrawThread_ = nullptr;
 #endif
 }
 
@@ -330,21 +330,30 @@ void RSUIContext::UnblockUIThread()
 
 CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
 {
+    if (modifiersDrawThread_ == nullptr) {
+        RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null modifiersDrawThread.");
+        return nullptr;
+    }
+
     modifiersDrawThread_->Start();
     std::weak_ptr<RSUIContext> weakContext = shared_from_this();
-    return [weakContext](std::shared_ptr<RSRenderPipelineClient>& renderPipelineClient,
-               std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
-        if (renderPipelineClient == nullptr) {
-            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null renderPipelineClient.");
+    return [weakContext](std::shared_ptr<RSRenderPipelineClient>& renderPiplineClient,
+        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
+        if (renderPiplineClient == nullptr) {
+            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null renderPiplineClient.");
             return;
         }
         if (rsTransactionData == nullptr) {
-            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null rsTransactionData.");
+            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null transactionData.");
             return;
         }
         auto uiContext = weakContext.lock();
         if (uiContext == nullptr) {
             RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null uiContext.");
+            return;
+        }
+        if (uiContext->modifiersDrawThread_ == nullptr) {
+            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null modifiersDrawThread inner.");
             return;
         }
         static uint32_t commitIndex = 0;
@@ -353,13 +362,13 @@ CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
         commitIndex++;
         RS_TRACE_NAME_FMT("Post CommitTransaction, index=%u", commitIndex);
         uiContext->modifiersDrawThread_->ScheduleTask(
-            [weakContext, renderPipelineClient, transactionData = std::move(rsTransactionData), &transactionDataIndex,
-                index = commitIndex]() mutable {
+            [weakContext, renderPiplineClient, transactionData = std::move(rsTransactionData),
+                &transactionDataIndex, index = commitIndex]() mutable {
                 auto uiContext = weakContext.lock();
                 if (uiContext == nullptr) {
                     return;
                 }
-                if (uiContext->canvasModifiersDrawAgent_ != nullptr) {
+                if (uiContext->modifiersDrawThread_ != nullptr && uiContext->canvasModifiersDrawAgent_ != nullptr) {
                     RS_TRACE_NAME_FMT("Do CommitTransaction, index=%u", index);
                     uiContext->modifiersDrawThread_->CommitTransaction(uiContext->canvasModifiersDrawAgent_,
                         renderPiplineClient, std::move(transactionData), transactionDataIndex);
@@ -387,7 +396,9 @@ void RSUIContext::FlushCanvasDrawingNodeBuffers()
         std::unique_ptr<RSCommand> command = std::make_unique<TransactionBufferCommand>(rootNodeId_);
         transaction->AddCommand(command, true);
     }
-    canvasModifiersDrawAgent_->SubmitAndCollectCanvasBuffers();
+    if (canvasModifiersDrawAgent_ != nullptr) {
+        canvasModifiersDrawAgent_->SubmitAndCollectCanvasBuffers();
+    }
     canvasDrawingNodeBufferFlushed_ = true;
     canvasDrawingNodeUpdated_ = false;
 }

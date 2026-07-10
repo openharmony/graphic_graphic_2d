@@ -54,11 +54,41 @@ void RSModifiersDrawThread::Start()
     RS_LOGI("%{public}s RSModifiersDrawThread started", __func__);
 }
 
-void RSModifiersDrawThread::PostTask(
-    const std::function<void()>&& task, const std::string& name, int64_t delayTime)
+void RSModifiersDrawThread::WaitAllTasksFinish()
+{
+    if (started_) {
+        PostSyncTask([]() { RS_TRACE_NAME_FMT("RSModifiersDrawThread::WaitAllTasksFinish"); });
+    }
+}
+
+void RSModifiersDrawThread::Destroy()
+{
+    if (!started_) {
+        return;
+    }
+
+    if (handler_ != nullptr) {
+        handler_->RemoveAllEvents();
+        handler_ = nullptr;
+    }
+    if (runner_ != nullptr) {
+        runner_->Stop();
+        runner_ = nullptr;
+    }
+    started_ = false;
+}
+
+void RSModifiersDrawThread::PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime)
 {
     if (handler_ != nullptr) {
         handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
+void RSModifiersDrawThread::PostSyncTask(const std::function<void()>& task)
+{
+    if (handler_ != nullptr) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 

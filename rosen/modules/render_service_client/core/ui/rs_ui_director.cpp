@@ -78,7 +78,7 @@ RSUIDirector::~RSUIDirector()
     auto uiContext = rsUIContext_;
     Destroy();
     if (uiContext != nullptr) {
-        uiContext->PostLastModifiersDrawThreadTask();
+        uiContext->DestroyModifiersDraw();
     }
 }
 

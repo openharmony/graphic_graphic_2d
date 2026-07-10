@@ -132,6 +132,10 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
         auto uiContext = node->GetRSUIContext();
         auto canvasModifiersDrawAgent = uiContext != nullptr ? uiContext->GetCanvasModifiersDrawAgent() : nullptr;
         if (canvasModifiersDrawAgent != nullptr) {
+            static std::once_flag flag;
+            std::call_once(flag, [canvasModifiersDrawAgent]() {
+                canvasModifiersDrawAgent->QueryMaxGpuBufferSize(maxGpuSupportedWidth_, maxGpuSupportedHeight_);
+            });
             std::weak_ptr<RSRenderInterface> weakInterface = uiContext->GetRSRenderInterface();
             canvasModifiersDrawAgent->OnNodeCreate(node->GetId(), weakInterface);
         }
@@ -213,14 +217,8 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 void RSCanvasDrawingNode::ResetSurfaceForClientRender(int width, int height)
 {
-    static uint32_t maxGpuSupportedWidth = 0;
-    static uint32_t maxGpuSupportedHeight = 0;
-    static std::once_flag flag;
-    std::call_once(flag, []() {
-        RenderContext::Create()->QueryMaxGpuBufferSize(maxGpuSupportedWidth, maxGpuSupportedHeight);
-    });
-    sizeOutOfGpuLimit_ = width > static_cast<int>(maxGpuSupportedWidth) ||
-        height > static_cast<int>(maxGpuSupportedHeight) || width <= 0 || height <= 0;
+    sizeOutOfGpuLimit_ = width > static_cast<int>(maxGpuSupportedWidth_) ||
+        height > static_cast<int>(maxGpuSupportedHeight_) || width <= 0 || height <= 0;
     if (auto uiContext = GetRSUIContext()) {
         if (auto canvasModifiersDrawAgent = uiContext->GetCanvasModifiersDrawAgent()) {
             uiContext->OnCanvasDrawingNodeUpdate();
