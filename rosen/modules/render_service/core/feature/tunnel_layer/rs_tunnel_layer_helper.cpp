@@ -492,7 +492,8 @@ RSTunnelLayerHelper::ListenerHandleResult RSTunnelLayerHelper::HandleListenerBuf
         claimedFrom == RSTunnelRuntimeState::Phase::TUNNEL_IDLE;
     bool hasCommitCandidateBuffer = surfaceHandler->GetAvailableBufferCount() > 0 ||
         tunnelRuntime.HasPendingBuffer();
-    bool directCommitted = TryCommitBufferDirect(node, composerClientManager, true, previousFrameWasRs);
+    bool directCommitted = hasCommitCandidateBuffer &&
+        TryCommitBufferDirect(node, composerClientManager, true, previousFrameWasRs);
     if (directCommitted) {
         RSMainThread::Instance()->ResetConsecutiveDoCompSuccessCount();
     }
