@@ -18,6 +18,7 @@
 
 #include "rs_render_pipeline.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "pipeline/rs_render_node_map.h"
 
 namespace OHOS {
 class IConsumerSurface;
@@ -182,8 +183,9 @@ public:
     ErrCode RepaintEverything();
     ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height);
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
-    void UpdateScreenNodesResolution(RSNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height);
-    void AdjustBootAnimationBounds(RSNodeMap& nodeMap, uint32_t width, uint32_t height);
+    void UpdateScreenNodesResolution(RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height);
+    void AdjustBootAnimationBounds(RSRenderNodeMap& nodeMap, uint32_t width, uint32_t height);
+    void SetBootAnimationBounds(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t width, uint32_t height);
     void Clean(pid_t pid, bool forRefresh = false);
     void SetFreeMultiWindowStatus(bool enable);
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
