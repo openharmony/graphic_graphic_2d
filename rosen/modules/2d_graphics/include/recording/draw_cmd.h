@@ -726,6 +726,7 @@ public:
         PaintHandle paintHandle;
     };
     DrawImageLatticeOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawImageLatticeOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle, Lattice&& lattice);
     DrawImageLatticeOpItem(const Image* image, const Lattice& lattice, const Rect& dst, FilterMode filterMode,
         const Paint& paint) : DrawWithPaintOpItem(paint, DrawOpItem::IMAGE_LATTICE_OPITEM), lattice_(lattice),
         dst_(dst), filter_(filterMode), image_(std::make_shared<Image>(*image)) {}
@@ -770,6 +771,8 @@ public:
         : DrawWithPaintOpItem(paint, DrawOpItem::ATLAS_OPITEM), xform_(xform), tex_(tex), colors_(colors), mode_(mode),
           samplingOptions_(samplingOptions), hasCullRect_(hasCullRect), cullRect_(cullRect),
           atlas_(std::make_shared<Image>(*atlas)) {}
+    DrawAtlasOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle,
+        std::vector<RSXform>&& xform, std::vector<Rect>&& tex, std::vector<ColorQuad>&& colors);
     ~DrawAtlasOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
@@ -945,6 +948,8 @@ public:
         PaintHandle paintHandle;
     };
     DrawGlyphsOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawGlyphsOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle,
+                     std::vector<uint16_t>&& glyphs, std::vector<Point>&& positions);
     DrawGlyphsOpItem(const std::vector<uint16_t>& glyphs, const std::vector<Point>& positions,
                      const Point& origin, const Font* font, const Paint& paint)
         : DrawWithPaintOpItem(paint, DrawOpItem::GLYPHS_OPITEM), glyphs_(glyphs), positions_(positions),
@@ -1429,6 +1434,8 @@ public:
         std::pair<size_t, size_t> radiusData;
     };
     ClipAdaptiveRoundRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    ClipAdaptiveRoundRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle,
+        std::vector<Point>&& radiusData);
     explicit ClipAdaptiveRoundRectOpItem(const std::vector<Point>& radiusData)
         : DrawOpItem(DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM),  radiusData_(radiusData) {}
     ~ClipAdaptiveRoundRectOpItem() override = default;
