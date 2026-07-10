@@ -153,6 +153,10 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
         return;
     }
 
+    if (GetOriginValue()->GetPropertyType() != RSPropertyType::VECTOR4F) {
+        ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, property type is not VECTOR4F");
+        return;
+    }
     auto vector4fValueEstimator = std::static_pointer_cast<RSCurveValueEstimator<Vector4f>>(valueEstimator_);
     if (vector4fValueEstimator != nullptr) {
         auto animationValue =
