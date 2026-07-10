@@ -293,6 +293,22 @@ DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& 
     return ApplyMesaBlur(radius, tileMode, isDirection, angle);
 }
 
+static std::shared_ptr<GEShaderFilter> GenerateGEXShaderFilter(Drawing::GEFilterType type, uint32_t len, void* param)
+{
+    if (!param) {
+        return nullptr;
+    }
+
+    auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(static_cast<uint32_t>(type),
+        len, param);
+    if (!object) {
+        return nullptr;
+    }
+ 
+    std::shared_ptr<GEShaderFilter> filterShaderr(static_cast<GEShaderFilter*>(object));
+    return filterShaderr;
+}
+
 DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
     float maskRadiusX, float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees)
 {
@@ -324,10 +340,9 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
         UpdateImage();
     }
 
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyEllipticalGradientBlur");
+    RS_TRACE_NAME("EffectImageChain::ApplyEllipticalGradientBlur");
     if (image_ == nullptr) {
         EFFECT_LOG_E("EffectImageChain::ApplyEllipticalGradientBlur: image_ is null.");
-        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         return DrawingError::ERR_IMAGE_NULL;
     }
     Drawing::GERadialGradientShaderMaskParams maskParams{
@@ -335,29 +350,23 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
     auto radialGradientShaderMask = std::make_shared<Drawing::GERadialGradientShaderMask>(maskParams);
 
     Drawing::GEVariableRadiusBlurShaderFilterParams filterParams{radialGradientShaderMask, blurRadius, true};
-    auto variableRadiusBlurFilter = std::make_shared<GEVariableRadiusBlurShaderFilter>(filterParams);
-    image_ = variableRadiusBlurFilter->ProcessImage(*canvas_,
-        image_,
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()));
-    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    auto filter = GenerateGEXShaderFilter(Drawing::GEFilterType::VARIABLE_RADIUS_BLUR,
+        sizeof(Drawing::GEVariableRadiusBlurShaderFilterParams), static_cast<void*>(&filterParams));
+    if (!filter) {
+        EFFECT_LOG_E("EffectImageChain::ApplyEllipticalGradientBlur: Generate Filter failed.");
+        return DrawingError::ERR_MEMORY;
+    }
+
+    Drawing::CanvasInfo canvasInfo;
+    canvasInfo.geoWidth = image_->GetWidth();
+    canvasInfo.geoHeight = image_->GetHeight();
+    filter->SetShaderFilterCanvasinfo(canvasInfo);
+
+    auto width = image_->GetWidth();
+    auto height = image_->GetHeight();
+    image_ = filter->ProcessImage(*canvas_, image_,
+        Drawing::Rect(0, 0, width, height), Drawing::Rect(0, 0, width, height));
     return DrawingError::ERR_OK;
-}
-
-static std::shared_ptr<GEShaderFilter> GenerateGEXShaderFilter(Drawing::GEFilterType type, uint32_t len, void* param)
-{
-    if (!param) {
-        return nullptr;
-    }
-
-    auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(static_cast<uint32_t>(type),
-        len, param);
-    if (!object) {
-        return nullptr;
-    }
- 
-    std::shared_ptr<GEShaderFilter> filterShaderr(static_cast<GEShaderFilter*>(object));
-    return filterShaderr;
 }
 
 DrawingError EffectImageChain::ApplyMapColorByBrightness(
