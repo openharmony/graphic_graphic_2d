@@ -2592,9 +2592,8 @@ sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeI
             RS_LOGE("CreateCanvasDrawingNodeSurface: null producerPurface, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
- 
-        sptr<IBufferConsumerListener> listener =
-            new RSCanvasDrawingNodeBufferConsumerListener(mainThread->GetWeakContext(), nodeId);
+
+        sptr<IBufferConsumerListener> listener = new RSCanvasDrawingNodeBufferConsumerListener(surfaceHandler, nodeId);
         consumerSurface->RegisterConsumerListener(listener);
         auto& nodeMap = rsContext->GetMutableNodeMap();
         auto canvasDrawingNode = nodeMap.GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);
