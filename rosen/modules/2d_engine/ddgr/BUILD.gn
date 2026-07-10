@@ -24,6 +24,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
   }
 
   ohos_shared_library("libddgr_compiler") {
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
@@ -52,6 +53,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
   }
 
   ohos_source_set("ddgr_compiler_src_set") {
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
@@ -88,6 +90,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
   }
 
   ohos_shared_library("libddgr") {
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
@@ -117,6 +120,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
   }
 
   ohos_source_set("ddgr_src_set") {
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
@@ -153,6 +157,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
   }
 } else {
   ohos_shared_library("libddgr") {
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
