@@ -843,7 +843,7 @@ GSError RSRenderComposer::ClearFrameBuffersInner(bool isNeedResetContext)
 GSError RSRenderComposer::ClearFrameBuffers(bool isNeedResetContext)
 {
     if (hdiOutput_ == nullptr || hdiOutput_->GetBufferCacheSize() <= 0) {
-        RS_LOGE("%{public}s buffer cache size less 0", __func__);
+        RS_LOGD("%{public}s buffer cache size less 0", __func__);
         return COMPOSITOR_ERROR_NULLPTR;
     }
     return ClearFrameBuffersInner(isNeedResetContext);
@@ -1327,7 +1327,7 @@ void RSRenderComposer::OnHwcDead()
 void RSRenderComposer::DestroyComposerLayer(std::shared_ptr<RSLayerParcel> rsLayerParcel)
 {
     RS_TRACE_NAME_FMT("%s screenId: %" PRIu64, __func__, screenId_);
-    RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
+    RS_LOGD("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
     auto rsLayerId = rsLayerParcel->GetRSLayerId();
     auto rsLayer = rsRenderComposerContext_ == nullptr ?
         nullptr : rsRenderComposerContext_->GetRSRenderLayer(rsLayerId);
