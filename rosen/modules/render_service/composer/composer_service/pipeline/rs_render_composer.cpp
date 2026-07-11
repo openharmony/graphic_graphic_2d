@@ -152,8 +152,9 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
     runner_ = AppExecFwk::EventRunner::Create(threadName);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     rsRenderComposerContext_ = std::make_shared<RSRenderComposerContext>();
-    redrawCb_ = [this](const sptr<Surface>& surface, const std::vector<std::shared_ptr<RSLayer>>& layers) {
-        return this->Redraw(surface, layers);
+    redrawCb_ = [this](const sptr<Surface>& surface, const std::vector<std::shared_ptr<RSLayer>>& layers,
+        const std::shared_ptr<HdiOutput>& output) {
+        return this->Redraw(surface, layers, output);
     };
     hgmHardwareUtils_ = std::make_shared<HgmHardwareUtils>();
 
@@ -797,7 +798,7 @@ void RSRenderComposer::OnPrepareComplete(sptr<Surface>& surface,
     }
 
     if (redrawCb_ != nullptr) {
-        redrawCb_(surface, param.layers);
+        redrawCb_(surface, param.layers, hdiOutput_);
     }
 }
 
@@ -908,7 +909,8 @@ void RSRenderComposer::ResetScreenRCDRedrawState(std::vector<std::shared_ptr<RSL
     }
 }
 
-void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<std::shared_ptr<RSLayer>>& layers)
+void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<std::shared_ptr<RSLayer>>& layers,
+    const std::shared_ptr<HdiOutput>& output)
 {
     RS_TRACE_NAME_FMT("%s screenId : %" PRIu64, __func__, screenId_);
     std::unique_lock<std::mutex> lock(preAllocMutex_, std::try_to_lock);
@@ -991,9 +993,9 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
 #endif
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    uniRenderEngine_->DrawLayers(*canvas, layers, false, composerScreenInfo_, colorGamut);
+    uniRenderEngine_->DrawLayers(*canvas, layers, false, composerScreenInfo_, colorGamut, output);
 #else
-    uniRenderEngine_->DrawLayers(*canvas, layers, false, composerScreenInfo_);
+    uniRenderEngine_->DrawLayers(*canvas, layers, false, composerScreenInfo_, output);
 #endif
     RedrawScreenRCD(*canvas, layers, Vector2f(composerScreenInfo_.GetRogWidthRatio(),
         composerScreenInfo_.GetRogHeightRatio()));
@@ -1361,6 +1363,10 @@ void RSRenderComposer::UpdateTransactionData(std::shared_ptr<RSLayerTransactionD
                 UpdateComposerLayer(rsLayerParcel);
                 break;
             }
+            case RSLayerParcelType::RS_SOLID_FILLED_COLOR_LAYER_UPDATE: {
+                UpdateComposerLayer(rsLayerParcel);
+                break;
+            }
             case RSLayerParcelType::RS_LAYER_UPDATE: {
                 UpdateComposerLayer(rsLayerParcel);
                 break;
@@ -1417,7 +1423,7 @@ void RSRenderComposer::AddSolidColorLayer(std::vector<std::shared_ptr<RSLayer>>&
 {
     for (uint32_t i = 0; i < layers.size(); i++) {
         if (layers[i] != nullptr && layers[i]->GetSolidColorLayerProperty().compositionType ==
-            GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+            GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR && !(layers[i]->IsSolidFilledColorLayer())) {
             auto solidColorLayer = std::make_shared<RSRenderSurfaceLayer>();
             solidColorLayer->CopyLayerInfo(layers[i]);
             solidColorLayer->SetZorder(layers[i]->GetSolidColorLayerProperty().zOrder);

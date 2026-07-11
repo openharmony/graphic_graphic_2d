@@ -150,6 +150,7 @@ private:
     int32_t SetPerFrameLayerVcldParam();
     int32_t SetTunnelLayerParameters();
     int32_t SetDelegateModeLayerCrop();
+    int32_t SetPerFrameLayerSolidFillParam();
 };
 } // namespace Rosen
 } // namespace OHOS

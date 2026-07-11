@@ -37,6 +37,7 @@ const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
 const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 const std::string GENERIC_METADATA_KEY_VCLD_PARAM = "VcldParam";
+const std::string GENERIC_METADATA_KEY_SOLIC_FILL = "SolidFill";
 }
 
 template<typename T>
@@ -885,6 +886,9 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_VCLD_PARAM) {
             ret = SetPerFrameLayerVcldParam();
             CheckRet(ret, "SetLayerVcldParam");
+        } else if (key == GENERIC_METADATA_KEY_SOLIC_FILL) {
+            ret = SetPerFrameLayerSolidFillParam();
+            CheckRet(ret, "SetLayerSolidFillParam");
         }
     }
     SetTunnelLayerParameters();
@@ -981,6 +985,23 @@ int32_t HdiLayer::SetPerFrameLayerVcldParam()
     *reinterpret_cast<RSVcldParam*>(valueBlob.data()) = rsLayer_->GetVcldInfo();
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_VCLD_PARAM, valueBlob);
+}
+
+int32_t HdiLayer::SetPerFrameLayerSolidFillParam()
+{
+    if (prevRSLayer_ != nullptr) {
+        if (rsLayer_->IsSolidFilledColorLayer() && rsLayer_->GetLayerSize() == prevRSLayer_->GetLayerSize()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    } else {
+        if (!rsLayer_->IsSolidFilledColorLayer()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+    std::vector<int8_t> valueBlob(sizeof(int32_t));
+    *reinterpret_cast<int32_t*>(valueBlob.data()) = rsLayer_->IsSolidFilledColorLayer();
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SOLIC_FILL, valueBlob);
 }
 
 void HdiLayer::ClearBufferCache()
