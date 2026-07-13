@@ -263,4 +263,177 @@ HWTEST_F(RSColorSpaceUtilTest, ConvertColorGamutToSpaceType004, TestSize.Level1)
     EXPECT_FALSE(ret);
 #endif
 }
+
+/**
+ * @tc.name: ApiColorSpaceNameToCMColorSpaceType001
+ * @tc.desc: Test ApiColorSpaceNameToCMColorSpaceType with special/unknown entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorSpaceUtilTest, ApiColorSpaceNameToCMColorSpaceType001, TestSize.Level1)
+{
+    auto type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::UNKNOWN);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_COLORSPACE_NONE);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::CUSTOM);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::H_LOG);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL);
+
+    // Alias of SRGB
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DISPLAY_SRGB);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL);
+}
+
+/**
+ * @tc.name: ApiColorSpaceNameToCMColorSpaceType002
+ * @tc.desc: Test ApiColorSpaceNameToCMColorSpaceType with full-range SRGB/P3/BT entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorSpaceUtilTest, ApiColorSpaceNameToCMColorSpaceType002, TestSize.Level1)
+{
+    auto type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::ADOBE_RGB_1998);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_ADOBERGB_FULL);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DCI_P3);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DISPLAY_P3);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_DISPLAY_P3_SRGB);
+
+    // Alias of DISPLAY_P3
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DISPLAY_P3_SRGB);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_DISPLAY_P3_SRGB);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::SRGB);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT709);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT709_FULL);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT601_EBU);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_EBU_FULL);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT601_SMPTE_C);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_SMPTE_C_FULL);
+}
+
+/**
+ * @tc.name: ApiColorSpaceNameToCMColorSpaceType003
+ * @tc.desc: Test ApiColorSpaceNameToCMColorSpaceType with HDR full entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorSpaceUtilTest, ApiColorSpaceNameToCMColorSpaceType003, TestSize.Level1)
+{
+    auto type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT2020_HLG);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT2020_HLG_FULL);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT2020_PQ);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT2020_PQ_FULL);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::P3_HLG);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_HLG_FULL);
+
+    // Alias of P3_HLG
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DISPLAY_P3_HLG);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_HLG_FULL);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::P3_PQ);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_PQ_FULL);
+
+    // Alias of P3_PQ
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DISPLAY_P3_PQ);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_PQ_FULL);
+}
+
+/**
+ * @tc.name: ApiColorSpaceNameToCMColorSpaceType004
+ * @tc.desc: Test ApiColorSpaceNameToCMColorSpaceType with limit-range SRGB/P3/BT entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorSpaceUtilTest, ApiColorSpaceNameToCMColorSpaceType004, TestSize.Level1)
+{
+    auto type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::ADOBE_RGB_1998_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_ADOBERGB_LIMIT);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DISPLAY_P3_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_LIMIT);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::SRGB_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_LIMIT);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT709_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT709_LIMIT);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT601_EBU_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_EBU_LIMIT);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT601_SMPTE_C_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_SMPTE_C_LIMIT);
+}
+
+/**
+ * @tc.name: ApiColorSpaceNameToCMColorSpaceType005
+ * @tc.desc: Test ApiColorSpaceNameToCMColorSpaceType with limit-range HDR entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorSpaceUtilTest, ApiColorSpaceNameToCMColorSpaceType005, TestSize.Level1)
+{
+    auto type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT2020_HLG_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT2020_HLG_LIMIT);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::BT2020_PQ_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT2020_PQ_LIMIT);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::P3_HLG_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_HLG_LIMIT);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::P3_PQ_LIMIT);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_PQ_LIMIT);
+}
+
+/**
+ * @tc.name: ApiColorSpaceNameToCMColorSpaceType006
+ * @tc.desc: Test ApiColorSpaceNameToCMColorSpaceType with linear and display BT2020 entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorSpaceUtilTest, ApiColorSpaceNameToCMColorSpaceType006, TestSize.Level1)
+{
+    auto type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::LINEAR_P3);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_LINEAR_P3);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::LINEAR_SRGB);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_LINEAR_SRGB);
+
+    // Alias of LINEAR_SRGB
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::LINEAR_BT709);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_LINEAR_SRGB);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::LINEAR_BT2020);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_LINEAR_BT2020);
+
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DISPLAY_BT2020_SRGB);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_DISPLAY_BT2020_SRGB);
+}
+
+/**
+ * @tc.name: ApiColorSpaceNameToCMColorSpaceType007
+ * @tc.desc: Test ApiColorSpaceNameToCMColorSpaceType fallback branch for unmapped values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorSpaceUtilTest, ApiColorSpaceNameToCMColorSpaceType007, TestSize.Level1)
+{
+    // TYPE_END is a sentinel value that is not present in the mapping table.
+    auto type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::TYPE_END);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL);
+
+    // Out-of-range raw value cast into the enum (defensive case).
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(
+        static_cast<ApiColorSpaceName>(static_cast<uint32_t>(ApiColorSpaceName::TYPE_END) + 1u));
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL);
+
+    // A clearly invalid large value.
+    type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(static_cast<ApiColorSpaceName>(0xFFFFFFFFu));
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL);
+}
 } // namespace OHOS::Rosen
