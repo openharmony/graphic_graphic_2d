@@ -87,6 +87,7 @@ ohos_executable("bootanimation") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "zlib:shared_libz",
+    "window_manager:libdm_lite",
     "skia:skia_canvaskit",
   ]
 
