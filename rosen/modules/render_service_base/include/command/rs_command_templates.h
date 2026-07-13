@@ -30,6 +30,9 @@ class RSUIDirector;
 #define ARG(...) __VA_ARGS__
 #endif
 
+template<size_t... Is>
+struct NodeIdPosTag {};
+
 // Add new RSCommand as alias of template class
 // Explicit instantiating templates will register the unmarshalling function into RSCommandFactory.
 // To avoid redundant registry, make sure templates only instantiated once.
@@ -53,8 +56,8 @@ class RSUIDirector;
 #endif
 #endif
 
-template<RSCommandPermissionType permissionType, uint16_t commandType, uint16_t commandSubType, auto processFunc,
-    typename... Params>
+template<RSCommandPermissionType permissionType, typename NodeIdPos, uint16_t commandType, uint16_t commandSubType,
+    auto processFunc, typename... Params>
 class RSCommandTemplate : public RSCommand {
 public:
     RSCommandTemplate(const Params&... params) : params_(params...) {}
@@ -119,6 +122,11 @@ public:
         return RSCommand::GetTargetNodeId();
     }
 
+    std::vector<NodeId> GetAllNodeIds() const override
+    {
+        return ExtractAllNodeIdsImpl(params_, NodeIdPos());
+    }
+
     uint64_t GetToken() const override
     {
         if (GetType() == RSCommandType::ANIMATION) {
@@ -169,6 +177,28 @@ public:
 
 private:
     std::tuple<Params...> params_;
+
+    template<typename Tuple, size_t... Is>
+    static std::vector<NodeId> ExtractAllNodeIdsImpl(const Tuple& params, NodeIdPosTag<Is...>)
+    {
+        std::vector<NodeId> result;
+        result.reserve(sizeof...(Is));
+        (result.push_back(ExtractNodeIdAtPos<Is>(params)), ...);
+        return result;
+    }
+
+    template<size_t I, typename Tuple>
+    static NodeId ExtractNodeIdAtPos(const Tuple& params)
+    {
+        using paramType =
+            std::remove_cv_t<typename std::tuple_element<I, std::remove_reference_t<decltype(params)>>::type>;
+        if constexpr (std::is_same<NodeId, paramType>::value) {
+            return std::get<I>(params);
+        } else if constexpr (std::is_same<RSSurfaceRenderNodeConfig, paramType>::value) {
+            return std::get<I>(params).id;
+        }
+        return 0; // invalidId
+    }
 
 #ifdef RS_PROFILER_ENABLED
     void Patch(PatchFunction function) override
