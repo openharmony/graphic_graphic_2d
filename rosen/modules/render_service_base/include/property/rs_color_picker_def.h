@@ -86,14 +86,12 @@ struct ColorPickerParam {
     ContrastColorScheme lastContrastColorScheme = ContrastColorScheme::INVALID;
 
     ColorPickerParam() = default;
-    ColorPickerParam(ColorPlaceholder ph, ColorPickStrategyType st, uint64_t itv)
-        : strategy(st), interval(itv)
-    {}
+    ColorPickerParam(ColorPlaceholder /* ph */, ColorPickStrategyType st, uint64_t itv) : strategy(st), interval(itv) {}
 
     bool operator==(const ColorPickerParam& other) const
     {
-        return strategy == other.strategy && interval == other.interval &&
-               notifyThreshold == other.notifyThreshold && rect == other.rect;
+        return strategy == other.strategy && interval == other.interval && notifyThreshold == other.notifyThreshold &&
+               rect == other.rect;
     }
 };
 } // namespace Rosen

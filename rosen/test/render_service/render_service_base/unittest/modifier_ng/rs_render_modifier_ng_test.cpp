@@ -26,6 +26,7 @@
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
+#include "modifier_ng/appearance/rs_color_picker_render_modifier.h"
 #include "modifier_ng/appearance/rs_use_union_render_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_render_modifier.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
