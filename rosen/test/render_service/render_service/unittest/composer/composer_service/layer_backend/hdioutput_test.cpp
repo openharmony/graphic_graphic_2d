@@ -23,6 +23,7 @@
 #include "rs_composer_client.h"
 #include "rs_surface_layer.h"
 #include "rs_render_surface_layer.h"
+#include "rs_surface_solid_filled_color_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -5218,6 +5219,189 @@ HWTEST_F(HdiOutputTest, ClearRecoveredInvalidTunnelSurfaceIdsLocked_SimplifiedEr
     output->ClearRecoveredInvalidTunnelSurfaceIdsLocked();
     EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 2u);
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(id1) == 0);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_LayerFound_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid filled color layer and add to solidRSLayerIdMap_
+ *                  2. call GetLayerSolidFilledColor
+ *                  3. verify layer is found and color is retrieved
+ *                   Cover branch: iter != solidRSLayerIdMap_.end() (line 1675 true)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_LayerFound_Success, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    constexpr uint64_t testLayerId = 70001;
+    auto rsLayer = RSSurfaceSolidFilledColorLayer::Create(testLayerId, ctx);
+    ASSERT_NE(rsLayer, nullptr);
+
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+
+    output->solidRSLayerIdMap_[testLayerId] = hdiLayer;
+
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_LayerNotFound_Failure
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetLayerSolidFilledColor with non-existent layer id
+ *                  2. verify failure is returned
+ *                   Cover branch: iter == solidRSLayerIdMap_.end() (line 1675 false)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_LayerNotFound_Failure, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    constexpr uint64_t nonExistentLayerId = 70002;
+    uint32_t solidFilledColor = 0;
+    auto ret = output->GetLayerSolidFilledColor(nonExistentLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_HdiCallFailed_LogDebug
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid filled color layer and add to map
+ *                  2. mock HDI call to return failure
+ *                  3. verify failure is returned and debug log is printed
+ *                   Cover branch: ret != GRAPHIC_DISPLAY_SUCCESS (line 1679 true)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_HdiCallFailed_LogDebug, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    constexpr uint64_t testLayerId = 70003;
+    auto rsLayer = RSSurfaceSolidFilledColorLayer::Create(testLayerId, ctx);
+    ASSERT_NE(rsLayer, nullptr);
+
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+
+    output->solidRSLayerIdMap_[testLayerId] = hdiLayer;
+
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_HdiCallSuccess_ReturnSuccess
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid filled color layer and add to map
+ *                  2. mock HDI call to return success
+ *                  3. verify success is returned
+ *                   Cover branch: ret == GRAPHIC_DISPLAY_SUCCESS (line 1679 false)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_HdiCallSuccess_ReturnSuccess, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    constexpr uint64_t testLayerId = 70004;
+    auto rsLayer = RSSurfaceSolidFilledColorLayer::Create(testLayerId, ctx);
+    ASSERT_NE(rsLayer, nullptr);
+
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+
+    output->solidRSLayerIdMap_[testLayerId] = hdiLayer;
+
+    uint32_t solidFilledColor = 0;
+    constexpr uint32_t expectedColor = 0xFF112233;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<2>(expectedColor), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+    auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_EmptyMap_Failure
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetLayerSolidFilledColor when map is empty
+ *                  2. verify failure is returned
+ *                   Cover branch: iter == solidRSLayerIdMap_.end() (line 1675 false)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_EmptyMap_Failure, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    output->solidRSLayerIdMap_.clear();
+
+    constexpr uint64_t testLayerId = 70005;
+    uint32_t solidFilledColor = 0;
+    auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_MultipleLayers_RetrieveCorrectOne
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create multiple solid filled color layers
+ *                  2. retrieve each layer's color
+ *                  3. verify correct layer is retrieved
+ *                   Cover branch: iter != solidRSLayerIdMap_.end() (line 1675 true)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_MultipleLayers_RetrieveCorrectOne, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+
+    for (int i = 0; i < 3; i++) {
+        uint64_t testLayerId = 70010 + i;
+        auto rsLayer = RSSurfaceSolidFilledColorLayer::Create(testLayerId, ctx);
+        ASSERT_NE(rsLayer, nullptr);
+
+        auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+        ASSERT_NE(hdiLayer, nullptr);
+        hdiLayer->UpdateRSLayer(rsLayer);
+
+        output->solidRSLayerIdMap_[testLayerId] = hdiLayer;
+    }
+
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    auto ret = output->GetLayerSolidFilledColor(70011, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
 } // namespace
 } // namespace Rosen

@@ -468,7 +468,9 @@ void HdiOutput::DeletePrevLayersLocked()
         const std::shared_ptr<HdiLayer>& hdiLayer = solidSurfaceIter->second;
         if (!hdiLayer->GetLayerStatus()) {
             solidSurfaceIdMap_.erase(solidSurfaceIter++);
-            solidRSLayerIdMap_.erase(hdiLayer->GetRSLayer()->GetRSLayerId());
+            if (hdiLayer->GetRSLayer() != nullptr) {
+                solidRSLayerIdMap_.erase(hdiLayer->GetRSLayer()->GetRSLayerId());
+            }
         } else {
             ++solidSurfaceIter;
         }

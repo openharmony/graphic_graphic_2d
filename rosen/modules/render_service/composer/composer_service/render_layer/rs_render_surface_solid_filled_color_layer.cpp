@@ -26,7 +26,7 @@ using RSSolidFilledColorLayerCmdHandler = std::function<void(std::shared_ptr<RSR
 #define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE)                                                            \
     {                                                                                                            \
         RSLayerCmdType::CMD_TYPE,                                                                                \
-        [](std::shared_ptr<RSRenderSurfaceSolidFilledColorLayer> rsRenderLayer,                                               \
+        [](std::shared_ptr<RSRenderSurfaceSolidFilledColorLayer> rsRenderLayer,                                  \
             const std::shared_ptr<RSRenderLayerPropertyBase>& property) -> void {                                \
             std::shared_ptr<RSRenderLayerCmdProperty<TYPE>> prop =                                               \
                 std::static_pointer_cast<RSRenderLayerCmdProperty<TYPE>>(property);                              \

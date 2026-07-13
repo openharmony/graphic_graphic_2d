@@ -83,7 +83,8 @@ void RSUniRenderEngine::DrawCanvasDrawingNodeWithParams(RSPaintFilterCanvas& can
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut, const std::shared_ptr<HdiOutput>& output)
+    const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut,
+    const std::shared_ptr<HdiOutput>& output)
 #else
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
     const ComposerScreenInfo& composerScreenInfo, const std::shared_ptr<HdiOutput>& output)
@@ -124,8 +125,10 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
                     layerColor.g != layerBlackColor.g || layerColor.b != layerBlackColor.b) {
                     Drawing::AutoCanvasRestore acr(canvas, true);
                     const auto& dstRect = layer->GetLayerSize();
-                    auto color = Drawing::Color::ColorQuadSetARGB(layerColor.a, layerColor.r, layerColor.g, layerColor.b);
-                    Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+                    auto color = Drawing::Color::ColorQuadSetARGB(layerColor.a, layerColor.r,
+                        layerColor.g, layerColor.b);
+                    Drawing::Rect clipRect = Drawing::Rect(
+                        static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
                         static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
                         static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
                     canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);

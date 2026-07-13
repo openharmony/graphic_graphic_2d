@@ -992,6 +992,8 @@ int32_t HdiLayer::SetPerFrameLayerSolidFillParam()
     if (prevRSLayer_ != nullptr) {
         if (rsLayer_->IsSolidFilledColorLayer() && rsLayer_->GetLayerSize() == prevRSLayer_->GetLayerSize()) {
             return GRAPHIC_DISPLAY_SUCCESS;
+        } else if (!rsLayer_->IsSolidFilledColorLayer()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
         }
     } else {
         if (!rsLayer_->IsSolidFilledColorLayer()) {
