@@ -156,6 +156,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_CONTROL_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT),
@@ -2549,6 +2550,19 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 eventName, eventStatus, minRefreshRate, maxRefreshRate, description
             };
             NotifyRefreshRateEvent(eventInfo);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_CONTROL_SCREEN_REFRESH_RATE) : {
+            bool openStatus{false};
+            ScreenId ltpoScreenID{0};
+            uint32_t otherScreenRefreshRate{0};
+            if (!data.ReadBool(openStatus) || !data.ReadUint64(ltpoScreenID) ||
+                !data.ReadUint32(otherScreenRefreshRate)) {
+                RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_CONTROL_SCREEN_REFRESH_RATE Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifyControlScreenRefreshRate(openStatus, ltpoScreenID, otherScreenRefreshRate);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID) : {

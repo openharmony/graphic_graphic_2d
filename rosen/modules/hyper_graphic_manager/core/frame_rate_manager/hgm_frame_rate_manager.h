@@ -109,6 +109,7 @@ public:
     void HandleLightFactorStatus(pid_t pid, int32_t state);
     void HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
+    void HandleControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID, uint32_t otherScreenRefreshRate);
     void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
     void HandleDynamicModeEvent(bool enableDynamicModeEvent);
     void HandleRefreshRateMode(int32_t refreshRateMode);
@@ -123,6 +124,7 @@ public:
 
     ScreenId GetCurScreenId() const { return curScreenId_.load(); }
     ScreenId GetLastCurScreenId() const { return lastCurScreenId_.load(); }
+    ScreenId GetControlScreenId() const { return controlScreenId_.load(); }
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; }
     void SetLastCurScreenId(ScreenId screenId) { lastCurScreenId_.store(screenId); }
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
@@ -277,6 +279,9 @@ private:
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     std::atomic<ScreenId> curScreenId_ = 0;
     std::atomic<ScreenId> lastCurScreenId_ = 0;
+    std::atomic<ScreenId> controlScreenId_ = INVALID_SCREEN_ID;
+    std::atomic<bool> controlScreenOpenStatus_ { false };
+    std::atomic<uint32_t> controlOtherScreenRefreshRate_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     std::string curScreenDefaultStrategyId_ = "LTPO-DEFAULT";
     std::atomic<bool> isLtpoScreenStrategyId_ { false };

@@ -317,6 +317,9 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual void NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID,
+        uint32_t otherScreenRefreshRate) = 0;
+
     virtual sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) = 0;
 
     virtual void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) = 0;

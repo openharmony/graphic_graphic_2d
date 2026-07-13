@@ -349,6 +349,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_REFRESH_RATE_EVENT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_CONTROL_SCREEN_REFRESH_RATE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_CONTROL_SCREEN_REFRESH_RATE");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID");
             break;

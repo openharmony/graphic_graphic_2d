@@ -167,6 +167,13 @@ void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOu
     }
     if (auto frameRateMgr = hgmCore_.GetFrameRateMgr()) {
         frameRateMgr->HandleRsFrame();
+        // Only the LTPO control screen is allowed to switch refresh rate here.
+        // When control is active (controlScreenId is valid), other screens are skipped.
+        ScreenId controlScreenId = frameRateMgr->GetControlScreenId();
+        if (controlScreenId != INVALID_SCREEN_ID && screenId != controlScreenId) {
+            HGM_LOGD("skip SwitchRefreshRate, screenId is not control screen");
+            return;
+        }
     }
     if (auto screen = hgmCore_.GetScreen(screenId); !screen || !screen->GetSelfOwnedScreenFlag()) {
         return;

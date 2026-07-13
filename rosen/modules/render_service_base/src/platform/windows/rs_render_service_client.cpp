@@ -612,6 +612,11 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
 }
 
+void RSRenderServiceClient::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID,
+    uint32_t otherScreenRefreshRate)
+{
+}
+
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
 }

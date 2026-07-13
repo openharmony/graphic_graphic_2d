@@ -1164,6 +1164,14 @@ public:
      */
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    /**
+     * @brief Notify control screen refresh rate.
+     * @param openStatus whether the control screen refresh rate is open.
+     * @param ltpoScreenID the screen id of the LTPO control screen.
+     * @param otherScreenRefreshRate the refresh rate for other screens.
+     */
+    void NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID, uint32_t otherScreenRefreshRate);
+
     /*
     * @brief Support setting softVsync frame rate through windowId.
     * @param eventInfos a map,key is windowId, value is eventInfo

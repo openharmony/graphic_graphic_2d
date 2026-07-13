@@ -366,6 +366,14 @@ void HgmContext::NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
     });
 }
 
+void HgmContext::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID, uint32_t otherScreenRefreshRate)
+{
+    HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, openStatus, ltpoScreenID,
+        otherScreenRefreshRate] {
+        frameRateManager->HandleControlScreenRefreshRate(openStatus, ltpoScreenID, otherScreenRefreshRate);
+    });
+}
+
 ErrCode HgmContext::NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus)
 {
     HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, pid, lightFactorStatus] {

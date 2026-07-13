@@ -4410,6 +4410,38 @@ void RSClientToServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& e
     }
 }
 
+void RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID,
+    uint32_t otherScreenRefreshRate)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    if (!data.WriteBool(openStatus)) {
+        ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteBool openStatus err.");
+        return;
+    }
+    if (!data.WriteUint64(ltpoScreenID)) {
+        ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteUint64 ltpoScreenID err.");
+        return;
+    }
+    if (!data.WriteUint32(otherScreenRefreshRate)) {
+        ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteUint32 otherScreenRefreshRate err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_CONTROL_SCREEN_REFRESH_RATE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate: Send Request err.");
+        return;
+    }
+}
+
 ErrCode RSClientToServiceConnectionProxy::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
 {
     MessageParcel data;

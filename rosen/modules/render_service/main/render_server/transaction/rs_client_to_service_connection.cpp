@@ -1825,6 +1825,16 @@ void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventI
     }
 }
 
+void RSClientToServiceConnection::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID,
+    uint32_t otherScreenRefreshRate)
+{
+    if (hgmContext_ == nullptr) {
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
+        return;
+    }
+    hgmContext_->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID, otherScreenRefreshRate);
+}
+
 
 void RSClientToServiceConnection::SetWindowExpectedRefreshRate(
     const std::unordered_map<uint64_t, EventInfo>& eventInfos)

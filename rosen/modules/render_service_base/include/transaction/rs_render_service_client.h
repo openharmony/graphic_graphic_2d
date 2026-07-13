@@ -350,6 +350,8 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    void NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID, uint32_t otherScreenRefreshRate);
+
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos);
