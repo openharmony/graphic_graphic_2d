@@ -3264,7 +3264,6 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
     ret = psurf->RequestBuffer(bufferEntry.buffer, requestFence, requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
     rsSurfaceHandlerPtr_->SetBufferTransformTypeChanged(true);
-    rsSurfaceHandlerPtr_->SetSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO);
     ASSERT_TRUE(rsSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
     mainThread->ConsumeAndUpdateAllNodes();
     mainThread->isUniRender_ = isUniRender;

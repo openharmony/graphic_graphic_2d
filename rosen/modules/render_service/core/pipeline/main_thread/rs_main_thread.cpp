@@ -2075,11 +2075,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         "buffer consumed and not HardwareEnabledType",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
-                if (surfaceHandler->GetSourceTypeChanged()) {
-                    doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                        "sourceType changed", surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                }
                 if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
 #ifdef RS_ENABLE_GPU
                     auto buffer = surfaceHandler->GetBuffer();
