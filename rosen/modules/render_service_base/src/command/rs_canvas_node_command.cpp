@@ -72,7 +72,7 @@ void RSCanvasNodeCommandHelper::UpdateRecording(
     auto drawCmds = std::move(srcDrawCmds);
     auto simpleDrawCmds = drawCmds != nullptr ? RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmds) : nullptr;
     if (modifierType >= static_cast<uint16_t>(ModifierNG::RSModifierType::MAX)) {
-        return false;
+        return;
     }
     auto modifierNGType = static_cast<ModifierNG::RSModifierType>(modifierType);
     if (RSSystemProperties::GetSingleFrameComposerEnabled()) {

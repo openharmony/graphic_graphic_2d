@@ -996,18 +996,18 @@ HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMismatch001, TestSize.Level1)
     RSContext context;
     NodeId nodeId = 1;
     PropertyId propertyId = 100;
- 
+
     RSCanvasNodeCommandHelper::Create(context, nodeId, false);
     auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     ASSERT_NE(node, nullptr);
- 
+
     auto floatProperty = std::make_shared<RSRenderProperty<float>>(1.0f, propertyId);
     node->RegisterProperty(floatProperty);
     EXPECT_FALSE(RSNodeCommandHelper::CheckPropertyType(__func__, *floatProperty, RSPropertyType::BOOL, nodeId));
- 
+
     float initialValue = floatProperty->Get();
     RSNodeCommandHelper::UpdateProperty<bool>(context, nodeId, true, propertyId, UPDATE_TYPE_OVERWRITE);
- 
+
     EXPECT_EQ(floatProperty->Get(), initialValue);
 }
  
@@ -1021,17 +1021,17 @@ HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMatch001, TestSize.Level1)
     RSContext context;
     NodeId nodeId = 2;
     PropertyId propertyId = 200;
- 
+
     RSCanvasNodeCommandHelper::Create(context, nodeId, false);
     auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     ASSERT_NE(node, nullptr);
- 
+
     auto floatProperty = std::make_shared<RSRenderProperty<float>>(0.0f, propertyId);
     node->RegisterProperty(floatProperty);
     EXPECT_TRUE(RSNodeCommandHelper::CheckPropertyType(__func__, *floatProperty, RSPropertyType::FLOAT, nodeId));
- 
+
     RSNodeCommandHelper::UpdateProperty<float>(context, nodeId, 42.5f, propertyId, UPDATE_TYPE_OVERWRITE);
- 
+    
     EXPECT_EQ(floatProperty->Get(), 42.5f);
 }
 } // namespace OHOS::Rosen

@@ -680,7 +680,7 @@ template<>
 void RSProperty<SimpleDrawCmdListPtr>::UpdateToRender(
     const SimpleDrawCmdListPtr& value, PropertyUpdateType type) const
 {
-    // SimpleDrawCmdListPtr is not sent via UpdateToRender, handled bt DrawCmdList path
+    // SimpleDrawCmdListPtr is not sent via UpdateToRender, handled by DrawCmdList path
 }
 
 template<>
