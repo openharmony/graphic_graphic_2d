@@ -1707,21 +1707,21 @@ void RSUniRenderUtil::SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas,
     Drawing::ImageInfo info = Drawing::ImageInfo { offscreenWidth, offscreenHeight,
         Drawing::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL, Drawing::ColorSpace::CreateSRGB()};
     auto originSurface = canvas.GetSurface();
-    if(!originSurface) {
+    if (!originSurface) {
         RS_LOGE("SwitchColorFilterWithP3 get originSurface failed");
         return;
     }
     auto offscreenSurface = originSurface->MakeSurface(info);
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
 
-    if(!offscreenCanvas) {
+    if (!offscreenCanvas) {
         RS_LOGE("SwitchColorFilterWithP3 get offscreenCanvas failed");
         return;
     }
 
     Drawing::Brush brush;
     auto originSurfaceImage = originSurface->GetImageSnapshot();
-    if(!originSurfaceImage) {
+    if (!originSurfaceImage) {
         RS_LOGE("SwitchColorFilterWithP3 get originSurfaceImage failed");
         return;
     }
