@@ -233,7 +233,7 @@ HWTEST_F(RSCanvasNodeCommandTest, UpdateRecordingModifierTypeOutOfRange001, Test
     EXPECT_TRUE(drawCmds == nullptr);
     context.GetMutableNodeMap().UnregisterRenderNode(id);
 }
- 
+
 /**
  * @tc.name: AddCmdToSingleFrameComposerModifierTypeOutOfRange001
  * @tc.desc: test AddCmdToSingleFrameComposer with modifierType exceeding ModifierNG::RSModifierType::MAX

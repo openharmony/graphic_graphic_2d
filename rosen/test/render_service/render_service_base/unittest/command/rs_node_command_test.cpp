@@ -1031,7 +1031,7 @@ HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMatch001, TestSize.Level1)
     EXPECT_TRUE(RSNodeCommandHelper::CheckPropertyType(__func__, *floatProperty, RSPropertyType::FLOAT, nodeId));
 
     RSNodeCommandHelper::UpdateProperty<float>(context, nodeId, 42.5f, propertyId, UPDATE_TYPE_OVERWRITE);
-    
+
     EXPECT_EQ(floatProperty->Get(), 42.5f);
 }
 } // namespace OHOS::Rosen
