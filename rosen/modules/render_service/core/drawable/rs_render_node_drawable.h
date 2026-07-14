@@ -52,6 +52,9 @@ public:
 
     void Draw(Drawing::Canvas& canvas) override;
     virtual void OnDraw(Drawing::Canvas& canvas);
+#ifdef USE_PRIMITIVE
+    void DrawPrim(Drawing::Canvas& canvas) override;
+#endif
     virtual void OnCapture(Drawing::Canvas& canvas);
 
     inline bool GetOpDropped() const

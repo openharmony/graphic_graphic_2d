@@ -220,6 +220,13 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
     return sharedPtr;
 }
 
+#ifdef USE_PRIMITIVE
+void RSRenderNodeDrawableAdapter::DrawPrim(Drawing::Canvas& canvas)
+{
+    return;
+}
+#endif
+
 void RSRenderNodeDrawableAdapter::DrawRangeImpl(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const
 {
@@ -380,7 +387,11 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
     if (index == -1) {
         return;
     }
+#ifdef USE_PRIMITIVE
+    drawCmdList_[index]->OnDrawPrimitive(&canvas, &rect);
+#else
     drawCmdList_[index]->OnDraw(&canvas, &rect);
+#endif
 }
 
 void RSRenderNodeDrawableAdapter::DrawClipBounds(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
