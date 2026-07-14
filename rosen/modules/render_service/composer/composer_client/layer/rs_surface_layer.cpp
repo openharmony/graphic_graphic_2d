@@ -175,8 +175,14 @@ void RSSurfaceLayer::SetRSLayerCmd(const T& value)
 {
     auto renderProperty = std::make_shared<RSRenderLayerCmdProperty<T>>(value);
     auto renderLayerCmd = std::make_shared<RSRenderLayerCmdName>(renderProperty);
-    std::shared_ptr<RSLayerParcel> layerParcel =
-        std::make_shared<RSUpdateRSLayerCmd>(GetRSLayerId(), renderLayerCmd);
+    std::shared_ptr<RSLayerParcel> layerParcel;
+    if (IsScreenRCDLayer()) {
+        layerParcel = std::make_shared<RSUpdateRSRCDLayerCmd>(GetRSLayerId(), renderLayerCmd);
+    } else if (IsSolidFilledColorLayer()) {
+        layerParcel = std::make_shared<RSUpdateRSSolidFilledColorLayerCmd>(GetRSLayerId(), renderLayerCmd);
+    } else {
+        layerParcel = std::make_shared<RSUpdateRSLayerCmd>(GetRSLayerId(), renderLayerCmd);
+    }
     AddRSLayerParcel(GetRSLayerId(), layerParcel);
 }
 

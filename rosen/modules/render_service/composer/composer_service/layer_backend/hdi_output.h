@@ -151,6 +151,7 @@ public:
     }
     void UpdateThirdFrameAheadPresentFence(sptr<SyncFence>& fbFence);
     int32_t GetDisplayClientTargetProperty(int32_t& pixelFormat, int32_t& dataspace);
+    int32_t GetLayerSolidFilledColor(uint64_t layerId, uint32_t& solidFilledColor);
 
 private:
     HdiDevice *device_ = nullptr;
@@ -179,6 +180,8 @@ private:
     std::unordered_map<uint64_t, uint64_t> tunnelFallbackGenerations_;
     // solidLayer unique id -- layer ptr
     std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> solidSurfaceIdMap_;
+    /* only used for GetLayerSolidFilledColor find hdi layer id */
+    std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> solidRSLayerIdMap_;
     uint32_t screenId_;
     std::vector<GraphicIRect> outputDamages_;
     bool directClientCompositionEnabled_ = true;

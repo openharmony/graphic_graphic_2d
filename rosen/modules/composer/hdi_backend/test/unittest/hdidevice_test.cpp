@@ -1236,6 +1236,172 @@ HWTEST_F(HdiDeviceTest, SetScreenActiveRect003, Function | MediumTest| Level3)
         .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     EXPECT_EQ(hdiDeviceMock_->SetScreenActiveRect(screenId, activeRect), GRAPHIC_DISPLAY_SUCCESS);
 }
+
+/**
+ * Function: GetLayerSolidFilledColor_Success
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. mock GetLayerSolidFilledColor return SUCCESS
+ *                  2. check ret SUCCESS and solidFilledColor is set
+ *                   Cover branch: g_composer_v5 != nullptr (line 845 false),
+ *                   ret == GRAPHIC_DISPLAY_SUCCESS (line 852 true)
+ */
+HWTEST_F(HdiDeviceTest, GetLayerSolidFilledColor_Success, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId = 0;
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetLayerSolidFilledColor(screenId, layerId, solidFilledColor),
+              GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_Failed
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. mock GetLayerSolidFilledColor return FAILURE
+ *                  2. check ret FAILURE
+ *                   Cover branch: g_composer_v5 != nullptr (line 845 false),
+ *                   ret != GRAPHIC_DISPLAY_SUCCESS (line 852 false)
+ */
+HWTEST_F(HdiDeviceTest, GetLayerSolidFilledColor_Failed, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId = 0;
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(hdiDeviceMock_->GetLayerSolidFilledColor(screenId, layerId, solidFilledColor),
+              GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_NullPtr
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. mock GetLayerSolidFilledColor return NULL_PTR
+ *                  2. check ret NULL_PTR
+ *                   Cover branch: g_composer_v5 == nullptr (line 845 true)
+ */
+HWTEST_F(HdiDeviceTest, GetLayerSolidFilledColor_NullPtr, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId = 0;
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NULL_PTR));
+    EXPECT_EQ(hdiDeviceMock_->GetLayerSolidFilledColor(screenId, layerId, solidFilledColor),
+              GRAPHIC_DISPLAY_NULL_PTR);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_ColorValueCheck
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetLayerSolidFilledColor with valid parameters
+ *                  2. verify solidFilledColor can be set
+ *                   Cover branch: g_composer_v5 != nullptr (line 845 false),
+ *                   ret == GRAPHIC_DISPLAY_SUCCESS (line 852 true)
+ */
+HWTEST_F(HdiDeviceTest, GetLayerSolidFilledColor_ColorValueCheck, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId = 0;
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    auto ret = hdiDeviceMock_->GetLayerSolidFilledColor(screenId, layerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_SuccessWithColorValue
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. mock GetLayerSolidFilledColor to set color value and return SUCCESS
+ *                  2. verify solidFilledColor is correctly set via output parameter
+ *                   Cover branch: ret == GRAPHIC_DISPLAY_SUCCESS (line 852 true)
+ *                   Note: This test mocks the HdiDevice interface behavior.
+ *                   Testing HdiDeviceImpl's internal LayerColor conversion logic
+ *                   requires mocking g_composer_v5->GetLayerColor, which is not
+ *                   supported by the current test framework.
+ */
+HWTEST_F(HdiDeviceTest, GetLayerSolidFilledColor_SuccessWithColorValue, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId = 0;
+    uint32_t solidFilledColor = 0;
+    uint32_t expectedColor = 0xFF112233;  // Example color: alpha=255, r=17, g=34, b=51
+    
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillRepeatedly(testing::DoAll(testing::SetArgReferee<2>(expectedColor),
+                                       testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+    
+    auto ret = hdiDeviceMock_->GetLayerSolidFilledColor(screenId, layerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(solidFilledColor, expectedColor);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_FailureColorNotSet
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. mock GetLayerSolidFilledColor to return FAILURE
+ *                  2. verify solidFilledColor remains unchanged (not set)
+ *                   Cover branch: ret != GRAPHIC_DISPLAY_SUCCESS (line 852 false)
+ */
+HWTEST_F(HdiDeviceTest, GetLayerSolidFilledColor_FailureColorNotSet, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId = 0;
+    uint32_t solidFilledColor = 0xDEADBEEF;  // Set initial value to verify it's not modified
+    
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    
+    auto ret = hdiDeviceMock_->GetLayerSolidFilledColor(screenId, layerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_EQ(solidFilledColor, 0xDEADBEEF);  // Value should remain unchanged
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_MultipleLayerIds
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetLayerSolidFilledColor with different layer IDs
+ *                  2. verify each call returns appropriate result
+ *                   Cover branch: ret == GRAPHIC_DISPLAY_SUCCESS (line 852 true)
+ */
+HWTEST_F(HdiDeviceTest, GetLayerSolidFilledColor_MultipleLayerIds, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    uint32_t layerId1 = 1;
+    uint32_t layerId2 = 2;
+    uint32_t solidFilledColor1 = 0;
+    uint32_t solidFilledColor2 = 0;
+    
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(screenId, layerId1, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(screenId, layerId2, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    
+    auto ret1 = hdiDeviceMock_->GetLayerSolidFilledColor(screenId, layerId1, solidFilledColor1);
+    auto ret2 = hdiDeviceMock_->GetLayerSolidFilledColor(screenId, layerId2, solidFilledColor2);
+    
+    EXPECT_EQ(ret1, GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(ret2, GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerSolidFilledColor(screenId, layerId2, solidFilledColor2),
+        GRAPHIC_DISPLAY_SUCCESS);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

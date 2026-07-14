@@ -468,6 +468,9 @@ void HdiOutput::DeletePrevLayersLocked()
         const std::shared_ptr<HdiLayer>& hdiLayer = solidSurfaceIter->second;
         if (!hdiLayer->GetLayerStatus()) {
             solidSurfaceIdMap_.erase(solidSurfaceIter++);
+            if (hdiLayer->GetRSLayer() != nullptr) {
+                solidRSLayerIdMap_.erase(hdiLayer->GetRSLayer()->GetRSLayerId());
+            }
         } else {
             ++solidSurfaceIter;
         }
@@ -587,6 +590,7 @@ void HdiOutput::RegisterCreatedLayerLocked(uint64_t surfaceId, const std::shared
     if (rsLayer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
         // solid hdiLayer's surfaceId is unique, use solidLayerCount as key, to avoid conflict with normal hdiLayer
         solidSurfaceIdMap_[surfaceId] = hdiLayer;
+        solidRSLayerIdMap_[rsLayer->GetRSLayerId()] = hdiLayer;
     } else {
         surfaceIdMap_[surfaceId] = hdiLayer;
     }
@@ -1666,6 +1670,20 @@ int32_t HdiOutput::GetDisplayClientTargetProperty(int32_t& pixelFormat, int32_t&
         HLOGD("Call hdi GetDisplayClientTargetProperty failed, ret is %{public}d", ret);
     }
     return ret;
+}
+
+int32_t HdiOutput::GetLayerSolidFilledColor(uint64_t layerId, uint32_t& solidFilledColor)
+{
+    auto iter = solidRSLayerIdMap_.find(layerId);
+    if (iter != solidRSLayerIdMap_.end()) {
+        int32_t ret = device_->GetLayerSolidFilledColor(screenId_, iter->second->GetLayerId(), solidFilledColor);
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGD("Call hdi GetLayerSolidFilledColor failed, ret is %{public}d", ret);
+        }
+        return ret;
+    }
+    HLOGE("%{public}s failed, not find hdi layer", __func__);
+    return GRAPHIC_DISPLAY_FAILURE;
 }
 } // namespace Rosen
 } // namespace OHOS
