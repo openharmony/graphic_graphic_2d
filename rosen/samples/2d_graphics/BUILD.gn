@@ -157,6 +157,8 @@ ohos_executable("drawing_sample_rs") {
     "c_utils:utils",
     "hilog:libhilog",
     "zlib:libz",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   part_name = "graphic_2d"
