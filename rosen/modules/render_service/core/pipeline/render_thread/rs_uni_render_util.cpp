@@ -1713,19 +1713,16 @@ void RSUniRenderUtil::SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas,
     }
     auto offscreenSurface = originSurface->MakeSurface(info);
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
-
     if (!offscreenCanvas) {
         RS_LOGE("SwitchColorFilterWithP3 get offscreenCanvas failed");
         return;
     }
-
     Drawing::Brush brush;
     auto originSurfaceImage = originSurface->GetImageSnapshot();
     if (!originSurfaceImage) {
         RS_LOGE("SwitchColorFilterWithP3 get originSurfaceImage failed");
         return;
     }
-
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush, hdrBrightnessRatio);
     offscreenCanvas->AttachBrush(brush);
     offscreenCanvas->DrawImage(*originSurfaceImage, 0.f, 0.f, Drawing::SamplingOptions());
