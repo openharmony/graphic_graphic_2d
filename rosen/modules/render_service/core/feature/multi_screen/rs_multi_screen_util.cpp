@@ -262,13 +262,14 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
 
     RS_LOGD("RSMultiScreenUtil::%{public}s Expand screen.", __func__);
     bool isOpDropped = uniParam->IsOpDropped();
-    uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
     auto expandProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
     if (!expandProcessor) {
         drawable.SetDrawSkipType(DrawSkipType::EXPAND_PROCESSOR_NULL);
         RS_LOGE("RSMultiScreenUtil::%{public}s expandProcessor is null!", __func__);
         return;
     }
+    uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled() &&
+        !expandProcessor->IsMultiSurfaceExtendMode());
     RSDirtyRectsDfx rsDirtyRectsDfx(drawable);
     std::vector<RectI> damageRegionRects;
     RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(drawable, params);
@@ -294,7 +295,7 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
     drawable.curCanvas_ = expandProcessor->GetCanvas();
     auto& curCanvas = drawable.curCanvas_;
     curCanvas->Save();
-    if (uniParam->IsVirtualExpandScreenDirtyEnabled()) {
+    if (uniParam->IsVirtualExpandScreenDirtyEnabled() && !expandProcessor->IsMultiSurfaceExtendMode()) {
         drawable.UpdateSurfaceDrawRegion(curCanvas, &params);
         curCanvas->SetDrawnRegion(params.GetDrawnRegion());
         if (uniParam->IsDirtyAlignEnabled() && RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid() &&
