@@ -33,32 +33,32 @@ enum RSUIDirectorCommandType : uint16_t {
 
 class RSB_EXPORT RSUIDirectorCommandHelper {
 public:
-    static void GoCreate(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token);
-    static void GoResume(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token);
-    static void GoForeground(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token);
-    static void GoBackground(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token);
-    static void GoStop(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token);
-    static void GoDestroy(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token);
+    static void GoCreate(RSContext& context, NodeId nodeId, uint64_t token);
+    static void GoResume(RSContext& context, NodeId nodeId, uint64_t token);
+    static void GoForeground(RSContext& context, NodeId nodeId, uint64_t token);
+    static void GoBackground(RSContext& context, NodeId nodeId, uint64_t token);
+    static void GoStop(RSContext& context, NodeId nodeId, uint64_t token);
+    static void GoDestroy(RSContext& context, NodeId nodeId, uint64_t token);
 };
 
 ADD_COMMAND(RSUIDirectorGoCreate,
     ARG(PERMISSION_APP, UI_DIRECTOR, GO_CREATE,
-        RSUIDirectorCommandHelper::GoCreate, NodeId, pid_t, uint64_t))
+        RSUIDirectorCommandHelper::GoCreate, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoResume,
     ARG(PERMISSION_APP, UI_DIRECTOR, GO_RESUME,
-        RSUIDirectorCommandHelper::GoResume, NodeId, pid_t, uint64_t))
+        RSUIDirectorCommandHelper::GoResume, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoForeground,
     ARG(PERMISSION_APP, UI_DIRECTOR, GO_FOREGROUND,
-        RSUIDirectorCommandHelper::GoForeground, NodeId, pid_t, uint64_t))
+        RSUIDirectorCommandHelper::GoForeground, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoBackground,
     ARG(PERMISSION_APP, UI_DIRECTOR, GO_BACKGROUND,
-        RSUIDirectorCommandHelper::GoBackground, NodeId, pid_t, uint64_t))
+        RSUIDirectorCommandHelper::GoBackground, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoStop,
     ARG(PERMISSION_APP, UI_DIRECTOR, GO_STOP,
-        RSUIDirectorCommandHelper::GoStop, NodeId, pid_t, uint64_t))
+        RSUIDirectorCommandHelper::GoStop, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoDestroy,
     ARG(PERMISSION_APP, UI_DIRECTOR, GO_DESTROY,
-        RSUIDirectorCommandHelper::GoDestroy, NodeId, pid_t, uint64_t))
+        RSUIDirectorCommandHelper::GoDestroy, NodeId, uint64_t))
 } // namespace Rosen
 } // namespace OHOS
 

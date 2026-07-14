@@ -218,7 +218,7 @@ void RSUIDirector::AddUIDirectorCommand()
     static pid_t pid = getpid();
     NodeId nodeId = rootNode ? rootNode->GetId() : (((NodeId)pid << 32) | NODE_ID);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<CommandType>(nodeId, pid, rsUIContext_ ? rsUIContext_->GetToken() : 0);
+        std::make_unique<CommandType>(nodeId, rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_TRACE_NAME_FMT(
         "RSUIDirector::AddUIDirectorCommand type is %d, token is %lu", command->GetSubType(), rsUIContext_->GetToken());
     transaction->AddCommand(command, true);
