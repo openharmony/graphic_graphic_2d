@@ -304,19 +304,6 @@ inline TunnelTestContext CreateTunnelTestContext(bool withProducer)
     return context;
 }
 
-inline bool SetRuntimePendingBufferForTest(const TunnelTestContext& context)
-{
-    if (!context.IsBaseReady()) {
-        return false;
-    }
-    auto entry = CreateTestBufferEntry();
-    if (entry.buffer == nullptr) {
-        return false;
-    }
-    RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetPendingBuffer(entry);
-    return true;
-}
-
 class ScopedRegisteredSurfaceNode {
 public:
     explicit ScopedRegisteredSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode>& node) : node_(node)
@@ -351,30 +338,6 @@ private:
     bool registered_ = false;
 };
 
-inline bool MoveRuntimePendingToNormalHold(const std::shared_ptr<RSSurfaceRenderNode>& node,
-    const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, const sptr<IConsumerSurface>& consumer)
-{
-    if (node == nullptr || surfaceHandler == nullptr || consumer == nullptr) {
-        return false;
-    }
-    RSSurfaceHandler::SurfaceBufferEntry entry;
-    auto& runtime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
-    if (!runtime.TakePendingBuffer(entry) || entry.buffer == nullptr) {
-        return false;
-    }
-    surfaceHandler->SetHoldBuffer(std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>(entry));
-    consumer->SetBufferHold(true);
-    surfaceHandler->SetAvailableBufferCount(1);
-    return true;
-}
-
-inline bool MoveRuntimePendingToNormalHold(const TunnelTestContext& context)
-{
-    if (!context.IsBaseReady()) {
-        return false;
-    }
-    return MoveRuntimePendingToNormalHold(context.node, context.surfaceHandler, context.consumer);
-}
 } // namespace OHOS::Rosen::TunnelTest
 
 #endif // RS_TUNNEL_TEST_UTILS_H

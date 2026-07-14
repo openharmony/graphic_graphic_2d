@@ -196,7 +196,6 @@ void PrepareRouteBaseline(const TunnelTest::TunnelTestContext& context)
 
 enum class RouteMutationType {
     NONE,
-    PENDING_BUFFER,
     CAPTURE,
     PROTECTED,
     TUNNEL_INFO,
@@ -227,16 +226,6 @@ ApplyMutationResult ApplyNonLayerRouteMutation(RouteMutationType type, const Tun
     switch (type) {
         case RouteMutationType::NONE:
             return ApplyMutationResult::APPLIED;
-        case RouteMutationType::PENDING_BUFFER: {
-            RSSurfaceHandler::SurfaceBufferEntry pendingBuffer;
-            pendingBuffer.buffer = CreateRouteBuffer();
-            if (pendingBuffer.buffer == nullptr) {
-                return ApplyMutationResult::FAILED;
-            }
-            pendingBuffer.bufferOwnerCount_->bufferId_ = pendingBuffer.buffer->GetBufferId();
-            RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetPendingBuffer(pendingBuffer);
-            return ApplyMutationResult::APPLIED;
-        }
         case RouteMutationType::CAPTURE:
             params.SetIsNodeToBeCaptured(true);
             return ApplyMutationResult::APPLIED;
@@ -322,7 +311,6 @@ void ExpectStaleQueueGoesNormal(RSTunnelRouteArbiter& arbiter)
     ASSERT_TRUE(context.IsBaseReady());
     auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
     ActivateTunnelRuntime(tunnelRuntime);
-    ASSERT_FALSE(tunnelRuntime.HasPendingBuffer());
     ASSERT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::TUNNEL_IDLE);
     context.surfaceHandler->SetAvailableBufferCount(1);
     ExpectRouteClaimGoesNormal(arbiter, context);
@@ -363,7 +351,6 @@ void RunRouteGoNormalMatrix()
 {
     const std::vector<RouteMutationCase> testCases = {
         { "new_tunnel_disabled", false, RouteMutationType::NONE },
-        { "pending_buffer", true, RouteMutationType::PENDING_BUFFER },
         { "capture", true, RouteMutationType::CAPTURE },
         { "protected", true, RouteMutationType::PROTECTED },
         { "tunnel_info", true, RouteMutationType::TUNNEL_INFO },

@@ -24,8 +24,6 @@ namespace OHOS::Rosen {
 namespace {
 constexpr int32_t TEST_BUFFER_SIZE = 0x100;
 constexpr int32_t TEST_STRIDE_ALIGNMENT = 0x8;
-constexpr int64_t FIRST_TIMESTAMP = 100;
-constexpr int64_t SECOND_TIMESTAMP = 200;
 constexpr uint64_t TEST_TUNNEL_LAYER_ID = 1001;
 constexpr uint32_t TEST_TUNNEL_PROPERTY = TUNNEL_PROP_BUFFER_ADDR;
 constexpr uint64_t FIRST_BUFFER_ID = 11;
@@ -41,22 +39,9 @@ public:
     };
 
     BufferEntry CreateBufferEntry();
-#ifndef ROSEN_CROSS_PLATFORM
-    RSSurfaceHandler::SurfaceBufferEntry AcquirePendingEntry(int64_t timestamp);
-#endif
     void TearDown() override {}
 
 private:
-#ifndef ROSEN_CROSS_PLATFORM
-    static inline BufferRequestConfig requestConfig_ = {
-        .width = TEST_BUFFER_SIZE,
-        .height = TEST_BUFFER_SIZE,
-        .strideAlignment = TEST_STRIDE_ALIGNMENT,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-    };
-#endif
 };
 
 RSTunnelRuntimeStateTest::BufferEntry RSTunnelRuntimeStateTest::CreateBufferEntry()
@@ -78,70 +63,6 @@ RSTunnelRuntimeStateTest::BufferEntry RSTunnelRuntimeStateTest::CreateBufferEntr
     return entry;
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
-RSSurfaceHandler::SurfaceBufferEntry RSTunnelRuntimeStateTest::AcquirePendingEntry(int64_t timestamp)
-{
-    RSSurfaceHandler::SurfaceBufferEntry entry;
-    auto requestedEntry = CreateBufferEntry();
-    if (requestedEntry.buffer == nullptr) {
-        return entry;
-    }
-    entry.buffer = requestedEntry.buffer;
-    entry.acquireFence = requestedEntry.fence;
-    entry.timestamp = timestamp;
-    entry.damageRect = { 0, 0, TEST_BUFFER_SIZE, TEST_BUFFER_SIZE };
-    entry.bufferOwnerCount_->bufferId_ = entry.buffer->GetBufferId();
-    entry.RegisterReleaseBufferListener([](uint64_t) {});
-    return entry;
-}
-
-/**
- * @tc.name: PendingBufferEntryLifecycle
- * @tc.desc: test pending SurfaceBufferEntry can be set and taken
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSTunnelRuntimeStateTest, PendingBufferEntryLifecycle, TestSize.Level1)
-{
-    RSTunnelRuntimeState state;
-    auto entry = AcquirePendingEntry(FIRST_TIMESTAMP);
-    ASSERT_NE(entry.buffer, nullptr);
-    auto bufferId = entry.buffer->GetBufferId();
-
-    state.SetPendingBuffer(entry);
-    EXPECT_TRUE(state.HasPendingBuffer());
-
-    RSSurfaceHandler::SurfaceBufferEntry takenEntry;
-    ASSERT_TRUE(state.TakePendingBuffer(takenEntry));
-    ASSERT_NE(takenEntry.buffer, nullptr);
-    EXPECT_EQ(takenEntry.buffer->GetBufferId(), bufferId);
-    EXPECT_EQ(takenEntry.timestamp, FIRST_TIMESTAMP);
-    EXPECT_FALSE(state.HasPendingBuffer());
-}
-
-/**
- * @tc.name: SetPendingBufferReplacesOlderPending
- * @tc.desc: test setting a newer pending entry replaces the older one
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSTunnelRuntimeStateTest, SetPendingBufferReplacesOlderPending, TestSize.Level1)
-{
-    RSTunnelRuntimeState state;
-    auto firstEntry = AcquirePendingEntry(FIRST_TIMESTAMP);
-    auto secondEntry = AcquirePendingEntry(SECOND_TIMESTAMP);
-    ASSERT_NE(firstEntry.buffer, nullptr);
-    ASSERT_NE(secondEntry.buffer, nullptr);
-
-    state.SetPendingBuffer(firstEntry);
-    state.SetPendingBuffer(secondEntry);
-
-    RSSurfaceHandler::SurfaceBufferEntry latestEntry;
-    ASSERT_TRUE(state.TakePendingBuffer(latestEntry));
-    ASSERT_NE(latestEntry.buffer, nullptr);
-    EXPECT_EQ(latestEntry.buffer->GetBufferId(), secondEntry.buffer->GetBufferId());
-    EXPECT_EQ(latestEntry.timestamp, SECOND_TIMESTAMP);
-}
 #endif
 
 /**
@@ -156,16 +77,8 @@ HWTEST_F(RSTunnelRuntimeStateTest, ClearResetsBuffersAndActivationState, TestSiz
     state.SetLayerInfo(TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_PROPERTY);
     state.SetBuilding();
     state.SetActiveFromTunnelLayerAvailable(state.GetTunnelLayerGeneration());
-#ifndef ROSEN_CROSS_PLATFORM
-    auto entry = AcquirePendingEntry(FIRST_TIMESTAMP);
-    ASSERT_NE(entry.buffer, nullptr);
-    state.SetPendingBuffer(entry);
-#endif
     state.Clear();
 
-#ifndef ROSEN_CROSS_PLATFORM
-    EXPECT_FALSE(state.HasPendingBuffer());
-#endif
     EXPECT_EQ(state.GetTunnelState(), RSTunnelRuntimeState::TunnelState::BUILDING);
     uint64_t tunnelLayerId = TEST_TUNNEL_LAYER_ID;
     uint32_t property = TEST_TUNNEL_PROPERTY;
@@ -462,7 +375,6 @@ HWTEST_F(RSTunnelRuntimeStateTest, RuntimeStoreNonCreatingQueries001, TestSize.L
     EXPECT_EQ(tunnelLayerId, 0u);
     EXPECT_EQ(property, TUNNEL_PROP_INVALID);
     EXPECT_EQ(RSTunnelRuntimeStore::GetTunnelLayerGeneration(TEST_NODE_ID), 0u);
-    EXPECT_FALSE(RSTunnelRuntimeStore::HasPendingBuffer(TEST_NODE_ID));
     EXPECT_FALSE(RSTunnelRuntimeStore::IsTunnelActive(TEST_NODE_ID));
 
     auto& runtime = RSTunnelRuntimeStore::GetOrCreate(TEST_NODE_ID);

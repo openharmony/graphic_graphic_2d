@@ -4412,6 +4412,10 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
 
 void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
 {
+    auto handler = node.GetRSSurfaceHandler();
+    if (handler == nullptr || !handler->HasReceivedTunnelLayerInfo()) {
+        return;
+    }
     auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node.GetId());
     uint64_t tunnelLayerId = 0;
     uint32_t property = TUNNEL_PROP_INVALID;
