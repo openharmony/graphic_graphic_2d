@@ -445,7 +445,7 @@ void RSNodeCommandHelper::ReSortChildrenByZIndex(RSContext& context, NodeId node
 }
 
 bool RSNodeCommandHelper::CheckPropertyType(const char* funcName,
-RSRenderPropertyBase& prop, RSPropertyType updateType, NodeId nodeId)
+    RSRenderPropertyBase& prop, RSPropertyType updateType, NodeId nodeId)
 {
     if (prop.GetPropertyType() != updateType) {
         RS_COLD_LOGE("%{public}s type mismatch, nodeId=%{public}" PRIu64 ", propertyId=%{public}" PRIu64

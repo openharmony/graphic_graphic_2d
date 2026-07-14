@@ -1010,7 +1010,7 @@ HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMismatch001, TestSize.Level1)
 
     EXPECT_EQ(floatProperty->Get(), initialValue);
 }
- 
+
 /**
  * @tc.name: UpdatePropertyTypeMatch001
  * @tc.desc: Test UpdateProperty with correct type match - float property with float value.

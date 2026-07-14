@@ -144,7 +144,7 @@ public:
             }
         }
         if (auto property = node->GetProperty(id)) {
-            if (UNLIKELY(!CheckPropertyType(__func__, *baseProperty, RSRenderPropertyTypeTraits<T>::type, nodeId))) {
+            if (UNLIKELY(!CheckPropertyType(__func__, *property, RSRenderPropertyTypeTraits<T>::type, nodeId))) {
                 return;
             }
             std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);
