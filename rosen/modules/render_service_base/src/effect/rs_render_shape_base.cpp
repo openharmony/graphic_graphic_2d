@@ -130,12 +130,25 @@ std::shared_ptr<RSNGRenderShapeBase> RSNGRenderShapeBase::Create(RSNGEffectType 
     return it != creatorLUT.end() ? it->second() : nullptr;
 }
 
+bool RSShapeRecursionGuard::ExceedsLimit() const
+{
+    if (Depth() > MAX_DEPTH) {
+        ROSEN_LOGE("RSShapeRecursionGuard: recursion depth exceeds limit(%{public}d)", MAX_DEPTH);
+        return true;
+    }
+    return false;
+}
+
+int32_t& RSShapeRecursionGuard::Depth()
+{
+    static thread_local int32_t depth = 0;
+    return depth;
+}
+
 [[nodiscard]] bool RSNGRenderShapeBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShapeBase>& val)
 {
     RSShapeRecursionGuard guard;
     if (guard.ExceedsLimit()) {
-        ROSEN_LOGE(
-            "RSNGRenderShapeBase: Unmarshalling depth exceeds limit(%{public}d)", RSShapeRecursionGuard::MAX_DEPTH);
         return false;
     }
     std::shared_ptr<RSNGRenderShapeBase> head = nullptr;

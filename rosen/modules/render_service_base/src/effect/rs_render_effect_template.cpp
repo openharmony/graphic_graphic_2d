@@ -19,7 +19,6 @@
 #include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
-#include "platform/common/rs_log.h"
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_util.h"
 
@@ -196,8 +195,6 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
     }
     RSShapeRecursionGuard guard;
     if (guard.ExceedsLimit()) {
-        ROSEN_LOGE("RSNGRenderEffectHelper: CalculatePropTagHash depth exceeds limit(%{public}d)",
-            RSShapeRecursionGuard::MAX_DEPTH);
         return;
     }
 
