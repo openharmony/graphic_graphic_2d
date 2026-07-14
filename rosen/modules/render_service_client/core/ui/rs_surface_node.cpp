@@ -1238,6 +1238,16 @@ void RSSurfaceNode::SetSurfaceNodeType(RSSurfaceNodeType nodeType)
     surfaceNodeType_ = nodeType;
 }
 
+RSSurfaceNodeType RSSurfaceNode::GetSurfaceNodeType() const
+{
+    return surfaceNodeType_;
+}
+
+bool RSSurfaceNode::IsAppWindow() const
+{
+    return surfaceNodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
+}
+
 void RSSurfaceNode::SetSourceVirtualDisplayId(ScreenId screenId)
 {
     SetRSCmdProperty<VirtualDisplayIdCmdModifier>(VirtualDisplayIdCmdParam{
