@@ -1460,12 +1460,12 @@ HWTEST_F(RSUifirstManagerTest2, IsArkTsCardCache, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessDoneNodeInnerTest
+ * @tc.name: ProcessDoneNodeInnerTest001
  * @tc.desc: Test ProcessDoneNodeInner
  * @tc.type: FUNC
  * @tc.require: issueIC4F7H
  */
-HWTEST_F(RSUifirstManagerTest2, ProcessDoneNodeInnerTest, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest2, ProcessDoneNodeInnerTest001, TestSize.Level1)
 {
     uifirstManager_.subthreadProcessDoneNode_.clear();
     uifirstManager_.ProcessDoneNodeInner();
@@ -1492,6 +1492,35 @@ HWTEST_F(RSUifirstManagerTest2, ProcessDoneNodeInnerTest, TestSize.Level1)
     drawable->renderParams_ = nullptr;
     uifirstManager_.ProcessDoneNodeInner();
     ASSERT_EQ(uifirstManager_.pendingForceUpdateNode_.size(), 2);
+
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.pendingForceUpdateNode_.clear();
+}
+
+/**
+ * @tc.name: ProcessDoneNodeInnerTest002
+ * @tc.desc: Test ProcessDoneNodeInner with valid AncestorScreenNode (true branch)
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSUifirstManagerTest2, ProcessDoneNodeInnerTest002, TestSize.Level1)
+{
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    uifirstManager_.subthreadProcessDoneNode_.push_back(surfaceNode1->GetId());
+    auto drawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode1->renderDrawable_);
+    drawable->GetRsSubThreadCache().SetCacheSurfaceNeedUpdated(true);
+    drawable->GetRsSubThreadCache().cacheSurface_ = std::make_shared<Drawing::Surface>();
+
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 200;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(10, screenId, rsContext->weak_from_this());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->renderParams_.get());
+    surfaceParams->SetAncestorScreenNode(screenNode);
+
+    uifirstManager_.hasForceUpdateScreen_.clear();
+    uifirstManager_.ProcessDoneNodeInner();
+    ASSERT_EQ(uifirstManager_.pendingForceUpdateNode_.size(), 1);
+    EXPECT_TRUE(uifirstManager_.hasForceUpdateScreen_.find(screenId) != uifirstManager_.hasForceUpdateScreen_.end());
 
     uifirstManager_.subthreadProcessDoneNode_.clear();
     uifirstManager_.pendingForceUpdateNode_.clear();
@@ -2723,5 +2752,67 @@ HWTEST_F(RSUifirstManagerTest2, ProcessFirstFrameCache002, TestSize.Level1)
 
     uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::LEASH_WINDOW);
     EXPECT_FALSE(uifirstManager_.IsFirstFrameCacheGeneratedNode(surfaceNode->GetId()));
+}
+
+/**
+ * @tc.name: GetScreenId001
+ * @tc.desc: Test GetScreenId with empty weak_ptr
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSUifirstManagerTest2, GetScreenId001, TestSize.Level1)
+{
+    RSBaseRenderNode::WeakPtr emptyPtr;
+    EXPECT_EQ(RSUifirstManager::GetScreenId(emptyPtr), INVALID_SCREEN_ID);
+}
+
+/**
+ * @tc.name: GetScreenId002
+ * @tc.desc: Test GetScreenId with non-screen node (cast fails)
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSUifirstManagerTest2, GetScreenId002, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    RSBaseRenderNode::WeakPtr nonScreenPtr = surfaceNode;
+    EXPECT_EQ(RSUifirstManager::GetScreenId(nonScreenPtr), INVALID_SCREEN_ID);
+}
+
+/**
+ * @tc.name: GetScreenId003
+ * @tc.desc: Test GetScreenId with expired weak_ptr
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSUifirstManagerTest2, GetScreenId003, TestSize.Level1)
+{
+    RSBaseRenderNode::WeakPtr expiredPtr;
+    {
+        auto rsContext = std::make_shared<RSContext>();
+        NodeId id = 10;
+        ScreenId screenId = 100;
+        auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext->weak_from_this());
+        expiredPtr = screenNode;
+    }
+    EXPECT_EQ(RSUifirstManager::GetScreenId(expiredPtr), INVALID_SCREEN_ID);
+}
+
+/**
+ * @tc.name: GetScreenId004
+ * @tc.desc: Test GetScreenId with valid screen node
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSUifirstManagerTest2, GetScreenId004, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    NodeId id = 10;
+    ScreenId screenId = 100;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext->weak_from_this());
+    ASSERT_NE(screenNode, nullptr);
+    RSBaseRenderNode::WeakPtr screenPtr = screenNode;
+    EXPECT_EQ(RSUifirstManager::GetScreenId(screenPtr), screenId);
 }
 }

@@ -192,7 +192,10 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     if (SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE)) {
         // enable ->disable
         SetNodeNeedForceUpdateFlag(true);
-        hasForceUpdateScreen_.insert(nodePtr->GetScreenId());
+        auto screenId = GetScreenId(nodePtr->GetAncestorScreenNode());
+        if (screenId != INVALID_SCREEN_ID) {
+            hasForceUpdateScreen_.insert(screenId);
+        }
         pendingForceUpdateNode_.push_back(nodePtr->GetId());
     }
     RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
@@ -399,7 +402,10 @@ void RSUifirstManager::ProcessDoneNodeInner()
             SetNodeNeedForceUpdateFlag(true);
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
             if (surfaceParams) {
-                hasForceUpdateScreen_.insert(surfaceParams->GetScreenId());
+                auto screenId = GetScreenId(surfaceParams->GetAncestorScreenNode());
+                if (screenId != INVALID_SCREEN_ID) {
+                    hasForceUpdateScreen_.insert(screenId);
+                }
             }
             pendingForceUpdateNode_.push_back(id);
         }
@@ -2591,6 +2597,16 @@ bool RSUifirstManager::IsOcclusionEnabled() const
 {
     return GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE && UIFirstParam::IsOcclusionEnabled() &&
         RSSystemParameters::GetUIFirstOcclusionEnabled();
+}
+
+ScreenId RSUifirstManager::GetScreenId(const RSBaseRenderNode::WeakPtr& ancestorScreenNode)
+{
+    auto screenNode = ancestorScreenNode.lock();
+    if (!screenNode) {
+        return INVALID_SCREEN_ID;
+    }
+    auto screenRenderNode = screenNode->ReinterpretCastTo<RSScreenRenderNode>();
+    return screenRenderNode ? screenRenderNode->GetScreenId() : INVALID_SCREEN_ID;
 }
 } // namespace Rosen
 } // namespace OHOS
