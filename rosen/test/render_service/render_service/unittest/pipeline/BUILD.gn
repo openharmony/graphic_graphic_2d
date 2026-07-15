@@ -100,6 +100,9 @@ ohos_unittest("RSBufferManagerTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSVirtualScreenProcessorTest
@@ -609,6 +612,7 @@ ohos_unittest("RSBaseRenderUtilTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  defines += [ "PADDING_HEIGHT_32" ]
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
