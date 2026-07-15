@@ -457,6 +457,7 @@ public:
     void ClearCustomWatermarkEnabled(const std::string& name);
     const std::unordered_map<std::string, bool>& GetSurfaceWatermarkEnabledMap(
         SurfaceWatermarkType watermarkType) const;
+    const std::unordered_map<std::string, bool>& GetWatermarksEnabledMap() const;
 
     bool IsSystemWatermarkEmpty() const;
     bool IsCustomWatermarkEmpty() const;

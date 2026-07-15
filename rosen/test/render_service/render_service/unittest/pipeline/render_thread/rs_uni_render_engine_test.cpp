@@ -22,6 +22,9 @@
 #include "recording/recording_canvas.h"
 #include "rs_surface_layer.h"
 #include "rs_surface_rcd_layer.h"
+#include "rs_surface_solid_filled_color_layer.h"
+#include "rs_render_surface_solid_filled_color_layer.h"
+#include "composer/composer_service/layer_backend/hdi_output.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -692,5 +695,137 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayerPreProcess_VcldInfoTransparentTest001, 
     ComposerScreenInfo screenInfo;
     // Should clip round rect but not draw background color(transparent)
     EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayerPreProcess(*canvas, layer, screenInfo));
+}
+
+/**
+ * @tc.name: DrawLayers_SolidFilledColorLayer_GetLayerSolidFilledColorSuccess001
+ * @tc.desc: Test DrawLayers when IsSolidFilledColorLayer() == true and GetLayerSolidFilledColor succeeds
+ *           Cover branch: layer->IsSolidFilledColorLayer() == true, ret == GRAPHIC_DISPLAY_SUCCESS
+ * @tc.type: FUNC
+ * @tc.require: issueI9XYZ1
+ */
+HWTEST_F(RSUniRenderEngineTest, DrawLayers_SolidFilledColorLayer_GetLayerSolidFilledColorSuccess001, TestSize.Level2)
+{
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    RSLayerPtr solidFilledColorLayer = RSSurfaceSolidFilledColorLayer::Create(0, ctx);
+    ASSERT_NE(solidFilledColorLayer, nullptr);
+    solidFilledColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    
+    GraphicIRect layerSize = {0, 0, 100, 100};
+    solidFilledColorLayer->SetLayerSize(layerSize);
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(solidFilledColorLayer);
+
+    auto output = std::make_shared<HdiOutput>(0u);
+    ASSERT_NE(output, nullptr);
+    
+    ComposerScreenInfo screenInfo;
+    EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo, output));
+}
+
+/**
+ * @tc.name: DrawLayers_SolidFilledColorLayer_GetLayerSolidFilledColorFail001
+ * @tc.desc: Test DrawLayers when IsSolidFilledColorLayer() == true and GetLayerSolidFilledColor fails
+ *           Cover branch: layer->IsSolidFilledColorLayer() == true, ret != GRAPHIC_DISPLAY_SUCCESS (continue)
+ * @tc.type: FUNC
+ * @tc.require: issueI9XYZ2
+ */
+HWTEST_F(RSUniRenderEngineTest, DrawLayers_SolidFilledColorLayer_GetLayerSolidFilledColorFail001, TestSize.Level2)
+{
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    RSLayerPtr solidFilledColorLayer = RSSurfaceSolidFilledColorLayer::Create(12345, ctx);
+    ASSERT_NE(solidFilledColorLayer, nullptr);
+    solidFilledColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    
+    GraphicIRect layerSize = {0, 0, 100, 100};
+    solidFilledColorLayer->SetLayerSize(layerSize);
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(solidFilledColorLayer);
+
+    auto output = std::make_shared<HdiOutput>(0u);
+    ASSERT_NE(output, nullptr);
+    
+    ComposerScreenInfo screenInfo;
+    EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo, output));
+}
+
+/**
+ * @tc.name: DrawLayers_NotSolidFilledColorLayer_NonBlackColor001
+ * @tc.desc: Test DrawLayers when IsSolidFilledColorLayer() == false and layerColor is not black
+ *           Cover branch: layer->IsSolidFilledColorLayer() == false, layerColor != layerBlackColor
+ * @tc.type: FUNC
+ * @tc.require: issueI9XYZ3
+ */
+HWTEST_F(RSUniRenderEngineTest, DrawLayers_NotSolidFilledColorLayer_NonBlackColor001, TestSize.Level2)
+{
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    RSLayerPtr normalLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(normalLayer, nullptr);
+    normalLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    
+    GraphicIRect layerSize = {0, 0, 100, 100};
+    normalLayer->SetLayerSize(layerSize);
+    
+    GraphicLayerColor layerColor = { .r = 255, .g = 0, .b = 0, .a = 128 };
+    normalLayer->SetLayerColor(layerColor);
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(normalLayer);
+
+    auto output = std::make_shared<HdiOutput>(0u);
+    ASSERT_NE(output, nullptr);
+    
+    ComposerScreenInfo screenInfo;
+    EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo, output));
+}
+
+/**
+ * @tc.name: DrawLayers_NotSolidFilledColorLayer_BlackColor001
+ * @tc.desc: Test DrawLayers when IsSolidFilledColorLayer() == false and layerColor is black
+ *           Cover branch: layer->IsSolidFilledColorLayer() == false, layerColor == layerBlackColor
+ * @tc.type: FUNC
+ * @tc.require: issueI9XYZ4
+ */
+HWTEST_F(RSUniRenderEngineTest, DrawLayers_NotSolidFilledColorLayer_BlackColor001, TestSize.Level2)
+{
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    RSLayerPtr normalLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(normalLayer, nullptr);
+    normalLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    
+    GraphicIRect layerSize = {0, 0, 100, 100};
+    normalLayer->SetLayerSize(layerSize);
+    
+    GraphicLayerColor blackColor = { .r = 0, .g = 0, .b = 0, .a = 0 };
+    normalLayer->SetLayerColor(blackColor);
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(normalLayer);
+
+    auto output = std::make_shared<HdiOutput>(0u);
+    ASSERT_NE(output, nullptr);
+    
+    ComposerScreenInfo screenInfo;
+    EXPECT_NO_FATAL_FAILURE(uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo, output));
 }
 } // namespace OHOS::Rosen

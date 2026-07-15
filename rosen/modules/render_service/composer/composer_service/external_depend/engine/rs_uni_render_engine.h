@@ -42,10 +42,12 @@ public:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
         const ComposerScreenInfo& composerScreenInfo = {},
-        GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) override;
+        GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
+        const std::shared_ptr<HdiOutput>& output = nullptr) override;
 #else
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-        const ComposerScreenInfo& composerScreenInfo = {}) override;
+        const ComposerScreenInfo& composerScreenInfo = {},
+        const std::shared_ptr<HdiOutput>& output = nullptr) override;
 #endif
 #ifdef RS_ENABLE_TV_PQ_METADATA
     static void RegisterTvMetadataCallback(const RecordTvMetadataFunc recordTvMetadataCallback);

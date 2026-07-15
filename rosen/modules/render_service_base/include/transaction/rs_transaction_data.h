@@ -219,6 +219,11 @@ public:
     }
 
 private:
+    using InaccessibleCommandMap = std::unordered_map<pid_t,
+        std::unordered_map<NodeId, std::set<std::pair<uint16_t, uint16_t>>>>;
+    void CheckNonSystemCommand(RSCommand* command, pid_t callingPid, const RSRenderNodeMap& nodeMap,
+        InaccessibleCommandMap& inaccessibleCommandMap) const;
+
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
     void MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId);

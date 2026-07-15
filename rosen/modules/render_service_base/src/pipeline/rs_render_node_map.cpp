@@ -314,9 +314,11 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
 
 #ifndef ROSEN_CROSS_PLATFORM
     RS_TRACE_BEGIN("process surfaceHandlerInfoMap_");
-    EraseIf(surfaceHandlerInfoMap_, [pid, this](const auto& pair) -> bool {
-        return (ExtractPid(pair.first) == pid);
-    });
+    {
+        std::lock_guard<std::mutex> lock(surfaceHandlerInfoMutex_);
+        EraseIf(
+            surfaceHandlerInfoMap_, [pid, this](const auto& pair) -> bool { return (ExtractPid(pair.first) == pid); });
+    }
     RS_TRACE_END();
 #endif
 

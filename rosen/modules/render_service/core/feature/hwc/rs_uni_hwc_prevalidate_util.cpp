@@ -22,6 +22,7 @@
 #include "engine/rs_base_render_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
+#include "hwc_param.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "utils/rect.h"
 
@@ -208,8 +209,15 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     }
 
     if (arsrPreEnabled_ && CheckIfDoArsrPre(node)) {
-        info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
-        node->SetArsrTag(true);
+        std::string bundleName = node ->GetBundleName();
+        auto hwcHmsAppConfigFromHgm = HWCParam::GetSourceTuningForHmsApp();
+        auto hwcHmsAppIter = hwcHmsAppConfigFromHgm.find(bundleName);
+        if (hwcHmsAppIter != hwcHmsAppConfigFromHgm.end() && hwcHmsAppIter->second == "1") {
+            node->SetArsrTag(false);
+        } else {
+            info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
+            node->SetArsrTag(true);
+        }
     }
     if (IsVcldEnabled()) {
         std::vector<int8_t> valueBlob(sizeof(RSVcldParam));

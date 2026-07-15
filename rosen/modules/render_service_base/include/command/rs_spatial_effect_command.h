@@ -34,10 +34,10 @@ public:
 };
 
 ADD_COMMAND(RSSetIsDepthBackground,
-    ARG(PERMISSION_APP, SPATIAL_EFFECT, SET_IS_DEPTH_BACKGROUND,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, SPATIAL_EFFECT, SET_IS_DEPTH_BACKGROUND,
         RSSpatialEffectCommandHelper::SetIsDepthBackground, NodeId, bool))
 ADD_COMMAND(RSSetIsDepthResource,
-    ARG(PERMISSION_APP, SPATIAL_EFFECT, SET_IS_DEPTH_RESOURCE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, SPATIAL_EFFECT, SET_IS_DEPTH_RESOURCE,
         RSSpatialEffectCommandHelper::SetIsDepthResource, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS

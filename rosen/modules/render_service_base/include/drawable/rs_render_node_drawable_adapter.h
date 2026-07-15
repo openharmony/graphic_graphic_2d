@@ -162,6 +162,9 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNodeDrawableAdapter>;
 
     virtual void Draw(Drawing::Canvas& canvas) = 0;
+#ifdef USE_PRIMITIVE
+    virtual void DrawPrim(Drawing::Canvas& canvas);
+#endif
     virtual void DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const;
 
 #ifdef SUBTREE_PARALLEL_ENABLE

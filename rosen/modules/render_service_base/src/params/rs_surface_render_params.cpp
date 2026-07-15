@@ -545,6 +545,11 @@ const std::unordered_map<std::string, bool>& RSSurfaceRenderParams::GetSurfaceWa
     return (watermarkType == CUSTOM_WATER_MARK) ? customWatermarkHandles_ : systemWatermarkHandles_;
 }
 
+const std::unordered_map<std::string, bool>& RSSurfaceRenderParams::GetWatermarksEnabledMap() const
+{
+    return systemWatermarkHandles_;
+}
+
 bool RSSurfaceRenderParams::IsSystemWatermarkEmpty() const
 {
     return systemWatermarkHandles_.empty();

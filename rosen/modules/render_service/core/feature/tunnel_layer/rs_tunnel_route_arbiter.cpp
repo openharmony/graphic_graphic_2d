@@ -348,7 +348,7 @@ RSTunnelRouteArbiter::MainThreadOutcome RSTunnelRouteArbiter::ArbitrateAndClaim(
     // Snapshot the screen at claim time. If the surface migrates to another screen before the
     // commit-done callback fires, the original screen's commit still advances this entry, so
     // NORMAL_PREPARING cannot stall indefinitely.
-    normalRouteNodes_.emplace_back(node, node->GetScreenId());
+    normalRouteNodes_[node->GetId()] = std::make_pair(node, node->GetScreenId());
     return MainThreadOutcome::GO_NORMAL;
 }
 
@@ -371,19 +371,20 @@ void RSTunnelRouteArbiter::AbandonNormalClaim(const std::shared_ptr<RSSurfaceRen
 
 void RSTunnelRouteArbiter::OnRenderCommitDone(ScreenId screenId)
 {
-    auto iter = std::remove_if(normalRouteNodes_.begin(), normalRouteNodes_.end(),
-        [screenId](auto& entry) {
-            auto node = entry.first.lock();
-            if (node == nullptr) {
-                return true;
-            }
-            if (entry.second != screenId) {
-                return false;
-            }
-            RSTunnelRuntimeStore::GetOrCreate(node->GetId()).OnRenderCommitDone();
-            return true;
-        });
-    normalRouteNodes_.erase(iter, normalRouteNodes_.end());
+    for (auto iter = normalRouteNodes_.begin(); iter != normalRouteNodes_.end();) {
+        auto& [nodeId, entry] = *iter;
+        auto node = entry.first.lock();
+        if (node == nullptr) {
+            iter = normalRouteNodes_.erase(iter);
+            continue;
+        }
+        if (entry.second != screenId) {
+            ++iter;
+            continue;
+        }
+        RSTunnelRuntimeStore::GetOrCreate(nodeId).OnRenderCommitDone();
+        iter = normalRouteNodes_.erase(iter);
+    }
 }
 
 void RSTunnelRouteArbiter::AttachToRenderThread()

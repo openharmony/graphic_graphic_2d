@@ -2730,8 +2730,9 @@ HWTEST_F(RSUniHwcVisitorTest, IsDisableHwcOnExpandScreen001, TestSize.Level2)
     rsUniRenderVisitor->curScreenNode_ = screenNode3;
     HWCParam::SetDisableHwcOnExpandScreen(false);
     EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
+    // screenId 5 is a primary screen, HWCNode should not be disabled by HWCParam anymore
     HWCParam::SetDisableHwcOnExpandScreen(true);
-    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
+    EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
 }
 
 /**

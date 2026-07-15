@@ -2420,11 +2420,11 @@ HWTEST_F(RSSurfaceNodeTest, SendDataToRender003, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSurfaceNodeTypeTest001
+ * @tc.name: SurfaceNodeTypeTest001
  * @tc.desc: Test SetSurfaceNodeType/GetSurfaceNodeType/IsAppWindow;
  * @tc.type:FUNC
  */
-HWTEST_F(RSSurfaceNodeTest, SetSurfaceNodeTypeTest001, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, SurfaceNodeTypeTest001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     // Branch: current is ABILITY_COMPONENT_NODE -> SetSurfaceNodeType returns without change
@@ -2444,7 +2444,16 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceNodeTypeTest001, TestSize.Level1)
     ASSERT_NE(secureNode, nullptr);
     secureNode->SetSurfaceNodeType(RSSurfaceNodeType::DEFAULT);
     EXPECT_EQ(secureNode->GetSurfaceNodeType(), RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+}
 
+/**
+ * @tc.name: SetSurfaceNodeTypeTest002
+ * @tc.desc: Test SetSurfaceNodeType/GetSurfaceNodeType/IsAppWindow;
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SurfaceNodeTypeTest002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
     // Branch: target is UI_EXTENSION_COMMON_NODE / UI_EXTENSION_SECURE_NODE -> return
     auto defaultNode = RSSurfaceNode::Create(c);
     ASSERT_NE(defaultNode, nullptr);

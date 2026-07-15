@@ -845,5 +845,17 @@ int32_t HdiDeviceImpl::SetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode, u
     CHECK_FUNC(g_composer_v5);
     return g_composer_v5->SetDisplayVCPFeature(screenId, vcpCode, currentValue);
 }
+
+int32_t HdiDeviceImpl::GetLayerSolidFilledColor(uint32_t screenId, uint32_t layerId, uint32_t& solidFilledColor)
+{
+    CHECK_FUNC(g_composer_v5);
+    solidFilledColor = 0;
+    LayerColor layerColor;
+    auto ret = g_composer_v5->GetLayerColor(screenId, layerId, layerColor);
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        solidFilledColor = (layerColor.a << 24) | (layerColor.r << 16) | (layerColor.g << 8) | layerColor.b;
+    }
+    return ret;
+}
 } // namespace Rosen
 } // namespace OHOS

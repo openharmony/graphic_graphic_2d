@@ -42,22 +42,22 @@ public:
 };
 
 ADD_COMMAND(RSUIDirectorGoCreate,
-    ARG(PERMISSION_APP, UI_DIRECTOR, GO_CREATE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, UI_DIRECTOR, GO_CREATE,
         RSUIDirectorCommandHelper::GoCreate, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoResume,
-    ARG(PERMISSION_APP, UI_DIRECTOR, GO_RESUME,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, UI_DIRECTOR, GO_RESUME,
         RSUIDirectorCommandHelper::GoResume, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoForeground,
-    ARG(PERMISSION_APP, UI_DIRECTOR, GO_FOREGROUND,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, UI_DIRECTOR, GO_FOREGROUND,
         RSUIDirectorCommandHelper::GoForeground, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoBackground,
-    ARG(PERMISSION_APP, UI_DIRECTOR, GO_BACKGROUND,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, UI_DIRECTOR, GO_BACKGROUND,
         RSUIDirectorCommandHelper::GoBackground, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoStop,
-    ARG(PERMISSION_APP, UI_DIRECTOR, GO_STOP,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, UI_DIRECTOR, GO_STOP,
         RSUIDirectorCommandHelper::GoStop, NodeId, uint64_t))
 ADD_COMMAND(RSUIDirectorGoDestroy,
-    ARG(PERMISSION_APP, UI_DIRECTOR, GO_DESTROY,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, UI_DIRECTOR, GO_DESTROY,
         RSUIDirectorCommandHelper::GoDestroy, NodeId, uint64_t))
 } // namespace Rosen
 } // namespace OHOS

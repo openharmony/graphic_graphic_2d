@@ -19,6 +19,7 @@ config("window_animation_config") {
 }
 
 ohos_shared_library("window_animation") {
+  branch_protector_ret = "pac_ret"
   sources = [
     "src/rs_window_animation_finish_callback_stub.cpp",
     "src/rs_window_animation_finished_callback.cpp",

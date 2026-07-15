@@ -77,6 +77,7 @@ config("effect_SKeffectChian_public_config") {
 }
 if (is_arkui_x) {
   ohos_source_set("skeffectchain") {
+    branch_protector_ret = "pac_ret"
     include_dirs = [
       "//foundation/graphic/graphic_surface/interfaces/inner_api/common",
       "//foundation/graphic/graphic_surface/interfaces/inner_api/utils",
@@ -137,6 +138,7 @@ if (is_arkui_x) {
   }
 } else {
   ohos_shared_library("skeffectchain") {
+    branch_protector_ret = "pac_ret"
     deps = [
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",

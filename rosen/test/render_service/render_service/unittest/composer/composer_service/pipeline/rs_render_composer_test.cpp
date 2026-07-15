@@ -40,6 +40,7 @@
 #include "rs_composer_to_render_connection.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
+#include "rs_render_surface_solid_filled_color_layer.h"
 #include "syspara/parameter.h"
 #include "syspara/parameters.h"
 
@@ -2010,28 +2011,28 @@ HWTEST_F(RsRenderComposerTest, Redraw001, TestSize.Level1)
     layers.emplace_back(layer);
     EXPECT_NE(layers.size(), 0);
 
-    rsRenderComposerTmp->Redraw(psurface, layers);
-    rsRenderComposerTmp->Redraw(nullptr, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
+    rsRenderComposerTmp->Redraw(nullptr, layers, output);
     auto uniRenderEngine = rsRenderComposerTmp->uniRenderEngine_;
     rsRenderComposerTmp->uniRenderEngine_ = nullptr;
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
     rsRenderComposerTmp->uniRenderEngine_ = uniRenderEngine;
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     RSLayerPtr layer1 = std::static_pointer_cast<RSLayer>(std::make_shared<RSRenderSurfaceLayer>());
     layer1->SetBuffer(buffer);
     layers.emplace_back(layer1);
     rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({ 0, nullptr });
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
     csurface->UnregisterConsumerListener();
 
     auto hdiOutput = rsRenderComposerTmp->hdiOutput_;
     rsRenderComposerTmp->hdiOutput_ = nullptr;
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
     rsRenderComposerTmp->hdiOutput_ = hdiOutput;
 
     rsRenderComposerTmp->SetAFBCEnabled(false);
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
     rsRenderComposerTmp->SetAFBCEnabled(true);
 }
 
@@ -2103,15 +2104,15 @@ HWTEST_F(RsRenderComposerTest, Redraw002, TestSize.Level1)
     tmpRsRenderComposer->hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
     bool ret = tmpRsRenderComposer->GetDisplayClientTargetProperty(pixelFormat, colorGamut, layers);
     EXPECT_FALSE(ret);
-    tmpRsRenderComposer->Redraw(psurface, layers);
+    tmpRsRenderComposer->Redraw(psurface, layers, hdiOutput);
     EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(testing::_, testing::_, testing::_))
         .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     ret = tmpRsRenderComposer->GetDisplayClientTargetProperty(pixelFormat, colorGamut, layers);
     EXPECT_TRUE(ret);
-    tmpRsRenderComposer->Redraw(psurface, layers);
+    tmpRsRenderComposer->Redraw(psurface, layers, hdiOutput);
 
     tmpRsRenderComposer->hdiOutput_ = nullptr;
-    tmpRsRenderComposer->Redraw(psurface, layers);
+    tmpRsRenderComposer->Redraw(psurface, layers, hdiOutput);
     tmpRsRenderComposer->hdiOutput_ = hdiOutput;
 }
 
@@ -6338,7 +6339,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_ProtectedBufferDetection_Vulkan, TestSize.
     // This enters line 883 for loop to iterate through layers
     // The for loop checks:
     // if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED))
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Verify all layers are processed
     EXPECT_EQ(layers.size(), 4u);
@@ -6420,7 +6421,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_ProtectedBufferDetection_FirstProtectedLay
     // The for loop at line 883 starts iterating, first layer has protected buffer
     // Line 885: isProtected = true
     // Line 887: break (early exit, remaining layers not checked)
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Verify all layers are in the vector (early exit doesn't remove layers)
     EXPECT_EQ(layers.size(), 5u);
@@ -6484,7 +6485,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_NoProtectedBuffer_Vulkan, TestSize.Level1)
     // The for loop at line 883 iterates through all layers
     // No layer has protected buffer, so condition at line 884 is always false
     // isProtected remains false, loop completes without break
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Verify all layers are processed
     EXPECT_EQ(layers.size(), 5u);
@@ -6565,7 +6566,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_ProtectedBufferDetection_LastProtectedLaye
     // The for loop at line 883 iterates through all layers
     // First 4 layers have no protected buffer, condition at line 884 is false
     // Last layer has protected buffer, condition at line 884 is true, isProtected = true, break at line 887
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Verify all layers are in the vector
     EXPECT_EQ(layers.size(), 5u);
@@ -6614,7 +6615,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_NullLayers_Vulkan, TestSize.Level1)
     // The for loop at line 883 iterates through all nullptr layers
     // Line 884: if (layer && ...) is false for all layers
     // isProtected remains false, loop completes without break
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Verify all nullptr layers are in the vector
     EXPECT_EQ(layers.size(), 5u);
@@ -6672,7 +6673,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_RenderFrameNotNull_CanvasNotNull, TestSize
     // Line 936: if (renderFrame == nullptr) - false, renderFrame is not null
     // Line 941: if (canvas == nullptr) - false, canvas is not null
     // Function continues past line 944 without early return
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Verify Redraw completed successfully
     EXPECT_NE(rsRenderComposerTmp, nullptr);
@@ -6730,7 +6731,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_RenderFrameIsNull, TestSize.Level1)
 
     // Call Redraw - line 936 condition is true (renderFrame == nullptr)
     // Function returns early at line 938, skips canvas check at line 941
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Restore original engine
     rsRenderComposerTmp->uniRenderEngine_ = originalEngine;
@@ -6789,7 +6790,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_FrameBufferSurfaceOhosMapContainsNullSurfa
     // Call Redraw - RequestFrame will fail due to null surface in map
     // Line 936 condition is true (renderFrame == nullptr)
     // Function returns early at line 938
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Clean up
     rsRenderComposerTmp->frameBufferSurfaceOhosMap_.clear();
@@ -6849,7 +6850,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_MultipleLayers_RenderFrameNotNull, TestSiz
     // Call Redraw - both line 936 and 941 conditions should be false
     // Line 936: if (renderFrame == nullptr) - false
     // Line 941: if (canvas == nullptr) - false
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Verify all layers were processed
     EXPECT_EQ(layers.size(), 5u);
@@ -6911,7 +6912,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_NullLayer_MixedWithValidLayers, TestSize.L
     // Call Redraw - both line 936 and 941 conditions should be false
     // Line 936: if (renderFrame == nullptr) - false
     // Line 941: if (canvas == nullptr) - false
-    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->Redraw(psurface, layers, output);
 
     // Verify all layers are in the vector
     EXPECT_EQ(layers.size(), 4u);
@@ -9470,6 +9471,77 @@ HWTEST_F(RsRenderComposerTest, SetTunnelLayerProperty, TestSize.Level1)
     ASSERT_NE(hdiLayer, nullptr);
     EXPECT_EQ(hdiLayer->SetTunnelLayerProperty(), GRAPHIC_DISPLAY_NOT_SUPPORT);
     composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: AddSolidColorLayer_NotSolidFilledColorLayer_True
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. add layer with GRAPHIC_COMPOSITION_SOLID_COLOR but IsSolidFilledColorLayer() == false
+ *                  3. call AddSolidColorLayer
+ *                  4. verify solid color layer is created (line 1417-1423 condition true)
+ */
+HWTEST_F(RsRenderComposerTest, AddSolidColorLayer_NotSolidFilledColorLayer_True, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    
+    GraphicSolidColorLayerProperty solidColorProp;
+    solidColorProp.compositionType = GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR;
+    solidColorProp.zOrder = 5;
+    layer->SetSolidColorLayerProperty(solidColorProp);
+    layers.push_back(layer);
+
+    size_t initialSize = layers.size();
+    tmpRsRenderComposer->AddSolidColorLayer(layers);
+
+    EXPECT_EQ(layers.size(), initialSize + 1);
+    auto addedLayer = layers.back();
+    ASSERT_NE(addedLayer, nullptr);
+    EXPECT_EQ(addedLayer->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+}
+
+/**
+ * Function: AddSolidColorLayer_IsSolidFilledColorLayer_False
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. add layer with GRAPHIC_COMPOSITION_SOLID_COLOR and IsSolidFilledColorLayer() == true
+ *                  3. call AddSolidColorLayer
+ *                  4. verify solid color layer is NOT created (line 1423 condition false)
+ */
+HWTEST_F(RsRenderComposerTest, AddSolidColorLayer_IsSolidFilledColorLayer_False, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::shared_ptr<RSRenderSurfaceSolidFilledColorLayer> layer =
+        std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+
+    GraphicSolidColorLayerProperty solidColorProp;
+    solidColorProp.compositionType = GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR;
+    solidColorProp.zOrder = 5;
+    layer->SetSolidColorLayerProperty(solidColorProp);
+    layers.push_back(layer);
+
+    size_t initialSize = layers.size();
+    tmpRsRenderComposer->AddSolidColorLayer(layers);
+
+    EXPECT_EQ(layers.size(), initialSize);
 }
 } // namespace Rosen
 } // namespace OHOS
