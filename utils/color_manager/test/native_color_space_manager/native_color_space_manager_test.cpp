@@ -109,6 +109,46 @@ HWTEST_F(NativeColorSpaceManagerTest, OH_NativeColorSpaceManager_GetColorSpaceNa
 }
 
 /*
+ * @tc.name: OH_NativeColorSpaceManager_GetColorSpaceName01
+ * @tc.desc: Test OH_NativeColorSpaceManager_GetColorSpaceName, test getColorSpaceName
+ * @tc.type: FUNC
+ * @tc.require: issueIALHL4
+ */
+HWTEST_F(NativeColorSpaceManagerTest, OH_NativeColorSpaceManager_GetColorSpaceName01, TestSize.Level1)
+{
+    OH_NativeColorSpaceManager* nativeColorSpaceManager = nullptr;
+    ColorSpaceName colorSpaceName = static_cast<ColorSpaceName>(
+        OH_NativeColorSpaceManager_GetColorSpaceName(nativeColorSpaceManager));
+    ASSERT_TRUE(colorSpaceName == ColorSpaceName::NONE);
+    colorSpaceName = ColorSpaceName::BT2020_LOG_FULL;
+    nativeColorSpaceManager = OH_NativeColorSpaceManager_CreateFromName(colorSpaceName);
+    ASSERT_TRUE(nativeColorSpaceManager != nullptr);
+    colorSpaceName = static_cast<ColorSpaceName>(
+        OH_NativeColorSpaceManager_GetColorSpaceName(nativeColorSpaceManager));
+    ASSERT_TRUE(colorSpaceName == ColorSpaceName::BT2020_LOG_FULL);
+}
+ 
+/*
+ * @tc.name: OH_NativeColorSpaceManager_GetColorSpaceName02
+ * @tc.desc: Test OH_NativeColorSpaceManager_GetColorSpaceName, test getColorSpaceName
+ * @tc.type: FUNC
+ * @tc.require: issueIALHL4
+ */
+HWTEST_F(NativeColorSpaceManagerTest, OH_NativeColorSpaceManager_GetColorSpaceName02, TestSize.Level1)
+{
+    OH_NativeColorSpaceManager* nativeColorSpaceManager = nullptr;
+    ColorSpaceName colorSpaceName = static_cast<ColorSpaceName>(
+        OH_NativeColorSpaceManager_GetColorSpaceName(nativeColorSpaceManager));
+    ASSERT_TRUE(colorSpaceName == ColorSpaceName::NONE);
+    colorSpaceName = ColorSpaceName::BT2020_LOG_LIMIT;
+    nativeColorSpaceManager = OH_NativeColorSpaceManager_CreateFromName(colorSpaceName);
+    ASSERT_TRUE(nativeColorSpaceManager != nullptr);
+    colorSpaceName = static_cast<ColorSpaceName>(
+        OH_NativeColorSpaceManager_GetColorSpaceName(nativeColorSpaceManager));
+    ASSERT_TRUE(colorSpaceName == ColorSpaceName::BT2020_LOG_LIMIT);
+}
+
+/*
  * @tc.name: OH_NativeColorSpaceManager_GetWhitePoint
  * @tc.desc: Test OH_NativeColorSpaceManager_GetWhitePoint, test nativeColorSpaceManager is nullptr
  * @tc.type: FUNC
