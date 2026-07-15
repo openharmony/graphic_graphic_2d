@@ -170,7 +170,8 @@ private:
     // Thread-related members
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-    bool threadStarted_ = false;
+    std::atomic<bool> threadStarted_ = false;
+    std::atomic<bool> threadDestroyed_ = false;
     // End of thread-related members
 
     std::string cacheDir_;

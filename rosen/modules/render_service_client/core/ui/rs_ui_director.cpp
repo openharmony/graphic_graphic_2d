@@ -75,11 +75,7 @@ std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectTo
 
 RSUIDirector::~RSUIDirector()
 {
-    auto uiContext = rsUIContext_;
     Destroy();
-    if (uiContext != nullptr) {
-        uiContext->DestroyModifiersDraw();
-    }
 }
 
 void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext)
@@ -490,6 +486,7 @@ void RSUIDirector::ExecuteGoDestroy(bool isTextureExport)
         // child windows to be unable to find the UIContext during animation callback.
         if (!skipDestroyUIContext_) {
             RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
+            rsUIContext_->DestroyModifiersDraw();
         }
         rsUIContext_ = nullptr;
     }
