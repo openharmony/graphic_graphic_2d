@@ -689,7 +689,7 @@ VKAPI_ATTR VkResult SetWindowBufferUsage(VkDevice device, NativeWindow* window,
 {
     uint64_t grallocUsage = 0;
     /* The gralloc will init nativebuffer with LINEAR, when usage include BUFFER_USAGE_CPU_READ. */
-    if (createInfo->flags & VK_SWAPCHAIN_CREATE_FORCE_LINEAR_BIT_EXT ) {
+    if (createInfo->flags & VK_SWAPCHAIN_CREATE_FORCE_LINEAR_BIT_EXT) {
         grallocUsage |= BUFFER_USAGE_CPU_READ;
     }
 
