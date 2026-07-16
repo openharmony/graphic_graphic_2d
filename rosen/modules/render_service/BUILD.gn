@@ -814,6 +814,7 @@ if (graphic_2d_feature_product != "car") {
 } else {
   ohos_executable("render_process") {
     install_enable = true
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
