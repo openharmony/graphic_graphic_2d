@@ -1213,6 +1213,13 @@ bool RSSystemProperties::IsSuperFoldDisplay()
     return IsSuperFoldDisplay;
 }
 
+bool RSSystemProperties::IsSpecialFoldDisplay()
+{
+    static const std::string foldScreenType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    static const bool IsSpecialFoldDisplay = foldScreenType.size() > 0 ? foldScreenType[0] == '8' : false;
+    return IsSpecialFoldDisplay;
+}
+
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     static bool syncTransactionEnabled =

@@ -29,9 +29,20 @@
 namespace OHOS {
 namespace Rosen {
 
+struct ProtectiveSolidConfig {
+    RectI rect;
+    Vector4f bounds;
+};
+
+static const ProtectiveSolidConfig PROTECTIVE_SOLID_CONFIGS[] = {
+    {{0, 0, 2232, 2128}, {0, 2128, 2232, 200}},   // LM
+    {{0, 1136, 2232, 2048}, {0, 936, 2232, 200}},  // RM
+    {{0, 0, 2232, 1136}, {0, 1136, 2232, 200}},   // N
+};
+
 class RSProtectiveSolidRenderNode : public RSSurfaceRenderNode {
 public:
-    static inline constexpr RSRenderNodeType type = RSRenderNodeType::PROTECTIVE_SOLID_NODE;
+    static inline constexpr RSRenderNodeType Type = RSRenderNodeType::PROTECTIVE_SOLID_NODE;
     using WeakPtr = std::weak_ptr<RSProtectiveSolidRenderNode>;
     using SharedPtr = std::shared_ptr<RSProtectiveSolidRenderNode>;
 

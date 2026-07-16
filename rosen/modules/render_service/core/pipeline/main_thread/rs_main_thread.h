@@ -523,11 +523,14 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
+    std::shared_ptr<RSProtectiveSolidRenderNode> CreateProtectiveSolidRenderNode(ScreenId screenId);
+    void DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void HandlePhysicalModeParamsChanged(
         ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void HandleActiveRectOption(ScreenId id, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
@@ -919,6 +922,9 @@ private:
     // for rebuild transaction
     std::deque<std::unique_ptr<RSTransactionData>> pendingSplitTransactions_;
     pid_t pendingSplitPid_ = -1;
+
+    // for protectiveSolidNode
+    std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
