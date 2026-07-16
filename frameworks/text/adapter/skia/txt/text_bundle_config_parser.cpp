@@ -30,6 +30,7 @@ namespace Rosen {
 namespace SPText {
 #ifdef ENABLE_OHOS_ENHANCE
 const std::string ADAPTER_TEXT_HEIGHT_META_DATA = "ohos.graphics2d.text.adapter_text_height";
+const std::string DISABLE_SPACING_FOR_CONTROL_CHAR_META_DATA = "ohos.graphics2d.text.disable_spacing_for_control_char";
 const size_t VERSION_DIVISOR = 100;
 
 bool TextBundleConfigParser::IsMetaDataExistInModule(const std::string& metaData,
@@ -79,6 +80,11 @@ bool TextBundleConfigParser::GetBundleInfo(AppExecFwk::BundleInfo& bundleInfo)
 }
 #endif
 
+bool TextBundleConfigParser::IsDisableSpacingForControlChar() const
+{
+    return initStatus_ && disableSpacingForControlChar_;
+}
+
 bool TextBundleConfigParser::IsAdapterTextHeightEnabled() const
 {
     return initStatus_ && adapterTextHeightEnable_;
@@ -102,6 +108,9 @@ void TextBundleConfigParser::InitTextBundleConfig()
     bundleApiVersion_ = bundleInfo.targetVersion % VERSION_DIVISOR;
     adapterTextHeightEnable_ = IsMetaDataExistInModule(ADAPTER_TEXT_HEIGHT_META_DATA, bundleInfo);
     TEXT_LOGI("Adapter text height enabled %{public}d", adapterTextHeightEnable_);
+    disableSpacingForControlChar_ =
+        IsMetaDataExistInModule(DISABLE_SPACING_FOR_CONTROL_CHAR_META_DATA, bundleInfo);
+    TEXT_LOGI("Disable spacing for control char %{public}d", disableSpacingForControlChar_);
 }
 #endif
 
