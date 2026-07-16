@@ -263,7 +263,7 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
     if (!value) {
         return;
     }
-    uint32_t pathDistance = value->GetDistance();
+    auto pathDistance = value->GetDistance();
     hash = hashFunc_(&pathDistance, sizeof(pathDistance), hash);
 }
 
