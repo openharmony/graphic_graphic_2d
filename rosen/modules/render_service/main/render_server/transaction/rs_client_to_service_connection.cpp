@@ -1825,16 +1825,14 @@ void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventI
     }
 }
 
-void RSClientToServiceConnection::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID,
-    uint32_t otherScreenRefreshRate)
+ErrCode RSClientToServiceConnection::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
 {
     if (hgmContext_ == nullptr) {
         RS_LOGD("%{public}s hgmContext is nullptr", __func__);
-        return;
+        return ERR_INVALID_VALUE;
     }
-    hgmContext_->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID, otherScreenRefreshRate);
+    return hgmContext_->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
 }
-
 
 void RSClientToServiceConnection::SetWindowExpectedRefreshRate(
     const std::unordered_map<uint64_t, EventInfo>& eventInfos)

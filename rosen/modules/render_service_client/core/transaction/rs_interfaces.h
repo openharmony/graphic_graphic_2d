@@ -1168,14 +1168,14 @@ public:
      * @brief Notify control screen refresh rate.
      * @param openStatus whether the control screen refresh rate is open.
      * @param ltpoScreenID the screen id of the LTPO control screen.
-     * @param otherScreenRefreshRate the refresh rate for other screens.
+     * @return return ERR_OK on success, otherwise return error code.
      */
-    void NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID, uint32_t otherScreenRefreshRate);
+    ErrCode NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
 
     /*
-    * @brief Support setting softVsync frame rate through windowId.
-    * @param eventInfos a map,key is windowId, value is eventInfo
-    */
+     * @brief Support setting softVsync frame rate through windowId.
+     * @param eventInfos a map,key is windowId, value is eventInfo
+     */
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
 
     /*

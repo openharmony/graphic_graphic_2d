@@ -16,12 +16,14 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CLIENT_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CLIENT_H
 
+#include <errors.h>
 #include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <shared_mutex>
 #include <refbase.h>
+#include <shared_mutex>
+
 #include "common/rs_common_def.h"
 #ifndef ENABLE_RS_PROXY
 #include <surface_type.h>
@@ -350,7 +352,7 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
-    void NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID, uint32_t otherScreenRefreshRate);
+    ErrCode NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
 

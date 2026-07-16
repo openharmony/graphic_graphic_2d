@@ -109,7 +109,7 @@ public:
     void HandleLightFactorStatus(pid_t pid, int32_t state);
     void HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
-    void HandleControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID, uint32_t otherScreenRefreshRate);
+    void HandleControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
     void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
     void HandleDynamicModeEvent(bool enableDynamicModeEvent);
     void HandleRefreshRateMode(int32_t refreshRateMode);
@@ -281,7 +281,6 @@ private:
     std::atomic<ScreenId> lastCurScreenId_ = 0;
     std::atomic<ScreenId> controlScreenId_ = INVALID_SCREEN_ID;
     std::atomic<bool> controlScreenOpenStatus_ { false };
-    std::atomic<uint32_t> controlOtherScreenRefreshRate_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     std::string curScreenDefaultStrategyId_ = "LTPO-DEFAULT";
     std::atomic<bool> isLtpoScreenStrategyId_ { false };

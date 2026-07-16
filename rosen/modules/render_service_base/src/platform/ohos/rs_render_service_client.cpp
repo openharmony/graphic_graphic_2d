@@ -1688,13 +1688,13 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     }
 }
 
-void RSRenderServiceClient::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID,
-    uint32_t otherScreenRefreshRate)
+ErrCode RSRenderServiceClient::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
-        clientToService->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID, otherScreenRefreshRate);
+        return clientToService->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
     }
+    return ERR_INVALID_VALUE;
 }
 
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)

@@ -2552,20 +2552,21 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             NotifyRefreshRateEvent(eventInfo);
             break;
         }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_CONTROL_SCREEN_REFRESH_RATE) : {
-            bool openStatus{false};
-            ScreenId ltpoScreenID{0};
-            uint32_t otherScreenRefreshRate{0};
-            if (!data.ReadBool(openStatus) || !data.ReadUint64(ltpoScreenID) ||
-                !data.ReadUint32(otherScreenRefreshRate)) {
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_CONTROL_SCREEN_REFRESH_RATE): {
+            bool openStatus { false };
+            ScreenId ltpoScreenID { 0 };
+            if (!data.ReadBool(openStatus) || !data.ReadUint64(ltpoScreenID)) {
                 RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_CONTROL_SCREEN_REFRESH_RATE Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            NotifyControlScreenRefreshRate(openStatus, ltpoScreenID, otherScreenRefreshRate);
+            ErrCode result = NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID) : {
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID): {
             std::unordered_map<uint64_t, EventInfo> eventInfos;
             
             uint32_t mapSize{0};

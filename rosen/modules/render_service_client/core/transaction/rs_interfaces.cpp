@@ -969,10 +969,9 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
-void RSInterfaces::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID,
-    uint32_t otherScreenRefreshRate)
+ErrCode RSInterfaces::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
 {
-    renderServiceClient_->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID, otherScreenRefreshRate);
+    return renderServiceClient_->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
 }
 
 void RSInterfaces::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
