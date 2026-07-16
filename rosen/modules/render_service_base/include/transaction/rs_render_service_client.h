@@ -16,7 +16,6 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CLIENT_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CLIENT_H
 
-#include <errors.h>
 #include <functional>
 #include <map>
 #include <memory>
@@ -351,7 +350,7 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
-    ErrCode NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
+    bool NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
 

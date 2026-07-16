@@ -366,14 +366,14 @@ void HgmContext::NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
     });
 }
 
-ErrCode HgmContext::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
+bool HgmContext::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
 {
     if (frameRateManager_ == nullptr) {
         RS_LOGD("%{public}s frameRateManager is nullptr", __func__);
-        return ERR_INVALID_VALUE;
+        return false;
     }
     frameRateManager_->HandleControlScreenRefreshRate(openStatus, ltpoScreenID);
-    return ERR_OK;
+    return true;
 }
 
 ErrCode HgmContext::NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus)

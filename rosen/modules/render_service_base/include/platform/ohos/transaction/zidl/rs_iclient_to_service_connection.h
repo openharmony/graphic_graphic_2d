@@ -317,7 +317,7 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
-    virtual ErrCode NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID) = 0;
+    virtual bool NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID) = 0;
 
     virtual sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) = 0;
 

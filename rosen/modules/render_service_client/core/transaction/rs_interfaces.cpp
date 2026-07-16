@@ -969,7 +969,7 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
-ErrCode RSInterfaces::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
+bool RSInterfaces::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
 {
     return renderServiceClient_->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
 }

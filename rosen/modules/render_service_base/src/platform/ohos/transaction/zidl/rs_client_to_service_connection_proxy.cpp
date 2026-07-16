@@ -4410,22 +4410,22 @@ void RSClientToServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& e
     }
 }
 
-ErrCode RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
+bool RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteInterfaceToken GetDescriptor err.");
-        return ERR_INVALID_VALUE;
+        return false;
     }
     if (!data.WriteBool(openStatus)) {
         ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteBool openStatus err.");
-        return ERR_INVALID_VALUE;
+        return false;
     }
     if (!data.WriteUint64(ltpoScreenID)) {
         ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteUint64 ltpoScreenID err.");
-        return ERR_INVALID_VALUE;
+        return false;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code =
@@ -4433,12 +4433,12 @@ ErrCode RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate(bool op
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate: Send Request err.");
-        return ERR_INVALID_VALUE;
+        return false;
     }
-    ErrCode result { ERR_OK };
-    if (!reply.ReadInt32(result)) {
+    bool result { false };
+    if (!reply.ReadBool(result)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate: Read result failed");
-        return ERR_INVALID_VALUE;
+        return false;
     }
     return result;
 }

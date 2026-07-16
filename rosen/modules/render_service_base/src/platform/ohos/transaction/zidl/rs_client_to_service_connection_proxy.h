@@ -266,7 +266,7 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    ErrCode NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID) override;
+    bool NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID) override;
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) override;
 

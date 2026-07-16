@@ -1825,11 +1825,11 @@ void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventI
     }
 }
 
-ErrCode RSClientToServiceConnection::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
+bool RSClientToServiceConnection::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
 {
     if (hgmContext_ == nullptr) {
         RS_LOGD("%{public}s hgmContext is nullptr", __func__);
-        return ERR_INVALID_VALUE;
+        return false;
     }
     return hgmContext_->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
 }

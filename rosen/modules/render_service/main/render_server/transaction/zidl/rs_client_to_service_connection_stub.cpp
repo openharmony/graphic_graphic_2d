@@ -2560,8 +2560,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            ErrCode result = NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
-            if (!reply.WriteInt32(result)) {
+            bool result = NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
+            if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;

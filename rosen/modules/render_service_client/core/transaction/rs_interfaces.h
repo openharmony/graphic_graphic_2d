@@ -1168,9 +1168,9 @@ public:
      * @brief Notify control screen refresh rate.
      * @param openStatus whether the control screen refresh rate is open.
      * @param ltpoScreenID the screen id of the LTPO control screen.
-     * @return return ERR_OK on success, otherwise return error code.
+     * @return return true on success, return false on failure.
      */
-    ErrCode NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
+    bool NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
 
     /*
     * @brief Support setting softVsync frame rate through windowId.
