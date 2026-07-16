@@ -40,6 +40,7 @@ namespace OHOS {
 namespace Media {
 class PixelMap;
 }
+class IRemoteObject;
 namespace Rosen {
 class RSExtendImageObject;
 class RSExtendImageBaseObj;
@@ -125,7 +126,14 @@ public:
     struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
 
     template<typename T>
-    using is_not_pointer_or_shared_ptr = std::enable_if_t<!std::is_pointer<T>::value && !is_shared_ptr<T>::value, bool>;
+    struct is_sptr : std::false_type {};
+
+    template<typename T>
+    struct is_sptr<sptr<T>> : std::true_type {};
+
+    template<typename T>
+    using is_not_pointer_or_shared_ptr = std::enable_if_t<
+        !std::is_pointer<T>::value && !is_shared_ptr<T>::value && !is_sptr<T>::value, bool>;
 
     template<typename T, typename = is_not_pointer_or_shared_ptr<T>>
     static bool Marshalling(Parcel& parcel, const T& val)
@@ -144,6 +152,14 @@ public:
         }
         return false;
     }
+
+    // Catch-all for sptr<T> without explicit overload: deleted to force compile error.
+    // Without this, sptr's operator bool() would silently match the bool overload,
+    // causing data corruption (only true/false written instead of the remote object).
+    template<typename T>
+    static bool Marshalling(Parcel& parcel, const sptr<T>& val) = delete;
+    template<typename T>
+    static bool Unmarshalling(Parcel& parcel, sptr<T>& val) = delete;
 
     static bool Marshalling(Parcel& parcel)
     {
@@ -530,7 +546,8 @@ public:
 
     static bool Marshalling(Parcel& parcel, sptr<Surface> surface);
     static bool Unmarshalling(Parcel& parcel, sptr<Surface>& surface);
-
+    static bool Marshalling(Parcel& parcel, const sptr<IRemoteObject>& val);
+    static bool Unmarshalling(Parcel& parcel, sptr<IRemoteObject>& val);
     static void BeginNoSharedMem(std::thread::id tid);
     static void EndNoSharedMem();
     static bool GetUseSharedMem(std::thread::id tid);

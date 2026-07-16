@@ -1212,45 +1212,6 @@ private:
     ContainerWindowTransparentCmdParam param_;
 };
 
-struct BufferAvailableCallbackCmdParam {
-    using BufferAvailableCallback = std::function<void()>;
-    BufferAvailableCallback callback;
-};
-
-class BufferAvailableCallbackCmdModifier : public RSCmdModifier {
-public:
-    static inline constexpr auto Type = RSCmdModifierType::SET_BUFFER_AVAILABLE;
-
-    BufferAvailableCallbackCmdModifier(std::weak_ptr<RSNode> node, const BufferAvailableCallbackCmdParam& param)
-        : RSCmdModifier(std::move(node)), param_(param)
-    {
-    }
-
-    RSCmdModifierType GetType() const override
-    {
-        return Type;
-    }
-
-    bool SetParam(const BufferAvailableCallbackCmdParam& param)
-    {
-        param_ = param;
-        return true;
-    }
-
-    void UpdateToRender() override;
-    UpdateResult UpdateToRenderWithResult() override;
-
-    void DumpParam(std::string& out) const override;
-
-    const BufferAvailableCallbackCmdParam& GetParam() const
-    {
-        return param_;
-    }
-
-private:
-    BufferAvailableCallbackCmdParam param_;
-};
-
 struct SurfaceDefaultSizeCmdParam {
     float width_;
     float height_;

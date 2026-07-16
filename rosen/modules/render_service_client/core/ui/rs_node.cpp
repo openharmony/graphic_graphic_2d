@@ -4660,7 +4660,6 @@ std::string RSCmdModifierTypeToString(RSCmdModifierType type)
         { RSCmdModifierType::IS_CONTAINER_WINDOW_TRANSPARENT,  "IS_CONTAINER_WINDOW_TRANSPARENT" },
         { RSCmdModifierType::UPDATE_COMPOSITE_LAYER,           "UPDATE_COMPOSITE_LAYER" },
         { RSCmdModifierType::SET_STATIC_CACHED,                "SET_STATIC_CACHED" },
-        { RSCmdModifierType::SET_BUFFER_AVAILABLE,             "SET_BUFFER_AVAILABLE" },
         { RSCmdModifierType::SET_HARDWARE_ENABLED,             "SET_HARDWARE_ENABLED" },
         { RSCmdModifierType::SET_HIDE_PRIVACY_CONTENT,         "SET_HIDE_PRIVACY_CONTENT" },
         { RSCmdModifierType::UPDATE_SURFACE_DEFAULT_SIZE,      "UPDATE_SURFACE_DEFAULT_SIZE" },

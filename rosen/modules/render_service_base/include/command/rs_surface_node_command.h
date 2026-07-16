@@ -24,7 +24,6 @@
 
 #include "utils/matrix.h"
 #include "utils/rect.h"
-#include "ipc_callbacks/buffer_available_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -86,11 +85,10 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_SURFACE_CAPTURE_CALLBACK = 50,
     SURFACE_NODE_UPDATE_COMPOSITE_LAYER_TO_RENDER = 51,
     SURFACE_NODE_SET_STATIC_CACHED_TO_RENDER = 52,
-    SURFACE_NODE_REGISTER_BUFFER_AVAILAbLELISTENER = 53,
-    SURFACE_NODE_SET_HARDWARE_ENABLED = 54,
-    SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT = 55,
-    SURFACE_NODE_RECREATE_NODE_AND_SURFACE = 56,
-    SURFACE_NODE_SET_DELEGATE_MODE = 57,
+    SURFACE_NODE_SET_HARDWARE_ENABLED = 53,
+    SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT = 54,
+    SURFACE_NODE_RECREATE_NODE_AND_SURFACE = 55,
+    SURFACE_NODE_SET_DELEGATE_MODE = 56,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -155,8 +153,6 @@ public:
     static void SetDarkColorMode(RSContext& context, NodeId nodeId, bool isDarkColorMode);
     static void UpdateCompositeLayerdToRender(RSContext& context, NodeId nodeId, bool isTop, uint32_t topLayerZOrder);
     static void SetStaticCachedToRender(RSContext& context, NodeId nodeId, bool isStaticCached);
-    static void RegisterBufferAvailableListener(
-        RSContext &context, NodeId nodeId, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread);
     static void SetHardwareEnabled(RSContext &context, NodeId nodeId, bool isHardwareEnabled,
         SelfDrawingNodeType isSelfDrawingNodeType, bool isDynamicHardwareEnable);
     static void SetHidePrivacyContent(RSContext& context, NodeId nodeId, bool needHidePrivacyContent);
@@ -324,9 +320,6 @@ ADD_COMMAND(RSSurfaceNodeUpdateCompositeLayerdToRender,
 ADD_COMMAND(RSSurfaceNodeSetStaticCachedToRender,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_STATIC_CACHED_TO_RENDER,
         SurfaceNodeCommandHelper::SetStaticCachedToRender, NodeId, bool))
-ADD_COMMAND(RSurfaceNodeRegisterBufferAvailableListener,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_REGISTER_BUFFER_AVAILAbLELISTENER,
-        SurfaceNodeCommandHelper::RegisterBufferAvailableListener, NodeId, sptr<RSIBufferAvailableCallback>, bool))
 ADD_COMMAND(RSSurfaceNodeSetHardwareEnable,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HARDWARE_ENABLED,
         SurfaceNodeCommandHelper::SetHardwareEnabled, NodeId, bool, SelfDrawingNodeType, bool))

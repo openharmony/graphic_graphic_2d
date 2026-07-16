@@ -527,14 +527,6 @@ void SurfaceNodeCommandHelper::SetStaticCachedToRender(RSContext& context, NodeI
     }
 }
 
-void SurfaceNodeCommandHelper::RegisterBufferAvailableListener(
-    RSContext& context, NodeId nodeId, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread)
-{
-    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->RegisterBufferAvailableListener(callback, isFromRenderThread);
-    }
-}
-
 void SurfaceNodeCommandHelper::SetHardwareEnabled(RSContext& context, NodeId nodeId, bool isHardwareEnabled,
     SelfDrawingNodeType isSelfDrawingNodeType, bool isDynamicHardwareEnabled)
 {

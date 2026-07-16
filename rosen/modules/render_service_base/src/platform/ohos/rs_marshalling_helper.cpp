@@ -3699,6 +3699,40 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SurfaceRegionConfig& val
 }
 #endif
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sptr<IRemoteObject>& val)
+{
+    if (val != nullptr) {
+        if (!parcel.WriteBool(true)) {
+            return false;
+        }
+        if (!parcel.WriteRemoteObject(val)) {
+            return false;
+        }
+    } else {
+        if (!parcel.WriteBool(false)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<IRemoteObject>& val)
+{
+    val = nullptr;
+    bool hasObject{false};
+    if (!parcel.ReadBool(hasObject)) {
+        return false;
+    }
+    if (hasObject) {
+        auto remoteObject = static_cast<MessageParcel*>(&parcel)->ReadRemoteObject();
+        if (remoteObject == nullptr) {
+            return false;
+        }
+        val = remoteObject;
+    }
+    return true;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSSurfaceRenderNodeConfig& val)
 {
     return Marshalling(parcel, val.id) && Marshalling(parcel, val.name) &&

@@ -728,6 +728,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<Surface>& surface)
     return false;
 }
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sptr<IRemoteObject>& val)
+{
+    return false;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<IRemoteObject>& val)
+{
+    return false;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSSurfaceRenderNodeConfig& val)
 {
     return false;

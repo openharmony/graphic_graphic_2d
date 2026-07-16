@@ -420,8 +420,6 @@ protected:
 
     void CreateRenderNode() override;
     bool isStaticFreeze_ = false;
-    // For RegisterBufferAvailableListener
-    BufferAvailableCallback BufferAvailableCallbackFunc();
 
     // For SetHidePrivacyContent
     bool needHidePrivacyContent_ = false;
