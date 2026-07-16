@@ -601,7 +601,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
     success &= Unmarshalling(parcel, coordsCount);
     constexpr uint32_t MAX_COORDS_COUNT = 128;
     if (coordsCount > MAX_COORDS_COUNT) {
-        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling coords count %{public}u exceeds max limit %{public}u",
+        ROSEN_LOGD("RSMarshallingHelper::Unmarshalling coords count %{public}u exceeds max limit %{public}u",
             coordsCount, MAX_COORDS_COUNT);
         return false;
     }
