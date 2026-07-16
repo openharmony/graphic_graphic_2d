@@ -951,7 +951,7 @@ HWTEST_F(VulkanLoaderUnitTest, fpCreateSwapchainKHR_Fail_Test, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6SKRO
  */
-HWTEST_F(VulkanLoaderUnitTest, fpCreateSwapchainKHR_Success_Test, TestSize.Level1)
+HWTEST_F(VulkanLoaderUnitTest, fpCreateSwapchainKHR_ForceLinear_Test, TestSize.Level1)
 {
     if (isSupportedVulkan_) {
         EXPECT_NE(fpCreateSwapchainKHR, nullptr);
