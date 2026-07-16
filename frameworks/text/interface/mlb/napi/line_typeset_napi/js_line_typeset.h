@@ -17,10 +17,9 @@
 #define OHOS_ROSEN_JS_LINE_TYPESET_H
 
 #include <memory>
-#include <native_engine/native_engine.h>
-#include <native_engine/native_value.h>
 
 #include "line_typography.h"
+#include "napi/native_node_api.h"
 #include "typography.h"
 
 namespace OHOS::Rosen {

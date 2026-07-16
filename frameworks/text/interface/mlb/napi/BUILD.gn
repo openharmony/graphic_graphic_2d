@@ -61,6 +61,7 @@ ohos_shared_library("text_napi") {
   external_deps = [
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   relative_install_dir = "module/graphics"
@@ -114,6 +115,7 @@ ohos_shared_library("text_napi_impl") {
     "hilog:libhilog",
     "image_framework:image_native",
     "napi:ace_napi",
+    "node:node_header_notice",
     "resource_management:global_resmgr",
   ]
 

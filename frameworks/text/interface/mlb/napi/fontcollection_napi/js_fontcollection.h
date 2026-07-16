@@ -17,10 +17,10 @@
 #define OHOS_ROSEN_JS_FONTCOLLECTION_H
 
 #include <memory>
-#include <native_engine/native_engine.h>
-#include <native_engine/native_value.h>
 
 #include "font_collection.h"
+#include "napi/native_node_api.h"
+
 #include "utils/napi_common.h"
 
 namespace OHOS::Rosen {
