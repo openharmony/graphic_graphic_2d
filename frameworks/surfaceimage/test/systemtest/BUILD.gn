@@ -51,6 +51,8 @@ ohos_unittest("native_image_system_test_st") {
     "ipc:ipc_core",
     "graphic_surface:surface",
     "bounds_checking_function:libsec_shared",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 

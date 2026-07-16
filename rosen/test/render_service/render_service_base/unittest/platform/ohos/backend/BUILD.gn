@@ -86,6 +86,8 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "skia:skia_canvaskit",
     "vulkan-headers:vulkan_headers",
     "ffrt:libffrt",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (graphic_2d_feature_enable_vulkan) {
