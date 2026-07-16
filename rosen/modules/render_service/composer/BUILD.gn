@@ -250,6 +250,8 @@ ohos_source_set("librender_composer") {
     "ipc:ipc_core",
     "qos_manager:concurrent_task_client",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (defined(global_parts_info) &&

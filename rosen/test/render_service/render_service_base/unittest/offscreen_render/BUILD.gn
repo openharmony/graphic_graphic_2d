@@ -55,6 +55,8 @@ ohos_unittest("RSRenderServiceBaseOffscreenRenderTest") {
     "image_framework:image_native",
     "init:libbegetutil",
     "skia:skia_canvaskit",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   subsystem_name = "graphic"

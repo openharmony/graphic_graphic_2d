@@ -54,6 +54,8 @@ ohos_unittest("2d_graphics_image_test") {
     "hilog:libhilog",
     "image_framework:image_native",
     "init:libbegetutil",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 

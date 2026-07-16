@@ -51,6 +51,8 @@ ohos_shared_library("cj_effect_kit_ffi") {
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
     "graphic_surface:surface",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   sources = [
     "cj_color_picker.cpp",

@@ -89,6 +89,8 @@ ohos_executable("bootanimation") {
     "zlib:shared_libz",
     "window_manager:libdm_lite",
     "skia:skia_canvaskit",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (player_framework_enable) {

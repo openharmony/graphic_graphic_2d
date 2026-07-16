@@ -75,6 +75,8 @@ ohos_unittest("bootanimation_test") {
     "samgr:samgr_proxy",
     "window_manager:libdm_lite",
     "zlib:shared_libz",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (player_framework_enable) {

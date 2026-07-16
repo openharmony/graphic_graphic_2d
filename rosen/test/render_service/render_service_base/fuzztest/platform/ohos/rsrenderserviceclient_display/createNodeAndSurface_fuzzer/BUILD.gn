@@ -54,6 +54,8 @@ ohos_fuzztest("CreateNodeAndSurfaceFuzzTest") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "zlib:libz",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 

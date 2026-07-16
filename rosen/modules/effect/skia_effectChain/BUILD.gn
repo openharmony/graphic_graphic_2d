@@ -132,6 +132,10 @@ if (is_arkui_x) {
     public_configs = [ ":effect_SKeffectChian_public_config" ]
 
     cflags_cc = [ "-std=c++17" ]
+external_deps = [
+  "egl:libEGL",
+  "opengles:libGLES",
+]
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"

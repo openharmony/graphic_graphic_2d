@@ -51,6 +51,7 @@
 #include "effect/rs_render_mask_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "EGL/egl.h"
 #include "memory/rs_memory_flow_control.h"
 #include "memory/rs_memory_track.h"
 #include "modifier_ng/rs_render_modifier_ng.h"

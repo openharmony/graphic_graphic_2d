@@ -63,6 +63,9 @@ ohos_unittest("opengl_wrapper_unit_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "graphic_surface:surface",
+    "egl:libEGL",
+    "opengles:libGLES",
+    "jsoncpp:jsoncpp",
   ]
 }
 
