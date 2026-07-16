@@ -706,6 +706,26 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             RS_PROFILER_PATCH_NODE_ID(data, id);
             std::shared_ptr<Media::PixelMap> pixelmap =
                 std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
+            if (pixelmap == nullptr) {
+                RS_LOGW("The GetPixelmap pixelmap is null nodeId:%{public}" PRIu64, id);
+                break;
+            }
+            if (pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+                auto surfaceBuffer = static_cast<SurfaceBuffer*>(pixelmap->GetFd());
+                if (surfaceBuffer == nullptr ||
+                    pixelmap->GetPixelFormat() != OHOS::Media::PixelFormat::RGBA_8888 ||
+                    surfaceBuffer->GetFormat() != GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888) {
+                    RS_LOGW("The GetPixelmap pixelmap or surfaceBuffer format isn't legal nodeId:%{public}" PRIu64,
+                        id);
+                    break;
+                }
+                if (pixelmap->GetHeight() != surfaceBuffer->GetHeight() ||
+                    pixelmap->GetWidth() != surfaceBuffer->GetWidth()) {
+                    RS_LOGW("The GetPixelmap pixelmap or surfaceBuffer size is mismatch nodeId:%{public}" PRIu64,
+                        id);
+                    break;
+                }
+            }
             Drawing::Rect rect;
             RSMarshallingHelper::Unmarshalling(data, rect);
             std::shared_ptr<Drawing::DrawCmdList> drawCmdList;

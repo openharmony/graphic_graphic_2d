@@ -1468,9 +1468,22 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest025, TestSize.Level1)
 HWTEST_F(RSMarshallingHelperTest, SkipPixelMapTest, TestSize.Level1)
 {
     Parcel parcel;
-    EXPECT_TRUE(RSMarshallingHelper::SkipPixelMap(parcel));
     parcel.WriteInt32(-1);
     EXPECT_TRUE(RSMarshallingHelper::SkipPixelMap(parcel));
+}
+
+/**
+ * @tc.name: SkipPixelMapReadInt32FailTest
+ * @tc.desc: Verify SkipPixelMap returns false when ReadInt32 fails
+ * @tc.type:FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSMarshallingHelperTest, SkipPixelMapReadInt32FailTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    parcel.ReadInt32();
+    EXPECT_FALSE(RSMarshallingHelper::SkipPixelMap(parcel));
 }
 
 /**
