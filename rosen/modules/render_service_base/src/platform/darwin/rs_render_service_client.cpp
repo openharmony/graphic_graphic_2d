@@ -608,14 +608,18 @@ void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string
 {
 }
 
-void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo) {}
+void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+}
 
 ErrCode RSRenderServiceClient::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
 {
     return ERR_OK;
 }
 
-void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) {}
+void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
+{
+}
 
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos)
 {

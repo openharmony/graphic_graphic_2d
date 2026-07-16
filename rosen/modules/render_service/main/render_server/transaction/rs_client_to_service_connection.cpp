@@ -1834,6 +1834,7 @@ ErrCode RSClientToServiceConnection::NotifyControlScreenRefreshRate(bool openSta
     return hgmContext_->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
 }
 
+
 void RSClientToServiceConnection::SetWindowExpectedRefreshRate(
     const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {

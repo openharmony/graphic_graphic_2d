@@ -21,9 +21,8 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <refbase.h>
 #include <shared_mutex>
-
+#include <refbase.h>
 #include "common/rs_common_def.h"
 #ifndef ENABLE_RS_PROXY
 #include <surface_type.h>

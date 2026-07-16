@@ -1173,9 +1173,9 @@ public:
     ErrCode NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
 
     /*
-     * @brief Support setting softVsync frame rate through windowId.
-     * @param eventInfos a map,key is windowId, value is eventInfo
-     */
+    * @brief Support setting softVsync frame rate through windowId.
+    * @param eventInfos a map,key is windowId, value is eventInfo
+    */
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
 
     /*
