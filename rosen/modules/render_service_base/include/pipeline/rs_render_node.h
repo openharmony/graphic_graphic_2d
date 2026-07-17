@@ -157,6 +157,11 @@ public:
     {
         return false;
     }
+    // Type-only check
+    virtual bool IsHwcLayerType() const
+    {
+        return false;
+    }
     // manage renderNode's child hardware enabled nodes and filter nodes info
     std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() { return allHwcNodeAndFilterNode_; }
     const std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() const { return allHwcNodeAndFilterNode_; }

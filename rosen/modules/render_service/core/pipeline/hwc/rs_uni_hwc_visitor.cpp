@@ -912,7 +912,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterIntersection()
         if (!node) {
             continue;
         }
-        bool isFilter = RSUniHwcComputeUtil::IsBlendNeedFilter(*node);
+        bool isFilter = !node->IsHwcLayerType();
         if (isFilter && node->IsOnTheTree()) {
             auto filterRect = node->GetConstHwcRecorder().GetGlobalHwcFilterRect().IsEmpty() ?
                 node->GetOldDirtyInSurface() : node->GetConstHwcRecorder().GetGlobalHwcFilterRect();
