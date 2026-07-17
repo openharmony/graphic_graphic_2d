@@ -220,14 +220,15 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
     }
-    if (isHdrOn && !backToFP16) {
-        RS_LOGD("RSLogicalDisplayRenderNodeDrawable::OnDraw HDR SCALE %{public}f"
-            " first used in drawOp.", screenParams->GetHdrBrightnessRatio());
-        curCanvas_->GetSurface()->SetHdrScale(hdrBrightnessRatio);
-        RSFilterCacheManager::SetScrHdr(hdrBrightnessRatio);
-    } else {
-        curCanvas_->GetSurface()->SetHdrScale(1.0f);
-        RSFilterCacheManager::SetScrHdr(1.0f);
+    auto surface = curCanvas_->GetSurface();
+    if (surface) {
+        if (isHdrOn && !backToFP16) {
+            RS_LOGD("RSLogicalDisplayRenderNodeDrawable::OnDraw HDR SCALE %{public}f"
+                " first used in drawOp.", hdrBrightnessRatio);
+            surface->SetHdrScale(hdrBrightnessRatio);
+        } else {
+            surface->SetHdrScale(1.0f);
+        }
     }
 
     // prepare canvas
@@ -247,8 +248,10 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #endif
 
     DrawAdditionalContent(*curCanvas_);
-    curCanvas_->GetSurface()->SetHdrScale(1.0f);
-    RSFilterCacheManager::SetScrHdr(1.0f);
+    if (surface) {
+        // need to reset 1.0f after canvas draw
+        surface->SetHdrScale(1.0f);
+    }
     if (needOffscreen && canvasBackup_) {
         Drawing::AutoCanvasRestore acrBackUp(*canvasBackup_, true);
         if (params->GetNeedOffscreen()) {

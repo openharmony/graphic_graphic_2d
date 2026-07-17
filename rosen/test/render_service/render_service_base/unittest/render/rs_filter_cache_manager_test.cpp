@@ -2471,9 +2471,6 @@ HWTEST_F(RSFilterCacheManagerTest, CreateOffscreenSurfaceTest, TestSize.Level1)
     auto manager = std::make_shared<RSFilterCacheManager>();
     ASSERT_NE(manager, nullptr);
     Drawing::RectI offscreenRect(0, 0, 100, 80);
-    // Ensure HDR is disabled: g_hdrBrightnessRatio = 1.0f, condition short-circuits
-    RSFilterCacheManager::SetScrHdr(1.0f);
-    EXPECT_FLOAT_EQ(manager->GetScrHdr(), 1.0f);
 
     {
         Drawing::ImageInfo info(SURFACE_W, SURFACE_H,
@@ -2485,13 +2482,11 @@ HWTEST_F(RSFilterCacheManagerTest, CreateOffscreenSurfaceTest, TestSize.Level1)
         EXPECT_NE(offscreenSurface, nullptr);
     }
 
-    RSFilterCacheManager::SetScrHdr(0.5f);
-    EXPECT_NE(manager->GetScrHdr(), 1.0f);
-
     {
         Drawing::ImageInfo info(SURFACE_W, SURFACE_H,
             Drawing::COLORTYPE_RGBA_1010102, Drawing::ALPHATYPE_PREMUL);
         auto surface = Drawing::Surface::MakeRaster(info);
+        surface->SetHdrScale(0.5f);
         ASSERT_NE(surface, nullptr);
         auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
         auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
@@ -2503,6 +2498,7 @@ HWTEST_F(RSFilterCacheManagerTest, CreateOffscreenSurfaceTest, TestSize.Level1)
         Drawing::ImageInfo info(SURFACE_W, SURFACE_H,
             Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE);
         auto surface = Drawing::Surface::MakeRaster(info);
+        surface->SetHdrScale(0.5f);
         ASSERT_NE(surface, nullptr);
 
         auto offscreenSurface = manager->CreateOffscreenSurface(surface.get(), offscreenRect, nullptr);
@@ -2520,8 +2516,6 @@ HWTEST_F(RSFilterCacheManagerTest, CreateOffscreenSurfaceTest, TestSize.Level1)
 
         EXPECT_NE(offscreenSurface->GetImageInfo().GetColorType(), Drawing::COLORTYPE_RGBA_F16);
     }
-
-    RSFilterCacheManager::SetScrHdr(1.0f);
 }
 
 /**

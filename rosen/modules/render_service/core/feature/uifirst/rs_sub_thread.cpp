@@ -299,7 +299,6 @@ std::pair<bool, float> RSSubThread::GetHdrParams(RSSurfaceRenderParams* renderPa
         return {backToFP16, hdrScale};
     }
 
-    bool hasHwcHdr = screenParams->GetHasForceHwcHdrSurface() || screenParams->GetExistHWCNode();
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     auto renderNode = nodeMap.GetRenderNode<const RSSurfaceRenderNode>(surfaceId);
     if (!renderNode) {
