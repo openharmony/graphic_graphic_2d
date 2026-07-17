@@ -890,22 +890,21 @@ HWTEST_F(OHHmSymbolTxtTest, GetColorSpaces_NoneGradient001, TestSize.Level0)
 
 /*
  * @tc.name: GetColorSpaces_NonNoneGradient001
- * @tc.desc: test GetColorSpaces returns SRGB for LINE_GRADIENT
+ * @tc.desc: test GetColorSpaces returns the UIColor color space for LINE_GRADIENT (non-NONE gradient)
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolTxtTest, GetColorSpaces_NonNoneGradient001, TestSize.Level0)
 {
     SPText::HMSymbolTxt symbolTxt;
-    // Create a SymbolLineGradient (LINE_GRADIENT), GetColorSpaces should return SRGB
+    // Create a SymbolLineGradient (LINE_GRADIENT), GetColorSpaces should return its UIColor color space
     auto lineGradient = std::make_shared<SymbolLineGradient>(45.0f); // 45.0f is angle
     Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
     lineGradient->SetUIColors({ uiColor }, SymbolColorSpace::DISPLAY_P3);
     OHOS::Rosen::SymbolColor symbolColor = { SymbolColorType::COLOR_TYPE, { lineGradient } };
     symbolTxt.SetSymbolColor(symbolColor);
     auto csResults = symbolTxt.GetColorSpaces();
-    ASSERT_FALSE(csResults.empty());
+    ASSERT_EQ(csResults.size(), 1);
     EXPECT_EQ(csResults[0], SymbolColorSpace::DISPLAY_P3);
-    EXPECT_EQ(csResults[1], SymbolColorSpace::SRGB);
 }
 
 /*
