@@ -2243,5 +2243,23 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Func
 
     HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
 }
+
+/**
+ * @tc.name: ProcessAdaptiveSyncForLTPS
+ * @tc.desc: Test ProcessAdaptiveSync with SUPPORT_AS_LTPS game support status
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, ProcessAdaptiveSyncForLTPS, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    int32_t prevIsAdaptive = mgr.isAdaptive_.load();
+    mgr.isGameSupportAS_ = SupportASStatus::SUPPORT_AS_LTPS;
+
+    mgr.ProcessAdaptiveSync("VOTER_GAMES");
+    EXPECT_EQ(mgr.isAdaptive_.load(), SupportASStatus::SUPPORT_AS_LTPS);
+
+    mgr.isAdaptive_.store(prevIsAdaptive);
+}
 } // namespace Rosen
 } // namespace OHOS

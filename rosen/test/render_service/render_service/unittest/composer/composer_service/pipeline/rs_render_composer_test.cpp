@@ -1925,6 +1925,35 @@ HWTEST_F(RsRenderComposerTest, IsDelayRequired, TestSize.Level1)
 }
 
 /**
+ * Function: IsDelayRequired
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call IsDelayRequired with SUPPORT_AS_LTPS adaptive status
+ *                  3. verify result
+ */
+HWTEST_F(RsRenderComposerTest, IsDelayRequiredForLTPS, TestSize.Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    PipelineParam param;
+    param.isForceRefresh = false;
+    param.hasGameScene = false;
+
+    bool hgmCoreIsLtpoMode = hgmCore.isLtpoMode_.load();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    bool frameRateMgrIsAdaptive = frameRateMgr->isAdaptive_.load();
+
+    hgmCore.isLtpoMode_.store(true);
+    frameRateMgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS_LTPS);
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+
+    hgmCore.isLtpoMode_.store(hgmCoreIsLtpoMode);
+    frameRateMgr->isAdaptive_.store(frameRateMgrIsAdaptive);
+}
+
+/**
  * Function: CreateFrameBufferSurfaceOhos
  * Type: Function
  * Rank: Important(2)

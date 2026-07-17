@@ -1280,7 +1280,9 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
         return;
     }
 
-    if (isGameSupportAS_ == SupportASStatus::GAME_SCENE_SKIP) {
+    if (IsSupportLiteAS(isGameSupportAS_)) {
+        HGM_LOGI("ProcessAdaptiveSync RSAdaptiveVsync mode: %{public}d", isGameSupportAS_);
+        RS_TRACE_NAME_FMT("ProcessAdaptiveSync RSAdaptiveVsync mode: %d", isGameSupportAS_);
         isAdaptive_.store(isGameSupportAS_);
         return;
     }

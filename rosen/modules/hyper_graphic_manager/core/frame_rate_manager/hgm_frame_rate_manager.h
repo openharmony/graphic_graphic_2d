@@ -97,7 +97,18 @@ enum SupportASStatus : int32_t {
     NOT_SUPPORT = 0,
     SUPPORT_AS = 1,
     GAME_SCENE_SKIP = 2,
+    SUPPORT_AS_LTPS = 3,
 };
+
+inline bool IsSupportSoftVsyncAS(int32_t supportASStatus)
+{
+    return supportASStatus == SUPPORT_AS || supportASStatus == SUPPORT_AS_LTPS;
+}
+
+inline bool IsSupportLiteAS(int32_t supportASStatus)
+{
+    return supportASStatus == GAME_SCENE_SKIP || supportASStatus == SUPPORT_AS_LTPS;
+}
 
 class HgmFrameRateManager {
 public:

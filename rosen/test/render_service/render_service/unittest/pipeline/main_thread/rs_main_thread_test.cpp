@@ -6203,6 +6203,33 @@ HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckAdaptiveComposeForLTPS
+ * @tc.desc: Test CheckAdaptiveCompose returns true with SUPPORT_AS_LTPS
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckAdaptiveComposeForLTPS, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->hgmRenderContext_, nullptr);
+
+    auto& ctx = mainThread->hgmRenderContext_;
+    auto prevIsAdaptive = ctx->isAdaptive_.load();
+    auto prevIsGameNodeOnTree = ctx->isGameNodeOnTree_.load();
+    auto prevIsAdaptiveVsyncReady = ctx->isAdaptiveVsyncReady_.load();
+
+    ctx->isAdaptive_.store(SupportASStatus::SUPPORT_AS_LTPS);
+    ctx->isGameNodeOnTree_.store(true);
+    ctx->isAdaptiveVsyncReady_.store(true);
+    EXPECT_TRUE(mainThread->CheckAdaptiveCompose());
+
+    ctx->isAdaptive_.store(prevIsAdaptive);
+    ctx->isGameNodeOnTree_.store(prevIsGameNodeOnTree);
+    ctx->isAdaptiveVsyncReady_.store(prevIsAdaptiveVsyncReady);
+}
+
+/**
  * @tc.name: GetMaxGpuBufferSize001
  * @tc.desc: Test GetMaxGpuBufferSize
  * @tc.type: FUNC
