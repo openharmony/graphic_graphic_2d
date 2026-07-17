@@ -53,6 +53,12 @@ enum ComponentScene : int32_t {
     SWIPER_FLING = 1,
 };
 
+inline ComponentScene SafeCastComponentScene(int32_t val, ComponentScene defaultVal = ComponentScene::UNKNOWN_SCENE)
+{
+    return (val >= 0 && val <= static_cast<int32_t>(ComponentScene::SWIPER_FLING)) ?
+        static_cast<ComponentScene>(val) : defaultVal;
+}
+
 class FrameRateRange {
 public:
     FrameRateRange() : min_(0), max_(0), preferred_(0), type_(0), isEnergyAssurance_(false),
