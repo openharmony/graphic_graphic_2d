@@ -867,20 +867,29 @@ void HgmFrameRateManager::HandlePointerTask(pid_t pid, int32_t pointerStatus, in
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::TOUCH_EVENT);
     }
+    PolicyConfigData::StrategyConfig strategyRes;
+    if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) != EXEC_SUCCESS) {
+        HGM_LOGD("[pointer manager] get focus app strategy config failed!");
+        return;
+    }
     if (pointerStatus == TOUCH_MOVE || pointerStatus == TOUCH_BUTTON_DOWN || pointerStatus == TOUCH_BUTTON_UP) {
-        PolicyConfigData::StrategyConfig strategyRes;
-        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
-            (strategyRes.pointerMode == PointerModeType::POINTER_ENABLED ||
-             (pointerStatus != TOUCH_MOVE && strategyRes.pointerMode == PointerModeType::POINTER_ENABLED_EX_MOVE))) {
+        // pointerMode, 1, all status; 2, TOUCH_BUTTON_DOWN and its followed especially timeout followed status
+        bool pointerEnabled = strategyRes.pointerMode == PointerModeType::POINTER_ENABLED;
+        bool isPointerExMove = strategyRes.pointerMode == PointerModeType::POINTER_ENABLED_EX_MOVE &&
+            (pointerStatus == TOUCH_BUTTON_DOWN || pointerManager_.IsInPointerDown());
+        if (pointerEnabled || isPointerExMove) {
             HGM_LOGD("[pointer manager] active");
             pointerManager_.HandleTimerReset();
             pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
         }
+        if (pointerStatus == TOUCH_BUTTON_DOWN) {
+            pointerManager_.SetIsInPointerDown(true);
+        } else if (pointerStatus == TOUCH_BUTTON_UP) {
+            pointerManager_.SetIsInPointerDown(false);
+        }
     }
     if (pointerStatus == AXIS_BEGIN || pointerStatus == AXIS_UPDATE || pointerStatus == AXIS_END) {
-        PolicyConfigData::StrategyConfig strategyRes;
-        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
-            strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
+        if (strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
             HGM_LOGD("[pointer axis manager] active");
             if (pointerStatus == AXIS_BEGIN) {
                 pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");

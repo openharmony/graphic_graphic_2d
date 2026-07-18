@@ -1636,15 +1636,16 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandlePointerTask, Function | SmallTest | Leve
 
     mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED;
     std::set<TouchStatus> originalSet = {TOUCH_MOVE, TOUCH_BUTTON_DOWN, TOUCH_BUTTON_UP, AXIS_BEGIN, AXIS_UPDATE,
-        AXIS_END};
+        AXIS_END, TOUCH_PULL_DOWN};
     for (TouchStatus status : originalSet) {
         mgr.HandlePointerTask(pid, status, 1);
     }
 
     mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED_EX_MOVE;
-    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
     mgr.HandlePointerTask(pid, TOUCH_BUTTON_DOWN, 1);
+    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
     mgr.HandlePointerTask(pid, TOUCH_BUTTON_UP, 1);
+    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
     EXPECT_EQ(mStrategy.strategyConfigMapCache_[testStrategy].pointerMode, PointerModeType::POINTER_ENABLED_EX_MOVE);
 
     mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_DISENABLED;

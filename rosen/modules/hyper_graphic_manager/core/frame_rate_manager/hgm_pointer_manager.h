@@ -52,6 +52,12 @@ public:
 
     std::string GetPkgName() const { return pkgName_; }
 
+    bool IsInPointerDown() const { return isInPointerDown_; }
+    void SetIsInPointerDown(bool isInPointerDown)
+    {
+        isInPointerDown_ = isInPointerDown;
+    }
+
 protected:
     std::string State2String(State state) const override;
     bool CheckChangeStateValid(State lastState, State newState) override;
@@ -63,6 +69,7 @@ private:
     HgmSimpleTimer activeTimeoutTimer_;
     HgmSimpleTimer rsIdleTimeoutTimer_;
     PointerInfo pointerInfo_ = { "", PointerState::POINTER_IDLE_STATE, OLED_120_HZ };
+    bool isInPointerDown_ = false;
 };
 } // OHOS::Rosen
 #endif // HGM_POINTER_MANAGER_H
