@@ -130,6 +130,8 @@ struct SpatialEffectVariantPara {
     {
         position = depthEffectPara.depth;
         occlusionWeight = depthEffectPara.occlusionWeight;
+        spatialEffectMode = spatialEffectPara.spatialEffectMode;
+        xyzCornerPoints = spatialEffectPara.xyzCorners;
     }
 
     SpatialEffectVariantPara(const SpatialEffectPara& spatialEffectPara)

@@ -357,7 +357,7 @@ RSProperties::SpatialEffectPerspectiveResults RSProperties::CalculateSpatialEffe
     } else if (params.spatialEffectMode == SpatialEffectMode::NDC_XY_WORLD_Z_MODE) {
         CalculateDstPointsByNdcXY(ret, params);
     }
- 
+
     auto succ = ret.transformMatrix.SetPolyToPoly(srcPoints.data(), ret.dstPoints.data(), srcPoints.size());
     if (!succ) {
         ROSEN_LOGE("CalculateSpatialEffectMatrix: SetPolyToPoly failed");
@@ -403,12 +403,6 @@ bool RSProperties::CalculateDstPointsByWorldXYZ(SpatialEffectPerspectiveResults&
             outZ, (1.0 + outX) * 0.5 * params.depNodeRect.GetWidth(),
             (1.0 + outY) * 0.5 * params.depNodeRect.GetHeight());
     }
-
-    auto succ = ret.transformMatrix.SetPolyToPoly(srcPoints.data(), ret.dstPoints.data(), srcPoints.size());
-    if (!succ) {
-        ROSEN_LOGE("CalculateDstPointsByWorldXYZ: SetPolyToPoly failed");
-    }
-
     return true;
 }
 
@@ -434,26 +428,26 @@ SpatialEffectPara::CornerPositions RSProperties::CalculateWorldXYZ(const std::ar
     std::array<float, 16> vpMatrix = PerspectiveTransformCalculator::ComputeVPMatrix(
         intrinsics, extrinsics, uvzPoints);
     SpatialEffectPara::CornerPositions cornerPoints = {};
- 
+
     for (int i = 0; i < 4; ++i) {
         float ndcX = uvzPoints[i].x_;
         float ndcY = uvzPoints[i].y_;
         float z = uvzPoints[i].z_;
- 
+
         float a11 = vpMatrix[0] - ndcX * vpMatrix[3];
         float a12 = vpMatrix[4] - ndcX * vpMatrix[7];
         float b1 = ndcX * (vpMatrix[11] * z + vpMatrix[15]) - (vpMatrix[8] * z + vpMatrix[12]);
- 
+
         float a21 = vpMatrix[1] - ndcY * vpMatrix[3];
         float a22 = vpMatrix[5] - ndcY * vpMatrix[7];
         float b2 = ndcY * (vpMatrix[11] * z + vpMatrix[15]) - (vpMatrix[9] * z + vpMatrix[13]);
- 
+
         float det = a11 * a22 - a12 * a21;
- 
+
         if (std::abs(det) < 1e-8f) {
             return cornerPoints;
         }
- 
+
         float worldX = (b1 * a22 - a12 * b2) / det;
         float worldY = (a11 * b2 - b1 * a21) / det;
         cornerPoints[i] = Vector3f(worldX, worldY, z);
@@ -560,7 +554,7 @@ void RSProperties::ApplySpatialEffectMatrix()
     };
 
     auto perspectiveResults = CalculateSpatialEffectMatrix(matrixParams, intrinsics, extrinsics);
-
+    
     if (para.spatialEffectMode == SpatialEffectMode::NDC_XY_WORLD_Z_MODE) {
         auto xyzResult = CalculateWorldXYZ(cornerPoints, intrinsics, extrinsics);
         if (effect_->spatialEffectVariantPara_.has_value()) {
