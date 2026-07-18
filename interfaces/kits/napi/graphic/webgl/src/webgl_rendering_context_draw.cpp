@@ -14,6 +14,7 @@
  */
 #include "context/webgl_rendering_context_base_impl.h"
 
+#include <cstdint>
 #include "context/webgl_rendering_context_base.h"
 #include "context/webgl2_rendering_context_base.h"
 #include "napi/n_class.h"
@@ -24,6 +25,45 @@ namespace OHOS {
 namespace Rosen {
 namespace Impl {
 using namespace std;
+namespace {
+bool CheckedMultiply(size_t a, size_t b, size_t& result)
+{
+    if (a != 0 && b > SIZE_MAX / a) {
+        return false;
+    }
+    result = a * b;
+    return true;
+}
+
+bool ComputeBlockBytes(size_t width, size_t height, size_t blockW, size_t blockH, size_t blockSize,
+    size_t& out)
+{
+    size_t across = (width + blockW - 1) / blockW;
+    size_t down = (height + blockH - 1) / blockH;
+    size_t blocks = 0;
+    if (!CheckedMultiply(across, down, blocks) || !CheckedMultiply(blocks, blockSize, out)) {
+        return false;
+    }
+    return true;
+}
+
+bool ComputePvrtcBytes(size_t width, size_t height, size_t minW, size_t minH, size_t bpp, size_t& out)
+{
+    const size_t kBitsPerByte = 8;
+    size_t w = max(width, minW);
+    size_t h = max(height, minH);
+    size_t pixels = 0;
+    size_t total = 0;
+    if (!CheckedMultiply(w, h, pixels) || !CheckedMultiply(pixels, bpp, total)) {
+        return false;
+    }
+    if (total > SIZE_MAX - (kBitsPerByte - 1)) {
+        return false;
+    }
+    out = (total + (kBitsPerByte - 1)) / kBitsPerByte;
+    return true;
+}
+} // namespace
 void WebGLRenderingContextBaseImpl::TexImage2D_(
     const TexImageArg& imgArg, WebGLTexture* texture, const void* pixels, bool changeUnpackAlignment)
 {
@@ -411,10 +451,26 @@ napi_value WebGLRenderingContextBaseImpl::BufferData(
         return NVal::CreateNull(env).val_;
     }
     // change
-    GLuint srcOffset = static_cast<GLuint>(ext.offset * bufferData.GetBufferDataSize());
-    GLsizeiptr length = (ext.length == 0) ? static_cast<GLsizeiptr>(bufferData.GetBufferLength())
-                        : static_cast<GLsizeiptr>(ext.length * bufferData.GetBufferDataSize());
-    BufferData_(env, target, length, usage, bufferData.GetBuffer() + srcOffset);
+    size_t bufferLen = bufferData.GetBufferLength();
+    size_t elemSize = bufferData.GetBufferDataSize();
+    uint64_t offsetBytes = static_cast<uint64_t>(ext.offset) * elemSize;
+    if (offsetBytes > bufferLen) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
+        return NVal::CreateNull(env).val_;
+    }
+    size_t maxLength = bufferLen - static_cast<size_t>(offsetBytes);
+    GLsizeiptr length;
+    if (ext.length == 0) {
+        length = static_cast<GLsizeiptr>(maxLength);
+    } else {
+        uint64_t lengthBytes = static_cast<uint64_t>(ext.length) * elemSize;
+        if (lengthBytes > maxLength) {
+            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "length out of bounds");
+            return NVal::CreateNull(env).val_;
+        }
+        length = static_cast<GLsizeiptr>(lengthBytes);
+    }
+    BufferData_(env, target, length, usage, bufferData.GetBuffer() + static_cast<size_t>(offsetBytes));
     LOGD("WebGL bufferData buffer usage %{public}u size %{public}zu target %{public}u, result %{public}u ",
         usage, bufferData.GetBufferLength(), target, GetError_());
     return NVal::CreateNull(env).val_;
@@ -569,20 +625,23 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexImage2D(
     }
     bufferData.DumpBuffer(bufferData.GetBufferDataType());
 
-    GLvoid* data = reinterpret_cast<GLvoid*>(bufferData.GetBuffer());
-    size_t length = bufferData.GetBufferLength();
-    if (srcOffset != 0) {
-        data = reinterpret_cast<GLvoid*>(bufferData.GetBuffer() + srcOffset * bufferData.GetBufferDataSize());
+    size_t bufferLen = bufferData.GetBufferLength();
+    size_t elemSize = bufferData.GetBufferDataSize();
+    size_t offsetBytes = static_cast<size_t>(srcOffset) * elemSize;
+    if (offsetBytes > bufferLen) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
+        return NVal::CreateNull(env).val_;
     }
-    if (srcLengthOverride != 0) {
-        length = srcLengthOverride;
-    }
+    size_t maxLength = bufferLen - offsetBytes;
+    size_t length = (srcLengthOverride == 0) ? maxLength
+        : std::min(static_cast<size_t>(srcLengthOverride), maxLength);
 
     GLenum result = CheckCompressedTexImage2D(env, imgArg, length);
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR_WITH_LOG(result, "CheckCompressedTexImage2D failed");
         return NVal::CreateNull(env).val_;
     }
+    GLvoid* data = reinterpret_cast<GLvoid*>(bufferData.GetBuffer() + offsetBytes);
     glCompressedTexImage2D(imgArg.target, imgArg.level, imgArg.internalFormat, imgArg.width, imgArg.height,
         imgArg.border, static_cast<GLsizei>(length), data);
 
@@ -647,9 +706,18 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
             return NVal::CreateNull(env).val_;
         }
         bufferData.DumpBuffer(bufferData.GetBufferDataType());
-        data = reinterpret_cast<void*>(bufferData.GetBuffer() + srcOffset * bufferData.GetBufferDataSize());
-        length = srcLengthOverride == 0 ?
-            static_cast<GLsizei>(bufferData.GetBufferLength()) : static_cast<GLsizei>(srcLengthOverride);
+        size_t bufferLen = bufferData.GetBufferLength();
+        size_t elemSize = bufferData.GetBufferDataSize();
+        size_t offsetBytes = static_cast<size_t>(srcOffset) * elemSize;
+        if (offsetBytes > bufferLen) {
+            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
+            return NVal::CreateNull(env).val_;
+        }
+        size_t maxLength = bufferLen - offsetBytes;
+        size_t dataLength = (srcLengthOverride == 0) ? maxLength
+            : std::min(static_cast<size_t>(srcLengthOverride), maxLength);
+        data = reinterpret_cast<void*>(bufferData.GetBuffer() + offsetBytes);
+        length = static_cast<GLsizei>(dataLength);
     }
     bool succ = CheckCompressedTexSubImage2D(env, imgArg, length);
     if (!succ) {
@@ -896,43 +964,63 @@ GLenum WebGLRenderingContextBaseImpl::CheckCompressedTexDimensions(const TexImag
 
 GLenum WebGLRenderingContextBaseImpl::CheckCompressedTexData(const TexImageArg& imgArg, size_t dataLen)
 {
+    if (imgArg.width < 0 || imgArg.height < 0) {
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
     size_t bytesRequired = 0;
     switch (imgArg.internalFormat) {
         case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT: {
-            const int32_t kBlockWidth = 4;
-            const int32_t kBlockHeight = 4;
-            const int32_t kBlockSize = 8;
-            int32_t numBlocksAcross = (imgArg.width + kBlockWidth - 1) / kBlockWidth;
-            int32_t numBlocksDown = (imgArg.height + kBlockHeight - 1) / kBlockHeight;
-            int32_t numBlocks = numBlocksAcross * numBlocksDown;
-            bytesRequired = static_cast<size_t>(numBlocks * kBlockSize);
+            const size_t kBlockWidth = 4;
+            const size_t kBlockHeight = 4;
+            const size_t kBlockSize = 8;
+            if (!ComputeBlockBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
+                kBlockWidth, kBlockHeight, kBlockSize, bytesRequired)) {
+                return WebGLRenderingContextBase::INVALID_VALUE;
+            }
             break;
         }
         case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: {
-            const int32_t kBlockWidth = 4;
-            const int32_t kBlockHeight = 4;
-            const int32_t kBlockSize = 16;
-            int32_t numBlocksAcross = (imgArg.width + kBlockWidth - 1) / kBlockWidth;
-            int32_t numBlocksDown = (imgArg.height + kBlockHeight - 1) / kBlockHeight;
-            int32_t numBlocks = numBlocksAcross * numBlocksDown;
-            bytesRequired = static_cast<size_t>(numBlocks * kBlockSize);
+            const size_t kBlockWidth = 4;
+            const size_t kBlockHeight = 4;
+            const size_t kBlockSize = 16;
+            if (!ComputeBlockBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
+                kBlockWidth, kBlockHeight, kBlockSize, bytesRequired)) {
+                return WebGLRenderingContextBase::INVALID_VALUE;
+            }
             break;
         }
-        case GL_ETC1_RGB8_OES: { // 3 kBlockWidth -1, 4 kBlockWidth, 8 kBlockSize
-            bytesRequired = floor(static_cast<double>((imgArg.width + 3) / 4)) *
-                floor(static_cast<double>((imgArg.height + 3) / 4)) * 8;
+        case GL_ETC1_RGB8_OES: {
+            const size_t kBlockWidth = 4;
+            const size_t kBlockHeight = 4;
+            const size_t kBlockSize = 8;
+            if (!ComputeBlockBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
+                kBlockWidth, kBlockHeight, kBlockSize, bytesRequired)) {
+                return WebGLRenderingContextBase::INVALID_VALUE;
+            }
             break;
         }
         case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:
-        case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: { // 4 4BPPV1, 7 kBlockWidth -1, 8 kBlockWidth, 8 kBlockSize
-            bytesRequired = (max(imgArg.width, 8) * max(imgArg.height, 8) * 4 + 7) / 8;
+        case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: {
+            const size_t kMinWidth = 8;
+            const size_t kMinHeight = 8;
+            const size_t kBpp = 4;
+            if (!ComputePvrtcBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
+                kMinWidth, kMinHeight, kBpp, bytesRequired)) {
+                return WebGLRenderingContextBase::INVALID_VALUE;
+            }
             break;
         }
         case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:
-        case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: { // 2 2BPPV1, 7 kBlockWidth - 1, 16 kBlockWidth, 8 kBlockSize
-            bytesRequired = (max(imgArg.width, 16) * max(imgArg.height, 8) * 2 + 7) / 8;
+        case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: {
+            const size_t kMinWidth = 16;
+            const size_t kMinHeight = 8;
+            const size_t kBpp = 2;
+            if (!ComputePvrtcBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
+                kMinWidth, kMinHeight, kBpp, bytesRequired)) {
+                return WebGLRenderingContextBase::INVALID_VALUE;
+            }
             break;
         }
         default:

@@ -197,6 +197,11 @@ napi_status WebGLReadBufferArg::GetArrayElement(
         LOGE("WebGL GetArrayElement: array size too large, overflow or exceeds limit");
         return napi_invalid_arg;
     }
+    constexpr size_t maxAllocSize = 1024 * 1024;
+    if (requiredSize > maxAllocSize) {
+        LOGE("WebGL GetArrayElement: array size too large, exceeds limit");
+        return napi_invalid_arg;
+    }
 
     buffer_.resize(requiredSize);
     data_ = buffer_.data();
@@ -350,7 +355,7 @@ napi_value WebGLWriteBufferArg::GenExternalArray()
         status = napi_create_external_arraybuffer(
             env_, data_, dataLen_,
             [](napi_env env_, void* finalizeData, void* finalizeHint) {
-                free(finalizeData);
+                delete[] static_cast<uint8_t*>(finalizeData);
             },
             nullptr, &outputBuffer);
     }
@@ -600,9 +605,15 @@ void WebGLImageSource::DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatM
 bool WebGLImageSource::DecodeImageData(
     const WebGLFormatMap* formatMap, const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset)
 {
-    size_t maxSize = bufferDataArg->GetBufferLength() - srcOffset * formatMap->bytesPrePixel;
-    LOGD("GenImageSource element count %{public}zu %{public}u", maxSize, formatMap->bytesPrePixel);
-    if (maxSize < static_cast<size_t>(imageOption_.height * imageOption_.width * formatMap->bytesPrePixel)) {
+    size_t bufLen = bufferDataArg->GetBufferLength();
+    if (srcOffset > bufLen) {
+        LOGE("DecodeImageData srcOffset out of bounds, srcOffset %{public}u bufLen %{public}zu", srcOffset, bufLen);
+        return false;
+    }
+    size_t maxSize = bufLen - srcOffset;
+    uint64_t need = static_cast<uint64_t>(imageOption_.height) * imageOption_.width * formatMap->bytesPrePixel;
+    LOGD("GenImageSource maxSize %{public}zu bytesPrePixel %{public}u", maxSize, formatMap->bytesPrePixel);
+    if (need > maxSize) {
         LOGE("Invalid data element");
         return false;
     }
@@ -649,7 +660,7 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
     }
     const WebGLFormatMap *formatMap = GetWebGLFormatMap(imageOption_.type, imageOption_.format);
     if (formatMap == nullptr) {
-        return false;
+        return GL_INVALID_ENUM;
     }
     napi_status status = readBuffer_->GenBufferData(pixels, formatMap->dataType);
     if (status != napi_ok) {
@@ -659,6 +670,14 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
         return GL_INVALID_OPERATION;
     }
     if (!(unpackFlipY_ || unpackPremultiplyAlpha_)) {
+        size_t bufLen = readBuffer_->GetBufferLength();
+        if (srcOffset > bufLen) {
+            return GL_INVALID_VALUE;
+        }
+        uint64_t need = static_cast<uint64_t>(imageOption_.height) * imageOption_.width * formatMap->bytesPrePixel;
+        if (static_cast<uint64_t>(srcOffset) + need > bufLen) {
+            return GL_INVALID_OPERATION;
+        }
         srcOffset_ = srcOffset;
         return GL_NO_ERROR;
     }

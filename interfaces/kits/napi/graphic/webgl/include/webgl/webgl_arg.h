@@ -555,9 +555,9 @@ public:
         }
     }
 
-    uint8_t* AllocBuffer(uint32_t size)
+    uint8_t* AllocBuffer(size_t size)
     {
-        if (size > MAX_ALLOC_BUFFER_SIZE) {
+        if (size > static_cast<size_t>(MAX_ALLOC_BUFFER_SIZE)) {
             return nullptr;
         }
         if (data_ != nullptr) {
