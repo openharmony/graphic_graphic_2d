@@ -45,4 +45,9 @@ void RSSpatialEffectModifier::SetSpatialEffectOcclusionWeight(float occlusionWei
 {
     Setter(RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT, occlusionWeight);
 }
+
+void RSSpatialEffectModifier::SetSpatialEffectMode(int mode)
+{
+    Setter<RSProperty>(RSPropertyType::SPATIAL_EFFECT_MODE, mode);
+}
 } // namespace OHOS::Rosen::ModifierNG

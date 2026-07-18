@@ -43,6 +43,7 @@ public:
     void SetSpatialEffectLeftBottom(const Vector3f& leftBottom);
     void SetSpatialEffectRightBottom(const Vector3f& rightBottom);
     void SetSpatialEffectOcclusionWeight(float occlusionWeight);
+    void SetSpatialEffectMode(int mode);
 };
 } // namespace OHOS::Rosen::ModifierNG
 

@@ -30,6 +30,8 @@ const RSSpatialEffectRenderModifier::LegacyPropertyApplierMap
             RSRenderModifier::PropertyApplyHelper<Vector3f, &RSProperties::SetSpatialEffectRightBottom> },
         { RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT,
             RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetSpatialEffectOcclusionWeight> },
+        { RSPropertyType::SPATIAL_EFFECT_MODE,
+            RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetSpatialEffectMode> },
     };
 
 void RSSpatialEffectRenderModifier::ResetProperties(RSProperties& properties)

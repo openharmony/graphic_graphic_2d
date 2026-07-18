@@ -356,6 +356,7 @@ public:
             case RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM: return "SpatialEffectLeftBottom";
             case RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM: return "SpatialEffectRightBottom";
             case RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT: return "SpatialEffectOcclusionWeight";
+            case RSPropertyType::SPATIAL_EFFECT_MODE: return "SpatialEffectMode";
             case RSPropertyType::MATERIAL_SHADER: return "MaterialShader";
             case RSPropertyType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             default: return "Unknown";
