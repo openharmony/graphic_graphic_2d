@@ -26,6 +26,18 @@ namespace Rosen {
 namespace Impl {
 using namespace std;
 namespace {
+struct CompressedBlockFormat {
+    size_t blockWidth;
+    size_t blockHeight;
+    size_t blockSize;
+};
+
+struct CompressedPvrtcFormat {
+    size_t minWidth;
+    size_t minHeight;
+    size_t bpp;
+};
+
 bool CheckedMultiply(size_t a, size_t b, size_t& result)
 {
     if (a != 0 && b > SIZE_MAX / a) {
@@ -35,26 +47,28 @@ bool CheckedMultiply(size_t a, size_t b, size_t& result)
     return true;
 }
 
-bool ComputeBlockBytes(size_t width, size_t height, size_t blockW, size_t blockH, size_t blockSize,
-    size_t& out)
+bool ComputeBlockBytes(size_t width, size_t height, const CompressedBlockFormat& fmt, size_t& out)
 {
-    size_t across = (width + blockW - 1) / blockW;
-    size_t down = (height + blockH - 1) / blockH;
+    if (fmt.blockWidth == 0 || fmt.blockHeight == 0) {
+        return false;
+    }
+    size_t across = (width + fmt.blockWidth - 1) / fmt.blockWidth;
+    size_t down = (height + fmt.blockHeight - 1) / fmt.blockHeight;
     size_t blocks = 0;
-    if (!CheckedMultiply(across, down, blocks) || !CheckedMultiply(blocks, blockSize, out)) {
+    if (!CheckedMultiply(across, down, blocks) || !CheckedMultiply(blocks, fmt.blockSize, out)) {
         return false;
     }
     return true;
 }
 
-bool ComputePvrtcBytes(size_t width, size_t height, size_t minW, size_t minH, size_t bpp, size_t& out)
+bool ComputePvrtcBytes(size_t width, size_t height, const CompressedPvrtcFormat& fmt, size_t& out)
 {
     const size_t kBitsPerByte = 8;
-    size_t w = max(width, minW);
-    size_t h = max(height, minH);
+    size_t w = max(width, fmt.minWidth);
+    size_t h = max(height, fmt.minHeight);
     size_t pixels = 0;
     size_t total = 0;
-    if (!CheckedMultiply(w, h, pixels) || !CheckedMultiply(pixels, bpp, total)) {
+    if (!CheckedMultiply(w, h, pixels) || !CheckedMultiply(pixels, fmt.bpp, total)) {
         return false;
     }
     if (total > SIZE_MAX - (kBitsPerByte - 1)) {
@@ -62,6 +76,35 @@ bool ComputePvrtcBytes(size_t width, size_t height, size_t minW, size_t minH, si
     }
     out = (total + (kBitsPerByte - 1)) / kBitsPerByte;
     return true;
+}
+
+bool ComputeCompressedBytesRequired(const TexImageArg& imgArg, size_t& out, GLenum& err)
+{
+    const CompressedBlockFormat kDxt1 { 4, 4, 8 };
+    const CompressedBlockFormat kDxt3_5 { 4, 4, 16 };
+    const CompressedPvrtcFormat kPvrtc4 { 8, 8, 4 };
+    const CompressedPvrtcFormat kPvrtc2 { 16, 8, 2 };
+    size_t width = static_cast<size_t>(imgArg.width);
+    size_t height = static_cast<size_t>(imgArg.height);
+    err = WebGLRenderingContextBase::INVALID_VALUE;
+    switch (imgArg.internalFormat) {
+        case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+        case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+        case GL_ETC1_RGB8_OES:
+            return ComputeBlockBytes(width, height, kDxt1, out);
+        case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+        case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+            return ComputeBlockBytes(width, height, kDxt3_5, out);
+        case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:
+        case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:
+            return ComputePvrtcBytes(width, height, kPvrtc4, out);
+        case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:
+        case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG:
+            return ComputePvrtcBytes(width, height, kPvrtc2, out);
+        default:
+            err = WebGLRenderingContextBase::INVALID_ENUM;
+            return false;
+    }
 }
 } // namespace
 void WebGLRenderingContextBaseImpl::TexImage2D_(
@@ -968,63 +1011,9 @@ GLenum WebGLRenderingContextBaseImpl::CheckCompressedTexData(const TexImageArg& 
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
     size_t bytesRequired = 0;
-    switch (imgArg.internalFormat) {
-        case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
-        case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT: {
-            const size_t kBlockWidth = 4;
-            const size_t kBlockHeight = 4;
-            const size_t kBlockSize = 8;
-            if (!ComputeBlockBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
-                kBlockWidth, kBlockHeight, kBlockSize, bytesRequired)) {
-                return WebGLRenderingContextBase::INVALID_VALUE;
-            }
-            break;
-        }
-        case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
-        case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: {
-            const size_t kBlockWidth = 4;
-            const size_t kBlockHeight = 4;
-            const size_t kBlockSize = 16;
-            if (!ComputeBlockBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
-                kBlockWidth, kBlockHeight, kBlockSize, bytesRequired)) {
-                return WebGLRenderingContextBase::INVALID_VALUE;
-            }
-            break;
-        }
-        case GL_ETC1_RGB8_OES: {
-            const size_t kBlockWidth = 4;
-            const size_t kBlockHeight = 4;
-            const size_t kBlockSize = 8;
-            if (!ComputeBlockBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
-                kBlockWidth, kBlockHeight, kBlockSize, bytesRequired)) {
-                return WebGLRenderingContextBase::INVALID_VALUE;
-            }
-            break;
-        }
-        case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:
-        case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: {
-            const size_t kMinWidth = 8;
-            const size_t kMinHeight = 8;
-            const size_t kBpp = 4;
-            if (!ComputePvrtcBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
-                kMinWidth, kMinHeight, kBpp, bytesRequired)) {
-                return WebGLRenderingContextBase::INVALID_VALUE;
-            }
-            break;
-        }
-        case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:
-        case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: {
-            const size_t kMinWidth = 16;
-            const size_t kMinHeight = 8;
-            const size_t kBpp = 2;
-            if (!ComputePvrtcBytes(static_cast<size_t>(imgArg.width), static_cast<size_t>(imgArg.height),
-                kMinWidth, kMinHeight, kBpp, bytesRequired)) {
-                return WebGLRenderingContextBase::INVALID_VALUE;
-            }
-            break;
-        }
-        default:
-            return WebGLRenderingContextBase::INVALID_ENUM;
+    GLenum err = WebGLRenderingContextBase::NO_ERROR;
+    if (!ComputeCompressedBytesRequired(imgArg, bytesRequired, err)) {
+        return err;
     }
     LOGD("CheckCompressedTexData bytesRequired %{public}zu", bytesRequired);
     if (dataLen != bytesRequired) {

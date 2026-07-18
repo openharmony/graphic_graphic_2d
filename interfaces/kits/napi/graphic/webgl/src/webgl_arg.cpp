@@ -647,6 +647,20 @@ bool WebGLImageSource::DecodeImageData(
     return true;
 }
 
+GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, GLuint srcOffset)
+{
+    size_t bufLen = readBuffer_->GetBufferLength();
+    if (srcOffset > bufLen) {
+        return GL_INVALID_VALUE;
+    }
+    uint64_t need = static_cast<uint64_t>(imageOption_.height) * imageOption_.width * formatMap->bytesPrePixel;
+    if (static_cast<uint64_t>(srcOffset) + need > bufLen) {
+        return GL_INVALID_OPERATION;
+    }
+    srcOffset_ = srcOffset;
+    return GL_NO_ERROR;
+}
+
 GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value pixels, GLuint srcOffset)
 {
     imageOption_.Assign(opt);
@@ -670,16 +684,7 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
         return GL_INVALID_OPERATION;
     }
     if (!(unpackFlipY_ || unpackPremultiplyAlpha_)) {
-        size_t bufLen = readBuffer_->GetBufferLength();
-        if (srcOffset > bufLen) {
-            return GL_INVALID_VALUE;
-        }
-        uint64_t need = static_cast<uint64_t>(imageOption_.height) * imageOption_.width * formatMap->bytesPrePixel;
-        if (static_cast<uint64_t>(srcOffset) + need > bufLen) {
-            return GL_INVALID_OPERATION;
-        }
-        srcOffset_ = srcOffset;
-        return GL_NO_ERROR;
+        return CheckSrcOffsetBounds(formatMap, srcOffset);
     }
     bool succ = false;
     if (readBuffer_->GetBufferDataType() == BUFFER_DATA_UINT_8 ||
