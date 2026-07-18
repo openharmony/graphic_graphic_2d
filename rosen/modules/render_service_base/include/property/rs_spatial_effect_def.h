@@ -130,14 +130,14 @@ struct SpatialEffectVariantPara {
     {
         position = depthEffectPara.depth;
         occlusionWeight = depthEffectPara.occlusionWeight;
-        spatialEffectMode = spatialEffectPara.spatialEffectMode;
-        xyzCornerPoints = spatialEffectPara.xyzCorners;
     }
 
     SpatialEffectVariantPara(const SpatialEffectPara& spatialEffectPara)
     {
         position = spatialEffectPara.corners;
         occlusionWeight = spatialEffectPara.occlusionWeight;
+        spatialEffectMode = spatialEffectPara.spatialEffectMode;
+        xyzCornerPoints = spatialEffectPara.xyzCorners;
     }
 
     bool operator==(const SpatialEffectVariantPara& other) const
