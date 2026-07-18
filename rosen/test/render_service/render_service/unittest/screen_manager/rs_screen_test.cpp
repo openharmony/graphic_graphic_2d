@@ -3561,10 +3561,9 @@ HWTEST_F(RSScreenTest, SetRogResolution002, testing::ext::TestSize.Level1)
 {
     auto rsScreen = std::make_unique<RSScreen>(0);
     ASSERT_NE(nullptr, rsScreen);
-
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     rsScreen->property_.SetPhysicalModeParams(100, 100, 0);
-    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _))
-        .WillOnce(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution).WillOnce(testing::Return(0));
     rsScreen->SetRogResolution(50, 50);
     EXPECT_EQ(rsScreen->property_.GetHdiRogEnable(), true);
     EXPECT_EQ(rsScreen->property_.IsRogResolution(), true);
@@ -3583,8 +3582,7 @@ HWTEST_F(RSScreenTest, SetRogResolution003, testing::ext::TestSize.Level1)
     ASSERT_NE(nullptr, rsScreen);
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     rsScreen->property_.SetPhysicalModeParams(100, 100, 0);
-    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _))
-        .WillOnce(testing::Return(-1));
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution).WillOnce(testing::Return(-1));
     rsScreen->SetRogResolution(50, 50);
     EXPECT_EQ(rsScreen->property_.GetHdiRogEnable(), false);
     EXPECT_EQ(rsScreen->isRogResolution_, false);
