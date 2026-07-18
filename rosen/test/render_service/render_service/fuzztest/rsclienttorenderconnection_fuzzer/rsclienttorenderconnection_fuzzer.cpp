@@ -729,7 +729,7 @@ void DoSubmitCanvasPreAllocatedBuffer()
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 void DoCreateCanvasDrawingNodeSurface()
 {
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -742,7 +742,8 @@ void DoCreateCanvasDrawingNodeSurface()
 
 void DoReleaseCanvasDrawingNodeSurface()
 {
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::RELEASE_CANVAS_DRAWING_NODE_SURFACE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
