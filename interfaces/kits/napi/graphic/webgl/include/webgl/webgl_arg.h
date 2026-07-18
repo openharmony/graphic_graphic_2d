@@ -565,7 +565,7 @@ public:
             data_ = nullptr;
         }
         dataLen_ = size;
-        data_ = new uint8_t[dataLen_];
+        data_ = new uint8_t[dataLen_]();
         return data_;
     }
 
