@@ -213,6 +213,10 @@ napi_value WebGLRenderingContextBaseImpl::TexImage2D(napi_env env, const TexImag
 napi_value WebGLRenderingContextBaseImpl::TexImage2D(napi_env env, const TexImageArg& imgArg, GLintptr pbOffset)
 {
     imgArg.Dump("WebGL texImage2D");
+    if (boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER] == 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
+        return NVal::CreateNull(env).val_;
+    }
     WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
     if (!texture) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "Can not find texture");
@@ -253,6 +257,10 @@ void WebGLRenderingContextBaseImpl::TexSubImage2D_(
 napi_value WebGLRenderingContextBaseImpl::TexSubImage2D(napi_env env, const TexSubImage2DArg& imgArg, GLintptr pbOffset)
 {
     imgArg.Dump("WebGL texSubImage2D");
+    if (boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER] == 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
+        return NVal::CreateNull(env).val_;
+    }
     WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
     if (!texture) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "texture is nullptr");
@@ -304,6 +312,9 @@ napi_value WebGLRenderingContextBaseImpl::TexSubImage2D(
         data = imageSource.GetImageSourceData();
         imgArg.width = imageSource.GetWidth();
         imgArg.height = imageSource.GetHeight();
+    } else {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "pixels is null");
+        return NVal::CreateNull(env).val_;
     }
 
     error = CheckTexSubImage2D(env, imgArg, texture);
@@ -442,6 +453,10 @@ napi_value WebGLRenderingContextBaseImpl::BufferData_(
     napi_env env, GLenum target, GLsizeiptr size, GLenum usage, const uint8_t* bufferData)
 {
     LOGD("WebGL bufferData target %{public}u, usage %{public}u", target, usage);
+    if (size < 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "size is negative");
+        return NVal::CreateNull(env).val_;
+    }
     uint32_t index = 0;
     if (!CheckBufferTarget(env, target, index)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "CheckBufferTarget failed");
@@ -535,7 +550,12 @@ napi_value WebGLRenderingContextBaseImpl::BufferSubData(
         return NVal::CreateNull(env).val_;
     }
     // check sub buffer
-    if ((static_cast<size_t>(offset) + bufferData.GetBufferLength()) > webGLBuffer->GetBufferSize()) {
+    if (offset < 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "WebGL bufferSubData negative offset");
+        return NVal::CreateNull(env).val_;
+    }
+    uint64_t endBytes = static_cast<uint64_t>(offset) + static_cast<uint64_t>(bufferData.GetBufferLength());
+    if (endBytes > static_cast<uint64_t>(webGLBuffer->GetBufferSize())) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
             "WebGL bufferSubData invalid buffer size %{public}zu offset %{public}zu ",
             bufferData.GetBufferLength(), webGLBuffer->GetBufferSize());
@@ -637,6 +657,10 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexImage2D(
     napi_env env, const TexImageArg& imgArg, GLsizei imageSize, GLintptr offset)
 {
     imgArg.Dump("WebGL compressedTexImage2D");
+    if (boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER] == 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
+        return NVal::CreateNull(env).val_;
+    }
     GLenum result = CheckCompressedTexImage2D(env, imgArg, static_cast<size_t>(imageSize));
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR(result);
@@ -776,6 +800,10 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
     napi_env env, const TexSubImage2DArg& imgArg, GLsizei imageSize, GLintptr offset)
 {
     imgArg.Dump("WebGL compressedTexSubImage2D");
+    if (boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER] == 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
+        return NVal::CreateNull(env).val_;
+    }
     bool succ = CheckCompressedTexSubImage2D(env, imgArg, imageSize);
     if (!succ) {
         return NVal::CreateNull(env).val_;
@@ -991,8 +1019,10 @@ GLenum WebGLRenderingContextBaseImpl::CheckCompressedTexDimensions(const TexImag
         case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:
         case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:
         case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: {
-            widthValid = (static_cast<uint32_t>(imgArg.width) & static_cast<uint32_t>(imgArg.width - 1)) == 0;
-            heightValid = (static_cast<uint32_t>(imgArg.height) & static_cast<uint32_t>(imgArg.height - 1)) == 0;
+            widthValid = imgArg.width > 0 &&
+                (static_cast<uint32_t>(imgArg.width) & static_cast<uint32_t>(imgArg.width - 1)) == 0;
+            heightValid = imgArg.height > 0 &&
+                (static_cast<uint32_t>(imgArg.height) & static_cast<uint32_t>(imgArg.height - 1)) == 0;
             break;
         }
         default:
@@ -1170,13 +1200,11 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
     }
 
     // check count
-    if (size * static_cast<uint32_t>(count) > static_cast<uint32_t>(webGLBuffer->GetBufferSize())) {
+    uint64_t required = static_cast<uint64_t>(size) * static_cast<uint64_t>(count);
+    uint64_t endBytes = static_cast<uint64_t>(offset) + required;
+    if (endBytes > static_cast<uint64_t>(webGLBuffer->GetBufferSize())) {
         LOGE("WebGL drawElements Insufficient buffer size %{public}d", count);
         return WebGLRenderingContextBase::INVALID_OPERATION;
-    }
-    if (static_cast<size_t>(offset) >= webGLBuffer->GetBufferSize()) {
-        LOGE("WebGL drawElements invalid offset %{public}" PRIi64, offset);
-        return WebGLRenderingContextBase::INVALID_VALUE;
     }
 
     if (!currentProgramId_) {

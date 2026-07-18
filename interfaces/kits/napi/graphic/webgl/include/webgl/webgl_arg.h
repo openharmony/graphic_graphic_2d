@@ -622,7 +622,13 @@ public:
 
     inline static ColorParam FromRGBO(uint8_t red, uint8_t green, uint8_t blue, double opacity)
     {
-        return FromARGB(static_cast<uint8_t>(round(opacity * 0xff)) & 0xff, red, green, blue);
+        double op = opacity;
+        if (!(op >= 0.0)) {
+            op = 0.0;
+        } else if (op > 1.0) {
+            op = 1.0;
+        }
+        return FromARGB(static_cast<uint8_t>(round(op * 0xff)) & 0xff, red, green, blue);
     }
 
     inline static ColorParam FromRGB(uint8_t red, uint8_t green, uint8_t blue)

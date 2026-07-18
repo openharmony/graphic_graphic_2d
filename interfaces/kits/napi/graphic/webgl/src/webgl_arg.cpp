@@ -72,7 +72,7 @@ bool WebGLArg::GetWebGLArg(napi_value data, WebGLArgValue& arg, const WebGLArgIn
         case ARG_SIZEPTR: {
             int64_t v = 0;
             tie(succ, v) = NVal(env_, data).ToInt64();
-            arg.glSizeptr = static_cast<GLsizei>(v);
+            arg.glSizeptr = static_cast<GLsizeiptr>(v);
             break;
         }
         default:
@@ -457,7 +457,13 @@ tuple<bool, T> WebGLImageSource::GetObjectIntField(napi_value resultObject, cons
     }
     int64_t res = 0;
     status = napi_get_value_int64(env_, result, &res);
-    return make_tuple(status == napi_ok, static_cast<T>(res));
+    if (status != napi_ok) {
+        return make_tuple(false, 0);
+    }
+    if (res < std::numeric_limits<T>::min() || res > std::numeric_limits<T>::max()) {
+        return make_tuple(false, 0);
+    }
+    return make_tuple(true, static_cast<T>(res));
 }
 
 const WebGLFormatMap *WebGLImageSource::GetWebGLFormatMap(GLenum type, GLenum format)
@@ -502,7 +508,11 @@ bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuety
         imageSource = ImageSource::CreateImageSource(source.get(), opts, errorCode);
     } else if (valueType == napi_number) { // Fd
         int32_t fd = 0;
-        napi_get_value_int32(env_, resultData, &fd);
+        napi_status status = napi_get_value_int32(env_, resultData, &fd);
+        if (status != napi_ok) {
+            LOGE("WebGl ImageSource invalid fd type");
+            return false;
+        }
         LOGD("WebGl ImageSource fdIndex is [%{public}d]", fd);
         imageSource = ImageSource::CreateImageSource(fd, opts, errorCode);
     } else {
