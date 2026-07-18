@@ -491,6 +491,34 @@ WebGLImageSource::~WebGLImageSource()
     imageData_.clear();
 }
 
+bool WebGLImageSource::BuildPixelMapFromSource(
+    std::unique_ptr<OHOS::Media::ImageSource>& imageSource, uint32_t errorCode)
+{
+    if (imageSource == nullptr) {
+        LOGE("WebGl ImageSource fail to get errorCode %{public}u", errorCode);
+        return false;
+    }
+
+    ImageInfo imageInfo;
+    errorCode = imageSource->GetImageInfo(0, imageInfo);
+    if (errorCode != 0) {
+        return false;
+    }
+    errorCode = imageSource->GetImageInfo(imageInfo);
+    LOGD("WebGl ImageSource  [%{public}d %{public}d] pixelFormat %{public}u colorSpace %{public}u"
+        " alphaType  %{public}u", imageInfo.size.width, imageInfo.size.height, imageInfo.pixelFormat,
+        imageInfo.colorSpace, imageInfo.alphaType);
+    imageOption_.width = imageInfo.size.width;
+    imageOption_.height = imageInfo.size.height;
+    DecodeOptions decodeOpts;
+    pixelMap_ = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    if (pixelMap_ == nullptr) {
+        LOGE("WebGl ImageSource fail to create pixel map");
+        return false;
+    }
+    return true;
+}
+
 bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuetype valueType)
 {
     uint32_t errorCode = 0;
@@ -519,30 +547,7 @@ bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuety
         LOGE("WebGl ImageSource not support type %{public}u", valueType);
         return false;
     }
-    if (imageSource == nullptr) {
-        LOGE("WebGl ImageSource fail to get errorCode %{public}u", errorCode);
-        return false;
-    }
-
-    ImageInfo imageInfo;
-    errorCode = imageSource->GetImageInfo(0, imageInfo);
-    if (errorCode == 0) {
-        errorCode = imageSource->GetImageInfo(imageInfo);
-        LOGD("WebGl ImageSource  [%{public}d %{public}d] pixelFormat %{public}u colorSpace %{public}u"
-            " alphaType  %{public}u", imageInfo.size.width, imageInfo.size.height, imageInfo.pixelFormat,
-            imageInfo.colorSpace, imageInfo.alphaType);
-        imageOption_.width = imageInfo.size.width;
-        imageOption_.height = imageInfo.size.height;
-    } else {
-        return false;
-    }
-    DecodeOptions decodeOpts;
-    pixelMap_ = imageSource->CreatePixelMap(decodeOpts, errorCode);
-    if (pixelMap_ == nullptr) {
-        LOGE("WebGl ImageSource fail to create pixel map");
-        return false;
-    }
-    return true;
+    return BuildPixelMapFromSource(imageSource, errorCode);
 }
 
 void WebGLImageSource::DecodeData(const WebGLFormatMap* formatMap, uint8_t* array)

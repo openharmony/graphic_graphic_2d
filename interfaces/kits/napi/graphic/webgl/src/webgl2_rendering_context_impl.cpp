@@ -1231,7 +1231,8 @@ napi_value WebGL2RenderingContextImpl::VertexAttribI4iv(napi_env env, GLuint ind
         LOGE("WebGL vertexAttribI4iv invalid data type %{public}u", bufferData.GetBufferDataType());
         return NVal::CreateNull(env).val_;
     }
-    if (bufferData.GetBufferLength() < 4 * sizeof(GLint)) {
+    constexpr size_t attribI4ComponentCount = 4;
+    if (bufferData.GetBufferLength() < attribI4ComponentCount * sizeof(GLint)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer too small, need >=4 elements");
         return NVal::CreateNull(env).val_;
     }
@@ -1258,7 +1259,8 @@ napi_value WebGL2RenderingContextImpl::VertexAttribI4uiv(napi_env env, GLuint in
         LOGE("WebGL2 vertexAttribI4uiv invalid data type %{public}d", bufferData.GetBufferDataType());
         return NVal::CreateNull(env).val_;
     }
-    if (bufferData.GetBufferLength() < 4 * sizeof(GLuint)) {
+    constexpr size_t attribI4ComponentCount = 4;
+    if (bufferData.GetBufferLength() < attribI4ComponentCount * sizeof(GLuint)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer too small, need >=4 elements");
         return NVal::CreateNull(env).val_;
     }

@@ -648,6 +648,7 @@ private:
     template<class T>
     std::tuple<bool, T> GetObjectIntField(napi_value resultObject, const std::string& name);
     bool HandleImageSourceData(napi_value resultData, napi_valuetype valueType);
+    bool BuildPixelMapFromSource(std::unique_ptr<OHOS::Media::ImageSource>& imageSource, uint32_t errorCode);
 
     int webGLVersion_ { 0 };
     napi_env env_ { nullptr };

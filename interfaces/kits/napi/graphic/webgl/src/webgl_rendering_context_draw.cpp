@@ -81,7 +81,7 @@ bool ComputePvrtcBytes(size_t width, size_t height, const CompressedPvrtcFormat&
 bool ComputeCompressedBytesRequired(const TexImageArg& imgArg, size_t& out, GLenum& err)
 {
     const CompressedBlockFormat kDxt1 { 4, 4, 8 };
-    const CompressedBlockFormat kDxt3_5 { 4, 4, 16 };
+    const CompressedBlockFormat kDxt35 { 4, 4, 16 };
     const CompressedPvrtcFormat kPvrtc4 { 8, 8, 4 };
     const CompressedPvrtcFormat kPvrtc2 { 16, 8, 2 };
     size_t width = static_cast<size_t>(imgArg.width);
@@ -94,7 +94,7 @@ bool ComputeCompressedBytesRequired(const TexImageArg& imgArg, size_t& out, GLen
             return ComputeBlockBytes(width, height, kDxt1, out);
         case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-            return ComputeBlockBytes(width, height, kDxt3_5, out);
+            return ComputeBlockBytes(width, height, kDxt35, out);
         case GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG:
         case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:
             return ComputePvrtcBytes(width, height, kPvrtc4, out);
