@@ -827,6 +827,10 @@ public:
         uifirstState_.forceUpdate = b;
     }
 
+    bool IsFullScreen();
+
+    VideoDimType GetVideoDimType() const;
+
     RSUIFirstSwitch GetUIFirstSwitch() const
     {
         return uifirstState_.switchMode;
@@ -1980,6 +1984,10 @@ public:
     {
         return topLayerZOrder_;
     }
+
+    void ResetCompositionType();
+    void SetCompositionType(CompositionType type);
+    CompositionType GetCompositionType() const;
 
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }

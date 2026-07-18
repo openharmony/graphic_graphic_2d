@@ -46,6 +46,7 @@
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
+#include "feature/video_3d/rs_tv_shutter_3d_manager.h"
 #include "hgm_core.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
@@ -804,6 +805,13 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSScreenRenderNodeDrawable::OnDraw failed to create canvas");
         return;
     }
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    if (!RSTvShutter3DManager::Instance().Prepare3DForDraw(*params, drSurface, curCanvas_)) {
+        SetDrawSkipType(DrawSkipType::SURFACE_NULL);
+        RS_LOGE("RSScreenRenderNodeDrawable::OnDraw failed to prepare 3D context");
+        return;
+    }
+#endif
 
 #ifdef USE_PRIMITIVE
     auto primListAdapter = std::make_shared<PrimListAdapter>();
@@ -925,6 +933,21 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable Flush");
     RsFrameReport::CheckBeginFlushPoint();
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    if (!RSTvShutter3DManager::Instance().Process3DForFlush(RSMainThread::Instance()->GetUIMode3D(), curCanvas_)) {
+        RS_LOGE("RSScreenRenderNodeDrawable::Flush failed to process 3D for flush");
+    }
+#endif
+
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    // set tv meta data to buffer
+    auto surface = renderFrame->GetSurface();
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    RSTvMetadataManager::Instance().SetVideoDimType(
+        static_cast<uint32_t>(RSTvShutter3DManager::Instance().GetVideoDimType()));
+#endif
+    RSTvMetadataManager::Instance().CopyTvMetadataToSurface(surface);
+#endif
 
 #ifdef USE_PRIMITIVE
     primListAdapter->PrimDrawSuspend();
@@ -1180,4 +1203,5 @@ bool RSScreenRenderNodeDrawable::CheckScreenFreezeSkip(RSScreenRenderParams& par
     }
     return false;
 }
+
 } // namespace OHOS::Rosen::DrawableV2

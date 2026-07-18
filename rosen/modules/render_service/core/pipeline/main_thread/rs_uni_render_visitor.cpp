@@ -577,6 +577,9 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
         IsAccessibilityConfigChanged() ||
         curScreenNode_->HasMirroredScreenChanged();
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    ret = ret || RSMainThread::Instance()->GetUIMode3D() == UIMode3D::MODE_SHUTTER_3D;
+#endif
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // if overlay display status changed, ......
@@ -818,6 +821,13 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     curScreenNode_->UpdatePartialRenderParams();
     curScreenNode_->SetFingerprint(hasFingerprint_);
     curScreenNode_->UpdateScreenRenderParams();
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    UIMode3D uiMode3D = RSMainThread::Instance()->GetUIMode3D();
+    if (uiMode3D == UIMode3D::MODE_SHUTTER_3D) {
+        curScreenNode_->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+        hwcVisitor_->UpdateHwcNodeEnableByShutter3DLayer();
+    }
+#endif
     UpdateColorSpaceAfterHwcCalc(node);
     RSHdrUtil::UpdatePixelFormatAfterHwcCalc(node);
 
@@ -2408,6 +2418,8 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     hwcVisitor_->transparentHwcCleanFilter_.clear();
     hwcVisitor_->transparentHwcDirtyFilter_.clear();
     hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
+    node.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_2D);
+    node.SetUIMode3D(UIMode3D::MODE_2D);
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
     node.SetHasUniRenderHdrSurface(false);
@@ -2843,8 +2855,14 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
             UpdateHwcNodeDirtyRegionForApp(appNode, hwcNodePtr);
         }
         hwcNodePtr->SetCalcRectInPrepare(false);
-        surfaceHandler->SetGlobalZOrder(hwcNodePtr->IsHardwareForcedDisabled() &&
-            !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) ? -1.f : globalZOrder_++);
+        bool IsInvalidZorder = hwcNodePtr->IsHardwareForcedDisabled() &&
+            !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+        if (RSMainThread::Instance()->GetUIMode3D() == UIMode3D::MODE_SHUTTER_3D && hwcNodePtr->IsFullScreen()) {
+            IsInvalidZorder = false;
+        }
+#endif
+        surfaceHandler->SetGlobalZOrder(IsInvalidZorder ? -1.f : globalZOrder_++);
         auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(hwcNodePtr->GetStagingRenderParams().get());
         if (stagingSurfaceParams->GetIsHwcEnabledBySolidLayer()) {
             surfaceHandler->SetGlobalZOrder(globalZOrder_++);

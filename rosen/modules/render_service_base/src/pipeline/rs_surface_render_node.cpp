@@ -1259,6 +1259,38 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
     }
 }
 
+void RSSurfaceRenderNode::SetCompositionType(CompositionType type)
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return;
+    }
+    surfaceParam->SetCompositionType(type);
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::ResetCompositionType()
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return;
+    }
+    if (surfaceParam->GetCompositionType() == CompositionType::COMPOSITION_DEFAULT) {
+        return;
+    }
+    surfaceParam->SetCompositionType(CompositionType::COMPOSITION_DEFAULT);
+    AddToPendingSyncList();
+}
+
+CompositionType RSSurfaceRenderNode::GetCompositionType() const
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return CompositionType::COMPOSITION_DEFAULT;
+    }
+    return surfaceParam->GetCompositionType();
+}
+
 void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
 {
     if (hdrType == HDRComponentType::IMAGE) {
@@ -2792,6 +2824,56 @@ void RSSurfaceRenderNode::OnApplyModifiers()
     if (!ShouldPaint()) {
         UpdateFilterCacheStatusWithVisible(false);
     }
+}
+
+bool RSSurfaceRenderNode::IsFullScreen()
+{
+    if (!IsOnTheTree()) {
+        return false;
+    }
+    if (GetCompositionType() != CompositionType::COMPOSITION_3D_SHUTTER) {
+        return false;
+    }
+    auto context = GetContext().lock();
+    if (!context) {
+        return false;
+    }
+    const uint32_t percentage = 90; /* 90: 90% of the rect */
+    const uint32_t fullRange = 100; /* 100: full range of the rect */
+    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(GetScreenNodeId());
+    if (screenNode) {
+        const auto& screenInfo = screenNode->GetScreenInfo();
+        const auto& nodeProperties = GetRenderProperties();
+        auto rect = nodeProperties.GetBoundsGeometry()->GetAbsRect();
+        RS_TRACE_NAME_FMT("IsFullScreen: surface width[%d], height[%d], screen width[%d], height[%d]",
+            rect.GetWidth(), rect.GetHeight(), screenInfo.width, screenInfo.height);
+        if (GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_SBS) {
+            return rect.GetWidth() >= screenInfo.width * percentage / fullRange;
+        }
+        if (GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_TAB) {
+            return rect.GetHeight() >= screenInfo.height * percentage / fullRange;
+        }
+    }
+    return false;
+}
+
+VideoDimType RSSurfaceRenderNode::GetVideoDimType() const
+{
+    if (!IsOnTheTree()) {
+        return VideoDimType::VIDEO_DIM_TYPE_2D;
+    }
+    if (!GetRSSurfaceHandler()) {
+        return VideoDimType::VIDEO_DIM_TYPE_2D;
+    }
+#ifndef ROSEN_CROSS_PLATFORM
+    const auto& buffer = GetRSSurfaceHandler()->GetBuffer();
+    if (!buffer) {
+        return VideoDimType::VIDEO_DIM_TYPE_2D;
+    }
+    return buffer->GetSurfaceBufferVideoDimensionType();
+#else
+    return VideoDimType::VIDEO_DIM_TYPE_2D;
+#endif
 }
 
 void RSSurfaceRenderNode::SetTotalMatrix(const Drawing::Matrix& totalMatrix)

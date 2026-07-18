@@ -2147,6 +2147,25 @@ ErrCode RSClientToServiceConnection::SetVmaCacheStatus(bool flag)
     return ERR_OK;
 }
 
+ErrCode RSClientToServiceConnection::SetUIMode3D(UIMode3D mode)
+{
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.size() == 0) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    ErrCode ret = ERR_OK;
+    for (auto conn : serviceToRenderConns) {
+        ErrCode retTmp = conn->SetUIMode3D(mode);
+        ret = (ret != ERR_OK) ? ret : retTmp;
+    }
+    return ret;
+}
+
 #ifdef TP_FEATURE_ENABLE
 ErrCode RSClientToServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config,
     TpFeatureConfigType tpFeatureConfigType)

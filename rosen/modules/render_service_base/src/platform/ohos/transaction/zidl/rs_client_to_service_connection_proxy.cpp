@@ -4854,6 +4854,30 @@ ErrCode RSClientToServiceConnectionProxy::SetVmaCacheStatus(bool flag)
     return ERR_OK;
 }
 
+ErrCode RSClientToServiceConnectionProxy::SetUIMode3D(UIMode3D mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetUIMode3D: WriteInterfaceToken GetDescriptor err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(mode))) {
+        ROSEN_LOGE("SetUIMode3D: WriteUint32 mode err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy: SetUIMode3D %{public}u: Send Request err.",
+            static_cast<uint32_t>(mode));
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
 #ifdef TP_FEATURE_ENABLE
 EErrCode RSClientToServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const char* config,
     TpFeatureConfigType tpFeatureConfigType)

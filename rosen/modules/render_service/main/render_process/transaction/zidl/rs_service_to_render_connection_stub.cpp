@@ -712,6 +712,22 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D): {
+            uint32_t modeVal = 0;
+            if (!data.ReadUint32(modeVal)) {
+                RS_LOGE("%{public}s Read mode failed!", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (modeVal > static_cast<uint32_t>(UIMode3D::MODE_TYPE_BUTT)) {
+                RS_LOGE("%{public}s invalid mode: %{public}u", __func__, modeVal);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            UIMode3D mode = static_cast<UIMode3D>(modeVal);
+            ret = SetUIMode3D(mode);
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {

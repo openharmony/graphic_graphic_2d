@@ -194,6 +194,16 @@ public:
         return isGlobalDarkColorMode_;
     }
 
+    void SetUIMode3D(UIMode3D mode)
+    {
+        uiMode_ = mode;
+    }
+
+    UIMode3D GetUIMode3D() const
+    {
+        return uiMode_;
+    }
+
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
     sptr<IApplicationAgent> UnRegisterApplicationAgent(uint32_t pid);
@@ -715,6 +725,7 @@ private:
     std::atomic<bool> screenPowerOnChanged_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::atomic<bool> isGlobalDarkColorMode_ = false;
+    UIMode3D uiMode_ = UIMode3D::MODE_2D;
     // for statistic of jank frames
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;

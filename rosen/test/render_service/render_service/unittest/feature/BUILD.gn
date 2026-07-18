@@ -86,6 +86,9 @@ group("unittest") {
   if (graphic_2d_feature_tv_metadata_enable) {
     deps += [ ":TvMetadataTest" ]
   }
+  if (graphic_2d_feature_tv_shutter_3d_enable) {
+    deps += [ ":RSTvShutter3DManagerTest" ]
+  }
   if (graphic_2d_feature_enable_chipset_vsync) {
     deps += [ ":RSChipsetVsyncTest" ]
   }
@@ -1790,6 +1793,26 @@ ohos_unittest("RSUniHwcEventManagerTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+}
+
+## Build RSTvShutter3DManagerTest
+ohos_unittest("RSTvShutter3DManagerTest") {
+  module_out_path = module_output_path
+  sources = []
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(graphic_2d_feature_tv_shutter_3d_enable) && graphic_2d_feature_tv_shutter_3d_enable) {
+    sources += [ "video_3d/rs_tv_shutter_3d_manager_test.cpp" ]
+    defines += [ "RS_ENABLE_TV_SHUTTER_3D" ]
   }
 }
 
