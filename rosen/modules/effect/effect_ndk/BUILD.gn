@@ -52,6 +52,7 @@ template("effect_ndk_source_set") {
     configs = [ ":export_config" ]
     sources = [
       "$effect_ndk_src_dir/effect_filter.cpp",
+      "$effect_ndk_src_dir/effect_filter_v2.cpp",
       "$effect_ndk_src_dir/filter/filter.cpp",
     ]
 
