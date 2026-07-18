@@ -409,7 +409,7 @@ bool RSProperties::CalculateDstPointsByWorldXYZ(SpatialEffectPerspectiveResults&
 void RSProperties::CalculateDstPointsByNdcXY(SpatialEffectPerspectiveResults& ret,
     const SpatialEffectMatrixParams& params)
 {
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < SpatialEffectPara::CORNER_NUMBER4; ++i) {
         ret.dstPoints[i] = {
             (1.0 + params.cornerPoints[i].x_) * 0.5 * params.depNodeRect.GetWidth(),
             (1.0 + params.cornerPoints[i].y_) * 0.5 * params.depNodeRect.GetHeight()
@@ -429,7 +429,7 @@ SpatialEffectPara::CornerPositions RSProperties::CalculateWorldXYZ(const std::ar
         intrinsics, extrinsics, uvzPoints);
     SpatialEffectPara::CornerPositions cornerPoints = {};
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < SpatialEffectPara::CORNER_NUMBER; ++i) {
         float ndcX = uvzPoints[i].x_;
         float ndcY = uvzPoints[i].y_;
         float z = uvzPoints[i].z_;
