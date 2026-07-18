@@ -319,10 +319,6 @@ EGLImageKHR SurfaceImage::CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuff
 {
     sptr<SurfaceBuffer> bufferImpl = buffer;
     NativeWindowBuffer* nBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&bufferImpl);
-    if (nBuffer == nullptr) {
-        BLOGE("CreateNativeWindowBufferFromSurfaceBuffer failed, uniqueId: %{public}" PRIu64 ".", uniqueId_);
-        return EGL_NO_IMAGE_KHR;
-    }
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED,
         EGL_TRUE,
@@ -333,6 +329,7 @@ EGLImageKHR SurfaceImage::CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuff
     if (img == EGL_NO_IMAGE_KHR) {
         EGLint error = eglGetError();
         BLOGE("eglCreateImageKHR failed, error %{public}d, uniqueId: %{public}" PRIu64 ".", error, uniqueId_);
+        eglTerminate(disp);
     }
     DestroyNativeWindowBuffer(nBuffer);
     return img;
