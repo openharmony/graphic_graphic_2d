@@ -4615,31 +4615,6 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType() const
     return NodeGroupType::NONE;
 }
 
-void RSRenderNode::SyncWhiteListInfoToParent()
-{
-    if (auto nodeParent = GetParent().lock()) {
-        auto& parentParams = nodeParent->GetStagingRenderParams();
-        parentParams->AddScreensWithSubTreeWhitelist(
-            stagingRenderParams_->GetScreensWithSubTreeWhitelist());
-    }
-}
-
-void RSRenderNode::AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (stagingRenderParams_ == nullptr) {
-        return;
-    }
-    stagingRenderParams_->AddScreensWithSubTreeWhitelist(screenIds);
-}
-
-void RSRenderNode::SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (stagingRenderParams_ == nullptr) {
-        return;
-    }
-    stagingRenderParams_->SetScreensWithSubTreeWhitelist(screenIds);
-}
-
 void RSRenderNode::MarkNonGeometryChanged()
 {
     geometryChangeNotPerceived_ = true;
@@ -5615,10 +5590,6 @@ void RSRenderNode::NodePostPrepare(
     UpdateAbsDrawRect();
     ResetChangeState();
     SetHasUnobscuredUEC();
-    // only container nodes outside the surfaceNode need to mark whitelist info
-    if (curSurfaceNode == nullptr) {
-        SyncWhiteListInfoToParent();
-    }
 }
 
 void RSRenderNode::InitRenderDrawableAndDrawableVec()

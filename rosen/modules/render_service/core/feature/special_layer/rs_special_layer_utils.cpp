@@ -295,11 +295,6 @@ void RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(RSSurfaceRenderNode& s
     if (!needCalcScreenSpecialLayer) {
         return;
     }
-    // update whitelist
-    auto whitelistScreenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
-        SpecialLayerType::IS_WHITE_LIST, {sourceNode.GetId(), sourceNode.GetLeashPersistentId()});
-    surfaceNode.UpdateVirtualScreenWhiteListInfo(whitelistScreenIds);
-      
     // update blacklist
     auto blacklistScreenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
         SpecialLayerType::IS_BLACK_LIST, {sourceNode.GetId(), sourceNode.GetLeashPersistentId()});
