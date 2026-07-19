@@ -1205,14 +1205,14 @@ HWTEST_F(RSInterfacesTest, SetUIMode3D_002, TestSize.Level1)
 
 /**
  * @tc.name: SetUIMode3D_003
- * @tc.desc: Test SetUIMode3D with MODE_GLASSES_FREE_3D
+ * @tc.desc: Test SetUIMode3D with MODE_GLASSESFREE_3D
  * @tc.type: FUNC
  */
 HWTEST_F(RSInterfacesTest, SetUIMode3D_003, TestSize.Level1)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    bool res = instance.SetUIMode3D(UIMode3D::MODE_GLASSES_FREE_3D);
+    bool res = instance.SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
     EXPECT_TRUE(res);
 }
 

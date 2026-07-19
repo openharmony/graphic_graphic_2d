@@ -154,13 +154,13 @@ HWTEST_F(RSTvShutter3DManagerTest, Prepare3DForDraw_003, TestSize.Level1)
 
 /**
  * @tc.name: Prepare3DForDraw_004
- * @tc.desc: Test Prepare3DForDraw with MODE_GLASSES_FREE_3D mode
+ * @tc.desc: Test Prepare3DForDraw with MODE_GLASSESFREE_3D mode
  * @tc.type: FUNC
  */
 HWTEST_F(RSTvShutter3DManagerTest, Prepare3DForDraw_004, TestSize.Level1)
 {
     RSScreenRenderParams params(0);
-    params.SetUIMode3D(UIMode3D::MODE_GLASSES_FREE_3D);
+    params.SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
     params.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
     std::shared_ptr<Drawing::Surface> drSurface = std::make_shared<Drawing::Surface>();
     std::shared_ptr<RSPaintFilterCanvas> curCanvas = nullptr;
@@ -197,14 +197,14 @@ HWTEST_F(RSTvShutter3DManagerTest, Process3DForFlush_002, TestSize.Level1)
 
 /**
  * @tc.name: Process3DForFlush_003
- * @tc.desc: Test Process3DForFlush with MODE_GLASSES_FREE_3D
+ * @tc.desc: Test Process3DForFlush with MODE_GLASSESFREE_3D
  * @tc.type: FUNC
  */
 HWTEST_F(RSTvShutter3DManagerTest, Process3DForFlush_003, TestSize.Level1)
 {
     std::shared_ptr<RSPaintFilterCanvas> curCanvas = nullptr;
 
-    bool result = RSTvShutter3DManager::Instance().Process3DForFlush(UIMode3D::MODE_GLASSES_FREE_3D, curCanvas);
+    bool result = RSTvShutter3DManager::Instance().Process3DForFlush(UIMode3D::MODE_GLASSESFREE_3D, curCanvas);
     EXPECT_TRUE(result);
 }
 
@@ -265,13 +265,13 @@ HWTEST_F(RSTvShutter3DManagerTest, UpdateSurfaceNodeCompositionType_003, TestSiz
 
 /**
  * @tc.name: UpdateSurfaceNodeCompositionType_004
- * @tc.desc: Test UpdateSurfaceNodeCompositionType with MODE_GLASSES_FREE_3D
+ * @tc.desc: Test UpdateSurfaceNodeCompositionType with MODE_GLASSESFREE_3D
  * @tc.type: FUNC
  */
 HWTEST_F(RSTvShutter3DManagerTest, UpdateSurfaceNodeCompositionType_004, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
-    RSTvShutter3DManager::Instance().UpdateSurfaceNodeCompositionType(surfaceNode, UIMode3D::MODE_GLASSES_FREE_3D);
+    RSTvShutter3DManager::Instance().UpdateSurfaceNodeCompositionType(surfaceNode, UIMode3D::MODE_GLASSESFREE_3D);
 }
 
 /**
