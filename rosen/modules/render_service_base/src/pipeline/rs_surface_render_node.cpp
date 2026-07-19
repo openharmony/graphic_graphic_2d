@@ -2826,7 +2826,7 @@ void RSSurfaceRenderNode::OnApplyModifiers()
     }
 }
 
-bool RSSurfaceRenderNode::IsFullScreen()
+bool RSSurfaceRenderNode::IsFullScreen() const
 {
     if (!IsOnTheTree()) {
         return false;

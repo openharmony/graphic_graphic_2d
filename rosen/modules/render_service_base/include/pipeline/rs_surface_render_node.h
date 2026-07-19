@@ -827,7 +827,7 @@ public:
         uifirstState_.forceUpdate = b;
     }
 
-    bool IsFullScreen();
+    bool IsFullScreen() const;
 
     VideoDimType GetVideoDimType() const;
 
