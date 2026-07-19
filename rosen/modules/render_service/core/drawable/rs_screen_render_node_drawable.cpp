@@ -46,7 +46,9 @@
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
+#ifdef RS_ENABLE_TV_SHUTTER_3D
 #include "feature/video_3d/rs_tv_shutter_3d_manager.h"
+#endif
 #include "hgm_core.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
