@@ -161,7 +161,7 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
 {
     auto surfaceHandler = surfaceHandler_.lock();
     if (surfaceHandler == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnCleanCache surfaceHandler is nullptr");
+        RS_LOGD("RSRenderServiceListener::OnCleanCache surfaceHandler is nullptr");
         return;
     }
 
