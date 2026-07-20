@@ -585,6 +585,16 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     if (ret) {
         RS_TRACE_NAME_FMT("%s ResetDirtyAsSurfaceSize", __func__);
         curScreenDirtyManager_->ResetDirtyAsSurfaceSize();
+        if (RSSystemProperties::IsSpecialFoldDisplay() && curScreenNode_->GetScreenId() == 0) {
+            const auto& screenProperty = curScreenNode_->GetScreenProperty();
+            const auto& activeRect = screenProperty.GetActiveRect();
+            int32_t expandedTop = std::max(0, activeRect.top_ - EDGE_GRADIENT_STRIP_WIDTH);
+            int32_t expandedBottom = std::min(static_cast<int32_t>(screenProperty.GetHeight()),
+                activeRect.GetBottom() + EDGE_GRADIENT_STRIP_WIDTH);
+            RectI expandedRect(activeRect.left_, expandedTop,
+                activeRect.width_, expandedBottom - expandedTop);
+            curScreenDirtyManager_->MergeDirtyRect(expandedRect);
+        }
         RS_LOGD("ResetDisplayDirtyRegion on");
     }
 }
