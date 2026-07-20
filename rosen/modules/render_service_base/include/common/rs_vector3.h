@@ -60,6 +60,9 @@ public:
     T& operator[](int index);
     bool operator==(const Vector3& other) const;
     bool IsNearEqual(const Vector3& other, T threshold = std::numeric_limits<T>::epsilon()) const;
+    bool IsInfinite() const;
+    bool IsNaN() const;
+    bool IsValid() const;
     T* GetData();
 
     static const Vector3 ZERO;
@@ -277,6 +280,24 @@ template<typename T>
 inline T* Vector3<T>::GetData()
 {
     return data_;
+}
+
+template<typename T>
+bool Vector3<T>::IsInfinite() const
+{
+    return std::isinf(data_[0]) || std::isinf(data_[1]) || std::isinf(data_[2]);
+}
+
+template<typename T>
+bool Vector3<T>::IsNaN() const
+{
+    return std::isnan(data_[0]) || std::isnan(data_[1]) || std::isnan(data_[2]);
+}
+
+template<typename T>
+bool Vector3<T>::IsValid() const
+{
+    return !IsInfinite() && !IsNaN();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -3231,8 +3231,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const DepthCameraPara& val
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, DepthCameraPara& val)
 {
     return Unmarshalling(parcel, val.position) && Unmarshalling(parcel, val.quaternion) &&
-        Unmarshalling(parcel, val.yFov) && Unmarshalling(parcel, val.zNear) && Unmarshalling(parcel, val.zFar) &&
-        Unmarshalling(parcel, val.offset);
+           Unmarshalling(parcel, val.yFov) && Unmarshalling(parcel, val.zNear) && Unmarshalling(parcel, val.zFar) &&
+           Unmarshalling(parcel, val.offset) && val.IsValid();
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const DepthLightPara& val)
@@ -3243,7 +3243,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const DepthLightPara& val)
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, DepthLightPara& val)
 {
     return Unmarshalling(parcel, val.direction) && Unmarshalling(parcel, val.color) &&
-        Unmarshalling(parcel, val.intensity);
+           Unmarshalling(parcel, val.intensity) && val.IsValid();
 }
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
