@@ -152,6 +152,8 @@ ohos_shared_library("libvsync") {
       "frame_aware_sched:frame_ui_intf",
       "init:libbegetutil",
       "hilog:libhilog",
+      "vulkan-headers:vulkan_headers",
+      "vulkan-loader:vulkan_loader",
     ]
   } else {
     sources += [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
