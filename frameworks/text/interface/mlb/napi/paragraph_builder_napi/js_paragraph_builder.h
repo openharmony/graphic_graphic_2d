@@ -16,10 +16,8 @@
 #ifndef OHOS_ROSEN_JS_PARAGRAPH_BUILDER_H
 #define OHOS_ROSEN_JS_PARAGRAPH_BUILDER_H
 
-#include <native_engine/native_engine.h>
-#include <native_engine/native_value.h>
-
 #include "font_collection.h"
+#include "napi/native_node_api.h"
 #include "text_style.h"
 #include "typography_create.h"
 

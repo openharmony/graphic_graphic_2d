@@ -17,11 +17,11 @@
 #define OHOS_ROSEN_JS_FONTDESCRIPTOR_H
 
 #include <memory>
-#include <native_engine/native_engine.h>
-#include <native_engine/native_value.h>
 #include <set>
+#include <unordered_set>
 
 #include "font_parser.h"
+#include "napi/native_node_api.h"
 
 namespace OHOS::Rosen {
 using FontDescSharedPtr = std::shared_ptr<TextEngine::FontParser::FontDescriptor>;
