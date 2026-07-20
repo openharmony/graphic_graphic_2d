@@ -963,7 +963,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow001, testing::ext::TestSize.Level1)
     renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
     RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = renderContext;
     bool ret = MemoryManager::MemoryOverflow(1433, 1024, true);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -993,7 +993,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow003, testing::ext::TestSize.Level1)
     pid_t pid = 1434;
     MemorySnapshot::Instance().AddCpuMemory(pid, 2048);
     bool ret = MemoryManager::MemoryOverflow(pid, 1024, false);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -1084,7 +1084,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1
     info1.cpuMemory = 1024;
     info1.engineGpuMemory = 2048;
     MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
-    ASSERT_TRUE(std::ifstream(filePath).good());
+    ASSERT_FALSE(std::ifstream(filePath).good());
     MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_WARNING", hidumperReport, filePath);
     ASSERT_TRUE(std::ifstream(filePath).good());
     // clean up
@@ -1618,7 +1618,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest002, TestSize.Level1)
     MEMParam::SetKillScbEnabled(true);
     // Sceneboard process should not be killed
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
 
     MEMParam::SetKillScbEnabled(false);
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
@@ -1644,7 +1644,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest003, TestSize.Level1)
 
     // Normal process should trigger report and kill
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }

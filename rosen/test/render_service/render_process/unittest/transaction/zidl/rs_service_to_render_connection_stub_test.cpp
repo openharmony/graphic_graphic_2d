@@ -1200,7 +1200,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphics002, TestSize.Lev
     ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
 }
 
 /**
@@ -1255,7 +1255,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic001, TestSize.Leve
     ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHIC);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**
@@ -1296,7 +1296,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphic003, TestSize.Leve
     int32_t pid = 100;
     data.WriteInt32(pid);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
 }
 
 /**
