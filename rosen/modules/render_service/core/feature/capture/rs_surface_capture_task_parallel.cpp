@@ -562,10 +562,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     }
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
-    RS_LOGI("RSSurfaceCaptureTaskParallel::%{public}s NodeId[%{public}" PRIu64 "],pixelmap[%{public}u, %{public}u],"
-        " scale[%{public}f, %{public}f], rect[%{public}f, %{public}f, %{public}f, %{public}f], dma[%{public}d],"
-        " rotation[%{public}d], correction[%{public}d], blackList[%{public}zu], isHDRCapture[%{public}d]", __func__,
-        node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+    RS_LOGI("%{public}s NodeId[%{public}" PRIu64 "], size[%{public}u, %{public}u],"
+        " scale[%{public}f, %{public}f], rect[%{public}f, %{public}f, %{public}f, %{public}f],"
+        " dma[%{public}d], rot[%{public}d], corr[%{public}d],"
+        " blackList[%{public}zu], isHDR[%{public}d]",
+        __func__, node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(), captureConfig_.useDma, screenRotation_,
         screenCorrection_, captureConfig_.blackList.size(), isHDRCapture);
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
