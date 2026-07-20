@@ -558,7 +558,8 @@ void RSProperties::ApplySpatialEffectMatrix()
     if (para.spatialEffectMode == SpatialEffectMode::NDC_XY_WORLD_Z_MODE) {
         auto xyzResult = CalculateWorldXYZ(cornerPoints, intrinsics, extrinsics);
         if (effect_->spatialEffectVariantPara_.has_value()) {
-            effect_->spatialEffectVariantPara_->xyzCornerPoints = xyzResult;
+            effect_->spatialEffectVariantPara_->xyzCornerPoints = {
+                xyzResult[0], xyzResult[1], xyzResult[3], xyzResult[2] };
         }
     }
 
