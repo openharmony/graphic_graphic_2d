@@ -80,13 +80,7 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(
             static_cast<int>(resourceChanged));
         return;
     }
-
-    sptr<SurfaceBuffer> buffer = node.GetBuffer();
-    if (buffer != nullptr) {
-        uniProcessor_->ProcessRcdSurface(node);
-        return;
-    }
-    RS_LOGD_IF(DEBUG_PIPELINE, "RSRcdRenderVisitor node buffer is null!");
+    uniProcessor_->ProcessRcdSurface(node);
 }
 
 bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
@@ -130,7 +124,9 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
     auto renderFrame = renderEngine_->RequestFrame(rsSurface,
         node.GetHardenBufferRequestConfig(), true, false);
     if (renderFrame == nullptr) {
-        rsSurface->GetSurface()->CleanCache(true);
+        if (rsSurface->GetSurface() != nullptr) {
+            rsSurface->GetSurface()->CleanCache(true);
+        }
         RS_LOGE("RSRcdRenderVisitor Request Frame Failed");
         return false;
     }
