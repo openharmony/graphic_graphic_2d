@@ -221,7 +221,7 @@ void RsFrameReport::ReportDelScreenId(const int screenId)
 }
 
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
-std::atomic<bool> isInit{false};
+std::atomic<bool> RsFrameReport::isInit{false};
 uint32_t RsFrameReport::initCount_ = 0;
 VkDevice RsFrameReport::device_ = VK_NULL_HANDLE;
 VkInstance RsFrameReport::instance_ = VK_NULL_HANDLE;

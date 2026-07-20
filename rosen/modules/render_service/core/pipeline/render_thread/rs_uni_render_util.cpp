@@ -1197,7 +1197,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
 
         int syncFenceFd = -1;
         NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, syncFenceFd);
-        acquireFence = sptr<SyncFence>(new SyncFence(fenceFd));
+        acquireFence = sptr<SyncFence>(new SyncFence(syncFenceFd));
 
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
 #ifdef HETERO_HDR_ENABLE
