@@ -118,6 +118,7 @@ enum class RSPropertyType : uint8_t {
     RS_NG_RENDER_SHAPE_BASE,
     HDR_DARKEN_BLENDER_PARAMS,
     PARTICLE_FIELDS,
+    SIMPLE_DRAW_CMD_LIST,
 };
 
 enum class RSPropertyUnit : uint8_t {

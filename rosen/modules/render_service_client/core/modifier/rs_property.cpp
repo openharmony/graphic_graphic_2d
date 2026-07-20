@@ -677,6 +677,13 @@ void RSProperty<Drawing::DrawCmdListPtr>::UpdateToRender(
 }
 
 template<>
+void RSProperty<SimpleDrawCmdListPtr>::UpdateToRender(
+    const SimpleDrawCmdListPtr& value, PropertyUpdateType type) const
+{
+    // SimpleDrawCmdListPtr is not sent via UpdateToRender, handled by DrawCmdList path
+}
+
+template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {

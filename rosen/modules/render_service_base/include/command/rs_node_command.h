@@ -141,7 +141,7 @@ public:
             }
         }
         if (auto property = node->GetProperty(id)) {
-            if (UNLIKELY(!CheckPropertyType(*property, RSRenderPropertyTypeTraits<T>::type, nodeId))) {
+            if (UNLIKELY(!CheckPropertyType(__func__, *property, RSRenderPropertyTypeTraits<T>::type, nodeId))) {
                 return;
             }
             std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);
@@ -207,9 +207,8 @@ public:
 
     static void ReSortChildrenByZIndex(RSContext& context, NodeId nodeId);
 private:
-    static bool CheckPropertyType(RSRenderPropertyBase& prop, RSPropertyType updateType, NodeId nodeId);
-    static void TypeErrorInfoPrint(NodeId nodeId, PropertyId propId, RSPropertyType updateType,
-        RSPropertyType propType);
+    static bool CheckPropertyType(
+        const char* funcName, RSRenderPropertyBase& prop, RSPropertyType updateType, NodeId nodeId);
 };
 
 ADD_COMMAND(RSUpdatePropertyBool,
