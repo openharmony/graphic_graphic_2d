@@ -325,6 +325,32 @@ HWTEST_F(RSVpeManagerTest, CheckAndGetSurface005, TestSize.Level1)
     EXPECT_NE(result, RSSurface);
 }
 
+/**
+ * @tc.name: CheckAndGetSurface006
+ * @tc.desc: Verify CheckAndGetSurface returns original surface when name is in whitelist
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVpeManagerTest, CheckAndGetSurface006, TestSize.Level1)
+{
+    RSVpeManager manager;
+    OHOS::sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
+    OHOS::sptr<IBufferProducer> producer = consumer->GetProducer();
+    OHOS::sptr<OHOS::Surface> RSSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(RSSurface, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    IsSupportReset = true;
+    g_isProductSupportReset = true;
+
+    const std::vector<std::string> whitelistNames = { "RosenWeb", "delegate_child", "delegate_child_video" };
+    for (const auto& name : whitelistNames) {
+        config.name = name;
+        sptr<Surface> result = manager.CheckAndGetSurface(RSSurface, config);
+        EXPECT_EQ(result, RSSurface);
+    }
+}
+
 HWTEST_F(RSVpeManagerTest, EnableVpe_NodeNotFound, TestSize.Level1)
 {
     RSVpeManager manager;
