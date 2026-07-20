@@ -1488,7 +1488,7 @@ void RSSurfaceNode::CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow
         AddCommand(command, isWindow);
     }
     auto uiContext = GetRSUIContext();
-    if(uiContext != nullptr) {
+    if (uiContext != nullptr) {
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId(),
         uiContext->GetConnectToRender());
         AddCommand(command, isWindow);
