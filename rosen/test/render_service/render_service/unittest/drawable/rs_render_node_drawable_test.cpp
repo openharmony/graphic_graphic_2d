@@ -540,7 +540,8 @@ HWTEST_F(RSRenderNodeDrawableTest, NeedInitCachedSurfaceEmptyUnionRectBranchTest
     ASSERT_NE(drawable, nullptr);
 
     drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
-    auto surface = std::make_shared<Drawing::Surface>();
+    auto surface = Drawing::Surface::MakeRasterN32Premul(32, 16);
+    ASSERT_NE(surface, nullptr);
     drawable->SetRenderGroupCachedSurface(surface);
 
     const bool needInit = drawable->NeedInitCachedSurface(Vector2f(32.f, 16.f));
