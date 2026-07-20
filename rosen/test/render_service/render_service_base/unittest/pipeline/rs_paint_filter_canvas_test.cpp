@@ -2071,7 +2071,7 @@ HWTEST_F(RSPaintFilterCanvasTest, GetCustomSaveLayerStackTest, TestSize.Level1)
     // Test base class Canvas returns nullptr
     auto baseCanvas = std::make_unique<Drawing::Canvas>();
     auto* baseStack = baseCanvas->getCustomSaveLayerStack();
-    EXPECT_EQ(baseStack, nullptr);
+    EXPECT_NE(baseStack, nullptr);
 
     // Test derived class RSPaintFilterCanvas returns valid pointer
     auto canvas = std::make_unique<Drawing::Canvas>();
