@@ -2079,15 +2079,6 @@ bool WebGL2RenderingContextImpl::CheckBufferBindTarget(GLenum target)
 bool WebGL2RenderingContextImpl::CheckTransformFeedbackBuffer(GLenum target, WebGLBuffer* buffer)
 {
     if (target == GL_TRANSFORM_FEEDBACK_BUFFER) {
-        for (size_t i = 0; i < sizeof(boundBufferIds_) / sizeof(boundBufferIds_[0]); i++) {
-            if (i == BoundBufferType::TRANSFORM_FEEDBACK_BUFFER) {
-                continue;
-            }
-            if (boundBufferIds_[i] == buffer->GetBufferId()) {
-                LOGD("boundBufferIds_ %{public}u %{public}zu", boundBufferIds_[i], i);
-                return false;
-            }
-        }
         LOGD("boundIndexedUniformBuffers_ %{public}zu", boundIndexedUniformBuffers_.size());
         for (size_t i = 0; i < boundIndexedUniformBuffers_.size(); ++i) {
             if (boundIndexedUniformBuffers_[i] == buffer->GetBufferId()) {
