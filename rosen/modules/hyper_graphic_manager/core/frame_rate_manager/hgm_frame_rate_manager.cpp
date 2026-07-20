@@ -808,8 +808,8 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
 
 bool HgmFrameRateManager::HandleSetHgmExclusiveScreen(pid_t pid, ScreenId screenId)
 {
-    HGM_LOGD("pid:%{public}d screenId:" PRIu64, pid, screenId);
-    RS_TRACE_NAME_FMT("%s: pid:%{public}d screenId:" PRIu64, __func__, pid, screenId);
+    HGM_LOGD("pid: %{public}d screenId: " PRIu64, pid, screenId);
+    RS_TRACE_NAME_FMT("%s: pid: %d screenId: " PRIu64, __func__, pid, screenId);
     if (screenId != INVALID_SCREEN_ID) {
         if (auto screen = HgmCore::Instance().GetScreen(screenId); !screen || !screen->GetSelfOwnedScreenFlag()) {
             return false;
@@ -1215,6 +1215,11 @@ void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
 void HgmFrameRateManager::HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo)
 {
     HgmCore::Instance().SetMultiSelfOwnedScreenEnable(eventInfo.eventStatus);
+    if (eventInfo.eventStatus && eventInfo.maxRefreshRate <= OLED_NULL_HZ) {
+        RS_TRACE_NAME_FMT("%s: eventStatus: %d maxRefreshRate: %d",
+            __func__, eventInfo.eventStatus, eventInfo.maxRefreshRate);
+        return;
+    }
     DeliverRefreshRateVote(
         {"VOTER_MULTISELFOWNEDSCREEN", eventInfo.minRefreshRate, eventInfo.maxRefreshRate, pid},
         eventInfo.eventStatus);
