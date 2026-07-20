@@ -438,12 +438,12 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& b
 
 SurfaceError SurfaceImage::SetOnBufferAvailableListener(void *context, OnBufferAvailableListener listener)
 {
-    std::lock_guard<std::mutex> lockGuard(opMutex_);
     if (listener == nullptr) {
         BLOGE("listener is nullptr, uniqueId: %{public}" PRIu64 ".", uniqueId_);
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
+    std::lock_guard<std::mutex> lockGuard(listenerMutex_);
     listener_ = listener;
     context_ = context;
     return SURFACE_ERROR_OK;
@@ -451,7 +451,7 @@ SurfaceError SurfaceImage::SetOnBufferAvailableListener(void *context, OnBufferA
 
 SurfaceError SurfaceImage::UnsetOnBufferAvailableListener()
 {
-    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    std::lock_guard<std::mutex> lockGuard(listenerMutex_);
     listener_ = nullptr;
     context_ = nullptr;
     return SURFACE_ERROR_OK;
@@ -575,8 +575,7 @@ SurfaceError SurfaceImage::OnBufferAvailable()
     OnBufferAvailableListener listener = nullptr;
     EGLContext context = nullptr;
     {
-        std::lock_guard<std::mutex> lockGuard(opMutex_);
-        // check here maybe a messagequeue, flag instead now
+        std::lock_guard<std::mutex> lockGuard(listenerMutex_);
         OnUpdateBufferAvailableState(true);
         if (listener_ == nullptr) {
             BLOGE("SurfaceImage::OnBufferAvailable listener is nullptr");
