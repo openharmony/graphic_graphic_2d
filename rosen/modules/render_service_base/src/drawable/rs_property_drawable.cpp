@@ -18,6 +18,7 @@
 #include "rs_trace.h"
 
 #include "common/rs_optional_trace.h"
+#include "drawable/rs_clip_to_bounds_restore_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_render.h"
@@ -139,24 +140,12 @@ RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    stagingGeContainer_ = nullptr;
     if (properties.GetClipBounds() != nullptr) {
         stagingType_ = RSClipToBoundsType::CLIP_PATH;
         stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
     } else if (auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties)) {
         stagingType_ = RSClipToBoundsType::CLIP_SDF;
-        std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
-        std::shared_ptr<Drawing::GEShaderShape> geShape =
-            geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
-        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
-            Drawing::GE_SHADER_SDF_CLIP, Drawing::DrawingPaintType::BRUSH);
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
-        stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingGeContainer_->AddToChainedFilter(geFilter);
-        auto bounds = properties.GetBoundsRect();
-        auto shapeRect = sdfShape->GetTransformDrawRect();
-        stagingSdfDrawRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(
-            (bounds == node.CalcBoundingBox() && !shapeRect.IsEmpty()) ? shapeRect : node.CalcBoundingBox());
+        stagingSdfDrawRect_ = RSClipToBoundsRestoreDrawable::CalcSdfDrawRect(node, *sdfShape);
     } else if (properties.GetClipToRRect()) {
         stagingType_ = RSClipToBoundsType::CLIP_RRECT;
         stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect());
@@ -189,7 +178,6 @@ void RSClipToBoundsDrawable::OnSync()
     type_ = stagingType_;
     nodeId_ = stagingNodeId_;
     isClipRRectOptimization_ = stagingIsClipRRectOptimization_;
-    geContainer_ = std::move(stagingGeContainer_);
     needSync_ = false;
     sdfDrawRect_ = stagingSdfDrawRect_;
 }
@@ -229,24 +217,13 @@ void RSClipToBoundsDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect
             canvas->ClipRect(boundsRect_, Drawing::ClipOp::INTERSECT, false);
             break;
         }
-        case RSClipToBoundsType::CLIP_SDF: { // add lambda by sdfClip
-            bool invalid = !geContainer_ || rect == nullptr;
-            if (invalid) {
-                ROSEN_LOGE("Clip SDF failed, geContainer or rect is nullptr");
-                return;
-            }
-            geContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
-            Drawing::Rect rectRelative { sdfDrawRect_ };
-            rectRelative.MakeOutset(1, 1);
-            RSPaintFilterCanvas::DrawFunc customFunc = [geContainer = geContainer_,
-                rect = rectRelative](Drawing::Canvas& canvas) {
-                auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-                geRender->DrawShaderEffect(canvas, *geContainer, rect);
-            };
+        case RSClipToBoundsType::CLIP_SDF: {
+            // Offscreen sized to sdfDrawRect; translate to align sdfDrawRect origin with surface.
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            Drawing::SaveLayerOps slo(&sdfDrawRect_, nullptr);
-            paintFilterCanvas->SaveLayer(slo);
-            paintFilterCanvas->CustomSaveLayer(customFunc);
+            RectF sdfRectF(sdfDrawRect_.GetLeft(), sdfDrawRect_.GetTop(),
+                sdfDrawRect_.GetWidth(), sdfDrawRect_.GetHeight());
+            RSPropertyDrawableUtils::BeginOffscreen(*paintFilterCanvas, sdfRectF);
+            paintFilterCanvas->Translate(-sdfDrawRect_.GetLeft(), -sdfDrawRect_.GetTop());
             break;
         }
         default:

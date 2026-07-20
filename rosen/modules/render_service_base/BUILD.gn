@@ -461,6 +461,7 @@ ohos_source_set("render_service_base_src") {
     sources += [
       #drawable
       "src/drawable/rs_color_picker_drawable.cpp",
+      "src/drawable/rs_clip_to_bounds_restore_drawable.cpp",
       "src/drawable/rs_coverage_ng_shader_drawable.cpp",
       "src/drawable/rs_drawable.cpp",
       "src/drawable/rs_material_shader_drawable.cpp",

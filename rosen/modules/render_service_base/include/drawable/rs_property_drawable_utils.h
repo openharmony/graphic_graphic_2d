@@ -73,9 +73,33 @@ public:
     static std::shared_ptr<Drawing::Image> GpuScaleImage(std::shared_ptr<Drawing::GPUContext> context,
         std::shared_ptr<Drawing::Image> image);
     static void GetDarkColor(RSColor& color);
-    static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
+    /**
+     * @brief Start offscreen rendering by creating a MakeSurface, swapping the canvas,
+     * and pushing the offscreen stack. Pair with EndOffscreen to snapshot and restore
+     * the canvas, then composite the result back (see DrawForegroundFilter/DrawSdfClip).
+     */
+    static void BeginOffscreen(RSPaintFilterCanvas& canvas, const RectF& bounds);
+    /**
+     * @brief End offscreen started by BeginOffscreen: snapshot the offscreen content and
+     * swap the canvas back to the main screen surface. Returns the snapshot (or nullptr
+     * if the surface was null).
+     */
+    static std::shared_ptr<Drawing::Image> EndOffscreen(RSPaintFilterCanvas& canvas);
+    /**
+     * @brief Restore the offscreen started by BeginOffscreen for foreground filter:
+     * snapshot the offscreen content, restore the canvas, apply the filter, and
+     * composite the filtered result back.
+     */
     static void DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect = std::nullopt);
+    /**
+     * @brief Restore the offscreen started by BeginOffscreen for SDF clip: snapshot
+     * the offscreen content, restore the canvas, and composite through an SDF-clipped
+     * SaveLayer. frameRect is the drawable's OnDraw rect.
+     */
+    static void DrawSdfClip(RSPaintFilterCanvas& canvas,
+        const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
+        const Drawing::Rect& sdfDrawRect, const Drawing::Rect* frameRect);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const std::unique_ptr<RSFilterCacheManager>& cacheManager, NodeId id, const bool isForegroundFilter,
         const std::optional<Drawing::RectI>& snapshotRect = std::nullopt,
