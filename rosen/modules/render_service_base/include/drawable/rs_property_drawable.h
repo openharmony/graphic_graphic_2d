@@ -128,31 +128,6 @@ public:
 private:
 };
 
-// Restore drawable for CLIP_SDF: snapshots the offscreen content, restores the canvas
-// (undo BeginOffscreen), composites the snapshot, then RestoreToCount to balance
-// BG_SAVE_BOUNDS's Save.
-class RSClipToBoundsRestoreDrawable : public RSDrawable {
-public:
-    explicit RSClipToBoundsRestoreDrawable(std::shared_ptr<uint32_t> content) : content_(std::move(content)) {}
-    ~RSClipToBoundsRestoreDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node, std::shared_ptr<uint32_t> content);
-    bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-
-private:
-    std::shared_ptr<uint32_t> content_; // shared save count for RestoreToCount (balances BG_SAVE_BOUNDS)
-
-    bool needSync_ = false;
-    // OnDraw runs DrawSdfClip when sdfShape_ is non-null (CLIP_SDF); otherwise RestoreToCount only.
-    // OnUpdate always returns true so the drawable is never erased in standard mode.
-    std::shared_ptr<RSNGRenderShapeBase> stagingSdfShape_ = nullptr;
-    std::shared_ptr<RSNGRenderShapeBase> sdfShape_ = nullptr;
-    Drawing::Rect stagingSdfDrawRect_;
-    Drawing::Rect sdfDrawRect_;
-};
-
 class RSFilterDrawable : public RSDrawable {
 public:
     RSFilterDrawable();

@@ -18,6 +18,7 @@
 #include "rs_trace.h"
 
 #include "common/rs_optional_trace.h"
+#include "drawable/rs_clip_to_bounds_restore_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_render.h"
@@ -124,22 +125,6 @@ bool RSFrameOffsetDrawable::OnUpdate(const RSRenderNode& node)
 }
 
 // ============================================================================
-// Shared by RSClipToBoundsDrawable::OnUpdate and RSClipToBoundsRestoreDrawable::OnUpdate:
-// picks the SDF shape's transform rect when it matches the node bounding box, else falls back
-// to the bounding box, then expands 1px to avoid edge precision loss.
-static Drawing::Rect CalcSdfDrawRect(const RSRenderNode& node, const RSNGRenderShapeBase& sdfShape)
-{
-    const RSProperties& properties = node.GetRenderProperties();
-    auto bounds = properties.GetBoundsRect();
-    auto boundingBox = node.CalcBoundingBox();
-    const auto& shapeRect = sdfShape.GetTransformDrawRect();
-    auto rect = RSPropertyDrawableUtils::Rect2DrawingRect(
-        (bounds == boundingBox && !shapeRect.IsEmpty()) ? shapeRect : boundingBox);
-    rect.MakeOutset(1.0f, 1.0f); // expand 1px to avoid edge precision loss
-    return rect;
-}
-
-// ============================================================================
 RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 {
     auto ret = std::make_shared<RSClipToBoundsDrawable>();
@@ -160,7 +145,7 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
     } else if (auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties)) {
         stagingType_ = RSClipToBoundsType::CLIP_SDF;
-        stagingSdfDrawRect_ = CalcSdfDrawRect(node, *sdfShape);
+        stagingSdfDrawRect_ = RSClipToBoundsRestoreDrawable::CalcSdfDrawRect(node, *sdfShape);
     } else if (properties.GetClipToRRect()) {
         stagingType_ = RSClipToBoundsType::CLIP_RRECT;
         stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect());
@@ -265,75 +250,6 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
     updater.GetRecordingCanvas()->ClipRect(
         RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetFrameRect()), Drawing::ClipOp::INTERSECT, false);
     return true;
-}
-
-// ============================================================================
-// RSClipToBoundsRestoreDrawable
-RSDrawable::Ptr RSClipToBoundsRestoreDrawable::OnGenerate(const RSRenderNode& node, std::shared_ptr<uint32_t> content)
-{
-    auto ret = std::make_shared<RSClipToBoundsRestoreDrawable>(content);
-    ret->OnUpdate(node);
-    ret->OnSync();
-    return std::move(ret);
-}
-
-bool RSClipToBoundsRestoreDrawable::OnUpdate(const RSRenderNode& node)
-{
-    const RSProperties& properties = node.GetRenderProperties();
-    stagingSdfShape_ = nullptr;
-    // Mirror the first two branches of RSClipToBoundsDrawable::OnUpdate: SDF mode only when there
-    // is no clipBounds (CLIP_PATH takes precedence) and a resolved SDF shape exists; otherwise
-    // standard restore. Always return true so the drawable is never erased (it must balance
-    // BG_SAVE_BOUNDS's Save in both modes). sdfShape add/remove after creation is reconciled here.
-    if (properties.GetClipBounds() != nullptr) {
-        needSync_ = true;
-        return true;
-    }
-    stagingSdfShape_ = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
-    if (stagingSdfShape_) {
-        stagingSdfDrawRect_ = CalcSdfDrawRect(node, *stagingSdfShape_);
-    }
-    needSync_ = true;
-    return true;
-}
-
-void RSClipToBoundsRestoreDrawable::OnSync()
-{
-    if (!needSync_) {
-        return;
-    }
-    sdfShape_ = stagingSdfShape_;
-    sdfDrawRect_ = stagingSdfDrawRect_;
-    needSync_ = false;
-}
-
-void RSClipToBoundsRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-#ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
-        RSTagTracker::SOURCETYPE::SOURCE_OTHER);
-#endif
-    if (!paintFilterCanvas) {
-        ROSEN_LOGE("RSClipToBoundsRestoreDrawable::OnDraw paintFilterCanvas is nullptr");
-        return;
-    }
-    if (sdfShape_) {
-        auto geVisualEffect = sdfShape_->GenerateGEVisualEffect();
-        auto geShape = geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
-        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
-            Drawing::GE_SHADER_SDF_CLIP, Drawing::DrawingPaintType::BRUSH);
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
-        auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-        geContainer->AddToChainedFilter(geFilter);
-        // Pass the OnDraw rect (node frame, includes border) as the SDF shader geometry so the
-        // border is not clipped (matches the original CLIP_SDF which used the OnDraw rect).
-        RSPropertyDrawableUtils::DrawSdfClip(*paintFilterCanvas, geContainer, sdfDrawRect_, rect);
-    }
-    if (content_) {
-        // Restore canvas state to balance BG_SAVE_BOUNDS's Save (both SDF and standard modes)
-        paintFilterCanvas->RestoreToCount(*content_);
-    }
 }
 
 RSFilterDrawable::RSFilterDrawable()

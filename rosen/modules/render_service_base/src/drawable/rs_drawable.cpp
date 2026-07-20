@@ -18,6 +18,7 @@
 #include <limits>
 
 #include "common/rs_common_tools.h"
+#include "drawable/rs_clip_to_bounds_restore_drawable.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_coverage_ng_shader_drawable.h"
 #include "drawable/rs_material_shader_drawable.h"
