@@ -2358,6 +2358,7 @@ private:
     void UpdateAllRSCmdModifiersToRender() {
         // Sort modifiers by index (creation/update order) to ensure
         // commands are sent in the correct order when pushing to foreground
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         std::vector<std::shared_ptr<RSCmdModifier>> sortedModifiers;
         for (auto& [type, modifier] : rsCmdModifiers_) {
             if (modifier) {
