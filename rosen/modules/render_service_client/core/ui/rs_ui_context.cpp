@@ -147,8 +147,7 @@ void RSUIContext::SetRequestVsyncCallback(const std::function<void()>& callback)
 void RSUIContext::RequestVsyncCallback()
 {
     if (requestVsyncCallback_ == nullptr) {
-        ROSEN_LOGE("RSUIContext::RequestVsyncCallback failed requestVsyncCallback_ is null, token=%{public}" PRIu64 "",
-            token_);
+        RS_LOGE_LIMIT(__func__, __LINE__, "RequestVsyncCallback is null, token=%{public}" PRIu64, token_);
         return;
     }
     requestVsyncCallback_();
