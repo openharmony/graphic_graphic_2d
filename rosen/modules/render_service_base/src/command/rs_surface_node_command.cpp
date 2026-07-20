@@ -357,7 +357,11 @@ void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId no
     const std::string& name, bool isEnabled)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetWatermarkEnabled(name, isEnabled);
+        if (isEnabled) {
+            node->SetWatermarkEnabled(name, isEnabled);
+        } else {
+            node->ClearWatermarkEnabled(name, SurfaceWatermarkType::SYSTEM_WATER_MARK);
+        }
     }
 }
 
@@ -520,14 +524,6 @@ void SurfaceNodeCommandHelper::SetStaticCachedToRender(RSContext& context, NodeI
 {
     if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetStaticCached(isStaticCached);
-    }
-}
-
-void SurfaceNodeCommandHelper::RegisterBufferAvailableListener(
-    RSContext& context, NodeId nodeId, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread)
-{
-    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->RegisterBufferAvailableListener(callback, isFromRenderThread);
     }
 }
 

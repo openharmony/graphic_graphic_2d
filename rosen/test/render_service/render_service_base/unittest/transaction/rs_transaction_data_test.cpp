@@ -684,5 +684,179 @@ HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdExcludeTreeCommands008, TestS
     EXPECT_EQ(curTransactionData->GetCommandCount(), 2);
 }
 
+/**
+ * @tc.name: GetAllNodeIds001
+ * @tc.desc: Test GetAllNodeIds for single-NodeId command
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, GetAllNodeIds001, TestSize.Level1)
+{
+    NodeId nodeId = (static_cast<NodeId>(1) << 32) | 100;
+    RSBaseNodeDestroy command(nodeId);
+    auto nodeIds = command.GetAllNodeIds();
+    EXPECT_EQ(nodeIds.size(), 1u);
+    EXPECT_EQ(nodeIds[0], nodeId);
+}
+
+/**
+ * @tc.name: GetAllNodeIds002
+ * @tc.desc: Test GetAllNodeIds for two-NodeId command
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, GetAllNodeIds002, TestSize.Level1)
+{
+    NodeId parentId = (static_cast<NodeId>(1) << 32) | 100;
+    NodeId childId = (static_cast<NodeId>(2) << 32) | 200;
+    RSBaseNodeAddChild command(parentId, childId, 0);
+    auto nodeIds = command.GetAllNodeIds();
+    EXPECT_EQ(nodeIds.size(), 2u);
+    EXPECT_EQ(nodeIds[0], parentId);
+    EXPECT_EQ(nodeIds[1], childId);
+}
+
+/**
+ * @tc.name: GetAllNodeIds003
+ * @tc.desc: Test GetAllNodeIds for three-NodeId command
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, GetAllNodeIds003, TestSize.Level1)
+{
+    NodeId nodeId1 = (static_cast<NodeId>(1) << 32) | 100;
+    NodeId nodeId2 = (static_cast<NodeId>(2) << 32) | 200;
+    NodeId nodeId3 = (static_cast<NodeId>(3) << 32) | 300;
+    RSBaseNodeRemoveCrossParentChild command(nodeId1, nodeId2, nodeId3);
+    auto nodeIds = command.GetAllNodeIds();
+    EXPECT_EQ(nodeIds.size(), 3u);
+    EXPECT_EQ(nodeIds[0], nodeId1);
+    EXPECT_EQ(nodeIds[1], nodeId2);
+    EXPECT_EQ(nodeIds[2], nodeId3);
+}
+
+/**
+ * @tc.name: IsCallingPidValid002
+ * @tc.desc: Single-NodeId command with matching PID should be valid
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid002, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 1;
+    NodeId nodeId = (static_cast<NodeId>(callingPid) << 32) | 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    rsTransactionData.AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_TRUE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: IsCallingPidValid003
+ * @tc.desc: Single-NodeId command with non-matching PID should be invalid
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid003, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 1;
+    NodeId nodeId = (static_cast<NodeId>(2) << 32) | 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    rsTransactionData.AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_FALSE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: IsCallingPidValid004
+ * @tc.desc: Multi-NodeId command where all NodeIds match callingPid should be valid
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid004, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 1;
+    NodeId parentId = (static_cast<NodeId>(callingPid) << 32) | 100;
+    NodeId childId = (static_cast<NodeId>(callingPid) << 32) | 200;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
+    rsTransactionData.AddCommand(command, parentId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_TRUE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: IsCallingPidValid005
+ * @tc.desc: Multi-NodeId command where first matches but second doesn't should be invalid
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid005, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 1;
+    NodeId parentId = (static_cast<NodeId>(callingPid) << 32) | 100;
+    NodeId childId = (static_cast<NodeId>(2) << 32) | 200;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
+    rsTransactionData.AddCommand(command, parentId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_FALSE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: IsCallingPidValid006
+ * @tc.desc: Multi-NodeId command where no NodeId matches should be invalid
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid006, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 1;
+    NodeId parentId = (static_cast<NodeId>(3) << 32) | 100;
+    NodeId childId = (static_cast<NodeId>(2) << 32) | 200;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
+    rsTransactionData.AddCommand(command, parentId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_FALSE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: IsCallingPidValid007
+ * @tc.desc: Multi-NodeId command with non-matching NodeId that is UIExtension should be valid
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid007, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 1;
+    NodeId parentId = (static_cast<NodeId>(callingPid) << 32) | 100;
+    NodeId childId = (static_cast<NodeId>(2) << 32) | 200;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
+    rsTransactionData.AddCommand(command, parentId, FollowType::FOLLOW_TO_PARENT);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(childId);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
+    EXPECT_TRUE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: IsCallingPidValid008
+ * @tc.desc: Nullptr command in payload should be skipped
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid008, TestSize.Level1)
+{
+    RSContext context;
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    rsTransactionData->payload_.emplace_back(1, FollowType::FOLLOW_TO_PARENT, nullptr);
+    EXPECT_TRUE(rsTransactionData->IsCallingPidValid(1, context.GetNodeMap()));
+}
+
 } // namespace Rosen
 } // namespace OHOS

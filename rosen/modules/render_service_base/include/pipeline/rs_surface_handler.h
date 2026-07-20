@@ -438,22 +438,12 @@ public:
 
     void SetSourceType(uint32_t sourceType)
     {
-        if (sourceType_.load(std::memory_order_acquire) != sourceType) {
-            sourceTypeChanged_ = true;
-        } else {
-            sourceTypeChanged_ = false;
-        }
         sourceType_.store(sourceType, std::memory_order_release);
     }
 
     uint32_t GetSourceType() const
     {
         return sourceType_.load(std::memory_order_acquire);
-    }
-
-    bool GetSourceTypeChanged() const
-    {
-        return sourceTypeChanged_;
     }
 
     void SetLastBufferId(const uint64_t bufferId) // must call thisFunc in rsMainThread
@@ -589,7 +579,6 @@ private:
     bool bufferDropped_ = false;
     bool bufferTransformTypeChanged_ = false;
     std::atomic<uint32_t> sourceType_ = 0;
-    bool sourceTypeChanged_ = false;
     std::atomic_bool tunnelLayerInfoReceived_ { false };
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 

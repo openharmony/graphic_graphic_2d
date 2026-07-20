@@ -48,6 +48,8 @@ ohos_unittest("RenderContextTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 

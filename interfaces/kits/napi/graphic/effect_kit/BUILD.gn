@@ -97,6 +97,10 @@ if (is_arkui_x) {
     }
 
     cflags_cc = [ "-std=c++17" ]
+    external_deps = [
+      "egl:libEGL",
+      "opengles:libGLES",
+    ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -130,6 +134,8 @@ if (is_arkui_x) {
       "napi:ace_napi",
       "node:node_header_notice",
       "graphic_surface:surface",
+      "egl:libEGL",
+      "opengles:libGLES",
     ]
     
     if (defined(arkgraphic2d_api_metrics) && arkgraphic2d_api_metrics) {

@@ -164,6 +164,9 @@ public:
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const override
     {
+        if (returnNullConnection_) {
+            return nullptr;
+        }
         return serviceToRenderConnection_;
     }
 
@@ -176,6 +179,13 @@ public:
     {
         return connectToRenderConnection_;
     }
+
+    void SetServiceToRenderConnNull(bool isNull)
+    {
+        returnNullConnection_ = isNull;
+    }
+
+    bool returnNullConnection_ = false;
     bool IsValidRenderProcessPid(pid_t pid) const override { return false; }
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
@@ -4689,6 +4699,142 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetConnectionTest, TestSize.Level1
             renderProcessManagerAgent_, nullptr, nullptr,
             renderService_.vsyncManager_->GetVsyncManagerAgent());
     EXPECT_EQ(connection != nullptr, true);
+}
+
+/**
+ * @tc.name: SetRogScreenResolutionTest004
+ * @tc.desc: Test SetRogScreenResolution when GetServiceToRenderConn returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest004, TestSize.Level1)
+{
+    auto mockManager = sptr<RSSingleRenderProcessManagerMock>::MakeSptr(renderService_);
+    ASSERT_NE(mockManager, nullptr);
+    mockManager->SetServiceToRenderConnNull(true);
+    auto mockProcessAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(mockManager);
+    ASSERT_NE(mockProcessAgent, nullptr);
+ 
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        mockProcessAgent, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+ 
+    ScreenId screenId = 0;
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    // GetServiceToRenderConn returns nullptr
+    EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+}
+ 
+/**
+ * @tc.name: SetRogScreenResolutionTest005
+ * @tc.desc: Test SetRogScreenResolution when serviceToRenderConn returns error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest005, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+ 
+    ScreenId screenId = 0;
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    // screenManagerAgent returns SUCCESS
+    EXPECT_EQ(ret, ERR_OK);
+}
+ 
+/**
+ * @tc.name: SetRogScreenResolutionTest006
+ * @tc.desc: Test SetRogScreenResolution when screenManagerAgent returns error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest006, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+ 
+    ScreenId screenId = INVALID_SCREEN_ID;
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    // screenManagerAgent returns SCREEN_NOT_FOUND for invalid screenId
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+ 
+/**
+ * @tc.name: SetRogScreenResolutionTest007
+ * @tc.desc: Test SetRogScreenResolution when GetServiceToRenderConn returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest007, TestSize.Level1)
+{
+    auto mockManager = sptr<RSSingleRenderProcessManagerMock>::MakeSptr(renderService_);
+    ASSERT_NE(mockManager, nullptr);
+    mockManager->SetServiceToRenderConnNull(true);
+    auto mockProcessAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(mockManager);
+    ASSERT_NE(mockProcessAgent, nullptr);
+ 
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        mockProcessAgent, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+ 
+    ScreenId screenId = 0;
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    // GetServiceToRenderConn returns nullptr
+    EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+}
+ 
+/**
+ * @tc.name: SetRogScreenResolutionTest008
+ * @tc.desc: Test SetRogScreenResolution with valid parameters
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest008, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+ 
+    ScreenId screenId = 0;
+    uint32_t width = 2560;
+    uint32_t height = 1440;
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    EXPECT_EQ(ret, ERR_OK);
+}
+ 
+/**
+ * @tc.name: SetRogScreenResolutionTest009
+ * @tc.desc: Test SetRogScreenResolution with zero dimensions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest009, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+ 
+    ScreenId screenId = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    int32_t ret = connection->SetRogScreenResolution(screenId, width, height);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /**

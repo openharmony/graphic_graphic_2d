@@ -356,14 +356,8 @@ public:
     void SetHardwareEnableHint(bool enable);
 
     void SetSurfaceNodeType(RSSurfaceNodeType nodeType);
-    RSSurfaceNodeType GetSurfaceNodeType() const
-    {
-        return surfaceNodeType_;
-    }
-    bool IsAppWindow() const
-    {
-        return surfaceNodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
-    }
+    RSSurfaceNodeType GetSurfaceNodeType() const;
+    bool IsAppWindow() const;
 
     /**
      * @brief Determines whether the surfaceNode is a selfDrawing node.
@@ -426,8 +420,6 @@ protected:
 
     void CreateRenderNode() override;
     bool isStaticFreeze_ = false;
-    // For RegisterBufferAvailableListener
-    BufferAvailableCallback BufferAvailableCallbackFunc();
 
     // For SetHidePrivacyContent
     bool needHidePrivacyContent_ = false;

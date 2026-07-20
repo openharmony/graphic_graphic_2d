@@ -189,10 +189,10 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionTest, Function | Smal
     HgmRenderContext hgmRenderContext(renderToServiceConnection);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
-    hgmRenderContext.isAdaptive_ = SupportASStatus::SUPPORT_AS;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
 
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_, false);
+    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_.load(), false);
 
     config.id = 1;
     config.name = "nodeName1";
@@ -201,7 +201,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionTest, Function | Smal
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode1);
     hgmRenderContext.gameNodeName_ = "nodeName1";
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_, false);
+    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_.load(), false);
 
     config.id = 2;
     config.name = "nodeName2";
@@ -210,7 +210,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionTest, Function | Smal
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode2);
     hgmRenderContext.gameNodeName_ = "nodeName2";
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_, false);
+    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_.load(), false);
 
     config.id = 3;
     config.name = "nodeName3";
@@ -219,15 +219,15 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionTest, Function | Smal
     surfaceNode3->SetIsOnTheTree(true);
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode3);
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_, false);
+    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_.load(), false);
 
     hgmRenderContext.gameNodeName_ = "nodeName3";
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_, true);
+    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_.load(), true);
     
-    hgmRenderContext.isAdaptive_ = SupportASStatus::NOT_SUPPORT;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_, false);
+    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_.load(), false);
 }
 
 /**
@@ -242,7 +242,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionTest002, Function | S
     HgmRenderContext hgmRenderContext(renderToServiceConnection);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
-    hgmRenderContext.isAdaptive_ = SupportASStatus::SUPPORT_AS;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     hgmRenderContext.gameNodeName_ = "nodeName1";
 
     config.id = 1;
@@ -252,7 +252,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionTest002, Function | S
     surfaceNode1->SetIsOnTheTree(true);
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode1);
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_, true);
+    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_.load(), true);
     
     config.id = 2;
     config.name = "windowName";
@@ -269,7 +269,53 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionTest002, Function | S
     surfaceNode3->SetIsOnTheTree(true, 2);
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode3);
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_, false);
+    EXPECT_EQ(hgmRenderContext.isGameNodeOnTree_.load(), false);
+}
+
+/**
+ * @tc.name: HandleAdaptiveVsyncConditionForLTPS
+ * @tc.desc: test HandleAdaptiveVsyncCondition with SUPPORT_AS_LTPS adaptive status
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForLTPS, Function | SmallTest | Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto rsContext = std::make_shared<RSContext>();
+
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS_LTPS);
+    hgmRenderContext.isAdaptiveVsyncReady_.store(false);
+
+    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
+    EXPECT_FALSE(hgmRenderContext.isGameNodeOnTree_.load());
+    EXPECT_TRUE(hgmRenderContext.isAdaptiveVsyncReady_.load());
+}
+
+/**
+ * @tc.name: HandleAdaptiveVsyncConditionForLTPS002
+ * @tc.desc: test HandleAdaptiveVsyncCondition with SUPPORT_AS_LTPS and game node on tree
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForLTPS002, Function | SmallTest | Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS_LTPS);
+    hgmRenderContext.gameNodeName_ = "gameNode";
+
+    config.id = 1;
+    config.name = "gameNode";
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetIsOnTheTree(true);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+
+    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
+    EXPECT_TRUE(hgmRenderContext.isGameNodeOnTree_.load());
 }
 
 /**

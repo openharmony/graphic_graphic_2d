@@ -84,7 +84,6 @@ void RSSpatialEffectManager::RegisterDepthSpace(const std::shared_ptr<RSRenderNo
     auto nodeId = renderNode->GetId();
     auto wpNode = renderNode->weak_from_this();
     depthSpatialEffectNodeMap_.emplace(nodeId, std::make_pair(wpNode, NodeMap()));
-    depthNodeMap_.emplace(nodeId, wpNode);
 }
 
 void RSSpatialEffectManager::RegisterDepthResource(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -128,10 +127,13 @@ std::weak_ptr<RSRenderNode> RSSpatialEffectManager::GetMasterGlobalDepthNode(Nod
 std::weak_ptr<RSRenderNode> RSSpatialEffectManager::GetAncestorDepthNode(const RSRenderNode& renderNode)
 {
     auto iter = spatialEffectDepthNodeMap_.find(renderNode.GetId());
-    if (iter == spatialEffectDepthNodeMap_.end()) {
-        return std::weak_ptr<RSRenderNode>();
-    }
-    return iter->second.second.second;
+    return iter != spatialEffectDepthNodeMap_.end() ? iter->second.second.second : std::weak_ptr<RSRenderNode>();
+}
+
+std::weak_ptr<RSRenderNode> RSSpatialEffectManager::GetDepthResourceNode(const RSRenderNode& renderNode)
+{
+    auto iter = depthDepthResourceNodeMap_.find(renderNode.GetId());
+    return iter != depthDepthResourceNodeMap_.end() ? iter->second : std::weak_ptr<RSRenderNode>();
 }
 
 void RSSpatialEffectManager::ProcessDepthNodeAndSpatialEffectNodeDirty()
@@ -140,6 +142,8 @@ void RSSpatialEffectManager::ProcessDepthNodeAndSpatialEffectNodeDirty()
 
     ResourceNodeInfectsDepthNodeDirty(depthBackgroundNodeMap_);
     ResourceNodeInfectsDepthNodeDirty(depthResourceNodeMap_);
+
+    BuildDepthDepthResourceNodeMap();
 
     masterGlobalDepthNodeMap_.clear();
     for (const auto& [_, entry] : depthSpatialEffectNodeMap_) {
@@ -183,12 +187,6 @@ void RSSpatialEffectManager::ProcessDepthNodeAndSpatialEffectNodeDirty()
     }
 }
 
-void RSSpatialEffectManager::PrepareSpatialEffectParams()
-{
-    ProcessDepthResourceNodeParams();
-    CopyGlobalDepthNodeParams();
-}
-
 void RSSpatialEffectManager::CleanNodeMap(NodeMap& nodeMap)
 {
     EraseIf(nodeMap, [](const auto& pair) {
@@ -209,10 +207,7 @@ void RSSpatialEffectManager::CleanExpiredNodes()
                 return true;
             }
             const auto& properties = spatialEffectNode->GetRenderProperties();
-            if (!properties.GetSpatialEffectVariantPara().has_value()) {
-                return true;
-            }
-            return false;
+            return !properties.GetSpatialEffectVariantPara().has_value();
         });
         // Do not erase depth node when there are no spatial effect node under it,
         // because it may be used as a master-global depth node
@@ -225,13 +220,9 @@ void RSSpatialEffectManager::CleanExpiredNodes()
             return true;
         }
         const auto& properties = spatialEffectNode->GetRenderProperties();
-        if (!properties.GetSpatialEffectVariantPara().has_value()) {
-            return true;
-        }
-        return false;
+        return !properties.GetSpatialEffectVariantPara().has_value();
     });
 
-    CleanNodeMap(depthNodeMap_);
     CleanNodeMap(depthBackgroundNodeMap_);
     CleanNodeMap(depthResourceNodeMap_);
 }
@@ -248,6 +239,22 @@ void RSSpatialEffectManager::ResourceNodeInfectsDepthNodeDirty(const NodeMap& re
             continue;
         }
         parent->SetDirty();
+    }
+}
+
+void RSSpatialEffectManager::BuildDepthDepthResourceNodeMap()
+{
+    depthDepthResourceNodeMap_.clear();
+    for (const auto& [_, wp] : depthResourceNodeMap_) {
+        auto depthResourceNode = wp.lock();
+        if (!depthResourceNode) {
+            continue;
+        }
+        auto depthNode = depthResourceNode->GetParent().lock();
+        if (!depthNode) {
+            continue;
+        }
+        depthDepthResourceNodeMap_.emplace(depthNode->GetId(), wp);
     }
 }
 
@@ -276,65 +283,6 @@ void RSSpatialEffectManager::SetSpatialEffectNodeDirty(const NodeMap& spatialEff
             spatialEffectNode->SetDirty();
             spatialEffectNode->GetMutableRenderProperties().SetGeoDirty();
         }
-    }
-}
-
-void RSSpatialEffectManager::ProcessDepthResourceNodeParams()
-{
-    for (const auto& [_, wp] : depthResourceNodeMap_) {
-        auto depthResourceNode = wp.lock();
-        if (!depthResourceNode || !depthResourceNode->IsOnTheTree()) {
-            continue;
-        }
-        auto surfaceNodeAsDepthRes = depthResourceNode->template ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (!surfaceNodeAsDepthRes || !surfaceNodeAsDepthRes->GetIsDepthResource()) {
-            continue;
-        }
-        auto parent = surfaceNodeAsDepthRes->GetParent().lock();
-        if (!parent || !parent->IsInstanceOf<RSDepthRenderNode>()) {
-            continue;
-        }
-        auto depthNode = parent->template ReinterpretCastTo<RSDepthRenderNode>();
-        if (!depthNode) {
-            continue;
-        }
-        const auto& params = static_cast<RSDepthRenderParams*>(depthNode->GetStagingRenderParams().get());
-        if (!params) {
-            continue;
-        }
-        auto depthResourceDrawable = depthResourceNode->GetRenderDrawable();
-        if (!depthResourceDrawable) {
-            continue;
-        }
-        params->SetDepthSrcSurfaceDrawable(depthResourceDrawable->weak_from_this());
-    }
-}
-
-void RSSpatialEffectManager::CopyGlobalDepthNodeParams()
-{
-    for (const auto& [_, wp] : depthNodeMap_) {
-        auto spNode = wp.lock();
-        if (!spNode || !spNode->IsOnTheTree()) {
-            continue;
-        }
-        auto depthNode = spNode->template ReinterpretCastTo<RSDepthRenderNode>();
-        if (!depthNode) {
-            continue;
-        }
-        if (depthNode->GetDepthSpaceType() != DepthSpaceType::GLOBAL) {
-            continue;
-        }
-
-        auto masterGlobalDepthNode = GetMasterGlobalDepthNode(depthNode->GetLogicalDisplayNodeId()).lock();
-        if (!masterGlobalDepthNode) {
-            continue;
-        }
-        const auto& masterGlobalParams =
-            static_cast<RSDepthRenderParams*>(masterGlobalDepthNode->GetStagingRenderParams().get());
-        if (!masterGlobalParams) {
-            continue;
-        }
-        masterGlobalParams->OnSyncDepthSpaceParams(depthNode->GetStagingRenderParams());
     }
 }
 } // namespace Rosen

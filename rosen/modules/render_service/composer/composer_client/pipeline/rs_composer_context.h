@@ -92,6 +92,7 @@ private:
     friend class RSComposerClient;
     friend class RSSurfaceLayer;
     friend class RSSurfaceRCDLayer;
+    friend class RSSurfaceSolidFilledColorLayer;
 };
 } // namespace Rosen
 } // namespace OHOS

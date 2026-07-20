@@ -461,6 +461,7 @@ ohos_source_set("render_service_base_src") {
     sources += [
       #drawable
       "src/drawable/rs_color_picker_drawable.cpp",
+      "src/drawable/rs_clip_to_bounds_restore_drawable.cpp",
       "src/drawable/rs_coverage_ng_shader_drawable.cpp",
       "src/drawable/rs_drawable.cpp",
       "src/drawable/rs_material_shader_drawable.cpp",
@@ -701,6 +702,8 @@ ohos_source_set("render_service_base_src") {
     "graphic_surface:surface_headers",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (graphic_2d_feature_rs_enable_uni_render) {

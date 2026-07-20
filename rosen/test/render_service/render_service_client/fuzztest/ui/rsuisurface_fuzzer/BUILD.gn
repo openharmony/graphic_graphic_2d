@@ -43,6 +43,8 @@ ohos_fuzztest("RSUiSurfaceFuzzTest") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "zlib:libz",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 

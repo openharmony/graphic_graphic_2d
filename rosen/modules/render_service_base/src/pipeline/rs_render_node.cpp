@@ -26,6 +26,8 @@
 #include "rs_trace.h"
 
 #include "animation/rs_render_animation.h"
+#include "command/rs_message_processor.h"
+#include "command/rs_node_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
 #include "common/rs_common_tools.h"
@@ -770,6 +772,12 @@ void RSRenderNode::ReleaseNodeMem()
     }
 }
 
+void RSRenderNode::ReleaseNodeInRender()
+{
+    DestroyAnimationInRender();
+    DestroyColorPickerInRender();
+}
+
 bool RSRenderNode::IsNodeMemClearEnable()
 {
 #ifdef NOT_BUILD_FOR_OHOS_SDK
@@ -1349,6 +1357,10 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
         }
         case RSRenderNodeType::WINDOW_KEYFRAME_NODE: {
             out += "WINDOW_KEYFRAME_NODE";
+            break;
+        }
+        case RSRenderNodeType::PROTECTIVE_SOLID_NODE: {
+            out += "PROTECTIVE_SOLID_NODE";
             break;
         }
         default: {
@@ -2777,9 +2789,9 @@ bool RSRenderNode::PrepareColorPicker(bool darkMode)
         return false;
     }
     if (GetRenderProperties().GetColorPicker() &&
-        GetRenderProperties().GetColorPicker()->lastEquivalentDarkMode != EquivalentDarkMode::INVALID) {
-        auto equivalentDarkMode = GetRenderProperties().GetColorPicker()->lastEquivalentDarkMode;
-        darkMode = equivalentDarkMode == EquivalentDarkMode::LIGHT ? false : true;
+        GetRenderProperties().GetColorPicker()->lastContrastColorScheme != ContrastColorScheme::INVALID) {
+        auto contrastColorScheme = GetRenderProperties().GetColorPicker()->lastContrastColorScheme;
+        darkMode = contrastColorScheme == ContrastColorScheme::LIGHT ? false : true;
     }
     bool needSync = drawable->OnPrepare(darkMode);
     if (needSync) {
@@ -4115,7 +4127,7 @@ void RSRenderNode::HandleNodeRemovedFromTree()
 {
     // Reset color picker memory when node goes off the tree
     if (auto colorPickerDrawable = GetColorPickerDrawable()) {
-        GetMutableRenderProperties().SetLastEquivalentDarkMode(colorPickerDrawable->GetLastEquivalentDarkMode());
+        GetMutableRenderProperties().SetLastContrastColorScheme(colorPickerDrawable->GetLastContrastColorScheme());
         colorPickerDrawable->ResetColorMemory();
     }
     isFullChildrenListValid_ = false;
@@ -4415,6 +4427,25 @@ void RSRenderNode::DestroyAnimationInRender()
     if (animationManager_) {
         animationManager_->DestroyInRender(GetId(), context_);
     }
+}
+
+void RSRenderNode::DestroyColorPickerInRender()
+{
+    ContrastColorScheme lastContrastColorScheme = ContrastColorScheme::INVALID;
+    if (auto colorPickerDrawable = GetColorPickerDrawable()) {
+        lastContrastColorScheme = colorPickerDrawable->GetLastContrastColorScheme();
+    } else if (auto colorPicker = GetRenderProperties().GetColorPicker()) {
+        lastContrastColorScheme = colorPicker->lastContrastColorScheme;
+    }
+    if (lastContrastColorScheme == ContrastColorScheme::INVALID) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("DestroyColorPickerInRender node[%" PRIu64 "] lastContrastColorScheme[%u]",
+        GetId(), static_cast<uint32_t>(lastContrastColorScheme));
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSColorPickerDestroyInRender>(
+            GetId(), ExtractPid(GetId()), GetUIContextToken(), static_cast<uint8_t>(lastContrastColorScheme));
+    RSMessageProcessor::Instance().AddUIMessage(ExtractPid(GetId()), command);
 }
 
 void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)

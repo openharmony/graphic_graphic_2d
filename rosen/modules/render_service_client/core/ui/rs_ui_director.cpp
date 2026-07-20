@@ -75,11 +75,7 @@ std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectTo
 
 RSUIDirector::~RSUIDirector()
 {
-    auto uiContext = rsUIContext_;
     Destroy();
-    if (uiContext != nullptr) {
-        uiContext->DestroyModifiersDraw();
-    }
 }
 
 void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext)
@@ -87,6 +83,7 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
     AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(AnimationDestroyInRenderCallbackProcessor);
     RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor);
+    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor);
     std::call_once(g_initDumpNodeTreeProcessorFlag,
         []() { RSNodeCommandHelper::SetDumpNodeTreeProcessor(RSUIDirector::DumpNodeTreeProcessor); });
 
@@ -218,7 +215,7 @@ void RSUIDirector::AddUIDirectorCommand()
     static pid_t pid = getpid();
     NodeId nodeId = rootNode ? rootNode->GetId() : (((NodeId)pid << 32) | NODE_ID);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<CommandType>(nodeId, pid, rsUIContext_ ? rsUIContext_->GetToken() : 0);
+        std::make_unique<CommandType>(nodeId, rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_TRACE_NAME_FMT(
         "RSUIDirector::AddUIDirectorCommand type is %d, token is %lu", command->GetSubType(), rsUIContext_->GetToken());
     transaction->AddCommand(command, true);
@@ -490,6 +487,7 @@ void RSUIDirector::ExecuteGoDestroy(bool isTextureExport)
         // child windows to be unable to find the UIContext during animation callback.
         if (!skipDestroyUIContext_) {
             RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
+            rsUIContext_->DestroyModifiersDraw();
         }
         rsUIContext_ = nullptr;
     }
@@ -968,6 +966,19 @@ void RSUIDirector::ColorPickerCallbackProcessor(NodeId nodeId, uint64_t token, u
         return;
     }
     ROSEN_LOGE("RSUIDirector::ColorPickerCallbackProcessor, could not find node %{public}" PRIu64, nodeId);
+}
+
+void RSUIDirector::ColorPickerDestroyInRenderProcessor(
+    NodeId nodeId, uint64_t token, ContrastColorScheme lastContrastColorScheme)
+{
+    auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
+    if (auto nodePtr =
+            rsUICtx ? rsUICtx->GetNodeMap().GetNode<RSNode>(nodeId) : RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
+        nodePtr->ColorPickerDestroyInRenderCallback(lastContrastColorScheme);
+        return;
+    }
+    ROSEN_LOGE(
+        "RSUIDirector::ColorPickerDestroyInRenderProcessor, could not find node %{public}" PRIu64, nodeId);
 }
 
 void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId)

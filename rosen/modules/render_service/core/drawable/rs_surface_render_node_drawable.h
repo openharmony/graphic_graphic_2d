@@ -167,6 +167,8 @@ private:
     bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
+    using ProtectiveSolidRegistrar = RenderNodeDrawableRegistrar<RSRenderNodeType::PROTECTIVE_SOLID_NODE, OnGenerate>;
+    static ProtectiveSolidRegistrar protectiveSolidInstance_;
 
     bool CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
         RSRenderThreadParams& uniParams);

@@ -30,6 +30,8 @@ const RSColorPickerRenderModifier::LegacyPropertyApplierMap
             &RSProperties::SetColorPickerNotifyThreshold> },
         { RSPropertyType::COLOR_PICKER_RECT, RSRenderModifier::PropertyApplyHelper<Vector4f,
             &RSProperties::SetColorPickerRect> },
+        { RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME,
+            RSColorPickerRenderModifier::SetLastContrastColorScheme },
     };
 
 void RSColorPickerRenderModifier::ResetProperties(RSProperties& properties)
@@ -37,6 +39,17 @@ void RSColorPickerRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::NONE));
     properties.SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::NONE));
     properties.SetColorPickerInterval(0);
+    properties.SetLastContrastColorScheme(ContrastColorScheme::INVALID);
     properties.SetColorPickerNotifyThreshold(0); // packed value: both dark and light thresholds = 0
+}
+
+void RSColorPickerRenderModifier::SetLastContrastColorScheme(RSProperties& properties, RSRenderPropertyBase& property)
+{
+    const auto value = static_cast<RSRenderProperty<int>&>(property).Get();
+    auto lastContrastColorScheme = static_cast<ContrastColorScheme>(value);
+    if (lastContrastColorScheme != ContrastColorScheme::LIGHT && lastContrastColorScheme != ContrastColorScheme::DARK) {
+        lastContrastColorScheme = ContrastColorScheme::INVALID;
+    }
+    properties.SetLastContrastColorScheme(lastContrastColorScheme);
 }
 } // namespace OHOS::Rosen::ModifierNG

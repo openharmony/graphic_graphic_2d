@@ -115,7 +115,8 @@ static constexpr std::array descriptorCheckList = {
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::RELEASE_CANVAS_DRAWING_NODE_SURFACE),
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE),
@@ -706,6 +707,26 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             RS_PROFILER_PATCH_NODE_ID(data, id);
             std::shared_ptr<Media::PixelMap> pixelmap =
                 std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
+            if (pixelmap == nullptr) {
+                RS_LOGW("The GetPixelmap pixelmap is null nodeId:%{public}" PRIu64, id);
+                break;
+            }
+            if (pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+                auto surfaceBuffer = static_cast<SurfaceBuffer*>(pixelmap->GetFd());
+                if (surfaceBuffer == nullptr ||
+                    pixelmap->GetPixelFormat() != OHOS::Media::PixelFormat::RGBA_8888 ||
+                    surfaceBuffer->GetFormat() != GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888) {
+                    RS_LOGW("The GetPixelmap pixelmap or surfaceBuffer format isn't legal nodeId:%{public}" PRIu64,
+                        id);
+                    break;
+                }
+                if (pixelmap->GetHeight() != surfaceBuffer->GetHeight() ||
+                    pixelmap->GetWidth() != surfaceBuffer->GetWidth()) {
+                    RS_LOGW("The GetPixelmap pixelmap or surfaceBuffer size is mismatch nodeId:%{public}" PRIu64,
+                        id);
+                    break;
+                }
+            }
             Drawing::Rect rect;
             RSMarshallingHelper::Unmarshalling(data, rect);
             std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
@@ -1585,30 +1606,32 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             break;
         }
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE): {
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE): {
             NodeId nodeId = INVALID_NODEID;
             if (!data.ReadUint64(nodeId)) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE Read nodeId failed!");
+                RS_LOGE("RSClientToRenderConnectionStub::CREATE_CANVAS_DRAWING_NODE_SURFACE Read nodeId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             sptr<Surface> surface = CreateCanvasDrawingNodeSurface(nodeId);
             if (surface == nullptr) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE CreateCanvasDrawingNodeSurface failed!");
+                RS_LOGE("RSClientToRenderConnectionStub::CREATE_CANVAS_DRAWING_NODE_SURFACE "
+                        "CreateCanvasDrawingNodeSurface failed!");
                 ret = ERR_NULL_OBJECT;
                 break;
             }
             auto producer = surface->GetProducer();
             if (!reply.WriteRemoteObject(producer->AsObject())) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_CANVAS_SURFACE read RemoteObject failed!");
+                RS_LOGE(
+                    "RSClientToServiceConnectionStub::CREATE_CANVAS_DRAWING_NODE_SURFACE read RemoteObject failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
         }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE): {
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::RELEASE_CANVAS_DRAWING_NODE_SURFACE): {
             NodeId nodeId = INVALID_NODEID;
             if (!data.ReadUint64(nodeId)) {
-                RS_LOGE("RSClientToRenderConnectionStub::REMOVE_CANVAS_SURFACE Read nodeId failed!");
+                RS_LOGE("RSClientToRenderConnectionStub::RELEASE_CANVAS_DRAWING_NODE_SURFACE Read nodeId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }

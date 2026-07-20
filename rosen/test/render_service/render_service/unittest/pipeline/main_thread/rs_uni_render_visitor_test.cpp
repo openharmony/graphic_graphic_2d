@@ -29,6 +29,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
@@ -10191,6 +10192,140 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRenderContextForSkippedSubTree_With
     rsUniRenderVisitor->UpdateFilterRenderContextForSkippedSubTree(dirtyManager, *filterNode, *rootNode, filterRect);
 
     EXPECT_FALSE(filterNode->HasBlurFilter());
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode001
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with normal node
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(100, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode002
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with isParentPrepareInReverseOrder true
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(200, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, true));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode003
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with bounds set
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(300, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+    node->GetMutableRenderProperties().SetBounds(Vector4f(100, 200, 300, 400));
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode004
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with alpha set
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode004, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(400, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+    node->GetMutableRenderProperties().SetAlpha(0.5f);
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode005
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with curScreenNode set
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode005, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    NodeId screenNodeId = 10;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(500, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode006
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode updates layer info correctly
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode006, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(600, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+    node->GetMutableRenderProperties().SetBounds(Vector4f(10, 20, 100, 200));
+    node->GetMutableRenderProperties().SetAlpha(0.8f);
+
+    rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false);
+
+    auto params = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    auto layerInfo = params->GetLayerInfo();
+    EXPECT_EQ(layerInfo.boundRect.x, 10);
+    EXPECT_EQ(layerInfo.boundRect.y, 20);
+    EXPECT_FLOAT_EQ(layerInfo.alpha, 0.8f);
 }
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

@@ -50,6 +50,8 @@ ohos_unittest("RenderServiceMemoryTest") {
     "image_framework:image_native",
     "image_framework:image_utils",
     "init:libbegetutil",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   defines += gpu_defines
 

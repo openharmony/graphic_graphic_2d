@@ -52,6 +52,10 @@ public:
     void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) override;
     void ProcessScreenSurfaceForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable) override;
+
+    void CreateProtectiveSolidLayer(RSProtectiveSolidRenderNode& node, RSSurfaceRenderParams& params) override;
+    void CreateProtectiveSolidLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& drawable) override;
+    
     // hpae offline
     bool ProcessOfflineLayer(
         std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, bool async) override;

@@ -156,12 +156,12 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
     }
     size_t expectedSize = bitmap->ComputeByteSize();
     if (expectedSize > bitmapHandle.size) {
-        LOGE("Bitmap size mismatch: expectedSize %zu, got %zu", expectedSize, bitmapHandle.size);
+        LOGD("Bitmap size mismatch: expectedSize %zu, got %zu", expectedSize, bitmapHandle.size);
         return nullptr;
     }
 
     if (memcpy_s(bitmap->GetPixels(), expectedSize, ptr, expectedSize) != EOK) {
-        LOGE("Bitmap memcpy_s failed!");
+        LOGD("Bitmap memcpy_s failed!");
         return nullptr;
     }
 
@@ -357,32 +357,32 @@ Lattice CmdListHelper::GetLatticeFromCmdList(const CmdList& cmdList, const Latti
 bool CmdListHelper::ValidateLattice(const Lattice& lattice)
 {
     if (lattice.fXCount < 0 || lattice.fXCount > 5 || lattice.fYCount < 0 || lattice.fYCount > 5) { // 5: max size.
-        LOGE("ValidateLattice invalid lattice count: fXCount=%d, fYCount=%d",
+        LOGD("ValidateLattice invalid lattice count: fXCount=%d, fYCount=%d",
              lattice.fXCount, lattice.fYCount);
         return false;
     }
 
     if (lattice.fXDivs.size() != static_cast<size_t>(lattice.fXCount)) {
-        LOGE("ValidateLattice fXDivs size mismatch: expected=%d, actual=%zu",
+        LOGD("ValidateLattice fXDivs size mismatch: expected=%d, actual=%zu",
              lattice.fXCount, lattice.fXDivs.size());
         return false;
     }
 
     if (lattice.fYDivs.size() != static_cast<size_t>(lattice.fYCount)) {
-        LOGE("ValidateLattice fYDivs size mismatch: expected=%d, actual=%zu",
+        LOGD("ValidateLattice fYDivs size mismatch: expected=%d, actual=%zu",
              lattice.fYCount, lattice.fYDivs.size());
         return false;
     }
 
     size_t expectedRectCount = static_cast<size_t>((lattice.fXCount + 1) * (lattice.fYCount + 1));
     if (!lattice.fRectTypes.empty() && lattice.fRectTypes.size() != expectedRectCount) {
-        LOGE("ValidateLattice fRectTypes size mismatch: expected=%zu, actual=%zu",
+        LOGD("ValidateLattice fRectTypes size mismatch: expected=%zu, actual=%zu",
              expectedRectCount, lattice.fRectTypes.size());
         return false;
     }
 
     if (!lattice.fColors.empty() && lattice.fColors.size() != expectedRectCount) {
-        LOGE("ValidateLattice fColors size mismatch: expected=%zu, actual=%zu",
+        LOGD("ValidateLattice fColors size mismatch: expected=%zu, actual=%zu",
              expectedRectCount, lattice.fColors.size());
         return false;
     }

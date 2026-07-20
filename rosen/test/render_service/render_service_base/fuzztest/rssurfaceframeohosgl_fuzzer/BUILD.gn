@@ -36,6 +36,8 @@ ohos_fuzztest("RSSurfaceFrameOhosGlFuzzTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   cflags = [
     "-g",

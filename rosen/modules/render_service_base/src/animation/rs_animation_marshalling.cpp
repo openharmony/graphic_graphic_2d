@@ -278,9 +278,9 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     SetAutoReverse(autoReverse);
     SetSpeed(speed);
     SetDirection(direction);
-    SetFillMode(static_cast<FillMode>(fillMode));
+    SetFillMode(SafeCastFillMode(fillMode));
     SetRepeatCallbackEnable(isRepeatCallbackEnable);
-    SetFrameRateRange({fpsMin, fpsMax, fpsPreferred, 0, static_cast<ComponentScene>(componentScene)});
+    SetFrameRateRange({fpsMin, fpsMax, fpsPreferred, 0, SafeCastComponentScene(componentScene)});
     SetToken(token);
     return true;
 }

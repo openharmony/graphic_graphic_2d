@@ -63,8 +63,6 @@ RSTunnelRuntimeStateTest::BufferEntry RSTunnelRuntimeStateTest::CreateBufferEntr
     return entry;
 }
 
-#endif
-
 /**
  * @tc.name: ClearResetsBuffersAndActivationState
  * @tc.desc: test Clear resets layer info and activation state

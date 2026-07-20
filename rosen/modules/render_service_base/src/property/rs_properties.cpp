@@ -1551,12 +1551,7 @@ const std::shared_ptr<ParticleFieldCollection>& RSProperties::GetParticleFields(
 
 void RSProperties::SetColorPickerPlaceholder(int placeholder)
 {
-    if (!colorPicker_) {
-        colorPicker_ = std::make_shared<ColorPickerParam>();
-    }
-    colorPicker_->placeholder =
-        std::clamp(static_cast<ColorPlaceholder>(placeholder), ColorPlaceholder::NONE, ColorPlaceholder::MAX);
-    SetDirty();
+    // deprecated
 }
 
 void RSProperties::SetColorPickerStrategy(int strategy)
@@ -1605,12 +1600,12 @@ void RSProperties::SetColorPickerRect(const Vector4f& rect)
     SetDirty();
 }
 
-void RSProperties::SetLastEquivalentDarkMode(EquivalentDarkMode darkMode)
+void RSProperties::SetLastContrastColorScheme(ContrastColorScheme colorScheme)
 {
     if (!colorPicker_) {
         colorPicker_ = std::make_shared<ColorPickerParam>();
     }
-    colorPicker_->lastEquivalentDarkMode = darkMode;
+    colorPicker_->lastContrastColorScheme = colorScheme;
 }
 
 std::shared_ptr<ColorPickerParam> RSProperties::GetColorPicker() const

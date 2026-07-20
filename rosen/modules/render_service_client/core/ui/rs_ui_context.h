@@ -312,7 +312,6 @@ private:
     std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent_ = nullptr;
 
     bool canvasDrawingNodeUpdated_ = false;
-    bool canvasDrawingNodeBufferFlushed_ = false;
 
     std::mutex uiMutex_;
     std::condition_variable uiCV_;

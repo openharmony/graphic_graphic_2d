@@ -233,7 +233,6 @@ bool RsDelegateCompositeCallbackManager::GetInfo(sptr<IConsumerSurface> cSurface
     std::string pidTmp = cSurface->GetUserData(CLIENT_PID);
     std::string nodeIdTmp = cSurface->GetUserData(NODE_ID);
     if (pidTmp == "" || nodeIdTmp == "") {
-        ROSEN_LOGE("DelegateModeDebugTag: GetInfo fail, user data is empty");
         return false;
     }
     nodeId = static_cast<uint64_t>(std::stoull(nodeIdTmp));

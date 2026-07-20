@@ -39,6 +39,11 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#undef RS_MODIFIERS_DRAW_ENABLE
+#endif
+
 class RSUIDirectorTest : public testing::Test {
 public:
 

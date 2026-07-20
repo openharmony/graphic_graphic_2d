@@ -467,9 +467,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     filter->PostProcess(*canvas);
 }
 
-void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds)
+void RSPropertyDrawableUtils::BeginOffscreen(RSPaintFilterCanvas& canvas, const RectF& bounds)
 {
-    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::BeginForegroundFilter");
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::BeginOffscreen");
     auto surface = canvas.GetSurface();
     if (!surface) {
         return;
@@ -491,21 +491,28 @@ void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas,
     canvas.SetFilterClipBounds(offscreenCanvas->GetFilterClipBounds());
 }
 
-void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
-    const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect)
+std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::EndOffscreen(RSPaintFilterCanvas& canvas)
 {
-    RS_OPTIONAL_TRACE_NAME("DrawForegroundFilter restore");
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::EndOffscreen");
     auto surface = canvas.GetSurface();
     std::shared_ptr<Drawing::Image> imageSnapshot = nullptr;
     if (surface) {
         imageSnapshot = surface->GetImageSnapshot();
     } else {
-        ROSEN_LOGD("RSPropertyDrawableUtils::DrawForegroundFilter Surface null");
+        ROSEN_LOGD("RSPropertyDrawableUtils::EndOffscreen surface null");
     }
-
+    // Swap the canvas back to the main screen surface, undoing BeginOffscreen.
     canvas.RestorePCanvasList();
     canvas.SwapBackMainScreenData();
     canvas.RestoreEnv();
+    return imageSnapshot;
+}
+
+void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect)
+{
+    RS_OPTIONAL_TRACE_NAME("DrawForegroundFilter restore");
+    auto imageSnapshot = EndOffscreen(canvas);
 
     if (rsFilter == nullptr) {
         return;
@@ -538,6 +545,49 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
 
     foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
         imageSnapshot->GetHeight()), dst);
+}
+
+void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
+    const Drawing::Rect& sdfDrawRect, const Drawing::Rect* frameRect)
+{
+    RS_OPTIONAL_TRACE_NAME("DrawSdfClip restore");
+    if (canvas.GetOffscreenDataList().empty()) { // offscreen not started
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip offscreen not started, skip");
+        return;
+    }
+
+    if (geContainer != nullptr && frameRect != nullptr) {
+        // Bake the SDF clip into the snapshot before swap-back; SaveAlpha/SetAlpha(1.0)
+        // isolates the effect from node alpha, restored right after.
+        canvas.SaveAlpha();
+        canvas.SetAlpha(1.0f);
+        geContainer->SetGeometry(canvas.GetTotalMatrix(), *frameRect, *frameRect,
+            frameRect->GetWidth(), frameRect->GetHeight());
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        geRender->DrawShaderEffect(canvas, *geContainer, sdfDrawRect);
+        canvas.RestoreAlpha();
+    } else {
+        ROSEN_LOGD("Clip SDF failed, geContainer or frameRect is nullptr");
+    }
+
+    auto imageSnapshot = EndOffscreen(canvas);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip image null");
+        return;
+    }
+    // Snapshot already carries node opacity and SDF clip; composite at full alpha to avoid
+    // re-applying opacity. RestoreAlpha restores node alpha for later draws.
+    canvas.SaveAlpha();
+    canvas.SetAlpha(1.0f);
+    // Composite the SDF-clipped snapshot back to the original canvas.
+    Drawing::Rect dstRect(sdfDrawRect.GetLeft(), sdfDrawRect.GetTop(),
+        sdfDrawRect.GetRight(), sdfDrawRect.GetBottom());
+    Drawing::Brush brush;
+    canvas.AttachBrush(brush);
+    canvas.DrawImageRect(*imageSnapshot, dstRect, Drawing::SamplingOptions());
+    canvas.DetachBrush();
+    canvas.RestoreAlpha();
 }
 
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()

@@ -35,7 +35,7 @@ public:
 };
 
 ADD_COMMAND(RSUnionNodeCreate,
-    ARG(PERMISSION_APP, UNION_NODE, UNION_NODE_CREATE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, UNION_NODE, UNION_NODE_CREATE,
         UnionNodeCommandHelper::Create, NodeId, bool))
 
 } // namespace Rosen

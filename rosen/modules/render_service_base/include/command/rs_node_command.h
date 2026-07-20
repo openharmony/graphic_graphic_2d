@@ -124,6 +124,7 @@ enum RSNodeCommandType : uint16_t {
     MARK_NODE_COLORSPACE = 0x0d00,
 
     COLOR_PICKER_CALLBACK = 0x0e00,
+    COLOR_PICKER_DESTROY_IN_RENDER = 0x0e01,
 
     SORT_CHILDREN_BY_INDEX = 0x0f00,
 };
@@ -144,7 +145,7 @@ public:
             }
         }
         if (auto property = node->GetProperty(id)) {
-            if (UNLIKELY(!CheckPropertyType(*property, RSRenderPropertyTypeTraits<T>::type, nodeId))) {
+            if (UNLIKELY(!CheckPropertyType(__func__, *property, RSRenderPropertyTypeTraits<T>::type, nodeId))) {
                 return;
             }
             std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);
@@ -207,281 +208,295 @@ public:
     using ColorPickerCallbackProcessor = void (*)(NodeId, uint64_t, uint32_t);
     static void ColorPickerCallback(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t color);
     static RSB_EXPORT void SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor);
+    using ColorPickerDestroyInRenderProcessor = void (*)(NodeId, uint64_t, ContrastColorScheme);
+    static void ColorPickerDestroyInRender(
+        RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint8_t lastContrastColorScheme);
+    static RSB_EXPORT void SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor processor);
 
     static void ReSortChildrenByZIndex(RSContext& context, NodeId nodeId);
 private:
-    static bool CheckPropertyType(RSRenderPropertyBase& prop, RSPropertyType updateType, NodeId nodeId);
-    static void TypeErrorInfoPrint(NodeId nodeId, PropertyId propId, RSPropertyType updateType,
-        RSPropertyType propType);
+    static bool CheckPropertyType(
+        const char* funcName, RSRenderPropertyBase& prop, RSPropertyType updateType, NodeId nodeId);
 };
 
 ADD_COMMAND(RSUpdatePropertyBool,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_BOOL,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_BOOL,
         RSNodeCommandHelper::UpdateProperty<bool>, NodeId, bool, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyFloat,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_FLOAT,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_FLOAT,
         RSNodeCommandHelper::UpdateProperty<float>, NodeId, float, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyInt,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_INT,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_INT,
         RSNodeCommandHelper::UpdateProperty<int>, NodeId, int, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyColor,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_COLOR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_COLOR,
         RSNodeCommandHelper::UpdateProperty<Color>, NodeId, Color, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyGravity,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_GRAVITY,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_GRAVITY,
         RSNodeCommandHelper::UpdateProperty<Gravity>, NodeId, Gravity, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMatrix3f,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MATRIX3F,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_MATRIX3F,
         RSNodeCommandHelper::UpdateProperty<Matrix3f>, NodeId, Matrix3f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyQuaternion,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_QUATERNION,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_QUATERNION,
         RSNodeCommandHelper::UpdateProperty<Quaternion>, NodeId, Quaternion, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyNGFilterBase,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_FILTER_BASE_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_NG_FILTER_BASE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderFilterBase>>,
         NodeId, std::shared_ptr<RSNGRenderFilterBase>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyNGShaderBase,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_SHADER_BASE_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_NG_SHADER_BASE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderShaderBase>>,
         NodeId, std::shared_ptr<RSNGRenderShaderBase>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyNGMaskBase,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_MASK_BASE_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_NG_MASK_BASE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderMaskBase>>,
         NodeId, std::shared_ptr<RSNGRenderMaskBase>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyNGShapeBase,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_SHAPE_BASE_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_NG_SHAPE_BASE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderShapeBase>>,
         NodeId, std::shared_ptr<RSNGRenderShapeBase>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyImage,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_IMAGE_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_IMAGE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSImage>>,
         NodeId, std::shared_ptr<RSImage>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMask,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MASK_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_MASK_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSMask>>,
         NodeId, std::shared_ptr<RSMask>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyPath,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_PATH_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_PATH_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSPath>>,
         NodeId, std::shared_ptr<RSPath>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDynamicBrightness,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DYNAMIC_BRIGHTNESS,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DYNAMIC_BRIGHTNESS,
         RSNodeCommandHelper::UpdateProperty<RSDynamicBrightnessPara>,
         NodeId, RSDynamicBrightnessPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyWaterRipple,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_WATER_RIPPLE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_WATER_RIPPLE,
         RSNodeCommandHelper::UpdateProperty<RSWaterRipplePara>,
         NodeId, RSWaterRipplePara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyFlyOut,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_FLY_OUT,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_FLY_OUT,
         RSNodeCommandHelper::UpdateProperty<RSFlyOutPara>, NodeId, RSFlyOutPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyLinearGradientBlurPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSLinearGradientBlurPara>>,
         NodeId, std::shared_ptr<RSLinearGradientBlurPara>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<MotionBlurParam>>,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateProperty<std::vector<std::shared_ptr<EmitterUpdater>>>,
         NodeId, std::vector<std::shared_ptr<EmitterUpdater>>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyParticleNoiseFields,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleNoiseFields>>,
         NodeId, std::shared_ptr<ParticleNoiseFields>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyParticleRippleFields,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_RIPPLE_FIELD_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_RIPPLE_FIELD_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleRippleFields>>,
         NodeId, std::shared_ptr<ParticleRippleFields>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyParticleVelocityFields,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VELOCITY_FIELD_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_VELOCITY_FIELD_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleVelocityFields>>,
         NodeId, std::shared_ptr<ParticleVelocityFields>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyParticleFields,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_PARTICLE_FIELDS_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_PARTICLE_FIELDS_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleFieldCollection>>,
         NodeId, std::shared_ptr<ParticleFieldCollection>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHADER_PTR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_SHADER_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSShader>>,
         NodeId, std::shared_ptr<RSShader>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector2f,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR2F,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_VECTOR2F,
         RSNodeCommandHelper::UpdateProperty<Vector2f>, NodeId, Vector2f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector3f,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR3F, RSNodeCommandHelper::UpdateProperty<Vector3f>,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_VECTOR3F,
+        RSNodeCommandHelper::UpdateProperty<Vector3f>,
         NodeId, Vector3f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyBorderStyle,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
         RSNodeCommandHelper::UpdateProperty<Vector4<uint32_t>>,
         NodeId, Vector4<uint32_t>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector4Color,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR4_COLOR,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_VECTOR4_COLOR,
         RSNodeCommandHelper::UpdateProperty<Vector4<Color>>, NodeId, Vector4<Color>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector4f,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR4F,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_VECTOR4F,
         RSNodeCommandHelper::UpdateProperty<Vector4f>, NodeId, Vector4f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyRRect,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_RRECT,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_RRECT,
         RSNodeCommandHelper::UpdateProperty<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdatePropertyDrawCmdList, NodeId,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
+        RSNodeCommandHelper::UpdatePropertyDrawCmdList, NodeId,
         Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVectorVector2f,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR2F,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR2F,
         RSNodeCommandHelper::UpdateProperty<std::vector<Vector2f>>,
         NodeId, std::vector<Vector2f>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVectorVector4f,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR4F,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR4F,
         RSNodeCommandHelper::UpdateProperty<std::vector<Vector4f>>,
         NodeId, std::vector<Vector4f>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyPixelMap,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_PIXEL_MAP,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_PIXEL_MAP,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<Media::PixelMap>>, NodeId,
         std::shared_ptr<Media::PixelMap>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShadowBlenderPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHADOW_BLENDER_PARA,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_SHADOW_BLENDER_PARA,
         RSNodeCommandHelper::UpdateProperty<RSShadowBlenderPara>, NodeId,
         RSShadowBlenderPara, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSUpdatePropertyHdrDarkenBlenderPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_HDR_DARKEN_BLENDER_PARA,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_HDR_DARKEN_BLENDER_PARA,
         RSNodeCommandHelper::UpdateProperty<RSHdrDarkenBlenderPara>, NodeId,
         RSHdrDarkenBlenderPara, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSUpdatePropertyShort,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHORT, RSNodeCommandHelper::UpdateProperty<short>, NodeId, short,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_SHORT,
+        RSNodeCommandHelper::UpdateProperty<short>, NodeId, short,
         PropertyId, PropertyUpdateType))
 
 // Planning: Remove the following commands after deprecating complex shader
 ADD_COMMAND(RSUpdatePropertyVectorFloat,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_FLOAT,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_VECTOR_FLOAT,
         RSNodeCommandHelper::UpdateProperty<std::vector<float>>,
         NodeId, std::vector<float>, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSetFreeze,
-    ARG(PERMISSION_APP, RS_NODE, SET_FREEZE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_FREEZE,
         RSNodeCommandHelper::SetFreeze, NodeId, bool, bool))
 ADD_COMMAND(RSSetNodeName,
-    ARG(PERMISSION_APP, RS_NODE, SET_NODE_NAME,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_NODE_NAME,
         RSNodeCommandHelper::SetNodeName, NodeId, std::string))
 ADD_COMMAND(RSSetUIContextToken,
-    ARG(PERMISSION_APP, RS_NODE, SET_UICONTEXT_TOKEN,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_UICONTEXT_TOKEN,
         RSNodeCommandHelper::SetUIToken, NodeId, uint64_t))
 ADD_COMMAND(RSMarkNodeGroup,
-    ARG(PERMISSION_APP, RS_NODE, MARK_NODE_GROUP,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_NODE_GROUP,
         RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
 ADD_COMMAND(RSExcludedFromNodeGroup,
-    ARG(PERMISSION_APP, RS_NODE, EXCLUDED_FROM_NODE_GROUP,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, EXCLUDED_FROM_NODE_GROUP,
         RSNodeCommandHelper::ExcludedFromNodeGroup, NodeId, bool))
 ADD_COMMAND(RSMarkRepaintBoundary,
-    ARG(PERMISSION_APP, RS_NODE, MARK_REPAINT_BOUNDARY,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_REPAINT_BOUNDARY,
         RSNodeCommandHelper::MarkRepaintBoundary, NodeId, bool))
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,
-    ARG(PERMISSION_APP, RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER,
         RSNodeCommandHelper::MarkNodeSingleFrameComposer, NodeId, bool, pid_t))
 ADD_COMMAND(RSMarkSuggestOpincNode,
-    ARG(PERMISSION_APP, RS_NODE, MARK_SUGGEST_OPINC_NODE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_SUGGEST_OPINC_NODE,
         RSNodeCommandHelper::MarkSuggestOpincNode, NodeId, bool, bool))
 ADD_COMMAND(RSMarkLayerPartRender,
-    ARG(PERMISSION_APP, RS_NODE, MARK_LAYER_PART_RENDER,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_LAYER_PART_RENDER,
         RSNodeCommandHelper::MarkLayerPartRender, NodeId, bool))
 
 ADD_COMMAND(RSMarkUifirstNode,
-    ARG(PERMISSION_APP, RS_NODE, MARK_UIFIRST_NODE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_UIFIRST_NODE,
         RSNodeCommandHelper::MarkUifirstNode, NodeId, bool))
 
 ADD_COMMAND(RSForceUifirstNode,
-    ARG(PERMISSION_APP, RS_NODE, MARK_UIFIRST_NODE_FORCE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_UIFIRST_NODE_FORCE,
         RSNodeCommandHelper::ForceUifirstNode, NodeId, bool, bool))
 
 ADD_COMMAND(RSSetUIFirstSwitch,
-    ARG(PERMISSION_APP, RS_NODE, SET_UIFIRST_SWITCH,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_UIFIRST_SWITCH,
         RSNodeCommandHelper::SetUIFirstSwitch, NodeId, RSUIFirstSwitch))
 
 ADD_COMMAND(RSMarkNodeColorSpace,
-    ARG(PERMISSION_APP, RS_NODE, MARK_NODE_COLORSPACE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_NODE_COLORSPACE,
         RSNodeCommandHelper::MarkNodeColorSpace, NodeId, int8_t))
 
 ADD_COMMAND(RSSetDrawRegion,
-    ARG(PERMISSION_APP, RS_NODE, SET_DRAW_REGION,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_DRAW_REGION,
         RSNodeCommandHelper::SetDrawRegion, NodeId, std::shared_ptr<RectF>))
 ADD_COMMAND(RSSetOutOfParent,
-    ARG(PERMISSION_APP, RS_NODE, SET_OUT_OF_PARENT,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_OUT_OF_PARENT,
         RSNodeCommandHelper::SetOutOfParent, NodeId, OutOfParentType))
 
 ADD_COMMAND(RSSetTakeSurfaceForUIFlag,
-    ARG(PERMISSION_APP, RS_NODE, SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG,
         RSNodeCommandHelper::SetTakeSurfaceForUIFlag, NodeId))
 
 ADD_COMMAND(RSSetNeedUseCmdlistDrawRegion,
-    ARG(PERMISSION_APP, RS_NODE, SET_NEED_USE_CMDLIST_DRAW_REGION,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_NEED_USE_CMDLIST_DRAW_REGION,
         RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion, NodeId, bool))
 
 ADD_COMMAND(RSSetHDRUIBrightness,
-    ARG(PERMISSION_APP, RS_NODE, SET_HDR_UI_BRIGHTNESS,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_HDR_UI_BRIGHTNESS,
         RSNodeCommandHelper::SetHDRUIBrightness, NodeId, float))
 
 ADD_COMMAND(
-    RSMarkLayer, ARG(PERMISSION_APP, RS_NODE, SET_LAYER_MARK, RSNodeCommandHelper::MarkLayer, NodeId, bool))
+    RSMarkLayer,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_LAYER_MARK,
+        RSNodeCommandHelper::MarkLayer, NodeId, bool))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
-    ARG(PERMISSION_APP, RS_NODE, REGISTER_GEOMETRY_TRANSITION,
+    ARG(PERMISSION_APP, NodeIdPosTag<0, 1>, RS_NODE, REGISTER_GEOMETRY_TRANSITION,
         RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId, bool))
 ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
-    ARG(PERMISSION_APP, RS_NODE, UNREGISTER_GEOMETRY_TRANSITION,
+    ARG(PERMISSION_APP, NodeIdPosTag<0, 1>, RS_NODE, UNREGISTER_GEOMETRY_TRANSITION,
         RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
 
 ADD_COMMAND(RSDumpClientNodeTree,
-    ARG(PERMISSION_APP, RS_NODE, DUMP_CLIENT_NODE_TREE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, DUMP_CLIENT_NODE_TREE,
         RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint64_t, uint32_t))
 ADD_COMMAND(RSCommitDumpClientNodeTree,
-    ARG(PERMISSION_APP, RS_NODE, COMMIT_DUMP_CLIENT_NODE_TREE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, COMMIT_DUMP_CLIENT_NODE_TREE,
         RSNodeCommandHelper::CommitDumpClientNodeTree, NodeId, pid_t, uint32_t, std::string))
 ADD_COMMAND(RSSetDrawNodeType,
-    ARG(PERMISSION_APP, RS_NODE, SET_DRAW_NODE_TYPE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SET_DRAW_NODE_TYPE,
         RSNodeCommandHelper::SetDrawNodeType, NodeId, DrawNodeType))
 ADD_COMMAND(RSUpdateOcclusionCullingStatus,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_OCCLUSION_CULLING_STATUS,
+    ARG(PERMISSION_APP, NodeIdPosTag<0, 2>, RS_NODE, UPDATE_OCCLUSION_CULLING_STATUS,
         RSNodeCommandHelper::UpdateOcclusionCullingStatus, NodeId, bool, NodeId))
 
 ADD_COMMAND(RSAddModifierNG,
-    ARG(PERMISSION_APP, RS_NODE, ADD_MODIFIER_NG,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, ADD_MODIFIER_NG,
         RSNodeCommandHelper::AddModifierNG, NodeId, std::shared_ptr<ModifierNG::RSRenderModifier>))
 ADD_COMMAND(RSRemoveModifierNG,
-    ARG(PERMISSION_APP, RS_NODE, REMOVE_MODIFIER_NG,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, REMOVE_MODIFIER_NG,
         RSNodeCommandHelper::RemoveModifierNG, NodeId, ModifierNG::RSModifierType, ModifierId))
 ADD_COMMAND(RSModifierNGAttachProperty,
-    ARG(PERMISSION_APP, RS_NODE, MODIFIER_NG_ATTACH_PROPERTY, RSNodeCommandHelper::ModifierNGAttachProperty, NodeId,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MODIFIER_NG_ATTACH_PROPERTY,
+        RSNodeCommandHelper::ModifierNGAttachProperty, NodeId,
         ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType, std::shared_ptr<RSRenderPropertyBase>))
 ADD_COMMAND(RSUpdatePropertyDrawCmdListNG,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST_NG, RSNodeCommandHelper::UpdateModifierNGDrawCmdList,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST_NG,
+        RSNodeCommandHelper::UpdateModifierNGDrawCmdList,
         NodeId, Drawing::DrawCmdListPtr, PropertyId))
 ADD_COMMAND(RSModifierNGDetachProperty,
-    ARG(PERMISSION_APP, RS_NODE, MODIFIER_NG_DETACH_PROPERTY, RSNodeCommandHelper::ModifierNGDetachProperty, NodeId,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MODIFIER_NG_DETACH_PROPERTY,
+        RSNodeCommandHelper::ModifierNGDetachProperty, NodeId,
         ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType))
 ADD_COMMAND(RSRemoveAllModifiersNG,
-    ARG(PERMISSION_APP, RS_NODE, REMOVE_ALL_MODIFIERS_NG,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, REMOVE_ALL_MODIFIERS_NG,
         RSNodeCommandHelper::RemoveAllModifiersNG, NodeId))
 
 ADD_COMMAND(RSColorPickerCallback,
-    ARG(PERMISSION_APP, RS_NODE, COLOR_PICKER_CALLBACK,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, COLOR_PICKER_CALLBACK,
         RSNodeCommandHelper::ColorPickerCallback, NodeId, pid_t, uint64_t, uint32_t))
+ADD_COMMAND(RSColorPickerDestroyInRender,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, COLOR_PICKER_DESTROY_IN_RENDER,
+        RSNodeCommandHelper::ColorPickerDestroyInRender, NodeId, pid_t, uint64_t, uint8_t))
 
 ADD_COMMAND(RSUpdatePropertyDepthCameraPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DEPTH_CAMERA_PARA,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DEPTH_CAMERA_PARA,
         RSNodeCommandHelper::UpdateProperty<DepthCameraPara>,
         NodeId, DepthCameraPara, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSUpdatePropertyDepthLightPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DEPTH_LIGHT_PARA,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, UPDATE_MODIFIER_DEPTH_LIGHT_PARA,
         RSNodeCommandHelper::UpdateProperty<DepthLightPara>,
         NodeId, DepthLightPara, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSortChildrenByZIndex,
-    ARG(PERMISSION_APP, RS_NODE, SORT_CHILDREN_BY_INDEX,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, SORT_CHILDREN_BY_INDEX,
         RSNodeCommandHelper::ReSortChildrenByZIndex, NodeId))
 } // namespace Rosen
 } // namespace OHOS

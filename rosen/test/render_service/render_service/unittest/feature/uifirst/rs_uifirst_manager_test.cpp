@@ -1162,6 +1162,18 @@ HWTEST_F(RSUifirstManagerTest, ResetUifirstNode, TestSize.Level1)
     uifirstManager_.ResetUifirstNode(nodePtr);
     nodePtr->isOnTheTree_ = true;
     uifirstManager_.ResetUifirstNode(nodePtr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 100;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(10, screenId, rsContext->weak_from_this());
+    nodePtr->SetAncestorScreenNode(screenNode);
+    auto stagingParams = static_cast<RSSurfaceRenderParams*>(nodePtr->stagingRenderParams_.get());
+    stagingParams->uifirstParams_.cacheType = MultiThreadCacheType::LEASH_WINDOW;
+    uifirstManager_.hasForceUpdateScreen_.clear();
+    uifirstManager_.ResetUifirstNode(nodePtr);
+    EXPECT_TRUE(uifirstManager_.hasForceUpdateScreen_.find(screenId) != uifirstManager_.hasForceUpdateScreen_.end());
+    uifirstManager_.hasForceUpdateScreen_.clear();
+    uifirstManager_.pendingForceUpdateNode_.clear();
 }
 
 /**

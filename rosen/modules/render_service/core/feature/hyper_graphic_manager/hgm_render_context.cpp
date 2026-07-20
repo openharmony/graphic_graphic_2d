@@ -90,7 +90,7 @@ void HgmRenderContext::NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_
 
 void HgmRenderContext::HandleAdaptiveVsyncCondition(const std::shared_ptr<RSContext>& rsContext)
 {
-    if (isAdaptive_.load() != SupportASStatus::SUPPORT_AS) {
+    if (!IsSupportSoftVsyncAS(isAdaptive_.load())) {
         isGameNodeOnTree_.store(false);
         isAdaptiveVsyncReady_.store(false);
         return;

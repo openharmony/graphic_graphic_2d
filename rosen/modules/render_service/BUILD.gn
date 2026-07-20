@@ -175,6 +175,7 @@ ohos_shared_library("librender_service") {
     "core/feature/opinc/rs_layer_part_draw_cache_helper.cpp",
     "core/feature/render_group/rs_render_group_cache_drawable.cpp",
     "core/feature/pointer_window_manager/rs_pointer_window_manager.cpp",
+    "core/feature/protective_solid/rs_protective_solid_render_node.cpp",
     "core/feature/special_layer/rs_special_layer_utils.cpp",
     "core/feature/tunnel_layer/rs_tunnel_layer_helper.cpp",
     "core/feature/tunnel_layer/rs_tunnel_layer_manager.cpp",
@@ -436,6 +437,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/extend_feature_parser",
     "core/feature_cfg/xml_parser/performance_feature_parser",
     "core/round_corner_display",
+    "core/protective_solid",
     "core/transaction",
     "main",
     "main/render_process",
@@ -635,6 +637,8 @@ ohos_shared_library("librender_service") {
     "window_manager:libwsutils",
     "qos_manager:concurrent_task_client",
     "config_policy:configpolicy_util",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (graphic_2d_feature_enable_vulkan) {
@@ -810,6 +814,7 @@ if (graphic_2d_feature_product != "car") {
 } else {
   ohos_executable("render_process") {
     install_enable = true
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true

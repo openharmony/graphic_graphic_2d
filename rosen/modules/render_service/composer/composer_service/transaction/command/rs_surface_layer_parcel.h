@@ -31,6 +31,8 @@ public:
         const std::shared_ptr<RSRenderLayerCmd>& command);
     static void UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerContext> context, RSLayerId layerId,
         const std::shared_ptr<RSRenderLayerCmd>& command);
+    static void UpdateRSSolidFilledColorLayerCmd(std::shared_ptr<RSRenderComposerContext> context, RSLayerId layerId,
+        const std::shared_ptr<RSRenderLayerCmd>& command);
 };
 
 ADD_COMMAND(RSDestroyRSLayerCmd,
@@ -44,6 +46,10 @@ ADD_COMMAND(RSUpdateRSLayerCmd,
 ADD_COMMAND(RSUpdateRSRCDLayerCmd,
     ARG(RS_RCD_LAYER_UPDATE,
         RSLayerParcelHelper::UpdateRSRCDLayerCmd, RSLayerId, std::shared_ptr<RSRenderLayerCmd>))
+
+ADD_COMMAND(RSUpdateRSSolidFilledColorLayerCmd,
+    ARG(RS_SOLID_FILLED_COLOR_LAYER_UPDATE,
+        RSLayerParcelHelper::UpdateRSSolidFilledColorLayerCmd, RSLayerId, std::shared_ptr<RSRenderLayerCmd>))
 
 } // namespace Rosen
 } // namespace OHOS

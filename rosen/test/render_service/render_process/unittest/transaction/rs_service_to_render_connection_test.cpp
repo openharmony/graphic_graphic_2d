@@ -243,6 +243,36 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyPackageEventTest, TestSize.Level
 }
 
 /**
+ * @tc.name: SetRogScreenResolutionTest001
+ * @tc.desc: Test SetRogScreenResolution with valid resolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, SetRogScreenResolutionTest001, TestSize.Level1)
+{
+    constexpr uint32_t width = 1920;
+    constexpr uint32_t height = 1080;
+    constexpr ScreenId screenId = 0;
+    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, width, height);
+    EXPECT_EQ(ret, ERR_OK);
+}
+ 
+/**
+ * @tc.name: SetRogScreenResolutionTest002
+ * @tc.desc: Test SetRogScreenResolution with zero resolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, SetRogScreenResolutionTest002, TestSize.Level1)
+{
+    constexpr uint32_t width = 0;
+    constexpr uint32_t height = 0;
+    constexpr ScreenId screenId = 0;
+    ErrCode ret = g_rsConn->SetRogScreenResolution(screenId, width, height);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
  * @tc.name: RegisterSharedTypefaceTest001
  * @tc.desc: Test RegisterTypeface(SharedTypeface&, bool) with isLocal=true
  * @tc.type: FUNC

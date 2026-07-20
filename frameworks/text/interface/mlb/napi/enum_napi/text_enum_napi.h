@@ -17,8 +17,8 @@
 #define OHOS_ROSEN_TEXT_ENUM_NAPI_H
 
 #include <memory>
-#include <native_engine/native_engine.h>
-#include <native_engine/native_value.h>
+
+#include "napi/native_node_api.h"
 #include "typography_create.h"
 #include "typography_style.h"
 

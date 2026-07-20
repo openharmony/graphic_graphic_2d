@@ -234,14 +234,6 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
         return false;
     }
 
-    // Failure policy: when direct commit cannot proceed (size mismatch, runtime gate, HWC reject),
-    // release the acquired buffer back to the producer and flip the runtime back to BUILDING. The
-    // previous design stashed the buffer in pendingBuffer_ for the next frame's RS normal path to
-    // consume as a fallback. That left the surface stuck in ACTIVE with an empty consumer queue
-    // whenever the producer had stopped flushing (e.g. video paused on its last frame): the normal
-    // path had nothing to acquire, the tunnel path kept rejecting, and the phase machine deadlocked.
-    // Releasing the buffer lets the producer re-issue it on the next flush, and SetBuilding forces
-    // the arbiter to re-evaluate tunnel eligibility instead of assuming the previous ACTIVE state.
     auto existingBuffer = surfaceHandler->GetBuffer();
     if (existingBuffer != nullptr && existingBuffer->GetSize() != pendingBuffer.buffer->GetSize()) {
         RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());

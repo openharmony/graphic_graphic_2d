@@ -950,10 +950,34 @@ int32_t RSClientToServiceConnection::SetVirtualScreenResolution(ScreenId id, uin
 
 int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
-    if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is null", __func__);
+        return RS_CONNECTION_ERROR;
     }
-    return screenManagerAgent_->SetRogScreenResolution(id, width, height);
+    auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(id);
+    if (serviceToRenderConn == nullptr) {
+        RS_LOGE("%{public}s serviceToRenderConn is nullptr", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+
+    ErrCode code = serviceToRenderConn->SetRogScreenResolution(id, width, height);
+    if (code != ERR_OK) {
+        RS_LOGE("%{public}s serviceToRenderConns has error", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s screenManagerAgent_ is nullptr", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t res = screenManagerAgent_->SetRogScreenResolution(id, width, height);
+    if (res != ERR_OK) {
+        RS_LOGE("%{public}s screenManagerAgent_->SetRogScreenResolution failed, res:%{public}d, "
+            "screenId:%{public}" PRIu64 ", width:%{public}" PRIu32 ", height:%{public}" PRIu32,
+            __func__, res, id, width, height);
+    }
+    // SCREEN_NOT_FOUND means screen nullptr not RS_CONNECTION_ERROR.
+    return res;
 }
 
 int32_t RSClientToServiceConnection::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)

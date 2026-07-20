@@ -135,7 +135,8 @@
           "hiview",
           "i18n",
           "api_metrics",
-          "selinux_adapter"
+          "selinux_adapter",
+          "taihe_ffi_gen"
         ],
         "third_party": [
           "skia"

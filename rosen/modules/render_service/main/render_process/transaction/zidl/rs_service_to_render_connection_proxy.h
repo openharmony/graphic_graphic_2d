@@ -127,6 +127,7 @@ public:
     // Others
     ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) override;
     ErrCode RepaintEverything() override;
+    ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height) override;
     void ForceRefreshOneFrameWithNextVSync() override;
     ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) override;
     ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled) override;

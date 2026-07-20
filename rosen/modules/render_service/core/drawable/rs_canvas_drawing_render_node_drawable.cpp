@@ -208,6 +208,9 @@ sptr<IConsumerSurface> RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface() c
         return nullptr;
     }
 
+    if (consumerSurface_ != nullptr) {
+        return consumerSurface_;
+    }
     auto nodeSp = renderNode_.lock();
     if (nodeSp == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null node, nodeId=%{public}" PRIu64, GetId());
@@ -220,7 +223,8 @@ sptr<IConsumerSurface> RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface() c
             GetId());
         return nullptr;
     }
-    return surfaceHandler->GetConsumer();
+    consumerSurface_ = surfaceHandler->GetConsumer();
+    return consumerSurface_;
 }
 
 void RSCanvasDrawingRenderNodeDrawable::DrawCustomContent(Drawing::Canvas& canvas)
@@ -247,12 +251,17 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCustomContent(Drawing::Canvas& canva
     if (renderParams_->GetBuffer() == nullptr) {
         return;
     }
+    auto bufferOwnerCount = renderParams_->GetBufferOwnerCount();
+    if (bufferOwnerCount != nullptr) {
+        bufferOwnerCount->AddRef();
+    }
     auto rsCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     auto bufferDrawParam = RSUniRenderUtil::CreateBufferDrawParam(*this, false, rsCanvas->GetParallelThreadId());
     RSAutoCanvasRestore arc(rsCanvas);
-    auto& uniRenderThread = RSUniRenderThread::Instance();
-    uniRenderThread.GetRenderEngine()->DrawCanvasDrawingNodeWithParams(*rsCanvas, bufferDrawParam);
-    uniRenderThread.OnDrawBuffer(GetConsumerSurface(), bufferDrawParam.buffer, renderParams_->GetBufferOwnerCount());
+    RSUniRenderThread::Instance().GetRenderEngine()->DrawCanvasDrawingNodeWithParams(*rsCanvas, bufferDrawParam);
+    if (bufferOwnerCount != nullptr) {
+        bufferOwnerCount->DecRef();
+    }
 }
 
 void RSCanvasDrawingRenderNodeDrawable::DrawCustomContentForCapture(Drawing::Canvas& canvas, const Drawing::Rect& rect)

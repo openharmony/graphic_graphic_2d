@@ -30,6 +30,8 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/common/rs_system_properties.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "render/rs_pixel_map_util.h"
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_property.h"
@@ -47,6 +49,8 @@ constexpr NodeId MIRROR_SOURCE_SCREEN_NODE_ID = DEFAULT_ID + 3;
 constexpr NodeId MIRROR_SOURCE_DISPLAY_NODE_ID = DEFAULT_ID + 4;
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr ScreenId SCREEN_ID = 10086;
+constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
+constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
 } // namespace
 class RSMultiScreenUtilTest : public testing::Test {
 public:
@@ -131,12 +135,14 @@ void RSMultiScreenUtilTest::SetUp()
     screenParams_->screenInfo_.id = screenNode_->GetScreenId();
     screenParams_->renderNodeType_ = screenNode_->GetType();
     screenParams_->mirrorSourceDrawable_ = mirrorSourceScreenNode_->GetRenderDrawable();
+    screenParams_->logicalDisplayNodeDrawables_.emplace_back(displayDrawable_);
     displayParams_->screenId_ = screenNode_->GetScreenId();
     displayParams_->renderNodeType_ = displayNode_->GetType();
     displayParams_->SetAncestorScreenDrawable(screenNode_->GetRenderDrawable());
     displayParams_->mirrorSourceDrawable_ = mirrorSourceDisplayNode_->GetRenderDrawable();
     mirrorSourceScreenParams_->screenInfo_.id = mirrorSourceScreenNode_->GetScreenId();
     mirrorSourceScreenParams_->renderNodeType_ = mirrorSourceScreenNode_->GetType();
+    mirrorSourceScreenParams_->logicalDisplayNodeDrawables_.emplace_back(mirrorSourceDisplayDrawable_);
     mirrorSourceDisplayParams_->screenId_ = mirrorSourceScreenNode_->GetScreenId();
     mirrorSourceDisplayParams_->renderNodeType_ = mirrorSourceDisplayNode_->GetType();
     mirrorSourceDisplayParams_->SetAncestorScreenDrawable(mirrorSourceScreenNode_->GetRenderDrawable());
@@ -610,6 +616,174 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest009, TestSize.Level
     processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    processor->needsOffscreenRender_ = true;
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor);
+    processor->needsOffscreenRender_ = false;
+    EXPECT_NE(screenParams_, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest010
+ * @tc.desc: Test HandleVirtualExtendScreen with all conditions satisfied, enters if branch
+ * @tc.type: FUNC
+ * @tc.require: #24870
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest010, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    screenParams_->childDisplayCount_ = 1;
+
+    auto csurf = IConsumerSurface::Create("SetMultiSurfCfg_SF");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    ASSERT_NE(rsSurface, nullptr);
+    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+
+    SurfaceFrameConfig config;
+    config.frame = std::make_unique<RSRenderFrame>(
+        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), std::move(rasterFrame));
+    config.canvas = paintFilterCanvas_;
+    config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    processor->surfaceFrames_.push_back(std::move(config));
+
+    RSUniRenderThread::Instance().InitGrContext();
+    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+
+    uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    uniParam->isVirtualDirtyDfxEnabled_ = false;
+    processor->needsOffscreenRender_ = false;
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor);
+    EXPECT_NE(screenParams_, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest011
+ * @tc.desc: Test HandleVirtualExtendScreen with IsVirtualExpandScreenDirtyEnabled false, enters else branch
+ * @tc.type: FUNC
+ * @tc.require: #24870
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest011, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    screenParams_->childDisplayCount_ = 1;
+
+    auto csurf = IConsumerSurface::Create("SetMultiSurfCfg_SF");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    ASSERT_NE(rsSurface, nullptr);
+    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+
+    SurfaceFrameConfig config;
+    config.frame = std::make_unique<RSRenderFrame>(
+        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), std::move(rasterFrame));
+    config.canvas = paintFilterCanvas_;
+    config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    processor->surfaceFrames_.push_back(std::move(config));
+
+    RSUniRenderThread::Instance().InitGrContext();
+    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+
+    uniParam->SetVirtualExpandScreenDirtyEnabled(false);
+    uniParam->isVirtualDirtyDfxEnabled_ = false;
+    processor->needsOffscreenRender_ = false;
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor);
+    EXPECT_NE(screenParams_, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest012
+ * @tc.desc: Test HandleVirtualExtendScreen with IsVirtualExpandScreenDirtyEnabled true and
+ *           IsVirtualDirtyDfxEnabled true, enters else branch
+ * @tc.type: FUNC
+ * @tc.require: #24870
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest012, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    screenParams_->childDisplayCount_ = 1;
+
+    auto csurf = IConsumerSurface::Create("SetMultiSurfCfg_SF");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    ASSERT_NE(rsSurface, nullptr);
+    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+
+    SurfaceFrameConfig config;
+    config.frame = std::make_unique<RSRenderFrame>(
+        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), std::move(rasterFrame));
+    config.canvas = paintFilterCanvas_;
+    config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    processor->surfaceFrames_.push_back(std::move(config));
+
+    RSUniRenderThread::Instance().InitGrContext();
+    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+
+    uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    uniParam->isVirtualDirtyDfxEnabled_ = true;
+    processor->needsOffscreenRender_ = false;
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor);
+    uniParam->isVirtualDirtyDfxEnabled_ = false;
+    EXPECT_NE(screenParams_, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest013
+ * @tc.desc: Test HandleVirtualExtendScreen with IsVirtualExpandScreenDirtyEnabled true,
+ *           IsVirtualDirtyDfxEnabled false, and IsMultiSurfaceExtendMode true, enters else branch
+ * @tc.type: FUNC
+ * @tc.require: #24870
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest013, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    screenParams_->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    screenParams_->childDisplayCount_ = 1;
+
+    auto csurf = IConsumerSurface::Create("SetMultiSurfCfg_SF");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    ASSERT_NE(rsSurface, nullptr);
+    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+
+    SurfaceFrameConfig config;
+    config.frame = std::make_unique<RSRenderFrame>(
+        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), std::move(rasterFrame));
+    config.canvas = paintFilterCanvas_;
+    config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    processor->surfaceFrames_.push_back(std::move(config));
+
+    RSUniRenderThread::Instance().InitGrContext();
+    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+
+    uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    uniParam->isVirtualDirtyDfxEnabled_ = false;
     processor->needsOffscreenRender_ = true;
     RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor);
     processor->needsOffscreenRender_ = false;
@@ -1222,7 +1396,7 @@ HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorFromCacheTest009, TestSize.Leve
     // ensure ProcessSingleSelfDrawingNode is false
     system::SetParameter("rosen.uni.virtualSelfDrawOptEnabled.enabled", "0");
     EXPECT_FALSE(RSSystemProperties::GetVirtualSelfDrawOptEnabled());
-    
+
     // when cacheImage is nullptr
     mirrorSourceScreenDrawable_->cacheImgForCapture_ = nullptr;
     RSMultiScreenUtil::DrawVirtualMirrorFromCache(*displayDrawable_, *displayParams_, virtualProcessor_, uniParam);

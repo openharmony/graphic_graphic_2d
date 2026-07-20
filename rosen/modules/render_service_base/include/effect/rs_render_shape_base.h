@@ -37,7 +37,7 @@ namespace Drawing {
 // recursion at generate-depth D only spans the subtree below D (depth M-D), so the peak stays at
 // the tree depth M. These paths are synchronous CPU work: do NOT add FFRT/coroutine suspension
 // inside them, or thread_local would stop tracking logical depth after a cross-thread resume.
-class RSShapeRecursionGuard {
+class RSB_EXPORT RSShapeRecursionGuard {
 public:
     static constexpr int32_t MAX_DEPTH = 128;
     RSShapeRecursionGuard()
@@ -48,19 +48,12 @@ public:
     {
         --Depth();
     }
-    bool ExceedsLimit() const
-    {
-        return Depth() > MAX_DEPTH;
-    }
+    bool ExceedsLimit() const;
     RSShapeRecursionGuard(const RSShapeRecursionGuard&) = delete;
     RSShapeRecursionGuard& operator=(const RSShapeRecursionGuard&) = delete;
 
 private:
-    static int32_t& Depth()
-    {
-        static thread_local int32_t depth = 0;
-        return depth;
-    }
+    static int32_t& Depth();
 };
 
 class RSB_EXPORT RSNGRenderShapeBase : public RSNGRenderEffectBase<RSNGRenderShapeBase> {
@@ -91,6 +84,12 @@ protected:
 private:
     friend class RSNGRenderShapeHelper;
 };
+
+// Opt-in: RSNGRenderShapeBase allows self-type-as-property (SHAPE_PTR) because all recursion
+// paths are guarded by RSShapeRecursionGuard (MAX_DEPTH=128). The static_assert in
+// RSNGRenderEffectTemplate bans this pattern for all other effect types (filter/mask/shader).
+template <>
+struct allow_self_type_property<RSNGRenderShapeBase> : std::true_type {};
 
 template<RSNGEffectType Type, typename... PropertyTags>
 class RSNGRenderShapeTemplate : public RSNGRenderEffectTemplate<RSNGRenderShapeBase, Type, PropertyTags...> {

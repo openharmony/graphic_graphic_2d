@@ -17,9 +17,6 @@
 
 #include "animation/rs_interactive_implict_animator.h"
 #include "command/rs_animation_command.h"
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-#include "command/rs_delegate_composite_command.h"
-#endif
 #include "command/rs_node_command.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_ui_context_manager.h"
@@ -45,6 +42,7 @@ RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRem
 RSUIContext::~RSUIContext()
 {
     RS_LOGI("~RSUIContext: Token:%{public}" PRIu64, token_);
+    DestroyModifiersDraw();
 }
 
 const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
@@ -306,15 +304,22 @@ bool RSUIContext::WaitForRebuildNormal(uint32_t timeoutMs)
 void RSUIContext::DestroyModifiersDraw()
 {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (!RSSystemProperties::GetHybridRenderCanvasEnabled() || modifiersDrawThread_ == nullptr) {
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
         return;
     }
-    canvasModifiersDrawAgent_->WaitAllTasksFinish();
-    canvasModifiersDrawAgent_->Destroy();
-    canvasModifiersDrawAgent_ = nullptr;
-    modifiersDrawThread_->WaitAllTasksFinish();
-    modifiersDrawThread_->Destroy();
-    modifiersDrawThread_ = nullptr;
+    if (auto transaction = GetRSTransaction()) {
+        transaction->SetCommitTransactionCallback(nullptr);
+    }
+    if (modifiersDrawThread_ != nullptr) {
+        modifiersDrawThread_->WaitAllTasksFinish();
+        modifiersDrawThread_->Destroy();
+        modifiersDrawThread_ = nullptr;
+    }
+    if (canvasModifiersDrawAgent_ != nullptr) {
+        canvasModifiersDrawAgent_->WaitAllTasksFinish();
+        canvasModifiersDrawAgent_->Destroy();
+        canvasModifiersDrawAgent_ = nullptr;
+    }
 #endif
 }
 
@@ -362,18 +367,13 @@ CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
         commitIndex++;
         RS_TRACE_NAME_FMT("Post CommitTransaction, index=%u", commitIndex);
         uiContext->modifiersDrawThread_->ScheduleTask(
-            [weakContext, renderPiplineClient, transactionData = std::move(rsTransactionData),
+            [uiContext, renderPiplineClient, transactionData = std::move(rsTransactionData),
                 &transactionDataIndex, index = commitIndex]() mutable {
-                auto uiContext = weakContext.lock();
-                if (uiContext == nullptr) {
-                    return;
-                }
                 if (uiContext->modifiersDrawThread_ != nullptr && uiContext->canvasModifiersDrawAgent_ != nullptr) {
                     RS_TRACE_NAME_FMT("Do CommitTransaction, index=%u", index);
                     uiContext->modifiersDrawThread_->CommitTransaction(uiContext->canvasModifiersDrawAgent_,
                         renderPiplineClient, std::move(transactionData), transactionDataIndex);
                 }
-                uiContext->canvasDrawingNodeBufferFlushed_ = false;
                 uiContext->UnblockUIThread();
             });
     };
@@ -392,14 +392,9 @@ void RSUIContext::FlushCanvasDrawingNodeBuffers()
         return;
     }
     RS_TRACE_NAME_FMT("RSUIContext::FlushCanvasDrawingNodeBuffers, token=%" PRIu64, token_);
-    if (!canvasDrawingNodeBufferFlushed_) {
-        std::unique_ptr<RSCommand> command = std::make_unique<TransactionBufferCommand>(rootNodeId_);
-        transaction->AddCommand(command, true);
-    }
     if (canvasModifiersDrawAgent_ != nullptr) {
         canvasModifiersDrawAgent_->SubmitAndCollectCanvasBuffers();
     }
-    canvasDrawingNodeBufferFlushed_ = true;
     canvasDrawingNodeUpdated_ = false;
 }
 #endif

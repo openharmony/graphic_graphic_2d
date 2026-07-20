@@ -18,6 +18,7 @@
 
 #include <parcel.h>
 #include <refbase.h>
+#include <vector>
 
 #include "common/rs_common_def.h"
 #include "pipeline/rs_context.h"
@@ -113,6 +114,11 @@ public:
     virtual NodeId GetTargetNodeId() const
     {
         return GetNodeId();
+    }
+
+    virtual std::vector<NodeId> GetAllNodeIds() const
+    {
+        return {GetNodeId()};
     }
 
     virtual uint64_t GetToken() const

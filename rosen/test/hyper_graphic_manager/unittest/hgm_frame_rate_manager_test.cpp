@@ -1636,15 +1636,16 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandlePointerTask, Function | SmallTest | Leve
 
     mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED;
     std::set<TouchStatus> originalSet = {TOUCH_MOVE, TOUCH_BUTTON_DOWN, TOUCH_BUTTON_UP, AXIS_BEGIN, AXIS_UPDATE,
-        AXIS_END};
+        AXIS_END, TOUCH_PULL_DOWN};
     for (TouchStatus status : originalSet) {
         mgr.HandlePointerTask(pid, status, 1);
     }
 
     mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED_EX_MOVE;
-    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
     mgr.HandlePointerTask(pid, TOUCH_BUTTON_DOWN, 1);
+    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
     mgr.HandlePointerTask(pid, TOUCH_BUTTON_UP, 1);
+    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
     EXPECT_EQ(mStrategy.strategyConfigMapCache_[testStrategy].pointerMode, PointerModeType::POINTER_ENABLED_EX_MOVE);
 
     mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_DISENABLED;
@@ -2242,6 +2243,24 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Func
     EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
 
     HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: ProcessAdaptiveSyncForLTPS
+ * @tc.desc: Test ProcessAdaptiveSync with SUPPORT_AS_LTPS game support status
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, ProcessAdaptiveSyncForLTPS, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    int32_t prevIsAdaptive = mgr.isAdaptive_.load();
+    mgr.isGameSupportAS_ = SupportASStatus::SUPPORT_AS_LTPS;
+
+    mgr.ProcessAdaptiveSync("VOTER_GAMES");
+    EXPECT_EQ(mgr.isAdaptive_.load(), SupportASStatus::SUPPORT_AS_LTPS);
+
+    mgr.isAdaptive_.store(prevIsAdaptive);
 }
 } // namespace Rosen
 } // namespace OHOS

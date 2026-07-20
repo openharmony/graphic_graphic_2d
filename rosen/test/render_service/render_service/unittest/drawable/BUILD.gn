@@ -49,6 +49,8 @@ ohos_unittest("RSCanvasDrawingRenderNodeDrawableTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -71,6 +73,8 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -95,6 +99,8 @@ ohos_unittest("RSScreenRenderNodeDrawableTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -121,6 +127,8 @@ ohos_unittest("RSLogicalDisplayRenderNodeDrawableTest") {
     "graphic_surface:surface_headers",
     "samgr:samgr_proxy",
     "hisysevent:libhisysevent",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -141,6 +149,8 @@ ohos_unittest("RSEffectRenderNodeDrawableTest") {
     "hisysevent:libhisysevent",
     "ffrt:libffrt",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -182,6 +192,8 @@ ohos_unittest("RSRenderNodeDrawableTest") {
     "hisysevent:libhisysevent",
     "ffrt:libffrt",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 
@@ -230,6 +242,8 @@ ohos_unittest("RSDirtyRectsDFXTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -258,6 +272,8 @@ ohos_unittest("RSSkpCaptureDFXTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -361,6 +377,8 @@ ohos_static_library("rs_test_common") {
   external_deps = [
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   public_external_deps = [

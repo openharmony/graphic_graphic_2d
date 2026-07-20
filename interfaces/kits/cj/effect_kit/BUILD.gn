@@ -21,6 +21,8 @@ ohos_shared_library("cj_effect_kit_ffi") {
     cfi_vcall_icall_only = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
+
   include_dirs = [
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
     "$graphic_2d_root/rosen/modules/effect/effect_common/include",
@@ -51,6 +53,8 @@ ohos_shared_library("cj_effect_kit_ffi") {
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
     "graphic_surface:surface",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   sources = [
     "cj_color_picker.cpp",
