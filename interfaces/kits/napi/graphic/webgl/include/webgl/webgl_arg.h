@@ -401,6 +401,13 @@ struct VertexAttribDesc {
 
 struct VertexAttribInfo {
     BufferDataType type;
+    bool enabled { false };
+    GLuint bufferId { 0 };
+    GLenum glType { 0 };
+    GLint size { 0 };
+    GLsizei stride { 0 };
+    int64_t offset { 0 };
+    GLuint divisor { 0 };
 };
 
 struct BufferPosition {

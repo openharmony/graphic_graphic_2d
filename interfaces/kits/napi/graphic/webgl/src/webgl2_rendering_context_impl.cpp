@@ -1304,6 +1304,10 @@ napi_value WebGL2RenderingContextImpl::VertexAttribDivisor(napi_env env, GLuint 
             "WebGL2 vertexAttribDivisor invalid index %{public}u", index);
         return NVal::CreateNull(env).val_;
     }
+    VertexAttribInfo* info = GetVertexAttribInfo(index);
+    if (info != nullptr) {
+        info->divisor = divisor;
+    }
     glVertexAttribDivisor(index, divisor);
     return NVal::CreateNull(env).val_;
 }

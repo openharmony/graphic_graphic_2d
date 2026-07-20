@@ -1387,6 +1387,14 @@ napi_value WebGLRenderingContextBaseImpl::VertexAttribPointer(napi_env env, cons
         SET_ERROR(result);
         return NVal::CreateNull(env).val_;
     }
+    VertexAttribInfo* info = GetVertexAttribInfo(vertexInfo.index);
+    if (info != nullptr) {
+        info->glType = vertexInfo.type;
+        info->size = vertexInfo.size;
+        info->stride = vertexInfo.stride;
+        info->offset = vertexInfo.offset;
+        info->bufferId = boundBufferIds_[BoundBufferType::ARRAY_BUFFER];
+    }
     glVertexAttribPointer(vertexInfo.index, vertexInfo.size, vertexInfo.type, vertexInfo.normalized,
         vertexInfo.stride, reinterpret_cast<GLvoid*>(vertexInfo.offset));
     LOGD("WebGL vertexAttribPointer index %{public}u result %{public}u", vertexInfo.index, GetError_());
@@ -1413,6 +1421,10 @@ napi_value WebGLRenderingContextBaseImpl::EnableVertexAttribArray(napi_env env, 
         return NVal::CreateNull(env).val_;
     }
     LOGD("WebGL enableVertexAttribArray index %{public}" PRIi64, index);
+    VertexAttribInfo* info = GetVertexAttribInfo(index);
+    if (info != nullptr) {
+        info->enabled = true;
+    }
     glEnableVertexAttribArray(static_cast<GLuint>(index));
     return NVal::CreateNull(env).val_;
 }
@@ -1425,6 +1437,10 @@ napi_value WebGLRenderingContextBaseImpl::DisableVertexAttribArray(napi_env env,
         return NVal::CreateNull(env).val_;
     }
     LOGD("WebGL disableVertexAttribArray index %{public}" PRIi64, index);
+    VertexAttribInfo* info = GetVertexAttribInfo(index);
+    if (info != nullptr) {
+        info->enabled = false;
+    }
     glDisableVertexAttribArray(index);
     return NVal::CreateNull(env).val_;
 }

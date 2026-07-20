@@ -1157,6 +1157,34 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawArrays(napi_env env, GLenum mode,
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
 
+    if (count > 0) {
+        for (size_t i = 0; i < arrayVertexAttribs_.size(); ++i) {
+            const VertexAttribInfo& info = arrayVertexAttribs_[i];
+            if (!info.enabled || info.divisor != 0 || info.bufferId == 0 ||
+                info.size <= 0 || info.glType == 0) {
+                continue;
+            }
+            WebGLBuffer* buf = GetObjectInstance<WebGLBuffer>(env, info.bufferId);
+            if (buf == nullptr || buf->GetBufferSize() == 0) {
+                continue;
+            }
+            uint64_t attribBytes = static_cast<uint64_t>(info.size) *
+                WebGLArg::GetWebGLDataSize(info.glType);
+            uint64_t requiredEnd = 0;
+            if (info.stride == 0) {
+                requiredEnd = static_cast<uint64_t>(info.offset) + attribBytes;
+            } else {
+                uint64_t maxVertex = static_cast<uint64_t>(first) + static_cast<uint64_t>(count) - 1;
+                requiredEnd = static_cast<uint64_t>(info.offset) +
+                    maxVertex * static_cast<uint64_t>(info.stride) + attribBytes;
+            }
+            if (requiredEnd > static_cast<uint64_t>(buf->GetBufferSize())) {
+                LOGE("WebGL drawArrays vertex attribute %{public}zu exceeds buffer", i);
+                return WebGLRenderingContextBase::INVALID_OPERATION;
+            }
+        }
+    }
+
     return CheckFrameBufferBoundComplete(env);
 }
 
