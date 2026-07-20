@@ -112,6 +112,9 @@ void ExpectTunnelLayerInfo(const std::shared_ptr<RSSurfaceRenderNode>& node,
 void ActivateTunnelRuntime(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->MarkTunnelLayerInfoReceived();
     auto& runtime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
     runtime.SetBuilding();
     ASSERT_TRUE(runtime.SetActiveFromTunnelLayerAvailable(runtime.GetTunnelLayerGeneration()));

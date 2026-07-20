@@ -69,12 +69,17 @@ void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     if (surfaceNode == nullptr) {
         return;
     }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
-    if (tunnelRuntime.GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    if (surfaceHandler == nullptr || !surfaceHandler->HasReceivedTunnelLayerInfo()) {
         return;
     }
-    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
-    if (surfaceHandler == nullptr) {
+    // TryGet (no create): non-tunnel surfaces never enter the store, and LPP surfaces are gated out by
+    // the HasReceivedTunnelLayerInfo check above since they set layer info via HandleLppTunnelLayerId
+    // rather than OnTunnelLayerInfoChanged. This avoids the per-frame store mutex + entry creation
+    // for the common case of ordinary surfaces going through the normal consume path every frame.
+    auto* tunnelRuntime = RSTunnelRuntimeStore::TryGet(surfaceNode->GetId());
+    if (tunnelRuntime == nullptr ||
+        tunnelRuntime->GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
         return;
     }
     auto buffer = surfaceHandler->GetBuffer();
@@ -83,7 +88,7 @@ void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     if (buffer == nullptr || bufferOwnerCount == nullptr || consumer == nullptr) {
         return;
     }
-    if (!tunnelRuntime.IsCommittedTunnelBuffer()) {
+    if (!tunnelRuntime->IsCommittedTunnelBuffer()) {
         return;
     }
     if (clientManager) {
@@ -92,7 +97,7 @@ void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     RSUniRenderThread::Instance().ReplacePendingReleaseBufferFence(
         consumer, buffer, SyncFence::InvalidFence(), bufferOwnerCount);
     surfaceHandler->SetCurrentFrameBufferConsumed();
-    tunnelRuntime.ClearCommittedTunnelBuffer();
+    tunnelRuntime->ClearCommittedTunnelBuffer();
 }
 
 void RSTunnelLayerManager::ClearRuntimeStateByPid(pid_t remotePid)
