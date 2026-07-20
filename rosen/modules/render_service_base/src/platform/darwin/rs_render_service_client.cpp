@@ -612,7 +612,7 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
 }
 
-bool RSRenderServiceClient::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
+bool RSRenderServiceClient::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
 {
     return {};
 }

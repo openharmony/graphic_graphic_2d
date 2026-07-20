@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_ICLIENT_TO_SERVICE_CONNECTION_H
 
 #include <iremote_broker.h>
+#include <optional>
 #include <string>
 #include "transaction/rs_render_service_client_info.h"
 #ifndef ENABLE_RS_PROXY
@@ -317,7 +318,7 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
-    virtual bool NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID) = 0;
+    virtual bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId) = 0;
 
     virtual sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) = 0;
 

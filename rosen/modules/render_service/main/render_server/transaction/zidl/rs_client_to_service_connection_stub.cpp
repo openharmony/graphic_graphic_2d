@@ -156,7 +156,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_CONTROL_SCREEN_REFRESH_RATE),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT),
@@ -2552,15 +2552,18 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             NotifyRefreshRateEvent(eventInfo);
             break;
         }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_CONTROL_SCREEN_REFRESH_RATE) : {
-            bool openStatus{false};
-            ScreenId ltpoScreenID{0};
-            if (!data.ReadBool(openStatus) || !data.ReadUint64(ltpoScreenID)) {
-                RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_CONTROL_SCREEN_REFRESH_RATE Read parcel failed!");
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN) : {
+            ScreenId screenId{0};
+            if (!data.ReadUint64(screenId)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_HGM_EXCLUSIVE_SCREEN Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool result = NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
+            std::optional<ScreenId> optScreenId;
+            if (screenId != INVALID_SCREEN_ID) {
+                optScreenId = screenId;
+            }
+            bool result = SetHgmExclusiveScreen(optScreenId);
             if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
             }

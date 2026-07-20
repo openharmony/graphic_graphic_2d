@@ -366,13 +366,13 @@ void HgmContext::NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
     });
 }
 
-bool HgmContext::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
+bool HgmContext::SetHgmExclusiveScreen(ScreenId screenId)
 {
     if (frameRateManager_ == nullptr) {
         RS_LOGD("%{public}s frameRateManager is nullptr", __func__);
         return false;
     }
-    frameRateManager_->HandleControlScreenRefreshRate(openStatus, ltpoScreenID);
+    frameRateManager_->HandleSetHgmExclusiveScreen(screenId);
     return true;
 }
 

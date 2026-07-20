@@ -4410,34 +4410,31 @@ void RSClientToServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& e
     }
 }
 
-bool RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
+bool RSClientToServiceConnectionProxy::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("SetHgmExclusiveScreen: WriteInterfaceToken GetDescriptor err.");
         return false;
     }
-    if (!data.WriteBool(openStatus)) {
-        ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteBool openStatus err.");
-        return false;
-    }
-    if (!data.WriteUint64(ltpoScreenID)) {
-        ROSEN_LOGE("NotifyControlScreenRefreshRate: WriteUint64 ltpoScreenID err.");
+    ScreenId id = screenId.value_or(INVALID_SCREEN_ID);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetHgmExclusiveScreen: WriteUint64 screenId err.");
         return false;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_CONTROL_SCREEN_REFRESH_RATE);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate: Send Request err.");
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Send Request err.");
         return false;
     }
     bool result { false };
     if (!reply.ReadBool(result)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::NotifyControlScreenRefreshRate: Read result failed");
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Read result failed");
         return false;
     }
     return result;

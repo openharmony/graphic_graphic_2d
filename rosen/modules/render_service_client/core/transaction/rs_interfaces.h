@@ -1165,12 +1165,11 @@ public:
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
     /**
-     * @brief Notify control screen refresh rate.
-     * @param openStatus whether the control screen refresh rate is open.
-     * @param ltpoScreenID the screen id of the LTPO control screen.
+     * @brief Set HGM exclusive screen.
+     * @param screenId the exclusive screen id, nullopt to disable exclusive mode.
      * @return return true on success, return false on failure.
      */
-    bool NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId);
 
     /*
     * @brief Support setting softVsync frame rate through windowId.

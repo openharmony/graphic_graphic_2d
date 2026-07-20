@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <mutex>
+#include <optional>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -333,7 +334,7 @@ private:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    bool NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID) override;
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId) override;
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) override;
 

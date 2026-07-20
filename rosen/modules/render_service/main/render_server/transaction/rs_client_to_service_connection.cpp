@@ -1825,13 +1825,13 @@ void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventI
     }
 }
 
-bool RSClientToServiceConnection::NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
+bool RSClientToServiceConnection::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
 {
     if (hgmContext_ == nullptr) {
         RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return false;
     }
-    return hgmContext_->NotifyControlScreenRefreshRate(openStatus, ltpoScreenID);
+    return hgmContext_->SetHgmExclusiveScreen(screenId.value_or(INVALID_SCREEN_ID));
 }
 
 

@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <refbase.h>
 #include "common/rs_common_def.h"
@@ -350,7 +351,7 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
-    bool NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId);
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
 

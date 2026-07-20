@@ -806,11 +806,10 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
     }
 }
 
-void HgmFrameRateManager::HandleControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID)
+void HgmFrameRateManager::HandleSetHgmExclusiveScreen(ScreenId screenId)
 {
-    controlScreenOpenStatus_.store(openStatus);
-    controlScreenId_.store(openStatus ? ltpoScreenID : INVALID_SCREEN_ID);
-    HGM_LOGI("openStatus:%{public}d ltpoScreenID:" PUBU64, openStatus, ltpoScreenID);
+    controlScreenId_.store(screenId);
+    HGM_LOGI("screenId:" PUBU64, screenId);
 }
 
 void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType)

@@ -66,7 +66,7 @@ public:
 
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent);
     void NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
-    bool NotifyControlScreenRefreshRate(bool openStatus, ScreenId ltpoScreenID);
+    bool SetHgmExclusiveScreen(ScreenId screenId);
     ErrCode NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus);
     ErrCode NotifyAppStrategyConfigChangeEvent(pid_t pid, const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig);
