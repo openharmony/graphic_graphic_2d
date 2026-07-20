@@ -33,6 +33,7 @@
 #include "common/rs_singleton.h"
 #include "common/rs_special_layer_manager.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "effect/shader_effect.h"
 #include "engine/rs_base_render_engine.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -110,6 +111,47 @@ std::string RectVectorToString(const std::vector<RectI>& regionRects)
     return results;
 }
 } // namespace
+
+void DrawEdgeGradientStrip(RSPaintFilterCanvas& canvas, float left, float top, float right, float bottom,
+    float gradStartY, float gradEndY)
+{
+    if (top >= bottom) {
+        return;
+    }
+    std::vector<Drawing::ColorQuad> colors = { Drawing::Color::ColorQuadSetARGB(0, 0, 0, 0),
+        Drawing::Color::ColorQuadSetARGB(255, 0, 0, 0) };
+    std::vector<Drawing::scalar> positions = { 0.0f, 1.0f };
+    auto shader = Drawing::ShaderEffect::CreateLinearGradient(Drawing::Point(0.0f, gradStartY),
+        Drawing::Point(0.0f, gradEndY), colors, positions, Drawing::TileMode::CLAMP, nullptr);
+    if (shader == nullptr) {
+        return;
+    }
+    Drawing::Brush brush;
+    brush.SetShaderEffect(shader);
+    brush.SetBlendMode(Drawing::BlendMode::SRC);
+    canvas.AttachBrush(brush);
+    canvas.DrawRect(Drawing::Rect(left, top, right, bottom));
+    canvas.DetachBrush();
+}
+
+void DrawVerticalEdgeGradients(RSPaintFilterCanvas& canvas, const RectI& activeRect, int32_t canvasWidth,
+    int32_t canvasHeight)
+{
+    if (activeRect.IsEmpty() || canvasWidth <= 0 || canvasHeight <= 0) {
+        return;
+    }
+    RS_TRACE_FUNC();
+    float left = static_cast<float>(activeRect.GetLeft());
+    float right = static_cast<float>(activeRect.GetRight());
+    float gradientWidth = static_cast<float>(EDGE_GRADIENT_STRIP_WIDTH);
+    float bottomEdgeY = static_cast<float>(activeRect.GetBottom());
+    DrawEdgeGradientStrip(canvas, left, bottomEdgeY, right,
+        std::min(bottomEdgeY + gradientWidth, static_cast<float>(canvasHeight)), bottomEdgeY,
+        bottomEdgeY + gradientWidth);
+    float topEdgeY = static_cast<float>(activeRect.GetTop());
+    DrawEdgeGradientStrip(canvas, left, std::max(topEdgeY - gradientWidth, 0.0f), right, topEdgeY,
+        topEdgeY, topEdgeY - gradientWidth);
+}
 
 void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
     const RSScreenProperty& screenProperty)
@@ -741,6 +783,13 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         params->SetNewPixelFormat(RSBaseHdrUtil::GetRGBA1010108Enabled() && params->GetExistHWCNode() ?
             GRAPHIC_PIXEL_FMT_RGBA_1010108 : nonRGBA1010108Fmt);
     }
+
+    bool isSpecialFoldNonFullScreen = RSSystemProperties::IsSpecialFoldDisplay() && screenInfo.id == 0 &&
+        screenInfo.activeRect != RectI(0, 0, screenInfo.width, screenInfo.height);
+    if (isSpecialFoldNonFullScreen && RSBaseHdrUtil::GetRGBA1010108Enabled() &&
+        params->GetNewPixelFormat() == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
+        params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010108);
+    }
     // hpae_offline: post offline task
     CheckAndPostAsyncProcessOfflineTask();
 #if defined(ROSEN_OHOS)
@@ -893,18 +942,30 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #endif
             auto dirtyManager = GetSyncDirtyManager();
             const auto& activeRect = dirtyManager->GetActiveSurfaceRect();
+            bool isSpecialFoldDisplay = RSSystemProperties::IsSpecialFoldDisplay() && paramScreenId == 0;
             if (!activeRect.IsEmpty() && (!dirtyManager->GetDirtyRegion().IsInsideOf(activeRect) ||
                                           !uniParam->IsPartialRenderEnabled() || uniParam->IsRegionDebugEnabled())) {
                 RS_TRACE_NAME_FMT("global dirty region:[%s] is not inside of active surface rect:[%s], "
                                   "clear extra area to black",
                     dirtyManager->GetDirtyRegion().ToString().c_str(), activeRect.ToString().c_str());
                 curCanvas_->Save();
-                auto activeRegion =
-                    RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(Occlusion::Region(activeRect), screenInfo);
-                curCanvas_->ClipRegion(RSUniDirtyComputeUtil::GetFlippedRegion(activeRegion, screenInfo),
+                RectI clearExcludeRect = activeRect;
+                if (isSpecialFoldDisplay) {
+                    int32_t expandedTop = std::max(0, activeRect.top_ - EDGE_GRADIENT_STRIP_WIDTH);
+                    int32_t expandedBottom = std::min(static_cast<int32_t>(screenInfo.height),
+                        activeRect.GetBottom() + EDGE_GRADIENT_STRIP_WIDTH);
+                    clearExcludeRect = RectI(activeRect.left_, expandedTop,
+                        activeRect.width_, expandedBottom - expandedTop);
+                }
+                auto clearRegion =
+                    RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(Occlusion::Region(clearExcludeRect), screenInfo);
+                curCanvas_->ClipRegion(RSUniDirtyComputeUtil::GetFlippedRegion(clearRegion, screenInfo),
                     Drawing::ClipOp::DIFFERENCE);
                 curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
                 curCanvas_->Restore();
+            }
+            if (isSpecialFoldDisplay) {
+                DrawVerticalEdgeGradients(*curCanvas_, activeRect, curCanvas_->GetWidth(), curCanvas_->GetHeight());
             }
         }
 
@@ -978,7 +1039,15 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                                                                                  : damageRegionrects);
         }
     } else {
-        SetDirtyRects({ GetSyncDirtyManager()->GetRectFlipWithinSurface(activeRect) });
+        RectI dirtyRect = activeRect;
+        if (RSSystemProperties::IsSpecialFoldDisplay() && paramScreenId == 0) {
+            int32_t expandedTop = std::max(0, activeRect.top_ - EDGE_GRADIENT_STRIP_WIDTH);
+            int32_t expandedBottom = std::min(static_cast<int32_t>(screenInfo.height),
+                activeRect.GetBottom() + EDGE_GRADIENT_STRIP_WIDTH);
+            dirtyRect = RectI(activeRect.left_, expandedTop,
+                activeRect.width_, expandedBottom - expandedTop);
+        }
+        SetDirtyRects({ GetSyncDirtyManager()->GetRectFlipWithinSurface(dirtyRect) });
     }
     processor->ProcessScreenSurfaceForRenderThread(*this);
     processor->PostProcess();

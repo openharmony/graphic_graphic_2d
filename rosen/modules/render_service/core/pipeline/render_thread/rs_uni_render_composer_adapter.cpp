@@ -113,8 +113,18 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSScreenRen
         static_cast<int32_t>(screenInfo_.GetRotatedPhyHeight())};
 #ifndef ROSEN_EMULATOR
     if (activeRect.width_ > 0 && activeRect.height_ > 0) {
-        info.srcRect = GraphicIRect {activeRect.left_, activeRect.top_, activeRect.width_, activeRect.height_};
-        info.dstRect = GraphicIRect {activeRect.left_, activeRect.top_, activeRect.width_, activeRect.height_};
+        RectI composeRect = activeRect;
+        if (RSSystemProperties::IsSpecialFoldDisplay() && params->GetScreenInfo().id == 0) {
+            int32_t expandedTop = std::max(0, activeRect.top_ - EDGE_GRADIENT_STRIP_WIDTH);
+            int32_t expandedBottom = std::min(static_cast<int32_t>(buffer->GetSurfaceBufferHeight()),
+                activeRect.GetBottom() + EDGE_GRADIENT_STRIP_WIDTH);
+            composeRect = RectI(activeRect.left_, expandedTop,
+                activeRect.width_, expandedBottom - expandedTop);
+        }
+        info.srcRect = GraphicIRect {composeRect.left_, composeRect.top_,
+            composeRect.width_, composeRect.height_};
+        info.dstRect = GraphicIRect {composeRect.left_, composeRect.top_,
+            composeRect.width_, composeRect.height_};
     }
 #endif
     auto bound = params->GetBounds();

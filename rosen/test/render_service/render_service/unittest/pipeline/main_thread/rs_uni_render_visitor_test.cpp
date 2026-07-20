@@ -22,6 +22,7 @@
 #include "pipeline/mock/mock_matrix.h"
 #include "pipeline/rs_test_util.h"
 #include "system/rs_system_parameters.h"
+#include "syspara/parameters.h"
 
 #include "consumer_surface.h"
 #include "draw/color.h"
@@ -7737,6 +7738,40 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateTopLayersDirtyStatusTest, TestSize.Level2
     auto surfaceHandler1 = surfaceNode->GetMutableRSSurfaceHandler();
     ASSERT_NE(surfaceHandler1, nullptr);
     EXPECT_EQ(surfaceHandler1->GetGlobalZOrder(), 2);
+}
+
+/*
+ * @tc.name: ResetDisplayDirtyRegionSpecialFoldDisplay
+ * @tc.desc: Test ResetDisplayDirtyRegion expands dirty region for special-fold display (id 0)
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetDisplayDirtyRegionSpecialFoldDisplay, TestSize.Level2)
+{
+    // IsSpecialFoldDisplay() caches a static on first call; set the parameter before the first call.
+    std::string origFoldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    rsUniRenderVisitor->curScreenDirtyManager_->surfaceRect_ = RectI(50, 100, 1920, 800); // bottom 900
+    rsUniRenderVisitor->curScreenDirtyManager_->activeSurfaceRect_ = RectI();
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    // Set activeRect and screen height so the expansion ligic can compute the gradient strip region
+    auto activeRectProp = new ScreenProperty<activeRectValType>(
+        activeRectValType(RectI(50, 100, 1920, 800), RectI(), RectI()));
+    rsUniRenderVisitor->curScreenNode_->UpdateScreenProperty(
+        ScreenPropertyType::ACTIVE_RECT_OPTION, activeRectProp);
+    auto resolutionProp = new ScreenProperty<resolutionValType>(resolutionValType(1920, 900));
+    rsUniRenderVisitor->curScreenNode_->UpdateScreenProperty(
+        ScreenPropertyType::RENDER_RESOLUTION, resolutionProp);
+    rsUniRenderVisitor->zoomStateChange_ = true; // force the ret guard true
+    rsUniRenderVisitor->ResetDisplayDirtyRegion();
+    // EDGE_GRADIENT_WIDTH=200: expandedTop=max(0,100-200)=0; expandedBottom=min(900,900+200)=900
+    EXPECT_EQ(rsUniRenderVisitor->curScreenDirtyManager_->GetCurrentFrameDirtyRegion(),
+        RectI(50, 0, 1920, 900));
+    system::SetParameter("const.window.foldscreen.type", origFoldType);
 }
 
 /*
