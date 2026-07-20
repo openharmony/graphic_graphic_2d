@@ -1139,7 +1139,7 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding004, TestSize.Level1)
     Drawing::Matrix matrix;
     matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
     matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_2, 1.f);
     matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
     matrix.Set(Drawing::Matrix::SKEW_X, 1.f);
     matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
@@ -1172,7 +1172,7 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding005, TestSize.Level1)
     Drawing::Matrix matrix;
     matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
     matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_2, 1.f);
     matrix.Set(Drawing::Matrix::SCALE_X, -1.f);
     matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
     matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
@@ -1205,7 +1205,7 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding006, TestSize.Level1)
     Drawing::Matrix matrix;
     matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
     matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_2, 1.f);
     matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
     matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
     matrix.Set(Drawing::Matrix::SKEW_Y, 1.f);
@@ -1238,7 +1238,7 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding007, TestSize.Level1)
     Drawing::Matrix matrix;
     matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
     matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_2, 1.f);
     matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
     matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
     matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
