@@ -122,6 +122,7 @@ HWTEST(RSLayerMarshallingHelperTest, CmdType_Unmarshall_Success, TestSize.Level1
     EXPECT_EQ(ty, RSLayerCmdType::ZORDER);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * Function: CmdPtr_Unmarshall_Success
  * Type: Function
@@ -146,4 +147,5 @@ HWTEST(RSLayerMarshallingHelperTest, CmdPtr_Unmarshall_Success, TestSize.Level1)
     ASSERT_NE(outProp, nullptr);
     EXPECT_EQ(outProp->Get(), 9);
 }
+#endif
 } // namespace OHOS::Rosen
