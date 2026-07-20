@@ -126,6 +126,7 @@ template("colorspacemanager_napi_source_set") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
+    branch_protector_ret = "pac_ret"
     sources = [
       "colorspacemanager_napi/color_space_manager_module.cpp",
       "colorspacemanager_napi/js_color_space_manager.cpp",
@@ -174,6 +175,7 @@ template("sendablecolorspacemanager_napi_source_set") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
+    branch_protector_ret = "pac_ret"
     sources = [
       "sendable_colorspacemanager_napi/js_sendable_color_space_manager.cpp",
       "sendable_colorspacemanager_napi/sendable_color_space_manager_module.cpp",
@@ -214,6 +216,8 @@ sendablecolorspacemanager_napi_source_set(
 
 if (current_os == "ohos") {
   ohos_shared_library("colorspacemanager_napi") {
+    branch_protector_ret = "pac_ret"
+
     public_deps = [ ":colorspacemanager_napi_source" ]
     deps = [
       ":color_space_object_convertor",
@@ -224,6 +228,7 @@ if (current_os == "ohos") {
     subsystem_name = "graphic"
   }
   ohos_shared_library("sendablecolorspacemanager_napi") {
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
