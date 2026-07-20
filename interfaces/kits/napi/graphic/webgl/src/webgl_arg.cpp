@@ -799,7 +799,6 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
     }
     return GL_NO_ERROR;
 }
-}
 
 WebGLReadBufferArg *WebGLImageSource::GetWebGLReadBuffer() const
 {
