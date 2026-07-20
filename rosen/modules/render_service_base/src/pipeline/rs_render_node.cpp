@@ -679,8 +679,10 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         if (instanceRootNode) {
             auto appWindow = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
             if (appWindow && appWindow->IsAppWindow()) {
-                stagingRenderParams_->SetInstanceRootNodeId(appWindow->GetId());
-                stagingRenderParams_->SetInstanceRootNodeName(appWindow->GetName());
+                if (stagingRenderParams_) {
+                    stagingRenderParams_->SetInstanceRootNodeId(appWindow->GetId());
+                    stagingRenderParams_->SetInstanceRootNodeName(appWindow->GetName());
+                }
             }
         }
     } else {
@@ -3804,6 +3806,9 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
 void RSRenderNode::ExcludedFromNodeGroup(bool isExcluded)
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return;
+    }
     if (stagingRenderParams_->ExcludedFromNodeGroup(isExcluded)) {
         RS_TRACE_NAME_FMT("ExcludedFromNodeGroup id:%llu isExcluded:%d", GetId(), isExcluded);
         SetDirty();
@@ -3814,6 +3819,9 @@ void RSRenderNode::ExcludedFromNodeGroup(bool isExcluded)
 bool RSRenderNode::IsExcludedFromNodeGroup() const
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return false;
+    }
     return stagingRenderParams_->IsExcludedFromNodeGroup();
 #endif
     return false;
@@ -3822,6 +3830,9 @@ bool RSRenderNode::IsExcludedFromNodeGroup() const
 void RSRenderNode::SetHasChildExcludedFromNodeGroup(bool isExcluded)
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return;
+    }
     stagingRenderParams_->SetHasChildExcludedFromNodeGroup(isExcluded);
 #endif
 }
@@ -3829,6 +3840,9 @@ void RSRenderNode::SetHasChildExcludedFromNodeGroup(bool isExcluded)
 bool RSRenderNode::HasChildExcludedFromNodeGroup() const
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return false;
+    }
     return stagingRenderParams_->HasChildExcludedFromNodeGroup();
 #endif
     return false;
@@ -3837,6 +3851,9 @@ bool RSRenderNode::HasChildExcludedFromNodeGroup() const
 void RSRenderNode::SetRenderGroupExcludedStateChanged(bool isChanged)
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return;
+    }
     stagingRenderParams_->SetRenderGroupExcludedStateChanged(isChanged);
 #endif
 }
@@ -3844,6 +3861,9 @@ void RSRenderNode::SetRenderGroupExcludedStateChanged(bool isChanged)
 bool RSRenderNode::IsRenderGroupExcludedStateChanged() const
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return false;
+    }
     return stagingRenderParams_->IsRenderGroupExcludedStateChanged();
 #endif
     return false;
@@ -3852,6 +3872,9 @@ bool RSRenderNode::IsRenderGroupExcludedStateChanged() const
 void RSRenderNode::SetRenderGroupSubTreeDirty(bool isDirty)
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return;
+    }
     stagingRenderParams_->SetRenderGroupSubTreeDirty(isDirty);
 #endif
 }
@@ -3859,6 +3882,9 @@ void RSRenderNode::SetRenderGroupSubTreeDirty(bool isDirty)
 bool RSRenderNode::IsRenderGroupSubTreeDirty() const
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return false;
+    }
     return stagingRenderParams_->IsRenderGroupSubTreeDirty();
 #endif
     return false;
@@ -3867,6 +3893,9 @@ bool RSRenderNode::IsRenderGroupSubTreeDirty() const
 void RSRenderNode::SetChildHasTranslateOnSqueeze(bool val)
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return;
+    }
     stagingRenderParams_->SetChildHasTranslateOnSqueeze(val);
 #endif
 }
@@ -3874,27 +3903,42 @@ void RSRenderNode::SetChildHasTranslateOnSqueeze(bool val)
 void RSRenderNode::SetNodeGroupHasChildInBlacklist(bool inBlacklist)
 {
 #ifdef RS_ENABLE_GPU
+    if (!stagingRenderParams_) {
+        return;
+    }
     stagingRenderParams_->SetNodeGroupHasChildInBlacklist(inBlacklist);
 #endif
 }
 
 void RSRenderNode::SetNeedClearRenderGroupCache(bool needClear)
 {
+    if (!stagingRenderParams_) {
+        return;
+    }
     stagingRenderParams_->SetNeedClearRenderGroupCache(needClear);
 }
 
 bool RSRenderNode::NeedClearRenderGroupCache() const
 {
+    if (!stagingRenderParams_) {
+        return false;
+    }
     return stagingRenderParams_->NeedClearRenderGroupCache();
 }
 
 void RSRenderNode::SetRenderGroupIncludeProperty(bool includeProperty)
 {
+    if (!stagingRenderParams_) {
+        return;
+    }
     stagingRenderParams_->SetRenderGroupIncludeProperty(includeProperty);
 }
 
 bool RSRenderNode::IsRenderGroupIncludeProperty() const
 {
+    if (!stagingRenderParams_) {
+        return false;
+    }
     return stagingRenderParams_->IsRenderGroupIncludeProperty();
 }
 

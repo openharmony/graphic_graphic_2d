@@ -242,11 +242,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
-{
-    return {};
-}
-
 ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 {
     return {};

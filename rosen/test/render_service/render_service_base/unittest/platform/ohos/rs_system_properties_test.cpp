@@ -496,17 +496,6 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetPrepareParallelRenderingEnabled
- * @tc.desc: GetPrepareParallelRenderingEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetPrepareParallelRenderingEnabled, TestSize.Level1)
-{
-    ASSERT_EQ(RSSystemProperties::GetPrepareParallelRenderingEnabled(), ParallelRenderingType::DISABLE);
-}
-
-/**
  * @tc.name: GetParallelRenderingEnabled
  * @tc.desc: GetParallelRenderingEnabled Test
  * @tc.type:FUNC

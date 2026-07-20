@@ -126,8 +126,12 @@ bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displa
         ROSEN_LOGE("RSRenderPipelineClient::CreateNode clientToRenderConnection_ nullptr");
         return false;
     }
-    bool success;
-    clientToRenderConnection->CreateDisplayNode(displayNodeConfig, nodeId, success);
+    bool success = false;
+    ErrCode err = clientToRenderConnection->CreateDisplayNode(displayNodeConfig, nodeId, success);
+    if (err != ERR_OK) {
+        ROSEN_LOGE("RSRenderPipelineClient::CreateDisplayNode failed, err:%{public}d", err);
+        return false;
+    }
     return success;
 }
 
@@ -138,8 +142,12 @@ bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
         ROSEN_LOGE("RSRenderPipelineClient::CreateNode clientToRenderConnection_ nullptr");
         return false;
     }
-    bool success;
-    clientToRenderConnection->CreateNode(config, success);
+    bool success = false;
+    ErrCode err = clientToRenderConnection->CreateNode(config, success);
+    if (err != ERR_OK) {
+        ROSEN_LOGE("RSRenderPipelineClient::CreateNode failed, err:%{public}d", err);
+        return false;
+    }
     return success;
 }
 

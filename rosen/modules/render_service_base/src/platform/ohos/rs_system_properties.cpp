@@ -608,13 +608,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_.load();
 }
 
-ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
-{
-    static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
-        std::atoi((system::GetParameter("persist.rosen.prepareparallelrender.enabled", "1")).c_str()));
-    return systemPropertiePrepareType;
-}
-
 ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertieType = static_cast<ParallelRenderingType>(
