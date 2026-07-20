@@ -209,30 +209,34 @@ void BootAnimationOperation::PlaySound(const std::string& path)
 bool BootAnimationOperation::InitRsSurface()
 {
     LOGI("InitRsSurface start");
+    bool initState = false;
     if (!rsSurfaceNode_) {
         LOGE("rsSurfaceNode_ is nullptr, InitRsSurfaceNode may have failed");
-        return false;
+        return initState;
     }
     rsSurface_ = OHOS::Rosen::RSSurfaceExtractor::ExtractRSSurface(rsSurfaceNode_);
     if (rsSurface_ == nullptr) {
         LOGE("rsSurface is nullptr");
-        return false;
+        return initState;
     }
-#ifdef ACE_ENABLE_GL
-    LOGI("init egl context start");
-    if (Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::OPENGL) {
-        auto rc = OHOS::Rosen::RenderContext::Create();
-        if (rc == nullptr) {
-            LOGE("init egl context failed");
-            return false;
-        } else {
-            LOGI("init egl context success");
-            rc->Init();
-            rsSurface_->SetRenderContext(rc);
-        }
+
+#if defined(ACE_ENABLE_GL) || defined(ACE_ENABLE_VK)
+    auto gpuApiType = Rosen::RSSystemProperties::GetGpuApiType();
+    LOGI("Init render context start: gpuApiType=%{public}d", gpuApiType);
+
+    switch (gpuApiType) {
+        case OHOS::Rosen::GpuApiType::OPENGL:
+            initState = InitRsGlCtx();
+            break;
+        case OHOS::Rosen::GpuApiType::VULKAN:
+            initState = InitRsVulkanCtx();
+            break;
+        default:
+            break;
     }
-#endif // ACE_ENABLE_GL
-    return true;
+#endif // ACE_ENABLE_GL & ACE_ENABLE_VK
+    LOGI("InitRsSurface end: initState=%{public}d", initState);
+    return initState;
 }
 
 bool BootAnimationOperation::IsBootVideoEnabled(const BootAnimationConfig& config)
@@ -254,4 +258,49 @@ void BootAnimationOperation::StopBootAnimation()
     runner_->Stop();
     LOGI("runner has called stop.");
     mainHandler_ = nullptr;
+}
+
+bool BootAnimationOperation::InitRsGlCtx()
+{
+    LOGI("init egl context start");
+    if (Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::OPENGL) {
+        auto rc = OHOS::Rosen::RenderContext::Create();
+        if (rc == nullptr) {
+            LOGE("init egl context failed");
+            return false;
+        } else {
+            LOGI("init egl context success");
+            rc->Init();
+            rsSurface_->SetRenderContext(rc);
+        }
+    }
+
+    return true;
+}
+
+bool BootAnimationOperation::InitRsVulkanCtx()
+{
+    LOGI("init vulkan context start");
+    if (Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN) {
+        auto rc = OHOS::Rosen::RenderContext::Create();
+        if (rc == nullptr) {
+            LOGE("init vulkan context failed");
+            return false;
+        } else {
+            rc->Init();
+            //Init gpu context
+            rc->SetUpGpuContext();
+            auto gpuContext = rc->GetSharedDrGPUContext();
+            if (gpuContext == nullptr) {
+                LOGE("get vulkan gpu context failed");
+                return false;
+            }
+
+            rsSurface_->SetSkContext(gpuContext);
+            rsSurface_->SetRenderContext(rc);
+            LOGI("init vulkan context success");
+        }
+    }
+
+    return true;
 }
