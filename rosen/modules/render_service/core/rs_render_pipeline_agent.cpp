@@ -1494,6 +1494,7 @@ void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& p
     if (!pipeline) {
         return;
     }
+    pipeline->GetMainThread()->NotifyPackageEvent(packageList);
     pipeline->PostMainThreadTask([renderPipeline = pipeline, packageList] {
         renderPipeline->GetMainThread()->CheckPackageInConfigList(packageList);
         renderPipeline->imageEnhanceManager_->CheckPackageInConfigList(packageList);
