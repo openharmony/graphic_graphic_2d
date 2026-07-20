@@ -29,6 +29,13 @@ config("socketpair_public_config") {
 }
 
 ohos_shared_library("socketpair") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [ "src/local_socketpair.cpp" ]
 
   configs = [ ":socketpair_config" ]
