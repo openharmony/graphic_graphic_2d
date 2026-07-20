@@ -958,7 +958,7 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
     }
 
     const auto parcelPosition = parcel.GetReadPosition();
-    if (map && !PixelMap::ReadMemInfoFromParcel(parcel, memory, error, readSafeFdFunc)) {
+    if (map && !PixelMap::ReadMemInfoFromParcel(parcel, info, memory, error, readSafeFdFunc)) {
         delete map;
         map = nullptr;
         return nullptr;

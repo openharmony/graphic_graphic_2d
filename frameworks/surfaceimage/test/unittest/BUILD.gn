@@ -49,6 +49,8 @@ ohos_unittest("native_image_test") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "graphic_surface:surface",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 

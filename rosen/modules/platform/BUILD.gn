@@ -43,6 +43,7 @@ config("eventhandler_config") {
 }
 
 ohos_source_set("impl_eventhandler") {
+  branch_protector_ret = "pac_ret"
   public_configs = [ ":eventhandler_config" ]
   sources = [
     "eventhandler_impl/epoll_io_waiter_mingw.cpp",
@@ -75,6 +76,7 @@ ohos_source_set("impl_eventhandler") {
 
 # hilog {{{
 ohos_source_set("hilog") {
+  branch_protector_ret = "pac_ret"
   if (current_os == "android" || current_os == "ios") {
     public_deps = hilog_deps
   } else {
@@ -104,6 +106,7 @@ config("image_native_config") {
 }
 
 ohos_source_set("mock_image_native") {
+  branch_protector_ret = "pac_ret"
   public_configs = [ ":image_native_config" ]
   sources = [ "image_native/pixel_map.cpp" ]
   deps = [ ":utils" ]
@@ -130,6 +133,7 @@ config("ipc_core_config") {
 }
 
 ohos_source_set("mock_ipc_core") {
+  branch_protector_ret = "pac_ret"
   public_configs = [ ":ipc_core_config" ]
   sources = [
     "ipc_core/ipc_object_stub.cpp",
@@ -175,6 +179,7 @@ config("ios_utils_config") {
 }
 
 ohos_source_set("mock_utils") {
+  branch_protector_ret = "pac_ret"
   public_external_deps = []
   if (current_os == "ios") {
     public_configs = [ ":ios_utils_config" ]

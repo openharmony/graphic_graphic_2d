@@ -64,6 +64,7 @@
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
@@ -951,6 +952,96 @@ void RSMainThread::OnScreenDisconnected(ScreenId screenId)
     DestroyScreenNode(screenId);
 }
 
+std::shared_ptr<RSProtectiveSolidRenderNode> RSMainThread::CreateProtectiveSolidRenderNode(ScreenId screenId)
+{
+    auto& nodeMap = context_->GetMutableNodeMap();
+    auto it = protectiveSolidNodeIdMap_.find(screenId);
+    if (it != protectiveSolidNodeIdMap_.end()) {
+        auto existingNode = nodeMap.GetRenderNode<RSProtectiveSolidRenderNode>(it->second);
+        if (existingNode) {
+            RS_TRACE_NAME_FMT("The ProtectiveSolidRenderNode has created, ScreenId[%" PRIu64 "], NodeId:%llu", screenId,
+                existingNode->GetId());
+            RS_LOGI("%{public}s, the ProtectiveSolidRenderNode has created, ScreenId[%{public}" PRIu64 "], "
+                "NodeId[%{public}" PRIu64 "]", __func__, screenId, existingNode->GetId());
+            return existingNode;
+        }
+    }
+    auto node =
+        std::make_shared<RSProtectiveSolidRenderNode>(GenerateUniqueNodeIdForRS(), context_->weak_from_this());
+    RS_TRACE_NAME_FMT("CreateProtectiveSolidRenderNode ScreenId[%" PRIu64"], NodeId:%llu", screenId, node->GetId());
+    RS_LOGI("%{public}s, ScreenId[%{public}" PRIu64 "], NodeId[%{public}" PRIu64 "]",
+        __func__, screenId, node->GetId());
+    nodeMap.RegisterRenderNode(node);
+    nodeMap.TraverseScreenNodes([screenId, node](const std::shared_ptr<RSScreenRenderNode>& screenNode) {
+        if (screenNode && screenNode->GetScreenId() == screenId) {
+            screenNode->AddChild(node, 0);
+        }
+    });
+    protectiveSolidNodeIdMap_[screenId] = node->GetId();
+    return node;
+}
+
+void RSMainThread::DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId)
+{
+    RS_TRACE_NAME_FMT("DestroyProtectiveSolidRenderNode ScreenId[%" PRIu64 "], NodeId:%llu", screenId, nodeId);
+    RS_LOGI("%{public}s, ScreenId[%{public}" PRIu64 "], NodeId[%{public}" PRIu64 "]", __func__, screenId, nodeId);
+    if (nodeId == INVALID_NODEID) {
+        return;
+    }
+    std::shared_ptr<RSProtectiveSolidRenderNode> protectiveSolidNode = nullptr;
+    std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+    auto& nodeMap = context_->GetMutableNodeMap();
+    nodeMap.TraverseProtectiveSolidNodes(
+        [nodeId, &protectiveSolidNode](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+            if (surfaceNode && surfaceNode->GetId() == nodeId) {
+                protectiveSolidNode = surfaceNode->ReinterpretCastTo<RSProtectiveSolidRenderNode>();
+            }
+        });
+    if (protectiveSolidNode == nullptr) {
+        return;
+    }
+    nodeMap.TraverseScreenNodes([screenId, &screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (node && node->GetScreenId() == screenId) {
+            screenNode = node;
+        }
+    });
+    if (screenNode == nullptr) {
+        return;
+    }
+    screenNode->RemoveChild(protectiveSolidNode);
+    nodeMap.UnregisterRenderNode(protectiveSolidNode->GetId());
+}
+
+void RSMainThread::HandleActiveRectOption(ScreenId id, const sptr<ScreenPropertyBase>& property)
+{
+    auto activeRectProperty = static_cast<ScreenProperty<activeRectValType>*>(property.GetRefPtr());
+    if (!activeRectProperty) {
+        return;
+    }
+    if (!RSSystemProperties::IsSpecialFoldDisplay() || id != 0) {
+        return;
+    }
+    auto activeRect = std::get<0>(activeRectProperty->Get());
+    auto cfg = std::find_if(std::begin(PROTECTIVE_SOLID_CONFIGS), std::end(PROTECTIVE_SOLID_CONFIGS),
+        [&activeRect](const auto& entry) { return entry.rect == activeRect; });
+    if (cfg != std::end(PROTECTIVE_SOLID_CONFIGS)) {
+        auto node = CreateProtectiveSolidRenderNode(id);
+        node->GetMutableRenderProperties().SetBounds(cfg->bounds);
+        auto bounds = node->GetRenderProperties().GetBounds();
+        RS_TRACE_NAME_FMT("HandleActiveRectOption bounds[%f, %f, %f, %f] nodeId[%llu]",
+            bounds.x_, bounds.y_, bounds.z_, bounds.w_, node->GetId());
+        RS_LOGI("HandleActiveRectOption bounds[%{public}f, %{public}f, %{public}f, %{public}f]"
+            " nodeId[%{public}" PRIu64 "]",
+            bounds.x_, bounds.y_, bounds.z_, bounds.w_, node->GetId());
+    } else {
+        auto it = protectiveSolidNodeIdMap_.find(id);
+        if (it != protectiveSolidNodeIdMap_.end()) {
+            DestroyProtectiveSolidRenderNode(id, it->second);
+            protectiveSolidNodeIdMap_.erase(it);
+        }
+    }
+}
+
 void RSMainThread::OnScreenPropertyChanged(
     ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
 {
@@ -962,6 +1053,9 @@ void RSMainThread::OnScreenPropertyChanged(
     HandlePowerStatusChanged(id, type, property);
     HandlePhysicalModeParamsChanged(id, type, property);
     UpdateScreenProperty(id, type, property);
+    if (type == ScreenPropertyType::ACTIVE_RECT_OPTION) {
+        HandleActiveRectOption(id, property);
+    }
 }
 
 void RSMainThread::ReleaseImageMem()
@@ -2075,11 +2169,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         "buffer consumed and not HardwareEnabledType",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
-                if (surfaceHandler->GetSourceTypeChanged()) {
-                    doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                        "sourceType changed", surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                }
                 if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
 #ifdef RS_ENABLE_GPU
                     auto buffer = surfaceHandler->GetBuffer();
@@ -2322,6 +2411,18 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 isHardwareEnabledBufferUpdated_ = true;
             }
         });
+    nodeMap.TraverseProtectiveSolidNodes([this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (!surfaceNode) {
+            return;
+        }
+        auto node = std::static_pointer_cast<RSProtectiveSolidRenderNode>(surfaceNode);
+        if (!node) {
+            return;
+        }
+        protectiveSolidNodes_.emplace_back(node);
+        protectiveSolidDrawables_.emplace_back(std::make_tuple(node->GetScreenNodeId(),
+            node->GetLogicalDisplayNodeId(), node->GetRenderDrawable()));
+    });
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
 #endif
 }
@@ -2889,6 +2990,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
             renderThreadParams_->canvasDrawingSelfDrawables_ = std::move(canvasDrawingSelfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
+            renderThreadParams_->protectiveSolidDrawables_ = std::move(protectiveSolidDrawables_);
             renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
             RsFrameReport::DirectRenderEnd();
             return;
@@ -2960,13 +3062,13 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         renderThreadParams_->canvasDrawingSelfDrawables_ = std::move(canvasDrawingSelfDrawables_);
         renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
+        renderThreadParams_->protectiveSolidDrawables_ = std::move(protectiveSolidDrawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
         renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
         renderThreadParams_->powerOffRenderController_.SyncFrom(GetContext().GetPowerOffRenderController());
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
-        RSSpatialEffectManager::Instance()->PrepareSpatialEffectParams();
         lastWatermarkFlag_ = watermarkFlag_;
         lastWatermarkImg_ = watermarkImg_;
         isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
@@ -3211,6 +3313,13 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             screenNode->GetScreenProperty().GetWidth() * screenNode->GetScreenProperty().GetHeight());
         processor->ProcessScreenSurface(*screenNode);
         composerClientManager_->UpdatePipelineParam(screenId, pipelineParam_);
+        for (auto& node : protectiveSolidNodes_) {
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+            if (!surfaceParams) {
+                continue;
+            }
+            processor->CreateProtectiveSolidLayer(*node, *surfaceParams);
+        }
         processor->PostProcess();
     });
 #endif
@@ -3508,10 +3617,14 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
     OcclusionRectISet occlusionSurfaces;
     bool hasFilterCacheOcclusion = false;
     bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
-
+    bool hasAnimatedScenes = false;
+    {
+        std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
+        hasAnimatedScenes = !systemAnimatedScenesList_.empty();
+    }
     auto calculator = [this, &screenNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec,
-        &hasFilterCacheOcclusion, filterCacheOcclusionEnabled] (std::shared_ptr<RSSurfaceRenderNode>& curSurface,
-        bool needSetVisibleRegion) {
+        &hasFilterCacheOcclusion, filterCacheOcclusionEnabled, hasAnimatedScenes]
+        (std::shared_ptr<RSSurfaceRenderNode>& curSurface, bool needSetVisibleRegion) {
         if (!CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
             curSurface->SetVisibleRegionRecursive({}, curVisVec);
             return;
@@ -3523,7 +3636,7 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
             CalcSurfaceNodeVisibleRegion(screenNode, curSurface, accumulatedRegion, curRegion, totalRegion);
 
         curSurface->SetVisibleRegionRecursive(totalRegion, curVisVec, needSetVisibleRegion,
-            visibleLevel, !systemAnimatedScenesList_.empty());
+            visibleLevel, hasAnimatedScenes);
         curSurface->AccumulateOcclusionRegion(
             accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_, filterCacheOcclusionEnabled);
     };
@@ -3619,7 +3732,11 @@ void RSMainThread::CalcOcclusion()
             surface->CleanDirtyRegionUpdated();
         }
     }
-    bool needRefreshRates = systemAnimatedScenesList_.empty();
+    bool needRefreshRates = false;
+    {
+        std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
+        needRefreshRates = systemAnimatedScenesList_.empty();
+    }
     if (!winDirty && !needRefreshRates) {
         if (SurfaceOcclusionCallBackIfOnTreeStateChanged()) {
             SurfaceOcclusionCallback();
@@ -4982,7 +5099,7 @@ bool RSMainThread::CheckAdaptiveCompose()
         return false;
     }
     auto adaptiveStatus = hgmRenderContext_->AdaptiveStatus();
-    if (adaptiveStatus != SupportASStatus::SUPPORT_AS) {
+    if (!IsSupportSoftVsyncAS(adaptiveStatus)) {
         return false;
     }
     // in game adaptive sync mode and ignore animation scenario and mult-window scenario
@@ -5116,9 +5233,6 @@ void RSMainThread::RenderFrameStart(uint64_t timestamp)
 
 bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] threeFingerScenesListSize[%u] "
-        "systemAnimatedScenesListSize_[%u] isRegularAnimation_[%d]", __func__, systemAnimatedScenes,
-        systemAnimatedScenes_, threeFingerScenesList_.size(), systemAnimatedScenesList_.size(), isRegularAnimation);
     if (systemAnimatedScenes < SystemAnimatedScenes::ENTER_MISSION_CENTER ||
             systemAnimatedScenes > SystemAnimatedScenes::OTHERS) {
         RS_LOGD("SetSystemAnimatedScenes Out of range.");
@@ -5126,6 +5240,8 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
     }
     {
         std::lock_guard<std::mutex> lock(systemAndRegularMutex_);
+        RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] isRegularAnimation_[%d]",
+            __func__, systemAnimatedScenes, systemAnimatedScenes_, isRegularAnimation);
         systemAnimatedScenes_ = systemAnimatedScenes;
         isRegularAnimation_ = isRegularAnimation;
     }
@@ -5197,6 +5313,8 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hasSurfaceLockLayer_ = false;
         hardwareEnabledNodes_.clear();
         hardwareEnabledDrwawables_.clear();
+        protectiveSolidNodes_.clear();
+        protectiveSolidDrawables_.clear();
         ClearSelfDrawingNodes();
         selfDrawables_.clear();
         canvasDrawingSelfDrawables_.clear();

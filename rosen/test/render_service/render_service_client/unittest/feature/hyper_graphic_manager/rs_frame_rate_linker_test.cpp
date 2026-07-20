@@ -180,16 +180,4 @@ HWTEST_F(RSFrameRateLinkerTest, IsUniRenderEnabled, TestSize.Level1)
     frameRateLinker->IsUniRenderEnabled();
 }
 
-/**
- * @tc.name: InitUniRenderEnabled
- * @tc.desc: test results of InitUniRenderEnabled
- * @tc.type: FUNC
- * @tc.require: issueI9KDPI
- */
-HWTEST_F(RSFrameRateLinkerTest, InitUniRenderEnabled, TestSize.Level1)
-{
-    std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
-    ASSERT_NE(frameRateLinker, nullptr);
-    frameRateLinker->InitUniRenderEnabled();
-}
 } // namespace OHOS::Rosen

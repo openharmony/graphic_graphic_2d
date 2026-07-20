@@ -69,7 +69,7 @@ ohos_source_set("librender_composer") {
   }
   defines += gpu_defines
 
-  if (graphic_2d_feature_product != "wearable") {
+  if (graphic_2d_feature_enable_drm) {
     defines += [ "IS_ENABLE_DRM" ]
   }
 
@@ -112,6 +112,7 @@ ohos_source_set("librender_composer") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl/rs_composer_to_render_connection_stub.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_rcd_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_solid_filled_color_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_client_manager.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_client.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_context.cpp",
@@ -135,6 +136,7 @@ ohos_source_set("librender_composer") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline/rs_render_composer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer/rs_render_surface_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer/rs_render_surface_rcd_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer/rs_render_surface_solid_filled_color_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command/rs_layer_parcel_factory.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command/rs_layer_parcel.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command/rs_render_layer_cmd.cpp",
@@ -248,6 +250,8 @@ ohos_source_set("librender_composer") {
     "ipc:ipc_core",
     "qos_manager:concurrent_task_client",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (defined(global_parts_info) &&

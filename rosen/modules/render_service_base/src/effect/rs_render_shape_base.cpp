@@ -98,8 +98,8 @@ static std::unordered_map<RSNGEffectType, ShapeGetTransformRect> getTransformRec
             auto distortion = distortOp->Getter<OHOS::Rosen::SDFDistortOpShapeBarrelDistortionRenderTag>()->Get();
             float left = transformRect.GetLeft() + std::min(luCorner[0], lbCorner[0]) * transformRect.GetWidth();
             float top = transformRect.GetTop() + std::min(luCorner[1], ruCorner[1]) * transformRect.GetHeight();
-            float right = std::max(ruCorner[0], rbCorner[0]) * transformRect.GetWidth();
-            float bottom = std::max(lbCorner[1], rbCorner[1]) * transformRect.GetHeight();
+            float right = transformRect.GetLeft() + std::max(ruCorner[0], rbCorner[0]) * transformRect.GetWidth();
+            float bottom = transformRect.GetTop() + std::max(lbCorner[1], rbCorner[1]) * transformRect.GetHeight();
             float width = std::abs(right - left);
             float height = std::abs(bottom - top);
             constexpr float halfUV = 0.5f;
@@ -130,8 +130,27 @@ std::shared_ptr<RSNGRenderShapeBase> RSNGRenderShapeBase::Create(RSNGEffectType 
     return it != creatorLUT.end() ? it->second() : nullptr;
 }
 
+bool RSShapeRecursionGuard::ExceedsLimit() const
+{
+    if (Depth() > MAX_DEPTH) {
+        ROSEN_LOGE("RSShapeRecursionGuard: recursion depth exceeds limit(%{public}d)", MAX_DEPTH);
+        return true;
+    }
+    return false;
+}
+
+int32_t& RSShapeRecursionGuard::Depth()
+{
+    static thread_local int32_t depth = 0;
+    return depth;
+}
+
 [[nodiscard]] bool RSNGRenderShapeBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShapeBase>& val)
 {
+    RSShapeRecursionGuard guard;
+    if (guard.ExceedsLimit()) {
+        return false;
+    }
     std::shared_ptr<RSNGRenderShapeBase> head = nullptr;
     auto current = head;
     for (size_t effectCount = 0; effectCount < EFFECT_COUNT_LIMIT; ++effectCount) {

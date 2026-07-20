@@ -43,6 +43,7 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSUniHwcVisitor;
 class RSOcclusionHandler;
+class RSProtectiveSolidRenderNode;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     using SurfaceDirtyMgrPair = std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
@@ -58,6 +59,8 @@ public:
         RSLogicalDisplayRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
     void QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
+    void QuickPrepareProtectiveSolidRenderNode(RSProtectiveSolidRenderNode& node,
+        bool isParentPrepareInReverseOrder = false) override;
     void QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
     void QuickPrepareWindowKeyFrameRenderNode(
         RSWindowKeyFrameRenderNode& node, bool isParentPrepareInReverseOrder = false) override;

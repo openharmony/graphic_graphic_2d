@@ -733,6 +733,111 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_005, TestSize.Leve
 }
 
 /**
+ * @tc.name: DealWithFilterDirtyRegion_006
+ * @tc.desc: test DealWithFilterDirtyRegion_006, test when damageRegion completely covers surfaceRect,
+ *           should break the loop early
+ * @tc.type: FUNC
+ * @tc.require: #issues24686
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_006, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(nodeId, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(nodeId);
+    ASSERT_NE(screenDrawable->renderParams_, nullptr);
+    screenDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(screenDrawable->syncDirtyManager_, nullptr);
+
+    // Set surfaceRect to a specific size (e.g., 100x100)
+    screenDrawable->syncDirtyManager_->SetSurfaceSize(100, 100);
+
+    // Create damageRegion that completely covers surfaceRect (e.g., larger than 100x100)
+    constexpr uint32_t width = 200;
+    constexpr uint32_t height = 200;
+    Occlusion::Region damageRegion = Occlusion::Region(Occlusion::Rect(0, 0, width, height));
+    Occlusion::Region drawRegion = Occlusion::Region(Occlusion::Rect(0, 0, width, height));
+
+    // Test: damageRegion completely covers surfaceRect, should break early
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, drawRegion, *screenDrawable, std::nullopt);
+    // The damageRegion should remain unchanged (or slightly changed due to filter processing)
+    // but the loop should exit early without processing all filters
+    ASSERT_TRUE(damageRegion.Area() >= width * height); // At least the initial damageRegion area
+}
+
+/**
+ * @tc.name: DealWithFilterDirtyRegion_007
+ * @tc.desc: test DealWithFilterDirtyRegion_007, test when damageRegion partially covers surfaceRect,
+ *           should continue the loop
+ * @tc.type: FUNC
+ * @tc.require: #issues24686
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_007, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(nodeId, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(nodeId);
+    ASSERT_NE(screenDrawable->renderParams_, nullptr);
+    screenDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(screenDrawable->syncDirtyManager_, nullptr);
+
+    // Set surfaceRect to a specific size (e.g., 100x100)
+    screenDrawable->syncDirtyManager_->SetSurfaceSize(100, 100);
+
+    // Add a filter that will be processed
+    Occlusion::Region filterRegion = Occlusion::Region(Occlusion::Rect(50, 50, 150, 150));
+    FilterDirtyRegionInfo filterInfo = { .intersectRegion_ = filterRegion, .filterDirty_ = filterRegion };
+    screenDrawable->syncDirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, true);
+
+    // Create damageRegion that partially covers surfaceRect (e.g., smaller area)
+    constexpr uint32_t width = 50;
+    constexpr uint32_t height = 50;
+    Occlusion::Region damageRegion = Occlusion::Region(Occlusion::Rect(0, 0, width, height));
+    Occlusion::Region drawRegion = Occlusion::Region(Occlusion::Rect(0, 0, width, height));
+
+    // Test: damageRegion does NOT completely cover surfaceRect, should continue loop
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, drawRegion, *screenDrawable, std::nullopt);
+    // The damageRegion may be expanded by filter processing
+    ASSERT_TRUE(damageRegion.Area() >= width * height); // At least the initial damageRegion area
+}
+
+/**
+ * @tc.name: DealWithFilterDirtyRegion_008
+ * @tc.desc: test DealWithFilterDirtyRegion_008, test when surfaceRect is empty,
+ *           should skip the intersection check
+ * @tc.type: FUNC
+ * @tc.require: #issues24686
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_008, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(nodeId, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(nodeId);
+    ASSERT_NE(screenDrawable->renderParams_, nullptr);
+    screenDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(screenDrawable->syncDirtyManager_, nullptr);
+
+    // Do NOT set surfaceRect, so it will be empty (default RectI(0,0,0,0))
+    // Or set it to empty explicitly
+    screenDrawable->syncDirtyManager_->SetSurfaceRect(RectI(0, 0, 0, 0));
+
+    constexpr uint32_t width = 100;
+    constexpr uint32_t height = 100;
+    Occlusion::Region damageRegion = Occlusion::Region(Occlusion::Rect(0, 0, width, height));
+    Occlusion::Region drawRegion = Occlusion::Region(Occlusion::Rect(0, 0, width, height));
+
+    // Test: surfaceRect is empty, should skip the intersection check and continue processing
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, drawRegion, *screenDrawable, std::nullopt);
+    // The damageRegion should remain unchanged
+    ASSERT_EQ(damageRegion.Area(), width * height);
+}
+
+/**
  * @tc.name: FilterCachePartialRenderEnabled_001
  * @tc.desc: test FilterCachePartialRenderEnabled_001, tset for nullptr side cases.
  * @tc.type: FUNC

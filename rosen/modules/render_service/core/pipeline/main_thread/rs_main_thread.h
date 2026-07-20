@@ -49,6 +49,7 @@
 #include "pipeline/hwc/rs_hwc_context.h"
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
@@ -102,6 +103,16 @@ private:
 class RSMainThread {
 public:
     static RSMainThread* Instance();
+
+    const std::vector<std::shared_ptr<RSProtectiveSolidRenderNode>>& GetProtectiveSolidNodes() const
+    {
+        return protectiveSolidNodes_;
+    }
+
+    const RSRenderThreadParams::DrawablesVec& GetProtectiveSolidDrawables() const
+    {
+        return protectiveSolidDrawables_;
+    }
 
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
@@ -512,11 +523,14 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
+    std::shared_ptr<RSProtectiveSolidRenderNode> CreateProtectiveSolidRenderNode(ScreenId screenId);
+    void DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void HandlePhysicalModeParamsChanged(
         ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void HandleActiveRectOption(ScreenId id, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
@@ -809,6 +823,8 @@ private:
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
     std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;
+    std::vector<std::shared_ptr<RSProtectiveSolidRenderNode>> protectiveSolidNodes_;
+    DrawablesVec protectiveSolidDrawables_;
 
     // for aibar
     std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet> aibarNodes_;
@@ -906,6 +922,9 @@ private:
     // for rebuild transaction
     std::deque<std::unique_ptr<RSTransactionData>> pendingSplitTransactions_;
     pid_t pendingSplitPid_ = -1;
+
+    // for protectiveSolidNode
+    std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

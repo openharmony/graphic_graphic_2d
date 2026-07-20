@@ -448,23 +448,36 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     return flag;
 }
 
+void RSTransactionData::CheckNonSystemCommand(RSCommand* command, pid_t callingPid,
+    const RSRenderNodeMap& nodeMap, InaccessibleCommandMap& inaccessibleCommandMap) const
+{
+    for (const NodeId nodeId : command->GetAllNodeIds()) {
+        pid_t commandPid = ExtractPid(nodeId);
+        if (callingPid != commandPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+            inaccessibleCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
+            command->SetCallingPidValid(false);
+            return;
+        }
+    }
+}
+
 bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
 {
-    std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<
-        std::pair<uint16_t, uint16_t>>>> inaccessibleCommandMap;
+    InaccessibleCommandMap inaccessibleCommandMap;
     std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [_, followType, command] : payload_) {
         if (command == nullptr) {
             continue;
         }
-        const NodeId nodeId = command->GetNodeId();
-        const pid_t commandPid = ExtractPid(nodeId);
         bool allowNonSystemAppCalling = command->GetAccessPermission() != RSCommandPermissionType::PERMISSION_SYSTEM;
-        if (allowNonSystemAppCalling && (callingPid == commandPid || nodeMap.IsUIExtensionSurfaceNode(nodeId))) {
-            continue;
+        if (allowNonSystemAppCalling) {
+            CheckNonSystemCommand(command.get(), callingPid, nodeMap, inaccessibleCommandMap);
+        } else {
+            const NodeId nodeId = command->GetNodeId();
+            const pid_t commandPid = ExtractPid(nodeId);
+            inaccessibleCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
+            command->SetCallingPidValid(false);
         }
-        inaccessibleCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
-        command->SetCallingPidValid(false);
     }
     lock.unlock();
     for (const auto& [commandPid, commandTypeMap] : inaccessibleCommandMap) {

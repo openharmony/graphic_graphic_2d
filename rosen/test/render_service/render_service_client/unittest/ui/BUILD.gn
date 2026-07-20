@@ -479,8 +479,14 @@ ohos_unittest("RSUIDirectorTest") {
 
   sources = [ "rs_ui_director_test.cpp" ]
 
+  defines = []
+  
+  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
+    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
+  }
+
   if (graphic_2d_feature_enable_vulkan) {
-    defines = [ "RS_ENABLE_VK" ]
+    defines += [ "RS_ENABLE_VK" ]
   }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]

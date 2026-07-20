@@ -984,8 +984,10 @@ napi_value WebGL2RenderingContextImpl::CompressedTexImage3D(
             SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
             return NVal::CreateNull(env).val_;
         }
-        GLsizei maxLength = readData.GetBufferLength() - srcOffset;
-        length = (srcLengthOverride == 0) ? maxLength : std::min(srcLengthOverride, static_cast<GLuint>(maxLength));
+        size_t maxLength = readData.GetBufferLength() - srcOffset;
+        size_t dataLength = (srcLengthOverride == 0) ? maxLength :
+            std::min(static_cast<size_t>(srcLengthOverride), maxLength);
+        length = static_cast<GLsizei>(dataLength);
         data = reinterpret_cast<void*>(readData.GetBuffer() + srcOffset);
     }
     glCompressedTexImage3D(imgArg.target, imgArg.level, imgArg.internalFormat, imgArg.width, imgArg.height,

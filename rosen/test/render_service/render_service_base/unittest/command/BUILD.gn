@@ -57,6 +57,46 @@ ohos_unittest("RSAnimationCommandBaseTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSUIDirectorCommandTest  ##################################
+ohos_unittest("RSUIDirectorCommandTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_ui_director_command_test.cpp",
+  ]
+
+  configs = [
+    ":render_test",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+    "//foundation/graphic/graphic_2d/rosen/include",
+    "//foundation/graphic/graphic_2d/rosen/test/include",
+  ]
+
+  deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base" ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ##############################  RSNodeCommandTest1  ##################################
 ohos_unittest("RSNodeCommandTest1") {
   module_out_path = module_output_path
@@ -123,6 +163,7 @@ group("unittest") {
 
   deps = [
     ":RSAnimationCommandBaseTest",
+    ":RSUIDirectorCommandTest",
     ":RSNodeCommandTest1",
   ]
 }

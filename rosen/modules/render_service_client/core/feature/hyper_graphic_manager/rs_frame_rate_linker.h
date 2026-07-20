@@ -42,7 +42,6 @@ public:
     static std::shared_ptr<RSFrameRateLinker> Create();
 
 private:
-    void InitUniRenderEnabled();
     static FrameRateLinkerId GenerateId();
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand);
     const FrameRateLinkerId id_;

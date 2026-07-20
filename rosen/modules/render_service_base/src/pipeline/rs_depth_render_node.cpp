@@ -78,11 +78,22 @@ void RSDepthRenderNode::UpdateRenderParams()
     auto& properties = GetRenderProperties();
     auto depthImage = properties.GetDepthImage();
     depthParams->SetDepthImage(depthImage ? RSPixelMapUtil::ExtractDrawingImage(depthImage->GetPixelMap()) : nullptr);
-    depthParams->ResetDepthSrcSurfaceDrawable();
     depthParams->SetDepthCameraPara(properties.GetDepthCameraPara());
     depthParams->SetDepthLightPara(properties.GetDepthLightPara());
     depthParams->SetImageMatrix(properties.GetDepthImageMatrix().has_value() ?
         properties.GetDepthImageMatrix().value() : Matrix3f::IDENTITY);
+
+    auto depthResourceNode = RSSpatialEffectManager::Instance()->GetDepthResourceNode(*this).lock();
+    if (depthResourceNode) {
+        auto depthResourceDrawable = depthResourceNode->GetRenderDrawable();
+        if (depthResourceDrawable) {
+            depthParams->SetDepthSrcSurfaceDrawable(depthResourceDrawable->weak_from_this());
+        } else {
+            depthParams->ResetDepthSrcSurfaceDrawable();
+        }
+    } else {
+        depthParams->ResetDepthSrcSurfaceDrawable();
+    }
 
     RSRenderNode::UpdateRenderParams();
 }

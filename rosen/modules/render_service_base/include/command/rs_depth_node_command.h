@@ -34,10 +34,12 @@ public:
     static void SetType(RSContext& context, NodeId id, DepthSpaceType depthSpaceType);
 };
 
-ADD_COMMAND(RSDepthNodeCreate, ARG(PERMISSION_APP, DEPTH_NODE, DEPTH_NODE_CREATE, RSDepthNodeCommandHelper::Create,
-    NodeId, bool))
-ADD_COMMAND(RSDepthNodeSetType, ARG(PERMISSION_APP, DEPTH_NODE, DEPTH_NODE_SET_TYPE, RSDepthNodeCommandHelper::SetType,
-    NodeId, DepthSpaceType))
+ADD_COMMAND(RSDepthNodeCreate,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, DEPTH_NODE, DEPTH_NODE_CREATE, RSDepthNodeCommandHelper::Create,
+        NodeId, bool))
+ADD_COMMAND(RSDepthNodeSetType,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, DEPTH_NODE, DEPTH_NODE_SET_TYPE, RSDepthNodeCommandHelper::SetType,
+        NodeId, DepthSpaceType))
 } // namespace Rosen
 } // namespace OHOS
 

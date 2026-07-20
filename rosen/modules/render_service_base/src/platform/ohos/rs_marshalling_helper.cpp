@@ -51,6 +51,7 @@
 #include "effect/rs_render_mask_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "EGL/egl.h"
 #include "memory/rs_memory_flow_control.h"
 #include "memory/rs_memory_track.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
@@ -598,6 +599,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
 
     uint32_t coordsCount = 0;
     success &= Unmarshalling(parcel, coordsCount);
+    constexpr uint32_t MAX_COORDS_COUNT = 128;
+    if (coordsCount > MAX_COORDS_COUNT) {
+        ROSEN_LOGD("RSMarshallingHelper::Unmarshalling coords count %{public}u exceeds max limit %{public}u",
+            coordsCount, MAX_COORDS_COUNT);
+        return false;
+    }
     if (success) { coords.resize(coordsCount); }
 
     for (uint32_t i = 0; i < coordsCount; ++i) {
@@ -2229,11 +2236,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
 static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 {
 #ifdef ROSEN_OHOS
-    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
-        MemoryTrack::Instance().RemovePictureRecord(addr);
-    } else {
-        MemoryTrack::Instance().RemovePictureRecord(context);
-    }
+    MemoryTrack::Instance().RemovePictureRecord(context);
 #else
     MemoryTrack::Instance().RemovePictureRecord(addr);
 #endif
@@ -2265,9 +2268,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         
         return false;
     }
-    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
-        val->CloseFd();
-    }
     uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
     OHOS::Media::ImageInfo imageInfo;
     val->GetImageInfo(imageInfo);
@@ -2277,11 +2277,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     };
 
 #ifdef ROSEN_OHOS
-    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
-        MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
-    } else {
-        MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
-    }
+    MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif
@@ -2304,7 +2300,11 @@ bool RSMarshallingHelper::SkipPixelMap(Parcel& parcel)
     if (RS_PROFILER_SKIP_PIXELMAP(parcel)) {
         return true;
     }
-    auto size = parcel.ReadInt32();
+    int32_t size{0};
+    if (!parcel.ReadInt32(size)) {
+        ROSEN_LOGE("RSMarshallingHelper::SkipPixelMap ReadInt32 failed");
+        return false;
+    }
     if (size != -1) {
         parcel.SkipBytes(size);
     }
@@ -3703,6 +3703,40 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SurfaceRegionConfig& val
     return true;
 }
 #endif
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sptr<IRemoteObject>& val)
+{
+    if (val != nullptr) {
+        if (!parcel.WriteBool(true)) {
+            return false;
+        }
+        if (!parcel.WriteRemoteObject(val)) {
+            return false;
+        }
+    } else {
+        if (!parcel.WriteBool(false)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<IRemoteObject>& val)
+{
+    val = nullptr;
+    bool hasObject{false};
+    if (!parcel.ReadBool(hasObject)) {
+        return false;
+    }
+    if (hasObject) {
+        auto remoteObject = static_cast<MessageParcel*>(&parcel)->ReadRemoteObject();
+        if (remoteObject == nullptr) {
+            return false;
+        }
+        val = remoteObject;
+    }
+    return true;
+}
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSSurfaceRenderNodeConfig& val)
 {

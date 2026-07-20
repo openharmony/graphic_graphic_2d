@@ -2079,6 +2079,70 @@ ErrCode RSRenderPipelineAgent::RepaintEverything()
     return ERR_OK;
 }
 
+ErrCode RSRenderPipelineAgent::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        RS_LOGE("GetPidGpuMemoryInMB pipeline is nullptr, return");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [screenId, width, height, renderPipeline = pipeline, this]() -> void {
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap();
+        UpdateScreenNodesResolution(nodeMap, screenId, width, height);
+        AdjustBootAnimationBounds(nodeMap, width, height);
+    };
+    pipeline->PostMainThreadSyncTask(task);
+    return ERR_OK;
+}
+ 
+void RSRenderPipelineAgent::UpdateScreenNodesResolution(
+    RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height)
+{
+    auto resolution = std::make_pair(width, height);
+    auto property = sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolution);
+    auto updateNode = [screenId, width, height, property](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (node && node->GetScreenId() == screenId) {
+            auto screenInfo = node->GetScreenInfo();
+            screenInfo.width = width;
+            screenInfo.height = height;
+            node->SetScreenInfo(screenInfo);
+            node->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION, property);
+            node->SetDirty();
+            RS_LOGI("SetRogScreenResolution, update screenInfo and renderResolution, "
+                "screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u",
+                screenId, width, height);
+        }
+    };
+    nodeMap.TraverseScreenNodes(updateNode);
+}
+ 
+void RSRenderPipelineAgent::AdjustBootAnimationBounds(RSRenderNodeMap& nodeMap, uint32_t width, uint32_t height)
+{
+    auto adjustNode = [width, height, this](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        if (!node || !node->GetBootAnimation()) {
+            return;
+        }
+        SetBootAnimationBounds(node, width, height);
+        std::string boundsStr = node->GetRenderProperties().GetBoundsRect().ToString();
+        RS_LOGI("SetRogScreenResolution, adjust bootanimation bounds, Bounds:%s", boundsStr.c_str());
+        node->SetDirty();
+    };
+    nodeMap.TraverseSurfaceNodes(adjustNode);
+}
+ 
+void RSRenderPipelineAgent::SetBootAnimationBounds(
+    const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t width, uint32_t height)
+{
+    if (!node) {
+        return;
+    }
+    for (auto modifier : node->GetModifiersNG(ModifierNG::RSModifierType::BOUNDS)) {
+        if (modifier) {
+            modifier->Setter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS, {0, 0, width, height});
+        }
+    }
+}
+
 void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
 {
     auto pipeline = rsRenderPipeline_.lock();

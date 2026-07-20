@@ -41,6 +41,8 @@
 | Modifier/属性同步 | `rs-modifier.md` | `modifier*`, `Modifier` | modifier |
 | Animation/窗口动画 | `rs-animation.md` | `animation/`, `window_animation/`, `RSAnimation` | animation |
 | UI Effect/RS Effect | `rs-ui-effect.md` | `ui_effect/`, `effect/`, `Filter` | effect/fuzz |
+| NGEffect 框架 | `rs-ng-effect-framework.md` | `include/effect/`, `ui_effect/property/`, `RSNGRender*`, `GEVisualEffect` | effect |
+| RS ColorPicker 独立线程 | `rs-color-picker-thread.md` | `feature/color_picker/`, `RSColorPickerDrawable`, `RSColorPickerThread` | feature |
 | 渲染资源/图片缓存 | `rs-render-resource.md` | `include/render/`, `RSImage`, `Cache` | render |
 
 ## IPC/安全
@@ -128,7 +130,7 @@
 | HGM 与 VSync/DVSync 交互 | `vsync-native-vsync.md` |
 | HPAE、LPP、RDO、HWC 预校验 | `hwc-prevalidate.md`、`hpae-lpp-rdo.md` |
 | HDR、颜色空间 | `hdr.md`、`colorspace.md` |
-| Filter、Effect、HPAE 滤镜缓存 | `rs-ui-effect.md`、`2d-effect-filter.md` |
+| Filter、Effect、HPAE 滤镜缓存、NGEffect、ColorPicker | `rs-ui-effect.md`、`2d-effect-filter.md`、`rs-ng-effect-framework.md`、`rs-color-picker-thread.md` |
 
 ## 知识文档沉淀规则
 

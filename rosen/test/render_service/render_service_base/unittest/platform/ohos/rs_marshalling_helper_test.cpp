@@ -56,6 +56,8 @@
 
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
+#include "message_parcel.h"
+#include "ipc_callbacks/buffer_available_callback_stub.h"
 #endif
 #include "recording/mask_cmd_list.h"
 #include "property/rs_properties_def.h"
@@ -68,6 +70,12 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+#ifdef ROSEN_OHOS
+class RSBufferAvailableCallbackStubMock : public RSBufferAvailableCallbackStub {
+public:
+    void OnBufferAvailable() override {}
+};
+#endif
 class RSMarshallingHelperTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -1468,9 +1476,22 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest025, TestSize.Level1)
 HWTEST_F(RSMarshallingHelperTest, SkipPixelMapTest, TestSize.Level1)
 {
     Parcel parcel;
-    EXPECT_TRUE(RSMarshallingHelper::SkipPixelMap(parcel));
     parcel.WriteInt32(-1);
     EXPECT_TRUE(RSMarshallingHelper::SkipPixelMap(parcel));
+}
+
+/**
+ * @tc.name: SkipPixelMapReadInt32FailTest
+ * @tc.desc: Verify SkipPixelMap returns false when ReadInt32 fails
+ * @tc.type:FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSMarshallingHelperTest, SkipPixelMapReadInt32FailTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    parcel.ReadInt32();
+    EXPECT_FALSE(RSMarshallingHelper::SkipPixelMap(parcel));
 }
 
 /**
@@ -2645,5 +2666,98 @@ HWTEST_F(RSMarshallingHelperTest, SurfaceRegionConfigUnmarshallingFailTest, Test
     SurfaceRegionConfig val{};
     ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
+
+#ifdef ROSEN_OHOS
+/**
+ * @tc.name: IRemoteObjectMarshallingNullTest
+ * @tc.desc: Verify Marshalling of sptr<IRemoteObject> with null value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, IRemoteObjectMarshallingNullTest, TestSize.Level1)
+{
+    MessageParcel parcel;
+    sptr<IRemoteObject> val = nullptr;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
+    bool hasObject = false;
+    ASSERT_TRUE(parcel.ReadBool(hasObject));
+    EXPECT_FALSE(hasObject);
+}
+
+/**
+ * @tc.name: IRemoteObjectMarshallingNonNullTest
+ * @tc.desc: Verify Marshalling of sptr<IRemoteObject> with non-null value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, IRemoteObjectMarshallingNonNullTest, TestSize.Level1)
+{
+    MessageParcel parcel;
+    sptr<IRemoteObject> val = new RSBufferAvailableCallbackStubMock();
+    ASSERT_TRUE(val != nullptr);
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
+    bool hasObject = false;
+    ASSERT_TRUE(parcel.ReadBool(hasObject));
+    EXPECT_TRUE(hasObject);
+}
+
+/**
+ * @tc.name: IRemoteObjectUnmarshallingNoObjectTest
+ * @tc.desc: Verify Unmarshalling of sptr<IRemoteObject> when parcel contains no object
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, IRemoteObjectUnmarshallingNoObjectTest, TestSize.Level1)
+{
+    MessageParcel parcel;
+    sptr<IRemoteObject> srcVal = nullptr;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, srcVal));
+
+    sptr<IRemoteObject> dstVal;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, dstVal));
+    EXPECT_EQ(dstVal, nullptr);
+}
+
+/**
+ * @tc.name: IRemoteObjectUnmarshallingReadBoolFailTest
+ * @tc.desc: Verify Unmarshalling of sptr<IRemoteObject> fails with empty parcel
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, IRemoteObjectUnmarshallingReadBoolFailTest, TestSize.Level1)
+{
+    MessageParcel parcel;
+    sptr<IRemoteObject> val = new RSBufferAvailableCallbackStubMock();
+    ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: IRemoteObjectUnmarshallingHasObjectButReadFailTest
+ * @tc.desc: Verify Unmarshalling of sptr<IRemoteObject> fails when hasObject is true but no remote object data
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, IRemoteObjectUnmarshallingHasObjectButReadFailTest, TestSize.Level1)
+{
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteBool(true));
+    sptr<IRemoteObject> val;
+    ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: IRemoteObjectMarshallingRoundTripTest
+ * @tc.desc: Verify Marshalling/Unmarshalling round trip of sptr<IRemoteObject>
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, IRemoteObjectMarshallingRoundTripTest, TestSize.Level1)
+{
+    MessageParcel parcel;
+    sptr<IRemoteObject> srcVal = new RSBufferAvailableCallbackStubMock();
+    ASSERT_TRUE(srcVal != nullptr);
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, srcVal));
+
+    sptr<IRemoteObject> dstVal;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, dstVal));
+    ASSERT_TRUE(dstVal != nullptr);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

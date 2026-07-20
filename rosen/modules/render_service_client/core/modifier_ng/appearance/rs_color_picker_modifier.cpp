@@ -65,4 +65,16 @@ Vector4f RSColorPickerModifier::GetColorPickerRect() const
 {
     return Getter<Vector4f>(RSPropertyType::COLOR_PICKER_RECT, Vector4f());
 }
+
+void RSColorPickerModifier::SetColorPickerLastContrastColorScheme(ContrastColorScheme lastContrastColorScheme)
+{
+    Setter<RSProperty>(
+        RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME, static_cast<int>(lastContrastColorScheme));
+}
+
+ContrastColorScheme RSColorPickerModifier::GetColorPickerLastContrastColorScheme() const
+{
+    return static_cast<ContrastColorScheme>(Getter(
+        RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME, static_cast<int>(ContrastColorScheme::INVALID)));
+}
 } // namespace OHOS::Rosen::ModifierNG

@@ -102,10 +102,19 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
     if (UNLIKELY(RSUniRenderThread::IsInCaptureProcess())) {
         OnCapture(canvas);
     } else {
+        OnDraw(canvas);
+    }
+}
+
 #ifdef USE_PRIMITIVE
+void RSRenderNodeDrawable::DrawPrim(Drawing::Canvas& canvas)
+{
+    if (UNLIKELY(RSUniRenderThread::IsInCaptureProcess())) {
+        OnCapture(canvas);
+    } else {
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
         auto primListAdapter = paintFilterCanvas->primListAdapter_;
-        AutoDirtyTypesRestore autoDirtyTypesRestore(primListAdapter, *this);
+        AutoDirtyTypesRestore autoDirtyTypesRestore(primListAdapter.get(), *this);
 #ifdef PRIMITIVE_PROFILER
         if (selfPrimDirtyBitmap_.none()) {
             RS_TRACE_NAME_FMT("[PrimitiveProfiler] this node is clean");
@@ -118,10 +127,10 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
             }
         }
 #endif
-#endif
         OnDraw(canvas);
     }
 }
+#endif
 
 /*
  * This function will be called recursively many times, and the logic should be as concise as possible.

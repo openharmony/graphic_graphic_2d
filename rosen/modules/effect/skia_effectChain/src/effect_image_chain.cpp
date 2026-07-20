@@ -305,8 +305,8 @@ static std::shared_ptr<GEShaderFilter> GenerateGEXShaderFilter(Drawing::GEFilter
         return nullptr;
     }
  
-    std::shared_ptr<GEShaderFilter> filterShaderr(static_cast<GEShaderFilter*>(object));
-    return filterShaderr;
+    std::shared_ptr<GEShaderFilter> filter(static_cast<GEShaderFilter*>(object));
+    return filter;
 }
 
 DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,

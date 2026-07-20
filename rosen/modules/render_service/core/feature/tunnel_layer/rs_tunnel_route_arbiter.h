@@ -19,6 +19,7 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -58,7 +59,7 @@ private:
     // another screen before render commit, the original screen's commit-done still recognises
     // the entry and advances NORMAL_PREPARING -> NORMAL_COMMITTED, avoiding a permanent phase
     // stall that would lock out the listener path.
-    std::vector<std::pair<std::weak_ptr<RSSurfaceRenderNode>, ScreenId>> normalRouteNodes_;
+    std::unordered_map<NodeId, std::pair<std::weak_ptr<RSSurfaceRenderNode>, ScreenId>> normalRouteNodes_;
     static std::atomic<bool> globalRouteForcedNormal_;
 };
 } // namespace Rosen

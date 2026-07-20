@@ -85,7 +85,8 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::shared_ptr<RSModifiersDraw> modifiersDraw_ = nullptr;
-    bool started_ = false;
+    std::atomic<bool> started_ = false;
+    std::atomic<bool> destroyed_ = false;
 
     friend class RSUIContext;
 };

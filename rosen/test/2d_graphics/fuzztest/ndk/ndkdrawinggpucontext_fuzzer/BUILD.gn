@@ -59,7 +59,9 @@ ohos_fuzztest("NdkDrawingGpuContextFuzzTest") {
     "image_framework:pixelmap",
     "image_framework:pixelmap_ndk",
     "napi:ace_napi",
-    "openssl:libcrypto_shared"
+    "openssl:libcrypto_shared",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   part_name = "graphic_2d"

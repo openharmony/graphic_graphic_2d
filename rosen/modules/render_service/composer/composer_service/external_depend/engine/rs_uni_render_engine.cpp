@@ -83,10 +83,11 @@ void RSUniRenderEngine::DrawCanvasDrawingNodeWithParams(RSPaintFilterCanvas& can
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut)
+    const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut,
+    const std::shared_ptr<HdiOutput>& output)
 #else
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ComposerScreenInfo& composerScreenInfo)
+    const ComposerScreenInfo& composerScreenInfo, const std::shared_ptr<HdiOutput>& output)
 #endif
 {
     for (const auto& layer : layers) {
@@ -105,17 +106,34 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             .a = 0
         };
         if (layer->GetBuffer() == nullptr) {
-            const auto& layerColor = layer->GetLayerColor();
-            if (layerColor.a != layerBlackColor.a || layerColor.r != layerBlackColor.r ||
-                layerColor.g != layerBlackColor.g || layerColor.b != layerBlackColor.b) {
+            if (layer->IsSolidFilledColorLayer()) {
+                uint32_t solidFilledColor = 0;
+                auto ret = output->GetLayerSolidFilledColor(layer->GetRSLayerId(), solidFilledColor);
+                if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+                    continue;
+                }
                 Drawing::AutoCanvasRestore acr(canvas, true);
                 const auto& dstRect = layer->GetLayerSize();
-                auto color = Drawing::Color::ColorQuadSetARGB(layerColor.a, layerColor.r, layerColor.g, layerColor.b);
                 Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
                     static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
                     static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
                 canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
-                canvas.DrawColor(color);
+                canvas.DrawColor(solidFilledColor);
+            } else {
+                const auto& layerColor = layer->GetLayerColor();
+                if (layerColor.a != layerBlackColor.a || layerColor.r != layerBlackColor.r ||
+                    layerColor.g != layerBlackColor.g || layerColor.b != layerBlackColor.b) {
+                    Drawing::AutoCanvasRestore acr(canvas, true);
+                    const auto& dstRect = layer->GetLayerSize();
+                    auto color = Drawing::Color::ColorQuadSetARGB(layerColor.a, layerColor.r,
+                        layerColor.g, layerColor.b);
+                    Drawing::Rect clipRect = Drawing::Rect(
+                        static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+                        static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
+                        static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
+                    canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+                    canvas.DrawColor(color);
+                }
             }
             continue;
         } else if (layer->IsScreenRCDLayer()) {

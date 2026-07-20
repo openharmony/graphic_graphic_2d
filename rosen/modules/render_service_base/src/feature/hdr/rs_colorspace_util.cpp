@@ -152,6 +152,44 @@ GraphicColorGamut RSColorSpaceUtil::MapGamutToStandard(GraphicColorGamut gamut)
     }
 }
 
+GraphicCM_ColorSpaceType RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName colorSpaceName)
+{
+    static const std::unordered_map<ApiColorSpaceName, GraphicCM_ColorSpaceType>
+        API_COLOR_SPACE_NAME_TO_CM_COLOR_SPACE_TYPE = {
+            { ApiColorSpaceName::UNKNOWN, GraphicCM_ColorSpaceType::GRAPHIC_CM_COLORSPACE_NONE },
+            { ApiColorSpaceName::ADOBE_RGB_1998, GraphicCM_ColorSpaceType::GRAPHIC_CM_ADOBERGB_FULL },
+            { ApiColorSpaceName::DCI_P3, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_FULL },
+            { ApiColorSpaceName::DISPLAY_P3, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_FULL },
+            { ApiColorSpaceName::SRGB, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL },
+            { ApiColorSpaceName::CUSTOM, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL },
+            { ApiColorSpaceName::BT709, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT709_FULL },
+            { ApiColorSpaceName::BT601_EBU, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_EBU_FULL },
+            { ApiColorSpaceName::BT601_SMPTE_C, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_SMPTE_C_FULL },
+            { ApiColorSpaceName::BT2020_HLG, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT2020_HLG_FULL },
+            { ApiColorSpaceName::BT2020_PQ, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT2020_PQ_FULL },
+            { ApiColorSpaceName::P3_HLG, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_HLG_FULL },
+            { ApiColorSpaceName::P3_PQ, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_PQ_FULL },
+            { ApiColorSpaceName::ADOBE_RGB_1998_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_ADOBERGB_LIMIT },
+            { ApiColorSpaceName::DISPLAY_P3_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_LIMIT },
+            { ApiColorSpaceName::SRGB_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_LIMIT },
+            { ApiColorSpaceName::BT709_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT709_LIMIT },
+            { ApiColorSpaceName::BT601_EBU_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_EBU_LIMIT },
+            { ApiColorSpaceName::BT601_SMPTE_C_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_SMPTE_C_LIMIT },
+            { ApiColorSpaceName::BT2020_HLG_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT2020_HLG_LIMIT },
+            { ApiColorSpaceName::BT2020_PQ_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_BT2020_PQ_LIMIT },
+            { ApiColorSpaceName::P3_HLG_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_HLG_LIMIT },
+            { ApiColorSpaceName::P3_PQ_LIMIT, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_PQ_LIMIT },
+            { ApiColorSpaceName::LINEAR_P3, GraphicCM_ColorSpaceType::GRAPHIC_CM_LINEAR_P3 },
+            { ApiColorSpaceName::LINEAR_SRGB, GraphicCM_ColorSpaceType::GRAPHIC_CM_LINEAR_SRGB },
+            { ApiColorSpaceName::LINEAR_BT2020, GraphicCM_ColorSpaceType::GRAPHIC_CM_LINEAR_BT2020 },
+            { ApiColorSpaceName::H_LOG, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL },
+            { ApiColorSpaceName::DISPLAY_BT2020_SRGB, GraphicCM_ColorSpaceType::GRAPHIC_CM_DISPLAY_BT2020_SRGB },
+        };
+    auto it = API_COLOR_SPACE_NAME_TO_CM_COLOR_SPACE_TYPE.find(colorSpaceName);
+    return it == API_COLOR_SPACE_NAME_TO_CM_COLOR_SPACE_TYPE.end() ? GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL :
+                                                                     it->second;
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 GraphicColorGamut RSColorSpaceUtil::PrimariesToGraphicGamut(HDIV::CM_ColorPrimaries primary)
 {

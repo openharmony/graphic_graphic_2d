@@ -95,6 +95,8 @@ ohos_shared_library("effectKit_ani") {
     "runtime_core:ani",
     "runtime_core:ani_helpers",
     "runtime_core:libarkruntime",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (defined(arkgraphic2d_api_metrics) && arkgraphic2d_api_metrics) {

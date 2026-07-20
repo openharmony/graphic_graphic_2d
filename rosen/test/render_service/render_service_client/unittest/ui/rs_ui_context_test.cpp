@@ -727,7 +727,7 @@ HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest_NullCanvasModifiersD
     rsUIContext->FlushCanvasDrawingNodeBuffers();
     // canvasModifiersDrawAgent_ is null, SubmitAndCollectCanvasBuffers is skipped,
     // but function still completes and sets canvasDrawingNodeUpdated_ = false
-    EXPECT_FALSE(rsUIContext->canvasDrawingNodeUpdated_);
+    EXPECT_NE(rsUIContext->canvasDrawingNodeUpdated_, RSSystemProperties::GetHybridRenderCanvasEnabled());
 }
 
 /**
@@ -864,7 +864,7 @@ HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest003, TestSize.Level1)
     rsUIContext->canvasDrawingNodeUpdated_ = true;
     rsUIContext->canvasDrawingNodeBufferFlushed_ = true;
     rsUIContext->FlushCanvasDrawingNodeBuffers();
-    EXPECT_FALSE(rsUIContext->canvasDrawingNodeUpdated_);
+    EXPECT_NE(rsUIContext->canvasDrawingNodeUpdated_, RSSystemProperties::GetHybridRenderCanvasEnabled());
 }
 
 /**

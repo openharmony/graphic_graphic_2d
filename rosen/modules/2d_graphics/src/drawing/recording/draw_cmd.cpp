@@ -1231,10 +1231,25 @@ DrawImageLatticeOpItem::DrawImageLatticeOpItem(
     lattice_ = CmdListHelper::GetLatticeFromCmdList(cmdList, handle->latticeHandle);
 }
 
+DrawImageLatticeOpItem::DrawImageLatticeOpItem(
+    const DrawCmdList& cmdList, DrawImageLatticeOpItem::ConstructorHandle* handle, Lattice&& lattice)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_LATTICE_OPITEM),
+    lattice_(std::move(lattice)), dst_(handle->dst), filter_(handle->filter)
+{
+    image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+    if (DrawOpItem::holdDrawingImagefunc_) {
+        DrawOpItem::holdDrawingImagefunc_(image_);
+    }
+}
+
 std::shared_ptr<DrawOpItem> DrawImageLatticeOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawImageLatticeOpItem>(
-        cmdList, static_cast<DrawImageLatticeOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawImageLatticeOpItem::ConstructorHandle*>(handle);
+    auto lattice = CmdListHelper::GetLatticeFromCmdList(cmdList, constructorHandle->latticeHandle);
+    if (!CmdListHelper::ValidateLattice(lattice)) {
+        return nullptr;
+    }
+    return std::make_shared<DrawImageLatticeOpItem>(cmdList, constructorHandle, std::move(lattice));
 }
 
 void DrawImageLatticeOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1313,9 +1328,33 @@ DrawAtlasOpItem::DrawAtlasOpItem(const DrawCmdList& cmdList, DrawAtlasOpItem::Co
     colors_ = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, handle->colors);
 }
 
+DrawAtlasOpItem::DrawAtlasOpItem(const DrawCmdList& cmdList, DrawAtlasOpItem::ConstructorHandle* handle,
+    std::vector<RSXform>&& xform, std::vector<Rect>&& tex, std::vector<ColorQuad>&& colors)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, ATLAS_OPITEM),
+      xform_(std::move(xform)), tex_(std::move(tex)), colors_(std::move(colors)), mode_(handle->mode),
+      samplingOptions_(handle->samplingOptions), hasCullRect_(handle->hasCullRect), cullRect_(handle->cullRect)
+{
+    atlas_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->atlas);
+    if (DrawOpItem::holdDrawingImagefunc_) {
+        DrawOpItem::holdDrawingImagefunc_(atlas_);
+    }
+}
+
 std::shared_ptr<DrawOpItem> DrawAtlasOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawAtlasOpItem>(cmdList, static_cast<DrawAtlasOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawAtlasOpItem::ConstructorHandle*>(handle);
+    auto xform = CmdListHelper::GetVectorFromCmdList<RSXform>(cmdList, constructorHandle->xform);
+    auto tex = CmdListHelper::GetVectorFromCmdList<Rect>(cmdList, constructorHandle->tex);
+    auto colors = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, constructorHandle->colors);
+
+    if (xform.size() != tex.size() || xform.size() != colors.size()) {
+        LOGD("DrawAtlasOpItem::Unmarshalling array size mismatch: xform=%zu, tex=%zu, colors=%zu",
+             xform.size(), tex.size(), colors.size());
+        return nullptr;
+    }
+
+    return std::make_shared<DrawAtlasOpItem>(cmdList, constructorHandle,
+        std::move(xform), std::move(tex), std::move(colors));
 }
 
 void DrawAtlasOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1665,9 +1704,31 @@ DrawGlyphsOpItem::DrawGlyphsOpItem(const DrawCmdList& cmdList, DrawGlyphsOpItem:
     globalUniqueId_ = handle->globalUniqueId;
 }
 
+DrawGlyphsOpItem::DrawGlyphsOpItem(const DrawCmdList& cmdList, DrawGlyphsOpItem::ConstructorHandle* handle,
+    std::vector<uint16_t>&& glyphs, std::vector<Point>&& positions)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, GLYPHS_OPITEM)
+{
+    glyphs_ = std::move(glyphs);
+    positions_ = std::move(positions);
+    origin_ = handle->origin;
+    font_ = CmdListHelper::GetFontFromCmdList(cmdList, handle->font, handle->globalUniqueId);
+    globalUniqueId_ = handle->globalUniqueId;
+}
+
 std::shared_ptr<DrawOpItem> DrawGlyphsOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawGlyphsOpItem>(cmdList, static_cast<DrawGlyphsOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawGlyphsOpItem::ConstructorHandle*>(handle);
+    auto glyphs = CmdListHelper::GetVectorFromCmdList<uint16_t>(cmdList, constructorHandle->glyphs);
+    auto positions = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, constructorHandle->positions);
+
+    if (glyphs.size() != positions.size()) {
+        LOGD("DrawGlyphsOpItem::Unmarshalling array size mismatch: glyphs=%zu, positions=%zu",
+             glyphs.size(), positions.size());
+        return nullptr;
+    }
+
+    return std::make_shared<DrawGlyphsOpItem>(cmdList, constructorHandle,
+        std::move(glyphs), std::move(positions));
 }
 
 void DrawGlyphsOpItem::Marshalling(DrawCmdList& cmdList)
@@ -2811,10 +2872,22 @@ ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem(
     radiusData_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->radiusData);
 }
 
+ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem(
+    const DrawCmdList& cmdList, ClipAdaptiveRoundRectOpItem::ConstructorHandle* handle,
+    std::vector<Point>&& radiusData)
+    : DrawOpItem(CLIP_ADAPTIVE_ROUND_RECT_OPITEM), radiusData_(std::move(radiusData)) {}
+
 std::shared_ptr<DrawOpItem> ClipAdaptiveRoundRectOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<ClipAdaptiveRoundRectOpItem>(
-        cmdList, static_cast<ClipAdaptiveRoundRectOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<ClipAdaptiveRoundRectOpItem::ConstructorHandle*>(handle);
+    auto radiusData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, constructorHandle->radiusData);
+    static constexpr size_t CORNER_COUNT = 4;
+    if (radiusData.size() < CORNER_COUNT) {
+        LOGD("ClipAdaptiveRoundRectOpItem::Unmarshalling radiusData size mismatch: expected>=4, got=%zu",
+             radiusData.size());
+        return nullptr;
+    }
+    return std::make_shared<ClipAdaptiveRoundRectOpItem>(cmdList, constructorHandle, std::move(radiusData));
 }
 
 void ClipAdaptiveRoundRectOpItem::Marshalling(DrawCmdList& cmdList)

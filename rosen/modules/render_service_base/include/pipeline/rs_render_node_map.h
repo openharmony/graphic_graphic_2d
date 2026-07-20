@@ -67,6 +67,8 @@ public:
     void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
     void TraversalNodesByPid(int pid, std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
     void TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
+    void TraverseProtectiveSolidNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
+    size_t GetProtectiveSolidNodeMapSize() const;
     void TraverseSurfaceNodesBreakOnCondition(
         std::function<bool (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
     void TraverseScreenNodes(std::function<void (const std::shared_ptr<RSScreenRenderNode>&)> func) const;
@@ -138,6 +140,7 @@ private:
     std::unordered_map<pid_t, std::vector<std::shared_ptr<RSUIRenderDirector>>> rsUIRenderDirectorMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> surfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> residentSurfaceNodeMap_;
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> protectiveSolidNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSScreenRenderNode>> screenNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSLogicalDisplayRenderNode>> logicalDisplayNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSCanvasDrawingRenderNode>> canvasDrawingNodeMap_;

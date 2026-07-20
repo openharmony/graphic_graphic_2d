@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -199,8 +199,8 @@ static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {
                 distortionFilter->Getter<OHOS::Rosen::DistortionCollapseBarrelDistortionRenderTag>()->Get();
             float left = rect.GetLeft() + std::min(luCorner[0], lbCorner[0]) * rect.GetWidth();
             float top = rect.GetTop() + std::min(luCorner[1], ruCorner[1]) * rect.GetHeight();
-            float right = std::max(ruCorner[0], rbCorner[0]) * rect.GetWidth();
-            float bottom = std::max(lbCorner[1], rbCorner[1]) * rect.GetHeight();
+            float right = rect.GetLeft() + std::max(ruCorner[0], rbCorner[0]) * rect.GetWidth();
+            float bottom = rect.GetTop() + std::max(lbCorner[1], rbCorner[1]) * rect.GetHeight();
             constexpr float halfUV = 0.5f;
             constexpr float distortScale = 0.25f;
             constexpr float tuneNum = 4.0f;
@@ -416,7 +416,7 @@ RectF RSNGRenderFilterHelper::CalcRect(const std::shared_ptr<RSNGRenderFilterBas
                     drawRect = iter->second(current, drawRect);
                 }
                 current = current->nextEffect_;
-            }while (current);
+            } while (current);
             return drawRect;
         }
         default:
@@ -431,7 +431,7 @@ void RSNGRenderFilterHelper::GetDescription(std::shared_ptr<RSNGRenderFilterBase
     }
     auto current = filter;
     if (!filterString.empty()) {
-        filterString += "";
+        filterString += " ";
     }
     while (current) {
         filterString += RSNGRenderEffectHelper::GetEffectTypeString(current->GetType());

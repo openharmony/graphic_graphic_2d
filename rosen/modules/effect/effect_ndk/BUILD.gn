@@ -26,6 +26,7 @@ template("effect_ndk_source_set") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
+    branch_protector_ret = "pac_ret"
     defines += invoker.defines
     cflags_cc = []
 
@@ -41,6 +42,8 @@ template("effect_ndk_source_set") {
       "hilog:libhilog",
       "image_framework:image",
       "graphics_effect:graphics_effect_core",
+      "egl:libEGL",
+      "opengles:libGLES",
     ]
 
     public_deps = [
@@ -105,6 +108,7 @@ effect_ndk_source_set("effect_ndk_source_ohos") {
 }
 
 ohos_shared_library("native_effect_ndk") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

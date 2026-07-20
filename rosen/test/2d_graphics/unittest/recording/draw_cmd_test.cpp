@@ -2073,6 +2073,299 @@ HWTEST_F(DrawCmdTest, DrawGlyphs000, TestSize.Level1)
     opItem1.Marshalling(*drawCmdList);
     opItem1.Unmarshalling(*drawCmdList, &handle);
 }
+
+/**
+ * @tc.name: DrawGlyphsUnmarshalling001
+ * @tc.desc: Test DrawGlyphsOpItem::Unmarshalling with mismatched glyphs and positions size.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawGlyphsUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    Font font;
+    OpFontHandle fontHandle = CmdListHelper::AddFontToCmdList(*drawCmdList, &font);
+    Point point;
+
+    // Add glyphs vector with 3 elements
+    std::vector<uint16_t> glyphsData = {1, 2, 3};
+    auto glyphsHandle = CmdListHelper::AddVectorToCmdList<uint16_t>(*drawCmdList, glyphsData);
+    // Add positions vector with only 1 element (mismatch)
+    std::vector<Point> positionsData = {Point(0, 0)};
+    auto positionsHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, positionsData);
+
+    DrawGlyphsOpItem::ConstructorHandle handle{glyphsHandle, positionsHandle, point,
+        fontHandle, 0, paintHandle};
+    auto result = DrawGlyphsOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawGlyphsUnmarshalling002
+ * @tc.desc: Test DrawGlyphsOpItem::Unmarshalling with matched glyphs and positions size.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawGlyphsUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    Font font;
+    OpFontHandle fontHandle = CmdListHelper::AddFontToCmdList(*drawCmdList, &font);
+    Point point;
+
+    // Both vectors have the same size
+    std::vector<uint16_t> glyphsData = {1, 2, 3};
+    auto glyphsHandle = CmdListHelper::AddVectorToCmdList<uint16_t>(*drawCmdList, glyphsData);
+    std::vector<Point> positionsData = {Point(0, 0), Point(1, 1), Point(2, 2)};
+    auto positionsHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, positionsData);
+
+    DrawGlyphsOpItem::ConstructorHandle handle{glyphsHandle, positionsHandle, point,
+        fontHandle, 0, paintHandle};
+    auto result = DrawGlyphsOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawGlyphsUnmarshalling003
+ * @tc.desc: Test DrawGlyphsOpItem::Unmarshalling with empty glyphs and positions.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawGlyphsUnmarshalling003, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    Font font;
+    OpFontHandle fontHandle = CmdListHelper::AddFontToCmdList(*drawCmdList, &font);
+    Point point;
+
+    // Both vectors are empty (size 0 == 0)
+    std::vector<uint16_t> glyphsData;
+    auto glyphsHandle = CmdListHelper::AddVectorToCmdList<uint16_t>(*drawCmdList, glyphsData);
+    std::vector<Point> positionsData;
+    auto positionsHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, positionsData);
+
+    DrawGlyphsOpItem::ConstructorHandle handle{glyphsHandle, positionsHandle, point,
+        fontHandle, 0, paintHandle};
+    auto result = DrawGlyphsOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawAtlasUnmarshalling001
+ * @tc.desc: Test DrawAtlasOpItem::Unmarshalling with mismatched vector sizes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawAtlasUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle atlasHandle;
+
+    // xform has 2 elements, tex has 1, colors has 2 (mismatch)
+    std::vector<RSXform> xformData = {RSXform(), RSXform()};
+    auto xformHandle = CmdListHelper::AddVectorToCmdList<RSXform>(*drawCmdList, xformData);
+    std::vector<Rect> texData = {Rect()};
+    auto texHandle = CmdListHelper::AddVectorToCmdList<Rect>(*drawCmdList, texData);
+    std::vector<ColorQuad> colorsData = {0, 0};
+    auto colorsHandle = CmdListHelper::AddVectorToCmdList<ColorQuad>(*drawCmdList, colorsData);
+
+    DrawAtlasOpItem::ConstructorHandle handle{atlasHandle, xformHandle, texHandle,
+        colorsHandle, BlendMode::SRC_OVER, SamplingOptions(), false, Rect(), paintHandle};
+    auto result = DrawAtlasOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawAtlasUnmarshalling002
+ * @tc.desc: Test DrawAtlasOpItem::Unmarshalling with matched vector sizes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawAtlasUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle atlasHandle;
+
+    // All vectors have the same size
+    std::vector<RSXform> xformData = {RSXform(), RSXform()};
+    auto xformHandle = CmdListHelper::AddVectorToCmdList<RSXform>(*drawCmdList, xformData);
+    std::vector<Rect> texData = {Rect(), Rect()};
+    auto texHandle = CmdListHelper::AddVectorToCmdList<Rect>(*drawCmdList, texData);
+    std::vector<ColorQuad> colorsData = {0, 0};
+    auto colorsHandle = CmdListHelper::AddVectorToCmdList<ColorQuad>(*drawCmdList, colorsData);
+
+    DrawAtlasOpItem::ConstructorHandle handle{atlasHandle, xformHandle, texHandle,
+        colorsHandle, BlendMode::SRC_OVER, SamplingOptions(), false, Rect(), paintHandle};
+    auto result = DrawAtlasOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageLatticeUnmarshalling001
+ * @tc.desc: Test DrawImageLatticeOpItem::Unmarshalling with invalid lattice (fXCount too large).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageLatticeUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle imageHandle;
+
+    // Create a lattice with fXCount exceeding the upper bound
+    Lattice lattice;
+    lattice.fXCount = 100; // 100 > 5
+    lattice.fYCount = 2;
+    lattice.fXDivs = std::vector<int>(100, 0); // match fXCount to bypass fXDivs size check
+    lattice.fYDivs = {10, 20};
+    auto latticeHandle = CmdListHelper::AddLatticeToCmdList(*drawCmdList, lattice);
+
+    DrawImageLatticeOpItem::ConstructorHandle handle{imageHandle, latticeHandle,
+        Rect(), FilterMode::NEAREST, paintHandle};
+    auto result = DrawImageLatticeOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageLatticeUnmarshalling002
+ * @tc.desc: Test DrawImageLatticeOpItem::Unmarshalling with valid lattice.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageLatticeUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle imageHandle;
+
+    // Create a valid lattice
+    Lattice lattice;
+    lattice.fXCount = 2;
+    lattice.fYCount = 2;
+    lattice.fXDivs = {10, 20};
+    lattice.fYDivs = {10, 20};
+    lattice.fRectTypes = std::vector<Lattice::RectType>(9, Lattice::RectType::DEFAULT);
+    lattice.fColors = std::vector<Color>(9);
+    auto latticeHandle = CmdListHelper::AddLatticeToCmdList(*drawCmdList, lattice);
+
+    DrawImageLatticeOpItem::ConstructorHandle handle{imageHandle, latticeHandle,
+        Rect(), FilterMode::NEAREST, paintHandle};
+    auto result = DrawImageLatticeOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: ClipAdaptiveRoundRectUnmarshalling001
+ * @tc.desc: Test ClipAdaptiveRoundRectOpItem::Unmarshalling with radiusData size < 4.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, ClipAdaptiveRoundRectUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    // radiusData with only 1 element (< 4)
+    std::vector<Point> radiusData = {Point(1, 1)};
+    auto radiusHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, radiusData);
+
+    ClipAdaptiveRoundRectOpItem::ConstructorHandle handle{radiusHandle};
+    auto result = ClipAdaptiveRoundRectOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: ClipAdaptiveRoundRectUnmarshalling002
+ * @tc.desc: Test ClipAdaptiveRoundRectOpItem::Unmarshalling with radiusData size = 4.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, ClipAdaptiveRoundRectUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    // radiusData with exactly 4 elements
+    std::vector<Point> radiusData = {Point(1, 1), Point(2, 2), Point(3, 3), Point(4, 4)};
+    auto radiusHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, radiusData);
+
+    ClipAdaptiveRoundRectOpItem::ConstructorHandle handle{radiusHandle};
+    auto result = ClipAdaptiveRoundRectOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: ClipAdaptiveRoundRectUnmarshalling003
+ * @tc.desc: Test ClipAdaptiveRoundRectOpItem::Unmarshalling with empty radiusData.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, ClipAdaptiveRoundRectUnmarshalling003, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    // empty radiusData (size 0 < 4)
+    std::vector<Point> radiusData;
+    auto radiusHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, radiusData);
+
+    ClipAdaptiveRoundRectOpItem::ConstructorHandle handle{radiusHandle};
+    auto result = ClipAdaptiveRoundRectOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: ClipAdaptiveRoundRectUnmarshalling004
+ * @tc.desc: Test ClipAdaptiveRoundRectOpItem::Unmarshalling with radiusData size = 3.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, ClipAdaptiveRoundRectUnmarshalling004, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    // radiusData with 3 elements (< 4, boundary case)
+    std::vector<Point> radiusData = {Point(1, 1), Point(2, 2), Point(3, 3)};
+    auto radiusHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, radiusData);
+
+    ClipAdaptiveRoundRectOpItem::ConstructorHandle handle{radiusHandle};
+    auto result = ClipAdaptiveRoundRectOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: ClipAdaptiveRoundRectUnmarshalling005
+ * @tc.desc: Test ClipAdaptiveRoundRectOpItem::Unmarshalling with radiusData size > 4.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, ClipAdaptiveRoundRectUnmarshalling005, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    // radiusData with 6 elements (> 4, also valid)
+    std::vector<Point> radiusData = {Point(1, 1), Point(2, 2), Point(3, 3), Point(4, 4),
+        Point(5, 5), Point(6, 6)};
+    auto radiusHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, radiusData);
+
+    ClipAdaptiveRoundRectOpItem::ConstructorHandle handle{radiusHandle};
+    auto result = ClipAdaptiveRoundRectOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_NE(result, nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

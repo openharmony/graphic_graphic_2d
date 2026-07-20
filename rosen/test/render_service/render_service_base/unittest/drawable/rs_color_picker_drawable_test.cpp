@@ -158,7 +158,6 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable004, TestSize.Level1)
     drawable->OnSync();
     ASSERT_FALSE(drawable->needSync_);
     // params_ should be default constructed when stagingColorPicker_ is nullptr
-    EXPECT_EQ(drawable->params_.placeholder, ColorPlaceholder::NONE);
     EXPECT_EQ(drawable->params_.strategy, ColorPickStrategyType::NONE);
     EXPECT_EQ(drawable->params_.interval, 0);
 }
@@ -206,7 +205,6 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable006, TestSize.Level1)
     ASSERT_NE(drawable, nullptr);
 
     drawable->OnSync();
-    EXPECT_EQ(drawable->params_.placeholder, ColorPlaceholder::SURFACE_CONTRAST);
     EXPECT_EQ(drawable->params_.strategy, ColorPickStrategyType::CONTRAST);
     EXPECT_EQ(drawable->params_.interval, 3000);
 
@@ -689,7 +687,7 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable024, TestSize.Level1)
 
 /**
  * @tc.name: RSColorPickerDrawable025
- * @tc.desc: Test GetLastEquivalentDarkMode returns INVALID when manager is null
+ * @tc.desc: Test GetLastContrastColorScheme returns INVALID when manager is null
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -700,7 +698,7 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable025, TestSize.Level1)
     ASSERT_NE(drawable, nullptr);
 
     drawable->colorPickerManager_ = nullptr;
-    auto mode = drawable->GetLastEquivalentDarkMode();
-    EXPECT_EQ(mode, EquivalentDarkMode::INVALID);
+    auto mode = drawable->GetLastContrastColorScheme();
+    EXPECT_EQ(mode, ContrastColorScheme::INVALID);
 }
 } // namespace OHOS::Rosen

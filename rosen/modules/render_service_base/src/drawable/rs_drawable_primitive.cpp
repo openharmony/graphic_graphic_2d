@@ -86,8 +86,20 @@ void RSDrawable::OnPrimitiveSync()
 
 void DrawableV2::RSChildrenDrawable::OnDrawPrimitive(Drawing::Canvas* canvas, const Drawing::Rect* rect)
 {
-    OnDraw(canvas, rect);
-    return;
+for (size_t i = 0; i < childrenDrawableVec_.size(); i++) {
+#ifdef RS_ENABLE_PREFETCH
+        size_t prefetchIndex = i + 2;
+        if (prefetchIndex < childrenDrawableVec_.size()) {
+            __builtin_prefetch(&(childrenDrawableVec_[prefetchIndex]), 0, 1);
+        }
+#endif
+        const auto& drawable = childrenDrawableVec_[i];
+        if (!RSSystemProperties::GetUsePrimList()) {
+            drawable->Draw(*canvas);
+        } else {
+            drawable->DrawPrim(*canvas);
+        }
+    }
 }
 } // namespace OHOS::Rosen
 #endif

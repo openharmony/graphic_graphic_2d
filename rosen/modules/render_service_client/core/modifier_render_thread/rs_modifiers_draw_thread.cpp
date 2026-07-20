@@ -32,13 +32,13 @@ RSModifiersDrawThread::~RSModifiersDrawThread() = default;
 
 void RSModifiersDrawThread::Start()
 {
-    if (started_) {
+    if (started_.load() || destroyed_.load()) {
         return;
     }
     runner_ = AppExecFwk::EventRunner::Create("ModifiersDraw");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
-    started_ = true;
+    started_.store(true);
     PostTask([] {
         OHOS::ConcurrentTask::IntervalReply reply;
         reply.tid = gettid();
@@ -56,16 +56,16 @@ void RSModifiersDrawThread::Start()
 
 void RSModifiersDrawThread::WaitAllTasksFinish()
 {
-    if (started_) {
-        PostSyncTask([]() { RS_TRACE_NAME_FMT("RSModifiersDrawThread::WaitAllTasksFinish"); });
-    }
+    PostSyncTask([]() { RS_TRACE_NAME_FMT("RSModifiersDrawThread::WaitAllTasksFinish"); });
 }
 
 void RSModifiersDrawThread::Destroy()
 {
-    if (!started_) {
+    destroyed_.store(true);
+    if (!started_.load()) {
         return;
     }
+    started_.store(false);
 
     if (handler_ != nullptr) {
         handler_->RemoveAllEvents();
@@ -75,21 +75,22 @@ void RSModifiersDrawThread::Destroy()
         runner_->Stop();
         runner_ = nullptr;
     }
-    started_ = false;
 }
 
 void RSModifiersDrawThread::PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime)
 {
-    if (handler_ != nullptr) {
-        handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (!started_.load() || handler_ == nullptr) {
+        return;
     }
+    handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 void RSModifiersDrawThread::PostSyncTask(const std::function<void()>& task)
 {
-    if (handler_ != nullptr) {
-        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (!started_.load() || handler_ == nullptr) {
+        return;
     }
+    handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 void RSModifiersDrawThread::CommitTransaction(std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent,

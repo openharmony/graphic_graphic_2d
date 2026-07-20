@@ -363,7 +363,6 @@ HWTEST_F(PropertiesTest, SetColorPickerNotifyThresholdTest002, TestSize.Level1)
     colorPicker = properties.GetColorPicker();
     EXPECT_EQ(colorPicker->notifyThreshold.first, 60);
     EXPECT_EQ(colorPicker->notifyThreshold.second, 100);
-    EXPECT_EQ(colorPicker->placeholder, ColorPlaceholder::SURFACE);
     EXPECT_EQ(colorPicker->strategy, ColorPickStrategyType::AVERAGE);
     EXPECT_EQ(colorPicker->interval, 1000);
 }
@@ -1475,27 +1474,6 @@ HWTEST_F(PropertiesTest,  UpdateForegroundFilterTest_RenderFilter001, TestSize.L
 }
 
 /**
- * @tc.name: SetColorPickerPlaceholderTest
- * @tc.desc: verify placeholder clamping and dirty flag
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest, SetColorPickerPlaceholderTest, TestSize.Level1)
-{
-    RSProperties properties;
-    ASSERT_EQ(properties.GetColorPicker(), nullptr);
-
-    properties.SetColorPickerPlaceholder(-100); // below NONE
-    ASSERT_NE(properties.GetColorPicker(), nullptr);
-    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::MAX);
-    EXPECT_TRUE(properties.IsDirty());
-
-    properties.ResetDirty();
-    properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::MAX) + 100); // above MAX
-    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::MAX);
-    EXPECT_TRUE(properties.IsDirty());
-}
-
-/**
  * @tc.name: SetColorPickerStrategyTest
  * @tc.desc: verify strategy clamping and dirty flag
  * @tc.type: FUNC
@@ -1547,7 +1525,6 @@ HWTEST_F(PropertiesTest, GetColorPickerTest, TestSize.Level1)
 
     auto picker = properties.GetColorPicker();
     ASSERT_NE(picker, nullptr);
-    EXPECT_EQ(picker->placeholder, ColorPlaceholder::SURFACE);
     EXPECT_EQ(picker->strategy, ColorPickStrategyType::AVERAGE);
     EXPECT_EQ(picker->interval, static_cast<uint64_t>(200));
 }
@@ -2034,28 +2011,28 @@ HWTEST_F(PropertiesTest, UpdateHDRColorMaxHeadroomTest1, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetLastEquivalentDarkMode001
- * @tc.desc: test results of SetLastEquivalentDarkMode
+ * @tc.name: SetLastContrastColorScheme001
+ * @tc.desc: test results of SetLastContrastColorScheme
  * @tc.type: FUNC
  */
-HWTEST_F(PropertiesTest, SetLastEquivalentDarkMode001, TestSize.Level1)
+HWTEST_F(PropertiesTest, SetLastContrastColorScheme001, TestSize.Level1)
 {
     RSProperties properties;
 
-    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::LIGHT);
+    properties.SetLastContrastColorScheme(ContrastColorScheme::LIGHT);
     auto colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::LIGHT);
+    EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::LIGHT);
 
-    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::DARK);
+    properties.SetLastContrastColorScheme(ContrastColorScheme::DARK);
     colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::DARK);
+    EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::DARK);
 
-    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::INVALID);
+    properties.SetLastContrastColorScheme(ContrastColorScheme::INVALID);
     colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::INVALID);
+    EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::INVALID);
 }
 
 /**

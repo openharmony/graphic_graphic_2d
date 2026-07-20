@@ -175,7 +175,6 @@ public:
     static bool GetRSClientMultiInstanceEnabled();
     static bool GetRenderNodePurgeEnabled();
     static bool GetRSImagePurgeEnabled();
-    static bool GetClosePixelMapFdEnabled();
     static bool GetAceTestMode();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static AdvancedDirtyRegionType GetAdvancedDirtyRegionEnabled();
@@ -307,6 +306,7 @@ public:
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSurfaceNodeWatermarkEnabled();
     static bool IsSuperFoldDisplay();
+    static bool IsSpecialFoldDisplay();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
     static bool GetSingleFrameComposerEnabled();

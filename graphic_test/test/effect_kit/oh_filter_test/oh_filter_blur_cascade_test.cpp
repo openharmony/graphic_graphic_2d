@@ -15,6 +15,7 @@
 
 #include "oh_filter_test_utils.h"
 #include "oh_filter_test_params.h"
+#include "rs_graphic_test_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -23,15 +24,13 @@ namespace OHOS::Rosen {
 namespace {
 const std::string BG_TEST_JPG_PATH = "/data/local/tmp/bg_test.jpg";
 const std::string FG_TEST_JPG_PATH = "/data/local/tmp/fg_test.jpg";
-const int SCREEN_WIDTH = 1200;
-const int SCREEN_HEIGHT = 2000;
 }
 
 class OHFilterBlurCascadeTest : public RSGraphicTest {
 public:
     void BeforeEach() override
     {
-        SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        SetScreenSize(screenWidth, screenHeight);
     }
 
     void DrawBackgroundNodeOHPixelMap(OH_PixelmapNative* pixelMapNative,
@@ -109,6 +108,10 @@ public:
         params.portalLightStrength = data[PORTAL_LIGHT_STRENGTH_INDEX];
         return true;
     }
+
+private:
+    const int screenWidth = 1200;
+    const int screenHeight = 1200;
 };
 
 /*
@@ -116,15 +119,12 @@ public:
  */
 GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_GammaCorrection_Test)
 {
-    const size_t testCount = 6;
-    const int columnCount = 3;
-    const int rowCount = 2;
+    const size_t columnCount = 6;
+    const int rowCount = static_cast<int>(OHFilterTestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
 
-    for (size_t i = 0; i < testCount; i++) {
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
+    for (size_t i = 0; i < rowCount; i++) {
 
         auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         if (!pixelMapNative) {
@@ -139,7 +139,10 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_GammaCorrection_Tes
         OH_Filter_GammaCorrection(ohFilter, gammaCorrectionParams[i]);
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);
 
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
         DrawBackgroundNodeOHPixelMap(pixelMapNative, {x, y, sizeX, sizeY});
+        OH_PixelmapNative_Release(pixelMapNative);
         OH_Filter_Release(ohFilter);
     }
 }
@@ -149,15 +152,12 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_GammaCorrection_Tes
  */
 GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_MapColorByBrightness_Test)
 {
-    const size_t testCount = 6;
-    const int columnCount = 3;
-    const int rowCount = 2;
+    const size_t columnCount = 6;
+    const int rowCount = static_cast<int>(OHFilterTestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
 
-    for (size_t i = 0; i < testCount; i++) {
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
+    for (size_t i = 0; i < rowCount; i++) {
 
         auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         if (!pixelMapNative) {
@@ -179,7 +179,10 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_MapColorByBrightnes
 
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);
 
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
         DrawBackgroundNodeOHPixelMap(pixelMapNative, {x, y, sizeX, sizeY});
+        OH_PixelmapNative_Release(pixelMapNative);
         OH_Filter_Release(ohFilter);
     }
 }
@@ -189,15 +192,12 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_MapColorByBrightnes
  */
 GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_WaterGlass_Test)
 {
-    const size_t testCount = 6;
-    const int columnCount = 3;
-    const int rowCount = 2;
+    const size_t columnCount = 6;
+    const int rowCount = static_cast<int>(OHFilterTestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
 
-    for (size_t i = 0; i < testCount; i++) {
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
+    for (size_t i = 0; i < rowCount; i++) {
 
         auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         if (!pixelMapNative) {
@@ -218,7 +218,10 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_WaterGlass_Test)
         OH_Filter_WaterGlass(ohFilter, &waterGlassParams);
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);
 
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
         DrawBackgroundNodeOHPixelMap(pixelMapNative, {x, y, sizeX, sizeY});
+        OH_PixelmapNative_Release(pixelMapNative);
         OH_Filter_Release(ohFilter);
     }
 }
@@ -228,15 +231,12 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_WaterGlass_Test)
  */
 GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_ReededGlass_Test)
 {
-    const size_t testCount = 6;
-    const int columnCount = 3;
-    const int rowCount = 2;
+    const size_t columnCount = 6;
+    const int rowCount = static_cast<int>(OHFilterTestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
 
-    for (size_t i = 0; i < testCount; i++) {
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
+    for (size_t i = 0; i < rowCount; i++) {
 
         auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         if (!pixelMapNative) {
@@ -257,7 +257,10 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_ReededGlass_Test)
         OH_Filter_ReededGlass(ohFilter, &reededGlassParams);
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);
 
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
         DrawBackgroundNodeOHPixelMap(pixelMapNative, {x, y, sizeX, sizeY});
+        OH_PixelmapNative_Release(pixelMapNative);
         OH_Filter_Release(ohFilter);
     }
 }
@@ -267,15 +270,12 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_ReededGlass_Test)
  */
 GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_MaskTransition_Test)
 {
-    const size_t testCount = 6;
-    const int columnCount = 3;
-    const int rowCount = 2;
+    const size_t columnCount = 6;
+    const int rowCount = static_cast<int>(OHFilterTestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
 
-    for (size_t i = 0; i < testCount; i++) {
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
+    for (size_t i = 0; i < rowCount; i++) {
 
         auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         if (!pixelMapNative) {
@@ -307,7 +307,11 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_MaskTransition_Test
 
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);
 
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
         DrawBackgroundNodeOHPixelMap(pixelMapNative, {x, y, sizeX, sizeY});
+        OH_PixelmapNative_Release(pixelMapNative);
+        OH_PixelmapNative_Release(bgPixelMapNative);
         OH_Filter_Release(ohFilter);
     }
 }
@@ -317,15 +321,12 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_MaskTransition_Test
  */
 GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_WaterDropletTransition_Test)
 {
-    const size_t testCount = 6;
-    const int columnCount = 3;
-    const int rowCount = 2;
+    const size_t columnCount = 6;
+    const int rowCount = static_cast<int>(OHFilterTestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
 
-    for (size_t i = 0; i < testCount; i++) {
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
+    for (size_t i = 0; i < rowCount; i++) {
 
         auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         if (!pixelMapNative) {
@@ -363,7 +364,11 @@ GRAPHIC_TEST(OHFilterBlurCascadeTest, EFFECT_TEST, Blur_With_WaterDropletTransit
 
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);
 
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
         DrawBackgroundNodeOHPixelMap(pixelMapNative, {x, y, sizeX, sizeY});
+        OH_PixelmapNative_Release(pixelMapNative);
+        OH_PixelmapNative_Release(bgPixelMapNative);
         OH_Filter_Release(ohFilter);
     }
 }

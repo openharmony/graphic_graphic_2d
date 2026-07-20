@@ -28,6 +28,7 @@ ohos_shared_library("cj_color_manager_ffi") {
     cfi_vcall_icall_only = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
 
   include_dirs = [
     "$graphic_2d_root/interfaces/inner_api/color_manager",

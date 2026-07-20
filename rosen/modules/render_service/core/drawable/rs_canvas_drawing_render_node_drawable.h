@@ -154,6 +154,9 @@ private:
     Drawing::BackendTexture backendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    mutable sptr<IConsumerSurface> consumerSurface_ = nullptr;
+#endif
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::atomic<pid_t> threadId_ = RSUniRenderThread::Instance().GetTid();
 

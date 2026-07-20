@@ -35,7 +35,7 @@ public:
 };
 
 ADD_COMMAND(RSEffectNodeCreate,
-    ARG(PERMISSION_APP, EFFECT_NODE, EFFECT_NODE_CREATE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, EFFECT_NODE, EFFECT_NODE_CREATE,
         EffectNodeCommandHelper::Create, NodeId, bool))
 
 } // namespace Rosen

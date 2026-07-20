@@ -1828,6 +1828,16 @@
     "connectionType": 0
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_188",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSColorPickerDestroyInRender*100",
+    "commandListRepeat": 1,
+    "connectionType": 0
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",

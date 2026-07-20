@@ -1486,6 +1486,38 @@ ErrCode RSServiceToRenderConnectionProxy::RepaintEverything()
     return replyMessage;
 }
 
+ErrCode RSServiceToRenderConnectionProxy::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint64(screenId)) {
+        ROSEN_LOGE("%{public}s: Write screenId failed.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(width)) {
+        ROSEN_LOGE("%{public}s: Write width failed.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(height)) {
+        ROSEN_LOGE("%{public}s: Write height failed.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
+        return ERR_INVALID_VALUE;
+    }
+    auto replyMessage = reply.ReadInt32();
+    return replyMessage;
+}
+
 ErrCode RSServiceToRenderConnectionProxy::SetColorFollow(const std::string& nodeIdStr, bool isColorFollow)
 {
     MessageParcel data;

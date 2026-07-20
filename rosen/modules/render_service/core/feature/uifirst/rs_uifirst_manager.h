@@ -293,6 +293,8 @@ private:
     static bool IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation);
     // check if non-focus window enable uifirst
     static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
+    // only use in mainThread & RT onsync
+    static ScreenId GetScreenId(const RSBaseRenderNode::WeakPtr& ancestorScreenNode);
     void SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable,
         const GraphicColorGamut& curColorGamut);
 

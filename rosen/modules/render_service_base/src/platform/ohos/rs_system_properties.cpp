@@ -283,12 +283,6 @@ bool RSSystemProperties::GetRSImagePurgeEnabled()
     return isPurgeable;
 }
 
-bool RSSystemProperties::GetClosePixelMapFdEnabled()
-{
-    static bool isClosePixelMapFd = system::GetParameter("persist.rosen.rsimage.close.fd", "0") != "0";
-    return isClosePixelMapFd;
-}
-
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.enabled", "0");
@@ -1219,6 +1213,13 @@ bool RSSystemProperties::IsSuperFoldDisplay()
     return IsSuperFoldDisplay;
 }
 
+bool RSSystemProperties::IsSpecialFoldDisplay()
+{
+    static const std::string foldScreenType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    static const bool IsSpecialFoldDisplay = foldScreenType.size() > 0 ? foldScreenType[0] == '8' : false;
+    return IsSpecialFoldDisplay;
+}
+
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     static bool syncTransactionEnabled =
@@ -1648,7 +1649,7 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
     static bool canvasEnabled =
         Drawing::SystemProperties::IsUseVulkan() &&
         system::GetParameter("const.product.devicetype", "phone") == "phone" &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
     return canvasEnabled;
 }
 

@@ -62,6 +62,7 @@ ohos_shared_library("uieffect_napi") {
   external_deps = [
     "hilog:libhilog",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   if (rosen_is_ohos) {

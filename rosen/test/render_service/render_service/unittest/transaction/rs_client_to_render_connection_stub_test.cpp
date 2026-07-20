@@ -1673,6 +1673,62 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmapTest002, TestSize.Level1
 }
 
 /**
+ * @tc.name: SetRogScreenResolutionTest001
+ * @tc.desc: Test SetRogScreenResolution with null pipeline
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetRogScreenResolutionTest001, TestSize.Level1)
+{
+    // Create a new agent with null pipeline instead of modifying member variable
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> newAgent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+    ASSERT_NE(newAgent, nullptr);
+ 
+    constexpr uint32_t width = 1920;
+    constexpr uint32_t height = 1080;
+    constexpr ScreenId screenId = 0;
+    ErrCode ret = newAgent->SetRogScreenResolution(screenId, width, height);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+ 
+/**
+ * @tc.name: SetRogScreenResolutionTest002
+ * @tc.desc: Test SetRogScreenResolution with valid pipeline
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetRogScreenResolutionTest002, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_.lock(), nullptr);
+ 
+    constexpr uint32_t width = 1920;
+    constexpr uint32_t height = 1080;
+    constexpr ScreenId screenId = 0;
+    ErrCode ret = renderPipelineAgent_->SetRogScreenResolution(screenId, width, height);
+    EXPECT_EQ(ret, ERR_OK);
+}
+ 
+/**
+ * @tc.name: SetRogScreenResolutionTest003
+ * @tc.desc: Test SetRogScreenResolution with zero resolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetRogScreenResolutionTest003, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_.lock(), nullptr);
+ 
+    constexpr uint32_t width = 0;
+    constexpr uint32_t height = 0;
+    constexpr ScreenId screenId = 0;
+    ErrCode ret = renderPipelineAgent_->SetRogScreenResolution(screenId, width, height);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
  * @tc.name: TakeSurfaceCaptureSoloTest001
  * @tc.desc: Test TAKE_SURFACE_CAPTURE_SOLO interface code path
  * @tc.type: FUNC

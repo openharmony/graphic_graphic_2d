@@ -1732,6 +1732,126 @@ HWTEST_F(RSRenderPipelineAgentTest, SetHdrForceHwcEnabled_NullMainThread, TestSi
 }
 
 /**
+ * @tc.name: SetRogScreenResolution_NonMatchingScreenId
+ * @tc.desc: Verify SetRogScreenResolution handles non-matching screenId gracefully.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetRogScreenResolution_NonMatchingScreenId, TestSize.Level1)
+{
+    ASSERT_NE(mainThread_, nullptr);
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+ 
+    constexpr ScreenId targetScreenId = 100;
+    constexpr uint32_t testWidth = 1920;
+    constexpr uint32_t testHeight = 1080;
+    NodeId nodeId = 200;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(nodeId, 999);
+    ASSERT_NE(screenNode, nullptr);
+ 
+    auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
+    nodeMap.screenNodeMap_[nodeId] = screenNode;
+ 
+    ErrCode ret = agent->SetRogScreenResolution(targetScreenId, testWidth, testHeight);
+    EXPECT_EQ(ret, ERR_OK);
+ 
+    nodeMap.screenNodeMap_.erase(nodeId);
+}
+ 
+/**
+ * @tc.name: AdjustBootAnimationBounds_WithBootAnimationNode
+ * @tc.desc: Verify AdjustBootAnimationBounds modifies bounds when boot animation node exists.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AdjustBootAnimationBounds_WithBootAnimationNode, TestSize.Level1)
+{
+    ASSERT_NE(mainThread_, nullptr);
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+ 
+    constexpr uint32_t testWidth = 800;
+    constexpr uint32_t testHeight = 600;
+    NodeId surfaceNodeId = 500;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetBootAnimation(true);
+ 
+    auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+ 
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    EXPECT_EQ(ret, ERR_OK);
+ 
+    nodeMap.UnregisterRenderNode(surfaceNodeId);
+}
+ 
+/**
+ * @tc.name: AdjustBootAnimationBounds_WithoutBootAnimationNode
+ * @tc.desc: Verify AdjustBootAnimationBounds handles case when no boot animation node exists.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, AdjustBootAnimationBounds_WithoutBootAnimationNode, TestSize.Level1)
+{
+    ASSERT_NE(mainThread_, nullptr);
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+ 
+    constexpr uint32_t testWidth = 800;
+    constexpr uint32_t testHeight = 600;
+    NodeId surfaceNodeId = 501;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetBootAnimation(false);
+ 
+    auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+ 
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    EXPECT_EQ(ret, ERR_OK);
+ 
+    nodeMap.UnregisterRenderNode(surfaceNodeId);
+}
+ 
+/**
+ * @tc.name: SetBootAnimationBounds_NullModifier
+ * @tc.desc: Verify SetBootAnimationBounds handles null modifier gracefully.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetBootAnimationBounds_NullModifier, TestSize.Level1)
+{
+    ASSERT_NE(mainThread_, nullptr);
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+ 
+    constexpr uint32_t testWidth = 1920;
+    constexpr uint32_t testHeight = 1080;
+    NodeId surfaceNodeId = 502;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetBootAnimation(true);
+ 
+    auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+ 
+    ErrCode ret = agent->SetRogScreenResolution(0, testWidth, testHeight);
+    EXPECT_EQ(ret, ERR_OK);
+ 
+    nodeMap.UnregisterRenderNode(surfaceNodeId);
+}
+
+/**
  * @tc.name: SetHdrForceHwcEnabled_NormalCase
  * @tc.desc: Test SetHdrForceHwcEnabled
  * @tc.type: FUNC

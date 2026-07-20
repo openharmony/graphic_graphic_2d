@@ -392,14 +392,14 @@ std::shared_ptr<Drawing::Image> RSCanvasModifiersDrawable::GetImage(
 // Thread-related methods
 void RSCanvasModifiersDraw::StartThread()
 {
-    if (threadStarted_) {
+    if (threadStarted_.load() || threadDestroyed_.load()) {
         return;
     }
 
     runner_ = AppExecFwk::EventRunner::Create("CanvasModifiersDraw");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
-    threadStarted_ = true;
+    threadStarted_.store(true);
     PostTask([] {
         OHOS::ConcurrentTask::IntervalReply reply;
         reply.tid = gettid();
@@ -418,16 +418,18 @@ void RSCanvasModifiersDraw::StartThread()
 
 void RSCanvasModifiersDraw::WaitAllTasksFinish()
 {
-    if (threadStarted_) {
+    if (threadStarted_.load()) {
         PostSyncTask([]() { RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish"); });
     }
 }
 
 void RSCanvasModifiersDraw::Destroy()
 {
-    if (!threadStarted_) {
+    threadDestroyed_.store(true);
+    if (!threadStarted_.load()) {
         return;
     }
+    threadStarted_.store(false);
 
     if (handler_ != nullptr) {
         handler_->RemoveAllEvents();
@@ -437,24 +439,37 @@ void RSCanvasModifiersDraw::Destroy()
         runner_->Stop();
         runner_ = nullptr;
     }
-    threadStarted_ = false;
 }
 
 void RSCanvasModifiersDraw::PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime)
 {
-    StartThread();
-    handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (threadDestroyed_.load()) {
+        return;
+    }
+    if (!threadStarted_.load()) {
+        StartThread();
+    }
+    if (handler_ != nullptr) {
+        handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
 }
 
 void RSCanvasModifiersDraw::PostSyncTask(const std::function<void()>& task)
 {
-    StartThread();
-    handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (threadDestroyed_.load()) {
+        return;
+    }
+    if (!threadStarted_.load()) {
+        StartThread();
+    }
+    if (handler_ != nullptr) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
 }
 
 void RSCanvasModifiersDraw::RemoveTask(const std::string& name)
 {
-    if (threadStarted_) {
+    if (threadStarted_.load()) {
         handler_->RemoveTask(name);
     }
 }

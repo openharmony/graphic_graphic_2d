@@ -808,27 +808,27 @@ HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickAltWithHeteroAcceleration, Te
 }
 
 /**
- * @tc.name: GetLastEquivalentDarkModeReturnsInvalidInitially
- * @tc.desc: Verify GetLastEquivalentDarkMode
+ * @tc.name: GetLastContrastColorSchemeReturnsInvalidInitially
+ * @tc.desc: Verify GetLastContrastColorScheme
  * @tc.type: FUNC
  */
-HWTEST_F(RSColorPickerManagerTest, GetLastEquivalentDarkMode, TestSize.Level1)
+HWTEST_F(RSColorPickerManagerTest, GetLastContrastColorScheme, TestSize.Level1)
 {
     RSColorPickerManager manager(1);
-    auto mode = manager.GetLastEquivalentDarkMode();
-    EXPECT_EQ(mode, EquivalentDarkMode::LIGHT);
+    auto mode = manager.GetLastContrastColorScheme();
+    EXPECT_EQ(mode, ContrastColorScheme::LIGHT);
 }
 
 /**
- * @tc.name: GetLastEquivalentDarkModeAltAlwaysReturnsInvalid
- * @tc.desc: Verify ColorPickAltManager::GetLastEquivalentDarkMode always returns INVALID
+ * @tc.name: GetLastContrastColorSchemeAltAlwaysReturnsInvalid
+ * @tc.desc: Verify ColorPickAltManager::GetLastContrastColorScheme always returns INVALID
  * @tc.type: FUNC
  */
-HWTEST_F(ColorPickAltManagerTest, GetLastEquivalentDarkModeAlt, TestSize.Level1)
+HWTEST_F(ColorPickAltManagerTest, GetLastContrastColorSchemeAlt, TestSize.Level1)
 {
     auto manager = std::make_shared<ColorPickAltManager>(1);
-    auto mode = manager->GetLastEquivalentDarkMode();
-    EXPECT_EQ(mode, EquivalentDarkMode::INVALID);
+    auto mode = manager->GetLastContrastColorScheme();
+    EXPECT_EQ(mode, ContrastColorScheme::INVALID);
 }
 
 } // namespace Rosen

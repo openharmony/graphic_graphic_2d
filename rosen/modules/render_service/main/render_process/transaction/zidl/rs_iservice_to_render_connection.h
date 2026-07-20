@@ -149,6 +149,7 @@ public:
         bool unobscured = false) = 0;
     virtual void ForceRefreshOneFrameWithNextVSync() = 0;
     virtual void SetCacheEnabledForRotation(bool enabled) = 0;
+    virtual ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height) = 0;
 };
 
 } // namespace Rosen

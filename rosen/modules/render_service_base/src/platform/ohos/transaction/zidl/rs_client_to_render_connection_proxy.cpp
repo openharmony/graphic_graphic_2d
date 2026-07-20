@@ -1971,8 +1971,8 @@ sptr<Surface> RSClientToRenderConnectionProxy::CreateCanvasDrawingNodeSurface(No
         ROSEN_LOGE("CreateCanvasDrawingNodeSurface: WriteUint64 nodeId err.");
         return nullptr;
     }
- 
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE);
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("CreateCanvasDrawingNodeSurface: Send Request err.");
@@ -2004,8 +2004,9 @@ void RSClientToRenderConnectionProxy::ReleaseCanvasDrawingNodeSurface(NodeId nod
         ROSEN_LOGE("ReleaseCanvasDrawingNodeSurface: WriteUint64 nodeId err.");
         return nullptr;
     }
- 
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE);
+
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::RELEASE_CANVAS_DRAWING_NODE_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("ReleaseCanvasDrawingNodeSurface: Send Request err.");

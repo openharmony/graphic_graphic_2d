@@ -15,30 +15,21 @@
 
 #include "modifier_render_thread/rs_modifiers_draw.h"
 
+#include "sandbox_utils.h"
+
 #include "command/rs_delegate_composite_command.h"
 
 namespace OHOS::Rosen {
 void RSModifiersDraw::ConvertTransaction(
     std::unique_ptr<RSTransactionData>& transactionData, std::vector<RSTransactionConfig>& transactionConfigList)
 {
-    if (transactionConfigList.empty()) {
-        return;
-    }
-
-    auto& payload = transactionData->GetPayload();
-    for (auto it = payload.rbegin(); it != payload.rend(); ++it) {
-        auto& command = std::get<2>(*it); // The element which index 2 is RSCommand.
-        if (command == nullptr) {
-            continue;
-        }
-        if (command->GetType() != RSCommandType::DELEGATE_COMPOSITE ||
-            command->GetSubType() != RSDelegateCompositeCommandType::TRANSACTION_BUFFER) {
-            continue;
-        }
-
-        auto transactionBufferCommand = static_cast<TransactionBufferCommand*>(command.get());
-        transactionBufferCommand->SetRSTransactionConfigs(transactionConfigList);
-        break;
+    if (transactionData != nullptr && !transactionConfigList.empty()) {
+        // Static is safe: GetRealPid() is constant within a process, and this nodeId
+        // is only used to pass server-side PID validation (ExtractPid(nodeId) == callingPid).
+        // Left shift by 32 to match the standard NodeId format (pid << 32 | sequence).
+        static NodeId nodeId = (NodeId)GetRealPid() << 32;
+        transactionData->AddCommand(
+            std::make_unique<TransactionBufferCommand>(transactionConfigList, nodeId), nodeId, FollowType::NONE);
     }
 }
 } // namespace OHOS::Rosen

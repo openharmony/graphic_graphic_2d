@@ -2456,6 +2456,7 @@ private:
     friend class RSProfiler;
 #endif
     friend class SplitSurface;
+    friend class RSProtectiveSolidRenderNode;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -32,6 +32,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSRcdSurfaceRenderNode;
+class RSProtectiveSolidRenderNode;
 #ifdef RS_ENABLE_GPU
 class RSScreenRenderParams;
 #endif
@@ -59,6 +60,8 @@ public:
     virtual void ProcessScreenSurface(RSScreenRenderNode& node) = 0;
     virtual void PostProcess() = 0;
     virtual void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) = 0;
+    virtual void CreateProtectiveSolidLayer(RSProtectiveSolidRenderNode& node, RSSurfaceRenderParams& params) {}
+    virtual void CreateProtectiveSolidLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
 
     virtual bool InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);

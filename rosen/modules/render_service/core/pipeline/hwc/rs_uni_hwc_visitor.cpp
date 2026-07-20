@@ -1013,11 +1013,6 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
         return true;
     }
 
-    // screenId > 0 means non-primary screen normally
-    if (HWCParam::IsDisableHwcOnExpandScreen() && uniRenderVisitor_.curScreenNode_->GetScreenId() > 0) {
-        return true;
-    }
-
     return false;
 }
 
@@ -1050,8 +1045,6 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
         UpdateHwcNodeClipRectAndMatrix(hwcNodePtr, rootNode, clipRect, matrix);
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
         auto& properties = hwcNodePtr->GetMutableRenderProperties();
-        auto offset = std::nullopt;
-        properties.UpdateGeometryByParent(&matrix, offset);
         const auto& geoPtr = properties.GetBoundsGeometry();
         const auto& originalMatrix = geoPtr->GetMatrix();
         matrix.PreConcat(originalMatrix);
@@ -1123,14 +1116,6 @@ void RSUniHwcVisitor::UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>&
     }
 }
 
-void RSUniHwcVisitor::UpdateHwcNodeMatrix(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
-    Drawing::Matrix& accumulatedMatrix)
-{
-    if (auto opt = RSUniHwcComputeUtil::GetMatrix(hwcNodeParent)) {
-        accumulatedMatrix.PostConcat(opt.value());
-    }
-}
-
 void RSUniHwcVisitor::UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
     const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix)
 {
@@ -1138,13 +1123,14 @@ void RSUniHwcVisitor::UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSur
     // using values summarized empirically.
     constexpr float MAX_FLOAT = std::numeric_limits<float>::max() * 1e-30;
     Drawing::Rect childRectMapped(0.0f, 0.0f, MAX_FLOAT, MAX_FLOAT);
-    Drawing::Matrix accumulatedMatrix;
+    // Ancestors between rootNode and hwcNodePtr.
+    std::vector<RSRenderNode::SharedPtr> ancestors;
     RSRenderNode::SharedPtr hwcNodeParent = hwcNodePtr;
     while (hwcNodeParent && hwcNodeParent->GetType() != RSRenderNodeType::SCREEN_NODE &&
            hwcNodeParent->GetId() != rootNode.GetId()) {
         UpdateHwcNodeClipRect(hwcNodeParent, childRectMapped);
         if (hwcNodePtr->GetId() != hwcNodeParent->GetId()) {
-            UpdateHwcNodeMatrix(hwcNodeParent, accumulatedMatrix);
+            ancestors.push_back(hwcNodeParent);
         }
         auto cloneNodeParent = hwcNodeParent->GetCurCloneNodeParent().lock();
         hwcNodeParent = cloneNodeParent ? cloneNodeParent : hwcNodeParent->GetParent().lock();
@@ -1160,7 +1146,45 @@ void RSUniHwcVisitor::UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSur
     clipRect.top_ = static_cast<int>(std::floor(absClipRect.GetTop()));
     clipRect.width_ = static_cast<int>(std::ceil(absClipRect.GetRight() - clipRect.left_));
     clipRect.height_ = static_cast<int>(std::ceil(absClipRect.GetBottom() - clipRect.top_));
-    matrix.PreConcat(accumulatedMatrix);
+    auto& rootNodeProperties = rootNode.GetRenderProperties();
+    // Refresh ancestors only when the parent chain moved.
+    if (uniRenderVisitor_.dirtyFlag_) {
+        RefreshAncestorGeometryInSkippedSubTree(hwcNodePtr, rootNode, ancestors);
+    }
+    matrix = ancestors.empty()
+        ? rootNodeProperties.GetBoundsGeometry()->GetAbsMatrix()
+        : ancestors.front()->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+}
+
+void RSUniHwcVisitor::RefreshAncestorGeometryInSkippedSubTree(
+    const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+    const RSRenderNode& rootNode, const std::vector<std::shared_ptr<RSRenderNode>>& ancestors)
+{
+    // top-down refresh of every intermediate ancestor, then the hwcNode leaf itself.
+    const RSRenderNode* runningParent = &rootNode;
+    for (auto iter = ancestors.rbegin(); iter != ancestors.rend(); ++iter) {
+        const auto& node = *iter;
+        if (!node) {
+            continue;
+        }
+        auto& props = node->GetMutableRenderProperties();
+        const auto* parentMatrix = &runningParent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+        std::optional<Drawing::Point> offset;
+        bool isSurface = (node->GetType() == RSRenderNodeType::SURFACE_NODE);
+        if (!isSurface) {
+            offset = std::make_optional<Drawing::Point>(runningParent->GetRenderProperties().GetFrameOffsetX(),
+                                                        runningParent->GetRenderProperties().GetFrameOffsetY());
+        } else if (node->GetGlobalPositionEnabled()) {
+            offset = std::make_optional<Drawing::Point>(-node->GetPreparedDisplayOffsetX(),
+                                                        -node->GetPreparedDisplayOffsetY());
+        }
+        props.UpdateGeometryByParent(parentMatrix, offset);
+        runningParent = node.get();
+    }
+    if (hwcNodePtr) {
+        const auto* parentMatrix = &runningParent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+        hwcNodePtr->GetMutableRenderProperties().UpdateGeometryByParent(parentMatrix, std::nullopt);
+    }
 }
 
 void RSUniHwcVisitor::UpdatePrepareClip(RSRenderNode& node)

@@ -34,6 +34,7 @@ config("libglfw_render_context_public_config") {
 
 if (rosen_preview) {
   ohos_shared_library("libglfw_render_context") {
+    branch_protector_ret = "pac_ret"
     sources = [ "src/glfw_render_context.cpp" ]
 
     configs = [ ":libglfw_render_context_config" ]

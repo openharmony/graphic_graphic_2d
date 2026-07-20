@@ -64,6 +64,8 @@ bool DoNodeCommand(FuzzedDataProvider& fdp)
     RSNodeCommandHelper::SetDrawNodeType(context, nodeId, nodeType);
     RSNodeCommandHelper::UpdateOcclusionCullingStatus(context, nodeId, enable, keyOcclusionNodeId);
     RSNodeCommandHelper::SetUIToken(context, nodeId, token);
+    RSNodeCommandHelper::ColorPickerDestroyInRender(
+        context, nodeId, pid, token, fdp.ConsumeIntegral<uint8_t>());
     RSNodeCommandHelper::ReSortChildrenByZIndex(context, nodeId);
     return true;
 }

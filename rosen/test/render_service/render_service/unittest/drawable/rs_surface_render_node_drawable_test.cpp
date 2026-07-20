@@ -3432,4 +3432,149 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsUIFirstFirstFrameCacheGenerated001, 
     surfaceDrawable_->subThreadCache_.GetRSDrawWindowCache().ClearCache();
     surfaceParams->clonedSourceNode_ = false;
 }
+
+/**
+ * @tc.name: GetMaxRenderSizeForRotationOffscreen001
+ * @tc.desc: Test GetMaxRenderSizeForRotationOffscreen with HDR condition
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetMaxRenderSizeForRotationOffscreen001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+ 
+    int offscreenWidth = 1000;
+    int offscreenHeight = 800;
+    int expectedMax = std::max(offscreenWidth, offscreenHeight);
+ 
+    // downgrade enable + hasHDR = true => maxRenderSize divided
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(true);
+    surfaceParams->UpdateHDRStatus(HdrStatus::HDR_PHOTO, true);
+    EXPECT_EQ(surfaceDrawable_->GetMaxRenderSizeForRotationOffscreen(offscreenWidth, offscreenHeight),
+        expectedMax / 2);
+ 
+    // downgrade enable + hasHDR = false => maxRenderSize not divided
+    surfaceParams->UpdateHDRStatus(HdrStatus::HDR_PHOTO, false);
+    surfaceParams->SetChildHasVisibleHDRContent(false);
+    EXPECT_EQ(surfaceDrawable_->GetMaxRenderSizeForRotationOffscreen(offscreenWidth, offscreenHeight),
+        expectedMax);
+ 
+    // downgrade enable + childHasVisibleHDRContent = true => hasHDR = true, maxRenderSize divided
+    surfaceParams->SetChildHasVisibleHDRContent(true);
+    EXPECT_EQ(surfaceDrawable_->GetMaxRenderSizeForRotationOffscreen(offscreenWidth, offscreenHeight),
+        expectedMax / 2);
+    surfaceParams->SetChildHasVisibleHDRContent(false);
+ 
+    // renderParams_ is nullptr => hasHDR = false, maxRenderSize not divided
+    drawable_->renderParams_ = nullptr;
+    EXPECT_EQ(surfaceDrawable_->GetMaxRenderSizeForRotationOffscreen(offscreenWidth, offscreenHeight),
+        expectedMax);
+    drawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
+ 
+    // Restore
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(false);
+}
+ 
+/**
+ * @tc.name: ApplyCanvasScalingIfDownscaleEnabled001
+ * @tc.desc: Test ApplyCanvasScalingIfDownscaleEnabled with HDR condition
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, ApplyCanvasScalingIfDownscaleEnabled001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+ 
+    Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    surfaceDrawable_->curCanvas_ = &canvas;
+ 
+    // downgrade enable + hasHDR = true => canvas scaled
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(true);
+    surfaceParams->UpdateHDRStatus(HdrStatus::HDR_VIDEO, true);
+    surfaceDrawable_->ApplyCanvasScalingIfDownscaleEnabled();
+ 
+    // downgrade enable + hasHDR = false => canvas not scaled
+    surfaceParams->UpdateHDRStatus(HdrStatus::HDR_VIDEO, false);
+    surfaceParams->SetChildHasVisibleHDRContent(false);
+    surfaceDrawable_->ApplyCanvasScalingIfDownscaleEnabled();
+ 
+    // Restore
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(false);
+    surfaceDrawable_->curCanvas_ = nullptr;
+}
+ 
+/**
+ * @tc.name: FinishOffscreenRenderHDR001
+ * @tc.desc: Test FinishOffscreenRender with downgrade enable and HDR true (new if branch)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FinishOffscreenRenderHDR001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+ 
+    surfaceDrawable_->offscreenRotationInfo_ = std::make_shared<OffscreenRotationInfo>();
+    Drawing::SamplingOptions sampling;
+ 
+    // downgrade enable + hasHDR = true => enters new HDR branch (Save/Scale/DrawImage/DetachBrush/Restore)
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(true);
+    surfaceParams->UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
+ 
+    Drawing::Canvas backupCanvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    RSPaintFilterCanvas backupFilterCanvas(&backupCanvas);
+    surfaceDrawable_->offscreenRotationInfo_->canvasBackup_ = &backupFilterCanvas;
+    surfaceDrawable_->offscreenRotationInfo_->offscreenSurface_ =
+        Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    surfaceDrawable_->offscreenRotationInfo_->scaleX_ = 1.0f;
+    surfaceDrawable_->offscreenRotationInfo_->scaleY_ = 1.0f;
+    surfaceDrawable_->FinishOffscreenRender(sampling);
+ 
+    // Restore
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(false);
+    surfaceParams->UpdateHDRStatus(HdrStatus::HDR_EFFECT, false);
+}
+ 
+/**
+ * @tc.name: FinishOffscreenRenderHDR002
+ * @tc.desc: Test FinishOffscreenRender with downgrade enable but HDR false (new else branch)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FinishOffscreenRenderHDR002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+ 
+    surfaceDrawable_->offscreenRotationInfo_ = std::make_shared<OffscreenRotationInfo>();
+    Drawing::SamplingOptions sampling;
+ 
+    // downgrade enable + hasHDR = false => enters else branch (DrawImage/DetachBrush only)
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(true);
+    surfaceParams->UpdateHDRStatus(HdrStatus::HDR_EFFECT, false);
+    surfaceParams->SetChildHasVisibleHDRContent(false);
+ 
+    Drawing::Canvas backupCanvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    RSPaintFilterCanvas backupFilterCanvas(&backupCanvas);
+    surfaceDrawable_->offscreenRotationInfo_->canvasBackup_ = &backupFilterCanvas;
+    surfaceDrawable_->offscreenRotationInfo_->offscreenSurface_ =
+        Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    surfaceDrawable_->offscreenRotationInfo_->scaleX_ = 1.0f;
+    surfaceDrawable_->offscreenRotationInfo_->scaleY_ = 1.0f;
+    surfaceDrawable_->FinishOffscreenRender(sampling);
+ 
+    // Restore
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(false);
+}
 } // namespace OHOS::Rosen

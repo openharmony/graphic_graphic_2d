@@ -25,6 +25,7 @@ config("effect_config") {
 }
 
 ohos_shared_library("effect_common") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -57,6 +58,8 @@ ohos_shared_library("effect_common") {
     "hilog:libhilog",
     "image_framework:image_native",
     "graphic_surface:surface",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   sources = [
     "src/color_picker_common.cpp",

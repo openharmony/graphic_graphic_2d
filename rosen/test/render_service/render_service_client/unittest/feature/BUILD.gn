@@ -159,6 +159,8 @@ ohos_unittest("RSRenderClientUICaptureTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 
