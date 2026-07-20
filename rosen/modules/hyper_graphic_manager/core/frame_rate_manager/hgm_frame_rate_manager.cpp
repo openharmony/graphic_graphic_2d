@@ -808,18 +808,17 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
 
 bool HgmFrameRateManager::HandleSetHgmExclusiveScreen(pid_t pid, ScreenId screenId)
 {
+    HGM_LOGD("pid:%{public}d screenId:" PRIu64, pid, screenId);
+    RS_TRACE_NAME_FMT("%s: pid:%{public}d screenId:" PRIu64, __func__, pid, screenId);
     if (screenId != INVALID_SCREEN_ID) {
         if (auto screen = HgmCore::Instance().GetScreen(screenId); !screen || !screen->GetSelfOwnedScreenFlag()) {
             return false;
         }
-        if (pid != DEFAULT_PID) {
-            cleanPidCallback_[pid].insert(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
-        }
-    } else if (pid != DEFAULT_PID) {
+        cleanPidCallback_[pid].insert(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
+    } else
         cleanPidCallback_[pid].erase(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
     }
     hgmExclusiveScreenId_.store(screenId);
-    HGM_LOGI("pid:%{public}d screenId:" PUBU64, pid, screenId);
     return true;
 }
 
@@ -1403,7 +1402,7 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                     break;
             }
         }
-        iter->second.clear();
+        cleanPidCallback_.erase(iter);
     }
     softVSyncManager_.EraseGameRateDiscountMap(pid);
     frameVoter_.CleanVote(pid);
