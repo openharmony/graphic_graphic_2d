@@ -785,6 +785,25 @@ HWTEST_F(RSSymbolAnimationTest, PopNodeFromReplaceListTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PopNodeFromReplaceListTest004
+ * @tc.desc: Verify PopNodeFromReplaceList with null rsNode (early return guard)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, PopNodeFromReplaceListTest004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest PopNodeFromReplaceListTest004 start";
+    /**
+     * @tc.steps: step1. rsNode is nullptr → early return, no crash
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    uint64_t symbolSpanId = 1;
+    symbolAnimation.PopNodeFromReplaceList(symbolSpanId, nullptr);
+    EXPECT_TRUE(symbolAnimation.rsNode_);
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest PopNodeFromReplaceListTest004 end";
+}
+
+/**
  * @tc.name: BounceAnimationTest001
  * @tc.desc: Verify the basic ability, BounceAnimation of RSSymbolAnimationTest
  * @tc.type: FUNC
