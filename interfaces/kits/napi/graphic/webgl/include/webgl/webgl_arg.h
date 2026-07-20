@@ -651,6 +651,7 @@ private:
     void DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatMap, uint8_t* array);
     bool DecodeImageData(const WebGLFormatMap* formatMap, const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset);
     GLenum CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, GLuint srcOffset);
+    GLenum CheckPixelMapBytes();
 
     template<class T>
     std::tuple<bool, T> GetObjectIntField(napi_value resultObject, const std::string& name);

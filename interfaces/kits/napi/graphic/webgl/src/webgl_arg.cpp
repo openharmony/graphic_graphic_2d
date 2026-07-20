@@ -678,6 +678,49 @@ GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, G
     return GL_NO_ERROR;
 }
 
+GLenum WebGLImageSource::CheckPixelMapBytes()
+{
+    if (pixelMap_ == nullptr) {
+        return GL_NO_ERROR;
+    }
+    uint32_t componentCount = 0;
+    switch (imageOption_.format) {
+        case GL_RGBA:
+        case GL_RGBA_INTEGER:
+            componentCount = 4;
+            break;
+        case GL_RGB:
+        case GL_RGB_INTEGER:
+            componentCount = 3;
+            break;
+        case GL_LUMINANCE_ALPHA:
+        case GL_RG:
+        case GL_RG_INTEGER:
+            componentCount = 2;
+            break;
+        case GL_LUMINANCE:
+        case GL_ALPHA:
+        case GL_RED:
+        case GL_RED_INTEGER:
+            componentCount = 1;
+            break;
+        default:
+            break;
+    }
+    if (componentCount == 0) {
+        return GL_NO_ERROR;
+    }
+    uint64_t bytesPerPixel = static_cast<uint64_t>(componentCount) *
+        WebGLArg::GetWebGLDataSize(imageOption_.type);
+    uint64_t depth = (imageOption_.depth > 0) ? static_cast<uint64_t>(imageOption_.depth) : 1;
+    uint64_t need = static_cast<uint64_t>(imageOption_.width) * imageOption_.height * depth * bytesPerPixel;
+    if (need > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
+        LOGE("WebGl ImageSource pixelMap too small need %{public}" PRIu64, need);
+        return GL_INVALID_OPERATION;
+    }
+    return GL_NO_ERROR;
+}
+
 GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value pixels, GLuint srcOffset)
 {
     imageOption_.Assign(opt);
@@ -761,43 +804,7 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
     if (!HandleImageSourceData(resultData, valueType)) {
         return GL_INVALID_VALUE;
     }
-    if (pixelMap_ != nullptr) {
-        uint32_t componentCount = 0;
-        switch (imageOption_.format) {
-            case GL_RGBA:
-            case GL_RGBA_INTEGER:
-                componentCount = 4;
-                break;
-            case GL_RGB:
-            case GL_RGB_INTEGER:
-                componentCount = 3;
-                break;
-            case GL_LUMINANCE_ALPHA:
-            case GL_RG:
-            case GL_RG_INTEGER:
-                componentCount = 2;
-                break;
-            case GL_LUMINANCE:
-            case GL_ALPHA:
-            case GL_RED:
-            case GL_RED_INTEGER:
-                componentCount = 1;
-                break;
-            default:
-                break;
-        }
-        if (componentCount > 0) {
-            uint64_t bytesPerPixel = static_cast<uint64_t>(componentCount) *
-                WebGLArg::GetWebGLDataSize(imageOption_.type);
-            uint64_t depth = (imageOption_.depth > 0) ? static_cast<uint64_t>(imageOption_.depth) : 1;
-            uint64_t need = static_cast<uint64_t>(imageOption_.width) * imageOption_.height * depth * bytesPerPixel;
-            if (need > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
-                LOGE("WebGl ImageSource pixelMap too small need %{public}" PRIu64, need);
-                return GL_INVALID_OPERATION;
-            }
-        }
-    }
-    return GL_NO_ERROR;
+    return CheckPixelMapBytes();
 }
 
 WebGLReadBufferArg *WebGLImageSource::GetWebGLReadBuffer() const
