@@ -129,6 +129,8 @@ ohos_shared_library("libvsync") {
     "qos_manager:concurrent_task_client",
     "qos_manager:qos",
     "safwk:system_ability_fwk",
+    "vulkan-headers:vulkan_headers",
+    "vulkan-loader:vulkan_loader",
   ]
 
   public_external_deps =

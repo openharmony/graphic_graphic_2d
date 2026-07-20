@@ -875,7 +875,7 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
         CleanRenderNodes(pid);
         CleanBrightnessInfoChangeCallbacks(pid);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-        CleanCanvasCallbacksAndPendingBuffer();
+        CleanCanvasCallbacksAndPendingBuffer(pid);
 #endif
         RS_TRACE_END();
     }
