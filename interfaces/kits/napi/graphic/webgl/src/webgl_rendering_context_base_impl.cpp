@@ -2569,9 +2569,6 @@ bool WebGLRenderingContextBaseImpl::CheckBufferTarget(napi_env env, GLenum targe
             index = BoundBufferType::PIXEL_UNPACK_BUFFER;
             break;
         default:
-            if (IsHighWebGL()) {
-                break;
-            }
             return false;
     }
     return true;

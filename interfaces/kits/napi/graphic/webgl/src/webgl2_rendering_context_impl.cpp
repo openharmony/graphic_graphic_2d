@@ -790,6 +790,10 @@ napi_value WebGL2RenderingContextImpl::TexImage3D(
 napi_value WebGL2RenderingContextImpl::TexImage3D(napi_env env, const TexImageArg& imgArg, GLintptr pboOffset)
 {
     imgArg.Dump("WebGL2 texImage3D");
+    if (boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER] == 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
+        return NVal::CreateNull(env).val_;
+    }
     GLenum result = CheckTexImage3D(env, imgArg);
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR(result);
@@ -1366,6 +1370,10 @@ napi_value WebGL2RenderingContextImpl::DrawRangeElements(
     GLenum result = CheckDrawElements(env, arg.mode, arg.count, arg.type, arg.offset);
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR(result);
+        return NVal::CreateNull(env).val_;
+    }
+    if (end < start) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "drawRangeElements end < start");
         return NVal::CreateNull(env).val_;
     }
     glDrawRangeElements(arg.mode, start, end, arg.count, arg.type, reinterpret_cast<GLvoid*>(arg.offset));

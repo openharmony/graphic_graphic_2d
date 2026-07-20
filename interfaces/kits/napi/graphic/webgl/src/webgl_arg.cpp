@@ -668,7 +668,9 @@ GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, G
     if (srcOffset > bufLen) {
         return GL_INVALID_VALUE;
     }
-    uint64_t need = static_cast<uint64_t>(imageOption_.height) * imageOption_.width * formatMap->bytesPrePixel;
+    uint64_t depth = (imageOption_.depth > 0) ? static_cast<uint64_t>(imageOption_.depth) : 1;
+    uint64_t need = depth * static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
+        formatMap->bytesPrePixel;
     if (static_cast<uint64_t>(srcOffset) + need > bufLen) {
         return GL_INVALID_OPERATION;
     }
