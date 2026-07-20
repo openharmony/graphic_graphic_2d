@@ -59,11 +59,11 @@ bool CreateTestXml(const std::string& path, const char* content)
 
 std::string GetHgmXmlPath()
 {
-    if (g_testStr == HGM_CONFIG_PATH) {
-        return HGM_CONFIG_PATH;
-    }
     if (!g_customTestXmlPath.empty()) {
         return g_customTestXmlPath;
+    }
+    if (g_testStr == HGM_CONFIG_PATH) {
+        return HGM_CONFIG_PATH;
     }
     return "";
 }
@@ -458,7 +458,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
                                     "<root>\n"
                                     "    <param name=\"ability_enable\" value=\"1\"/>\n"
                                     "</root>\n";
-    std::string testXmlPath1 = "/data/test/hgm_test_enabled.xml";
+    std::string testXmlPath1 = "/data/local/tmp/hgm_test_enabled.xml";
     ASSERT_TRUE(CreateTestXml(testXmlPath1, xmlContentEnabled)) << "Failed to create test XML file: "
         << testXmlPath1;
  
@@ -475,7 +475,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
                                      "<root>\n"
                                      "    <param name=\"ability_enable\" value=\"0\"/>\n"
                                      "</root>\n";
-    std::string testXmlPath2 = "/data/test/hgm_test_disabled.xml";
+    std::string testXmlPath2 = "/data/local/tmp/hgm_test_disabled.xml";
     ASSERT_TRUE(CreateTestXml(testXmlPath2, xmlContentDisabled)) << "Failed to create test XML file: "
         << testXmlPath2;
  
@@ -491,7 +491,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
     const char* xmlContentNoNode = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                                    "<root>\n"
                                    "</root>\n";
-    std::string testXmlPath3 = "/data/test/hgm_test_default.xml";
+    std::string testXmlPath3 = "/data/local/tmp/hgm_test_default.xml";
     ASSERT_TRUE(CreateTestXml(testXmlPath3, xmlContentNoNode)) << "Failed to create test XML file: " << testXmlPath3;
  
     g_customTestXmlPath = testXmlPath3;
