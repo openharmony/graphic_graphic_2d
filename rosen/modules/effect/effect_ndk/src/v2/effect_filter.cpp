@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "effect_filter_v2.h"
+#include "v2/effect_filter.h"
 
 #include "filter/filter.h"
 
@@ -62,7 +62,7 @@ OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_Blur(
         return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
     }
     if (!UnwrapFilter(filter)->Blur(radiusInPx)) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
     }
     return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
 }
@@ -76,7 +76,7 @@ OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_BlurWithTileMode(
     }
     Drawing::TileMode drawingTileMode = static_cast<Drawing::TileMode>(tileMode);
     if (!UnwrapFilter(filter)->Blur(radiusInPx, drawingTileMode)) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
     }
     return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
 }
@@ -88,7 +88,7 @@ OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_Brighten(
         return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
     }
     if (!UnwrapFilter(filter)->Brightness(brightness)) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
     }
     return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
 }
@@ -100,7 +100,7 @@ OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_GrayScale(
         return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
     }
     if (!UnwrapFilter(filter)->Grayscale()) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
     }
     return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
 }
@@ -112,7 +112,7 @@ OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_Invert(
         return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
     }
     if (!UnwrapFilter(filter)->Invert()) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
     }
     return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
 }
@@ -131,7 +131,7 @@ OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_SetColorMatrix(
     }
     colorMatrix.SetArray(matrixArr);
     if (!UnwrapFilter(filter)->SetColorMatrix(colorMatrix)) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
     }
     return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
 }

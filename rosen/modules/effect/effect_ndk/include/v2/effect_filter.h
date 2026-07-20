@@ -16,7 +16,7 @@
 #ifndef C_INCLUDE_EFFECT_FILTER_V2_H
 #define C_INCLUDE_EFFECT_FILTER_V2_H
 
-#include "effect_types_v2.h"
+#include "v2/effect_types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
