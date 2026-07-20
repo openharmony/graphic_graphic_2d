@@ -366,14 +366,13 @@ void HgmContext::NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
     });
 }
 
-bool HgmContext::SetHgmExclusiveScreen(ScreenId screenId)
+bool HgmContext::SetHgmExclusiveScreen(pid_t pid, ScreenId screenId)
 {
-    if (frameRateManager_ == nullptr) {
-        RS_LOGD("%{public}s frameRateManager is nullptr", __func__);
-        return false;
-    }
-    frameRateManager_->HandleSetHgmExclusiveScreen(screenId);
-    return true;
+    bool result = false;
+    HgmTaskHandleThread::Instance().ScheduleTask([frameRateManager = frameRateManager_, pid, screenId, &result] {
+            result = frameRateManager->HandleSetHgmExclusiveScreen(pid, screenId);
+        }).wait();
+    return result;
 }
 
 ErrCode HgmContext::NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus)

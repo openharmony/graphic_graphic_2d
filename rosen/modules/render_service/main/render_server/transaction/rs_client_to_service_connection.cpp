@@ -1831,7 +1831,7 @@ bool RSClientToServiceConnection::SetHgmExclusiveScreen(std::optional<ScreenId> 
         RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return false;
     }
-    return hgmContext_->SetHgmExclusiveScreen(screenId.value_or(INVALID_SCREEN_ID));
+    return hgmContext_->SetHgmExclusiveScreen(remotePid_, screenId.value_or(INVALID_SCREEN_ID));
 }
 
 

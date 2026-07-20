@@ -806,10 +806,21 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
     }
 }
 
-void HgmFrameRateManager::HandleSetHgmExclusiveScreen(ScreenId screenId)
+bool HgmFrameRateManager::HandleSetHgmExclusiveScreen(pid_t pid, ScreenId screenId)
 {
-    controlScreenId_.store(screenId);
-    HGM_LOGI("screenId:" PUBU64, screenId);
+    if (screenId != INVALID_SCREEN_ID) {
+        if (auto screen = HgmCore::Instance().GetScreen(screenId); !screen || !screen->GetSelfOwnedScreenFlag()) {
+            return false;
+        }
+        if (pid != DEFAULT_PID) {
+            cleanPidCallback_[pid].insert(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
+        }
+    } else if (pid != DEFAULT_PID) {
+        cleanPidCallback_[pid].erase(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
+    }
+    hgmExclusiveScreenId_.store(screenId);
+    HGM_LOGI("pid:%{public}d screenId:" PUBU64, pid, screenId);
+    return true;
 }
 
 void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
@@ -1384,6 +1395,9 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                     break;
                 case CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT:
                     HandleAppStrategyConfigEvent(DEFAULT_PID, "", {});
+                    break;
+                case CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN:
+                    hgmExclusiveScreenId_.store(INVALID_SCREEN_ID);
                     break;
                 default:
                     break;

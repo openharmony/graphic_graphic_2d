@@ -2553,7 +2553,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN) : {
-            ScreenId screenId{0};
+            ScreenId screenId{INVALID_SCREEN_ID};
             if (!data.ReadUint64(screenId)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_HGM_EXCLUSIVE_SCREEN Read parcel failed!");
                 ret = ERR_INVALID_DATA;
