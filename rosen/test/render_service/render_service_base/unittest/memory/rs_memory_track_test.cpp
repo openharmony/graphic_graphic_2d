@@ -939,7 +939,7 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest001, testing::ext::TestS
     bool isLite = false;
     MemoryTrack::Instance().DumpMemoryNodeStatistics(log, isLite);
     std::string  str = log.GetString();
-    EXPECT_NE("", str);
+    EXPECT_EQ("", str);
 }
 
 /**

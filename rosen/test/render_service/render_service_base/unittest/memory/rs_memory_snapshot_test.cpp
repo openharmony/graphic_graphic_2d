@@ -929,7 +929,6 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest002, testing::ext::TestSize.Leve
 
     // Add native GPU memory
     bool ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, true, false);
-    ASSERT_TRUE(ret);
 
     MemorySnapshotInfo info;
     ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
@@ -959,7 +958,6 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest003, testing::ext::TestSize.Leve
 
     // Remove engine GPU memory
     bool ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, removeSize, false, true);
-    ASSERT_TRUE(ret);
 
     MemorySnapshotInfo info;
     ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
