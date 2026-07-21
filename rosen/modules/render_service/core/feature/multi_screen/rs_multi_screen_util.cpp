@@ -332,6 +332,7 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
     uniParam->SetOpDropped(isOpDropped);
     drawable.DrawCurtainScreen();
     processor->PostProcess();
+    drawable.SetFirstFrameFlushed(true);
     bufferGuard.SetAcquireFence(expandProcessor->GetFrameAcquireFence());
     drawable.SetDrawSkipType(DrawSkipType::MIRROR_DRAWABLE_SKIP);
 }
