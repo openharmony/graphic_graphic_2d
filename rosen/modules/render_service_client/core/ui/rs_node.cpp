@@ -3501,6 +3501,7 @@ void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectVariantPara
             modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM);
             modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM);
             modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_MODE);
         }
         return;
     }
@@ -3519,6 +3520,7 @@ void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectVariantPara
             modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_TOP);
             modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM);
             modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM);
+            modifier->DetachProperty(ModifierNG::RSPropertyType::SPATIAL_EFFECT_MODE);
         }
     } else {
         const auto& corners = std::get<SpatialEffectPara::CornerPositions>(para->position);
@@ -3536,6 +3538,8 @@ void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectVariantPara
             corners[SpatialEffectPara::RIGHT_BOTTOM_INDEX]);
         SetPropertyNG<ModifierNG::RSSpatialEffectModifier,
             &ModifierNG::RSSpatialEffectModifier::SetSpatialEffectOcclusionWeight>(para->occlusionWeight);
+        SetPropertyNG<ModifierNG::RSSpatialEffectModifier,
+            &ModifierNG::RSSpatialEffectModifier::SetSpatialEffectMode>(int(para->spatialEffectMode));
 
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));

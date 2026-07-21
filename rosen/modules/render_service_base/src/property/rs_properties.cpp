@@ -348,11 +348,30 @@ RSProperties::SpatialEffectPerspectiveResults RSProperties::CalculateSpatialEffe
         Drawing::Point(params.rectSelf.GetLeft(), params.rectSelf.GetBottom()),
     };
 
-    std::array<float, 16> vpMatrix = PerspectiveTransformCalculator::ComputeVPMatrix(intrinsics,
-        extrinsics, params.cornerPoints);
-
     SpatialEffectPerspectiveResults ret;
     ret.transformMatrix = Drawing::Matrix();
+    if (params.spatialEffectMode == SpatialEffectMode::WORLD_XYZ_MODE) {
+        if (!CalculateDstPointsByWorldXYZ(ret, params, intrinsics, extrinsics)) {
+            return ret;
+        }
+    } else if (params.spatialEffectMode == SpatialEffectMode::NDC_XY_WORLD_Z_MODE) {
+        CalculateDstPointsByNdcXY(ret, params);
+    }
+
+    auto succ = ret.transformMatrix.SetPolyToPoly(srcPoints.data(), ret.dstPoints.data(), srcPoints.size());
+    if (!succ) {
+        ROSEN_LOGE("CalculateSpatialEffectMatrix: SetPolyToPoly failed");
+    }
+    
+    return ret;
+}
+
+bool RSProperties::CalculateDstPointsByWorldXYZ(SpatialEffectPerspectiveResults& ret,
+    const SpatialEffectMatrixParams& params, const Drawing::GECameraIntrinsics& intrinsics,
+    const Drawing::GECameraExtrinsics& extrinsics)
+{
+    std::array<float, 16> vpMatrix = PerspectiveTransformCalculator::ComputeVPMatrix(intrinsics,
+        extrinsics, params.cornerPoints);
     for (int i = 0; i < SpatialEffectPara::CORNER_NUMBER; ++i) {
         const Vector3f& point = params.cornerPoints[i];
 
@@ -371,8 +390,8 @@ RSProperties::SpatialEffectPerspectiveResults RSProperties::CalculateSpatialEffe
             outY /= outW;
             outZ /= outW;
         } else {
-            ROSEN_LOGE("CalculateSpatialEffectMatrix: ndc calculation failed, outW=%{public}f", outW);
-            return ret;
+            ROSEN_LOGE("CalculateDstPointsByWorldXYZ: ndc calculation failed, outW=%{public}f", outW);
+            return false;
         }
 
         ret.dstPoints[i] = {
@@ -380,17 +399,63 @@ RSProperties::SpatialEffectPerspectiveResults RSProperties::CalculateSpatialEffe
             (1.0 + outY) * 0.5 * params.depNodeRect.GetHeight()
         };
         RS_OPTIONAL_TRACE_NAME_FMT(
-            "RSProperties::CalculateSpatialEffectMatrix i:%d, ndc x=%f, y=%f, z=%f, dstX=%f, dstY=%f", i, outX, outY,
+            "RSProperties::CalculateDstPointsByWorldXYZ i:%d, ndc x=%f, y=%f, z=%f, dstX=%f, dstY=%f", i, outX, outY,
             outZ, (1.0 + outX) * 0.5 * params.depNodeRect.GetWidth(),
             (1.0 + outY) * 0.5 * params.depNodeRect.GetHeight());
     }
+    return true;
+}
 
-    auto succ = ret.transformMatrix.SetPolyToPoly(srcPoints.data(), ret.dstPoints.data(), srcPoints.size());
-    if (!succ) {
-        ROSEN_LOGE("CalculateSpatialEffectMatrix: SetPolyToPoly failed");
+void RSProperties::CalculateDstPointsByNdcXY(SpatialEffectPerspectiveResults& ret,
+    const SpatialEffectMatrixParams& params)
+{
+    for (int i = 0; i < SpatialEffectPara::CORNER_NUMBER; ++i) {
+        ret.dstPoints[i] = {
+            (1.0 + params.cornerPoints[i].x_) * 0.5 * params.depNodeRect.GetWidth(),
+            (1.0 + params.cornerPoints[i].y_) * 0.5 * params.depNodeRect.GetHeight()
+        };
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSProperties::CalculateDstPointsByNdcXY i:%d, ndc x=%f, y=%f, dstX=%f, dstY=%f", i,
+            params.cornerPoints[i].x_, params.cornerPoints[i].y_,
+            (1.0 + params.cornerPoints[i].x_) * 0.5 * params.depNodeRect.GetWidth(),
+            (1.0 + params.cornerPoints[i].y_) * 0.5 * params.depNodeRect.GetHeight());
     }
+}
 
-    return ret;
+SpatialEffectPara::CornerPositions RSProperties::CalculateWorldXYZ(const std::array<Vector3f, 4>& uvzPoints,
+    const Drawing::GECameraIntrinsics& intrinsics, const Drawing::GECameraExtrinsics& extrinsics)
+{
+    std::array<float, 16> vpMatrix = PerspectiveTransformCalculator::ComputeVPMatrix(
+        intrinsics, extrinsics, uvzPoints);
+    SpatialEffectPara::CornerPositions cornerPoints = {};
+
+    for (int i = 0; i < SpatialEffectPara::CORNER_NUMBER; ++i) {
+        float ndcX = uvzPoints[i].x_;
+        float ndcY = uvzPoints[i].y_;
+        float z = uvzPoints[i].z_;
+
+        float a11 = vpMatrix[0] - ndcX * vpMatrix[3];
+        float a12 = vpMatrix[4] - ndcX * vpMatrix[7];
+        float b1 = ndcX * (vpMatrix[11] * z + vpMatrix[15]) - (vpMatrix[8] * z + vpMatrix[12]);
+
+        float a21 = vpMatrix[1] - ndcY * vpMatrix[3];
+        float a22 = vpMatrix[5] - ndcY * vpMatrix[7];
+        float b2 = ndcY * (vpMatrix[11] * z + vpMatrix[15]) - (vpMatrix[9] * z + vpMatrix[13]);
+
+        float det = a11 * a22 - a12 * a21;
+
+        if (std::abs(det) < 1e-8f) {
+            return cornerPoints;
+        }
+
+        float worldX = (b1 * a22 - a12 * b2) / det;
+        float worldY = (a11 * b2 - b1 * a21) / det;
+        cornerPoints[i] = Vector3f(worldX, worldY, z);
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSProperties::CalculateWorldXYZ i:%d, ndcX=%f, ndcY=%f, z=%f, worldX=%f, worldY=%f",
+            i, ndcX, ndcY, z, worldX, worldY);
+    }
+    return cornerPoints;
 }
 
 void RSProperties::ApplySpatialEffectMatrix()
@@ -484,10 +549,20 @@ void RSProperties::ApplySpatialEffectMatrix()
     SpatialEffectMatrixParams matrixParams{
         .rectSelf = rectSelf,
         .depNodeRect = depNodeRect,
-        .cornerPoints = cornerPoints
+        .cornerPoints = cornerPoints,
+        .spatialEffectMode = para.spatialEffectMode
     };
 
     auto perspectiveResults = CalculateSpatialEffectMatrix(matrixParams, intrinsics, extrinsics);
+    
+    if (para.spatialEffectMode == SpatialEffectMode::NDC_XY_WORLD_Z_MODE) {
+        auto xyzResult = CalculateWorldXYZ(cornerPoints, intrinsics, extrinsics);
+        if (effect_->spatialEffectVariantPara_.has_value()) {
+            effect_->spatialEffectVariantPara_->xyzCornerPoints = {
+                xyzResult[0], xyzResult[1], xyzResult[3], xyzResult[2] };
+        }
+    }
+
     if (!perspectiveResults.transformMatrix.IsIdentity()) {
         ProcessSpatialEffectDstPoints(perspectiveResults, depNodeRect, absMatrixDep, renderNode);
         boundsGeo_->ReplaceMatrix(matrixRelaDepNoSelfInv * perspectiveResults.transformMatrix,
@@ -504,11 +579,22 @@ void RSProperties::ProcessSpatialEffectDstPoints(const SpatialEffectPerspectiveR
     SetSpatialEffectDstPoints(std::vector<Drawing::Point>(perspectiveResults.dstPoints.begin(),
         perspectiveResults.dstPoints.end()));
 
-    if (auto& drawable = TemplateUtils::findMapValueRef(renderNode->GetDrawableVec(__func__),
-        static_cast<int8_t>(RSDrawableSlot::SPATIAL_EFFECT))) {
-        drawable->OnUpdate(*renderNode);
-    } else {
-        ROSEN_LOGE("RSProperties::ProcessSpatialEffectDstPoints updates failed");
+    std::vector<RSDrawableSlot> spatialEffectUpdateSlot = {
+            RSDrawableSlot::SPATIAL_EFFECT,
+            RSDrawableSlot::BACKGROUND_NG_SHADER,
+            RSDrawableSlot::MATERIAL_SHADER,
+            RSDrawableSlot::OVERLAY_NG_SHADER,
+            RSDrawableSlot::COVERAGE_NG_SHADER
+        };
+
+    for (auto& slot : spatialEffectUpdateSlot) {
+        if (auto& drawable = TemplateUtils::findMapValueRef(renderNode->GetDrawableVec(__func__),
+            static_cast<int8_t>(slot))) {
+            drawable->OnUpdate(*renderNode);
+        } else {
+            ROSEN_LOGD("RSProperties::ProcessSpatialEffectDstPoints updates drawable:%{public}hu failed",
+                static_cast<int8_t>(slot));
+        }
     }
 }
 
@@ -2376,9 +2462,27 @@ std::optional<SpatialEffectPara> RSProperties::GetSpatialEffectPara() const
     }
 
     SpatialEffectPara ret;
+    ret.spatialEffectMode = spatialEffectVariantPara->spatialEffectMode;
     ret.corners = std::get<SpatialEffectPara::CornerPositions>(spatialEffectVariantPara->position);
+    ret.xyzCorners = spatialEffectVariantPara->xyzCornerPoints;
     ret.occlusionWeight = spatialEffectVariantPara->occlusionWeight;
     return ret;
+}
+
+void RSProperties::SetSpatialEffectMode(int mode)
+{
+    auto& spatialEffectVariantPara = GetEffect().spatialEffectVariantPara_;
+    if (!spatialEffectVariantPara.has_value()) {
+        spatialEffectVariantPara = SpatialEffectVariantPara();
+    }
+    spatialEffectVariantPara->spatialEffectMode = static_cast<SpatialEffectMode>(mode);
+    SetDirty();
+    contentDirty_ = true;
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
 }
 
 void RSProperties::SetSpatialEffectVariantPara(const std::optional<SpatialEffectVariantPara>& spatialEffectVariantPara)
