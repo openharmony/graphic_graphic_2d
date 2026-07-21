@@ -475,6 +475,24 @@ HWTEST_F(RSCanvasModifiersDrawTest, RemoveTask_DoesNothingWhenThreadNotStarted00
     EXPECT_FALSE(canvasModifiersDraw->threadStarted_);
 }
 
+HWTEST_F(RSCanvasModifiersDrawTest, WaitAllTasksFinish_AfterDestroy001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    canvasModifiersDraw->Destroy();
+    canvasModifiersDraw->WaitAllTasksFinish();
+    EXPECT_TRUE(canvasModifiersDraw->threadDestroyed_.load());
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, WaitAllTasksFinish_AfterDestroy002, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    canvasModifiersDraw->WaitAllTasksFinish();
+    canvasModifiersDraw->Destroy();
+    EXPECT_TRUE(canvasModifiersDraw->threadDestroyed_.load());
+}
+
 HWTEST_F(RSCanvasModifiersDrawTest, SetCacheDir_Basic001, TestSize.Level1)
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
