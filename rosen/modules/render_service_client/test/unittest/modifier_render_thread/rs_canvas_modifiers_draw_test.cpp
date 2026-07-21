@@ -18,6 +18,8 @@
 #include "modifier_render_thread/rs_canvas_modifiers_draw.h"
 #include "iconsumer_surface.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 #include "surface_buffer_impl.h"
 
 using namespace testing;
@@ -93,7 +95,8 @@ HWTEST_F(RSCanvasModifiersDrawableTest, CreateProducerSurface_NullRenderInterfac
     RSCanvasModifiersDrawable drawable;
     drawable.nodeId_ = 12345;
     std::weak_ptr<RSRenderInterface> weakInterface;
-    drawable.CreateProducerSurface(weakInterface, "/cache");
+    size_t maxGpuResourceBytes = 0;
+    drawable.CreateProducerSurface(weakInterface, "/cache", maxGpuResourceBytes);
     EXPECT_EQ(drawable.producerSurface_, nullptr);
     EXPECT_EQ(drawable.drawCmdListCache_, nullptr);
 }
@@ -413,6 +416,31 @@ HWTEST_F(RSCanvasModifiersDrawableTest, RequestBufferAndDrawHistory_InheritCheck
     // drawingSurface_ == surfaceA, same as before → self-inherit was correctly skipped
     EXPECT_EQ(drawable.drawingSurface_, surfaceA);
 }
+
+// CreateProducerSurface with valid renderInterface: covers line 78 (std::call_once + GetResourceCacheLimits)
+// and lines 80-84 (producerSurface_ and drawCmdListCache_ assignment).
+// Requires Vulkan and IPC to be available; skipped when render service is not reachable.
+HWTEST_F(RSCanvasModifiersDrawableTest, CreateProducerSurface_WithRenderInterface001, TestSize.Level1)
+{
+    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+    auto connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    ASSERT_NE(connectToRender, nullptr);
+    auto renderInterface = std::make_shared<RSRenderInterface>(connectToRender);
+    ASSERT_NE(renderInterface, nullptr);
+    RSCanvasModifiersDrawable drawable;
+    drawable.nodeId_ = RSNode::GenerateId();
+    size_t maxGpuResourceBytes = 0;
+    drawable.CreateProducerSurface(renderInterface, "/cache", maxGpuResourceBytes);
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        EXPECT_NE(drawable.producerSurface_, nullptr);
+        EXPECT_NE(drawable.drawCmdListCache_, nullptr);
+        EXPECT_GT(maxGpuResourceBytes, 0u);
+    } else {
+        EXPECT_EQ(drawable.producerSurface_, nullptr);
+        EXPECT_EQ(drawable.drawCmdListCache_, nullptr);
+        EXPECT_EQ(maxGpuResourceBytes, 0u);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -578,6 +606,76 @@ HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_Basic001, TestSize.Level
     EXPECT_TRUE(canvasModifiersDraw->threadStarted_);
 }
 
+HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_WeakPtrExpired001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 12345;
+    // Save handler to keep EventHandler alive after object destruction,
+    // preventing RemoveOrphan from discarding the pending lambda
+    auto savedHandler = canvasModifiersDraw->handler_;
+    // Post blocking task to hold event loop before UpdateCanvasContent's lambda
+    auto mtx = std::make_shared<std::mutex>();
+    auto cv = std::make_shared<std::condition_variable>();
+    auto ready = std::make_shared<bool>(false);
+    canvasModifiersDraw->PostTask([mtx, cv, ready]() {
+        std::unique_lock<std::mutex> lock(*mtx);
+        cv->wait(lock, [&]() { return *ready; });
+    });
+    // UpdateCanvasContent lambda queued after the blocking task
+    canvasModifiersDraw->UpdateCanvasContent(nodeId, nullptr);
+    // Release shared_ptr: object destroyed, weak_ptr in lambda expires
+    canvasModifiersDraw = nullptr;
+    EXPECT_EQ(0, canvasModifiersDraw.use_count());
+    // Signal blocking task to continue, UpdateCanvasContent lambda runs next
+    // with expired weak_ptr, hitting the nullptr check (line 610)
+    {
+        std::lock_guard<std::mutex> lock(*mtx);
+        *ready = true;
+    }
+    cv->notify_all();
+    usleep(30000);
+    // Release handler; EventHandler destructor calls RemoveOrphan internally.
+    // Thread may continue until process exit (same as other tests without Destroy).
+    savedHandler = nullptr;
+    usleep(100000);
+}
+
+// Covers line 623: UpdateContent returns non-null DestroySemaphoreInfo (emplace_back branch).
+// Requires Vulkan/GPU for CreateVkSemaphore and FlushSurfaceWithSemaphore.
+// Skips when GPU is not available (GetRecyclableDrawingContext returns nullptr).
+HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_DestroySemaphoreInfo001, TestSize.Level1)
+{
+    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext("/data/local/tmp");
+    if (gpuContext == nullptr) {
+        GTEST_SKIP() << "Vulkan not available, cannot cover DestroySemaphoreInfo path";
+    }
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    // Use mock surface so RequestFrame succeeds, enabling Draw() to proceed
+    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestDrawSemaphore");
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    drawable.producerSurface_ = std::make_shared<TestRSSurfaceOhosVulkan>(
+        Surface::CreateSurfaceAsProducer(bp), rasterSurface);
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    // Non-null drawCmdList ensures UpdateContent calls Draw()
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    canvasModifiersDraw->UpdateCanvasContent(nodeId, drawCmdList);
+    // Wait for async lambda to complete on the worker thread
+    auto future = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->canvasNewSemaphoreInfos_.size(); });
+    ASSERT_EQ(future.wait_for(std::chrono::milliseconds(2000)), std::future_status::ready);
+    // Draw() succeeded → canvasNewSemaphoreInfos_ has at least one entry (line 623 covered)
+    EXPECT_GE(future.get(), 1);
+    canvasModifiersDraw->Destroy();
+}
+
 HWTEST_F(RSCanvasModifiersDrawTest, SwapTransactionConfigList_ExchangesLists001, TestSize.Level1)
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
@@ -673,6 +771,77 @@ HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollectCanvasBuffers_WithSemaphore0
     canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
     usleep(10000);
     EXPECT_TRUE(canvasModifiersDraw->canvasNewSemaphoreInfos_.empty());
+}
+
+// Verify initial state of GPU cache limit members
+HWTEST_F(RSCanvasModifiersDrawTest, GpuCacheLimit_InitialState001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    EXPECT_EQ(canvasModifiersDraw->maxGpuResourceBytes_, 0u);
+    EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
+    EXPECT_TRUE(canvasModifiersDraw->drawableMap_.empty());
+    EXPECT_TRUE(canvasModifiersDraw->canvasNewSemaphoreInfos_.empty());
+    EXPECT_TRUE(canvasModifiersDraw->canvasExpiredSemaphoreInfos_.empty());
+}
+
+// DoCleanFreeBuffers: sets needRestoreGpuCacheLimit_ when free drawables exist and gpuContext available;
+// does not set flag when no free drawables (ACTIVE state, not idle long enough).
+HWTEST_F(RSCanvasModifiersDrawTest, DoCleanFreeBuffers_RestoreFlag001, TestSize.Level1)
+{
+    // Case 1: free drawable (INACTIVE, idle long enough) → flag depends on gpuContext
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeState_ = RSNodeState::INACTIVE;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    drawable.lastFlushBufferTime_ = 1; // non-zero, long ago relative to maxDuration=0
+    canvasModifiersDraw->DoCleanFreeBuffers(0);
+    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(canvasModifiersDraw->cacheDir_);
+    if (gpuContext != nullptr) {
+        EXPECT_TRUE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
+    } else {
+        EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
+    }
+
+    // Case 2: no free drawable (ACTIVE state) → flag stays false
+    canvasModifiersDraw->needRestoreGpuCacheLimit_ = false;
+    drawable.nodeState_ = RSNodeState::ACTIVE;
+    canvasModifiersDraw->DoCleanFreeBuffers(0);
+    EXPECT_FALSE(canvasModifiersDraw->needRestoreGpuCacheLimit_);
+}
+
+// UpdateCanvasContent: needRestoreGpuCacheLimit_ is reset when flag is true and gpuContext available;
+// stays false when flag was already false. Uses ScheduleTask to wait for async completion.
+HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_GpuCacheLimitRestore001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    NodeId nodeId = 1;
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+
+    // Case 1: flag=true → restored when gpuContext available
+    canvasModifiersDraw->needRestoreGpuCacheLimit_ = true;
+    canvasModifiersDraw->maxGpuResourceBytes_ = 1024;
+    canvasModifiersDraw->UpdateCanvasContent(nodeId, nullptr);
+    auto future1 = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->needRestoreGpuCacheLimit_; });
+    ASSERT_EQ(future1.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
+    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(canvasModifiersDraw->cacheDir_);
+    if (gpuContext != nullptr) {
+        EXPECT_FALSE(future1.get());
+    } else {
+        EXPECT_TRUE(future1.get());
+    }
+
+    // Case 2: flag=false → stays false
+    canvasModifiersDraw->needRestoreGpuCacheLimit_ = false;
+    canvasModifiersDraw->UpdateCanvasContent(nodeId, nullptr);
+    auto future2 = canvasModifiersDraw->ScheduleTask(
+        [canvasModifiersDraw]() { return canvasModifiersDraw->needRestoreGpuCacheLimit_; });
+    ASSERT_EQ(future2.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
+    EXPECT_FALSE(future2.get());
 }
 } // namespace Rosen
 } // namespace OHOS
