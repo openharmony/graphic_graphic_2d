@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <limits>
-
 #include "gtest/gtest.h"
 
 #include "common/rs_vector3.h"
