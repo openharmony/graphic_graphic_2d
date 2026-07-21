@@ -2203,6 +2203,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (!unmarshallingRes) {
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE Unmarshalling failed!");
                 ret = ERR_INVALID_DATA;
+                ::close(sharedTypeface.fd_);
                 break;
             }
             // safe check
