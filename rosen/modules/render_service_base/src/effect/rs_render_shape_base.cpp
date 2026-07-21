@@ -206,17 +206,17 @@ void RSNGRenderShapeHelper::FillEmptyDistortOpShape(
     }
     auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
     auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
-    bool sync = distortOpShape->Getter<SDFDistortOpShapeSyncRenderTag>()->Get();
+    // ownerId==0: auto-filled (ONLY_VALUE skips OnAttach) -> sync; !=0: IPC inner (attached) -> keep.
+    bool sync = innerShape ? (innerShape->GetOwnerId() == 0) : true;
     if (!innerShape) {
-        sync = true;
         innerShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+        // ONLY_VALUE keeps ownerId==0 so the auto-filled inner stays distinguishable from IPC inner.
         distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(innerShape,
             PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
-        distortOpShape->Setter<SDFDistortOpShapeSyncRenderTag>(true, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
         ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, add default SDF_RRECT_SHAPE, node %{public}"
             PRIu64, nodeId);
     }
-    if (sync && innerShape->GetType() == RSNGEffectType::SDF_RRECT_SHAPE) {
+    if (sync && innerShape && innerShape->GetType() == RSNGEffectType::SDF_RRECT_SHAPE) {
         auto defaultShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(innerShape);
         defaultShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
         ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, update SDF_RRECT_SHAPE, node %{public}"

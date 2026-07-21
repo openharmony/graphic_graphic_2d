@@ -420,7 +420,7 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
     }
 }
 
-// Test08: innerShape!=null, sync=true, RRect should be synced from node bounds
+// Test08: innerShape==null, auto-fill inner and sync RRect from node bounds
 GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_08)
 {
     auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
@@ -441,12 +441,6 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
     sdfDistortOpShape->Setter<SDFDistortOpShapeRBCornerTag>(Vector2f{1.1f, 0.7f});
     sdfDistortOpShape->Setter<SDFDistortOpShapeLBCornerTag>(Vector2f{-0.1f, 0.7f});
     sdfDistortOpShape->Setter<SDFDistortOpShapeBarrelDistortionTag>(Vector4f{0.5f, 0.5f, 0.1f, 0.1f});
-    sdfDistortOpShape->Setter<SDFDistortOpShapeSyncTag>(true);
-
-    auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
-    auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
-    rRectChildShape->Setter<SDFRRectShapeRRectTag>(RRect{RectT<float>{200.f, 200.f, 1000.f, 1000.f}, 0.0f, 0.0f});
-    sdfDistortOpShape->Setter<SDFDistortOpShapeShapeTag>(childShape);
 
     backgroundTestNode->SetSDFShape(distortShape);
     backgroundTestNode->SetShadowRadius(50.f);
@@ -458,7 +452,7 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
     RegisterNode(childNode);
 }
 
-// Test09: innerShape!=null, sync=false, RRect should NOT be synced
+// Test09: innerShape!=null (custom), keep as-is (ownerId!=0, not synced with node RRect)
 GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_09)
 {
     auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
@@ -478,7 +472,6 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
     sdfDistortOpShape->Setter<SDFDistortOpShapeRBCornerTag>(Vector2f{1.1f, 0.7f});
     sdfDistortOpShape->Setter<SDFDistortOpShapeLBCornerTag>(Vector2f{-0.1f, 0.7f});
     sdfDistortOpShape->Setter<SDFDistortOpShapeBarrelDistortionTag>(Vector4f{0.5f, 0.5f, 0.2f, 0.2f});
-    sdfDistortOpShape->Setter<SDFDistortOpShapeSyncTag>(false);
 
     auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
     auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);

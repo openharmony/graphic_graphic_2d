@@ -520,7 +520,6 @@ HWTEST_F(RSUIFilterBaseTest, CreateNGSDFDistortOpShapeWithParams, TestSize.Level
     EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeBarrelDistortionTag>()->Get(), barrelDistortion);
 
     EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeShapeTag>()->Get(), nullptr);
-    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeSyncTag>()->Get(), false);
 }
 
 /**
@@ -549,7 +548,6 @@ HWTEST_F(RSUIFilterBaseTest, CreateNGSDFDistortOpShapeDefaultValues, TestSize.Le
     EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeBarrelDistortionTag>()->Get(), Vector4f(0.f, 0.f, 0.f, 0.f));
 
     EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeShapeTag>()->Get(), nullptr);
-    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeSyncTag>()->Get(), false);
 }
 
 HWTEST_F(RSUIFilterBaseTest, CreateNGDistortionWithDisableFlag, TestSize.Level1)
