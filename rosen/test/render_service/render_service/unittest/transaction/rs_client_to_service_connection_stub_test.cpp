@@ -5312,12 +5312,21 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level
     connection->renderProcessManagerAgent_ = nullptr;
     // test SetCacheEnabledForRotation
     connection->SetCacheEnabledForRotation(false);
-    // test GetActiveDirtyRegionInfo
+    // test func of infoCollection when renderProcessManagerAgent_ is nullptr
     connection->GetActiveDirtyRegionInfo();
+    connection->GetGlobalDirtyRegionInfo();
+    connection->GetLayerComposeInfo();
+    connection->GetHwcDisabledReasonInfo();
+    int64_t hdrOnDuration = 0;
+    connection->GetHdrOnDuration(hdrOnDuration);
     // test GetHdrOnDuration and SetVmaCacheStatus and SetCurtainScreenUsingStatus
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;
     ASSERT_NE(connection->renderProcessManagerAgent_, nullptr);
-    int64_t hdrOnDuration = 0;
+    // test func of infoCollection when renderProcessManagerAgent_ is not nullptr
+    connection->GetActiveDirtyRegionInfo();
+    connection->GetGlobalDirtyRegionInfo();
+    connection->GetLayerComposeInfo();
+    connection->GetHwcDisabledReasonInfo();
     connection->GetHdrOnDuration(hdrOnDuration);
     connection->SetVmaCacheStatus(false);
     connection->SetCurtainScreenUsingStatus(false);

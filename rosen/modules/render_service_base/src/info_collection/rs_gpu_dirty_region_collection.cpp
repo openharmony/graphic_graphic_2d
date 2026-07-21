@@ -14,10 +14,12 @@
  */
 
 #include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 const std::string SELF_DRAWING_NODE_SUFFIX = "-selfDrawing";
+constexpr uint32_t ACTIVE_DIRTY_REGION_INFO_MAP_MAX_SIZE = 10000; // Set the maximum capacity of the map
 GpuDirtyRegionCollection& GpuDirtyRegionCollection::GetInstance()
 {
     static GpuDirtyRegionCollection instance;
@@ -36,6 +38,10 @@ void GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX(NodeId id, const std:
     std::vector<RectI> rectIs)
 {
     std::lock_guard<std::mutex> lock(activeMtx_);
+    if (activeDirtyRegionInfoMap_.size() == ACTIVE_DIRTY_REGION_INFO_MAP_MAX_SIZE) {
+        RS_LOGI("GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX map's capacity has reached the maximum value");
+        return;
+    }
     if (rectIs.size() > 0) {
         ++activeDirtyRegionInfoMap_[id].activeFramesNumber;
     }
@@ -49,6 +55,10 @@ void GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX(NodeId id, const std:
 void GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName, Rect damage)
 {
     std::lock_guard<std::mutex> lock(activeMtx_);
+    if (activeDirtyRegionInfoMap_.size() == ACTIVE_DIRTY_REGION_INFO_MAP_MAX_SIZE) {
+        RS_LOGI("GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX map's capacity has reached the maximum value");
+        return;
+    }
     ++activeDirtyRegionInfoMap_[id].activeFramesNumber;
     activeDirtyRegionInfoMap_[id].activeDirtyRegionArea += damage.w * damage.h;
     activeDirtyRegionInfoMap_[id].pidOfBelongsApp = ExtractPid(id);
