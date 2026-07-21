@@ -188,7 +188,9 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
                 origin, info, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
         }
 #endif
-        image->SetHdrScale(cacheCompletedSurface_->GetHdrScale());
+        if (cacheCompletedSurface_) {
+            image->SetHdrScale(cacheCompletedSurface_->GetHdrScale());
+        }
         return image;
 #endif
     }
