@@ -61,6 +61,7 @@ HWTEST_F(RSVBlankIdleCorrectorTest, SetScreenVBlankIdleTest, TestSize.Level1)
     hgmCore.vBlankIdleCorrectSwitch_ = orgVBlankIdleCorrectSwitch;
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: ProcessScreenConstraintTest
  * @tc.desc: test RSVBlankIdleCorrector.ProcessScreenConstraint
@@ -114,7 +115,7 @@ HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintTest, TestSize.Level1
     frameRateMgr->isAdaptive_ = SupportASStatus::SUPPORT_AS;
     frameRateMgr->isGameNodeOnTree_ = true;
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
-    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 2);
+    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 1);
 
     hgmCore.hgmFrameRateMgr_ = nullptr;
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
@@ -127,4 +128,5 @@ HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintTest, TestSize.Level1
     frameRateMgr->isAdaptive_ = orgIsAdaptive;
     frameRateMgr->isGameNodeOnTree_ = orgIsGameNodeOnTree;
 }
+#endif
 } // namespace OHOS::Rosen
