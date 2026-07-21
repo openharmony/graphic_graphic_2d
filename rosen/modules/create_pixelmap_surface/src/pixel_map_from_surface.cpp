@@ -542,6 +542,7 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
         PixelMapFromSurface::DeleteVkImage, cleanUpHelper);
     if (drawingSurface == nullptr) {
+        cleanUpHelper->UnRef();
         return false;
     }
     auto canvas = drawingSurface->GetCanvas();
