@@ -627,7 +627,7 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
     if (cacheDir_.empty()) {
         return;
     }
-    if (!isUniRenderEnabled_ ) {
+    if (!isUniRenderEnabled_) {
  	    RSRenderThread::Instance().SetCacheDir(cacheDir_);
     }
 #ifdef RS_MODIFIERS_DRAW_ENABLE
