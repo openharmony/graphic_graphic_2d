@@ -43,6 +43,7 @@ config("pixel_map_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
+    "$graphic_2d_root/rosen/modules/create_pixelmap_surface/src",
   ]
 
   cflags = [
