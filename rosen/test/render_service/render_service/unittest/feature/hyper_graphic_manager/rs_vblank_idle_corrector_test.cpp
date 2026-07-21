@@ -61,6 +61,7 @@ HWTEST_F(RSVBlankIdleCorrectorTest, SetScreenVBlankIdleTest, TestSize.Level1)
     hgmCore.vBlankIdleCorrectSwitch_ = orgVBlankIdleCorrectSwitch;
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: ProcessScreenConstraintTest
  * @tc.desc: test RSVBlankIdleCorrector.ProcessScreenConstraint
@@ -127,4 +128,5 @@ HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintTest, TestSize.Level1
     frameRateMgr->isAdaptive_ = orgIsAdaptive;
     frameRateMgr->isGameNodeOnTree_ = orgIsGameNodeOnTree;
 }
+#endif
 } // namespace OHOS::Rosen

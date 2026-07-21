@@ -554,9 +554,8 @@ HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest014, TestSize.Level1)
     animation->OnStart();
     animation->SetIsCustom(false);
     std::shared_ptr<RSNode> node1 = RSCanvasNode::Create();
-    struct RSSurfaceNodeConfig surfaceNodeConfig = {.SurfaceNodeName = "test"};
-    std::shared_ptr<RSNode> node2 = RSSurfaceNode::Create(surfaceNodeConfig, false);
-    std::shared_ptr<RSNode> node3 = RSSurfaceNode::Create(surfaceNodeConfig, true);
+    std::shared_ptr<RSNode> node2 = RSCanvasNode::Create();
+    std::shared_ptr<RSNode> node3 = RSCanvasNode::Create();
     animation->Start(node1);
     animation->OnStart();
     EXPECT_TRUE(animation != nullptr);
@@ -579,9 +578,8 @@ HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest015, TestSize.Level1)
     std::shared_ptr<RSKeyframeAnimationMock> animation3 =
         std::make_shared<RSKeyframeAnimationMock>(rsUIContext, property);
     std::shared_ptr<RSNode> node1 = RSCanvasNode::Create();
-    struct RSSurfaceNodeConfig surfaceNodeConfig = {.SurfaceNodeName = "test"};
-    std::shared_ptr<RSNode> node2 = RSSurfaceNode::Create(surfaceNodeConfig, false);
-    std::shared_ptr<RSNode> node3 = RSSurfaceNode::Create(surfaceNodeConfig, true);
+    std::shared_ptr<RSNode> node2 = RSCanvasNode::Create();
+    std::shared_ptr<RSNode> node3 = RSCanvasNode::Create();
     animation1->Start(node1);
     animation1->OnStart();
     animation1->SetIsCustom(true);
