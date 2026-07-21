@@ -21,34 +21,34 @@
 extern "C" {
 #endif
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_CreateFilter(
-    OH_PixelmapNative* pixelmap, OH_Graphic2D_EffectKit_Filter** filter);
+OH_EffectKit_ErrorCode OH_EffectKit_CreateFilter(
+    OH_PixelmapNative* pixelmap, OH_EffectKit_Filter** filter);
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_DestroyFilter(
-    OH_Graphic2D_EffectKit_Filter* filter);
+OH_EffectKit_ErrorCode OH_EffectKit_DestroyFilter(
+    OH_EffectKit_Filter* filter);
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_Blur(
-    OH_Graphic2D_EffectKit_Filter* filter, float radiusInPx);
+OH_EffectKit_ErrorCode OH_EffectKit_Blur(
+    OH_EffectKit_Filter* filter, float radiusInPx);
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_BlurWithTileMode(
-    OH_Graphic2D_EffectKit_Filter* filter, float radiusInPx,
-    OH_Graphic2D_EffectKit_TileMode tileMode);
+OH_EffectKit_ErrorCode OH_EffectKit_BlurWithTileMode(
+    OH_EffectKit_Filter* filter, float radiusInPx,
+    OH_EffectKit_TileMode tileMode);
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_Brighten(
-    OH_Graphic2D_EffectKit_Filter* filter, float brightness);
+OH_EffectKit_ErrorCode OH_EffectKit_Brighten(
+    OH_EffectKit_Filter* filter, float brightness);
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_GrayScale(
-    OH_Graphic2D_EffectKit_Filter* filter);
+OH_EffectKit_ErrorCode OH_EffectKit_GrayScale(
+    OH_EffectKit_Filter* filter);
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_Invert(
-    OH_Graphic2D_EffectKit_Filter* filter);
+OH_EffectKit_ErrorCode OH_EffectKit_Invert(
+    OH_EffectKit_Filter* filter);
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_SetColorMatrix(
-    OH_Graphic2D_EffectKit_Filter* filter,
-    const OH_Graphic2D_EffectKit_ColorMatrix* matrix);
+OH_EffectKit_ErrorCode OH_EffectKit_SetColorMatrix(
+    OH_EffectKit_Filter* filter,
+    const OH_EffectKit_ColorMatrix* matrix);
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_AcquireEffectPixelMap(
-    OH_Graphic2D_EffectKit_Filter* filter, OH_PixelmapNative** pixelmap);
+OH_EffectKit_ErrorCode OH_EffectKit_AcquireEffectPixelMap(
+    OH_EffectKit_Filter* filter, OH_PixelmapNative** pixelmap);
 
 #ifdef __cplusplus
 }

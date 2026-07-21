@@ -49,6 +49,10 @@ public:
     bool RenderNativeBuffer(
         bool forceCPU, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext);
     bool Scale(float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode);
+    DrawingError GetLastError() const
+    {
+        return lastError_;
+    }
 
 private:
     void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);
@@ -57,6 +61,7 @@ private:
     std::shared_ptr<OHOS::Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<OHOS::Media::PixelMap> dstPixelMap_ = nullptr;
     std::shared_ptr<OH_NativeBuffer> dstNativeBuffer_ = nullptr;
+    DrawingError lastError_ = DrawingError::ERR_OK;
 };
 }
 }

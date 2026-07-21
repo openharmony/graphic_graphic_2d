@@ -30,10 +30,12 @@ std::shared_ptr<OHOS::Media::PixelMap> Filter::GetSrcPixelMap()
 bool Filter::Render(bool forceCPU)
 {
     if (srcPixelMap_ == nullptr) {
+        lastError_ = DrawingError::ERR_IMAGE_NULL;
         return false;
     }
     EffectImageRender imageRender;
     auto error = imageRender.Render(srcPixelMap_, effectFilters_, forceCPU, dstPixelMap_);
+    lastError_ = error;
     return error == DrawingError::ERR_OK;
 }
 
@@ -41,15 +43,18 @@ bool Filter::RenderNativeBuffer(
     bool forceCPU, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext)
 {
     if (dstNativeBuffer == nullptr) {
+        lastError_ = DrawingError::ERR_ILLEGAL_INPUT;
         return false;
     }
     if (srcPixelMap_ == nullptr) {
+        lastError_ = DrawingError::ERR_IMAGE_NULL;
         return false;
     }
     EffectImageRender imageRender;
     auto dstNativeBufferSharedPtr = std::shared_ptr<OH_NativeBuffer>(dstNativeBuffer, [](OH_NativeBuffer* p) {});
     auto error = imageRender.RenderNativeBuffer(
         srcPixelMap_, dstNativeBufferSharedPtr, effectFilters_, syncFenceFd, releaseGpuContext);
+    lastError_ = error;
     return error == DrawingError::ERR_OK;
 }
 
@@ -63,6 +68,7 @@ std::shared_ptr<OHOS::Media::PixelMap> Filter::GetPixelMap(bool useCpuRender)
     if (!Render(useCpuRender)) {
         return nullptr;
     }
+    lastError_ = DrawingError::ERR_OK;
     return dstPixelMap_;
 }
 
@@ -70,9 +76,11 @@ bool Filter::Blur(float radius, Drawing::TileMode tileMode)
 {
     auto blur = EffectImageFilter::Blur(radius, tileMode);
     if (!blur) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(blur);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -80,9 +88,11 @@ bool Filter::Blur(float radius, float angle, Drawing::TileMode tileMode)
 {
     auto blur = EffectImageFilter::Blur(radius, angle, tileMode);
     if (!blur) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(blur);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -90,9 +100,11 @@ bool Filter::Brightness(float brightness)
 {
     auto bright = EffectImageFilter::Brightness(brightness);
     if (!bright) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(bright);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -100,9 +112,11 @@ bool Filter::Scale(float scaleX, float scaleY, Drawing::FilterMode filterMode, D
 {
     auto scale = EffectImageFilter::Scale(scaleX, scaleY, filterMode, mipmapMode);
     if (!scale) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(scale);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -110,9 +124,11 @@ bool Filter::Grayscale()
 {
     auto grayscale = EffectImageFilter::Grayscale();
     if (!grayscale) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(grayscale);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -120,9 +136,11 @@ bool Filter::Invert()
 {
     auto invert = EffectImageFilter::Invert();
     if (!invert) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(invert);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -130,9 +148,11 @@ bool Filter::MapColorByBrightness(const std::vector<Vector4f>& colors, const std
 {
     auto filter = EffectImageFilter::MapColorByBrightness(colors, positions);
     if (!filter) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(filter);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -140,9 +160,11 @@ bool Filter::GammaCorrection(float gamma)
 {
     auto filter = EffectImageFilter::GammaCorrection(gamma);
     if (!filter) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(filter);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -150,9 +172,11 @@ bool Filter::SetColorMatrix(const Drawing::ColorMatrix& matrix)
 {
     auto applyColorMatrix = EffectImageFilter::ApplyColorMatrix(matrix);
     if (!applyColorMatrix) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(applyColorMatrix);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -160,16 +184,15 @@ bool Filter::WaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& 
 {
     auto glass = EffectImageFilter::WaterGlass(params);
     AddNextFilter(glass);
-
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
 bool Filter::ReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
 {
     auto glass = EffectImageFilter::ReededGlass(params);
-
     AddNextFilter(glass);
-
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 
@@ -178,9 +201,11 @@ bool Filter::MaskTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLay
 {
     auto filter = EffectImageFilter::MaskTransition(topLayer, mask, factor, inverse);
     if (!filter) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(filter);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
  
@@ -189,9 +214,11 @@ bool Filter::WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>
 {
     auto filter = EffectImageFilter::WaterDropletTransition(topLayer, geWaterDropletParams);
     if (!filter) {
+        lastError_ = DrawingError::ERR_MEMORY;
         return false;
     }
     AddNextFilter(filter);
+    lastError_ = DrawingError::ERR_OK;
     return true;
 }
 

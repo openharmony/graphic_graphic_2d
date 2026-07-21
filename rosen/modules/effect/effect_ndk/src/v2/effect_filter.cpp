@@ -15,114 +15,139 @@
 
 #include "v2/effect_filter.h"
 
+#include <new>
+
 #include "filter/filter.h"
 
 #include "utils/log.h"
 
 namespace {
-inline Filter* UnwrapFilter(OH_Graphic2D_EffectKit_Filter* filter)
+inline Filter* UnwrapFilter(OH_EffectKit_Filter* filter)
 {
     return reinterpret_cast<Filter*>(filter);
 }
 
-inline OH_Graphic2D_EffectKit_Filter* WrapFilter(Filter* filter)
+inline OH_EffectKit_Filter* WrapFilter(Filter* filter)
 {
-    return reinterpret_cast<OH_Graphic2D_EffectKit_Filter*>(filter);
+    return reinterpret_cast<OH_EffectKit_Filter*>(filter);
+}
+
+inline OH_EffectKit_ErrorCode MapDrawingError(DrawingError error)
+{
+    switch (error) {
+        case DrawingError::ERR_OK:
+            return OH_EFFECTKIT_SUCCESS;
+        case DrawingError::ERR_ILLEGAL_INPUT:
+            return OH_EFFECTKIT_BAD_PARAMETER;
+        case DrawingError::ERR_MEMORY:
+            return OH_EFFECTKIT_MEMORY_ERROR;
+        default:
+            return OH_EFFECTKIT_RENDER_ERROR;
+    }
 }
 }
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_CreateFilter(
-    OH_PixelmapNative* pixelmap, OH_Graphic2D_EffectKit_Filter** filter)
+OH_EffectKit_ErrorCode OH_EffectKit_CreateFilter(
+    OH_PixelmapNative* pixelmap, OH_EffectKit_Filter** filter)
 {
     if (pixelmap == nullptr || filter == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
-    auto inner = new Filter(pixelmap->GetInnerPixelmap());
+    auto inner = new (std::nothrow) Filter(pixelmap->GetInnerPixelmap());
     if (inner == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_MEMORY_ERROR;
     }
     *filter = WrapFilter(inner);
-    return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
+    return OH_EFFECTKIT_SUCCESS;
 }
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_DestroyFilter(
-    OH_Graphic2D_EffectKit_Filter* filter)
+OH_EffectKit_ErrorCode OH_EffectKit_DestroyFilter(OH_EffectKit_Filter* filter)
 {
     if (filter == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
     delete UnwrapFilter(filter);
-    return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
+    return OH_EFFECTKIT_SUCCESS;
 }
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_Blur(
-    OH_Graphic2D_EffectKit_Filter* filter, float radiusInPx)
+OH_EffectKit_ErrorCode OH_EffectKit_Blur(
+    OH_EffectKit_Filter* filter, float radiusInPx)
 {
     if (filter == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
-    if (!UnwrapFilter(filter)->Blur(radiusInPx)) {
-        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
+    if (radiusInPx < 0.0f) {
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
-    return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
+    auto* inner = UnwrapFilter(filter);
+    if (!inner->Blur(radiusInPx)) {
+        return MapDrawingError(inner->GetLastError());
+    }
+    return OH_EFFECTKIT_SUCCESS;
 }
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_BlurWithTileMode(
-    OH_Graphic2D_EffectKit_Filter* filter, float radiusInPx,
-    OH_Graphic2D_EffectKit_TileMode tileMode)
+OH_EffectKit_ErrorCode OH_EffectKit_BlurWithTileMode(
+    OH_EffectKit_Filter* filter, float radiusInPx, OH_EffectKit_TileMode tileMode)
 {
     if (filter == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_BAD_PARAMETER;
+    }
+    if (radiusInPx < 0.0f) {
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
     Drawing::TileMode drawingTileMode = static_cast<Drawing::TileMode>(tileMode);
-    if (!UnwrapFilter(filter)->Blur(radiusInPx, drawingTileMode)) {
-        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
+    auto* inner = UnwrapFilter(filter);
+    if (!inner->Blur(radiusInPx, drawingTileMode)) {
+        return MapDrawingError(inner->GetLastError());
     }
-    return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
+    return OH_EFFECTKIT_SUCCESS;
 }
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_Brighten(
-    OH_Graphic2D_EffectKit_Filter* filter, float brightness)
+OH_EffectKit_ErrorCode OH_EffectKit_Brighten(
+    OH_EffectKit_Filter* filter, float brightness)
 {
     if (filter == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
-    if (!UnwrapFilter(filter)->Brightness(brightness)) {
-        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
+    if (brightness < 0.0f || brightness > 1.0f) {
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
-    return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
+    auto* inner = UnwrapFilter(filter);
+    if (!inner->Brightness(brightness)) {
+        return MapDrawingError(inner->GetLastError());
+    }
+    return OH_EFFECTKIT_SUCCESS;
 }
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_GrayScale(
-    OH_Graphic2D_EffectKit_Filter* filter)
+OH_EffectKit_ErrorCode OH_EffectKit_GrayScale(OH_EffectKit_Filter* filter)
 {
     if (filter == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
-    if (!UnwrapFilter(filter)->Grayscale()) {
-        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
+    auto* inner = UnwrapFilter(filter);
+    if (!inner->Grayscale()) {
+        return MapDrawingError(inner->GetLastError());
     }
-    return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
+    return OH_EFFECTKIT_SUCCESS;
 }
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_Invert(
-    OH_Graphic2D_EffectKit_Filter* filter)
+OH_EffectKit_ErrorCode OH_EffectKit_Invert(OH_EffectKit_Filter* filter)
 {
     if (filter == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
-    if (!UnwrapFilter(filter)->Invert()) {
-        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
+    auto* inner = UnwrapFilter(filter);
+    if (!inner->Invert()) {
+        return MapDrawingError(inner->GetLastError());
     }
-    return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
+    return OH_EFFECTKIT_SUCCESS;
 }
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_SetColorMatrix(
-    OH_Graphic2D_EffectKit_Filter* filter,
-    const OH_Graphic2D_EffectKit_ColorMatrix* matrix)
+OH_EffectKit_ErrorCode OH_EffectKit_SetColorMatrix(
+    OH_EffectKit_Filter* filter, const OH_EffectKit_ColorMatrix* matrix)
 {
     if (filter == nullptr || matrix == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
     Drawing::ColorMatrix colorMatrix;
     float matrixArr[Drawing::ColorMatrix::MATRIX_SIZE] = { 0 };
@@ -130,21 +155,27 @@ OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_SetColorMatrix(
         matrixArr[i] = matrix->val[i];
     }
     colorMatrix.SetArray(matrixArr);
-    if (!UnwrapFilter(filter)->SetColorMatrix(colorMatrix)) {
-        return OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR;
+    auto* inner = UnwrapFilter(filter);
+    if (!inner->SetColorMatrix(colorMatrix)) {
+        return MapDrawingError(inner->GetLastError());
     }
-    return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
+    return OH_EFFECTKIT_SUCCESS;
 }
 
-OH_Graphic2D_EffectKit_ErrorCode OH_Graphic2D_EffectKit_AcquireEffectPixelMap(
-    OH_Graphic2D_EffectKit_Filter* filter, OH_PixelmapNative** pixelmap)
+OH_EffectKit_ErrorCode OH_EffectKit_AcquireEffectPixelMap(
+    OH_EffectKit_Filter* filter, OH_PixelmapNative** pixelmap)
 {
     if (filter == nullptr || pixelmap == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_BAD_PARAMETER;
     }
-    *pixelmap = new OH_PixelmapNative(UnwrapFilter(filter)->GetPixelMap());
+    auto* inner = UnwrapFilter(filter);
+    auto innerPixelmap = inner->GetPixelMap();
+    if (innerPixelmap == nullptr) {
+        return MapDrawingError(inner->GetLastError());
+    }
+    *pixelmap = new (std::nothrow) OH_PixelmapNative(innerPixelmap);
     if (*pixelmap == nullptr) {
-        return OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER;
+        return OH_EFFECTKIT_MEMORY_ERROR;
     }
-    return OH_GRAPHIC2D_EFFECTKIT_SUCCESS;
+    return OH_EFFECTKIT_SUCCESS;
 }

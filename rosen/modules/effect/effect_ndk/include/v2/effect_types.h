@@ -23,27 +23,27 @@
 extern "C" {
 #endif
 
-typedef struct OH_Graphic2D_EffectKit_Filter OH_Graphic2D_EffectKit_Filter;
+typedef struct OH_EffectKit_Filter OH_EffectKit_Filter;
 
 typedef struct OH_PixelmapNative OH_PixelmapNative;
 
-typedef struct OH_Graphic2D_EffectKit_ColorMatrix {
+typedef struct OH_EffectKit_ColorMatrix {
     float val[20];
-} OH_Graphic2D_EffectKit_ColorMatrix;
+} OH_EffectKit_ColorMatrix;
 
 typedef enum {
-    OH_GRAPHIC2D_EFFECTKIT_SUCCESS = 0,
-    OH_GRAPHIC2D_EFFECTKIT_BAD_PARAMETER = 401,
-    OH_GRAPHIC2D_EFFECTKIT_RENDER_ERROR = 7600200,
-    OH_GRAPHIC2D_EFFECTKIT_MEMORY_ERROR = 7600201,
-} OH_Graphic2D_EffectKit_ErrorCode;
+    OH_EFFECTKIT_SUCCESS = 0,
+    OH_EFFECTKIT_BAD_PARAMETER = 401,
+    OH_EFFECTKIT_RENDER_ERROR = 7600200,
+    OH_EFFECTKIT_MEMORY_ERROR = 7600201,
+} OH_EffectKit_ErrorCode;
 
 typedef enum {
-    OH_GRAPHIC2D_EFFECTKIT_CLAMP = 0,
-    OH_GRAPHIC2D_EFFECTKIT_REPEAT,
-    OH_GRAPHIC2D_EFFECTKIT_MIRROR,
-    OH_GRAPHIC2D_EFFECTKIT_DECAL,
-} OH_Graphic2D_EffectKit_TileMode;
+    OH_EFFECTKIT_CLAMP = 0,
+    OH_EFFECTKIT_REPEAT,
+    OH_EFFECTKIT_MIRROR,
+    OH_EFFECTKIT_DECAL,
+} OH_EffectKit_TileMode;
 
 #ifdef __cplusplus
 }
