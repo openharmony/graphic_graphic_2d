@@ -474,7 +474,16 @@ void RSPropertyDrawableUtils::BeginOffscreen(RSPaintFilterCanvas& canvas, const 
     if (!surface) {
         return;
     }
-    std::shared_ptr<Drawing::Surface> offscreenSurface = surface->MakeSurface(bounds.width_, bounds.height_);
+    std::shared_ptr<Drawing::Surface> offscreenSurface = nullptr;
+    if (ROSEN_LNE(surface->GetHdrScale(), 1.0f) &&
+        surface->GetImageInfo().GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_1010102) {
+        auto info = Drawing::ImageInfo(bounds.width_, bounds.height_,
+            Drawing::ColorType::COLORTYPE_RGBA_F16, surface->GetImageInfo().GetAlphaType(),
+            surface->GetImageInfo().GetColorSpace());
+        offscreenSurface = surface->MakeSurface(info);
+    } else {
+        offscreenSurface = surface->MakeSurface(bounds.width_, bounds.height_);
+    }
     if (!offscreenSurface) {
         return;
     }
