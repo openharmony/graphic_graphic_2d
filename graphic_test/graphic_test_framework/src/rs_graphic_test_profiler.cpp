@@ -61,10 +61,7 @@ const std::string OHR_TYPE = "ohr_type";
 const std::string OHR_START_TIME = "startTime";
 const std::string OHR_END_TIME = "endTime";
 const std::string OHR_TIME_INTERVAL = "timeInterval";
-const std::string OHR_FOR_PERFORMANCE = "performance";
 const std::string OHR_FOR_DISPLAY = "display_comparison";
-constexpr int OHR_INFO_NUM = 4;
-constexpr int OHR_NEW_INFO_NUM = 5;
 //dump buffer
 constexpr uint32_t CROP_X = 0;
 constexpr uint32_t CROP_Y = 0;
@@ -139,36 +136,64 @@ void RSGraphicTestProfiler::AnalysePlaybackInfo(
 {
     cJSON* item = root->child;
     PlaybackInfo info;
-    int checkNum = 0;
+    bool hasFileName = false;
+    bool hasStartTime = false;
+    bool hasEndTime = false;
+    bool hasTimeInterval = false;
     while (item != nullptr) {
         if (strcmp(item->string, OHR_NAME.c_str()) == 0 && cJSON_IsString(item)) {
             info.fileName = item->valuestring;
-            checkNum++;
+            hasFileName = true;
         } else if (strcmp(item->string, OHR_START_TIME.c_str()) == 0 && cJSON_IsNumber(item)) {
             info.startTime = item->valueint;
-            checkNum++;
+            hasStartTime = true;
         } else if (strcmp(item->string, OHR_END_TIME.c_str()) == 0 && cJSON_IsNumber(item)) {
             info.endTime = item->valueint;
-            checkNum++;
+            hasEndTime = true;
         } else if (strcmp(item->string, OHR_TIME_INTERVAL.c_str()) == 0 && cJSON_IsNumber(item)) {
             info.timeInterval = item->valueint;
-            checkNum++;
+            hasTimeInterval = true;
         } else if (strcmp(item->string, OHR_TYPE.c_str()) == 0 && cJSON_IsString(item)) {
             info.ohrType = item->valuestring;
-            checkNum++;
         }
         item = item->next;
     }
-    if (checkNum != OHR_INFO_NUM && checkNum != OHR_NEW_INFO_NUM) {
-        std::cout << "playback info param num error!" << std::endl;
+
+    bool isDisplay = (info.ohrType == OHR_FOR_DISPLAY);
+    if (isDisplay) {
+        if (!hasFileName) {
+            std::cout << "display_comparison playback missing fileName" << std::endl;
+            return;
+        }
+    } else {
+        // performance and legacy modes require all four fields
+        if (!hasFileName || !hasStartTime || !hasEndTime || !hasTimeInterval) {
+            std::cout << "playback info missing required fields" << std::endl;
+            return;
+        }
+        if (info.startTime < 0 || info.endTime < info.startTime || info.timeInterval <= 0) {
+            std::cout << "playback info invalid time range: start=" << info.startTime
+                << " end=" << info.endTime << " interval=" << info.timeInterval << std::endl;
+            return;
+        }
+    }
+
+    // fileName must be a relative path that does not escape rootPath/imagePath
+    std::filesystem::path fileNamePath(info.fileName);
+    if (info.fileName.empty() || fileNamePath.is_absolute() || fileNamePath.has_root_name() ||
+        fileNamePath.has_root_directory()) {
+        std::cout << "Invalid fileName (must be relative): " << info.fileName << std::endl;
         return;
     }
-    if (info.fileName.empty() || info.fileName.find("..") != std::string::npos) {
-        std::cout << "Invalid fileName with path traversal: " << info.fileName << std::endl;
-        return;
+    std::filesystem::path normalized = fileNamePath.lexically_normal();
+    for (const auto& comp : normalized) {
+        if (comp == "..") {
+            std::cout << "Invalid fileName with path traversal: " << info.fileName << std::endl;
+            return;
+        }
     }
-    std::filesystem::path filePath = rootPath / info.fileName;
-    std::filesystem::path savePath = imagePath / MakePlaybackSaveDirectories(info.fileName);
+    std::filesystem::path filePath = rootPath / normalized;
+    std::filesystem::path savePath = imagePath / MakePlaybackSaveDirectories(normalized.string());
     if (!std::filesystem::exists(filePath)) {
         std::cout << "playback file is not exist:" << filePath << std::endl;
         return;
@@ -177,9 +202,9 @@ void RSGraphicTestProfiler::AnalysePlaybackInfo(
         std::filesystem::create_directories(savePath.parent_path());
     }
 
-    if (info.ohrType == OHR_FOR_DISPLAY) {
+    if (isDisplay) {
         LoadPlaybackProfilerFileWithoutJson(filePath, savePath);
-    } else if (info.ohrType == OHR_FOR_PERFORMANCE || checkNum == OHR_INFO_NUM) {
+    } else {
         LoadPlaybackProfilerFile(filePath, savePath, info);
     }
 }
@@ -192,7 +217,7 @@ void RSGraphicTestProfiler::PlayBackPauseAtVsync(
         return;
     }
     int frame = 1;
-    for (int time = startTime; time <= endTime; time += timeInterval) {
+    for (int64_t time = startTime; time <= endTime; time += timeInterval) {
         RS_TRACE_BEGIN("RSGraphicTestProfiler::LoadPlayBackProfilerFiles");
         auto start = std::chrono::high_resolution_clock::now();
         if (frame != 1) {
