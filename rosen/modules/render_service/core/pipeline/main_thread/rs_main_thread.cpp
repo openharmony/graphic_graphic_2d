@@ -55,6 +55,7 @@
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "memory/rs_canvas_dma_buffer_cache.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
