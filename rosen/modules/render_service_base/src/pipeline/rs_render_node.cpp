@@ -3919,35 +3919,23 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 
 void RSRenderNode::MarkSuggestLayerPartRenderNode(bool isLayerPartRender)
 {
-    RS_LOGD("RSRenderNode::MarkSuggestLayerPartRenderNode id:%{public}" PRIu64" isLayerPartRender:%{public}d",
+    RS_TRACE_NAME_FMT("MarkSuggestLayerPartRenderNode id:%" PRIu64 ", isLayerPartRender:%d",
         GetId(), isLayerPartRender);
-    // only support surface node mark
-    if (GetType() != RSRenderNodeType::SURFACE_NODE) {
-        return;
-    }
-    // Get bundleName from surface node for white list check
-    auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (surfaceNode == nullptr) {
-        return;
-    }
-    std::string bundleName = surfaceNode->GetBundleName();
-    // Check white list
-    if (!RsCommonHook::Instance().IsInLayerPartRenderWhiteList(bundleName)) {
-        RS_LOGD("RSRenderNode::MarkSuggestLayerPartRenderNode bundleName:%{public}s not in white list, skip",
-            bundleName.c_str());
-        return;
-    }
-    auto parent = GetParent().lock();
-    if (parent != nullptr && parent->GetType() == RSRenderNodeType::SURFACE_NODE) {
-        auto grandparent = parent->GetParent().lock();
-        if (grandparent != nullptr && grandparent->GetType() == RSRenderNodeType::CANVAS_NODE) {
-            auto& layerPartRenderCache = grandparent->GetLayerPartRenderCache();
-            layerPartRenderCache.MarkSuggestLayerPartRenderNode(isLayerPartRender);
-            layerPartRenderCache.SetLayerPartRenderNodeStrategyType(
-                isLayerPartRender ? NodeStrategyType::NODE_GROUP : NodeStrategyType::CACHE_DISABLE);
-            RS_TRACE_NAME_FMT("MarkSuggestLayerPartRender id:%" PRIu64 ", isLayerPartRender:%d",
-                grandparent->GetId(), isLayerPartRender);
+    if (GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto parent = GetParent().lock();
+        if (parent != nullptr && parent->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            auto grandparent = parent->GetParent().lock();
+            if (grandparent != nullptr && grandparent->GetType() == RSRenderNodeType::CANVAS_NODE) {
+                auto& layerPartRenderCache = grandparent->GetLayerPartRenderCache();
+                layerPartRenderCache.MarkSuggestLayerPartRenderNode(isLayerPartRender);
+                SetDirty();
+            }
         }
+    } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
+        // create partlayer root cache
+        auto& layerPartRootCache = GetLayerPartRenderCache();
+        layerPartRootCache.MarkSuggestLayerPartRenderNode(isLayerPartRender);
+        SetDirty();
     }
 }
 

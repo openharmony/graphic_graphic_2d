@@ -1649,6 +1649,90 @@ HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeGroundParent001, TestSi
 }
 
 /**
+ * @tc.name: MarkSuggestLayerPartRenderNodeSetDirty001
+ * @tc.desc: Verify MarkSuggestLayerPartRenderNode(true) marks the caller surface node dirty
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeSetDirty001, TestSize.Level1)
+{
+    auto groundParent = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID + 50, context);
+    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 51, context);
+    auto childSurface = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 52, context);
+    ASSERT_NE(groundParent, nullptr);
+    ASSERT_NE(parentSurface, nullptr);
+    ASSERT_NE(childSurface, nullptr);
+
+    groundParent->AddChild(parentSurface, -1);
+    parentSurface->AddChild(childSurface, -1);
+
+    childSurface->ResetDirtyFlag();
+    ASSERT_FALSE(childSurface->IsDirty());
+
+    childSurface->MarkSuggestLayerPartRenderNode(true);
+
+    ASSERT_TRUE(childSurface->IsDirty());
+    ASSERT_TRUE(groundParent->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
+    ASSERT_EQ(groundParent->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
+        NodeStrategyType::NODE_GROUP);
+}
+
+/**
+ * @tc.name: MarkSuggestLayerPartRenderNodeSetDirty002
+ * @tc.desc: Verify MarkSuggestLayerPartRenderNode(false) also marks the caller surface node dirty
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeSetDirty002, TestSize.Level1)
+{
+    auto groundParent = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID + 60, context);
+    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 61, context);
+    auto childSurface = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 62, context);
+    ASSERT_NE(groundParent, nullptr);
+    ASSERT_NE(parentSurface, nullptr);
+    ASSERT_NE(childSurface, nullptr);
+
+    groundParent->AddChild(parentSurface, -1);
+    parentSurface->AddChild(childSurface, -1);
+
+    childSurface->MarkSuggestLayerPartRenderNode(true);
+    ASSERT_TRUE(groundParent->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
+
+    childSurface->ResetDirtyFlag();
+    ASSERT_FALSE(childSurface->IsDirty());
+
+    childSurface->MarkSuggestLayerPartRenderNode(false);
+
+    ASSERT_TRUE(childSurface->IsDirty());
+    ASSERT_FALSE(groundParent->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
+    ASSERT_EQ(groundParent->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
+        NodeStrategyType::CACHE_DISABLE);
+}
+
+/**
+ * @tc.name: MarkSuggestLayerPartRenderNodeNonSurfaceEarlyReturn001
+ * @tc.desc: Verify MarkSuggestLayerPartRenderNode on a canvas node returns early because it cannot
+ *           be cast to a surface node, leaving its own cache and dirty flag unchanged
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeNonSurfaceEarlyReturn001, TestSize.Level1)
+{
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID + 70, context);
+    ASSERT_NE(canvasNode, nullptr);
+
+    canvasNode->ResetDirtyFlag();
+    ASSERT_FALSE(canvasNode->IsDirty());
+
+    canvasNode->MarkSuggestLayerPartRenderNode(true);
+
+    ASSERT_FALSE(canvasNode->IsDirty());
+    ASSERT_FALSE(canvasNode->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
+    ASSERT_NE(canvasNode->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
+        NodeStrategyType::NODE_GROUP);
+}
+
+/**
  * @tc.name: MarkSuggestOpincNodeEarlyReturnWithoutCache001
  * @tc.desc: Verify MarkSuggestOpincNode returns early when unmarking and cache has not been created
  * @tc.type: FUNC
