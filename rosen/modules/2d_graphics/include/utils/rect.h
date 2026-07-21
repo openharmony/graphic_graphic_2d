@@ -477,10 +477,10 @@ inline void RectF::MakeOutset(scalar dx, scalar dy)
 
 inline void RectF::Round()
 {
-    left_ = DrawingFloatSaturate2Int(std::round(left_));
-    right_ = DrawingFloatSaturate2Int(std::round(right_));
-    top_ = DrawingFloatSaturate2Int(std::round(top_));
-    bottom_ = DrawingFloatSaturate2Int(std::round(bottom_));
+    left_ = DrawingFloatSaturate2Int(left_ + 0.5f);
+    right_ = DrawingFloatSaturate2Int(right_ + 0.5f);
+    top_ = DrawingFloatSaturate2Int(top_ + 0.5f);
+    bottom_ = DrawingFloatSaturate2Int(bottom_ + 0.5f);
 }
 
 inline RectI RectF::RoundOut()
