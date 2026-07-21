@@ -143,7 +143,11 @@ bool BlendShaderObj::Unmarshalling(Parcel& parcel, bool& isValid, int32_t depth)
         LOGE("BlendShaderObj::Unmarshalling, failed to read blendMode");
         return false;
     }
-    LOGE("test");
+    if (blendModeValue < static_cast<int32_t>(BlendMode::CLEAR) ||
+        blendModeValue > static_cast<int32_t>(BlendMode::LUMINOSITY)) {
+        LOGE("BlendShaderObj::Unmarshalling, invalid blendMode: %{public}d", blendModeValue);
+        return false;
+    }
     blendMode_ = static_cast<BlendMode>(blendModeValue);
 
     // Deserialize dst shader

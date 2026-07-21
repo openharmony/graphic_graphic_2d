@@ -290,7 +290,7 @@ std::shared_ptr<Data> CmdListHelper::GetCompressDataFromCmdList(const CmdList& c
     }
 
     auto imageData = std::make_shared<Data>();
-    imageData->BuildWithoutCopy(ptr, imageHandle.size);
+    imageData->BuildWithCopy(ptr, imageHandle.size);
     return imageData;
 }
 
@@ -791,6 +791,11 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
         return nullptr;
     }
 
+    if (shaderEffectHandle.type < static_cast<uint32_t>(ShaderEffect::ShaderEffectType::NO_TYPE) ||
+        shaderEffectHandle.type > static_cast<uint32_t>(ShaderEffect::ShaderEffectType::LAZY_SHADER)) {
+        LOGE("GetShaderEffectFromCmdList invalid ShaderEffectType: %{public}u", shaderEffectHandle.type);
+        return nullptr;
+    }
     ShaderEffect::ShaderEffectType type = static_cast<ShaderEffect::ShaderEffectType>(shaderEffectHandle.type);
     if (type == ShaderEffect::ShaderEffectType::LAZY_SHADER) {
         // Lazy type: rebuild from DrawingObject and immediately instantiate
@@ -943,6 +948,11 @@ std::shared_ptr<MaskFilter> CmdListHelper::GetMaskFilterFromCmdList(const CmdLis
         return nullptr;
     }
 
+    if (maskFilterHandle.type < static_cast<uint32_t>(MaskFilter::FilterType::NO_TYPE) ||
+        maskFilterHandle.type > static_cast<uint32_t>(MaskFilter::FilterType::BLUR)) {
+        LOGE("GetMaskFilterFromCmdList invalid FilterType: %{public}u", maskFilterHandle.type);
+        return nullptr;
+    }
     auto maskFilterData = std::make_shared<Data>();
     maskFilterData->BuildWithoutCopy(ptr, maskFilterHandle.size);
     auto maskFilter = std::make_shared<MaskFilter>
@@ -982,6 +992,11 @@ std::shared_ptr<ColorFilter> CmdListHelper::GetColorFilterFromCmdList(const CmdL
         return nullptr;
     }
 
+    if (colorFilterHandle.type < static_cast<uint32_t>(ColorFilter::FilterType::NO_TYPE) ||
+        colorFilterHandle.type > static_cast<uint32_t>(ColorFilter::FilterType::LIGHTING)) {
+        LOGE("GetColorFilterFromCmdList invalid FilterType: %{public}u", colorFilterHandle.type);
+        return nullptr;
+    }
     auto colorFilterData = std::make_shared<Data>();
     colorFilterData->BuildWithoutCopy(ptr, colorFilterHandle.size);
     auto colorFilter = std::make_shared<ColorFilter>
