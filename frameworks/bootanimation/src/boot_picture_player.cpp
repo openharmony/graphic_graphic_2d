@@ -100,7 +100,10 @@ void BootPicturePlayer::InitPicCoordinates(Rosen::ScreenId screenId)
 bool BootPicturePlayer::ReadPicZipFile(ImageStructVec& imgVec, int32_t& freq)
 {
     FrameRateConfig frameConfig;
-    ReadZipFile(GetPicZipPath(), imgVec, frameConfig);
+    if (!ReadZipFile(GetPicZipPath(), imgVec, frameConfig)) {
+        LOGE("read pic zip failed");
+        return false;
+    }
     int32_t imageNum = static_cast<int32_t>(imgVec.size());
     if (imageNum < 0) {
         LOGE("zip pic num is invalid.");

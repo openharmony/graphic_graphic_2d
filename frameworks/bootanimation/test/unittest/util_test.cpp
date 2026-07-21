@@ -17,6 +17,7 @@
 #include <fstream>
 
 #include "util.h"
+#include "zip.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -29,6 +30,28 @@ namespace {
     constexpr float TEST_RATIO = 360.0f;
     constexpr unsigned long TEST_FILE_SIZE = 1000;
     constexpr int32_t TEST_ROTATE_DEGREE = 270;
+    constexpr const char* TEST_ZIP_PATH = "/data/local/tmp/ba_readimage_test.zip";
+    constexpr const char* TEST_ZIP_ENTRY_NAME = "test_image.png";
+    constexpr const char* TEST_ZIP_CONTENT = "fake image content for testing ReadImageFile";
+
+    bool CreateTestZipFile(const std::string& path, const std::string& entryName, const std::string& content)
+    {
+        zipFile zf = zipOpen(path.c_str(), APPEND_STATUS_CREATE);
+        if (zf == nullptr) {
+            return false;
+        }
+        zip_fileinfo info = {};
+        int ret = zipOpenNewFileInZip(zf, entryName.c_str(), &info, nullptr, 0, nullptr, 0, nullptr,
+            Z_DEFLATED, Z_DEFAULT_COMPRESSION);
+        if (ret != ZIP_OK) {
+            zipClose(zf, nullptr);
+            return false;
+        }
+        ret = zipWriteInFileInZip(zf, content.data(), content.size());
+        zipCloseFileInZip(zf);
+        zipClose(zf, nullptr);
+        return ret == ZIP_OK;
+    }
 }
 
 class UtilTest : public testing::Test {
@@ -508,5 +531,42 @@ HWTEST_F(UtilTest, ReadFile_NullPath_ReturnEmpty, TestSize.Level1)
     std::string filePath = "";
     std::string content = OHOS::ReadFile(filePath);
     EXPECT_EQ(0, content.length());
+}
+
+/**
+ * @tc.name: ReadZipFile_ValidZip_ReturnTrueAndNonEmptyVec
+ * @tc.desc: Verify ReadZipFile succeeds and populates imgVec with a valid zip file.
+ *           This covers the ReadImageFile do-while loop's readLen==0 break path:
+ *           without the break, memcpy_s would be called with destMax=0 at EOF and
+ *           return ERANGE, causing ReadImageFile to return false and ReadZipFile to fail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UtilTest, ReadZipFile_ValidZip_ReturnTrueAndNonEmptyVec, TestSize.Level1)
+{
+    ASSERT_TRUE(CreateTestZipFile(TEST_ZIP_PATH, TEST_ZIP_ENTRY_NAME, TEST_ZIP_CONTENT));
+    ImageStructVec imgVec;
+    FrameRateConfig frameConfig;
+    bool result = OHOS::ReadZipFile(TEST_ZIP_PATH, imgVec, frameConfig);
+    EXPECT_EQ(result, true);
+    EXPECT_GT(imgVec.size(), static_cast<size_t>(0));
+    remove(TEST_ZIP_PATH);
+}
+
+/**
+ * @tc.name: ReadZipFile_EmptyEntryInZip_ReturnTrue
+ * @tc.desc: Verify ReadZipFile succeeds with a zip containing an empty-content entry.
+ *           This covers the readLen==0 break on the first iteration when uncompressed_size
+ *           is zero: SetBufferSize skips allocation, but the break avoids the nullptr
+ *           memcpy_s path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UtilTest, ReadZipFile_EmptyEntryInZip_ReturnTrue, TestSize.Level1)
+{
+    ASSERT_TRUE(CreateTestZipFile(TEST_ZIP_PATH, "empty_image.png", ""));
+    ImageStructVec imgVec;
+    FrameRateConfig frameConfig;
+    bool result = OHOS::ReadZipFile(TEST_ZIP_PATH, imgVec, frameConfig);
+    EXPECT_EQ(result, true);
+    remove(TEST_ZIP_PATH);
 }
 }

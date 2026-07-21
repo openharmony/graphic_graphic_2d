@@ -352,6 +352,9 @@ bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStru
             LOGE("unzReadCurrentFile length error");
             return false;
         }
+        if (readLen == 0) {
+            break;
+        }
         if (imageStruct->memPtr.memBuffer == nullptr) {
             LOGE("ReadImageFile memPtr is null");
             return false;

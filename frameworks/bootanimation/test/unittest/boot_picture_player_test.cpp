@@ -18,6 +18,7 @@
 #include "event_handler.h"
 #include "vsync_receiver.h"
 #include "util.h"
+#include "zip.h"
 #include "boot_animation_operation.h"
 #include "boot_picture_player.h"
 #include "boot_animation_strategy.h"
@@ -26,6 +27,10 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+    constexpr const char* TEST_PIC_ZIP_PATH = "/data/local/tmp/ba_pic_player_test.zip";
+    constexpr const char* DEFAULT_BOOT_PIC_ZIP = "/system/etc/graphic/bootpic.zip";
+}
 class BootPicturePlayerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -40,18 +45,52 @@ void BootPicturePlayerTest::SetUp() {}
 void BootPicturePlayerTest::TearDown() {}
 
 /**
- * @tc.name: ReadPicZipFile_EmptyParams_ReturnTrue
- * @tc.desc: Verify the ReadPicZipFile function returns true with empty params.
+ * @tc.name: ReadPicZipFile_EmptyParams_PropagateReadZipResult
+ * @tc.desc: Verify ReadPicZipFile propagates ReadZipFile's return value instead of
+ *           always returning true. When /system/etc/graphic/bootpic.zip exists and is
+ *           readable, returns true; when missing, returns false.
  * @tc.type: FUNC
  */
-HWTEST_F(BootPicturePlayerTest, ReadPicZipFile_EmptyParams_ReturnTrue, TestSize.Level1)
+HWTEST_F(BootPicturePlayerTest, ReadPicZipFile_EmptyParams_PropagateReadZipResult, TestSize.Level1)
 {
     PlayerParams params;
     std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
     ASSERT_NE(player, nullptr);
     ImageStructVec imgVec;
     int32_t freq = 30;
+    bool defaultZipExists = OHOS::IsFileExisted(DEFAULT_BOOT_PIC_ZIP);
+    EXPECT_EQ(player->ReadPicZipFile(imgVec, freq), defaultZipExists);
+}
+
+/**
+ * @tc.name: ReadPicZipFile_ValidZip_ReturnTrue
+ * @tc.desc: Verify ReadPicZipFile returns true and reads images with a valid temporary
+ *           zip file. This end-to-end covers both the ReadImageFile do-while break fix
+ *           (Bug 1: readLen==0 at EOF no longer triggers memcpy_s with destMax=0) and
+ *           the ReadPicZipFile return-value check fix (Bug 2: failure is propagated).
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, ReadPicZipFile_ValidZip_ReturnTrue, TestSize.Level1)
+{
+    zipFile zf = zipOpen(TEST_PIC_ZIP_PATH, APPEND_STATUS_CREATE);
+    ASSERT_NE(zf, nullptr);
+    zip_fileinfo info = {};
+    ASSERT_EQ(zipOpenNewFileInZip(zf, "test_image.png", &info, nullptr, 0, nullptr, 0, nullptr,
+        Z_DEFLATED, Z_DEFAULT_COMPRESSION), ZIP_OK);
+    std::string content = "fake image content";
+    ASSERT_EQ(zipWriteInFileInZip(zf, content.data(), content.size()), ZIP_OK);
+    zipCloseFileInZip(zf);
+    zipClose(zf, nullptr);
+
+    PlayerParams params;
+    params.resPath = TEST_PIC_ZIP_PATH;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    ImageStructVec imgVec;
+    int32_t freq = 30;
     EXPECT_EQ(player->ReadPicZipFile(imgVec, freq), true);
+    EXPECT_GT(imgVec.size(), static_cast<size_t>(0));
+    remove(TEST_PIC_ZIP_PATH);
 }
 
 /**
