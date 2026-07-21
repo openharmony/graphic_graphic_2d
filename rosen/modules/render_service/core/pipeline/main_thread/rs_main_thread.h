@@ -726,7 +726,7 @@ private:
     std::atomic<bool> screenPowerOnChanged_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::atomic<bool> isGlobalDarkColorMode_ = false;
-    UIMode3D uiMode_ = UIMode3D::MODE_2D;
+    std::atomic<UIMode3D> uiMode_ = UIMode3D::MODE_2D;
     // for statistic of jank frames
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
