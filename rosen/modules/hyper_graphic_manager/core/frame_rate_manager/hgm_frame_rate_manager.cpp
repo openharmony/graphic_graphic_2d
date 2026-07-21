@@ -815,7 +815,7 @@ bool HgmFrameRateManager::HandleSetHgmExclusiveScreen(pid_t pid, ScreenId screen
             return false;
         }
         cleanPidCallback_[pid].insert(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
-    } else {
+    } else
         cleanPidCallback_[pid].erase(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
     }
     hgmExclusiveScreenId_.store(screenId);
