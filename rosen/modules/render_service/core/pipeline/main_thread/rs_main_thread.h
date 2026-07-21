@@ -196,6 +196,7 @@ public:
 
     void SetUIMode3D(UIMode3D mode)
     {
+        RS_LOGI("SetUIMode3D %{public}d.", mode);
         uiMode_ = mode;
     }
 

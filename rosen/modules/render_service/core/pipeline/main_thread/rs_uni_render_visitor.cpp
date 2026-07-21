@@ -2855,14 +2855,14 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
             UpdateHwcNodeDirtyRegionForApp(appNode, hwcNodePtr);
         }
         hwcNodePtr->SetCalcRectInPrepare(false);
-        bool IsInvalidZorder = hwcNodePtr->IsHardwareForcedDisabled() &&
+        bool isInvalidZorder = hwcNodePtr->IsHardwareForcedDisabled() &&
             !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
         if (RSMainThread::Instance()->GetUIMode3D() == UIMode3D::MODE_SHUTTER_3D && hwcNodePtr->IsFullScreen()) {
-            IsInvalidZorder = false;
+            isInvalidZorder = false;
         }
 #endif
-        surfaceHandler->SetGlobalZOrder(IsInvalidZorder ? -1.f : globalZOrder_++);
+        surfaceHandler->SetGlobalZOrder(isInvalidZorder ? -1.f : globalZOrder_++);
         auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(hwcNodePtr->GetStagingRenderParams().get());
         if (stagingSurfaceParams->GetIsHwcEnabledBySolidLayer()) {
             surfaceHandler->SetGlobalZOrder(globalZOrder_++);

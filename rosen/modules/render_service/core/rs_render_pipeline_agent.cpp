@@ -1893,7 +1893,7 @@ ErrCode RSRenderPipelineAgent::SetUIMode3D(UIMode3D mode)
     auto task = [renderPipeline = pipeline, mode]() {
         renderPipeline->GetMainThread()->SetUIMode3D(mode);
     };
-    pipeline->PostMainThreadSyncTask(task);
+    pipeline->PostMainThreadTask(task);
     return ERR_OK;
 }
 

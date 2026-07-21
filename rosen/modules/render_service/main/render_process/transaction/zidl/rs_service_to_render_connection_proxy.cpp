@@ -807,7 +807,7 @@ ErrCode RSServiceToRenderConnectionProxy::SetUIMode3D(UIMode3D mode)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return ERR_INVALID_VALUE;

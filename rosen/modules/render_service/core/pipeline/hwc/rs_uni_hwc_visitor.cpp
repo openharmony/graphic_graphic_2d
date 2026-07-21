@@ -625,6 +625,10 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByShutter3DLayer()
             hwcNodePtr->SetHardwareForcedDisabledState(true);
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams *>(hwcNodePtr->GetStagingRenderParams().get());
+        if (!surfaceParams) {
+ 	        RS_LOGE("%{public}s surfaceParams is null", __func__);
+ 	        continue;
+ 	    }
         surfaceParams->SetHardwareEnabled(!hwcNodePtr->IsHardwareForcedDisabled());
         hwcNodePtr->AddToPendingSyncList();
     }

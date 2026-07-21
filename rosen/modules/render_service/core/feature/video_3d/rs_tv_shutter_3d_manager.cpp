@@ -192,6 +192,10 @@ bool RSTvShutter3DManager::Process3DForFlush(UIMode3D uiMode3D, std::shared_ptr<
     auto snapshot = offscreenSurface3D_->GetImageSnapshot();
     if (!snapshot) {
         RS_LOGE("RSTvShutter3DManager::Process3DForFlush failed to get image snapshot");
+        auto backupCanvas = GetBackupCanvas();
+        if (backupCanvas) {
+            curCanvas = backupCanvas;
+        }
         Release3DContext();
         return false;
     }
@@ -199,6 +203,7 @@ bool RSTvShutter3DManager::Process3DForFlush(UIMode3D uiMode3D, std::shared_ptr<
     auto backupCanvas = GetBackupCanvas();
     if (!backupCanvas) {
         RS_LOGE("RSTvShutter3DManager::Process3DForFlush backupCanvas is null");
+        curCanvas = nullptr;
         Release3DContext();
         return false;
     }

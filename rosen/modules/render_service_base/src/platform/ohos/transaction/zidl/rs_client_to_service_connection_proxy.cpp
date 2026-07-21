@@ -4867,7 +4867,7 @@ ErrCode RSClientToServiceConnectionProxy::SetUIMode3D(UIMode3D mode)
         ROSEN_LOGE("SetUIMode3D: WriteUint32 mode err.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

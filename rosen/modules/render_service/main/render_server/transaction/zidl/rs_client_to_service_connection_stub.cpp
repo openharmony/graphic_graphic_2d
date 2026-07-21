@@ -3085,7 +3085,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (mode > static_cast<uint32_t>(UIMode3D::MODE_TYPE_BUTT)) {
+            if (mode >= static_cast<uint32_t>(UIMode3D::MODE_TYPE_BUTT)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_UI_MODE_3D invalid mode: %{public}u", mode);
                 ret = ERR_INVALID_DATA;
                 break;
