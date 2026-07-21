@@ -793,7 +793,6 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
 
     if (shaderEffectHandle.type < static_cast<uint32_t>(ShaderEffect::ShaderEffectType::NO_TYPE) ||
         shaderEffectHandle.type > static_cast<uint32_t>(ShaderEffect::ShaderEffectType::LAZY_SHADER)) {
-        LOGE("GetShaderEffectFromCmdList invalid ShaderEffectType: %{public}u", shaderEffectHandle.type);
         return nullptr;
     }
     ShaderEffect::ShaderEffectType type = static_cast<ShaderEffect::ShaderEffectType>(shaderEffectHandle.type);

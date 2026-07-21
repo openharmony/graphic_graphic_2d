@@ -1566,7 +1566,7 @@ std::shared_ptr<DrawOpItem> DrawImageOpItem::Unmarshalling(const DrawCmdList& cm
             static_cast<int>(constructorHandle->samplingOptions.GetMipmapMode()));
         return nullptr;
     }
-    return std::make_shared<DrawImageOpItem>(cmdList, constructorHandle);    
+    return std::make_shared<DrawImageOpItem>(cmdList, constructorHandle);
 }
 
 void DrawImageOpItem::Marshalling(DrawCmdList& cmdList)
