@@ -418,9 +418,21 @@ void RSCanvasModifiersDraw::StartThread()
 
 void RSCanvasModifiersDraw::WaitAllTasksFinish()
 {
-    if (threadStarted_.load()) {
-        PostSyncTask([]() { RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish"); });
+    if (!threadStarted_.load()) {
+        return;
     }
+    PostSyncTask([canvasModifiersDraw = shared_from_this()]() {
+        RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish");
+        if (auto gpuContext =
+                RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(canvasModifiersDraw->cacheDir_)) {
+            gpuContext->FlushAndSubmit(true);
+            gpuContext->PurgeUnlockedResources(true);
+            canvasModifiersDraw->drawableMap_.clear();
+            canvasModifiersDraw->canvasNewSemaphoreInfos_.clear();
+            canvasModifiersDraw->canvasExpiredSemaphoreInfos_.clear();
+            canvasModifiersDraw->transactionConfigList_.clear();
+        }
+    });
 }
 
 void RSCanvasModifiersDraw::Destroy()
