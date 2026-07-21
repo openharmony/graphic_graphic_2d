@@ -193,7 +193,7 @@ std::unique_ptr<RSSurfaceFrame> RSCanvasModifiersDrawable::RequestBufferAndDrawH
         return nullptr;
     }
 
-    if (drawingSurface_ != nullptr) {
+    if (drawingSurface_ != nullptr && drawingSurface_ != drawingSurface) {
         if (auto lastCanvas = drawingSurface_->GetCanvas()) {
             canvas->InheritStateAndContentFrom(lastCanvas.get(), false);
         }
