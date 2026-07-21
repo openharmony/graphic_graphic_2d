@@ -22,8 +22,6 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-constexpr int32_t TEST_BUFFER_SIZE = 0x100;
-constexpr int32_t TEST_STRIDE_ALIGNMENT = 0x8;
 constexpr uint64_t TEST_TUNNEL_LAYER_ID = 1001;
 constexpr uint32_t TEST_TUNNEL_PROPERTY = TUNNEL_PROP_BUFFER_ADDR;
 constexpr uint64_t FIRST_BUFFER_ID = 11;
@@ -33,35 +31,8 @@ constexpr NodeId TEST_NODE_ID = TEST_TUNNEL_LAYER_ID + 1;
 
 class RSTunnelRuntimeStateTest : public testing::Test {
 public:
-    struct BufferEntry {
-        sptr<SurfaceBuffer> buffer = nullptr;
-        sptr<SyncFence> fence = SyncFence::InvalidFence();
-    };
-
-    BufferEntry CreateBufferEntry();
     void TearDown() override {}
-
-private:
 };
-
-RSTunnelRuntimeStateTest::BufferEntry RSTunnelRuntimeStateTest::CreateBufferEntry()
-{
-    BufferEntry entry;
-#ifndef ROSEN_CROSS_PLATFORM
-    entry.buffer = SurfaceBuffer::Create();
-    if (entry.buffer == nullptr) {
-        return entry;
-    }
-
-    auto ret = entry.buffer->Alloc(requestConfig_);
-    EXPECT_EQ(ret, GSERROR_OK);
-    if (ret != GSERROR_OK) {
-        entry.buffer = nullptr;
-        return entry;
-    }
-#endif
-    return entry;
-}
 
 /**
  * @tc.name: ClearResetsBuffersAndActivationState
