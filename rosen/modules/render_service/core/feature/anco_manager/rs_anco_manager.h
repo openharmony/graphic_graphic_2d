@@ -59,6 +59,7 @@ private:
     bool AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt);
     // anco screenNode use hebc
     std::atomic<int32_t> ancoHebcStatus_ = static_cast<int32_t>(AncoHebcStatus::INITIAL);
+    inline static bool isAncoPreparing_ = false;
 protected:
     RSAncoManager() = default;
     virtual ~RSAncoManager() = default;
