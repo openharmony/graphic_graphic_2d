@@ -2396,7 +2396,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE): {
             DataBaseRs info;
-            if (!ReadDataBaseRs(info, data)) {
+            if (!ReadDataBaseRs(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2405,7 +2405,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE): {
             DataBaseRs info;
-            if (!ReadDataBaseRs(info, data)) {
+            if (!ReadDataBaseRs(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2414,7 +2414,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME): {
             DataBaseRs info;
-            if (!ReadDataBaseRs(info, data)) {
+            if (!ReadDataBaseRs(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2423,7 +2423,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START): {
             AppInfo info;
-            if (!ReadAppInfo(info, data)) {
+            if (!ReadAppInfo(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2432,7 +2432,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END): {
             AppInfo info;
-            if (!ReadAppInfo(info, data)) {
+            if (!ReadAppInfo(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -3514,7 +3514,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
     return ret;
 }
 
-bool RSClientToServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParcel& data)
+bool RSClientToServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParcel& data, pid_t callingPid)
 {
     if (!data.ReadInt32(info.appPid) || !data.ReadInt32(info.eventType) ||
         !data.ReadInt32(info.versionCode) || !data.ReadInt64(info.uniqueId) ||
@@ -3522,15 +3522,20 @@ bool RSClientToServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessagePa
         !data.ReadInt64(info.endVsyncTime) || !data.ReadBool(info.isDisplayAnimator) ||
         !data.ReadString(info.sceneId) || !data.ReadString(info.versionName) ||
         !data.ReadString(info.bundleName) || !data.ReadString(info.processName) ||
-        !data.ReadString(info.abilityName) ||!data.ReadString(info.pageUrl) ||
+        !data.ReadString(info.abilityName) || !data.ReadString(info.pageUrl) ||
         !data.ReadString(info.sourceType) || !data.ReadString(info.note)) {
         RS_LOGE("RSClientToServiceConnectionStub::ReadDataBaseRs Read parcel failed!");
+        return false;
+    }
+    if (!IsValidCallingPid(info.appPid, callingPid)) {
+        RS_LOGE("RSClientToServiceConnectionStub::ReadDataBaseRs invalid callingPid=%{public}d, appPid=%{public}d",
+            callingPid, info.appPid);
         return false;
     }
     return true;
 }
 
-bool RSClientToServiceConnectionStub::ReadAppInfo(AppInfo& info, MessageParcel& data)
+bool RSClientToServiceConnectionStub::ReadAppInfo(AppInfo& info, MessageParcel& data, pid_t callingPid)
 {
     if (!data.ReadInt64(info.startTime)) {
         RS_LOGE("RSClientToServiceConnectionStub::ReadAppInfo Read startTime failed!");
@@ -3558,6 +3563,11 @@ bool RSClientToServiceConnectionStub::ReadAppInfo(AppInfo& info, MessageParcel& 
     }
     if (!data.ReadString(info.processName)) {
         RS_LOGE("RSClientToServiceConnectionStub::ReadAppInfo Read processName failed!");
+        return false;
+    }
+    if (!IsValidCallingPid(info.pid, callingPid)) {
+        RS_LOGE("RSClientToServiceConnectionStub::ReadAppInfo invalid callingPid=%{public}d, pid=%{public}d",
+            callingPid, info.pid);
         return false;
     }
     return true;
