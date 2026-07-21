@@ -644,10 +644,11 @@ bool RSImageBase::SetCompressedDataForASTC()
 #endif // RS_ENABLE_VK
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         const void* data = pixelMap_->GetPixels();
-        if (pixelMap_->GetCapacity() > ASTC_HEADER_SIZE &&
-            (data == nullptr || !fileData->BuildWithoutCopy(
-                reinterpret_cast<const void *>(reinterpret_cast<const char *>(data) + ASTC_HEADER_SIZE),
-                pixelMap_->GetCapacity() - ASTC_HEADER_SIZE))) {
+        const auto capacity = pixelMap_->GetCapacity();
+        if (capacity <= ASTC_HEADER_SIZE || data == nullptr ||
+            !fileData->BuildWithoutCopy(
+                reinterpret_cast<const void*>(reinterpret_cast<const char*>(data) + ASTC_HEADER_SIZE),
+                capacity - ASTC_HEADER_SIZE)) {
             RS_LOGE("%{public}s data BuildWithoutCopy fail", __func__);
             return false;
         }
