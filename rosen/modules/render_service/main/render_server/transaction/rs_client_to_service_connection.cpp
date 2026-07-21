@@ -322,6 +322,10 @@ ErrCode RSClientToServiceConnection::GetBackgroundRebuildEnabled(bool& res)
 
 void RSClientToServiceConnection::GetSurfaceRootNodeId(NodeId& windowNodeId)
 {
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);

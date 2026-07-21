@@ -228,7 +228,7 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
     constexpr int nodeTypeMax = static_cast<int>(RSSurfaceNodeType::NODE_MAX);
 
     int typeNum = static_cast<int>(nodeType);
-    if (typeNum < nodeTypeMin || typeNum > nodeTypeMax) {
+    if (typeNum < nodeTypeMin || typeNum >= nodeTypeMax) {
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
         return false;
     }
@@ -476,7 +476,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName};
-            bool success;
+            bool success = false;
             if (CreateNode(config, success) != ERR_OK || !reply.WriteBool(success)) {
                 RS_LOGE("RSClientToRenderConnectionStub::CREATE_NODE Write success failed!");
                 ret = ERR_INVALID_REPLY;
@@ -515,7 +515,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .isSync = true,
                 .mirrorSourceRotation = mirrorSourceRotation,
             };
-            bool success;
+            bool success = false;
             if (CreateDisplayNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
             }

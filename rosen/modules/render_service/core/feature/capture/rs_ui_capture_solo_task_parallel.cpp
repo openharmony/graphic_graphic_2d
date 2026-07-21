@@ -110,7 +110,8 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureSoloTaskParallel::CaptureSoloNodePix
 bool RSUiCaptureSoloTaskParallel::CreateResources()
 {
     if (ROSEN_EQ(captureConfig_.scaleX, 0.f) || ROSEN_EQ(captureConfig_.scaleY, 0.f) ||
-        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f) {
+        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f ||
+        captureConfig_.scaleX > 1.f || captureConfig_.scaleY > 1.f ||) {
         RS_LOGE("RSUiCaptureSoloTaskParallel::CreateResources: SurfaceCapture scale is invalid.");
         return false;
     }
@@ -350,6 +351,8 @@ std::function<void()> RSUiCaptureSoloTaskParallel::CreateSurfaceSyncCopyTask(
         if (!grContext) {
             RS_LOGE("RSUiCaptureSoloTaskParallel: SharedGPUContext get failed");
             std::get<0>(*wrapper) = nullptr;
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
 
