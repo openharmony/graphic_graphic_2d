@@ -949,7 +949,7 @@ std::shared_ptr<MaskFilter> CmdListHelper::GetMaskFilterFromCmdList(const CmdLis
 
     if (maskFilterHandle.type < static_cast<uint32_t>(MaskFilter::FilterType::NO_TYPE) ||
         maskFilterHandle.type > static_cast<uint32_t>(MaskFilter::FilterType::BLUR)) {
-        LOGE("GetMaskFilterFromCmdList invalid FilterType: %{public}u", maskFilterHandle.type);
+        LOGD("GetMaskFilterFromCmdList invalid FilterType: %{public}u", maskFilterHandle.type);
         return nullptr;
     }
     auto maskFilterData = std::make_shared<Data>();
@@ -993,7 +993,7 @@ std::shared_ptr<ColorFilter> CmdListHelper::GetColorFilterFromCmdList(const CmdL
 
     if (colorFilterHandle.type < static_cast<uint32_t>(ColorFilter::FilterType::NO_TYPE) ||
         colorFilterHandle.type > static_cast<uint32_t>(ColorFilter::FilterType::LIGHTING)) {
-        LOGE("GetColorFilterFromCmdList invalid FilterType: %{public}u", colorFilterHandle.type);
+        LOGD("GetColorFilterFromCmdList invalid FilterType: %{public}u", colorFilterHandle.type);
         return nullptr;
     }
     auto colorFilterData = std::make_shared<Data>();

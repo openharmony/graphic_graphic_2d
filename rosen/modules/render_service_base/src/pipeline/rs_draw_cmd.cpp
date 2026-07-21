@@ -802,13 +802,13 @@ std::shared_ptr<DrawOpItem> DrawImageWithParmOpItem::Unmarshalling(const DrawCmd
     auto* constructorHandle = static_cast<DrawImageWithParmOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
         constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
-        LOGE("DrawImageWithParmOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawImageWithParmOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetFilterMode()));
         return nullptr;
     }
     if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
         constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
-        LOGE("DrawImageWithParmOpItem Unmarshalling invalid MipmapMode: %{public}d",
+        LOGD("DrawImageWithParmOpItem Unmarshalling invalid MipmapMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
         return nullptr;
     }
@@ -880,13 +880,13 @@ std::shared_ptr<DrawOpItem> DrawPixelMapWithParmOpItem::Unmarshalling(const Draw
     auto* constructorHandle = static_cast<DrawPixelMapWithParmOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
         constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
-        LOGE("DrawPixelMapWithParmOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawPixelMapWithParmOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetFilterMode()));
         return nullptr;
     }
     if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
         constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
-        LOGE("DrawPixelMapWithParmOpItem Unmarshalling invalid MipmapMode: %{public}d",
+        LOGD("DrawPixelMapWithParmOpItem Unmarshalling invalid MipmapMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
         return nullptr;
     }
@@ -976,13 +976,13 @@ std::shared_ptr<DrawOpItem> DrawHybridPixelMapOpItem::Unmarshalling(const DrawCm
     auto* constructorHandle = static_cast<DrawHybridPixelMapOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
         constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
-        LOGE("DrawHybridPixelMapOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawHybridPixelMapOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetFilterMode()));
         return nullptr;
     }
     if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
         constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
-        LOGE("DrawHybridPixelMapOpItem Unmarshalling invalid MipmapMode: %{public}d",
+        LOGD("DrawHybridPixelMapOpItem Unmarshalling invalid MipmapMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
         return nullptr;
     }
@@ -1063,13 +1063,13 @@ std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const DrawCmdL
     auto* constructorHandle = static_cast<DrawPixelMapRectOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
         constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
-        LOGE("DrawPixelMapRectOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawPixelMapRectOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetFilterMode()));
         return nullptr;
     }
     if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
         constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
-        LOGE("DrawPixelMapRectOpItem Unmarshalling invalid MipmapMode: %{public}d",
+        LOGD("DrawPixelMapRectOpItem Unmarshalling invalid MipmapMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
         return nullptr;
     }
@@ -1137,7 +1137,7 @@ std::shared_ptr<DrawOpItem> DrawPixelMapNineOpItem::Unmarshalling(const DrawCmdL
     auto* constructorHandle = static_cast<DrawPixelMapNineOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->filterMode < Drawing::FilterMode::NEAREST ||
         constructorHandle->filterMode > Drawing::FilterMode::LINEAR) {
-        LOGE("DrawPixelMapNineOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawPixelMapNineOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->filterMode));
         return nullptr;
     }
@@ -1205,7 +1205,7 @@ std::shared_ptr<DrawOpItem> DrawPixelMapLatticeOpItem::Unmarshalling(const DrawC
     auto* constructorHandle = static_cast<DrawPixelMapLatticeOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->filterMode < Drawing::FilterMode::NEAREST ||
         constructorHandle->filterMode > Drawing::FilterMode::LINEAR) {
-        LOGE("DrawPixelMapLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawPixelMapLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->filterMode));
         return nullptr;
     }

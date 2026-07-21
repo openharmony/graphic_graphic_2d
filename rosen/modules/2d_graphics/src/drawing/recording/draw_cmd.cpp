@@ -506,7 +506,7 @@ std::shared_ptr<DrawOpItem> DrawPointsOpItem::Unmarshalling(const DrawCmdList& c
     auto* constructorHandle = static_cast<DrawPointsOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->mode < PointMode::POINTS_POINTMODE ||
         constructorHandle->mode > PointMode::POLYGON_POINTMODE) {
-        LOGE("DrawPointsOpItem Unmarshalling invalid PointMode: %{public}d", static_cast<int>(constructorHandle->mode));
+        LOGD("DrawPointsOpItem Unmarshalling invalid PointMode: %{public}d", static_cast<int>(constructorHandle->mode));
         return nullptr;
     }
     return std::make_shared<DrawPointsOpItem>(cmdList, constructorHandle);
@@ -908,7 +908,7 @@ std::shared_ptr<DrawOpItem> DrawShadowStyleOpItem::Unmarshalling(const DrawCmdLi
 {
     auto* constructorHandle = static_cast<DrawShadowStyleOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->flag < ShadowFlags::NONE || constructorHandle->flag > ShadowFlags::ALL) {
-        LOGE("DrawShadowStyleOpItem Unmarshalling invalid ShadowFlags: %{public}d",
+        LOGD("DrawShadowStyleOpItem Unmarshalling invalid ShadowFlags: %{public}d",
             static_cast<int>(constructorHandle->flag));
         return nullptr;
     }
@@ -967,7 +967,7 @@ std::shared_ptr<DrawOpItem> DrawShadowOpItem::Unmarshalling(const DrawCmdList& c
 {
     auto* constructorHandle = static_cast<DrawShadowOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->flag < ShadowFlags::NONE || constructorHandle->flag > ShadowFlags::ALL) {
-        LOGE("DrawShadowOpItem Unmarshalling invalid ShadowFlags: %{public}d",
+        LOGD("DrawShadowOpItem Unmarshalling invalid ShadowFlags: %{public}d",
             static_cast<int>(constructorHandle->flag));
         return nullptr;
     }
@@ -1073,7 +1073,7 @@ std::shared_ptr<DrawOpItem> DrawVerticesOpItem::Unmarshalling(const DrawCmdList&
 {
     auto* constructorHandle = static_cast<DrawVerticesOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->mode < BlendMode::CLEAR || constructorHandle->mode > BlendMode::LUMINOSITY) {
-        LOGE("DrawVerticesOpItem Unmarshalling invalid BlendMode: %{public}d",
+        LOGD("DrawVerticesOpItem Unmarshalling invalid BlendMode: %{public}d",
             static_cast<int>(constructorHandle->mode));
         return nullptr;
     }
@@ -1121,7 +1121,7 @@ std::shared_ptr<DrawOpItem> DrawColorOpItem::Unmarshalling(const DrawCmdList& cm
 {
     auto* constructorHandle = static_cast<DrawColorOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->mode < BlendMode::CLEAR || constructorHandle->mode > BlendMode::LUMINOSITY) {
-        LOGE("DrawColorOpItem Unmarshalling invalid BlendMode: %{public}d",
+        LOGD("DrawColorOpItem Unmarshalling invalid BlendMode: %{public}d",
             static_cast<int>(constructorHandle->mode));
         return nullptr;
     }
@@ -1157,7 +1157,7 @@ std::shared_ptr<DrawOpItem> DrawUIColorOpItem::Unmarshalling(const DrawCmdList& 
 {
     auto* constructorHandle = static_cast<DrawUIColorOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->mode < BlendMode::CLEAR || constructorHandle->mode > BlendMode::LUMINOSITY) {
-        LOGE("DrawUIColorOpItem Unmarshalling invalid BlendMode: %{public}d",
+        LOGD("DrawUIColorOpItem Unmarshalling invalid BlendMode: %{public}d",
             static_cast<int>(constructorHandle->mode));
         return nullptr;
     }
@@ -1203,7 +1203,7 @@ std::shared_ptr<DrawOpItem> DrawImageNineOpItem::Unmarshalling(const DrawCmdList
 {
     auto* constructorHandle = static_cast<DrawImageNineOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->filter < FilterMode::NEAREST || constructorHandle->filter > FilterMode::LINEAR) {
-        LOGE("DrawImageNineOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawImageNineOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->filter));
         return nullptr;
     }
@@ -1287,7 +1287,7 @@ std::shared_ptr<DrawOpItem> DrawImageLatticeOpItem::Unmarshalling(const DrawCmdL
 {
     auto* constructorHandle = static_cast<DrawImageLatticeOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->filter < FilterMode::NEAREST || constructorHandle->filter > FilterMode::LINEAR) {
-        LOGE("DrawImageLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawImageLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->filter));
         return nullptr;
     }
@@ -1390,19 +1390,19 @@ std::shared_ptr<DrawOpItem> DrawAtlasOpItem::Unmarshalling(const DrawCmdList& cm
 {
     auto* constructorHandle = static_cast<DrawAtlasOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->mode < BlendMode::CLEAR || constructorHandle->mode > BlendMode::LUMINOSITY) {
-        LOGE("DrawAtlasOpItem Unmarshalling invalid BlendMode: %{public}d",
+        LOGD("DrawAtlasOpItem Unmarshalling invalid BlendMode: %{public}d",
             static_cast<int>(constructorHandle->mode));
         return nullptr;
     }
     if (constructorHandle->samplingOptions.GetFilterMode() < FilterMode::NEAREST ||
         constructorHandle->samplingOptions.GetFilterMode() > FilterMode::LINEAR) {
-        LOGE("DrawAtlasOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawAtlasOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->samplingOptions.GetFilterMode()));
         return nullptr;
     }
     if (constructorHandle->samplingOptions.GetMipmapMode() < MipmapMode::NONE ||
         constructorHandle->samplingOptions.GetMipmapMode() > MipmapMode::LINEAR) {
-        LOGE("DrawAtlasOpItem Unmarshalling invalid MipmapMode: %{public}d",
+        LOGD("DrawAtlasOpItem Unmarshalling invalid MipmapMode: %{public}d",
             static_cast<int>(constructorHandle->samplingOptions.GetMipmapMode()));
         return nullptr;
     }
@@ -1556,13 +1556,13 @@ std::shared_ptr<DrawOpItem> DrawImageOpItem::Unmarshalling(const DrawCmdList& cm
     auto* constructorHandle = static_cast<DrawImageOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->samplingOptions.GetFilterMode() < FilterMode::NEAREST ||
         constructorHandle->samplingOptions.GetFilterMode() > FilterMode::LINEAR) {
-        LOGE("DrawImageOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawImageOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->samplingOptions.GetFilterMode()));
         return nullptr;
     }
     if (constructorHandle->samplingOptions.GetMipmapMode() < MipmapMode::NONE ||
         constructorHandle->samplingOptions.GetMipmapMode() > MipmapMode::LINEAR) {
-        LOGE("DrawImageOpItem Unmarshalling invalid MipmapMode: %{public}d",
+        LOGD("DrawImageOpItem Unmarshalling invalid MipmapMode: %{public}d",
             static_cast<int>(constructorHandle->samplingOptions.GetMipmapMode()));
         return nullptr;
     }
@@ -1631,13 +1631,13 @@ std::shared_ptr<DrawOpItem> DrawImageRectOpItem::Unmarshalling(const DrawCmdList
     auto* constructorHandle = static_cast<DrawImageRectOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->sampling.GetFilterMode() < FilterMode::NEAREST ||
         constructorHandle->sampling.GetFilterMode() > FilterMode::LINEAR) {
-        LOGE("DrawImageRectOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGD("DrawImageRectOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetFilterMode()));
         return nullptr;
     }
     if (constructorHandle->sampling.GetMipmapMode() < MipmapMode::NONE ||
         constructorHandle->sampling.GetMipmapMode() > MipmapMode::LINEAR) {
-        LOGE("DrawImageRectOpItem Unmarshalling invalid MipmapMode: %{public}d",
+        LOGD("DrawImageRectOpItem Unmarshalling invalid MipmapMode: %{public}d",
             static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
         return nullptr;
     }

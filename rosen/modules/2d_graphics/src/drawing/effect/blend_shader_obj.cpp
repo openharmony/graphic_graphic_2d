@@ -145,7 +145,7 @@ bool BlendShaderObj::Unmarshalling(Parcel& parcel, bool& isValid, int32_t depth)
     }
     if (blendModeValue < static_cast<int32_t>(BlendMode::CLEAR) ||
         blendModeValue > static_cast<int32_t>(BlendMode::LUMINOSITY)) {
-        LOGE("BlendShaderObj::Unmarshalling, invalid blendMode: %{public}d", blendModeValue);
+        LOGD("BlendShaderObj::Unmarshalling, invalid blendMode: %{public}d", blendModeValue);
         return false;
     }
     blendMode_ = static_cast<BlendMode>(blendModeValue);

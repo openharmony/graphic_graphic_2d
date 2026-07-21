@@ -298,7 +298,7 @@ bool GradientShaderObjBase::UnmarshalCommonData(Parcel& parcel)
     }
     if (modeValue < static_cast<int32_t>(TileMode::CLAMP) ||
         modeValue > static_cast<int32_t>(TileMode::MIRROR)) {
-        LOGE("GradientShaderObjBase::UnmarshalCommonData, invalid tile mode: %{public}d", modeValue);
+        LOGD("GradientShaderObjBase::UnmarshalCommonData, invalid tile mode: %{public}d", modeValue);
         return false;
     }
     mode_ = static_cast<TileMode>(modeValue);
