@@ -1046,4 +1046,115 @@ HWTEST_F(RSTunnelLayerHelperTest, LastBufferStatus_TransitionsToTunnelOnSuccess,
     EXPECT_TRUE(RSTunnelLayerHelper::TryCommitBufferDirect(
         context.node, composerClientManager, false, tunnelRuntime));
 }
+
+/**
+ * @tc.name: TryCommitBufferDirect_NullNode_ReturnsFalse
+ * @tc.desc: Test TryCommitBufferDirect returns false immediately when node is nullptr, covering the
+ *          null-node guard at entry so subsequent dereferences are not reached.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, TryCommitBufferDirect_NullNode_ReturnsFalse, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    RSTunnelRuntimeState dummyRuntime;
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    auto composerClientManager = CreateRecordingComposerManager(0, connection);
+    ASSERT_NE(composerClientManager, nullptr);
+    EXPECT_FALSE(RSTunnelLayerHelper::TryCommitBufferDirect(nullptr, composerClientManager, false, dummyRuntime));
+    EXPECT_FALSE(connection->commitTunnelCalled);
+}
+
+/**
+ * @tc.name: TryCommitPendingBuffer_SizeMismatch_ReleasesBuffer
+ * @tc.desc: Test TryCommitPendingBuffer releases the acquired buffer and clears the release callback
+ *          when the surface handler already holds a buffer with a different size, covering the
+ *          size-mismatch failure path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, TryCommitPendingBuffer_SizeMismatch_ReleasesBuffer, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(true);
+    ASSERT_TRUE(context.IsProducerReady());
+
+    context.producer->SetQueueSize(TEST_QUEUE_SIZE);
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), state.tunnelLayerId, state.property);
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
+    tunnelRuntime.SetBuilding();
+    ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+    ScopedRegisteredSurfaceNode registeredNode(context.node);
+    ASSERT_TRUE(registeredNode.IsRegistered());
+
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    connection->commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;
+    auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerClientManager, nullptr);
+
+    constexpr uint32_t EXISTING_BUFFER_SIZE = TEST_BUFFER_SIZE / 2;
+    sptr<SurfaceBuffer> existingBuffer = SurfaceBuffer::Create();
+    ASSERT_NE(existingBuffer, nullptr);
+    BufferRequestConfig existingRequestConfig = {
+        .width = EXISTING_BUFFER_SIZE,
+        .height = EXISTING_BUFFER_SIZE,
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    ASSERT_EQ(existingBuffer->Alloc(existingRequestConfig), GSERROR_OK);
+    auto existingBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    context.surfaceHandler->SetBuffer(
+        existingBuffer, SyncFence::InvalidFence(), Rect(), 0, existingBufferOwnerCount);
+
+    ASSERT_TRUE(FlushProducerBufferForTest(context.producer));
+    context.surfaceHandler->SetAvailableBufferCount(1);
+    RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
+    RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+
+    EXPECT_FALSE(RSTunnelLayerHelper::TryCommitBufferDirect(
+        context.node, composerClientManager, false, tunnelRuntime));
+    EXPECT_FALSE(connection->commitTunnelCalled);
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
+    EXPECT_EQ(context.consumer->GetAvailableBufferCount(), 1u);
+}
+
+/**
+ * @tc.name: TryCommitPendingBuffer_NullComposerManager_ReleasesBuffer
+ * @tc.desc: Test TryCommitPendingBuffer releases the acquired buffer and clears the release callback
+ *          when composerClientManager is nullptr, covering the null-manager failure path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, TryCommitPendingBuffer_NullComposerManager_ReleasesBuffer, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(true);
+    ASSERT_TRUE(context.IsProducerReady());
+
+    context.producer->SetQueueSize(TEST_QUEUE_SIZE);
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), state.tunnelLayerId, state.property);
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
+    tunnelRuntime.SetBuilding();
+    ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+    ScopedRegisteredSurfaceNode registeredNode(context.node);
+    ASSERT_TRUE(registeredNode.IsRegistered());
+
+    ASSERT_TRUE(FlushProducerBufferForTest(context.producer));
+    context.surfaceHandler->SetAvailableBufferCount(1);
+    RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
+    RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+
+    EXPECT_FALSE(RSTunnelLayerHelper::TryCommitBufferDirect(
+        context.node, nullptr, false, tunnelRuntime));
+    uint64_t clearedTunnelLayerId = 1;
+    uint32_t clearedProperty = state.property;
+    tunnelRuntime.GetLayerInfo(clearedTunnelLayerId, clearedProperty);
+    EXPECT_EQ(clearedTunnelLayerId, 0u);
+    EXPECT_EQ(clearedProperty, TUNNEL_PROP_INVALID);
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::BUILDING);
+    EXPECT_EQ(context.consumer->GetAvailableBufferCount(), 1u);
+}
 } // namespace OHOS::Rosen
