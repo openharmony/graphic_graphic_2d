@@ -99,7 +99,6 @@ private:
         const std::shared_ptr<RSBorder>& border, const bool isOutline);
     static std::shared_ptr<Drawing::Canvas> GetEmptyCanvas();
 
-    static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
     inline static int g_blurCnt = 0;
 };
 } // namespace Rosen

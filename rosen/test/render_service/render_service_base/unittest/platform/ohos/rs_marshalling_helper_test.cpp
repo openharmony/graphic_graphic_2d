@@ -721,6 +721,19 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest011, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarshallingMotionBlurParaNullTest
+ * @tc.desc: Verify Marshalling returns false when MotionBlurParam is null
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingMotionBlurParaNullTest, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<MotionBlurParam> val;
+    EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, val));
+}
+
+/**
  * @tc.name: UnmarshallingTest012
  * @tc.desc: Verify function Unmarshalling
  * @tc.type:FUNC

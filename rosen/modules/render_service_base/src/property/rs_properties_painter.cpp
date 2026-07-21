@@ -60,8 +60,6 @@ constexpr int TRACE_LEVEL_TWO = 2;
 
 const bool RSPropertiesPainter::BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
 
-std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::greyAdjustEffect_ = nullptr;
-
 Drawing::Rect RSPropertiesPainter::Rect2DrawingRect(const RectF& r)
 {
     return Drawing::Rect(r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_);
@@ -486,16 +484,15 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::MakeGreyAdjustmentE
             return vec4(color, 1.0);
         }
     )");
-    if (!greyAdjustEffect_) {
-        std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect =
-            Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
+    static thread_local std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect = nullptr;
+    if (!greyAdjustEffect) {
+        greyAdjustEffect = Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
         if (!greyAdjustEffect) {
             return nullptr;
         }
-        greyAdjustEffect_ = std::move(greyAdjustEffect);
     }
 
-    return greyAdjustEffect_;
+    return greyAdjustEffect;
 }
 
 std::shared_ptr<Drawing::Image> RSPropertiesPainter::DrawGreyAdjustment(Drawing::Canvas& canvas,
