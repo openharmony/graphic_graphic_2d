@@ -4432,7 +4432,7 @@ bool RSClientToServiceConnectionProxy::SetHgmExclusiveScreen(std::optional<Scree
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Send Request err.");
         return false;
     }
-    bool result { false };
+    bool result = false;
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Read result failed");
         return false;
