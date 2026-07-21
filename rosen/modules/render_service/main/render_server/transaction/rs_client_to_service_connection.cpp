@@ -2025,7 +2025,7 @@ ErrCode RSClientToServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 std::vector<ActiveDirtyRegionInfo> RSClientToServiceConnection::GetActiveDirtyRegionInfo()
 {
     std::vector<ActiveDirtyRegionInfo> activeDirtyRegionInfos;
-    if (renderProcessManagerAgent_  == nullptr) {
+    if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
         return activeDirtyRegionInfos;
     }
@@ -2047,6 +2047,10 @@ std::vector<ActiveDirtyRegionInfo> RSClientToServiceConnection::GetActiveDirtyRe
 GlobalDirtyRegionInfo RSClientToServiceConnection::GetGlobalDirtyRegionInfo()
 {
     GlobalDirtyRegionInfo globalDirtyRegionInfo;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return globalDirtyRegionInfo;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
@@ -2062,6 +2066,10 @@ GlobalDirtyRegionInfo RSClientToServiceConnection::GetGlobalDirtyRegionInfo()
 LayerComposeInfo RSClientToServiceConnection::GetLayerComposeInfo()
 {
     LayerComposeInfo layerComposeInfo;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return layerComposeInfo;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
@@ -2080,6 +2088,10 @@ LayerComposeInfo RSClientToServiceConnection::GetLayerComposeInfo()
 HwcDisabledReasonInfos RSClientToServiceConnection::GetHwcDisabledReasonInfo()
 {
     HwcDisabledReasonInfos hwcDisabledReasonInfos;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return hwcDisabledReasonInfos;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
@@ -2096,6 +2108,10 @@ HwcDisabledReasonInfos RSClientToServiceConnection::GetHwcDisabledReasonInfo()
 
 ErrCode RSClientToServiceConnection::GetHdrOnDuration(int64_t& hdrOnDuration)
 {
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
