@@ -34,6 +34,29 @@ public:
     static std::shared_ptr<RSSurface> CreateSurface();
 };
 
+// Mock RSSurfaceOhosVulkan that returns a controlled Drawing::Surface from RequestFrame,
+// bypassing GPU context requirements. Used to test the inherit check in
+// RequestBufferAndDrawHistory without a real GPU.
+class TestRSSurfaceOhosVulkan : public RSSurfaceOhosVulkan {
+public:
+    std::shared_ptr<Drawing::Surface> mockSurface_;
+    int requestCount_ = 0;
+
+    explicit TestRSSurfaceOhosVulkan(const sptr<Surface>& producer,
+        std::shared_ptr<Drawing::Surface> surface = nullptr)
+        : RSSurfaceOhosVulkan(producer), mockSurface_(surface) {}
+
+    std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height,
+        uint64_t uiTimestamp = 0, bool useAFBC = true, bool isProtected = false) override
+    {
+        requestCount_++;
+        if (!mockSurface_) {
+            mockSurface_ = Drawing::Surface::MakeRaster(Drawing::ImageInfo::MakeN32Premul(width, height));
+        }
+        return std::make_unique<RSSurfaceFrameOhosVulkan>(mockSurface_, width, height, 1);
+    }
+};
+
 std::shared_ptr<RSSurface> RSCanvasModifiersDrawableTest::CreateSurface()
 {
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestSurface");
@@ -325,6 +348,71 @@ HWTEST_F(RSCanvasModifiersDrawableTest, GetPixelMap_NullRect001, TestSize.Level1
     EXPECT_FALSE(result);
 }
 
+// RequestBufferAndDrawHistory returns nullptr when RequestFrame fails (no GPU context).
+// drawingSurface_ is not corrupted.
+HWTEST_F(RSCanvasModifiersDrawableTest, RequestBufferAndDrawHistory_RequestFrameFails001, TestSize.Level1)
+{
+    auto prevDrawingSurface = std::make_shared<Drawing::Surface>();
+    RSCanvasModifiersDrawable drawable;
+    drawable.producerSurface_ = CreateSurface();
+    drawable.drawingSurface_ = prevDrawingSurface;
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    auto result = drawable.RequestBufferAndDrawHistory();
+    EXPECT_EQ(result, nullptr);
+    EXPECT_EQ(drawable.drawingSurface_, prevDrawingSurface);
+}
+
+// Tests all three branches of the drawingSurface_ != drawingSurface check:
+// - Branch 1: drawingSurface_ == nullptr → no inherit (first frame)
+// - Branch 2: drawingSurface_ != nullptr && drawingSurface_ != drawingSurface → normal inherit
+// - Branch 3: drawingSurface_ != nullptr && drawingSurface_ == drawingSurface → skip inherit
+//   (the crash fix: prevents BackendGpu::InheritStateAndContentFrom from moving
+//    mGlobalToDevice to itself, which would leave the vector empty and cause SIGSEGV)
+HWTEST_F(RSCanvasModifiersDrawableTest, RequestBufferAndDrawHistory_InheritCheck001, TestSize.Level1)
+{
+    // Branch 1: drawingSurface_ == nullptr (first frame, no inherit)
+    auto imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto surfaceA = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface1 = IConsumerSurface::Create("TestInherit1");
+    sptr<IBufferProducer> bp1 = cSurface1->GetProducer();
+    auto mockSurface1 = std::make_shared<TestRSSurfaceOhosVulkan>(
+        Surface::CreateSurfaceAsProducer(bp1), surfaceA);
+    RSCanvasModifiersDrawable drawable;
+    drawable.producerSurface_ = mockSurface1;
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    EXPECT_EQ(drawable.drawingSurface_, nullptr);
+    auto frame1 = drawable.RequestBufferAndDrawHistory();
+    ASSERT_NE(frame1, nullptr);
+    EXPECT_EQ(drawable.drawingSurface_, surfaceA);
+
+    // Branch 2: drawingSurface_ != nullptr && drawingSurface_ != drawingSurface
+    // Use a different mock that returns a different Surface
+    auto surfaceB = Drawing::Surface::MakeRaster(imageInfo);
+    sptr<IConsumerSurface> cSurface2 = IConsumerSurface::Create("TestInherit2");
+    sptr<IBufferProducer> bp2 = cSurface2->GetProducer();
+    auto mockSurface2 = std::make_shared<TestRSSurfaceOhosVulkan>(
+        Surface::CreateSurfaceAsProducer(bp2), surfaceB);
+    drawable.producerSurface_ = mockSurface2;
+    drawable.surfaceFrame_ = nullptr;
+    auto frame2 = drawable.RequestBufferAndDrawHistory();
+    ASSERT_NE(frame2, nullptr);
+    EXPECT_EQ(drawable.drawingSurface_, surfaceB);
+    EXPECT_NE(drawable.drawingSurface_, surfaceA);
+
+    // Branch 3: drawingSurface_ != nullptr && drawingSurface_ == drawingSurface
+    // Reuse mockSurface1 which returns the same surfaceA as current drawingSurface_
+    // This simulates mSurfaceMap cache hit where RS released the buffer after compositing
+    // and RequestFrame dequeues the same buffer again.
+    drawable.producerSurface_ = mockSurface1;
+    drawable.surfaceFrame_ = nullptr;
+    auto frame3 = drawable.RequestBufferAndDrawHistory();
+    ASSERT_NE(frame3, nullptr);
+    // drawingSurface_ == surfaceA, same as before → self-inherit was correctly skipped
+    EXPECT_EQ(drawable.drawingSurface_, surfaceA);
+}
 } // namespace Rosen
 } // namespace OHOS
 
