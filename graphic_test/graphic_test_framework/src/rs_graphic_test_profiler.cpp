@@ -131,66 +131,99 @@ std::string MakePlaybackSaveDirectories(const std::string& path)
     return path.substr(0, lastSlashPos + 1) + fileName + "/" + fileNameExt;
 }
 
-void RSGraphicTestProfiler::AnalysePlaybackInfo(
-    const std::filesystem::path& rootPath, const std::filesystem::path& imagePath, const cJSON* root)
-{
-    cJSON* item = root->child;
-    PlaybackInfo info;
+namespace {
+struct PlaybackFieldFlags {
     bool hasFileName = false;
     bool hasStartTime = false;
     bool hasEndTime = false;
     bool hasTimeInterval = false;
+};
+
+void ParsePlaybackFields(const cJSON* root, RSGraphicTestProfiler::PlaybackInfo& info, PlaybackFieldFlags& flags)
+{
+    cJSON* item = root->child;
     while (item != nullptr) {
         if (strcmp(item->string, OHR_NAME.c_str()) == 0 && cJSON_IsString(item)) {
             info.fileName = item->valuestring;
-            hasFileName = true;
+            flags.hasFileName = true;
         } else if (strcmp(item->string, OHR_START_TIME.c_str()) == 0 && cJSON_IsNumber(item)) {
             info.startTime = item->valueint;
-            hasStartTime = true;
+            flags.hasStartTime = true;
         } else if (strcmp(item->string, OHR_END_TIME.c_str()) == 0 && cJSON_IsNumber(item)) {
             info.endTime = item->valueint;
-            hasEndTime = true;
+            flags.hasEndTime = true;
         } else if (strcmp(item->string, OHR_TIME_INTERVAL.c_str()) == 0 && cJSON_IsNumber(item)) {
             info.timeInterval = item->valueint;
-            hasTimeInterval = true;
+            flags.hasTimeInterval = true;
         } else if (strcmp(item->string, OHR_TYPE.c_str()) == 0 && cJSON_IsString(item)) {
             info.ohrType = item->valuestring;
         }
         item = item->next;
     }
+}
 
-    bool isDisplay = (info.ohrType == OHR_FOR_DISPLAY);
+bool ValidatePlaybackInfo(const RSGraphicTestProfiler::PlaybackInfo& info,
+    const PlaybackFieldFlags& flags, bool& isDisplay)
+{
+    isDisplay = (info.ohrType == OHR_FOR_DISPLAY);
     if (isDisplay) {
-        if (!hasFileName) {
+        if (!flags.hasFileName) {
             std::cout << "display_comparison playback missing fileName" << std::endl;
-            return;
+            return false;
         }
-    } else {
-        // performance and legacy modes require all four fields
-        if (!hasFileName || !hasStartTime || !hasEndTime || !hasTimeInterval) {
-            std::cout << "playback info missing required fields" << std::endl;
-            return;
-        }
-        if (info.startTime < 0 || info.endTime < info.startTime || info.timeInterval <= 0) {
-            std::cout << "playback info invalid time range: start=" << info.startTime
-                << " end=" << info.endTime << " interval=" << info.timeInterval << std::endl;
-            return;
-        }
+        return true;
     }
+    // performance and legacy modes require all four fields
+    if (!flags.hasFileName || !flags.hasStartTime || !flags.hasEndTime || !flags.hasTimeInterval) {
+        std::cout << "playback info missing required fields" << std::endl;
+        return false;
+    }
+    if (info.startTime < 0 || info.endTime < info.startTime || info.timeInterval <= 0) {
+        std::cout << "playback info invalid time range: start=" << info.startTime
+            << " end=" << info.endTime << " interval=" << info.timeInterval << std::endl;
+        return false;
+    }
+    return true;
+}
 
-    // fileName must be a relative path that does not escape rootPath/imagePath
-    std::filesystem::path fileNamePath(info.fileName);
-    if (info.fileName.empty() || fileNamePath.is_absolute() || fileNamePath.has_root_name() ||
-        fileNamePath.has_root_directory()) {
-        std::cout << "Invalid fileName (must be relative): " << info.fileName << std::endl;
-        return;
+bool NormalizePlaybackFileName(const std::string& fileName, std::filesystem::path& normalized)
+{
+    if (fileName.empty()) {
+        return false;
     }
-    std::filesystem::path normalized = fileNamePath.lexically_normal();
+    std::filesystem::path p(fileName);
+    if (p.is_absolute() || p.has_root_name() || p.has_root_directory()) {
+        return false;
+    }
+    normalized = p.lexically_normal();
+    if (normalized.empty()) {
+        return false;
+    }
     for (const auto& comp : normalized) {
         if (comp == "..") {
-            std::cout << "Invalid fileName with path traversal: " << info.fileName << std::endl;
-            return;
+            return false;
         }
+    }
+    return true;
+}
+} // namespace
+
+void RSGraphicTestProfiler::AnalysePlaybackInfo(
+    const std::filesystem::path& rootPath, const std::filesystem::path& imagePath, const cJSON* root)
+{
+    PlaybackInfo info;
+    PlaybackFieldFlags flags;
+    ParsePlaybackFields(root, info, flags);
+
+    bool isDisplay = false;
+    if (!ValidatePlaybackInfo(info, flags, isDisplay)) {
+        return;
+    }
+
+    std::filesystem::path normalized;
+    if (!NormalizePlaybackFileName(info.fileName, normalized)) {
+        std::cout << "Invalid fileName with path traversal: " << info.fileName << std::endl;
+        return;
     }
     std::filesystem::path filePath = rootPath / normalized;
     std::filesystem::path savePath = imagePath / MakePlaybackSaveDirectories(normalized.string());
