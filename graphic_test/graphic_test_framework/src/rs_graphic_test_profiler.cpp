@@ -163,6 +163,10 @@ void RSGraphicTestProfiler::AnalysePlaybackInfo(
         std::cout << "playback info param num error!" << std::endl;
         return;
     }
+    if (info.fileName.empty() || info.fileName.find("..") != std::string::npos) {
+        std::cout << "Invalid fileName with path traversal: " << info.fileName << std::endl;
+        return;
+    }
     std::filesystem::path filePath = rootPath / info.fileName;
     std::filesystem::path savePath = imagePath / MakePlaybackSaveDirectories(info.fileName);
     if (!std::filesystem::exists(filePath)) {
@@ -183,6 +187,10 @@ void RSGraphicTestProfiler::AnalysePlaybackInfo(
 void RSGraphicTestProfiler::PlayBackPauseAtVsync(
     const int& startTime, const int& endTime, const int& timeInterval, const std::string& savePath)
 {
+    if (timeInterval <= 0) {
+        std::cout << "Invalid timeInterval: " << timeInterval << ", skip to avoid infinite loop" << std::endl;
+        return;
+    }
     int frame = 1;
     for (int time = startTime; time <= endTime; time += timeInterval) {
         RS_TRACE_BEGIN("RSGraphicTestProfiler::LoadPlayBackProfilerFiles");
@@ -296,6 +304,7 @@ int RSGraphicTestProfiler::RunPlaybackTest(const std::string& filePath)
     std::filesystem::path configPath = rootPath / OHR_CONFIG_FILE_NAME;
     if (!std::filesystem::exists(configPath)) {
         std::cout << "ohr config is not exist :" << configPath << std::endl;
+        TearDown();
         return 0;
     }
 
@@ -303,6 +312,7 @@ int RSGraphicTestProfiler::RunPlaybackTest(const std::string& filePath)
     if (rootData == nullptr) {
         cJSON_Delete(rootData);
         std::cout << "parse config file failed, check it path is:" << configPath << std::endl;
+        TearDown();
         return 0;
     }
     auto playbackConfig = cJSON_GetObjectItem(rootData, OHR_LIST.c_str());
@@ -404,7 +414,12 @@ void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath
     // 1.add load client node to add file
     auto loadNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     loadNode->SetBounds({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
-    GetRootNode()->AddChild(loadNode);
+    auto rootNode = GetRootNode();
+    if (!rootNode) {
+        std::cout << "LoadNodeTreeProfilerFile root node is null" << std::endl;
+        return;
+    }
+    rootNode->AddChild(loadNode);
     // need flush client node to rs firstly
     if (!RSGraphicTestDirector::Instance().FlushMessageAndWait(NODETREE_TIMEOUT)) {
         std::cout << "Warning: FlushMessageAndWait timed out after adding loadNode." << std::endl;
@@ -646,7 +661,12 @@ bool RSGraphicTestProfiler::CropRawFile(
     }
     std::ofstream output(dstFilePath, std::ios::binary);
     const int bytesPerPixel = 4; //RGBA
-    size_t stride = AlignValue(dumpBufferSize.width * bytesPerPixel);
+    constexpr uint32_t MAX_DUMP_BUFFER_WIDTH = 1u << 30; // prevent width*bytesPerPixel from overflowing uint32_t
+    if (dumpBufferSize.width == 0 || dumpBufferSize.width > MAX_DUMP_BUFFER_WIDTH) {
+        std::cout << "Invalid dump buffer width: " << dumpBufferSize.width << std::endl;
+        return false;
+    }
+    size_t stride = AlignValue(static_cast<size_t>(dumpBufferSize.width) * bytesPerPixel);
     size_t cropRowSize = GetScreenSize()[0] * bytesPerPixel;
     size_t startOffset = CROP_Y * stride + CROP_X * bytesPerPixel;
     input.seekg(startOffset, std::ios::beg);

@@ -104,12 +104,15 @@ public:
 
     void RequestNextVSync()
     {
+        {
+            std::unique_lock lock(mutex_);
+            ready_ = false;
+        }
         if (vsyncReceiver_) {
             vsyncReceiver_->RequestNextVSync(frameCallback_);
         }
         {
             std::unique_lock lock(mutex_);
-            ready_ = false;
             cv_.wait_for(lock, std::chrono::milliseconds(WAIT_ANIMATION_SYNC_TIME_OUT), [&] { return ready_; });
         }
         RSGraphicTestDirector::Instance().OnVSync(time_);
@@ -292,7 +295,20 @@ std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait
         return nullptr;
     }
     auto callback = std::make_shared<TestSurfaceCaptureCallback>();
-    auto rsInterface = rsUiDirector_->GetRSUIContext()->GetRSRenderInterface();
+    if (!rsUiDirector_) {
+        LOGE("RSGraphicTestDirector::TakeScreenCaptureAndWait rsUiDirector is null");
+        return nullptr;
+    }
+    auto rsUiContext = rsUiDirector_->GetRSUIContext();
+    if (!rsUiContext) {
+        LOGE("RSGraphicTestDirector::TakeScreenCaptureAndWait rsUiContext is null");
+        return nullptr;
+    }
+    auto rsInterface = rsUiContext->GetRSRenderInterface();
+    if (!rsInterface) {
+        LOGE("RSGraphicTestDirector::TakeScreenCaptureAndWait rsInterface is null");
+        return nullptr;
+    }
     if (!rsInterface->TakeSurfaceCaptureForUI(
         rootNode_->screenSurfaceNode_, callback)) {
         return nullptr;

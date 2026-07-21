@@ -384,28 +384,48 @@ void RSGraphicTest::StartUIAnimation()
 
 SubWindowId RSGraphicTest::CreateSubWindow(const SubWindowOptions& options)
 {
-    return GetRootNode()->CreateSubWindow(options);
+    auto rootNode = GetRootNode();
+    if (!rootNode) {
+        return INVALID_SUB_WINDOW_ID;
+    }
+    return rootNode->CreateSubWindow(options);
 }
 
 std::shared_ptr<RSSurfaceNode> RSGraphicTest::GetSubWindow(SubWindowId id)
 {
-    return GetRootNode()->GetSubWindow(id);
+    auto rootNode = GetRootNode();
+    if (!rootNode) {
+        return nullptr;
+    }
+    return rootNode->GetSubWindow(id);
 }
 
 std::shared_ptr<RSSurfaceNode> RSGraphicTest::GetSubWindowTestSurface(SubWindowId id)
 {
-    return GetRootNode()->GetSubWindowTestSurface(id);
+    auto rootNode = GetRootNode();
+    if (!rootNode) {
+        return nullptr;
+    }
+    return rootNode->GetSubWindowTestSurface(id);
 }
 
 bool RSGraphicTest::AddChildToSubWindow(
     SubWindowId id, std::shared_ptr<RSNode> child, int childIndex)
 {
-    return GetRootNode()->AddChildToSubWindow(id, child, childIndex);
+    auto rootNode = GetRootNode();
+    if (!rootNode) {
+        return false;
+    }
+    return rootNode->AddChildToSubWindow(id, child, childIndex);
 }
 
 bool RSGraphicTest::RemoveSubWindow(SubWindowId id)
 {
-    return GetRootNode()->RemoveSubWindow(id);
+    auto rootNode = GetRootNode();
+    if (!rootNode) {
+        return false;
+    }
+    return rootNode->RemoveSubWindow(id);
 }
 
 void RSGraphicTest::SetCaptureScope(CaptureScope scope)
