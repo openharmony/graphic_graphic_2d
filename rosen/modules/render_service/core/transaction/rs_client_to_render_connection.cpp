@@ -620,7 +620,7 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
     if (!isSystemCalling && GetCallingPid() != pid) {
         RS_LOGE("RSClientToRenderConnection::SetSurfaceWatermark %{public}s,"
             "callingPid != pid", name.c_str());
-        return;
+        return WATER_MARK_RS_CONNECTION_ERROR;
     }
     return renderPipelineAgent_->SetSurfaceWatermark(pid, name, watermark,
         nodeIdList, watermarkType, isSystemCalling, rowCount, colCount);
