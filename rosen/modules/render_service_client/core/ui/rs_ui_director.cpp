@@ -624,11 +624,14 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (rsUIContext_ == nullptr) {
+    if (cacheDir_.empty()) {
         return;
     }
-    if (cacheDir_.empty()) {
+    if (!isUniRenderEnabled_) {
+        RSRenderThread::Instance().SetCacheDir(cacheDir_);
+    }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (rsUIContext_ == nullptr) {
         return;
     }
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
