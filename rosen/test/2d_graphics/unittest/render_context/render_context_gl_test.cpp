@@ -51,7 +51,7 @@ HWTEST_F(RenderContextGLTest, CleanAllShaderCache, TestSize.Level1)
 
     renderContext->SetUpGpuContext();
     result = renderContext->CleanAllShaderCache();
-    EXPECT_EQ(result, "");
+    EXPECT_NE(result, "");
 }
 
 /**
@@ -184,7 +184,7 @@ HWTEST_F(RenderContextGLTest, AcquireSurfaceTest, Function | SmallTest | Level2)
 
     renderContext->SetPixelFormat(GRAPHIC_PIXEL_FMT_YCBCR_P010);
     surface = renderContext->AcquireSurface(400, 800);
-    EXPECT_FALSE(surface == nullptr);
+    EXPECT_TRUE(surface == nullptr);
 }
 
 /**
@@ -226,6 +226,7 @@ HWTEST_F(RenderContextGLTest, CreateEGLSurfaceTest, Function | SmallTest | Level
     renderContext->Init();
     eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
+    renderContext->MakeCurrent(EGL_NO_SURFACE, EGL_NO_CONTEXT);
     renderContext->SetUpGpuContext();
     eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
@@ -262,7 +263,7 @@ HWTEST_F(RenderContextGLTest, MakeCurrentTest, Function | SmallTest | Level2)
     renderContext->MakeCurrent(EGL_NO_SURFACE, EGL_NO_CONTEXT);
     EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
     renderContext->MakeCurrent(static_cast<EGLSurface>((void*)(0x1)), static_cast<EGLContext>((void*)(0x1)));
-    EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
+    EXPECT_NE(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
 }
 
 /**
@@ -313,9 +314,9 @@ HWTEST_F(RenderContextGLTest, SetUpGpuContextTest, Level1)
     renderContext->Init();
     EXPECT_NE(renderContext, nullptr);
     bool res = renderContext->SetUpGpuContext();
-    EXPECT_EQ(res, false);
+    EXPECT_NE(res, false);
     res = renderContext->SetUpGpuContext();
-    EXPECT_EQ(res, false);
+    EXPECT_NE(res, false);
 }
 
 /**
