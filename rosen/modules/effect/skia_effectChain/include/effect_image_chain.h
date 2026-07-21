@@ -119,6 +119,9 @@ private:
 
     Drawing::ImageInfo imageInfo_ = {};
     std::shared_ptr<Drawing::Image> image_ = nullptr;
+#if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
+    std::shared_ptr<Drawing::Image> srcImage_ = nullptr;
+#endif
     std::shared_ptr<Drawing::ImageFilter> filters_ = nullptr;
 
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
