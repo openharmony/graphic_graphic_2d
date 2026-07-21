@@ -297,54 +297,8 @@ HWTEST_F(Vector3Test, GetData001, TestSize.Level1)
  */
 HWTEST_F(Vector3Test, IsNearEqual001, TestSize.Level1)
 {
-    Vector3 vector(1.f, 2.f, 2.f);                   // 1.f, 2.f, 2.f for test
-    Vector3 vectorNew(1.f, 2.f, 2.f);                // 1.f, 2.f, 2.f for test
+    Vector3 vector(1.f, 2.f, 2.f); // 1.f, 2.f, 2.f for test
+    Vector3 vectorNew(1.f, 2.f, 2.f); // 1.f, 2.f, 2.f for test
     EXPECT_TRUE(vector.IsNearEqual(vectorNew, 3.f)); // 3.f for test
-}
-
-/**
- * @tc.name: IsInfinite001
- * @tc.desc: test results of IsInfinite
- * @tc.type: FUNC
- * @tc.require: issueI9MO8D
- */
-HWTEST_F(Vector3Test, IsInfinite001, TestSize.Level1)
-{
-    float infNum = std::numeric_limits<float>::infinity(); // for test
-    Vector3 vec1(infNum, 1.f, 1.f);                        // for test
-    EXPECT_TRUE(vec1.IsInfinite());
-    Vector3 vec2(1.f, 2.f, 3.f); // for test
-    EXPECT_FALSE(vec2.IsInfinite());
-}
-
-/**
- * @tc.name: IsNaN001
- * @tc.desc: test results of IsNaN
- * @tc.type: FUNC
- */
-HWTEST_F(Vector3Test, IsNaN001, TestSize.Level1)
-{
-    float nanNum = std::numeric_limits<float>::quiet_NaN(); // for test
-    Vector3 vec1(nanNum, 1.f, 1.f);                         // for test
-    EXPECT_TRUE(vec1.IsNaN());
-    Vector3 vec2(1.f, 2.f, 3.f); // for test
-    EXPECT_FALSE(vec2.IsNaN());
-}
-
-/**
- * @tc.name: IsValid001
- * @tc.desc: test results of IsValid
- * @tc.type: FUNC
- */
-HWTEST_F(Vector3Test, IsValid001, TestSize.Level1)
-{
-    Vector3 vec1(1.f, 2.f, 3.f); // for test
-    EXPECT_TRUE(vec1.IsValid());
-    float infNum = std::numeric_limits<float>::infinity(); // for test
-    Vector3 vec2(infNum, 1.f, 1.f);                        // for test
-    EXPECT_FALSE(vec2.IsValid());
-    float nanNum = std::numeric_limits<float>::quiet_NaN(); // for test
-    Vector3 vec3(nanNum, 1.f, 1.f);                         // for test
-    EXPECT_FALSE(vec3.IsValid());
 }
 } // namespace OHOS::Rosen

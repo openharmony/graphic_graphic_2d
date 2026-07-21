@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_SPATIAL_EFFECT_DEF_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_SPATIAL_EFFECT_DEF_H
 
-#include <cmath>
 #include <variant>
 
 #include "common/rs_vector2.h"
@@ -44,13 +43,7 @@ struct DepthCameraPara {
     bool operator==(const DepthCameraPara& other) const
     {
         return position == other.position && quaternion == other.quaternion && ROSEN_EQ(yFov, other.yFov) &&
-               ROSEN_EQ(zNear, other.zNear) && ROSEN_EQ(zFar, other.zFar) && offset == other.offset;
-    }
-
-    bool IsValid() const
-    {
-        return position.IsValid() && quaternion.IsValid() && std::isfinite(yFov) && std::isfinite(zNear) &&
-               std::isfinite(zFar) && offset.IsValid() && ROSEN_GNE(zNear, 0.0f) && ROSEN_GNE(zFar, zNear);
+            ROSEN_EQ(zNear, other.zNear) && ROSEN_EQ(zFar, other.zFar) && offset == other.offset;
     }
 };
 
@@ -62,11 +55,6 @@ struct DepthLightPara {
     bool operator==(const DepthLightPara& other) const
     {
         return direction == other.direction && color == other.color && ROSEN_EQ(intensity, other.intensity);
-    }
-
-    bool IsValid() const
-    {
-        return direction.IsValid() && color.IsValid() && std::isfinite(intensity) && ROSEN_GE(intensity, 0.0f);
     }
 };
 
