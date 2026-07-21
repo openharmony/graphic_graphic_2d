@@ -41,7 +41,6 @@ constexpr uint32_t HPAE_SCALE_FACTOR = 2;
 constexpr uint32_t HPAE_BUFFER_MAX_WIDTH = 1440;
 constexpr uint32_t HPAE_BUFFER_MAX_HEIGHT = 4096;
 constexpr float HPAE_MIN_BLUR_RADIUS = 12.f;
-const std::string DESKTOP_WALLPAPER_NAME = "SCBWallpaper";
 
 RSHpaeManager& RSHpaeManager::GetInstance()
 {
@@ -225,14 +224,6 @@ bool RSHpaeManager::HasHpaeBlurNode() const
 
 bool RSHpaeManager::IsHpaeException(RSRenderNode& node)
 {
-    auto parent = node.GetParent().lock();
-    if (parent) {
-        auto surfaceNode = parent->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceNode && (surfaceNode->GetName().find(DESKTOP_WALLPAPER_NAME) != std::string::npos)) {
-            return true;
-        }
-    }
-
     if (RSHpaeBaseData::GetInstance().GetDesktopOffTree()) {
         return true;
     }
@@ -259,6 +250,9 @@ bool RSHpaeManager::IsHpaeBlurNode(RSRenderNode& node, uint32_t phyWidth, uint32
             return false;
         }
         if (!renderProperty.GetPixelStretch().IsZero()) {
+            return false;
+        }
+        if (!renderProperty.GetGreyCoef().has_value()) {
             return false;
         }
 
