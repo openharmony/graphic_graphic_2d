@@ -25,7 +25,6 @@ public:
     explicit RSDepthRenderParams(NodeId id);
     ~RSDepthRenderParams() override = default;
     void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
-    void OnSyncDepthSpaceParams(const std::unique_ptr<RSRenderParams>& target);
 
     void SetDepthImage(const std::shared_ptr<Drawing::Image>& depthImage);
     std::shared_ptr<Drawing::Image> GetDepthImage() const;
