@@ -755,6 +755,9 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
         return skiaImage_ != nullptr;
     } else {
         size_t pixmapSize = reader.readUInt();
+        if (pixmapSize == 0 || pixmapSize > reader.avaliable()) {
+            return false;
+        }
         SkAutoMalloc pixBuffer(pixmapSize);
         if (!reader.readByteArray(pixBuffer.get(), pixmapSize)) {
             return false;
@@ -772,6 +775,9 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
         if (size == 0) {
             colorSpace = nullptr;
         } else {
+            if (size > reader.avaliable()) {
+                return false;
+            }
             SkAutoMalloc colorBuffer(size);
             if (!reader.readByteArray(colorBuffer.get(), size)) {
                 return false;
