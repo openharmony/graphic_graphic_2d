@@ -52,6 +52,7 @@ public:
     void VsyncRSDistributorHandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     bool IsVsyncRSDistributorExist();
     bool IsVsyncAppDistributorExist();
+    bool DvsyncNeedSkipRsCommitDelay() const;
 private:
     sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
     sptr<VSyncDistributor> rsVsyncDistributor_ = nullptr;

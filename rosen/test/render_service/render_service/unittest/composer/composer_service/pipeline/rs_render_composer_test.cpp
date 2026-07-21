@@ -3251,6 +3251,9 @@ HWTEST_F(RsRenderComposerTest, CalculateDelayTime2, TestSize.Level1)
     EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
     tmpRsRenderComposer->CalculateDelayTime(hgmCore, 144, -1, param);
     EXPECT_GT(tmpRsRenderComposer->delayTime_, -1);
+    // if dvsyncNeedSkipRsCommitDelay, commit immediately without delayTime_.
+    param.dvsyncNeedSkipRsCommitDelay = true;
+    EXPECT_EQ(tmpRsRenderComposer->CalculateDelayTime(hgmCore, 144, -1, param), 0);
 
     tmpRsRenderComposer->uniRenderEngine_ = nullptr;
 }
