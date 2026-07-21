@@ -4019,12 +4019,12 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareScreenRenderNode004, TestSize.Level
 }
 
 /**
- * @tc.name: InitLogicalDisplayInfo001
+ * @tc.name: InitLogicalDisplayInfoTest001
  * @tc.desc: Test InitLogicalDisplayInfo
  * @tc.type: FUNC
  * @tc.require: issueICPT5N
  */
-HWTEST_F(RSUniRenderVisitorTest, InitLogicalDisplayInfo001, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, InitLogicalDisplayInfoTest001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     NodeId screenNodeId = 1;
@@ -4036,6 +4036,97 @@ HWTEST_F(RSUniRenderVisitorTest, InitLogicalDisplayInfo001, TestSize.Level2)
 
     rsUniRenderVisitor->InitLogicalDisplayInfo(*displayNode);
     EXPECT_EQ(rsUniRenderVisitor->occlusionSurfaceOrder_, TOP_OCCLUSION_SURFACES_NUM);
+}
+
+/**
+ * @tc.name: InitLogicalDisplayInfoTest002
+ * @tc.desc: Test InitLogicalDisplayInfo
+ * @tc.type: FUNC
+ * @tc.require: issueICPT5N
+ */
+HWTEST_F(RSUniRenderVisitorTest, InitLogicalDisplayInfoTest002, TestSize.Level2)
+{
+    RSUniRenderVisitor visitor;
+    NodeId screenNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    visitor.curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto dispayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+
+    // displayMode == DisplayMode::INVALID
+    visitor.InitLogicalDisplayInfo(*displayNode);
+
+    // displayMode == DisplayMode::MIRROR, but mirrorSource is nullptr
+    displayNode->displayMode_ = DisplayMode::MIRROR;
+    visitor.InitLogicalDisplayInfo(*displayNode);
+
+    // displayMode == DisplayMode::MIRROR, and mirrorSource is not nullptr
+    auto mirrorNode = std::make_shared<RSLogicalDisplayRenderNode>(1, config);
+    displayNode->mirrorSource_ = mirrorNode;
+    auto mirrorSourceScreenNode = std::make_shared<RSScreenRenderNode>(2, 0, rsContext);
+    mirrorNode->parent_ = mirrorSourceScreenNode;
+    bool res = visitor.InitLogicalDisplayInfo(*displayNode);
+    EXPECT_TRUE(res);
+}
+
+/*
+ * @tc.name: InitLogicalDisplayInfoTest003
+ * @tc.desc: Test function InitLogicalDisplayInfo
+ * @tc.type: FUNC
+ * @tc.require: issueICB4RP
+ */
+HWTEST_F(RSUniRenderVisitorTest, InitLogicalDisplayInfoTest003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig config;
+    auto rsDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(11, config, rsContext->weak_from_this());
+    rsDisplayRenderNode->InitRenderParams();
+    ASSERT_EQ(rsDisplayRenderNode->GetMirrorSource().lock(), nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+
+    auto screenId = CreateVirtualScreen();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenId, 0, rsContext);
+    rsUniRenderVisitor->curScreenNode_->InitRenderParams();
+    auto mirrorNode = std::make_shared<RSLogicalDisplayRenderNode>(12, config, rsContext->weak_from_this());
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(11, 2);
+    rsScreenRenderNode->AddChild(mirrorNode);
+    rsDisplayRenderNode->mirrorSource_ = mirrorNode;
+    rsDisplayRenderNode->displayMode_ = DisplayMode::MIRROR;
+    rsUniRenderVisitor->InitLogicalDisplayInfo(*rsDisplayRenderNode);
+    ASSERT_TRUE(rsUniRenderVisitor->curScreenNode_->IsMirrorScreen());
+}
+
+/**
+ * @tc.name: UpdateCompositeTypeTest001
+ * @tc.desc: Test UpdateCompositeType
+ * @tc.type: FUNC
+ * @tc.require: issueICPT5N
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateCompositeTypeTest001, TestSize.Level2)
+{
+    RSUniRenderVisitor visitor;
+    NodeId nodeId = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    RSScreenRenderNode screenNode(nodeId, screenId, context);
+
+    // when state == ScreenState::HDI_OUTPUT_ENABLE
+    screenNode.screenInfo_.state = ScreenState::HDI_OUTPUT_ENABLE;
+    visitor.UpdateCompositeType(screenNode, DisplayMode::INVALID);
+
+    // when state == ScreenState::PRODUCER_SURFACE_ENABLE
+    screenNode.screenInfo_.state = ScreenState::PRODUCER_SURFACE_ENABLE;
+    visitor.UpdateCompositeType(screenNode, DisplayMode::INVALID);
+    visitor.UpdateCompositeType(screenNode, DisplayMode::MIRROR);
+    visitor.UpdateCompositeType(screenNode, DisplayMode::EXPAND);
+    visitor.UpdateCompositeType(screenNode, DisplayMode::INDEPENDENT);
+
+    // when state == ScreenState::UNKNOWN
+    screenNode.screenInfo_.state = ScreenState::UNKNOWN;
+    visitor.UpdateCompositeType(screenNode, DisplayMode::INVALID);
+    EXPECT_EQ(screenNode.screenInfo_.state, ScreenState::UNKNOWN);
 }
 
 /**

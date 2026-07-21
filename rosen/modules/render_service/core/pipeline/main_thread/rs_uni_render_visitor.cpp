@@ -816,7 +816,6 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     PostPrepare(node, isParentPrepareInReverseOrder);
     node.UpdateChildHwcNode();
     RSLayerSplitManager::GetInstance()->CheckNeedLeave();
-    UpdateCompositeType(node);
     RSHdrUtil::UpdateSelfDrawingNodesNit(node);
     hwcVisitor_->UpdateHwcNodeEnable();
     UpdateSurfaceDirtyAndGlobalDirty();
@@ -868,19 +867,21 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Clear();
-    curLogicalDisplayNode_->SetCompositeType(curScreenNode_->GetCompositeType());
     curLogicalDisplayNode_->SetHasCaptureWindow(false);
     occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
+    DisplayMode displayMode = curLogicalDisplayNode_->GetDisplayMode();
     auto mirrorSourceNode = curLogicalDisplayNode_->GetMirrorSource().lock();
     auto mirrorSourceScreenNode = mirrorSourceNode ?
         std::static_pointer_cast<RSScreenRenderNode>(mirrorSourceNode->GetParent().lock()) : nullptr;
-    if (mirrorSourceScreenNode) {
+    if (displayMode == DisplayMode::MIRROR && mirrorSourceScreenNode) {
         curScreenNode_->SetIsMirrorScreen(true);
         curScreenNode_->SetMirrorSource(mirrorSourceScreenNode);
     } else {
         curScreenNode_->SetIsMirrorScreen(false);
         curScreenNode_->ResetMirrorSource();
     }
+    UpdateCompositeType(*curScreenNode_, displayMode);
+    curLogicalDisplayNode_->SetCompositeType(curScreenNode_->GetCompositeType());
     curScreenNode_->GetLogicalDisplayNodeDrawables().push_back(curLogicalDisplayNode_->GetRenderDrawable());
     return true;
 }
@@ -1849,7 +1850,8 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
     if (needRecalculateOcclusion_) {
         bool isSecVirtualExpandComposite =
             curLogicalDisplayNode_->GetSecurityDisplay() &&
-            curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+            (curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
+             curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE);
         Occlusion::Region subResult = isSecVirtualExpandComposite ?
             selfDrawRegion.Sub(occlusionRegionWithoutSkipLayer_) : selfDrawRegion.Sub(accumulatedOcclusionRegion_);
         node.SetVisibleRegion(subResult);
@@ -2388,22 +2390,34 @@ void RSUniRenderVisitor::RegisterHpaeCallback(RSRenderNode& node)
 #endif
 }
 
-void RSUniRenderVisitor::UpdateCompositeType(RSScreenRenderNode& node)
+void RSUniRenderVisitor::UpdateCompositeType(RSScreenRenderNode& node, DisplayMode mode)
 {
-    auto mirrorNode = node.GetMirrorSource().lock();
-    switch (node.GetScreenInfo().state) {
-        case ScreenState::PRODUCER_SURFACE_ENABLE:
-            node.SetCompositeType(mirrorNode ?
-                CompositeType::UNI_RENDER_MIRROR_COMPOSITE :
-                CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
-            break;
-        case ScreenState::HDI_OUTPUT_ENABLE:
-            node.SetCompositeType(node.IsForceSoftComposite() ?
-                CompositeType::SOFTWARE_COMPOSITE :
-                CompositeType::UNI_RENDER_COMPOSITE);
-            break;
-        default:
-            break;
+    ScreenState state = node.GetScreenInfo().state;
+    // physical screen
+    if (state == ScreenState::HDI_OUTPUT_ENABLE) {
+        node.SetCompositeType(node.IsForceSoftComposite() ? CompositeType::SOFTWARE_COMPOSITE :
+                                                            CompositeType::UNI_RENDER_COMPOSITE);
+        return;
+    }
+
+    // virtual screen
+    if (state == ScreenState::PRODUCER_SURFACE_ENABLE) {
+        switch (mode) {
+            case DisplayMode::MIRROR:
+                node.SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE);
+                break;
+            case DisplayMode::EXPAND:
+                node.SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
+                break;
+            case DisplayMode::INDEPENDENT:
+                node.SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE);
+                break;
+            default:
+                RS_LOGE("RSUniRenderVisitor::%{public}s, invalid displayMode[%{public}d]", __func__,
+                    static_cast<int>(mode));
+                break;
+        }
+        return;
     }
 }
 
@@ -4528,6 +4542,14 @@ void RSUniRenderVisitor::UpdateFixedSize(RSLogicalDisplayRenderNode& node)
     if (node.IsRotationChanged() ||
         RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION) {
         // skip getting fixed size during rotation and snapshot rotation.
+
+        RS_LOGI_LIMIT("RSUniRenderVisitor::%{public}s, isRotationChanged[%{public}d], "
+                      "SystemAnimatedScenes[%{public}" PRIu32 "]",
+            __func__, node.IsRotationChanged(),
+            static_cast<uint32_t>(RSMainThread::Instance()->GetSystemAnimatedScenes()));
+        RS_TRACE_NAME_FMT("RSUniRenderVisitor::%s, isRotationChanged[%d], SystemAnimatedScenes[%" PRIu32 "]", __func__,
+            node.IsRotationChanged(), static_cast<uint32_t>(RSMainThread::Instance()->GetSystemAnimatedScenes()));
+
         return;
     }
 

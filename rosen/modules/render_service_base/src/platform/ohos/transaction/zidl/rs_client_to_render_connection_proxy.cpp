@@ -232,8 +232,8 @@ ErrCode RSClientToRenderConnectionProxy::CreateDisplayNode(const RSDisplayNodeCo
         success = false;
         return ERR_INVALID_VALUE;
     }
-    if (!data.WriteBool(displayNodeConfig.isMirrored)) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::CreateNode: WriteBool Config.IsMirrored err.");
+    if (!data.WriteUint8(static_cast<uint8_t>(displayNodeConfig.displayMode))) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::CreateNode: WriteUint8 Config.DisplayMode err.");
         success = false;
         return ERR_INVALID_VALUE;
     }

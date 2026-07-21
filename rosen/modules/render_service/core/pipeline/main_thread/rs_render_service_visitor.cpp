@@ -97,10 +97,11 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
-            RS_LOGI("PrepareScreenRenderNode mirrorSource haven't existed");
+            RS_LOGI("%{public}s mirrorSource haven't existed", __func__);
             return;
         }
         if (mParallelEnable) {
+            RS_LOGD_IF(DEBUG_SCREEN, "%{public}s mParallelEnable", __func__);
             CreateCanvas(logicalScreenWidth, logicalScreenHeight, true);
         }
         PrepareChildren(*existingSource);

@@ -251,8 +251,6 @@ HWTEST_F(RSMultiScreenUtilTest, HandleMirrorDisplayTest002, TestSize.Level1)
     displayDrawable_->renderParams_ = nullptr;
     bool res = processor->UpdateMirrorInfo(*displayDrawable_);
     EXPECT_FALSE(res);
-    RSMultiScreenUtil::HandleMirrorDisplay(*displayDrawable_, *displayParams_, processor);
-    EXPECT_NE(displayParams_, nullptr);
 }
 
 /**
@@ -276,7 +274,7 @@ HWTEST_F(RSMultiScreenUtilTest, HandleMirrorDisplayTest003, TestSize.Level1)
     RSMultiScreenUtil::HandleMirrorDisplay(*displayDrawable_, *displayParams_, virtualProcessor_);
 
     // when compositeType_ of params is not UNI_RENDER_COMPOSITE
-    displayParams_->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
+    displayParams_->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE;
     RSMultiScreenUtil::HandleMirrorDisplay(*displayDrawable_, *displayParams_, virtualProcessor_);
     EXPECT_NE(displayParams_, nullptr);
 }

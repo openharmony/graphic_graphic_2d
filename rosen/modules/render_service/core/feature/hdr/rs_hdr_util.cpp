@@ -515,7 +515,7 @@ bool RSHdrUtil::HDRColorHeadroomMapping(const Drawing::UIColor& srcColor, Drawin
 void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
 {
     ScreenColorGamut screenColorGamut = node.GetScreenProperty().GetScreenColorGamut();
-    if (node.GetCompositeType() == CompositeType::UNI_RENDER_MIRROR_COMPOSITE) {
+    if (node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
         if (!mirrorNode) {
             RS_LOGE("RSHdrUtil::HandleVirtualScreenHDRStatus get mirror source failed.");
@@ -529,7 +529,8 @@ void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
             "ColorGamut: %{public}d, GetFirstFrameVirtualScreenInit: %{public}d",
             mirrorNodeIsHDROn, screenColorGamut, node.GetFirstFrameVirtualScreenInit());
         UpdateHDRCastProperties(node, isNeedHDRCast, hdrCastColorGamut);
-    } else if (node.GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+    } else if (node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
+               node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE) {
         bool expandIsHDROn = node.GetDisplayHdrStatus() != HdrStatus::NO_HDR;
         bool hdrCastColorGamut = static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
         bool isNeedHDRCast = expandIsHDROn && hdrCastColorGamut;

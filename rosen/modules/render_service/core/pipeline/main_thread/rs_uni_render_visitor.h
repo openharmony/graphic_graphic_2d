@@ -189,7 +189,7 @@ private:
     bool InitScreenInfo(RSScreenRenderNode& node);
     bool InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node);
 
-    void UpdateCompositeType(RSScreenRenderNode& node);
+    void UpdateCompositeType(RSScreenRenderNode& node, DisplayMode mode);
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     bool NeedPrepareChildrenInReverseOrder(RSRenderNode& node) const;
     bool IsLeashAndHasMainSubNode(RSRenderNode& node) const;

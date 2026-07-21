@@ -2472,7 +2472,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool isMultiDisplay = IsMultiDisplay();
 
     // check all children of global root node, and only disable hardware composer
-    // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
+    // in case node's composite type is UNI_RENDER_VIRTUAL_EXPAND/EXTEND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
     auto itr = std::find_if(children->begin(), children->end(),
         [](const std::shared_ptr<RSRenderNode>& child) -> bool {

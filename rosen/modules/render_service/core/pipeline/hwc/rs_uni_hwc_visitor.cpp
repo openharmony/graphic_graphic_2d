@@ -1040,7 +1040,9 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
     }
 
     // virtual expand screen
-    if (uniRenderVisitor_.curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+    CompositeType type = uniRenderVisitor_.curScreenNode_->GetCompositeType();
+    if (type == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
+        type == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE) {
         return true;
     }
 

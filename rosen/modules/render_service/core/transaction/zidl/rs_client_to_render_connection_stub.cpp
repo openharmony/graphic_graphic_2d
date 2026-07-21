@@ -499,18 +499,18 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             uint64_t mirrorId{0};
             uint64_t screenId{0};
-            bool isMirrored{false};
+            uint8_t displayMode{0};
             uint32_t mirrorSourceRotation{static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)};
             if (!data.ReadUint64(mirrorId) ||
                 !data.ReadUint64(screenId) ||
-                !data.ReadBool(isMirrored) ||
+                !data.ReadUint8(displayMode) ||
                 !data.ReadUint32(mirrorSourceRotation)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
             RSDisplayNodeConfig config = {
                 .screenId = screenId,
-                .isMirrored = isMirrored,
+                .displayMode = static_cast<DisplayMode>(displayMode),
                 .mirrorNodeId = mirrorId,
                 .isSync = true,
                 .mirrorSourceRotation = mirrorSourceRotation,
