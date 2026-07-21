@@ -303,8 +303,11 @@ uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHideP
 {
     auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
     if (clientToRenderConnection != nullptr) {
-        uint32_t resCode;
-        clientToRenderConnection->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
+        uint32_t resCode = static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+        ErrCode err = clientToRenderConnection->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
+        if (err != ERR_OK) {
+            ROSEN_LOGE("RSRenderPipelineClient::SetHidePrivacyContent failed, err:%{public}d", err);
+        }
         return resCode;
     }
     ROSEN_LOGE("RSRenderPipelineClient::SetHidePrivacyContent clientToRenderConnection_ is nullptr!");
