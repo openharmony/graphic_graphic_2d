@@ -150,7 +150,11 @@ ohos_shared_library("libvsync") {
 
   if (is_ohos) {
     sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
-    external_deps += [ "frame_aware_sched:frame_ui_intf"]
+    external_deps += [
+      "frame_aware_sched:frame_ui_intf",
+      "vulkan-headers:vulkan_headers",
+      "vulkan-loader:vulkan_loader",
+    ]
   } else {
     sources += [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
   }

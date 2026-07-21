@@ -39,6 +39,7 @@ public:
     }
 
     bool IsAdapterTextHeightEnabled() const;
+    bool IsDisableSpacingForControlChar() const;
     bool IsTargetApiVersion(size_t targetVersion) const;
 
 private:
@@ -56,6 +57,7 @@ private:
 
     uint32_t bundleApiVersion_{0};
     bool adapterTextHeightEnable_{false};
+    bool disableSpacingForControlChar_{false};
     bool initStatus_{false};
 
     void InitBundleInfo();

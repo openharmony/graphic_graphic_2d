@@ -39,7 +39,7 @@ void RSTextureExportTest::TearDownTestCase() {}
 void RSTextureExportTest::SetUp() {}
 void RSTextureExportTest::TearDown() {}
 
-
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: DoTextureExport001
  * @tc.desc:
@@ -128,4 +128,5 @@ HWTEST_F(RSTextureExportTest, StopTextureExport, TestSize.Level1)
     text.StopTextureExport();
     ASSERT_NE(rootNode, nullptr);
 }
+#endif
 }

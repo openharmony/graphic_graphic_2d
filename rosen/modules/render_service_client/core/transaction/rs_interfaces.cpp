@@ -857,11 +857,11 @@ int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-void RSRenderInterface::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+void RSInterfaces::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
 }
 
-int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
+int32_t RSInterfaces::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
     return 0;

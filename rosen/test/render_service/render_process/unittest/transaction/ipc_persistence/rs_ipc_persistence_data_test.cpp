@@ -439,6 +439,7 @@ HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataMarshallingTest004
     EXPECT_TRUE(result);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataUnmarshallingTest001, TestSize.Level1)
 {
     Parcel parcel;
@@ -512,4 +513,5 @@ HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataApplyTest002, Test
     auto data = SetWatermarkPersistenceData(1000, "test", nullptr, true, 10, 20);
     data.Apply(nullptr);
 }
+#endif
 } // namespace OHOS::Rosen

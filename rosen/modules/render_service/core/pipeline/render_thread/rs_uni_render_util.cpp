@@ -1197,7 +1197,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
 
         int syncFenceFd = -1;
         NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, syncFenceFd);
-        acquireFence = sptr<SyncFence>(new SyncFence(fenceFd));
+        acquireFence = sptr<SyncFence>(new SyncFence(syncFenceFd));
 
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
 #ifdef HETERO_HDR_ENABLE
@@ -1703,11 +1703,23 @@ void RSUniRenderUtil::SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas,
 
     Drawing::ImageInfo info = Drawing::ImageInfo { offscreenWidth, offscreenHeight,
         Drawing::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL, Drawing::ColorSpace::CreateSRGB()};
-    auto offscreenSurface = canvas.GetSurface()->MakeSurface(info);
+    auto originSurface = canvas.GetSurface();
+    if (!originSurface) {
+        RS_LOGE("SwitchColorFilterWithP3 get originSurface failed");
+        return;
+    }
+    auto offscreenSurface = originSurface->MakeSurface(info);
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
-
+    if (!offscreenCanvas) {
+        RS_LOGE("SwitchColorFilterWithP3 get offscreenCanvas failed");
+        return;
+    }
     Drawing::Brush brush;
-    auto originSurfaceImage = canvas.GetSurface()->GetImageSnapshot();
+    auto originSurfaceImage = originSurface->GetImageSnapshot();
+    if (!originSurfaceImage) {
+        RS_LOGE("SwitchColorFilterWithP3 get originSurfaceImage failed");
+        return;
+    }
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush, hdrBrightnessRatio);
     offscreenCanvas->AttachBrush(brush);
     offscreenCanvas->DrawImage(*originSurfaceImage, 0.f, 0.f, Drawing::SamplingOptions());

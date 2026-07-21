@@ -433,7 +433,7 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         repCode = INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
+        return INVALID_ARGUMENTS;
     }
     pipeline->ScheduleMainThreadTask(
         [info, mainThread = pipeline->GetMainThread()]() {
@@ -442,7 +442,7 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
         }
     );
     repCode = SUCCESS;
-    return ERR_OK;
+    return SUCCESS;
 }
 
 namespace {

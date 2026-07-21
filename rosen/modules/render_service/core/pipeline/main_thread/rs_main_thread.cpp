@@ -90,6 +90,7 @@
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
 #include "memory/rs_netlink_manager.h"
+#include "memory/rs_canvas_dma_buffer_cache.h"
 #include "metadata_helper.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
@@ -873,7 +874,7 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
         CleanRenderNodes(pid);
         CleanBrightnessInfoChangeCallbacks(pid);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-        CleanCanvasCallbacksAndPendingBuffer();
+        CleanCanvasCallbacksAndPendingBuffer(pid);
 #endif
         RS_TRACE_END();
     }

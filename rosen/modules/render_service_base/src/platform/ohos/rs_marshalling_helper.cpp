@@ -2304,7 +2304,11 @@ bool RSMarshallingHelper::SkipPixelMap(Parcel& parcel)
     if (RS_PROFILER_SKIP_PIXELMAP(parcel)) {
         return true;
     }
-    auto size = parcel.ReadInt32();
+    int32_t size{0};
+    if (!parcel.ReadInt32(size)) {
+        ROSEN_LOGE("RSMarshallingHelper::SkipPixelMap ReadInt32 failed");
+        return false;
+    }
     if (size != -1) {
         parcel.SkipBytes(size);
     }

@@ -912,6 +912,32 @@ HWTEST_F(RSNodeCommandTest, SetUIFirstSwitchTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateModifierNGDrawCmdListTypeMismatch001
+ * @tc.desc: Test UpdateModifierNGDrawCmdList with type mismatch property.
+ * @tc.type: FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSNodeCommandTest, UpdateModifierNGDrawCmdListTypeMismatch001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    PropertyId propertyId = 100;
+
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+
+    auto floatProperty = std::make_shared<RSRenderProperty<float>>(1.0f, propertyId);
+    node->RegisterProperty(floatProperty);
+
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100);
+    float initialValue = floatProperty->Get();
+    RSNodeCommandHelper::UpdateModifierNGDrawCmdList(context, nodeId, drawCmdList, propertyId);
+
+    EXPECT_EQ(floatProperty->Get(), initialValue);
+}
+
+/**
  * @tc.name: UpdatePropertyTypeMismatch001
  * @tc.desc: Test UpdateProperty with type mismatch - property type is float but update with int.
  * @tc.type: FUNC
@@ -928,7 +954,7 @@ HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMismatch001, TestSize.Level1)
 
     auto floatProperty = std::make_shared<RSRenderProperty<float>>(1.0f, propertyId);
     node->RegisterProperty(floatProperty);
-    EXPECT_FALSE(RSNodeCommandHelper::CheckPropertyType(*floatProperty, RSPropertyType::BOOL, nodeId));
+    EXPECT_FALSE(RSNodeCommandHelper::CheckPropertyType(__func__, *floatProperty, RSPropertyType::BOOL, nodeId));
 
     float initialValue = floatProperty->Get();
     RSNodeCommandHelper::UpdateProperty<bool>(context, nodeId, true, propertyId, UPDATE_TYPE_OVERWRITE);
@@ -953,7 +979,7 @@ HWTEST_F(RSNodeCommandTest, UpdatePropertyTypeMatch001, TestSize.Level1)
 
     auto floatProperty = std::make_shared<RSRenderProperty<float>>(0.0f, propertyId);
     node->RegisterProperty(floatProperty);
-    EXPECT_TRUE(RSNodeCommandHelper::CheckPropertyType(*floatProperty, RSPropertyType::FLOAT, nodeId));
+    EXPECT_TRUE(RSNodeCommandHelper::CheckPropertyType(__func__, *floatProperty, RSPropertyType::FLOAT, nodeId));
 
     RSNodeCommandHelper::UpdateProperty<float>(context, nodeId, 42.5f, propertyId, UPDATE_TYPE_OVERWRITE);
 

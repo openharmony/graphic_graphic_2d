@@ -46,14 +46,18 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
 bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(
     std::shared_ptr<RSCanvasRenderNode> node, SimpleDrawCmdListPtr drawCmds, uint16_t modifierType)
 {
+    if (modifierType >= static_cast<uint16_t>(ModifierNG::RSModifierType::MAX)) {
+        return false;
+    }
+    auto modifierNGType = static_cast<ModifierNG::RSModifierType>(modifierType);
     if (node->GetNodeIsSingleFrameComposer()) {
-        node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType),
+        node->UpdateRecordingNG(drawCmds, modifierNGType,
             RSSingleFrameComposer::IsShouldSingleFrameComposer());
     } else {
         if (RSSingleFrameComposer::IsShouldSingleFrameComposer()) {
             return true;
         }
-        node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType));
+        node->UpdateRecordingNG(drawCmds, modifierNGType);
     }
     return false;
 }
@@ -67,12 +71,16 @@ void RSCanvasNodeCommandHelper::UpdateRecording(
     }
     auto drawCmds = std::move(srcDrawCmds);
     auto simpleDrawCmds = drawCmds != nullptr ? RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmds) : nullptr;
+    if (modifierType >= static_cast<uint16_t>(ModifierNG::RSModifierType::MAX)) {
+        return;
+    }
+    auto modifierNGType = static_cast<ModifierNG::RSModifierType>(modifierType);
     if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
         if (AddCmdToSingleFrameComposer(node, simpleDrawCmds, modifierType)) {
             return;
         }
     } else {
-        node->UpdateRecordingNG(simpleDrawCmds, static_cast<ModifierNG::RSModifierType>(modifierType));
+        node->UpdateRecordingNG(simpleDrawCmds, modifierNGType);
     }
     if (!simpleDrawCmds) {
         return;
