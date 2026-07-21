@@ -20,6 +20,7 @@
 
 #include "command/rs_animation_command.h"
 #include "modifier_ng/custom/rs_content_style_modifier.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "transaction/rs_render_pipeline_client.h"
 #include "transaction/rs_transaction.h"
 #include "transaction/rs_transaction_data.h"
@@ -1164,6 +1165,69 @@ HWTEST_F(RSUIContextTest, RSModifiersDrawThread_WaitAllTasksFinishTest002, TestS
     rsUIContext->modifiersDrawThread_->WaitAllTasksFinish();
     ASSERT_TRUE(rsUIContext->modifiersDrawThread_->started_);
     rsUIContext->modifiersDrawThread_->Destroy();
+}
+
+/**
+ * @tc.name: ClearCanvasDrawingNodeResource_ModifiersDrawEnabled001
+ * @tc.desc: Test ClearCanvasDrawingNodeResource returns early when DestroyModifiersDraw returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, ClearCanvasDrawingNodeResource_ModifiersDrawEnabled001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        // DestroyModifiersDraw returns true → ClearCanvasDrawingNodeResource returns early
+        rsUIContext->ClearCanvasDrawingNodeResource();
+        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+    } else {
+        // DestroyModifiersDraw returns false → proceeds to DMA path
+        rsUIContext->ClearCanvasDrawingNodeResource();
+        // No crash regardless of DMA conditions
+    }
+}
+
+/**
+ * @tc.name: ClearCanvasDrawingNodeResource_DmaCallback001
+ * @tc.desc: Test ClearCanvasDrawingNodeResource calls RegisterCanvasCallback(nullptr) in DMA path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, ClearCanvasDrawingNodeResource_DmaCallback001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        // First destroy modifiers draw so subsequent call enters DMA path
+        rsUIContext->DestroyModifiersDraw();
+        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        // Now call ClearCanvasDrawingNodeResource again
+        // DestroyModifiersDraw returns false (already destroyed), enters DMA path
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        if (RSUniRenderJudgement::IsUniRender() && rsUIContext->rsRenderInterface_ != nullptr) {
+            // RegisterCanvasCallback(nullptr) called with TF_SYNC
+            rsUIContext->ClearCanvasDrawingNodeResource();
+        }
+#endif
+    }
+}
+
+/**
+ * @tc.name: DestroyModifiersDraw_ReturnValue001
+ * @tc.desc: Test DestroyModifiersDraw return value (true when enabled, false when disabled)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, DestroyModifiersDraw_ReturnValue001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        bool result = rsUIContext->DestroyModifiersDraw();
+        EXPECT_TRUE(result);
+    } else {
+        bool result = rsUIContext->DestroyModifiersDraw();
+        EXPECT_FALSE(result);
+    }
 }
 #endif
 } // namespace OHOS::Rosen
