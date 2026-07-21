@@ -37,6 +37,7 @@ public:
 // Mock RSSurfaceOhosVulkan that returns a controlled Drawing::Surface from RequestFrame,
 // bypassing GPU context requirements. Used to test the inherit check in
 // RequestBufferAndDrawHistory without a real GPU.
+
 class TestRSSurfaceOhosVulkan : public RSSurfaceOhosVulkan {
 public:
     std::shared_ptr<Drawing::Surface> mockSurface_;
