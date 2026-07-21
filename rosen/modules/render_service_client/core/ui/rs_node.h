@@ -30,6 +30,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 
 #include <algorithm>
+#include <atomic>
 #include <optional>
 #include <unordered_map>
 
@@ -2454,7 +2455,7 @@ private:
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
-    static bool isNeedCallbackNodeChange_;
+    static std::atomic<bool> isNeedCallbackNodeChange_;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
