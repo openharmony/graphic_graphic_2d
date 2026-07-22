@@ -247,7 +247,8 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerProperty001, Function | MediumTest| Level1)
     uint32_t devId = 1;
     uint32_t layerId = 2;
     uint32_t property = 3;
- 
+    HdiLayerTest::hdiLayer_->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
+
     EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(devId, layerId, property)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->SetTunnelLayerProperty(), 0);
 }
@@ -828,6 +829,7 @@ HWTEST_F(HdiLayerTest, ClearBufferCache002, Function | MediumTest| Level1)
 HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest, Function | MediumTest| Level1)
 {
     ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
     auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetTunnelLayerId(1);
     rsLayer->SetTunnelLayerProperty(1);
@@ -854,6 +856,7 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest, Function | MediumTest| Leve
 HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest002, Function | MediumTest| Level1)
 {
     ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
     auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetTunnelLayerId(2);
     rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
@@ -876,6 +879,7 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest002, Function | MediumTest| L
 HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest003, Function | MediumTest| Level1)
 {
     ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
     auto prevRsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     prevRsLayer->SetTunnelLayerId(2);
     prevRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
@@ -934,6 +938,7 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerPropertyWithHasSetTunnelFlag, Function | Me
     auto hdiLayer = HdiLayer::CreateHdiLayer(0);
     ASSERT_NE(hdiLayer, nullptr);
     ASSERT_EQ(hdiLayer->SetHdiDeviceMock(&hdiDeviceMock), GRAPHIC_DISPLAY_SUCCESS);
+    hdiLayer->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
 
     hdiLayer->hasSetTunnel_ = true;
     hdiLayer->tunnelLayerProperty_ = TUNNEL_PROP_INVALID;

@@ -9243,6 +9243,7 @@ HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
     auto buffer = CreateTunnelTestBuffer();
     ASSERT_NE(buffer, nullptr);
     sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    output->device_ = hdiDeviceMock_;
     EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerBuffer(screenId, tunnelLayerId, testing::NotNull(), -1))
         .WillOnce(testing::Return(GRAPHIC_DISPLAY_FAILURE));
     EXPECT_CALL(*hdiDeviceMock_, CommitTunnelLayer(screenId, tunnelLayerId, testing::_)).Times(0);

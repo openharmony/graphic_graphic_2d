@@ -2532,6 +2532,8 @@ HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceColorSpaceConstRefTest, TestSize.L
     // Should return the same value
     EXPECT_EQ(colorSpace, subCache.GetCacheSurfaceColorSpace());
 }
+
+#ifdef DDGR_ENABLE_FEATURE_OPINC
 /**
  * @tc.name: SubDrawOpincTest001
  * @tc.desc: Test SubDraw sets screenRectInfo when opinc enabled and uifirstParams valid
@@ -2558,6 +2560,7 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawOpincTest001, TestSize.Level1)
     DrawableV2::RSOpincDrawCache::SetScreenRectInfo({0, 0, 0, 0});
     RSOpincManager::Instance().SetOPIncSwitch(false);
 }
+#endif
 
 /**
  * @tc.name: SubDrawOpincTest002
