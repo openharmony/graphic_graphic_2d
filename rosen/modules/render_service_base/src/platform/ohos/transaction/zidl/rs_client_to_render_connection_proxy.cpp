@@ -593,7 +593,7 @@ ErrCode RSClientToRenderConnectionProxy::SetSystemAnimatedScenes(
     }
     if (!reply.ReadBool(success)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSystemAnimatedScenes Read result failed");
-        success = READ_PARCEL_ERR;
+        success = false;
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
