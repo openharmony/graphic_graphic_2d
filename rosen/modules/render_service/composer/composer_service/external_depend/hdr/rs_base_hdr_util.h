@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_HDR_RS_BASE_HDR_UTIL_H
 #define RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_HDR_RS_BASE_HDR_UTIL_H
 
+#include "display_engine/rs_luminance_control.h"
 #include "engine/rs_base_render_util.h"
 #include "rs_layer.h"
 #include "surface_buffer.h"

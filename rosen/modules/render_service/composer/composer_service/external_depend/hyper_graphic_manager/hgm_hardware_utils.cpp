@@ -18,8 +18,8 @@
 #include "common/rs_optional_trace.h"
 #include "parameters.h"
 #include "params/rs_render_params.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_hisysevent.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -87,7 +87,7 @@ void HgmHardwareUtils::UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uin
         setRateRetryParam_.isRetryOverLimit = true;
         ReportRetryOverLimit(0, refreshRateParam_.rate);
     }
-    RS_LOGD_IF(setRateRetryParam_.needRetrySetRate,
+    HGM_LOGD_IF(setRateRetryParam_.needRetrySetRate,
         "need retry set modeId %{public}" PRId32 ", ScreenId:%{public}" PRIu64, modeId, id);
 }
 

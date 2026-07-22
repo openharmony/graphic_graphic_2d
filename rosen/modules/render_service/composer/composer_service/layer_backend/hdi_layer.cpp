@@ -358,7 +358,7 @@ int32_t HdiLayer::SetDelegateModeLayerCrop()
     }
 
     GraphicIRect rect = rsLayer_->GetDelegateModeCropRect();
-    RS_TRACE_NAME_FMT("HdiLayer::SetDelegateModeLayerCrop, layerId=%u, rect={%d, %d, %d, %d}",
+    RS_TRACE_NAME_FMT("HdiLayer::SetDelegateModeLayerCrop, layerId=%u, [%d, %d, %d, %d]}",
         layerId_, rect.x, rect.y, rect.w, rect.h);
     int32_t ret = device_->SetLayerCrop(screenId_, layerId_, rect);
     return ret;
