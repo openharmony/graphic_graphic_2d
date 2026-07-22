@@ -4605,13 +4605,19 @@ ErrCode RSClientToServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnab
 #endif
 void RSClientToServiceConnectionProxy::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
+    std::lock_guard<std::mutex> lock(onRemoteDiedCallbackMutex_);
     OnRemoteDiedCallback_ = callback;
 }
 
 void RSClientToServiceConnectionProxy::RunOnRemoteDiedCallback()
 {
-    if (OnRemoteDiedCallback_) {
-        OnRemoteDiedCallback_();
+    OnRemoteDiedCallback callback;
+    {
+        std::lock_guard<std::mutex> lock(onRemoteDiedCallbackMutex_);
+        callback = OnRemoteDiedCallback_;
+    }
+    if (callback) {
+        callback();
     }
 }
 

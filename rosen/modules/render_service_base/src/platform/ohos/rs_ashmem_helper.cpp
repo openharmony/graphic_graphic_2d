@@ -374,7 +374,8 @@ void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataPa
     uintptr_t data = dataParcel->GetData();
     for (size_t i = 0; i < objectNum; i++) {
         binder_size_t offset = object[i];
-        if (offset + sizeof(flat_binder_object) > dataParcel->GetDataSize()) {
+        size_t dataSize = dataParcel->GetDataSize();
+        if (offset > dataSize || sizeof(flat_binder_object) > dataSize - offset) {
             ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor offset invalid");
             continue;
         }

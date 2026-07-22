@@ -31,6 +31,7 @@ public:
     static sptr<RSClientToServiceConnectHub> GetInstance();
     RSIConnectionToken* GetToken()
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return token_.GetRefPtr();
     }
     void ConnectDied();

@@ -18,6 +18,7 @@
 
 #include <iremote_proxy.h>
 #include <memory>
+#include <mutex>
 #include <platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h>
 #include <platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code.h>
 #ifndef ENABLE_RS_PROXY
@@ -401,6 +402,7 @@ private:
     std::atomic<uint32_t> transactionDataIndex_ = 0;
 #endif
     OnRemoteDiedCallback OnRemoteDiedCallback_;
+    std::mutex onRemoteDiedCallbackMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

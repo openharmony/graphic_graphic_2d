@@ -92,6 +92,7 @@ public:
         sptr<RSIClientToRenderConnection> clientToRenderConnection);
     RSIConnectionToken* GetToken()
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return token_.GetRefPtr();
     }
     void ConnectRenderProcessDied(uint64_t tokenMaskId);

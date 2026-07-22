@@ -1243,11 +1243,12 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
     auto sortedChildren = GetSortedChildren();
     const int childrenCntLimit = 10;
     if (!isFullChildrenListValid_) {
-        out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size());
-        if (!fullChildrenList_->empty()) {
+        auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+        out += ", Children list needs update, current count: " + std::to_string(currentList->size());
+        if (!currentList->empty()) {
             int cnt = 0;
             out += "(";
-            for (auto child = fullChildrenList_->begin(); child != fullChildrenList_->end(); child++) {
+            for (auto child = currentList->begin(); child != currentList->end(); child++) {
                 if (cnt > childrenCntLimit) {
                     break;
                 }
@@ -4228,7 +4229,7 @@ void RSRenderNode::GenerateFullChildrenList()
 {
     // both children_ and disappearingChildren_ are empty, no need to generate fullChildrenList_
     if (children_.empty() && disappearingChildren_.empty()) {
-        auto prevFullChildrenList = fullChildrenList_;
+        auto prevFullChildrenList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
         isFullChildrenListValid_ = true;
         isChildrenSorted_ = true;
         std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
@@ -4284,7 +4285,7 @@ void RSRenderNode::GenerateFullChildrenList()
     });
 
     // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
-    auto prevFullChildrenList = fullChildrenList_;
+    auto prevFullChildrenList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 
     // Update the flag to indicate that children are now valid and sorted
     isFullChildrenListValid_ = true;
@@ -4298,7 +4299,8 @@ void RSRenderNode::GenerateFullChildrenList()
 void RSRenderNode::ResortChildren()
 {
     // Make a copy of the fullChildrenList for sorting
-    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+    auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*currentList);
 
     // temporary fix for wrong z-order
     for (auto& child : *fullChildrenList) {
@@ -4312,7 +4314,7 @@ void RSRenderNode::ResortChildren()
     });
 
     // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
-    auto prevFullChildrenList = fullChildrenList_;
+    auto prevFullChildrenList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 
     // Update the flag to indicate that children are now sorted
     isChildrenSorted_ = true;
@@ -5085,10 +5087,11 @@ void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
 void RSRenderNode::RemoveChildFromFulllist(NodeId id)
 {
     // Make a copy of the fullChildrenList
-    if (!fullChildrenList_) {
+    auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+    if (!currentList) {
         return;
     }
-    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*currentList);
 
     fullChildrenList->erase(std::remove_if(fullChildrenList->begin(),
         fullChildrenList->end(), [id](const auto& node) { return id == node->GetId(); }), fullChildrenList->end());

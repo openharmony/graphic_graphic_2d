@@ -232,25 +232,26 @@ bool RSRenderPipelineClient::RegisterBufferAvailableListener(
         RS_TRACE_NAME_FMT("RSRenderPipelineClient::RegisterBufferAvailableListener nullptr id is %lu", id);
         return false;
     }
-    std::lock_guard<std::mutex> lock(mapMutex_);
-    auto iter = isFromRenderThread ? bufferAvailableCbRTMap_.find(id) : bufferAvailableCbUIMap_.find(id);
-    if (isFromRenderThread && iter != bufferAvailableCbRTMap_.end()) {
-        HILOG_COMM_WARN("RSRenderPipelineClient::RegisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " already, bufferAvailableCbRTMap_", iter->first);
-    }
-
-    if (!isFromRenderThread && iter != bufferAvailableCbUIMap_.end()) {
-        HILOG_COMM_WARN("RSRenderPipelineClient::RegisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " already, bufferAvailableCbUIMap_", iter->first);
-        bufferAvailableCbUIMap_.erase(iter);
-    }
-
     sptr<RSIBufferAvailableCallback> bufferAvailableCb = new CustomBufferAvailableCallback(callback);
     clientToRenderConnection->RegisterBufferAvailableListener(id, bufferAvailableCb, isFromRenderThread);
-    if (isFromRenderThread) {
-        bufferAvailableCbRTMap_.emplace(id, bufferAvailableCb);
-    } else {
-        bufferAvailableCbUIMap_.emplace(id, bufferAvailableCb);
+    {
+        std::lock_guard<std::mutex> lock(mapMutex_);
+        auto iter = isFromRenderThread ? bufferAvailableCbRTMap_.find(id) : bufferAvailableCbUIMap_.find(id);
+        if (isFromRenderThread && iter != bufferAvailableCbRTMap_.end()) {
+            HILOG_COMM_WARN("RSRenderPipelineClient::RegisterBufferAvailableListener "
+                       "Node %{public}" PRIu64 " already, bufferAvailableCbRTMap_", iter->first);
+        }
+
+        if (!isFromRenderThread && iter != bufferAvailableCbUIMap_.end()) {
+            HILOG_COMM_WARN("RSRenderPipelineClient::RegisterBufferAvailableListener "
+                       "Node %{public}" PRIu64 " already, bufferAvailableCbUIMap_", iter->first);
+            bufferAvailableCbUIMap_.erase(iter);
+        }
+        if (isFromRenderThread) {
+            bufferAvailableCbRTMap_.emplace(id, bufferAvailableCb);
+        } else {
+            bufferAvailableCbUIMap_.emplace(id, bufferAvailableCb);
+        }
     }
     return true;
 }

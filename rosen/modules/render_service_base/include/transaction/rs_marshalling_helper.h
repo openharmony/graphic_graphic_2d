@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 #define RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 
+#include <securec.h>
+
 #include <map>
 #include <memory>
 #include <optional>
@@ -147,7 +149,9 @@ public:
             if (buff == nullptr) {
                 return false;
             }
-            val = *(reinterpret_cast<const T*>(buff));
+            if (memcpy_s(&val, sizeof(T), buff, sizeof(T)) != EOK) {
+                return false;
+            }
             return true;
         }
         return false;
@@ -348,8 +352,12 @@ public:
 
     // reloaded marshalling & unmarshalling function for std::map
     template<typename T, typename P>
-    static bool Marshalling(Parcel& parcel, const std::map<T, P>& val)
+    static bool Marshalling(Parcel& parcel, const std::map<T, P>& val,
+        size_t maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
     {
+        if (val.size() > maxSize) {
+            return false;
+        }
         if (!parcel.WriteUint32(val.size())) {
             return false;
         }
@@ -362,10 +370,14 @@ public:
     }
 
     template<typename T, typename P>
-    static bool Unmarshalling(Parcel& parcel, std::map<T, P>& val)
+    static bool Unmarshalling(Parcel& parcel, std::map<T, P>& val,
+        size_t maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
     {
         uint32_t size = 0;
         if (!Unmarshalling(parcel, size)) {
+            return false;
+        }
+        if (size > maxSize) {
             return false;
         }
         val.clear();
@@ -504,7 +516,11 @@ public:
     template<typename T>
     static bool Unmarshalling(Parcel& parcel, std::optional<T>& val)
     {
-        if (!parcel.ReadBool()) {
+        bool hasValue = false;
+        if (!parcel.ReadBool(hasValue)) {
+            return false;
+        }
+        if (!hasValue) {
             val.reset();
             return true;
         }
