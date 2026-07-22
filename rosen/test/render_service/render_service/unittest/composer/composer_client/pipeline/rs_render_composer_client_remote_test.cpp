@@ -434,170 +434,164 @@ HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo001, TestSize.Level0)
     EXPECT_EQ(rsLayer->GetBufferOwnerCount() == bufferOwnerCount, true);
 }
 
-/* 
-* Function: GetLayerInfo002 
-* Type: Function 
-* Rank: Important(2) 
-* EnvConditions: N/A 
-* CaseDescription: 1. check ret for SetLayerInfo func 
-*/ 
-HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo002, TestSize.Level0) 
-{ 
-    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(4, composerClient_->GetComposerContext()); 
-    EXPECT_NE(rsLayer, nullptr); 
-    GraphicLayerAlpha alpha = {1, 0, 1, 0, 1}; 
-    rsLayer->SetAlpha(alpha); 
-    rsLayer->SetZorder(1); 
-    rsLayer->SetIsNeedComposition(true); 
-    rsLayer->SetType(GRAPHIC_LAYER_TYPE_OVERLAY); 
-    rsLayer->SetTransform(GRAPHIC_ROTATE_90); 
-    rsLayer->SetCompositionType(GRAPHIC_COMPOSITION_DEVICE); 
-    EXPECT_EQ(rsLayer->GetCompositionType() == GRAPHIC_COMPOSITION_DEVICE, true); 
+/*
+ * Function: GetLayerInfo002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. check ret for SetLayerInfo func
+ */
+HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo002, TestSize.Level0)
+{
+    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(4, composerClient_->GetComposerContext());
+    EXPECT_NE(rsLayer, nullptr);
+    GraphicLayerAlpha alpha = {1, 0, 1, 0, 1};
+    rsLayer->SetAlpha(alpha);
+    rsLayer->SetZorder(1);
+    rsLayer->SetIsNeedComposition(true);
+    rsLayer->SetType(GRAPHIC_LAYER_TYPE_OVERLAY);
+    rsLayer->SetTransform(GRAPHIC_ROTATE_90);
+    rsLayer->SetCompositionType(GRAPHIC_COMPOSITION_DEVICE);
+    EXPECT_EQ(rsLayer->GetCompositionType() == GRAPHIC_COMPOSITION_DEVICE, true);
 
+    rsLayer->SetAlpha(alpha);
+    rsLayer->SetZorder(1);
+    rsLayer->SetIsNeedComposition(true);
+    rsLayer->SetType(GRAPHIC_LAYER_TYPE_OVERLAY);
+    rsLayer->SetTransform(GRAPHIC_ROTATE_90);
+    rsLayer->SetCompositionType(GRAPHIC_COMPOSITION_DEVICE);
+    EXPECT_EQ(rsLayer->GetCompositionType() == GRAPHIC_COMPOSITION_DEVICE, true);
 
-    rsLayer->SetAlpha(alpha); 
-    rsLayer->SetZorder(1); 
-    rsLayer->SetIsNeedComposition(true); 
-    rsLayer->SetType(GRAPHIC_LAYER_TYPE_OVERLAY); 
-    rsLayer->SetTransform(GRAPHIC_ROTATE_90); 
-    rsLayer->SetCompositionType(GRAPHIC_COMPOSITION_DEVICE); 
-    EXPECT_EQ(rsLayer->GetCompositionType() == GRAPHIC_COMPOSITION_DEVICE, true); 
+    std::vector<GraphicIRect> visibleRegions;
+    GraphicIRect iRect = {1, 0, 1, 0};
+    visibleRegions.push_back(iRect);
+    rsLayer->SetVisibleRegions(visibleRegions);
+    rsLayer->SetVisibleRegions(visibleRegions);
+    std::vector<GraphicIRect> dirtyRegions;
+    dirtyRegions.push_back(iRect);
+    rsLayer->SetDirtyRegions(dirtyRegions);
+    rsLayer->SetBlendType(GRAPHIC_BLEND_CLEAR);
+    rsLayer->SetCropRect(iRect);
+    rsLayer->SetPreMulti(true);
+    rsLayer->SetLayerSize(iRect);
+    rsLayer->SetBoundSize(iRect);
 
+    rsLayer->SetDirtyRegions(dirtyRegions);
+    rsLayer->SetBlendType(GRAPHIC_BLEND_CLEAR);
+    rsLayer->SetCropRect(iRect);
+    rsLayer->SetPreMulti(true);
+    rsLayer->SetLayerSize(iRect);
+    rsLayer->SetBoundSize(iRect);
 
-    std::vector<GraphicIRect> visibleRegions; 
-    GraphicIRect iRect = {1, 0, 1, 0}; 
-    visibleRegions.push_back(iRect); 
-    rsLayer->SetVisibleRegions(visibleRegions); 
-    rsLayer->SetVisibleRegions(visibleRegions); 
-    std::vector<GraphicIRect> dirtyRegions; 
-    dirtyRegions.push_back(iRect); 
-    rsLayer->SetDirtyRegions(dirtyRegions); 
-    rsLayer->SetBlendType(GRAPHIC_BLEND_CLEAR); 
-    rsLayer->SetCropRect(iRect); 
-    rsLayer->SetPreMulti(true); 
-    rsLayer->SetLayerSize(iRect); 
-    rsLayer->SetBoundSize(iRect); 
+    GraphicLayerColor layerColor = {1, 0, 1, 0};
+    rsLayer->SetLayerColor(layerColor);
+    rsLayer->SetBackgroundColor(layerColor);
 
+    rsLayer->SetLayerColor(layerColor);
+    rsLayer->SetBackgroundColor(layerColor);
 
-    rsLayer->SetDirtyRegions(dirtyRegions); 
-    rsLayer->SetBlendType(GRAPHIC_BLEND_CLEAR); 
-    rsLayer->SetCropRect(iRect); 
-    rsLayer->SetPreMulti(true); 
-    rsLayer->SetLayerSize(iRect); 
-    rsLayer->SetBoundSize(iRect); 
-
-
-    GraphicLayerColor layerColor = {1, 0, 1, 0}; 
-    rsLayer->SetLayerColor(layerColor); 
-    rsLayer->SetBackgroundColor(layerColor); 
-
-
-    rsLayer->SetLayerColor(layerColor); 
-    rsLayer->SetBackgroundColor(layerColor); 
-
-
-    std::vector<float> drmCornerRadiusInfo; 
-    drmCornerRadiusInfo.push_back(1.0); 
-    rsLayer->SetCornerRadiusInfoForDRM(drmCornerRadiusInfo); 
-    rsLayer->SetCornerRadiusInfoForDRM(drmCornerRadiusInfo); 
-    std::vector<float> matrixVec; 
-    matrixVec.push_back(1.0); 
-    rsLayer->SetColorTransform(matrixVec); 
-    rsLayer->SetColorDataSpace(GRAPHIC_GAMUT_BT601); 
-    rsLayer->SetColorTransform(matrixVec); 
-    rsLayer->SetColorDataSpace(GRAPHIC_GAMUT_BT601); 
-    std::vector<GraphicHDRMetaData> metaData; 
-    metaData.push_back({GRAPHIC_MATAKEY_RED_PRIMARY_Y, 1.0}); 
-    rsLayer->SetMetaData(metaData); 
-    rsLayer->SetMetaData(metaData); 
-    GraphicHDRMetaDataSet metaDataSet = {GRAPHIC_MATAKEY_RED_PRIMARY_Y}; 
-    rsLayer->SetMetaDataSet(metaDataSet); 
-    rsLayer->SetMetaDataSet(metaDataSet); 
-    GraphicMatrix matrix = {1.0, 0, 1.0, 0}; 
-    rsLayer->SetMatrix(matrix); 
-    rsLayer->SetGravity(1); 
-    rsLayer->SetUniRenderFlag(true); 
-    rsLayer->SetTunnelHandleChange(true); 
-    rsLayer->SetMatrix(matrix); 
-    rsLayer->SetGravity(1); 
-    rsLayer->SetUniRenderFlag(true); 
-    rsLayer->SetTunnelHandleChange(true); 
-    sptr<SurfaceTunnelHandle> handle = sptr<SurfaceTunnelHandle>::MakeSptr(); 
-    rsLayer->SetTunnelHandle(handle); 
-    rsLayer->SetTunnelLayerId(1); 
-    rsLayer->SetTunnelLayerProperty(1); 
-    GraphicPresentTimestamp timestamp = {GRAPHIC_DISPLAY_PTS_DELAY, 1}; 
-    rsLayer->SetPresentTimestamp(timestamp); 
-    rsLayer->SetIsSupportedPresentTimestamp(true); 
-    rsLayer->SetSdrNit(1.0); 
-    rsLayer->SetDisplayNit(1.0); 
-    rsLayer->SetBrightnessRatio(1.0); 
-    rsLayer->SetTunnelHandle(handle); 
-    rsLayer->SetTunnelLayerId(1); 
-    rsLayer->SetTunnelLayerProperty(1); 
-    rsLayer->SetPresentTimestamp(timestamp); 
-    rsLayer->SetIsSupportedPresentTimestamp(true); 
-    rsLayer->SetSdrNit(1.0); 
-    rsLayer->SetDisplayNit(1.0); 
-    rsLayer->SetBrightnessRatio(1.0); 
-    std::vector<float> layerLinearMatrix; 
-    layerLinearMatrix.push_back(1.0); 
-    rsLayer->SetLayerLinearMatrix(layerLinearMatrix); 
-    rsLayer->SetLayerSourceTuning(1); 
-    rsLayer->SetLayerLinearMatrix(layerLinearMatrix); 
-    rsLayer->SetLayerSourceTuning(1); 
-    std::vector<std::string> windowsName; 
-    windowsName.push_back(""); 
-    rsLayer->SetWindowsName(windowsName); 
-    rsLayer->SetRotationFixed(true); 
-    rsLayer->SetLayerArsr(true); 
-    rsLayer->SetLayerCopybit(true); 
-    rsLayer->SetNeedBilinearInterpolation(true); 
-    rsLayer->SetIsMaskLayer(true); 
-    rsLayer->SetNodeId(1); 
-    rsLayer->SetAncoFlags(1); 
-    rsLayer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC); 
-    rsLayer->SetWindowsName(windowsName); 
-    rsLayer->SetRotationFixed(true); 
-    rsLayer->SetLayerArsr(true); 
-    rsLayer->SetLayerCopybit(true); 
-    rsLayer->SetNeedBilinearInterpolation(true); 
-    rsLayer->SetIsMaskLayer(true); 
-    rsLayer->SetNodeId(1); 
-    rsLayer->SetAncoFlags(1); 
-    rsLayer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC); 
-    sptr<IConsumerSurface> surface = IConsumerSurface::Create("test"); 
-    rsLayer->SetSurface(surface); 
-    rsLayer->SetSurfaceUniqueId(1); 
-    rsLayer->SetSurface(surface); 
-    rsLayer->SetSurfaceUniqueId(1); 
-    sptr<SurfaceBuffer> sbuffer; 
-    sptr<SyncFence> acquireFence; 
-    rsLayer->SetBuffer(sbuffer, acquireFence); 
-    rsLayer->SetBuffer(sbuffer); 
-    rsLayer->SetPreBuffer(sbuffer); 
-    rsLayer->SetAcquireFence(acquireFence); 
-    rsLayer->SetCycleBuffersNum(1); 
-    rsLayer->SetSurfaceName("test"); 
-    rsLayer->SetBuffer(sbuffer, acquireFence); 
-    rsLayer->SetBuffer(sbuffer); 
-    rsLayer->SetPreBuffer(sbuffer); 
-    rsLayer->SetAcquireFence(acquireFence); 
-    rsLayer->SetCycleBuffersNum(1); 
-    rsLayer->SetSurfaceName("test"); 
-    GraphicSolidColorLayerProperty solidColorLayerProperty = {1}; 
-    rsLayer->SetSolidColorLayerProperty(solidColorLayerProperty); 
-    rsLayer->SetUseDeviceOffline(true); 
-    rsLayer->SetIgnoreAlpha(true); 
-    rsLayer->SetAncoSrcRect(iRect); 
-    rsLayer->SetSolidColorLayerProperty(solidColorLayerProperty); 
-    rsLayer->SetUseDeviceOffline(true); 
-    rsLayer->SetIgnoreAlpha(true); 
-    EXPECT_EQ(rsLayer->GetIgnoreAlpha(), true); 
-    rsLayer->SetAncoSrcRect(iRect); 
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = 
-        std::make_shared<RSSurfaceHandler::BufferOwnerCount>(); 
-    rsLayer->SetBufferOwnerCount(bufferOwnerCount, true); 
-    rsLayer->SetBufferOwnerCount(bufferOwnerCount, true); 
+    std::vector<float> drmCornerRadiusInfo;
+    drmCornerRadiusInfo.push_back(1.0);
+    rsLayer->SetCornerRadiusInfoForDRM(drmCornerRadiusInfo);
+    rsLayer->SetCornerRadiusInfoForDRM(drmCornerRadiusInfo);
+    std::vector<float> matrixVec;
+    matrixVec.push_back(1.0);
+    rsLayer->SetColorTransform(matrixVec);
+    rsLayer->SetColorDataSpace(GRAPHIC_GAMUT_BT601);
+    rsLayer->SetColorTransform(matrixVec);
+    rsLayer->SetColorDataSpace(GRAPHIC_GAMUT_BT601);
+    std::vector<GraphicHDRMetaData> metaData;
+    metaData.push_back({GRAPHIC_MATAKEY_RED_PRIMARY_Y, 1.0});
+    rsLayer->SetMetaData(metaData);
+    rsLayer->SetMetaData(metaData);
+    GraphicHDRMetaDataSet metaDataSet = {GRAPHIC_MATAKEY_RED_PRIMARY_Y};
+    rsLayer->SetMetaDataSet(metaDataSet);
+    rsLayer->SetMetaDataSet(metaDataSet);
+    GraphicMatrix matrix = {1.0, 0, 1.0, 0};
+    rsLayer->SetMatrix(matrix);
+    rsLayer->SetGravity(1);
+    rsLayer->SetUniRenderFlag(true);
+    rsLayer->SetTunnelHandleChange(true);
+    rsLayer->SetMatrix(matrix);
+    rsLayer->SetGravity(1);
+    rsLayer->SetUniRenderFlag(true);
+    rsLayer->SetTunnelHandleChange(true);
+    sptr<SurfaceTunnelHandle> handle = sptr<SurfaceTunnelHandle>::MakeSptr();
+    rsLayer->SetTunnelHandle(handle);
+    rsLayer->SetTunnelLayerId(1);
+    rsLayer->SetTunnelLayerProperty(1);
+    GraphicPresentTimestamp timestamp = {GRAPHIC_DISPLAY_PTS_DELAY, 1};
+    rsLayer->SetPresentTimestamp(timestamp);
+    rsLayer->SetIsSupportedPresentTimestamp(true);
+    rsLayer->SetSdrNit(1.0);
+    rsLayer->SetDisplayNit(1.0);
+    rsLayer->SetBrightnessRatio(1.0);
+    rsLayer->SetTunnelHandle(handle);
+    rsLayer->SetTunnelLayerId(1);
+    rsLayer->SetTunnelLayerProperty(1);
+    rsLayer->SetPresentTimestamp(timestamp);
+    rsLayer->SetIsSupportedPresentTimestamp(true);
+    rsLayer->SetSdrNit(1.0);
+    rsLayer->SetDisplayNit(1.0);
+    rsLayer->SetBrightnessRatio(1.0);
+    std::vector<float> layerLinearMatrix;
+    layerLinearMatrix.push_back(1.0);
+    rsLayer->SetLayerLinearMatrix(layerLinearMatrix);
+    rsLayer->SetLayerSourceTuning(1);
+    rsLayer->SetLayerLinearMatrix(layerLinearMatrix);
+    rsLayer->SetLayerSourceTuning(1);
+    std::vector<std::string> windowsName;
+    windowsName.push_back("");
+    rsLayer->SetWindowsName(windowsName);
+    rsLayer->SetRotationFixed(true);
+    rsLayer->SetLayerArsr(true);
+    rsLayer->SetLayerCopybit(true);
+    rsLayer->SetNeedBilinearInterpolation(true);
+    rsLayer->SetIsMaskLayer(true);
+    rsLayer->SetNodeId(1);
+    rsLayer->SetAncoFlags(1);
+    rsLayer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
+    rsLayer->SetWindowsName(windowsName);
+    rsLayer->SetRotationFixed(true);
+    rsLayer->SetLayerArsr(true);
+    rsLayer->SetLayerCopybit(true);
+    rsLayer->SetNeedBilinearInterpolation(true);
+    rsLayer->SetIsMaskLayer(true);
+    rsLayer->SetNodeId(1);
+    rsLayer->SetAncoFlags(1);
+    rsLayer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create("test");
+    rsLayer->SetSurface(surface);
+    rsLayer->SetSurfaceUniqueId(1);
+    rsLayer->SetSurface(surface);
+    rsLayer->SetSurfaceUniqueId(1);
+    sptr<SurfaceBuffer> sbuffer;
+    sptr<SyncFence> acquireFence;
+    rsLayer->SetBuffer(sbuffer, acquireFence);
+    rsLayer->SetBuffer(sbuffer);
+    rsLayer->SetPreBuffer(sbuffer);
+    rsLayer->SetAcquireFence(acquireFence);
+    rsLayer->SetCycleBuffersNum(1);
+    rsLayer->SetSurfaceName("test");
+    rsLayer->SetBuffer(sbuffer, acquireFence);
+    rsLayer->SetBuffer(sbuffer);
+    rsLayer->SetPreBuffer(sbuffer);
+    rsLayer->SetAcquireFence(acquireFence);
+    rsLayer->SetCycleBuffersNum(1);
+    rsLayer->SetSurfaceName("test");
+    GraphicSolidColorLayerProperty solidColorLayerProperty = {1};
+    rsLayer->SetSolidColorLayerProperty(solidColorLayerProperty);
+    rsLayer->SetUseDeviceOffline(true);
+    rsLayer->SetIgnoreAlpha(true);
+    rsLayer->SetAncoSrcRect(iRect);
+    rsLayer->SetSolidColorLayerProperty(solidColorLayerProperty);
+    rsLayer->SetUseDeviceOffline(true);
+    rsLayer->SetIgnoreAlpha(true);
+    EXPECT_EQ(rsLayer->GetIgnoreAlpha(), true);
+    rsLayer->SetAncoSrcRect(iRect);
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount =
+        std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    rsLayer->SetBufferOwnerCount(bufferOwnerCount, true);
+    rsLayer->SetBufferOwnerCount(bufferOwnerCount, true);
 }
 }
