@@ -203,7 +203,7 @@ Drawing::BackendTexture MakeBackendTexture(
 Drawing::BackendTexture SetBackendTexture(RsVulkanInterface& vkContext, VkDevice device, VkImage image,
     uint32_t width, uint32_t height, VkDeviceMemory memory, VkImageCreateInfo imageInfo, pid_t pid);
 
-void CreateVkSemaphore(VkSemaphore& semaphore);
+VkResult CreateVkSemaphore(VkSemaphore& semaphore);
 
 void GetFenceFdFromSemaphore(VkSemaphore& semaphore, int32_t& syncFenceFd);
 #endif

@@ -668,7 +668,7 @@ Drawing::BackendTexture SetBackendTexture(RsVulkanInterface& vkContext, VkDevice
     return backendTexture;
 }
 
-void CreateVkSemaphore(VkSemaphore& semaphore)
+VkResult CreateVkSemaphore(VkSemaphore& semaphore)
 {
     auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
@@ -680,7 +680,7 @@ void CreateVkSemaphore(VkSemaphore& semaphore)
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = &exportSemaphoreCreateInfo;
     semaphoreInfo.flags = 0;
-    vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+    return vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
 }
 
 void GetFenceFdFromSemaphore(VkSemaphore& semaphore, int32_t& syncFenceFd)
