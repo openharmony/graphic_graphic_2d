@@ -124,8 +124,9 @@ float RSAttractionEffectFilter::BinarySearch(float targetX, const Drawing::Point
 std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateCubicsCtrlPointOffset(
     const std::vector<Drawing::Point> controlPointOfVertex)
 {
+    constexpr size_t VERTEX_COUNT = 4;
     std::vector<Drawing::Point> pathList;
-    if (controlPointOfVertex.size() < 4) {
+    if (controlPointOfVertex.size() < VERTEX_COUNT) {
         ROSEN_LOGE("RSAttractionEffectFilter::CalculateCubicsCtrlPointOffset invalid control point size");
         return pathList;
     }
