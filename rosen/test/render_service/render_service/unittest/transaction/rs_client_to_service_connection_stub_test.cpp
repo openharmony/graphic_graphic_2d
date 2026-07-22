@@ -5430,6 +5430,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase009, TestSize.Level
     auto vsyncManagerAgent = connection->vsyncManagerAgent_;
 
     connection->renderProcessManagerAgent_ = nullptr;
+    // test NotifyLightFactorStatus
+    connection->NotifyLightFactorStatus(0);
     // test NotifyAppStrategyConfigChangeEvent
     const std::string pkgName = "";
     const std::vector<std::pair<std::string, std::string>> newConfig = {};
@@ -5443,10 +5445,18 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase009, TestSize.Level
     // test SetWindowExpectedRefreshRate
     std::unordered_map<std::string, EventInfo> refreshRateEventInfos = {};
     connection->SetWindowExpectedRefreshRate(refreshRateEventInfos);
+    // test NotifySoftVsyncRateDiscountEvent
+    connection->NotifySoftVsyncRateDiscountEvent(0, pkgName, 0);
     // test NotifyTouchEvent
     connection->vsyncManagerAgent_ = nullptr;
     connection->NotifyTouchEvent(0, 0, 0);
     connection->vsyncManagerAgent_ = vsyncManagerAgent;
+    // test NotifyDynamicModeEvent
+    connection->NotifyDynamicModeEvent(false);
+    // test NotifyHgmConfigEvent
+    connection->NotifyHgmConfigEvent(pkgName, false);
+    // test NotifyXComponentExpectedFrameRate
+    connection->NotifyXComponentExpectedFrameRate(pkgName, 0);
     // test SetHgmExclusiveScreen
     connection->SetHgmExclusiveScreen(std::nullopt);
     connection->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
