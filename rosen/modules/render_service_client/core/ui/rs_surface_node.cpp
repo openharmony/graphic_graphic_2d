@@ -1457,9 +1457,16 @@ void RSSurfaceNode::CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow
     } else {
         AddCommand(command, isWindow);
     }
-    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId(),
-        GetRSUIContext()->GetConnectToRender());
-    AddCommand(command, isWindow);
+#ifdef ROSEN_OHOS
+    auto uiContext = GetRSUIContext();
+    if (LIKELY(uiContext != nullptr)) {
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId(),
+        uiContext->GetConnectToRender());
+        AddCommand(command, isWindow);
+    } else {
+        ROSEN_LOGE("RSSurfaceNode::CreateRenderThreadNode rsUIContext is nullptr");
+    }
+#endif
 
     RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
     command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
