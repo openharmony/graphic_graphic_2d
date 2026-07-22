@@ -229,6 +229,24 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescription001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDetailedDescriptionWithNullShaderFilter
+ * @tc.desc: test null shader filters are skipped and later valid filters are still described
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, GetDetailedDescriptionWithNullShaderFilter, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto validFilter = std::make_shared<RSKawaseBlurShaderFilter>(1.0f);
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters = { nullptr, validFilter };
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, 1);
+    drawingFilter.SetFilterType(RSFilter::BLUR);
+
+    const auto description = drawingFilter.GetDetailedDescription();
+    EXPECT_FALSE(description.empty());
+    EXPECT_NE(description.find("radius"), std::string::npos);
+}
+
+/**
  * @tc.name: GetDetailedDescription002
  * @tc.desc: test results of GetDetailedDescription, shaderFilters is empty
  * @tc.type: FUNC

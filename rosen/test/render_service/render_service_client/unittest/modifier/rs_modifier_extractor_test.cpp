@@ -17,6 +17,7 @@
 #include "modifier/rs_modifier_extractor.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
+#include "ui/rs_ui_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -283,6 +284,27 @@ HWTEST_F(RSModifierExtractorTest, GetShadowDisableSDFBlur, TestSize.Level1)
     RSModifierExtractor extractor(id);
     bool res = extractor.GetShadowDisableSDFBlur();
     EXPECT_FALSE(res);
+}
+
+/**
+ * @tc.name: GetShadowAlphaWithAndWithoutUIContext
+ * @tc.desc: test GetShadowAlpha uses a cached UI context or the global node map
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowAlphaWithAndWithoutUIContext, TestSize.Level1)
+{
+    constexpr float contextAlpha = 0.25f;
+    auto context = std::make_shared<RSUIContext>(1);
+    auto contextNode = RSCanvasNode::Create(false, false, context);
+    contextNode->SetShadowAlpha(contextAlpha);
+    RSModifierExtractor contextExtractor(contextNode->GetId(), context);
+    EXPECT_FLOAT_EQ(contextExtractor.GetShadowAlpha(), contextAlpha);
+
+    constexpr float globalAlpha = 0.75f;
+    auto globalNode = RSCanvasNode::Create();
+    globalNode->SetShadowAlpha(globalAlpha);
+    RSModifierExtractor globalExtractor(globalNode->GetId());
+    EXPECT_FLOAT_EQ(globalExtractor.GetShadowAlpha(), globalAlpha);
 }
 
 /**

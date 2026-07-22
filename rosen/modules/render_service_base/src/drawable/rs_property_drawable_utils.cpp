@@ -15,8 +15,6 @@
 
 #include "drawable/rs_property_drawable_utils.h"
 
-#include <limits>
-
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "effect/rs_render_property_tag.h"
@@ -25,6 +23,7 @@
 #include "ge_shader_filter_params.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
+#include <limits>
 #include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_color_picker_def.h"
