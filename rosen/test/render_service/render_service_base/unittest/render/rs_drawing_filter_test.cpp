@@ -237,8 +237,8 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescriptionWithNullShaderFilter, TestSi
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
     auto validFilter = std::make_shared<RSKawaseBlurShaderFilter>(1.0f);
-    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters = { nullptr, validFilter };
-    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, 1);
+    RSDrawingFilter drawingFilter(imageFilter, 1);
+    drawingFilter.shaderFilters_ = { nullptr, validFilter };
     drawingFilter.SetFilterType(RSFilter::BLUR);
 
     const auto description = drawingFilter.GetDetailedDescription();
