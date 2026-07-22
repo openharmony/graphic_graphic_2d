@@ -48,6 +48,7 @@ declare_args() {
   graphic_2d_feature_bootanimation_ext_enable = "default"
   graphic_2d_support_access_token = true
   graphic_2d_feature_overlay_display_enable = false
+  graphic_2d_feature_tv_shutter_3d_enable = false
   enable_full_screen_recongnize = false
   graphic_2d_feature_enable_opengl_to_vulkan = false
   graphic_2d_feature_screenless_enable = false
@@ -192,6 +193,10 @@ if (graphic_2d_feature_tp_switch_enbale) {
 
 if (graphic_2d_feature_overlay_display_enable) {
   gpu_defines += [ "RS_ENABLE_OVERLAY_DISPLAY" ]
+}
+
+if (graphic_2d_feature_tv_shutter_3d_enable) {
+  gpu_defines += [ "RS_ENABLE_TV_SHUTTER_3D" ]
 }
 
 if (graphic_2d_feature_tv_metadata_enable) {

@@ -58,8 +58,9 @@ const uint8_t DO_SET_GLOBAL_DARK_COLOR_MODE = 5;
 const uint8_t DO_SET_SCREEN_SWITCHING_NOTIFY_CALLBACK = 6;
 const uint8_t DO_ADD_VIRTUAL_SCREEN_WHITE_LIST = 7;
 const uint8_t DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST = 8;
+const uint8_t DO_SET_UI_MODE_3D = 9;
 const uint8_t DO_SET_LOGICAL_CAMERA_ROTATION_CORRECTION = 10;
-const uint8_t TARGET_SIZE = 11;
+const uint8_t TARGET_SIZE = 12;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -160,6 +161,18 @@ void DoSetScreenGamutMap()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(mode);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoSetUIMode3D()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    uint32_t mode = GetData<uint32_t>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint32(mode);
     g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -559,6 +572,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST:
             OHOS::Rosen::DoRemoveVirtualScreenWhiteList();
+            break;
+        case OHOS::Rosen::DO_SET_UI_MODE_3D:
+            OHOS::Rosen::DoSetUIMode3D();
             break;
         case OHOS::Rosen::DO_SET_LOGICAL_CAMERA_ROTATION_CORRECTION:
             OHOS::Rosen::DoSetLogicalCameraRotationCorrection();

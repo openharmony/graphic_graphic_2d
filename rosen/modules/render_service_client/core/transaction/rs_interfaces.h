@@ -813,6 +813,13 @@ public:
      */
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
 
+     /**
+     * @brief Set UI display mode.
+     * @param mode UI display mode (2D, Shutter 3D, or Glasses-free 3D).
+     * @return True if success, false if failed.
+     */
+    bool SetUIMode3D(UIMode3D mode);
+
     /**
      * @brief Set screen correction, used to correct screen rotation.
      * @param id Screen id.

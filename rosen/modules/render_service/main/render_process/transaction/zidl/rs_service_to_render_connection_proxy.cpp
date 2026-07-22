@@ -802,6 +802,29 @@ int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t 
     return result;
 }
 
+ErrCode RSServiceToRenderConnectionProxy::SetUIMode3D(UIMode3D mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(mode))) {
+        RS_LOGE("%{public}s: WriteUint32 mode err.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
 ErrCode RSServiceToRenderConnectionProxy::GetPixelMapByProcessId(
     std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
 {

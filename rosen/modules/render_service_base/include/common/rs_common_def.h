@@ -581,6 +581,19 @@ enum class RSUIFirstSwitch {
     FORCE_DISABLE_CARD = 6, // force close uifirst on card
 };
 
+enum class UIMode3D : uint32_t {
+    MODE_2D = 0,              // 2D display mode
+    MODE_SHUTTER_3D = 1,      // Shutter 3D display mode
+    MODE_GLASSESFREE_3D = 2,    // Glasses-free 3D display mode
+    MODE_TYPE_BUTT,
+};
+
+enum class CompositionType : uint32_t {
+    COMPOSITION_DEFAULT = 0,
+    COMPOSITION_3D_SHUTTER = 1,
+    COMPOSITION_3D_GLASS_FREE = 2,
+};
+
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,

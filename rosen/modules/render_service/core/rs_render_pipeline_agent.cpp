@@ -1885,6 +1885,19 @@ void RSRenderPipelineAgent::SetVmaCacheStatus(bool flag)
 #endif
 }
 
+ErrCode RSRenderPipelineAgent::SetUIMode3D(UIMode3D mode)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = pipeline, mode]() {
+        renderPipeline->GetMainThread()->SetUIMode3D(mode);
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
 void RSRenderPipelineAgent::SetBehindWindowFilterEnabled(bool enabled)
 {
     auto pipeline = rsRenderPipeline_.lock();

@@ -130,6 +130,7 @@ public:
 
     // Others
     ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) override;
+    ErrCode SetUIMode3D(UIMode3D mode) override;
     ErrCode RepaintEverything() override;
     ErrCode SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height) override;
     void ForceRefreshOneFrameWithNextVSync() override;

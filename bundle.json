@@ -57,6 +57,7 @@
         "graphic_2d_feature_use_igraphics_extend_hooks",
         "graphic_2d_feature_bootanimation_ext_enable",
         "graphic_2d_feature_overlay_display_enable",
+        "graphic_2d_feature_tv_shutter_3d_enable",
         "graphic_2d_feature_enable_opengl_to_vulkan",
         "graphic_2d_feature_screenless_enable",
         "graphic_2d_feature_tv_metadata_enable",
