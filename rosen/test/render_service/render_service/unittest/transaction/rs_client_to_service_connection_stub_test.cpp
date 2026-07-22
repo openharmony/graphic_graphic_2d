@@ -587,9 +587,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
         ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH)), ERR_INVALID_STATE);
-    EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN)),
-        ERR_INVALID_DATA);
 }
 
 /**
@@ -4286,6 +4283,39 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRefreshRateMode, TestSize.Level
     data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data2.WriteInt32(mode);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetHgmExclusiveScreen
+ * @tc.desc: Test SetHgmExclusiveScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetHgmExclusiveScreen, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
+
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    ScreenId screenId = 0;
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint64(screenId);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+
+    screenId = INVALID_SCREEN_ID;
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteUint64(screenId);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
     EXPECT_EQ(res, ERR_NONE);
 }
 
