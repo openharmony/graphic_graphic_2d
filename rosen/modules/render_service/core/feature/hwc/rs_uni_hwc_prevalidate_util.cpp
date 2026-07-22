@@ -75,6 +75,7 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     if ((initFunc == nullptr) || (initFunc() != 0)) {
         RS_LOGW("[%{public}s]: prevalidate init failed", __func__);
         dlclose(preValidateHandle_);
+        preValidateHandle_ = nullptr;
         return;
     }
     preValidateFunc_ = reinterpret_cast<PreValidateFunc>(dlsym(preValidateHandle_, "RequestLayerStrategy"));
@@ -115,6 +116,7 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
         preValidateHandle_ = nullptr;
         preValidateFunc_ = nullptr;
         handleEventFunc_ = nullptr;
+        getVcldEnabledInfoFunc_ = nullptr;
     }
 }
 
@@ -147,14 +149,17 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps,
     const RSScreenProperty& screenProperty, RequestLayerInfo &info)
 {
-    if (!node || !node->GetRSSurfaceHandler()->GetConsumer() || !node->GetRSSurfaceHandler()->GetBuffer()) {
+    if (!node || !node->GetRSSurfaceHandler()->GetConsumer()) {
+        return false;
+    }
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    if (!buffer) {
         return false;
     }
     info.id = node->GetId();
     auto src = node->GetSrcRect();
     auto dst = node->GetDstRect();
     Rect crop{0, 0, 0, 0};
-    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
     if (stagingSurfaceParams == nullptr) {
         RS_LOGE("node[%{public}s] id[%{public}" PRIu64 "] GetStagingRenderParams is null.",
@@ -195,20 +200,20 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         };
     }
     info.zOrder = zorder;
-    info.bufferUsage = node->GetRSSurfaceHandler()->GetBuffer()->GetUsage();
-    info.format = node->GetRSSurfaceHandler()->GetBuffer()->GetFormat();
+    info.bufferUsage = buffer->GetUsage();
+    info.format = buffer->GetFormat();
     info.fps = fps;
     info.transform = static_cast<int>(transform);
     info.bufferHandle = buffer->GetBufferHandle();
     UpdateLayerUsage(node, info, stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
 
-    if (RsCommonHook::Instance().GetVideoSurfaceFlag() && IsYUVBufferFormat(node)) {
+    if (RsCommonHook::Instance().GetVideoSurfaceFlag() && IsYUVBufferFormat(buffer)) {
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {1};
     } else {
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
 
-    if (arsrPreEnabled_ && CheckIfDoArsrPre(node)) {
+    if (arsrPreEnabled_ && CheckIfDoArsrPre(buffer, node->GetName())) {
         std::string bundleName = node ->GetBundleName();
         auto hwcHmsAppConfigFromHgm = HWCParam::GetSourceTuningForHmsApp();
         auto hwcHmsAppIter = hwcHmsAppConfigFromHgm.find(bundleName);
@@ -224,7 +229,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         *reinterpret_cast<RSVcldParam*>(valueBlob.data()) = node->GetVcldInfo();
         info.perFrameParameters["VcldParam"] = valueBlob;
     }
-    CheckIfDoCopybit(node, transform, info);
+    CheckIfDoCopybit(buffer, transform, info, node);
     node->SetDeviceOfflineEnable(false);
     const auto& layerLinearMatrix = stagingSurfaceParams->GetLayerLinearMatrix();
     if (layerLinearMatrix.size() == MATRIX_SIZE) {
@@ -238,12 +243,12 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     return true;
 }
 
-bool RSUniHwcPrevalidateUtil::IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr node) const
+bool RSUniHwcPrevalidateUtil::IsYUVBufferFormat(const sptr<SurfaceBuffer>& buffer)
 {
-    if (node->GetRSSurfaceHandler()->GetBuffer() == nullptr) {
+    if (!buffer) {
         return false;
     }
-    auto format = node->GetRSSurfaceHandler()->GetBuffer()->GetFormat();
+    auto format = buffer->GetFormat();
     if (format < GRAPHIC_PIXEL_FMT_YUV_422_I || format == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
         format > GRAPHIC_PIXEL_FMT_YCRCB_P010) {
         return false;
@@ -274,10 +279,10 @@ bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
     }
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
     auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
-    if (!surfaceHandler->GetConsumer() || !surfaceHandler->GetBuffer()) {
+    auto buffer = surfaceHandler->GetBuffer();
+    if (!buffer || !surfaceHandler->GetConsumer()) {
         return false;
     }
-    auto buffer = surfaceHandler->GetBuffer();
     info.id = node->GetId();
     info.srcRect = {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
     if (screenProperty.GetHdiRogEnable()) {
@@ -298,7 +303,11 @@ bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
 bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(RSRcdSurfaceRenderNode::SharedPtr node,
     const RSScreenProperty& screenProperty, uint32_t fps, RequestLayerInfo &info)
 {
-    if (!node || !node->GetConsumer() || !node->GetBuffer()) {
+    if (!node || !node->GetConsumer()) {
+        return false;
+    }
+    auto buffer = node->GetBuffer();
+    if (!buffer) {
         return false;
     }
 
@@ -313,8 +322,8 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(RSRcdSurfaceRenderNode::SharedP
     info.dstRect.w = static_cast<uint32_t>(static_cast<float>(dst.width_) * widthRatio);
     info.dstRect.h = static_cast<uint32_t>(static_cast<float>(dst.height_) * heightRatio);
     info.zOrder = static_cast<uint32_t>(node->GetGlobalZOrder());
-    info.bufferUsage = node->GetBuffer()->GetUsage();
-    info.format = node->GetBuffer()->GetFormat();
+    info.bufferUsage = buffer->GetUsage();
+    info.format = buffer->GetFormat();
     info.fps = fps;
     CopyCldInfo(node->GetCldInfo(), info);
     LayerRotate(info, node->GetConsumer());
@@ -411,9 +420,9 @@ void RSUniHwcPrevalidateUtil::CopyCldInfo(const CldInfo& src, RequestLayerInfo& 
     info.cldInfo.baseColor = src.baseColor;
 }
 
-bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node)
+bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const sptr<SurfaceBuffer>& buffer, const std::string& nodeName)
 {
-    if (node->GetRSSurfaceHandler()->GetBuffer() == nullptr) {
+    if (!buffer) {
         return false;
     }
     static const std::unordered_set<std::string> videoLayers {
@@ -422,24 +431,25 @@ bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const RSSurfaceRenderNode::Shared
         "SceneViewer Model totemweather0",
         "UnityPlayerSurface",
     };
-    if (IsYUVBufferFormat(node) || (videoLayers.count(node->GetName()) > 0)) {
+    if (IsYUVBufferFormat(buffer) || (videoLayers.count(nodeName) > 0)) {
         return true;
     }
     return false;
 }
 
-void RSUniHwcPrevalidateUtil::CheckIfDoCopybit(const RSSurfaceRenderNode::SharedPtr node,
-    GraphicTransformType transform, RequestLayerInfo& info)
+void RSUniHwcPrevalidateUtil::CheckIfDoCopybit(const sptr<SurfaceBuffer>& buffer,
+    GraphicTransformType transform, RequestLayerInfo& info, RSSurfaceRenderNode::SharedPtr node)
 {
-    if (!isCopybitSupported_ || node->GetRSSurfaceHandler()->GetBuffer() == nullptr) {
+    if (!isCopybitSupported_ || !buffer) {
         return;
     }
-    if (IsYUVBufferFormat(node) && IsNeedDssRotate(transform)) {
+    if (IsYUVBufferFormat(buffer) && IsNeedDssRotate(transform)) {
         info.perFrameParameters["TryToDoCopybit"] = std::vector<int8_t> {1};
-        node->SetCopybitTag(true);
+        if (node) {
+            node->SetCopybitTag(true);
+        }
         return;
     }
-    return;
 }
 
 bool RSUniHwcPrevalidateUtil::IsVcldEnabled()

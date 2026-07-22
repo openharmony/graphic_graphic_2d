@@ -296,7 +296,6 @@ public:
     static bool GetDebugTraceEnabled();
     static bool GetImageReleaseUsingPostTask();
     static int GetDebugTraceLevel();
-    static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
     static bool IsSmallFoldDevice();
     static bool IsFoldDeviceOfOldDss();
