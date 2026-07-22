@@ -2243,5 +2243,80 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Func
 
     HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
 }
+
+/**
+ * @tc.name: HandleSetHgmExclusiveScreenTest001
+ * @tc.desc: test HandleSetHgmExclusiveScreen with screen not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest001, Function | SmallTest | Level0)
+{
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    ScreenId invalidScreenId = 99999;
+    bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, invalidScreenId);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: HandleSetHgmExclusiveScreenTest002
+ * @tc.desc: test HandleSetHgmExclusiveScreen with valid self-owned screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest002, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+    ScreenId testScreenId = 41;
+    bool isSelfOwnedScreen = true;
+    EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, testScreenId);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(frameRateMgr->GetHgmExclusiveScreenId(), testScreenId);
+
+    EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: HandleSetHgmExclusiveScreenTest003
+ * @tc.desc: test HandleSetHgmExclusiveScreen with non-self-owned screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest003, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+    ScreenId testScreenId = 42;
+    bool isSelfOwnedScreen = false;
+    EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, testScreenId);
+    EXPECT_FALSE(result);
+
+    EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: HandleSetHgmExclusiveScreenTest004
+ * @tc.desc: test HandleSetHgmExclusiveScreen with INVALID_SCREEN_ID to disable exclusive
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest004, Function | SmallTest | Level0)
+{
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, INVALID_SCREEN_ID);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(frameRateMgr->GetHgmExclusiveScreenId(), INVALID_SCREEN_ID);
+}
 } // namespace Rosen
 } // namespace OHOS
