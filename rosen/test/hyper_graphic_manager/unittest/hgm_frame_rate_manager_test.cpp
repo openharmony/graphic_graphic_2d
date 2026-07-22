@@ -2318,5 +2318,83 @@ HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest004, Function | Sma
     EXPECT_TRUE(result);
     EXPECT_EQ(frameRateMgr->GetHgmExclusiveScreenId(), INVALID_SCREEN_ID);
 }
+
+/**
+ * @tc.name: HandleMultiSelfOwnedScreenEventTest001
+ * @tc.desc: test HandleMultiSelfOwnedScreenEvent with eventStatus=true and maxRefreshRate<=OLED_NULL_HZ
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest001, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    EventInfo eventInfo;
+    eventInfo.eventName = "VOTER_MULTISELFOWNEDSCREEN";
+    eventInfo.eventStatus = true;
+    eventInfo.maxRefreshRate = OLED_NULL_HZ;
+    eventInfo.minRefreshRate = OLED_NULL_HZ;
+    frameRateMgr->HandleMultiSelfOwnedScreenEvent(pid, eventInfo);
+
+    const auto& voteRecord = frameRateMgr->FrameVoterRef().GetVoteRecord();
+    EXPECT_EQ(voteRecord.find("VOTER_MULTISELFOWNEDSCREEN"), voteRecord.end());
+
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: HandleMultiSelfOwnedScreenEventTest002
+ * @tc.desc: test HandleMultiSelfOwnedScreenEvent with eventStatus=true and valid maxRefreshRate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest002, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    EventInfo eventInfo;
+    eventInfo.eventName = "VOTER_MULTISELFOWNEDSCREEN";
+    eventInfo.eventStatus = true;
+    eventInfo.maxRefreshRate = OLED_120_HZ;
+    eventInfo.minRefreshRate = OLED_60_HZ;
+    frameRateMgr->HandleMultiSelfOwnedScreenEvent(pid, eventInfo);
+
+    const auto& voteRecord = frameRateMgr->FrameVoterRef().GetVoteRecord();
+    EXPECT_NE(voteRecord.find("VOTER_MULTISELFOWNEDSCREEN"), voteRecord.end());
+
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: HandleMultiSelfOwnedScreenEventTest003
+ * @tc.desc: test HandleMultiSelfOwnedScreenEvent with eventStatus=false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest003, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    EventInfo eventInfo;
+    eventInfo.eventName = "VOTER_MULTISELFOWNEDSCREEN";
+    eventInfo.eventStatus = false;
+    eventInfo.maxRefreshRate = OLED_120_HZ;
+    eventInfo.minRefreshRate = OLED_60_HZ;
+    frameRateMgr->HandleMultiSelfOwnedScreenEvent(pid, eventInfo);
+
+    const auto& voteRecord = frameRateMgr->FrameVoterRef().GetVoteRecord();
+    EXPECT_NE(voteRecord.find("VOTER_MULTISELFOWNEDSCREEN"), voteRecord.end());
+
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
 } // namespace Rosen
 } // namespace OHOS
