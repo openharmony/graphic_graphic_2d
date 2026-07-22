@@ -40,7 +40,7 @@ public:
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override;
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override;
 
-    bool IsValidRenderProcessPid(pid_t pid) const override { return false; }
+    sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
 
 private:
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;

@@ -124,7 +124,7 @@ public:
     {
         return connectToRenderConnection_;
     }
-    bool IsValidRenderProcessPid(pid_t pid) const override { return false; }
+    sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
 
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
