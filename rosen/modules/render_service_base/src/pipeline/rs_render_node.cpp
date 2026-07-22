@@ -4380,6 +4380,9 @@ void RSRenderNode::SetChildHasVisibleFilter(bool val)
 {
     childHasVisibleFilter_ = val;
 #ifdef RS_ENABLE_GPU
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
     stagingRenderParams_->SetChildHasVisibleFilter(val);
 #endif
 }
@@ -4387,6 +4390,9 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 {
     childHasVisibleEffect_ = val;
 #ifdef RS_ENABLE_GPU
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
     stagingRenderParams_->SetChildHasVisibleEffect(val);
 #endif
 }

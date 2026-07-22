@@ -290,8 +290,9 @@ float RSModifierExtractor::GetShadowAlpha() const
     // Using macro expansion as a temporary modification.
     // Need modifier the macro to invoke the corresponding method in the modifier instead od accessing the property
     float alpha = -1.f;
-    auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)
-                                        : RSNodeMap::Instance().GetNode<RSNode>(id_);
+    auto context = rsUIContext_.lock();
+    auto node = context ? context->GetNodeMap().GetNode<RSNode>(id_)
+                        : RSNodeMap::Instance().GetNode<RSNode>(id_);
     if (!node) {
         return alpha;
     }

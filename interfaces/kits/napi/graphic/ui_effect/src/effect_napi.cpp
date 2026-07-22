@@ -127,7 +127,7 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("distortionCollapse", CreateDistortionCollapseEffect),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
-    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateEffect define properties fail"));
     return object;
 }
