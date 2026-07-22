@@ -40,7 +40,6 @@ private:
     explicit RSEffectRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::EFFECT_NODE, OnGenerate>;
     static Registrar instance_;
-    std::weak_ptr<const RSRenderNode> renderNode_;
     bool GenerateEffectDataOnDemand(RSEffectRenderParams* effectParams,
         Drawing::Canvas& canvas, const Drawing::Rect& bounds, RSPaintFilterCanvas* paintFilterCanvas);
     inline bool IsBlurNotRequired(RSEffectRenderParams* effectParams, RSPaintFilterCanvas* paintFilterCanvas) const

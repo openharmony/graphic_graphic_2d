@@ -15,6 +15,8 @@
 
 #include "drawable/rs_property_drawable_utils.h"
 
+#include <limits>
+
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "effect/rs_render_property_tag.h"
@@ -136,6 +138,10 @@ Color RSPropertyDrawableUtils::GetColorForShadowSyn(Drawing::Canvas* canvas, Dra
 std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GetShadowRegionImage(Drawing::Canvas* canvas,
     Drawing::Path& drPath, Drawing::Matrix& matrix)
 {
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GetShadowRegionImage canvas is null");
+        return nullptr;
+    }
     Drawing::Rect clipBounds = drPath.GetBounds();
     Drawing::RectI clipIBounds = { static_cast<int>(clipBounds.GetLeft()), static_cast<int>(clipBounds.GetTop()),
         static_cast<int>(clipBounds.GetRight()), static_cast<int>(clipBounds.GetBottom()) };
@@ -254,6 +260,11 @@ bool IsImageValid(const Drawing::Image& image)
     constexpr int maxDimension = 65535; // Prevent overflow in area calculation
     if (image.GetWidth() > maxDimension || image.GetHeight() > maxDimension) {
         ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage image dimensions too large");
+        return false;
+    }
+    const int64_t imageArea = static_cast<int64_t>(image.GetWidth()) * image.GetHeight();
+    if (imageArea > std::numeric_limits<int32_t>::max()) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage image area too large");
         return false;
     }
     return true;
@@ -601,9 +612,7 @@ void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
 
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 {
-    auto blurCnt = g_blurCnt.load();
-    g_blurCnt = 0;
-    return blurCnt;
+    return g_blurCnt.exchange(0);
 }
 
 void RSPropertyDrawableUtils::DrawBackgroundEffect(
@@ -680,6 +689,10 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
 void RSPropertyDrawableUtils::DrawColorFilter(
     Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter)
 {
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorFilter canvas is null");
+        return;
+    }
     if (colorFilter == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorFilter null colorFilter.");
         return;
@@ -1447,6 +1460,10 @@ void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, 
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
     const std::string& shapeTag)
 {
+    if (rect == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM rect is null");
+        return;
+    }
     if (!filterGEContainer) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM filterGEContainer null");
         return;

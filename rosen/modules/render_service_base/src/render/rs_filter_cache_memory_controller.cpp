@@ -92,6 +92,7 @@ bool RSFilterCacheMemoryController::IsFilterCacheMemExceedThreshold()
 
 void RSFilterCacheMemoryController::SetScreenRectInfo(Drawing::RectI info)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     screenRectInfo_ = info;
 }
 

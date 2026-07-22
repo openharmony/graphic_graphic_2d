@@ -507,18 +507,23 @@ Filter FilterImpl::ColorGradient(taihe::array_view<::ohos::graphics::uiEffect::u
         UIEFFECT_LOG_E("FilterImpl::ColorGradient failed, filter is invalid");
         return make_holder<FilterImpl, Filter>(nativeFilter_);
     }
+    size_t colorsLen = colors.size();
+    size_t positionsLen = positions.size();
+    size_t strengthsLen = strengths.size();
+    if (colorsLen != positionsLen || colorsLen != strengthsLen || strengthsLen > NUM_12) {
+        UIEFFECT_LOG_E("FilterImpl::ColorGradient param error");
+        return make_holder<FilterImpl, Filter>(nativeFilter_);
+    }
     auto para = std::make_shared<OHOS::Rosen::ColorGradientPara>();
     std::vector<float> colorValue;
     std::vector<float> posValue;
     std::vector<float> strengthValue;
-    size_t colorsLen = colors.size();
     for (size_t i = 0; i < colorsLen; ++i) {
         colorValue.push_back(static_cast<float>(colors[i].red));
         colorValue.push_back(static_cast<float>(colors[i].green));
         colorValue.push_back(static_cast<float>(colors[i].blue));   // 2 element of color
         colorValue.push_back(static_cast<float>(colors[i].alpha));  // 3 element of color
     }
-    size_t positionsLen = positions.size();
     for (size_t i = 0; i < positionsLen; ++i) {
         OHOS::Rosen::Vector2f vc2f;
         if (!ConvertVector2fFromAniPoint(positions[i], vc2f)) {
@@ -527,7 +532,6 @@ Filter FilterImpl::ColorGradient(taihe::array_view<::ohos::graphics::uiEffect::u
         posValue.push_back(static_cast<float>(vc2f[0]));
         posValue.push_back(static_cast<float>(vc2f[1]));
     }
-    size_t strengthsLen = strengths.size();
     for (size_t i = 0; i < strengthsLen; ++i) {
         strengthValue.push_back(static_cast<float>(strengths[i]));
     }

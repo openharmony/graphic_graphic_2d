@@ -125,6 +125,10 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateCubicsCtrlPointOf
     const std::vector<Drawing::Point> controlPointOfVertex)
 {
     std::vector<Drawing::Point> pathList;
+    if (controlPointOfVertex.size() < 4) {
+        ROSEN_LOGE("RSAttractionEffectFilter::CalculateCubicsCtrlPointOffset invalid control point size");
+        return pathList;
+    }
     Drawing::Point topLeft = controlPointOfVertex[0];
     Drawing::Point topRight = controlPointOfVertex[1];
     Drawing::Point bottomLeft = controlPointOfVertex[2];
@@ -171,6 +175,10 @@ std::vector<Drawing::Point> RSAttractionEffectFilter::CalculateCubicsCtrlPoint(
 {
     int pointNum = 12;
     std::vector<Drawing::Point> pathList = CalculateCubicsCtrlPointOffset(controlPointOfVertex);
+    if (pathList.empty()) {
+        ROSEN_LOGE("RSAttractionEffectFilter::CalculateCubicsCtrlPoint path list is empty");
+        return {};
+    }
 
     std::vector<int> indice = CreateIndexSequence(location);
     std::vector<Drawing::Point> pathCtrlPointList(pointNum, Drawing::Point(0.0f, 0.0f));
