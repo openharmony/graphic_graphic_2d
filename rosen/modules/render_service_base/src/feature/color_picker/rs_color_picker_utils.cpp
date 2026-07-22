@@ -217,7 +217,10 @@ void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<ICo
     // Create semaphore and fence for GPU task chaining
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     VkSemaphore semaphore;
-    NativeBufferUtils::CreateVkSemaphore(semaphore);
+    if (NativeBufferUtils::CreateVkSemaphore(semaphore) != VK_SUCCESS) {
+        RS_LOGE("ScheduleColorPickWithSemaphore: Failed to create Vulkan semaphore");
+        return;
+    }
     GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
     auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     auto* destroyInfo = new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
