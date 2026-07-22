@@ -59,6 +59,7 @@
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_frame_stability_types.h"
+#include "transaction/rs_occlusion_data.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 using namespace testing;
@@ -4654,6 +4655,40 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallb
     EXPECT_EQ(res, StatusCode::INVALID_ARGUMENTS);
     renderPipelineAgent_->rsRenderPipeline_ = pipeline;
     res = renderPipelineAgent_->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
+    EXPECT_EQ(res, StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallbackTest003
+ * @tc.desc: Test RegisterSurfaceOcclusionChangeCallback with partitionPoints.size() > MAX_PARTITION_POINTS
+ * @tc.type: FUNC
+ * @tc.require: issue25078
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallbackTest003, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+    pid_t pid = getpid();
+    NodeId id = 1;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints(MAX_PARTITION_POINTS + 1, 0.5f);
+    auto res = renderPipelineAgent_->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
+    EXPECT_EQ(res, StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallbackTest004
+ * @tc.desc: Test RegisterSurfaceOcclusionChangeCallback with partitionPoints.size() == MAX_PARTITION_POINTS
+ * @tc.type: FUNC
+ * @tc.require: issue25078
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallbackTest004, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+    pid_t pid = getpid();
+    NodeId id = 1;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints(MAX_PARTITION_POINTS, 0.5f);
+    auto res = renderPipelineAgent_->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
     EXPECT_EQ(res, StatusCode::INVALID_ARGUMENTS);
 }
 

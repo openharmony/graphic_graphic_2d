@@ -1422,6 +1422,11 @@ int32_t RSRenderPipelineAgent::RegisterOcclusionChangeCallback(pid_t pid, sptr<R
 int32_t RSRenderPipelineAgent::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {
+    if (partitionPoints.size() > MAX_PARTITION_POINTS) {
+        RS_LOGE("RegisterSurfaceOcclusionChangeCallback invalid partitionPoints size: %{public}zu",
+            partitionPoints.size());
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         return StatusCode::INVALID_ARGUMENTS;
