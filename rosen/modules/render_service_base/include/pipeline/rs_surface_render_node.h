@@ -285,6 +285,11 @@ public:
             IsLayerTop();
     }
 
+    bool IsHwcLayerType() const override
+    {
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE || IsLayerTop();
+    }
+
     void SetPreSubHighPriorityType(bool priorityType);
 
     bool IsDynamicHardwareEnable() const

@@ -56,6 +56,7 @@
 #include "pipeline/mock/mock_rs_luminance_control.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
@@ -4371,7 +4372,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo001, TestSize.Level2)
     constexpr NodeId nodeId = 1;
     auto node = std::make_shared<RSRenderNode>(nodeId);
     ASSERT_NE(node, nullptr);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
 }
 
 /**
@@ -4398,7 +4399,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo002, TestSize.Level2)
     node->GetStagingRenderParams()->SetLayerParamsIsUnSupportLayer(true);
     bool isUnSupportLayer = RSLayerCacheManagerBase::IsNodeUnSupportLayer(node);
     EXPECT_TRUE(isUnSupportLayer);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     ASSERT_TRUE(parent->ChildHasVisibleFilter());
 }
 
@@ -4422,7 +4423,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
     parent->InitRenderParams();
     parent->AddChild(node);
     node->GetMutableRenderProperties().GetEffect().useEffect_ = true;
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(parent->ChildHasVisibleEffect());
 }
 
@@ -4454,9 +4455,9 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo004, TestSize.Level2)
     child->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
     node->GetMutableRenderProperties().GetEffect().useEffect_ = true;
     node2->childHasVisibleEffect_ = true;
-    rsUniRenderVisitor->CollectEffectInfo(*child);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
-    rsUniRenderVisitor->CollectEffectInfo(*node2);
+    rsUniRenderVisitor->CollectEffectInfo(*child, RSUniHwcComputeUtil::IsBlendNeedFilter(*child));
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
+    rsUniRenderVisitor->CollectEffectInfo(*node2, RSUniHwcComputeUtil::IsBlendNeedFilter(*node2));
     EXPECT_TRUE(node->ChildHasVisibleEffect());
     EXPECT_EQ(node->GetVisibleEffectChild().count(childNodeId), 1);
     EXPECT_TRUE(parent->ChildHasVisibleEffect());
@@ -4486,19 +4487,19 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo005, TestSize.Level2)
 
     node->GetMutableRenderProperties().hasHarmonium_ = true;
     node->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     ASSERT_TRUE(parent->ChildHasVisibleEffect());
 
     parent->SetChildHasVisibleEffect(false);
     node->GetMutableRenderProperties().hasHarmonium_ = false;
     node->SetChildHasVisibleEffect(true);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     ASSERT_TRUE(parent->ChildHasVisibleEffect());
 
     parent->SetChildHasVisibleEffect(false);
     node->GetMutableRenderProperties().hasHarmonium_ = false;
     node->SetChildHasVisibleEffect(false);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     ASSERT_FALSE(parent->ChildHasVisibleEffect());
 }
 
@@ -4524,12 +4525,12 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo006, TestSize.Level2)
 
     node->SetChildHasVisibleHDRContent(false);
     node->UpdateHDRStatus(HdrStatus::HDR_PHOTO, true);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(parent->ChildHasVisibleHDRContent());
 
     node->SetChildHasVisibleHDRContent(true);
     parent->SetChildHasVisibleHDRContent(false);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(parent->ChildHasVisibleHDRContent());
 }
 
@@ -4556,7 +4557,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo007, TestSize.Level2)
     RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(parent, false);
     node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::BORDER_CONTENT));
     node->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     ASSERT_TRUE(RSPointLightManager::Instance(0)->GetChildHasVisibleIlluminated(parent));
 
     RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(parent, false);
@@ -4564,13 +4565,13 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo007, TestSize.Level2)
     RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(node, true);
     auto lightSource = std::make_shared<RSRenderNode>(3);
     RSPointLightManager::Instance(0)->RegisterLightSource(lightSource);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     ASSERT_TRUE(RSPointLightManager::Instance(0)->GetChildHasVisibleIlluminated(parent));
 
     RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(parent, false);
     node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::NONE));
     RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(node, false);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     ASSERT_FALSE(RSPointLightManager::Instance(0)->GetChildHasVisibleIlluminated(parent));
 }
 
@@ -4596,18 +4597,18 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo008, TestSize.Level2)
 
     node->ExcludedFromNodeGroup(false);
     node->SetHasChildExcludedFromNodeGroup(true);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(parent->HasChildExcludedFromNodeGroup());
 
     node->ExcludedFromNodeGroup(true);
     node->SetHasChildExcludedFromNodeGroup(false);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(parent->HasChildExcludedFromNodeGroup());
 
     parent->SetHasChildExcludedFromNodeGroup(false);
     node->ExcludedFromNodeGroup(false);
     node->SetHasChildExcludedFromNodeGroup(false);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_FALSE(parent->HasChildExcludedFromNodeGroup());
 }
 
@@ -4632,7 +4633,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo009, TestSize.Level2)
     parent->AddChild(node);
 
     rsUniRenderVisitor->childHasProtectedNodeSet_.insert(nodeId);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(rsUniRenderVisitor->childHasProtectedNodeSet_.count(nodeId));
 }
 
@@ -4661,26 +4662,26 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo010, TestSize.Level2)
     cacheRoot->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
     // renderGroupCacheRoots_ is empty
     node->GetMutableRenderProperties().SetTranslate({0.0f, 0.0f});
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_FALSE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
     
     // renderGroupCacheRoots_ is not empty
     rsUniRenderVisitor->AddRenderGroupCacheRoot(*cacheRoot);
 
     node->GetMutableRenderProperties().SetTranslate({0.0f, 0.0f});
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_FALSE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
 
     node->GetMutableRenderProperties().SetTranslate({1.0f, 0.0f});
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
 
     node->GetMutableRenderProperties().SetTranslate({0.0f, 1.0f});
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
 
     node->GetMutableRenderProperties().SetTranslate({1.0f, 1.0f});
-    rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
     EXPECT_TRUE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
 }
 
@@ -5309,6 +5310,60 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty004, TestSize.Le
 
     rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*surfaceNode, *dirtyManager);
     ASSERT_FALSE(dirtyManager->GetFilterCollector().GetFilterDirtyRegionInfoList(false).empty());
+}
+
+/**
+ * @tc.name: CollectHwcAndFilterNodesToParentTest
+ * @tc.desc: Test CollectHwcAndFilterNodesToParent:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectHwcAndFilterNodesToParentTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // nonHwcNode: base RSRenderNode whose IsHardwareEnabledType() returns false.
+    auto nonHwcNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(nonHwcNode, nullptr);
+    ASSERT_FALSE(nonHwcNode->IsHardwareEnabledType());
+    ASSERT_TRUE(nonHwcNode->GetParent().expired());
+
+    // hwcNode: a surface node configured so IsHardwareEnabledType() returns true.
+    auto hwcNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->isHardwareEnabledNode_ = true;
+    hwcNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    ASSERT_TRUE(hwcNode->IsHardwareEnabledType());
+    ASSERT_TRUE(hwcNode->GetParent().expired());
+
+    // Combination 1: isBlendNeedFilter=true, IsHardwareEnabledType()=true -> condition TRUE -> self inserted.
+    hwcNode->ClearAllHwcNodeAndFilterNode();
+    rsUniRenderVisitor->CollectHwcAndFilterNodesToParent(*hwcNode, false, true);
+    ASSERT_EQ(hwcNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+    auto hwcLocked1 = hwcNode->GetAllHwcNodeAndFilterNode().front().lock();
+    ASSERT_NE(hwcLocked1, nullptr);
+    EXPECT_EQ(hwcLocked1->GetId(), hwcNode->GetId());
+
+    // Combination 2: isBlendNeedFilter=true, IsHardwareEnabledType()=false -> condition TRUE.
+    nonHwcNode->ClearAllHwcNodeAndFilterNode();
+    rsUniRenderVisitor->CollectHwcAndFilterNodesToParent(*nonHwcNode, false, true);
+    ASSERT_EQ(nonHwcNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+    auto nonHwcLocked2 = nonHwcNode->GetAllHwcNodeAndFilterNode().front().lock();
+    ASSERT_NE(nonHwcLocked2, nullptr);
+    EXPECT_EQ(nonHwcLocked2->GetId(), nonHwcNode->GetId());
+
+    // Combination 3: isBlendNeedFilter=false, IsHardwareEnabledType()=true -> condition TRUE.
+    hwcNode->ClearAllHwcNodeAndFilterNode();
+    rsUniRenderVisitor->CollectHwcAndFilterNodesToParent(*hwcNode, false, false);
+    ASSERT_EQ(hwcNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+    auto hwcLocked3 = hwcNode->GetAllHwcNodeAndFilterNode().front().lock();
+    ASSERT_NE(hwcLocked3, nullptr);
+    EXPECT_EQ(hwcLocked3->GetId(), hwcNode->GetId());
+
+    // Combination 4: isBlendNeedFilter=false, IsHardwareEnabledType()=false -> condition FALSE -> not inserted.
+    nonHwcNode->ClearAllHwcNodeAndFilterNode();
+    rsUniRenderVisitor->CollectHwcAndFilterNodesToParent(*nonHwcNode, false, false);
+    EXPECT_EQ(nonHwcNode->GetAllHwcNodeAndFilterNode().size(), 0u);
 }
 
 /**

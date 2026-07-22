@@ -1148,9 +1148,10 @@ void RSUniRenderVisitor::CollectHwcAndFilterNodesInSkippedSubTree(RSRenderNode& 
     });
 }
 
-void RSUniRenderVisitor::CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder)
+void RSUniRenderVisitor::CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder,
+    bool isBlendNeedFilter)
 {
-    if (IsFilterNode(node) || node.IsHardwareEnabledType()) {
+    if (isBlendNeedFilter || node.IsHardwareEnabledType()) {
         node.GetAllHwcNodeAndFilterNode().insert(node.GetAllHwcNodeAndFilterNode().begin(),
             node.weak_from_this());
     }
@@ -1245,7 +1246,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         node.ClearAllHwcNodeAndFilterNode();
         node.ResetChildHardwareEnabledNodes();
         CollectHwcAndFilterNodesInSkippedSubTree(node);
-        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder);
+        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder,
+            RSUniHwcComputeUtil::IsBlendNeedFilter(node));
         if (node.IsLeashOrMainWindow()) {
             node.UpdateChildHardwareEnabledNode();
         }
@@ -2281,11 +2283,6 @@ bool RSUniRenderVisitor::IsLeashAndHasMainSubNode(RSRenderNode& node) const
         return false;
     });
     return iter != (*children).end();
-}
-
-bool RSUniRenderVisitor::IsFilterNode(RSRenderNode& node) const
-{
-    return RSUniHwcComputeUtil::IsBlendNeedFilter(node);
 }
 
 bool RSUniRenderVisitor::NeedPrepareChildrenInReverseOrder(RSRenderNode& node) const
@@ -3615,7 +3612,7 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
     }
 }
 
-void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
+void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter)
 {
     auto nodeParent = node.GetParent().lock();
     if (nodeParent == nullptr) {
@@ -3633,7 +3630,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     }
 
     // Handle ColorPickerDrawable - MERGE into filter handling
-    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter() ||
+    if (isBlendNeedFilter || node.ChildHasVisibleFilter() ||
         node.GetColorPickerDrawable()) {
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
@@ -3737,16 +3734,17 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
         }
         node.CalDrawBehindWindowRegion();
     }
-    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node)) {
+    bool isBlendNeedFilter = RSUniHwcComputeUtil::IsBlendNeedFilter(node);
+    if (isBlendNeedFilter) {
         node.CalVisibleFilterRect(prepareClipRect_, prepareFilterClipRect_);
         node.MarkClearFilterCacheIfEffectChildrenChanged();
         CollectFilterInfoAndUpdateDirty(node, *curDirtyManager);
         node.SetGlobalAlpha(curAlpha_);
     }
-    CollectEffectInfo(node);
+    CollectEffectInfo(node, isBlendNeedFilter);
     node.NodePostPrepare(curSurfaceNode_, prepareClipRect_);
     if (curScreenNode_ && curScreenNode_->GetId() != node.GetId()) {
-        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder);
+        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder, isBlendNeedFilter);
     }
     dynamicLayerSkipController_->VisitRenderNode(curSurfaceNode_, node);
     UpdateDrawingCacheInfoAfterChildren(node);
