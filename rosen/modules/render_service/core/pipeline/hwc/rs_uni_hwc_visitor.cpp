@@ -1008,11 +1008,11 @@ void RSUniHwcVisitor::CheckHwcNodeFilterIntersection(
                 continue;
             }
         }
-        #ifdef HVE_BLUR_ENABLE
+#ifdef HVE_BLUR_ENABLE
         if (IsHveBlurFilterEnabled(*filterNode, filter->second, *hwcNode)) {
             continue;
         }
-        #endif
+#endif
         auto parentNode = hwcNode->GetParent().lock();
         // The following trace is relied on by DFX, do not modify its content, format, or order.
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64" parentId:%" PRIu64
