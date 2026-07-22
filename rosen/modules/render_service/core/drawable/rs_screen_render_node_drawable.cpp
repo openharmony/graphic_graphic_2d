@@ -795,7 +795,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #if defined(ROSEN_OHOS)
     bool isHebc = (RSAncoManager::Instance()->GetAncoHebcStatus() != AncoHebcStatus::NOT_USE_HEBC);
     RSHpaeManager::GetInstance().CheckHpaeBlur(
-        isHdrOn, params->GetNewPixelFormat(), params->GetNewColorSpace(), isHebc);
+        isHdrOn, params->GetNewPixelFormat(), params->GetNewColorSpace(), isHebc, GetId());
 #endif
     RSUniRenderThread::Instance().WaitUntilScreenNodeBufferReleased(*this);
     auto renderFrame = RequestFrame(*params, processor);

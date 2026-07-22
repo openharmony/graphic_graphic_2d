@@ -484,6 +484,9 @@ HWTEST_F(RSHpaeManagerTest, CheckHpaeBlurTest01, TestSize.Level1)
     GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
+    RSHpaeManager::GetInstance().CheckHpaeBlur(false, pixelFormat, colorSpace, false, 0);
+    RSHpaeManager::GetInstance().CheckHpaeBlur(false, pixelFormat, colorSpace, false, 1);
+
     RSHpaeManager::GetInstance().hpaeStatus_.gotHpaeBlurNode = true;
     RSHpaeManager::GetInstance().CheckHpaeBlur(true, pixelFormat, colorSpace, true);
     RSHpaeManager::GetInstance().CheckHpaeBlur(false, pixelFormat, colorSpace, true);
