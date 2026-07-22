@@ -263,23 +263,7 @@ void DoNotifyDynamicModeEvent()
     g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
 }
 
-void DoSetHgmExclusiveScreen()
-{
-    MessageParcel dataP;
-    MessageParcel reply;
-    MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        return;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    uint64_t screenId = GetData<uint64_t>();
-    dataP.WriteUint64(screenId);
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
-    if (g_serviceConnection == nullptr) {
-        return;
-    }
-    g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
-}
+void DoNotifySoftVsyncEvent()
 {
     MessageParcel dataP;
     MessageParcel reply;
@@ -294,6 +278,24 @@ void DoSetHgmExclusiveScreen()
     dataP.WriteUint32(pid);
     dataP.WriteUint32(rateDiscount);
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT);
+    if (g_serviceConnection == nullptr) {
+        return;
+    }
+    g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
+}
+
+void DoSetHgmExclusiveScreen()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint64_t screenId = GetData<uint64_t>();
+    dataP.WriteUint64(screenId);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
     if (g_serviceConnection == nullptr) {
         return;
     }
@@ -681,9 +683,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_NOTIFY_DYNAMIC_MODE_EVENT:
             OHOS::Rosen::DoNotifyDynamicModeEvent();
             break;
-        case OHOS::Rosen::DO_SET_HGM_EXCLUSIVE_SCREEN:
-            OHOS::Rosen::DoSetHgmExclusiveScreen();
-            break;
         case OHOS::Rosen::DO_NOTIFY_SOFT_VSYNC_EVENT:
             OHOS::Rosen::DoNotifySoftVsyncEvent();
             break;
@@ -707,6 +706,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_NOTIFY_WINDOW_MODE_TYPE_EVENT:
             OHOS::Rosen::DoNotifyWindowModeTypeEvent();
+            break;
+        case OHOS::Rosen::DO_SET_HGM_EXCLUSIVE_SCREEN:
+            OHOS::Rosen::DoSetHgmExclusiveScreen();
             break;
         default:
             return -1;
