@@ -2034,7 +2034,8 @@ HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest002, Function | Sma
     ScreenId testScreenId = 41;
     bool isSelfOwnedScreen = true;
     EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
-
+    auto screen = hgmCore.GetScreen(testScreenId);
+    screen->isSelfOwnedScreenFlag_.store(true);
     auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
     bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, testScreenId);
     EXPECT_TRUE(result);

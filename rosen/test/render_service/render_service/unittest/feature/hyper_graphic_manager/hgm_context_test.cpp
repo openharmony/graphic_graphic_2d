@@ -15,8 +15,11 @@
 
 #include "gtest/gtest.h"
 
+#include <atomic>
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
+#include <thread>
+#include <vector>
 #include "common/rs_background_thread.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
@@ -870,6 +873,40 @@ HWTEST_F(HgmContextTest, SetHgmExclusiveScreenTest001, TestSize.Level1)
         ASSERT_NE(hgmContext, nullptr);
         bool result = hgmContext->SetHgmExclusiveScreen(getpid(), INVALID_SCREEN_ID);
         EXPECT_TRUE(result);
+    } else {
+        EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
+    }
+}
+
+/**
+ * @tc.name: SetHgmExclusiveScreenMultiThreadTest001
+ * @tc.desc: test SetHgmExclusiveScreen with concurrent calls from multiple threads
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, SetHgmExclusiveScreenMultiThreadTest001, TestSize.Level1)
+{
+    if (frameRateMgr) {
+        auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+        ASSERT_NE(hgmContext, nullptr);
+
+        const int threadCount = 10;
+        std::vector<std::thread> threads;
+        std::atomic<int> successCount{0};
+
+        for (int i = 0; i < threadCount; ++i) {
+            threads.emplace_back([&hgmContext, &successCount, i]() {
+                bool result = hgmContext->SetHgmExclusiveScreen(i + 1, INVALID_SCREEN_ID);
+                if (result) {
+                    successCount.fetch_add(1);
+                }
+            });
+        }
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        EXPECT_EQ(successCount.load(), threadCount);
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
