@@ -2250,7 +2250,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Func
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest001, Function | SmallTest | Level0)
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest001, Function | SmallTest | Level1)
 {
     auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
     ScreenId invalidScreenId = 99999;
@@ -2264,7 +2264,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest001, Function | Sma
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest002, Function | SmallTest | Level0)
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest002, Function | SmallTest | Level1)
 {
     auto& hgmCore = HgmCore::Instance();
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
@@ -2288,7 +2288,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest002, Function | Sma
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest003, Function | SmallTest | Level0)
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest003, Function | SmallTest | Level1)
 {
     auto& hgmCore = HgmCore::Instance();
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
@@ -2311,7 +2311,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest003, Function | Sma
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest004, Function | SmallTest | Level0)
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest004, Function | SmallTest | Level1)
 {
     auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
     bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, INVALID_SCREEN_ID);
@@ -2325,7 +2325,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest004, Function | Sma
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest001, Function | SmallTest | Level0)
+HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest001, Function | SmallTest | Level1)
 {
     auto& hgmCore = HgmCore::Instance();
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
@@ -2351,7 +2351,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest001, Function |
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest002, Function | SmallTest | Level0)
+HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest002, Function | SmallTest | Level1)
 {
     auto& hgmCore = HgmCore::Instance();
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
@@ -2377,7 +2377,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest002, Function |
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest003, Function | SmallTest | Level0)
+HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest003, Function | SmallTest | Level1)
 {
     auto& hgmCore = HgmCore::Instance();
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
