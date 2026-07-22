@@ -4710,11 +4710,10 @@ void RSUniRenderVisitor::GetScreenRotation(RSScreenRenderNode& node)
 
     auto stagingDisplayParams = static_cast<RSScreenRenderParams*>(node.GetStagingRenderParams().get());
     if (!stagingDisplayParams || !displayNode) {
-        RS_LOGW("RSUniRenderVisitor::GetScreenRotation fail");
         return;
     }
 
-    RS_TRACE_NAME_FMT("RSUniRenderVisitor::GetScreenRotation=%u", displayNode->GetRotation());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::GetScreenRotation=%u", displayNode->GetRotation());
     stagingDisplayParams->SetScreenRotationForDelegate(displayNode->GetRotation());
 }
 } // namespace Rosen
