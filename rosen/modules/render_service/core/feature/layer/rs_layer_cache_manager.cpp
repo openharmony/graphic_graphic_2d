@@ -161,7 +161,7 @@ void RSLayerCacheManager::HandleLayerDrawables(RSPaintFilterCanvas& canvas)
         }
 
         if (ShouldEnableLayerCache(drawablePtr, gpuMemMB, totalLayerCacheMB)) {
-            TryPrepareLayerCache(drawablePtr, canvas);
+            RS_OPTIONAL_TRACE_NAME("No cache drawing in advance.");
         } else {
             drawablePtr->GetRenderParams()->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }

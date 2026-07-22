@@ -86,7 +86,7 @@ HWTEST_F(RSNodeCommandTest, MarkLayerTest, TestSize.Level1)
     const std::string debugKey = "rosen.graphic.layerEnabled";
     const std::string oldDebugValue = system::GetParameter(debugKey, "0");
     (void)system::SetParameter(debugKey, "0");
-    EXPECT_TRUE(RSSystemProperties::GetLayerEnabled());
+    EXPECT_FALSE(RSSystemProperties::GetLayerEnabled());
 
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
