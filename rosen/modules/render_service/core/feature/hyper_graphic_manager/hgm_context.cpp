@@ -370,8 +370,8 @@ bool HgmContext::SetHgmExclusiveScreen(pid_t pid, ScreenId screenId)
 {
     bool result = false;
     HgmTaskHandleThread::Instance().ScheduleTask([frameRateManager = frameRateManager_, pid, screenId, &result] {
-            result = frameRateManager->HandleSetHgmExclusiveScreen(pid, screenId);
-        }).wait();
+        result = frameRateManager->HandleSetHgmExclusiveScreen(pid, screenId);
+    }).wait();
     return result;
 }
 
