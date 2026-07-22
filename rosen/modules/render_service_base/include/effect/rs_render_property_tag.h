@@ -45,6 +45,12 @@ using RSRenderAnimatablePropertyTag  = RenderPropertyTagBase<Name, RSRenderAnima
 
 class RSNGRenderMaskBase; // forward declaration, impl in rs_render_mask_base.h
 class RSNGRenderShapeBase; // forward declaration, impl in rs_render_shape_base.h
+// Only MASK_PTR and SHAPE_PTR are defined for effect-internal cross-type references.
+// FILTER_PTR and SHADER_PTR are intentionally NOT defined: self-type-as-property
+// (e.g. a filter holding std::shared_ptr<RSNGRenderFilterBase>) is banned at compile
+// time by static_assert in RSNGRenderEffectTemplate. Only RSNGRenderShapeBase opts in
+// (via allow_self_type_property) because its recursion paths are guarded by
+// RSShapeRecursionGuard. Do NOT add FILTER_PTR/SHADER_PTR here.
 #define MASK_PTR std::shared_ptr<RSNGRenderMaskBase>
 #define SHAPE_PTR std::shared_ptr<RSNGRenderShapeBase>
 #include "effect/rs_render_property_tag_def.in"
