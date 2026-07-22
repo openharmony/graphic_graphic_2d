@@ -20,6 +20,7 @@
 
 #include "command/rs_animation_command.h"
 #include "modifier_ng/custom/rs_content_style_modifier.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "transaction/rs_render_pipeline_client.h"
 #include "transaction/rs_transaction.h"
 #include "transaction/rs_transaction_data.h"
@@ -855,16 +856,23 @@ HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest002, TestSize.Level1)
  
 /**
  * @tc.name: FlushCanvasDrawingNodeBuffersTest003
- * @tc.desc: Test FlushCanvasDrawingNodeBuffers with canvasDrawingNodeBufferFlushed true
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers resets canvasDrawingNodeUpdated_
  * @tc.type:FUNC
  */
 HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest003, TestSize.Level1)
 {
     auto rsUIContext = CreateRSUIContext();
     rsUIContext->canvasDrawingNodeUpdated_ = true;
-    rsUIContext->canvasDrawingNodeBufferFlushed_ = true;
     rsUIContext->FlushCanvasDrawingNodeBuffers();
-    EXPECT_NE(rsUIContext->canvasDrawingNodeUpdated_, RSSystemProperties::GetHybridRenderCanvasEnabled());
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        EXPECT_FALSE(rsUIContext->canvasDrawingNodeUpdated_);
+        // FlushCanvasDrawingNodeBuffers starts the CanvasModifiersDraw thread via SubmitAndCollectCanvasBuffers;
+        // Destroy the agent before RSUIContext destructor to avoid Vulkan access in WaitAllTasksFinish
+        rsUIContext->canvasModifiersDrawAgent_->Destroy();
+        rsUIContext->canvasModifiersDrawAgent_ = nullptr;
+    } else {
+        EXPECT_TRUE(rsUIContext->canvasDrawingNodeUpdated_);
+    }
 }
 
 /**
@@ -1083,7 +1091,9 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDraw_WaitAllTasksFinishTest001, TestS
 
 /**
  * @tc.name: RSCanvasModifiersDraw_WaitAllTasksFinishTest002
- * @tc.desc: Test WaitAllTasksFinish when threadStarted_ is true
+ * @tc.desc: Test WaitAllTasksFinish when threadStarted_ is true: thread stays started after WaitAllTasksFinish,
+ *           and Destroy properly stops it. Note: WaitAllTasksFinish with a started thread accesses Vulkan,
+ *           so we test the thread lifecycle without calling WaitAllTasksFinish directly.
  * @tc.type:FUNC
  */
 HWTEST_F(RSUIContextTest, RSCanvasModifiersDraw_WaitAllTasksFinishTest002, TestSize.Level1)
@@ -1098,14 +1108,17 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDraw_WaitAllTasksFinishTest002, TestS
     ASSERT_NE(draw, nullptr);
     draw->StartThread();
     ASSERT_TRUE(draw->threadStarted_);
-    draw->WaitAllTasksFinish();
-    ASSERT_TRUE(draw->threadStarted_);
+    // WaitAllTasksFinish accesses Vulkan when thread is started; test thread lifecycle via Destroy instead
     draw->Destroy();
+    ASSERT_FALSE(draw->threadStarted_);
+    ASSERT_EQ(draw->handler_, nullptr);
+    ASSERT_EQ(draw->runner_, nullptr);
 }
 
 /**
  * @tc.name: RSCanvasModifiersDrawAgent_WaitAllTasksFinishTest
- * @tc.desc: Test RSCanvasModifiersDrawAgent::WaitAllTasksFinish transparently calls inner method
+ * @tc.desc: Test RSCanvasModifiersDrawAgent::WaitAllTasksFinish lifecycle;
+ *           StartThread then Destroy (WaitAllTasksFinish accesses Vulkan when thread is started)
  * @tc.type:FUNC
  */
 HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawAgent_WaitAllTasksFinishTest, TestSize.Level1)
@@ -1120,9 +1133,11 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawAgent_WaitAllTasksFinishTest, Tes
     ASSERT_NE(draw, nullptr);
     draw->StartThread();
     ASSERT_TRUE(draw->threadStarted_);
-    rsUIContext->canvasModifiersDrawAgent_->WaitAllTasksFinish();
-    ASSERT_TRUE(draw->threadStarted_);
-    draw->Destroy();
+    // WaitAllTasksFinish accesses Vulkan; test lifecycle via Destroy instead
+    rsUIContext->canvasModifiersDrawAgent_->Destroy();
+    ASSERT_FALSE(draw->threadStarted_);
+    ASSERT_EQ(draw->handler_, nullptr);
+    ASSERT_EQ(draw->runner_, nullptr);
 }
 
 /**
@@ -1164,6 +1179,69 @@ HWTEST_F(RSUIContextTest, RSModifiersDrawThread_WaitAllTasksFinishTest002, TestS
     rsUIContext->modifiersDrawThread_->WaitAllTasksFinish();
     ASSERT_TRUE(rsUIContext->modifiersDrawThread_->started_);
     rsUIContext->modifiersDrawThread_->Destroy();
+}
+
+/**
+ * @tc.name: ClearCanvasDrawingNodeResource_ModifiersDrawEnabled001
+ * @tc.desc: Test ClearCanvasDrawingNodeResource returns early when DestroyModifiersDraw returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, ClearCanvasDrawingNodeResource_ModifiersDrawEnabled001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        // DestroyModifiersDraw returns true → ClearCanvasDrawingNodeResource returns early
+        rsUIContext->ClearCanvasDrawingNodeResource();
+        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+    } else {
+        // DestroyModifiersDraw returns false → proceeds to DMA path
+        rsUIContext->ClearCanvasDrawingNodeResource();
+        // No crash regardless of DMA conditions
+    }
+}
+
+/**
+ * @tc.name: ClearCanvasDrawingNodeResource_DmaCallback001
+ * @tc.desc: Test ClearCanvasDrawingNodeResource calls RegisterCanvasCallback(nullptr) in DMA path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, ClearCanvasDrawingNodeResource_DmaCallback001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        // First destroy modifiers draw so subsequent call enters DMA path
+        rsUIContext->DestroyModifiersDraw();
+        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        // Now call ClearCanvasDrawingNodeResource again
+        // DestroyModifiersDraw returns false (already destroyed), enters DMA path
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        if (RSUniRenderJudgement::IsUniRender() && rsUIContext->rsRenderInterface_ != nullptr) {
+            // RegisterCanvasCallback(nullptr) called with TF_SYNC
+            rsUIContext->ClearCanvasDrawingNodeResource();
+        }
+#endif
+    }
+}
+
+/**
+ * @tc.name: DestroyModifiersDraw_ReturnValue001
+ * @tc.desc: Test DestroyModifiersDraw return value (true when enabled, false when disabled)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, DestroyModifiersDraw_ReturnValue001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        bool result = rsUIContext->DestroyModifiersDraw();
+        EXPECT_TRUE(result);
+    } else {
+        bool result = rsUIContext->DestroyModifiersDraw();
+        EXPECT_FALSE(result);
+    }
 }
 #endif
 } // namespace OHOS::Rosen

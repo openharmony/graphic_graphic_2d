@@ -490,7 +490,7 @@ void RSUIDirector::ExecuteGoDestroy(bool isTextureExport)
         // child windows to be unable to find the UIContext during animation callback.
         if (!skipDestroyUIContext_) {
             RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
-            rsUIContext_->DestroyModifiersDraw();
+            rsUIContext_->ClearCanvasDrawingNodeResource();
         }
         rsUIContext_ = nullptr;
     }
