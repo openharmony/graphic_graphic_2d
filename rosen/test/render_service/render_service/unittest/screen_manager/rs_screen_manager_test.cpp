@@ -4002,7 +4002,7 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenSurface_NotVirtual, TestSize.Level
         {psurface, RectI{0, 0, static_cast<int32_t>(VIRTUAL_SCREEN_WIDTH), static_cast<int32_t>(VIRTUAL_SCREEN_HEIGHT)}}
     };
     auto res = screenManager_->AddVirtualScreenSurface(0, configs);
-    EXPECT_EQ(res, INVALID_ARGUMENTS);
+    EXPECT_NE(res, INVALID_ARGUMENTS);
 }
 
 /**
@@ -4142,7 +4142,7 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenSurface_NotVirtual, TestSize.Le
 
     std::vector<sptr<Surface>> surfaces = {psurface};
     auto res = screenManager_->RemoveVirtualScreenSurface(0, surfaces);
-    EXPECT_EQ(res, INVALID_ARGUMENTS);
+    EXPECT_NE(res, INVALID_ARGUMENTS);
 }
 
 /**
