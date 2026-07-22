@@ -640,6 +640,11 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
         static_cast<uint32_t>(srcPixelMap_->GetRowStride()));
     image_ = std::make_shared<Drawing::Image>();
     image_->BuildFromBitmap(bitmap);
+#if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
+    // If image_ release earlier, grContext may release and cause null pointer error
+    // Store image_ pointer to maintain correct image life cycle when use DDGR
+    srcImage_ = image_;
+#endif
 
     Media::InitializationOptions opts;
     opts.size = { srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight() };
@@ -700,8 +705,16 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
 
 EffectImageChain::~EffectImageChain()
 {
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    image_.reset();
+    filters_.reset();
+    canvas_.reset();
+    surface_.reset();
     if (gpuContext_) {
         gpuContext_->ReleaseResourcesAndAbandonContext();
+#if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
+        EffectVulkanContext::ReleaseDrawingContextForThread(gettid());
+#endif
         gpuContext_ = nullptr;
     }
 }
