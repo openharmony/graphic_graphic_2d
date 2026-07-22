@@ -22,15 +22,9 @@ RSDepthRenderParams::RSDepthRenderParams(NodeId id) : RSRenderParams(id) {}
 
 void RSDepthRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
-    OnSyncDepthSpaceParams(target);
-    RSRenderParams::OnSync(target);
-}
-
-void RSDepthRenderParams::OnSyncDepthSpaceParams(const std::unique_ptr<RSRenderParams>& target)
-{
     auto targetDepthParams = static_cast<RSDepthRenderParams*>(target.get());
     if (targetDepthParams == nullptr) {
-        RS_LOGE("RSDepthRenderParams::OnSyncDepthSpaceParams targetDepthParams is null");
+        RS_LOGE("RSDepthRenderParams::OnSync targetDepthParams is null");
         return;
     }
     targetDepthParams->depthImage_ = depthImage_;
@@ -39,6 +33,8 @@ void RSDepthRenderParams::OnSyncDepthSpaceParams(const std::unique_ptr<RSRenderP
     targetDepthParams->depthLightPara_ = depthLightPara_;
     targetDepthParams->imageMatrix_ = imageMatrix_;
     targetDepthParams->backgroundMatrix_ = backgroundMatrix_;
+
+    RSRenderParams::OnSync(target);
 }
 
 void RSDepthRenderParams::SetDepthImage(const std::shared_ptr<Drawing::Image>& depthImage)
