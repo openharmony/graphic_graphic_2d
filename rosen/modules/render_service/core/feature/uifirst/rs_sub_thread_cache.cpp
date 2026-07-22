@@ -932,7 +932,7 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
 
     ClearTotalProcessedSurfaceCount();
     RSRenderNodeDrawable::ClearProcessedNodeCount();
-    if (uifirstParams->IsUIFirstLeashAllEnable()) {
+    if (uifirstParams && uifirstParams->IsUIFirstLeashAllEnable()) {
         RSAutoCanvasRestore acr(rscanvas);
         const auto& localDrawRect = uifirstParams->GetLocalDrawRect();
         rscanvas->Translate(-1 * localDrawRect.GetLeft(), -1 * localDrawRect.GetTop());
