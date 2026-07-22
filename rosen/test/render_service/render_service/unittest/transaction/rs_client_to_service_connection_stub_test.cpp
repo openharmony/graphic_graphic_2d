@@ -587,6 +587,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
         ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH)), ERR_INVALID_STATE);
+    EXPECT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN)),
+        ERR_INVALID_DATA);
 }
 
 /**
@@ -5269,6 +5272,10 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase006, TestSize.Level
     // test SetHgmExclusiveScreen
     connection->SetHgmExclusiveScreen(std::nullopt);
     connection->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
+    auto hgmContext = connection->hgmContext_;
+    connection->hgmContext_ = nullptr;
+    EXPECT_FALSE(connection->SetHgmExclusiveScreen(std::nullopt));
+    connection->hgmContext_ = hgmContext;
     // test NotifyHgmConfigEvent
     connection->NotifyHgmConfigEvent(pkgName, false);
     // test NotifyXComponentExpectedFrameRate
