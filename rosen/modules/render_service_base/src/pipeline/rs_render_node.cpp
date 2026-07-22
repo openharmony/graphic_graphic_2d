@@ -5621,15 +5621,6 @@ void RSRenderNode::NodePostPrepare(
     }
 }
 
-RSDrawable::Vec& RSRenderNode::GetDrawableVec(const char* func) const
-{
-    if (UNLIKELY(!drawableVec_)) {
-        drawableVec_ = std::make_unique<RSDrawable::Vec>();
-        ROSEN_LOGD("drawableVec_ is nullptr, %{public}s", func);
-    }
-    return *drawableVec_;
-}
-
 void RSRenderNode::InitRenderDrawableAndDrawableVec()
 {
     if (renderDrawable_ == nullptr) {
