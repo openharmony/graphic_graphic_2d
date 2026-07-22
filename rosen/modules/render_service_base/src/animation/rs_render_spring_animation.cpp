@@ -107,6 +107,10 @@ void RSRenderSpringAnimation::OnAnimate(float fraction)
         }
         auto zeroValue = startValue_ - startValue_;
         auto velocity = springValueEstimator_->GetPropertyVelocity(prevMappedTime_);
+        if (velocity == nullptr) {
+            ROSEN_LOGE("RSRenderSpringAnimation::OnAnimate, failed to get velocity");
+            return;
+        }
         if ((velocity * FRAME_TIME_INTERVAL)->IsNearEqual(zeroValue, zeroThreshold_)) {
             CallLogicallyFinishCallback();
             needLogicallyFinishCallback_ = false;
