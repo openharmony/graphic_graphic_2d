@@ -323,6 +323,10 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
 {
     ClearError();
     WLOGD("");
+    if (procname == nullptr) {
+        WLOGE("eglGetProcAddress procname is nullptr.");
+        return nullptr;
+    }
     if (gExtensionMap.find(procname) != gExtensionMap.end()) {
         return gExtensionMap.at(procname);
     }
