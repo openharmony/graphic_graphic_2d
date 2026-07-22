@@ -1391,7 +1391,7 @@ void RSClientToRenderConnectionProxy::RegisterCanvasCallback(sptr<RSICanvasSurfa
     MessageParcel reply;
     MessageOption option;
 
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(callback != nullptr ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterCanvasCallback: WriteInterfaceToken GetDescriptor err.");
         return;

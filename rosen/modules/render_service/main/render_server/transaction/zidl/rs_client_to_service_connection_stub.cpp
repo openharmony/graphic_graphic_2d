@@ -194,6 +194,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP),
@@ -3075,6 +3076,21 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetVmaCacheStatus(flag);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D) : {
+            uint32_t mode{0};
+            if (!data.ReadUint32(mode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_UI_MODE_3D read mode failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (mode >= static_cast<uint32_t>(UIMode3D::MODE_TYPE_BUTT)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_UI_MODE_3D invalid mode: %{public}u", mode);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetUIMode3D(static_cast<UIMode3D>(mode));
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP) : {

@@ -192,6 +192,9 @@ void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
 void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId,
     const std::shared_ptr<RSNode>& rsNode)
 {
+    if (!rsNode) {
+        return;
+    }
     std::lock_guard<std::mutex> lock(rsNode->childrenNodeLock_);
     if (rsNode->canvasNodesListMap_.count(symbolSpanId) == 0) {
         rsNode->canvasNodesListMap_[symbolSpanId] = {};

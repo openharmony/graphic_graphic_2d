@@ -316,6 +316,8 @@ public:
 
     ErrCode SetVmaCacheStatus(bool flag) override;
 
+    ErrCode SetUIMode3D(UIMode3D mode) override;
+
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
 

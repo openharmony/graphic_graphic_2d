@@ -15,8 +15,8 @@
 
 #ifndef JS_TEXT_CONTRAST_H
 #define JS_TEXT_CONTRAST_H
-#include <native_engine/native_engine.h>
-#include <native_engine/native_value.h>
+
+#include "napi/native_node_api.h"
 
 namespace OHOS::Rosen::SrvText {
 class JsTextGlobal final {

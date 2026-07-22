@@ -433,7 +433,7 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         repCode = INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
+        return INVALID_ARGUMENTS;
     }
     pipeline->ScheduleMainThreadTask(
         [info, mainThread = pipeline->GetMainThread()]() {
@@ -442,7 +442,7 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
         }
     );
     repCode = SUCCESS;
-    return ERR_OK;
+    return SUCCESS;
 }
 
 namespace {
@@ -1494,6 +1494,7 @@ void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& p
     if (!pipeline) {
         return;
     }
+    pipeline->GetMainThread()->NotifyPackageEvent(packageList);
     pipeline->PostMainThreadTask([renderPipeline = pipeline, packageList] {
         renderPipeline->GetMainThread()->CheckPackageInConfigList(packageList);
         renderPipeline->imageEnhanceManager_->CheckPackageInConfigList(packageList);
@@ -1882,6 +1883,19 @@ void RSRenderPipelineAgent::SetVmaCacheStatus(bool flag)
 #ifdef RS_ENABLE_GPU
     pipeline->GetUniRenderThread()->SetVmaCacheStatus(flag);
 #endif
+}
+
+ErrCode RSRenderPipelineAgent::SetUIMode3D(UIMode3D mode)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = pipeline, mode]() {
+        renderPipeline->GetMainThread()->SetUIMode3D(mode);
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
 }
 
 void RSRenderPipelineAgent::SetBehindWindowFilterEnabled(bool enabled)

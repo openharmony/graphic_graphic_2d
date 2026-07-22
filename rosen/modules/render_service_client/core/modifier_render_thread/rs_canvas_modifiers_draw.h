@@ -67,7 +67,8 @@ public:
 
 private:
     void Reset();
-    void CreateProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface, const std::string& cacheDir);
+    void CreateProducerSurface(
+        std::weak_ptr<RSRenderInterface> weakRenderInterface, const std::string& cacheDir, size_t& maxGpuResourceBytes);
     void ReleaseProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface);
     DestroySemaphoreInfo* ResetSurface(int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
     DestroySemaphoreInfo* UpdateContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer);
@@ -175,6 +176,10 @@ private:
     // End of thread-related members
 
     std::string cacheDir_;
+
+    static inline size_t maxGpuResourceBytes_ = 0;
+
+    bool needRestoreGpuCacheLimit_ = false;
 
     std::unordered_map<NodeId, RSCanvasModifiersDrawable> drawableMap_;
 

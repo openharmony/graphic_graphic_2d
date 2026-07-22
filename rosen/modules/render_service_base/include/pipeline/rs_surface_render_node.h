@@ -285,6 +285,11 @@ public:
             IsLayerTop();
     }
 
+    bool IsHwcLayerType() const override
+    {
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE || IsLayerTop();
+    }
+
     void SetPreSubHighPriorityType(bool priorityType);
 
     bool IsDynamicHardwareEnable() const
@@ -826,6 +831,10 @@ public:
     {
         uifirstState_.forceUpdate = b;
     }
+
+    bool IsFullScreen() const;
+
+    VideoDimType GetVideoDimType() const;
 
     RSUIFirstSwitch GetUIFirstSwitch() const
     {
@@ -1981,6 +1990,10 @@ public:
     {
         return topLayerZOrder_;
     }
+
+    void ResetCompositionType();
+    void SetCompositionType(CompositionType type);
+    CompositionType GetCompositionType() const;
 
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }

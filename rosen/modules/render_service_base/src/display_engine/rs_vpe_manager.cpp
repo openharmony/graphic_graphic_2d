@@ -189,7 +189,8 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
         return nullptr;
     }
 
-    if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE || config.name == "RosenWeb") {
+    if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE || config.name == "RosenWeb" ||
+        config.name == "delegate_child" || config.name == "delegate_child_video") {
         return surface;
     }
 

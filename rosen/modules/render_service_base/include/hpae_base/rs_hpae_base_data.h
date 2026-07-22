@@ -79,7 +79,6 @@ public:
 
     void NotifyBufferUsed(bool status) { bufferUsed_ = status; }
     bool GetBufferUsed() { return bufferUsed_; }
-    void NotifyOfftree(const std::string nodeName, bool isOnTree);
     void SetDesktopOffTree(bool offTree);
     bool GetDesktopOffTree();
     void SetScaleFactor(float factor);

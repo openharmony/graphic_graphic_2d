@@ -28,6 +28,7 @@
 #include "render_server/rs_render_service.h"
 #include "rs_render_composer_manager.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/screen_types.h"
 
 using namespace testing;
@@ -41,6 +42,7 @@ auto& hgmCore = HgmCore::Instance();
 auto frameRateMgr = hgmCore.GetFrameRateMgr();
 // used for ProcessHgmFrameRateTest to prevent crash
 std::shared_ptr<HgmContext> hgmContextForProcess = nullptr;
+sptr<RSScreenManager> screenManagerForProcess = nullptr;
 auto renderService = sptr<RSRenderService>::MakeSptr();
 }
 
@@ -55,6 +57,9 @@ public:
 void HgmContextTest::SetUpTestCase()
 {
     auto rsVSyncDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
+    screenManagerForProcess = sptr<RSScreenManager>::MakeSptr();
+    hgmCore.SetScreenManager(screenManagerForProcess.GetRefPtr());
+    screenManagerForProcess->MockHdiScreenConnected(std::make_shared<RSScreen>(1));
     hgmContextForProcess = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, rsVSyncDistributor);
 }
 
@@ -574,9 +579,6 @@ HWTEST_F(HgmContextTest, AddScreenToHgmTest001, TestSize.Level1)
 HWTEST_F(HgmContextTest, RemoveScreenFromHgmTest001, TestSize.Level1)
 {
     if (frameRateMgr) {
-        auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
-        ASSERT_NE(hgmContext, nullptr);
-
         hgmCore.screenIds_.clear();
         hgmCore.screenList_.clear();
         ASSERT_TRUE(hgmCore.screenIds_.empty());
@@ -585,14 +587,14 @@ HWTEST_F(HgmContextTest, RemoveScreenFromHgmTest001, TestSize.Level1)
         ScreenId id = 1;
         auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
         screenProperty->Set<ScreenPropertyType::ID>(id);
-        hgmContext->AddScreenToHgm(screenProperty);
+        hgmContextForProcess->AddScreenToHgm(screenProperty);
 
         ASSERT_FALSE(hgmCore.screenIds_.empty());
         EXPECT_EQ(hgmCore.screenIds_.back(), id);
         ASSERT_FALSE(hgmCore.screenList_.empty());
         EXPECT_EQ(hgmCore.screenList_.back()->GetId(), id);
 
-        hgmContext->RemoveScreenFromHgm(id);
+        hgmContextForProcess->RemoveScreenFromHgm(id);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
         EXPECT_TRUE(hgmCore.screenIds_.empty());
@@ -865,13 +867,10 @@ HWTEST_F(HgmContextTest, NotifyDynamicModeEventTest001, TestSize.Level1)
  */
 HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest001, TestSize.Level1)
 {
-    auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
-    ASSERT_NE(hgmContext, nullptr);
-
     pid_t pid = 0;
     EventInfo eventInfo;
     eventInfo.eventName = "VOTER_SCENE_BLUR";
-    hgmContext->NotifyRefreshRateEvent(pid, eventInfo);
+    hgmContextForProcess->NotifyRefreshRateEvent(pid, eventInfo);
 }
 
 /**
@@ -882,13 +881,10 @@ HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest001, TestSize.Level1)
  */
 HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest002, TestSize.Level1)
 {
-    auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
-    ASSERT_NE(hgmContext, nullptr);
-
     pid_t pid = 0;
     EventInfo eventInfo;
     eventInfo.eventName = "VOTER_SCENE_GPU";
-    hgmContext->NotifyRefreshRateEvent(pid, eventInfo);
+    hgmContextForProcess->NotifyRefreshRateEvent(pid, eventInfo);
 }
 
 /**
@@ -900,12 +896,9 @@ HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest002, TestSize.Level1)
 HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest003, TestSize.Level1)
 {
     if (frameRateMgr) {
-        auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
-        ASSERT_NE(hgmContext, nullptr);
-
         pid_t pid = 0;
         EventInfo eventInfo;
-        hgmContext->NotifyRefreshRateEvent(pid, eventInfo);
+        hgmContextForProcess->NotifyRefreshRateEvent(pid, eventInfo);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     } else {
@@ -922,12 +915,9 @@ HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest003, TestSize.Level1)
 HWTEST_F(HgmContextTest, NotifyLightFactorStatusTest001, TestSize.Level1)
 {
     if (frameRateMgr) {
-        auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
-        ASSERT_NE(hgmContext, nullptr);
-
         pid_t pid = 0;
         int32_t lightFactorStatus = 0;
-        EXPECT_EQ(hgmContext->NotifyLightFactorStatus(pid, lightFactorStatus), ERR_OK);
+        EXPECT_EQ(hgmContextForProcess->NotifyLightFactorStatus(pid, lightFactorStatus), ERR_OK);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     } else {

@@ -265,6 +265,7 @@ HWTEST_F(RSTransactionDataTest, UnmarshallingCommand011, TestSize.Level1)
     ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: UnmarshallingCommand012
  * @tc.desc: Test UnmarshallingCommand
@@ -292,6 +293,7 @@ HWTEST_F(RSTransactionDataTest, UnmarshallingCommand012, TestSize.Level1)
     parcel.WriteInt32(1); // for test hostPid_
     ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), true);
 }
+#endif
 
 /**
  * @tc.name: Marshalling

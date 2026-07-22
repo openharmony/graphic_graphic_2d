@@ -107,6 +107,7 @@ private:
     std::string surfaceImageName_;
 
     std::mutex opMutex_;
+    std::mutex listenerMutex_;
     std::atomic<bool> updateSurfaceImage_;
 
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;

@@ -1052,6 +1052,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
 // MotionBlurPara
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<MotionBlurParam>& val)
 {
+    if (!val) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling MotionBlurParam val is null");
+        return false;
+    }
     bool success = Marshalling(parcel, val->radius);
     success &= Marshalling(parcel, val->scaleAnchor[0]);
     success &= Marshalling(parcel, val->scaleAnchor[1]);
@@ -2243,7 +2247,7 @@ static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val,
-    uint64_t uniqueId)
+    uint64_t /* uniqueId */)
 {
     if (parcel.ReadInt32() == -1) {
         val = nullptr;
@@ -2268,11 +2272,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         
         return false;
     }
-    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
     OHOS::Media::ImageInfo imageInfo;
     val->GetImageInfo(imageInfo);
     MemoryInfo info = {
-        val->GetByteCount(), pid, 0, val->GetUniqueId(),
+        val->GetByteCount(), static_cast<uint32_t>(g_callingPid), 0, val->GetUniqueId(),
         MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), imageInfo.pixelFormat
     };
 
@@ -2283,7 +2286,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
 #endif
     val->SetFreePixelMapProc(CustomFreePixelMap);
 
-    if (!MemoryTrack::Instance().CheckPixelMapFdCountAndKillProcess(pid)) {
+    if (!MemoryTrack::Instance().CheckPixelMapFdCountAndKillProcess(g_callingPid)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling CheckPixelMapFdCount failed");
         return false;
     }

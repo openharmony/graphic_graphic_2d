@@ -451,4 +451,25 @@ HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_NullSdfRRect, TestSize.L
     EXPECT_FLOAT_EQ(actualRRect.rect_.GetHeight(), 0.f);
 }
 
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SkipNonRRectInner, TestSize.Level1)
+{
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
+    auto existingShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+    ASSERT_NE(existingShape, nullptr);
+    distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(existingShape);
+    distortOpShape->Setter<SDFDistortOpShapeSyncRenderTag>(true, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+
+    RRect sdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
+    NodeId nodeId = 1;
+
+    RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, sdfRRect, nodeId);
+
+    // Inner is kept as-is; no RRect sync attempted on a non-RRect shape.
+    auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
+    EXPECT_EQ(innerShape, existingShape);
+    EXPECT_EQ(innerShape->GetType(), RSNGEffectType::SDF_TRIANGLE_SHAPE);
+}
+
 } // namespace OHOS::Rosen

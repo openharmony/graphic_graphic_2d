@@ -1831,6 +1831,15 @@ void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
     clientToService->SetVmaCacheStatus(flag);
 }
 
+bool RSRenderServiceClient::SetUIMode3D(UIMode3D mode)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return false;
+    }
+    return clientToService->SetUIMode3D(mode) == ERR_OK;
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config,
     TpFeatureConfigType tpFeatureConfigType)

@@ -80,6 +80,9 @@
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+#include "feature/video_3d/rs_tv_shutter_3d_manager.h"
+#endif
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "frame_report.h"
@@ -888,7 +891,7 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
         CleanRenderNodes(pid);
         CleanBrightnessInfoChangeCallbacks(pid);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-        CleanCanvasCallbacksAndPendingBuffer();
+        CleanCanvasCallbacksAndPendingBuffer(pid);
 #endif
         RS_TRACE_END();
     }
@@ -2340,6 +2343,10 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 }
                 return;
             }
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+            UIMode3D uiMode3D = RSMainThread::Instance()->GetUIMode3D();
+            RSTvShutter3DManager::Instance().UpdateSurfaceNodeCompositionType(surfaceNode, uiMode3D);
+#endif
             auto videoHdrStatus = RSHdrUtil::CheckIsHdrSurface(*surfaceNode);
             surfaceNode->ClearHDRVideoStatus();
             surfaceNode->UpdateHDRStatus(videoHdrStatus, true);

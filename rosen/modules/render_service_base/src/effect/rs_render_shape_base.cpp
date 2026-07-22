@@ -216,7 +216,7 @@ void RSNGRenderShapeHelper::FillEmptyDistortOpShape(
         ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, add default SDF_RRECT_SHAPE, node %{public}"
             PRIu64, nodeId);
     }
-    if (sync) {
+    if (sync && innerShape->GetType() == RSNGEffectType::SDF_RRECT_SHAPE) {
         auto defaultShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(innerShape);
         defaultShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
         ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, update SDF_RRECT_SHAPE, node %{public}"

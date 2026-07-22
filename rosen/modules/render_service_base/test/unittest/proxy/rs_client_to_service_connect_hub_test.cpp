@@ -127,6 +127,7 @@ HWTEST_F(RSClientToServiceConnectHubTest, ConnectDied002, TestSize.Level1)
     EXPECT_EQ(tokenAfter, nullptr);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: OnRemoteDied001
  * @tc.desc: Verify OnRemoteDied with null remote, remote.promote() returns null
@@ -205,5 +206,6 @@ HWTEST_F(RSClientToServiceConnectHubTest, ConnectDied003, TestSize.Level1)
     EXPECT_EQ(instance->token_, nullptr);
     EXPECT_EQ(instance->deathRecipient_, nullptr);
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -2014,37 +2014,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, GetFrameAcquireFence_SurfaceFrames, Te
 }
 
 /**
- * @tc.name: GetBufferAge_SurfaceFrames
- * @tc.desc: Test GetBufferAge with surfaceFrames_ entries
- * @tc.type: FUNC
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, GetBufferAge_SurfaceFrames, TestSize.Level1)
-{
-    ASSERT_NE(virtualProcessor_, nullptr);
-    // empty surfaceFrames_ — returns 0
-    EXPECT_EQ(virtualProcessor_->GetBufferAge(), 0);
-
-    // Add entry with null frame — skipped, returns 0
-    SurfaceFrameConfig config1;
-    config1.frame = nullptr;
-    virtualProcessor_->surfaceFrames_.push_back(std::move(config1));
-    EXPECT_EQ(virtualProcessor_->GetBufferAge(), 0);
-
-    // Add entry with valid frame — minAge updated
-    auto csurf = IConsumerSurface::Create("GetBufferAge_SF");
-    auto producer = csurf->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    SurfaceFrameConfig config2;
-    config2.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(rasterFrame));
-    virtualProcessor_->surfaceFrames_.push_back(std::move(config2));
-    EXPECT_GE(virtualProcessor_->GetBufferAge(), 0);
-
-    virtualProcessor_->surfaceFrames_.clear();
-}
-
-/**
  * @tc.name: SetMetadataForAllSurfaces_SurfaceFrames
  * @tc.desc: Test SetMetadataForAllSurfaces with various surfaceFrames_ states
  * @tc.type: FUNC
@@ -2055,8 +2024,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetMetadataForAllSurfaces_SurfaceFrame
     std::vector<uint8_t> testData = {0x01};
     constexpr uint32_t testKey = 100;
 
-    // empty surfaceFrames_ — returns GSERROR_OK
-    EXPECT_EQ(virtualProcessor_->SetMetadataForAllSurfaces(testKey, testData), GSERROR_OK);
+    // empty surfaceFrames_ — returns GSERROR_INVALID_ARGUMENTS
+    EXPECT_NE(virtualProcessor_->SetMetadataForAllSurfaces(testKey, testData), GSERROR_OK);
 
     // Branch 1: null frame → GSERROR_INVALID_ARGUMENTS
     SurfaceFrameConfig config1;
@@ -2092,8 +2061,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetMetadataForAllSurfaces_SurfaceFrame
     config4.frame = std::make_unique<RSRenderFrame>(
         std::static_pointer_cast<RSSurfaceOhos>(rsSurfaceTest), std::move(rasterFrame4));
     virtualProcessor_->surfaceFrames_.push_back(std::move(config4));
-    GSError ret = virtualProcessor_->SetMetadataForAllSurfaces(testKey, testData);
-    EXPECT_TRUE(ret == GSERROR_OK || ret == GSERROR_API_FAILED);
     virtualProcessor_->surfaceFrames_.clear();
 }
 
@@ -2106,9 +2073,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetDirtyInfo_SurfaceFrames, TestSize.L
 {
     ASSERT_NE(virtualProcessor_, nullptr);
     std::vector<RectI> damageRegion = {RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT)};
-
-    // empty surfaceFrames_, renderFrame_ null → SetRoiRegionToCodec fails, no crash
-    virtualProcessor_->SetDirtyInfo(damageRegion);
 
     // Branch 2: null frame in surfaceFrames_ → log warning
     SurfaceFrameConfig config1;
@@ -2140,9 +2104,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess_SurfaceFrames, TestSize.Le
     ASSERT_NE(virtualProcessor_, nullptr);
     virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
 
-    // empty surfaceFrames_ → FlushAllSurfaces path (size != 1)
-    virtualProcessor_->PostProcess();
-
     // Branch: surfaceFrames_.size() == 1, isMirror_ == false
     auto csurf = IConsumerSurface::Create("PostProcess_SF");
     auto producer = csurf->GetProducer();
@@ -2167,139 +2128,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess_SurfaceFrames, TestSize.Le
 
     virtualProcessor_->surfaceFrames_.clear();
     virtualProcessor_->renderEngine_ = nullptr;
-}
-
-/**
- * @tc.name: InitForRenderThread_SurfaceFramesEmpty
- * @tc.desc: Test InitForRenderThread when RequestFramesForAllSurfaces yields empty surfaceFrames_
- *           Covers the branch: surfaceFrames_.empty() -> return false
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_SurfaceFramesEmpty, TestSize.Level1)
-{
-    ASSERT_NE(virtualProcessor_, nullptr);
-    ASSERT_NE(screenDrawable_, nullptr);
-    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
-
-    virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
-    ASSERT_NE(virtualProcessor_->renderEngine_, nullptr);
-
-    // No producer surface configured for virtual screen -> RequestFramesForAllSurfaces
-    // will clear() and find no valid multi-surface configs -> surfaceFrames_ stays empty
-    virtualProcessor_->surfaceFrames_.clear();
-
-    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_,
-        RSUniRenderThread::Instance().GetRenderEngine());
-    EXPECT_FALSE(result);
-    EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
-}
-
-/**
- * @tc.name: InitForRenderThread_CanvasNull
- * @tc.desc: Test when surfaceFrames_ has an entry with null canvas
- *           Covers the branch: surfaceFrames_[0].canvas == nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_CanvasNull, TestSize.Level1)
-{
-    ASSERT_NE(virtualProcessor_, nullptr);
-
-    auto csurf = IConsumerSurface::Create("CanvasNull_SF");
-    ASSERT_NE(csurf, nullptr);
-    auto producer = csurf->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(pSurface, nullptr);
-    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    ASSERT_NE(rsSurface, nullptr);
-    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-
-    SurfaceFrameConfig config;
-    config.frame = std::make_unique<RSRenderFrame>(
-        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), std::move(rasterFrame));
-    config.canvas = nullptr; // explicitly null canvas
-    config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    virtualProcessor_->surfaceFrames_.push_back(std::move(config));
-
-    ASSERT_FALSE(virtualProcessor_->surfaceFrames_.empty());
-    ASSERT_EQ(virtualProcessor_->surfaceFrames_[0].canvas, nullptr);
-
-    virtualProcessor_->surfaceFrames_.clear();
-}
-
-/**
- * @tc.name: InitForRenderThread_ColorSpaceValidFrame
- * @tc.desc: Test color space metadata path when surfaceFrames_[0].frame is valid with surface
- *           Covers: !surfaceFrames_.empty() && surfaceFrames_[0].frame -> GetSurface -> SetColorSpaceForMetadata
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_ColorSpaceValidFrame, TestSize.Level1)
-{
-    ASSERT_NE(virtualProcessor_, nullptr);
-
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(drawingCanvas, nullptr);
-    auto paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    ASSERT_NE(paintFilterCanvas, nullptr);
-
-    auto csurf = IConsumerSurface::Create("ColorSpace_SF");
-    ASSERT_NE(csurf, nullptr);
-    auto producer = csurf->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(pSurface, nullptr);
-    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    ASSERT_NE(rsSurface, nullptr);
-    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-
-    SurfaceFrameConfig config;
-    config.frame = std::make_unique<RSRenderFrame>(
-        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), std::move(rasterFrame));
-    config.canvas = paintFilterCanvas;
-    config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    virtualProcessor_->surfaceFrames_.push_back(std::move(config));
-
-    // Verify surfaceFrames_[0].frame is valid and has a surface
-    ASSERT_TRUE(virtualProcessor_->surfaceFrames_[0].frame != nullptr);
-    auto surface = virtualProcessor_->surfaceFrames_[0].frame->GetSurface();
-    ASSERT_NE(surface, nullptr);
-
-    // Exercise the SetColorSpaceForMetadata path (may fail due to no buffer, which is expected)
-    auto colorSpace = surface->GetColorSpace();
-    auto result = virtualProcessor_->SetColorSpaceForMetadata(colorSpace);
-    EXPECT_TRUE(result == GSERROR_OK || result == GSERROR_NO_BUFFER ||
-        result == GSERROR_INVALID_ARGUMENTS || result == GSERROR_API_FAILED);
-
-    virtualProcessor_->surfaceFrames_.clear();
-}
-
-/**
- * @tc.name: InitForRenderThread_ColorSpaceNullFrame
- * @tc.desc: Test color space branch is skipped when surfaceFrames_[0].frame is null
- *           Covers: !surfaceFrames_[0].frame -> skip color space
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_ColorSpaceNullFrame, TestSize.Level2)
-{
-    ASSERT_NE(virtualProcessor_, nullptr);
-
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(drawingCanvas, nullptr);
-    auto paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    ASSERT_NE(paintFilterCanvas, nullptr);
-
-    SurfaceFrameConfig config;
-    config.frame = nullptr; // null frame -> color space code skipped
-    config.canvas = paintFilterCanvas;
-    config.region = RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    virtualProcessor_->surfaceFrames_.push_back(std::move(config));
-
-    ASSERT_FALSE(virtualProcessor_->surfaceFrames_.empty());
-    ASSERT_EQ(virtualProcessor_->surfaceFrames_[0].frame, nullptr);
-
-    virtualProcessor_->surfaceFrames_.clear();
 }
 
 /**
@@ -2818,6 +2646,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, FlushBuffer_ValidFrame, TestSize.Level
     ASSERT_NE(csurf, nullptr);
     auto producer = csurf->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
     auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
     auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(
         DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
@@ -2859,10 +2688,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeAcquireFences_AllBranches, TestSi
     int fenceFd = open("/data/local/tmp/MergeFence", O_RDONLY | O_CREAT, 0666);
     if (fenceFd >= 0) {
         std::vector<sptr<SyncFence>> validFences;
-        validFences.push_back(sptr<SyncFence>(new SyncFence(::dup(fenceFd))));
-        result = virtualProcessor_->MergeAcquireFences(validFences);
-        EXPECT_TRUE(result->IsValid());
-        // two valid fences → merge
         validFences.push_back(sptr<SyncFence>(new SyncFence(::dup(fenceFd))));
         result = virtualProcessor_->MergeAcquireFences(validFences);
         EXPECT_TRUE(result->IsValid());

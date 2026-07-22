@@ -658,6 +658,10 @@ ohos_unittest("RSBaseRenderUtilTest") {
 ## Build RSUniRenderComposerAdapterTest
 ohos_unittest("RSUniRenderComposerAdapterTest") {
   module_out_path = module_output_path
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
   sources = [ "render_thread/rs_uni_render_composer_adapter_test.cpp" ]
   deps = [
     ":rs_test_common",

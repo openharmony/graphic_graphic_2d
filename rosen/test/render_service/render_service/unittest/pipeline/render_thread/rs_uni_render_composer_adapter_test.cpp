@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "syspara/parameters.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
@@ -54,6 +55,8 @@ public:
 
 void RSUniRenderComposerAdapterTest::SetUpTestCase()
 {
+    // IsSpecialFoldDisplay() caches a static const on first call; set before any code path triggers it.
+    system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
@@ -456,6 +459,93 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer007, TestSize.Level2)
     ASSERT_EQ(layer, nullptr);
 }
 
+
+/**
+ * @tc.name: BuildComposeInfoSpecialFoldDisplay
+ * @tc.desc: Test BuildComposeInfo expands composeRect when IsSpecialFoldDisplay() is true and screen id is 0
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoSpecialFoldDisplay, TestSize.Level2)
+{
+    // IsSpecialFoldDisplay()=true is set in SetUpTestCase ("8,0,0,0").
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto buffer = new SurfaceBufferImpl(0);
+    buffer->SetSurfaceBufferWidth(1920);
+    buffer->SetSurfaceBufferHeight(1200);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, bufferOwnerCount);
+
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
+
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->screenInfo_.activeRect = RectI(0, 100, 1920, 800);
+    params->screenInfo_.id = 0;
+
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+    EXPECT_EQ(composeInfo.srcRect.y, 0);
+    EXPECT_EQ(composeInfo.srcRect.h, 1100);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
+
+/**
+ * @tc.name: BuildComposeInfoSpecialFoldDisplayNonZeroScreenId
+ * @tc.desc: Test BuildComposeInfo skips expand when IsSpecialFoldDisplay() is true but screen id != 0
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoSpecialFoldDisplayNonZeroScreenId, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 1;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto buffer = new SurfaceBufferImpl(0);
+    buffer->SetSurfaceBufferWidth(1920);
+    buffer->SetSurfaceBufferHeight(1200);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, bufferOwnerCount);
+
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
+
+    // IsSpecialFoldDisplay()=true but screen id != 0 -> expand skipped.
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->screenInfo_.activeRect = RectI(0, 100, 1920, 800);
+    params->screenInfo_.id = 1;
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+    EXPECT_EQ(composeInfo.srcRect.y, 100);
+    EXPECT_EQ(composeInfo.dstRect.y, 100);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
 // ==================== DealWithNodeGravity ====================
 
 /**

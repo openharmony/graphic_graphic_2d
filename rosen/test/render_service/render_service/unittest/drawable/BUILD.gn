@@ -114,7 +114,10 @@ ohos_unittest("RSLogicalDisplayRenderNodeDrawableTest") {
       player_framework_enable) {
     defines = [ "RS_PROFILER_ENABLED" ]
   }
-  include_dirs = ["$graphic_2d_root/rosen/modules/render_service_profiler"]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+  ]
   sources = [ "rs_logical_display_render_node_drawable_test.cpp" ]
   deps = [
     ":rs_test_common",

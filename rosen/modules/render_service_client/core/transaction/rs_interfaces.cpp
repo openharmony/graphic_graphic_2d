@@ -660,6 +660,11 @@ int32_t RSInterfaces::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
     return renderServiceClient_->SetScreenGamutMap(id, mode);
 }
 
+bool RSInterfaces::SetUIMode3D(UIMode3D mode)
+{
+    return renderServiceClient_->SetUIMode3D(mode);
+}
+
 int32_t RSInterfaces::SetScreenCorrection(ScreenId id, ScreenRotation screenRotation)
 {
     return renderServiceClient_->SetScreenCorrection(id, screenRotation);
@@ -857,11 +862,11 @@ int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-void RSRenderInterface::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+void RSInterfaces::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
 }
 
-int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
+int32_t RSInterfaces::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
     return 0;

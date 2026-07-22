@@ -155,6 +155,7 @@ public:
         std::vector<PixelMapInfo>& pixelMapInfoVector);
     float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
     void SetVmaCacheStatus(bool flag);
+    ErrCode SetUIMode3D(UIMode3D mode);
     ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success, uint32_t rowCount = 0, uint32_t colCount = 0);
     ErrCode SetUifirstScale(float scaleFactor);

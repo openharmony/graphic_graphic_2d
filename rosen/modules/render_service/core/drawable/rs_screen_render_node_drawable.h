@@ -178,7 +178,7 @@ private:
     void CheckHpaeBlurRun(bool isHdrOn);
 
     bool CheckScreenFreezeSkip(RSScreenRenderParams& params);
-    
+
     // hpae offline
     void CheckAndPostAsyncProcessOfflineTask();
     bool ProcessOfflineSurfaceDrawable(const std::shared_ptr<RSProcessor>& processor,
@@ -228,9 +228,13 @@ private:
     std::vector<RectI> lastDamageRegionrects_;
     bool lastIsRegionClipped_ = false;
 #endif
-
     friend class RSMultiScreenUtil;
 };
+
+void DrawEdgeGradientStrip(RSPaintFilterCanvas& canvas, float left, float top, float right, float bottom,
+    float gradStartY, float gradEndY);
+void DrawVerticalEdgeGradients(RSPaintFilterCanvas& canvas, const RectI& activeRect, int32_t canvasWidth,
+    int32_t canvasHeight);
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_DRAWABLE_RS_SCREEN_RENDER_NODE_DRAWABLE_H

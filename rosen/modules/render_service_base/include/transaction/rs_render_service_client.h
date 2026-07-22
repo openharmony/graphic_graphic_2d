@@ -395,6 +395,8 @@ public:
 
     void SetVmaCacheStatus(bool flag);
 
+    bool SetUIMode3D(UIMode3D mode);
+
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);

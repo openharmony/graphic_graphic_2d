@@ -23,6 +23,7 @@
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_coverage_ng_shader_drawable.h"
+#include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_overlay_ng_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
@@ -5241,6 +5242,52 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterRenderContextInSkippedSubTree003, TestSiz
     node->UpdateFilterRenderContextInSkippedSubTree(*subTreeRoot, INVALID_NODEID, clipRect, clipRect, filterContext);
 
     EXPECT_EQ(filterContext.absMatrix.Get(0), identityMatrix.Get(0));
+}
+
+/**
+ * @tc.name: GetDrawableVecTest001
+ * @tc.desc: Test GetDrawableVec lazy initialization and reference stability
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetDrawableVecTest001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->drawableVec_, nullptr);
+
+    auto& vec1 = node->GetDrawableVec(__func__);
+    ASSERT_NE(node->drawableVec_, nullptr);
+    EXPECT_FALSE(vec1.empty());
+
+    auto& vec2 = node->GetDrawableVec(__func__);
+    EXPECT_EQ(&vec1, &vec2);
+
+    auto drawable = std::make_shared<DrawableTest>();
+    vec1[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = drawable;
+    EXPECT_EQ(vec2[static_cast<int8_t>(RSDrawableSlot::SHADOW)], drawable);
+}
+
+/**
+ * @tc.name: GetDrawableVecTest002
+ * @tc.desc: Test GetDrawableVec on RSRootRenderNode (inherited inline method)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetDrawableVecTest002, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto rootRenderNode = std::make_shared<RSRootRenderNode>(0, context);
+    ASSERT_NE(rootRenderNode, nullptr);
+    ASSERT_EQ(rootRenderNode->drawableVec_, nullptr);
+
+    auto& vec = rootRenderNode->GetDrawableVec(__func__);
+    ASSERT_NE(rootRenderNode->drawableVec_, nullptr);
+    EXPECT_FALSE(vec.empty());
+
+    auto childrenDrawable = std::make_shared<DrawableV2::RSChildrenDrawable>();
+    vec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] = childrenDrawable;
+    EXPECT_EQ(vec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)], childrenDrawable);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -535,7 +535,7 @@ void MemoryTrack::RemovePictureRecord(const void* addr)
     }
 }
 
-bool MemoryTrack::CheckPixelMapFdCountAndKillProcess(uint32_t pid)
+bool MemoryTrack::CheckPixelMapFdCountAndKillProcess(pid_t pid)
 {
     return pixelMapFdTracker_.CheckFdRecordAndKillProcess(static_cast<int32_t>(pid));
 }

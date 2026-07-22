@@ -152,6 +152,8 @@ private:
     std::pair<const std::shared_ptr<RSRenderNode>, const std::shared_ptr<RSRenderAnimation>>;
     static NodeAndAnimationPair GetNodeAndAnimation(
     RSContext& context, NodeId& nodeId, AnimationId& animId, const char* funcName);
+    static bool IsAnimationsPidValid(const RSContext& context, InteractiveImplictAnimatorId callerId,
+        const std::vector<std::pair<NodeId, AnimationId>>& animations, const char* funcName);
 };
 
 // animation operation

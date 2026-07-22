@@ -328,6 +328,70 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
 }
 
 /**
+ * @tc.name: MarshallingAndUnmarshalling003
+ * @tc.desc: Test the Unmarshalling method handles valid type but
+ *           OnUnmarshalling fails when parcel data is insufficient
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling003, TestSize.Level1)
+{
+    Parcel invalidDataParcel;
+    RSMarshallingHelper::Marshalling(invalidDataParcel,
+        static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::BLUR));
+    std::shared_ptr<RSNGRenderFilterBase> invalidDataFilter;
+    bool ret = RSNGRenderFilterBase::Unmarshalling(invalidDataParcel, invalidDataFilter);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: MaskUnmarshalling001
+ * @tc.desc: Test Mask Unmarshalling with invalid type (Create returns nullptr)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, MaskUnmarshalling001, TestSize.Level1)
+{
+    Parcel noneParcel;
+    RSMarshallingHelper::Marshalling(noneParcel,
+        static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::NONE));
+    std::shared_ptr<RSNGRenderMaskBase> noneMask;
+    bool ret = RSNGRenderMaskBase::Unmarshalling(noneParcel, noneMask);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(noneMask, nullptr);
+}
+
+/**
+ * @tc.name: MaskUnmarshalling002
+ * @tc.desc: Test Mask Unmarshalling with valid type but insufficient property data
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, MaskUnmarshalling002, TestSize.Level1)
+{
+    Parcel invalidDataParcel;
+    RSMarshallingHelper::Marshalling(invalidDataParcel,
+        static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::RIPPLE_MASK));
+    std::shared_ptr<RSNGRenderMaskBase> invalidDataMask;
+    bool ret = RSNGRenderMaskBase::Unmarshalling(invalidDataParcel, invalidDataMask);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: MaskUnmarshalling003
+ * @tc.desc: Test Mask normal Marshalling and Unmarshalling
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, MaskUnmarshalling003, TestSize.Level1)
+{
+    auto mask = std::make_shared<RSNGRenderRippleMask>();
+    Parcel parcel;
+    EXPECT_TRUE(mask->Marshalling(parcel));
+    std::shared_ptr<RSNGRenderMaskBase> outMask;
+    bool ret = RSNGRenderMaskBase::Unmarshalling(parcel, outMask);
+    EXPECT_TRUE(ret);
+    EXPECT_NE(outMask, nullptr);
+    EXPECT_EQ(outMask->GetType(), RSNGEffectType::RIPPLE_MASK);
+}
+
+/**
  * @tc.name: AttachDetach001
  * @tc.desc: Test the Attach and Detach methods can
  *           correctly manage the node association with properties of a single filter

@@ -467,7 +467,6 @@ void RSUIDirector::Destroy(bool isTextureExport)
     RS_LOGI("RSUIDirector::Destroy CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     ExecuteGoDestroy(isTextureExport);
-    AddUIDirectorCommand<RSUIDirectorGoDestroy>();
     currentUIDirectorState_ = RSUIDirectorLifecycleState::DESTROYED;
 }
 
@@ -481,13 +480,17 @@ void RSUIDirector::ExecuteGoDestroy(bool isTextureExport)
         }
         rootNode_.reset();
     }
+    GoBackground(isTextureExport);
+    // The GoDestroy command must be added after the GoBackground command above and before
+    // rsUIContext_ is reset below, so the command order matches the lifecycle states.
+    AddUIDirectorCommand<RSUIDirectorGoDestroy>();
     if (rsUIContext_ != nullptr) {
         // When a child window reuses the instance of the parent window, do not remove the UIContext from the
         // UIContextManager when the child window is destroyed, as this would cause the parent window or newly created
         // child windows to be unable to find the UIContext during animation callback.
         if (!skipDestroyUIContext_) {
             RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
-            rsUIContext_->DestroyModifiersDraw();
+            rsUIContext_->ClearCanvasDrawingNodeResource();
         }
         rsUIContext_ = nullptr;
     }
@@ -620,11 +623,14 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (rsUIContext_ == nullptr) {
+    if (cacheDir_.empty()) {
         return;
     }
-    if (cacheDir_.empty()) {
+    if (!isUniRenderEnabled_) {
+        RSRenderThread::Instance().SetCacheDir(cacheDir_);
+    }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (rsUIContext_ == nullptr) {
         return;
     }
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {

@@ -204,7 +204,7 @@ void RSRenderService::FeatureComponentInit()
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
         RsVulkanContext::SetRecyclable(false);
-        RS_LOGT("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
+        RS_LOGD("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
         RsVulkanContext::SetIsMultiProcess(renderModeConfig_->GetIsMultiProcessModeEnabled());
     }
 #endif

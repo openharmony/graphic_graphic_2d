@@ -372,6 +372,8 @@ public:
 
     virtual ErrCode SetVmaCacheStatus(bool flag) = 0;
 
+    virtual ErrCode SetUIMode3D(UIMode3D mode) = 0;
+
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
 

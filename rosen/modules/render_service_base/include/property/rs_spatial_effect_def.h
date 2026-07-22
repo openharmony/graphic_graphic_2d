@@ -26,8 +26,15 @@ namespace OHOS {
 namespace Rosen {
 
 enum class DepthSpaceType : int16_t {
+    DEPTH_SPACE_TYPE_MIN = 0,
     INSTANCE = 0,
-    GLOBAL = 1
+    GLOBAL = 1,
+    DEPTH_SPACE_TYPE_MAX = 1,
+};
+
+enum class SpatialEffectMode : int16_t {
+    WORLD_XYZ_MODE = 0,
+    NDC_XY_WORLD_Z_MODE = 1
 };
 
 struct DepthCameraPara {
@@ -86,6 +93,8 @@ struct SpatialEffectPara {
     };
 
     float occlusionWeight = 0.0f;
+    CornerPositions xyzCorners;
+    SpatialEffectMode spatialEffectMode = SpatialEffectMode::WORLD_XYZ_MODE;
 
     SpatialEffectPara() {};
     ~SpatialEffectPara() {};
@@ -97,6 +106,8 @@ struct SpatialEffectPara {
         leftBottom = other.leftBottom;
         rightBottom = other.rightBottom;
         occlusionWeight = other.occlusionWeight;
+        spatialEffectMode = other.spatialEffectMode;
+        xyzCorners = other.xyzCorners;
         return *this;
     }
 
@@ -104,13 +115,16 @@ struct SpatialEffectPara {
     {
         return leftTop == other.leftTop && rightTop == other.rightTop &&
             leftBottom == other.leftBottom && rightBottom == other.rightBottom &&
-            ROSEN_EQ(occlusionWeight, other.occlusionWeight);
+            ROSEN_EQ(occlusionWeight, other.occlusionWeight) &&
+            spatialEffectMode == other.spatialEffectMode;
     }
 };
 
 struct SpatialEffectVariantPara {
     std::variant<float, SpatialEffectPara::CornerPositions> position;
     float occlusionWeight = 0.0f;
+    SpatialEffectMode spatialEffectMode = SpatialEffectMode::WORLD_XYZ_MODE;
+    SpatialEffectPara::CornerPositions xyzCornerPoints = {};
 
     SpatialEffectVariantPara() = default;
 
@@ -124,12 +138,15 @@ struct SpatialEffectVariantPara {
     {
         position = spatialEffectPara.corners;
         occlusionWeight = spatialEffectPara.occlusionWeight;
+        spatialEffectMode = spatialEffectPara.spatialEffectMode;
+        xyzCornerPoints = spatialEffectPara.xyzCorners;
     }
 
     bool operator==(const SpatialEffectVariantPara& other) const
     {
         if (std::holds_alternative<float>(position) && std::holds_alternative<float>(other.position)) {
-            return ROSEN_EQ(position, other.position) && ROSEN_EQ(occlusionWeight, other.occlusionWeight);
+            return ROSEN_EQ(position, other.position) && ROSEN_EQ(occlusionWeight, other.occlusionWeight)
+                && ROSEN_EQ(spatialEffectMode, other.spatialEffectMode);
         }
 
         if (std::holds_alternative<SpatialEffectPara::CornerPositions>(position) &&

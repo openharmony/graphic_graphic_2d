@@ -291,6 +291,50 @@ float RSScreenRenderNode::GetDisplayGlobalZOrder() const
     return screenParams->GetGlobalZOrder();
 }
 
+void RSScreenRenderNode::SetVideoDimType(VideoDimType videoDimType)
+{
+    if (videoDimType_ == videoDimType) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::SetVideoDimType screenParams is null");
+        return;
+    }
+    videoDimType_ = videoDimType;
+    screenParams->SetVideoDimType(videoDimType);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+VideoDimType RSScreenRenderNode::GetVideoDimType() const
+{
+    return videoDimType_;
+}
+
+void RSScreenRenderNode::SetUIMode3D(UIMode3D uiMode3D)
+{
+    if (uiMode3D_ == uiMode3D) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::SetUIMode3D screenParams is null");
+        return;
+    }
+    uiMode3D_ = uiMode3D;
+    screenParams->SetUIMode3D(uiMode3D);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+UIMode3D RSScreenRenderNode::GetUIMode3D() const
+{
+    return uiMode3D_;
+}
+
 void RSScreenRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
 {
     dirtyManager_->SetBufferAge(bufferage);

@@ -639,6 +639,12 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     screenNode->screenInfo_.phyWidth = 1000;
     screenNode->screenInfo_.phyHeight = 2000;
     RSHpaeManager::GetInstance().RegisterHpaeCallback(node4, screenNode);
+    ASSERT_EQ(RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode, false);
+
+    Vector2f greyCoef(0.1f, 0.1f);
+    node4.renderProperties_.SetGreyCoef(greyCoef);
+    RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode = false;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node4, screenNode);
     ASSERT_EQ(RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode, true);
 
     Vector4f stretchSize(0.1f, 0.1f, 0.1f, 0.1f);
@@ -735,7 +741,12 @@ HWTEST_F(RSHpaeManagerTest, IsHpaeBlurNodeTest, TestSize.Level1)
     node5.renderProperties_.backgroundFilter_ = backgroundFilter5;
     RectI rect1{0, 0, 1000, 2000};
     node5.renderProperties_.boundsGeo_->absRect_ = rect1;
+    ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node5, 1000, 2000) == false);
+
+    Vector2f greyCoef(0.1f, 0.1f);
+    node5.renderProperties_.SetGreyCoef(greyCoef);
     ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node5, 1000, 2000) == true);
+
     RectI rect2{0, 0, 500, 2000};
     node5.renderProperties_.boundsGeo_->absRect_ = rect2;
     ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node5, 1000, 2000) == false);
