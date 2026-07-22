@@ -245,19 +245,26 @@ HWTEST_F(HgmHardwareUtilsTest, SwitchRefreshRateTest, TestSize.Level1)
     hgmCore.AddScreen(SCREEN_ID, 0, sSize, isSelfOwnedScreen);
     auto screen = hgmCore.GetScreen(SCREEN_ID);
     screen->SetSelfOwnedScreenFlag(true);
-
-    hgmCore.hgmFrameRateMgr_->hgmExclusiveScreenId_.store(SCREEN_IDINVALID);
-    hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
-
-    hgmCore.hgmFrameRateMgr_->hgmExclusiveScreenId_.store(SCREEN_ID);
-    hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
-
-    hgmCore.hgmFrameRateMgr_->hgmExclusiveScreenId_.store(INVALID_SCREEN_ID);
     hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
 
     hgmCore.SetScreenManager(screenManager.GetRefPtr());
     hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
 
+    if (RSSystemProperties::IsFoldDeviceOfOldDss()) {
+        hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
+
+        auto rsScreen = std::make_shared<RSScreen>(SCREEN_ID);
+        rsScreen->hdiScreen_ = HdiScreen::CreateHdiScreen(SCREEN_ID);
+        rsScreen->property_.SetPowerStatus(ScreenPowerStatus::POWER_STATUS_ON);
+        screenManager->screens_[SCREEN_ID] = rsScreen;
+        hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
+        
+        rsScreen->property_.SetPowerStatus(ScreenPowerStatus::POWER_STATUS_OFF);
+        hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
+        
+        rsScreen->property_.SetPowerStatus(ScreenPowerStatus::POWER_STATUS_SUSPEND);
+        hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
+    }
     hgmCore.SetScreenManager(orgScmFromHgm);
 }
 
