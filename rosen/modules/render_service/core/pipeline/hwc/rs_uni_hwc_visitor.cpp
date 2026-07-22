@@ -887,7 +887,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     }
 }
 
-#ifdef HVE_ENABLE
+#ifdef HVE_BLUR_ENABLE
 bool RSUniHwcVisitor::IsHveBlurFilterEnabled(
     const RSRenderNode& filterNode, const RectI& filterRect, RSSurfaceRenderNode& hwcNode)
 {
@@ -1008,7 +1008,7 @@ void RSUniHwcVisitor::CheckHwcNodeFilterIntersection(
                 continue;
             }
         }
-        #ifdef HVE_ENABLE
+        #ifdef HVE_BLUR_ENABLE
         if (IsHveBlurFilterEnabled(*filterNode, filter->second, *hwcNode)) {
             continue;
         }
