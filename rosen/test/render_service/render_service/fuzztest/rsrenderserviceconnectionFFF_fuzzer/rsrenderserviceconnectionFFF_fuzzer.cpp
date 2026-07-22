@@ -81,6 +81,7 @@ const uint8_t DO_NOTIFY_LIGHT_FACTOR_STATUS = 0;
 const uint8_t DO_NOTIFY_PACKAGE_EVENT = 1;
 const uint8_t DO_NOTIFY_REFRESH_RATE_EVENT = 2;
 const uint8_t DO_NOTIFY_DYNAMIC_MODE_EVENT = 3;
+const uint8_t DO_SET_HGM_EXCLUSIVE_SCREEN = 12;
 const uint8_t DO_NOTIFY_SOFT_VSYNC_EVENT = 4;
 const uint8_t DO_NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT = 5;
 const uint8_t DO_NOTIFY_HGMCONFIG_EVENT = 6;
@@ -89,7 +90,7 @@ const uint8_t DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 8;
 const uint8_t DO_SET_BEHIND_WINDOW_FILTER_ENABLED = 9;
 const uint8_t GET_REFRESH_INFO_BY_PID_AND_UNIQUEID = 10;
 const uint8_t DO_NOTIFY_WINDOW_MODE_TYPE_EVENT = 11;
-const uint8_t TARGET_SIZE = 12;
+const uint8_t TARGET_SIZE = 13;
 const uint16_t TASK_WAIT_MICROSECONDS = 50000;
 const uint32_t WAIT_TASK_RUN_TIME_NS = 10000;
 
@@ -262,7 +263,23 @@ void DoNotifyDynamicModeEvent()
     g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
 }
 
-void DoNotifySoftVsyncEvent()
+void DoSetHgmExclusiveScreen()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint64_t screenId = GetData<uint64_t>();
+    dataP.WriteUint64(screenId);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
+    if (g_serviceConnection == nullptr) {
+        return;
+    }
+    g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
+}
 {
     MessageParcel dataP;
     MessageParcel reply;
@@ -663,6 +680,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_NOTIFY_DYNAMIC_MODE_EVENT:
             OHOS::Rosen::DoNotifyDynamicModeEvent();
+            break;
+        case OHOS::Rosen::DO_SET_HGM_EXCLUSIVE_SCREEN:
+            OHOS::Rosen::DoSetHgmExclusiveScreen();
             break;
         case OHOS::Rosen::DO_NOTIFY_SOFT_VSYNC_EVENT:
             OHOS::Rosen::DoNotifySoftVsyncEvent();

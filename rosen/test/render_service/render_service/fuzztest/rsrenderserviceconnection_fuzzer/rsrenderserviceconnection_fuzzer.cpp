@@ -1227,6 +1227,20 @@ bool DONotifyDynamicModeEvent()
     return true;
 }
 
+bool DOSetHgmExclusiveScreen()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    uint64_t screenId = GetData<uint64_t>();
+    std::optional<ScreenId> optScreenId;
+    if (screenId != INVALID_SCREEN_ID) {
+        optScreenId = screenId;
+    }
+    rsToServiceConn_->SetHgmExclusiveScreen(optScreenId);
+    return true;
+}
+
 bool DONotifyHgmConfigEvent()
 {
     if (rsToServiceConn_ == nullptr) {
@@ -1662,6 +1676,7 @@ void DoFuzzerTest2()
     DONotifyRefreshRateEvent();
     DONotifyTouchEvent();
     DONotifyDynamicModeEvent();
+    DOSetHgmExclusiveScreen();
     DOSetCacheEnabledForRotation();
     DOSetOnRemoteDiedCallback();
     DOSetVmaCacheStatus();

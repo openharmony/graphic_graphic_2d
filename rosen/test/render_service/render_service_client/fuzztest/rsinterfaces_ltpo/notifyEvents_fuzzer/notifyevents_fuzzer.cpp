@@ -37,7 +37,8 @@ const uint8_t DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 5;
 const uint8_t DO_NOTIFY_TOUCH_EVENT = 6;
 const uint8_t DO_NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE = 7;
 const uint8_t DO_NOTIFY_WINDOW_MODE_TYPE_EVENT = 8;
-const uint8_t TARGET_SIZE = 9;
+const uint8_t DO_SET_HGM_EXCLUSIVE_SCREEN = 9;
+const uint8_t TARGET_SIZE = 10;
 constexpr size_t STR_LEN = 10;
 
 void DoNotifyLightFactorStatus(FuzzedDataProvider& fdp)
@@ -72,6 +73,16 @@ void DoNotifyDynamicModeEvent(FuzzedDataProvider& fdp)
 {
     bool enableDynamicMode = fdp.ConsumeBool();
     g_rsInterfaces->NotifyDynamicModeEvent(enableDynamicMode);
+}
+
+void DoSetHgmExclusiveScreen(FuzzedDataProvider& fdp)
+{
+    uint64_t screenId = fdp.ConsumeIntegral<uint64_t>();
+    std::optional<ScreenId> optScreenId;
+    if (screenId != INVALID_SCREEN_ID) {
+        optScreenId = screenId;
+    }
+    g_rsInterfaces->SetHgmExclusiveScreen(optScreenId);
 }
 
 void DoNotifyAppStrategyConfigChangeEvent(FuzzedDataProvider& fdp)
@@ -166,6 +177,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_NOTIFY_WINDOW_MODE_TYPE_EVENT:
             OHOS::Rosen::DoNotifyWindowModeTypeEvent(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_HGM_EXCLUSIVE_SCREEN:
+            OHOS::Rosen::DoSetHgmExclusiveScreen(fdp);
             break;
         default:
             return -1;

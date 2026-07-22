@@ -858,6 +858,38 @@ HWTEST_F(HgmContextTest, NotifyDynamicModeEventTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHgmExclusiveScreenTest001
+ * @tc.desc: test SetHgmExclusiveScreen with valid screenId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, SetHgmExclusiveScreenTest001, TestSize.Level1)
+{
+    if (frameRateMgr) {
+        auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+        ASSERT_NE(hgmContext, nullptr);
+        bool result = hgmContext->SetHgmExclusiveScreen(getpid(), INVALID_SCREEN_ID);
+        EXPECT_TRUE(result);
+    } else {
+        EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
+    }
+}
+
+/**
+ * @tc.name: SetHgmExclusiveScreenTest002
+ * @tc.desc: test SetHgmExclusiveScreen with nullptr frameRateManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, SetHgmExclusiveScreenTest002, TestSize.Level1)
+{
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+    bool result = hgmContext->SetHgmExclusiveScreen(getpid(), INVALID_SCREEN_ID);
+    EXPECT_FALSE(result);
+}
+
+/**
  * @tc.name: NotifyRefreshRateEventTest001
  * @tc.desc: test NotifyRefreshRateEvent when eventName is VOTER_SCENE_BLUR
  * @tc.type: FUNC

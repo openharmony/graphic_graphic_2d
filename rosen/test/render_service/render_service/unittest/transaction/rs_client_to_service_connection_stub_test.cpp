@@ -5266,6 +5266,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase006, TestSize.Level
     connection->vsyncManagerAgent_ = vsyncManagerAgent;
     // test NotifyDynamicModeEvent
     connection->NotifyDynamicModeEvent(false);
+    // test SetHgmExclusiveScreen
+    connection->SetHgmExclusiveScreen(std::nullopt);
+    connection->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
     // test NotifyHgmConfigEvent
     connection->NotifyHgmConfigEvent(pkgName, false);
     // test NotifyXComponentExpectedFrameRate
