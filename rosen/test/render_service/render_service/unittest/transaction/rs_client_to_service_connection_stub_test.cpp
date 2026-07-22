@@ -5276,39 +5276,38 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase006, TestSize.Level
     connection->ResizeVirtualScreen(INVALID_SCREEN_ID, 0, 0);
     // test ReportJankStats
     connection->ReportJankStats();
-    // test NotifyLightFactorStatus
+
     connection->NotifyLightFactorStatus(0);
-    // test NotifyAppStrategyConfigChangeEvent
+
     const std::string pkgName = "";
     const std::vector<std::pair<std::string, std::string>> newConfig = {};
     connection->NotifyAppStrategyConfigChangeEvent(pkgName, 0, newConfig);
-    // test NotifyRefreshRateEvent
+
     EventInfo eventInfo;
     connection->NotifyRefreshRateEvent(eventInfo);
-    // tese SetWindowExpectedRefreshRate
+
     const std::unordered_map<uint64_t, EventInfo> eventInfos = {};
     connection->SetWindowExpectedRefreshRate(eventInfos);
-    // test SetWindowExpectedRefreshRate
+
     std::unordered_map<std::string, EventInfo> refreshRateEventInfos = {};
     connection->SetWindowExpectedRefreshRate(refreshRateEventInfos);
-    // test NotifySoftVsyncRateDiscountEvent
+
     connection->NotifySoftVsyncRateDiscountEvent(0, pkgName, 0);
-    // test NotifyTouchEvent
+
     connection->vsyncManagerAgent_ = nullptr;
     connection->NotifyTouchEvent(0, 0, 0);
     connection->vsyncManagerAgent_ = vsyncManagerAgent;
-    // test NotifyDynamicModeEvent
+
     connection->NotifyDynamicModeEvent(false);
-    // test SetHgmExclusiveScreen
+
     connection->SetHgmExclusiveScreen(std::nullopt);
     connection->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
     auto hgmContext = connection->hgmContext_;
     connection->hgmContext_ = nullptr;
     EXPECT_FALSE(connection->SetHgmExclusiveScreen(std::nullopt));
     connection->hgmContext_ = hgmContext;
-    // test NotifyHgmConfigEvent
     connection->NotifyHgmConfigEvent(pkgName, false);
-    // test NotifyXComponentExpectedFrameRate
+
     connection->NotifyXComponentExpectedFrameRate(pkgName, 0);
     // test ReportEventResponse and ReportEventComplete and ReportEventJankFrame
     DataBaseRs responseInfo;
