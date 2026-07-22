@@ -294,7 +294,8 @@ HWTEST_F(RSModifierExtractorTest, GetShadowDisableSDFBlur, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetShadowAlphaWithAndWithoutUIContext, TestSize.Level1)
 {
     constexpr float contextAlpha = 0.25f;
-    auto context = std::make_shared<RSUIContext>(1);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto context = std::make_shared<RSUIContext>(1, connectToRenderRemote);
     auto contextNode = RSCanvasNode::Create(false, false, context);
     contextNode->SetShadowAlpha(contextAlpha);
     RSModifierExtractor contextExtractor(contextNode->GetId(), context);
