@@ -231,8 +231,9 @@ EGLDisplay EglGetCurrentDisplayImpl(void)
     EGLContext ctx = ThreadPrivateDataCtl::GetContext();
     if (ctx) {
         EglWrapperContext *ctxPtr = EglWrapperContext::GetWrapperContext(ctx);
-        if (ctxPtr == nullptr) {
+        if (ctxPtr == nullptr || !EglWrapperDisplay::ValidateEglContext(ctx)) {
             WLOGE("current is bad context.");
+            ThreadPrivateDataCtl::SetContext(nullptr);
             ThreadPrivateDataCtl::SetError(EGL_BAD_CONTEXT);
             return EGL_NO_DISPLAY;
         }
