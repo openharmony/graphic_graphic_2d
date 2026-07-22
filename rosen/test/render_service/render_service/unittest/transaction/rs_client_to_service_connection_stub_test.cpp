@@ -5276,30 +5276,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase006, TestSize.Level
     connection->ResizeVirtualScreen(INVALID_SCREEN_ID, 0, 0);
     // test ReportJankStats
     connection->ReportJankStats();
-    // test NotifyAppStrategyConfigChangeEvent
-    const std::string pkgName = "";
-    const std::vector<std::pair<std::string, std::string>> newConfig = {};
-    connection->NotifyAppStrategyConfigChangeEvent(pkgName, 0, newConfig);
-    // test NotifyRefreshRateEvent
-    EventInfo eventInfo;
-    connection->NotifyRefreshRateEvent(eventInfo);
-    // tese SetWindowExpectedRefreshRate
-    const std::unordered_map<uint64_t, EventInfo> eventInfos = {};
-    connection->SetWindowExpectedRefreshRate(eventInfos);
-    // test SetWindowExpectedRefreshRate
-    std::unordered_map<std::string, EventInfo> refreshRateEventInfos = {};
-    connection->SetWindowExpectedRefreshRate(refreshRateEventInfos);
-    // test NotifyTouchEvent
-    connection->vsyncManagerAgent_ = nullptr;
-    connection->NotifyTouchEvent(0, 0, 0);
-    connection->vsyncManagerAgent_ = vsyncManagerAgent;
-    // test SetHgmExclusiveScreen
-    connection->SetHgmExclusiveScreen(std::nullopt);
-    connection->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
-    auto hgmContext = connection->hgmContext_;
-    connection->hgmContext_ = nullptr;
-    EXPECT_FALSE(connection->SetHgmExclusiveScreen(std::nullopt));
-    connection->hgmContext_ = hgmContext;
     // test ReportEventResponse and ReportEventComplete and ReportEventJankFrame
     DataBaseRs responseInfo;
     connection->ReportEventResponse(responseInfo);
@@ -5435,6 +5411,49 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase008, TestSize.Level
     // test GetPidGpuMemoryInMB
     float gpuMemInMB = 0.0;
     connection->GetPidGpuMemoryInMB(0, gpuMemInMB);
+}
+
+/**
+ * @tc.name: testnullptrCase009
+ * @tc.desc: Test testnullptrCase
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase009, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    auto renderProcessManagerAgent = connection->renderProcessManagerAgent_;
+    auto vsyncManagerAgent = connection->vsyncManagerAgent_;
+
+    connection->renderProcessManagerAgent_ = nullptr;
+    // test NotifyAppStrategyConfigChangeEvent
+    const std::string pkgName = "";
+    const std::vector<std::pair<std::string, std::string>> newConfig = {};
+    connection->NotifyAppStrategyConfigChangeEvent(pkgName, 0, newConfig);
+    // test NotifyRefreshRateEvent
+    EventInfo eventInfo;
+    connection->NotifyRefreshRateEvent(eventInfo);
+    // tese SetWindowExpectedRefreshRate
+    const std::unordered_map<uint64_t, EventInfo> eventInfos = {};
+    connection->SetWindowExpectedRefreshRate(eventInfos);
+    // test SetWindowExpectedRefreshRate
+    std::unordered_map<std::string, EventInfo> refreshRateEventInfos = {};
+    connection->SetWindowExpectedRefreshRate(refreshRateEventInfos);
+    // test NotifyTouchEvent
+    connection->vsyncManagerAgent_ = nullptr;
+    connection->NotifyTouchEvent(0, 0, 0);
+    connection->vsyncManagerAgent_ = vsyncManagerAgent;
+    // test SetHgmExclusiveScreen
+    connection->SetHgmExclusiveScreen(std::nullopt);
+    connection->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
+    auto hgmContext = connection->hgmContext_;
+    connection->hgmContext_ = nullptr;
+    EXPECT_FALSE(connection->SetHgmExclusiveScreen(std::nullopt));
+    connection->hgmContext_ = hgmContext;
 }
 
 /**
