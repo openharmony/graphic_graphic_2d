@@ -603,6 +603,10 @@ HWTEST_F(FontPropertiesQueryTest, GenerateFontPropertiesDejaVuMathTeXGyreByVecto
 {
     std::string ttfName = "DejaVuMathTeXGyre.ttf";
     std::string path = GenerateRelativePathForFontResource(ttfName);
+    if (!IsFileExists(path)) {
+        GTEST_SKIP() << "Font file not found: " << path;
+    }
+
     std::vector<uint8_t> fontData;
     getDataStream(path, fontData);
     ASSERT_FALSE(fontData.empty());

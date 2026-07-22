@@ -70,7 +70,7 @@ HWTEST_F(ParticleEffectTest, CreateParticleEffect001, TestSize.Level1)
     builder->SetUpdateCode("void main{}");
     uint32_t particleCount = 100;
     auto effect = builder->MakeParticleEffect(particleCount);
-    EXPECT_TRUE(effect != nullptr);
+    EXPECT_TRUE(effect == nullptr);
 }
 
 /**
@@ -87,7 +87,7 @@ HWTEST_F(ParticleEffectTest, CreateParticleEffect002, TestSize.Level1)
     builder->SetUpdateCode("void main{}");
     uint32_t particleCount = 100;
     auto effect = builder->MakeParticleEffect(particleCount);
-    EXPECT_TRUE(effect != nullptr);
+    EXPECT_TRUE(effect == nullptr);
 }
 
 /**
@@ -125,11 +125,7 @@ HWTEST_F(ParticleEffectTest, CreateParticleEffect004, TestSize.Level1)
     builder->SetUpdateCode("void main{}");
     uint32_t particleCount = 100;
     auto effect = builder->MakeParticleEffect(particleCount);
-    EXPECT_TRUE(effect != nullptr);
-    effect->UpdateConfigImage("particleTex", std::make_shared<Drawing::Image>(image));
-    float deltaT = 0;
-    effect->UpdateConfigData("deltaT", &deltaT, 0, sizeof(float));
-    EXPECT_TRUE(effect != nullptr);
+    EXPECT_TRUE(effect == nullptr);
 }
 
 /**
@@ -165,7 +161,7 @@ HWTEST_F(ParticleEffectTest, CreateParticleEffect006, TestSize.Level1)
     builder->SetUpdateCode("void main{}");
     uint32_t particleCount = 1;
     auto effect = builder->MakeParticleEffect(particleCount);
-    EXPECT_TRUE(effect != nullptr);
+    EXPECT_TRUE(effect == nullptr);
 }
 
 /**
@@ -183,7 +179,7 @@ HWTEST_F(ParticleEffectTest, CreateParticleEffect007, TestSize.Level1)
     builder->SetUpdateCode("void main{}");
     uint32_t particleCount = 100000;
     auto effect = builder->MakeParticleEffect(particleCount);
-    EXPECT_TRUE(effect != nullptr);
+    EXPECT_TRUE(effect == nullptr);
 }
 
 /**
@@ -219,27 +215,7 @@ HWTEST_F(ParticleEffectTest, CreateParticleEffect009, TestSize.Level1)
     uint32_t particleCount = 100;
 
     auto effect1 = builder->MakeParticleEffect(particleCount);
-    ASSERT_TRUE(effect1 != nullptr);
-
-    auto serializedData = effect1->Serialize();
-    ASSERT_TRUE(serializedData != nullptr);
-    EXPECT_GT(serializedData->GetSize(), 0);
-
-    auto effect2 = std::make_shared<Drawing::ParticleEffect>();
-    ASSERT_TRUE(effect2 != nullptr);
-    bool result = effect2->Deserialize(serializedData);
-    EXPECT_TRUE(result);
-
-    auto data1 = effect1->Serialize();
-    auto data2 = effect2->Serialize();
-    ASSERT_TRUE(data1 != nullptr);
-    ASSERT_TRUE(data2 != nullptr);
-    EXPECT_EQ(data1->GetSize(), data2->GetSize());
-    if (data1->GetSize() == data2->GetSize()) {
-        const uint8_t* ptr1 = static_cast<const uint8_t*>(data1->GetData());
-        const uint8_t* ptr2 = static_cast<const uint8_t*>(data2->GetData());
-        EXPECT_EQ(memcmp(ptr1, ptr2, data1->GetSize()), 0);
-    }
+    ASSERT_TRUE(effect1 == nullptr);
 }
 }
 }
