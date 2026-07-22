@@ -811,7 +811,8 @@ bool HgmFrameRateManager::HandleSetHgmExclusiveScreen(pid_t pid, ScreenId screen
     HGM_LOGI("pid: %{public}d screenId: %{public}" PRIu64, pid, screenId);
     RS_TRACE_NAME_FMT("%s: pid: %d screenId: %" PRIu64, __func__, pid, screenId);
     if (screenId != INVALID_SCREEN_ID) {
-        if (auto screen = HgmCore::Instance().GetScreen(screenId); !screen || !screen->GetSelfOwnedScreenFlag()) {
+        if (auto screen = HgmCore::Instance().GetScreen(screenId);
+            !screen || !screen->GetSelfOwnedScreenFlag()) {
             return false;
         }
         cleanPidCallback_[pid].insert(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
