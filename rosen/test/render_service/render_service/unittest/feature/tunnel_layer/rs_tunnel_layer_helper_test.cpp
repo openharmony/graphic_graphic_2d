@@ -1092,12 +1092,12 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitPendingBuffer_SizeMismatch_ReleasesBu
     auto composerClientManager = CreateRecordingComposerManager(context.node->GetId(), connection);
     ASSERT_NE(composerClientManager, nullptr);
 
-    constexpr uint32_t EXISTING_BUFFER_SIZE = TEST_BUFFER_SIZE / 2;
+    constexpr uint32_t existingBufferSize = TEST_BUFFER_SIZE / 2;
     sptr<SurfaceBuffer> existingBuffer = SurfaceBuffer::Create();
     ASSERT_NE(existingBuffer, nullptr);
     BufferRequestConfig existingRequestConfig = {
-        .width = EXISTING_BUFFER_SIZE,
-        .height = EXISTING_BUFFER_SIZE,
+        .width = existingBufferSize,
+        .height = existingBufferSize,
         .strideAlignment = TEST_STRIDE_ALIGNMENT,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
@@ -1156,5 +1156,28 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitPendingBuffer_NullComposerManager_Rel
     EXPECT_EQ(clearedProperty, TUNNEL_PROP_INVALID);
     EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::BUILDING);
     EXPECT_EQ(context.consumer->GetAvailableBufferCount(), 1u);
+}
+
+/**
+ * @tc.name: OnBufferAvailable_TunnelCandidate_ReceivesInfo
+ * @tc.desc: Test RSRenderServiceListener::OnBufferAvailable evaluates HasReceivedTunnelLayerInfo()
+ *          (and short-circuits the OR with SourceType) when the new-tunnel switch is on, covering the
+ *          isTunnelCandidate=true sub-branch that routes to HandleListenerBuffer.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable_TunnelCandidate_ReceivesInfo, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+    context.surfaceHandler->MarkTunnelLayerInfoReceived();
+    EXPECT_TRUE(context.surfaceHandler->HasReceivedTunnelLayerInfo());
+
+    auto rsListener = std::make_shared<RSRenderServiceListener>(
+        context.node, context.surfaceHandler, std::make_shared<RSComposerClientManager>());
+    rsListener->OnBufferAvailable();
+
+    EXPECT_TRUE(context.surfaceHandler->HasReceivedTunnelLayerInfo());
+    RSTunnelRuntimeStore::Erase(context.node->GetId());
 }
 } // namespace OHOS::Rosen

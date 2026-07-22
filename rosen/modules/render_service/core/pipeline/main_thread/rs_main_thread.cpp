@@ -2128,10 +2128,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 hgmRenderContext_->UpdateSurfaceData(surfaceHandler, surfaceNode);
             }
             PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
-            const bool isTunnelCandidate =
-                surfaceHandler->HasReceivedTunnelLayerInfo() ||
-                surfaceHandler->GetSourceType() ==
-                    static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
+            const bool isTunnelCandidate = surfaceHandler->HasReceivedTunnelLayerInfo();
             auto parentNode = surfaceNode->GetParent().lock();
             RSBaseSurfaceUtil::DropFrameConfig dropFrameConfig;
             dropFrameConfig.enable = IsNeedDropFrameByPid(surfaceHandler->GetNodeId());

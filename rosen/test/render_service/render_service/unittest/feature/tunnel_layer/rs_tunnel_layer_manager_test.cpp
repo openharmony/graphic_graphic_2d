@@ -392,4 +392,33 @@ HWTEST_F(RSTunnelLayerManagerTest, ClearRuntimeStateByPid001, TestSize.Level1)
     EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(secondContext.node->GetId()).GetTunnelState(),
         RSTunnelRuntimeState::TunnelState::ACTIVE);
 }
+
+/**
+ * @tc.name: UpdateTunnelLayerState_ReceivesInfo_ProcessesNewLayerId
+ * @tc.desc: Test UpdateTunnelLayerState proceeds past the HasReceivedTunnelLayerInfo guard when the
+ *          handler has marked tunnel info received, covering the false branch of the guard and the
+ *          HandleNewTunnelLayerId path that resets runtime state to BUILDING.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState_ReceivesInfo_ProcessesNewLayerId, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto rsContext = std::make_shared<RSContext>();
+    RSTunnelLayerManager tunnelLayerManager(rsContext);
+    auto context = CreateTunnelContext(MakeNodeId(TEST_PID_ONE, TEST_NODE_UID_ONE));
+    ASSERT_TRUE(context.IsProducerReady());
+    ASSERT_TRUE(RegisterSurfaceNode(rsContext, context.node));
+    TunnelLayerState tunnelState;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, tunnelState));
+    RSTunnelRuntimeStore::SetLayerInfo(
+        context.node->GetId(), tunnelState.tunnelLayerId, tunnelState.property);
+    context.surfaceHandler->MarkTunnelLayerInfoReceived();
+    ASSERT_TRUE(context.surfaceHandler->HasReceivedTunnelLayerInfo());
+
+    tunnelLayerManager.UpdateTunnelLayerState(context.node->GetId(), context.surfaceHandler);
+
+    ExpectTunnelLayerInfo(context.node, tunnelState.tunnelLayerId, tunnelState.property);
+    EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetTunnelState(),
+        RSTunnelRuntimeState::TunnelState::BUILDING);
+}
 } // namespace OHOS::Rosen
