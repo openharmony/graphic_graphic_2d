@@ -2349,6 +2349,7 @@ private:
 
     // for node rebuilding only.
     void UpdateAllRSCmdModifiersToRender() {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         for (auto& [type, modifier] : rsCmdModifiers_) {
             if (modifier) {
                 modifier->UpdateToRender();
