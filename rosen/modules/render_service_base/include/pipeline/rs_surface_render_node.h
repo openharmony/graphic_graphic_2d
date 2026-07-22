@@ -891,6 +891,7 @@ public:
     {
         return hdrPhotoNum_ > 0;
     }
+    void SetRebuildingState(bool isRebuildingState);
 
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
@@ -2245,6 +2246,7 @@ private:
     std::atomic<uint32_t> ancoFlags_ = 0;
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    bool isRebuildingState_ = false;
     SurfaceId surfaceId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     struct GamutCollector

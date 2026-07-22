@@ -576,6 +576,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         TraverseCanvasDrawingNodes();
         RS_PROFILER_ON_RENDER_END();
         OnUniRenderDraw();
+        ProcessSplitTransactionCommands();
         UIExtensionNodesTraverseAndCallback();
         if (!isUniRender_) {
             ReleaseAllNodesBuffer();
@@ -866,9 +867,21 @@ void RSMainThread::CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid) noexcep
 }
 #endif
 
+void RSMainThread::ClearRebuildTransactionData(pid_t pid)
+{
+    RS_TRACE_BEGIN("ClearRebuildTransactionData");
+    pendingCommandsDuringRebuild_.erase(pid);
+    pendingSplitTransactions_.erase(pid);
+    RS_TRACE_END();
+}
+
 void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
 {
     RS_TRACE_NAME_FMT("CleanResources %d, forRefresh: %d", pid, forRefresh);
+    // Clear this pid's rebuild queue and cached commands; surface nodes are removed by the
+    // CleanRenderNodes->FilterNodeByPid that follows, so no per-node state reset is needed here.
+    ClearRebuildTransactionData(pid);
+
     // 0. CleanRenderNodes
     {
         RS_TRACE_BEGIN("CleanRenderNodes");
@@ -1826,9 +1839,6 @@ void RSMainThread::ProcessCommandForUniRender()
 #endif
     ProcessNeedAttachedNodes();
 
-    // 处理重建事务的命令（在 Vsync 之后）
-    ProcessSplitTransactionCommands();
- 
     const auto& nodeMap = context_->GetNodeMap();
     nodeMap.TraverseCanvasDrawingNodes([this](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
         if (canvasDrawingNode == nullptr) {
@@ -1971,6 +1981,13 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
     if (CheckIfNeedSplitTransaction(rsTransactionData)) {
         RS_TRACE_NAME("ProcessRSTransactionData: detected rebuild transaction sequence");
         AddSplitTransaction(std::move(rsTransactionData));
+        return;
+    }
+
+    // Defer normal transactions for a pid that is mid-rebuild, to avoid interleaving with rebuild commands.
+    if (IsPidRebuilding(pid)) {
+        RS_TRACE_NAME_FMT("ProcessRSTransactionData: cache transaction during rebuild");
+        pendingCommandsDuringRebuild_[pid].emplace_back(std::move(rsTransactionData));
         return;
     }
 
@@ -6248,9 +6265,9 @@ bool RSMainThread::IsRebuildTransactionInProgress() const
     return !pendingSplitTransactions_.empty();
 }
  
-pid_t RSMainThread::GetPendingSplitPid() const
+bool RSMainThread::IsPidRebuilding(pid_t pid) const
 {
-    return pendingSplitPid_;
+    return pendingSplitTransactions_.count(pid) > 0;
 }
  
 void RSMainThread::AddSplitTransaction(std::unique_ptr<RSTransactionData> transaction)
@@ -6258,10 +6275,16 @@ void RSMainThread::AddSplitTransaction(std::unique_ptr<RSTransactionData> transa
     if (!transaction) {
         return;
     }
-    pendingSplitPid_ = transaction->GetSendingPid();
-    pendingSplitTransactions_.push_back(std::move(transaction));
-    RS_TRACE_NAME_FMT("AddSplitTransaction: pending rebuild transactions count = %zu",
-        pendingSplitTransactions_.size());
+    // Queue per pid; record the total-time start only when this pid's queue goes empty->non-empty,
+    // so a later transaction in the same rebuild burst does not reset the budget.
+    pid_t pid = transaction->GetSendingPid();
+    auto& state = pendingSplitTransactions_[pid];
+    if (state.transactions.empty()) {
+        state.startTimeMs = GetCurrentSteadyTimeMsFloat();
+    }
+    state.transactions.push_back(std::move(transaction));
+    RS_TRACE_NAME_FMT(
+        "AddSplitTransaction: pid=%d pending rebuild transactions count = %zu", pid, state.transactions.size());
 }
  
 void RSMainThread::ProcessSplitTransactionCommands()
@@ -6269,48 +6292,107 @@ void RSMainThread::ProcessSplitTransactionCommands()
     if (pendingSplitTransactions_.empty()) {
         return;
     }
- 
+
     RS_TRACE_NAME("ProcessSplitTransactionCommands: start processing rebuild transactions");
- 
+
+    // startTime is the frame-level 2ms budget shared across pids; MAX_TOTAL_TIME_MS is a per-pid
+    // anti-starvation cap: once a pid's rebuild exceeds it, the time-slice check is skipped to force finish.
     const float MAX_PROCESS_TIME_MS = RSSystemProperties::GetSplitTransactionMaxProcessTimeMs();
+    const float MAX_TOTAL_TIME_MS = RSSystemProperties::GetSplitTransactionMaxTotalTimeMs();
     const float startTime = GetCurrentSteadyTimeMsFloat();
     const size_t CHECK_INTERVAL = RSSystemProperties::GetSplitTransactionCheckInterval();
-    bool isRemain = false;
- 
-    while (!pendingSplitTransactions_.empty()) {
-        auto& transaction = pendingSplitTransactions_.front();
-        if (!transaction) {
-            pendingSplitTransactions_.pop_front();
+
+    for (auto it = pendingSplitTransactions_.begin(); it != pendingSplitTransactions_.end();) {
+        pid_t pid = it->first;
+        auto& state = it->second;
+        while (!state.transactions.empty() && !state.transactions.front()) {
+            state.transactions.pop_front();
+        }
+        if (state.transactions.empty()) {
+            it = pendingSplitTransactions_.erase(it);
             continue;
         }
- 
+        // Per-pid total time exceeded: skip the per-frame time-slice check and finish this pid's remaining commands.
+        const bool isTotalTimeExceeded = (startTime - state.startTimeMs >= MAX_TOTAL_TIME_MS);
+        auto& transaction = state.transactions.front();
+
         auto& payload = transaction->GetPayload();
         size_t commandCount = payload.size();
- 
+        bool needNextVsync = false;
         for (size_t i = 0; i < commandCount; ++i) {
-            if (CHECK_INTERVAL != 0 && i % CHECK_INTERVAL == 0) {
+            if (!isTotalTimeExceeded && CHECK_INTERVAL != 0 && i % CHECK_INTERVAL == 0) {
                 const float currentTime = GetCurrentSteadyTimeMsFloat();
                 if (currentTime - startTime >= MAX_PROCESS_TIME_MS) {
-                    RS_TRACE_NAME_FMT("ProcessSplitTransactionCommands: time limit reached, processed %zu/%zu "
-                        "commands", i, commandCount);
                     payload.erase(payload.begin(), payload.begin() + i);
+                    RS_TRACE_NAME_FMT("ProcessSplitTransactionCommands: time limit reached, pid=%d processed %zu/%zu "
+                                      "commands",
+                        pid, i, commandCount);
                     RS_TRACE_NAME("ProcessSplitTransactionCommands: has remaining commands, requesting next vsync");
                     RequestNextVSync("ProcessSplitTransactionCommands");
-                    return;
+                    needNextVsync = true;
+                    break;
                 }
             }
- 
+
             auto& [nodeId, followType, command] = payload[i];
             if (command != nullptr && command->IsCallingPidValid()) {
                 RS_PROFILER_EXECUTE_COMMAND(&*command);
                 command->Process(*context_);
             }
         }
- 
-        RS_TRACE_NAME_FMT("ProcessSplitTransactionCommands: processed transaction with %zu commands", commandCount);
-        pendingSplitTransactions_.pop_front();
+        if (needNextVsync) {
+            return;
+        }
+
+        RS_TRACE_NAME_FMT(
+            "ProcessSplitTransactionCommands: processed transaction with %zu commands, pid=%d", commandCount, pid);
+        state.transactions.pop_front();
+        if (state.transactions.empty()) {
+            // This pid's rebuild is fully done: replay its cached normal transactions and drop the entry.
+            pid_t completedPid = pid;
+            it = pendingSplitTransactions_.erase(it);
+            ProcessPendingCommandsDuringRebuild(completedPid);
+        } else {
+            // Stay on this pid to process its next transaction within the same frame budget;
+            // the inner loop's time-slice check breaks and requests next vsync when the budget is exhausted.
+            continue;
+        }
     }
-    pendingSplitPid_ = -1;
+}
+
+void RSMainThread::ProcessPendingCommandsDuringRebuild(pid_t pid)
+{
+    // Replays normal transactions deferred during the pid's rebuild (in arrival order), then clears the cache.
+    auto it = pendingCommandsDuringRebuild_.find(pid);
+    if (it == pendingCommandsDuringRebuild_.end() || it->second.empty()) {
+        return;
+    }
+
+    std::string pidStr = std::to_string(pid);
+    std::string indexInfo;
+    indexInfo.reserve(it->second.size() * (pidStr.size() + 24));
+    for (const auto& transaction : it->second) {
+        if (transaction) {
+            indexInfo += '[';
+            indexInfo += pidStr;
+            indexInfo += ',';
+            indexInfo += std::to_string(transaction->GetIndex());
+            indexInfo += ']';
+        }
+    }
+    RS_TRACE_NAME_FMT("ProcessPendingCommandsDuringRebuild: processing %zu cached transactions after rebuild%s",
+        it->second.size(), indexInfo.c_str());
+
+    auto pendingVec = std::move(it->second);
+    pendingCommandsDuringRebuild_.erase(it);
+
+    for (auto& transaction : pendingVec) {
+        if (!transaction) {
+            continue;
+        }
+        context_->transactionTimestamp_ = transaction->GetTimestamp();
+        transaction->Process(*context_);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

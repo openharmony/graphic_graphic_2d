@@ -1248,6 +1248,14 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
     return singleFrameComposerEnabled;
 }
 
+// Per-pid total time budget for a rebuild; once exceeded the time-slice check is skipped to force finish.
+float RSSystemProperties::GetSplitTransactionMaxTotalTimeMs()
+{
+    static float maxTotalTimeMs =
+        std::atof((system::GetParameter("persist.sys.graphic.splitTransactionMaxTotalTimeMs", "100.0")).c_str());
+    return maxTotalTimeMs;
+}
+
 bool RSSystemProperties::GetEffectMergeEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.effectMergeEnabled", "1");
