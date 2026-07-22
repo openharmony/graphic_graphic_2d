@@ -1253,6 +1253,24 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetNeedClearRenderGroupCacheTest001
+ * @tc.desc: Test SetNeedClearRenderGroupCache when stagingRenderParams_ is nullptr, verify the early-return branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetNeedClearRenderGroupCacheTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    // stagingRenderParams_ is nullptr before InitRenderParams() is called.
+    node->stagingRenderParams_ = nullptr;
+    // Should hit the nullptr early-return branch without crashing or lazy-initializing.
+    node->SetNeedClearRenderGroupCache(true);
+    node->SetNeedClearRenderGroupCache(false);
+    EXPECT_EQ(node->stagingRenderParams_, nullptr);
+}
+
+/**
  * @tc.name: OnSyncTest1
  * @tc.desc: OnSync Test1
  * @tc.type: FUNC

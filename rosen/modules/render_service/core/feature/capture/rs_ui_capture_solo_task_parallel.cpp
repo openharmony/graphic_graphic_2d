@@ -110,8 +110,7 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureSoloTaskParallel::CaptureSoloNodePix
 bool RSUiCaptureSoloTaskParallel::CreateResources()
 {
     if (ROSEN_EQ(captureConfig_.scaleX, 0.f) || ROSEN_EQ(captureConfig_.scaleY, 0.f) ||
-        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f ||
-        captureConfig_.scaleX > 1.f || captureConfig_.scaleY > 1.f) {
+        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f) {
         RS_LOGE("RSUiCaptureSoloTaskParallel::CreateResources: SurfaceCapture scale is invalid.");
         return false;
     }
