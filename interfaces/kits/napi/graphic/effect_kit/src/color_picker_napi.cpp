@@ -468,6 +468,8 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi CreateColorPicker parsing input fail"));
+    EFFECT_NAPI_CHECK_RET_D(argCount <= EFFECT_ARRAY_SIZE(argValue), nullptr,
+        EFFECT_LOG_E("ColorPickerNapi CreateColorPicker too many arguments"));
 
     auto asyncContext = InitializeAsyncContext(env, status, argValue, argCount);
     EFFECT_NAPI_CHECK_RET_D(asyncContext != nullptr, nullptr,

@@ -505,7 +505,7 @@ HWTEST_F(RSColorPickerUtilsTest, DirtyInCurrentSurfaceInvalidCustomRect, TestSiz
     auto& properties = filterNode->GetMutableRenderProperties();
     ASSERT_NE(properties.colorPicker_, nullptr);
 
-    auto expectFallback = [&](const Drawing::Rect& customRect) {
+    auto expectFallback = [&properties, &filterNode](const Drawing::Rect& customRect) {
         properties.colorPicker_->rect = customRect;
         EXPECT_TRUE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_INTERSECT_DIRTY_RECT));
     };
