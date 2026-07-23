@@ -895,7 +895,7 @@ HWTEST_F(HgmContextTest, SetHgmExclusiveScreenMultiThreadTest001, TestSize.Level
         std::atomic<int> successCount{0};
 
         auto worker = [&hgmContext, &successCount](int pid) {
-            hgmContext->SetHgmExclusiveScreen(pid, INVALID_SCREEN_ID)
+            hgmContext->SetHgmExclusiveScreen(pid, INVALID_SCREEN_ID);
             successCount.fetch_add(1);
         };
         for (int i = 0; i < threadCount; ++i) {
