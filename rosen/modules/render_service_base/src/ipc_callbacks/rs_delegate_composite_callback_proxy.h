@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RS_DELEGATE_COMPOSITE_CALLBACK_PROXY_H
-#define RS_DELEGATE_COMPOSITE_CALLBACK_PROXY_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_DELEGATE_COMPOSITE_CALLBACK_PROXY_H
+#define ROSEN_RENDER_SERVICE_BASE_DELEGATE_COMPOSITE_CALLBACK_PROXY_H
 
 #include <iremote_proxy.h>
 
@@ -26,8 +26,8 @@ namespace Rosen {
 class RSWebProxyComposerCallbackProxy : public IRemoteProxy<RSISurfaceTransactionListener> {
 public:
     explicit RSWebProxyComposerCallbackProxy(const sptr<IRemoteObject>& impl)
-        : IRemoteProxy<RSISurfaceTransactionListener>(impl) {};
-    GSError OnComplete(uint64_t timestamp, uint64_t srcId, std::queue<uint64_t> &seqNums);
+        :IRemoteProxy<RSISurfaceTransactionListener>(impl) {};
+    GSError OnComplete(uint64_t timestamp, uint64_t srcId, std::queue<uint64_t>& seqNums);
 private:
     static inline BrokerDelegator<RSWebProxyComposerCallbackProxy> delegator_;
 };
@@ -35,11 +35,11 @@ private:
 class SurfaceNodeBufferReleaseCallbackProxy : public IRemoteProxy<RSISurfaceNodeBufferReleaseCallback> {
 public:
     explicit SurfaceNodeBufferReleaseCallbackProxy(const sptr<IRemoteObject>& impl)
-        : IRemoteProxy<RSISurfaceNodeBufferReleaseCallback>(impl) {};
-    GSError OnBufferComplete(std::queue<OnCompletedRet> &queue);
+        :IRemoteProxy<RSISurfaceNodeBufferReleaseCallback>(impl) {};
+    GSError OnBufferComplete(std::queue<OnCompletedRet>& queue);
 private:
     static inline BrokerDelegator<SurfaceNodeBufferReleaseCallbackProxy> delegator_;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_DELEGATE_COMPOSITE_CALLBACK_PROXY_H
+#endif // ROSEN_RENDER_SERVICE_BASE_DELEGATE_COMPOSITE_CALLBACK_PROXY_H

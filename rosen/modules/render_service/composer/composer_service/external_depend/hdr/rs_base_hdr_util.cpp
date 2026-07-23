@@ -32,7 +32,6 @@ namespace {
 constexpr float DEFAULT_SDR_NITS = 203.0f;
 constexpr float GAMMA2_2 = 2.2f;
 }
-
 inline HdrStatus CheckAIHDRType(uint8_t metadataType)
 {
     switch (metadataType) {
@@ -117,7 +116,8 @@ bool RSBaseHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(const sptr<SurfaceBuff
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     std::vector<uint8_t> metadataType{};
-    bool isHdrStatus = surfaceBuffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, metadataType) == GSERROR_OK &&
+    bool isHdrStatus = surfaceBuffer->GetMetadata(
+        Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType) == GSERROR_OK &&
         !metadataType.empty();
     if (isHdrStatus && (CheckAIHDRType(metadataType[0]) != HdrStatus::NO_HDR)) {
         return true;
@@ -137,7 +137,9 @@ HdrStatus RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfa
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     std::vector<uint8_t> metadataType{};
-    if (surfaceBuffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, metadataType) == GSERROR_OK && !metadataType.empty()) {
+    if (surfaceBuffer->GetMetadata(
+        Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType) == GSERROR_OK &&
+        !metadataType.empty()) {
         auto AIHDRStatus = CheckAIHDRType(metadataType[0]);
         if (AIHDRStatus != HdrStatus::NO_HDR) {
             return AIHDRStatus;

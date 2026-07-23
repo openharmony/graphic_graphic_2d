@@ -28,7 +28,7 @@ RSBufferReclaim& RSBufferReclaim::GetInstance()
     return instance;
 }
 
-void RSBufferReclaim::BufferDestructorCallBack(uint64_t bufferId)
+void RSBufferReclaim::BufferDestructorCallback(uint64_t bufferId)
 {
     RSBufferReclaim::GetInstance().RemoveBufferReclaim(bufferId);
 }
@@ -45,11 +45,11 @@ bool RSBufferReclaim::DoBufferReclaim(sptr<SurfaceBuffer> buffer)
     }
     bufferReclaimNumsSet_.insert(buffer->GetBufferId());
     RS_TRACE_NAME_FMT("DoBufferReclaim: bufferReclaimNumsSet_=%lu", bufferReclaimNumsSet_.size());
-    RS_LOGI("DoBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
+    RS_LOGI("DoBufferReclaim: bufferReclaimNumsSet_=%{public}lu", bufferReclaimNumsSet_.size());
 
     bool ret = false;
     if (buffer->TryReclaim() == GSERROR_OK) {
-        buffer->RegisterBufferDestructorCallBack(&RSBufferReclaim::BufferDestructorCallBack);
+        buffer->RegisterBufferDestructorCallback(&RSBufferReclaim::BufferDestructorCallback);
         ret = true;
     } else {
         bufferReclaimNumsSet_.erase(buffer->GetBufferId());
@@ -67,10 +67,10 @@ bool RSBufferReclaim::DoBufferResume(sptr<SurfaceBuffer> buffer)
     }
     bufferReclaimNumsSet_.erase(iter);
     RS_TRACE_NAME_FMT("DoBufferResume: bufferReclaimNumsSet_=%lu", bufferReclaimNumsSet_.size());
-    RS_LOGI("DoBufferResume: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
+    RS_LOGI("DoBufferResume: bufferReclaimNumsSet_=%{public}lu", bufferReclaimNumsSet_.size());
     bool ret = false;
     if (buffer->TryResumeIfNeeded() == GSERROR_OK) {
-        buffer->UnRegisterBufferDestructorCallBack();
+        buffer->UnRegisterBufferDestructorCallback();
         ret = true;
     } else {
         bufferReclaimNumsSet_.insert(buffer->GetBufferId());
@@ -82,7 +82,7 @@ bool RSBufferReclaim::CheckBufferReclaim()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     RS_TRACE_NAME_FMT("CheckBufferReclaim: bufferReclaimNumsSet_=%lu", bufferReclaimNumsSet_.size());
-    RS_LOGI("CheckBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
+    RS_LOGI("CheckBufferReclaim: bufferReclaimNumsSet_=%{public}lu", bufferReclaimNumsSet_.size());
     return bufferReclaimNumsSet_.size() < MAX_BUFFER_RECLAIM_NUMS;
 }
 
@@ -92,7 +92,7 @@ void RSBufferReclaim::RemoveBufferReclaim(uint64_t bufferId)
     std::lock_guard<std::mutex> lock(mutex_);
     bufferReclaimNumsSet_.erase(bufferId);
     RS_TRACE_NAME_FMT("RemoveBufferReclaim: bufferReclaimNumsSet_=%lu", bufferReclaimNumsSet_.size());
-    RS_LOGI("RemoveBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
+    RS_LOGI("RemoveBufferReclaim: bufferReclaimNumsSet_=%{public}lu", bufferReclaimNumsSet_.size());
 }
 
 void RSBufferReclaim::AddUICaptureNode(NodeId nodeId)
