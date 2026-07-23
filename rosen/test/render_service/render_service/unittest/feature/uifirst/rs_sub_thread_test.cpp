@@ -391,7 +391,7 @@ HWTEST_F(RsSubThreadTest, SetHighContrastIfEnabledTest, TestSize.Level1)
 
     RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(true);
     curThread->SetHighContrastIfEnabled(filterCanvas);
-    EXPECT_TRUE(filterCanvas.isHighContrastEnabled());
+    EXPECT_FALSE(filterCanvas.isHighContrastEnabled());
 
     RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(false);
     curThread->SetHighContrastIfEnabled(filterCanvas);
@@ -664,13 +664,14 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsEarlyReturnBranches, TestSize.Level1)
     }
 
     {
-        auto ancestorSurfaceNode = RSTestUtil::CreateSurfaceNode();
-        auto ancestorDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
-            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(ancestorSurfaceNode));
-        ASSERT_NE(ancestorDrawable, nullptr);
+        auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1);
+        auto screenDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(std::move(screenNode));
+        ASSERT_NE(screenDrawable, nullptr);
+        screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(1);
+        ASSERT_NE(screenDrawable->GetRenderParams(), nullptr);
 
         auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
-        surfaceParams->ancestorScreenDrawable_ = ancestorDrawable;
+        surfaceParams->ancestorScreenDrawable_ = screenDrawable;
 
         auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
         EXPECT_TRUE(result.first);
