@@ -53,6 +53,8 @@ config("vulkan_public_config") {
 }
 
 ohos_shared_library("vulkan_swapchain_layer") {
+  branch_protector_ret = "pac_ret"
+
   sources = [ "swapchain_layer/swapchain_layer.cpp" ]
 
   configs = [ ":vulkan_config" ]
