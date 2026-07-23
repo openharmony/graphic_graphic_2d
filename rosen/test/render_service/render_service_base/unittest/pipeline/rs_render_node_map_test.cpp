@@ -1053,4 +1053,44 @@ HWTEST_F(RSRenderNodeMapTest, TraverseProtectiveSolidNodes003, TestSize.Level1)
     EXPECT_EQ(count, 1);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: RegisterUnTreeNodeWithinLimit
+ * @tc.desc: Test RegisterUnTreeNode adds node when under size limit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RegisterUnTreeNodeWithinLimit, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    NodeId id = 1;
+    EXPECT_TRUE(rsRenderNodeMap.unInTreeNodeSet_.empty());
+    rsRenderNodeMap.RegisterUnTreeNode(id);
+    EXPECT_EQ(rsRenderNodeMap.unInTreeNodeSet_.size(), 1u);
+    EXPECT_NE(rsRenderNodeMap.unInTreeNodeSet_.find(id), rsRenderNodeMap.unInTreeNodeSet_.end());
+}
+
+/**
+ * @tc.name: RegisterUnTreeNodeExceedLimit
+ * @tc.desc: Test RegisterUnTreeNode rejects node when size limit exceeded
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RegisterUnTreeNodeExceedLimit, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr size_t maxLimit = 10000;
+    // Fill the set to the limit
+    for (size_t i = 0; i < maxLimit; ++i) {
+        rsRenderNodeMap.unInTreeNodeSet_.emplace(static_cast<NodeId>(i));
+    }
+    EXPECT_EQ(rsRenderNodeMap.unInTreeNodeSet_.size(), maxLimit);
+
+    // Try to register one more - should be rejected
+    NodeId extraId = static_cast<NodeId>(maxLimit);
+    rsRenderNodeMap.RegisterUnTreeNode(extraId);
+    EXPECT_EQ(rsRenderNodeMap.unInTreeNodeSet_.size(), maxLimit);
+    EXPECT_EQ(rsRenderNodeMap.unInTreeNodeSet_.find(extraId), rsRenderNodeMap.unInTreeNodeSet_.end());
+}
+#endif
 } // namespace OHOS::Rosen

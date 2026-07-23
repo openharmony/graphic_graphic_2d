@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <climits>
+#include <fcntl.h>
 #include <iostream>
 #include <memory>
 #include <sys/mman.h>
@@ -605,5 +606,185 @@ HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelTest, TestSize.Level1)
     std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
     EXPECT_EQ(rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit), nullptr);
 }
+
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: ParseFromAshmemParcelFdCloseOnAllocatorFail
+ * @tc.desc: Verify ParseFromAshmemParcel closes fd when ashmemAllocator fails with valid fd
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelFdCloseOnAllocatorFail, TestSize.Level1)
+{
+    RSAshmemHelper rsAshmemHelper;
+    MessageParcel ashmemParcel;
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+
+    // Write dataSize
+    constexpr uint32_t dataSize = 16;
+    ashmemParcel.WriteUint32(dataSize);
+
+    // Write a valid fd (not an ashmem fd) - /dev/null fd will make AshmemGetSize return -1
+    // Causing CreateAshmemAllocatorWithFd to fail, but fd >= 0 so it should be closed
+    int devNullFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(devNullFd, 0);
+    ashmemParcel.WriteFileDescriptor(devNullFd);
+
+    auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: ParseFromAshmemParcelNegativeFdOnAllocatorFail
+ * @tc.desc: Verify ParseFromAshmemParcel handles negative fd when ashmemAllocator fails
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelNegativeFdOnAllocatorFail, TestSize.Level1)
+{
+    RSAshmemHelper rsAshmemHelper;
+    MessageParcel ashmemParcel;
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+
+    // Write dataSize
+    constexpr uint32_t dataSize = 16;
+    ashmemParcel.WriteUint32(dataSize);
+
+    // Write a invalid fd (-1) via WriteFileDescriptor with a dummy descriptor
+    // ReadFileDescriptor will return -1 when no valid fd is in the parcel
+    // This creates the fd < 0 branch where ::close(fd) is NOT called
+    sptr<IPCFileDescriptor> badDescriptor = new IPCFileDescriptor(-1);
+    ashmemParcel.WriteObject(badDescriptor);
+
+    auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: ParseFromAshmemParcelOffsetsNullWithFdWorker
+ * @tc.desc: Verify ParseFromAshmemParcel calls EnableManualCloseFds
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelOffsetsNullWithFdWorker, TestSize.Level1)
+{
+    RSAshmemHelper rsAshmemHelper;
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = std::make_unique<AshmemFdWorker>(0);
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+
+    // Create a real ashmem with data
+    constexpr uint32_t dataSize = 64;
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
+    ASSERT_NE(ashmemAllocator, nullptr);
+
+    int32_t dummyData = 0;
+    ashmemAllocator->WriteToAshmem(&dummyData, sizeof(dummyData));
+
+    MessageParcel ashmemParcel;
+    ashmemParcel.WriteUint32(dataSize);
+    ashmemParcel.WriteFileDescriptor(ashmemAllocator->GetFd());
+
+    constexpr int32_t offsetSize = 1;
+    ashmemParcel.WriteInt32(offsetSize);
+
+    auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
+    EXPECT_EQ(result, nullptr);
+    EXPECT_TRUE(ashmemFdWorker->needManualCloseFds_);
+}
+
+/**
+ * @tc.name: ParseFromAshmemParcelOffsetsNullNoFdWorker
+ * @tc.desc: Verify ParseFromAshmemParcel handles null offsets without fdWorker
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelOffsetsNullNoFdWorker, TestSize.Level1)
+{
+    RSAshmemHelper rsAshmemHelper;
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+
+    // Create a real ashmem with data
+    constexpr uint32_t dataSize = 64;
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
+    ASSERT_NE(ashmemAllocator, nullptr);
+
+    int32_t dummyData = 0;
+    ashmemAllocator->WriteToAshmem(&dummyData, sizeof(dummyData));
+
+    MessageParcel ashmemParcel;
+    ashmemParcel.WriteUint32(dataSize);
+    ashmemParcel.WriteFileDescriptor(ashmemAllocator->GetFd());
+
+    constexpr int32_t offsetSize = 1;
+    ashmemParcel.WriteInt32(offsetSize);
+
+    auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: ParseFromAshmemParcelReadIntFailWithFdWorker
+ * @tc.desc: Verify ParseFromAshmemParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelReadIntFailWithFdWorker, TestSize.Level1)
+{
+    RSAshmemHelper rsAshmemHelper;
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = std::make_unique<AshmemFdWorker>(0);
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+
+    // Create a real ashmem with data
+    constexpr uint32_t dataSize = 64;
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
+    ASSERT_NE(ashmemAllocator, nullptr);
+
+    int32_t nonZeroData = 1;
+    ashmemAllocator->WriteToAshmem(&nonZeroData, sizeof(nonZeroData));
+
+    MessageParcel ashmemParcel;
+    ashmemParcel.WriteUint32(dataSize);
+    ashmemParcel.WriteFileDescriptor(ashmemAllocator->GetFd());
+
+    ashmemParcel.WriteInt32(0);
+
+    auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
+    EXPECT_EQ(result, nullptr);
+    EXPECT_TRUE(ashmemFdWorker->needManualCloseFds_);
+}
+
+/**
+ * @tc.name: ParseFromAshmemParcelReadIntFailNoFdWorker
+ * @tc.desc: Verify ParseFromAshmemParcel handles null offsets without fdWorker
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelReadIntFailNoFdWorker, TestSize.Level1)
+{
+    RSAshmemHelper rsAshmemHelper;
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+
+    // Create a real ashmem with data
+    constexpr uint32_t dataSize = 64;
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
+    ASSERT_NE(ashmemAllocator, nullptr);
+
+    int32_t nonZeroData = 1;
+    ashmemAllocator->WriteToAshmem(&nonZeroData, sizeof(nonZeroData));
+
+    MessageParcel ashmemParcel;
+    ashmemParcel.WriteUint32(dataSize);
+    ashmemParcel.WriteFileDescriptor(ashmemAllocator->GetFd());
+
+    ashmemParcel.WriteInt32(0);
+
+    auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
+    EXPECT_EQ(result, nullptr);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
