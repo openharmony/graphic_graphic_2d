@@ -217,10 +217,11 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceNodeType003, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRenderNodeTest, CheckContainerDirtyStatusAndUpdateDirty001, TestSize.Level1)
 {
-    RSSurfaceRenderNodeConfig config;
+    NodeId id = 1;
+    RSSurfaceNodeType type = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = type };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
 
-    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     bool containerDirty = false;
     node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
     EXPECT_EQ(containerDirty, false);
