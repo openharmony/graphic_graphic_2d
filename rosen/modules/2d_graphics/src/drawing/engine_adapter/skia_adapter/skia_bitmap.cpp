@@ -280,7 +280,10 @@ std::shared_ptr<Data> SkiaBitmap::Serialize() const
     }
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
+    if (!data->BuildUninitialized(length)) {
+        LOGD("SkiaBitmap::Serialize, BuildUninitialized failed.");
+        return nullptr;
+    }
     writer.writeToMemory(data->WritableData());
     return data;
 }
@@ -308,6 +311,9 @@ bool SkiaBitmap::Deserialize(std::shared_ptr<Data> data)
     SkColorType colorType = static_cast<SkColorType>(reader.readUInt());
     SkAlphaType alphaType = static_cast<SkAlphaType>(reader.readUInt());
     sk_sp<SkColorSpace> colorSpace;
+    if (height > 0 && rb * static_cast<size_t>(height) > pixmapSize) {
+        return false;
+    }
 
     size_t size = reader.readUInt();
     if (size == 0) {
