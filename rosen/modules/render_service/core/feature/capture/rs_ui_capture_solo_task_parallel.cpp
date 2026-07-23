@@ -65,8 +65,17 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSUiCaptureSolo
         RS_LOGE("RSUiCaptureSoloTaskParallel::CaptureSoloNode RootNodeId:[%{public}" PRIu64 "] is nullptr", id);
         return pixelMapIdPairVector;
     }
+    pid_t rootPid = ExtractPid(id);
+    RS_LOGD("RSUiCaptureSoloTaskParallel::CaptureSoloNode RootNodeId:[%{public}" PRIu64 "], RootPid:[%{public}d]",
+        id, rootPid);
     instanceRootNode->CollectAllChildren(instanceRootNode, nodeIdVec);
     for (auto nodeId : nodeIdVec) {
+        if (ExtractPid(nodeId) != rootPid) {
+            RS_LOGW("RSUiCaptureSoloTaskParallel::CaptureSoloNode discarded. nodeId:[%{public}" PRIu64
+                "] due to process mismatch, nodePid:[%{public}d], rootPid:[%{public}d]",
+                nodeId, ExtractPid(nodeId), rootPid);
+            continue;
+        }
         std::unique_ptr<Media::PixelMap> soloPixelMap = CaptureSoloNodePixelMap(nodeId, captureConfig);
         if (!soloPixelMap) {
             RS_LOGE("RSUiCaptureSoloTaskParallel::CaptureSoloNode nodeId:[%{public}" PRIu64 "], "

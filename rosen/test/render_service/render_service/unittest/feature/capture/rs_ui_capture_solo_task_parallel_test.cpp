@@ -405,6 +405,53 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, TestCreateSurfaceSyncCopyTask, Functio
     mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
 #endif
 }
+
+/*
+* @tc.name: CaptureSoloNodeProcessFilter
+* @tc.desc: Test CaptureSoloNode filters child nodes with different PID from root node
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(RSUiCaptureSoloTaskParallelTest, CaptureSoloNodeProcessFilter, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    pid_t currentPid = getpid();
+    constexpr uint32_t bits = 32u;
+    constexpr uint64_t rootChildId = 1;
+    constexpr uint64_t diffPidChildId = 2;
+
+    NodeId rootNodeId = NodeId((static_cast<uint64_t>(currentPid) << bits) | rootChildId);
+    auto rootNode = std::make_shared<RSSurfaceRenderNode>(rootNodeId, std::make_shared<RSContext>(), true);
+    nodeMap.RegisterRenderNode(rootNode);
+
+    NodeId samePidChildId = NodeId((static_cast<uint64_t>(currentPid) << bits) | diffPidChildId);
+    auto samePidChild = std::make_shared<RSSurfaceRenderNode>(samePidChildId, std::make_shared<RSContext>(), true);
+    nodeMap.RegisterRenderNode(samePidChild);
+
+    pid_t diffPid = currentPid + 1;
+    NodeId diffPidChildNodeId = NodeId((static_cast<uint64_t>(diffPid) << bits) | diffPidChildId);
+    auto diffPidChild = std::make_shared<RSSurfaceRenderNode>(diffPidChildNodeId, std::make_shared<RSContext>(), true);
+    nodeMap.RegisterRenderNode(diffPidChild);
+
+    rootNode->AddChild(samePidChild, -1);
+    rootNode->AddChild(diffPidChild, -1);
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSoloNodeUiCapture = true;
+    auto result = RSUiCaptureSoloTaskParallel::CaptureSoloNode(rootNodeId, captureConfig);
+
+    bool hasDiffPidNode = false;
+    for (const auto& pair : result) {
+        if (pair.first == diffPidChildNodeId) {
+            hasDiffPidNode = true;
+        }
+    }
+    EXPECT_FALSE(hasDiffPidNode);
+
+    nodeMap.UnregisterRenderNode(rootNodeId);
+    nodeMap.UnregisterRenderNode(samePidChildId);
+    nodeMap.UnregisterRenderNode(diffPidChildNodeId);
+}
 #endif
 } // namespace Rosen
 } // namespace OHOS
