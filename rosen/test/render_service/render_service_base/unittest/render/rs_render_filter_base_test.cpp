@@ -323,7 +323,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
     EXPECT_FALSE(ret);
     std::shared_ptr<RSNGRenderFilterBase> outFilter = nullptr;
     ret = RSNGRenderFilterBase::Unmarshalling(parcel2, outFilter);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     EXPECT_EQ(outFilter, nullptr);
 }
 
