@@ -96,7 +96,7 @@ private:
     void LayerRotate(RequestLayerInfo& info, const sptr<IConsumerSurface>& surface);
     bool CheckIfDoArsrPre(const sptr<SurfaceBuffer>& buffer, const std::string& nodeName);
     void CheckIfDoCopybit(const sptr<SurfaceBuffer>& buffer, GraphicTransformType transform,
-        RequestLayerInfo& info, RSSurfaceRenderNode::SharedPtr node);
+        RequestLayerInfo& info, const RSSurfaceRenderNode::SharedPtr node);
     void UpdateLayerUsage(const RSSurfaceRenderNode::SharedPtr node,
         RequestLayerInfo& info, bool isHwcEnabledBySolidLayer);
     static bool CheckHwcNode(const RSSurfaceRenderNode::SharedPtr& node);

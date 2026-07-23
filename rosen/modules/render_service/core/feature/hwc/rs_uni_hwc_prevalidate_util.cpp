@@ -438,7 +438,7 @@ bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const sptr<SurfaceBuffer>& buffer
 }
 
 void RSUniHwcPrevalidateUtil::CheckIfDoCopybit(const sptr<SurfaceBuffer>& buffer,
-    GraphicTransformType transform, RequestLayerInfo& info, RSSurfaceRenderNode::SharedPtr node)
+    GraphicTransformType transform, RequestLayerInfo& info, const RSSurfaceRenderNode::SharedPtr node)
 {
     if (!isCopybitSupported_ || !buffer) {
         return;
@@ -448,7 +448,6 @@ void RSUniHwcPrevalidateUtil::CheckIfDoCopybit(const sptr<SurfaceBuffer>& buffer
         if (node) {
             node->SetCopybitTag(true);
         }
-        return;
     }
 }
 
