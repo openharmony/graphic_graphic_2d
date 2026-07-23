@@ -103,7 +103,7 @@ void VSyncSampler::ProcessVSyncScreenIdWhilePowerStatusChanged(ScreenId id, Scre
             RS_TRACE_NAME_FMT("vsyncEnabledScreenId has changed, need disable lastVsyncEnabledScreenId vsync, "
                 "vsyncEnabledScreenId:%lu, lastVsyncEnabledScreenId:%lu",
                 vsyncEnabledScreenId, lastVsyncEnabledScreenId);
-            SetScreenVsyncEnabledInRSMainThread(lastVsyncEnabledScreenId, false);
+            SetScreenVsyncEnabledInRSMainThread(id, false);
         }
         RegSetScreenVsyncEnabledCallbackForRenderService(id, handler);
     }

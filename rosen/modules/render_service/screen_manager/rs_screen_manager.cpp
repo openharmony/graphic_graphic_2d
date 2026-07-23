@@ -288,7 +288,7 @@ void RSScreenManager::SetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId, Sc
                 enabled, screenId);
             return;
         }
-        screen->SetScreenVsyncEnabled(enabled);
+        auto screen->SetScreenVsyncEnabled(enabled);
     }
 }
 
