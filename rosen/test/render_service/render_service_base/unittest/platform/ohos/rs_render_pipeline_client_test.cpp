@@ -196,6 +196,20 @@ HWTEST_F(RSPipelineClientTest, CreateNode_Test, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHidePrivacyContent Test
+ * @tc.desc: Verify SetHidePrivacyContent returns error code on no connection
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPipelineClientTest, SetHidePrivacyContent_Test, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    uint32_t ret = rsClient->SetHidePrivacyContent(TEST_ID, true);
+    EXPECT_EQ(ret, static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR));
+    ret = rsClient->SetHidePrivacyContent(TEST_ID, false);
+    EXPECT_EQ(ret, static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR));
+}
+
+/**
  * @tc.name: CreateNodeAndSurface Test
  * @tc.desc: CreateNodeAndSurface Test
  * @tc.type:FUNC

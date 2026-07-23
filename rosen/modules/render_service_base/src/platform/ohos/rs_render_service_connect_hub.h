@@ -90,11 +90,6 @@ public:
         sptr<IRemoteObject> connectToRenderRemote,
         sptr<RSIConnectToRenderProcess> renderPrecess,
         sptr<RSIClientToRenderConnection> clientToRenderConnection);
-    RSIConnectionToken* GetToken()
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return token_.GetRefPtr();
-    }
     void ConnectRenderProcessDied(uint64_t tokenMaskId);
     // Temporary interface for same-layer rendering and non-multi-instance-adapted interfaces
     uint64_t GetDefaultTokenMaskIdInner();
