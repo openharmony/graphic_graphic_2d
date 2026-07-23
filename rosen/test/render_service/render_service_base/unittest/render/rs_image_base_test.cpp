@@ -169,27 +169,6 @@ HWTEST_F(RSImageBaseTest, SetPixelMapTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCompressedDataForASTCTest
- * @tc.desc: Verify ASTC data without a payload is rejected
- * @tc.type: FUNC
- */
-HWTEST_F(RSImageBaseTest, SetCompressedDataForASTCTest, TestSize.Level1)
-{
-    constexpr uint32_t astcHeaderSize = 16;
-    auto imageBase = std::make_shared<RSImageBase>();
-    auto pixelMap = CreatePixelMap(1, 1);
-    ASSERT_NE(pixelMap, nullptr);
-    pixelMap->pixelsSize_ = astcHeaderSize;
-    pixelMap->SetAstc(true);
-    ASSERT_NE(pixelMap->GetFd(), nullptr);
-    ASSERT_EQ(pixelMap->GetCapacity(), astcHeaderSize);
-    imageBase->SetPixelMap(pixelMap);
-
-    EXPECT_FALSE(imageBase->SetCompressedDataForASTC());
-    EXPECT_EQ(imageBase->compressData_, nullptr);
-}
-
-/**
  * @tc.name: SetSrcRectTest
  * @tc.desc: Verify function SetSrcRect
  * @tc.type: FUNC

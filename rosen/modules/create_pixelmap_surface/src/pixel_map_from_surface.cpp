@@ -468,8 +468,7 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
     Drawing::Paint paint;
     paint.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
 
-    Drawing::Rect srcDrawRect = Drawing::Rect(
-        srcRect.left, srcRect.top, srcRect.left + srcRect.width, srcRect.top + srcRect.height);
+    Drawing::Rect srcDrawRect = Drawing::Rect(srcRect.left, srcRect.top, srcRect.width, srcRect.height);
     Drawing::Rect dstRect = Drawing::Rect(0, 0, srcRect.width, srcRect.height);
 
     Drawing::Matrix matrix;
@@ -477,8 +476,14 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(surfaceBuffer_->GetFormat());
     if (pixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
         pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
-        auto sx = dstRect.GetWidth() / srcDrawRect.GetWidth();
-        auto sy = dstRect.GetHeight() / srcDrawRect.GetHeight();
+        auto srcWidth = srcDrawRect.GetWidth();
+        auto srcHeight = srcDrawRect.GetHeight();
+        if (srcWidth == 0 || srcHeight == 0) {
+            RS_LOGE("[PixelMapFromSurface] CanvasDrawImage srcRect width or height is zero");
+            return false;
+        }
+        auto sx = dstRect.GetWidth() / srcWidth;
+        auto sy = dstRect.GetHeight() / srcHeight;
         auto tx = dstRect.GetLeft() - srcDrawRect.GetLeft() * sx;
         auto ty = dstRect.GetTop() - srcDrawRect.GetTop() * sy;
         matrix.SetScaleTranslate(sx, sy, tx, ty);
@@ -543,7 +548,6 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
         PixelMapFromSurface::DeleteVkImage, cleanUpHelper);
     if (drawingSurface == nullptr) {
-        cleanUpHelper->UnRef();
         return false;
     }
     auto canvas = drawingSurface->GetCanvas();
@@ -886,16 +890,6 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
     if (srcRect.left < 0 || srcRect.top < 0 || srcRect.width <= 0 || srcRect.height <= 0) {
         RS_LOGE("surfaceBuffer invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d]",
             srcRect.left, srcRect.top, srcRect.width, srcRect.height);
-        return nullptr;
-    }
-    const int32_t bufferWidth = surfaceBuffer->GetWidth();
-    const int32_t bufferHeight = surfaceBuffer->GetHeight();
-    const int64_t rectRight = static_cast<int64_t>(srcRect.left) + static_cast<int64_t>(srcRect.width);
-    const int64_t rectBottom = static_cast<int64_t>(srcRect.top) + static_cast<int64_t>(srcRect.height);
-    if (srcRect.width > bufferWidth || srcRect.height > bufferHeight ||
-        srcRect.left >= bufferWidth || srcRect.top >= bufferHeight ||
-        rectRight > static_cast<int64_t>(bufferWidth) || rectBottom > static_cast<int64_t>(bufferHeight)) {
-        RS_LOGE("surfaceBuffer invalid argument: srcRect is out of bounds");
         return nullptr;
     }
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
