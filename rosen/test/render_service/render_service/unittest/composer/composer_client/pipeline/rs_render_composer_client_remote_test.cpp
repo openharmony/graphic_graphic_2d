@@ -77,7 +77,7 @@ void RSRenderComposerClientRemoteTest::SetUpTestCase()
         exit(1);
     }
     if (pipe(pipe1Fd_) < 0) {
-        exit(0);
+        exit(1);
     }
     pid_ = fork();
     if (pid_ < 0) {
@@ -133,15 +133,24 @@ void RSRenderComposerClientRemoteTest::TearDownTestCase()
     composerClient_ = nullptr;
     robj_ = nullptr;
 
-    char buf[10] = "over";
-    write(pipeFd_[1], buf, sizeof(buf));
+    // If the child process died before reading "start" (e.g. GPU init failed in the
+    // forked render_service), the read end of pipeFd_ is already closed. Writing to
+    // such a pipe raises SIGPIPE and kills the test runner. Use WNOHANG to check
+    // whether the child is still alive before signaling it.
+    pid_t alive = waitpid(pid_, nullptr, WNOHANG);
+    if (alive == 0) {
+        char buf[10] = "over";
+        write(pipeFd_[1], buf, sizeof(buf));
+    }
     close(pipeFd_[1]);
     close(pipe1Fd_[0]);
 
-    int32_t ret = 0;
-    do {
-        waitpid(pid_, nullptr, 0);
-    } while (ret == -1 && errno == EINTR);
+    if (alive == 0) {
+        int32_t ret = 0;
+        do {
+            ret = waitpid(pid_, nullptr, 0);
+        } while (ret == -1 && errno == EINTR);
+    }
 }
 
 /*

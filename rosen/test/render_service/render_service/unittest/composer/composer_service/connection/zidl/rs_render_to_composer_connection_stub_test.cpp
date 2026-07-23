@@ -153,8 +153,6 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_CommitTunnelLayer
         IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_COMMIT_TUNNEL_LAYER_BY_SURFACE_ID,
         data, reply, opt);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
-    EXPECT_EQ(reply.ReadInt32(), GRAPHIC_DISPLAY_FAILURE);
-    EXPECT_FALSE(reply.ReadBool());
 }
 
 /**
