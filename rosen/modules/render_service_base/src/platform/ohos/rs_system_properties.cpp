@@ -307,6 +307,14 @@ bool RSSystemProperties::GetRCDForceRedrawEnable()
     return ConvertToInt(enable, 0);
 }
 
+bool RSSystemProperties::GetUpdateDisplayListExtEnabled()
+{
+    int changed = 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.displaylist.optimized.enabled", "1");
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
 {
     static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "1") != "0";
