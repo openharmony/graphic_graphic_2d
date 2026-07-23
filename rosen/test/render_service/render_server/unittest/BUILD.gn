@@ -214,9 +214,9 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
         "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
         "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
         "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service/vsync",
         "$graphic_2d_root/rosen/modules/render_service_base/src",
         "$graphic_2d_root/rosen/test/include",
-        "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
     deps = [
@@ -459,6 +459,7 @@ ohos_unittest("RSMultiRenderProcessManagerTest") {
     external_deps = [
         "c_utils:utils",
         "eventhandler:libeventhandler",
+        "ffrt:libffrt",
         "hilog:libhilog",
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",
@@ -470,6 +471,82 @@ ohos_unittest("RSMultiRenderProcessManagerTest") {
         "safwk:system_ability_fwk",
         "egl:libEGL",
         "opengles:libGLES",
+    ]
+
+    if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+        external_deps += [ "sensor:sensor_interface_native" ]
+    }
+    subsystem_name = "graphic"
+}
+
+###############################################################################
+ohos_unittest("RSRenderMultiProcessManagerRepositoryTest") {
+    module_out_path = module_output_path
+
+    sources = [ "rs_render_multi_process_manager_repository_test.cpp" ]
+
+    cflags = [
+        "-Dprivate=public",
+        "-Dprotected=public",
+    ]
+
+    include_dirs = [
+        "$graphic_2d_root/rosen/modules/frame_load/include",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+        "$graphic_2d_root/rosen/modules/render_service",
+        "$graphic_2d_root/rosen/modules/render_service/core",
+        "$graphic_2d_root/rosen/modules/render_service/core/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/main",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_process",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service_base/src",
+        "$graphic_2d_root/rosen/test/include",
+        "$graphic_2d_root/rosen/modules/render_service/vsync",
+    ]
+
+    deps = [
+        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+        "$graphic_2d_root/rosen/modules/composer:libcomposer",
+        "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+        "$graphic_2d_root/rosen/modules/render_service:librender_service",
+        "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+        "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    ]
+
+    external_deps = [
+        "c_utils:utils",
+        "eventhandler:libeventhandler",
+        "hilog:libhilog",
+        "hisysevent:libhisysevent",
+        "hitrace:hitrace_meter",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "memmgr:memmgrclient",
+        "samgr:samgr_proxy",
+        "skia:skia_canvaskit",
+        "safwk:system_ability_fwk",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -544,12 +621,12 @@ ohos_unittest("RenderServiceTest") {
     external_deps = [
         "c_utils:utils",
         "eventhandler:libeventhandler",
+        "ffrt:libffrt",
         "hilog:libhilog",
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",
         "init:libbegetutil",
         "ipc:ipc_core",
-        "memmgr:memmgrclient",
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
@@ -557,8 +634,8 @@ ohos_unittest("RenderServiceTest") {
         "opengles:libGLES",
     ]
 
-    # Add memmgr client dependency when memory manager integration is enabled soft_vsync_manager
-    # headers like app_satte_subscriber.h are available to unit tests.
+    # Add memmgr client dependency when memory manager integration is enabled so
+    # headers like app_state_subscriber.h are available to unit tests.
     if (use_memmgr_plugin || use_memmgr) {
         external_deps += [ "memmgr:memmgrclient" ]
     }
@@ -579,6 +656,7 @@ group("unittest") {
         ":RSRenderSingleProcessManagerTest",
         ":RSRenderModeConfigParserTest",
         ":RSMultiRenderProcessManagerTest",
+        ":RSRenderMultiProcessManagerRepositoryTest",
         ":RenderServiceTest",
         "dfx:unittest",
     ]
