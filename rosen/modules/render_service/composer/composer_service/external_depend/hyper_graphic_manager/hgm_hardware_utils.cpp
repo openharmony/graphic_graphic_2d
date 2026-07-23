@@ -171,7 +171,7 @@ void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOu
         // When exclusive mode is active (exclusiveScreenId is valid), other screens are skipped.
         if (auto exclusiveScreenId = frameRateMgr->GetHgmExclusiveScreenId();
             exclusiveScreenId != INVALID_SCREEN_ID && screenId != exclusiveScreenId) {
-            RS_TRACE_NAME_FMT("%s: screenId %" PRIu64 "exclusiveScreenId %" PRIu64,
+            RS_TRACE_NAME_FMT("%s: screenId %" PRIu64 " exclusiveScreenId %" PRIu64,
                 __func__, screenId, exclusiveScreenId);
             return;
         }
