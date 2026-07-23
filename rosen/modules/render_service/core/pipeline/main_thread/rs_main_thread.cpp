@@ -550,7 +550,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSLayerSplitManager::GetInstance()->Reset();
         ClearNeedDropframePidList();
         if (renderThreadParams_) {
-            renderThreadParams_->ClearWhiteListRect();
+            renderThreadParams_->GetMutableScreenSpecialLayerParam().ClearWhiteListRect();
         }
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -2546,7 +2546,7 @@ void RSMainThread::AddWhiteListRect(const std::unordered_set<ScreenId>& screenId
     if (renderThreadParams_ == nullptr) {
         return;
     }
-    renderThreadParams_->AddWhiteListRect(screenIds, rect);
+    renderThreadParams_->GetMutableScreenSpecialLayerParam().AddWhiteListRect(screenIds, rect);
 }
 
 void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
