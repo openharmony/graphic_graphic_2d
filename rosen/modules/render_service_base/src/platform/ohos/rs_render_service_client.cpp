@@ -1688,6 +1688,15 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     }
 }
 
+bool RSRenderServiceClient::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService != nullptr) {
+        return clientToService->SetHgmExclusiveScreen(screenId);
+    }
+    return false;
+}
+
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();

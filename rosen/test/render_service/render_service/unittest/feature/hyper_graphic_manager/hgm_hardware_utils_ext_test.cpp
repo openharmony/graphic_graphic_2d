@@ -43,6 +43,7 @@ std::string GetParameter(const std::string &key, const std::string &def)
 namespace OHOS::Rosen {
 namespace {
 constexpr ScreenId SCREEN_ID = 12;
+constexpr ScreenId SCREEN_IDINVALID = 21;
 }
 
 class HgmHardwareUtilsExtTest : public testing::Test {
@@ -112,6 +113,14 @@ HWTEST_F(HgmHardwareUtilsExtTest, SwitchRefreshRateTest, TestSize.Level1)
 
     rsScreen->property_.SetPowerStatus(ScreenPowerStatus::POWER_STATUS_SUSPEND);
     hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
+
+    hgmCore.hgmFrameRateMgr_->hgmExclusiveScreenId_.store(SCREEN_IDINVALID);
+    hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
+
+    hgmCore.hgmFrameRateMgr_->hgmExclusiveScreenId_.store(SCREEN_ID);
+    hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
+
+    hgmCore.hgmFrameRateMgr_->hgmExclusiveScreenId_.store(INVALID_SCREEN_ID);
 
     hgmCore.RemoveScreen(SCREEN_ID);
     hgmCore.SetScreenManager(orgScmFromHgm);

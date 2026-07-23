@@ -4410,6 +4410,36 @@ void RSClientToServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& e
     }
 }
 
+bool RSClientToServiceConnectionProxy::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetHgmExclusiveScreen: WriteInterfaceToken GetDescriptor err.");
+        return false;
+    }
+    ScreenId id = screenId.value_or(INVALID_SCREEN_ID);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetHgmExclusiveScreen: WriteUint64 screenId err.");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Send Request err.");
+        return false;
+    }
+    bool result = false;
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Read result failed");
+        return false;
+    }
+    return result;
+}
+
 ErrCode RSClientToServiceConnectionProxy::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
 {
     MessageParcel data;

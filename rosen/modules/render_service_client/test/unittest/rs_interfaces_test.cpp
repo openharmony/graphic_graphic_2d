@@ -1665,6 +1665,32 @@ HWTEST_F(RSInterfacesTest, NotifyDynamicModeEvent001, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: SetHgmExclusiveScreen001
+ * @tc.desc: Set HGM exclusive screen with nullopt to disable exclusive mode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetHgmExclusiveScreen001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool result = rsInterfaces->SetHgmExclusiveScreen(std::nullopt);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: SetHgmExclusiveScreen002
+ * @tc.desc: Set HGM exclusive screen with a screenId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetHgmExclusiveScreen002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool result = rsInterfaces->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
+    EXPECT_FALSE(result);
+}
+
+/*
  * @tc.name: NotifyHgmConfigEvent001
  * @tc.desc: Notify hgm config event to hgm
  * @tc.type: FUNC

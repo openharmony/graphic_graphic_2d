@@ -89,7 +89,8 @@ const uint8_t DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 8;
 const uint8_t DO_SET_BEHIND_WINDOW_FILTER_ENABLED = 9;
 const uint8_t GET_REFRESH_INFO_BY_PID_AND_UNIQUEID = 10;
 const uint8_t DO_NOTIFY_WINDOW_MODE_TYPE_EVENT = 11;
-const uint8_t TARGET_SIZE = 12;
+const uint8_t DO_SET_HGM_EXCLUSIVE_SCREEN = 12;
+const uint8_t TARGET_SIZE = 13;
 const uint16_t TASK_WAIT_MICROSECONDS = 50000;
 const uint32_t WAIT_TASK_RUN_TIME_NS = 10000;
 
@@ -281,6 +282,44 @@ void DoNotifySoftVsyncEvent()
         return;
     }
     g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
+}
+
+void DoSetHgmExclusiveScreen()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint64_t screenId = GetData<uint64_t>();
+    dataP.WriteUint64(screenId);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
+    if (g_serviceConnection == nullptr) {
+        return;
+    }
+    g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
+
+    MessageParcel dataP2;
+    MessageParcel reply2;
+    MessageOption option2;
+    if (!dataP2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option2.SetFlags(MessageOption::TF_SYNC);
+    dataP2.WriteUint64(0);
+    g_serviceConnection->OnRemoteRequest(code, dataP2, reply2, option2);
+
+    MessageParcel dataP3;
+    MessageParcel reply3;
+    MessageOption option3;
+    if (!dataP3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option3.SetFlags(MessageOption::TF_SYNC);
+    dataP3.WriteUint64(INVALID_SCREEN_ID);
+    g_serviceConnection->OnRemoteRequest(code, dataP3, reply3, option3);
 }
 
 void DoNotifyAppStrategyConfigChangeEvent()
@@ -687,6 +726,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_NOTIFY_WINDOW_MODE_TYPE_EVENT:
             OHOS::Rosen::DoNotifyWindowModeTypeEvent();
+            break;
+        case OHOS::Rosen::DO_SET_HGM_EXCLUSIVE_SCREEN:
+            OHOS::Rosen::DoSetHgmExclusiveScreen();
             break;
         default:
             return -1;

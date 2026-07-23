@@ -974,6 +974,11 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
+bool RSInterfaces::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    return renderServiceClient_->SetHgmExclusiveScreen(screenId);
+}
+
 void RSInterfaces::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
     renderServiceClient_->SetWindowExpectedRefreshRate(eventInfos);

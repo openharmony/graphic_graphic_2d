@@ -221,6 +221,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME = 1012,
     SET_APS_CONFIG_PARAMS = 1015,
     NOTIFY_WINDOW_MODE_TYPE_EVENT = 1016,
+    SET_HGM_EXCLUSIVE_SCREEN = 1017,
 };
 } // namespace Rosen
 } // namespace OHOS

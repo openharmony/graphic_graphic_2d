@@ -1829,6 +1829,15 @@ void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventI
     }
 }
 
+bool RSClientToServiceConnection::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    if (hgmContext_ == nullptr) {
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
+        return false;
+    }
+    return hgmContext_->SetHgmExclusiveScreen(remotePid_, screenId.value_or(INVALID_SCREEN_ID));
+}
+
 
 void RSClientToServiceConnection::SetWindowExpectedRefreshRate(
     const std::unordered_map<uint64_t, EventInfo>& eventInfos)
