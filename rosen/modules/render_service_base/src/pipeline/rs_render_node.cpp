@@ -1242,6 +1242,9 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
     const int childrenCntLimit = 10;
     if (!isFullChildrenListValid_) {
         auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+        if (!currentList) {
+            return;
+        }
         out += ", Children list needs update, current count: " + std::to_string(currentList->size());
         if (!currentList->empty()) {
             int cnt = 0;
@@ -4256,6 +4259,9 @@ void RSRenderNode::ResortChildren()
 {
     // Make a copy of the fullChildrenList for sorting
     auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+    if (!currentList) {
+        return;
+    }
     auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*currentList);
 
     // temporary fix for wrong z-order
