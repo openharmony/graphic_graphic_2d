@@ -221,6 +221,10 @@ void HgmHardwareUtils::ClearRefreshRateCounts(std::string& dumpString)
 void HgmHardwareUtils::RecordTimestampForAS(int64_t timestamp)
 {
     auto frameRateMgr = hgmCore_.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        HGM_LOGD("FrameRateMgr is null");
+        return;
+    }
     if (!frameRateMgr->IsSupportASConfig()) {
         asRecordRateParam_.ClearTimestamp();
         frameRateMgr->UpdateASStateForFps(false);
