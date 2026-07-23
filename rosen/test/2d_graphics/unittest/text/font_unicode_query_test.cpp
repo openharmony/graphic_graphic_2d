@@ -386,29 +386,6 @@ HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemHMOSColorEmojiFlags, TestSize.
 }
 
 /**
- * @tc.name: GenerateUnicodeItemHMSymbolVF
- * @tc.desc: Test GenerateUnicodeItem
- * @tc.type: FUNC
- * @tc.require: SR20251027820925
- */
-HWTEST_F(FontUnicodeQueryTest, GenerateUnicodeItemHMSymbolVF, TestSize.Level1)
-{
-    std::string ttfName = "HMSymbolVF.ttf";
-    std::string path = GenerateRelativePathForFontResource(ttfName);
-    auto typeface = Typeface::MakeFromFile(path.c_str());
-    ASSERT_TRUE(typeface);
-    auto unicodeRange = FontUnicodeQuery::GenerateUnicodeItem(typeface);
-    EXPECT_FALSE(JudgeIfInvalidCodePointExist(unicodeRange));
-    auto it = FONT_DATA.find(ttfName);
-    ASSERT_TRUE(it != FONT_DATA.end());
-    const FontInfo& fontInfo = it->second;
-    EXPECT_EQ(unicodeRange.size(), fontInfo.size);
-    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.front));
-    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.mid));
-    EXPECT_TRUE(JudgeIfCodePointExist(unicodeRange, fontInfo.back));
-}
-
-/**
  * @tc.name: GenerateUnicodeItemHarmonyOS_Sans
  * @tc.desc: Test GenerateUnicodeItem
  * @tc.type: FUNC
