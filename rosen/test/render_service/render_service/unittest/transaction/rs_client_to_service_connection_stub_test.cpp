@@ -6366,5 +6366,189 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_Success, TestSiz
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
 }
+
+/**
+ * @tc.name: ReportEventResponse_PidValidation
+ * @tc.desc: Test ReportEventResponse with valid pid (callingPid == getpid())
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportEventResponse_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(getpid());
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteBool(false);
+    data.WriteString("sceneId");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportEventComplete_PidValidation
+ * @tc.desc: Test ReportEventComplete with valid pid (callingPid == getpid())
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportEventComplete_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(getpid());
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteBool(false);
+    data.WriteString("sceneId");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportEventJankFrame_PidValidation
+ * @tc.desc: Test ReportEventJankFrame with valid pid (callingPid == getpid())
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportEventJankFrame_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(getpid());
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteBool(false);
+    data.WriteString("sceneId");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankStart_PidValidation
+ * @tc.desc: Test ReportRsSceneJankStart with valid pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportRsSceneJankStart_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt32(getpid());
+    data.WriteString("");
+    data.WriteInt32(0);
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankStart_InvalidData
+ * @tc.desc: Test ReportRsSceneJankStart with invalid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportRsSceneJankStart_InvalidData, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankEnd_InvalidData
+ * @tc.desc: Test ReportRsSceneJankEnd with invalid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportRsSceneJankEnd_InvalidData, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankEnd_PidValidation
+ * @tc.desc: Test ReportRsSceneJankEnd with valid pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportRsSceneJankEnd_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt32(getpid());
+    data.WriteString("");
+    data.WriteInt32(0);
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
 } // namespace OHOS::Rosen
 #endif
