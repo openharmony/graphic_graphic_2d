@@ -40,9 +40,9 @@ inline OH_EffectKit_ErrorCode MapDrawingError(DrawingError error)
         case DrawingError::ERR_ILLEGAL_INPUT:
             return OH_EFFECTKIT_BAD_PARAMETER;
         case DrawingError::ERR_MEMORY:
-            return OH_EFFECTKIT_MEMORY_ERROR;
+            return OH_EFFECTKIT_UNKNOWN_ERROR;
         default:
-            return OH_EFFECTKIT_RENDER_ERROR;
+            return OH_EFFECTKIT_UNSUPPORTED_OPERATION;
     }
 }
 }
@@ -55,7 +55,7 @@ OH_EffectKit_ErrorCode OH_EffectKit_CreateFilter(
     }
     auto inner = new (std::nothrow) Filter(pixelmap->GetInnerPixelmap());
     if (inner == nullptr) {
-        return OH_EFFECTKIT_MEMORY_ERROR;
+        return OH_EFFECTKIT_UNKNOWN_ERROR;
     }
     *filter = WrapFilter(inner);
     return OH_EFFECTKIT_SUCCESS;
@@ -175,7 +175,7 @@ OH_EffectKit_ErrorCode OH_EffectKit_AcquireEffectPixelMap(
     }
     *pixelmap = new (std::nothrow) OH_PixelmapNative(innerPixelmap);
     if (*pixelmap == nullptr) {
-        return OH_EFFECTKIT_MEMORY_ERROR;
+        return OH_EFFECTKIT_UNKNOWN_ERROR;
     }
     return OH_EFFECTKIT_SUCCESS;
 }
