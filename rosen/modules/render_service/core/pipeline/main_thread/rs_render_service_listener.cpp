@@ -65,12 +65,9 @@ void RSRenderServiceListener::OnBufferAvailable()
 
     bool isNewTunnelEnabled = Rosen::IsNewTunnelEnabled();
     auto doFastCompose = CheckFastCompose(consumer);
-    bool isTunnelCandidate = isNewTunnelEnabled &&
-        (surfaceHandler->HasReceivedTunnelLayerInfo() ||
-            surfaceHandler->GetSourceType() ==
-                static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO));
+    bool isTunnelCandidate = isNewTunnelEnabled && surfaceHandler->HasReceivedTunnelLayerInfo();
     if (isTunnelCandidate) {
-        auto *surfaceRenderNodeRaw = node->AsRSSurfaceRenderNode();
+        auto* surfaceRenderNodeRaw = node->AsRSSurfaceRenderNode();
         if (surfaceRenderNodeRaw != nullptr) {
             std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode(node, surfaceRenderNodeRaw);
             auto handleResult =

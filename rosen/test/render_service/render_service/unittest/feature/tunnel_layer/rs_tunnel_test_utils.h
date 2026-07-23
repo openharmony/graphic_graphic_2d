@@ -190,7 +190,7 @@ public:
         ++commitTunnelCallCount;
         lastSurfaceId = surfaceId;
         lastTunnelLayerId = tunnelLayerId;
-        lastBufferId = buffer == nullptr ? 0 : buffer->GetBufferId();
+        lastBufferId = buffer == nullptr ? 0 : static_cast<uint64_t>(buffer->GetSeqNum());
         releaseFence = SyncFence::InvalidFence();
         return commitTunnelResult;
     }

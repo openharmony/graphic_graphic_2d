@@ -139,7 +139,7 @@ void RSTunnelLayerManager::UpdateTunnelLayerState(
         return;
     }
 
-    if (!Rosen::IsNewTunnelEnabled() && !surfaceHandler->IsCurrentFrameBufferConsumed()) {
+    if (!Rosen::IsNewTunnelEnabled() || !surfaceHandler->IsCurrentFrameBufferConsumed()) {
         return;
     }
     uint64_t cachedTunnelLayerId = 0;
