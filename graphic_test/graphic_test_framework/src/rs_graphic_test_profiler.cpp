@@ -61,10 +61,7 @@ const std::string OHR_TYPE = "ohr_type";
 const std::string OHR_START_TIME = "startTime";
 const std::string OHR_END_TIME = "endTime";
 const std::string OHR_TIME_INTERVAL = "timeInterval";
-const std::string OHR_FOR_PERFORMANCE = "performance";
 const std::string OHR_FOR_DISPLAY = "display_comparison";
-constexpr int OHR_INFO_NUM = 4;
-constexpr int OHR_NEW_INFO_NUM = 5;
 //dump buffer
 constexpr uint32_t CROP_X = 0;
 constexpr uint32_t CROP_Y = 0;
@@ -134,37 +131,102 @@ std::string MakePlaybackSaveDirectories(const std::string& path)
     return path.substr(0, lastSlashPos + 1) + fileName + "/" + fileNameExt;
 }
 
-void RSGraphicTestProfiler::AnalysePlaybackInfo(
-    const std::filesystem::path& rootPath, const std::filesystem::path& imagePath, const cJSON* root)
+namespace {
+struct PlaybackFieldFlags {
+    bool hasFileName = false;
+    bool hasStartTime = false;
+    bool hasEndTime = false;
+    bool hasTimeInterval = false;
+};
+
+void ParsePlaybackFields(const cJSON* root, RSGraphicTestProfiler::PlaybackInfo& info, PlaybackFieldFlags& flags)
 {
     cJSON* item = root->child;
-    PlaybackInfo info;
-    int checkNum = 0;
     while (item != nullptr) {
         if (strcmp(item->string, OHR_NAME.c_str()) == 0 && cJSON_IsString(item)) {
             info.fileName = item->valuestring;
-            checkNum++;
+            flags.hasFileName = true;
         } else if (strcmp(item->string, OHR_START_TIME.c_str()) == 0 && cJSON_IsNumber(item)) {
             info.startTime = item->valueint;
-            checkNum++;
+            flags.hasStartTime = true;
         } else if (strcmp(item->string, OHR_END_TIME.c_str()) == 0 && cJSON_IsNumber(item)) {
             info.endTime = item->valueint;
-            checkNum++;
+            flags.hasEndTime = true;
         } else if (strcmp(item->string, OHR_TIME_INTERVAL.c_str()) == 0 && cJSON_IsNumber(item)) {
             info.timeInterval = item->valueint;
-            checkNum++;
+            flags.hasTimeInterval = true;
         } else if (strcmp(item->string, OHR_TYPE.c_str()) == 0 && cJSON_IsString(item)) {
             info.ohrType = item->valuestring;
-            checkNum++;
         }
         item = item->next;
     }
-    if (checkNum != OHR_INFO_NUM && checkNum != OHR_NEW_INFO_NUM) {
-        std::cout << "playback info param num error!" << std::endl;
+}
+
+bool ValidatePlaybackInfo(const RSGraphicTestProfiler::PlaybackInfo& info,
+    const PlaybackFieldFlags& flags, bool& isDisplay)
+{
+    isDisplay = (info.ohrType == OHR_FOR_DISPLAY);
+    if (isDisplay) {
+        if (!flags.hasFileName) {
+            std::cout << "display_comparison playback missing fileName" << std::endl;
+            return false;
+        }
+        return true;
+    }
+    // performance and legacy modes require all four fields
+    if (!flags.hasFileName || !flags.hasStartTime || !flags.hasEndTime || !flags.hasTimeInterval) {
+        std::cout << "playback info missing required fields" << std::endl;
+        return false;
+    }
+    if (info.startTime < 0 || info.endTime < info.startTime || info.timeInterval <= 0) {
+        std::cout << "playback info invalid time range: start=" << info.startTime
+            << " end=" << info.endTime << " interval=" << info.timeInterval << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool NormalizePlaybackFileName(const std::string& fileName, std::filesystem::path& normalized)
+{
+    if (fileName.empty()) {
+        return false;
+    }
+    std::filesystem::path p(fileName);
+    if (p.is_absolute() || p.has_root_name() || p.has_root_directory()) {
+        return false;
+    }
+    normalized = p.lexically_normal();
+    if (normalized.empty()) {
+        return false;
+    }
+    for (const auto& comp : normalized) {
+        if (comp == "..") {
+            return false;
+        }
+    }
+    return true;
+}
+} // namespace
+
+void RSGraphicTestProfiler::AnalysePlaybackInfo(
+    const std::filesystem::path& rootPath, const std::filesystem::path& imagePath, const cJSON* root)
+{
+    PlaybackInfo info;
+    PlaybackFieldFlags flags;
+    ParsePlaybackFields(root, info, flags);
+
+    bool isDisplay = false;
+    if (!ValidatePlaybackInfo(info, flags, isDisplay)) {
         return;
     }
-    std::filesystem::path filePath = rootPath / info.fileName;
-    std::filesystem::path savePath = imagePath / MakePlaybackSaveDirectories(info.fileName);
+
+    std::filesystem::path normalized;
+    if (!NormalizePlaybackFileName(info.fileName, normalized)) {
+        std::cout << "Invalid fileName with path traversal: " << info.fileName << std::endl;
+        return;
+    }
+    std::filesystem::path filePath = rootPath / normalized;
+    std::filesystem::path savePath = imagePath / MakePlaybackSaveDirectories(normalized.string());
     if (!std::filesystem::exists(filePath)) {
         std::cout << "playback file is not exist:" << filePath << std::endl;
         return;
@@ -173,9 +235,9 @@ void RSGraphicTestProfiler::AnalysePlaybackInfo(
         std::filesystem::create_directories(savePath.parent_path());
     }
 
-    if (info.ohrType == OHR_FOR_DISPLAY) {
+    if (isDisplay) {
         LoadPlaybackProfilerFileWithoutJson(filePath, savePath);
-    } else if (info.ohrType == OHR_FOR_PERFORMANCE || checkNum == OHR_INFO_NUM) {
+    } else {
         LoadPlaybackProfilerFile(filePath, savePath, info);
     }
 }
@@ -183,8 +245,12 @@ void RSGraphicTestProfiler::AnalysePlaybackInfo(
 void RSGraphicTestProfiler::PlayBackPauseAtVsync(
     const int& startTime, const int& endTime, const int& timeInterval, const std::string& savePath)
 {
+    if (timeInterval <= 0) {
+        std::cout << "Invalid timeInterval: " << timeInterval << ", skip to avoid infinite loop" << std::endl;
+        return;
+    }
     int frame = 1;
-    for (int time = startTime; time <= endTime; time += timeInterval) {
+    for (int64_t time = startTime; time <= endTime; time += timeInterval) {
         RS_TRACE_BEGIN("RSGraphicTestProfiler::LoadPlayBackProfilerFiles");
         auto start = std::chrono::high_resolution_clock::now();
         if (frame != 1) {
@@ -296,6 +362,7 @@ int RSGraphicTestProfiler::RunPlaybackTest(const std::string& filePath)
     std::filesystem::path configPath = rootPath / OHR_CONFIG_FILE_NAME;
     if (!std::filesystem::exists(configPath)) {
         std::cout << "ohr config is not exist :" << configPath << std::endl;
+        TearDown();
         return 0;
     }
 
@@ -303,6 +370,7 @@ int RSGraphicTestProfiler::RunPlaybackTest(const std::string& filePath)
     if (rootData == nullptr) {
         cJSON_Delete(rootData);
         std::cout << "parse config file failed, check it path is:" << configPath << std::endl;
+        TearDown();
         return 0;
     }
     auto playbackConfig = cJSON_GetObjectItem(rootData, OHR_LIST.c_str());
@@ -404,7 +472,12 @@ void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath
     // 1.add load client node to add file
     auto loadNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     loadNode->SetBounds({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
-    GetRootNode()->AddChild(loadNode);
+    auto rootNode = GetRootNode();
+    if (!rootNode) {
+        std::cout << "LoadNodeTreeProfilerFile root node is null" << std::endl;
+        return;
+    }
+    rootNode->AddChild(loadNode);
     // need flush client node to rs firstly
     if (!RSGraphicTestDirector::Instance().FlushMessageAndWait(NODETREE_TIMEOUT)) {
         std::cout << "Warning: FlushMessageAndWait timed out after adding loadNode." << std::endl;
@@ -646,7 +719,12 @@ bool RSGraphicTestProfiler::CropRawFile(
     }
     std::ofstream output(dstFilePath, std::ios::binary);
     const int bytesPerPixel = 4; //RGBA
-    size_t stride = AlignValue(dumpBufferSize.width * bytesPerPixel);
+    constexpr uint32_t MAX_DUMP_BUFFER_WIDTH = 1u << 30; // prevent width*bytesPerPixel from overflowing uint32_t
+    if (dumpBufferSize.width == 0 || dumpBufferSize.width > MAX_DUMP_BUFFER_WIDTH) {
+        std::cout << "Invalid dump buffer width: " << dumpBufferSize.width << std::endl;
+        return false;
+    }
+    size_t stride = AlignValue(static_cast<size_t>(dumpBufferSize.width) * bytesPerPixel);
     size_t cropRowSize = GetScreenSize()[0] * bytesPerPixel;
     size_t startOffset = CROP_Y * stride + CROP_X * bytesPerPixel;
     input.seekg(startOffset, std::ios::beg);
