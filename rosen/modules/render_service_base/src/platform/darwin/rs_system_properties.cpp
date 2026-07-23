@@ -190,6 +190,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetUpdateDisplayListExtEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDynamicLayerSkipEnabled()
 {
     return false;
