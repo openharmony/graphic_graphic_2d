@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 #define RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 
-#include <securec.h>
+#include <cstring>
 
 #include <map>
 #include <memory>
@@ -149,9 +149,7 @@ public:
             if (buff == nullptr) {
                 return false;
             }
-            if (memcpy_s(&val, sizeof(T), buff, sizeof(T)) != EOK) {
-                return false;
-            }
+            memcpy(&val, buff, sizeof(T));
             return true;
         }
         return false;
