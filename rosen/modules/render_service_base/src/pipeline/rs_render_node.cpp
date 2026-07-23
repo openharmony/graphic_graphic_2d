@@ -3880,6 +3880,9 @@ void RSRenderNode::SetNodeGroupHasChildInBlacklist(bool inBlacklist)
 
 void RSRenderNode::SetNeedClearRenderGroupCache(bool needClear)
 {
+    if (!stagingRenderParams_) {
+        return;
+    }
     stagingRenderParams_->SetNeedClearRenderGroupCache(needClear);
 }
 

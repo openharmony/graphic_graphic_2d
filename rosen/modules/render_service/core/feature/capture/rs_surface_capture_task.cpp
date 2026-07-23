@@ -214,7 +214,12 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
         ::close(fd);
         return false;
     }
-    void* fdPtr = new int32_t();
+    void* fdPtr = new (std::nothrow) int32_t();
+    if (fdPtr == nullptr) {
+        ::munmap(ptr, size);
+        ::close(fd);
+        return false;
+    }
     *static_cast<int32_t*>(fdPtr) = fd;
     pixelmap->SetPixelsAddr(data, fdPtr, size, Media::AllocatorType::SHARE_MEM_ALLOC, nullptr);
 #else

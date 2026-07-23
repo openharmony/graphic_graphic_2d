@@ -447,6 +447,24 @@ void RSClientToServiceConnectionStubTest::CreateComposerAdapterWithScreenInfo(ui
 }
 
 /**
+ * @tc.name: GetSurfaceRootNodeIdNullAgentTest001
+ * @tc.desc: Test GetSurfaceRootNodeId when renderProcessManagerAgent_ is nullptr (early-return branch).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetSurfaceRootNodeIdNullAgentTest001, TestSize.Level1)
+{
+    // renderProcessManagerAgent_ is nullptr -> GetSurfaceRootNodeId early-returns without crash.
+    auto conn = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, nullptr, nullptr, nullptr, nullptr, renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(conn, nullptr);
+    NodeId tmp = 1234;
+    NodeId windowNodeId = tmp;
+    conn->GetSurfaceRootNodeId(windowNodeId);
+    EXPECT_EQ(windowNodeId, tmp);
+}
+
+/**
  * @tc.name: TestRSRenderServiceConnectionStub002
  * @tc.desc: Test screen related transaction, with non empty data.
  * @tc.type: FUNC

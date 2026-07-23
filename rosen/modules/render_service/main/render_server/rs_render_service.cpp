@@ -284,6 +284,10 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     const sptr<RSIConnectionToken>& token)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (token == nullptr) {
+        RS_LOGE("RSRenderService::GetConnection token is nullptr");
+        return {nullptr, nullptr};
+    }
     auto tokenObj = token->AsObject();
     auto iter = connections_.find(tokenObj);
     if (iter == connections_.end()) {

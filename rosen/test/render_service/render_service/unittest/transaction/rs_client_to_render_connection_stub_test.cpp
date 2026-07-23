@@ -4497,6 +4497,33 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeAndSurfaceTest001, TestSi
 }
 
 /**
+ * @tc.name: CreateNodeAndSurfaceNodeMaxTest001
+ * @tc.desc: Test CREATE_NODE_AND_SURFACE rejects RSSurfaceNodeType::NODE_MAX (>= boundary).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeAndSurfaceNodeMaxTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint64(0); // nodeId
+    data.WriteString("NodeMaxSurface");
+    // NODE_MAX is the sentinel end value and must be rejected by the >= nodeTypeMax check.
+    data.WriteUint8(static_cast<uint8_t>(RSSurfaceNodeType::NODE_MAX));
+    data.WriteBool(false); // isTextureExportNode
+    data.WriteBool(false); // isSync
+    data.WriteUint8(static_cast<uint8_t>(SurfaceWindowType::DEFAULT_WINDOW));
+    data.WriteBool(false); // unobscured
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: RegisterOcclusionChangeCallbackTest001
  * @tc.desc: Test REGISTER_OCCLUSION_CHANGE_CALLBACK interface code path
  * @tc.type: FUNC

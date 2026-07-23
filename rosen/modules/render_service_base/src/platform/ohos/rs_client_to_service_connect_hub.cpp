@@ -54,6 +54,7 @@ RSClientToServiceConnectHub::RSClientToServiceConnectHub() {}
 
 RSClientToServiceConnectHub::~RSClientToServiceConnectHub() noexcept
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (UNLIKELY(!renderService_)) {
         ROSEN_LOGE("~RSClientToServiceConnectHub renderService_ is null");
         return;

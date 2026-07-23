@@ -350,6 +350,8 @@ std::function<void()> RSUiCaptureSoloTaskParallel::CreateSurfaceSyncCopyTask(
         if (!grContext) {
             RS_LOGE("RSUiCaptureSoloTaskParallel: SharedGPUContext get failed");
             std::get<0>(*wrapper) = nullptr;
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
 

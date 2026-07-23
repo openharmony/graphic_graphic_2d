@@ -204,6 +204,22 @@ HWTEST_F(RSRenderServiceTest, GetConnection001, TestSize.Level1)
     EXPECT_EQ(result.second, nullptr);
 }
 
+/**
+ * @tc.name: GetConnection002
+ * @tc.desc: Test GetConnection with a nullptr token, verify the nullptr early-return branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceTest, GetConnection002, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    sptr<RSIConnectionToken> token = nullptr;
+    auto result = renderService->GetConnection(token);
+    EXPECT_EQ(result.first, nullptr);
+    EXPECT_EQ(result.second, nullptr);
+}
+
 HWTEST_F(RSRenderServiceTest, CreateConnection001, TestSize.Level1)
 {
     auto renderService = sptr<RSRenderService>::MakeSptr();
