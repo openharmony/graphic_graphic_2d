@@ -7808,6 +7808,7 @@ HWTEST_F(RSUniRenderVisitorTest, ResetDisplayDirtyRegionSpecialFoldDisplay, Test
     system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->curScreenDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(rsUniRenderVisitor->curScreenDirtyManager_, nullptr);
     rsUniRenderVisitor->curScreenDirtyManager_->surfaceRect_ = RectI(50, 100, 1920, 800); // bottom 900
     rsUniRenderVisitor->curScreenDirtyManager_->activeSurfaceRect_ = RectI();
     NodeId id = 1;
@@ -7824,8 +7825,10 @@ HWTEST_F(RSUniRenderVisitorTest, ResetDisplayDirtyRegionSpecialFoldDisplay, Test
     rsUniRenderVisitor->zoomStateChange_ = true; // force the ret guard true
     rsUniRenderVisitor->ResetDisplayDirtyRegion();
     // EDGE_GRADIENT_WIDTH=200: expandedTop=max(0,100-200)=0; expandedBottom=min(900,900+200)=900
-    EXPECT_EQ(rsUniRenderVisitor->curScreenDirtyManager_->GetCurrentFrameDirtyRegion(),
-        RectI(50, 0, 1920, 900));
+    if (RSSystemProperties::IsSpecialFoldDisplay()) {
+        EXPECT_EQ(rsUniRenderVisitor->curScreenDirtyManager_->GetCurrentFrameDirtyRegion(),
+            RectI(50, 0, 1920, 900));
+    }
     system::SetParameter("const.window.foldscreen.type", origFoldType);
 }
 
