@@ -92,7 +92,7 @@ public:
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
     void UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid);
-    bool CheckPixelMapFdCountAndKillProcess(uint32_t pid);
+    bool CheckPixelMapFdCountAndKillProcess(pid_t pid);
     // count memory for hidumper
     MemoryGraphic CountRSMemory(const pid_t pid);
     void RemovePidRecord(const pid_t pid);

@@ -361,6 +361,27 @@ HWTEST_F(RSImageCacheTest, DecreaseRefCountAndDiscardEditablePixelMapCacheTest, 
 }
 
 /**
+ * @tc.name: DecreaseRefCountAndDiscardEditablePixelMapCacheTest001
+ * @tc.desc: Verify ref count is 0 before decrease, no underflow and entry is erased
+ * @tc.type: FUNC
+ * @tc.require: issue#25012
+ */
+HWTEST_F(RSImageCacheTest, DecreaseRefCountAndDiscardEditablePixelMapCacheTest001, TestSize.Level1)
+{
+    RSImageCache imageCache;
+    uint64_t validUniqueId = 1;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_TRUE(pixelMap);
+    imageCache.CacheEditablePixelMap(validUniqueId, pixelMap);
+    imageCache.DecreaseRefCountAndDiscardEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it == imageCache.editablePixelMapCache_.end());
+    }
+}
+
+/**
  * @tc.name: DecreaseRefCountAndReleaseEditablePixelMapCacheTest
  * @tc.desc: Verify function DecreaseRefCountAndReleaseEditablePixelMapCache
  * @tc.type: FUNC
@@ -392,6 +413,27 @@ HWTEST_F(RSImageCacheTest, DecreaseRefCountAndReleaseEditablePixelMapCacheTest, 
         EXPECT_TRUE(it == imageCache.editablePixelMapCache_.end());
         imageCache.editablePixelMapCache_.emplace(validUniqueId, std::make_pair(nullptr, 0));
     }
+    imageCache.DecreaseRefCountAndReleaseEditablePixelMapCache(validUniqueId);
+    {
+        std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
+        auto it = imageCache.editablePixelMapCache_.find(validUniqueId);
+        EXPECT_TRUE(it == imageCache.editablePixelMapCache_.end());
+    }
+}
+
+/**
+ * @tc.name: DecreaseRefCountAndReleaseEditablePixelMapCacheTest001
+ * @tc.desc: Verify ref count is 0 before decrease, no underflow and entry is erased
+ * @tc.type: FUNC
+ * @tc.require: issue#25012
+ */
+HWTEST_F(RSImageCacheTest, DecreaseRefCountAndReleaseEditablePixelMapCacheTest001, TestSize.Level1)
+{
+    RSImageCache imageCache;
+    uint64_t validUniqueId = 1;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_TRUE(pixelMap);
+    imageCache.CacheEditablePixelMap(validUniqueId, pixelMap);
     imageCache.DecreaseRefCountAndReleaseEditablePixelMapCache(validUniqueId);
     {
         std::lock_guard<std::mutex> lock(imageCache.editablePixelMapCacheMutex_);
@@ -539,12 +581,11 @@ HWTEST_F(RSImageCacheTest, IncreasePixelMapCacheRefCountTest001, TestSize.Level1
  */
 HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest001, TestSize.Level1)
 {
-    RSImageCache& imageCache = RSImageCache::Instance();
+    RSImageCache imageCache;
     auto pixelMap = std::make_shared<Media::PixelMap>();
     imageCache.CachePixelMap(1, pixelMap);
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_FALSE(imageCache.pixelMapCache_.empty());
-    imageCache.pixelMapCache_.clear();
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
 }
 
 /**
@@ -589,13 +630,12 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest003, TestSize.Level1)
  */
 HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest004, TestSize.Level1)
 {
-    RSImageCache& imageCache = RSImageCache::Instance();
+    RSImageCache imageCache;
     auto pixelMap = std::make_shared<Media::PixelMap>();
     imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 0));
     pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_FALSE(imageCache.pixelMapCache_.empty());
-    imageCache.pixelMapCache_.clear();
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
 }
 
 /**
@@ -884,6 +924,56 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest008, TestSize.Level1)
     imageCache.ReleasePixelMapCache(1);
     EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
+}
+
+/**
+ * @tc.name: ReleasePixelMapCacheTest009
+ * @tc.desc: Verify ref count is 0 with non-null pixelMap (DMA_ALLOC), no underflow and entry is erased
+ * @tc.type:FUNC
+ * @tc.require: issue#25012
+ */
+HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest009, TestSize.Level1)
+{
+    RSImageCache imageCache;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 0));
+    pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+    imageCache.ReleasePixelMapCache(1);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
+}
+
+/**
+ * @tc.name: ReleasePixelMapCacheTest010
+ * @tc.desc: Verify ref count is 0 with non-null pixelMap (SHARE_MEM_ALLOC), no underflow and entry is erased
+ * @tc.type:FUNC
+ * @tc.require: issue#25012
+ */
+HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest010, TestSize.Level1)
+{
+    RSImageCache imageCache;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 0));
+    pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
+    imageCache.ReleasePixelMapCache(1);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
+}
+
+/**
+ * @tc.name: ReleasePixelMapCacheTest011
+ * @tc.desc: Verify ref count is greater than 1, decrease once should keep entry with count > 0
+ * @tc.type:FUNC
+ * @tc.require: issue#25012
+ */
+HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest011, TestSize.Level1)
+{
+    RSImageCache imageCache;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 2));
+    pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+    imageCache.ReleasePixelMapCache(1);
+    auto it = imageCache.pixelMapCache_.find(1);
+    EXPECT_TRUE(it != imageCache.pixelMapCache_.end());
+    EXPECT_EQ(it->second.second, 1u);
 }
 
 #ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
