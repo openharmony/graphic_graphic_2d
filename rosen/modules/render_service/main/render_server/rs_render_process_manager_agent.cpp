@@ -32,11 +32,6 @@ bool RSRenderProcessManagerAgent::SetRenderProcessReadyPromise(pid_t pid,
         serviceToRenderConnection, connectToRenderConnection);
 }
 
-bool RSRenderProcessManagerAgent::IsValidRenderProcessPid(pid_t pid) const
-{
-    return renderProcessManager_->IsValidRenderProcessPid(pid);
-}
-
 sptr<RSIServiceToRenderConnection> RSRenderProcessManagerAgent::GetServiceToRenderConn(ScreenId screenId) const
 {
     return renderProcessManager_->GetServiceToRenderConn(screenId);
