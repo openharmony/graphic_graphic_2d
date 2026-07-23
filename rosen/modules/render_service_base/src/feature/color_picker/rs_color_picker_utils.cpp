@@ -16,6 +16,8 @@
 #include "feature/color_picker/rs_color_picker_utils.h"
 
 #include <atomic>
+#include <cmath>
+#include <limits>
 
 #include "feature/color_picker/i_color_picker_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
@@ -52,6 +54,19 @@ constexpr uint32_t FENCE_DEBUG_LOG_INTERVAL = 100;
 std::atomic<int64_t> g_fenceFdCnt = 0;
 std::atomic<uint64_t> g_fenceDebugEventCount = 0;
 
+bool IsFloatToInt32Valid(float value)
+{
+    return std::isfinite(value) &&
+        static_cast<double>(value) >= static_cast<double>(std::numeric_limits<int32_t>::min()) &&
+        static_cast<double>(value) <= static_cast<double>(std::numeric_limits<int32_t>::max());
+}
+
+bool IsInt32AdditionValid(int32_t left, int32_t right)
+{
+    int64_t result = static_cast<int64_t>(left) + static_cast<int64_t>(right);
+    return result >= std::numeric_limits<int32_t>::min() && result <= std::numeric_limits<int32_t>::max();
+}
+
 void LogFenceDebugEvent(int64_t fenceCount)
 {
     auto eventCount = g_fenceDebugEventCount.fetch_add(1, std::memory_order_acq_rel) + 1;
@@ -82,8 +97,20 @@ RectI GetColorPickerRect(const RSRenderNode& filterNode)
     }
 
     const auto& customRect = params->rect.value();
-    colorPickerRect.SetAll(static_cast<int32_t>(customRect.GetLeft()), static_cast<int32_t>(customRect.GetTop()),
-        static_cast<int32_t>(customRect.GetWidth()), static_cast<int32_t>(customRect.GetHeight()));
+    if (!IsFloatToInt32Valid(customRect.GetLeft()) || !IsFloatToInt32Valid(customRect.GetTop()) ||
+        !IsFloatToInt32Valid(customRect.GetWidth()) || !IsFloatToInt32Valid(customRect.GetHeight())) {
+        RS_LOGE("GetColorPickerRect: custom rect value is out of int32_t range");
+        return colorPickerRect;
+    }
+    int32_t left = static_cast<int32_t>(customRect.GetLeft());
+    int32_t top = static_cast<int32_t>(customRect.GetTop());
+    int32_t width = static_cast<int32_t>(customRect.GetWidth());
+    int32_t height = static_cast<int32_t>(customRect.GetHeight());
+    if (!IsInt32AdditionValid(left, nodeAbsRect.left_) || !IsInt32AdditionValid(top, nodeAbsRect.top_)) {
+        RS_LOGE("GetColorPickerRect: moving custom rect would overflow int32_t");
+        return colorPickerRect;
+    }
+    colorPickerRect.SetAll(left, top, width, height);
     colorPickerRect.Move(nodeAbsRect.left_, nodeAbsRect.top_);
     return colorPickerRect;
 }
@@ -190,7 +217,10 @@ void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<ICo
     // Create semaphore and fence for GPU task chaining
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     VkSemaphore semaphore;
-    NativeBufferUtils::CreateVkSemaphore(semaphore);
+    if (NativeBufferUtils::CreateVkSemaphore(semaphore) != VK_SUCCESS) {
+        RS_LOGE("ScheduleColorPickWithSemaphore: Failed to create Vulkan semaphore");
+        return;
+    }
     GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
     auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     auto* destroyInfo = new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);

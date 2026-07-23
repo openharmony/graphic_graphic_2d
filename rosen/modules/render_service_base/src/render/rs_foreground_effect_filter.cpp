@@ -170,6 +170,10 @@ std::shared_ptr<Drawing::Image> RSForegroundEffectFilter::MakeImage(std::shared_
     brush.SetShaderEffect(shader);
     brush.SetBlendMode(Drawing::BlendMode::SRC);
     auto canvas = surface->GetCanvas();
+    if (!canvas) {
+        ROSEN_LOGE("RSForegroundEffectFilter MakeImage canvas is null");
+        return nullptr;
+    }
     canvas->DrawBackground(brush);
     return surface->GetImageSnapshot();
 }

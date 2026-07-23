@@ -32,6 +32,7 @@
 namespace ANI::UIEffect {
 namespace {
 constexpr const char* ANI_INTERFACE_RECT = "@ohos.graphics.common2D.common2D.Rect";
+constexpr size_t MAX_GRADIENT_COUNT = 1000;
 ani_method gGetLeftMethod = nullptr;
 ani_method gGetRightMethod = nullptr;
 ani_method gGetTopMethod = nullptr;
@@ -107,6 +108,10 @@ bool ParseRadialGradientValues(taihe::array_view<uintptr_t> gradients,
     std::vector<float>& colors, std::vector<float>& positions)
 {
     size_t length = gradients.size();
+    if (length > MAX_GRADIENT_COUNT) {
+        UIEFFECT_LOG_E("ParseRadialGradientValues gradients size %{public}zu exceeds limit 1000", length);
+        return false;
+    }
     colors.reserve(length);
     positions.reserve(length);
 
@@ -527,7 +532,10 @@ bool ParseLiquidMaterialEffectParam(OHOS::Rosen::HarmoniumEffectPara& harmoniumP
     harmoniumPara.SetRippleProgress(liquidMaterialEffectParam.rippleProgress);
     // rippleposition
     std::vector<OHOS::Rosen::Vector2f> ripplePositions;
-    ParseRipplePositionValues(liquidMaterialEffectParam.ripplePosition, ripplePositions);
+    if (!ParseRipplePositionValues(liquidMaterialEffectParam.ripplePosition, ripplePositions)) {
+        UIEFFECT_LOG_E("ParseLiquidMaterialEffectParam parse ripplePosition failed");
+        return false;
+    }
     harmoniumPara.SetRipplePosition(ripplePositions);
     harmoniumPara.SetRefractionFactor(liquidMaterialEffectParam.refractionFactor);
     harmoniumPara.SetReflectionFactor(liquidMaterialEffectParam.reflectionFactor);

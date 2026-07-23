@@ -14,6 +14,7 @@
  */
 
 #include <chrono>
+#include <limits>
 #include <memory>
 #include <thread>
 
@@ -36,6 +37,7 @@
 #include "common/rs_vector4.h"
 #include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
+#include "modifier_ng/appearance/rs_color_picker_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "parameters.h"
 #include "render/rs_filter.h"
@@ -3918,6 +3920,53 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter001, TestSize.Level1)
         delete filterObj;
         filterObj = nullptr;
     }
+}
+
+/**
+ * @tc.name: SetUICompositingFilterWithNullPara
+ * @tc.desc: test null filter parameters are skipped and later valid parameters are processed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUICompositingFilterWithNullPara, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    Filter filter;
+    filter.AddPara(nullptr);
+    auto blurPara = std::make_shared<FilterBlurPara>();
+    blurPara->SetRadius(floatData[1]);
+    filter.AddPara(blurPara);
+
+    node->SetUICompositingFilter(&filter);
+
+    EXPECT_EQ(node->GetStagingProperties().GetForegroundBlurRadiusX(), floatData[1]);
+    EXPECT_EQ(node->GetStagingProperties().GetForegroundBlurRadiusY(), floatData[1]);
+}
+
+/**
+ * @tc.name: SetColorPickerParamsIntervalBounds
+ * @tc.desc: test color picker interval is clamped before conversion to int
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetColorPickerParamsIntervalBounds, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    auto getInterval = [&node]() {
+        auto modifier = node->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
+        EXPECT_NE(modifier, nullptr);
+        auto colorPickerModifier = std::static_pointer_cast<ModifierNG::RSColorPickerModifier>(modifier);
+        return colorPickerModifier->GetColorPickerInterval();
+    };
+
+    node->SetColorPickerParams(ColorPlaceholder::NONE, ColorPickStrategyType::CONTRAST, 0);
+    EXPECT_EQ(getInterval(), 180);
+
+    constexpr uint64_t validInterval = 500;
+    node->SetColorPickerParams(ColorPlaceholder::NONE, ColorPickStrategyType::CONTRAST, validInterval);
+    EXPECT_EQ(getInterval(), validInterval);
+
+    node->SetColorPickerParams(
+        ColorPlaceholder::NONE, ColorPickStrategyType::CONTRAST, std::numeric_limits<uint64_t>::max());
+    EXPECT_EQ(getInterval(), std::numeric_limits<int>::max());
 }
 
 /**

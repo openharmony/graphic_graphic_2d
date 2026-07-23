@@ -15,12 +15,42 @@
 
 #include "gtest/gtest.h"
 
+#include <thread>
+
 #include "render/rs_kawase_blur.h"
+#include "skia_adapter/skia_image.h"
 
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
+namespace {
+class DimensionSkiaImage : public Drawing::SkiaImage {
+public:
+    DimensionSkiaImage(int width, int height) : width_(width), height_(height) {}
+
+    int GetWidth() const override
+    {
+        return width_;
+    }
+
+    int GetHeight() const override
+    {
+        return height_;
+    }
+
+private:
+    int width_;
+    int height_;
+};
+
+std::shared_ptr<Drawing::Image> CreateDimensionImage(int width, int height)
+{
+    auto image = std::make_shared<Drawing::Image>();
+    image->imageImplPtr = std::make_shared<DimensionSkiaImage>(width, height);
+    return image;
+}
+} // namespace
 
 class KawaseBlurFilterTest : public testing::Test {
 public:
@@ -51,6 +81,25 @@ HWTEST_F(KawaseBlurFilterTest, testInterface, TestSize.Level1)
     std::shared_ptr<Drawing::Image> image;
 
     EXPECT_FALSE(kawaseBlurFilter->ApplyKawaseBlur(canvas, image, param));
+}
+
+/**
+ * @tc.name: ThreadLocalKawaseBlurFilter
+ * @tc.desc: Verify the filter is reused in one thread and isolated between threads
+ * @tc.type: FUNC
+ */
+HWTEST_F(KawaseBlurFilterTest, ThreadLocalKawaseBlurFilter, TestSize.Level1)
+{
+    auto currentFilter = KawaseBlurFilter::GetKawaseBlurFilter();
+    EXPECT_EQ(currentFilter, KawaseBlurFilter::GetKawaseBlurFilter());
+
+    KawaseBlurFilter* otherThreadFilter = nullptr;
+    std::thread worker([&otherThreadFilter]() {
+        otherThreadFilter = KawaseBlurFilter::GetKawaseBlurFilter();
+    });
+    worker.join();
+
+    EXPECT_NE(currentFilter, otherThreadFilter);
 }
 
 /**
@@ -421,6 +470,29 @@ HWTEST_F(KawaseBlurFilterTest, OutputOriginalImageTest001, TestSize.Level1)
     KawaseParameter param(srcRect, dstRect, 1, colorFilter, 0.f);
     kawaseBlurFilter->OutputOriginalImage(canvas, image, param);
     EXPECT_NE(kawaseBlurFilter, nullptr);
+}
+
+/**
+ * @tc.name: OutputOriginalImageDimensionGuard
+ * @tc.desc: Verify zero width, zero height and valid image dimensions
+ * @tc.type: FUNC
+ */
+HWTEST_F(KawaseBlurFilterTest, OutputOriginalImageDimensionGuard, TestSize.Level1)
+{
+    KawaseBlurFilter filter;
+    Drawing::Canvas canvas(1, 1);
+    Drawing::Rect rect(0.f, 0.f, 1.f, 1.f);
+    KawaseParameter param(rect, rect, 1);
+
+    filter.OutputOriginalImage(canvas, CreateDimensionImage(0, 1), param);
+    filter.OutputOriginalImage(canvas, CreateDimensionImage(1, 0), param);
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    ASSERT_TRUE(bitmap.Build(1, 1, format));
+    auto validImage = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(validImage->BuildFromBitmap(bitmap));
+    filter.OutputOriginalImage(canvas, validImage, param);
 }
 
 /**

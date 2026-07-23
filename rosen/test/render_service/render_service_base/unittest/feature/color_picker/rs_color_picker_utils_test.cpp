@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <cmath>
+#include <limits>
 #include <memory>
 #include <utility>
 
@@ -490,6 +492,44 @@ HWTEST_F(RSColorPickerUtilsTest, DirtyInCurrentSurface, TestSize.Level1)
     filterNode->GetMutableRenderProperties().SetColorPickerRect(COLOR_PICKER_CUSTOM_RECT);
     EXPECT_FALSE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_INTERSECT_DIRTY_RECT));
     EXPECT_TRUE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_CUSTOM_DIRTY_RECT));
+}
+
+/**
+ * @tc.name: DirtyInCurrentSurfaceInvalidCustomRect
+ * @tc.desc: Test invalid float-to-int conversions and rect movement overflow fall back to node bounds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, DirtyInCurrentSurfaceInvalidCustomRect, TestSize.Level1)
+{
+    auto filterNode = CreatePreparingColorPickerNode(COLOR_PICKER_FILTER_NODE_ID, COLOR_PICKER_ABS_RECT);
+    auto& properties = filterNode->GetMutableRenderProperties();
+    ASSERT_NE(properties.colorPicker_, nullptr);
+
+    auto expectFallback = [&properties, &filterNode](const Drawing::Rect& customRect) {
+        properties.colorPicker_->rect = customRect;
+        EXPECT_TRUE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_INTERSECT_DIRTY_RECT));
+    };
+
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float belowIntMin = std::nextafter(static_cast<float>(std::numeric_limits<int32_t>::min()),
+        -std::numeric_limits<float>::infinity());
+    const float aboveIntMax = std::nextafter(static_cast<float>(std::numeric_limits<int32_t>::max()),
+        std::numeric_limits<float>::infinity());
+    expectFallback(Drawing::Rect(nan, 0.f, 10.f, 10.f));
+    expectFallback(Drawing::Rect(belowIntMin, 0.f, 0.f, 10.f));
+    expectFallback(Drawing::Rect(0.f, aboveIntMax, 10.f, std::numeric_limits<float>::max()));
+    expectFallback(Drawing::Rect(0.f, 0.f, std::numeric_limits<float>::max(), 10.f));
+    expectFallback(Drawing::Rect(0.f, 0.f, 10.f, std::numeric_limits<float>::max()));
+
+    const RectI maxAbsRect = { std::numeric_limits<int32_t>::max() - 5, 0, 5, 5 };
+    filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = maxAbsRect;
+    properties.colorPicker_->rect = Drawing::Rect(10.f, 0.f, 20.f, 10.f);
+    EXPECT_TRUE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, maxAbsRect));
+
+    const RectI minAbsRect = { 0, std::numeric_limits<int32_t>::min() + 5, 5, 5 };
+    filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = minAbsRect;
+    properties.colorPicker_->rect = Drawing::Rect(0.f, -10.f, 10.f, 0.f);
+    EXPECT_TRUE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, minAbsRect));
 }
 
 /**

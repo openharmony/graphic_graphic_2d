@@ -793,5 +793,21 @@ HWTEST_F(RSForegroundEffectFilterTest, MakeImageTest, TestSize.Level1)
 
     ASSERT_TRUE(outputImage != nullptr);
 }
+
+/**
+ * @tc.name: MakeImageWithNullCanvas
+ * @tc.desc: Verify MakeImage returns null when an unbound surface has no canvas
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSForegroundEffectFilterTest, MakeImageWithNullCanvas, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSForegroundEffectFilter>(1.0f);
+    auto blurBuilder = filter->MakeForegroundEffect();
+    ASSERT_NE(blurBuilder, nullptr);
+    auto surface = std::make_shared<Drawing::Surface>();
+    Drawing::Matrix matrix;
+
+    EXPECT_EQ(filter->MakeImage(surface, &matrix, blurBuilder), nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

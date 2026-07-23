@@ -4927,6 +4927,40 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams003, TestSize.L
 }
 
 /**
+ * @tc.name: SetChildHasVisibleFlagsWithoutStagingParams
+ * @tc.desc: Verify child visible setters safely handle null staging render params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithoutStagingParams, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    node->stagingRenderParams_ = nullptr;
+
+    node->SetChildHasVisibleFilter(true);
+    node->SetChildHasVisibleEffect(true);
+
+    EXPECT_TRUE(node->childHasVisibleFilter_);
+    EXPECT_TRUE(node->childHasVisibleEffect_);
+}
+
+/**
+ * @tc.name: SetChildHasVisibleFlagsWithStagingParams
+ * @tc.desc: Verify child visible setters update non-null staging render params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithStagingParams, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+
+    node->SetChildHasVisibleFilter(true);
+    node->SetChildHasVisibleEffect(true);
+
+    EXPECT_TRUE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    EXPECT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
+}
+
+/**
  * @tc.name: MarkAccessibilityConfigChangedTest
  * @tc.desc: Verify MarkAccessibilityConfigChanged inserts/removes node from static set
  * @tc.type: FUNC

@@ -41,11 +41,8 @@ public:
         const KawaseParameter& param);
     static KawaseBlurFilter* GetKawaseBlurFilter()
     {
-        static thread_local KawaseBlurFilter* filter;
-        if (filter == nullptr) {
-            filter = new KawaseBlurFilter();
-        }
-        return filter;
+        static thread_local KawaseBlurFilter filter;
+        return &filter;
     }
 
 private:

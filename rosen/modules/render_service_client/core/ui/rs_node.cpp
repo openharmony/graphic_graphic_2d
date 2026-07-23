@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <array>
+#include <limits>
 #include <numeric>
 #include <vector>
 #include <memory>
@@ -1988,8 +1989,10 @@ void RSNode::SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrateg
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerStrategy>(strategy);
     static constexpr uint64_t MIN_INTERVAL = 180; // unit: ms
+    static constexpr uint64_t MAX_INTERVAL = static_cast<uint64_t>(std::numeric_limits<int>::max());
+    int safeInterval = static_cast<int>(std::clamp(interval, MIN_INTERVAL, MAX_INTERVAL));
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
-        &ModifierNG::RSColorPickerModifier::SetColorPickerInterval>(std::max(interval, MIN_INTERVAL));
+        &ModifierNG::RSColorPickerModifier::SetColorPickerInterval>(safeInterval);
 }
 
 void RSNode::SetColorPickerOptions(uint64_t interval, std::pair<uint32_t, uint32_t> notifyThreshold,
@@ -2228,6 +2231,9 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
     // To do: generate composed filter here. Now we just set compositing blur in v1.0.
     auto filterParas = compositingFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
+        if (filterPara == nullptr) {
+            continue;
+        }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
             paramCounts[static_cast<size_t>(SetUIXXFilterCascadeType::CP_BLUR)]++;
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);

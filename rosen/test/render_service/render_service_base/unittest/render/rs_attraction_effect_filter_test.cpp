@@ -248,6 +248,20 @@ HWTEST_F(RSAttractionEffectFilterTest, CalculateCubicsCtrlPointOffset001, TestSi
 }
 
 /**
+ * @tc.name: CalculateCubicsCtrlPointWithInsufficientPoints
+ * @tc.desc: test cubic control point calculation rejects fewer than four input points
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAttractionEffectFilterTest, CalculateCubicsCtrlPointWithInsufficientPoints, TestSize.Level1)
+{
+    RSAttractionEffectFilter filter(0.5f);
+    std::vector<Drawing::Point> controlPoints(3, Drawing::Point(0.0f, 0.0f));
+
+    EXPECT_TRUE(filter.CalculateCubicsCtrlPointOffset(controlPoints).empty());
+    EXPECT_TRUE(filter.CalculateCubicsCtrlPoint(controlPoints, nullptr, 1.0f, true).empty());
+}
+
+/**
  * @tc.name: CreateIndexSequence001
  * @tc.desc: test results of CreateIndexSequence
  * @tc.type: FUNC
