@@ -35,7 +35,7 @@ void RsDelegateCompositeParams::SetDelegateDstRect(float positionX, float positi
         positionX, positionY, positionZ, positionW, name_.c_str());
 }
 
-Vector4f RsDelegateCompositeParams::GetDelegateDstRect()
+const Vector4f& RsDelegateCompositeParams::GetDelegateDstRect()
 {
     return delegateDstRect_;
 }
@@ -51,7 +51,7 @@ void RsDelegateCompositeParams::SetDelegateSrcRect(float positionX, float positi
         positionX, positionY, positionZ, positionW, name_.c_str());
 }
 
-Vector4f RsDelegateCompositeParams::GetDelegateSrcRect()
+const Vector4f& RsDelegateCompositeParams::GetDelegateSrcRect()
 {
     return delegateSrcRect_;
 }
