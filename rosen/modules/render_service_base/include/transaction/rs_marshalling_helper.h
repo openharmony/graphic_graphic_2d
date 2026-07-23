@@ -514,11 +514,7 @@ public:
     template<typename T>
     static bool Unmarshalling(Parcel& parcel, std::optional<T>& val)
     {
-        bool hasValue = false;
-        if (!parcel.ReadBool(hasValue)) {
-            return false;
-        }
-        if (!hasValue) {
+        if (!parcel.ReadBool()) {
             val.reset();
             return true;
         }
