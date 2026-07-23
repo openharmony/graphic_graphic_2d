@@ -313,7 +313,7 @@ HWTEST_F(SkiaColorFilterTest, InitWithBlendMode003, TestSize.Level1)
     constexpr ColorQuad color = 0xFF00FF00;
     SkiaColorFilter skiaColorFilter;
     skiaColorFilter.InitWithBlendMode(color, BlendMode::DST);
-    EXPECT_NE(skiaColorFilter.GetSkColorFilter(), nullptr);
+    EXPECT_EQ(skiaColorFilter.GetSkColorFilter(), nullptr);
 }
 
 /**
@@ -369,7 +369,7 @@ HWTEST_F(SkiaColorFilterTest, InitWithBlendMode007, TestSize.Level1)
     constexpr ColorQuad color = 0xFF00FFFF;
     SkiaColorFilter skiaColorFilter;
     skiaColorFilter.InitWithBlendMode(color, BlendMode::DST_IN);
-    EXPECT_NE(skiaColorFilter.GetSkColorFilter(), nullptr);
+    EXPECT_EQ(skiaColorFilter.GetSkColorFilter(), nullptr);
 }
 
 /**

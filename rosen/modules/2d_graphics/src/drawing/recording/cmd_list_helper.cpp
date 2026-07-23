@@ -502,6 +502,9 @@ OpFontHandle CmdListHelper::AddFontToCmdList(CmdList& cmdList, const Font* font)
         return {};
     }
     auto typeface = font->GetTypeface();
+    if (!typeface) {
+        return {};
+    }
     auto data = typeface->Serialize();
     if (!data || data->GetSize() == 0) {
         LOGD("font typeface serialize invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
