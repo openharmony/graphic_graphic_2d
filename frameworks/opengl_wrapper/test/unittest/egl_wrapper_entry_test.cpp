@@ -2353,4 +2353,114 @@ HWTEST_F(EglWrapperEntryTest, eglGetNativeClientBufferOHOSImpl001, Level1)
     auto result = gWrapperHook.wrapper.eglGetNativeClientBufferOHOS(nullptr);
     ASSERT_EQ(nullptr, result);
 }
+
+/**
+ * @tc.name: EglGetProcAddressImpl003
+ * @tc.desc: test eglGetProcAddress with nullptr procname (UB prevention)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperEntryTest, EglGetProcAddressImpl003, Level1)
+{
+    auto result = gWrapperHook.wrapper.eglGetProcAddress(nullptr);
+    ASSERT_EQ(nullptr, result);
+}
+
+/**
+ * @tc.name: EglGetConfigsImpl004
+ * @tc.desc: test eglGetConfigs with valid display and null numConfig (early return)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperEntryTest, EglGetConfigsImpl004, Level1)
+{
+    EGLint majorVersion;
+    EGLint minorVersion;
+    EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    EGLBoolean ret = eglInitialize(dpy, &majorVersion, &minorVersion);
+    ASSERT_EQ(ret, EGL_TRUE);
+    EGLint numConfig = 0;
+    auto result = gWrapperHook.wrapper.eglGetConfigs(dpy, nullptr, 0, &numConfig);
+    ASSERT_EQ(EGL_TRUE, result);
+    ASSERT_GT(numConfig, 0);
+    result = gWrapperHook.wrapper.eglGetConfigs(dpy, nullptr, 0, nullptr);
+    ASSERT_EQ(EGL_FALSE, result);
+    eglTerminate(dpy);
+}
+
+/**
+ * @tc.name: EglGetCurrentDisplayImpl001
+ * @tc.desc: test eglGetCurrentDisplay with no current context
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperEntryTest, EglGetCurrentDisplayImpl001, Level1)
+{
+    eglMakeCurrent(EGL_NO_DISPLAY, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    auto result = gWrapperHook.wrapper.eglGetCurrentDisplay();
+    ASSERT_EQ(result, EGL_NO_DISPLAY);
+}
+
+/**
+ * @tc.name: EglGetCurrentDisplayImpl002
+ * @tc.desc: test eglGetCurrentDisplay after context destroy (TLS should be cleared)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperEntryTest, EglGetCurrentDisplayImpl002, Level2)
+{
+    EGLint majorVersion;
+    EGLint minorVersion;
+    EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    EGLBoolean ret = eglInitialize(dpy, &majorVersion, &minorVersion);
+    ASSERT_EQ(ret, EGL_TRUE);
+
+    EGLint attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
+    EGLContext ctx = eglCreateContext(dpy, nullptr, EGL_NO_CONTEXT, attribs);
+    ASSERT_NE(ctx, EGL_NO_CONTEXT);
+
+    eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx);
+    auto result = gWrapperHook.wrapper.eglGetCurrentDisplay();
+    ASSERT_NE(result, EGL_NO_DISPLAY);
+
+    eglDestroyContext(dpy, ctx);
+    result = gWrapperHook.wrapper.eglGetCurrentDisplay();
+    ASSERT_EQ(result, EGL_NO_DISPLAY);
+
+    eglTerminate(dpy);
+}
+
+/**
+ * @tc.name: EglValidateEglContext001
+ * @tc.desc: test ValidateEglContext with null context
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperEntryTest, EglValidateEglContext001, Level1)
+{
+    auto result = EglWrapperDisplay::ValidateEglContext(EGL_NO_CONTEXT);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: EglValidateEglContext002
+ * @tc.desc: test ValidateEglContext with valid context
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperEntryTest, EglValidateEglContext002, Level2)
+{
+    EGLint majorVersion;
+    EGLint minorVersion;
+    EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    EGLBoolean ret = eglInitialize(dpy, &majorVersion, &minorVersion);
+    ASSERT_EQ(ret, EGL_TRUE);
+
+    EGLint attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
+    EGLContext ctx = eglCreateContext(dpy, nullptr, EGL_NO_CONTEXT, attribs);
+    ASSERT_NE(ctx, EGL_NO_CONTEXT);
+
+    auto result = EglWrapperDisplay::ValidateEglContext(ctx);
+    ASSERT_TRUE(result);
+
+    eglDestroyContext(dpy, ctx);
+    result = EglWrapperDisplay::ValidateEglContext(ctx);
+    ASSERT_FALSE(result);
+
+    eglTerminate(dpy);
+}
 } // OHOS::Rosen
