@@ -14,9 +14,11 @@
  */
 
 #include "pixel_map_from_surface.h"
+#include "pixel_map_from_surface_utils.h"
 #include "iconsumer_surface.h"
 #include "ibuffer_consumer_listener.h"
 #include <gtest/gtest.h>
+#include <limits>
 
 using namespace testing;
 using namespace testing::ext;
@@ -149,6 +151,33 @@ HWTEST_F(PixelMapFromSurfaceTest, CreatePixelMapFromSurfaceBuffer001, Function |
     ASSERT_EQ(OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, srcRect), nullptr);
     srcRect = {0, 0, 100, 0};
     ASSERT_EQ(OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, srcRect), nullptr);
+}
+
+/*
+* Function: IsSrcRectValid
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription:
+    1. accept a rect that exactly matches the SurfaceBuffer bounds
+    2. reject rects that cross the right or bottom bounds
+    3. reject invalid SurfaceBuffer dimensions and invalid rect dimensions
+ */
+HWTEST_F(PixelMapFromSurfaceTest, IsSrcRectValid001, Function | MediumTest| Level3)
+{
+    constexpr int32_t bufferWidth = 100;
+    constexpr int32_t bufferHeight = 100;
+
+    ASSERT_TRUE(IsSrcRectValid(
+        bufferWidth, bufferHeight, OHOS::Media::Rect {0, 0, bufferWidth, bufferHeight}));
+    ASSERT_FALSE(IsSrcRectValid(
+        bufferWidth, bufferHeight, OHOS::Media::Rect {1, 0, bufferWidth, bufferHeight}));
+    ASSERT_FALSE(IsSrcRectValid(
+        bufferWidth, bufferHeight, OHOS::Media::Rect {0, 1, bufferWidth, bufferHeight}));
+    ASSERT_FALSE(IsSrcRectValid(0, bufferHeight, OHOS::Media::Rect {0, 0, 1, 1}));
+    ASSERT_FALSE(IsSrcRectValid(bufferWidth, bufferHeight, OHOS::Media::Rect {0, 0, 0, 1}));
+    ASSERT_FALSE(IsSrcRectValid(bufferWidth, bufferHeight,
+        OHOS::Media::Rect {std::numeric_limits<int32_t>::max(), 0, 1, 1}));
 }
 } // namespace
 } // namespace Rosen
