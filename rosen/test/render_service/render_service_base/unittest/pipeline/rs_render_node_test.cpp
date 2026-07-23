@@ -5373,5 +5373,172 @@ HWTEST_F(RSRenderNodeTest, GetDrawableVecTest002, TestSize.Level1)
     vec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] = childrenDrawable;
     EXPECT_EQ(vec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)], childrenDrawable);
 }
+
+#ifndef ROSEN_ARKUI_X
+/**
+ * @tc.name: UpdateDisplayListExtTest001
+ * @tc.desc: Early return when NODE_NOT_EMPTY not set (both CANVAS_NODE and non-CANVAS_NODE)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest001, TestSize.Level1)
+{
+    auto testEarlyReturn = [&](std::shared_ptr<RSRenderNode> node) {
+        auto& vec = node->GetDrawableVec(__func__);
+        for (auto i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+            vec[i] = nullptr;
+        }
+        auto params = std::make_unique<RSRenderParams>(0);
+        ASSERT_NE(params, nullptr);
+        node->stagingRenderParams_ = std::move(params);
+        node->drawableVecStatus_ = 0;
+        node->drawCmdListNeedSync_ = false;
+        node->UpdateDisplayListExt();
+        EXPECT_TRUE(node->drawCmdListNeedSync_);
+        EXPECT_TRUE(node->stagingDrawCmdList_.empty());
+    };
+    // non-CANVAS_NODE: GetType() == CANVAS_NODE → false
+    testEarlyReturn(std::make_shared<RSRenderNode>(0));
+    // CANVAS_NODE: GetType() == CANVAS_NODE → true
+    testEarlyReturn(std::make_shared<RSCanvasRenderNode>(0));
+}
+
+/**
+ * @tc.name: UpdateDisplayListExtTest002
+ * @tc.desc: Full path with all slot-range branches and contentIndex_ != -1
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    auto& vec = node->GetDrawableVec(__func__);
+    for (auto i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        vec[i] = nullptr;
+    }
+    auto params = std::make_unique<RSRenderParams>(0);
+    ASSERT_NE(params, nullptr);
+    node->stagingRenderParams_ = std::move(params);
+    constexpr uint8_t FRAME_NOT_EMPTY = 1 << 4;
+    constexpr uint8_t NODE_NOT_EMPTY = 1 << 5;
+    node->drawableVecStatus_ = FRAME_NOT_EMPTY | NODE_NOT_EMPTY;
+
+    // SHADOW(7)≤MATERIAL_SHADER, BG_COLOR(14)≤CONTENT_STYLE, CONTENT_STYLE(28)→contentIndex_!=-1,
+    // CHILDREN(29)>CONTENT_STYLE, FG_COLOR(39) unmapped+>RESTORE_FRAME, RESTORE_ALL(51)>RESTORE_BLENDER
+    vec[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = std::make_shared<DrawableTest>();
+    vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
+    vec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
+    vec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] = std::make_shared<DrawableTest>();
+    vec[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_COLOR)] = std::make_shared<DrawableTest>();
+    vec[static_cast<int8_t>(RSDrawableSlot::RESTORE_ALL)] = std::make_shared<DrawableTest>();
+
+    node->UpdateDisplayListExt();
+    EXPECT_FALSE(node->stagingDrawCmdList_.empty());
+    EXPECT_GT(node->stagingDrawCmdIndex_.renderGroupBeginIndex_, 0);
+    EXPECT_EQ(node->stagingDrawCmdIndex_.contentIndex_,
+        node->stagingDrawCmdIndex_.backgroundEndIndex_);
+    EXPECT_GT(node->stagingDrawCmdIndex_.foregroundBeginIndex_,
+        node->stagingDrawCmdIndex_.childrenIndex_);
+}
+
+/**
+ * @tc.name: UpdateDisplayListExtTest003
+ * @tc.desc: contentIndex_ == -1 path (no CONTENT_STYLE drawable)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    auto& vec = node->GetDrawableVec(__func__);
+    for (auto i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        vec[i] = nullptr;
+    }
+    auto params = std::make_unique<RSRenderParams>(0);
+    ASSERT_NE(params, nullptr);
+    node->stagingRenderParams_ = std::move(params);
+    constexpr uint8_t NODE_NOT_EMPTY = 1 << 5;
+    node->drawableVecStatus_ = NODE_NOT_EMPTY;
+
+    vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
+    vec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] = std::make_shared<DrawableTest>();
+    vec[static_cast<int8_t>(RSDrawableSlot::RESTORE_ALL)] = std::make_shared<DrawableTest>();
+
+    node->UpdateDisplayListExt();
+    EXPECT_EQ(node->stagingDrawCmdIndex_.contentIndex_, -1);
+    EXPECT_EQ(node->stagingDrawCmdIndex_.backgroundEndIndex_,
+        node->stagingDrawCmdIndex_.childrenIndex_);
+}
+
+/**
+ * @tc.name: UpdateDisplayListExtTest004
+ * @tc.desc: UpdateDisplayListExt produces same results as UpdateDisplayList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest004, TestSize.Level1)
+{
+    constexpr uint8_t FRAME_NOT_EMPTY = 1 << 4;
+    constexpr uint8_t NODE_NOT_EMPTY = 1 << 5;
+    auto setupNode = [](std::shared_ptr<RSRenderNode> node, uint8_t status) {
+        auto& vec = node->GetDrawableVec(__func__);
+        for (auto i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+            vec[i] = nullptr;
+        }
+        auto params = std::make_unique<RSRenderParams>(node->GetId());
+        node->stagingRenderParams_ = std::move(params);
+        node->drawableVecStatus_ = status;
+        vec[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = std::make_shared<DrawableTest>();
+        vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
+        vec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
+        vec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] = std::make_shared<DrawableTest>();
+        vec[static_cast<int8_t>(RSDrawableSlot::RESTORE_ALL)] = std::make_shared<DrawableTest>();
+    };
+    auto assertIndexEqual = [](const DrawCmdIndex& a, const DrawCmdIndex& b) {
+        EXPECT_EQ(a.transitionIndex_, b.transitionIndex_);
+        EXPECT_EQ(a.shadowIndex_, b.shadowIndex_);
+        EXPECT_EQ(a.backgroundColorIndex_, b.backgroundColorIndex_);
+        EXPECT_EQ(a.contentIndex_, b.contentIndex_);
+        EXPECT_EQ(a.childrenIndex_, b.childrenIndex_);
+        EXPECT_EQ(a.backgroundEndIndex_, b.backgroundEndIndex_);
+        EXPECT_EQ(a.foregroundBeginIndex_, b.foregroundBeginIndex_);
+        EXPECT_EQ(a.renderGroupBeginIndex_, b.renderGroupBeginIndex_);
+        EXPECT_EQ(a.renderGroupEndIndex_, b.renderGroupEndIndex_);
+        EXPECT_EQ(a.foregroundFilterBeginIndex_, b.foregroundFilterBeginIndex_);
+        EXPECT_EQ(a.foregroundFilterEndIndex_, b.foregroundFilterEndIndex_);
+        EXPECT_EQ(a.endIndex_, b.endIndex_);
+    };
+
+    // With FRAME_NOT_EMPTY
+    auto n1 = std::make_shared<RSRenderNode>(0);
+    auto n2 = std::make_shared<RSRenderNode>(1);
+    setupNode(n1, FRAME_NOT_EMPTY | NODE_NOT_EMPTY);
+    setupNode(n2, FRAME_NOT_EMPTY | NODE_NOT_EMPTY);
+    n1->UpdateDisplayList();
+    n2->UpdateDisplayListExt();
+    assertIndexEqual(n1->stagingDrawCmdIndex_, n2->stagingDrawCmdIndex_);
+    EXPECT_EQ(n1->stagingDrawCmdList_.size(), n2->stagingDrawCmdList_.size());
+
+    // Without FRAME_NOT_EMPTY
+    auto n3 = std::make_shared<RSRenderNode>(2);
+    auto n4 = std::make_shared<RSRenderNode>(3);
+    auto setupNoFrame = [](std::shared_ptr<RSRenderNode> node) {
+        auto& vec = node->GetDrawableVec(__func__);
+        for (auto i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+            vec[i] = nullptr;
+        }
+        auto params = std::make_unique<RSRenderParams>(node->GetId());
+        node->stagingRenderParams_ = std::move(params);
+        node->drawableVecStatus_ = 1 << 5;
+        vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
+        vec[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_COLOR)] = std::make_shared<DrawableTest>();
+        vec[static_cast<int8_t>(RSDrawableSlot::RESTORE_ALL)] = std::make_shared<DrawableTest>();
+    };
+    setupNoFrame(n3);
+    setupNoFrame(n4);
+    n3->UpdateDisplayList();
+    n4->UpdateDisplayListExt();
+    assertIndexEqual(n3->stagingDrawCmdIndex_, n4->stagingDrawCmdIndex_);
+    EXPECT_EQ(n3->stagingDrawCmdList_.size(), n4->stagingDrawCmdList_.size());
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -1478,6 +1478,7 @@ private:
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
 
     void UpdateDisplayList();
+    void UpdateDisplayListExt();
     void UpdateShadowRect();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
