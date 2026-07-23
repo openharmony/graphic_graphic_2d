@@ -288,15 +288,15 @@ void RSScreenManager::SetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId, Sc
                 enabled, screenId);
             return;
         }
-        auto screen->SetScreenVsyncEnabled(enabled);
+        screen->SetScreenVsyncEnabled(enabled);
     }
 }
 
 uint64_t RSScreenManager::GetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId)
 {
-    auto iter = std::find_if(screens_.cbegin(), screens_.cend(), [](const auto& node) {
+    auto iter = std::find_if(screens_.cbegin(), screens_.cend(), [&vsyncEnabledScreenId](const auto& node) {
         const auto& screen = node.second;
-        return screen && !screen->IsVirtual();
+        return screen && !screen->IsVirtual() && node.first != vsyncEnabledScreenId;
     });
     if (iter != screens_.end()) {
         vsyncEnabledScreenId = iter->first;
