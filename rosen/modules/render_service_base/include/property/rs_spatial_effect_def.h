@@ -70,7 +70,7 @@ struct SpatialEffectPara {
     };
 
     float occlusionWeight = 0.f;
- 	SpatialEffectMode spatialEffectMode = SpatialEffectMode::WORLD_XYZ_MODE;
+    SpatialEffectMode spatialEffectMode = SpatialEffectMode::WORLD_XYZ_MODE;
 
     SpatialEffectPara() {};
     ~SpatialEffectPara() {};
