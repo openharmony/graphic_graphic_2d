@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_HYPER_GRAPHIC_MANAGER_HGM_HARDWARE_UTILS_H
 #define RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_HYPER_GRAPHIC_MANAGER_HGM_HARDWARE_UTILS_H
 
@@ -112,12 +111,11 @@ private:
 
     void ExecuteSwitchRefreshRate(ScreenId screenId);
     void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet);
+    void ReportRetryOverLimit(uint64_t vsyncId, uint32_t rate);
+    void RecordTimestampForAS(int64_t timestamp);
     void PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output);
 
     void AddRefreshRateCount(ScreenId screenId);
-
-    void ReportRetryOverLimit(uint64_t vsyncId, uint32_t rate);
-    void RecordTimestampForAS(int64_t timestamp);
 
     HgmCore& hgmCore_ = HgmCore::Instance();
     // key: ScreenId, value: <needRetrySetRate, retryCount>

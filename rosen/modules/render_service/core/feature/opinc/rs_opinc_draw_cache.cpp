@@ -68,6 +68,7 @@ void RSOpincDrawCache::OpincCalculateBefore(Drawing::Canvas& canvas, const RSRen
     isOpincCalculateStart_ = false;
     if (IsAutoCacheEnable() && IsOpListDrawAreaEnable()) {
         isOpincCalculateStart_ = canvas.OpCalculateBefore(params.GetMatrix());
+        RS_OPTIONAL_TRACE_NAME_FMT("canvas OpCalculateBefore return: %d", isOpincCalculateStart_);
         opincBlockNodeSkip_ = false;
     }
 #endif
