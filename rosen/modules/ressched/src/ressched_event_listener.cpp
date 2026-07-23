@@ -219,9 +219,6 @@ uint32_t ResschedEventListener::GetCurrentPid()
 
 bool ResschedEventListener::GetFfrtHighPriorityQueue()
 {
-    if (ffrtHighPriorityQueue_ != nullptr) {
-        return true;
-    }
     std::lock_guard<std::mutex> lock(ffrtGetHighFrequenceQueueMutex_);
     if (ffrtHighPriorityQueue_ == nullptr) {
         ffrtHighPriorityQueue_ = std::make_shared<ffrt::queue>(
