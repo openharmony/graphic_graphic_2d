@@ -22,6 +22,7 @@
 #include "hdi_log.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
+#include "rs_render_surface_solid_filled_color_layer.h"
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -813,8 +814,13 @@ void HdiLayer::CheckRet(int32_t ret, const char* func)
 void HdiLayer::SavePrevRSLayer()
 {
     if (prevRSLayer_ == nullptr) {
-        prevRSLayer_ = rsLayer_->IsScreenRCDLayer() ? std::make_shared<RSRenderSurfaceRCDLayer>() :
-            std::make_shared<RSRenderSurfaceLayer>();
+        if (rsLayer_->IsScreenRCDLayer()) {
+            prevRSLayer_ = std::make_shared<RSRenderSurfaceRCDLayer>();
+        } else if (rsLayer_->IsSolidFilledColorLayer()) {
+            prevRSLayer_ = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+        } else {
+            prevRSLayer_ = std::make_shared<RSRenderSurfaceLayer>();
+        }
     }
     prevRSLayer_->CopyLayerInfo(rsLayer_);
 }

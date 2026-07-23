@@ -206,10 +206,9 @@ RosenError HdiOutput::SetHdiOutputDevice(HdiDevice* device)
 
 void HdiOutput::SetRSLayers(const std::vector<std::shared_ptr<RSLayer>>& rsLayers)
 {
-    uint32_t solidLayerCount = 0;
     std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& rsLayer : rsLayers) {
-        UpdateRSLayerLocked(rsLayer, solidLayerCount);
+        UpdateRSLayerLocked(rsLayer);
     }
 
     DeletePrevLayersLocked();
@@ -232,7 +231,7 @@ void HdiOutput::DestroyLayerBySurfaceIdLocked(uint64_t surfaceId)
     }
 }
 
-void HdiOutput::UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer, uint32_t& solidLayerCount)
+void HdiOutput::UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer)
 {
     if (rsLayer == nullptr) {
         HLOGE("current rsLayer is null");
@@ -242,7 +241,7 @@ void HdiOutput::UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer, uin
         DirtyRegions(rsLayer);
         return;
     }
-    if (UpdateSolidColorLayerLocked(rsLayer, solidLayerCount)) {
+    if (UpdateSolidColorLayerLocked(rsLayer)) {
         return;
     }
     uint64_t surfaceId = rsLayer->GetSurfaceUniqueId();
@@ -283,19 +282,18 @@ void HdiOutput::UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer, uin
     CreateLayerLocked(surfaceId, rsLayer);
 }
 
-bool HdiOutput::UpdateSolidColorLayerLocked(const std::shared_ptr<RSLayer>& rsLayer, uint32_t& solidLayerCount)
+bool HdiOutput::UpdateSolidColorLayerLocked(const std::shared_ptr<RSLayer>& rsLayer)
 {
     if (rsLayer->GetCompositionType() != GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
         return false;
     }
-    auto iter = solidSurfaceIdMap_.find(solidLayerCount);
-    if (iter != solidSurfaceIdMap_.end()) {
+    auto iter = solidRSLayerIdMap_.find(rsLayer->GetRSLayerId());
+    if (iter != solidRSLayerIdMap_.end()) {
         const std::shared_ptr<HdiLayer>& hdiLayer = iter->second;
         hdiLayer->UpdateRSLayer(rsLayer);
-        solidLayerCount++;
         return true;
     }
-    CreateLayerLocked(solidLayerCount++, rsLayer);
+    CreateLayerLocked(rsLayer->GetRSLayerId(), rsLayer);
     return true;
 }
 
@@ -463,16 +461,14 @@ void HdiOutput::DeletePrevLayersLocked()
     if (maskLayer_ && !maskLayer_->GetLayerStatus()) {
         maskLayer_ = nullptr;
     }
-    auto solidSurfaceIter = solidSurfaceIdMap_.begin();
-    while (solidSurfaceIter != solidSurfaceIdMap_.end()) {
-        const std::shared_ptr<HdiLayer>& hdiLayer = solidSurfaceIter->second;
+
+    auto solidRSLayerIdIter = solidRSLayerIdMap_.begin();
+    while (solidRSLayerIdIter != solidRSLayerIdMap_.end()) {
+        const std::shared_ptr<HdiLayer>& hdiLayer = solidRSLayerIdIter->second;
         if (!hdiLayer->GetLayerStatus()) {
-            solidSurfaceIdMap_.erase(solidSurfaceIter++);
-            if (hdiLayer->GetRSLayer() != nullptr) {
-                solidRSLayerIdMap_.erase(hdiLayer->GetRSLayer()->GetRSLayerId());
-            }
+            solidRSLayerIdMap_.erase(solidRSLayerIdIter++);
         } else {
-            ++solidSurfaceIter;
+            ++solidRSLayerIdIter;
         }
     }
 
@@ -588,8 +584,6 @@ void HdiOutput::RegisterCreatedLayerLocked(uint64_t surfaceId, const std::shared
     layerIdMap_[layerId] = hdiLayer;
 
     if (rsLayer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
-        // solid hdiLayer's surfaceId is unique, use solidLayerCount as key, to avoid conflict with normal hdiLayer
-        solidSurfaceIdMap_[surfaceId] = hdiLayer;
         solidRSLayerIdMap_[rsLayer->GetRSLayerId()] = hdiLayer;
     } else {
         surfaceIdMap_[surfaceId] = hdiLayer;
@@ -1389,7 +1383,7 @@ void HdiOutput::ReorderLayerInfoLocked(std::vector<LayerDumpInfo>& dumpLayerInfo
         dumpLayerInfos.emplace_back(layerInfo);
     }
 
-    for (const auto& [solidSurfaceId, solidLayer] : solidSurfaceIdMap_) {
+    for (const auto& [solidSurfaceId, solidLayer] : solidRSLayerIdMap_) {
         if (solidLayer == nullptr || solidLayer->GetRSLayer() == nullptr) {
             continue;
         }
