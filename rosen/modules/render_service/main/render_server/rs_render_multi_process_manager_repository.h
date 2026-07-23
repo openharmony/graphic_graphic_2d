@@ -45,8 +45,8 @@ namespace Rosen {
 class ProcessUniqueId {
 public:
     explicit ProcessUniqueId(pid_t pid)
-        : id_((static_cast<uint64_t>(static_cast<uint32_t>(pid)) << UNIQUE_ID_PID_OFFSET)
-            | counter_.fetch_add(1, std::memory_order_relaxed))
+        : id_((static_cast<uint64_t>(static_cast<uint32_t>(pid)) << uniqueIdPidOffset) |
+            counter_.fetch_add(1, std::memory_order_relaxed))
     {}
     bool operator==(const ProcessUniqueId& other) const { return id_ == other.id_; }
     struct Hash {
@@ -55,10 +55,10 @@ public:
             return std::hash<uint64_t>()(processUniqueId.id_);
         }
     };
-    pid_t GetPid() const { return static_cast<pid_t>(id_ >> UNIQUE_ID_PID_OFFSET); }
+    pid_t GetPid() const { return static_cast<pid_t>(id_ >> uniqueIdPidOffset); }
 
 private:
-    static constexpr uint32_t UNIQUE_ID_PID_OFFSET = 32;
+    static constexpr uint32_t uniqueIdPidOffset = 32;
     static inline std::atomic<uint32_t> counter_{0};
     uint64_t id_;
 };
