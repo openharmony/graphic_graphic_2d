@@ -319,6 +319,8 @@ ohos_unittest("RSRenderProcessManagerTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
