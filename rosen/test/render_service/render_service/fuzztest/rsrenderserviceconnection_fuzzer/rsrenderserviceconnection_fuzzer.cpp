@@ -1238,6 +1238,13 @@ bool DOSetHgmExclusiveScreen()
         optScreenId = screenId;
     }
     rsToServiceConn_->SetHgmExclusiveScreen(optScreenId);
+
+    optScreenId = 0;
+    rsToServiceConn_->SetHgmExclusiveScreen(optScreenId);
+
+    std::optional<ScreenId> optScreenId2;
+    rsToServiceConn_->SetHgmExclusiveScreen(optScreenId2);
+
     return true;
 }
 

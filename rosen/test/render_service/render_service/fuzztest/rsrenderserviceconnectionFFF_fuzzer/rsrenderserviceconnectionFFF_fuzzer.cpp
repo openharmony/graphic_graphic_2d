@@ -300,6 +300,26 @@ void DoSetHgmExclusiveScreen()
         return;
     }
     g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
+
+    MessageParcel dataP2;
+    MessageParcel reply2;
+    MessageOption option2;
+    if (!dataP2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option2.SetFlags(MessageOption::TF_SYNC);
+    dataP2.WriteUint64(0);
+    g_serviceConnection->OnRemoteRequest(code, dataP2, reply2, option2);
+
+    MessageParcel dataP3;
+    MessageParcel reply3;
+    MessageOption option3;
+    if (!dataP3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option3.SetFlags(MessageOption::TF_SYNC);
+    dataP3.WriteUint64(INVALID_SCREEN_ID);
+    g_serviceConnection->OnRemoteRequest(code, dataP3, reply3, option3);
 }
 
 void DoNotifyAppStrategyConfigChangeEvent()

@@ -83,6 +83,12 @@ void DoSetHgmExclusiveScreen(FuzzedDataProvider& fdp)
         optScreenId = screenId;
     }
     g_rsInterfaces->SetHgmExclusiveScreen(optScreenId);
+
+    optScreenId = 0;
+    g_rsInterfaces->SetHgmExclusiveScreen(optScreenId);
+
+    std::optional<ScreenId> optScreenId2;
+    g_rsInterfaces->SetHgmExclusiveScreen(optScreenId2);
 }
 
 void DoNotifyAppStrategyConfigChangeEvent(FuzzedDataProvider& fdp)
