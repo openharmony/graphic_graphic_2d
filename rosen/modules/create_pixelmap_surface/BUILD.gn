@@ -25,6 +25,7 @@ config("create_pixelmap_surface_public_config") {
 }
 
 ohos_source_set("create_pixelmap_surface_src") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
