@@ -99,9 +99,12 @@ void RSTvMetadataUtil::CombineMetadataForAllLayers(const std::vector<RSLayerPtr>
             tvUniRenderBuffer = buffer;
             tvUniRenderMetadata = tvMetadata;
         } else if (tvSelfDrawBuffer == nullptr || zorderMin > layer->GetZorder()) {
+            static_cast<void>(MetadataHelper::EraseVideoTVInfoKey(tvSelfDrawBuffer));
             zorderMin = layer->GetZorder();
             tvSelfDrawBuffer = buffer;
             tvSelfDrawMetadata = tvMetadata;
+        } else {
+            static_cast<void>(MetadataHelper::EraseVideoTVInfoKey(buffer));
         }
     }
     if (tvSelfDrawBuffer == nullptr) {
