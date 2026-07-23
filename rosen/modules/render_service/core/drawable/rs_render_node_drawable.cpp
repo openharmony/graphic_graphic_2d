@@ -705,10 +705,7 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && RSOpincDrawCache::IsAutoCacheEnable();
-    {
-        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
-        autoCacheRenderNodeInfos_.clear();
-    }
+    autoCacheRenderNodeInfos_.clear();
     ClearOpincState();
 #endif
 }
@@ -1069,13 +1066,8 @@ void RSRenderNodeDrawable::DrawCachedImage(
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    bool opincCacheResult = false;
-    {
-        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
-        opincCacheResult = RSOpincDrawCacheHelper::TryDrawOpincAutoCache(*this, canvas, *cacheImage,
-            samplingOptions, autoCacheRenderNodeInfos_);
-    }
-    if (opincCacheResult) {
+    if (RSOpincDrawCacheHelper::TryDrawOpincAutoCache(*this, canvas, *cacheImage,
+        samplingOptions, autoCacheRenderNodeInfos_)) {
         canvas.DetachBrush();
         return;
     }
