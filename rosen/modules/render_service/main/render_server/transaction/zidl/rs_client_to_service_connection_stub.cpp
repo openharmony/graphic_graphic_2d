@@ -1197,7 +1197,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t result = GetDisplayIdentificationData(id, outPort, edidData);
-            if (!reply.WriteUint8(result)) {
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_DISPLAY_IDENTIFICATION_DATA Write result failed!");
                 ret = IPC_STUB_WRITE_PARCEL_ERR;
                 break;
