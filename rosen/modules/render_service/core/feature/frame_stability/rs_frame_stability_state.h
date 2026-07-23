@@ -36,7 +36,7 @@ struct DetectorContext {
     sptr<RSIFrameStabilityCallback> callback;
     DetectionState state = DetectionState::INIT;
     Occlusion::Region accumulatedDirtyRegion;
-    std::chrono::steady_clock::time_point startTime;
+    std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
     float screenArea = 0;
     bool hasPendingStabilityTask = false;
     int32_t pid = 0;

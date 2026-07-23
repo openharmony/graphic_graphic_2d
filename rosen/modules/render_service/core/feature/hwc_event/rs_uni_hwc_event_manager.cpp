@@ -17,7 +17,6 @@
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
-#include "hdi_backend.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 
