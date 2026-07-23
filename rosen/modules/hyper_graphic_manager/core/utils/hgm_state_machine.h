@@ -163,7 +163,7 @@ template<typename State, typename Event>
 void HgmStateMachine<State, Event>::UnRegisterStateChangeCallback(
     StateChangeCallbacksType& callbacks, State state, int32_t callbackId) {
     if (auto iter = callbacks.find(state); iter != callbacks.end()) {
-        if (auto toDelCallbackIter = iter->second; toDelCallbackIter != iter->second.end()) {
+        if (auto toDelCallbackIter = iter->second.find(callbackId); toDelCallbackIter != iter->second.end()) {
             iter->second.erase(toDelCallbackIter);
         }
     }
