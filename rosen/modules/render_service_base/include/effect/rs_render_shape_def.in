@@ -42,9 +42,7 @@ DECLARE_SHAPE(SDFDistortOpShape, SDF_DISTORT_OP_SHAPE,
     ADD_PROPERTY_TAG(SDFDistortOpShape, RBCorner),
     ADD_PROPERTY_TAG(SDFDistortOpShape, LBCorner),
     ADD_PROPERTY_TAG(SDFDistortOpShape, BarrelDistortion),
-    // Inner Shape auto-syncs with node RRect when empty or Sync=true
-    ADD_PROPERTY_TAG(SDFDistortOpShape, Shape),
-    ADD_PROPERTY_TAG(SDFDistortOpShape, Sync)
+    ADD_PROPERTY_TAG(SDFDistortOpShape, Shape)
 );
 
 // SDF shape

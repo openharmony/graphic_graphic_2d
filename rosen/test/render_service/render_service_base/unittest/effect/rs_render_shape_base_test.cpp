@@ -347,17 +347,17 @@ HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_AlreadyHasInnerShape, Te
     EXPECT_EQ(innerShape, existingShape);
 }
 
-HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SyncTrueWithExistingShape, TestSize.Level1)
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SyncsInnerWhenOwnerZero, TestSize.Level1)
 {
     auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
     ASSERT_NE(sdfShape, nullptr);
     auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
     auto existingShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
     distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(existingShape);
-    distortOpShape->Setter<SDFDistortOpShapeSyncRenderTag>(true);
     RRect sdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
     NodeId nodeId = 1;
 
+    // An inner with ownerId==0 (auto-filled / never attached) is synced with the node RRect.
     RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, sdfRRect, nodeId);
     auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
     EXPECT_EQ(innerShape, existingShape);
@@ -393,7 +393,7 @@ HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_Success, TestSize.Level1
     EXPECT_FLOAT_EQ(actualRRect.radius_[0][1], sdfRRect.radius_[0][1]);
 }
 
-HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SyncFalseWithExistingShape, TestSize.Level1)
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_KeepsInnerWhenOwnerNonZero, TestSize.Level1)
 {
     auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
     ASSERT_NE(sdfShape, nullptr);
@@ -408,9 +408,8 @@ HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SyncFalseWithExistingSha
     RRect initialRRect(RectF(10.0f, 10.0f, 50.0f, 50.0f), 5.0f, 5.0f);
     existingRRectShape->Setter<SDFRRectShapeRRectRenderTag>(initialRRect);
     distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(existingShape);
-
-    // Set sync to false - should not update RRect
-    distortOpShape->Setter<SDFDistortOpShapeSyncRenderTag>(false);
+    // Simulate a user-provided inner that went through the attach cascade (ownerId != 0): keep as-is.
+    existingShape->SetOwnerId(1);
 
     RRect newSdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
     NodeId nodeId = 1;
@@ -421,7 +420,7 @@ HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SyncFalseWithExistingSha
     auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
     EXPECT_EQ(innerShape, existingShape);
 
-    // Verify RRect was not updated (sync is false)
+    // Verify RRect was not updated (ownerId != 0 -> user-owned, not synced)
     auto actualRRect = existingRRectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
     EXPECT_FLOAT_EQ(actualRRect.rect_.GetLeft(), initialRRect.rect_.GetLeft());
     EXPECT_FLOAT_EQ(actualRRect.rect_.GetTop(), initialRRect.rect_.GetTop());
@@ -459,7 +458,7 @@ HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SkipNonRRectInner, TestS
     auto existingShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRIANGLE_SHAPE);
     ASSERT_NE(existingShape, nullptr);
     distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(existingShape);
-    distortOpShape->Setter<SDFDistortOpShapeSyncRenderTag>(true, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    ASSERT_EQ(existingShape->GetOwnerId(), 0);
 
     RRect sdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
     NodeId nodeId = 1;
