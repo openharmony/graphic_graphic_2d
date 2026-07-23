@@ -38,7 +38,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-constexpr uint32_t delay_110Ms = 110;
+constexpr uint32_t DELAY_110_MS = 110;
 
 auto& hgmCore = HgmCore::Instance();
 auto frameRateMgr = hgmCore.GetFrameRateMgr();
@@ -91,12 +91,12 @@ HWTEST_F(HgmContextTest, InitHgmTaskHandleThreadTest001, TestSize.Level1)
 
         hgmCore.hgmAbilityEnabled_ = false;
         hgmContext->InitHgmTaskHandleThread(nullptr, nullptr, nullptr);
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
         hgmCore.hgmAbilityEnabled_ = true;
 
         hgmContext->InitHgmTaskHandleThread(nullptr, nullptr, nullptr);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
         ASSERT_NE(frameRateMgr->hgmConfigUpdateCallback_, nullptr);
         ASSERT_NE(frameRateMgr->adaptiveVsyncUpdateCallback_, nullptr);
 
@@ -111,7 +111,7 @@ HWTEST_F(HgmContextTest, InitHgmTaskHandleThreadTest001, TestSize.Level1)
         hgmContext->pipelineOffsetPulseNum_ = 0;
 
         frameRateMgr->hgmConfigUpdateCallback_(nullptr, true, true, 1);
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
         EXPECT_TRUE(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::HGM_CONFIG_DATA));
         EXPECT_TRUE(hgmContext->ltpoEnabled_);
         EXPECT_TRUE(hgmContext->isDelayMode_);
@@ -130,7 +130,7 @@ HWTEST_F(HgmContextTest, InitHgmTaskHandleThreadTest001, TestSize.Level1)
         hgmContext->gameNodeName_ = "";
 
         frameRateMgr->adaptiveVsyncUpdateCallback_(SupportASStatus::SUPPORT_AS, "testGameNode");
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
         EXPECT_TRUE(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::ADAPTIVE_VSYNC));
         EXPECT_EQ(hgmContext->isAdaptive_, SupportASStatus::SUPPORT_AS);
         EXPECT_EQ(hgmContext->gameNodeName_, "testGameNode");
@@ -170,7 +170,7 @@ HWTEST_F(HgmContextTest, InitHgmTaskHandleThreadTest002, TestSize.Level1)
  
         // When hgmPolicyEnabled is false, InitHgmTaskHandleThread should return early
         hgmContext->InitHgmTaskHandleThread(nullptr, nullptr, nullptr);
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
  
         // Callbacks should still be nullptr since InitHgmTaskHandleThread returned early
         EXPECT_EQ(frameRateMgr->hgmConfigUpdateCallback_, nullptr);
@@ -395,7 +395,7 @@ HWTEST_F(HgmContextTest, ProcessHgmFrameRateTest001, TestSize.Level1)
         EXPECT_EQ(hgmContextForProcess->GetCurrVsyncId(), 1);
         EXPECT_EQ(frameRateMgr->timestamp_, 1);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
 
         hgmContextForProcess->rsCurrRange_ = orgRsCurrRange;
     } else {
@@ -425,7 +425,7 @@ HWTEST_F(HgmContextTest, ProcessHgmFrameRateTest002, TestSize.Level1)
         EXPECT_EQ(hgmContextForProcess->GetCurrVsyncId(), 1);
         EXPECT_EQ(frameRateMgr->timestamp_, 1);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
 
         hgmContextForProcess->rsCurrRange_ = orgRsCurrRange;
     } else {
@@ -462,7 +462,7 @@ HWTEST_F(HgmContextTest, ProcessHgmFrameRateTest003, TestSize.Level1)
         EXPECT_EQ(hgmContextForProcess->GetCurrVsyncId(), 1);
         EXPECT_EQ(frameRateMgr->timestamp_, 1);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
 
         frameRateMgr->voterTouchEffective_ = orgVoterTouchEffective;
         hgmCore.SetHgmTaskFlag(orgPostHgmTaskFlag);
@@ -495,7 +495,7 @@ HWTEST_F(HgmContextTest, ProcessHgmFrameRateTest004, TestSize.Level1)
         EXPECT_EQ(hgmContextForProcess->GetCurrVsyncId(), 1);
         EXPECT_EQ(frameRateMgr->timestamp_, 1);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
 
         hgmCore.SetHgmTaskFlag(orgPostHgmTaskFlag);
     } else {
@@ -524,7 +524,7 @@ HWTEST_F(HgmContextTest, ProcessHgmFrameRateTest005, TestSize.Level1)
         EXPECT_EQ(hgmContextForProcess->GetCurrVsyncId(), 1);
         EXPECT_EQ(frameRateMgr->timestamp_, 1);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
 
         hgmContextForProcess->rsFrameRateLinker_ = orgRsFrameRateLinker;
     } else {
@@ -562,7 +562,7 @@ HWTEST_F(HgmContextTest, AddScreenToHgmTest001, TestSize.Level1)
         ASSERT_FALSE(hgmCore.screenList_.empty());
         EXPECT_EQ(hgmCore.screenList_.back()->GetId(), id);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -597,7 +597,7 @@ HWTEST_F(HgmContextTest, RemoveScreenFromHgmTest001, TestSize.Level1)
 
         hgmContext->RemoveScreenFromHgm(id);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
         EXPECT_TRUE(hgmCore.screenIds_.empty());
         EXPECT_TRUE(hgmCore.screenList_.empty());
     } else {
@@ -744,7 +744,7 @@ HWTEST_F(HgmContextTest, NotifyXComponentExpectedFrameRateTest001, TestSize.Leve
     ASSERT_NE(hgmContext, nullptr);
     hgmContext->NotifyXComponentExpectedFrameRate(0, "1", 60);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
 }
 
 
@@ -798,7 +798,7 @@ HWTEST_F(HgmContextTest, SetScreenRefreshRateTest001, TestSize.Level1)
 
     hgmContext->SetScreenRefreshRate(1, 1, 0);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
 }
 
 /**
@@ -813,7 +813,7 @@ HWTEST_F(HgmContextTest, SetRefreshRateModeTest001, TestSize.Level1)
     ASSERT_NE(hgmContext, nullptr);
     hgmContext->SetRefreshRateMode(1);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
 }
 
 /**
@@ -854,7 +854,7 @@ HWTEST_F(HgmContextTest, NotifyDynamicModeEventTest001, TestSize.Level1)
         auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
         ASSERT_NE(hgmContext, nullptr);
         hgmContext->NotifyDynamicModeEvent(true);
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -959,7 +959,7 @@ HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest003, TestSize.Level1)
         EventInfo eventInfo;
         hgmContext->NotifyRefreshRateEvent(pid, eventInfo);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -981,7 +981,7 @@ HWTEST_F(HgmContextTest, NotifyLightFactorStatusTest001, TestSize.Level1)
         int32_t lightFactorStatus = 0;
         EXPECT_EQ(hgmContext->NotifyLightFactorStatus(pid, lightFactorStatus), ERR_OK);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -1005,7 +1005,7 @@ HWTEST_F(HgmContextTest, NotifyAppStrategyConfigChangeEventTest001, TestSize.Lev
 
         EXPECT_EQ(hgmContext->NotifyAppStrategyConfigChangeEvent(pid, pkgName, newConfig), ERR_OK);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -1029,7 +1029,7 @@ HWTEST_F(HgmContextTest, HandleTouchEventTest001, TestSize.Level1)
         int32_t sourceType = 0;
         hgmContext->HandleTouchEvent(pid, touchStatus, touchCnt, sourceType);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -1051,7 +1051,7 @@ HWTEST_F(HgmContextTest, NotifyPackageEventTest001, TestSize.Level1)
         std::vector<std::string> packageList;
         hgmContext->NotifyPackageEvent(pid, packageList);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -1082,7 +1082,7 @@ HWTEST_F(HgmContextTest, NotifyHgmConfigEventTest001, TestSize.Level1)
         bool state = true;
         hgmContext->NotifyHgmConfigEvent(eventName, state);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
         EXPECT_EQ(screenExtStrategyMapIter->second.second, state);
 
         frameRateMgr->screenExtStrategyMap_ = orgScreenExtStrategyMap;
@@ -1116,7 +1116,7 @@ HWTEST_F(HgmContextTest, NotifyHgmConfigEventTest002, TestSize.Level1)
         bool state = true;
         hgmContext->NotifyHgmConfigEvent(eventName, state);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
         EXPECT_EQ(screenExtStrategyMapIter->second.second, state);
 
         frameRateMgr->screenExtStrategyMap_ = orgScreenExtStrategyMap;
@@ -1150,7 +1150,7 @@ HWTEST_F(HgmContextTest, NotifyHgmConfigEventTest003, TestSize.Level1)
         bool state = true;
         hgmContext->NotifyHgmConfigEvent(eventName, state);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
         EXPECT_EQ(screenExtStrategyMapIter->second.second, state);
 
         frameRateMgr->screenExtStrategyMap_ = orgScreenExtStrategyMap;
@@ -1259,7 +1259,7 @@ HWTEST_F(HgmContextTest, SetWindowExpectedRefreshRateTest001, TestSize.Level1)
         std::unordered_map<uint64_t, EventInfo> eventInfos;
         hgmContext->SetWindowExpectedRefreshRate(pid, eventInfos);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -1281,7 +1281,7 @@ HWTEST_F(HgmContextTest, SetWindowExpectedRefreshRateTest002, TestSize.Level1)
         std::unordered_map<std::string, EventInfo> eventInfos;
         hgmContext->SetWindowExpectedRefreshRate(pid, eventInfos);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -1333,7 +1333,7 @@ HWTEST_F(HgmContextTest, NotifySoftVsyncRateDiscountEventTest002, TestSize.Level
         EXPECT_TRUE(hgmContext->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount));
         appVSyncDistributor->RemoveConnection(connServerApp);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_110_MS));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
