@@ -3788,7 +3788,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest003, 
 
     // Test RegisterTransactionDataCallback
     sptr<RSITransactionDataCallback> transactionCallback = nullptr;
-    agent->RegisterTransactionDataCallback(12345, 0, transactionCallback);
+    agent->RegisterTransactionDataCallback(12345, 0, transactionCallback, 0);
     // Should return without crash
 }
 

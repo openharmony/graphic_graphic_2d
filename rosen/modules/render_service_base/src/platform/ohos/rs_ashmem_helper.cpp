@@ -471,6 +471,13 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
 
     int32_t offsetSize = ashmemParcel->ReadInt32();
     if (offsetSize > 0) {
+        // each binder object occupies at least one flat_binder_object in the data buffer,
+        // so offsetSize can never exceed dataSize / sizeof(flat_binder_object)
+        if (static_cast<uint64_t>(offsetSize) > dataParcel->GetDataSize() / sizeof(flat_binder_object)) {
+            ROSEN_LOGE("ParseFromAshmemParcel: invalid offsetSize %{public}d, dataSize %{public}zu",
+                offsetSize, dataParcel->GetDataSize());
+            return nullptr;
+        }
         auto* offsets = ashmemParcel->ReadBuffer(sizeof(binder_size_t) * offsetSize);
         if (offsets == nullptr) {
             ROSEN_LOGE("ParseFromAshmemParcel: read object offsets failed");

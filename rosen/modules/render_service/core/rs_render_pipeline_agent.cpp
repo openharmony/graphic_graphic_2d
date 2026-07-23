@@ -938,9 +938,10 @@ ErrCode RSRenderPipelineAgent::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint
 }
 
 void RSRenderPipelineAgent::RegisterTransactionDataCallback(uint64_t token,
-    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
+    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback, pid_t callingPid)
 {
-    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(token, timeStamp, callback);
+    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(
+        token, timeStamp, callback, callingPid);
 }
 
 ErrCode RSRenderPipelineAgent::SetWindowContainer(NodeId nodeId, bool value)
