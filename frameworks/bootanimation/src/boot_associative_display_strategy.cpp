@@ -56,29 +56,38 @@ void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootA
     }
 
     for (const auto& config : configs) {
-        if (config.screenId != activeId || connectToRenderMap_.find(activeId) == connectToRenderMap_.end()) {
-            LOGE("invalid screenId:" BPUBU64 "", config.screenId);
-            continue;
-        }
-
-        Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
-        int screenWidth = modeInfo.GetScreenWidth();
-        int screenHeight = modeInfo.GetScreenHeight();
-        operator_ = std::make_shared<BootAnimationOperation>();
-        sptr<IRemoteObject> connectToRender = connectToRenderMap_.find(activeId)->second;
-        operator_->Init(config, screenWidth, screenHeight, duration, connectToRender);
-        if (operator_->GetThread().joinable()) {
-            operator_->GetThread().join();
-        }
-
-        if (IsOtaUpdate()) {
-            bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-            bootCompileProgress_->Init(configPath_, config, connectToRender);
-        }
+        PlayScreenAnimation(config, duration, activeId);
     }
 
     while (!CheckExitAnimation()) {
         usleep(SLEEP_TIME_US);
+    }
+}
+
+void BootAssociativeDisplayStrategy::PlayScreenAnimation(const BootAnimationConfig& config,
+    int32_t duration, Rosen::ScreenId activeId)
+{
+    if (config.screenId != activeId) {
+        LOGE("invalid screenId:" BPUBU64 "", config.screenId);
+        return;
+    }
+    sptr<IRemoteObject> connectToRender = GetConnectToRender(activeId);
+    if (connectToRender == nullptr) {
+        LOGE("invalid screenId:" BPUBU64 "", config.screenId);
+        return;
+    }
+    Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
+    Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
+    int screenWidth = modeInfo.GetScreenWidth();
+    int screenHeight = modeInfo.GetScreenHeight();
+    operator_ = std::make_shared<BootAnimationOperation>();
+    operator_->Init(config, screenWidth, screenHeight, duration, connectToRender);
+    if (operator_->GetThread().joinable()) {
+        operator_->GetThread().join();
+    }
+    if (IsOtaUpdate()) {
+        bootCompileProgress_ = std::make_shared<BootCompileProgress>();
+        bootCompileProgress_->Init(configPath_, config, connectToRender);
     }
 }
 
