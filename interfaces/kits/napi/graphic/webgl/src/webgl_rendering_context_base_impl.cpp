@@ -119,7 +119,7 @@ napi_value WebGLRenderingContextBaseImpl::CreateTextureObject(napi_env env)
 
 napi_value WebGLRenderingContextBaseImpl::ActiveTexture(napi_env env, GLenum texture)
 {
-    if (texture < GL_TEXTURE0 || static_cast<GLint>(texture - GL_TEXTURE0) >= maxTextureImageUnits_) {
+    if (texture < GL_TEXTURE0 || (texture - GL_TEXTURE0) >= static_cast<GLenum>(maxTextureImageUnits_)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM,
             "WebGL activeTexture texture unit out of range %{public}u", texture);
         return NVal::CreateNull(env).val_;
@@ -1380,11 +1380,20 @@ napi_value WebGLRenderingContextBaseImpl::VertexAttribPointer(napi_env env, cons
     if (!CheckGLenum(vertexInfo.type, { GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_FLOAT }, {})) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
             "WebGL vertexAttribPointer invalid type %{public}u", vertexInfo.type);
+        return NVal::CreateNull(env).val_;
     }
     GLenum result = CheckVertexAttribPointer(env, vertexInfo);
     if (result) {
         SET_ERROR(result);
         return NVal::CreateNull(env).val_;
+    }
+    VertexAttribInfo* info = GetVertexAttribInfo(vertexInfo.index);
+    if (info != nullptr) {
+        info->glType = vertexInfo.type;
+        info->size = vertexInfo.size;
+        info->stride = vertexInfo.stride;
+        info->offset = vertexInfo.offset;
+        info->bufferId = boundBufferIds_[BoundBufferType::ARRAY_BUFFER];
     }
     glVertexAttribPointer(vertexInfo.index, vertexInfo.size, vertexInfo.type, vertexInfo.normalized,
         vertexInfo.stride, reinterpret_cast<GLvoid*>(vertexInfo.offset));
@@ -1412,6 +1421,10 @@ napi_value WebGLRenderingContextBaseImpl::EnableVertexAttribArray(napi_env env, 
         return NVal::CreateNull(env).val_;
     }
     LOGD("WebGL enableVertexAttribArray index %{public}" PRIi64, index);
+    VertexAttribInfo* info = GetVertexAttribInfo(index);
+    if (info != nullptr) {
+        info->enabled = true;
+    }
     glEnableVertexAttribArray(static_cast<GLuint>(index));
     return NVal::CreateNull(env).val_;
 }
@@ -1424,6 +1437,10 @@ napi_value WebGLRenderingContextBaseImpl::DisableVertexAttribArray(napi_env env,
         return NVal::CreateNull(env).val_;
     }
     LOGD("WebGL disableVertexAttribArray index %{public}" PRIi64, index);
+    VertexAttribInfo* info = GetVertexAttribInfo(index);
+    if (info != nullptr) {
+        info->enabled = false;
+    }
     glDisableVertexAttribArray(index);
     return NVal::CreateNull(env).val_;
 }
@@ -1635,6 +1652,9 @@ static std::tuple<GLenum, GLsizei, T*> CheckUniformDataInfo(
          static_cast<size_t>(info->srcLength));
     if (isHighWebGL) {
         if (count <= info->srcOffset || count < info->srcLength) {
+            return make_tuple(WebGLRenderingContextBase::INVALID_VALUE, 0, nullptr);
+        }
+        if (info->srcLength != 0 && info->srcOffset > count - info->srcLength) {
             return make_tuple(WebGLRenderingContextBase::INVALID_VALUE, 0, nullptr);
         }
         count = info->srcLength != 0 ? info->srcLength : count - info->srcOffset;
@@ -2565,9 +2585,6 @@ bool WebGLRenderingContextBaseImpl::CheckBufferTarget(napi_env env, GLenum targe
             index = BoundBufferType::PIXEL_UNPACK_BUFFER;
             break;
         default:
-            if (IsHighWebGL()) {
-                break;
-            }
             return false;
     }
     return true;
