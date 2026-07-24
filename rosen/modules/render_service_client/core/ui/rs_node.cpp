@@ -383,6 +383,10 @@ void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float f
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
     }
+    if (!propertyCallback) {
+        ROSEN_LOGE("RSNode::AddKeyFrame, propertyCallback is null!");
+        return;
+    }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     implicitAnimator->BeginImplicitKeyFrameAnimation(fraction, timingCurve);
@@ -397,6 +401,10 @@ void RSNode::AddKeyFrame(
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
     }
+    if (!propertyCallback) {
+        ROSEN_LOGE("RSNode::AddKeyFrame, propertyCallback is null!");
+        return;
+    }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     implicitAnimator->BeginImplicitKeyFrameAnimation(fraction);
@@ -409,6 +417,10 @@ void RSNode::AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
 {
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::AddDurationKeyFrame, rsUIContext is null!");
+        return;
+    }
+    if (!propertyCallback) {
+        ROSEN_LOGE("RSNode::AddDurationKeyFrame, propertyCallback is null!");
         return;
     }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
@@ -641,16 +653,16 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
             ROSEN_LOGE("Failed to add animation, animation already exists!");
             return;
         }
-    }
 
-    // Note: Animation cancellation logic is now handled by RSImplicitAnimator. The code below might cause Spring
-    // Animations with a zero duration to not inherit velocity correctly, an issue slated for future resolution.
-    // This code is retained to ensure backward compatibility with specific arkui component animations.
-    if (animation->GetDuration() <= 0 && id_ != 0) {
-        FinishAnimationByProperty(animation->GetPropertyId());
-    }
+        // Note: Animation cancellation logic is now handled by RSImplicitAnimator. The code below might cause Spring
+        // Animations with a zero duration to not inherit velocity correctly, an issue slated for future resolution.
+        // This code is retained to ensure backward compatibility with specific arkui component animations.
+        if (animation->GetDuration() <= 0 && id_ != 0) {
+            FinishAnimationByProperty(animation->GetPropertyId());
+        }
 
-    AddAnimationInner(animation);
+        AddAnimationInner(animation);
+    }
 
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {

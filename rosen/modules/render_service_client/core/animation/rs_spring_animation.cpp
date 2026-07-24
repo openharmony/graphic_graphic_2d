@@ -74,7 +74,15 @@ void RSSpringAnimation::OnStart()
 {
     RSPropertyAnimation::OnStart();
     auto animation = CreateRenderAnimation();
+    if (animation == nullptr) {
+        ROSEN_LOGE("RSSpringAnimation::OnStart, CreateRenderAnimation failed");
+        return;
+    }
     if (isCustom_) {
+        if (property_ == nullptr) {
+            ROSEN_LOGE("RSSpringAnimation::OnStart, property is null");
+            return;
+        }
         animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
     } else {
@@ -137,6 +145,12 @@ void RSSpringAnimation::SetInitialVelocity(const std::shared_ptr<RSPropertyBase>
 
 std::shared_ptr<RSRenderSpringAnimation> RSSpringAnimation::CreateRenderAnimation()
 {
+    if (originValue_ == nullptr || startValue_ == nullptr || endValue_ == nullptr) {
+        ROSEN_LOGE("RSSpringAnimation::CreateRenderAnimation, "
+            "originValue[%{public}d] startValue[%{public}d] endValue[%{public}d]",
+            originValue_ != nullptr, startValue_ != nullptr, endValue_ != nullptr);
+        return nullptr;
+    }
     constexpr int SPRING_DURATION_PLACEHOLDER = 300;  // placeholder for estimated duration
     auto animation = std::make_shared<RSRenderSpringAnimation>(GetId(), GetPropertyId(),
         originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty());
@@ -164,6 +178,10 @@ void RSSpringAnimation::RebuildInRender()
         return;
     }
     auto animation = CreateRenderAnimation();
+    if (animation == nullptr) {
+        ROSEN_LOGE("RSSpringAnimation::RebuildInRender, CreateRenderAnimation failed");
+        return;
+    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationRebuildSpring>(
         target->GetId(), animation, GetRebuildParam().fraction, GetRebuildParam().isReverseCycle);
     target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
