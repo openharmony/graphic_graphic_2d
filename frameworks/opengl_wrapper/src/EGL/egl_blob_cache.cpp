@@ -147,12 +147,14 @@ void BlobCache::Init(EglWrapperDisplay* display)
 void BlobCache::SetBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
                             EGLsizeiANDROID valueSize)
 {
-    BlobCache::Get()->SetBlobLock(key, keySize, value, valueSize);
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
+    BlobCache::Get()->SetBlob(key, keySize, value, valueSize);
 }
 EGLsizeiANDROID BlobCache::GetBlobFunc(const void *key, EGLsizeiANDROID keySize, void *value,
                                        EGLsizeiANDROID valueSize)
 {
-    return BlobCache::Get()->GetBlobLock(key, keySize, value, valueSize);
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
+    return BlobCache::Get()->GetBlob(key, keySize, value, valueSize);
 }
 
 void BlobCache::SetBlobLock(const void* key, EGLsizeiANDROID keySize, const void* value,
@@ -207,7 +209,7 @@ void BlobCache::SetBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     }
     if (blobSize_ >= blobSizeMax_) {
         int count = 0;
-        while (count <= MAX_SHADER_DELETE && blobSize_ > 0 && tail_->prev_ != head_) {
+        while (count <= MAX_SHADER_DELETE) {
             std::shared_ptr<Blob> deleteblob = tail_->prev_;
             deleteblob->prev_->next_ = tail_;
             tail_->prev_ = deleteblob->prev_;
