@@ -197,8 +197,8 @@ napi_status WebGLReadBufferArg::GetArrayElement(
         LOGE("WebGL GetArrayElement: array size too large, overflow or exceeds limit");
         return napi_invalid_arg;
     }
-    constexpr size_t maxAllocSize = 1024 * 1024;
-    if (requiredSize > maxAllocSize) {
+    constexpr size_t MAX_ALLOC_SIZE = 1024 * 1024;
+    if (requiredSize > MAX_ALLOC_SIZE) {
         LOGE("WebGL GetArrayElement: array size too large, exceeds limit");
         return napi_invalid_arg;
     }
@@ -626,9 +626,16 @@ bool WebGLImageSource::DecodeImageData(
         return false;
     }
     size_t maxSize = bufLen - srcOffset;
-    uint64_t need = static_cast<uint64_t>(imageOption_.height) * imageOption_.width * formatMap->bytesPrePixel;
+    uint64_t requiredBytes = static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
+        formatMap->bytesPrePixel;
+    if (imageOption_.height > 0 && imageOption_.width > 0 &&
+        requiredBytes / static_cast<uint64_t>(imageOption_.height) /
+        static_cast<uint64_t>(imageOption_.width) != formatMap->bytesPrePixel) {
+        LOGE("DecodeImageData multiplication overflow");
+        return false;
+    }
     LOGD("GenImageSource maxSize %{public}zu bytesPrePixel %{public}u", maxSize, formatMap->bytesPrePixel);
-    if (need > maxSize) {
+    if (requiredBytes > maxSize) {
         LOGE("Invalid data element");
         return false;
     }
@@ -668,10 +675,10 @@ GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, G
     if (srcOffset > bufLen) {
         return GL_INVALID_VALUE;
     }
-    uint64_t depth = (imageOption_.depth > 0) ? static_cast<uint64_t>(imageOption_.depth) : 1;
-    uint64_t need = depth * static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
+    uint64_t depth = static_cast<uint64_t>(std::max(imageOption_.depth, 1));
+    uint64_t requiredBytes = depth * static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
         formatMap->bytesPrePixel;
-    if (static_cast<uint64_t>(srcOffset) + need > bufLen) {
+    if (requiredBytes > bufLen - static_cast<uint64_t>(srcOffset)) {
         return GL_INVALID_OPERATION;
     }
     srcOffset_ = srcOffset;

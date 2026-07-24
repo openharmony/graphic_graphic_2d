@@ -553,7 +553,7 @@ private:
 
 class WebGLWriteBufferArg : public WebGLCommBuffer {
 public:
-    const static int32_t MAX_ALLOC_BUFFER_SIZE = 1024 * 1024;
+    const static size_t MAX_ALLOC_BUFFER_SIZE = 1024 * 1024;
     explicit WebGLWriteBufferArg(napi_env env) : WebGLCommBuffer(env) {}
     ~WebGLWriteBufferArg()
     {
@@ -564,7 +564,7 @@ public:
 
     uint8_t* AllocBuffer(size_t size)
     {
-        if (size > static_cast<size_t>(MAX_ALLOC_BUFFER_SIZE)) {
+        if (size > MAX_ALLOC_BUFFER_SIZE) {
             return nullptr;
         }
         if (data_ != nullptr) {
@@ -629,10 +629,11 @@ public:
 
     inline static ColorParam FromRGBO(uint8_t red, uint8_t green, uint8_t blue, double opacity)
     {
+        constexpr double EPSILON = 1e-3;
         double op = opacity;
-        if (!(op >= 0.0)) {
+        if (!(op >= -EPSILON)) {
             op = 0.0;
-        } else if (op > 1.0) {
+        } else if (op > 1.0 + EPSILON) {
             op = 1.0;
         }
         return FromARGB(static_cast<uint8_t>(round(op * 0xff)) & 0xff, red, green, blue);

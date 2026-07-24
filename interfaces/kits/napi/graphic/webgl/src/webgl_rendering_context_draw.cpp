@@ -86,7 +86,7 @@ bool ComputeCompressedBytesRequired(const TexImageArg& imgArg, size_t& out, GLen
     const CompressedPvrtcFormat kPvrtc2 { 16, 8, 2 };
     size_t width = static_cast<size_t>(imgArg.width);
     size_t height = static_cast<size_t>(imgArg.height);
-    err = WebGLRenderingContextBase::INVALID_VALUE;
+    err = WebGLRenderingContextBase::NO_ERROR;
     switch (imgArg.internalFormat) {
         case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
@@ -1281,9 +1281,9 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
     }
 
     // check count
-    uint64_t required = static_cast<uint64_t>(size) * static_cast<uint64_t>(count);
-    uint64_t endBytes = static_cast<uint64_t>(offset) + required;
-    if (endBytes > static_cast<uint64_t>(webGLBuffer->GetBufferSize())) {
+    uint64_t requiredBytes = static_cast<uint64_t>(size) * static_cast<uint64_t>(count);
+    uint64_t bufferSize = static_cast<uint64_t>(webGLBuffer->GetBufferSize());
+    if (requiredBytes > bufferSize || static_cast<uint64_t>(offset) > bufferSize - requiredBytes) {
         LOGE("WebGL drawElements Insufficient buffer size %{public}d", count);
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }

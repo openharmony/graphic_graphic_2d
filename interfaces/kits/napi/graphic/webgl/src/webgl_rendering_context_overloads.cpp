@@ -43,6 +43,8 @@ static WebGLRenderingContext* GetWebGLRenderingContextBase(napi_env env, napi_va
     return static_cast<WebGLRenderingContext*>(Util::GetContextObject(env, thisVar));
 }
 
+constexpr GLint SINGLE_SLICE_DEPTH = 1;
+
 static int64_t GetOffset(napi_env env, napi_value data, WebGLRenderingContext* context)
 {
     if (NVal(env, data).IsNull()) {
@@ -353,7 +355,7 @@ napi_value WebGLRenderingContextOverloads::TexImage2D(napi_env env, napi_callbac
     }
     TexImageArg imgArg = {};
     imgArg.func = Impl::IMAGE_TEX_IMAGE_2D;
-    imgArg.depth = 1;
+    imgArg.depth = SINGLE_SLICE_DEPTH;
     bool succ = false;
     tie(succ, imgArg.target) = NVal(env, funcArg[NARG_POS::FIRST]).ToGLenum();
     if (!succ) {

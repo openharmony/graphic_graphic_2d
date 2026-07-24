@@ -1392,13 +1392,15 @@ napi_value WebGLRenderingContextBaseImpl::VertexAttribPointer(napi_env env, cons
         return NVal::CreateNull(env).val_;
     }
     VertexAttribInfo* info = GetVertexAttribInfo(vertexInfo.index);
-    if (info != nullptr) {
-        info->glType = vertexInfo.type;
-        info->size = vertexInfo.size;
-        info->stride = vertexInfo.stride;
-        info->offset = vertexInfo.offset;
-        info->bufferId = boundBufferIds_[BoundBufferType::ARRAY_BUFFER];
+    if (info == nullptr) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "vertexAttribPointer invalid index");
+        return NVal::CreateNull(env).val_;
     }
+    info->glType = vertexInfo.type;
+    info->size = vertexInfo.size;
+    info->stride = vertexInfo.stride;
+    info->offset = vertexInfo.offset;
+    info->bufferId = boundBufferIds_[BoundBufferType::ARRAY_BUFFER];
     glVertexAttribPointer(vertexInfo.index, vertexInfo.size, vertexInfo.type, vertexInfo.normalized,
         vertexInfo.stride, reinterpret_cast<GLvoid*>(vertexInfo.offset));
     LOGD("WebGL vertexAttribPointer index %{public}u result %{public}u", vertexInfo.index, GetError_());
