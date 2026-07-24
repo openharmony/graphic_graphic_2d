@@ -188,8 +188,14 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
     return true;
 }
 
+static constexpr size_t MAX_UNTREE_NODE_SET_SIZE = 10000;
 void RSRenderNodeMap::RegisterUnTreeNode(NodeId id)
 {
+    if (unInTreeNodeSet_.size() >= MAX_UNTREE_NODE_SET_SIZE) {
+        RS_LOGE("RegisterUnTreeNode: unInTreeNodeSet_ size exceededlimit %{public}zu, nodeId %{public}" PRIu64,
+            MAX_UNTREE_NODE_SET_SIZE, id);
+        return;
+    }
     unInTreeNodeSet_.emplace(id);
 }
 

@@ -1677,6 +1677,18 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
+            if (!IsValidFrameStabilityTargetType(typeValue)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION invalid target.type: %{public}u", typeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!IsValidFrameStabilityConfig(config)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION invalid config, "
+                    "stableDuration=%{public}u, changePercent=%{public}f",
+                    config.stableDuration, config.changePercent);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t repCode = RegisterFrameStabilityDetection(target, config, callback);
             if (repCode != 0) {
                 RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
@@ -1699,6 +1711,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             target.type = static_cast<FrameStabilityTargetType>(typeValue);
+            if (!IsValidFrameStabilityTargetType(typeValue)) {
+                RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION invalid target.type: %{public}u", typeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t repCode = UnregisterFrameStabilityDetection(target);
             if (repCode != 0) {
                 RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
@@ -1733,6 +1750,18 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (!IsValidFrameStabilityTargetType(typeValue)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION invalid target.type: %{public}u", typeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!IsValidFrameStabilityConfig(config)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION invalid config, "
+                    "stableDuration=%{public}u, changePercent=%{public}f",
+                    config.stableDuration, config.changePercent);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t repCode = StartFrameStabilityCollection(target, config);
             if (repCode != 0) {
                 RS_LOGE("START_FRAME_STABILITY_COLLECTION failed, repCode: %{public}d", repCode);
@@ -1755,6 +1784,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             target.type = static_cast<FrameStabilityTargetType>(typeValue);
+            if (!IsValidFrameStabilityTargetType(typeValue)) {
+                RS_LOGE("GET_FRAME_STABILITY_RESULT invalid target.type: %{public}u", typeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool result;
             int32_t repCode = GetFrameStabilityResult(target, result);
             if (repCode != 0) {
@@ -1789,7 +1823,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             oldTarget.type = static_cast<FrameStabilityTargetType>(oldTypeValue);
-
+            if (!IsValidFrameStabilityTargetType(oldTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION invalid oldTarget.type: %{public}u", oldTypeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             FrameStabilityTarget newTarget;
             if (!data.ReadUint64(newTarget.id)) {
                 RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read newId failed!");
@@ -1803,6 +1841,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             newTarget.type = static_cast<FrameStabilityTargetType>(newTypeValue);
+            if (!IsValidFrameStabilityTargetType(newTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION invalid newTarget.type: %{public}u", newTypeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t repCode = UpdateFrameStabilityDetection(oldTarget, newTarget);
             if (repCode != 0) {
                 RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Write repCode failed!");

@@ -74,6 +74,16 @@ public:
             DecRef();
         }
 
+        // Clear the release callback so a manually-released buffer (e.g. tunnel commit failure path that
+        // already called RSBufferManager::ReleaseBufferById) does not trigger a second release from DecRef
+        // or ~BufferOwnerCount. The caller MUST guarantee no other thread can reach this BufferOwnerCount
+        // concurrently: in the tunnel failure path, ReleaseBufferById has erased the entry from
+        // pendingReleaseBuffers_, so the weak_ptr stored there is expired and no DecRef can race in.
+        void ClearReleaseCallback()
+        {
+            bufferReleaseCb_ = nullptr;
+        }
+
         void InsertUniOnDrawSet(uint64_t layerId, uint64_t bufferId);
         void SetUniBufferOwner(uint64_t bufferId, uint64_t screenId);
         bool CheckLastUniBufferOwner(uint64_t bufferId, uint64_t screenId);
@@ -498,6 +508,17 @@ public:
         return false;
 #endif
     }
+
+    void MarkTunnelLayerInfoReceived()
+    {
+        tunnelLayerInfoReceived_.store(true, std::memory_order_release);
+    }
+
+    bool HasReceivedTunnelLayerInfo() const
+    {
+        return tunnelLayerInfoReceived_.load(std::memory_order_acquire);
+    }
+
     inline bool IsCurrentFrameBufferConsumed() const
     {
         return isCurrentFrameBufferConsumed_.load(std::memory_order_acquire);
@@ -558,6 +579,7 @@ private:
     bool bufferDropped_ = false;
     bool bufferTransformTypeChanged_ = false;
     std::atomic<uint32_t> sourceType_ = 0;
+    std::atomic_bool tunnelLayerInfoReceived_ { false };
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 
     // GPU cache cleanup set (owned per RSSurfaceHandler instance).

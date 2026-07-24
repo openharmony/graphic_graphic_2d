@@ -69,22 +69,6 @@ static inline int g_debugLevel = OHOS::Rosen::RSSystemProperties::GetDebugTraceL
         }                                                                   \
     } while (0)
 
-#define RS_APPOINTED_TRACE_BEGIN(node, name)                         \
-    do {                                                             \
-        if (Rosen::RSSystemProperties::GetDebugTraceEnabled() ||     \
-            Rosen::RSSystemProperties::FindNodeInTargetList(node)) { \
-            RS_TRACE_BEGIN(name);                                    \
-        }                                                            \
-    } while (0)
-
-#define RS_APPOINTED_TRACE_END(node)                                 \
-    do {                                                             \
-        if (Rosen::RSSystemProperties::GetDebugTraceEnabled() ||     \
-            Rosen::RSSystemProperties::FindNodeInTargetList(node)) { \
-            RS_TRACE_END();                                          \
-        }                                                            \
-    } while (0)
-
 #define RS_OPTIONAL_TRACE_NAME(name) RSOptionalTrace optionalTrace(name)
 
 #define RS_OPTIONAL_TRACE_FUNC() RSOptionalTrace optionalTrace(__func__)
@@ -197,7 +181,6 @@ private:
 #define RS_OPTIONAL_TRACE_NAME_FMT(fmt, ...)
 #define RS_OPTIONAL_TRACE_FMT(fmt, ...)
 #define RS_OPTIONAL_TRACE_NAME_TESTMODE(fmt, ...)
-#define RS_APPOINTED_TRACE_BEGIN(node, name)
 #define RS_OPTIONAL_TRACE_NAME(name)
 #define RS_OPTIONAL_TRACE_FUNC()
 #define RS_PROCESS_TRACE(forceEnable, name)

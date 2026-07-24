@@ -173,7 +173,7 @@ napi_value WebGLRenderingContextOverloads::CompressedTexImage2D(napi_env env, na
             return NVal::CreateNull(env).val_;
         }
         int64_t offset = 0;
-        tie(succ, offset) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToInt64();
+        tie(succ, offset) = NVal(env, funcArg[NARG_POS::NINTH]).ToInt64();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
@@ -254,11 +254,17 @@ napi_value WebGLRenderingContextOverloads::CompressedTexSubImage2D(napi_env env,
 
     GLuint srcOffset = 0;
     if (funcArg[NARG_POS::NINTH] != nullptr) {
-        tie(succ, srcOffset) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToUint32();
+        tie(succ, srcOffset) = NVal(env, funcArg[NARG_POS::NINTH]).ToUint32();
+        if (!succ) {
+            return NVal::CreateNull(env).val_;
+        }
     }
     GLuint srcLengthOverride = 0;
     if (funcArg[NARG_POS::TENTH] != nullptr) {
-        tie(succ, srcLengthOverride) = NVal(env, funcArg[NARG_POS::NINTH]).ToUint32();
+        tie(succ, srcLengthOverride) = NVal(env, funcArg[NARG_POS::TENTH]).ToUint32();
+        if (!succ) {
+            return NVal::CreateNull(env).val_;
+        }
     }
     return context->GetWebGLRenderingContextImpl().CompressedTexSubImage2D(env,
         imgArg, funcArg[NARG_POS::EIGHTH], srcOffset, srcLengthOverride);
@@ -470,7 +476,8 @@ napi_value WebGLRenderingContextOverloads::TexSubImage2D(napi_env env, napi_call
         if (srcOffset < 0) {
             return NVal::CreateNull(env).val_;
         }
-        return context->GetWebGLRenderingContextImpl().TexSubImage2D(env, imgArg, funcArg[NARG_POS::NINTH], 0);
+        return context->GetWebGLRenderingContextImpl().TexSubImage2D(env, imgArg, funcArg[NARG_POS::NINTH],
+            static_cast<GLuint>(srcOffset));
     } else { // for image source
         return context->GetWebGLRenderingContextImpl().TexSubImage2D(env, imgArg, funcArg[NARG_POS::NINTH]);
     }

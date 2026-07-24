@@ -207,7 +207,7 @@ void BlobCache::SetBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     }
     if (blobSize_ >= blobSizeMax_) {
         int count = 0;
-        while (count <= MAX_SHADER_DELETE) {
+        while (count <= MAX_SHADER_DELETE && blobSize_ > 0 && tail_->prev_ != head_) {
             std::shared_ptr<Blob> deleteblob = tail_->prev_;
             deleteblob->prev_->next_ = tail_;
             tail_->prev_ = deleteblob->prev_;
@@ -309,6 +309,7 @@ void BlobCache::SetCacheShaderSize(int shadermax)
     if (shadermax <= 0 || shadermax > MAX_SHADER) {
         return;
     }
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
     blobSizeMax_ = shadermax;
 }
 
@@ -359,7 +360,12 @@ void BlobCache::WriteToDisk()
     }
     size_t headsize = sizeof(CacheHeader);
     size_t bufsize = filesize + CACHE_HEAD;
-    uint8_t *buf = new uint8_t[bufsize];
+    uint8_t *buf = new (std::nothrow) uint8_t[bufsize];
+    if (buf == nullptr) {
+        WLOGE("WriteToDisk alloc buf failed, size %{public}zu", bufsize);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
+        return;
+    }
     size_t offset = CACHE_HEAD;
     for (auto item = mBlobMap_.begin(); item != mBlobMap_.end(); ++item) {
         CacheHeader* eheader = reinterpret_cast<CacheHeader*>(&buf[offset]);
