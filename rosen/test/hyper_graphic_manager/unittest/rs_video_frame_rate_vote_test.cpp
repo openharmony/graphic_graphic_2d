@@ -82,7 +82,7 @@ HWTEST_F(RSVideoFrameRateVoteTest, StartVideoFrameRateVote001, Function | SmallT
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
-    rsVideoFrameRateVote->StartVideoFrameRateVote(30.0);
+    rsVideoFrameRateVote->StartVideoFrameRateVote(30);
     ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 30);
     rsVideoFrameRateVote = nullptr;
 }
@@ -97,15 +97,15 @@ HWTEST_F(RSVideoFrameRateVoteTest, VoteVideoFrameRate001, Function | SmallTest |
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
-    rsVideoFrameRateVote->VoteVideoFrameRate(30.0);
+    rsVideoFrameRateVote->VoteVideoFrameRate(30);
     ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 30);
-    rsVideoFrameRateVote->VoteVideoFrameRate(0.0);
+    rsVideoFrameRateVote->VoteVideoFrameRate(0);
     ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 30);
-    rsVideoFrameRateVote->VoteVideoFrameRate(300.0);
+    rsVideoFrameRateVote->VoteVideoFrameRate(300);
     ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 30);
-    rsVideoFrameRateVote->VoteVideoFrameRate(30.0);
+    rsVideoFrameRateVote->VoteVideoFrameRate(30);
     ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 30);
-    rsVideoFrameRateVote->VoteVideoFrameRate(60.0);
+    rsVideoFrameRateVote->VoteVideoFrameRate(60);
     ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 60);
     rsVideoFrameRateVote = nullptr;
 }
@@ -191,6 +191,256 @@ HWTEST_F(RSVideoFrameRateVoteTest, DoReleaseCallback001, Function | SmallTest | 
     rsVideoFrameRateVote->surfaceNodeId_ = 2;
     rsVideoFrameRateVote->DoReleaseCallback();
     ASSERT_EQ(releaseCallbackResult_, 2);
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: ReSetLastRate001
+ * @tc.desc: Verify the result of ReSetLastRate function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, ReSetLastRate001, Function | SmallTest | Level0)
+{
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->StartVideoFrameRateVote(60);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 60);
+    rsVideoFrameRateVote->ReSetLastRate();
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 0);
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: VoteVideoFrameRate002
+ * @tc.desc: Test VoteVideoFrameRate with boundary values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, VoteVideoFrameRate002, Function | SmallTest | Level0)
+{
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->VoteVideoFrameRate(1);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 1);
+    rsVideoFrameRateVote->VoteVideoFrameRate(144);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 144);
+    rsVideoFrameRateVote->VoteVideoFrameRate(0);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 144);
+    rsVideoFrameRateVote->VoteVideoFrameRate(145);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 144);
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: StartVideoFrameRateVote002
+ * @tc.desc: test StartVideoFrameRateVote with different rates
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, StartVideoFrameRateVote002, Function | SmallTest | Level0)
+{
+    voteCallbackResult_ = 0;
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->voteCallback_ = [this](uint64_t id, uint32_t rate) { this->VoteCallback(id, rate); };
+    rsVideoFrameRateVote->surfaceNodeId_ = 2;
+
+    rsVideoFrameRateVote->StartVideoFrameRateVote(30);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 30);
+
+    rsVideoFrameRateVote->StartVideoFrameRateVote(60);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 60);
+
+    rsVideoFrameRateVote->StartVideoFrameRateVote(60);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 60);
+
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: VoteVideoFrameRate003
+ * @tc.desc: test VoteVideoFrameRate with rate 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, VoteVideoFrameRate003, Function | SmallTest | Level0)
+{
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->lastRate_ = 60;
+
+    rsVideoFrameRateVote->VoteVideoFrameRate(0);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 60);
+
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: VoteVideoFrameRate004
+ * @tc.desc: test VoteVideoFrameRate with rate > NORMAL_RATE_MAX
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, VoteVideoFrameRate004, Function | SmallTest | Level0)
+{
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->lastRate_ = 60;
+
+    rsVideoFrameRateVote->VoteVideoFrameRate(145);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 60);
+
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: SendDelayTask002
+ * @tc.desc: test SendDelayTask when ffrtQueue_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, SendDelayTask002, Function | SmallTest | Level0)
+{
+    releaseCallbackResult_ = 0;
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->releaseCallback_ = [this](uint64_t id) { this->ReleaseCallback(id); };
+    rsVideoFrameRateVote->surfaceNodeId_ = 2;
+    rsVideoFrameRateVote->ffrtQueue_ = nullptr;
+
+    rsVideoFrameRateVote->SendDelayTask();
+
+    ASSERT_EQ(rsVideoFrameRateVote->taskHandler_, nullptr);
+    sleep(2);
+    ASSERT_EQ(releaseCallbackResult_, 0);
+
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: CancelDelayTask002
+ * @tc.desc: test CancelDelayTask when ffrtQueue_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, CancelDelayTask002, Function | SmallTest | Level0)
+{
+    releaseCallbackResult_ = 0;
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->releaseCallback_ = [this](uint64_t id) { this->ReleaseCallback(id); };
+    rsVideoFrameRateVote->surfaceNodeId_ = 2;
+    rsVideoFrameRateVote->SendDelayTask();
+    ASSERT_NE(rsVideoFrameRateVote->taskHandler_, nullptr);
+
+    rsVideoFrameRateVote->ffrtQueue_ = nullptr;
+    rsVideoFrameRateVote->CancelDelayTask();
+
+    ASSERT_NE(rsVideoFrameRateVote->taskHandler_, nullptr);
+    sleep(2);
+    ASSERT_EQ(releaseCallbackResult_, 0);
+
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: CancelDelayTask003
+ * @tc.desc: test CancelDelayTask when ffrtQueue_ is nullptr and taskHandler_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, CancelDelayTask003, Function | SmallTest | Level0)
+{
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->ffrtQueue_ = nullptr;
+    rsVideoFrameRateVote->taskHandler_ = nullptr;
+
+    rsVideoFrameRateVote->CancelDelayTask();
+
+    ASSERT_EQ(rsVideoFrameRateVote->taskHandler_, nullptr);
+
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: VoteVideoFrameRate005
+ * @tc.desc: test VoteVideoFrameRate when videoRate < NORMAL_RATE_MIN
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, VoteVideoFrameRate005, Function | SmallTest | Level0)
+{
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->lastRate_ = 60;
+
+    rsVideoFrameRateVote->VoteVideoFrameRate(0);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 60);
+
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: VoteVideoFrameRate006
+ * @tc.desc: test VoteVideoFrameRate when videoRate == lastRate_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, VoteVideoFrameRate006, Function | SmallTest | Level0)
+{
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->lastRate_ = 60;
+
+    rsVideoFrameRateVote->VoteVideoFrameRate(60);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 60);
+
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: StartVideoFrameRateVote003
+ * @tc.desc: test StartVideoFrameRateVote with different rates
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, StartVideoFrameRateVote003, Function | SmallTest | Level0)
+{
+    voteCallbackResult_ = 0;
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->voteCallback_ = [this](uint64_t id, uint32_t rate) { this->VoteCallback(id, rate); };
+    rsVideoFrameRateVote->surfaceNodeId_ = 2;
+
+    rsVideoFrameRateVote->StartVideoFrameRateVote(30);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 30);
+
+    rsVideoFrameRateVote->StartVideoFrameRateVote(60);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 60);
+
+    rsVideoFrameRateVote->StartVideoFrameRateVote(30);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 30);
+
+    rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: StartVideoFrameRateVote004
+ * @tc.desc: test StartVideoFrameRateVote when ffrtQueue_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVideoFrameRateVoteTest, StartVideoFrameRateVote004, Function | SmallTest | Level0)
+{
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    rsVideoFrameRateVote->ffrtQueue_ = nullptr;
+
+    rsVideoFrameRateVote->StartVideoFrameRateVote(30);
+    ASSERT_EQ(rsVideoFrameRateVote->lastRate_, 30);
+
     rsVideoFrameRateVote = nullptr;
 }
 } // namespace Rosen
