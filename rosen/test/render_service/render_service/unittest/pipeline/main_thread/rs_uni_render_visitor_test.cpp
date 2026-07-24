@@ -3387,6 +3387,36 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRegionInSkippedSurfaceNodeTestHpae,
     rsUniRenderVisitor->UpdateFilterRegionInSkippedSurfaceNode(*rsRootRenderNode, dirtyManager);
 }
 
+/**
+ * @tc.name: UpdateRotationStatusForEffectNode
+ * @tc.desc: Test UpdateRotationStatusForEffectNode with invalid and valid display nodes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateRotationStatusForEffectNode, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(effectNode, nullptr);
+    const auto initialScreenId = effectNode->GetCurrentAttachedScreenId();
+
+    rsUniRenderVisitor->UpdateRotationStatusForEffectNode(*effectNode);
+    EXPECT_EQ(effectNode->GetCurrentAttachedScreenId(), initialScreenId);
+
+    constexpr ScreenId screenId = 1;
+    rsUniRenderVisitor->curScreenNode_ =
+        std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID + 1, screenId, rsContext->weak_from_this());
+    rsUniRenderVisitor->UpdateRotationStatusForEffectNode(*effectNode);
+    EXPECT_EQ(effectNode->GetCurrentAttachedScreenId(), initialScreenId);
+
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+        std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_NODE_ID + 2, displayConfig, rsContext->weak_from_this());
+    rsUniRenderVisitor->UpdateRotationStatusForEffectNode(*effectNode);
+    EXPECT_EQ(effectNode->GetCurrentAttachedScreenId(), screenId);
+}
+
 /*
  * @tc.name: CheckMergeSurfaceDirtysForDisplay001
  * @tc.desc: Test CheckMergeSurfaceDirtysForDisplay with transparent node
@@ -5668,36 +5698,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareEffectRenderNode003, TestSize.Level
     rsUniRenderVisitor->QuickPrepareEffectRenderNode(*node);
 
     ASSERT_TRUE(node->LastFrameSubTreeSkipped());
-}
-
-/**
- * @tc.name: UpdateRotationStatusForEffectNode
- * @tc.desc: Test UpdateRotationStatusForEffectNode with invalid and valid display nodes
- * @tc.type: FUNC
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateRotationStatusForEffectNode, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto rsContext = std::make_shared<RSContext>();
-    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_NODE_ID, rsContext->weak_from_this());
-    ASSERT_NE(effectNode, nullptr);
-    const auto initialScreenId = effectNode->GetCurrentAttachedScreenId();
-
-    rsUniRenderVisitor->UpdateRotationStatusForEffectNode(*effectNode);
-    EXPECT_EQ(effectNode->GetCurrentAttachedScreenId(), initialScreenId);
-
-    constexpr ScreenId screenId = 1;
-    rsUniRenderVisitor->curScreenNode_ =
-        std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID + 1, screenId, rsContext->weak_from_this());
-    rsUniRenderVisitor->UpdateRotationStatusForEffectNode(*effectNode);
-    EXPECT_EQ(effectNode->GetCurrentAttachedScreenId(), initialScreenId);
-
-    RSDisplayNodeConfig displayConfig;
-    rsUniRenderVisitor->curLogicalDisplayNode_ =
-        std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_NODE_ID + 2, displayConfig, rsContext->weak_from_this());
-    rsUniRenderVisitor->UpdateRotationStatusForEffectNode(*effectNode);
-    EXPECT_EQ(effectNode->GetCurrentAttachedScreenId(), screenId);
 }
 
 /**
