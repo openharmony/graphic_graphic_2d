@@ -55,6 +55,11 @@ PFNEGLGETPROCADDRESSPROC OHOS::gGetProcAddress = &EglGetProcAddressCustomImpl;
 EGLBoolean EglSetEngineNameImpl(EGLDisplay dpy, const char* name)
 {
     ThreadPrivateDataCtl::ClearError();
+    if (name == nullptr) {
+        WLOGE("eglSetEngineName name is nullptr.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
+        return EGL_FALSE;
+    }
     EglWrapperDisplay *display = EglWrapperDisplay::GetWrapperDisplay(dpy);
     if (!display) {
         WLOGE("display is bad");

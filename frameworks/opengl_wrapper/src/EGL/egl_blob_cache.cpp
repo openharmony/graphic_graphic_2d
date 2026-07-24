@@ -443,7 +443,7 @@ void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
     }
     size_t headsize = sizeof(CacheHeader);
     size_t byteoffset = CACHE_HEAD;
-    while (byteoffset < filesize - CACHE_HEAD) {
+    while (byteoffset + headsize <= filesize) {
         const CacheHeader* eheader = reinterpret_cast<CacheHeader*>(&buf[byteoffset]);
         size_t keysize = eheader->keySize;
         size_t valuesize = eheader->valueSize;
