@@ -340,9 +340,13 @@ void RSScreenPreprocessor::ReconnectProcess(std::shared_ptr<HdiOutput> output)
         return;
     }
     ScreenId screenId = ToScreenId(output->GetScreenId());
+    auto property = screenManager_.QueryScreenProperty(screenId);
+    if (property == nullptr) {
+        RS_LOGW("%{public}s: screen %{public}" PRIu64 " no longer exists, skip reconnect", __func__, screenId);
+        return;
+    }
     RS_LOGW("%{public}s: screen %{public}" PRIu64 " is reconnected due to process reconnected.", __func__, screenId);
-    ScreenPresenceEvent event = {
-        .id = screenId, .output = output, .property = screenManager_.QueryScreenProperty(screenId) };
+    ScreenPresenceEvent event = { .id = screenId, .output = output, .property = property };
     ScheduleTask([this, event]() {
         callbackMgr_.NotifyScreenConnected(event);
     });

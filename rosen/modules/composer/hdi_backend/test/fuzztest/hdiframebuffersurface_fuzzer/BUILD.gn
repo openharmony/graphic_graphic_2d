@@ -40,6 +40,8 @@ ohos_fuzztest("HdiFrameBufferSurfaceFuzzTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "skia:skia_canvaskit",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 

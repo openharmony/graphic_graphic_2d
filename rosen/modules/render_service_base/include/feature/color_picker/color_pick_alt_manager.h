@@ -40,7 +40,7 @@ public:
         const Drawing::Rect* rect, const ColorPickerParam& params, NodeId filterId) override;
     void SetSystemDarkColorMode(bool isSystemDarkColorMode) override {}
     void ResetColorMemory() override;
-    EquivalentDarkMode GetLastEquivalentDarkMode() override;
+    ContrastColorScheme GetLastContrastColorScheme() override;
 
     void HandleColorUpdate(Drawing::ColorQuad newColor) override;
 

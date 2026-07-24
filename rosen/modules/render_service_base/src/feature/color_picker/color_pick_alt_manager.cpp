@@ -100,9 +100,9 @@ void ColorPickAltManager::ResetColorMemory()
     pickedLuminance_.store(RGBA_MAX + 1, std::memory_order_relaxed);
 }
 
-EquivalentDarkMode ColorPickAltManager::GetLastEquivalentDarkMode()
+ContrastColorScheme ColorPickAltManager::GetLastContrastColorScheme()
 {
-    return EquivalentDarkMode::INVALID;
+    return ContrastColorScheme::INVALID;
 }
 
 } // namespace OHOS::Rosen

@@ -153,7 +153,7 @@ std::vector<std::string> EglSystemLayersManager::GetStringVectorFromJson(const J
         if (i.isString()) {
             stringVector.push_back(i.asString());
         } else {
-            WLOGD("%{private}s is not a string", i.asString().c_str());
+            WLOGD("json item is not a string, type %{public}d", static_cast<int>(i.type()));
         }
     }
 

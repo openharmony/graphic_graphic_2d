@@ -17,11 +17,8 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 
 #if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GL))
-#include <GLES/gl.h>
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#include "GLES2/gl2.h"
-#include "GLES2/gl2ext.h"
+typedef unsigned int GLenum;
+typedef unsigned int GLuint;
 #endif
 
 #include "common/rs_common_def.h"
@@ -107,8 +104,8 @@ private:
     void PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
         const Drawing::SamplingOptions& sampling);
 #ifdef RS_ENABLE_GL
-    mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
-    mutable GLuint texId_ = 0;
+    mutable void* eglImage_ = nullptr;
+    mutable unsigned int texId_ = 0;
 #endif
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     mutable pid_t tid_ = 0;
@@ -499,8 +496,8 @@ private:
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
 #endif
 #ifdef RS_ENABLE_GL
-    mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
-    mutable GLuint texId_ = 0;
+    mutable void* eglImage_ = nullptr;
+    mutable unsigned int texId_ = 0;
 #endif
 };
 #endif

@@ -1391,7 +1391,7 @@ void RSClientToRenderConnectionProxy::RegisterCanvasCallback(sptr<RSICanvasSurfa
     MessageParcel reply;
     MessageOption option;
 
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(callback != nullptr ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterCanvasCallback: WriteInterfaceToken GetDescriptor err.");
         return;
@@ -1753,6 +1753,15 @@ int32_t RSClientToRenderConnectionProxy::RegisterFrameStabilityDetection(
         ROSEN_LOGE("%{public}s: callback is nullptr.", __func__);
         return INVALID_ARGUMENTS;
     }
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: invalid target.type: %{public}u", __func__, static_cast<uint32_t>(target.type));
+        return INVALID_ARGUMENTS;
+    }
+    if (!IsValidFrameStabilityConfig(config)) {
+        ROSEN_LOGE("%{public}s: invalid config, stableDuration=%{public}u, changePercent=%{public}f",
+            __func__, config.stableDuration, config.changePercent);
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1792,6 +1801,11 @@ int32_t RSClientToRenderConnectionProxy::RegisterFrameStabilityDetection(
 
 int32_t RSClientToRenderConnectionProxy::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
 {
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: invalid target.type: %{public}u", __func__,
+            static_cast<uint32_t>(target.type));
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1822,6 +1836,16 @@ int32_t RSClientToRenderConnectionProxy::StartFrameStabilityCollection(
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config)
 {
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: invalid target.type: %{public}u", __func__,
+            static_cast<uint32_t>(target.type));
+        return INVALID_ARGUMENTS;
+    }
+    if (!IsValidFrameStabilityConfig(config)) {
+        ROSEN_LOGE("%{public}s: invalid config, stableDuration=%{public}u, changePercent=%{public}f",
+            __func__, config.stableDuration, config.changePercent);
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1859,6 +1883,11 @@ int32_t RSClientToRenderConnectionProxy::GetFrameStabilityResult(
     const FrameStabilityTarget& target,
     bool& result)
 {
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: invalid target.type: %{public}u", __func__,
+            static_cast<uint32_t>(target.type));
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1897,6 +1926,16 @@ int32_t RSClientToRenderConnectionProxy::UpdateFrameStabilityDetection(
     const FrameStabilityTarget& oldTarget,
     const FrameStabilityTarget& newTarget)
 {
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(oldTarget.type))) {
+        ROSEN_LOGE("%{public}s: invalid oldTarget.type: %{public}u", __func__,
+            static_cast<uint32_t>(oldTarget.type));
+        return INVALID_ARGUMENTS;
+    }
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(newTarget.type))) {
+        ROSEN_LOGE("%{public}s: invalid newTarget.type: %{public}u", __func__,
+            static_cast<uint32_t>(newTarget.type));
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1971,8 +2010,8 @@ sptr<Surface> RSClientToRenderConnectionProxy::CreateCanvasDrawingNodeSurface(No
         ROSEN_LOGE("CreateCanvasDrawingNodeSurface: WriteUint64 nodeId err.");
         return nullptr;
     }
- 
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE);
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("CreateCanvasDrawingNodeSurface: Send Request err.");
@@ -2004,8 +2043,9 @@ void RSClientToRenderConnectionProxy::ReleaseCanvasDrawingNodeSurface(NodeId nod
         ROSEN_LOGE("ReleaseCanvasDrawingNodeSurface: WriteUint64 nodeId err.");
         return nullptr;
     }
- 
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE);
+
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::RELEASE_CANVAS_DRAWING_NODE_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("ReleaseCanvasDrawingNodeSurface: Send Request err.");

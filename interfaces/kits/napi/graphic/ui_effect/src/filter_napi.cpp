@@ -72,6 +72,11 @@ bool ParsePixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMa
     napi_typeof(env, argv, &res);
     Media::PixelMapNapi* tempPixelMap = nullptr;
     if (res == napi_object) {
+        ret = napi_instanceof(env, argv, constructor, &isInstance);
+        if (ret != napi_ok || !isInstance) {
+            FILTER_LOG_E("Invalid PixelMap argument type, ret: %{public}d, isInstance: %{public}d", ret, isInstance);
+            return false;
+        }
         if (napi_unwrap(env, argv, reinterpret_cast<void**>(&tempPixelMap)) != napi_ok) {
             FILTER_LOG_E("Get PixelMapNapi napi_unwrap failed");
             return false;
@@ -236,7 +241,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("motionBlur", SetMotionBlur),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
-    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         FILTER_LOG_E("FilterNapi CreateFilter define properties fail"));
     return object;
 }

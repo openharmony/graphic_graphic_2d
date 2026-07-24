@@ -722,8 +722,13 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
 {
     // create producer and consumer
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->forceFreeze_ = true;
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->ancestorScreenNode_ = screenNode;
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     ASSERT_NE(surfaceConsumer, nullptr);
     auto producer = surfaceConsumer->GetProducer();
@@ -739,12 +744,14 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     surfaceHandler.SetConsumer(surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(1);
     RSBaseSurfaceUtil::DropFrameConfig config; // Default: no drop
-    EXPECT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
-    EXPECT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
+    EXPECT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
+        surfaceHandler, presentWhen, config, parentNodeId, nullptr));
+    EXPECT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
+        surfaceHandler, presentWhen, config, parentNodeId, rsSurfaceRenderNode));
     IConsumerSurface::AcquireBufferReturnValue holdReturnValue;
     holdReturnValue.buffer = sptr<SurfaceBufferImpl>::MakeSptr();
     surfaceHandler.SetHoldReturnValue(holdReturnValue);
-    EXPECT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
+    EXPECT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, nullptr));
 
     // produce buffer
     sptr<SurfaceBuffer> buffer1 = sptr<SurfaceBufferImpl>::MakeSptr();
@@ -758,7 +765,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     // consume buffer
     surfaceHandler.ResetHoldReturnValue();
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
+    EXPECT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, nullptr));
     RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
 
     // produce buffer
@@ -770,7 +777,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     // consume buffer
     surfaceHandler.SetHoldReturnValue(holdReturnValue);
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
+    EXPECT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
+        surfaceHandler, presentWhen, config, parentNodeId, rsSurfaceRenderNode));
 }
 
 /*

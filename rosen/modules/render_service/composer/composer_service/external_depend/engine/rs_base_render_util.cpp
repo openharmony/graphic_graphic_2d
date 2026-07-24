@@ -504,6 +504,24 @@ bool IsSupportedFormatForGamutConversion(int32_t pixelFormat)
         supportedFormats.count(static_cast<GraphicPixelFormat>(pixelFormat)) > 0;
 }
 
+bool IsFormatPixelBytesAligned(int32_t pixelFormat, uint32_t bufferSize)
+{
+    if (pixelFormat == STUB_PIXEL_FMT_RGBA_16161616) {
+        return bufferSize % 8 == 0; // 8 bytes per pixel
+    }
+    switch (static_cast<GraphicPixelFormat>(pixelFormat)) {
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBX_8888:
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888:
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BGRX_8888:
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BGRA_8888:
+            return bufferSize % 4 == 0; // 4 bytes per pixel
+        case GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGB_888:
+            return bufferSize % 3 == 0; // 3 bytes per pixel
+        default:
+            return false;
+    }
+}
+
 bool IsSupportedColorGamut(GraphicColorGamut colorGamut)
 {
     static std::unordered_set<GraphicColorGamut> supportedColorGamuts = {
@@ -663,6 +681,10 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
     }
 
     uint32_t bufferSize = srcBuf->GetSize();
+    if (!IsFormatPixelBytesAligned(pixelFormat, bufferSize)) {
+        RS_LOGE("ConvertBufferColorGamut: the buffer's pixel bytes are not aligned");
+        return false;
+    }
     dstBuf.resize(bufferSize);
 
     auto bufferAddr = srcBuf->GetVirAddr();

@@ -68,7 +68,6 @@ RenderFrameTrace 是抽象基类，提供 `RenderStartFrameTrace`/`RenderEndFram
 - `RS_OPTIONAL_TRACE_BEGIN/END`：受 debug 开关控制
 - `RS_OPTIONAL_TRACE_NAME_FMT`：格式化可选 trace
 - `RS_OPTIONAL_TRACE_FMT`：格式化可选 trace（unique_ptr 管理）
-- `RS_APPOINTED_TRACE_BEGIN/END`：针对指定节点的 trace（`FindNodeInTargetList`）
 - `RS_OPTIONAL_TRACE_BEGIN_LEVEL(Level)`：基于 trace level 的分级控制
 - `RS_PROCESS_TRACE(forceEnable, name)`：可强制启用的 process trace
 
@@ -93,7 +92,6 @@ RenderFrameTrace 是抽象基类，提供 `RenderStartFrameTrace`/`RenderEndFram
 - `FRAME_TRACE_ENABLE` 宏在哪些产品配置中开启/关闭。
 - `ScopedDebugTrace` 的 `persist.sys.graphic.openDebugTrace` 参数在哪些场景下需要手动设置。
 - `RSSystemProperties::GetDebugTraceLevel()` 的取值范围和各级别含义。
-- `RS_APPOINTED_TRACE_*` 的 `FindNodeInTargetList` 节点列表如何配置。
 - 多屏 USER trace 的实际使用场景和典型采集命令。
 - `HITRACE_TAG_COMMERCIAL` 与商用 trace 采集平台的集成方式。
 - 历史线上问题：trace 不配对导致 perfetto 解析异常、高频 trace 导致性能回退等案例。

@@ -24,6 +24,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr float SCALE_EPSILON = 0.0001f;
+constexpr size_t MAX_UNION_CHILDREN_SIZE = 256;
 } // namespace
 
 RSUnionRenderNode::RSUnionRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -60,6 +61,10 @@ void RSUnionRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visit
 
 void RSUnionRenderNode::AddUnionChild(NodeId id)
 {
+    if (unionChildren_.size() >= MAX_UNION_CHILDREN_SIZE) {
+        ROSEN_LOGE("RSUnionRenderNode::AddUnionChild exceeds the union children size limit");
+        return;
+    }
     unionChildren_.emplace(id);
 }
 

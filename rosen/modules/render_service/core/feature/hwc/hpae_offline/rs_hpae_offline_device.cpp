@@ -57,6 +57,7 @@ RSHpaeOfflineContext::RSHpaeOfflineContext(OfflineContextType type)
         case OfflineContextType::SCALE:
             offlineLayer = std::make_shared<RSHpaeOfflineLayer>("DeviceOfflineLayer_SCALE", INVALID_NODEID);
             maxInvalidFrames = SCALE_MAX_NUM_INVALID_FRAME;
+            isSetHeteroEnable = true;
             break;
         case OfflineContextType::AI2020:
             offlineLayer = std::make_shared<RSHpaeOfflineLayer>("DeviceOfflineLayer_AI2020", INVALID_NODEID);
@@ -627,6 +628,9 @@ void RSHpaeOfflineDevice::CheckAndPostClearOfflineResourceTask(const std::vector
 #ifdef HETERO_HDR_ENABLE
         RSHeteroHDRManager::Instance().SetHeteroEnable(true);
 #endif
+        if (!isInitOfflineFuncSucc_) {
+            return;
+        }
         offlineThreadManager_.PostTask([this]() mutable {
             if (!isInitOfflineFuncSucc_) {
                 return;

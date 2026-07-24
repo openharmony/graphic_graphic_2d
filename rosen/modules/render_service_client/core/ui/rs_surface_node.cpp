@@ -522,30 +522,29 @@ bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
         std::lock_guard<std::mutex> lock(mutex_);
         callback_ = callback;
     }
-    auto result = SetRSCmdPropertyWithResult<BufferAvailableCallbackCmdModifier>(BufferAvailableCallbackCmdParam{
-        BufferAvailableCallbackFunc()
-    });
-    return std::holds_alternative<bool>(result) ? std::get<bool>(result) : false;
-}
-
-RSSurfaceNode::BufferAvailableCallback RSSurfaceNode::BufferAvailableCallbackFunc()
-{
-    return [weakThis = weak_from_this()]() {
-        auto rsSurfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(weakThis.lock());
-        if (rsSurfaceNode == nullptr) {
-            ROSEN_LOGE("RSSurfaceNode::SetBufferAvailableCallback this == null");
-            return;
-        }
-        BufferAvailableCallback actualCallback;
-        {
-            std::lock_guard<std::mutex> lock(rsSurfaceNode->mutex_);
-            actualCallback = rsSurfaceNode->callback_;
-        }
-        rsSurfaceNode->bufferAvailable_ = true;
-        if (actualCallback) {
-            actualCallback();
-        }
-    };
+    auto rsUIContext = GetRSUIContext();
+    if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
+        ROSEN_LOGE("RSSurfaceNode::SetBufferAvailableCallback uiContext is nullptr:%{public}d",
+            rsUIContext == nullptr);
+        return false;
+    }
+    return rsUIContext->GetRSRenderInterface()->RegisterBufferAvailableListener(
+        GetId(), [weakThis = weak_from_this()]() {
+            auto rsSurfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(weakThis.lock());
+            if (rsSurfaceNode == nullptr) {
+                ROSEN_LOGE("RSSurfaceNode::SetBufferAvailableCallback this == null");
+                return;
+            }
+            BufferAvailableCallback actualCallback;
+            {
+                std::lock_guard<std::mutex> lock(rsSurfaceNode->mutex_);
+                actualCallback = rsSurfaceNode->callback_;
+            }
+            rsSurfaceNode->bufferAvailable_ = true;
+            if (actualCallback) {
+                actualCallback();
+            }
+        });
 }
 
 bool RSSurfaceNode::IsBufferAvailable() const
@@ -1488,10 +1487,16 @@ void RSSurfaceNode::CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow
     } else {
         AddCommand(command, isWindow);
     }
-    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId(),
-        GetRSUIContext()->GetConnectToRender());
-    AddCommand(command, isWindow);
-
+#ifdef ROSEN_OHOS
+    auto uiContext = GetRSUIContext();
+    if (LIKELY(uiContext != nullptr)) {
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId(),
+        uiContext->GetConnectToRender());
+        AddCommand(command, isWindow);
+    } else {
+        ROSEN_LOGE("RSSurfaceNode::CreateRenderThreadNode rsUIContext is nullptr");
+    }
+#endif
     RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
     command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
     AddCommand(command, isWindow);

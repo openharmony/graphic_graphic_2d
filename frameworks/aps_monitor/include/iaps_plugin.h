@@ -65,13 +65,7 @@ public:
     }
 
     IApsPlugin() = default;
-    virtual ~IApsPlugin()
-    {
-        if (loadFileHandle_ != nullptr) {
-            dlclose(loadFileHandle_);
-            loadFileHandle_ = nullptr;
-        }
-    }
+    virtual ~IApsPlugin() = default;
 
     virtual void InitGameFpsCtrl() {}
     virtual void PowerControlOfSwapbuffer() {}

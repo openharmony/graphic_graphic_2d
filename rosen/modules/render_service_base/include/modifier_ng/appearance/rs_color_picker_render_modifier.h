@@ -33,6 +33,7 @@ public:
     // LCOV_EXCL_STOP
 
     static void ResetProperties(RSProperties& properties);
+    static void SetLastContrastColorScheme(RSProperties& properties, RSRenderPropertyBase& property);
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;

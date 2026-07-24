@@ -294,6 +294,10 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
+    const DrawablesVec& GetProtectiveSolidDrawables() const
+    {
+        return protectiveSolidDrawables_;
+    }
     const auto& GetHardCursorDrawables() const
     {
         return hardCursorDrawableVec_;
@@ -747,6 +751,7 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> canvasDrawingSelfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;
+    DrawablesVec protectiveSolidDrawables_;
     std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>> hardCursorDrawableVec_;
     uint32_t forceCommitReason_ = 0;
     bool hasMirrorDisplay_ = false;

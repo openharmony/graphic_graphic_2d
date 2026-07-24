@@ -1636,15 +1636,16 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandlePointerTask, Function | SmallTest | Leve
 
     mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED;
     std::set<TouchStatus> originalSet = {TOUCH_MOVE, TOUCH_BUTTON_DOWN, TOUCH_BUTTON_UP, AXIS_BEGIN, AXIS_UPDATE,
-        AXIS_END};
+        AXIS_END, TOUCH_PULL_DOWN};
     for (TouchStatus status : originalSet) {
         mgr.HandlePointerTask(pid, status, 1);
     }
 
     mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED_EX_MOVE;
-    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
     mgr.HandlePointerTask(pid, TOUCH_BUTTON_DOWN, 1);
+    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
     mgr.HandlePointerTask(pid, TOUCH_BUTTON_UP, 1);
+    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
     EXPECT_EQ(mStrategy.strategyConfigMapCache_[testStrategy].pointerMode, PointerModeType::POINTER_ENABLED_EX_MOVE);
 
     mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_DISENABLED;
@@ -2007,6 +2008,200 @@ HWTEST_F(HgmFrameRateMgrTest, TestAddScreenInit, Function | SmallTest | Level2)
 }
 
 /**
+ * @tc.name: HandleSetHgmExclusiveScreenTest001
+ * @tc.desc: test HandleSetHgmExclusiveScreen with screen not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest001, Function | SmallTest | Level1)
+{
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    ScreenId invalidScreenId = 99999;
+    bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, invalidScreenId);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: HandleSetHgmExclusiveScreenTest002
+ * @tc.desc: test HandleSetHgmExclusiveScreen with valid self-owned screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest002, Function | SmallTest | Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+    ScreenId testScreenId = 41;
+    bool isSelfOwnedScreen = true;
+    EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+    auto screen = hgmCore.GetScreen(testScreenId);
+    screen->isSelfOwnedScreenFlag_.store(true);
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, testScreenId);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(frameRateMgr->GetHgmExclusiveScreenId(), testScreenId);
+
+    EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: HandleSetHgmExclusiveScreenTest003
+ * @tc.desc: test HandleSetHgmExclusiveScreen with non-self-owned screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest003, Function | SmallTest | Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+    ScreenId testScreenId = 42;
+    bool isSelfOwnedScreen = false;
+    EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, testScreenId);
+    EXPECT_FALSE(result);
+
+    EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: HandleSetHgmExclusiveScreenTest004
+ * @tc.desc: test HandleSetHgmExclusiveScreen with INVALID_SCREEN_ID to disable exclusive
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleSetHgmExclusiveScreenTest004, Function | SmallTest | Level1)
+{
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    bool result = frameRateMgr->HandleSetHgmExclusiveScreen(pid, INVALID_SCREEN_ID);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(frameRateMgr->GetHgmExclusiveScreenId(), INVALID_SCREEN_ID);
+}
+
+/**
+ * @tc.name: HandleMultiSelfOwnedScreenEventTest001
+ * @tc.desc: test HandleMultiSelfOwnedScreenEvent with eventStatus=true and maxRefreshRate<=OLED_NULL_HZ
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest001, Function | SmallTest | Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    EventInfo eventInfo;
+    eventInfo.eventName = "VOTER_MULTISELFOWNEDSCREEN";
+    eventInfo.eventStatus = true;
+    eventInfo.maxRefreshRate = OLED_NULL_HZ;
+    eventInfo.minRefreshRate = OLED_NULL_HZ;
+    frameRateMgr->HandleMultiSelfOwnedScreenEvent(pid, eventInfo);
+
+    const auto& voteRecord = frameRateMgr->FrameVoterRef().GetVoteRecord();
+    EXPECT_EQ(voteRecord.find("VOTER_MULTISELFOWNEDSCREEN"), voteRecord.end());
+
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: HandleMultiSelfOwnedScreenEventTest002
+ * @tc.desc: test HandleMultiSelfOwnedScreenEvent with eventStatus=true and valid maxRefreshRate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest002, Function | SmallTest | Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    EventInfo eventInfo;
+    eventInfo.eventName = "VOTER_MULTISELFOWNEDSCREEN";
+    eventInfo.eventStatus = true;
+    eventInfo.maxRefreshRate = OLED_120_HZ;
+    eventInfo.minRefreshRate = OLED_60_HZ;
+    frameRateMgr->HandleMultiSelfOwnedScreenEvent(pid, eventInfo);
+
+    const auto& voteRecord = frameRateMgr->FrameVoterRef().GetVoteRecord();
+    EXPECT_NE(voteRecord.find("VOTER_MULTISELFOWNEDSCREEN"), voteRecord.end());
+
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: HandleMultiSelfOwnedScreenEventTest003
+ * @tc.desc: test HandleMultiSelfOwnedScreenEvent with eventStatus=false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest003, Function | SmallTest | Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    EventInfo eventInfo;
+    eventInfo.eventName = "VOTER_MULTISELFOWNEDSCREEN";
+    eventInfo.eventStatus = false;
+    eventInfo.maxRefreshRate = OLED_120_HZ;
+    eventInfo.minRefreshRate = OLED_60_HZ;
+    frameRateMgr->HandleMultiSelfOwnedScreenEvent(pid, eventInfo);
+
+    const auto& voteRecord = frameRateMgr->FrameVoterRef().GetVoteRecord();
+    EXPECT_NE(voteRecord.find("VOTER_MULTISELFOWNEDSCREEN"), voteRecord.end());
+
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: CleanVoteHgmExclusiveScreenTest001
+ * @tc.desc: test CleanVote resets hgmExclusiveScreenId_ when process dies
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, CleanVoteHgmExclusiveScreenTest001, Function | SmallTest | Level1)
+{
+    auto& hgmCore = HgmCore::Instance();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+    ScreenId testScreenId = 43;
+    bool isSelfOwnedScreen = true;
+    EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    frameRateMgr->HandleSetHgmExclusiveScreen(pid, testScreenId);
+    EXPECT_EQ(frameRateMgr->GetHgmExclusiveScreenId(), testScreenId);
+
+    frameRateMgr->CleanVote(pid);
+    EXPECT_EQ(frameRateMgr->GetHgmExclusiveScreenId(), INVALID_SCREEN_ID);
+
+    EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: CleanVoteHgmExclusiveScreenTest002
+ * @tc.desc: test CleanVote with DEFAULT_PID returns early
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, CleanVoteHgmExclusiveScreenTest002, Function | SmallTest | Level1)
+{
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    frameRateMgr->HandleSetHgmExclusiveScreen(DEFAULT_PID, INVALID_SCREEN_ID);
+    frameRateMgr->CleanVote(DEFAULT_PID);
+    EXPECT_EQ(frameRateMgr->GetHgmExclusiveScreenId(), INVALID_SCREEN_ID);
+}
+
+/**
  * @tc.name: HandleScreenPowerStatusAndRectFrameRateTest
  * @tc.desc: Verify curScreenStrategyId_ with different call sequences
  * @tc.type: FUNC
@@ -2242,6 +2437,24 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Func
     EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
 
     HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: ProcessAdaptiveSyncForLTPS
+ * @tc.desc: Test ProcessAdaptiveSync with SUPPORT_AS_LTPS game support status
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, ProcessAdaptiveSyncForLTPS, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    int32_t prevIsAdaptive = mgr.isAdaptive_.load();
+    mgr.isGameSupportAS_ = SupportASStatus::SUPPORT_AS_LTPS;
+
+    mgr.ProcessAdaptiveSync("VOTER_GAMES");
+    EXPECT_EQ(mgr.isAdaptive_.load(), SupportASStatus::SUPPORT_AS_LTPS);
+
+    mgr.isAdaptive_.store(prevIsAdaptive);
 }
 } // namespace Rosen
 } // namespace OHOS

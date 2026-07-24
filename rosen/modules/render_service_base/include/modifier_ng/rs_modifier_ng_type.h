@@ -340,6 +340,8 @@ public:
             case RSPropertyType::COLOR_PICKER_STRATEGY : return "ColorPickerStrategy";
             case RSPropertyType::COLOR_PICKER_INTERVAL : return "ColorPickerInterval";
             case RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD : return "ColorPickerNotifyThreshold";
+            case RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME :
+                return "ColorPickerLastContrastColorScheme";
             case RSPropertyType::COLOR_ADAPTIVE : return "ColorAdaptive";
             case RSPropertyType::COVERAGE_NG_SHADER: return "CoverageNGShader";
             case RSPropertyType::DOUBLE_SIDED: return "DoubleSided";
@@ -354,6 +356,7 @@ public:
             case RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM: return "SpatialEffectLeftBottom";
             case RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM: return "SpatialEffectRightBottom";
             case RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT: return "SpatialEffectOcclusionWeight";
+            case RSPropertyType::SPATIAL_EFFECT_MODE: return "SpatialEffectMode";
             case RSPropertyType::MATERIAL_SHADER: return "MaterialShader";
             case RSPropertyType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             default: return "Unknown";

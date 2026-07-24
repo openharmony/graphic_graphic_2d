@@ -49,6 +49,7 @@
 #include "pipeline/hwc/rs_hwc_context.h"
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
@@ -102,6 +103,16 @@ private:
 class RSMainThread {
 public:
     static RSMainThread* Instance();
+
+    const std::vector<std::shared_ptr<RSProtectiveSolidRenderNode>>& GetProtectiveSolidNodes() const
+    {
+        return protectiveSolidNodes_;
+    }
+
+    const RSRenderThreadParams::DrawablesVec& GetProtectiveSolidDrawables() const
+    {
+        return protectiveSolidDrawables_;
+    }
 
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
@@ -181,6 +192,17 @@ public:
     bool GetGlobalDarkColorMode() const
     {
         return isGlobalDarkColorMode_;
+    }
+
+    void SetUIMode3D(UIMode3D mode)
+    {
+        RS_LOGI("SetUIMode3D %{public}d.", mode);
+        uiMode_ = mode;
+    }
+
+    UIMode3D GetUIMode3D() const
+    {
+        return uiMode_;
     }
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
@@ -318,6 +340,7 @@ public:
 
     bool IsPCThreeFingerScenesListScene() const
     {
+        std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
         return !threeFingerScenesList_.empty();
     }
 
@@ -512,11 +535,14 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
+    std::shared_ptr<RSProtectiveSolidRenderNode> CreateProtectiveSolidRenderNode(ScreenId screenId);
+    void DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void HandlePhysicalModeParamsChanged(
         ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void HandleActiveRectOption(ScreenId id, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
@@ -701,6 +727,7 @@ private:
     std::atomic<bool> screenPowerOnChanged_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::atomic<bool> isGlobalDarkColorMode_ = false;
+    std::atomic<UIMode3D> uiMode_ = UIMode3D::MODE_2D;
     // for statistic of jank frames
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
@@ -809,6 +836,8 @@ private:
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
     std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;
+    std::vector<std::shared_ptr<RSProtectiveSolidRenderNode>> protectiveSolidNodes_;
+    DrawablesVec protectiveSolidDrawables_;
 
     // for aibar
     std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet> aibarNodes_;
@@ -836,7 +865,7 @@ private:
     // for surface occlusion change callback
     std::mutex surfaceOcclusionMutex_;
     std::vector<NodeId> lastRegisteredSurfaceOnTree_;
-    std::mutex systemAnimatedScenesMutex_;
+    mutable std::mutex systemAnimatedScenesMutex_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> systemAnimatedScenesList_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> threeFingerScenesList_;
     std::unordered_map<NodeId, // map<node ID, <pid, callback, partition points vector, level>>
@@ -906,6 +935,9 @@ private:
     // for rebuild transaction
     std::deque<std::unique_ptr<RSTransactionData>> pendingSplitTransactions_;
     pid_t pendingSplitPid_ = -1;
+
+    // for protectiveSolidNode
+    std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

@@ -21,13 +21,16 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "limit_number.h"
 #include "metadata_helper.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_screen_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_test_util.h"
@@ -2879,6 +2882,202 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurface_AllBranchesCoveredTest00
         EXPECT_NO_FATAL_FAILURE(renderProcessor->ProcessScreenSurface(*node));
 
         EXPECT_GT(renderProcessor->layers_.size(), layerSize);
+    }
+}
+
+/**
+ * @tc.name: CreateProtectiveSolidLayerForRenderThread001
+ * @tc.desc: Test CreateProtectiveSolidLayerForRenderThread when composerClient is nullptr
+ *           Branch: if (composerClient_ == nullptr) at line 210 returns early
+ * @tc.type: FUNC
+ * @tc.require: issue24908
+ */
+HWTEST_F(RSUniRenderProcessorTest, CreateProtectiveSolidLayerForRenderThread001, TestSize.Level1)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto node = RSTestUtil::CreateSurfaceNode();
+        ASSERT_NE(node, nullptr);
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+        ASSERT_NE(surfaceDrawable, nullptr);
+
+        surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(node->GetId());
+        ASSERT_NE(renderProcessor, nullptr);
+        
+        renderProcessor->composerClient_ = nullptr;
+        auto layerSize = renderProcessor->layers_.size();
+        renderProcessor->CreateProtectiveSolidLayerForRenderThread(*surfaceDrawable);
+        EXPECT_EQ(renderProcessor->layers_.size(), layerSize);
+    }
+}
+
+/**
+ * @tc.name: CreateProtectiveSolidLayerForRenderThread002
+ * @tc.desc: Test CreateProtectiveSolidLayerForRenderThread when params is nullptr
+ *           Branch: if (!paramsSp) at line 215 returns early
+ * @tc.type: FUNC
+ * @tc.require: issue24908
+ */
+HWTEST_F(RSUniRenderProcessorTest, CreateProtectiveSolidLayerForRenderThread002, TestSize.Level1)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto node = RSTestUtil::CreateSurfaceNode();
+        ASSERT_NE(node, nullptr);
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+        ASSERT_NE(surfaceDrawable, nullptr);
+
+        surfaceDrawable->renderParams_ = nullptr;
+        ASSERT_NE(renderProcessor, nullptr);
+
+        NodeId nodeId = 1;
+        RSScreenRenderNode screenNode(nodeId, screenId_);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(screenNode, renderEngine);
+        auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+        renderProcessor->composerClient_ = composerClient;
+
+        auto layerSize = renderProcessor->layers_.size();
+        renderProcessor->CreateProtectiveSolidLayerForRenderThread(*surfaceDrawable);
+        EXPECT_EQ(renderProcessor->layers_.size(), layerSize);
+    }
+}
+
+/**
+ * @tc.name: CreateProtectiveSolidLayerForRenderThread003
+ * @tc.desc: Test CreateProtectiveSolidLayerForRenderThread when layer creation succeeds
+ *           Branch: Normal flow - layer created successfully and added to layers_
+ * @tc.type: FUNC
+ * @tc.require: issue24908
+ */
+HWTEST_F(RSUniRenderProcessorTest, CreateProtectiveSolidLayerForRenderThread003, TestSize.Level1)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto node = RSTestUtil::CreateSurfaceNode();
+        ASSERT_NE(node, nullptr);
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+        ASSERT_NE(surfaceDrawable, nullptr);
+
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+        ASSERT_NE(params, nullptr);
+        
+        RSLayerInfo layerInfo;
+        layerInfo.dstRect = {10, 10, 100, 100};
+        layerInfo.srcRect = {0, 0, 100, 100};
+        layerInfo.boundRect = {10, 10, 100, 100};
+        layerInfo.alpha = 0.8f;
+        layerInfo.zOrder = 5;
+        params->SetLayerInfo(layerInfo);
+
+        ASSERT_NE(renderProcessor, nullptr);
+        NodeId nodeId = 1;
+        RSScreenRenderNode screenNode(nodeId, screenId_);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(screenNode, renderEngine);
+        auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+        renderProcessor->composerClient_ = composerClient;
+
+        auto layerSize = renderProcessor->layers_.size();
+        renderProcessor->CreateProtectiveSolidLayerForRenderThread(*surfaceDrawable);
+        EXPECT_GT(renderProcessor->layers_.size(), layerSize);
+    }
+}
+
+/**
+ * @tc.name: CreateProtectiveSolidLayerForRenderThread004
+ * @tc.desc: Test CreateProtectiveSolidLayerForRenderThread with various alpha values
+ *           Tests alpha clamping with values: < 0, 0, 0.5, 1.0, > 1
+ * @tc.type: FUNC
+ * @tc.require: issue24908
+ */
+HWTEST_F(RSUniRenderProcessorTest, CreateProtectiveSolidLayerForRenderThread004, TestSize.Level1)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        std::vector<float> testAlphas = {-0.5f, 0.0f, 0.5f, 1.0f, 1.5f};
+
+        ASSERT_NE(renderProcessor, nullptr);
+        NodeId nodeId = 1;
+        RSScreenRenderNode screenNode(nodeId, screenId_);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(screenNode, renderEngine);
+        auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+        renderProcessor->composerClient_ = composerClient;
+
+        for (size_t i = 0; i < testAlphas.size(); ++i) {
+            auto node = RSTestUtil::CreateSurfaceNode();
+            ASSERT_NE(node, nullptr);
+            auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+                DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+            ASSERT_NE(surfaceDrawable, nullptr);
+
+            auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+            ASSERT_NE(params, nullptr);
+
+            RSLayerInfo layerInfo;
+            layerInfo.dstRect = {10, 10, 100, 100};
+            layerInfo.srcRect = {0, 0, 100, 100};
+            layerInfo.boundRect = {10, 10, 100, 100};
+            layerInfo.alpha = testAlphas[i];
+            layerInfo.zOrder = static_cast<int32_t>(i);
+            params->SetLayerInfo(layerInfo);
+
+            renderProcessor->CreateProtectiveSolidLayerForRenderThread(*surfaceDrawable);
+        }
+        EXPECT_EQ(renderProcessor->layers_.size(), testAlphas.size());
+    }
+}
+
+/**
+ * @tc.name: CreateProtectiveSolidLayerForRenderThread005
+ * @tc.desc: Test CreateProtectiveSolidLayerForRenderThread with various dstRect values
+ *           Tests with different rect sizes and positions including boundary conditions
+ * @tc.type: FUNC
+ * @tc.require: issue24908
+ */
+HWTEST_F(RSUniRenderProcessorTest, CreateProtectiveSolidLayerForRenderThread005, TestSize.Level1)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        struct RectTestCase {
+            GraphicIRect dstRect;
+            std::string name;
+        };
+        std::vector<RectTestCase> testRects = {
+            {{0, 0, 100, 100}, "Normal"},
+            {{-100, -100, 50, 50}, "Negative coordinates"},
+            {{0, 0, 1, 1}, "Minimum size"},
+            {{0, 0, 3840, 2160}, "4K size"},
+        };
+
+        ASSERT_NE(renderProcessor, nullptr);
+        NodeId nodeId = 1;
+        RSScreenRenderNode screenNode(nodeId, screenId_);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(screenNode, renderEngine);
+        auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+        renderProcessor->composerClient_ = composerClient;
+
+        for (size_t i = 0; i < testRects.size(); ++i) {
+            auto node = RSTestUtil::CreateSurfaceNode();
+            ASSERT_NE(node, nullptr);
+            auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+                DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+            ASSERT_NE(surfaceDrawable, nullptr);
+
+            auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+            ASSERT_NE(params, nullptr);
+
+            RSLayerInfo layerInfo;
+            layerInfo.dstRect = testRects[i].dstRect;
+            layerInfo.srcRect = {0, 0, testRects[i].dstRect.w, testRects[i].dstRect.h};
+            layerInfo.boundRect = testRects[i].dstRect;
+            layerInfo.alpha = 1.0f;
+            layerInfo.zOrder = static_cast<int32_t>(i);
+            params->SetLayerInfo(layerInfo);
+
+            renderProcessor->CreateProtectiveSolidLayerForRenderThread(*surfaceDrawable);
+        }
+        EXPECT_EQ(renderProcessor->layers_.size(), testRects.size());
     }
 }
 }

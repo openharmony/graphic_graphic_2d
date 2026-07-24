@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -944,4 +945,152 @@ HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeSelfDrawingNodeInProcessBranches, 
               rsRenderNodeMap.selfDrawingNodeInProcess_[pid].end());
 }
 
+/**
+ * @tc.name: GetProtectiveSolidNodeMapSize001
+ * @tc.desc: Test GetProtectiveSolidNodeMapSize with empty map
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, GetProtectiveSolidNodeMapSize001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    EXPECT_EQ(rsRenderNodeMap.GetProtectiveSolidNodeMapSize(), 0);
+}
+
+/**
+ * @tc.name: GetProtectiveSolidNodeMapSize002
+ * @tc.desc: Test GetProtectiveSolidNodeMapSize with nodes in map
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, GetProtectiveSolidNodeMapSize002, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    auto rsContext = std::make_shared<RSContext>();
+    
+    NodeId id1 = 100;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(id1);
+    rsRenderNodeMap.protectiveSolidNodeMap_[id1] = node1;
+    EXPECT_EQ(rsRenderNodeMap.GetProtectiveSolidNodeMapSize(), 1);
+    
+    NodeId id2 = 200;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(id2);
+    rsRenderNodeMap.protectiveSolidNodeMap_[id2] = node2;
+    EXPECT_EQ(rsRenderNodeMap.GetProtectiveSolidNodeMapSize(), 2);
+}
+
+/**
+ * @tc.name: TraverseProtectiveSolidNodes001
+ * @tc.desc: Test TraverseProtectiveSolidNodes with empty map
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, TraverseProtectiveSolidNodes001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    int count = 0;
+    rsRenderNodeMap.TraverseProtectiveSolidNodes([&count](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        count++;
+    });
+    EXPECT_EQ(count, 0);
+}
+
+/**
+ * @tc.name: TraverseProtectiveSolidNodes002
+ * @tc.desc: Test TraverseProtectiveSolidNodes with nodes in map
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, TraverseProtectiveSolidNodes002, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    
+    NodeId id1 = 100;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(id1);
+    NodeId id2 = 200;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(id2);
+    NodeId id3 = 300;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(id3);
+    
+    rsRenderNodeMap.protectiveSolidNodeMap_[id1] = node1;
+    rsRenderNodeMap.protectiveSolidNodeMap_[id2] = node2;
+    rsRenderNodeMap.protectiveSolidNodeMap_[id3] = node3;
+    
+    int count = 0;
+    std::vector<NodeId> visitedIds;
+    rsRenderNodeMap.TraverseProtectiveSolidNodes([&count, &visitedIds](const std::shared_ptr<RSSurfaceRenderNode>& node)
+    {
+        count++;
+        visitedIds.push_back(node->GetId());
+    });
+    EXPECT_EQ(count, 3);
+    EXPECT_EQ(visitedIds.size(), 3);
+}
+
+/**
+ * @tc.name: TraverseProtectiveSolidNodes003
+ * @tc.desc: Test TraverseProtectiveSolidNodes with null nodes
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, TraverseProtectiveSolidNodes003, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    
+    NodeId id1 = 100;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(id1);
+    NodeId id2 = 200;
+    
+    rsRenderNodeMap.protectiveSolidNodeMap_[id1] = node1;
+    rsRenderNodeMap.protectiveSolidNodeMap_[id2] = nullptr;
+    
+    int count = 0;
+    rsRenderNodeMap.TraverseProtectiveSolidNodes([&count](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        if (node != nullptr) {
+            count++;
+        }
+    });
+    EXPECT_EQ(count, 1);
+}
+
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: RegisterUnTreeNodeWithinLimit
+ * @tc.desc: Test RegisterUnTreeNode adds node when under size limit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RegisterUnTreeNodeWithinLimit, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    NodeId id = 1;
+    EXPECT_TRUE(rsRenderNodeMap.unInTreeNodeSet_.empty());
+    rsRenderNodeMap.RegisterUnTreeNode(id);
+    EXPECT_EQ(rsRenderNodeMap.unInTreeNodeSet_.size(), 1u);
+    EXPECT_NE(rsRenderNodeMap.unInTreeNodeSet_.find(id), rsRenderNodeMap.unInTreeNodeSet_.end());
+}
+
+/**
+ * @tc.name: RegisterUnTreeNodeExceedLimit
+ * @tc.desc: Test RegisterUnTreeNode rejects node when size limit exceeded
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RegisterUnTreeNodeExceedLimit, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr size_t maxLimit = 10000;
+    // Fill the set to the limit
+    for (size_t i = 0; i < maxLimit; ++i) {
+        rsRenderNodeMap.unInTreeNodeSet_.emplace(static_cast<NodeId>(i));
+    }
+    EXPECT_EQ(rsRenderNodeMap.unInTreeNodeSet_.size(), maxLimit);
+
+    // Try to register one more - should be rejected
+    NodeId extraId = static_cast<NodeId>(maxLimit);
+    rsRenderNodeMap.RegisterUnTreeNode(extraId);
+    EXPECT_EQ(rsRenderNodeMap.unInTreeNodeSet_.size(), maxLimit);
+    EXPECT_EQ(rsRenderNodeMap.unInTreeNodeSet_.find(extraId), rsRenderNodeMap.unInTreeNodeSet_.end());
+}
+#endif
 } // namespace OHOS::Rosen

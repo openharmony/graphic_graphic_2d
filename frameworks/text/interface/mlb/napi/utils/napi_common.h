@@ -19,15 +19,15 @@
 #include <codecvt>
 #include <map>
 
-#include "draw/color.h"
+#include "napi/native_node_api.h"
 #include "napi_async_work.h"
-#include "native_engine/native_engine.h"
-#include "native_engine/native_value.h"
 #include "resource_manager.h"
 #include "text_style.h"
 #include "typography.h"
 #include "typography_create.h"
 #include "typography_style.h"
+
+#include "draw/color.h"
 #include "utils/point.h"
 #include "utils/text_log.h"
 

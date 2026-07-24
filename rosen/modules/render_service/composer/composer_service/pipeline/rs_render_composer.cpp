@@ -327,7 +327,9 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     if (composerToRenderConnection_ != nullptr) {
         composerToRenderConnection_->ReleaseLayerBuffers(releaseLayerInfo);
     }
-    unExecuteTaskNum_--;
+    if (unExecuteTaskNum_.load() > 0) {
+        unExecuteTaskNum_--;
+    }
 
     if (setTaskEndWithTimeCb_ != nullptr) {
         setTaskEndWithTimeCb_(SystemTime() - lastActualTime_);
@@ -554,6 +556,11 @@ bool RSRenderComposer::IsDelayRequired(HgmCore& hgmCore, const PipelineParam& pi
             RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
             return false;
         }
+        if (AdaptiveModeStatus() == SupportASStatus::SUPPORT_AS_LTPS) {
+            RS_LOGD("CommitAndReleaseLayers in Adaptive Mode For LTPS");
+            RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode For LTPS");
+            return false;
+        }
     } else {
         if (!hgmCore.IsDelayMode()) {
             return false;
@@ -649,12 +656,7 @@ int32_t RSRenderComposer::AdaptiveModeStatus()
     if (auto frameRateMgr = hgmCore.GetFrameRateMgr()) {
         int32_t adaptiveStatus = frameRateMgr->AdaptiveStatus();
         RS_LOGD("CommitAndReleaseLayers send layer adaptiveStatus: %{public}" PRId32, adaptiveStatus);
-        if (adaptiveStatus == SupportASStatus::SUPPORT_AS) {
-            return SupportASStatus::SUPPORT_AS;
-        }
-        if (adaptiveStatus == SupportASStatus::GAME_SCENE_SKIP) {
-            return SupportASStatus::GAME_SCENE_SKIP;
-        }
+        return adaptiveStatus;
     }
     return SupportASStatus::NOT_SUPPORT;
 }

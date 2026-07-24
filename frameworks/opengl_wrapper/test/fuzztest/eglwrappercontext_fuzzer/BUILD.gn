@@ -36,6 +36,8 @@ ohos_fuzztest("EGLWrapperContextFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 

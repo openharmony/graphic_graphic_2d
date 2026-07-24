@@ -599,6 +599,42 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
     uniRenderVisitor_.UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
 }
 
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+void RSUniHwcVisitor::UpdateHwcNodeEnableByShutter3DLayer()
+{
+    const auto& allHwcNodes = uniRenderVisitor_.curScreenNode_->GetChildHwcNodes();
+    if (uniRenderVisitor_.curScreenNode_->GetScreenProperty().GetConnectionType() !=
+        ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL) {
+        return;
+    }
+    for (auto& hwcNode : allHwcNodes) {
+        auto hwcNodePtr = hwcNode.lock();
+        if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
+            continue;
+        }
+        if (hwcNodePtr->GetCompositionType() == CompositionType::COMPOSITION_3D_SHUTTER) {
+            bool isFullScreen = hwcNodePtr->IsFullScreen();
+            RS_TRACE_NAME_FMT("UX 3D: IsFullScreen[%d].", isFullScreen);
+            if (isFullScreen) {
+                hwcNodePtr->SetHardwareForcedDisabledState(false);
+                uniRenderVisitor_.curScreenNode_->SetVideoDimType(hwcNodePtr->GetVideoDimType());
+            } else {
+                hwcNodePtr->SetHardwareForcedDisabledState(true);
+            }
+        } else {
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams *>(hwcNodePtr->GetStagingRenderParams().get());
+        if (!surfaceParams) {
+            RS_LOGE("%{public}s surfaceParams is null", __func__);
+            continue;
+        }
+        surfaceParams->SetHardwareEnabled(!hwcNodePtr->IsHardwareForcedDisabled());
+        hwcNodePtr->AddToPendingSyncList();
+    }
+}
+#endif
+
 void RSUniHwcVisitor::UpdateHwcNodeEnableByNodeBelow()
 {
     auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
@@ -851,6 +887,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     }
 }
 
+#ifdef HVE_BLUR_ENABLE
 bool RSUniHwcVisitor::IsHveBlurFilterEnabled(
     const RSRenderNode& filterNode, const RectI& filterRect, RSSurfaceRenderNode& hwcNode)
 {
@@ -866,6 +903,7 @@ bool RSUniHwcVisitor::IsHveBlurFilterEnabled(
     HveFilter::GetHveFilter().PushHveFilterSurfaceNodeMapping(filterNode.GetId(), hwcNode.GetId());
     return true;
 }
+#endif
 
 namespace {
 void ColorPickerCheckHwcIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
@@ -912,7 +950,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterIntersection()
         if (!node) {
             continue;
         }
-        bool isFilter = RSUniHwcComputeUtil::IsBlendNeedFilter(*node);
+        bool isFilter = !node->IsHwcLayerType();
         if (isFilter && node->IsOnTheTree()) {
             auto filterRect = node->GetConstHwcRecorder().GetGlobalHwcFilterRect().IsEmpty() ?
                 node->GetOldDirtyInSurface() : node->GetConstHwcRecorder().GetGlobalHwcFilterRect();
@@ -970,9 +1008,11 @@ void RSUniHwcVisitor::CheckHwcNodeFilterIntersection(
                 continue;
             }
         }
+#ifdef HVE_BLUR_ENABLE
         if (IsHveBlurFilterEnabled(*filterNode, filter->second, *hwcNode)) {
             continue;
         }
+#endif
         auto parentNode = hwcNode->GetParent().lock();
         // The following trace is relied on by DFX, do not modify its content, format, or order.
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64" parentId:%" PRIu64

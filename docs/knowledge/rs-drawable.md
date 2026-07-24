@@ -191,10 +191,256 @@ Drawable 释放不是简单析构：
 | subTreeParallel 标记 | `subTreeParallel_` 布尔 | 并行渲染的 Drawable 需要特殊处理线程安全 |
 | offscreen rotation | `OffscreenRotationInfo` | 屏幕旋转时通过离屏渲染避免 buffer 尺寸不匹配 |
 
-## 待补充背景
+## 补充背景
 
-- RSPropertyDrawable 的具体子类和绘制链路（阴影、边框、滤镜等）。
-- RSChildrenDrawable 的实现和子节点绘制顺序控制。
-- DFX 目录下的调试 Drawable 功能和使用方法。
-- RenderGroup 缓存的创建/失效/更新完整生命周期。
-- Drawable 与 RSBaseRenderEngine 的交互方式。
+### RSPropertyDrawable 的具体子类和绘制链路
+
+#### 分类和继承体系
+
+RSPropertyDrawable 体系分为三层：
+
+1. **基类层**
+   - `RSPropertyDrawable`：基础属性绘制类，使用 `DrawCmdList` 记录和回放绘制命令。
+   - `RSFilterDrawable`：滤镜绘制基类，继承自 `RSDrawable`，包含 `RSFilterCacheManager` 缓存机制。
+   - `RSDrawable`：所有 Drawable 的顶层基类，定义 `OnDraw`、`OnSync`、`OnUpdate` 等核心接口。
+
+2. **背景属性 Drawable**（`rs_property_drawable_background.h/cpp`）
+   - `RSShadowDrawable`：阴影绘制。支持三种阴影模式：
+     - 普通阴影（elevation > 0）：使用 `DrawShadow` 绘制。
+     - MaskFilter 阴影（radius > 0）：使用 `DrawShadowMaskFilter` 绘制。
+     - SDF 阴影：通过 `GE_SHADER_SDF_SHADOW` 着色器绘制，支持自定义形状。
+   - `RSMaskDrawable`：遮罩绘制，使用 `DrawCmdList` 记录遮罩路径。
+   - `RSBackgroundColorDrawable`：背景色绘制。
+   - `RSBackgroundShaderDrawable`：背景着色器绘制（渐变等）。
+   - `RSBackgroundNGShaderDrawable`：背景 NG 着色器绘制，使用 `GEVisualEffectContainer`。
+   - `RSBackgroundImageDrawable`：背景图片绘制，支持 PixelMap 和 ASTC 压缩纹理。
+   - `RSBackgroundFilterDrawable`：背景滤镜绘制（毛玻璃、模糊等），继承 `RSFilterDrawable`。
+   - `RSBackgroundEffectDrawable`：背景效果绘制，继承 `RSFilterDrawable`。
+   - `RSUseEffectDrawable`：使用效果节点绘制，引用 `EffectRenderNode` 的 drawable。
+   - `RSDynamicLightUpDrawable`：动态亮度调节绘制，使用自定义 Blender。
+   - `RSMaterialFilterDrawable`：材质滤镜绘制，支持空形状裁剪。
+
+3. **前景属性 Drawable**（`rs_property_drawable_foreground.h/cpp`）
+   - `RSBinarizationDrawable`：二值化绘制（AI 反色效果）。
+   - `RSColorFilterDrawable`：颜色滤镜绘制。
+   - `RSLightUpEffectDrawable`：亮度效果绘制。
+   - `RSDynamicDimDrawable`：动态变暗绘制。
+   - `RSCompositingFilterDrawable`：合成滤镜绘制（前景），继承 `RSFilterDrawable`。
+   - `RSForegroundFilterDrawable`：前景滤镜绘制。
+   - `RSForegroundFilterRestoreDrawable`：前景滤镜恢复绘制，与 `RSForegroundFilterDrawable` 配对使用。
+   - `RSForegroundColorDrawable`：前景色绘制。
+   - `RSForegroundShaderDrawable`：前景着色器绘制，支持 EDR 效果。
+   - `RSBorderDrawable`：边框绘制。支持 SDF 边框（`GE_SHADER_SDF_BORDER`）和普通边框两种模式。
+   - `RSOutlineDrawable`：轮廓绘制。支持 SDF 轮廓（`GE_SHADER_SDF_OUTLINE`）和普通轮廓两种模式。
+   - `RSParticleDrawable`：粒子特效绘制。
+   - `RSPixelStretchDrawable`：像素拉伸绘制。
+
+4. **其他属性 Drawable**（`rs_property_drawable.h/cpp`）
+   - `RSFrameOffsetDrawable`：帧偏移绘制，通过 Translate 命令调整子节点位置。
+   - `RSClipToBoundsDrawable`：裁剪到边界绘制。支持五种裁剪类型：
+     - `CLIP_PATH`：使用自定义 Path 裁剪。
+     - `CLIP_RRect`：使用圆角矩形裁剪，支持 `ClipRRectOptimization` 优化。
+     - `CLIP_RECT`：使用矩形裁剪。
+     - `CLIP_IRECT`：使用整数矩形裁剪（用于 AppWindow 旋转缓存）。
+     - `CLIP_SDF`：使用 SDF 着色器裁剪（`GE_SHADER_SDF_CLIP`）。
+   - `RSClipToFrameDrawable`：裁剪到帧绘制。
+
+5. **其他 Drawable**（`rs_misc_drawable.h/cpp`）
+   - `RSChildrenDrawable`：子节点绘制（详见下节）。
+   - `RSCustomModifierDrawable`：自定义修饰器绘制，回放 `SimpleDrawCmdList`。
+   - `RSSaveDrawable`/`RSRestoreDrawable`：Canvas 状态保存/恢复。
+   - `RSCustomSaveDrawable`/`RSCustomRestoreDrawable`：自定义状态保存/恢复。
+   - `RSEnvFGColorDrawable`：环境前景色绘制。
+   - `RSEnvFGColorStrategyDrawable`：环境前景色策略绘制（反色背景色策略）。
+   - `RSCustomClipToFrameDrawable`：自定义裁剪到帧绘制。
+   - `RSBeginBlenderDrawable`/`RSEndBlenderDrawable`：Blender 开始/结束绘制。
+
+#### 绘制链路
+
+RSPropertyDrawable 的绘制链路分为三阶段：
+
+1. **Update 阶段**（主线程或服务端线程）
+   ```
+   RSRenderNode::UpdateDrawable()
+     → RSPropertyDrawable::OnUpdate(node)
+       → 从 node.GetRenderProperties() 读取属性值
+       → 写入 stagingXXX_ 成员变量
+       → 使用 RSPropertyDrawCmdListUpdater 记录绘制命令到 stagingDrawCmdList_
+       → 设置 needSync_ = true
+   ```
+   
+   - `RSPropertyDrawCmdListUpdater` 在构造时创建 `ExtendRecordingCanvas`。
+   - 在析构时将 `DrawCmdList` 移动到 `target_->stagingDrawCmdList_`。
+   - 这种 RAII 模式确保绘制命令一定会被记录。
+
+2. **Sync 阶段**（渲染线程）
+   ```
+   RSRenderNodeDrawable::OnSync()
+     → RSPropertyDrawable::OnSync()
+       → std::swap(drawCmdList_, stagingDrawCmdList_)
+       → 交换其他 staging/render 成员变量
+       → needSync_ = false
+   ```
+   
+   - Sync 使用 swap 而非拷贝，避免数据复制开销。
+   - 旧 `drawCmdList_` 会通过 `AddToClearCmdList` 延迟释放。
+
+3. **Draw 阶段**（渲染线程）
+   ```
+   RSRenderNodeDrawable::Draw(canvas)
+     → RSPropertyDrawable::OnDraw(canvas, rect)
+       → drawCmdList_->Playback(*canvas)
+   ```
+   
+   - 直接回放录制好的 `DrawCmdList`。
+   - 对于 `RSFilterDrawable`，会调用 `RSPropertyDrawableUtils::DrawFilter` 处理滤镜缓存。
+
+#### 滤镜绘制链路
+
+`RSFilterDrawable` 的绘制链路更复杂：
+
+```
+OnUpdate(node)
+  → 从 properties 获取 filter
+  → stagingFilter_ = filter
+  → stagingCacheManager_->UpdateFilterInfo(filter)
+
+OnSync()
+  → filter_ = std::move(stagingFilter_)
+  → stagingCacheManager_->SwapDataAndInitStagingFlags(cacheManager_)
+
+OnDraw(canvas, rect)
+  → GetAbsRenderEffectRect() 计算 snapshot 和 draw 区域
+  → RSPropertyDrawableUtils::DrawFilter(canvas, filter_, cacheManager_, ...)
+    → cacheManager_->IsFilterCacheValid() 检查缓存
+    → 若缓存有效：直接使用缓存图像
+    → 若缓存失效：重新绘制滤镜效果并更新缓存
+```
+
+滤镜缓存管理（`RSFilterCacheManager`）支持：
+- 区域变化时清除缓存（`MarkFilterRegionChanged`）。
+- 大面积模糊时强制使用缓存（`MarkFilterRegionIsLargeArea`）。
+- 跳帧时清除缓存（`MarkForceClearCacheWithLastFrame`）。
+- AIBar 滤镜的缓存间隔调整（`ForceReduceAIBarCacheInterval`）。
+
+#### SDF 着色器绘制链路
+
+SDF（Signed Distance Field）相关的 Drawable 使用 `GEVisualEffectContainer`：
+
+```
+RSShadowDrawable/RSClipToBoundsDrawable::OnUpdate()
+  → 从 properties 获取 SDFShape
+  → sdfShape->GenerateGEVisualEffect() 生成 GEVisualEffect
+  → geVisualEffect->GenerateShaderShape() 生成 GEShaderShape
+  → 创建 GEVisualEffectContainer 并添加 chained filter
+
+OnDraw(canvas, rect)
+  → geContainer_->SetGeometry(matrix, rect, ...)
+  → GraphicsEffectEngine::GERender::DrawShaderEffect(canvas, *geContainer_, rect)
+```
+
+支持的 SDF 着色器类型：
+- `GE_SHADER_SDF_SHADOW`：SDF 阴影。
+- `GE_SHADER_SDF_CLIP`：SDF 裁剪。
+- `GE_SHADER_SDF_BORDER`：SDF 边框。
+- `GE_SHADER_SDF_OUTLINE`：SDF 轮廓。
+
+### RSChildrenDrawable 的实现和子节点绘制顺序控制
+
+#### 实现机制
+
+`RSChildrenDrawable` 负责绘制 `RSRenderNode` 的所有子节点，关键成员：
+
+```cpp
+class RSChildrenDrawable : public RSDrawable {
+private:
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> childrenDrawableVec_;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> stagingChildrenDrawableVec_;
+    bool childrenHasSharedTransition_ = false;
+};
+```
+
+#### 更新流程
+
+```
+OnUpdate(node)
+  → children = node.GetSortedChildren()  // 获取排序后的子节点列表
+  → stagingChildrenDrawableVec_.clear()
+  → 遍历 children：
+    → 若有 SharedTransition：调用 OnSharedTransition(child) 处理
+    → childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)
+    → stagingChildrenDrawableVec_.push_back(childDrawable)
+```
+
+#### ShadowBatching 模式
+
+当 `node.GetRenderProperties().GetUseShadowBatching()` 为 true 时：
+
+```
+遍历 children：
+  → shadowDrawable = RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(child, childDrawable)
+  → stagingChildrenDrawableVec_.push_back(shadowDrawable)
+  → pendingChildren.push_back(childDrawable)
+→ 合并两向量：
+  → stagingChildrenDrawableVec_.insert(end(), pendingChildren.begin(), pendingChildren.end())
+```
+
+此模式将所有阴影先绘制，再绘制所有子节点内容，减少 Canvas 状态切换次数，提升阴影批量绘制性能。
+
+#### SharedTransition 处理
+
+SharedTransition（共享转场动画）用于两个节点间的过渡动画：
+
+```
+OnSharedTransition(node)
+  → pairedNode = sharedTransitionParam->GetPairedNode(nodeId)
+  → 若 pairedNode 不存在或不在树上：返回 false（不跳过）
+  → 若未配对（paired_ = false）：返回 false（可能绘制两次）
+  → 若无 Relation：SetNeedGenerateDrawable(true)，返回 true（跳过）
+  → 若 IsLower(nodeId)：返回 true（跳过，由高层节点绘制）
+  → 若 IsHigher(nodeId)：
+    → 先添加 pairedNode drawable
+    → SetNeedGenerateDrawable(false)
+    → 返回 false（继续绘制当前节点）
+```
+
+SharedTransition 确保：
+- 低层节点跳过绘制，避免重复。
+- 高层节点先绘制配对节点（低层），再绘制自己。
+- 配对节点在动画期间以正确顺序和位置绘制。
+
+#### 同步和绘制
+
+```
+OnSync()
+  → std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_)
+  → RSRenderNodeDrawableAdapter::AddToClearDrawables(stagingChildrenDrawableVec_)
+
+OnDraw(canvas, rect)
+  → 遍历 childrenDrawableVec_：
+    → drawable->Draw(*canvas)
+```
+
+绘制时使用 `__builtin_prefetch` 预取后续 drawable，减少 cache miss：
+
+```cpp
+for (size_t i = 0; i < childrenDrawableVec_.size(); i++) {
+    size_t prefetchIndex = i + 2;
+    if (prefetchIndex < childrenDrawableVec_.size()) {
+        __builtin_prefetch(&(childrenDrawableVec_[prefetchIndex]), 0, 1);
+    }
+    childrenDrawableVec_[i]->Draw(*canvas);
+}
+```
+
+#### 子节点排序
+
+子节点顺序由 `RSRenderNode::GetSortedChildren()` 决定，排序规则：
+
+- Z-index：低 Z-index 子节点先绘制。
+- TreeId：相同 Z-index 时按树 ID 排序。
+- 添加顺序：作为稳定排序的最后依据。
+
+修改子节点添加逻辑、Z-index 或 SharedTransition 时，要检查 `GetSortedChildren`、`OnSharedTransition` 和 ShadowBatching 模式的一致性。
+
+---

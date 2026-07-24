@@ -1643,6 +1643,64 @@ HWTEST_F(RSUniRenderUtilTest, SwitchColorFilterWithP3, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SwitchColorFilterWithP3NullSurface001
+ * @tc.desc: Test SwitchColorFilterWithP3 with null surface
+ * @tc.type: FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSUniRenderUtilTest, SwitchColorFilterWithP3NullSurface001, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.surface_ = nullptr;
+
+    ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    RSUniRenderUtil::SwitchColorFilterWithP3(canvas, colorFilterMode);
+    EXPECT_EQ(canvas.surface_, nullptr);
+}
+
+/**
+ * @tc.name: SwitchColorFilterWithP3NullSurface002
+ * @tc.desc: Test SwitchColorFilterWithP3 with surface returning null from MakeSurface
+ * @tc.type: FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSUniRenderUtilTest, SwitchColorFilterWithP3NullSurface002, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surface = std::make_shared<Drawing::Surface>();
+    canvas.surface_ = surface.get();
+
+    ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    RSUniRenderUtil::SwitchColorFilterWithP3(canvas, colorFilterMode);
+    EXPECT_NE(canvas.surface_, nullptr);
+}
+
+/**
+ * @tc.name: SwitchColorFilterWithP3NullImage001
+ * @tc.desc: Test SwitchColorFilterWithP3 with surface returning null from GetImageSnapshot
+ * @tc.type: FUNC
+ * @tc.require: issueSafetyCheck
+ */
+HWTEST_F(RSUniRenderUtilTest, SwitchColorFilterWithP3NullImage001, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surface = std::make_shared<Drawing::Surface>();
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bitmap.Build(10, 10, bitmapFormat);
+    surface->Bind(bitmap);
+    canvas.surface_ = surface.get();
+
+    ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    RSUniRenderUtil::SwitchColorFilterWithP3(canvas, colorFilterMode);
+    EXPECT_NE(canvas.surface_, nullptr);
+}
+
+/**
  * @tc.name: AdjustZOrderAndDrawSurfaceNode
  * @tc.desc: Test AdjustZOrderAndDrawSurfaceNode
  * @tc.type: FUNC

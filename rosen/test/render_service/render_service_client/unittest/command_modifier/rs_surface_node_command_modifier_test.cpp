@@ -1251,88 +1251,6 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTransparentTest002, Te
 }
 
 /**
- * @tc.name: BufferAvailableCallbackTest001
- * @tc.desc: Test GetType, SetParam always updates, DumpParam with valid callback
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest001, TestSize.Level1)
-{
-    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
-    bool called = false;
-    BufferAvailableCallbackCmdParam param{[&called]() { called = true; }};
-    auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(node, param);
-    EXPECT_EQ(mod->GetType(), RSCmdModifierType::SET_BUFFER_AVAILABLE);
-    ASSERT_TRUE(mod->GetParam().callback);
-
-    std::string out;
-    mod->DumpParam(out);
-    EXPECT_NE(out.find("[valid]"), std::string::npos);
-
-    mod->GetParam().callback();
-    EXPECT_TRUE(called);
-}
-
-/**
- * @tc.name: BufferAvailableCallbackTest002
- * @tc.desc: Test DumpParam with null callback
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest002, TestSize.Level1)
-{
-    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
-    BufferAvailableCallbackCmdParam param{nullptr};
-    auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(node, param);
-    std::string out;
-    mod->DumpParam(out);
-    EXPECT_NE(out.find("null"), std::string::npos);
-}
-
-/**
- * @tc.name: BufferAvailableCallbackTest003
- * @tc.desc: Test UpdateToRender with null node
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest003, TestSize.Level1)
-{
-    BufferAvailableCallbackCmdParam param{[]() {}};
-    auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(MakeExpiredNode(), param);
-    ASSERT_TRUE(mod);
-    mod->UpdateToRender();
-}
-
-/**
- * @tc.name: BufferAvailableCallbackTest004
- * @tc.desc: Test UpdateToRenderWithResult with null node returns false
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest004, TestSize.Level1)
-{
-    BufferAvailableCallbackCmdParam param{nullptr};
-    auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(MakeExpiredNode(), param);
-    auto result = mod->UpdateToRenderWithResult();
-    bool val = std::get<bool>(result);
-    EXPECT_FALSE(val);
-}
-
-/**
- * @tc.name: BufferAvailableCallbackTest005
- * @tc.desc: Test SetParam always assigns
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest005, TestSize.Level1)
-{
-    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
-    bool flag = false;
-    BufferAvailableCallbackCmdParam param{[&flag]() { flag = true; }};
-    auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(node, param);
-
-    BufferAvailableCallbackCmdParam param2{nullptr};
-    bool ret = mod->SetParam(param2);
-    EXPECT_TRUE(ret);
-    EXPECT_FALSE(mod->GetParam().callback);
-}
-
-/**
  * @tc.name: SurfaceDefaultSizeTest001
  * @tc.desc: Test all methods
  * @tc.type: FUNC
@@ -2318,20 +2236,6 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTransparentTest004, Te
     auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     ContainerWindowTransparentCmdParam param{true};
     auto mod = std::make_shared<ContainerWindowTransparentCmdModifier>(node, param);
-    ASSERT_TRUE(mod);
-    mod->UpdateToRender();
-}
-
-/**
- * @tc.name: BufferAvailableCallbackTest006
- * @tc.desc: Test BufferAvailableCallbackCmdModifier UpdateToRender
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest006, TestSize.Level1)
-{
-    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
-    BufferAvailableCallbackCmdParam param{[]() {}};
-    auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(node, param);
     ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }

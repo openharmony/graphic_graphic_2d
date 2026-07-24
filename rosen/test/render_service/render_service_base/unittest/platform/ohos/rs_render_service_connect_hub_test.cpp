@@ -105,6 +105,7 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSRenderServiceConnectHubContructAndDest
 }
 
 #ifdef OHOS_PLATFORM
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: RSApplicationAgentImplTest
  * @tc.desc: Verify RSApplicationAgentImplTest dlclose
@@ -120,9 +121,9 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     RSApplicationAgentImpl::Destroy();
     RSApplicationAgentImpl::Destroy();
     RSRenderServiceConnectHub::Destroy();
+    RSRenderServiceConnectHub::Init();
     RSApplicationAgentImpl::Instance();
 
-    RSRenderServiceConnectHub::Init();
     auto connHub2 = RSRenderServiceConnectHub::GetInstance();
     RSRenderServiceConnectHub::GetClientToServiceConnection();
     RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, nullptr);
@@ -138,6 +139,7 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     auto instance3 = RSApplicationAgentImpl::Instance();
     EXPECT_NE(instance3, nullptr);
 }
+#endif
 #endif
 } // namespace Rosen
 } // namespace OHOS

@@ -433,7 +433,7 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         repCode = INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
+        return INVALID_ARGUMENTS;
     }
     pipeline->ScheduleMainThreadTask(
         [info, mainThread = pipeline->GetMainThread()]() {
@@ -442,7 +442,7 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
         }
     );
     repCode = SUCCESS;
-    return ERR_OK;
+    return SUCCESS;
 }
 
 namespace {
@@ -938,9 +938,10 @@ ErrCode RSRenderPipelineAgent::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint
 }
 
 void RSRenderPipelineAgent::RegisterTransactionDataCallback(uint64_t token,
-    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
+    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback, pid_t callingPid)
 {
-    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(token, timeStamp, callback);
+    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(
+        token, timeStamp, callback, callingPid);
 }
 
 ErrCode RSRenderPipelineAgent::SetWindowContainer(NodeId nodeId, bool value)
@@ -1422,6 +1423,11 @@ int32_t RSRenderPipelineAgent::RegisterOcclusionChangeCallback(pid_t pid, sptr<R
 int32_t RSRenderPipelineAgent::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {
+    if (partitionPoints.size() > MAX_PARTITION_POINTS) {
+        RS_LOGE("RegisterSurfaceOcclusionChangeCallback invalid partitionPoints size: %{public}zu",
+            partitionPoints.size());
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         return StatusCode::INVALID_ARGUMENTS;
@@ -1494,6 +1500,7 @@ void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& p
     if (!pipeline) {
         return;
     }
+    pipeline->GetMainThread()->NotifyPackageEvent(packageList);
     pipeline->PostMainThreadTask([renderPipeline = pipeline, packageList] {
         renderPipeline->GetMainThread()->CheckPackageInConfigList(packageList);
         renderPipeline->imageEnhanceManager_->CheckPackageInConfigList(packageList);
@@ -1882,6 +1889,19 @@ void RSRenderPipelineAgent::SetVmaCacheStatus(bool flag)
 #ifdef RS_ENABLE_GPU
     pipeline->GetUniRenderThread()->SetVmaCacheStatus(flag);
 #endif
+}
+
+ErrCode RSRenderPipelineAgent::SetUIMode3D(UIMode3D mode)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = pipeline, mode]() {
+        renderPipeline->GetMainThread()->SetUIMode3D(mode);
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
 }
 
 void RSRenderPipelineAgent::SetBehindWindowFilterEnabled(bool enabled)

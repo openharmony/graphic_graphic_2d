@@ -95,6 +95,8 @@ ohos_unittest("RSSurfaceLayerTest") {
     "memmgr:memmgrclient",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -177,6 +179,8 @@ ohos_unittest("RSSurfaceRCDLayerTest") {
     "memmgr:memmgrclient",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

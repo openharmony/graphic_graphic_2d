@@ -21,6 +21,8 @@ config("render_config") {
 }
 
 ohos_source_set("webgl_src") {
+  branch_protector_ret = "pac_ret"
+
   include_dirs = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/common",
@@ -36,6 +38,7 @@ ohos_source_set("webgl_src") {
     "image_framework:image_native",
     "napi:ace_napi",
     "ipc:ipc_single",
+    "opengles:libGLES",
   ]
 
   if (rs_enable_gpu) {

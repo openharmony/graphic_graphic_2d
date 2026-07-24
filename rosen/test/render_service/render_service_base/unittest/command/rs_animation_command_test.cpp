@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 
+#include <cmath>
+#include <limits>
+
 #include "gtest/gtest.h"
+
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interactive_implict_animator.h"
 #include "include/command/rs_animation_command.h"
@@ -407,6 +411,246 @@ HWTEST_F(RSAnimationCommandTest, SetAnimationDestroyInRenderProcessor001, TestSi
     AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(TestDestroyInRenderProcessor);
     AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(nullptr);
     GTEST_LOG_(INFO) << "RSAnimationCommandTest SetAnimationDestroyInRenderProcessor001 end";
+}
+
+/**
+ * @tc.name: SetFractionInteractiveAnimator001
+ * @tc.desc: Verify SetFractionInteractiveAnimator rejects NaN fraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, SetFractionInteractiveAnimator001, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId targetId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(1ULL << 32) | 1, 1}};
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations, false);
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    ASSERT_TRUE(animator != nullptr);
+    AnimationCommandHelper::SetFractionInteractiveAnimator(context, targetId,
+        std::numeric_limits<float>::quiet_NaN());
+    EXPECT_TRUE(animator != nullptr);
+}
+
+/**
+ * @tc.name: SetFractionInteractiveAnimator002
+ * @tc.desc: Verify SetFractionInteractiveAnimator rejects positive infinity
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, SetFractionInteractiveAnimator002, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId targetId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(1ULL << 32) | 1, 1}};
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations, false);
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    ASSERT_TRUE(animator != nullptr);
+    AnimationCommandHelper::SetFractionInteractiveAnimator(context, targetId,
+        std::numeric_limits<float>::infinity());
+    EXPECT_TRUE(animator != nullptr);
+}
+
+/**
+ * @tc.name: SetFractionInteractiveAnimator003
+ * @tc.desc: Verify SetFractionInteractiveAnimator rejects negative infinity
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, SetFractionInteractiveAnimator003, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId targetId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(1ULL << 32) | 1, 1}};
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations, false);
+    auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
+    ASSERT_TRUE(animator != nullptr);
+    AnimationCommandHelper::SetFractionInteractiveAnimator(context, targetId,
+        -std::numeric_limits<float>::infinity());
+    EXPECT_TRUE(animator != nullptr);
+}
+
+/**
+ * @tc.name: SetFractionInteractiveAnimator004
+ * @tc.desc: Verify SetFractionInteractiveAnimator accepts valid finite fraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, SetFractionInteractiveAnimator004, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId targetId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(1ULL << 32) | 1, 1}};
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations, false);
+    ASSERT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) != nullptr);
+    AnimationCommandHelper::SetFractionInteractiveAnimator(context, targetId, 0.5f);
+}
+
+/**
+ * @tc.name: IsAnimationsPidValid001
+ * @tc.desc: Verify IsAnimationsPidValid returns true when all nodeIds match callerId pid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, IsAnimationsPidValid001, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId callerId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(1ULL << 32) | 1, 1}, {(1ULL << 32) | 2, 2}};
+    bool result = AnimationCommandHelper::IsAnimationsPidValid(context, callerId,
+        animations, __PRETTY_FUNCTION__);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsAnimationsPidValid002
+ * @tc.desc: Verify IsAnimationsPidValid returns false when nodeId pid differs from callerId
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, IsAnimationsPidValid002, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId callerId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(2ULL << 32) | 1, 1}};
+    bool result = AnimationCommandHelper::IsAnimationsPidValid(context, callerId,
+        animations, __PRETTY_FUNCTION__);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsAnimationsPidValid003
+ * @tc.desc: Verify IsAnimationsPidValid returns true for empty animations
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, IsAnimationsPidValid003, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId callerId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations;
+    bool result = AnimationCommandHelper::IsAnimationsPidValid(context, callerId,
+        animations, __PRETTY_FUNCTION__);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsAnimationsPidValid004
+ * @tc.desc: Verify IsAnimationsPidValid returns true for mixed pid with mismatch first
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, IsAnimationsPidValid004, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId callerId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(2ULL << 32) | 1, 1}, {(1ULL << 32) | 2, 2}};
+    bool result = AnimationCommandHelper::IsAnimationsPidValid(context, callerId,
+        animations, __PRETTY_FUNCTION__);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsAnimationsPidValid005
+ * @tc.desc: Verify IsAnimationsPidValid returns true when cross-pid nodeId is UIExtension
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, IsAnimationsPidValid005, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId callerId = (1ULL << 32) | 1;
+    NodeId uiExtNodeId = (2ULL << 32) | 1;
+    context.GetMutableNodeMap().uiExtensionSurfaceNodes_.insert(uiExtNodeId);
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{uiExtNodeId, 1}};
+    bool result = AnimationCommandHelper::IsAnimationsPidValid(context, callerId,
+        animations, __PRETTY_FUNCTION__);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: CreateInteractiveAnimatorPidValid001
+ * @tc.desc: Verify CreateInteractiveAnimator rejects cross-pid animations
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorPidValid001, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId targetId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(2ULL << 32) | 1, 1}};
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations, false);
+    EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) == nullptr);
+}
+
+/**
+ * @tc.name: CreateInteractiveAnimatorPidValid002
+ * @tc.desc: Verify CreateInteractiveAnimator accepts same-pid animations
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorPidValid002, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId targetId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(1ULL << 32) | 1, 1}};
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId, animations, false);
+    EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) != nullptr);
+}
+
+/**
+ * @tc.name: CreateInteractiveAnimatorGroupPidValid001
+ * @tc.desc: Verify CreateInteractiveAnimatorGroup rejects cross-pid animations
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorGroupPidValid001, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId groupId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(2ULL << 32) | 1, 1}};
+    RSAnimationTimingProtocol timingProtocol;
+    AnimationCommandHelper::CreateInteractiveAnimatorGroup(context, groupId,
+        animations, false, timingProtocol);
+    EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId) == nullptr);
+}
+
+/**
+ * @tc.name: CreateInteractiveAnimatorGroupPidValid002
+ * @tc.desc: Verify CreateInteractiveAnimatorGroup accepts same-pid animations
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorGroupPidValid002, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId groupId = (1ULL << 32) | 1;
+    std::vector<std::pair<NodeId, AnimationId>> animations = {{(1ULL << 32) | 1, 1}};
+    RSAnimationTimingProtocol timingProtocol;
+    AnimationCommandHelper::CreateInteractiveAnimatorGroup(context, groupId,
+        animations, false, timingProtocol);
+    EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(groupId) != nullptr);
+}
+
+/**
+ * @tc.name: InteractiveAnimatorAddAnimationsPidValid001
+ * @tc.desc: Verify InteractiveAnimatorAddAnimations rejects cross-pid animations
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, InteractiveAnimatorAddAnimationsPidValid001, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId targetId = (1ULL << 32) | 1;
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId,
+        std::vector<std::pair<NodeId, AnimationId>>{{(1ULL << 32) | 1, 1}}, false);
+    ASSERT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) != nullptr);
+    std::vector<std::pair<NodeId, AnimationId>> crossPidAnimations = {{(2ULL << 32) | 1, 2}};
+    AnimationCommandHelper::InteractiveAnimatorAddAnimations(context, targetId, crossPidAnimations);
+    EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) != nullptr);
+}
+
+/**
+ * @tc.name: InteractiveAnimatorAddAnimationsPidValid002
+ * @tc.desc: Verify InteractiveAnimatorAddAnimations accepts same-pid animations
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, InteractiveAnimatorAddAnimationsPidValid002, TestSize.Level1)
+{
+    RSContext context;
+    InteractiveImplictAnimatorId targetId = (1ULL << 32) | 1;
+    AnimationCommandHelper::CreateInteractiveAnimator(context, targetId,
+        std::vector<std::pair<NodeId, AnimationId>>{{(1ULL << 32) | 1, 1}}, false);
+    ASSERT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) != nullptr);
+    std::vector<std::pair<NodeId, AnimationId>> samePidAnimations = {{(1ULL << 32) | 2, 2}};
+    AnimationCommandHelper::InteractiveAnimatorAddAnimations(context, targetId, samePidAnimations);
+    EXPECT_TRUE(context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId) != nullptr);
 }
 
 } // namespace OHOS::Rosen

@@ -42,7 +42,7 @@ public:
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY,
         const DropFrameConfig& dropFrameConfig = DropFrameConfig::NoDrop(),
-        uint64_t parentNodeId = 0, bool dropFrameByScreenFrozen = false);
+        uint64_t parentNodeId = 0, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode = nullptr);
     static bool ConsumeAndUpdateBufferSimple(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY);
     static bool DropFirstFlushedBuffer(RSSurfaceHandler& surfaceHandler, NodeId nodeId);
 };

@@ -20,6 +20,8 @@
 #include <iservice_registry.h>
 #include <malloc.h>
 #include <memory>
+#include <string>
+#include <sys/prctl.h>
 #include <system_ability_definition.h>
 
 #include "irs_render_to_composer_connection.h"
@@ -55,7 +57,7 @@ sptr<RSIRenderService> ConnectToServer()
             RS_LOGE("%{public}s: samgr is null", __func__);
             continue;
         }
-        auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE); // chenke fix
+        auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
         if (!remoteObject) {
             RS_LOGE("%{public}s: remoteObject is null", __func__);
             continue;
@@ -149,6 +151,8 @@ bool RSRenderProcess::Init()
         sptr<RSServiceToRenderConnection>::MakeSptr(renderProcessAgent, renderPipelineAgent);
     auto connectToRenderConnection = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);
     RS_PROFILER_INIT(renderPipeline_, serviceToRenderConnection);
+    std::string threadName = "rs_process:" + std::to_string(rsScreenProperty->GetScreenId());
+    prctl(PR_SET_NAME, threadName.c_str());
     // child process is initialized
     RS_LOGI("%{public}s: NotifyRenderProcessInitFinished", __func__);
     handler_->PostTask([this, serviceToRenderConnection, connectToRenderConnection]() {

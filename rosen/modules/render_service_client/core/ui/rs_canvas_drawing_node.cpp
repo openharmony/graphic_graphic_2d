@@ -103,7 +103,7 @@ RSCanvasDrawingNode::~RSCanvasDrawingNode()
         }
         if (needReleaseDmaBuffer) {
             ffrt::submit([id]() {
-                if (RSRenderInterface::GetInstance().SubmitCanvasPreAllocatedBuffer(id, nullptr, 0) !=
+                if (RSInterfaces::GetInstance().SubmitCanvasPreAllocatedBuffer(id, nullptr, 0) !=
                     StatusCode::SUCCESS) {
                     RS_LOGE("Release RSCanvasDrawingNode, notify RS to clear DMA cache fail.");
                 }

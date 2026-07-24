@@ -204,7 +204,7 @@ void RSRenderService::FeatureComponentInit()
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
         RsVulkanContext::SetRecyclable(false);
-        RS_LOGT("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
+        RS_LOGD("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
         RsVulkanContext::SetIsMultiProcess(renderModeConfig_->GetIsMultiProcessModeEnabled());
     }
 #endif
@@ -277,24 +277,17 @@ void RSRenderService::Run()
 
 sptr<IRemoteObject> RSRenderService::RegisterRenderProcessConnection()
 {
-    pid_t callingPid = GetCallingPid();
-    if (!renderProcessManager_->IsValidRenderProcessPid(callingPid)) {
-        RS_LOGE("%{public}s: Invalid render_process pid %{public}u, not forked by render_service",
-            __func__, callingPid);
-        return nullptr;
-    }
-    auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*this);
-    auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
-    auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(screenManager_);
-    auto renderToServiceConnection =
-        sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
-    return renderToServiceConnection->AsObject();
+    return renderProcessManager_->CreateRenderToServiceConnection(GetCallingPid());
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::GetConnection(
     const sptr<RSIConnectionToken>& token)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (token == nullptr) {
+        RS_LOGE("RSRenderService::GetConnection token is nullptr");
+        return {nullptr, nullptr};
+    }
     auto tokenObj = token->AsObject();
     auto iter = connections_.find(tokenObj);
     if (iter == connections_.end()) {

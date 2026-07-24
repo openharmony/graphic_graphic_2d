@@ -46,6 +46,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_HDR_ON_DURATION = 0x00001F,
     REGISTER_UIEXTENSION_CALLBACK = 0x000020,
     SET_VMA_CACHE_STATUS = 0x000022,
+    SET_UI_MODE_3D = 0x000023,
     SET_LAYER_TOP = 0x000027,
     SET_SCREEN_ACTIVE_RECT = 0x000028,
     REPAINT_EVERYTHING = 0x00002A,
@@ -220,6 +221,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME = 1012,
     SET_APS_CONFIG_PARAMS = 1015,
     NOTIFY_WINDOW_MODE_TYPE_EVENT = 1016,
+    SET_HGM_EXCLUSIVE_SCREEN = 1017,
 };
 } // namespace Rosen
 } // namespace OHOS

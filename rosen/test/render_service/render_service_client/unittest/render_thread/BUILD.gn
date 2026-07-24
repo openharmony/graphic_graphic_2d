@@ -64,6 +64,8 @@ ohos_unittest("RSRenderClientRenderThreadTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

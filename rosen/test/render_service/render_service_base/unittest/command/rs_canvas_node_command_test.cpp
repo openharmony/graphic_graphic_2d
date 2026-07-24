@@ -216,4 +216,40 @@ HWTEST_F(RSCanvasNodeCommandTest, SetPixelmap, TestSize.Level1)
     RSCanvasNodeCommandHelper::SetPixelmap(context, id, pixelmap);
     context.GetMutableNodeMap().UnregisterRenderNode(id);
 }
+
+/**
+ * @tc.name: UpdateRecordingModifierTypeOutOfRange001
+ * @tc.desc: test UpdateRecording with modifierType exceeding ModifierNG::RSModifierType::MAX
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, UpdateRecordingModifierTypeOutOfRange001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSCanvasNodeCommandHelper::Create(context, id, true);
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds = std::make_shared<Drawing::DrawCmdList>();
+    uint16_t outOfRangeType = static_cast<uint16_t>(ModifierNG::RSModifierType::MAX);
+    RSCanvasNodeCommandHelper::UpdateRecording(context, id, drawCmds, outOfRangeType);
+    EXPECT_TRUE(drawCmds == nullptr);
+    context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+
+/**
+ * @tc.name: AddCmdToSingleFrameComposerModifierTypeOutOfRange001
+ * @tc.desc: test AddCmdToSingleFrameComposer with modifierType exceeding ModifierNG::RSModifierType::MAX
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, AddCmdToSingleFrameComposerModifierTypeOutOfRange001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSCanvasNodeCommandHelper::Create(context, id, true);
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
+    SimpleDrawCmdListPtr drawCmds = nullptr;
+    uint16_t outOfRangeType = static_cast<uint16_t>(ModifierNG::RSModifierType::MAX);
+    bool res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, outOfRangeType);
+    EXPECT_FALSE(res);
+    context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+
 } // namespace OHOS::Rosen

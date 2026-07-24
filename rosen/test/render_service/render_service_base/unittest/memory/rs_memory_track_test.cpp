@@ -704,7 +704,7 @@ HWTEST_F(RSMemoryTrackTest, RemoveNonExistentPictureRecordTest, testing::ext::Te
  */
 HWTEST_F(RSMemoryTrackTest, CheckPixelMapFdCountAndKillProcessTest001, testing::ext::TestSize.Level1)
 {
-    uint32_t pid = 12001;
+    pid_t pid = 12001;
     bool result = MemoryTrack::Instance().CheckPixelMapFdCountAndKillProcess(pid);
     EXPECT_TRUE(result);
 }
@@ -724,7 +724,7 @@ HWTEST_F(RSMemoryTrackTest, CheckPixelMapFdCountAndKillProcessTest002, testing::
     info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
     MemoryTrack& test1 = MemoryTrack::Instance();
     test1.AddPictureRecord(addr, info);
-    bool result = test1.CheckPixelMapFdCountAndKillProcess(info.pid);
+    bool result = test1.CheckPixelMapFdCountAndKillProcess(static_cast<pid_t>(info.pid));
     EXPECT_TRUE(result);
     test1.RemovePictureRecord(addr);
 }

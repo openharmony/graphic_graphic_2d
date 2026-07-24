@@ -157,6 +157,11 @@ public:
     {
         return false;
     }
+    // Type-only check
+    virtual bool IsHwcLayerType() const
+    {
+        return false;
+    }
     // manage renderNode's child hardware enabled nodes and filter nodes info
     std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() { return allHwcNodeAndFilterNode_; }
     const std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() const { return allHwcNodeAndFilterNode_; }
@@ -536,6 +541,7 @@ public:
     std::shared_ptr<RSAnimationManager> GetOrCreateAnimationManager();
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void DestroyAnimationInRender();
+    void DestroyColorPickerInRender();
 
     void ApplyAlphaAndBoundsGeometry(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -1113,6 +1119,7 @@ public:
     void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
     bool GetNeedUseCmdlistDrawRegion();
     void ReleaseNodeMem();
+    void ReleaseNodeInRender();
     virtual bool IsNodeMemClearEnable();
     virtual void AfterTreeStatueChanged() {}
 
@@ -1257,6 +1264,14 @@ protected:
     PrimitiveDirtyBitmap stagingSelfPrimDirtyBitmap_;
     PrimitiveDirtyBitmap stagingInfectiousPrimDirtyBitmap_;
 #endif
+    inline RSDrawable::Vec& GetDrawableVec(const char* func) const
+    {
+        if (LIKELY(drawableVec_ != nullptr)) {
+            return *drawableVec_;
+        }
+        drawableVec_ = std::make_unique<RSDrawable::Vec>();
+        return *drawableVec_;
+    }
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
@@ -1463,6 +1478,7 @@ private:
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
 
     void UpdateDisplayList();
+    void UpdateDisplayListExt();
     void UpdateShadowRect();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
@@ -1477,7 +1493,6 @@ private:
 
     bool HasValidModifierInOpincSplit(int8_t slot) const;
 
-    RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();
     friend class DrawFuncOpItem;
     friend class RSContext;

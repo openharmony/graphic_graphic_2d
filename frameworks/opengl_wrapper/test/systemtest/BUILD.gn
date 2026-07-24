@@ -47,6 +47,8 @@ ohos_systemtest("opengl_wrapper_api_test") {
     "graphic_surface:surface",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 }
 ## SystemTest opengl_wrapper_api_test }}}

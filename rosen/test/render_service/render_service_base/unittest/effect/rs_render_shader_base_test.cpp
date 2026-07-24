@@ -18,6 +18,7 @@
 #include "ge_visual_effect_container.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "transaction/rs_marshalling_helper.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS::Rosen {
@@ -196,6 +197,36 @@ HWTEST_F(RSNGRenderShaderBaseTest, Unmarshalling002, TestSize.Level1)
     auto chained = val->nextEffect_;
     EXPECT_NE(chained, nullptr);
     EXPECT_EQ(chained->GetType(), RSNGEffectType::AURORA_NOISE);
+}
+
+/**
+ * @tc.name: Unmarshalling003
+ * @tc.desc: Test Unmarshalling with invalid type (Create returns nullptr)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, Unmarshalling003, TestSize.Level1)
+{
+    Parcel noneParcel;
+    RSMarshallingHelper::Marshalling(noneParcel,
+        static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::NONE));
+    std::shared_ptr<RSNGRenderShaderBase> noneShader;
+    bool ret = RSNGRenderShaderBase::Unmarshalling(noneParcel, noneShader);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Unmarshalling004
+ * @tc.desc: Test Unmarshalling with valid type but insufficient property data
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, Unmarshalling004, TestSize.Level1)
+{
+    Parcel invalidDataParcel;
+    RSMarshallingHelper::Marshalling(invalidDataParcel,
+        static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::AURORA_NOISE));
+    std::shared_ptr<RSNGRenderShaderBase> invalidDataShader;
+    bool ret = RSNGRenderShaderBase::Unmarshalling(invalidDataParcel, invalidDataShader);
+    EXPECT_FALSE(ret);
 }
 
 /**

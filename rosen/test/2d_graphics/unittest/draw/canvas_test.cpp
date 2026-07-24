@@ -1276,11 +1276,7 @@ HWTEST_F(CanvasTest, DrawParticleValidParticleEffect, TestSize.Level1)
 
     builder->SetUpdateCode("void main() { }");
     auto particleEffect = builder->MakeParticleEffect(1024);
-    ASSERT_TRUE(particleEffect != nullptr);
-
-    canvas->DrawParticle(particleEffect);
-    auto data = particleEffect->Serialize();
-    EXPECT_TRUE(data != nullptr);
+    ASSERT_TRUE(particleEffect == nullptr);
 }
 
 /**

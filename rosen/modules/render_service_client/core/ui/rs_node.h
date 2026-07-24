@@ -30,6 +30,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 
 #include <algorithm>
+#include <atomic>
 #include <optional>
 #include <unordered_map>
 
@@ -2358,6 +2359,7 @@ private:
     void UpdateAllRSCmdModifiersToRender() {
         // Sort modifiers by index (creation/update order) to ensure
         // commands are sent in the correct order when pushing to foreground
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         std::vector<std::shared_ptr<RSCmdModifier>> sortedModifiers;
         for (auto& [type, modifier] : rsCmdModifiers_) {
             if (modifier) {
@@ -2380,6 +2382,7 @@ private:
 
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     void AnimationDestroyInRenderCallback(AnimationId animationId, float fraction, bool isReverseCycle);
+    void ColorPickerDestroyInRenderCallback(ContrastColorScheme lastContrastColorScheme);
     bool FireColorPickerCallback(uint32_t color);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -2453,7 +2456,7 @@ private:
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
-    static bool isNeedCallbackNodeChange_;
+    static std::atomic<bool> isNeedCallbackNodeChange_;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;

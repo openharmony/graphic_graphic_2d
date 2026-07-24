@@ -76,6 +76,8 @@ ohos_unittest("RSScreenManagerTest") {
     "init:libbegetutil",
     "samgr:samgr_proxy",
     "hisysevent:libhisysevent",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   # Add memmgr client dependency when memory manager integration is enabled so

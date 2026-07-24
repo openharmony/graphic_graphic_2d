@@ -105,6 +105,8 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "selinux_adapter:librestorecon",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (use_memmgr_plugin || use_memmgr) {

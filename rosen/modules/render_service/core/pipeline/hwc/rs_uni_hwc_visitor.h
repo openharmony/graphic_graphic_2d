@@ -47,6 +47,9 @@ public:
     void CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
     void UpdateHwcNodeEnable();
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    void UpdateHwcNodeEnableByShutter3DLayer();
+#endif
     void UpdateHwcNodeEnableByNodeBelow();
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
@@ -60,7 +63,9 @@ public:
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdateTransparentHwcNodeEnable(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
+#ifdef HVE_BLUR_ENABLE
     bool IsHveBlurFilterEnabled(const RSRenderNode& filterNode, const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
+#endif
     void UpdateHwcNodeEnableByColorPicker();
     void UpdateHwcNodeEnableByFilterIntersection();
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode);

@@ -35,9 +35,9 @@ public:
     struct PlaybackInfo {
         std::string fileName;
         std::string ohrType = "";
-        int startTime;
-        int endTime;
-        int timeInterval;
+        int startTime = 0;
+        int endTime = 0;
+        int timeInterval = 0;
     };
 
     int RunNodeTreeTest(const std::string& path);

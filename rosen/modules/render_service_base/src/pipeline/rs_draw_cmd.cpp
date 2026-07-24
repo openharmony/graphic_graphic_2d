@@ -32,6 +32,11 @@
 #include "common/rs_common_tools.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
+#include <GLES/gl.h>
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include "GLES2/gl2.h"
+#include "GLES2/gl2ext.h"
 #endif
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA

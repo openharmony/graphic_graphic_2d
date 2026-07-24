@@ -167,6 +167,14 @@ void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOu
     }
     if (auto frameRateMgr = hgmCore_.GetFrameRateMgr()) {
         frameRateMgr->HandleRsFrame();
+        // Only the HGM exclusive screen is allowed to switch refresh rate here.
+        // When exclusive mode is active (exclusiveScreenId is valid), other screens are skipped.
+        if (auto exclusiveScreenId = frameRateMgr->GetHgmExclusiveScreenId();
+            exclusiveScreenId != INVALID_SCREEN_ID && screenId != exclusiveScreenId) {
+            RS_TRACE_NAME_FMT("%s: screenId %" PRIu64 " exclusiveScreenId %" PRIu64,
+                __func__, screenId, exclusiveScreenId);
+            return;
+        }
     }
     if (auto screen = hgmCore_.GetScreen(screenId); !screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
@@ -221,6 +229,10 @@ void HgmHardwareUtils::ClearRefreshRateCounts(std::string& dumpString)
 void HgmHardwareUtils::RecordTimestampForAS(int64_t timestamp)
 {
     auto frameRateMgr = hgmCore_.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        HGM_LOGD("FrameRateMgr is null");
+        return;
+    }
     if (!frameRateMgr->IsSupportASConfig()) {
         asRecordRateParam_.ClearTimestamp();
         frameRateMgr->UpdateASStateForFps(false);

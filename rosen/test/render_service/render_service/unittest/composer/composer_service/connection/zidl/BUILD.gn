@@ -45,6 +45,8 @@ _common_external_deps = [
   "samgr:samgr_proxy",
   "hisysevent:libhisysevent",
   "init:libbegetutil",
+  "egl:libEGL",
+  "opengles:libGLES",
 ]
 
 if (use_memmgr_plugin || use_memmgr) {

@@ -34,6 +34,9 @@
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #endif
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "smart_cache_param.h"
+#include "spirv_cache_param.h"
+#include "vma_block_param.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 

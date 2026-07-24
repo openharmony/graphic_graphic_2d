@@ -69,6 +69,8 @@ ohos_unittest("EffectTest") {
     "image_framework:image_native",
     "image_framework:pixelmap",
     "napi:ace_napi",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   external_deps += [ "skia:skia_canvaskit" ]

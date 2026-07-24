@@ -22,8 +22,10 @@
 #include "animation/rs_spring_animation.h"
 #include "animation/rs_transition.h"
 #include "animation/rs_implicit_animation_param.h"
+#include "animation/rs_implicit_animator.h"
 #include "animation/rs_animation_callback.h"
 #include "render/rs_path.h"
+#include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
 
 using namespace testing;
@@ -508,5 +510,131 @@ HWTEST_F(RSNodeAnimateTest, CloseImplicitCancelAnimationReturnStatus_WithNodeExc
 
     GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimationReturnStatus_WithNodeExceptionSensitive end";
 }
+
+/**
+ * @tc.name: AddKeyFrameNullCallback001
+ * @tc.desc: Verify AddKeyFrame handles null propertyCallback
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, AddKeyFrameNullCallback001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddKeyFrameNullCallback001 start";
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(300);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE;
+    implicitAnimator->OpenImplicitAnimation(protocol, curve);
+    size_t initialSize = implicitAnimator->implicitAnimationParams_.size();
+    PropertyCallback nullCallback;
+    RSAnimationTimingCurve easeCurve = RSAnimationTimingCurve::EASE;
+    RSNode::AddKeyFrame(rsUIContext, 0.5f, easeCurve, nullCallback);
+    RSNode::AddKeyFrame(rsUIContext, 0.5f, nullCallback);
+    EXPECT_EQ(implicitAnimator->implicitAnimationParams_.size(), initialSize);
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddKeyFrameNullCallback001 end";
+}
+
+/**
+ * @tc.name: AddDurationKeyFrameNullCallback001
+ * @tc.desc: Verify AddDurationKeyFrame handles null propertyCallback
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, AddDurationKeyFrameNullCallback001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddDurationKeyFrameNullCallback001 start";
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(300);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE;
+    implicitAnimator->OpenImplicitAnimation(protocol, curve);
+    size_t initialSize = implicitAnimator->implicitAnimationParams_.size();
+    PropertyCallback nullCallback;
+    RSAnimationTimingCurve easeCurve = RSAnimationTimingCurve::EASE;
+    RSNode::AddDurationKeyFrame(rsUIContext, 100, easeCurve, nullCallback);
+    EXPECT_EQ(implicitAnimator->implicitAnimationParams_.size(), initialSize);
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddDurationKeyFrameNullCallback001 end";
+}
+
+/**
+ * @tc.name: AddAnimationZeroDurationNonZeroId
+ * @tc.desc: Verify AddAnimation calls FinishAnimationByProperty when duration<=0 && id_!=0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, AddAnimationZeroDurationNonZeroId, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddAnimationZeroDurationNonZeroId start";
+    auto node = RSCanvasNode::Create();
+    node->id_ = 100;
+    auto animation = std::make_shared<RSCurveAnimation>(rsUIContext,
+        std::make_shared<RSAnimatableProperty<float>>(0.f),
+        std::make_shared<RSAnimatableProperty<float>>(0.f),
+        std::make_shared<RSAnimatableProperty<float>>(1.f));
+    animation->SetDuration(0);
+    node->AddAnimation(animation);
+    EXPECT_TRUE(node->animations_.find(animation->GetId()) != node->animations_.end());
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddAnimationZeroDurationNonZeroId end";
+}
+
+/**
+ * @tc.name: AddAnimationZeroDurationZeroId
+ * @tc.desc: Verify AddAnimation skips FinishAnimationByProperty when duration<=0 && id_==0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, AddAnimationZeroDurationZeroId, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddAnimationZeroDurationZeroId start";
+    auto node = RSCanvasNode::Create();
+    node->id_ = 0;
+    auto animation = std::make_shared<RSCurveAnimation>(rsUIContext,
+        std::make_shared<RSAnimatableProperty<float>>(0.f),
+        std::make_shared<RSAnimatableProperty<float>>(0.f),
+        std::make_shared<RSAnimatableProperty<float>>(1.f));
+    animation->SetDuration(0);
+    node->AddAnimation(animation);
+    EXPECT_TRUE(node->animations_.find(animation->GetId()) != node->animations_.end());
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddAnimationZeroDurationZeroId end";
+}
+
+/**
+ * @tc.name: AddAnimationPositiveDurationNonZeroId
+ * @tc.desc: Verify AddAnimation skips FinishAnimationByProperty when duration>0 && id_!=0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, AddAnimationPositiveDurationNonZeroId, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddAnimationPositiveDurationNonZeroId start";
+    auto node = RSCanvasNode::Create();
+    node->id_ = 100;
+    auto animation = std::make_shared<RSCurveAnimation>(rsUIContext,
+        std::make_shared<RSAnimatableProperty<float>>(0.f),
+        std::make_shared<RSAnimatableProperty<float>>(0.f),
+        std::make_shared<RSAnimatableProperty<float>>(1.f));
+    animation->SetDuration(300);
+    node->AddAnimation(animation);
+    EXPECT_TRUE(node->animations_.find(animation->GetId()) != node->animations_.end());
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddAnimationPositiveDurationNonZeroId end";
+}
+
+/**
+ * @tc.name: AddAnimationDuplicateRejected
+ * @tc.desc: Verify AddAnimation rejects duplicate animation ID
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, AddAnimationDuplicateRejected, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddAnimationDuplicateRejected start";
+    auto node = RSCanvasNode::Create();
+    auto animation = std::make_shared<RSCurveAnimation>(rsUIContext,
+        std::make_shared<RSAnimatableProperty<float>>(0.f),
+        std::make_shared<RSAnimatableProperty<float>>(0.f),
+        std::make_shared<RSAnimatableProperty<float>>(1.f));
+    animation->SetDuration(300);
+    node->AddAnimation(animation);
+    EXPECT_TRUE(node->animations_.find(animation->GetId()) != node->animations_.end());
+    size_t sizeBefore = node->animations_.size();
+    node->AddAnimation(animation);
+    EXPECT_EQ(node->animations_.size(), sizeBefore);
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest AddAnimationDuplicateRejected end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

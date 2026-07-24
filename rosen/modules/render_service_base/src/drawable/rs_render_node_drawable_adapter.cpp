@@ -174,6 +174,9 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
         case RSRenderNodeType::DEPTH_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSDepthRenderParams>(sharedPtr->nodeId_);
             break;
+        case RSRenderNodeType::PROTECTIVE_SOLID_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
+            break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
             break;

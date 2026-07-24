@@ -225,9 +225,14 @@ void RSTransactionData::Process(RSContext& context)
         }
     }
     if (token_ != 0) {
-        RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(token_, timestamp_);
+        RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(token_, timestamp_,
+            GetCallingPid());
     } else {
-        RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(pid_, timestamp_);
+        // fall back to the trusted callingPid as key; keep the client-written pid_ key
+        // only when callingPid_ is unknown, so the -1 default never becomes a UINT64_MAX key
+        uint64_t callbackKey = (callingPid_ > 0) ? static_cast<uint64_t>(callingPid_) : pid_;
+        RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(callbackKey, timestamp_,
+            GetCallingPid());
     }
 }
 
@@ -437,7 +442,12 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_) &&
         parcel.ReadBool(dvsyncTimeUpdate_) && parcel.ReadUint64(dvsyncTime_) &&
         parcel.ReadUint8(scene);
-    scene_ = static_cast<RSTransactionDataScenes>(scene);
+    if (scene > static_cast<uint8_t>(RSTransactionDataScenes::Rebuild)) {
+        RS_LOGE("RSTransactionData::UnmarshallingCommand invalid scene %{public}u", scene);
+        flag = false;
+    } else {
+        scene_ = static_cast<RSTransactionDataScenes>(scene);
+    }
 #ifndef ROSEN_CROSS_PLATFORM
     flag = flag && parcel.ReadInt32(tid);
 #endif

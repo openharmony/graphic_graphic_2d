@@ -61,6 +61,8 @@ ohos_fuzztest("PixelMapFromSurfaceFuzzTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

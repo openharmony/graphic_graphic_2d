@@ -849,6 +849,25 @@ HWTEST_F(RSUnionRenderNodeTest, AddUnionChild, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddUnionChildUpToLimit
+ * @tc.desc: test AddUnionChild rejects children beyond the capacity limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, AddUnionChildUpToLimit, TestSize.Level1)
+{
+    constexpr size_t maxUnionChildrenSize = 256;
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, std::make_shared<RSContext>());
+
+    for (size_t index = 0; index < maxUnionChildrenSize; ++index) {
+        unionNode->AddUnionChild(static_cast<NodeId>(index + 1));
+    }
+    EXPECT_EQ(unionNode->unionChildren_.size(), maxUnionChildrenSize);
+
+    unionNode->AddUnionChild(static_cast<NodeId>(maxUnionChildrenSize + 1));
+    EXPECT_EQ(unionNode->unionChildren_.size(), maxUnionChildrenSize);
+}
+
+/**
  * @tc.name: RemoveUnionChild
  * @tc.desc: test RemoveUnionChild
  * @tc.type: FUNC

@@ -1348,7 +1348,7 @@ std::shared_ptr<DrawOpItem> DrawAtlasOpItem::Unmarshalling(const DrawCmdList& cm
     auto colors = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, constructorHandle->colors);
 
     if (xform.size() != tex.size() || xform.size() != colors.size()) {
-        LOGE("DrawAtlasOpItem::Unmarshalling array size mismatch: xform=%zu, tex=%zu, colors=%zu",
+        LOGD("DrawAtlasOpItem::Unmarshalling array size mismatch: xform=%zu, tex=%zu, colors=%zu",
              xform.size(), tex.size(), colors.size());
         return nullptr;
     }
@@ -1722,7 +1722,7 @@ std::shared_ptr<DrawOpItem> DrawGlyphsOpItem::Unmarshalling(const DrawCmdList& c
     auto positions = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, constructorHandle->positions);
 
     if (glyphs.size() != positions.size()) {
-        LOGE("DrawGlyphsOpItem::Unmarshalling array size mismatch: glyphs=%zu, positions=%zu",
+        LOGD("DrawGlyphsOpItem::Unmarshalling array size mismatch: glyphs=%zu, positions=%zu",
              glyphs.size(), positions.size());
         return nullptr;
     }
@@ -2883,7 +2883,7 @@ std::shared_ptr<DrawOpItem> ClipAdaptiveRoundRectOpItem::Unmarshalling(const Dra
     auto radiusData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, constructorHandle->radiusData);
     static constexpr size_t CORNER_COUNT = 4;
     if (radiusData.size() < CORNER_COUNT) {
-        LOGE("ClipAdaptiveRoundRectOpItem::Unmarshalling radiusData size mismatch: expected>=4, got=%zu",
+        LOGD("ClipAdaptiveRoundRectOpItem::Unmarshalling radiusData size mismatch: expected>=4, got=%zu",
              radiusData.size());
         return nullptr;
     }

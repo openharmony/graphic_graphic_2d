@@ -126,7 +126,8 @@ void RSRenderCurveAnimation::OnAttach()
         ROSEN_LOGE("RSRenderCurveAnimation::OnAttach, property_ is nullptr.");
         return;
     }
-    if (property_->GetPropertyType() != RSPropertyType::DRAW_CMD_LIST) {
+    auto propertyType = property_->GetPropertyType();
+    if (propertyType != RSPropertyType::DRAW_CMD_LIST && propertyType != RSPropertyType::SIMPLE_DRAW_CMD_LIST) {
         return;
     }
     auto animationManager = target->GetAnimationManager();
