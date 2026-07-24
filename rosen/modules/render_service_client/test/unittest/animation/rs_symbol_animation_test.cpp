@@ -110,7 +110,7 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation002, TestSize.Level1)
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
     symbolAnimationConfig->symbolSpanId = 1996; // the 1996 is the unique ID of a symbol
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::VARIABLE_COLOR;
-    auto newCanvasNode = RSCanvasNode::Create();
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     rootNode->canvasNodesListMap_[symbolAnimationConfig->symbolSpanId] = {{newCanvasNode->GetId(), newCanvasNode}};
     /**
      * @tc.steps: step2.1 test variable_color animation
@@ -629,7 +629,7 @@ HWTEST_F(RSSymbolAnimationTest, ChooseAnimation001, TestSize.Level1)
     symbolAnimation.SetNode(rootNode);
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
     symbolAnimation.InitSupportAnimationTable(symbolAnimationConfig);
-    auto newCanvasNode = RSCanvasNode::Create();
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     std::vector<Drawing::DrawingPiecewiseParameter> parameters;
     /**
      * @tc.steps: step2.1 test SCALE
@@ -698,7 +698,7 @@ HWTEST_F(RSSymbolAnimationTest, ReplaceAnimationTest001, TestSize.Level1)
         {DISAPPEAR_FIRST_PHASE_PARAS, DISAPPEAR_SECOND_PHASE_PARAS};
     std::vector<Drawing::DrawingPiecewiseParameter> appearGroupParas =
         {APPEAR_FIRST_PHASE_PARAS, APPEAR_SECOND_PHASE_PARAS};
-    std::shared_ptr<RSCanvasNode> appearCanvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSCanvasNode> appearCanvasNode = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     canvasNode->SetBounds(ANIMATION_START_BOUNDS);
     canvasNode->SetFrame(ANIMATION_START_BOUNDS);
     /**
@@ -1477,7 +1477,7 @@ HWTEST_F(RSSymbolAnimationTest, GroupAnimationStart001, TestSize.Level1)
      * @tc.steps: step1. init data
      */
     auto symbolAnimation = RSSymbolAnimation();
-    auto newCanvasNode = RSCanvasNode::Create();
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     std::vector<std::shared_ptr<RSAnimation>> animations = {};
     /**
      * @tc.steps: step2.1 test node is nullptr, animations is empty;
@@ -1944,7 +1944,7 @@ HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation002, TestSize.Level1) {
     uint64_t symbolId = 115;
     rootNode->canvasNodesListMap_.erase(symbolId);
     symbolAnimationConfig_->symbolSpanId = symbolId;
-    std::shared_ptr<RSNode> rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSNode> rsNode = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     symbolAnimation.CreateSameNode(symbolId, rsNode, rootNode);
     rsNode->canvasNodesListMap_[symbolId][0] = nullptr;
     result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig_, parameters, rootNode);
@@ -1990,7 +1990,7 @@ HWTEST_F(RSSymbolAnimationTest, SetDisableBaseLayer001, TestSize.Level1) {
      */
     uint64_t symbolId = 1196;
     symbolAnimationConfig_->symbolSpanId = symbolId;
-    std::shared_ptr<RSNode> rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSNode> rsNode = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     symbolAnimation.CreateSameNode(symbolId, rsNode, rootNode);
     rsNode->canvasNodesListMap_[symbolId] = {{0, nullptr}};
     parameters = {{DISABLE_TRANSLATE_RATIO, DISABLE_CLIP_PROP, DISABLE_ALPHA_PROP}};
@@ -2059,7 +2059,7 @@ HWTEST_F(RSSymbolAnimationTest, SetClipAnimation001, TestSize.Level1) {
     result = symbolAnimation.SetClipAnimation(rootNode, symbolAnimationConfig_, parameters, index, offsets);
     EXPECT_FALSE(result);
 
-    std::shared_ptr<RSNode> rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSNode> rsNode = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     rootNode->canvasNodesListMap_[symbolId][index] = rsNode;
     rsNode->canvasNodesListMap_[symbolId] = {{index, nullptr}};
     result = symbolAnimation.SetClipAnimation(rootNode, symbolAnimationConfig_, parameters, index, offsets);

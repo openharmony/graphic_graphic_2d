@@ -353,14 +353,14 @@ void RSAnimationFraction::ResetFraction()
 
 void RSAnimationFraction::SetRebuildFraction(float fraction, int64_t time, bool isReverseCycle)
 {
-    fraction = std::clamp(fraction, 0.f, 1.f);
+    fraction = std::clamp(fraction, 0.0f, 1.0f);
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
     currentIsReverseCycle_ = isReverseCycle;
     currentRepeatCount_ = autoReverse_ && isReverseCycle ? 1 : 0;
     int64_t baseTime = startDelayNs + currentRepeatCount_ * durationNs;
     runningTime_ =
-        baseTime + static_cast<int64_t>(durationNs * (currentIsReverseCycle_ ? (1.f - fraction) : fraction));
+        baseTime + static_cast<int64_t>(durationNs * (currentIsReverseCycle_ ? (1.0f - fraction) : fraction));
     currentTimeFraction_ = fraction;
     playTime_ = static_cast<int64_t>(durationNs * fraction);
     lastFrameTime_ = time;
