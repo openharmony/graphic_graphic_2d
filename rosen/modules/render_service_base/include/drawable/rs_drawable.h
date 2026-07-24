@@ -50,6 +50,7 @@ class RSRenderNode;
 enum class RSDrawableSlot : int8_t {
     INVALID = -1,
     SAVE_ALL = 0,
+    SAVE_CLIP_TO_BOUNDS,
 
     // Bounds Geometry
     MASK,
