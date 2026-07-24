@@ -4725,6 +4725,49 @@ HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HasColorPickerDrawable001
+ * @tc.desc: Test HasColorPickerDrawable001 returns nullptr when drawable is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasColorPickerDrawable001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+
+    EXPECT_FALSE(node->HasColorPickerDrawable());
+}
+
+/**
+ * @tc.name: HasColorPickerDrawable002
+ * @tc.desc: Test HasColorPickerDrawable002 returns nullptr when drawable is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasColorPickerDrawable002, TestSize.Level1)
+{
+    RSRenderNode node(1);
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+    EXPECT_TRUE(node.HasColorPickerDrawable());
+}
+
+/**
+ * @tc.name: HasColorPickerDrawable003
+ * @tc.desc: Test HasColorPickerDrawable returns false when drawableVec_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasColorPickerDrawable003, TestSize.Level1)
+{
+    RSRenderNode node(1);
+    node.drawableVec_.reset();
+    EXPECT_FALSE(node.HasColorPickerDrawable());
+}
+
+/**
  * @tc.name: IsDirty001
  * @tc.desc: test IsDirty returns true when dirtyStatus_ is DIRTY and properties are clean
  * @tc.type: FUNC
