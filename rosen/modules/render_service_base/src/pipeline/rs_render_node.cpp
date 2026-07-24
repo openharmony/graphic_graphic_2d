@@ -265,9 +265,9 @@ bool RSRenderNode::HasValidModifierInOpincSplit(int8_t slot) const
         for (const auto& modifier : slot) {
             const auto& cmdList = modifier->GetPropertySimpleDrawCmdList();
             if (cmdList == nullptr) {
-                return ture;
+                return true;
             }
-            const auto& drawOpltems = cmdList->GetDrawOpItems();
+            const auto& drawOpItems = cmdList->GetDrawOpItems();
             if (drawOpItems.empty() || (drawOpItems.size() == 1 && drawOpItems[0]->GetType() == invalidType)) {
                 RS_LOGW("solidLayer: CheckCmdIn2Modifier ret is false %{public}s", typeString.c_str());
                 return true;
