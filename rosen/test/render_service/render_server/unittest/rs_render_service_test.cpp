@@ -71,10 +71,6 @@ void RSRenderServiceTest::TearDownTestCase()
 {
     if (RSSystemProperties::IsUseVulkan()) {
         RSUniRenderThread::Instance().uniRenderEngine_.reset();
-        RSColorPickerThread::Instance().gpuContext_.reset();
-        RSColorPickerThread::Instance().renderContext_.reset();
-        RSBackgroundThread::Instance().gpuContext_.reset();
-        RSBackgroundThread::Instance().renderContext_.reset();
     }
     screenManager_ = nullptr;
     vsyncManager_ = nullptr;

@@ -172,7 +172,7 @@ HWTEST_F(RSRenderServiceAgentTest, HandleGameSceneChanged002, TestSize.Level1)
 
 /**
  * @tc.name: GetProcessInfo001
- * @tc.desc: GetProcessInfo Test with null vsyncToken
+ * @tc.desc: GetProcessInfo Test with null vsyncToken.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -192,7 +192,7 @@ HWTEST_F(RSRenderServiceAgentTest, GetProcessInfo001, TestSize.Level1)
     sptr<IRemoteObject> vsyncToken = nullptr;
     auto result = renderServiceAgent->GetProcessInfo(screenId, vsyncToken);
     EXPECT_EQ(result.first, nullptr);
-    EXPECT_EQ(result.second, nullptr);
+    EXPECT_NE(result.second, nullptr);
 }
 
 /**

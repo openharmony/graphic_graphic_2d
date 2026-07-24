@@ -391,7 +391,6 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenConnectInfoToRenderTest001
     screenProperty->Set<ScreenPropertyType::IS_VIRTUAL>(true);
     sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
-
     g_rsConn_1->NotifyScreenConnectInfoToRender(
         screenProperty, renderToComposerConn, composerToRenderConn);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
@@ -407,7 +406,9 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenConnectInfoToRenderTest001
 HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenDisconnectInfoToRenderTest001, TestSize.Level1)
 {
     ASSERT_TRUE(g_rsConn_1 != nullptr);
+
     g_rsConn_1->NotifyScreenDisconnectInfoToRender(TEST_SCREEN_ID);
+
     ASSERT_TRUE(g_rsConn_1 != nullptr);
 }
 
