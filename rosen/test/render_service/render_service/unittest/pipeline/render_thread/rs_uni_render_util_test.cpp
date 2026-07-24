@@ -1987,7 +1987,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode003, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
@@ -2029,7 +2029,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode004, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
@@ -2343,7 +2343,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode005, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
@@ -2393,7 +2393,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode006, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
@@ -2401,7 +2401,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode006, TestSize.Level1)
     auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
     ASSERT_NE(hardwareSurfaceNode, nullptr);
     auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
-    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    hardwareDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     hardwareDrawableAdapter->renderParams_ = nullptr;
 
     auto& rtThread = RSUniRenderThread::Instance();
@@ -2451,7 +2451,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode007, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->layerInfo_.zOrder = lowZOrder;
@@ -2460,8 +2460,8 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode007, TestSize.Level1)
     auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
     ASSERT_NE(hardwareSurfaceNode, nullptr);
     auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
-    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
     hardwareDrawableAdapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(hardwareSurfaceId);
+    hardwareDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawableAdapter->renderParams_.get());
     ASSERT_NE(hardwareParams, nullptr);
     hardwareParams->layerInfo_.zOrder = highZOrder;
@@ -2513,7 +2513,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode008, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->layerInfo_.zOrder = highZOrder;
@@ -2521,7 +2521,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode008, TestSize.Level1)
     auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
     ASSERT_NE(hardwareSurfaceNode, nullptr);
     auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
-    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    hardwareDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawableAdapter->renderParams_.get());
     ASSERT_NE(hardwareParams, nullptr);
     hardwareParams->layerInfo_.zOrder = lowZOrder;
@@ -2573,7 +2573,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode009, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->layerInfo_.zOrder = equalZOrder;
@@ -2582,7 +2582,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode009, TestSize.Level1)
     auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
     ASSERT_NE(hardwareSurfaceNode, nullptr);
     auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
-    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    hardwareDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawableAdapter->renderParams_.get());
     ASSERT_NE(hardwareParams, nullptr);
     hardwareParams->layerInfo_.zOrder = equalZOrder;
@@ -2631,7 +2631,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode010, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     surfaceDrawableAdapter->renderParams_ = nullptr;
 
     auto& rtThread = RSUniRenderThread::Instance();
@@ -2680,7 +2680,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode011, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->layerInfo_.zOrder = highZOrder;
@@ -2689,7 +2689,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode011, TestSize.Level1)
     auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
     ASSERT_NE(hardwareSurfaceNode, nullptr);
     auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
-    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    hardwareDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
     auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawableAdapter->renderParams_.get());
     ASSERT_NE(hardwareParams, nullptr);
     hardwareParams->layerInfo_.zOrder = lowZOrder;
@@ -2741,7 +2741,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode012, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->GetRenderParams()->SetNodeType(RSRenderNodeType::SURFACE_NODE);
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);

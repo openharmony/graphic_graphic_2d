@@ -689,6 +689,8 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistory001, Function | SmallT
     drawable->GetSyncDirtyManager()->Clear();
     drawable->GetSyncDirtyManager()->MergeDirtyRect(SURFACE_DIRTY_RECT1);
     drawable->GetSyncDirtyManager()->MergeDirtyRect(SURFACE_DIRTY_RECT2);
+
+    screenNodeDrawable.GetSyncDirtyManager()->SetSurfaceSize(screenPhyWidth_, screenPhyHeight_);
     screenNodeDrawable.GetSyncDirtyManager()->MergeDirtyRect(DISPLAY_DIRTY_RECT1);
 
     damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(screenNodeDrawable, bufferAge, screenInfo,
