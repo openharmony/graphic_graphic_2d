@@ -159,9 +159,12 @@ void RSScreen::PhysicalScreenInit() noexcept
     if (hdiScreen_->GetHDRCapabilityInfos(hdrCapability_) < 0) {
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetHDRCapabilityInfos.", __func__, id);
     }
-    std::transform(hdrCapability_.formats.begin(), hdrCapability_.formats.end(),
-                   back_inserter(supportedPhysicalHDRFormats_),
-                   [](GraphicHDRFormat item) -> ScreenHDRFormat { return HDI_HDR_FORMAT_TO_RS_MAP[item]; });
+    {
+        std::lock_guard<std::mutex> lock(supportedPhysicalHDRFormatsMutex_);
+        std::transform(hdrCapability_.formats.begin(), hdrCapability_.formats.end(),
+                       back_inserter(supportedPhysicalHDRFormats_),
+                       [](GraphicHDRFormat item) -> ScreenHDRFormat { return HDI_HDR_FORMAT_TO_RS_MAP[item]; });
+    }
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (MultiScreenParam::IsRsSetScreenPowerStatus() || id == 0) {
         HILOG_COMM_INFO("PhysicalScreenInit: RSScreen(id %{public}" PRIu64 ") start SetScreenPowerStatus to On", id);
@@ -1242,9 +1245,12 @@ void RSScreen::GetScreenSupportedHDRFormatsCallBack(sptr<RSIScreenSupportedHdrFo
         Media::VideoProcessingEngine::VIDEO_TYPE_AIHDR_ENHANCER, parameter)) {
         RS_LOGI("GetScreenSupportedHDRFormatsCallBack ScreenHDRFormat::VIDEO_AIHDR is support.");
         hdrFormatsByVpe.emplace_back(ScreenHDRFormat::VIDEO_AIHDR);
-        if (std::find(supportedPhysicalHDRFormats_.begin(), supportedPhysicalHDRFormats_.end(),
-            ScreenHDRFormat::VIDEO_AIHDR) == supportedPhysicalHDRFormats_.end()) {
-            supportedPhysicalHDRFormats_.emplace_back(ScreenHDRFormat::VIDEO_AIHDR);
+        {
+            std::lock_guard<std::mutex> lock(supportedPhysicalHDRFormatsMutex_);
+            if (std::find(supportedPhysicalHDRFormats_.begin(), supportedPhysicalHDRFormats_.end(),
+                ScreenHDRFormat::VIDEO_AIHDR) == supportedPhysicalHDRFormats_.end()) {
+                supportedPhysicalHDRFormats_.emplace_back(ScreenHDRFormat::VIDEO_AIHDR);
+            }
         }
     }
 #endif
@@ -1258,7 +1264,10 @@ int32_t RSScreen::GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdr
     if (IsVirtual()) {
         hdrFormats = supportedVirtualHDRFormats_;
     } else {
-        hdrFormats = supportedPhysicalHDRFormats_;
+        {
+            std::lock_guard<std::mutex> lock(supportedPhysicalHDRFormatsMutex_);
+            hdrFormats = supportedPhysicalHDRFormats_;
+        }
         if (callback &&
             GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL && !specialHDRFormatsInit_) {
             RSBackgroundThread::Instance().PostTask([weakThis = weak_from_this(), callback]() {
@@ -1281,6 +1290,7 @@ int32_t RSScreen::GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const
         hdrFormat = supportedVirtualHDRFormats_[currentVirtualHDRFormatIdx_];
         return StatusCode::SUCCESS;
     } else {
+        std::lock_guard<std::mutex> lock(supportedPhysicalHDRFormatsMutex_);
         if (supportedPhysicalHDRFormats_.size() == 0) {
             return StatusCode::HDI_ERROR;
         }
@@ -1308,7 +1318,10 @@ int32_t RSScreen::SetScreenHDRFormat(int32_t modeIdx)
             return StatusCode::INVALID_ARGUMENTS;
         }
         currentPhysicalHDRFormatIdx_ = modeIdx;
-        UPDATE_PROPERTY(ScreenHDRFormat, supportedPhysicalHDRFormats_[modeIdx]);
+        {
+            std::lock_guard<std::mutex> lock(supportedPhysicalHDRFormatsMutex_);
+            UPDATE_PROPERTY(ScreenHDRFormat, supportedPhysicalHDRFormats_[modeIdx]);
+        }
         return StatusCode::SUCCESS;
     }
     return StatusCode::HDI_ERROR;

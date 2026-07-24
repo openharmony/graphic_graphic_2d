@@ -1590,7 +1590,14 @@ void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByWindow(bool isOnTree, Gra
 void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (!GetRSSurfaceHandler() || !GetRSSurfaceHandler()->GetBuffer()) {
+    auto surfaceHandler = GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata node(%{public}s) did not have surfaceHandler.",
+            GetName().c_str());
+        return;
+    }
+    const sptr<SurfaceBuffer>& buffer = surfaceHandler->GetBuffer();
+    if (!buffer) {
         RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata node(%{public}s) did not have buffer.",
             GetName().c_str());
         return;
@@ -1598,7 +1605,6 @@ void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
     if (IsSplitSurfaceNode()) {
         return;
     }
-    const sptr<SurfaceBuffer>& buffer = GetRSSurfaceHandler()->GetBuffer();
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
