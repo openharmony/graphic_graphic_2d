@@ -1753,6 +1753,15 @@ int32_t RSClientToRenderConnectionProxy::RegisterFrameStabilityDetection(
         ROSEN_LOGE("%{public}s: callback is nullptr.", __func__);
         return INVALID_ARGUMENTS;
     }
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: invalid target.type: %{public}u", __func__, static_cast<uint32_t>(target.type));
+        return INVALID_ARGUMENTS;
+    }
+    if (!IsValidFrameStabilityConfig(config)) {
+        ROSEN_LOGE("%{public}s: invalid config, stableDuration=%{public}u, changePercent=%{public}f",
+            __func__, config.stableDuration, config.changePercent);
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1792,6 +1801,11 @@ int32_t RSClientToRenderConnectionProxy::RegisterFrameStabilityDetection(
 
 int32_t RSClientToRenderConnectionProxy::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
 {
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: invalid target.type: %{public}u", __func__,
+            static_cast<uint32_t>(target.type));
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1822,6 +1836,16 @@ int32_t RSClientToRenderConnectionProxy::StartFrameStabilityCollection(
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config)
 {
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: invalid target.type: %{public}u", __func__,
+            static_cast<uint32_t>(target.type));
+        return INVALID_ARGUMENTS;
+    }
+    if (!IsValidFrameStabilityConfig(config)) {
+        ROSEN_LOGE("%{public}s: invalid config, stableDuration=%{public}u, changePercent=%{public}f",
+            __func__, config.stableDuration, config.changePercent);
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1859,6 +1883,11 @@ int32_t RSClientToRenderConnectionProxy::GetFrameStabilityResult(
     const FrameStabilityTarget& target,
     bool& result)
 {
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: invalid target.type: %{public}u", __func__,
+            static_cast<uint32_t>(target.type));
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1897,6 +1926,16 @@ int32_t RSClientToRenderConnectionProxy::UpdateFrameStabilityDetection(
     const FrameStabilityTarget& oldTarget,
     const FrameStabilityTarget& newTarget)
 {
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(oldTarget.type))) {
+        ROSEN_LOGE("%{public}s: invalid oldTarget.type: %{public}u", __func__,
+            static_cast<uint32_t>(oldTarget.type));
+        return INVALID_ARGUMENTS;
+    }
+    if (!IsValidFrameStabilityTargetType(static_cast<uint32_t>(newTarget.type))) {
+        ROSEN_LOGE("%{public}s: invalid newTarget.type: %{public}u", __func__,
+            static_cast<uint32_t>(newTarget.type));
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
