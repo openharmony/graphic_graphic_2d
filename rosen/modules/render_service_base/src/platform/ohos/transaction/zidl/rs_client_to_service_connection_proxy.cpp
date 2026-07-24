@@ -2351,7 +2351,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedColorGamuts(
     if (result == SUCCESS) {
         mode.clear();
         std::vector<uint32_t> modeRecv;
-        reply.ReadUInt32Vector(&modeRecv);
+        if (!reply.ReadUInt32Vector(&modeRecv)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedColorGamuts Read vector failed");
+            return READ_PARCEL_ERR;
+        }
         for (auto i : modeRecv) {
             mode.push_back(static_cast<ScreenColorGamut>(i));
         }
@@ -2387,7 +2390,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedMetaDataKeys(
     if (result == SUCCESS) {
         keys.clear();
         std::vector<uint32_t> keyRecv;
-        reply.ReadUInt32Vector(&keyRecv);
+        if (!reply.ReadUInt32Vector(&keyRecv)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedMetaDataKeys Read vector failed");
+            return READ_PARCEL_ERR;
+        }
         for (auto i : keyRecv) {
             keys.push_back(static_cast<ScreenHDRMetadataKey>(i));
         }
@@ -2760,7 +2766,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats(
     if (result == SUCCESS) {
         hdrFormats.clear();
         std::vector<uint32_t> hdrFormatsRecv;
-        reply.ReadUInt32Vector(&hdrFormatsRecv);
+        if (!reply.ReadUInt32Vector(&hdrFormatsRecv)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats Read vector failed");
+            return READ_PARCEL_ERR;
+        }
         std::transform(hdrFormatsRecv.begin(), hdrFormatsRecv.end(), back_inserter(hdrFormats),
                        [](uint32_t i) -> ScreenHDRFormat {return static_cast<ScreenHDRFormat>(i);});
     }
@@ -2860,7 +2869,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedColorSpaces(
     if (result == SUCCESS) {
         colorSpaces.clear();
         std::vector<uint32_t> colorSpacesRecv;
-        reply.ReadUInt32Vector(&colorSpacesRecv);
+        if (!reply.ReadUInt32Vector(&colorSpacesRecv)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedColorSpaces Read vector failed");
+            return READ_PARCEL_ERR;
+        }
         std::transform(colorSpacesRecv.begin(), colorSpacesRecv.end(), back_inserter(colorSpaces),
                        [](uint32_t i) -> GraphicCM_ColorSpaceType {return static_cast<GraphicCM_ColorSpaceType>(i);});
     }
