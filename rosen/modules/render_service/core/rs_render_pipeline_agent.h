@@ -100,7 +100,7 @@ public:
     ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
     void RegisterTransactionDataCallback(uint64_t token,
-        uint64_t timeStamp, sptr<RSITransactionDataCallback> callback);
+        uint64_t timeStamp, sptr<RSITransactionDataCallback> callback, pid_t callingPid);
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value);
     void ClearUifirstCache(NodeId id);

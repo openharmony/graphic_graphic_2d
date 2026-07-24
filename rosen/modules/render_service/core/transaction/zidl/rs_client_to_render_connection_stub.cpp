@@ -373,6 +373,9 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                     }
 
                     auto transactionData = RSBaseRenderUtil::ParseTransactionData(data, parcelNumber);
+                    if (transactionData) {
+                        transactionData->SetCallingPid(callingPid);
+                    }
                     if (transactionData && isNonSystemAppCalling) {
                         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
                         if (!transactionData->IsCallingPidValid(callingPid, nodeMap)) {
@@ -409,6 +412,9 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             } else {
                 // execute Unmarshalling immediately
                 auto transactionData = RSBaseRenderUtil::ParseTransactionData(*parsedParcel, parcelNumber);
+                if (transactionData) {
+                    transactionData->SetCallingPid(callingPid);
+                }
                 if (transactionData && isNonSystemAppCalling) {
                     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
                     if (!transactionData->IsCallingPidValid(callingPid, nodeMap)) {

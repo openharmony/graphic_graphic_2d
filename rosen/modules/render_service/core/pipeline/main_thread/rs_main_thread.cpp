@@ -6266,7 +6266,8 @@ void RSMainThread::AddSplitTransaction(std::unique_ptr<RSTransactionData> transa
     if (!transaction) {
         return;
     }
-    pendingSplitPid_ = transaction->GetSendingPid();
+    pid_t callingPid = transaction->GetCallingPid();
+    pendingSplitPid_ = (callingPid > 0) ? callingPid : transaction->GetSendingPid();
     pendingSplitTransactions_.push_back(std::move(transaction));
     RS_TRACE_NAME_FMT("AddSplitTransaction: pending rebuild transactions count = %zu",
         pendingSplitTransactions_.size());
