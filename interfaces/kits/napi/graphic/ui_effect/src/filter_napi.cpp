@@ -718,22 +718,25 @@ napi_value FilterNapi::SetRadiusGradientBlurPara(napi_env env, napi_callback_inf
 
     std::shared_ptr<RadiusGradientBlurPara> para = std::make_shared<RadiusGradientBlurPara>();
 
-    if (argCount != NUM_2) {
-        FILTER_LOG_E("Args number less than 2");
+    if (argCount != NUM_2 || UIEffectNapiUtils::GetType(env, argValue[NUM_1]) != napi_object) {
+        FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara invalid args");
         return thisVar;
     }
 
     float blurRadius = GetSpecialValue(env, argValue[NUM_0]);
     para->SetBlurRadius(blurRadius);
 
-    napi_value fractionValue;
-    napi_get_named_property(env, argValue[NUM_1], "fractionStops", &fractionValue);
-    UIEFFECT_NAPI_CHECK_RET_D(GetLinearFractionStops(env, fractionValue, para), nullptr,
+    napi_value fractionValue = nullptr;
+    UIEFFECT_NAPI_CHECK_RET_D(
+        napi_get_named_property(env, argValue[NUM_1], "fractionStops", &fractionValue) == napi_ok &&
+        GetLinearFractionStops(env, fractionValue, para), nullptr,
         FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara parsing coordinates fail"));
 
     GradientDirection direction = GradientDirection::NONE;
-    napi_value directionValue;
-    napi_get_named_property(env, argValue[NUM_1], "direction", &directionValue);
+    napi_value directionValue = nullptr;
+    UIEFFECT_NAPI_CHECK_RET_D(
+        napi_get_named_property(env, argValue[NUM_1], "direction", &directionValue) == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara parsing direction fail"));
     direction = ParserGradientDirection(env, directionValue);
     para->SetDirection(direction);
 
@@ -754,7 +757,7 @@ float FilterNapi::GetSpecialValue(napi_env env, napi_value argValue)
         napi_get_value_double(env, argValue, &tmp) == napi_ok && tmp >= 0) {
         return static_cast<float>(tmp);
     }
-    return tmp;
+    return 0.0f;
 }
 
 uint32_t FilterNapi::GetSpecialIntValue(napi_env env, napi_value argValue)
@@ -955,7 +958,7 @@ napi_value FilterNapi::SetColorGradient(napi_env env, napi_callback_info info)
 
     if (realArgc == NUM_4) {
         Mask* mask = nullptr;
-        status = napi_unwrap(env, argValue[NUM_3], reinterpret_cast<void**>(&mask));
+        status = napi_unwrap_s(env, argValue[NUM_3], &MASK_NAPI_TYPE_TAG, reinterpret_cast<void**>(&mask));
         UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, nullptr,
             FILTER_LOG_E("FilterNapi SetColorGradient napi_unwrap mask fail"));
         para->SetMask(mask->GetMaskPara());
@@ -1028,7 +1031,7 @@ napi_value FilterNapi::SetDisplacementDistort(napi_env env, napi_callback_info i
 
     auto para = std::make_shared<DisplacementDistortPara>();
     Mask* mask = nullptr;
-    status = napi_unwrap(env, argv[NUM_0], reinterpret_cast<void**>(&mask));
+    status = napi_unwrap_s(env, argv[NUM_0], &MASK_NAPI_TYPE_TAG, reinterpret_cast<void**>(&mask));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetDisplacementDistort unwrap mask fail"));
     para->SetMask(mask->GetMaskPara());
@@ -1082,7 +1085,8 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
 
     if (realArgc >= NUM_3) {
         Mask* mask = nullptr;
-        if ((napi_unwrap(env, argv[NUM_2], reinterpret_cast<void**>(&mask)) == napi_ok) && mask != nullptr) {
+        if (napi_unwrap_s(env, argv[NUM_2], &MASK_NAPI_TYPE_TAG,
+            reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
             para->SetMask(mask->GetMaskPara());
         }
     }
@@ -1139,7 +1143,7 @@ napi_value FilterNapi::SetMaskDirectionLight(napi_env env, napi_callback_info in
 
     if (realArgc >= NUM_4) {
         Mask* mask = nullptr;
-        status = napi_unwrap(env, argv[NUM_3], reinterpret_cast<void**>(&mask));
+        status = napi_unwrap_s(env, argv[NUM_3], &MASK_NAPI_TYPE_TAG, reinterpret_cast<void**>(&mask));
         UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, thisVar,
             FILTER_LOG_E("FilterNapi SetMaskDirectionLight unwrap mask fail"));
         para->SetMask(mask->GetMaskPara());
@@ -1236,7 +1240,7 @@ napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
     auto para = std::make_shared<MaskTransitionPara>();
 
     Mask* mask = nullptr;
-    status = napi_unwrap(env, argv[NUM_0], reinterpret_cast<void**>(&mask));
+    status = napi_unwrap_s(env, argv[NUM_0], &MASK_NAPI_TYPE_TAG, reinterpret_cast<void**>(&mask));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetMaskTransition napi_unwrap mask failed"));
     para->SetMask(mask->GetMaskPara());
@@ -1313,7 +1317,7 @@ napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
     auto para = std::make_shared<DispersionPara>();
 
     Mask* mask = nullptr;
-    status = napi_unwrap(env, argv[NUM_0], reinterpret_cast<void**>(&mask));
+    status = napi_unwrap_s(env, argv[NUM_0], &MASK_NAPI_TYPE_TAG, reinterpret_cast<void**>(&mask));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetMaskDispersion unwrap mask fail"));
     para->SetMask(mask->GetMaskPara());
@@ -1377,7 +1381,7 @@ napi_value FilterNapi::SetVariableRadiusBlur(napi_env env, napi_callback_info in
     para->SetBlurRadius(static_cast<float>(blurRadius));
 
     Mask* mask = nullptr;
-    status = napi_unwrap(env, argv[NUM_1], reinterpret_cast<void**>(&mask));
+    status = napi_unwrap_s(env, argv[NUM_1], &MASK_NAPI_TYPE_TAG, reinterpret_cast<void**>(&mask));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetVariableRadiusBlur unwrap mask fail"));
     para->SetMask(mask->GetMaskPara());
@@ -1629,7 +1633,8 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
     }
     if (realArgc >= maxArgc) {
         Mask* mask = nullptr;
-        if (napi_unwrap(env, argv[NUM_30], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
+        if (napi_unwrap_s(env, argv[NUM_30], &MASK_NAPI_TYPE_TAG,
+            reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
             para->SetMask(mask->GetMaskPara());
         }
     }
