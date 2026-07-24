@@ -97,7 +97,8 @@ void RSBaseSurfaceUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vecto
 }
 
 CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId, bool dropFrameByScreenFrozen)
+    const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId,
+    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
     surfaceHandler.ResetCurrentFrameBufferConsumed();
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
@@ -138,6 +139,7 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
             consumer->SetDropFrameLevel(0);
         }
 
+        bool dropFrameByScreenFrozen = surfaceNode != nullptr ? surfaceNode->IsAncestorScreenFrozen() : false;
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
             if (LIKELY(!dropFrameByScreenFrozen) && UNLIKELY(holdReturnValue)) {

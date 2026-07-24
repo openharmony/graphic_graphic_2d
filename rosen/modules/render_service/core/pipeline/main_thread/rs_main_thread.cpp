@@ -2145,7 +2145,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (goNormal) {
                 comsumeResult = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
                     *surfaceHandler, timestamp_, dropFrameConfig,
-                    parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
+                    parentNode ? parentNode->GetId() : 0, surfaceNode);
                 tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
             } else if (outcome == RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT) {
                 comsumeResult = true;
