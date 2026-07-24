@@ -33,6 +33,7 @@ HveFilter& HveFilter::GetHveFilter()
 
 void HveFilter::Sync()
 {
+    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     ClearSurfaceNodeInfo();
     hveFilterToSurfaceNodeMap_ = hveFilterToSurfaceNodeStagingMap_;
     hveFilterToSurfaceNodeStagingMap_.clear();
@@ -62,6 +63,7 @@ int HveFilter::GetSurfaceNodeSize() const
 
 bool HveFilter::HasValidFilterNode(RSPaintFilterCanvas& canvas, NodeId filterId)
 {
+    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     return !canvas.GetIsParallelCanvas() &&
            hveFilterToSurfaceNodeMap_.find(filterId) != hveFilterToSurfaceNodeMap_.end();
 }
