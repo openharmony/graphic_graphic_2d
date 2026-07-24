@@ -982,7 +982,6 @@ napi_value ColorPickerNapi::DiscriminatePictureLightDegree(napi_env env, napi_ca
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
 
     napi_value result = nullptr;
-    napi_get_undefined(env, &result);
     PictureLightColorDegree rst;
     errorCode = thisColorPicker->nativeColorPicker_->DiscriminatePictureLightDegree(rst);
     if (errorCode == SUCCESS) {
@@ -1150,7 +1149,6 @@ napi_value ColorPickerNapi::ComplexityDegree(napi_env env, napi_callback_info in
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
 
     napi_value result = nullptr;
-    napi_get_undefined(env, &result);
     PictureComplexityDegree rst;
     errorCode = thisColorPicker->nativeColorPicker_->ComplexityDegree(rst);
     if (errorCode == SUCCESS) {
@@ -1187,7 +1185,6 @@ napi_value ColorPickerNapi::ShadeDegree(napi_env env, napi_callback_info info)
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
 
     napi_value result = nullptr;
-    napi_get_undefined(env, &result);
     PictureShadeDegree rst;
     errorCode = thisColorPicker->nativeColorPicker_->ShadeDegree(rst);
     if (errorCode == SUCCESS) {

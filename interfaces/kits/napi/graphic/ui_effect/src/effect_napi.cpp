@@ -338,7 +338,7 @@ float EffectNapi::GetSpecialValue(napi_env env, napi_value argValue)
 {
     double tmp = 0.0;
     if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
-        napi_get_value_double(env, argValue, &tmp) == napi_ok && tmp >= 0) {
+        napi_get_value_double(env, argValue, &tmp) == napi_ok) {
             return static_cast<float>(tmp);
     }
     return 0.0f;
