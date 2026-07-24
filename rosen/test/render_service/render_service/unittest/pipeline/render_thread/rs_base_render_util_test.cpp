@@ -810,27 +810,35 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
 {
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
-    auto producer = surfaceConsumer->GetProducer();
-    psurf = Surface::CreateSurfaceAsProducer(producer);
-    psurf->SetQueueSize(1);
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-    requestConfig.format = STUB_PIXEL_FMT_RGBA_16161616;
-    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
-    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
-    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
-    OHOS::sptr<SurfaceBuffer> cbuffer;
-    Rect damage;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    int64_t timestamp = 0;
-    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+    // STUB_PIXEL_FMT_RGBA_16161616 equals GRAPHIC_PIXEL_FMT_VENDER_PRIVATE1, which cannot be
+    // allocated via HDI on real devices. Construct a SurfaceBuffer with a manually-set
+    // BufferHandle to exercise the STUB branch in ConvertBufferToBitmap without HDI allocation.
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    constexpr int32_t testWidth = 0x10;
+    constexpr int32_t testHeight = 0x10;
+    constexpr int32_t bytesPerPixel = 8; // RGBA_16161616: 4 channels * 2 bytes
+    BufferHandle *bufferHandle = new BufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->width = testWidth;
+    bufferHandle->height = testHeight;
+    bufferHandle->stride = testWidth * bytesPerPixel;
+    bufferHandle->size = testWidth * testHeight * bytesPerPixel;
+    bufferHandle->format = STUB_PIXEL_FMT_RGBA_16161616;
+    bufferHandle->usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
+    bufferHandle->virAddr = malloc(bufferHandle->size);
+    ASSERT_NE(bufferHandle->virAddr, nullptr);
+    auto ret = memset_s(bufferHandle->virAddr, bufferHandle->size, 0, bufferHandle->size);
+    ASSERT_EQ(EOK, ret);
+    buffer->SetBufferHandle(bufferHandle);
+    buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     Drawing::Bitmap bitmap;
-    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
+
+    free(bufferHandle->virAddr);
+    bufferHandle->virAddr = nullptr;
 }
 
 /*

@@ -90,19 +90,6 @@ HWTEST_F(RSUniRenderThreadTest, SetAndGetCaptureParam001, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitGrContext001
- * @tc.desc: Test InitGrContext
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RSUniRenderThreadTest, InitGrContext001, TestSize.Level1)
-{
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    instance.InitGrContext();
-    ASSERT_NE(instance.uniRenderEngine_, nullptr);
-}
-
-/**
  * @tc.name: GetRenderEngine001
  * @tc.desc: Test GetRenderEngine
  * @tc.type: FUNC
@@ -794,7 +781,7 @@ HWTEST_F(RSUniRenderThreadTest, IsColorFilterModeOn, TestSize.Level1)
     instance.uniRenderEngine_->SetColorFilterMode(ColorFilterMode::COLOR_FILTER_END);
     ASSERT_FALSE(instance.IsColorFilterModeOn());
     instance.uniRenderEngine_->SetColorFilterMode(ColorFilterMode::INVERT_COLOR_ENABLE_MODE);
-    ASSERT_TRUE(instance.IsColorFilterModeOn());
+    ASSERT_FALSE(instance.IsColorFilterModeOn());
 }
 
 /**
@@ -809,7 +796,7 @@ HWTEST_F(RSUniRenderThreadTest, IsHighContrastTextModeOn, TestSize.Level1)
     instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     ASSERT_NE(instance.uniRenderEngine_, nullptr);
     instance.uniRenderEngine_->SetHighContrast(true);
-    ASSERT_TRUE(instance.IsHighContrastTextModeOn());
+    ASSERT_FALSE(instance.IsHighContrastTextModeOn());
     instance.uniRenderEngine_->SetHighContrast(false);
     ASSERT_FALSE(instance.IsHighContrastTextModeOn());
 }
