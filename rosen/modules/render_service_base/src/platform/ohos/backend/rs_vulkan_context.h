@@ -80,9 +80,10 @@ public:
         VkSemaphore mSemaphore;
         int mFenceFd;
         
-        int mRefs = 2; // 2 : both skia and rs hold fence fd
-        int mRSRefs = 1; // 1 : rs hold fence fd
-        int m2DEngineRefs = 1; // 1 : skia or ddgr hold fence fd
+        std::atomic<bool> isDeleted{false};
+        std::atomic<int32_t> mRefs{2}; // 2 : both skia and rs hold fence fd
+        std::atomic<int32_t> mRSRefs{1}; // 1 : rs hold fence fd
+        std::atomic<int32_t> m2DEngineRefs{1}; // 1 : skia or ddgr hold fence fd
         CallbackSemaphoreInfo(RsVulkanInterface& vkContext, VkSemaphore semaphore, int fenceFd)
             : mVkContext(vkContext),
             mSemaphore(semaphore),
@@ -96,14 +97,14 @@ public:
                 return;
             }
             CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
-            --info->mRefs;
-            if (info->mRefs > 1 || info->mRefs < 0) {
-                RS_LOGE("Destory CallBackSemphoreInfo error, mRefs=%{public}d", info->mRefs);
+            int32_t prevRefs = info->mRefs.fetch_sub(1, std::memory_order_acq_rel);
+            // 2 : both skia and rs hold fence fd
+            if (prevRefs > 2 || prevRefs <= 0) {
+                RS_LOGE("DestroyCallbackRefs error, prevRefs=%{public}d", prevRefs);
             }
-            if (info->mRefs <= 0) {
+            if (prevRefs == 1) {
                 info->mVkContext.SendSemaphoreWithFd(info->mSemaphore, info->mFenceFd);
                 delete info;
-                info = nullptr;
             }
         }
 
@@ -113,8 +114,11 @@ public:
                 return;
             }
             CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
-            --info->mRSRefs;
+            int32_t prevRSRefs = info->mRSRefs.fetch_sub(1, std::memory_order_acq_rel);
             RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_.fetch_add(+1, std::memory_order_relaxed);
+            if (prevRSRefs != 1) {
+                RS_LOGE("DestroyCallbackRefsFromRS error, prevRSRefs=%{public}d", prevRSRefs);
+            }
             DestroyCallbackRefsInner(info);
         }
 
@@ -125,8 +129,11 @@ public:
                 return;
             }
             CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
-            --info->m2DEngineRefs;
+            int32_t prevEngineRefs = info->m2DEngineRefs.fetch_sub(1, std::memory_order_acq_rel);
             RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_.fetch_add(+1, std::memory_order_relaxed);
+            if (prevEngineRefs != 1) {
+                RS_LOGE("DestroyCallbackRefsFrom2DEngine error, prevEngineRefs=%{public}d", prevEngineRefs);
+            }
             DestroyCallbackRefsInner(info);
         }
 
@@ -135,14 +142,16 @@ public:
             if (info == nullptr) {
                 return;
             }
-            if (info->mRSRefs > 1 || info->mRSRefs < 0 || info->m2DEngineRefs > 1 || info->m2DEngineRefs < 0) {
-                RS_LOGE("Destroy CallBackSemphoreInfo error, mRSRefs=%{public}d, m2DEngineRefs=%{public}d",
-                    info->mRSRefs, info->m2DEngineRefs);
-            }
-            if (info->mRSRefs <= 0 && info->m2DEngineRefs <= 0) {
+            int32_t rsRefs = info->mRSRefs.load(std::memory_order_acquire);
+            int32_t engineRefs = info->m2DEngineRefs.load(std::memory_order_acquire);
+            if (rsRefs <= 0 && engineRefs <= 0) {
+                bool expected = false;
+                if (!info->isDeleted.compare_exchange_strong(expected, true)) {
+                    RS_LOGE("DestroyCallbackRefsInner error, isDeleted=%{public}d", info->isDeleted.load());
+                    return;
+                }
                 info->mVkContext.SendSemaphoreWithFd(info->mSemaphore, info->mFenceFd);
                 delete info;
-                info = nullptr;
             }
         }
     };

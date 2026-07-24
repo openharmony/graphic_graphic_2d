@@ -408,7 +408,13 @@ bool RsVulkanInterface::SetupDeviceProcAddresses(VkDevice device)
     ACQUIRE_PROC(QueueSignalReleaseImageOHOS, device_);
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);
     ACQUIRE_PROC(GetSemaphoreFdKHR, device_);
-
+    if (!vkAllocateMemory || !vkBindImageMemory || !vkBindImageMemory2 || !vkCreateImage || !vkCreateSemaphore ||
+        !vkDestroyImage || !vkDestroySemaphore || !vkDeviceWaitIdle || !vkFreeMemory ||
+        !vkGetImageMemoryRequirements || !vkQueueSubmit || !vkGetNativeBufferPropertiesOHOS ||
+        !vkQueueSignalReleaseImageOHOS || !vkImportSemaphoreFdKHR || !vkGetSemaphoreFdKHR) {
+        ROSEN_LOGE("Could not acquire device proc addresses");
+        return false;
+    }
     return true;
 }
 
