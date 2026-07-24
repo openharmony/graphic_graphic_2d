@@ -2391,10 +2391,10 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         }
         auto backgroundColorEffectPara = std::static_pointer_cast<BackgroundColorEffectPara>(visualEffectPara);
         auto blender = backgroundColorEffectPara->GetBlender();
-        auto brightnessBlender = std::static_pointer_cast<BrightnessBlender>(blender);
-        if (brightnessBlender == nullptr) {
+        if (blender == nullptr || blender->GetBlenderType() != Blender::BRIGHTNESS_BLENDER) {
             continue;
         }
+        auto brightnessBlender = std::static_pointer_cast<BrightnessBlender>(blender);
         if (brightnessBlender->GetHdr() && ROSEN_GNE(brightnessBlender->GetFraction(), 0.0f)) {
             hasHdrBrightnessBlender = true;
         }
