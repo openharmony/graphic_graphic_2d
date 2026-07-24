@@ -200,7 +200,7 @@ void EglWrapperHook::LayerEntries(const LayerSetupFunc LayerSetup,
         EglWrapperFuncPointer prev = *curr;
         *curr = LayerSetup(name, *curr);
         if (prev != *curr) {
-            WLOGD("EglWrapperHook replace %{public}s org: %{public}p hook: %{public}p", name, prev, *curr);
+            WLOGD("EglWrapperHook replace %{public}s org: %{private}p hook: %{private}p", name, prev, *curr);
         }
         curr++;
         entries++;
