@@ -209,7 +209,7 @@ void BlobCache::SetBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     }
     if (blobSize_ >= blobSizeMax_) {
         int count = 0;
-        while (count <= MAX_SHADER_DELETE) {
+        while (count <= MAX_SHADER_DELETE && blobSize_ > 0 && tail_->prev_ != head_) {
             std::shared_ptr<Blob> deleteblob = tail_->prev_;
             deleteblob->prev_->next_ = tail_;
             tail_->prev_ = deleteblob->prev_;
