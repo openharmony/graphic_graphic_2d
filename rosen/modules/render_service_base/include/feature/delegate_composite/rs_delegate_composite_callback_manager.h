@@ -15,6 +15,7 @@
 #ifndef RS_DELEGATE_COMPOSITE_CALLBACK_MANAGER
 #define RS_DELEGATE_COMPOSITE_CALLBACK_MANAGER
 #ifndef ROSEN_CROSS_PLATFORM
+
 #include <map>
 #include <queue>
 #include "ipc_callbacks/rs_delegate_composite_callback.h"
@@ -36,7 +37,7 @@ public:
     void AddBufferReleaseInfo(NodeId nodeId, uint64_t surfaceId, uint32_t bufferSeqNum,
         sptr<SyncFence> releaseFence, pid_t clientPid);
 
-    void AddSurfaceTransactionCmdInfo(const uint64_t &srcId, const uint64_t &seqNum,
+    void AddSurfaceTransactionCmdInfo(const uint64_t& srcId, const uint64_t& seqNum,
         const pid_t& pid, const pid_t& tid);
 
     void RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,
@@ -46,12 +47,12 @@ public:
 
     void RegisterSurfaceNodeBufferReleaseListener(pid_t pid, sptr<RSISurfaceNodeBufferReleaseCallback> listener);
     void UnRegisterSurfaceNodeBufferReleaseListener(pid_t pid);
-
     void NotifyCurrentSurfaceNodeBufferReleaseCallback();
 
     bool CheckSurfaceTransactionIdentity(pid_t pid, pid_t tid);
     bool CheckIsDelegateCompositeOnly(std::shared_ptr<TransactionDataMap> transactionDataEffective);
     void RemoveAllListenerbyPid(pid_t pid);
+
     void PrepareDelegateCompositeCommand(std::unique_ptr<RSTransactionData>& transactionData);
     bool ProcessDelegateCompositeCommand(RSContext& context);
 
@@ -67,7 +68,7 @@ public:
 private:
     void AddBufferReleaseInfoInner(pid_t pid, OnCompletedRet& ret);
     void GetBufferReleaseInfo(std::map<pid_t, std::queue<OnCompletedRet>>& outmap);
-    void GetSurfaceTransactionCmdInfoLocked(std::map<uint64_t, std::queue<uint64_t>> &targetListenerMap);
+    void GetSurfaceTransactionCmdInfoLocked(std::map<uint64_t, std::queue<uint64_t>> &targetsListenerMap);
     void DumpTotleInfo(std::string &dumpString);
     pid_t webProxyComposerTid_ = 0;
 
@@ -81,10 +82,10 @@ private:
     std::map<pid_t, pid_t> surfaceTransactionIdentityInfoMap_; // pid and tid
     std::map<pid_t, std::map<uint64_t, sptr<RSISurfaceTransactionListener>>> surfaceTransactionListenerMap_;
     std::mutex cmdMapMutex_;
-    using singlePidCmdMap =  std::map<uint64_t, std::queue<std::unique_ptr<RSCommand>>>;
+    using singlePidCmdMap = std::map<uint64_t, std::queue<std::unique_ptr<RSCommand>>>;
     std::unordered_map<pid_t, singlePidCmdMap> allPidCmdMap_;
 };
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_CROSS_PLATFORM
-#endif
+#endif // RS_DELEGATE_COMPOSITE_CALLBACK_MANAGER

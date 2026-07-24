@@ -22,18 +22,17 @@ namespace Rosen {
 #ifndef ROSEN_CROSS_PLATFORM
 static void RsDelegateCompositeCallbackPrintLog(const std::string &log)
 {
-    ROSEN_LOGE("DelegateModeDebugTag: %{public}s:%{public}s", __func__, log.c_str());
-    RS_OPTIONAL_TRACE_NAME_FMT("DelegateModeDebugTag: %s:%s", __func__, log.c_str());
+    ROSEN_LOGE("DelegateModeDebugTag:%{public}s:%{public}s", __func__, log.c_str());
+    RS_OPTIONAL_TRACE_NAME_FMT("DelegateModeDebugTag:%s:%s", __func__, log.c_str());
 }
 #endif
 
-int32_t RSWebProxyComposerCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& arguments,
-    MessageParcel& reply, MessageOption& option)
+int32_t RSWebProxyComposerCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &arguments,
+    MessageParcel &reply, MessageOption &option)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    RS_OPTIONAL_TRACE_NAME("RSWebProxyComposerCallbackStub OnRemoteRequest");
+    RS_OPTIONAL_TRACE_NAME_FMT("RSWebProxyComposerCallbackStub OnRemoteRequest");
     (void)(option);
-
     auto remoteDescriptor = arguments.ReadInterfaceToken();
     if (GetDescriptor() != remoteDescriptor) {
         RsDelegateCompositeCallbackPrintLog("RSWebProxyComposerCallbackStub fail");
@@ -47,14 +46,13 @@ int32_t RSWebProxyComposerCallbackStub::OnRemoteRequest(uint32_t code, MessagePa
             uint64_t seqNum = 0;
             uint32_t size = 0;
             std::queue<uint64_t> queue;
-            if (!arguments.ReadUint64(time) ||!arguments.ReadUint64(srcId) ||!arguments.ReadUint32(size)) {
+            if (!arguments.ReadUint64(time) || !arguments.ReadUint64(srcId) || !arguments.ReadUint32(size)) {
                 RsDelegateCompositeCallbackPrintLog("read time/srcId/size fail");
                 break;
             }
 
             RS_OPTIONAL_TRACE_NAME_FMT(
-                "RSWebProxyComposerCallbackStub ON_COMPLETE:%llu, srcId=%llu, queueSize=%u",
-                time, srcId, size);
+                "RSWebProxyComposerCallbackStub ON_COMPLETE:%llu, srcId=%llu, queueSize=%u", time, srcId, size);
             for (uint32_t i = 0; i < size; i++) {
                 if (!arguments.ReadUint64(seqNum)) {
                     RsDelegateCompositeCallbackPrintLog("read seqNum fail");
@@ -116,7 +114,6 @@ int32_t SurfaceNodeBufferReleaseCallbackStub::OnRemoteRequest(uint32_t code, Mes
     if (GetDescriptor() != remoteDescriptor) {
         return ERR_INVALID_STATE;
     }
-
     auto ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSISurfaceNodeBufferReleaseInterfaceCode::ON_BUFFER_COMPLETE): {
@@ -128,13 +125,14 @@ int32_t SurfaceNodeBufferReleaseCallbackStub::OnRemoteRequest(uint32_t code, Mes
             std::queue<OnCompletedRet> queue;
             for (uint32_t i = 0; i < size; i++) {
                 OnCompletedRet onCompletedRet;
-                if (!arguments.ReadUint64(onCompletedRet.nodeId) ||!arguments.ReadUint64(onCompletedRet.queueId) ||
+                if (!arguments.ReadUint64(onCompletedRet.nodeId) || !arguments.ReadUint64(onCompletedRet.queueId) ||
                     !arguments.ReadUint32(onCompletedRet.bufferSeqNum)) {
                     RsDelegateCompositeCallbackPrintLog("read onCompletedRet fail");
                     break;
                 }
-                RS_TRACE_NAME_FMT("SurfaceNodeBufferReleaseCallbackStub: nodeId=%llu, queueId=%llu "
-                    "bufferSeqNum=%u, clientPid=%u", onCompletedRet.nodeId, onCompletedRet.queueId,
+                RS_TRACE_NAME_FMT(
+                    "SurfaceNodeBufferReleaseCallbackStub:nodeId=%llu bufferSeqNum=%u, clientPid=%u",
+                    onCompletedRet.nodeId, onCompletedRet.queueId,
                     onCompletedRet.bufferSeqNum, onCompletedRet.clientPid);
 #ifdef ROSEN_OHOS
                 onCompletedRet.releaseFence = SyncFence::ReadFromMessageParcel(arguments);
