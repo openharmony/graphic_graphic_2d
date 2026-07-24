@@ -1400,5 +1400,136 @@ HWTEST_F(EffectImageChainUnittest, DrawNativeBufferWithScaling001, TestSize.Leve
     OH_NativeBuffer_Unreference(dstBuffer);
 }
 
+/**
+ * @tc.name: PrepareStateAfterPrepareTest001
+ * @tc.desc: test state after Prepare and ScaleCanvas
+ */
+HWTEST_F(EffectImageChainUnittest, PrepareStateAfterPrepareTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    ASSERT_NE(image, nullptr);
+
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    auto ret = image->Prepare(srcPixelMap, true);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_NE(image->image_, nullptr);
+    EXPECT_GT(image->canvasRec_.GetRight(), 0.0f);
+    EXPECT_GT(image->canvasRec_.GetBottom(), 0.0f);
+    image->ScaleCanvas(0.5f, 0.5f);
+
+    ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_NE(image->image_, nullptr);
+}
+
+/**
+ * @tc.name: PrepareNativeBufferFenceAndGpuContextTest001
+ * @tc.desc: test GetfenceId and gpuContext_ after PrepareNativeBuffer
+ */
+HWTEST_F(EffectImageChainUnittest, PrepareNativeBufferFenceAndGpuContextTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    ASSERT_NE(image, nullptr);
+    const auto width = 200;
+    const auto height = 200;
+    OHOS::Media::InitializationOptions opts = {
+        .size =
+            {
+                .width = static_cast<int32_t>(width),
+                .height = static_cast<int32_t>(height),
+            },
+        .srcPixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
+        .pixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
+        .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL,
+    };
+
+    std::shared_ptr<Media::PixelMap> srcPixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(srcPixelMap, nullptr);
+
+    OH_NativeBuffer_Config config {
+        .width = width,
+        .height = height,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA
+    };
+    OH_NativeBuffer* dstBuffer = OH_NativeBuffer_Alloc(&config);
+
+    std::shared_ptr<OH_NativeBuffer> dst(
+        dstBuffer,
+        [](OH_NativeBuffer* buffer) {}
+    );
+
+    auto ret = image->PrepareNativeBuffer(srcPixelMap, dst);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(image->GetfenceId(), -1);
+    image->fenceId_ = 42;
+    EXPECT_EQ(image->GetfenceId(), 42);
+    image->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    EXPECT_NE(image->gpuContext_, nullptr);
+    OH_NativeBuffer_Unreference(dstBuffer);
+}
+
+/**
+ * @tc.name: ScaleCanvasWithNullCanvasTest001
+ * @tc.desc: test ScaleCanvas with null canvas
+ */
+HWTEST_F(EffectImageChainUnittest, ScaleCanvasWithNullCanvasTest001, TestSize.Level1)
+{
+    EffectImageChain nullCanvasChain;
+    nullCanvasChain.canvas_ = nullptr;
+    nullCanvasChain.canvasRec_ = Drawing::Rect(0, 0, 100.0f, 100.0f);
+    nullCanvasChain.ScaleCanvas(0.5f, 0.5f);
+    EXPECT_EQ(nullCanvasChain.canvasRec_.GetRight(), 100.0f);
+    EXPECT_EQ(nullCanvasChain.canvasRec_.GetBottom(), 100.0f);
+}
+
+/**
+ * @tc.name: UpdateCanvasWithInvalidRectTest001
+ * @tc.desc: test UpdateCanvas with invalid rects
+ */
+HWTEST_F(EffectImageChainUnittest, UpdateCanvasWithInvalidRectTest001, TestSize.Level1)
+{
+    EffectImageChain invalidCanvasChain;
+    invalidCanvasChain.canvasRec_ = Drawing::Rect(0, 0, 0.0f, 0.0f);
+    invalidCanvasChain.canvas_ = nullptr;
+    invalidCanvasChain.UpdateCanvas();
+    EXPECT_EQ(invalidCanvasChain.canvasRec_.GetRight(), 0.0f);
+    invalidCanvasChain.canvasRec_ = Drawing::Rect(0, 0, -1.0f, 100.0f);
+    invalidCanvasChain.UpdateCanvas();
+    EXPECT_EQ(invalidCanvasChain.canvasRec_.GetRight(), -1.0f);
+    invalidCanvasChain.canvasRec_ = Drawing::Rect(0, 0, 100.0f, -1.0f);
+    invalidCanvasChain.UpdateCanvas();
+    EXPECT_EQ(invalidCanvasChain.canvasRec_.GetBottom(), -1.0f);
+    invalidCanvasChain.canvasRec_ = Drawing::Rect(0, 0, 1e-38f, 1e-38f);
+    invalidCanvasChain.UpdateCanvas();
+    EXPECT_EQ(invalidCanvasChain.canvasRec_.GetRight(), 1e-38f);
+}
+
+/**
+ * @tc.name: InitWithoutCanvasImageNullTest001
+ * @tc.desc: test InitWithoutCanvas returns ERR_IMAGE_NULL when ExtractDrawingImage returns nullptr
+ */
+HWTEST_F(EffectImageChainUnittest, InitWithoutCanvasImageNullTest001, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    srcPixelMap->imageInfo_.pixelFormat = Media::PixelFormat::CMYK;
+
+    EffectImageChain chain;
+    chain.srcPixelMap_ = srcPixelMap;
+    auto ret = chain.InitWithoutCanvas(srcPixelMap);
+    EXPECT_EQ(ret, DrawingError::ERR_IMAGE_NULL);
+    EXPECT_EQ(chain.image_, nullptr);
+#else
+    GTEST_SKIP() << "Skip: InitWithoutCanvas image_==nullptr branch only exists under RS_ENABLE_GPU&&!ROSEN_ARKUI_X";
+#endif
+}
+
 } // namespace Rosen
 } // namespace OHOS

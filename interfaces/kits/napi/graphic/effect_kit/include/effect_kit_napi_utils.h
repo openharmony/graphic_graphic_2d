@@ -124,9 +124,11 @@ public:
                 } else {
                     status = napi_queue_async_work_with_qos(env, work, qos);
                 }
+                if (status == napi_ok) {
+                    aContext.release();
+                }
             }
         }
-        aContext.release();
         return status;
     };
 private:
