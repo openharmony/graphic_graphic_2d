@@ -449,6 +449,10 @@ napi_value WebGLRenderingContextBaseImpl::ShaderSource(napi_env env, napi_value 
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "checkString failed.");
         return NVal::CreateNull(env).val_;
     }
+    if (source.size() > static_cast<size_t>(std::numeric_limits<GLint>::max())) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "shader source too long");
+        return NVal::CreateNull(env).val_;
+    }
     GLint length = static_cast<GLint>(source.size());
     GLchar* str = const_cast<GLchar*>(source.c_str());
     glShaderSource(static_cast<GLuint>(shaderId), 1, &str, &length);
@@ -2846,12 +2850,28 @@ GLenum WebGLRenderingContextBaseImpl::CheckReadPixelsArg(napi_env env, const Pix
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
 
-    // Step 3: requiredBytes = height * rowBytes
+    // Step 3: account for PACK_ALIGNMENT row stride
+    // Each row is padded to a multiple of packAlignment; only the last row is unpadded
+    uint64_t packAlign = static_cast<uint64_t>(packAlignment_);
+    if (packAlign == 0) {
+        packAlign = 1;
+    }
+    uint64_t rowStride = (rowBytes + packAlign - 1) / packAlign * packAlign;
+
+    // Step 4: requiredBytes = rowStride * (height - 1) + rowBytes
     uint64_t height64 = static_cast<uint64_t>(arg.height);
-    uint64_t requiredBytes = height64 * rowBytes;
-    if (rowBytes > 0 && requiredBytes / rowBytes != height64) {
-        LOGE("WebGL readPixels overflow in requiredBytes calculation");
-        return WebGLRenderingContextBase::INVALID_VALUE;
+    uint64_t requiredBytes = 0;
+    if (height64 > 0) {
+        if (rowStride > 0 && height64 - 1 > UINT64_MAX / rowStride) {
+            LOGE("WebGL readPixels overflow in requiredBytes calculation");
+            return WebGLRenderingContextBase::INVALID_VALUE;
+        }
+        requiredBytes = rowStride * (height64 - 1);
+        if (requiredBytes > UINT64_MAX - rowBytes) {
+            LOGE("WebGL readPixels overflow in final requiredBytes addition");
+            return WebGLRenderingContextBase::INVALID_VALUE;
+        }
+        requiredBytes += rowBytes;
     }
 
     // Validate remaining capacity is sufficient for required bytes

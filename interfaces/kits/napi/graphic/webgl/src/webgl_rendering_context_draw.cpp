@@ -217,6 +217,10 @@ napi_value WebGLRenderingContextBaseImpl::TexImage2D(napi_env env, const TexImag
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
         return NVal::CreateNull(env).val_;
     }
+    if (pbOffset < 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "pbOffset is negative");
+        return NVal::CreateNull(env).val_;
+    }
     WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
     if (!texture) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "Can not find texture");
@@ -259,6 +263,10 @@ napi_value WebGLRenderingContextBaseImpl::TexSubImage2D(napi_env env, const TexS
     imgArg.Dump("WebGL texSubImage2D");
     if (boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER] == 0) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
+        return NVal::CreateNull(env).val_;
+    }
+    if (pbOffset < 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "pbOffset is negative");
         return NVal::CreateNull(env).val_;
     }
     WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
@@ -434,18 +442,23 @@ napi_value WebGLRenderingContextBaseImpl::ReadPixels(
         return NVal::CreateNull(env).val_;
     }
 
-    // (TypedArray returns element count, so we need to multiply by element size)
-    GLenum result = CheckReadPixelsArg(env, arg, static_cast<uint64_t>(bufferData.GetBufferLength()),
-        static_cast<uint64_t>(dstOffset));
+    // (TypedArray returns byte length from napi_get_typedarray_info)
+    // dstOffset is element offset, convert to byte offset
+    uint64_t elemSize = static_cast<uint64_t>(bufferData.GetBufferDataSize());
+    uint64_t dstOffsetBytes = static_cast<uint64_t>(dstOffset) * elemSize;
+    uint64_t bufferBytes = static_cast<uint64_t>(bufferData.GetBufferLength());
+
+    GLenum result = CheckReadPixelsArg(env, arg, bufferBytes, dstOffsetBytes);
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR(result);
         return NVal::CreateNull(env).val_;
     }
 
     glReadPixels(arg.x, arg.y, arg.width, arg.height, arg.format, arg.type,
-        static_cast<void*>(bufferData.GetBuffer() + dstOffset));
+        static_cast<void*>(bufferData.GetBuffer() + dstOffsetBytes));
     bufferData.DumpBuffer(bufferData.GetBufferDataType());
-    LOGD("WebGL readPixels pixels %{public}u result %{public}u", dstOffset, GetError_());
+    LOGD("WebGL readPixels dstOffsetBytes %{public}llu result %{public}u",
+        static_cast<unsigned long long>(dstOffsetBytes), GetError_());
     return NVal::CreateNull(env).val_;
 }
 
@@ -661,6 +674,26 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexImage2D(
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
         return NVal::CreateNull(env).val_;
     }
+    if (offset < 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "offset is negative");
+        return NVal::CreateNull(env).val_;
+    }
+    if (imageSize < 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "imageSize is negative");
+        return NVal::CreateNull(env).val_;
+    }
+    WebGLBuffer* pboBuf = GetObjectInstance<WebGLBuffer>(env, boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER]);
+    if (pboBuf == nullptr) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "PBO is null");
+        return NVal::CreateNull(env).val_;
+    }
+    uint64_t pboSize = static_cast<uint64_t>(pboBuf->GetBufferSize());
+    uint64_t offset64 = static_cast<uint64_t>(offset);
+    uint64_t imageSize64 = static_cast<uint64_t>(imageSize);
+    if (offset64 > pboSize || imageSize64 > pboSize - offset64) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "offset + imageSize exceeds PBO size");
+        return NVal::CreateNull(env).val_;
+    }
     GLenum result = CheckCompressedTexImage2D(env, imgArg, static_cast<size_t>(imageSize));
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR(result);
@@ -802,6 +835,26 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
     imgArg.Dump("WebGL compressedTexSubImage2D");
     if (boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER] == 0) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
+        return NVal::CreateNull(env).val_;
+    }
+    if (offset < 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "offset is negative");
+        return NVal::CreateNull(env).val_;
+    }
+    if (imageSize < 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "imageSize is negative");
+        return NVal::CreateNull(env).val_;
+    }
+    WebGLBuffer* pboBuf = GetObjectInstance<WebGLBuffer>(env, boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER]);
+    if (pboBuf == nullptr) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "PBO is null");
+        return NVal::CreateNull(env).val_;
+    }
+    uint64_t pboSize = static_cast<uint64_t>(pboBuf->GetBufferSize());
+    uint64_t offset64 = static_cast<uint64_t>(offset);
+    uint64_t imageSize64 = static_cast<uint64_t>(imageSize);
+    if (offset64 > pboSize || imageSize64 > pboSize - offset64) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "offset + imageSize exceeds PBO size");
         return NVal::CreateNull(env).val_;
     }
     bool succ = CheckCompressedTexSubImage2D(env, imgArg, imageSize);
