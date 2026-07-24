@@ -327,7 +327,9 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     if (composerToRenderConnection_ != nullptr) {
         composerToRenderConnection_->ReleaseLayerBuffers(releaseLayerInfo);
     }
-    unExecuteTaskNum_--;
+    if (unExecuteTaskNum_.load() > 0) {
+        unExecuteTaskNum_--;
+    }
 
     if (setTaskEndWithTimeCb_ != nullptr) {
         setTaskEndWithTimeCb_(SystemTime() - lastActualTime_);
