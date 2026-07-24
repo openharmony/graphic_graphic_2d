@@ -334,7 +334,7 @@ std::unordered_set<NodeId> CollectColorPickerNodeIds(
         }
         for (auto& child : surfaceNode->GetVisibleFilterChild()) {
             auto filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
-            if (filterNode && filterNode->GetColorPickerDrawable()) {
+            if (filterNode && filterNode->HasColorPickerDrawable()) {
                 colorPickerNodeIds.insert(child);
             }
         }

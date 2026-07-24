@@ -1129,6 +1129,7 @@ public:
         rsLayersPerScreen_[screenId] = layer;
     }
 
+    bool HasColorPickerDrawable() const;
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
     // Called every frame to handle state transitions and sync
     // return true if current state is COLOR_PICK and need to transition back to PREPARING

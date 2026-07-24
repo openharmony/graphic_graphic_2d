@@ -3631,7 +3631,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
 
     // Handle ColorPickerDrawable - MERGE into filter handling
     if (isBlendNeedFilter || node.ChildHasVisibleFilter() ||
-        node.GetColorPickerDrawable()) {
+        node.HasColorPickerDrawable()) {
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }

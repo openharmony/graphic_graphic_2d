@@ -2774,6 +2774,15 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
 }
 #endif
 
+bool RSRenderNode::HasColorPickerDrawable() const
+{
+    if (UNLIKELY(!drawableVec_)) {
+        return false;
+    }
+    auto it = drawableVec_->find(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER));
+    return it != drawableVec_->end() && it->second != nullptr;
+}
+
 std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
 {
     if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
@@ -2815,7 +2824,7 @@ bool RSRenderNode::IsColorPickerOnlyNode() const
 {
     // Node is color-picker-only if it was added to visibleFilterChild_
     // only because of ColorPickerDrawable, not because of real filter/blend/fg color
-    return GetColorPickerDrawable() != nullptr && !HasVisibleFilterProperty(*this);
+    return HasColorPickerDrawable() && !HasVisibleFilterProperty(*this);
 }
 
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
@@ -4335,7 +4344,7 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 }
 void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 {
-    if (HasVisibleFilterProperty(childNode) || childNode.GetColorPickerDrawable()) {
+    if (HasVisibleFilterProperty(childNode) || childNode.HasColorPickerDrawable()) {
         visibleFilterChild_.emplace_back(childNode.GetId());
     }
     auto& childFilterNodes = childNode.GetVisibleFilterChild();
