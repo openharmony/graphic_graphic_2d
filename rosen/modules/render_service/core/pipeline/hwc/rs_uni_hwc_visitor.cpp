@@ -943,7 +943,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByColorPicker()
 
 void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterIntersection()
 {
-    std::vector<std::pair<std::shared_ptr<RSRenderNode>, RectI, bool>> filterNodes;
+    std::vector<std::tuple<std::shared_ptr<RSRenderNode>, RectI, bool>> filterNodes;
     auto& allNodes = uniRenderVisitor_.curScreenNode_->GetAllHwcNodeAndFilterNode();
     for (auto reverseIter = allNodes.rbegin(); reverseIter != allNodes.rend(); ++reverseIter) {
         auto node = reverseIter->lock();
@@ -963,8 +963,8 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterIntersection()
             if (curDirtyManager) {
                 bool isIntersect = curDirtyManager->GetCurrentFrameDirtyRegion().Intersect(filterRect);
                 if (instanceRootNode && instanceRootNode->IsTransparent() &&
-                    (!isIntersect || (isIntersect && node->GetRenderProperties().GetBackgroundFilter() ||
-                        node->GetRenderProperties().GetNeedDrawBehindWindow() &&
+                    (!isIntersect || (isIntersect && (node->GetRenderProperties().GetBackgroundFilter() ||
+                        node->GetRenderProperties().GetNeedDrawBehindWindow()) &&
                         !node->IsBackgroundInAppOrNodeSelfDirty()))) {
                     filterNodes.emplace_back(node, filterRect, true);
                     continue;
