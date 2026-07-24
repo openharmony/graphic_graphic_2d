@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@
 namespace ANI::UIEffect {
 namespace {
 constexpr const char* ANI_INTERFACE_RECT = "@ohos.graphics.common2D.common2D.Rect";
+constexpr size_t MAX_GRADIENT_COUNT = 1000;
 ani_method gGetLeftMethod = nullptr;
 ani_method gGetRightMethod = nullptr;
 ani_method gGetTopMethod = nullptr;
@@ -42,7 +43,7 @@ struct RectPropertyMethodCfg {
     ani_method& method;
     ani_double& result;
 };
-} //namespace
+} // namespace
 
 bool IsSystemApp()
 {
@@ -107,6 +108,10 @@ bool ParseRadialGradientValues(taihe::array_view<uintptr_t> gradients,
     std::vector<float>& colors, std::vector<float>& positions)
 {
     size_t length = gradients.size();
+    if (length > MAX_GRADIENT_COUNT) {
+        UIEFFECT_LOG_E("ParseRadialGradientValues gradients size %{public}zu exceeds limit 1000", length);
+        return false;
+    }
     colors.reserve(length);
     positions.reserve(length);
 
@@ -213,10 +218,10 @@ bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values)
     RectPropertyMethodCfg topConfig = { "top", "<get>top", gGetTopMethod, top };
     RectPropertyMethodCfg rightConfig = { "right", "<get>right", gGetRightMethod, right };
     RectPropertyMethodCfg bottomConfig = { "bottom", "<get>bottom", gGetBottomMethod, bottom };
-    if ((GetRectPropertyValue(env, obj, rectClass, leftConfig) !=ANI_OK) ||
-        (GetRectPropertyValue(env, obj, rectClass, topConfig) !=ANI_OK) ||
-        (GetRectPropertyValue(env, obj, rectClass, rightConfig) !=ANI_OK) ||
-        (GetRectPropertyValue(env, obj, rectClass, bottomConfig) !=ANI_OK)) {
+    if ((GetRectPropertyValue(env, obj, rectClass, leftConfig) != ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, topConfig) != ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, rightConfig) != ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, bottomConfig) != ANI_OK)) {
         UIEFFECT_LOG_E("GetRectFromAniRectObj failed");
         return false;
     }
@@ -527,7 +532,10 @@ bool ParseLiquidMaterialEffectParam(OHOS::Rosen::HarmoniumEffectPara& harmoniumP
     harmoniumPara.SetRippleProgress(liquidMaterialEffectParam.rippleProgress);
     // rippleposition
     std::vector<OHOS::Rosen::Vector2f> ripplePositions;
-    ParseRipplePositionValues(liquidMaterialEffectParam.ripplePosition, ripplePositions);
+    if (!ParseRipplePositionValues(liquidMaterialEffectParam.ripplePosition, ripplePositions)) {
+        UIEFFECT_LOG_E("ParseLiquidMaterialEffectParam parse ripplePosition failed");
+        return false;
+    }
     harmoniumPara.SetRipplePosition(ripplePositions);
     harmoniumPara.SetRefractionFactor(liquidMaterialEffectParam.refractionFactor);
     harmoniumPara.SetReflectionFactor(liquidMaterialEffectParam.reflectionFactor);

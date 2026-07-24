@@ -1427,6 +1427,8 @@ ohos_unittest("RSProxyTest") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "skia:skia_canvaskit",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   subsystem_name = "graphic"
@@ -1573,6 +1575,8 @@ ohos_unittest("RSSurfaceOhosTest") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "skia:skia_canvaskit",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   subsystem_name = "graphic"

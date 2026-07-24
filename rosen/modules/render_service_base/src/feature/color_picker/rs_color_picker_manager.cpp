@@ -135,10 +135,10 @@ Drawing::ColorQuad RSColorPickerManager::GetContrastColor(Drawing::ColorQuad col
     return luminance > threshold ? Drawing::Color::COLOR_BLACK : Drawing::Color::COLOR_WHITE;
 }
 
-EquivalentDarkMode RSColorPickerManager::GetLastEquivalentDarkMode()
+ContrastColorScheme RSColorPickerManager::GetLastContrastColorScheme()
 {
     const bool darkMode = isSystemDarkColorMode_.load(std::memory_order_relaxed);
     auto curColor = GetColorOrDefault(colorPicked_.load(std::memory_order_relaxed), darkMode);
-    return curColor == Drawing::Color::COLOR_BLACK ? EquivalentDarkMode::LIGHT : EquivalentDarkMode::DARK;
+    return curColor == Drawing::Color::COLOR_BLACK ? ContrastColorScheme::LIGHT : ContrastColorScheme::DARK;
 }
 } // namespace OHOS::Rosen

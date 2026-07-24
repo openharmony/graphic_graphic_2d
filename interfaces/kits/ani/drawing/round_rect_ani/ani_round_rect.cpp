@@ -172,9 +172,8 @@ ani_object AniRoundRect::RoundRectTransferStatic(ani_env* env, [[maybe_unused]]a
 
     auto aniRoundRect = new AniRoundRect(jsRoundRect->GetRoundRectPtr());
     ani_object aniRoundRectObj = CreateAniObject(env, AniGlobalClass::GetInstance().roundRect,
-        AniGlobalMethod::GetInstance().roundRectCtor);
-    if (ANI_OK != env->Object_SetField_Long(aniRoundRectObj,
-        AniGlobalField::GetInstance().roundRectNativeObj, reinterpret_cast<ani_long>(aniRoundRect))) {
+        AniGlobalMethod::GetInstance().roundRectCtorWithPtr, reinterpret_cast<ani_long>(aniRoundRect));
+    if (IsUndefined(env, aniRoundRectObj)) {
         ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed create aniRoundRect");
         delete aniRoundRect;
         return CreateAniUndefined(env);

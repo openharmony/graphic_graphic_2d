@@ -441,7 +441,7 @@ void RSSpecialLayerUtils::DrawDebugRect(RSPaintFilterCanvas& canvas, Drawing::Co
 
 uint32_t RSSpecialLayerUtils::ConvertFloatToUint32(float value)
 {
-    if (ROSEN_LE(value, 0.f)) {
+    if (std::isnan(value) || ROSEN_LE(value, 0.f)) {
         return 0u;
     }
     if (ROSEN_GE(value, static_cast<float>(UINT32_MAX))) {

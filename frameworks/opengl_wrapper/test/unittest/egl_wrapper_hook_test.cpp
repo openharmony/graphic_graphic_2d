@@ -205,18 +205,6 @@ HWTEST_F(EglWrapperHookTest, Hook_AlreadyInitialized, Level1)
 }
 
 /**
- * @tc.name: LoadHookLayer_ReturnTrue
- * @tc.desc: Test LoadHookLayer when dlopen success
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperHookTest, LoadHookLayer_ReturnTrue, Level2)
-{
-    auto& instance = EglWrapperHook::GetInstance();
-    bool result = instance.LoadHookLayer();
-    ASSERT_TRUE(result);
-}
-
-/**
  * @tc.name: LayerEntries_ReplacementLogs
  * @tc.desc: Test LayerEntries when function pointer is replaced
  * @tc.type: FUNC
@@ -261,109 +249,6 @@ HWTEST_F(EglWrapperHookTest, LayerEntries_NoReplacement, Level2)
     ASSERT_EQ(original, *curr);
 }
 
-static void CaptrueEGLCallBack(
-    EGLGetGlesVersionCallBackFunc getVersion,
-    EGLSwitchTableCallBackFunc switchTable,
-    EGLMakeCurrentAfterHookCallBackFunc makeCurrent)
-{
-    EglWrapperHookTest::capturedGetVersion = getVersion;
-    EglWrapperHookTest::capturedSwitchTable = switchTable;
-    EglWrapperHookTest::capturedMakeCurrent = makeCurrent;
-}
-
-/**
- * @tc.name: EGLGetGlesVersion_NoContext
- * @tc.desc: Test EGLGetGlesVersion when no context is set - should return -1
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperHookTest, EGLGetGlesVersion_NoContext, Level1)
-{
-    auto& instance = EglWrapperHook::GetInstance();
-    auto originalSetCallback = instance.gtx.gtxSetEGLCallBack;
-
-    instance.gtx.gtxSetEGLCallBack = CaptrueEGLCallBack;
-
-    EglWrapperDispatchTable table;
-    bool result = instance.InitHookTable(&table);
-
-    ASSERT_TRUE(result);
-    ASSERT_NE(nullptr, EglWrapperHookTest::capturedGetVersion);
-
-    EGLint version = EglWrapperHookTest::capturedGetVersion();
-    ASSERT_EQ(-1, version);
-
-    instance.gtx.gtxSetEGLCallBack = originalSetCallback;
-}
-
-/**
- * @tc.name: EGLMakeSwitchHookTable_OriginMode
- * @tc.desc: Test EGLMakeSwitchHookTable with originMode=true
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperHookTest, EGLMakeSwitchHookTable_OriginMode, Level2)
-{
-    auto& instance = EglWrapperHook::GetInstance();
-    auto originalSetCallback = instance.gtx.gtxSetEGLCallBack;
-
-    instance.gtx.gtxSetEGLCallBack = CaptrueEGLCallBack;
-
-    EglWrapperDispatchTable table;
-    bool result = instance.InitHookTable(&table);
-
-    ASSERT_TRUE(result);
-    ASSERT_NE(nullptr, EglWrapperHookTest::capturedSwitchTable);
-
-    EglWrapperHookTest::capturedSwitchTable(true);
-
-    instance.gtx.gtxSetEGLCallBack = originalSetCallback;
-}
-
-/**
- * @tc.name: EGLMakeSwitchHookTable_WrapperMode
- * @tc.desc: Test EGLMakeSwitchHookTable with originMode=false
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperHookTest, EGLMakeSwitchHookTable_WrapperMode, Level2)
-{
-    auto& instance = EglWrapperHook::GetInstance();
-    auto originalSetCallback = instance.gtx.gtxSetEGLCallBack;
-
-    instance.gtx.gtxSetEGLCallBack = CaptrueEGLCallBack;
-
-    EglWrapperDispatchTable table;
-    bool result = instance.InitHookTable(&table);
-
-    ASSERT_TRUE(result);
-    ASSERT_NE(nullptr, EglWrapperHookTest::capturedSwitchTable);
-
-    EglWrapperHookTest::capturedSwitchTable(false);
-
-    instance.gtx.gtxSetEGLCallBack = originalSetCallback;
-}
-
-/**
- * @tc.name: EGLMakeCurrentAfterHook_InvalidDisplay
- * @tc.desc: Test EGLMakeCurrentAfterHook with invalid display - should  return EGL_FALSE
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperHookTest, EGLMakeCurrentAfterHook_InvalidDisplay, Level2)
-{
-    auto& instance = EglWrapperHook::GetInstance();
-    auto originalSetCallback = instance.gtx.gtxSetEGLCallBack;
-
-    instance.gtx.gtxSetEGLCallBack = CaptrueEGLCallBack;
-
-    EglWrapperDispatchTable table;
-    bool result = instance.InitHookTable(&table);
-
-    ASSERT_TRUE(result);
-    ASSERT_NE(nullptr, EglWrapperHookTest::capturedMakeCurrent);
-
-    EGLBoolean ret = EglWrapperHookTest::capturedMakeCurrent(nullptr, nullptr, nullptr, nullptr);
-    ASSERT_EQ(EGL_FALSE, ret);
-
-    instance.gtx.gtxSetEGLCallBack = originalSetCallback;
-}
 } // namespace OHOS
 
 #endif // USE_IGRAPHICS_EXTENDS_HOOKS

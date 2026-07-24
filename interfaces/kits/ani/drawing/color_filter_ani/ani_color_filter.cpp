@@ -273,8 +273,16 @@ ani_object AniColorFilter::CreateComposeColorFilter(
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param inner.");
         return CreateAniUndefined(env);
     }
+
+    std::shared_ptr<ColorFilter> colorFilter1 = aniOuterColorFilter->GetColorFilter();
+    std::shared_ptr<ColorFilter> colorFilter2 = aniInnerColorFilter->GetColorFilter();
+    if (colorFilter1 == nullptr || colorFilter2 == nullptr) {
+        ROSEN_LOGE("AniColorFilter::CreateComposeColorFilter colorFilter is nullptr");
+        return CreateAniUndefined(env);
+    }
+
     AniColorFilter* colorFilter = new AniColorFilter(ColorFilter::CreateComposeColorFilter(
-        *(aniOuterColorFilter->GetColorFilter()), *(aniInnerColorFilter->GetColorFilter())));
+        *colorFilter1, *colorFilter2));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
         AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
         colorFilter);

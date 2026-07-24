@@ -60,12 +60,7 @@ void RSMemoryInfoManager::SetImageMemoryInfo(const std::shared_ptr<Media::PixelM
     if (!sbBuffer) {
         return;
     }
-    NODE_ON_TREE_STATUS res = NODE_ON_TREE_STATUS::STATUS_INVALID;
-    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
-        res = MemoryTrack::Instance().GetNodeOnTreeStatus(pixelMap->GetPixels());
-    } else {
-        res = MemoryTrack::Instance().GetNodeOnTreeStatus(pixelMap->GetFd());
-    }
+    NODE_ON_TREE_STATUS res = MemoryTrack::Instance().GetNodeOnTreeStatus(pixelMap->GetFd());
     if (res == NODE_ON_TREE_STATUS::STATUS_OFF_TREE) {
         Memory::MemMgrClient::GetInstance().SetDmabufInfo(sbBuffer->GetFileDescriptor(),
             Memory::DmabufRsInfo::IMAGE_OFF_TREE);

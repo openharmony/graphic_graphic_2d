@@ -17,6 +17,8 @@ import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
  
 ## Build libvsync_manager
 ohos_source_set("libvsync_manager") {
+  branch_protector_ret = "pac_ret"
+
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -99,8 +101,6 @@ ohos_source_set("libvsync_manager") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "libpng:libpng",
-    "qos_manager:concurrent_task_client",
-    "qos_manager:qos",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",

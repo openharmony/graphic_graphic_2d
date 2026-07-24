@@ -24,7 +24,6 @@
 
 namespace OHOS {
     namespace {
-        constexpr size_t STR_LEN = 10;
         constexpr int32_t RANGE_MAX_REFRESHRATE = 144;
         size_t g_size = 0;
         size_t g_pos = 0;
@@ -68,25 +67,6 @@ namespace OHOS {
         }
         std::string str(cstr);
         return str;
-    }
-
-    /*
-    * Fuzz test for OH_NativeVSync_Create_ForAssociatedWindow with fuzzed inputs
-    */
-    void NativeVSyncCreateForAssociatedWindowFuzzTest()
-    {
-        uint64_t windowID = GetData<uint64_t>();
-        string name = GetStringFromData(STR_LEN);
-        unsigned int length = GetData<unsigned int>();
-
-        OH_NativeVSync* nativeVSync = nullptr;
-
-        nativeVSync = OH_NativeVSync_Create_ForAssociatedWindow(windowID, nullptr, length);
-        OH_NativeVSync_Destroy(nativeVSync);
-        nativeVSync = OH_NativeVSync_Create_ForAssociatedWindow(windowID, name.c_str(), 0);
-        OH_NativeVSync_Destroy(nativeVSync);
-        nativeVSync = OH_NativeVSync_Create_ForAssociatedWindow(windowID, name.c_str(), GetData<unsigned int>());
-        OH_NativeVSync_Destroy(nativeVSync);
     }
 
     /*
@@ -164,10 +144,8 @@ namespace OHOS {
     /*
     * Fuzz test for edge cases with boundary values
     */
-    void NativeVSyncEdgeCaseFuzzTest()
+    void NativeVSyncEdgeCaseFuzzTest(OH_NativeVSync* nativeVSync)
     {
-        const char* validName = "FuzzTest";
-        OH_NativeVSync* nativeVSync = OH_NativeVSync_Create(validName, 8);
         if (nativeVSync != nullptr) {
             long long period = 0;
             OH_NativeVSync_GetPeriod(nativeVSync, &period);
@@ -183,18 +161,14 @@ namespace OHOS {
 
             OH_NativeVSync_ExpectedRateRange maxRange = {0, RANGE_MAX_REFRESHRATE, RANGE_MAX_REFRESHRATE};
             OH_NativeVSync_SetExpectedFrameRateRange(nativeVSync, &maxRange);
-
-            OH_NativeVSync_Destroy(nativeVSync);
         }
     }
 
     /*
     * Fuzz test for invalid frame rate ranges
     */
-    void NativeVSyncInvalidRangeFuzzTest()
+    void NativeVSyncInvalidRangeFuzzTest(OH_NativeVSync* nativeVSync)
     {
-        const char* validName = "FuzzTest";
-        OH_NativeVSync* nativeVSync = OH_NativeVSync_Create(validName, 8);
         if (nativeVSync != nullptr) {
             OH_NativeVSync_ExpectedRateRange invalidRange1 = {-1, 60, 30};
             OH_NativeVSync_SetExpectedFrameRateRange(nativeVSync, &invalidRange1);
@@ -207,25 +181,17 @@ namespace OHOS {
 
             OH_NativeVSync_ExpectedRateRange invalidRange4 = {30, 60, 15};
             OH_NativeVSync_SetExpectedFrameRateRange(nativeVSync, &invalidRange4);
-
-            OH_NativeVSync_Destroy(nativeVSync);
         }
     }
 
     /*
     * Fuzz test for associated window creation
     */
-    void NativeVSyncAssociatedWindowFuzzTest()
+    void NativeVSyncAssociatedWindowFuzzTest(OH_NativeVSync* nativeVSync)
     {
-        uint64_t windowID = GetData<uint64_t>();
-        string name = GetStringFromData(STR_LEN);
-        unsigned int length = GetData<unsigned int>();
-
-        OH_NativeVSync* nativeVSync = OH_NativeVSync_Create_ForAssociatedWindow(windowID, name.c_str(), length);
         if (nativeVSync != nullptr) {
             long long period = 0;
             OH_NativeVSync_GetPeriod(nativeVSync, &period);
-            OH_NativeVSync_Destroy(nativeVSync);
         }
     }
 
@@ -239,12 +205,8 @@ namespace OHOS {
         g_size = size;
         g_pos = 0;
 
-        string name = GetStringFromData(STR_LEN);
-        unsigned int length = GetData<unsigned int>();
-
-        OH_NativeVSync* nativeVSync = OH_NativeVSync_Create(name.c_str(), length);
-
-        NativeVSyncCreateForAssociatedWindowFuzzTest();
+        const char* name = "FuzzTest";
+        OH_NativeVSync* nativeVSync = OH_NativeVSync_Create(name, 8);
 
         if (nativeVSync != nullptr) {
             NativeVSyncRequestFrameFuzzTest(nativeVSync);
@@ -252,13 +214,12 @@ namespace OHOS {
             NativeVSyncGetPeriodFuzzTest(nativeVSync);
             NativeVSyncDVSyncSwitchFuzzTest(nativeVSync);
             NativeVSyncSetExpectedFrameRateRangeFuzzTest(nativeVSync);
-            NativeVSyncDestroyFuzzTest(nativeVSync);
         }
 
-        NativeVSyncEdgeCaseFuzzTest();
-        NativeVSyncInvalidRangeFuzzTest();
-        NativeVSyncAssociatedWindowFuzzTest();
-
+        NativeVSyncEdgeCaseFuzzTest(nativeVSync);
+        NativeVSyncInvalidRangeFuzzTest(nativeVSync);
+        NativeVSyncAssociatedWindowFuzzTest(nativeVSync);
+        NativeVSyncDestroyFuzzTest(nativeVSync);
         return true;
     }
 }

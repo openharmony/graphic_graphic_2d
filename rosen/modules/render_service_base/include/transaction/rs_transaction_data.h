@@ -188,6 +188,9 @@ public:
     bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const;
     void DumpCommand(std::string& dumpString);
 
+    void SetCallingPid(pid_t pid) { callingPid_ = pid; }
+    pid_t GetCallingPid() const { return callingPid_; }
+
     void SetDVSyncUpdate(bool dvsyncTimeUpdate)
     {
         dvsyncTimeUpdate_ = dvsyncTimeUpdate;
@@ -219,6 +222,11 @@ public:
     }
 
 private:
+    using InaccessibleCommandMap = std::unordered_map<pid_t,
+        std::unordered_map<NodeId, std::set<std::pair<uint16_t, uint16_t>>>>;
+    void CheckNonSystemCommand(RSCommand* command, pid_t callingPid, const RSRenderNodeMap& nodeMap,
+        InaccessibleCommandMap& inaccessibleCommandMap) const;
+
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
     void MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId);
@@ -256,6 +264,7 @@ private:
     uint64_t dvsyncTime_ = 0;
     bool isRebuildTransactionSequence_ { false };
     RSTransactionDataScenes scene_ = RSTransactionDataScenes::Default;
+    pid_t callingPid_ = -1;
 
     friend class RSTransactionProxy;
     friend class RSTransactionHandler;

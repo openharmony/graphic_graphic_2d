@@ -88,6 +88,7 @@ constexpr int32_t MAX_VISIBLE_REGION_INFO = 150;
 }
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
+RSSurfaceRenderNodeDrawable::ProtectiveSolidRegistrar RSSurfaceRenderNodeDrawable::protectiveSolidInstance_;
 
 RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawable(std::move(node)), syncDirtyManager_(std::make_shared<RSDirtyRegionManager>())
@@ -383,7 +384,9 @@ int RSSurfaceRenderNodeDrawable::GetMaxRenderSizeForRotationOffscreen(int& offsc
     int& offscreenHeight)
 {
     int maxRenderSize = std::max(offscreenWidth, offscreenHeight);
-    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()) {
+    auto& renderParam = GetRenderParams();
+    bool hasHDR = renderParam && renderParam->SelfOrChildHasHDR();
+    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable() && hasHDR) {
         maxRenderSize /= ROTATION_OFFSCREEN_BUFFER_SIZE_RATIO;
     }
     return maxRenderSize;
@@ -391,7 +394,9 @@ int RSSurfaceRenderNodeDrawable::GetMaxRenderSizeForRotationOffscreen(int& offsc
 
 void RSSurfaceRenderNodeDrawable::ApplyCanvasScalingIfDownscaleEnabled()
 {
-    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()) {
+    auto& renderParam = GetRenderParams();
+    bool hasHDR = renderParam && renderParam->SelfOrChildHasHDR();
+    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable() && hasHDR) {
         curCanvas_->Scale(OFFSCREEN_CANVAS_SCALE, OFFSCREEN_CANVAS_SCALE);
     }
 }
@@ -504,7 +509,9 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
         offscreenRotationInfo_->canvasBackup_->Scale(1 / offscreenRotationInfo_->scaleX_,
             1 / offscreenRotationInfo_->scaleY_);
     }
-    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()) {
+    auto& renderParam = GetRenderParams();
+    bool hasHDR = renderParam && renderParam->SelfOrChildHasHDR();
+    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable() && hasHDR) {
         offscreenRotationInfo_->canvasBackup_->Save();
         offscreenRotationInfo_->canvasBackup_->Scale(BACK_MAIN_SCREEN_CANVAS_SCALE, BACK_MAIN_SCREEN_CANVAS_SCALE);
         offscreenRotationInfo_->canvasBackup_->DrawImage(*image, 0, 0, sampling);

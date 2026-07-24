@@ -20,6 +20,7 @@
 #endif
 
 #include "pixel_map_from_surface.h"
+#include "pixel_map_from_surface_utils.h"
 #include <scoped_bytrace.h>
 #include <string>
 #include "common/rs_background_thread.h"
@@ -705,10 +706,7 @@ OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
 
     int32_t bufferWidth = surfaceBuffer->GetWidth();
     int32_t bufferHeight = surfaceBuffer->GetHeight();
-    if (srcRect.width > bufferWidth || srcRect.height > bufferHeight ||
-        srcRect.left >= bufferWidth || srcRect.top >= bufferHeight ||
-        static_cast<int64_t>(srcRect.left) + static_cast<int64_t>(srcRect.width) > static_cast<int64_t>(bufferWidth) ||
-        static_cast<int64_t>(srcRect.top) + static_cast<int64_t>(srcRect.height) > static_cast<int64_t>(bufferHeight)) {
+    if (!IsSrcRectValid(bufferWidth, bufferHeight, srcRect)) {
         RS_LOGE("invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d],"
             "bufferWidth=%{public}d, bufferHeight=%{public}d",
             srcRect.left, srcRect.top, srcRect.width, srcRect.height, bufferWidth, bufferHeight);
@@ -881,9 +879,12 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
         RS_LOGE("surfaceBuffer invalid argument: surfaceBuffer is nullptr");
         return nullptr;
     }
-    if (srcRect.left < 0 || srcRect.top < 0 || srcRect.width <= 0 || srcRect.height <= 0) {
-        RS_LOGE("surfaceBuffer invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d]",
-            srcRect.left, srcRect.top, srcRect.width, srcRect.height);
+    int32_t bufferWidth = surfaceBuffer->GetWidth();
+    int32_t bufferHeight = surfaceBuffer->GetHeight();
+    if (!IsSrcRectValid(bufferWidth, bufferHeight, srcRect)) {
+        RS_LOGE("surfaceBuffer invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d],"
+            "bufferWidth=%{public}d, bufferHeight=%{public}d",
+            srcRect.left, srcRect.top, srcRect.width, srcRect.height, bufferWidth, bufferHeight);
         return nullptr;
     }
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))

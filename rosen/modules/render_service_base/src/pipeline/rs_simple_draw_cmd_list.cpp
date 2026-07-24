@@ -145,7 +145,6 @@ size_t RSSimpleDrawCmdList::GetSize() const
 
 size_t RSSimpleDrawCmdList::GetOpItemSize() const
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return drawOpItems_.size();
 }
 

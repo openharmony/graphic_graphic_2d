@@ -20,6 +20,7 @@
 #include <parameters.h>
 #include "util.h"
 #include "transaction/rs_interfaces.h"
+#include "display_manager_lite.h"
 
 namespace OHOS {
 namespace {
@@ -43,6 +44,9 @@ bool BootAnimationStrategy::CheckExitAnimation()
     bool bootEventCompleted = system::GetBoolParameter(BOOT_COMPLETED, false);
     if (bootEventCompleted) {
         LOGI("read boot completed is true");
+        // Notify WMS that boot animation has finished, so the fold screen power-on
+        // sequence runs at the boot-animation-decided timing.
+        Rosen::DisplayManagerLite::GetInstance().NotifyBootAnimationFinished();
 #ifdef FEATURE_CHECK_EXIT_ANIMATION_EXT
         return CheckExitAnimationExt();
 #else

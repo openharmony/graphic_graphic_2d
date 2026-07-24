@@ -63,6 +63,11 @@ ani_object AniImageFilter::CreateFromColorFilter(
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param colorFilter.");
         return CreateAniUndefined(env);
     }
+    std::shared_ptr<ColorFilter> colorFilter = aniColorFilter->GetColorFilter();
+    if (colorFilter == nullptr) {
+        ROSEN_LOGE("AniImageFilter::CreateFromColorFilter colorFilter is nullptr!");
+        return CreateAniUndefined(env);
+    }
 
     AniImageFilter* aniImageFilter = nullptr;
     if (!IsNull(env, aniImageFilterObj) && !IsUndefined(env, aniImageFilterObj)) {
@@ -74,7 +79,7 @@ ani_object AniImageFilter::CreateFromColorFilter(
         }
     }
     AniImageFilter* imageFilter = new AniImageFilter(ImageFilter::CreateColorFilterImageFilter(
-        *(aniColorFilter->GetColorFilter()), aniImageFilter ? aniImageFilter->GetImageFilter() : nullptr));
+        *colorFilter, aniImageFilter ? aniImageFilter->GetImageFilter() : nullptr));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().imageFilter,
         AniGlobalMethod::GetInstance().imageFilterCtor, AniGlobalMethod::GetInstance().imageFilterBindNative,
             imageFilter);

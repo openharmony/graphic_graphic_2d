@@ -64,6 +64,8 @@ ohos_unittest("RSParallelExecutorManagerMultiwinTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -93,6 +95,8 @@ ohos_unittest("RSParallelExecutorMultiwinTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -123,6 +127,8 @@ ohos_unittest("RSParallelRBPolicyTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -154,6 +160,8 @@ ohos_unittest("RSParallelManagerTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -184,6 +192,8 @@ ohos_unittest("RSParallelMultiwinPolicyTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -215,6 +225,8 @@ ohos_unittest("RSParallelGPUTest") {
     "ipc:ipc_core",
     "memmgr:memmgrclient",
     "libpng:libpng",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -246,6 +258,8 @@ ohos_unittest("RSSubtreeTest") {
     "ipc:ipc_core",
     "memmgr:memmgrclient",
     "libpng:libpng",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -351,7 +365,10 @@ ohos_static_library("rs_test_common") {
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 
-  external_deps = []
+  external_deps = [
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
   if (accessibility_enable) {
     external_deps += [ "accessibility:accessibilityconfig" ]
     external_deps += [ "accessibility:accessibility_common" ]

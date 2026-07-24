@@ -222,6 +222,8 @@ EGLBoolean EglWrapperDisplay::Terminate()
     if (table->isLoad) {
         if (table->egl.eglTerminate) {
             BlobCache::Get()->Terminate();
+            //Clear Context when egl is terminated
+            ThreadPrivateDataCtl::SetContext(nullptr);
             ClearObjects();
             return table->egl.eglTerminate(disp_);
         }
@@ -470,8 +472,8 @@ EGLDisplay EglWrapperDisplay::GetEglDisplayExt(EGLenum platform,
 
 bool EglWrapperDisplay::ValidateEglContext(EGLContext ctx)
 {
-    WLOGD("");
-    return false;
+    EglWrapperContext *ctxPtr = EglWrapperContext::GetWrapperContext(ctx);
+    return wrapperDisp_.CheckObject(ctxPtr);
 }
 
 bool EglWrapperDisplay::ValidateEglSurface(EGLSurface surf)
@@ -553,6 +555,9 @@ EGLBoolean EglWrapperDisplay::DestroyEglContext(EGLContext context)
         ret = table->egl.eglDestroyContext(disp_, ctx);
         if (ret == EGL_TRUE) {
             ctxPtr->Destroy();
+            if (ThreadPrivateDataCtl::GetContext() == context) {
+                ThreadPrivateDataCtl::SetContext(nullptr);
+            }
         } else {
             WLOGE("eglDestroyContext error.");
         }

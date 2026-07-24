@@ -191,9 +191,9 @@ void RSRenderService::HgmInit()
             }
         };
         hgmContext_ = std::make_shared<HgmContext>(handler_, frameRateMgr, callbackFunc,
-            vsyncManager_->GetVSyncAppDistributor(), vsyncManager_->GetVSyncRSDistributor());
-        hgmContext_->InitHgmTaskHandleThread(vsyncManager_->GetVSyncRSController(),
-            vsyncManager_->GetVSyncAppController(), vsyncManager_->GetVSyncGenerator());
+            vsyncManager_->GetVsyncAppDistributor(), vsyncManager_->GetVsyncRSDistributor());
+        hgmContext_->InitHgmTaskHandleThread(vsyncManager_->GetVsyncRSController(),
+            vsyncManager_->GetVsyncAppController(), vsyncManager_->GetVsyncGenerator());
     }
 }
 
@@ -204,7 +204,7 @@ void RSRenderService::FeatureComponentInit()
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
         RsVulkanContext::SetRecyclable(false);
-        RS_LOGT("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
+        RS_LOGD("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
         RsVulkanContext::SetIsMultiProcess(renderModeConfig_->GetIsMultiProcessModeEnabled());
     }
 #endif
@@ -277,24 +277,17 @@ void RSRenderService::Run()
 
 sptr<IRemoteObject> RSRenderService::RegisterRenderProcessConnection()
 {
-    pid_t callingPid = GetCallingPid();
-    if (!renderProcessManager_->IsValidRenderProcessPid(callingPid)) {
-        RS_LOGE("%{public}s: Invalid render_process pid %{public}u, not forked by render_service",
-            __func__, callingPid);
-        return nullptr;
-    }
-    auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*this);
-    auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
-    auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(screenManager_);
-    auto renderToServiceConnection =
-        sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
-    return renderToServiceConnection->AsObject();
+    return renderProcessManager_->CreateRenderToServiceConnection(GetCallingPid());
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::GetConnection(
     const sptr<RSIConnectionToken>& token)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (token == nullptr) {
+        RS_LOGE("RSRenderService::GetConnection token is nullptr");
+        return {nullptr, nullptr};
+    }
     auto tokenObj = token->AsObject();
     auto iter = connections_.find(tokenObj);
     if (iter == connections_.end()) {
@@ -514,8 +507,8 @@ std::pair<sptr<IRSRenderToComposerConnection>, sptr<VSyncConnection>> RSRenderSe
 {
     auto renderToComposerConnection = rsRenderComposerManager_->GetRSComposerConnection(screenId);
     auto vsyncConnection =
-        sptr<VSyncConnection>::MakeSptr(vsyncManager_->GetVSyncRSDistributor(), "render_process", vsyncToken);
-    vsyncManager_->GetVSyncRSDistributor()->AddConnection(vsyncConnection);
+        sptr<VSyncConnection>::MakeSptr(vsyncManager_->GetVsyncRSDistributor(), "render_process", vsyncToken);
+    vsyncManager_->GetVsyncRSDistributor()->AddConnection(vsyncConnection);
     return { renderToComposerConnection, vsyncConnection };
 }
 
@@ -525,8 +518,8 @@ void RSRenderService::InitGameFrameHandler()
         [vsyncManager = vsyncManager_](int64_t rsOffset, int64_t appOffset) {
             RS_TRACE_NAME_FMT("GameSceneChangeVsyncOffset(" PRId64 "," PRId64 ")", rsOffset, appOffset);
             RS_LOGW("GameSceneChangeVsyncOffset(%{public}" PRId64 ",%{public}" PRId64 ")", rsOffset, appOffset);
-            vsyncManager->GetVSyncRSController()->SetPhaseOffset(rsOffset);
-            vsyncManager->GetVSyncAppController()->SetPhaseOffset(appOffset);
+            vsyncManager->GetVsyncRSController()->SetPhaseOffset(rsOffset);
+            vsyncManager->GetVsyncAppController()->SetPhaseOffset(appOffset);
         },
         [](bool& isLtpoEnabled, bool& isVsyncCustomized, bool& isDelayMode, int64_t& rsOffset, int64_t& appOffset) {
             auto& hgmCore = HgmCore::Instance();

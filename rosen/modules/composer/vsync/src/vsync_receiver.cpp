@@ -290,7 +290,7 @@ VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount, bool compositeS
     if (!init_) {
         return VSYNC_ERROR_API_FAILED;
     }
-    VLOGI("SetUiDvsyncConfig bufferCount:%d compositeSceneEnable:%d nativeDelayEnable:%d",
+    VLOGD("SetUiDvsyncConfig bufferCount:%d compositeSceneEnable:%d nativeDelayEnable:%d",
         bufferCount, compositeSceneEnable, nativeDelayEnable);
     return connection_->SetUiDvsyncConfig(bufferCount, compositeSceneEnable, nativeDelayEnable, rsDvsyncAnimationList);
 }

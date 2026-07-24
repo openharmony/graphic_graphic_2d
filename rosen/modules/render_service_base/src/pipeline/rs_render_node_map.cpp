@@ -172,6 +172,9 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         AddUIExtensionSurfaceNode(surfaceNode);
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
+    } else if (nodePtr->GetType() == RSRenderNodeType::PROTECTIVE_SOLID_NODE) {
+        auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
+        protectiveSolidNodeMap_.emplace(id, surfaceNode);
     } else if (nodePtr->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = nodePtr->ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);
@@ -185,8 +188,14 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
     return true;
 }
 
+static constexpr size_t MAX_UNTREE_NODE_SET_SIZE = 10000;
 void RSRenderNodeMap::RegisterUnTreeNode(NodeId id)
 {
+    if (unInTreeNodeSet_.size() >= MAX_UNTREE_NODE_SET_SIZE) {
+        RS_LOGE("RegisterUnTreeNode: unInTreeNodeSet_ size exceededlimit %{public}zu, nodeId %{public}" PRIu64,
+            MAX_UNTREE_NODE_SET_SIZE, id);
+        return;
+    }
     unInTreeNodeSet_.emplace(id);
 }
 
@@ -221,6 +230,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     screenNodeMap_.erase(id);
     logicalDisplayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
+    protectiveSolidNodeMap_.erase(id);
     auto removeIter = std::remove_if(needAttachedNode_.begin(), needAttachedNode_.end(), [id](const auto& node) {
         if (node && node->GetId() == id) {
             node->GetAttachedInfo() = std::nullopt;
@@ -314,9 +324,11 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
 
 #ifndef ROSEN_CROSS_PLATFORM
     RS_TRACE_BEGIN("process surfaceHandlerInfoMap_");
-    EraseIf(surfaceHandlerInfoMap_, [pid, this](const auto& pair) -> bool {
-        return (ExtractPid(pair.first) == pid);
-    });
+    {
+        std::lock_guard<std::mutex> lock(surfaceHandlerInfoMutex_);
+        EraseIf(
+            surfaceHandlerInfoMap_, [pid, this](const auto& pair) -> bool { return (ExtractPid(pair.first) == pid); });
+    }
     RS_TRACE_END();
 #endif
 
@@ -393,7 +405,7 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
                 return false;
 #endif
             }
-            pair.second->DestroyAnimationInRender();
+            pair.second->ReleaseNodeInRender();
 
             auto surfaceNode = pair.second->template ReinterpretCastTo<RSSurfaceRenderNode>();
             if (surfaceNode && surfaceNode->IsAppWindow()) {
@@ -519,6 +531,19 @@ void RSRenderNodeMap::TraverseSurfaceNodes(std::function<void (const std::shared
     for (const auto& [_, node] : surfaceNodeMap_) {
         func(node);
     }
+}
+
+void RSRenderNodeMap::TraverseProtectiveSolidNodes(
+    std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : protectiveSolidNodeMap_) {
+        func(node);
+    }
+}
+
+size_t RSRenderNodeMap::GetProtectiveSolidNodeMapSize() const
+{
+    return protectiveSolidNodeMap_.size();
 }
 
 void RSRenderNodeMap::TraverseSurfaceNodesBreakOnCondition(

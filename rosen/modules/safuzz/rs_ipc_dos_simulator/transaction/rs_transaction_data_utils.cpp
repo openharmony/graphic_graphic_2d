@@ -122,6 +122,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdateOcclusionCullingStatus),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetDrawNodeType),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSColorPickerCallback),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSColorPickerDestroyInRender),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyNGFilterBase),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyNGMaskBase),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyNGShaderBase),

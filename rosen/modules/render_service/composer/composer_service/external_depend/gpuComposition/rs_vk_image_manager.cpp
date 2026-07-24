@@ -266,7 +266,7 @@ void RSVkImageManager::UnMapImageOneByOne(pid_t threadIndex)
     RSTaskDispatcher::GetInstance().PostTask(threadIndex, func, false);
 }
 
-void RSVkImageManager::UnMapImageFromSurfaceBuffer(const std::set<uint64_t>& unmappedCache)
+void RSVkImageManager::UnMapImageFromSurfaceBuffer(const std::unordered_set<uint64_t>& unmappedCache)
 {
     std::set<uint64_t> unmappedCacheTmp;
     {

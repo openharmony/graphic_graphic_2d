@@ -27,6 +27,7 @@ ohos_unittest("RSRenderSurfaceLayerUnittest") {
   sources = [
     "rs_render_surface_layer_test.cpp",
     "rs_render_surface_rcd_layer_test.cpp",
+    "rs_render_surface_solid_filled_color_layer_test.cpp",
   ]
   deps = [
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",

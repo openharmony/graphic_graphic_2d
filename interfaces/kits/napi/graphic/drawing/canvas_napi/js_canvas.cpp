@@ -1105,6 +1105,7 @@ bool GetGlyphIds(napi_env env, napi_value& jsGlyphIds, uint32_t size, std::uniqu
         ROSEN_LOGE("GetGlyphIds size exceeds the upper limit");
         return false;
     }
+    glyphIds = std::make_unique<uint16_t[]>(size);
     for (uint32_t i = 0; i < size; i++) {
         napi_value tempGlyphIds = nullptr;
         napi_get_element(env, jsGlyphIds, i, &tempGlyphIds);
@@ -1127,6 +1128,11 @@ bool GetGlyphIds(napi_env env, napi_value& jsGlyphIds, uint32_t size, std::uniqu
 bool GetGlyphPositions(napi_env env, napi_value& jsPosition, uint32_t size,
                        std::unique_ptr<Drawing::Point[]>& positions)
 {
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("GetGlyphPositions size exceeds the upper limit");
+        return false;
+    }
+    positions = std::make_unique<Drawing::Point[]>(size);
     if (!OnMakePoints(env, positions.get(), size, jsPosition)) {
         ROSEN_LOGE("JsCanvas::OnDrawGlyphs Argv[ARGC_TWO] is invalid");
         return false;
@@ -1199,12 +1205,10 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
         (positionsSize < static_cast<uint32_t>(GlyphSafeAdd(positionOffSet, glyphCount)))) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Input out of range.");
     }
-    std::unique_ptr<uint16_t[]> glyphIds = std::make_unique<uint16_t[]>(glyphIdsSize);
-    if (!GetGlyphIds(env, jsGlyphIds, glyphIdsSize, glyphIds)) {
-        return nullptr;
-    }
-    std::unique_ptr<Drawing::Point[]> positions = std::make_unique<Drawing::Point[]>(positionsSize);
-    if (!GetGlyphPositions(env, jsPosition, positionsSize, positions)) {
+    std::unique_ptr<uint16_t[]> glyphIds;
+    std::unique_ptr<Drawing::Point[]> positions;
+    if (!GetGlyphIds(env, jsGlyphIds, glyphIdsSize, glyphIds) ||
+        !GetGlyphPositions(env, jsPosition, positionsSize, positions)) {
         return nullptr;
     }
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
@@ -1493,6 +1497,10 @@ bool GetPositions(napi_env env, uint32_t pointLength, napi_value& positionsArray
         NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid positions params.");
         return false;
     }
+    if (positionsSize > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("JsCanvas::OnDrawVertices positionsSize exceeds the upper limit");
+        return false;
+    }
     positions.resize(positionsSize);
     if (!OnMakePoints(env, positions.data(), positionsSize, positionsArray)) {
         ROSEN_LOGE("JsCanvas::OnDrawVertices positions is invalid");
@@ -1510,6 +1518,10 @@ bool GetTexs(napi_env env, uint32_t pointLength, napi_value& texsArray,
         if (texsSize != pointLength) {
             ROSEN_LOGE("JsCanvas::OnDrawVertices texsSize is invalid");
             NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid texs params.");
+            return false;
+        }
+        if (texsSize > MAX_ELEMENTSIZE) {
+            ROSEN_LOGE("JsCanvas::OnDrawVertices texsSize exceeds the upper limit");
             return false;
         }
         texs.resize(texsSize);

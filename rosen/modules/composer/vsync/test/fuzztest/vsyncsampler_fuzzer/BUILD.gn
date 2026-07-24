@@ -38,7 +38,6 @@ ohos_fuzztest("VsyncSamplerFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "samgr:samgr_proxy",
   ]
 }

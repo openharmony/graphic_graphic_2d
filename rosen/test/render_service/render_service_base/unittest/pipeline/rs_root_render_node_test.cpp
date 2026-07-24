@@ -14,7 +14,9 @@
  */
 
 #include "gtest/gtest.h"
+#include "drawable/rs_misc_drawable.h"
 #include "params/rs_render_params.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -115,5 +117,80 @@ HWTEST_F(RSRootRenderNodeTest, QuickPrepare, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 
+/**
+ * @tc.name: Destructor001
+ * @tc.desc: Test RSRootRenderNode destructor with CHILDREN drawable and valid context
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRootRenderNodeTest, Destructor001, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 1;
+    {
+        auto rootRenderNode = std::make_shared<RSRootRenderNode>(nodeId, context);
+        ASSERT_NE(rootRenderNode, nullptr);
+        auto childrenDrawable = DrawableV2::RSChildrenDrawable::OnGenerate(*rootRenderNode);
+        if (childrenDrawable == nullptr) {
+            childrenDrawable = std::make_shared<DrawableV2::RSChildrenDrawable>();
+        }
+        rootRenderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] = childrenDrawable;
+        ASSERT_NE(rootRenderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CHILDREN)], nullptr);
+    }
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: Destructor002
+ * @tc.desc: Test RSRootRenderNode destructor without CHILDREN drawable (no drawableVec populated)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRootRenderNodeTest, Destructor002, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 2;
+    {
+        auto rootRenderNode = std::make_shared<RSRootRenderNode>(nodeId, context);
+        ASSERT_NE(rootRenderNode, nullptr);
+    }
+    {
+        std::weak_ptr<RSContext> expiredContext;
+        auto rootRenderNode = std::make_shared<RSRootRenderNode>(nodeId + 1, expiredContext);
+        ASSERT_NE(rootRenderNode, nullptr);
+        auto childrenDrawable = std::make_shared<DrawableV2::RSChildrenDrawable>();
+        rootRenderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] = childrenDrawable;
+        ASSERT_NE(rootRenderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CHILDREN)], nullptr);
+    }
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: Destructor003
+ * @tc.desc: Test RSRootRenderNode destructor with RT task runner set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRootRenderNodeTest, Destructor003, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    bool taskExecuted = false;
+    context->SetRTTaskRunner([&taskExecuted](const std::function<void()>& task) {
+        if (task) {
+            task();
+            taskExecuted = true;
+        }
+    });
+    NodeId nodeId = 3;
+    {
+        auto rootRenderNode = std::make_shared<RSRootRenderNode>(nodeId, context);
+        ASSERT_NE(rootRenderNode, nullptr);
+        auto childrenDrawable = std::make_shared<DrawableV2::RSChildrenDrawable>();
+        rootRenderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] = childrenDrawable;
+        ASSERT_NE(rootRenderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CHILDREN)], nullptr);
+    }
+    EXPECT_TRUE(taskExecuted);
+}
+
 } // namespace Rosen
-} // namespace OHOS
+} // namespace OHOS

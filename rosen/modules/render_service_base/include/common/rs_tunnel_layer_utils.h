@@ -27,7 +27,9 @@ inline constexpr const char* TUNNEL_DEBUG_PREFIX = "TUNNEL_DEBUG ";
 
 // Consecutive DoComp-success frames required before tunnel can enter ACTIVE.
 // Prevents tunnel activation during unstable composition periods.
-inline constexpr uint32_t TUNNEL_STABLE_THRESHOLD = 3;
+// Threshold set to 5 as a balanced approach: ensures sufficient stability
+// before activation while avoiding excessive delay in tunnel startup.
+inline constexpr uint32_t TUNNEL_STABLE_THRESHOLD = 5;
 
 inline bool IsNewTunnelEnabled()
 {

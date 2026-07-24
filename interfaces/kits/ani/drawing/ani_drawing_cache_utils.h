@@ -163,6 +163,18 @@ public:
     ani_method colorCtor;
     ani_method color4fCtor;
 
+    ani_method brushCtorWithPtr;
+    ani_method canvasCtorWithPtr;
+    ani_method matrixCtorWithPtr;
+    ani_method pathIteratorCtorWithPtr;
+    ani_method pathCtorWithPtr;
+    ani_method penCtorWithPtr;
+    ani_method regionCtorWithPtr;
+    ani_method roundRectCtorWithPtr;
+    ani_method samplingOptionsCtorWithPtr;
+    ani_method fontCtorWithPtr;
+    ani_method typefaceCtorWithPtr;
+
     ani_method colorFilterBindNative;
     ani_method typefaceBindNative;
     ani_method latticeBindNative;

@@ -174,7 +174,7 @@ std::shared_ptr<RSNGRenderShaderBase> RSNGRenderShaderBase::Create(RSNGEffectTyp
         }
 
         auto shader = Create(static_cast<RSNGEffectType>(type));
-        if (shader && !shader->OnUnmarshalling(parcel)) {
+        if (!shader || !shader->OnUnmarshalling(parcel)) {
             ROSEN_LOGE("RSNGRenderShaderBase: Unmarshalling shader failed with type %{public}d", type);
             return false;
         }

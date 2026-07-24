@@ -196,8 +196,16 @@ void RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(Occlusion::Region& d
     RSFilterDirtyCollector::SetValidCachePartialRender(!screenParams->GetZoomed() && !screenParams->HasMirrorScreen());
     auto& surfaceDrawables = screenParams->GetAllMainAndLeashSurfaceDrawables();
     // Iteratively process filters recorded in screen manager and surface manager, until convergence.
+    auto screenDirtyManager = screenDrawable.GetSyncDirtyManager();
+    Occlusion::Region surfaceRect = screenDirtyManager ?
+        Occlusion::Region(Occlusion::Rect(screenDirtyManager->GetSurfaceRect())) : Occlusion::Region();
     bool elementChanged = false;
     do {
+        if (!surfaceRect.IsEmpty()) {
+            if (surfaceRect.And(damageRegion).Area() == surfaceRect.Area()) {
+                break;
+            }
+        }
         elementChanged = false;
         elementChanged |= DealWithFilterDirtyForScreen(damageRegion, drawRegion, screenDrawable, matrix);
         elementChanged |= DealWithFilterDirtyForSurface(damageRegion, drawRegion, surfaceDrawables, matrix);
@@ -267,21 +275,21 @@ bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damag
 {
     auto& collector = dirtyManager.GetFilterCollector();
     auto addDirtyInIntersect = [&] (FilterDirtyRegionInfo& info) {
-        // case - 0. If this filter satisfied certain partial render conditions, skip it.
-        if (FilterCachePartialRenderEnabled(info)) {
-            RS_TRACE_NAME_FMT("Filter [%" PRIu64 "], partial render enabled, skip dirty expanding.", info.id_);
-            return false;
-        }
-        // case - 1. If this filter is already counted in damage region, skip it.
+        // case - 0. If this filter is already counted in damage region, skip it.
         if (info.addToDirty_) {
             return false;
         }
-        // case - 2. If this filter is not intersected with drawRegion, skip it.
+        // case - 1. If this filter is not intersected with drawRegion, skip it.
         Occlusion::Region intersectRegion = matrix.has_value() ?
             RSObjAbsGeometry::MapRegion(info.intersectRegion_, matrix.value()) : info.intersectRegion_;
         intersectRegion = visibleRegion.has_value() ?
             intersectRegion.And(visibleRegion.value()) : intersectRegion;
         if (drawRegion.And(intersectRegion).IsEmpty()) {
+            return false;
+        }
+        // case - 2. If this filter satisfied certain partial render conditions, skip it.
+        if (FilterCachePartialRenderEnabled(info)) {
+            RS_OPTIONAL_TRACE_FMT("Filter [%" PRIu64 "], partial render enabled, skip dirty expanding.", info.id_);
             return false;
         }
         // case - 3. Add this filter into both damage region (for GPU) and draw region (for RS).

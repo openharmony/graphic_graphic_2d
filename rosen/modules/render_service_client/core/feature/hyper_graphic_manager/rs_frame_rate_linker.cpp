@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace Rosen {
-static bool g_isUniRenderEnabled = false;
 FrameRateLinkerId RSFrameRateLinker::GenerateId()
 {
     static pid_t pid_ = GetRealPid();
@@ -46,9 +45,7 @@ std::shared_ptr<RSFrameRateLinker> RSFrameRateLinker::Create()
 }
 
 RSFrameRateLinker::RSFrameRateLinker() : id_(GenerateId())
-{
-    InitUniRenderEnabled();
-}
+{}
 
 RSFrameRateLinker::~RSFrameRateLinker()
 {
@@ -73,7 +70,8 @@ FrameRateLinkerId RSFrameRateLinker::GetId() const
 
 bool RSFrameRateLinker::IsUniRenderEnabled() const
 {
-    return g_isUniRenderEnabled;
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+    return isUniRender;
 }
 
 void RSFrameRateLinker::UpdateFrameRateRange(
@@ -123,14 +121,5 @@ void RSFrameRateLinker::AddCommand(std::unique_ptr<RSCommand>& command, bool isR
     }
 }
 
-void RSFrameRateLinker::InitUniRenderEnabled()
-{
-    static bool inited = false;
-    if (!inited) {
-        inited = true;
-        g_isUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
-        ROSEN_LOGD("RSFrameRateLinker::InitUniRenderEnabled:%{public}d", g_isUniRenderEnabled);
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

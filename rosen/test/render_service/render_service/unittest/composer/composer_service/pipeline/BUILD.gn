@@ -71,7 +71,11 @@ template("rs_render_composer_unittest") {
     configs = [ ":rs_render_composer_common_test_config" ]
     deps = _common_deps
     external_deps = _common_external_deps
-    external_deps += ["googletest:gmock_main"]
+    external_deps += [
+      "googletest:gmock_main",
+      "egl:libEGL",
+      "opengles:libGLES",
+    ]
     defines = []
     if (graphic_2d_feature_enable_vulkan) {
       defines += [ "RS_ENABLE_VK" ]

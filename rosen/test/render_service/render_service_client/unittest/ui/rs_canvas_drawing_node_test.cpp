@@ -367,4 +367,47 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRenderTest, TestSize.Leve
     EXPECT_TRUE(ret);
 }
 #endif
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: ResetSurfaceForClientRender_MaxGpuSizeTest
+ * @tc.desc: Test ResetSurfaceForClientRender with sizeOutOfGpuLimit when exceeding max GPU buffer size
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRender_MaxGpuSizeTest, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(canvasNode, nullptr);
+    // Set max GPU size large enough so that 100x100 is within limit
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 10000;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 10000;
+    int width = 100;
+    int height = 100;
+    canvasNode->ResetSurfaceForClientRender(width, height);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, false);
+    // Test exceeding max GPU size
+    canvasNode->ResetSurfaceForClientRender(20000, 20000);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
+    // Reset to default
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 0;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 0;
+}
+
+/**
+ * @tc.name: ResetSurfaceForClientRender_InvalidSizeTest
+ * @tc.desc: Test ResetSurfaceForClientRender with invalid sizes (width<=0 or height<=0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRender_InvalidSizeTest, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->ResetSurfaceForClientRender(0, 100);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
+    canvasNode->ResetSurfaceForClientRender(100, 0);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
+    canvasNode->ResetSurfaceForClientRender(-1, 100);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
+}
+#endif
 } // namespace OHOS::Rosen

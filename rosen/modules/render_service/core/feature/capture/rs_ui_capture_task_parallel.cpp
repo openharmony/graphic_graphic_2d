@@ -230,6 +230,10 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
             return false;
         }
         const auto& endNodeParams = endNodeDrawable_->GetRenderParams();
+        if (UNLIKELY(!endNodeParams)) {
+            RS_LOGE("RSUiCaptureTaskParallel::Run: endNodeParams is nullptr!");
+            return false;
+        }
         targetRect = endNodeParams->GetBounds();
     }
 #ifdef RS_ENABLE_VK

@@ -292,6 +292,29 @@ struct is_render_property_tag<RenderPropertyTagBase<Name, PropertyType>> : std::
 template <typename T>
 inline constexpr bool is_render_property_tag_v = is_render_property_tag<T>::value;
 
+// Detects self-type-as-property: a property tag whose ValueType is std::shared_ptr<Base>.
+// This pattern enables unbounded recursion in Marshalling/Unmarshalling/CalculateHash.
+template <typename Tag, typename Base>
+struct is_self_type_property_tag : std::false_type {};
+
+template <const char* Name, class PropertyType, typename Base>
+struct is_self_type_property_tag<RenderPropertyTagBase<Name, PropertyType>, Base> {
+    using ValueType = typename PropertyType::ValueType;
+    static constexpr bool value = std::is_same_v<ValueType, std::shared_ptr<Base>>;
+};
+
+template <typename Tag, typename Base>
+inline constexpr bool is_self_type_property_tag_v = is_self_type_property_tag<Tag, Base>::value;
+
+// Opt-in trait: a Base that has a runtime recursion guard (e.g. RSShapeRecursionGuard)
+// specializes this to true. All other effect types default to false, so the
+// static_assert in RSNGRenderEffectTemplate rejects self-type properties at compile time.
+template <typename Base>
+struct allow_self_type_property : std::false_type {};
+
+template <typename Base>
+inline constexpr bool allow_self_type_property_v = allow_self_type_property<Base>::value;
+
 template <typename Base, RSNGEffectType Type, typename... PropertyTags>
 class RSNGRenderEffectTemplate : public Base {
     static_assert(std::is_base_of_v<RSNGRenderEffectBase<Base>, Base>,
@@ -299,6 +322,11 @@ class RSNGRenderEffectTemplate : public Base {
     static_assert(Type != RSNGEffectType::INVALID, "RSNGRenderEffectTemplate: Type cannot be INVALID");
     static_assert((is_render_property_tag_v<PropertyTags> && ...),
         "RSNGRenderEffectTemplate: All properties must be render property tags");
+    static_assert(allow_self_type_property_v<Base> ||
+        !((is_self_type_property_tag_v<PropertyTags, Base>) || ...),
+        "RSNGRenderEffectTemplate: self-type-as-property is forbidden (causes unbounded recursion). "
+        "Only RSNGRenderShapeBase is allowed (guarded by RSShapeRecursionGuard). "
+        "Use the iterative nextEffect_ chain instead.");
 
 public:
     RSNGRenderEffectTemplate() = default;

@@ -192,5 +192,40 @@ HWTEST_F(RSValueEstimatorTest, RebuildValue003, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue003 end";
 }
 
+/**
+ * @tc.name: GetAnimationValueEmptyKeyframes001
+ * @tc.desc: Verify GetAnimationValue returns property value when keyframes_ is empty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, GetAnimationValueEmptyKeyframes001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest GetAnimationValueEmptyKeyframes001 start";
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(10.0f);
+    estimator->property_ = property;
+    estimator->durationKeyframes_.clear();
+    estimator->keyframes_.clear();
+    auto result = estimator->GetAnimationValue(0.5f, false);
+    EXPECT_FLOAT_EQ(result, 10.0f);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest GetAnimationValueEmptyKeyframes001 end";
+}
+
+/**
+ * @tc.name: GetAnimationValueEmptyKeyframesNoProperty001
+ * @tc.desc: Verify GetAnimationValue returns default T() when both keyframes_ and property_ are empty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, GetAnimationValueEmptyKeyframesNoProperty001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest GetAnimationValueEmptyKeyframesNoProperty001 start";
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    estimator->property_ = nullptr;
+    estimator->durationKeyframes_.clear();
+    estimator->keyframes_.clear();
+    auto result = estimator->GetAnimationValue(0.5f, false);
+    EXPECT_FLOAT_EQ(result, 0.0f);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest GetAnimationValueEmptyKeyframesNoProperty001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

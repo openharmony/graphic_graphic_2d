@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include <native_engine/native_engine.h>
-
 #include "js_text_init.h"
+#include "napi/native_node_api.h"
+
 #include "utils/text_log.h"
 
 static napi_module g_textModule = {

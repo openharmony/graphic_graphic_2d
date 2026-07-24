@@ -78,6 +78,17 @@ constexpr DescriptorConfig POINT3D_GET_Z{ "<get>z", ":d"};
 constexpr DescriptorConfig RUN_BUFFER_GET_GLYPH{ "<get>glyph", ":i" };
 constexpr DescriptorConfig RUN_BUFFER_GET_POSITION_X{ "<get>positionX", ":d" };
 constexpr DescriptorConfig RUN_BUFFER_GET_POSITION_Y{ "<get>positionY", ":d" };
+constexpr DescriptorConfig BRUSH_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig CANVAS_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig MATRIX_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig PATH_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig PEN_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig REGION_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig SAMPLING_OPTIONS_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig PATH_ITERATOR_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig ROUND_RECT_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig FONT_CTOR_WITH_PTR{ "<ctor>", "l:" };
+constexpr DescriptorConfig TYPEFACE_CTOR_WITH_PTR{ "<ctor>", "l:" };
 }
 ani_class AniFindClass(ani_env* env, const char* descriptor)
 {
@@ -241,6 +252,19 @@ void AniGlobalMethod::InitCtorMethod(ani_env* env)
     fontMetricsCtor = AniFindMethod(env, AniGlobalClass::GetInstance().fontMetrics, FONT_METRICS_CTOR);
     pointCtor = AniFindMethod(env, AniGlobalClass::GetInstance().point, POINT_CTOR);
     rectCtor = AniFindMethod(env, AniGlobalClass::GetInstance().rect, RECT_CTOR);
+    brushCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().brush, BRUSH_CTOR_WITH_PTR);
+    canvasCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().canvas, CANVAS_CTOR_WITH_PTR);
+    penCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().pen, PEN_CTOR_WITH_PTR);
+    matrixCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().matrix, MATRIX_CTOR_WITH_PTR);
+    pathCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().path, PATH_CTOR_WITH_PTR);
+    pathIteratorCtorWithPtr = AniFindMethod(
+        env, AniGlobalClass::GetInstance().pathIterator, PATH_ITERATOR_CTOR_WITH_PTR);
+    regionCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().region, REGION_CTOR_WITH_PTR);
+    roundRectCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().roundRect, ROUND_RECT_CTOR_WITH_PTR);
+    samplingOptionsCtorWithPtr = AniFindMethod(
+        env, AniGlobalClass::GetInstance().samplingOptions, SAMPLING_OPTIONS_CTOR_WITH_PTR);
+    fontCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().font, FONT_CTOR_WITH_PTR);
+    typefaceCtorWithPtr = AniFindMethod(env, AniGlobalClass::GetInstance().typeface, TYPEFACE_CTOR_WITH_PTR);
 }
 
 void AniGlobalMethod::InitBindNativeMethod(ani_env* env)

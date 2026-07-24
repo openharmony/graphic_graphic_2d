@@ -164,7 +164,7 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount, bool com
 
 VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
 {
-    MessageOption opt{ MessageOption::TF_IMAGE };
+    MessageOption opt { MessageOption::TF_IMAGE };
     MessageParcel arg;
     MessageParcel ret;
 
@@ -182,7 +182,8 @@ VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
         VLOGE("GetReceiveFd Failed, res = %{public}d", res);
         return VSYNC_ERROR_BINDER_ERROR;
     }
-    int32_t value = 0;
+
+    int32_t value = static_cast<int32_t>(VSYNC_ERROR_API_FAILED);
     if (!ret.ReadInt32(value)) {
         VLOGE("ReadInt32 failed");
         return VSYNC_ERROR_API_FAILED;
@@ -224,7 +225,7 @@ VsyncError VSyncConnectionProxy::SetVSyncRate(int32_t rate)
     if (res != NO_ERROR) {
         return VSYNC_ERROR_BINDER_ERROR;
     }
-    int32_t value = 0;
+    int32_t value = static_cast<int32_t>(VSYNC_ERROR_API_FAILED);
     if (!ret.ReadInt32(value)) {
         VLOGE("ReadInt32 failed");
         return VSYNC_ERROR_API_FAILED;
@@ -251,7 +252,7 @@ VsyncError VSyncConnectionProxy::Destroy()
     if (res != NO_ERROR) {
         return VSYNC_ERROR_BINDER_ERROR;
     }
-    int32_t value = 0;
+    int32_t value = static_cast<int32_t>(VSYNC_ERROR_API_FAILED);
     if (!ret.ReadInt32(value)) {
         VLOGE("ReadInt32 failed");
         return VSYNC_ERROR_API_FAILED;

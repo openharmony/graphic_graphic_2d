@@ -913,5 +913,102 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction008, TestSize.Level1)
     rsTransactionProxy->FlushImplicitTransaction(timestamp, ability, true);
     ASSERT_EQ(rsTransactionProxy->timestamp_, 1);
 }
+
+/**
+ * @tc.name: StartCloseSyncTransactionFallbackTask001
+ * @tc.desc: Verify StartCloseSyncTransactionFallbackTask with closeSyncFallBackMutex_ protection
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTransactionProxyTest, StartCloseSyncTransactionFallbackTask001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest StartCloseSyncTransactionFallbackTask001 start";
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    ASSERT_NE(rsTransactionProxy, nullptr);
+    rsTransactionProxy->taskNames_ = {};
+    rsTransactionProxy->StartCloseSyncTransactionFallbackTask(true);
+    EXPECT_FALSE(rsTransactionProxy->taskNames_.empty());
+    rsTransactionProxy->StartCloseSyncTransactionFallbackTask(false);
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest StartCloseSyncTransactionFallbackTask001 end";
+}
+
+/**
+ * @tc.name: StartCloseSyncTransactionFallbackTask002
+ * @tc.desc: Verify StartCloseSyncTransactionFallbackTask with empty taskNames_ on close
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTransactionProxyTest, StartCloseSyncTransactionFallbackTask002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest StartCloseSyncTransactionFallbackTask002 start";
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    ASSERT_NE(rsTransactionProxy, nullptr);
+    rsTransactionProxy->taskNames_ = {};
+    rsTransactionProxy->StartCloseSyncTransactionFallbackTask(false);
+    EXPECT_TRUE(rsTransactionProxy->taskNames_.empty());
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest StartCloseSyncTransactionFallbackTask002 end";
+}
+
+/**
+ * @tc.name: CallbackPopEmptyQueue001
+ * @tc.desc: Verify callback skips pop when taskNames_ is empty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTransactionProxyTest, CallbackPopEmptyQueue001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest CallbackPopEmptyQueue001 start";
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    ASSERT_NE(rsTransactionProxy, nullptr);
+    rsTransactionProxy->taskNames_ = {};
+    std::unique_lock<std::mutex> lock(rsTransactionProxy->closeSyncFallBackMutex_);
+    if (!rsTransactionProxy->taskNames_.empty() &&
+        rsTransactionProxy->taskNames_.front() == "testTask") {
+        rsTransactionProxy->taskNames_.pop();
+    }
+    EXPECT_TRUE(rsTransactionProxy->taskNames_.empty());
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest CallbackPopEmptyQueue001 end";
+}
+
+/**
+ * @tc.name: CallbackPopMismatchedFront001
+ * @tc.desc: Verify callback skips pop when front taskName doesn't match
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTransactionProxyTest, CallbackPopMismatchedFront001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest CallbackPopMismatchedFront001 start";
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    ASSERT_NE(rsTransactionProxy, nullptr);
+    rsTransactionProxy->taskNames_ = {};
+    rsTransactionProxy->taskNames_.push("TaskB");
+    std::unique_lock<std::mutex> lock(rsTransactionProxy->closeSyncFallBackMutex_);
+    if (!rsTransactionProxy->taskNames_.empty() &&
+        rsTransactionProxy->taskNames_.front() == "TaskA") {
+        rsTransactionProxy->taskNames_.pop();
+    }
+    EXPECT_EQ(rsTransactionProxy->taskNames_.size(), 1u);
+    EXPECT_EQ(rsTransactionProxy->taskNames_.front(), "TaskB");
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest CallbackPopMismatchedFront001 end";
+}
+
+/**
+ * @tc.name: CallbackPopMatchingFront001
+ * @tc.desc: Verify callback pops when front taskName matches
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTransactionProxyTest, CallbackPopMatchingFront001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest CallbackPopMatchingFront001 start";
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    ASSERT_NE(rsTransactionProxy, nullptr);
+    rsTransactionProxy->taskNames_ = {};
+    rsTransactionProxy->taskNames_.push("TaskA");
+    std::unique_lock<std::mutex> lock(rsTransactionProxy->closeSyncFallBackMutex_);
+    if (!rsTransactionProxy->taskNames_.empty() &&
+        rsTransactionProxy->taskNames_.front() == "TaskA") {
+        rsTransactionProxy->taskNames_.pop();
+    }
+    EXPECT_TRUE(rsTransactionProxy->taskNames_.empty());
+    GTEST_LOG_(INFO) << "RSTransactionProxyTest CallbackPopMatchingFront001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

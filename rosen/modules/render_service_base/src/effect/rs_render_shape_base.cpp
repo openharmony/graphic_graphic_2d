@@ -98,8 +98,8 @@ static std::unordered_map<RSNGEffectType, ShapeGetTransformRect> getTransformRec
             auto distortion = distortOp->Getter<OHOS::Rosen::SDFDistortOpShapeBarrelDistortionRenderTag>()->Get();
             float left = transformRect.GetLeft() + std::min(luCorner[0], lbCorner[0]) * transformRect.GetWidth();
             float top = transformRect.GetTop() + std::min(luCorner[1], ruCorner[1]) * transformRect.GetHeight();
-            float right = std::max(ruCorner[0], rbCorner[0]) * transformRect.GetWidth();
-            float bottom = std::max(lbCorner[1], rbCorner[1]) * transformRect.GetHeight();
+            float right = transformRect.GetLeft() + std::max(ruCorner[0], rbCorner[0]) * transformRect.GetWidth();
+            float bottom = transformRect.GetTop() + std::max(lbCorner[1], rbCorner[1]) * transformRect.GetHeight();
             float width = std::abs(right - left);
             float height = std::abs(bottom - top);
             constexpr float halfUV = 0.5f;
@@ -130,8 +130,27 @@ std::shared_ptr<RSNGRenderShapeBase> RSNGRenderShapeBase::Create(RSNGEffectType 
     return it != creatorLUT.end() ? it->second() : nullptr;
 }
 
+bool RSShapeRecursionGuard::ExceedsLimit() const
+{
+    if (Depth() > MAX_DEPTH) {
+        ROSEN_LOGE("RSShapeRecursionGuard: recursion depth exceeds limit(%{public}d)", MAX_DEPTH);
+        return true;
+    }
+    return false;
+}
+
+int32_t& RSShapeRecursionGuard::Depth()
+{
+    static thread_local int32_t depth = 0;
+    return depth;
+}
+
 [[nodiscard]] bool RSNGRenderShapeBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShapeBase>& val)
 {
+    RSShapeRecursionGuard guard;
+    if (guard.ExceedsLimit()) {
+        return false;
+    }
     std::shared_ptr<RSNGRenderShapeBase> head = nullptr;
     auto current = head;
     for (size_t effectCount = 0; effectCount < EFFECT_COUNT_LIMIT; ++effectCount) {
@@ -187,17 +206,17 @@ void RSNGRenderShapeHelper::FillEmptyDistortOpShape(
     }
     auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
     auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
-    bool sync = distortOpShape->Getter<SDFDistortOpShapeSyncRenderTag>()->Get();
+    // ownerId==0: auto-filled (ONLY_VALUE skips OnAttach) -> sync; !=0: IPC inner (attached) -> keep.
+    bool sync = innerShape ? (innerShape->GetOwnerId() == 0) : true;
     if (!innerShape) {
-        sync = true;
         innerShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+        // ONLY_VALUE keeps ownerId==0 so the auto-filled inner stays distinguishable from IPC inner.
         distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(innerShape,
             PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
-        distortOpShape->Setter<SDFDistortOpShapeSyncRenderTag>(true, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
         ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, add default SDF_RRECT_SHAPE, node %{public}"
             PRIu64, nodeId);
     }
-    if (sync) {
+    if (sync && innerShape && innerShape->GetType() == RSNGEffectType::SDF_RRECT_SHAPE) {
         auto defaultShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(innerShape);
         defaultShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
         ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, update SDF_RRECT_SHAPE, node %{public}"

@@ -697,13 +697,14 @@ ani_object AniMatrix::MatrixTransferStatic(
     }
 
     auto aniMatrix = new AniMatrix(jsMatrix->GetMatrix());
-    if (ANI_OK != env->Object_SetField_Long(
-        output, AniGlobalField::GetInstance().matrixNativeObj, reinterpret_cast<ani_long>(aniMatrix))) {
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().matrix,
+        AniGlobalMethod::GetInstance().matrixCtorWithPtr, reinterpret_cast<ani_long>(aniMatrix));
+    if (IsUndefined(env, aniObj)) {
         ROSEN_LOGE("AniMatrix::MatrixTransferStatic failed create aniMatrix");
         delete aniMatrix;
         return CreateAniUndefined(env);
     }
-    return output;
+    return aniObj;
 }
 
 ani_long AniMatrix::GetMatrixAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

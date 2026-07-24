@@ -262,13 +262,15 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
 
     RS_LOGD("RSMultiScreenUtil::%{public}s Expand screen.", __func__);
     bool isOpDropped = uniParam->IsOpDropped();
-    uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
     auto expandProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
     if (!expandProcessor) {
         drawable.SetDrawSkipType(DrawSkipType::EXPAND_PROCESSOR_NULL);
         RS_LOGE("RSMultiScreenUtil::%{public}s expandProcessor is null!", __func__);
         return;
     }
+    bool isVirtualExtendScreenDirty = uniParam->IsVirtualExpandScreenDirtyEnabled() &&
+        !uniParam->IsVirtualDirtyDfxEnabled();
+    uniParam->SetOpDropped(isVirtualExtendScreenDirty && !expandProcessor->IsMultiSurfaceExtendMode());
     RSDirtyRectsDfx rsDirtyRectsDfx(drawable);
     std::vector<RectI> damageRegionRects;
     RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(drawable, params);
@@ -276,8 +278,7 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
     damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(
         drawable, bufferAge, screenInfo, rsDirtyRectsDfx, params);
     uniParam->Reset();
-    if (uniParam->IsVirtualExpandScreenDirtyEnabled() && !uniParam->IsVirtualDirtyDfxEnabled() &&
-        !expandProcessor->IsMultiSurfaceExtendMode()) {
+    if (isVirtualExtendScreenDirty && !expandProcessor->IsMultiSurfaceExtendMode()) {
         expandProcessor->SetDirtyInfo(damageRegionRects);
     } else {
         std::vector<RectI> emptyRects = {};
@@ -292,9 +293,9 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
 
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, screenInfo);
     drawable.curCanvas_ = expandProcessor->GetCanvas();
-    auto curCanvas = drawable.curCanvas_;
+    auto& curCanvas = drawable.curCanvas_;
     curCanvas->Save();
-    if (uniParam->IsVirtualExpandScreenDirtyEnabled()) {
+    if (isVirtualExtendScreenDirty && !expandProcessor->IsMultiSurfaceExtendMode()) {
         drawable.UpdateSurfaceDrawRegion(curCanvas, &params);
         curCanvas->SetDrawnRegion(params.GetDrawnRegion());
         if (uniParam->IsDirtyAlignEnabled() && RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid() &&
@@ -340,7 +341,7 @@ void RSMultiScreenUtil::DrawPhysicalMirrorDisplay(
     RSLogicalDisplayRenderParams& params,
     const std::shared_ptr<RSProcessor>& processor)
 {
-    RSPaintFilterCanvas* curCanvas = drawable.curCanvas_;
+    auto& curCanvas = drawable.curCanvas_;
     if (!curCanvas) {
         RS_LOGE("RSMultiScreenUtil::%{public}s failed to create canvas", __func__);
         return;
@@ -399,7 +400,7 @@ void RSMultiScreenUtil::DrawPhysicalMirrorFromCache(
     auto& [screenDrawable, screenParams, mirrorSourceDisplayDrawable, mirrorSourceDisplayParams,
         mirrorSourceScreenDrawable, mirrorSourceScreenParams] = multiScreenParams;
 
-    RSPaintFilterCanvas* curCanvas = drawable.curCanvas_;
+    auto& curCanvas = drawable.curCanvas_;
     curCanvas->Save();
     curCanvas->SetOnMultipleScreen(true); // use for hdr content tmo to fixed sdr nits
     drawable.ScaleAndRotateMirrorForWiredScreen(*mirrorSourceDisplayDrawable);
@@ -478,7 +479,7 @@ void RSMultiScreenUtil::DrawPhysicalMirrorRebuild(
     RSDirtyRectsDfx rsDirtyRectsDfx(*screenDrawable);
 
     // for HDR
-    RSPaintFilterCanvas* curCanvas = drawable.curCanvas_;
+    auto& curCanvas = drawable.curCanvas_;
     curCanvas->SetOnMultipleScreen(true);
     curCanvas->SetDisableFilterCache(true);
 
@@ -616,8 +617,10 @@ void RSMultiScreenUtil::DrawVirtualMirrorFromCache(
     RSDirtyRectsDfx rsDirtyRectsDfx(*screenDrawable);
     bool enableVisibleRect = drawable.enableVisibleRect_;
     std::shared_ptr<RSSLRScaleFunction> slrManager = enableVisibleRect ? nullptr : processor->GetSlrManager();
-    RSPaintFilterCanvas* curCanvas = processor->GetCanvas().get();
-    drawable.curCanvas_ = curCanvas;
+    drawable.curCanvas_ = processor->GetCanvas().get();
+
+    // OffScreenRender will change the drawable.curCanvas_'s target, so you have to use a reference
+    auto& curCanvas = drawable.curCanvas_;
     if (!curCanvas) {
         RS_LOGE("RSMultiScreenUtil::%{public}s canvas is null!", __func__);
         return;
@@ -721,8 +724,10 @@ void RSMultiScreenUtil::DrawVirtualMirrorRebuild(
 
     auto& [screenDrawable, screenParams, mirrorSourceDisplayDrawable, mirrorSourceDisplayParams,
         mirrorSourceScreenDrawable, mirrorSourceScreenParams] = multiScreenParams;
-    RSPaintFilterCanvas* curCanvas = processer->GetCanvas().get();
-    drawable.curCanvas_ = curCanvas;
+    drawable.curCanvas_ = processer->GetCanvas().get();
+
+    // OffScreenRender will change the drawable.curCanvas_'s target, so you have to use a reference
+    auto& curCanvas = drawable.curCanvas_;
     if (!curCanvas) {
         RS_LOGE("RSMultiScreenUtil::%{public}s canvas is null!", __func__);
         return;
@@ -863,7 +868,8 @@ void RSMultiScreenUtil::DrawVirtualExtend(
     RSMultiScreenUtil::DumpRenderStrategy(drawable, params.GetScreenId(), RenderStrategy::DRAW_VIRTUAL_EXTEND, "");
 
     const RSScreenProperty& screenProperty = screenParam->GetScreenProperty();
-    RSPaintFilterCanvas* canvas = drawable.curCanvas_;
+    // OffScreenRender will change the drawable.curCanvas_'s target, so you have to use a reference
+    auto& canvas = drawable.curCanvas_;
     RSAutoCanvasRestore acr(canvas);
     params.ApplyAlphaAndMatrixToCanvas(*canvas);
 

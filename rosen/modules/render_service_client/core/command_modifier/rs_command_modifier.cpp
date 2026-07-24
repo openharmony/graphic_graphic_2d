@@ -42,5 +42,17 @@ bool RSCmdModifier::AddCommand(std::unique_ptr<RSCommand>& command, bool isRende
     return node->AddCommand(command, isRenderServiceCommand, followType, nodeId);
 }
 
+uint64_t RSCmdModifier::GenerateCmdModifierIndex()
+{
+    static std::atomic<uint64_t> currentIndex_ = 1;
+
+    auto currentIndex = currentIndex_.fetch_add(1, std::memory_order_relaxed);
+    if (currentIndex == UINT64_MAX) {
+        ROSEN_LOGE("CmdModifier index overflow");
+    }
+
+    return currentIndex;
+}
+
 } // namespace Rosen
 } // namespace OHOS

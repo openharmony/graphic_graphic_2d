@@ -89,8 +89,13 @@ ani_object AniPathEffect::CreateSumPathEffect(ani_env* env, [[maybe_unused]]ani_
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param secondPathEffect.");
         return CreateAniUndefined(env);
     }
-    AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreateSumPathEffect(
-        *(aniFirstPathEffect->GetPathEffect()), *(aniSecondPathEffect->GetPathEffect())));
+    std::shared_ptr<PathEffect> pathEffect1 = aniFirstPathEffect->GetPathEffect();
+    std::shared_ptr<PathEffect> pathEffect2 = aniSecondPathEffect->GetPathEffect();
+    if (pathEffect1 == nullptr || pathEffect2 == nullptr) {
+        ROSEN_LOGE("AniPathEffect::CreateSumPathEffect pathEffect is nullptr");
+        return CreateAniUndefined(env);
+    }
+    AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreateSumPathEffect(*pathEffect1, *pathEffect2));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
         AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
     if (IsUndefined(env, aniObj)) {
@@ -140,8 +145,13 @@ ani_object AniPathEffect::CreateComposePathEffect(ani_env* env, [[maybe_unused]]
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param outer.");
         return CreateAniUndefined(env);
     }
-    AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreateComposePathEffect(
-        *(aniOuterPathEffect->GetPathEffect()), *(aniInnerPathEffect->GetPathEffect())));
+    std::shared_ptr<PathEffect> pathEffect1 = aniOuterPathEffect->GetPathEffect();
+    std::shared_ptr<PathEffect> pathEffect2 = aniInnerPathEffect->GetPathEffect();
+    if (pathEffect1 == nullptr || pathEffect2 == nullptr) {
+        ROSEN_LOGE("AniPathEffect::CreateComposePathEffect pathEffect is nullptr");
+        return CreateAniUndefined(env);
+    }
+    AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreateComposePathEffect(*pathEffect1, *pathEffect2));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
         AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
     if (IsUndefined(env, aniObj)) {

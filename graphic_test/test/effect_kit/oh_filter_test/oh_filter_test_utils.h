@@ -17,6 +17,7 @@
 
 #include <string>
 #include "effect_ndk/include/effect_filter.h"
+#include "image/pixelmap_native.h"
 #include "pixelmap_native_impl.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"

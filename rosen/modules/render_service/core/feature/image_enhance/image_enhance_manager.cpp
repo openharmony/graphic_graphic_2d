@@ -32,7 +32,7 @@ ImageEnhanceManager::ImageEnhanceManager()
 void ImageEnhanceManager::CheckPackageInConfigList(const std::vector<std::string>& pkgs)
 {
     std::lock_guard<std::mutex> setMutex(mutexLock_);
-    RS_LOGI("ImageEnhanceManager CheckPackageInConfigList start");
+    RS_LOGD("ImageEnhanceManager CheckPackageInConfigList start");
     // update pkgs
     if (pkgs_ == pkgs) {
         return;

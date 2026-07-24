@@ -112,6 +112,8 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode& node, std::string& 
         }
         if (name == "SourceTuningForYuv420") {
             hwcParam_->SetSourceTuningForApp(appName, val);
+        } else if (name == "SourceTuningForHmsApp") {
+            hwcParam_->SetSourceTuningForHmsApp(appName, val);
         } else if (name == "RsSolidColorLayerConfig") {
             hwcParam_->SetSolidColorLayerForApp(appName, val);
         } else if (name == "OverlappedHwcNodeInAppEnabledConfig") {

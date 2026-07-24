@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <limits>
+
 #include "gtest/gtest.h"
 
 #include "animation/rs_animation_timing_protocol.h"
@@ -256,13 +258,7 @@ HWTEST_F(RSAnimationTimingProtocolTest, Unmarshalling003, TestSize.Level1)
 
     RSAnimationTimingProtocol protocolUnmarshalled;
     bool result = RSMarshallingHelper::Unmarshalling(parcel, protocolUnmarshalled);
-    EXPECT_TRUE(result);
-    EXPECT_EQ(protocolUnmarshalled.GetDuration(), INT32_MAX);
-    EXPECT_EQ(protocolUnmarshalled.GetStartDelay(), INT32_MAX);
-    EXPECT_FLOAT_EQ(protocolUnmarshalled.GetSpeed(), 0.0f);
-    EXPECT_EQ(protocolUnmarshalled.GetRepeatCount(), 0);
-    EXPECT_EQ(protocolUnmarshalled.GetAutoReverse(), false);
-
+    EXPECT_FALSE(result);
     GTEST_LOG_(INFO) << "RSAnimationTimingProtocolTest Unmarshalling003 end";
 }
 
@@ -289,13 +285,7 @@ HWTEST_F(RSAnimationTimingProtocolTest, Unmarshalling004, TestSize.Level1)
 
     RSAnimationTimingProtocol protocolUnmarshalled;
     bool result = RSMarshallingHelper::Unmarshalling(parcel, protocolUnmarshalled);
-    EXPECT_TRUE(result);
-    EXPECT_EQ(protocolUnmarshalled.GetDuration(), -1);
-    EXPECT_EQ(protocolUnmarshalled.GetStartDelay(), -1);
-    EXPECT_FLOAT_EQ(protocolUnmarshalled.GetSpeed(), -1.0f);
-    EXPECT_EQ(protocolUnmarshalled.GetRepeatCount(), -1);
-    EXPECT_EQ(protocolUnmarshalled.GetAutoReverse(), false);
-
+    EXPECT_FALSE(result);
     GTEST_LOG_(INFO) << "RSAnimationTimingProtocolTest Unmarshalling004 end";
 }
 
@@ -382,6 +372,124 @@ HWTEST_F(RSAnimationTimingProtocolTest, MarshallingUnmarshalling001, TestSize.Le
     EXPECT_EQ(protocolOriginal.GetAutoReverse(), protocolUnmarshalled.GetAutoReverse());
 
     GTEST_LOG_(INFO) << "RSAnimationTimingProtocolTest MarshallingUnmarshalling001 end";
+}
+
+/**
+ * @tc.name: SafeCastFillMode001
+ * @tc.desc: Verify SafeCastFillMode with valid values returns correct FillMode
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, SafeCastFillMode001, TestSize.Level1)
+{
+    EXPECT_EQ(SafeCastFillMode(0), FillMode::NONE);
+    EXPECT_EQ(SafeCastFillMode(1), FillMode::FORWARDS);
+    EXPECT_EQ(SafeCastFillMode(2), FillMode::BACKWARDS);
+    EXPECT_EQ(SafeCastFillMode(3), FillMode::BOTH);
+}
+
+/**
+ * @tc.name: SafeCastFillMode002
+ * @tc.desc: Verify SafeCastFillMode with invalid values returns default FillMode::FORWARDS
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, SafeCastFillMode002, TestSize.Level1)
+{
+    EXPECT_EQ(SafeCastFillMode(-1), FillMode::FORWARDS);
+    EXPECT_EQ(SafeCastFillMode(4), FillMode::FORWARDS);
+    EXPECT_EQ(SafeCastFillMode(999), FillMode::FORWARDS);
+}
+
+/**
+ * @tc.name: SafeCastFillMode003
+ * @tc.desc: Verify SafeCastFillMode with custom default value
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, SafeCastFillMode003, TestSize.Level1)
+{
+    EXPECT_EQ(SafeCastFillMode(-1, FillMode::NONE), FillMode::NONE);
+    EXPECT_EQ(SafeCastFillMode(4, FillMode::BACKWARDS), FillMode::BACKWARDS);
+    EXPECT_EQ(SafeCastFillMode(1, FillMode::BACKWARDS), FillMode::FORWARDS);
+}
+
+/**
+ * @tc.name: SafeCastComponentScene001
+ * @tc.desc: Verify SafeCastComponentScene with valid values returns correct ComponentScene
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, SafeCastComponentScene001, TestSize.Level1)
+{
+    EXPECT_EQ(SafeCastComponentScene(0), ComponentScene::UNKNOWN_SCENE);
+    EXPECT_EQ(SafeCastComponentScene(1), ComponentScene::SWIPER_FLING);
+}
+
+/**
+ * @tc.name: SafeCastComponentScene002
+ * @tc.desc: Verify SafeCastComponentScene with invalid values returns default UNKNOWN_SCENE
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, SafeCastComponentScene002, TestSize.Level1)
+{
+    EXPECT_EQ(SafeCastComponentScene(-1), ComponentScene::UNKNOWN_SCENE);
+    EXPECT_EQ(SafeCastComponentScene(2), ComponentScene::UNKNOWN_SCENE);
+    EXPECT_EQ(SafeCastComponentScene(999), ComponentScene::UNKNOWN_SCENE);
+}
+
+/**
+ * @tc.name: SafeCastComponentScene003
+ * @tc.desc: Verify SafeCastComponentScene with custom default value
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, SafeCastComponentScene003, TestSize.Level1)
+{
+    EXPECT_EQ(SafeCastComponentScene(-1, ComponentScene::SWIPER_FLING), ComponentScene::SWIPER_FLING);
+    EXPECT_EQ(SafeCastComponentScene(2, ComponentScene::SWIPER_FLING), ComponentScene::SWIPER_FLING);
+    EXPECT_EQ(SafeCastComponentScene(0, ComponentScene::SWIPER_FLING), ComponentScene::UNKNOWN_SCENE);
+}
+
+/**
+ * @tc.name: UnmarshallingRejectInfiniteSpeed
+ * @tc.desc: Verify Unmarshalling rejects infinite speed
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, UnmarshallingRejectInfiniteSpeed, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingProtocolTest UnmarshallingRejectInfiniteSpeed start";
+    RSAnimationTimingProtocol protocolOriginal;
+    protocolOriginal.SetSpeed(std::numeric_limits<float>::infinity());
+
+    Parcel parcel;
+    bool marshalResult = RSMarshallingHelper::Marshalling(parcel, protocolOriginal);
+    ASSERT_TRUE(marshalResult);
+
+    parcel.RewindRead(0);
+
+    RSAnimationTimingProtocol protocolUnmarshalled;
+    bool result = RSMarshallingHelper::Unmarshalling(parcel, protocolUnmarshalled);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "RSAnimationTimingProtocolTest UnmarshallingRejectInfiniteSpeed end";
+}
+
+/**
+ * @tc.name: UnmarshallingRejectNaNSpeed
+ * @tc.desc: Verify Unmarshalling rejects NaN speed
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTimingProtocolTest, UnmarshallingRejectNaNSpeed, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingProtocolTest UnmarshallingRejectNaNSpeed start";
+    RSAnimationTimingProtocol protocolOriginal;
+    protocolOriginal.SetSpeed(std::numeric_limits<float>::quiet_NaN());
+
+    Parcel parcel;
+    bool marshalResult = RSMarshallingHelper::Marshalling(parcel, protocolOriginal);
+    ASSERT_TRUE(marshalResult);
+
+    parcel.RewindRead(0);
+
+    RSAnimationTimingProtocol protocolUnmarshalled;
+    bool result = RSMarshallingHelper::Unmarshalling(parcel, protocolUnmarshalled);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "RSAnimationTimingProtocolTest UnmarshallingRejectNaNSpeed end";
 }
 
 } // namespace Rosen

@@ -227,7 +227,7 @@ public:
     bool safeVoteEnabled = true;
     // <"VIRTUAL_AXX", "4">
     std::unordered_map<std::string, std::string> virtualDisplayConfigs_;
-    bool virtualDisplaySwitch_;
+    bool virtualDisplaySwitch_ = false;
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     // <"up_timeout_ms", 3000>

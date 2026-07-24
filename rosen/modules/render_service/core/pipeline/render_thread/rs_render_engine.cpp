@@ -63,15 +63,18 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSu
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut)
+    const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut,
+    const std::shared_ptr<HdiOutput>& output)
 #else
 void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ComposerScreenInfo& composerScreenInfo)
+    const ComposerScreenInfo& composerScreenInfo, const std::shared_ptr<HdiOutput>& output)
 #endif
 {
-    (void) composerScreenInfo;
+    (void)composerScreenInfo;
+    (void)output;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    (void) colorGamut;
+    (void)colorGamut;
+    (void)output;
 #endif
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (const auto& layer : layers) {
@@ -171,9 +174,23 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
         Drawing::Rect(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight()));
 }
 
-void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params)
+void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
+    BufferDrawParam& params)
 {
-    // prepare BufferDrawParam
+    const float adaptiveDstWidth = params.dstRect.GetWidth() * mirrorAdaptiveCoefficient_;
+    const float adaptiveDstHeight = params.dstRect.GetHeight() * mirrorAdaptiveCoefficient_;
+    params.dstRect = Drawing::Rect(0, 0, adaptiveDstWidth, adaptiveDstHeight);
+    const float translateX = params.matrix.Get(Drawing::Matrix::Index::TRANS_X) * mirrorAdaptiveCoefficient_;
+    const float translateY = params.matrix.Get(Drawing::Matrix::Index::TRANS_Y) * mirrorAdaptiveCoefficient_;
+    params.matrix.Set(Drawing::Matrix::Index::TRANS_X, translateX);
+    params.matrix.Set(Drawing::Matrix::Index::TRANS_Y, translateY);
+    const auto& clipRect = params.clipRect;
+    auto clipLeft = clipRect.GetLeft() * mirrorAdaptiveCoefficient_;
+    auto clipTop = clipRect.GetTop() * mirrorAdaptiveCoefficient_;
+    params.clipRect = Drawing::Rect(
+        clipLeft, clipTop, clipLeft + clipRect.GetWidth() * mirrorAdaptiveCoefficient_,
+        clipTop + clipRect.GetHeight() * mirrorAdaptiveCoefficient_);
+
     DrawSurfaceNodeWithParams(canvas, node, params, nullptr, nullptr);
 }
 

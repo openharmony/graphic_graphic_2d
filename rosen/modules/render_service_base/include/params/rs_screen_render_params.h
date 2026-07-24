@@ -205,6 +205,12 @@ public:
         return hdrBrightnessRatio_;
     }
 
+    void SetVideoDimType(VideoDimType videoDimType);
+    VideoDimType GetVideoDimType() const;
+
+    void SetUIMode3D(UIMode3D mode);
+    UIMode3D GetUIMode3D() const;
+
     void SetDrawnRegion(const Occlusion::Region& region);
     const Occlusion::Region& GetDrawnRegion() const;
 
@@ -240,6 +246,17 @@ public:
     void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
     bool GetHasForceHwcHdrSurface() const;
 
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetProtectiveSolidDrawables() const
+    {
+        return protectiveSolidDrawables_;
+    }
+
+    void SetProtectiveSolidDrawables(
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> protectiveSolidDrawables)
+    {
+        protectiveSolidDrawables_ = protectiveSolidDrawables;
+    }
+
     void SetScreenRotationForDelegate(ScreenRotation rotation);
     ScreenRotation GetScreenRotationForDelegate() const;
 private:
@@ -247,6 +264,7 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> protectiveSolidDrawables_;
     bool isDirtyAlignEnabled_ = false;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;
     ScreenInfo screenInfo_;
@@ -264,6 +282,8 @@ private:
     bool existHWCNode_ = false;
     bool hasHdrPresent_ = false;
     bool isHDRStatusChanged_ = false;
+    VideoDimType videoDimType_ = VideoDimType::VIDEO_DIM_TYPE_2D;
+    UIMode3D uiMode3D_ = UIMode3D::MODE_2D;
     // Only used in virtual expand screen to record accumulate frame status
     bool isAccumulatedDirty_ = false;
     bool isAccumulatedHdrStatusChanged_ = false;

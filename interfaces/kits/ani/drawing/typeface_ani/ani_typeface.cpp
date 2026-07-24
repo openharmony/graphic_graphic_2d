@@ -111,9 +111,8 @@ ani_object AniTypeface::CreateAniTypeface(ani_env* env, std::shared_ptr<Typeface
 {
     AniTypeface* aniTypeface = new AniTypeface(typeface);
     ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
-        AniGlobalMethod::GetInstance().typefaceCtor);
-    if (ANI_OK != env->Object_SetField_Long(
-        aniObj, AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
+        AniGlobalMethod::GetInstance().typefaceCtorWithPtr, reinterpret_cast<ani_long>(aniTypeface));
+    if (IsUndefined(env, aniObj)) {
         delete aniTypeface;
         ROSEN_LOGE("AniTypeface::CreateAniTypeface failed create aniTypeface");
         return CreateAniUndefined(env);
@@ -372,11 +371,10 @@ ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani
 
     auto aniTypeface = new AniTypeface(jsTypeface->GetTypeface());
     ani_object aniTypefaceObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
-        AniGlobalMethod::GetInstance().typefaceCtor);
-    if (ANI_OK != env->Object_SetField_Long(aniTypefaceObj,
-        AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
-        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed create aniTypeface");
+        AniGlobalMethod::GetInstance().typefaceCtorWithPtr, reinterpret_cast<ani_long>(aniTypeface));
+    if (IsUndefined(env, aniTypefaceObj)) {
         delete aniTypeface;
+        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed create aniTypeface");
         return CreateAniUndefined(env);
     }
     return aniTypefaceObj;

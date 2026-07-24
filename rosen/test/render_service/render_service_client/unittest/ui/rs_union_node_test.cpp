@@ -16,7 +16,9 @@
 #include "gtest/gtest.h"
 
 #include "modifier_ng/appearance/rs_use_union_modifier.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
 #include "ui/rs_union_node.h"
 
 using namespace testing;
@@ -29,12 +31,21 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSUIContext> CreateRSUIContext();
 };
 
 void RSUnionNodeTest::SetUpTestCase() {}
 void RSUnionNodeTest::TearDownTestCase() {}
 void RSUnionNodeTest::SetUp() {}
 void RSUnionNodeTest::TearDown() {}
+
+std::shared_ptr<RSUIContext> RSUnionNodeTest::CreateRSUIContext()
+{
+    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+    sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+    return rsUIContext;
+}
 
 /**
  * @tc.name: CreateTest001
@@ -63,8 +74,7 @@ HWTEST_F(RSUnionNodeTest, CreateTest002, TestSize.Level1)
 {
     bool isRenderServiceNode = false;
     bool isTextureExportNode = true;
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
 
     auto result = RSUnionNode::Create(isRenderServiceNode, isTextureExportNode, rsUIContext);
 
@@ -82,8 +92,7 @@ HWTEST_F(RSUnionNodeTest, CreateTest003, TestSize.Level1)
 {
     bool isRenderServiceNode = true;
     bool isTextureExportNode = false;
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
 
     auto result = RSUnionNode::Create(isRenderServiceNode, isTextureExportNode, rsUIContext);
 
@@ -101,8 +110,7 @@ HWTEST_F(RSUnionNodeTest, CreateTest004, TestSize.Level1)
 {
     bool isRenderServiceNode = false;
     bool isTextureExportNode = true;
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
 
     auto result = RSUnionNode::Create(isRenderServiceNode, isTextureExportNode, rsUIContext);
 
@@ -145,8 +153,8 @@ HWTEST_F(RSUnionNodeTest, RegisterNodeMap001, TestSize.Level1)
     EXPECT_NE(node, nullptr);
     node->id_ = 1;
     node->RegisterNodeMap();
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext1 = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+
+    auto rsUIContext1 = CreateRSUIContext();
     node->rsUIContext_ = rsUIContext1;
     node->RegisterNodeMap();
     ASSERT_NE(rsUIContext1->GetMutableNodeMap().GetNode(1), nullptr);

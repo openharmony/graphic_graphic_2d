@@ -1105,7 +1105,7 @@ HWTEST_F(RSFrameStabilityManagerTest, UpdateFrameStabilityDetection_Success, Tes
     newTarget.id = TEST_TARGET_ID_2;
     newTarget.type = FrameStabilityTargetType::WINDOW;
 
-    result = RSFrameStabilityManager::GetInstance().UpdateFrameStabilityDetection(
+    int32_t result = RSFrameStabilityManager::GetInstance().UpdateFrameStabilityDetection(
         TEST_PID, oldTarget, newTarget);
     EXPECT_EQ(result, static_cast<int32_t>(FrameStabilityErrorCode::SUCCESS));
 }

@@ -123,6 +123,20 @@ HWTEST_F(RSSurfaceNodeTest, SetBufferAvailableCallback001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBufferAvailableCallbackNullContextTest
+ * @tc.desc: Verify SetBufferAvailableCallback returns false when RSUIContext is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetBufferAvailableCallbackNullContextTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_TRUE(surfaceNode != nullptr);
+    bool isSuccess = surfaceNode->SetBufferAvailableCallback([]() {});
+    ASSERT_FALSE(isSuccess);
+}
+
+/**
  * @tc.name: SetandGetBounds001
  * @tc.desc:
  * @tc.type:FUNC
@@ -2417,5 +2431,58 @@ HWTEST_F(RSSurfaceNodeTest, SendDataToRender003, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     bool result = surfaceNode->SendDataToRender(c, RSSurfaceNodeType::LEASH_WINDOW_NODE, true, false);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SurfaceNodeTypeTest001
+ * @tc.desc: Test SetSurfaceNodeType/GetSurfaceNodeType/IsAppWindow;
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SurfaceNodeTypeTest001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    // Branch: current is ABILITY_COMPONENT_NODE -> SetSurfaceNodeType returns without change
+    auto abilityNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::ABILITY_COMPONENT_NODE, true);
+    ASSERT_NE(abilityNode, nullptr);
+    abilityNode->SetSurfaceNodeType(RSSurfaceNodeType::DEFAULT);
+    EXPECT_EQ(abilityNode->GetSurfaceNodeType(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
+
+    // Branch: current is UI_EXTENSION_COMMON_NODE -> SetSurfaceNodeType returns without change
+    auto commonNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE, true);
+    ASSERT_NE(commonNode, nullptr);
+    commonNode->SetSurfaceNodeType(RSSurfaceNodeType::DEFAULT);
+    EXPECT_EQ(commonNode->GetSurfaceNodeType(), RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+
+    // Branch: current is UI_EXTENSION_SECURE_NODE -> SetSurfaceNodeType returns without change
+    auto secureNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE, true);
+    ASSERT_NE(secureNode, nullptr);
+    secureNode->SetSurfaceNodeType(RSSurfaceNodeType::DEFAULT);
+    EXPECT_EQ(secureNode->GetSurfaceNodeType(), RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+}
+
+/**
+ * @tc.name: SetSurfaceNodeTypeTest002
+ * @tc.desc: Test SetSurfaceNodeType/GetSurfaceNodeType/IsAppWindow;
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SurfaceNodeTypeTest002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    // Branch: target is UI_EXTENSION_COMMON_NODE / UI_EXTENSION_SECURE_NODE -> return
+    auto defaultNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(defaultNode, nullptr);
+    defaultNode->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+    EXPECT_NE(defaultNode->GetSurfaceNodeType(), RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+    defaultNode->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+    EXPECT_NE(defaultNode->GetSurfaceNodeType(), RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+
+    // Branch: normal set + GetSurfaceNodeType + IsAppWindow true
+    auto appNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::APP_WINDOW_NODE, true);
+    ASSERT_NE(appNode, nullptr);
+    EXPECT_EQ(appNode->GetSurfaceNodeType(), RSSurfaceNodeType::APP_WINDOW_NODE);
+    EXPECT_TRUE(appNode->IsAppWindow());
+
+    // Branch: IsAppWindow false
+    EXPECT_FALSE(defaultNode->IsAppWindow());
 }
 } // namespace OHOS::Rosen

@@ -227,11 +227,11 @@ ani_object AniPen::GetColorFilter(ani_env* env, ani_object obj)
         return CreateAniUndefined(env);
     }
     AniColorFilter* aniColorFilter = new AniColorFilter(aniPen->GetPen()->GetFilter().GetColorFilter());
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().colorFilter,
-        AniGlobalMethod::GetInstance().colorFilterCtor);
-    if (ANI_OK != env->Object_SetField_Long(aniObj,
-        AniGlobalField::GetInstance().colorFilterNativeObj, reinterpret_cast<ani_long>(aniColorFilter))) {
-        ROSEN_LOGE(" AniPen::GetColorFilter failed cause by Object_SetField_Long");
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        aniColorFilter);
+    if (IsUndefined(env, aniObj)) {
+        ROSEN_LOGE("AniPen::GetColorFilter failed create aniColorFilter");
         delete aniColorFilter;
         return CreateAniUndefined(env);
     }
@@ -720,13 +720,14 @@ ani_object AniPen::PenTransferStatic(ani_env* env, [[maybe_unused]]ani_object ob
     }
 
     auto aniPen = new AniPen(jsPen->GetPen());
-    if (ANI_OK != env->Object_SetField_Long(
-        output, AniGlobalField::GetInstance().penNativeObj, reinterpret_cast<ani_long>(aniPen))) {
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().pen,
+        AniGlobalMethod::GetInstance().penCtorWithPtr, reinterpret_cast<ani_long>(aniPen));
+    if (IsUndefined(env, aniObj)) {
         ROSEN_LOGE("AniPen::PenTransferStatic failed create aniPen");
         delete aniPen;
         return CreateAniUndefined(env);
     }
-    return output;
+    return aniObj;
 }
 
 ani_long AniPen::GetPenAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

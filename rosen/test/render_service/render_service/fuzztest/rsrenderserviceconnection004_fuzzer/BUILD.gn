@@ -88,6 +88,8 @@ ohos_fuzztest("RSRenderServiceConnection004FuzzTest") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
 
   if (use_memmgr_plugin || use_memmgr) {

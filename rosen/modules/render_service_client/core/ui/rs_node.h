@@ -29,6 +29,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 
+#include <algorithm>
+#include <atomic>
 #include <optional>
 #include <unordered_map>
 
@@ -2052,8 +2054,11 @@ public:
             auto typedModifier = std::static_pointer_cast<ModifierType>(modifier);
             bool paramChanged = typedModifier->SetParam(param);
             // Only update when parameter changed
-            if (paramChanged && GetNodeState() != RSNodeState::INACTIVE) {
-                modifier->UpdateToRender();
+            if (paramChanged) {
+                modifier->index_ = RSCmdModifier::GenerateCmdModifierIndex();
+                if (GetNodeState() != RSNodeState::INACTIVE) {
+                    modifier->UpdateToRender();
+                }
             }
         }
     }
@@ -2077,8 +2082,11 @@ public:
             auto typedModifier = std::static_pointer_cast<ModifierType>(modifier);
             bool paramChanged = typedModifier->SetParam(param);
             // Only update when parameter changed
-            if (paramChanged && GetNodeState() != RSNodeState::INACTIVE) {
-                return modifier->UpdateToRenderWithResult();
+            if (paramChanged) {
+                modifier->index_ = RSCmdModifier::GenerateCmdModifierIndex();
+                if (GetNodeState() != RSNodeState::INACTIVE) {
+                    return modifier->UpdateToRenderWithResult();
+                }
             }
         }
         return false;
@@ -2130,7 +2138,7 @@ protected:
 
     bool hybridRenderCanvas_ = false;
 
-    mutable std::map<RSCmdModifierType, std::shared_ptr<RSCmdModifier>> rsCmdModifiers_;
+    mutable std::unordered_map<RSCmdModifierType, std::shared_ptr<RSCmdModifier>> rsCmdModifiers_;
     /**
      * @brief Called when child nodes are added to this node.
      */
@@ -2349,19 +2357,32 @@ private:
 
     // for node rebuilding only.
     void UpdateAllRSCmdModifiersToRender() {
+        // Sort modifiers by index (creation/update order) to ensure
+        // commands are sent in the correct order when pushing to foreground
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        std::vector<std::shared_ptr<RSCmdModifier>> sortedModifiers;
         for (auto& [type, modifier] : rsCmdModifiers_) {
             if (modifier) {
-                modifier->UpdateToRender();
+                sortedModifiers.push_back(modifier);
             }
+        }
+        std::sort(sortedModifiers.begin(), sortedModifiers.end(),
+            [](const std::shared_ptr<RSCmdModifier>& a, const std::shared_ptr<RSCmdModifier>& b) {
+                return a->GetIndex() < b->GetIndex();
+            });
+        for (auto& modifier : sortedModifiers) {
+            modifier->UpdateToRender();
         }
     }
  
     void ClearAllRSCmdModifiers() {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         rsCmdModifiers_.clear();
     }
 
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     void AnimationDestroyInRenderCallback(AnimationId animationId, float fraction, bool isReverseCycle);
+    void ColorPickerDestroyInRenderCallback(ContrastColorScheme lastContrastColorScheme);
     bool FireColorPickerCallback(uint32_t color);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -2435,7 +2456,7 @@ private:
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
-    static bool isNeedCallbackNodeChange_;
+    static std::atomic<bool> isNeedCallbackNodeChange_;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;

@@ -77,6 +77,7 @@ config("effect_SKeffectChian_public_config") {
 }
 if (is_arkui_x) {
   ohos_source_set("skeffectchain") {
+    branch_protector_ret = "pac_ret"
     include_dirs = [
       "//foundation/graphic/graphic_surface/interfaces/inner_api/common",
       "//foundation/graphic/graphic_surface/interfaces/inner_api/utils",
@@ -131,12 +132,17 @@ if (is_arkui_x) {
     public_configs = [ ":effect_SKeffectChian_public_config" ]
 
     cflags_cc = [ "-std=c++17" ]
+external_deps = [
+  "egl:libEGL",
+  "opengles:libGLES",
+]
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
 } else {
   ohos_shared_library("skeffectchain") {
+    branch_protector_ret = "pac_ret"
     deps = [
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",

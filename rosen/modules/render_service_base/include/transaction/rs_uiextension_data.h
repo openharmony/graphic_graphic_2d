@@ -65,7 +65,7 @@ public:
 
 private:
     static bool MarshallingRectInfo(const SecRectInfo& rectInfo, Parcel& parcel);
-    static void UnmarshallingRectInfo(SecRectInfo& rectInfo, Parcel& parcel);
+    static bool UnmarshallingRectInfo(SecRectInfo& rectInfo, Parcel& parcel);
     UIExtensionCallbackData secData_;
 };
 } // namespace Rosen

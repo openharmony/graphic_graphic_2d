@@ -221,9 +221,8 @@ ani_object AniPath::GetPathIterator(ani_env* env, ani_object obj)
     }
     AniPathIterator* aniPathItertor = new AniPathIterator(*aniPath->GetPath());
     ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().pathIterator,
-        AniGlobalMethod::GetInstance().pathIteratorCtor, obj);
-    if (ANI_OK != env->Object_SetField_Long(
-        aniObj, AniGlobalField::GetInstance().pathIteratorNativeObj, reinterpret_cast<ani_long>(aniPathItertor))) {
+        AniGlobalMethod::GetInstance().pathIteratorCtorWithPtr, reinterpret_cast<ani_long>(aniPathItertor));
+    if (IsUndefined(env, aniObj)) {
         ROSEN_LOGE("AniPath::GetPathIterator failed create PathIntertor.");
         delete aniPathItertor;
         return CreateAniUndefined(env);
@@ -302,20 +301,13 @@ ani_object AniPath::Offset(ani_env* env, ani_object obj, ani_double dx, ani_doub
     }
     std::shared_ptr<Path> path = std::make_shared<Path>();
     aniPath->GetPath()->Offset(path.get(), dx, dy);
+    AniPath* newAniPath = new AniPath(path);
     ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
-        AniGlobalMethod::GetInstance().pathCtor);
+        AniGlobalMethod::GetInstance().pathCtorWithPtr, reinterpret_cast<ani_long>(newAniPath));
     if (IsUndefined(env, aniObj)) {
         ROSEN_LOGE("AniPath::Offset failed cause aniObj is undefined");
-        return aniObj;
-    }
-    AniPath* newAniPath = new AniPath(path);
-    ani_status ret = env->Object_SetField_Long(
-        aniObj, AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(newAniPath));
-    if (ret != ANI_OK) {
-        ROSEN_LOGE("AniPath::Offset create new path failed %{public}d", ret);
         delete newAniPath;
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param path.");
-        return CreateAniUndefined(env);
+        return aniObj;
     }
     return aniObj;
 }
@@ -1070,13 +1062,14 @@ ani_object AniPath::PathTransferStatic(
     }
 
     auto aniPath = new AniPath(jsPath->GetPathPtr());
-    if (ANI_OK != env->Object_SetField_Long(
-        output, AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
+        AniGlobalMethod::GetInstance().pathCtorWithPtr, reinterpret_cast<ani_long>(aniPath));
+    if (IsUndefined(env, aniObj)) {
         ROSEN_LOGE("AniPath::PathTransferStatic failed create aniPath");
         delete aniPath;
         return CreateAniUndefined(env);
     }
-    return output;
+    return aniObj;
 }
 
 ani_long AniPath::GetPathAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

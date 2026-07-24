@@ -118,7 +118,6 @@ ohos_unittest("vsync_ltpo_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -164,7 +163,6 @@ ohos_unittest("vsync_30to60_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -210,7 +208,6 @@ ohos_unittest("vsync_30to90_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -256,7 +253,6 @@ ohos_unittest("vsync_30to120_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -302,7 +298,6 @@ ohos_unittest("vsync_60to30_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -348,7 +343,6 @@ ohos_unittest("vsync_60to90_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -394,7 +388,6 @@ ohos_unittest("vsync_60to120_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -440,7 +433,6 @@ ohos_unittest("vsync_90to30_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -486,7 +478,6 @@ ohos_unittest("vsync_90to60_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -532,7 +523,6 @@ ohos_unittest("vsync_90to120_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -578,7 +568,6 @@ ohos_unittest("vsync_120to30_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -624,7 +613,6 @@ ohos_unittest("vsync_120to60_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -670,7 +658,6 @@ ohos_unittest("vsync_120to90_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -717,7 +704,6 @@ ohos_unittest("vsync_multicallback_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -742,10 +728,7 @@ ohos_unittest("vsync_limit_test_st") {
 
   sources = [ "vsync_limit_test.cpp" ]
 
-  include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/composer",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-  ]
+  include_dirs = [ "$graphic_2d_root/interfaces/inner_api/composer" ]
 
   cflags = [
     "-Wall",
@@ -753,8 +736,7 @@ ohos_unittest("vsync_limit_test_st") {
     "-g3",
   ]
 
-  deps =
-      [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
 }
 
 ## SystemTest vsync_limit_test }}}
@@ -768,7 +750,6 @@ ohos_unittest("nativeVsync_getPeriod_test_st") {
   include_dirs = [
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/interfaces/inner_api/composer",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
 
   cflags = [
@@ -777,8 +758,7 @@ ohos_unittest("nativeVsync_getPeriod_test_st") {
     "-g3",
   ]
 
-  deps =
-      [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
 }
 
 ## SystemTest nativeVsync_getPeriod_test }}}
@@ -789,10 +769,7 @@ ohos_unittest("nativeVsync_requestFrame_test_st") {
 
   sources = [ "nativeVsync_requestFrame_test.cpp" ]
 
-  include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/composer",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-  ]
+  include_dirs = [ "$graphic_2d_root/interfaces/inner_api/composer" ]
 
   cflags = [
     "-Wall",
@@ -800,8 +777,7 @@ ohos_unittest("nativeVsync_requestFrame_test_st") {
     "-g3",
   ]
 
-  deps =
-      [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
 }
 
 ## SystemTest nativeVsync_requestFrame_test }}}
@@ -812,10 +788,7 @@ ohos_unittest("nativeVsync_requestMultiCB_test_st") {
 
   sources = [ "nativeVsync_requestMultiCB_test.cpp" ]
 
-  include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/composer",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-    ]
+  include_dirs = [ "$graphic_2d_root/interfaces/inner_api/composer" ]
 
   cflags = [
     "-Wall",
@@ -823,8 +796,7 @@ ohos_unittest("nativeVsync_requestMultiCB_test_st") {
     "-g3",
   ]
 
-  deps =
-      [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
 }
 
 ## SystemTest nativeVsync_requestMultiCB_test }}}
@@ -903,7 +875,6 @@ ohos_unittest("vsync_callbackeveryframe_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
@@ -949,7 +920,6 @@ ohos_unittest("vsync_sample_test_st") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",

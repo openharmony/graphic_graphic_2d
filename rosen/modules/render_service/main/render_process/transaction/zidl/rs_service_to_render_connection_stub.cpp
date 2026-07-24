@@ -712,6 +712,22 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D): {
+            uint32_t modeVal = 0;
+            if (!data.ReadUint32(modeVal)) {
+                RS_LOGE("%{public}s Read mode failed!", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (modeVal >= static_cast<uint32_t>(UIMode3D::MODE_TYPE_BUTT)) {
+                RS_LOGE("%{public}s invalid mode: %{public}u", __func__, modeVal);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            UIMode3D mode = static_cast<UIMode3D>(modeVal);
+            ret = SetUIMode3D(mode);
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -816,6 +832,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPAINT_EVERYTHING): {
             auto replyMessage = RepaintEverything();
             RS_LOGI("REPAINT_EVERYTHING replyMsg: %{public}d", replyMessage);
+            reply.WriteInt32(replyMessage);
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION): {
+            ScreenId screenId{INVALID_SCREEN_ID};
+            uint32_t width{0};
+            uint32_t height{0};
+            if (!data.ReadUint64(screenId) || !data.ReadUint32(width) || !data.ReadUint32(height)) {
+                RS_LOGE("RSServiceToRenderStub::SET_ROG_SCREEN_RESOLUTION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto replyMessage = SetRogScreenResolution(screenId, width, height);
+            RS_LOGI("SET_ROG_SCREEN_RESOLUTION replyMsg: %{public}d", replyMessage);
             reply.WriteInt32(replyMessage);
             break;
         }

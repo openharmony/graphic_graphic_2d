@@ -20,6 +20,9 @@
 
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
+#ifdef RS_ENABLE_GPU
+#include "drawable/rs_screen_render_node_drawable.h"
+#endif
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
@@ -27,17 +30,19 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
+#include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#endif
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "smart_cache_param.h"
+#include "spirv_cache_param.h"
+#include "vma_block_param.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 
-#ifdef RS_ENABLE_GPU
-#include "drawable/rs_screen_render_node_drawable.h"
-#endif
-
-#if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
-#include "gpuComposition/rs_image_manager.h"
-#include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "aihdr_enhancer.h"
+#include "render/rs_colorspace_convert.h"
 #endif
 
 #ifdef HETERO_HDR_ENABLE
@@ -46,13 +51,8 @@
 #endif
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
-
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-#include "aihdr_enhancer.h"
-#include "render/rs_colorspace_convert.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
 
 #ifdef RS_ENABLE_EGLIMAGE
@@ -673,20 +673,13 @@ void RSBaseRenderEngine::DumpVkImageInfo(std::string &dumpString)
 std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
     BufferDrawParam& params, VideoInfo& videoInfo)
 {
-    std::shared_ptr<Drawing::AutoCanvasRestore> acr = nullptr;
-    if (params.preRotation) {
-        RS_LOGD_IF(DEBUG_COMPOSER, "  - Applying pre-rotation, resetting canvas matrix");
-        acr = std::make_shared<Drawing::AutoCanvasRestore>(canvas, true);
-        canvas.ResetMatrix();
-    }
-
-    std::shared_ptr<Drawing::Image> image;
+    auto image = std::make_shared<Drawing::Image>();
     if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
         RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer invalid buffer!");
         return nullptr;
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
-        "  - Buffer info: width=%{public}u, height=%{public}u, format=%{public}u, seqNum=%{public}" PRIu64,
+        "  - Buffer info: width=%{public}u, height=%{public}u, format=%{public}d, seqNum=%{public}" PRIu64 "",
         params.buffer->GetWidth(), params.buffer->GetHeight(),
         params.buffer->GetFormat(), params.buffer->GetBufferId());
     videoInfo.drawingColorSpace_ = Drawing::ColorSpace::CreateSRGB();
@@ -737,23 +730,17 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (image == nullptr) {
         return;
     }
-
     Drawing::SamplingOptions samplingOptions;
-    if (!RSSystemProperties::GetUniRenderEnabled()) {
-        samplingOptions = Drawing::SamplingOptions();
-        RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: Default sampling options (UniRender not enabled)");
+    if (params.isMirror) {
+        samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: Mirror mode (LINEAR, NEAREST)");
     } else {
-        if (params.isMirror) {
-            samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
-            RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: Mirror mode (LINEAR, NEAREST)");
-        } else {
-            bool needBilinear = NeedBilinearInterpolation(params, canvas.GetTotalMatrix());
-            samplingOptions =
-                needBilinear ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE) :
-                Drawing::SamplingOptions();
-            RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: %{public}s",
-                needBilinear ? "Bilinear interpolation (LINEAR, NONE)" : "Default sampling options");
-        }
+        bool needBilinear = NeedBilinearInterpolation(params, canvas.GetTotalMatrix());
+        samplingOptions =
+            needBilinear ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE) :
+            Drawing::SamplingOptions();
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: %{public}s",
+            needBilinear ? "Bilinear interpolation (LINEAR, NONE)" : "Default sampling options");
     }
 
     {
@@ -765,15 +752,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::SKEW_Y),
             matrix.Get(Drawing::Matrix::SCALE_Y), matrix.Get(Drawing::Matrix::TRANS_Y));
     }
-
-    if (params.targetColorGamut == GRAPHIC_COLOR_GAMUT_SRGB) {
-        RS_LOGD_IF(DEBUG_COMPOSER, "  - Using SRGB color gamut for drawing");
-        canvas.AttachBrush(params.paint);
-        canvas.DrawImageRect(*image, params.srcRect, params.dstRect, samplingOptions,
-            Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-        canvas.DetachBrush();
-        RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::DrawImage: SRGB color gamut drawing completed");
-    } else {
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     // For sdr brightness ratio
     if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
@@ -879,7 +857,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #else
     DrawImageRect(canvas, image, params, samplingOptions);
 #endif // USE_VIDEO_PROCESSING_ENGINE
-    }
 }
 
 void RSBaseRenderEngine::DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
@@ -979,8 +956,12 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 void RSBaseRenderEngine::ClearCacheSet(const std::unordered_set<uint64_t>& unmappedCache)
 {
     if (imageManager_ != nullptr) {
-        for (auto id : unmappedCache) {
-            imageManager_->UnMapImageFromSurfaceBuffer(id);
+        if (RSSystemProperties::GetReleaseImageOneByOneFlag()) {
+            imageManager_->UnMapImageFromSurfaceBuffer(unmappedCache);
+        } else {
+            for (auto id : unmappedCache) {
+                imageManager_->UnMapImageFromSurfaceBuffer(id);
+            }
         }
     }
 }

@@ -457,6 +457,7 @@ public:
     void ClearCustomWatermarkEnabled(const std::string& name);
     const std::unordered_map<std::string, bool>& GetSurfaceWatermarkEnabledMap(
         SurfaceWatermarkType watermarkType) const;
+    const std::unordered_map<std::string, bool>& GetWatermarksEnabledMap() const;
 
     bool IsSystemWatermarkEmpty() const;
     bool IsCustomWatermarkEmpty() const;
@@ -894,6 +895,9 @@ public:
     void SetIsParticipateInOcclusion(bool isParticipateInOcclusion);
     bool GetIsParticipateInOcclusion() const;
 
+    void SetCompositionType(CompositionType type);
+    CompositionType GetCompositionType() const;
+
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 
     void SetSplitLayerTag(bool splitLayerTag)
@@ -1018,6 +1022,7 @@ private:
 
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
+    CompositionType compositionType_ = CompositionType::COMPOSITION_DEFAULT;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

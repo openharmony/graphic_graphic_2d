@@ -806,6 +806,23 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
     }
 }
 
+bool HgmFrameRateManager::HandleSetHgmExclusiveScreen(pid_t pid, ScreenId screenId)
+{
+    HGM_LOGI("pid: %{public}d screenId: %{public}" PRIu64, pid, screenId);
+    RS_TRACE_NAME_FMT("%s: pid: %d screenId: %" PRIu64, __func__, pid, screenId);
+    if (screenId != INVALID_SCREEN_ID) {
+        if (auto screen = HgmCore::Instance().GetScreen(screenId);
+            !screen || !screen->GetSelfOwnedScreenFlag()) {
+            return false;
+        }
+        cleanPidCallback_[pid].insert(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
+    } else {
+        cleanPidCallback_[pid].erase(CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN);
+    }
+    hgmExclusiveScreenId_.store(screenId);
+    return true;
+}
+
 void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     HGM_LOGD("status:%{public}d", touchStatus);
@@ -867,20 +884,29 @@ void HgmFrameRateManager::HandlePointerTask(pid_t pid, int32_t pointerStatus, in
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::TOUCH_EVENT);
     }
+    PolicyConfigData::StrategyConfig strategyRes;
+    if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) != EXEC_SUCCESS) {
+        HGM_LOGD("[pointer manager] get focus app strategy config failed!");
+        return;
+    }
     if (pointerStatus == TOUCH_MOVE || pointerStatus == TOUCH_BUTTON_DOWN || pointerStatus == TOUCH_BUTTON_UP) {
-        PolicyConfigData::StrategyConfig strategyRes;
-        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
-            (strategyRes.pointerMode == PointerModeType::POINTER_ENABLED ||
-             (pointerStatus != TOUCH_MOVE && strategyRes.pointerMode == PointerModeType::POINTER_ENABLED_EX_MOVE))) {
+        // pointerMode, 1, all status; 2, TOUCH_BUTTON_DOWN and its followed especially timeout followed status
+        bool pointerEnabled = strategyRes.pointerMode == PointerModeType::POINTER_ENABLED;
+        bool isPointerExMove = strategyRes.pointerMode == PointerModeType::POINTER_ENABLED_EX_MOVE &&
+            (pointerStatus == TOUCH_BUTTON_DOWN || pointerManager_.IsInPointerDown());
+        if (pointerEnabled || isPointerExMove) {
             HGM_LOGD("[pointer manager] active");
             pointerManager_.HandleTimerReset();
             pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
         }
+        if (pointerStatus == TOUCH_BUTTON_DOWN) {
+            pointerManager_.SetIsInPointerDown(true);
+        } else if (pointerStatus == TOUCH_BUTTON_UP) {
+            pointerManager_.SetIsInPointerDown(false);
+        }
     }
     if (pointerStatus == AXIS_BEGIN || pointerStatus == AXIS_UPDATE || pointerStatus == AXIS_END) {
-        PolicyConfigData::StrategyConfig strategyRes;
-        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
-            strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
+        if (strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
             HGM_LOGD("[pointer axis manager] active");
             if (pointerStatus == AXIS_BEGIN) {
                 pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
@@ -1199,6 +1225,11 @@ void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
 void HgmFrameRateManager::HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo)
 {
     HgmCore::Instance().SetMultiSelfOwnedScreenEnable(eventInfo.eventStatus);
+    if (eventInfo.eventStatus && eventInfo.maxRefreshRate <= OLED_NULL_HZ) {
+        RS_TRACE_NAME_FMT("%s: eventStatus: %d maxRefreshRate: %d",
+            __func__, eventInfo.eventStatus, eventInfo.maxRefreshRate);
+        return;
+    }
     DeliverRefreshRateVote(
         {"VOTER_MULTISELFOWNEDSCREEN", eventInfo.minRefreshRate, eventInfo.maxRefreshRate, pid},
         eventInfo.eventStatus);
@@ -1280,7 +1311,9 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
         return;
     }
 
-    if (isGameSupportAS_ == SupportASStatus::GAME_SCENE_SKIP) {
+    if (IsSupportLiteAS(isGameSupportAS_)) {
+        HGM_LOGI("ProcessAdaptiveSync RSAdaptiveVsync mode: %{public}d", isGameSupportAS_);
+        RS_TRACE_NAME_FMT("ProcessAdaptiveSync RSAdaptiveVsync mode: %d", isGameSupportAS_);
         isAdaptive_.store(isGameSupportAS_);
         return;
     }
@@ -1379,11 +1412,14 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                 case CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT:
                     HandleAppStrategyConfigEvent(DEFAULT_PID, "", {});
                     break;
+                case CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN:
+                    hgmExclusiveScreenId_.store(INVALID_SCREEN_ID);
+                    break;
                 default:
                     break;
             }
         }
-        iter->second.clear();
+        cleanPidCallback_.erase(iter);
     }
     softVSyncManager_.EraseGameRateDiscountMap(pid);
     frameVoter_.CleanVote(pid);

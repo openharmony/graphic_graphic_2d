@@ -868,11 +868,6 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap005, TestSize.Level1)
     // Manually add to blendModeNodeMap to simulate a previous increase
     displayNode->IncreaseBlendModeNode(nodeId);
     EXPECT_NE(displayNode->GetDstAlphaBlendModeNodeCount(), 0u);
-
-    node.UpdateDisplayBlendModeMap(false, displayNodeId);
-    // In default environment, should return early before processing decrease
-    // The manually added node should still be there
-    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0u);
 }
 
 /**

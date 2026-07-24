@@ -29,6 +29,33 @@ namespace Drawing {
     class GEShaderShape;
 } // namespace Drawing
 
+// Depth guard for shape-tree recursion (Unmarshalling / GenerateGEVisualEffect / CalculateHash).
+// Caps nested shape depth to prevent stack-overflow DoS from attacker-crafted parcels or
+// server-built deep trees (e.g. nested RSUnionRenderNode subtrees, which bypass the deserialization
+// guard). One thread_local counter is shared by all three paths: the GenerateGEVisualEffect<->
+// CalculateHash cross-call in UpdateVisualEffectParamImpl does not double-count, because hash
+// recursion at generate-depth D only spans the subtree below D (depth M-D), so the peak stays at
+// the tree depth M. These paths are synchronous CPU work: do NOT add FFRT/coroutine suspension
+// inside them, or thread_local would stop tracking logical depth after a cross-thread resume.
+class RSB_EXPORT RSShapeRecursionGuard {
+public:
+    static constexpr int32_t MAX_DEPTH = 128;
+    RSShapeRecursionGuard()
+    {
+        ++Depth();
+    }
+    ~RSShapeRecursionGuard()
+    {
+        --Depth();
+    }
+    bool ExceedsLimit() const;
+    RSShapeRecursionGuard(const RSShapeRecursionGuard&) = delete;
+    RSShapeRecursionGuard& operator=(const RSShapeRecursionGuard&) = delete;
+
+private:
+    static int32_t& Depth();
+};
+
 class RSB_EXPORT RSNGRenderShapeBase : public RSNGRenderEffectBase<RSNGRenderShapeBase> {
 public:
     virtual ~RSNGRenderShapeBase() = default;
@@ -58,6 +85,12 @@ private:
     friend class RSNGRenderShapeHelper;
 };
 
+// Opt-in: RSNGRenderShapeBase allows self-type-as-property (SHAPE_PTR) because all recursion
+// paths are guarded by RSShapeRecursionGuard (MAX_DEPTH=128). The static_assert in
+// RSNGRenderEffectTemplate bans this pattern for all other effect types (filter/mask/shader).
+template <>
+struct allow_self_type_property<RSNGRenderShapeBase> : std::true_type {};
+
 template<RSNGEffectType Type, typename... PropertyTags>
 class RSNGRenderShapeTemplate : public RSNGRenderEffectTemplate<RSNGRenderShapeBase, Type, PropertyTags...> {
 public:
@@ -70,6 +103,10 @@ public:
 
     std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() override
     {
+        RSShapeRecursionGuard guard;
+        if (guard.ExceedsLimit()) {
+            return nullptr;
+        }
         RS_OPTIONAL_TRACE_FMT("RSRenderShape, Type: %s",
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
         auto geShape = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);

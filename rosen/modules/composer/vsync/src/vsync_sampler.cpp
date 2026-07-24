@@ -499,6 +499,9 @@ bool VSyncSampler::AddPresentFenceTime(uint32_t screenId, int64_t timestamp)
         return false;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+    if (screenId != vsyncEnabledScreenId_) {
+        return false;
+    }
     if (isAdaptive_) {
         auto prePresentFenceTime = presentFenceTime_[(presentFenceTimeOffset_ + NUM_PRESENT - 1) % NUM_PRESENT];
         auto interval = timestamp - prePresentFenceTime;
@@ -506,9 +509,6 @@ bool VSyncSampler::AddPresentFenceTime(uint32_t screenId, int64_t timestamp)
             RS_TRACE_NAME_FMT("VSyncSampler::AddPresentFenceTime, adaptive sample");
             lastAdaptiveTime_ = SystemTime();
         }
-    }
-    if (screenId != vsyncEnabledScreenId_) {
-        return false;
     }
     presentFenceTime_[presentFenceTimeOffset_] = timestamp;
 

@@ -43,20 +43,19 @@ public:
 };
 
 ADD_COMMAND(RSRootNodeCreate,
-    ARG(PERMISSION_APP, ROOT_NODE, ROOT_NODE_CREATE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, ROOT_NODE, ROOT_NODE_CREATE,
         RootNodeCommandHelper::Create, NodeId, bool))
 ADD_COMMAND(RSRootNodeAttachRSSurfaceNode,
-    ARG(PERMISSION_APP, ROOT_NODE, ROOT_NODE_ATTACH,
+    ARG(PERMISSION_APP, NodeIdPosTag<0, 1>, ROOT_NODE, ROOT_NODE_ATTACH,
         RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId, uint64_t))
 ADD_COMMAND(RSRootNodeSetEnableRender,
-    ARG(PERMISSION_APP, ROOT_NODE, SET_ENABLE_RENDER,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, ROOT_NODE, SET_ENABLE_RENDER,
         RootNodeCommandHelper::SetEnableRender, NodeId, bool))
-// unirender
 ADD_COMMAND(RSRootNodeAttachToUniSurfaceNode,
-    ARG(PERMISSION_APP, ROOT_NODE, ATTACH_TO_UNI_SURFACENODE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0, 1>, ROOT_NODE, ATTACH_TO_UNI_SURFACENODE,
         RootNodeCommandHelper::AttachToUniSurfaceNode, NodeId, NodeId))
 ADD_COMMAND(RSRootNodeUpdateSuggestedBufferSize,
-    ARG(PERMISSION_APP, ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE,
         RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, float, float))
 } // namespace Rosen
 } // namespace OHOS

@@ -20,6 +20,7 @@
 #include "vsync_iconnection_token.h"
 #include "ffrt_inner.h"
 #include <event_handler.h>
+#include "dvsync_lib_manager.h"
 
 #include <gtest/gtest.h>
 
@@ -164,10 +165,14 @@ HWTEST_F(VSyncGeneratorTest, ThreadTest002, Function | MediumTest| Level0)
  */
 HWTEST_F(VSyncGeneratorTest, CheckSampleIsAdaptiveTest001, Function | MediumTest| Level0)
 {
+    int64_t period = 16666666; // 16666666ns
+    int64_t referenceTime = SystemTime();
+    vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    vsyncGenerator_->UpdateMode(period, 0, referenceTime);
     // 20000000ns
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(20000000), true);
+    ASSERT_EQ(vsyncGenerator_->CheckSampleIsAdaptive(20000000), true);
     // 16500000ns
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(16500000), false);
+    ASSERT_EQ(vsyncGenerator_->CheckSampleIsAdaptive(16500000), false);
 }
 
 /*
@@ -643,7 +648,6 @@ HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest002, Function | 
     usleep(100000); // 100000us
     ASSERT_EQ(vsyncGenerator_->GetVSyncMode(), VSYNC_MODE_LTPS);
     int64_t refreshRate = 120; // 120hz
-    int64_t rsVsyncCount = 0;
     std::vector<std::pair<uint64_t, uint32_t>> refreshRates = {};
     refreshRates.push_back({0, 60});
     refreshRates.push_back({1, 120});
@@ -655,6 +659,7 @@ HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest002, Function | 
         .cb = rsController,
         .phaseByPulseNum = 3,
     };
+    int64_t rsVsyncCount = 0;
     ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
     ASSERT_EQ(ret, VSYNC_ERROR_NOT_SUPPORT);
@@ -1098,9 +1103,9 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest003, Function | MediumTest| 
     VsyncError ret = vsyncGenerator_->UpdateMode(period, 0, referenceTime);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
     int64_t refreshRate = 120; // 120hz
-    int64_t rsVsyncCount = 0;
     VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    int64_t rsVsyncCount = 0;
     ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
@@ -1249,6 +1254,24 @@ HWTEST_F(VSyncGeneratorTest, SetCurrentRefreshRateTest001, Function | MediumTest
 }
 
 /*
+* Function: SetCurrentRefreshRateTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test SetCurrentRefreshRate
+ */
+HWTEST_F(VSyncGeneratorTest, SetCurrentRefreshRateTest002, Function | MediumTest| Level0)
+{
+    uint32_t currRefreshRate = 60;
+    uint32_t lastRefreshRate = 30;
+    bool init = OHOS::Rosen::DVSyncLibManager::Instance().initialized_;
+    OHOS::Rosen::DVSyncLibManager::Instance().initialized_ = false;
+    int64_t delayTime = VSyncGeneratorTest::vsyncGenerator_->SetCurrentRefreshRate(currRefreshRate, lastRefreshRate);
+    ASSERT_EQ(delayTime, 0);
+    OHOS::Rosen::DVSyncLibManager::Instance().initialized_ = init;
+}
+
+/*
 * Function: DVSyncRateChangedTest001
 * Type: Function
 * Rank: Important(2)
@@ -1265,6 +1288,49 @@ HWTEST_F(VSyncGeneratorTest, DVSyncRateChangedTest001, Function | MediumTest| Le
         frameRateChanged, needChangeDssRefreshRate);
     ASSERT_EQ(frameRateChanged, false);
     ASSERT_EQ(isNeedDvsyncDelay, false);
+}
+
+/*
+* Function: DVSyncRateChangedTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test DVSyncRateChanged
+ */
+HWTEST_F(VSyncGeneratorTest, DVSyncRateChangedTest002, Function | MediumTest| Level0)
+{
+    uint32_t currRefreshRate = 60;
+    bool frameRateChanged = false;
+    bool isNeedDvsyncDelay = false;
+    bool needChangeDssRefreshRate = false;
+    bool init = OHOS::Rosen::DVSyncLibManager::Instance().initialized_;
+    OHOS::Rosen::DVSyncLibManager::Instance().initialized_ = false;
+    isNeedDvsyncDelay = VSyncGeneratorTest::vsyncGenerator_->DVSyncRateChanged(currRefreshRate,
+        frameRateChanged, needChangeDssRefreshRate);
+    ASSERT_EQ(frameRateChanged, false);
+    ASSERT_EQ(isNeedDvsyncDelay, false);
+    OHOS::Rosen::DVSyncLibManager::Instance().initialized_ = init;
+}
+
+/*
+* Function: ComputeDVSyncListenerTimeStampTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test ComputeDVSyncListenerTimeStamp
+ */
+HWTEST_F(VSyncGeneratorTest, ComputeDVSyncListenerTimeStampTest, Function | MediumTest| Level0)
+{
+    int64_t now = 0;
+    int64_t nextVSyncTime = 0;
+    impl::VSyncGenerator::Listener listener;
+    sptr<impl::VSyncGenerator> generatorImpl = new impl::VSyncGenerator();
+    bool init = OHOS::Rosen::DVSyncLibManager::Instance().initialized_;
+    OHOS::Rosen::DVSyncLibManager::Instance().initialized_ = false;
+    generatorImpl->ComputeDVSyncListenerTimeStamp(listener, now, nextVSyncTime);
+    ASSERT_EQ(now, 0);
+    ASSERT_EQ(nextVSyncTime, 0);
+    OHOS::Rosen::DVSyncLibManager::Instance().initialized_ = init;
 }
 
 /*
@@ -1447,21 +1513,6 @@ HWTEST_F(VSyncGeneratorTest, WaitForTimeoutConNotifyLockedForListener001, Functi
     int64_t time = 8333333; // 8333333ns
     vsyncGeneratorImpl->nextTimeStamp_ = time;
     vsyncGeneratorImpl->WaitForTimeoutConNotifyLockedForListener();
-    ASSERT_EQ(vsyncGeneratorImpl->nextTimeStamp_, time);
-}
-
-/*
- * @tc.name: WaitForTimeoutConNotifyLockedForRefreshRate
- * @tc.desc: Test For  * @tc.name: WaitForTimeoutConNotifyLockedForRefreshRate
- * @tc.type: FUNC
- * @tc.require: issueICAANX
- */
-HWTEST_F(VSyncGeneratorTest, WaitForTimeoutConNotifyLockedForRefreshRate001, Function | MediumTest| Level0)
-{
-    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
-    int64_t time = 8333333; // 8333333ns
-    vsyncGeneratorImpl->nextTimeStamp_ = time;
-    vsyncGeneratorImpl->WaitForTimeoutConNotifyLockedForRefreshRate();
     ASSERT_EQ(vsyncGeneratorImpl->nextTimeStamp_, time);
 }
 

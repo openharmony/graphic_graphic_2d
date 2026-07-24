@@ -26,12 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class FontCollection;
-}
-} // namespace OHOS
-
-namespace OHOS {
-namespace Rosen {
 namespace Drawing {
 class ObjectMgr {
 public:
@@ -42,6 +36,18 @@ public:
     void AddObject(void* obj);
     bool HasObject(void* obj);
     bool RemoveObject(void* obj);
+
+    template<typename Func>
+    bool WithObject(void* obj, Func&& func)
+    {
+        std::shared_lock lock(mutex_);
+        auto iter = objects_.find(obj);
+        if (iter != objects_.end()) {
+            func(*iter);
+            return true;
+        }
+        return false;
+    }
 
 private:
     ObjectMgr() = default;

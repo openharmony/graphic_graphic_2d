@@ -230,11 +230,13 @@ void RSAncoManager::ShrinkAmountIfNeed(const AncoBufferInfo& ancoInfo, Drawing::
 
 bool RSAncoManager::IsAncoDimmer(const std::string& name)
 {
-    return name.rfind(DIMMER_PREFIX, 0) == 0;
+    return isAncoPreparing_ && name.rfind(DIMMER_PREFIX, 0) == 0;
 }
 
 bool RSAncoManager::IsAncoType(const std::string& name)
 {
-    return (name.rfind(SHELL_WINDOW_PREFIX, 0) == 0) || (name.rfind(SYS_WINDOW_PREFIX, 0) == 0);
+    isAncoPreparing_ = (name.rfind(SHELL_WINDOW_PREFIX, 0) == 0) ||
+                       (name.rfind(SYS_WINDOW_PREFIX, 0) == 0);
+    return isAncoPreparing_;
 }
 } // namespace OHOS::Rosen

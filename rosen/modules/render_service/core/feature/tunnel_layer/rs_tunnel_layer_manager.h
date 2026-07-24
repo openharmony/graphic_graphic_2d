@@ -40,7 +40,6 @@ public:
     explicit RSTunnelLayerManager(std::shared_ptr<RSContext> context);
     ~RSTunnelLayerManager() override = default;
 
-    void TransferTunnelPendingBufferToNormalConsume(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void MarkTunnelBufferConsumedForNormal(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         const std::shared_ptr<RSComposerClientManager>& clientManager) const;
     void ClearRuntimeStateByPid(pid_t remotePid);

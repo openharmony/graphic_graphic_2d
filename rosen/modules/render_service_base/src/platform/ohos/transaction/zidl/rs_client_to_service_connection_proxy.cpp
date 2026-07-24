@@ -486,6 +486,7 @@ ErrCode RSClientToServiceConnectionProxy::SetVirtualScreenTypeBlackList(
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetVirtualScreenTypeBlackList: Send Request err.");
+        repCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
 
@@ -4410,6 +4411,36 @@ void RSClientToServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& e
     }
 }
 
+bool RSClientToServiceConnectionProxy::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetHgmExclusiveScreen: WriteInterfaceToken GetDescriptor err.");
+        return false;
+    }
+    ScreenId id = screenId.value_or(INVALID_SCREEN_ID);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetHgmExclusiveScreen: WriteUint64 screenId err.");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Send Request err.");
+        return false;
+    }
+    bool result = false;
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHgmExclusiveScreen: Read result failed");
+        return false;
+    }
+    return result;
+}
+
 ErrCode RSClientToServiceConnectionProxy::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
 {
     MessageParcel data;
@@ -4849,6 +4880,30 @@ ErrCode RSClientToServiceConnectionProxy::SetVmaCacheStatus(bool flag)
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetVmaCacheStatus %d: Send Request err.", flag);
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnectionProxy::SetUIMode3D(UIMode3D mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetUIMode3D: WriteInterfaceToken GetDescriptor err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(mode))) {
+        ROSEN_LOGE("SetUIMode3D: WriteUint32 mode err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy: SetUIMode3D %{public}u: Send Request err.",
+            static_cast<uint32_t>(mode));
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;

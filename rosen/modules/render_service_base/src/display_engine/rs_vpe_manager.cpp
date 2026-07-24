@@ -189,7 +189,8 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
         return nullptr;
     }
 
-    if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE || config.name == "RosenWeb") {
+    if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE || config.name == "RosenWeb" ||
+        config.name == "delegate_child" || config.name == "delegate_child_video") {
         return surface;
     }
 
@@ -197,7 +198,8 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
         return surface;
     }
     sptr<Surface> vpeSurface = surface;
-    std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER };
+    std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER,
+        VIDEO_TYPE_AI3D_ENHANCER };
     for (auto& type : supportTypes) {
         if (VpeVideo::IsSupported(type, parameter)) {
             vpeSurface = GetVpeVideoSurface(type, vpeSurface, config);

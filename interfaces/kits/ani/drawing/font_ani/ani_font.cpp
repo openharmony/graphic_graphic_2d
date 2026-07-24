@@ -215,10 +215,9 @@ ani_object AniFont::GetTypeface(ani_env* env, ani_object obj)
     std::shared_ptr<Typeface> typeface = aniFont->GetFont()->GetTypeface();
     AniTypeface* aniTypeface = new AniTypeface(typeface);
     ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
-        AniGlobalMethod::GetInstance().typefaceCtor);
-    if (ANI_OK != env->Object_SetField_Long(aniObj,
-        AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
-        ROSEN_LOGE("AniFont::GetTypeface failed cause by Object_SetField_Long");
+        AniGlobalMethod::GetInstance().typefaceCtorWithPtr, reinterpret_cast<ani_long>(aniTypeface));
+    if (IsUndefined(env, aniObj)) {
+        ROSEN_LOGE("AniFont::GetTypeface failed create aniTypeface");
         delete aniTypeface;
         return CreateAniUndefined(env);
     }
@@ -786,10 +785,9 @@ ani_object AniFont::CreatePathForGlyph(ani_env* env, ani_object obj, ani_int ind
     }
     AniPath* aniPath = new AniPath(path);
     ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
-        AniGlobalMethod::GetInstance().pathCtor);
-    if (ANI_OK != env->Object_SetField_Long(aniObj,
-        AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
-        ROSEN_LOGE("AniFont::CreatePathForGlyph failed cause by Object_SetField_Long");
+        AniGlobalMethod::GetInstance().pathCtorWithPtr, reinterpret_cast<ani_long>(aniPath));
+    if (IsUndefined(env, aniObj)) {
+        ROSEN_LOGE("AniFont::CreatePathForGlyph failed create aniPath");
         delete aniPath;
         return CreateAniUndefined(env);
     }
@@ -864,10 +862,9 @@ ani_object AniFont::GetTextPath(ani_env* env, ani_object obj, ani_string aniText
     realFont->GetTextPath(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
     AniPath* aniPath = new AniPath(path);
     ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
-        AniGlobalMethod::GetInstance().pathCtor);
-    if (ANI_OK != env->Object_SetField_Long(aniObj,
-        AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
-        ROSEN_LOGE("AniFont::GetTextPath failed cause by Object_SetField_Long");
+        AniGlobalMethod::GetInstance().pathCtorWithPtr, reinterpret_cast<ani_long>(aniPath));
+    if (IsUndefined(env, aniObj)) {
+        ROSEN_LOGE("AniFont::GetTextPath failed create aniPath");
         delete aniPath;
         return CreateAniUndefined(env);
     }
@@ -892,10 +889,9 @@ ani_object AniFont::GetTextPathWithFallback(ani_env* env, ani_object obj, ani_st
     realFont->GetTextPathWithFallback(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
     AniPath* aniPath = new AniPath(path);
     ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
-        AniGlobalMethod::GetInstance().pathCtor);
-    if (ANI_OK != env->Object_SetField_Long(aniObj,
-        AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
-        ROSEN_LOGE("AniFont::GetTextPathWithFallback failed cause by Object_SetField_Long");
+        AniGlobalMethod::GetInstance().pathCtorWithPtr, reinterpret_cast<ani_long>(aniPath));
+    if (IsUndefined(env, aniObj)) {
+        ROSEN_LOGE("AniFont::GetTextPathWithFallback failed create aniPath");
         delete aniPath;
         return CreateAniUndefined(env);
     }
@@ -949,13 +945,14 @@ ani_object AniFont::FontTransferStatic(
     }
 
     auto aniFont = new AniFont(jsFont->GetFont());
-    if (ANI_OK != env->Object_SetField_Long(
-        output, AniGlobalField::GetInstance().fontNativeObj, reinterpret_cast<ani_long>(aniFont))) {
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().font,
+        AniGlobalMethod::GetInstance().fontCtorWithPtr, reinterpret_cast<ani_long>(aniFont));
+    if (IsUndefined(env, aniObj)) {
         ROSEN_LOGE("AniFont::FontTransferStatic failed create aniFont");
         delete aniFont;
         return CreateAniUndefined(env);
     }
-    return output;
+    return aniObj;
 }
 
 ani_long AniFont::GetFontAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

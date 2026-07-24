@@ -346,27 +346,6 @@ void ContainerWindowTransparentCmdModifier::UpdateToRender()
     AddCommand(command, true);
 }
 
-void BufferAvailableCallbackCmdModifier::UpdateToRender()
-{
-    auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
-    if (!node) return;
-    // To be implemented
-}
-
-RSCmdModifier::UpdateResult BufferAvailableCallbackCmdModifier::UpdateToRenderWithResult()
-{
-    auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
-    if (!node) {
-        return false;
-    }
-    auto rsUIContext = node->GetRSUIContext();
-    if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
-        RS_LOGE("BufferAvailableCallbackCmdModifier::UpdateToRenderWithResult: uiContext is nullptr");
-        return false;
-    }
-    return rsUIContext->GetRSRenderInterface()->RegisterBufferAvailableListener(node->GetId(), param_.callback, false);
-}
-
 void SurfaceDefaultSizeCmdModifier::UpdateToRender()
 {
     auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
@@ -542,17 +521,6 @@ void ContainerWindowTransparentCmdModifier::DumpParam(std::string& out) const
 {
     out += "{isContainerWindowTransparent:" +
         std::string(param_.isContainerWindowTransparent_ ? "true" : "false") + "}";
-}
-
-void BufferAvailableCallbackCmdModifier::DumpParam(std::string& out) const
-{
-    out += "{callback:";
-    if (param_.callback) {
-        out += "[valid]";
-    } else {
-        out += "null";
-    }
-    out += "}";
 }
 
 void SurfaceDefaultSizeCmdModifier::DumpParam(std::string& out) const

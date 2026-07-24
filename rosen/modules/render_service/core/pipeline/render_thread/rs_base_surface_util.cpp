@@ -96,8 +96,9 @@ void RSBaseSurfaceUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vecto
     surfaceDamage = { damage.left_, damage.top_, damage.width_, damage.height_ };
 }
 
-CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-    uint64_t presentWhen, const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId, bool dropFrameByScreenFrozen)
+CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
+    const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId,
+    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
     surfaceHandler.ResetCurrentFrameBufferConsumed();
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
@@ -112,6 +113,7 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
     bool acqiureWithPTSEnable =
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
     if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
+        consumer->SetDropFrameLevel(dropFrameConfig.level);
         RS_LOGD("RsDebug RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
             "), set drop frame level=%{public}d", surfaceHandler.GetNodeId(), dropFrameConfig.level);
     }
@@ -129,8 +131,15 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
     int32_t availableBufferCount = 0;
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
         IConsumerSurface::AcquireBufferReturnValue returnValue;
-        availableBufferCount = consumer->GetAvailableBufferCount();
+        availableBufferCount = static_cast<int32_t>(consumer->GetAvailableBufferCount());
         int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
+
+        // Reset drop frame level after acquire to avoid affecting subsequent acquires
+        if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
+            consumer->SetDropFrameLevel(0);
+        }
+
+        bool dropFrameByScreenFrozen = surfaceNode != nullptr ? surfaceNode->IsAncestorScreenFrozen() : false;
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
             if (LIKELY(!dropFrameByScreenFrozen) && UNLIKELY(holdReturnValue)) {
@@ -222,7 +231,10 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     // should drop frame after acquire buffer to avoid drop key frame
-    DropFrameProcess(surfaceHandler, acquireTimeStamp);
+    if (!dropFrameConfig.enable) {
+        DropFrameProcess(surfaceHandler, acquireTimeStamp);
+    }
+
     return true;
 }
 

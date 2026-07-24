@@ -187,6 +187,10 @@ napi_value JsPathEffect::CreateComposePathEffect(napi_env env, napi_callback_inf
 
     std::shared_ptr<PathEffect> pathEffect1 = jsPathEffect1->GetPathEffect();
     std::shared_ptr<PathEffect> pathEffect2 = jsPathEffect2->GetPathEffect();
+    if (pathEffect1 == nullptr || pathEffect2 == nullptr) {
+        ROSEN_LOGE("JsPathEffect::CreateComposePathEffect pathEffect is nullptr");
+        return nullptr;
+    }
 
     std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateComposePathEffect(*pathEffect1, *pathEffect2);
     return JsPathEffect::Create(env, pathEffect);
@@ -249,9 +253,13 @@ napi_value JsPathEffect::CreateSumPathEffect(napi_env env, napi_callback_info in
 
     JsPathEffect* jsPathEffect2 = nullptr;
     GET_UNWRAP_PARAM(ARGC_ONE, jsPathEffect2);
-
-    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateSumPathEffect(*jsPathEffect1->GetPathEffect(),
-        *jsPathEffect2->GetPathEffect());
+    std::shared_ptr<PathEffect> pathEffect1 = jsPathEffect1->GetPathEffect();
+    std::shared_ptr<PathEffect> pathEffect2 = jsPathEffect2->GetPathEffect();
+    if (pathEffect1 == nullptr || pathEffect2 == nullptr) {
+        ROSEN_LOGE("JsPathEffect::CreateSumPathEffect pathEffect is nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateSumPathEffect(*pathEffect1, *pathEffect2);
     return JsPathEffect::Create(env, pathEffect);
 }
 

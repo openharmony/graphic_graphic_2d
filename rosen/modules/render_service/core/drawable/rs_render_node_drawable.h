@@ -52,6 +52,9 @@ public:
 
     void Draw(Drawing::Canvas& canvas) override;
     virtual void OnDraw(Drawing::Canvas& canvas);
+#ifdef USE_PRIMITIVE
+    void DrawPrim(Drawing::Canvas& canvas) override;
+#endif
     virtual void OnCapture(Drawing::Canvas& canvas);
 
     inline bool GetOpDropped() const
@@ -203,6 +206,9 @@ protected:
     bool SkipDrawByWhiteList(Drawing::Canvas& canvas);
     void SetShouldClipHole(bool value) override;
     bool ShouldClipHole() const override;
+    int32_t GetOrClearContinuousUpdateCount(uint64_t currentVsyncId, bool needUpdateCache);
+    void UpdateContinuousUpdateCount(uint64_t vsyncId);
+    void ClearDrawingCacheContinuousUpdateTimeMap();
     // !used for render group cache
 
     static int GetProcessedNodeCount();
@@ -225,8 +231,6 @@ private:
 
     static inline std::mutex drawingCacheMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
-    static inline std::mutex drawingCacheContiUpdateTimeMapMutex_;
-    static inline std::unordered_map<NodeId, int32_t> drawingCacheContinuousUpdateTimeMap_;
 
     static thread_local bool isOpDropped_;
     static thread_local bool occlusionCullingEnabled_;
@@ -249,7 +253,6 @@ private:
         Drawing::RectI& dstRect);
     bool IsOverlappedWithExistingFilters(Drawing::Canvas& canvas, const RSRenderParams& params) const;
     void ClearDrawingCacheDataMap();
-    void ClearDrawingCacheContiUpdateTimeMap();
     friend class RsSubThreadCache;
     friend class OHOS::Rosen::RSLayerCacheManager;
     std::unique_ptr<RSOpincDrawCache> opincDrawCache_ = nullptr;

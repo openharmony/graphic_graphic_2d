@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "common/rs_backlight_thread.h"
+#include "display_engine/rs_backlight_thread.h"
 #include "platform/common/rs_log.h"
 
 #ifdef RES_BASE_SCHED_ENABLE

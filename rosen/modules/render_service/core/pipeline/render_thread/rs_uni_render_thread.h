@@ -291,6 +291,26 @@ public:
         bufferManager_.ReleaseBufferById(seqNum);
     }
 
+    void AddScreenHasProtectedLayerSet(ScreenId screenId)
+    {
+        hasProtectedLayerScreenIdSet_.emplace(screenId);
+    }
+
+    const std::unordered_set<ScreenId>& GetScreenHasProtectedLayerSet()
+    {
+        return hasProtectedLayerScreenIdSet_;
+    }
+
+    void ClearScreenHasProtectedLayerSet()
+    {
+        hasProtectedLayerScreenIdSet_.clear();
+    }
+
+    const std::shared_ptr<RSComposerClientManager>& GetComposerClientManager() const
+    {
+        return composerClientManager_;
+    }
+
     struct BufferManagerGuard {
         BufferManagerGuard()
         {
@@ -313,27 +333,6 @@ public:
 
         sptr<SyncFence> fence_ = SyncFence::InvalidFence();
     };
-
-    void AddScreenHasProtectedLayerSet(ScreenId screenId)
-    {
-        hasProtectedLayerScreenIdSet_.emplace(screenId);
-    }
-
-    const std::unordered_set<ScreenId>& GetScreenHasProtectedLayerSet()
-    {
-        return hasProtectedLayerScreenIdSet_;
-    }
-
-    void ClearScreenHasProtectedLayerSet()
-    {
-        hasProtectedLayerScreenIdSet_.clear();
-    }
-
-    const std::shared_ptr<RSComposerClientManager>& GetComposerClientManager() const
-    {
-        return composerClientManager_;
-    }
-
     using CommitDoneCallback = std::function<void(ScreenId)>;
     void SetCommitDoneCallback(CommitDoneCallback callback);
     void NotifyCommitDone(ScreenId screenId);

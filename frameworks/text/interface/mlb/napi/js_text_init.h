@@ -16,8 +16,7 @@
 #ifndef OHOS_JS_TEXT_INIT_H
 #define OHOS_JS_TEXT_INIT_H
 
-#include <native_engine/native_engine.h>
-#include <native_engine/native_value.h>
+#include "napi/native_node_api.h"
 
 namespace OHOS::Rosen {
 napi_value TextInit(napi_env env, napi_value exportObj);

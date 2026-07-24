@@ -112,75 +112,14 @@ void ExpectTunnelLayerInfo(const std::shared_ptr<RSSurfaceRenderNode>& node,
 void ActivateTunnelRuntime(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->MarkTunnelLayerInfoReceived();
     auto& runtime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
     runtime.SetBuilding();
     ASSERT_TRUE(runtime.SetActiveFromTunnelLayerAvailable(runtime.GetTunnelLayerGeneration()));
 }
 } // namespace
-
-/**
- * @tc.name: TransferTunnelPendingBufferToNormalConsume001
- * @tc.desc: Test pending tunnel buffer transfer and early-return branches for normal fallback.
- * @tc.type: FUNC
- */
-HWTEST_F(RSTunnelLayerManagerTest, TransferTunnelPendingBufferToNormalConsume001, TestSize.Level1)
-{
-    RSTunnelLayerManager nullContextManager(nullptr);
-    nullContextManager.TransferTunnelPendingBufferToNormalConsume(nullptr);
-
-    auto disabledContext = CreateTunnelContext();
-    ASSERT_TRUE(disabledContext.IsProducerReady());
-    ASSERT_TRUE(SetRuntimePendingBufferForTest(disabledContext));
-    {
-        ScopedNewTunnelSwitch scopedNewTunnelSwitch(false);
-        nullContextManager.TransferTunnelPendingBufferToNormalConsume(disabledContext.node);
-    }
-    EXPECT_TRUE(RSTunnelRuntimeStore::GetOrCreate(disabledContext.node->GetId()).HasPendingBuffer());
-    EXPECT_EQ(disabledContext.surfaceHandler->GetHoldBuffer(), nullptr);
-
-    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
-    auto noConsumerContext = CreateTunnelContext();
-    ASSERT_TRUE(noConsumerContext.IsProducerReady());
-    noConsumerContext.surfaceHandler->SetConsumer(nullptr);
-    nullContextManager.TransferTunnelPendingBufferToNormalConsume(noConsumerContext.node);
-
-    auto occupiedNoPendingContext = CreateTunnelContext();
-    ASSERT_TRUE(occupiedNoPendingContext.IsProducerReady());
-    occupiedNoPendingContext.surfaceHandler->SetHoldReturnValue(CreateTestAcquireBufferReturnValue());
-    occupiedNoPendingContext.surfaceHandler->SetAvailableBufferCount(0);
-    nullContextManager.TransferTunnelPendingBufferToNormalConsume(occupiedNoPendingContext.node);
-    EXPECT_EQ(occupiedNoPendingContext.surfaceHandler->GetAvailableBufferCount(), 0);
-
-    auto occupiedContext = CreateTunnelContext();
-    ASSERT_TRUE(occupiedContext.IsProducerReady());
-    ASSERT_TRUE(SetRuntimePendingBufferForTest(occupiedContext));
-    occupiedContext.surfaceHandler->SetHoldReturnValue(CreateTestAcquireBufferReturnValue());
-    occupiedContext.surfaceHandler->SetAvailableBufferCount(0);
-    nullContextManager.TransferTunnelPendingBufferToNormalConsume(occupiedContext.node);
-    EXPECT_TRUE(RSTunnelRuntimeStore::GetOrCreate(occupiedContext.node->GetId()).HasPendingBuffer());
-    EXPECT_EQ(occupiedContext.surfaceHandler->GetAvailableBufferCount(), 1);
-
-    auto context = CreateTunnelContext();
-    ASSERT_TRUE(context.IsProducerReady());
-    context.surfaceHandler->SetAvailableBufferCount(1);
-    nullContextManager.TransferTunnelPendingBufferToNormalConsume(context.node);
-    EXPECT_EQ(context.surfaceHandler->GetAvailableBufferCount(), 1);
-    EXPECT_EQ(context.surfaceHandler->GetHoldBuffer(), nullptr);
-
-    ASSERT_TRUE(SetRuntimePendingBufferForTest(context));
-    nullContextManager.TransferTunnelPendingBufferToNormalConsume(context.node);
-    EXPECT_FALSE(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).HasPendingBuffer());
-    auto holdBuffer = context.surfaceHandler->GetHoldBuffer();
-    ASSERT_NE(holdBuffer, nullptr);
-    ASSERT_NE(holdBuffer->buffer, nullptr);
-    auto holdBufferId = holdBuffer->buffer->GetBufferId();
-    EXPECT_EQ(context.surfaceHandler->GetAvailableBufferCount(), 1);
-
-    ASSERT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*context.surfaceHandler));
-    ASSERT_NE(context.surfaceHandler->GetBuffer(), nullptr);
-    EXPECT_EQ(context.surfaceHandler->GetBuffer()->GetBufferId(), holdBufferId);
-    EXPECT_TRUE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
-}
 
 /**
  * @tc.name: MarkTunnelBufferConsumedForNormal001
@@ -228,7 +167,7 @@ HWTEST_F(RSTunnelLayerManagerTest, MarkTunnelBufferConsumedForNormal001, TestSiz
 
     RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetCommittedTunnelBufferId(bufferId + 1);
     tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node, nullptr);
-    EXPECT_FALSE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
+    EXPECT_TRUE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
     EXPECT_FALSE(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).IsCommittedTunnelBuffer());
 
     RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetCommittedTunnelBufferId(bufferId);
@@ -452,5 +391,34 @@ HWTEST_F(RSTunnelLayerManagerTest, ClearRuntimeStateByPid001, TestSize.Level1)
     ExpectTunnelLayerInfo(secondContext.node, secondContext.consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
     EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(secondContext.node->GetId()).GetTunnelState(),
         RSTunnelRuntimeState::TunnelState::ACTIVE);
+}
+
+/**
+ * @tc.name: UpdateTunnelLayerState_ReceivesInfo_ProcessesNewLayerId
+ * @tc.desc: Test UpdateTunnelLayerState proceeds past the HasReceivedTunnelLayerInfo guard when the
+ *          handler has marked tunnel info received, covering the false branch of the guard and the
+ *          HandleNewTunnelLayerId path that resets runtime state to BUILDING.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState_ReceivesInfo_ProcessesNewLayerId, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto rsContext = std::make_shared<RSContext>();
+    RSTunnelLayerManager tunnelLayerManager(rsContext);
+    auto context = CreateTunnelContext(MakeNodeId(TEST_PID_ONE, TEST_NODE_UID_ONE));
+    ASSERT_TRUE(context.IsProducerReady());
+    ASSERT_TRUE(RegisterSurfaceNode(rsContext, context.node));
+    TunnelLayerState tunnelState;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, tunnelState));
+    RSTunnelRuntimeStore::SetLayerInfo(
+        context.node->GetId(), tunnelState.tunnelLayerId, tunnelState.property);
+    context.surfaceHandler->MarkTunnelLayerInfoReceived();
+    ASSERT_TRUE(context.surfaceHandler->HasReceivedTunnelLayerInfo());
+
+    tunnelLayerManager.UpdateTunnelLayerState(context.node->GetId(), context.surfaceHandler);
+
+    ExpectTunnelLayerInfo(context.node, tunnelState.tunnelLayerId, tunnelState.property);
+    EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetTunnelState(),
+        RSTunnelRuntimeState::TunnelState::BUILDING);
 }
 } // namespace OHOS::Rosen

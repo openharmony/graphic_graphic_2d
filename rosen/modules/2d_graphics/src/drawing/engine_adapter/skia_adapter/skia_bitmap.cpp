@@ -321,6 +321,10 @@ bool SkiaBitmap::Deserialize(std::shared_ptr<Data> data)
     }
 
     SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
+    if (!imageInfo.validRowBytes(rb) || imageInfo.computeByteSize(rb) > pixmapSize) {
+        LOGD("SkiaBitmap::Deserialize: The sizes of rb and pixmapSize do not match.");
+        return false;
+    }
     auto releaseProc = [] (void* addr, void* context) -> void {
         free(addr);
         addr = nullptr;

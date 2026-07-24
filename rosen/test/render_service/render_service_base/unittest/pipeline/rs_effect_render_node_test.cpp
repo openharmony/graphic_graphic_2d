@@ -152,6 +152,22 @@ HWTEST_F(RSEffectRenderNodeTest, SetEffectRegion, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetEffectRegionWithoutBoundsGeometry
+ * @tc.desc: test SetEffectRegion safely handles missing bounds geometry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectRenderNodeTest, SetEffectRegionWithoutBoundsGeometry, TestSize.Level1)
+{
+    RSEffectRenderNode node(0);
+    node.renderProperties_.SetHaveEffectRegion(true);
+    node.renderProperties_.boundsGeo_ = nullptr;
+
+    node.SetEffectRegion(Drawing::RectI(0, 0, 10, 10));
+
+    EXPECT_FALSE(node.GetMutableRenderProperties().GetHaveEffectRegion());
+}
+
+/**
  * @tc.name: CheckBlurFilterCacheNeedForceClearOrSaveTest
  * @tc.desc: test results of CheckBlurFilterCacheNeedForceClearOrSave
  * @tc.type:FUNC

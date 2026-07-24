@@ -24,10 +24,13 @@ namespace OHOS {
 namespace Rosen {
 void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId targetId)
 {
-    if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
-        RS_LOGE_LIMIT(__func__, __line__,
-            "GetNodeCountByPid > %{public}u, pid:%{public}u",
-            MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
+    pid_t callingPid = ExtractPid(id);
+    pid_t targetPid = ExtractPid(targetId);
+    if (callingPid != targetPid && !context.GetNodeMap().IsUIExtensionSurfaceNode(targetId) &&
+        !context.GetNodeMap().IsResidentProcessNode(id)) {
+        ROSEN_LOGE("ProxyNodeCommandHelper::Create cross-pid proxy denied,"
+            " callingPid=%{public}d, targetPid=%{public}d, targetId=%{public}" PRIu64,
+            static_cast<int>(callingPid), static_cast<int>(targetPid), targetId);
         return;
     }
     // PLANNING: if we run in RS and target not found, we should display a warning

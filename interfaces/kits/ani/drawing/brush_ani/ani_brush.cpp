@@ -401,11 +401,11 @@ ani_object AniBrush::GetColorFilter(ani_env* env, ani_object obj)
     }
 
     AniColorFilter* colorFilter = new AniColorFilter(aniBrush->GetBrush()->GetFilter().GetColorFilter());
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().colorFilter,
-        AniGlobalMethod::GetInstance().colorFilterCtor);
-    if (ANI_OK != env->Object_SetField_Long(aniObj,
-        AniGlobalField::GetInstance().colorFilterNativeObj, reinterpret_cast<ani_long>(colorFilter))) {
-        ROSEN_LOGE("AniBrush::GetColorFilter failed cause by Object_SetField_Long");
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
+    if (IsUndefined(env, aniObj)) {
+        ROSEN_LOGE("AniBrush::GetColorFilter failed create colorFilter");
         delete colorFilter;
         return CreateAniUndefined(env);
     }
@@ -539,13 +539,14 @@ ani_object AniBrush::BrushTransferStatic(
         return CreateAniUndefined(env);
     }
     auto aniBrush = new AniBrush(jsBrush->GetBrush());
-    if (ANI_OK != env->Object_SetField_Long(
-        output, AniGlobalField::GetInstance().brushNativeObj, reinterpret_cast<ani_long>(aniBrush))) {
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().brush,
+        AniGlobalMethod::GetInstance().brushCtorWithPtr, reinterpret_cast<ani_long>(aniBrush));
+    if (IsUndefined(env, aniObj)) {
         ROSEN_LOGE("AniBrush::BrushTransferStatic failed create aniBrush");
         delete aniBrush;
         return CreateAniUndefined(env);
     }
-    return output;
+    return aniObj;
 }
 
 ani_long AniBrush::GetBrushAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

@@ -123,7 +123,8 @@ bool ComputeGlobalRouteForcedNormal()
     return RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(RSMainThread::Instance()) != nullptr;
 }
 
-RouteDecision CheckSurfaceConstantTriggers(const RSSurfaceRenderNode& node, const RSSurfaceRenderParams* params)
+RouteDecision CheckSurfaceConstantTriggers(const RSSurfaceRenderNode& node,
+    const RSSurfaceRenderParams* params, RSTunnelRuntimeState& tunnelRuntime)
 {
     if (params != nullptr && params->IsNodeToBeCaptured()) {
         return {true, "CAPTURE_ACTIVE"};
@@ -136,7 +137,6 @@ RouteDecision CheckSurfaceConstantTriggers(const RSSurfaceRenderNode& node, cons
     }
     uint64_t curId = 0;
     uint32_t curProp = TUNNEL_PROP_INVALID;
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node.GetId());
     tunnelRuntime.GetLayerInfo(curId, curProp);
     const auto& last = tunnelRuntime.GetLastFrameRouteSnapshot();
     if (curId != last.tunnelLayerId || curProp != last.tunnelProperty) {
@@ -201,7 +201,8 @@ RouteDecision CheckBufferDiff(const RSSurfaceRenderParams* params,
     return {};
 }
 
-RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& node)
+RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& node,
+    RSTunnelRuntimeState& tunnelRuntime)
 {
     // Kill-switch: if the runtime flag flips off while tunnelState is still ACTIVE, the
     // listener path is already blocked (IsTunnelDirectAllowed gates on the same flag) and
@@ -211,16 +212,12 @@ RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& node)
     if (!IsNewTunnelEnabled()) {
         return {true, "NEW_TUNNEL_DISABLED"};
     }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node.GetId());
-    if (tunnelRuntime.HasPendingBuffer()) {
-        return {true, "PENDING_BUFFER_STALE"};
-    }
     // Drain buffers stranded in the consumer queue by listener reject paths that never reached
     // AcquirePendingBuffer (state/global/phase/CanCommit/AcquireBuffer early-exits). Those paths
-    // leave availableBufferCount > 0 without filling pendingBuffer_, so HasPendingBuffer cannot
-    // observe them. Routing to GO_NORMAL lets the RS pipeline consume the stale entry. The
-    // steady-state direct path is unaffected because AcquirePendingBuffer resyncs the handler
-    // count to the consumer's true count after a successful listener commit.
+    // leave availableBufferCount > 0 without consuming. Routing to GO_NORMAL lets the RS pipeline
+    // consume the stale entry. The steady-state direct path is unaffected because
+    // AcquirePendingBuffer resyncs the handler count to the consumer's true count after a
+    // successful listener commit.
     if (auto handler = node.GetRSSurfaceHandler();
         handler != nullptr && handler->GetAvailableBufferCount() > 0) {
         return {true, "CONSUMER_QUEUE_STALE"};
@@ -230,7 +227,7 @@ RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& node)
         return global;
     }
     auto* params = GetSurfaceParams(node);
-    auto constant = CheckSurfaceConstantTriggers(node, params);
+    auto constant = CheckSurfaceConstantTriggers(node, params, tunnelRuntime);
     if (constant.needNormal) {
         return constant;
     }
@@ -253,7 +250,7 @@ RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& node)
     return {};
 }
 
-void CaptureRouteSnapshot(RSSurfaceRenderNode& node)
+void CaptureRouteSnapshot(RSSurfaceRenderNode& node, RSTunnelRuntimeState& tunnelRuntime)
 {
     if (!IsNewTunnelEnabled()) {
         return;
@@ -264,16 +261,16 @@ void CaptureRouteSnapshot(RSSurfaceRenderNode& node)
             __func__, node.GetId(), params == nullptr ? "no_params" : "no_buffer");
         return;
     }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node.GetId());
     tunnelRuntime.UpdateLastFrameRouteSnapshot(BuildSnapshot(node, tunnelRuntime));
 }
 #else  // ROSEN_CROSS_PLATFORM
-RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& /* node */)
+RouteDecision ShouldGoNormalThisFrame(const RSSurfaceRenderNode& /* node */,
+    RSTunnelRuntimeState& /* tunnelRuntime */)
 {
     return {};
 }
 
-void CaptureRouteSnapshot(RSSurfaceRenderNode& /* node */)
+void CaptureRouteSnapshot(RSSurfaceRenderNode& /* node */, RSTunnelRuntimeState& /* tunnelRuntime */)
 {
 }
 #endif // ROSEN_CROSS_PLATFORM
@@ -330,11 +327,13 @@ RSTunnelRouteArbiter::MainThreadOutcome RSTunnelRouteArbiter::ArbitrateAndClaim(
     if (node == nullptr) {
         return MainThreadOutcome::NOT_TUNNEL_ACTIVE;
     }
-    if (!RSTunnelRuntimeStore::IsTunnelActive(node->GetId())) {
+    auto* tunnelRuntimePtr = RSTunnelRuntimeStore::TryGet(node->GetId());
+    if (tunnelRuntimePtr == nullptr ||
+        tunnelRuntimePtr->GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
         return MainThreadOutcome::NOT_TUNNEL_ACTIVE;
     }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
-    auto decision = ShouldGoNormalThisFrame(*node);
+    auto& tunnelRuntime = *tunnelRuntimePtr;
+    auto decision = ShouldGoNormalThisFrame(*node, tunnelRuntime);
     auto claim = tunnelRuntime.TryClaimByMain(decision.needNormal);
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s arbitrate, nodeId=%" PRIu64
         ", needNormal=%d, cause=%s, claim=%s",
@@ -344,11 +343,11 @@ RSTunnelRouteArbiter::MainThreadOutcome RSTunnelRouteArbiter::ArbitrateAndClaim(
     if (claim == RSTunnelRuntimeState::ClaimResult::KEEP_DIRECT) {
         return MainThreadOutcome::KEEP_DIRECT;
     }
-    CaptureRouteSnapshot(*node);
+    CaptureRouteSnapshot(*node, tunnelRuntime);
     // Snapshot the screen at claim time. If the surface migrates to another screen before the
     // commit-done callback fires, the original screen's commit still advances this entry, so
     // NORMAL_PREPARING cannot stall indefinitely.
-    normalRouteNodes_.emplace_back(node, node->GetScreenId());
+    normalRouteNodes_[node->GetId()] = std::make_pair(node, node->GetScreenId());
     return MainThreadOutcome::GO_NORMAL;
 }
 
@@ -371,19 +370,20 @@ void RSTunnelRouteArbiter::AbandonNormalClaim(const std::shared_ptr<RSSurfaceRen
 
 void RSTunnelRouteArbiter::OnRenderCommitDone(ScreenId screenId)
 {
-    auto iter = std::remove_if(normalRouteNodes_.begin(), normalRouteNodes_.end(),
-        [screenId](auto& entry) {
-            auto node = entry.first.lock();
-            if (node == nullptr) {
-                return true;
-            }
-            if (entry.second != screenId) {
-                return false;
-            }
-            RSTunnelRuntimeStore::GetOrCreate(node->GetId()).OnRenderCommitDone();
-            return true;
-        });
-    normalRouteNodes_.erase(iter, normalRouteNodes_.end());
+    for (auto iter = normalRouteNodes_.begin(); iter != normalRouteNodes_.end();) {
+        auto& [nodeId, entry] = *iter;
+        auto node = entry.first.lock();
+        if (node == nullptr) {
+            iter = normalRouteNodes_.erase(iter);
+            continue;
+        }
+        if (entry.second != screenId) {
+            ++iter;
+            continue;
+        }
+        RSTunnelRuntimeStore::GetOrCreate(nodeId).OnRenderCommitDone();
+        iter = normalRouteNodes_.erase(iter);
+    }
 }
 
 void RSTunnelRouteArbiter::AttachToRenderThread()

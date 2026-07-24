@@ -116,6 +116,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSUpdateOcclusionCullingStatus, Uint64, Bool, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetDrawNodeType, Uint64, DrawNodeType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSColorPickerCallback, Uint64, Pid, Uint64, Uint32);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSColorPickerDestroyInRender, Uint64, Pid, Uint64, Uint8);
 };
 } // namespace Rosen
 } // namespace OHOS

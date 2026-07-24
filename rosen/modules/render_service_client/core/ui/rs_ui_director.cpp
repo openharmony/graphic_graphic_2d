@@ -16,6 +16,7 @@
 #include "ui/rs_ui_director.h"
 
 #include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 #include "sandbox_utils.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -74,11 +75,7 @@ std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectTo
 
 RSUIDirector::~RSUIDirector()
 {
-    auto uiContext = rsUIContext_;
     Destroy();
-    if (uiContext != nullptr) {
-        uiContext->PostLastModifiersDrawThreadTask();
-    }
 }
 
 void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext)
@@ -86,6 +83,7 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
     AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(AnimationDestroyInRenderCallbackProcessor);
     RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor);
+    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor);
     std::call_once(g_initDumpNodeTreeProcessorFlag,
         []() { RSNodeCommandHelper::SetDumpNodeTreeProcessor(RSUIDirector::DumpNodeTreeProcessor); });
 
@@ -217,7 +215,7 @@ void RSUIDirector::AddUIDirectorCommand()
     static pid_t pid = getpid();
     NodeId nodeId = rootNode ? rootNode->GetId() : (((NodeId)pid << 32) | NODE_ID);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<CommandType>(nodeId, pid, rsUIContext_ ? rsUIContext_->GetToken() : 0);
+        std::make_unique<CommandType>(nodeId, rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_TRACE_NAME_FMT(
         "RSUIDirector::AddUIDirectorCommand type is %d, token is %lu", command->GetSubType(), rsUIContext_->GetToken());
     transaction->AddCommand(command, true);
@@ -442,18 +440,15 @@ void RSUIDirector::ReleaseRenderNode()
         return;
     }
     const auto& map = rsUIContext_->GetNodeMap();
-    NodeId appWindowNodeId = 0;
-    if (auto appWindowNode = GetRSSurfaceNode()) {
-        appWindowNodeId = appWindowNode->GetId();
-    }
-    map.TraversalNodes([appWindowNodeId](const std::shared_ptr<RSBaseNode>& baseNode) {
+    map.TraversalNodes([](const std::shared_ptr<RSBaseNode>& baseNode) {
         if (baseNode == nullptr) {
             return;
         }
-        if (baseNode->GetType() == RSUINodeType::SURFACE_NODE && baseNode->GetId() == appWindowNodeId) {
-            return;
-        }
-        if (baseNode->GetType() == RSUINodeType::SURFACE_NODE && baseNode->IsTextureExportNode()) {
+        auto surfaceNode = baseNode->ReinterpretCastTo<RSSurfaceNode>();
+        if (surfaceNode && (surfaceNode->IsAppWindow() || surfaceNode->IsTextureExportNode())) {
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "RSUIDirector::ReleaseRenderNode skip release AppWindow or TextureExportNode id:%llu, name:%s",
+                surfaceNode->GetId(), surfaceNode->GetName().c_str());
             return;
         }
         if (!baseNode->HasCreateRenderNodeInRS()) {
@@ -472,7 +467,6 @@ void RSUIDirector::Destroy(bool isTextureExport)
     RS_LOGI("RSUIDirector::Destroy CurrentState:%{public}d, UIContext:%{public}" PRIu64,
         static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
     ExecuteGoDestroy(isTextureExport);
-    AddUIDirectorCommand<RSUIDirectorGoDestroy>();
     currentUIDirectorState_ = RSUIDirectorLifecycleState::DESTROYED;
 }
 
@@ -486,12 +480,17 @@ void RSUIDirector::ExecuteGoDestroy(bool isTextureExport)
         }
         rootNode_.reset();
     }
+    GoBackground(isTextureExport);
+    // The GoDestroy command must be added after the GoBackground command above and before
+    // rsUIContext_ is reset below, so the command order matches the lifecycle states.
+    AddUIDirectorCommand<RSUIDirectorGoDestroy>();
     if (rsUIContext_ != nullptr) {
         // When a child window reuses the instance of the parent window, do not remove the UIContext from the
         // UIContextManager when the child window is destroyed, as this would cause the parent window or newly created
         // child windows to be unable to find the UIContext during animation callback.
         if (!skipDestroyUIContext_) {
             RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
+            rsUIContext_->ClearCanvasDrawingNodeResource();
         }
         rsUIContext_ = nullptr;
     }
@@ -624,11 +623,14 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (rsUIContext_ == nullptr) {
+    if (cacheDir_.empty()) {
         return;
     }
-    if (cacheDir_.empty()) {
+    if (!isUniRenderEnabled_) {
+        RSRenderThread::Instance().SetCacheDir(cacheDir_);
+    }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (rsUIContext_ == nullptr) {
         return;
     }
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
@@ -970,6 +972,19 @@ void RSUIDirector::ColorPickerCallbackProcessor(NodeId nodeId, uint64_t token, u
         return;
     }
     ROSEN_LOGE("RSUIDirector::ColorPickerCallbackProcessor, could not find node %{public}" PRIu64, nodeId);
+}
+
+void RSUIDirector::ColorPickerDestroyInRenderProcessor(
+    NodeId nodeId, uint64_t token, ContrastColorScheme lastContrastColorScheme)
+{
+    auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
+    if (auto nodePtr =
+            rsUICtx ? rsUICtx->GetNodeMap().GetNode<RSNode>(nodeId) : RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
+        nodePtr->ColorPickerDestroyInRenderCallback(lastContrastColorScheme);
+        return;
+    }
+    ROSEN_LOGE(
+        "RSUIDirector::ColorPickerDestroyInRenderProcessor, could not find node %{public}" PRIu64, nodeId);
 }
 
 void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId)

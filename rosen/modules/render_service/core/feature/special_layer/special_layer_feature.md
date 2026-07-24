@@ -9,32 +9,32 @@ The `special_layer` feature provides a robust and comprehensive layer classifica
 ### Special Layer Types
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        SpecialLayerType Enum                            │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  Instance Flags (Lower 10 bits - IS_*):                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ NONE = 0                                                          │   │
-│  │ SECURITY = 0x00000001     ← Security layer (sensitive content)   │   │
-│  │ SKIP = 0x00000002         ← Skip layer (don't render)          │   │
-│  │ PROPROTECTED = 0x00000004  ← Protected layer (DRM)              │   │
-│  │ SNAPSHOT_SKIP = 0x00000008 ← Skip in snapshots                  │   │
-│  │ IS_BLACK_LIST = 0x00000080  ← Blacklist layer                  │   │
-│  │ IS_WHITE_LIST = 0x00000100  ← Whitelist layer                  │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                         │
-│  Presence Flags (Upper bits - HAS_*):                                   │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ HAS_SECURITY = SECURITY << 10     (0x00000400)                   │   │
-│  │ HAS_SKIP = SKIP << 10             (0x00000800)                   │   │
-│  │ HAS_PROTECTED = PROTECTED << 10   (0x00001000)                   │   │
-│  │ HAS_SNAPSHOT_SKIP = SNAPSHOT_SKIP << 10 (0x00002000)              │   │
-│  │ HAS_BLACK_LIST = IS_BLACK_LIST << 10 (0x00020000)                 │   │
-│  │ HAS_WHITE_LIST = IS_WHITE_LIST << 10 (0x00040000)                 │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ SpecialLayerType Enum                                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ Instance Flags (Lower 10 bits - IS_*):                                      │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ NONE = 0                                                            │    │
+│  │ SECURITY = 0x00000001     ← Security layer (sensitive content)      │    │
+│  │ SKIP = 0x00000002         ← Skip layer (don't render)               │    │
+│  │ PROPROTECTED = 0x00000004  ← Protected layer (DRM)                  │    │
+│  │ SNAPSHOT_SKIP = 0x00000008 ← Skip in snapshots                      │    │
+│  │ IS_BLACK_LIST = 0x00000080  ← Blacklist layer                       │    │
+│  │ IS_WHITE_LIST = 0x00000100  ← Whitelist layer                       │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                             │
+│ Presence Flags (Upper bits - HAS_*):                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ HAS_SECURITY = SECURITY << 10     (0x00000400)                      │    │
+│  │ HAS_SKIP = SKIP << 10             (0x00000800)                      │    │
+│  │ HAS_PROTECTED = PROTECTED << 10   (0x00001000)                      │    │
+│  │ HAS_SNAPSHOT_SKIP = SNAPSHOT_SKIP << 10 (0x00002000)                │    │
+│  │ HAS_BLACK_LIST = IS_BLACK_LIST << 10 (0x00020000)                   │    │
+│  │ HAS_WHITE_LIST = IS_WHITE_LIST << 10 (0x00040000)                   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Rendering Behavior Matrix
@@ -53,55 +53,55 @@ The `special_layer` feature provides a robust and comprehensive layer classifica
 - **Per-surface/window rendering:** BLACK_LIST, WHITE_LIST (checked per surface/window)
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                     Layer Rendering Decision Matrix                        │
+│ Layer Rendering Decision Matrix                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Context: Normal Display (IsSecurityDisplay() = false)                      │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Layer Type          │ Draw Behavior │ Reason                          │   │
-│  ├─────────────────────┼──────────────┼─────────────────────────────────┤   │
-│  │ NONE                │ Normal draw  │ Default rendering                │   │
-│  │ SECURITY            │ Normal draw  │ No special handling              │   │
-│  │ SKIP                │ Normal draw  │ No special handling              │   │
-│  │ PROTECTED           │ Normal draw  │ DRM handling elsewhere           │   │
-│  │ SNAPSHOT_SKIP       │ Normal draw  │ Only applies to snapshots       │   │
-│  │ BLACK_LIST          │ Normal draw  │ No special handling              │   │
-│  │ WHITE_LIST          │ Normal draw  │ No special handling              │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Layer Type          │ Draw Behavior │ Reason                        │    │
+│  ├─────────────────────┼───────────── ─┼───────────────────────────────┤    │
+│  │ NONE                │ Normal draw   │ Default rendering             │    │
+│  │ SECURITY            │ Normal draw   │ No special handling           │    │
+│  │ SKIP                │ Normal draw   │ No special handling           │    │
+│  │ PROTECTED           │ Normal draw   │ DRM handling elsewhere        │    │
+│  │ SNAPSHOT_SKIP       │ Normal draw   │ Only applies to snapshots     │    │
+│  │ BLACK_LIST          │ Normal draw   │ No special handling           │    │
+│  │ WHITE_LIST          │ Normal draw   │ No special handling           │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  Context: Security Display (IsSecurityDisplay() = true)                       │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Layer Type          │ Draw Behavior │ Reason                          │   │
-│  ├─────────────────────┼──────────────┼─────────────────────────────────┤   │
-│  │ NONE                │ Normal draw  │ Default rendering                │   │
-│  │ SECURITY            (whole screen)│ Security layer → black mask     │   │
-│  │                    │ DRAW_BLACK   │ (unless security exemption)       │   │
-│  │ SKIP                (whole screen)│ Skip layer → no rendering       │   │
-│  │                    │ SKIP_DRAW    │                                 │   │
-│  │ PROTECTED           │ Normal draw  │ DRM handling elsewhere           │   │
-│  │ SNAPSHOT_SKIP       │ Normal draw  │ Only applies to snapshots       │   │
-│  │ BLACK_LIST          (per-surface)│ GetBlackList() check    │   │
-│  │                    │ Skip draw    │ (virtual/physical screen)        │   │
-│  │ WHITE_LIST          (per-surface)│ SkipDrawByWhiteList() check    │   │
-│  │                    │ Skip draw    │ (virtual screen)        │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│ Context: Security Display (IsSecurityDisplay() = true)                      │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Layer Type          │ Draw Behavior │ Reason                        │    │
+│  ├─────────────────────┼──────────────┼────────────────────────────────┤    │
+│  │ NONE                │ Normal draw   │ Default rendering             │    │
+│  │ SECURITY            (whole screen)│ Security layer → black mask     │    │
+│  │                     │ DRAW_BLACK    │ (unless security exemption)   │    │
+│  │ SKIP                (whole screen)│ Skip layer → no rendering       │    │
+│  │                    │ SKIP_DRAW    │                                 │    │
+│  │ PROTECTED           │ Normal draw   │ DRM handling elsewhere        │    │
+│  │ SNAPSHOT_SKIP       │ Normal draw   │ Only applies to snapshots     │    │
+│  │ BLACK_LIST          (per-surface) │ GetBlackList() check            │    │
+│  │                     │ Skip draw     │ (virtual/physical screen)     │    │
+│  │ WHITE_LIST          (per-surface) │ SkipDrawByWhiteList() check     │    │
+│  │                     │ Skip draw     │ (virtual screen)              │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 │  Context: Snapshot/Capture (isSnapshot_ = true)                             │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Layer Type          │ Draw (scope)│ Reason                          │   │
-│  ├─────────────────────┼──────────────┼─────────────────────────────────┤   │
-│  │ NONE                │ Normal draw  │ Default rendering                │   │
-│  │ SECURITY            (whole screen)│ Security → black/white mask     │   │
-│  │                    │ DRAW_BLACK   │ (multi-surface)                  │   │
-│  │                    │ DRAW_WHITE   │ (single-surface, no blur/self)  │   │
-│  │ SKIP                (whole screen)│ Skip layer → no rendering       │   │
-│  │                    │ SKIP_DRAW    │                                 │   │
-│  │ PROTECTED           │ Normal draw  │ DRM handling elsewhere           │   │
-│  │ SNAPSHOT_SKIP       (whole screen)│ Skip in snapshots              │   │
-│  │                    │ SKIP_DRAW    │                                 │   │
-│  │ BLACK_LIST          │ Skip draw    │ In blacklist                    │   │
-│  │ WHITE_LIST          │ Normal draw  │ In whitelist                    │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Layer Type          │ Draw (scope)│ Reason                          │    │
+│  ├─────────────────────┼──────────────┼────────────────────────────────┤    │
+│  │ NONE                │ Normal draw   │ Default rendering             │    │
+│  │ SECURITY            (whole screen)│ Security → black/white mask     │    │
+│  │                     │ DRAW_BLACK    │ (multi-surface)               │    │
+│  │                    │ DRAW_WHITE   │ (single-surface, no blur/self)  │    │
+│  │ SKIP                (whole screen)│ Skip layer → no rendering       │    │
+│  │                    │ SKIP_DRAW    │                                 │    │
+│  │ PROTECTED           │ Normal draw   │ DRM handling elsewhere        │    │
+│  │ SNAPSHOT_SKIP       (whole screen)│ Skip in snapshots               │    │
+│  │                    │ SKIP_DRAW    │                                 │    │
+│  │ BLACK_LIST          │ Skip draw     │ In blacklist                  │    │
+│  │ WHITE_LIST          │ Normal draw   │ In whitelist                  │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -109,43 +109,43 @@ The `special_layer` feature provides a robust and comprehensive layer classifica
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      Rendering Scope by Layer Type                         │
+│ Rendering Scope by Layer Type                                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Whole Screen Rendering (screen-wide mask/fill):                            │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Layer Type          │ Rendering Scope │ Implementation                 │   │
-│  ├─────────────────────┼─────────────────┼─────────────────────────────┤   │
-│  │ SECURITY            │ Whole screen   │ DRAW_BLACK/WHITE mask fill    │   │
-│  │                    │                │ (security display or snapshot)   │   │
-│  │ SKIP                │ Whole screen   │ SKIP_DRAW (no rendering)      │   │
-│  │                    │                │ (security display)               │   │
-│  │ SNAPSHOT_SKIP       │ Whole screen   │ SKIP_DRAW (no rendering)      │   │
-│  │                    │                │ (snapshot/capture)             │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Layer Type          │ Rendering Scop│ Implementation                │    │
+│  ├─────────────────────┼───────────────┼───────────────────────────────┤    │
+│  │ SECURITY            │ Whole screen  │ DRAW_BLACK/WHITE mask fill    │    │
+│  │                     │               │ (security display or snapshot)│    │
+│  │ SKIP                │ Whole screen  │ SKIP_DRAW (no rendering)      │    │
+│  │                     │               │ (security display)            │    │
+│  │ SNAPSHOT_SKIP       │ Whole screen  │ SKIP_DRAW (no rendering)      │    │
+│  │                     │               │ (snapshot/capture)            │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  Surface/Window Rendering (per-surface check):                                │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Layer Type          │ Rendering Scope │ Implementation                 │   │
-│  ├─────────────────────┼─────────────────┼─────────────────────────────┤   │
-│  │ BLACK_LIST          │ Per-surface   │ GetBlackList() check    │   │
-│  │                    │                │ (security display)               │   │
-│  │ WHITE_LIST          │ Per-surface   │ SkipDrawByWhiteList() check    │   │
-│  │                    │                │ (security display)               │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│ Surface/Window Rendering (per-surface check):                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Layer Type          │ Rendering Scop│ Implementation                │    │
+│  ├─────────────────────┼───────────────┼───────────────────────────────┤    │
+│  │ BLACK_LIST          │ Per-surface   │ GetBlackList() check          │    │
+│  │                     │               │ (security display)            │    │
+│  │ WHITE_LIST          │ Per-surface   │ SkipDrawByWhiteList() check   │    │
+│  │                     │               │ (security display)            │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  Normal Rendering (no special handling):                                      │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Layer Type          │ Rendering Scope │ Implementation                 │   │
-│  ├─────────────────────┼─────────────────┼─────────────────────────────┤   │
-│  │ NONE                │ Normal        │ Default rendering                │   │
-│  │ PROTECTED           │ Normal        │ DRM handling elsewhere           │   │
-│  │ SECURITY (normal)   │ Normal        │ No special handling              │   │
-│  │ SKIP (normal)       │ Normal        │ No special handling              │   │
-│  │ SNAPSHOT_SKIP (norm)│ Normal        │ No special handling              │   │
-│  │ BLACK_LIST (norm)   │ Normal        │ No special handling              │   │
-│  │ WHITE_LIST (norm)   │ Normal        │ No special handling              │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│ Normal Rendering (no special handling):                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Layer Type          │ Rendering Scop│ Implementation                │    │
+│  ├─────────────────────┼───────────────┼───────────────────────────────┤    │
+│  │ NONE                │ Normal        │ Default rendering             │    │
+│  │ PROTECTED           │ Normal        │ DRM handling elsewhere        │    │
+│  │ SECURITY (normal)   │ Normal        │ No special handling           │    │
+│  │ SKIP (normal)       │ Normal        │ No special handling           │    │
+│  │ SNAPSHOT_SKIP (norm)│ Normal        │ No special handling           │    │
+│  │ BLACK_LIST (norm)   │ Normal        │ No special handling           │    │
+│  │ WHITE_LIST (norm)   │ Normal        │ No special handling           │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -154,32 +154,32 @@ The `special_layer` feature provides a robust and comprehensive layer classifica
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                 SkipDrawByWhiteList() Implementation                       │
+│ SkipDrawByWhiteList() Implementation                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Called When: IsSecurityDisplay() = true                                    │
 │                                                                             │
-│  Decision Logic:                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ 1. Check if sub-thread drawing                                        │   │
-│  │   - If parallel canvas, return false (don't skip)                   │   │
-│  │                                                                     │   │
-│  │ 2. Check if node is in whitelist                                       │   │
-│  │   - If node is whitelist node, return false (don't skip)              │   │
-│  │   - Check if virtual screen whitelist is empty                            │   │
-│  │   - Check if node or parent is whitelist root ID                         │   │
-│  │                                                                     │   │
-│  │ 3. Check if node's child is in whitelist                               │   │
-│  │   - If child is in whitelist, only draw children                      │   │
-│  │   - Skip parent node rendering                                          │   │
-│  │                                                                     │   │
-│  │ 4. Return true (skip draw)                                            │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│ Decision Logic:                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ 1. Check if sub-thread drawing                                      │    │
+│  │ - If parallel canvas, return false (don't skip)                     │    │
+│  │                                                                     │    │
+│  │ 2. Check if node is in whitelist                                    │    │
+│  │ - If node is whitelist node, return false (don't skip)              │    │
+│  │ - Check if virtual screen whitelist is empty                        │    │
+│  │ - Check if node or parent is whitelist root ID                      │    │
+│  │                                                                     │    │
+│  │ 3. Check if node's child is in whitelist                            │    │
+│  │ - If child is in whitelist, only draw children                      │    │
+│  │ - Skip parent node rendering                                        │    │
+│  │                                                                     │    │
+│  │ 4. Return true (skip draw)                                          │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  Scope: Per-surface/window check                                             │
-│  - Each surface/window is checked individually                                 │
-│  - Parent-child whitelist relationships are considered                             │
-│  - Only applies in security display context                                     │
+│ Scope: Per-surface/window check                                             │
+│ - Each surface/window is checked individually                               │
+│ - Parent-child whitelist relationships are considered                       │
+│ - Only applies in security display context                                  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -188,44 +188,44 @@ The `special_layer` feature provides a robust and comprehensive layer classifica
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      Screen Type Classification                              │
+│ Screen Type Classification                                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Screen Types:                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Normal Display                                                           │   │
-│  │   - IsSecurityDisplay() = false                                         │   │
-│  │   - Renders ALL layers normally (no special handling)                      │   │
-│  │   - No layer type is skipped in normal display                           │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Normal Display                                                      │    │
+│  │ - IsSecurityDisplay() = false                                       │    │
+│  │ - Renders ALL layers normally (no special handling)                 │    │
+│  │ - No layer type is skipped in normal display                        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Security Display                                                        │   │
-│  │   - IsSecurityDisplay() = true                                          │   │
-│  │   - SECURITY layers → DRAW_BLACK (whole screen mask)                   │   │
-│  │   - SKIP layers → SKIP_DRAW (whole screen, no rendering)               │   │
-│  │   - BLACK_LIST layers → GetBlackList() (per-surface check)     │   │
-│  │   - WHITE_LIST layers → SkipDrawByWhiteList() (per-surface check)     │   │
-│  │   - Security exemption can override black mask behavior                   │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Security Display                                                    │    │
+│  │ - IsSecurityDisplay() = true                                        │    │
+│  │ - SECURITY layers → DRAW_BLACK (whole screen mask)                  │    │
+│  │ - SKIP layers → SKIP_DRAW (whole screen, no rendering)              │    │
+│  │ - BLACK_LIST layers → GetBlackList() (per-surface check)            │    │
+│  │ - WHITE_LIST layers → SkipDrawByWhiteList() (per-surface check)     │    │
+│  │ - Security exemption can override black mask behavior               │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Mirror Display                                                          │   │
-│  │   - Has mirror source display                                           │   │
-│  │   - Checks intersection with special layers                               │   │
-│  │   - Virtual screen rect intersection test                                │   │
-│  │   - Can have security exemption                                        │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Mirror Display                                                      │    │
+│  │ - Has mirror source display                                         │    │
+│  │ - Checks intersection with special layers                           │    │
+│  │ - Virtual screen rect intersection test                             │    │
+│  │ - Can have security exemption                                       │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │ Snapshot/Capture Display                                               │   │
-│  │   - isSnapshot_ = true                                                │   │
-│  │   - SECURITY layers → black/white mask (whole screen)                   │   │
-│  │   - SKIP layers → SKIP_DRAW (whole screen, no rendering)               │   │
-│  │   - SNAPSHOT_SKIP layers → SKIP_DRAW (whole screen)                      │   │
-│  │   - BLACK_LIST layers → Skip draw (in blacklist)                        │   │
-│  │   - CAPTURE_WINDOW_NAME special handling for SKIP layers                │   │
-│  └─────────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Snapshot/Capture Display                                            │    │
+│  │ - isSnapshot_ = true                                                │    │
+│  │ - SECURITY layers → black/white mask (whole screen)                 │    │
+│  │ - SKIP layers → SKIP_DRAW (whole screen, no rendering)              │    │
+│  │ - SNAPSHOT_SKIP layers → SKIP_DRAW (whole screen)                   │    │
+│  │ - BLACK_LIST layers → Skip draw (in blacklist)                      │    │
+│  │ - CAPTURE_WINDOW_NAME special handling for SKIP layers              │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -234,17 +234,17 @@ The `special_layer` feature provides a robust and comprehensive layer classifica
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DrawType Enum                                   │
+│ DrawType Enum                                                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  enum class DrawType {                                                      │
-│      NONE,       // Normal drawing without special handling                    │
+│ NONE,       // Normal drawing without special handling                      │
 │      DRAW_WHITE, // Draw white mask (security layers in snapshot,           │
 │                  // single surface, no blur/self-capture)                   │
-│      DRAW_BLACK, // Draw black mask (security layers in security display      │
-│                  // or multi-surface snapshot)                             │
-│      SKIP_DRAW   // Skip drawing without any rendering operation              │
-│  };                                                                        │
+│ DRAW_BLACK, // Draw black mask (security layers in security display         │
+│ // or multi-surface snapshot)                                               │
+│ SKIP_DRAW   // Skip drawing without any rendering operation                 │
+│ };                                                                          │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -253,41 +253,41 @@ The `special_layer` feature provides a robust and comprehensive layer classifica
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      Rendering Decision Flowchart                             │
+│ Rendering Decision Flowchart                                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Start                                                                     │
-│    │                                                                       │
-│    ▼                                                                       │
-│  ┌─────────────────┐                                                       │
-│  │ IsSecurityDisplay()? │                                                       │
-│  └────────┬────────┘                                                       │
+│ Start                                                                       │
+│    │                                                                        │
+│    ▼                                                                        │
+│  ┌─────────────────┐                                                        │
+│  │ IsSecurityDisplay()?                                                     │
+│  └────────┬────────┘                                                        │
 │           │                                                                 │
-│     Yes   │   No                                                           │
-│  ┌────────┴────────┐                                                       │
-│  │                 │                                                       │
-│  ▼                 ▼                                                       │
-│  GetDrawTypeIn    Normal Draw                                              │
+│     Yes   │   No                                                            │
+│  ┌────────┴────────┐                                                        │
+│  │                 │                                                        │
+│  ▼                 ▼                                                        │
+│ GetDrawTypeIn    Normal Draw                                                │
 │  SecurityDisplay()  (all layers)                                            │
-│  │                 │                                                       │
-│  ▼                 ▼                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Check layer type and return appropriate DrawType:                     │   │
-│  │   - SECURITY: DRAW_BLACK (whole screen mask)                       │   │
-│  │   - SKIP: SKIP_DRAW (whole screen)                                │   │
-│  │   - BLACK_LIST: GetBlackList() (per-surface)              │   │
-│  │   - WHITE_LIST: SkipDrawByWhiteList() (per-surface)              │   │
-│  │   - Others: NONE (normal draw)                                      │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  │                 │                                                        │
+│  ▼                 ▼                                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Check layer type and return appropriate DrawType:                   │    │
+│  │ - SECURITY: DRAW_BLACK (whole screen mask)                          │    │
+│  │ - SKIP: SKIP_DRAW (whole screen)                                    │    │
+│  │ - BLACK_LIST: GetBlackList() (per-surface)                          │    │
+│  │ - WHITE_LIST: SkipDrawByWhiteList() (per-surface)                   │    │
+│  │ - Others: NONE (normal draw)                                        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │           │                                                                 │
 │           ▼                                                                 │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Apply DrawType:                                                    │   │
-│  │   - NONE: Normal rendering                                         │   │
-│  │   - DRAW_BLACK: Fill with black color (whole screen)                │   │
-│  │   - DRAW_WHITE: Fill with white color (whole screen)                │   │
-│  │   - SKIP_DRAW: Skip rendering entirely (whole screen)                │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Apply DrawType:                                                     │    │
+│  │ - NONE: Normal rendering                                            │    │
+│  │ - DRAW_BLACK: Fill with black color (whole screen)                  │    │
+│  │ - DRAW_WHITE: Fill with white color (whole screen)                  │    │
+│  │ - SKIP_DRAW: Skip rendering entirely (whole screen)                 │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -296,26 +296,26 @@ The `special_layer` feature provides a robust and comprehensive layer classifica
 │                    Snapshot/Capture Decision Flowchart                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Start (isSnapshot_ = true)                                              │
-│    │                                                                       │
-│    ▼                                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Check layer type and return appropriate DrawType:                     │   │
-│  │   - SECURITY: DRAW_BLACK (multi-surface) or DRAW_WHITE (single)   │   │
-│  │   - SKIP: SKIP_DRAW (whole screen)                                │   │
-│  │   - SNAPSHOT_SKIP: SKIP_DRAW (whole screen)                        │   │
-│  │   - BLACK_LIST: Skip draw (in blacklist)                            │   │
-│  │   - Others: NONE (normal draw)                                      │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│ Start (isSnapshot_ = true)                                                  │
+│    │                                                                        │
+│    ▼                                                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Check layer type and return appropriate DrawType:                   │    │
+│  │ - SECURITY: DRAW_BLACK (multi-surface) or DRAW_WHITE (single)       │    │
+│  │ - SKIP: SKIP_DRAW (whole screen)                                    │    │
+│  │ - SNAPSHOT_SKIP: SKIP_DRAW (whole screen)                           │    │
+│  │ - BLACK_LIST: Skip draw (in blacklist)                              │    │
+│  │ - Others: NONE (normal draw)                                        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │           │                                                                 │
 │           ▼                                                                 │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Apply DrawType:                                                    │   │
-│  │   - NONE: Normal rendering                                         │   │
-│  │   - DRAW_BLACK: Fill with black color (whole screen)                │   │
-│  │   - DRAW_WHITE: Fill with white color (whole screen)                │   │
-│  │   - SKIP_DRAW: Skip rendering entirely (whole screen)                │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Apply DrawType:                                                     │    │
+│  │ - NONE: Normal rendering                                            │    │
+│  │ - DRAW_BLACK: Fill with black color (whole screen)                  │    │
+│  │ - DRAW_WHITE: Fill with white color (whole screen)                  │    │
+│  │ - SKIP_DRAW: Skip rendering entirely (whole screen)                 │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```

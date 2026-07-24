@@ -18,7 +18,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d/concurrent"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("VsyncDistributorSAFuzzTest") {
+ohos_fuzztest("VsyncSafeFuzzTest") {
   fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/test/fuzztest/vsyncsafe_fuzzer"
   module_out_path = module_output_path
 
@@ -41,7 +41,6 @@ ohos_fuzztest("VsyncDistributorSAFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -57,7 +56,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":VsyncDistributorSAFuzzTest",
+    ":VsyncSafeFuzzTest",
   ]
 }
 ###############################################################################

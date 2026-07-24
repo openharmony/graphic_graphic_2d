@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("../../../../../../graphic_config.gni")
 
 ohos_shared_library("windowanimationmanager_napi") {
+  branch_protector_ret = "pac_ret"
   include_dirs = [ "$graphic_2d_root/utils/log" ]
 
   sources = [

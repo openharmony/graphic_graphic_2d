@@ -433,7 +433,7 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         repCode = INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
+        return INVALID_ARGUMENTS;
     }
     pipeline->ScheduleMainThreadTask(
         [info, mainThread = pipeline->GetMainThread()]() {
@@ -442,7 +442,7 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
         }
     );
     repCode = SUCCESS;
-    return ERR_OK;
+    return SUCCESS;
 }
 
 namespace {
@@ -938,9 +938,10 @@ ErrCode RSRenderPipelineAgent::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint
 }
 
 void RSRenderPipelineAgent::RegisterTransactionDataCallback(uint64_t token,
-    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
+    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback, pid_t callingPid)
 {
-    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(token, timeStamp, callback);
+    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(
+        token, timeStamp, callback, callingPid);
 }
 
 ErrCode RSRenderPipelineAgent::SetWindowContainer(NodeId nodeId, bool value)
@@ -1422,6 +1423,11 @@ int32_t RSRenderPipelineAgent::RegisterOcclusionChangeCallback(pid_t pid, sptr<R
 int32_t RSRenderPipelineAgent::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {
+    if (partitionPoints.size() > MAX_PARTITION_POINTS) {
+        RS_LOGE("RegisterSurfaceOcclusionChangeCallback invalid partitionPoints size: %{public}zu",
+            partitionPoints.size());
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         return StatusCode::INVALID_ARGUMENTS;
@@ -1494,6 +1500,7 @@ void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& p
     if (!pipeline) {
         return;
     }
+    pipeline->GetMainThread()->NotifyPackageEvent(packageList);
     pipeline->PostMainThreadTask([renderPipeline = pipeline, packageList] {
         renderPipeline->GetMainThread()->CheckPackageInConfigList(packageList);
         renderPipeline->imageEnhanceManager_->CheckPackageInConfigList(packageList);
@@ -1884,6 +1891,19 @@ void RSRenderPipelineAgent::SetVmaCacheStatus(bool flag)
 #endif
 }
 
+ErrCode RSRenderPipelineAgent::SetUIMode3D(UIMode3D mode)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = pipeline, mode]() {
+        renderPipeline->GetMainThread()->SetUIMode3D(mode);
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
 void RSRenderPipelineAgent::SetBehindWindowFilterEnabled(bool enabled)
 {
     auto pipeline = rsRenderPipeline_.lock();
@@ -2077,6 +2097,70 @@ ErrCode RSRenderPipelineAgent::RepaintEverything()
     };
     pipeline->PostMainThreadTask(task);
     return ERR_OK;
+}
+
+ErrCode RSRenderPipelineAgent::SetRogScreenResolution(ScreenId screenId, uint32_t width, uint32_t height)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        RS_LOGE("GetPidGpuMemoryInMB pipeline is nullptr, return");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [screenId, width, height, renderPipeline = pipeline, this]() -> void {
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap();
+        UpdateScreenNodesResolution(nodeMap, screenId, width, height);
+        AdjustBootAnimationBounds(nodeMap, width, height);
+    };
+    pipeline->PostMainThreadSyncTask(task);
+    return ERR_OK;
+}
+ 
+void RSRenderPipelineAgent::UpdateScreenNodesResolution(
+    RSRenderNodeMap& nodeMap, ScreenId screenId, uint32_t width, uint32_t height)
+{
+    auto resolution = std::make_pair(width, height);
+    auto property = sptr<ScreenProperty<resolutionValType>>::MakeSptr(resolution);
+    auto updateNode = [screenId, width, height, property](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (node && node->GetScreenId() == screenId) {
+            auto screenInfo = node->GetScreenInfo();
+            screenInfo.width = width;
+            screenInfo.height = height;
+            node->SetScreenInfo(screenInfo);
+            node->UpdateScreenProperty(ScreenPropertyType::RENDER_RESOLUTION, property);
+            node->SetDirty();
+            RS_LOGI("SetRogScreenResolution, update screenInfo and renderResolution, "
+                "screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u",
+                screenId, width, height);
+        }
+    };
+    nodeMap.TraverseScreenNodes(updateNode);
+}
+ 
+void RSRenderPipelineAgent::AdjustBootAnimationBounds(RSRenderNodeMap& nodeMap, uint32_t width, uint32_t height)
+{
+    auto adjustNode = [width, height, this](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        if (!node || !node->GetBootAnimation()) {
+            return;
+        }
+        SetBootAnimationBounds(node, width, height);
+        std::string boundsStr = node->GetRenderProperties().GetBoundsRect().ToString();
+        RS_LOGI("SetRogScreenResolution, adjust bootanimation bounds, Bounds:%s", boundsStr.c_str());
+        node->SetDirty();
+    };
+    nodeMap.TraverseSurfaceNodes(adjustNode);
+}
+ 
+void RSRenderPipelineAgent::SetBootAnimationBounds(
+    const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t width, uint32_t height)
+{
+    if (!node) {
+        return;
+    }
+    for (auto modifier : node->GetModifiersNG(ModifierNG::RSModifierType::BOUNDS)) {
+        if (modifier) {
+            modifier->Setter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS, {0, 0, width, height});
+        }
+    }
 }
 
 void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
@@ -2592,9 +2676,8 @@ sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeI
             RS_LOGE("CreateCanvasDrawingNodeSurface: null producerPurface, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
- 
-        sptr<IBufferConsumerListener> listener =
-            new RSCanvasDrawingNodeBufferConsumerListener(mainThread->GetWeakContext(), nodeId);
+
+        sptr<IBufferConsumerListener> listener = new RSCanvasDrawingNodeBufferConsumerListener(surfaceHandler, nodeId);
         consumerSurface->RegisterConsumerListener(listener);
         auto& nodeMap = rsContext->GetMutableNodeMap();
         auto canvasDrawingNode = nodeMap.GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);

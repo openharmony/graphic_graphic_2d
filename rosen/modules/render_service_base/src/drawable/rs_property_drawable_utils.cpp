@@ -23,6 +23,7 @@
 #include "ge_shader_filter_params.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
+#include <limits>
 #include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_color_picker_def.h"
@@ -136,6 +137,10 @@ Color RSPropertyDrawableUtils::GetColorForShadowSyn(Drawing::Canvas* canvas, Dra
 std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GetShadowRegionImage(Drawing::Canvas* canvas,
     Drawing::Path& drPath, Drawing::Matrix& matrix)
 {
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GetShadowRegionImage canvas is null");
+        return nullptr;
+    }
     Drawing::Rect clipBounds = drPath.GetBounds();
     Drawing::RectI clipIBounds = { static_cast<int>(clipBounds.GetLeft()), static_cast<int>(clipBounds.GetTop()),
         static_cast<int>(clipBounds.GetRight()), static_cast<int>(clipBounds.GetBottom()) };
@@ -254,6 +259,11 @@ bool IsImageValid(const Drawing::Image& image)
     constexpr int maxDimension = 65535; // Prevent overflow in area calculation
     if (image.GetWidth() > maxDimension || image.GetHeight() > maxDimension) {
         ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage image dimensions too large");
+        return false;
+    }
+    const int64_t imageArea = static_cast<int64_t>(image.GetWidth()) * image.GetHeight();
+    if (imageArea > std::numeric_limits<int32_t>::max()) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage image area too large");
         return false;
     }
     return true;
@@ -467,14 +477,23 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     filter->PostProcess(*canvas);
 }
 
-void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds)
+void RSPropertyDrawableUtils::BeginOffscreen(RSPaintFilterCanvas& canvas, const RectF& bounds)
 {
-    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::BeginForegroundFilter");
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::BeginOffscreen");
     auto surface = canvas.GetSurface();
     if (!surface) {
         return;
     }
-    std::shared_ptr<Drawing::Surface> offscreenSurface = surface->MakeSurface(bounds.width_, bounds.height_);
+    std::shared_ptr<Drawing::Surface> offscreenSurface = nullptr;
+    if (ROSEN_LNE(surface->GetHdrScale(), 1.0f) &&
+        surface->GetImageInfo().GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_1010102) {
+        auto info = Drawing::ImageInfo(bounds.width_, bounds.height_,
+            Drawing::ColorType::COLORTYPE_RGBA_F16, surface->GetImageInfo().GetAlphaType(),
+            surface->GetImageInfo().GetColorSpace());
+        offscreenSurface = surface->MakeSurface(info);
+    } else {
+        offscreenSurface = surface->MakeSurface(bounds.width_, bounds.height_);
+    }
     if (!offscreenSurface) {
         return;
     }
@@ -491,21 +510,28 @@ void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas,
     canvas.SetFilterClipBounds(offscreenCanvas->GetFilterClipBounds());
 }
 
-void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
-    const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect)
+std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::EndOffscreen(RSPaintFilterCanvas& canvas)
 {
-    RS_OPTIONAL_TRACE_NAME("DrawForegroundFilter restore");
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::EndOffscreen");
     auto surface = canvas.GetSurface();
     std::shared_ptr<Drawing::Image> imageSnapshot = nullptr;
     if (surface) {
         imageSnapshot = surface->GetImageSnapshot();
     } else {
-        ROSEN_LOGD("RSPropertyDrawableUtils::DrawForegroundFilter Surface null");
+        ROSEN_LOGD("RSPropertyDrawableUtils::EndOffscreen surface null");
     }
-
+    // Swap the canvas back to the main screen surface, undoing BeginOffscreen.
     canvas.RestorePCanvasList();
     canvas.SwapBackMainScreenData();
     canvas.RestoreEnv();
+    return imageSnapshot;
+}
+
+void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect)
+{
+    RS_OPTIONAL_TRACE_NAME("DrawForegroundFilter restore");
+    auto imageSnapshot = EndOffscreen(canvas);
 
     if (rsFilter == nullptr) {
         return;
@@ -540,11 +566,52 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         imageSnapshot->GetHeight()), dst);
 }
 
+void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
+    const Drawing::Rect& sdfDrawRect, const Drawing::Rect* frameRect)
+{
+    RS_OPTIONAL_TRACE_NAME("DrawSdfClip restore");
+    if (canvas.GetOffscreenDataList().empty()) { // offscreen not started
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip offscreen not started, skip");
+        return;
+    }
+
+    if (geContainer != nullptr && frameRect != nullptr) {
+        // Bake the SDF clip into the snapshot before swap-back; SaveAlpha/SetAlpha(1.0)
+        // isolates the effect from node alpha, restored right after.
+        canvas.SaveAlpha();
+        canvas.SetAlpha(1.0f);
+        geContainer->SetGeometry(canvas.GetTotalMatrix(), *frameRect, *frameRect,
+            frameRect->GetWidth(), frameRect->GetHeight());
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        geRender->DrawShaderEffect(canvas, *geContainer, sdfDrawRect);
+        canvas.RestoreAlpha();
+    } else {
+        ROSEN_LOGD("Clip SDF failed, geContainer or frameRect is nullptr");
+    }
+
+    auto imageSnapshot = EndOffscreen(canvas);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip image null");
+        return;
+    }
+    // Snapshot already carries node opacity and SDF clip; composite at full alpha to avoid
+    // re-applying opacity. RestoreAlpha restores node alpha for later draws.
+    canvas.SaveAlpha();
+    canvas.SetAlpha(1.0f);
+    // Composite the SDF-clipped snapshot back to the original canvas.
+    Drawing::Rect dstRect(sdfDrawRect.GetLeft(), sdfDrawRect.GetTop(),
+        sdfDrawRect.GetRight(), sdfDrawRect.GetBottom());
+    Drawing::Brush brush;
+    canvas.AttachBrush(brush);
+    canvas.DrawImageRect(*imageSnapshot, dstRect, Drawing::SamplingOptions());
+    canvas.DetachBrush();
+    canvas.RestoreAlpha();
+}
+
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 {
-    auto blurCnt = g_blurCnt.load();
-    g_blurCnt = 0;
-    return blurCnt;
+    return g_blurCnt.exchange(0);
 }
 
 void RSPropertyDrawableUtils::DrawBackgroundEffect(
@@ -621,6 +688,10 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
 void RSPropertyDrawableUtils::DrawColorFilter(
     Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter)
 {
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorFilter canvas is null");
+        return;
+    }
     if (colorFilter == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorFilter null colorFilter.");
         return;
@@ -1388,6 +1459,10 @@ void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, 
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
     const std::string& shapeTag)
 {
+    if (rect == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM rect is null");
+        return;
+    }
     if (!filterGEContainer) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM filterGEContainer null");
         return;

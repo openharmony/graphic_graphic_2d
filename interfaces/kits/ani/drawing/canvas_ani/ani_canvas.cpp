@@ -2073,10 +2073,9 @@ ani_object AniCanvas::GetTotalMatrix(ani_env* env, ani_object obj)
     std::shared_ptr<Drawing::Matrix> matrixPtr = std::make_shared<Drawing::Matrix>(matrix);
     AniMatrix* aniMatrix = new AniMatrix(matrixPtr);
     aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().matrix,
-        AniGlobalMethod::GetInstance().matrixCtor);
-    if (ANI_OK != env->Object_SetField_Long(aniObj,
-        AniGlobalField::GetInstance().matrixNativeObj, reinterpret_cast<ani_long>(aniMatrix))) {
-        ROSEN_LOGE("AniCanvas::GetTotalMatrix failed cause by Object_SetField_Long");
+        AniGlobalMethod::GetInstance().matrixCtorWithPtr, reinterpret_cast<ani_long>(aniMatrix));
+    if (IsUndefined(env, aniObj)) {
+        ROSEN_LOGE("AniCanvas::GetTotalMatrix failed create aniMatrix");
         delete aniMatrix;
         return CreateAniUndefined(env);
     }
@@ -2511,30 +2510,20 @@ ani_object AniCanvas::CreateAniCanvas(ani_env* env, Canvas* canvas)
         ROSEN_LOGE("CreateAniCanvas failed, canvas is nullptr!");
         return CreateAniUndefined(env);
     }
-
-    ani_ref aniRef;
-    if (env->GetUndefined(&aniRef) != ANI_OK) {
-        ROSEN_LOGE("CreateAniCanvas GetUndefined failed");
-        return CreateAniUndefined(env);
-    }
     ani_class aniClass;
     if (env->FindClass(ANI_CLASS_CANVAS_NAME, &aniClass) != ANI_OK) {
         ROSEN_LOGE("CreateAniCanvas FindClass failed");
         return CreateAniUndefined(env);
     }
     ani_method aniConstructor;
-    if (env->Class_FindMethod(aniClass, "<ctor>", nullptr, &aniConstructor) != ANI_OK) {
+    if (env->Class_FindMethod(aniClass, "<ctor>", "l:", &aniConstructor) != ANI_OK) {
         ROSEN_LOGE("CreateAniCanvas Class_FindMethod failed");
         return CreateAniUndefined(env);
     }
-    ani_object aniObj;
-    if (env->Object_New(aniClass, aniConstructor, &aniObj, aniRef) != ANI_OK) {
-        ROSEN_LOGE("CreateAniCanvas Object_New failed");
-        return CreateAniUndefined(env);
-    }
     auto aniCanvas = new AniCanvas(canvas);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniCanvas))) {
-        ROSEN_LOGE("aniCanvas failed cause by Object_SetFieldByName_Long");
+    ani_object aniObj;
+    if (env->Object_New(aniClass, aniConstructor, &aniObj, reinterpret_cast<ani_long>(aniCanvas)) != ANI_OK) {
+        ROSEN_LOGE("CreateAniCanvas Object_New failed");
         delete aniCanvas;
         return CreateAniUndefined(env);
     }
@@ -2569,17 +2558,10 @@ ani_object AniCanvas::CanvasTransferStatic(ani_env* env, [[maybe_unused]]ani_obj
 #ifdef ROSEN_OHOS
     aniCanvas->mPixelMap_ = jsCanvas->GetPixelMap();
 #endif
-    ani_ref aniRef;
-    if (env->GetUndefined(&aniRef) != ANI_OK) {
-        ROSEN_LOGE("AniCanvas::CanvasTransferStatic GetUndefined failed");
-        delete aniCanvas;
-        return CreateAniUndefined(env);
-    }
     ani_object aniCanvasObj = CreateAniObject(env, AniGlobalClass::GetInstance().canvas,
-        AniGlobalMethod::GetInstance().canvasCtor, aniRef);
-    if (ANI_OK != env->Object_SetField_Long(
-        aniCanvasObj, AniGlobalField::GetInstance().canvasNativeObj, reinterpret_cast<ani_long>(aniCanvas))) {
-        ROSEN_LOGE("AniCanvas::CanvasTransferStatic failed create aniBrush");
+        AniGlobalMethod::GetInstance().canvasCtorWithPtr, reinterpret_cast<ani_long>(aniCanvas));
+    if (IsUndefined(env, aniCanvasObj)) {
+        ROSEN_LOGE("AniCanvas::CanvasTransferStatic failed create aniCanvas");
         delete aniCanvas;
         return CreateAniUndefined(env);
     }

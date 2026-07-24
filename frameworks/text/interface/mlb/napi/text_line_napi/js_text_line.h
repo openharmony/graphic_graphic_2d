@@ -16,11 +16,11 @@
 #ifndef OHOS_ROSEN_JS_TEXT_LINE_H
 #define OHOS_ROSEN_JS_TEXT_LINE_H
 
-#include <native_engine/native_engine.h>
-#include <native_engine/native_value.h>
+#include "napi/native_node_api.h"
 #include "text_line_base.h"
-#include "typography_style.h"
 #include "typography.h"
+#include "typography_style.h"
+
 #include "utils/napi_common.h"
 
 namespace OHOS::Rosen {

@@ -49,7 +49,7 @@ bool RSSurfaceHandler::BufferOwnerCount::DecRef()
     RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::DecRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
         refCount_.load());
     if (bufferId_ == 0) {
-        RS_LOGE("BufferOwnerCount::DecRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
+        RS_LOGD("BufferOwnerCount::DecRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
             refCount_.load());
         return bufferReleaseCb_ == nullptr;
     }

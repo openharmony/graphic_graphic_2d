@@ -174,6 +174,9 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
         case RSRenderNodeType::DEPTH_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSDepthRenderParams>(sharedPtr->nodeId_);
             break;
+        case RSRenderNodeType::PROTECTIVE_SOLID_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
+            break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
             break;
@@ -219,6 +222,13 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
     }
     return sharedPtr;
 }
+
+#ifdef USE_PRIMITIVE
+void RSRenderNodeDrawableAdapter::DrawPrim(Drawing::Canvas& canvas)
+{
+    return;
+}
+#endif
 
 void RSRenderNodeDrawableAdapter::DrawRangeImpl(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const
@@ -380,7 +390,11 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
     if (index == -1) {
         return;
     }
+#ifdef USE_PRIMITIVE
+    drawCmdList_[index]->OnDrawPrimitive(&canvas, &rect);
+#else
     drawCmdList_[index]->OnDraw(&canvas, &rect);
+#endif
 }
 
 void RSRenderNodeDrawableAdapter::DrawClipBounds(Drawing::Canvas& canvas, const Drawing::Rect& rect) const

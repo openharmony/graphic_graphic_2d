@@ -175,7 +175,6 @@ public:
     static bool GetRSClientMultiInstanceEnabled();
     static bool GetRenderNodePurgeEnabled();
     static bool GetRSImagePurgeEnabled();
-    static bool GetClosePixelMapFdEnabled();
     static bool GetAceTestMode();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static AdvancedDirtyRegionType GetAdvancedDirtyRegionEnabled();
@@ -194,6 +193,7 @@ public:
     static bool GetVirtualExpandScreenDirtyEnabled();
     static bool GetVirtualExpandScreenSkipEnabled();
     static bool GetOcclusionEnabled();
+    static bool GetUpdateDisplayListExtEnabled();
     static bool GetDynamicLayerSkipEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetHighContrastStatus();
@@ -297,7 +297,6 @@ public:
     static bool GetDebugTraceEnabled();
     static bool GetImageReleaseUsingPostTask();
     static int GetDebugTraceLevel();
-    static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
     static bool IsSmallFoldDevice();
     static bool IsFoldDeviceOfOldDss();
@@ -307,6 +306,7 @@ public:
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSurfaceNodeWatermarkEnabled();
     static bool IsSuperFoldDisplay();
+    static bool IsSpecialFoldDisplay();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
     static bool GetSingleFrameComposerEnabled();

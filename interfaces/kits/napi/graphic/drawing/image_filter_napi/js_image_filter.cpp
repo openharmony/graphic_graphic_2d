@@ -196,6 +196,10 @@ napi_value JsImageFilter::CreateFromColorFilter(napi_env env, napi_callback_info
     }
 
     std::shared_ptr<ColorFilter> colorFilter = jsColorFilter->GetColorFilter();
+    if (colorFilter == nullptr) {
+        ROSEN_LOGE("JsImageFilter::CreateFromColorFilter colorFilter is nullptr!");
+        return nullptr;
+    }
     std::shared_ptr<ImageFilter> imageFilter = (jsImageFilter == nullptr) ?
         nullptr : jsImageFilter->GetImageFilter();
 

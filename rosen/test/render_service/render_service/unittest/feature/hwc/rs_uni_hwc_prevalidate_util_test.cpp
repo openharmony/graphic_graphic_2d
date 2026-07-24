@@ -259,18 +259,14 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfo006, TestSize.Le
 HWTEST_F(RSUniHwcPrevalidateUtilTest, IsYUVBufferFormat001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto surfaceHandler = surfaceNode1->surfaceHandler_;
-    ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->buffer_.buffer = nullptr;
-    bool ret = uniHwcPrevalidateUtil.IsYUVBufferFormat(surfaceNode1);
+    bool ret = uniHwcPrevalidateUtil.IsYUVBufferFormat(nullptr);
     ASSERT_EQ(ret, false);
 
-    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto bufferHandle = surfaceNode2->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
     ASSERT_NE(bufferHandle, nullptr);
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
-    ret = uniHwcPrevalidateUtil.IsYUVBufferFormat(surfaceNode2);
+    ret = uniHwcPrevalidateUtil.IsYUVBufferFormat(surfaceNode->surfaceHandler_->buffer_.buffer);
     ASSERT_EQ(ret, false);
 }
 
@@ -287,7 +283,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, IsYUVBufferFormat002, TestSize.Level1)
     auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
     ASSERT_NE(bufferHandle, nullptr);
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
-    bool ret = uniHwcPrevalidateUtil.IsYUVBufferFormat(surfaceNode);
+    bool ret = uniHwcPrevalidateUtil.IsYUVBufferFormat(surfaceNode->surfaceHandler_->buffer_.buffer);
     ASSERT_EQ(ret, true);
 }
 
@@ -469,7 +465,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoArsrPre001, TestSize.Level1)
     auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
     ASSERT_NE(bufferHandle, nullptr);
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
-    bool ret = uniHwcPrevalidateUtil.CheckIfDoArsrPre(surfaceNode);
+    bool ret = uniHwcPrevalidateUtil.CheckIfDoArsrPre(surfaceNode->surfaceHandler_->buffer_.buffer, "testNode");
     ASSERT_EQ(ret, true);
 }
 
@@ -484,7 +480,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoArsrPre002, TestSize.Level1)
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    bool ret = uniHwcPrevalidateUtil.CheckIfDoArsrPre(surfaceNode);
+    bool ret = uniHwcPrevalidateUtil.CheckIfDoArsrPre(nullptr, "testNode");
     ASSERT_EQ(ret, false);
 }
 
@@ -504,10 +500,12 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit001, TestSize.Level1)
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
     RequestLayerInfo info;
     uniHwcPrevalidateUtil.isCopybitSupported_ = false;
-    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode->surfaceHandler_->buffer_.buffer,
+        GraphicTransformType::GRAPHIC_ROTATE_90, info, surfaceNode);
     ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
     uniHwcPrevalidateUtil.isCopybitSupported_ = true;
-    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode->surfaceHandler_->buffer_.buffer,
+        GraphicTransformType::GRAPHIC_ROTATE_90, info, surfaceNode);
     ASSERT_EQ(surfaceNode->GetCopybitTag(), true);
 }
 
@@ -524,10 +522,10 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit002, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     RequestLayerInfo info;
     uniHwcPrevalidateUtil.isCopybitSupported_ = false;
-    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(nullptr, GraphicTransformType::GRAPHIC_ROTATE_90, info, surfaceNode);
     ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
     uniHwcPrevalidateUtil.isCopybitSupported_ = true;
-    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(nullptr, GraphicTransformType::GRAPHIC_ROTATE_90, info, surfaceNode);
     ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
 }
 
@@ -547,10 +545,12 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit004, TestSize.Level1)
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
     RequestLayerInfo info;
     uniHwcPrevalidateUtil.isCopybitSupported_ = true;
-    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_NONE, info);
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode->surfaceHandler_->buffer_.buffer,
+        GraphicTransformType::GRAPHIC_ROTATE_NONE, info, surfaceNode);
     ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
-    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode->surfaceHandler_->buffer_.buffer,
+        GraphicTransformType::GRAPHIC_ROTATE_90, info, surfaceNode);
     ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
 }
 
@@ -680,7 +680,8 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit003, TestSize.Level1)
     ASSERT_NE(bufferHandle, nullptr);
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
     RequestLayerInfo info;
-    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode->surfaceHandler_->buffer_.buffer,
+        GraphicTransformType::GRAPHIC_ROTATE_90, info, surfaceNode);
     ASSERT_EQ(surfaceNode->GetCopybitTag(), true);
 }
 

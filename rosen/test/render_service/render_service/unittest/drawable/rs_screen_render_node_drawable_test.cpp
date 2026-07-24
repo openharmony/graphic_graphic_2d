@@ -20,6 +20,7 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "gtest/gtest.h"
+#include "syspara/parameters.h"
 
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -549,6 +550,119 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, GetCacheImgForMultiScreenViewTest002, T
     auto cacheImg = std::make_shared<Drawing::Image>();
     screenDrawable_->cacheImgForMultiScreenView_ = cacheImg;
     ASSERT_NE(screenDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+}
+
+/**
+ * @tc.name: OnDrawSpecialFoldPixelFormatOverride
+ * @tc.desc: Test OnDraw overrides pixel format to RGBA_1010108 for special-fold non-full-screen display
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawSpecialFoldPixelFormatOverride, TestSize.Level1)
+{
+    // These flags cache a static on first call; set parameters before the first call.
+    std::string origGpuApiType = system::GetParameter("persist.sys.graphic.GpuApitype", "0");
+    std::string origRgba1010108 = system::GetParameter("const.graphics.rgba_1010108_supported", "0");
+    std::string origFoldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    system::SetParameter("persist.sys.graphic.GpuApitype", "2");
+    system::SetParameter("const.graphics.rgba_1010108_supported", "1");
+    system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    // The override runs before RequestFrame; clear mirror and use a valid composite type to reach it.
+    params->screenInfo_.id = 0;
+    params->mirrorSourceDrawable_.reset();
+    params->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    // OnDraw's screenInfo comes from screenProperty; set id=0 and a non-full-screen activeRect.
+    params->screenProperty_.Set<ScreenPropertyType::ID>(0);
+    params->screenProperty_.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(RectI(0, 100, 1920, 800), RectI(), RectI()));
+    params->SetHDRPresent(false);
+    params->SetNewPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    screenDrawable_->OnDraw(canvas);
+    system::SetParameter("persist.sys.graphic.GpuApitype", origGpuApiType);
+    system::SetParameter("const.graphics.rgba_1010108_supported", origRgba1010108);
+    system::SetParameter("const.window.foldscreen.type", origFoldType);
+}
+
+/**
+ * @tc.name: OnDrawSpecialFoldPixelFormatOverrideSkippedByFormat
+ * @tc.desc: Test OnDraw skips override when pixel format is not RGBA_1010102
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawSpecialFoldPixelFormatOverrideSkippedByFormat, TestSize.Level1)
+{
+    std::string origGpuApiType = system::GetParameter("persist.sys.graphic.GpuApitype", "0");
+    std::string origRgba1010108 = system::GetParameter("const.graphics.rgba_1010108_supported", "0");
+    std::string origFoldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    system::SetParameter("persist.sys.graphic.GpuApitype", "2");
+    system::SetParameter("const.graphics.rgba_1010108_supported", "1");
+    system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->screenInfo_.id = 0;
+    params->mirrorSourceDrawable_.reset();
+    params->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    params->screenProperty_.Set<ScreenPropertyType::ID>(0);
+    params->screenProperty_.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(RectI(0, 100, 1920, 800), RectI(), RectI()));
+    params->SetHDRPresent(false);
+    // format != RGBA_1010102 -> override condition false -> format unchanged.
+    params->SetNewPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(params->GetNewPixelFormat(), GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
+    system::SetParameter("persist.sys.graphic.GpuApitype", origGpuApiType);
+    system::SetParameter("const.graphics.rgba_1010108_supported", origRgba1010108);
+    system::SetParameter("const.window.foldscreen.type", origFoldType);
+}
+
+/**
+ * @tc.name: DrawEdgeGradientStripTopGeBottom
+ * @tc.desc: Smoke test: DrawEdgeGradientStrip with top >= bottom
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, DrawEdgeGradientStripTopGeBottom, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    RSPaintFilterCanvas pfCanvas(&canvas);
+    DrawEdgeGradientStrip(pfCanvas, 0.0f, 50.0f, 100.0f, 50.0f, 0.0f, 100.0f);
+    EXPECT_EQ(pfCanvas.GetWidth(), 100);
+}
+
+/**
+ * @tc.name: DrawVerticalEdgeGradientsGuards
+ * @tc.desc: Smoke test: DrawVerticalEdgeGradients with empty activeRect or non-positive canvas dims
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, DrawVerticalEdgeGradientsGuards, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    RSPaintFilterCanvas pfCanvas(&canvas);
+    DrawVerticalEdgeGradients(pfCanvas, RectI(), 100, 100);
+    DrawVerticalEdgeGradients(pfCanvas, RectI(0, 0, 50, 50), 0, 100);
+    DrawVerticalEdgeGradients(pfCanvas, RectI(0, 0, 50, 50), 100, 0);
+    EXPECT_EQ(pfCanvas.GetWidth(), 100);
+}
+
+/**
+ * @tc.name: DrawVerticalEdgeGradientsDraws
+ * @tc.desc: Smoke test: DrawVerticalEdgeGradients with a valid activeRect
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, DrawVerticalEdgeGradientsDraws, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    RSPaintFilterCanvas pfCanvas(&canvas);
+    DrawVerticalEdgeGradients(pfCanvas, RectI(0, 30, 100, 40), 100, 100);
+    EXPECT_EQ(pfCanvas.GetWidth(), 100);
 }
 
 /**

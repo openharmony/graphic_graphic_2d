@@ -52,7 +52,7 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 return ret;
             }
             if (!reply.WriteFileDescriptor(fd)) {
-                VLOGE("IVSYNC_CONNECTION_GET_RECEIVE_FD Write fd = %d failed", fd);
+                VLOGE("IVSYNC_CONNECTION_GET_RECEIVE_FD Write fd failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
             }
 

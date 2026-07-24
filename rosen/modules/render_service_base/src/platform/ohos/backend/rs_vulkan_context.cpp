@@ -958,7 +958,7 @@ void RsVulkanContext::SetRecyclable(bool isRecyclable)
 
 void RsVulkanContext::SetIsMultiProcess(bool isMultiProcess)
 {
-    isMultiProcess_ = isMultiProcesss;
+    isMultiProcess_ = isMultiProcess;
 }
 
 void RsVulkanContext::ClearGrContext(bool isProtected)

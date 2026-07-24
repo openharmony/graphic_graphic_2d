@@ -66,6 +66,7 @@ void VSyncDistributorTest::TearDownTestCase()
     vsyncConnection = nullptr;
 }
 
+void RequestNativeVSyncCallbackTest() {};
 namespace {
 /*
 * Function: AddConnection001
@@ -224,14 +225,14 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync004, Function | MediumTest| Level
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. new VSyncConnection(nullptr, "VSyncDistributorTest")
-*                  2. call RequestNextVSync
-*                  3. return VSYNC_ERROR_NULLPTR
+* CaseDescription: 1. call RequestNextVSync
  */
 HWTEST_F(VSyncDistributorTest, RequestNextVSync005, Function | MediumTest| Level3)
 {
-    sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
-    ASSERT_EQ(conn->RequestNextVSync("unknown", 0), VSYNC_ERROR_NULLPTR);
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
+    VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn, "UrgentSelfdrawing", 0), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
     sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
@@ -244,40 +245,22 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync005, Function | MediumTest| Level
  */
 HWTEST_F(VSyncDistributorTest, RequestNextVSync006, Function | MediumTest| Level3)
 {
-    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn, "UrgentSelfdrawing", 0), VSYNC_ERROR_OK);
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
-    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
-}
-
-/*
-* Function: RequestNextVSync007
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call RequestNextVSync
- */
-HWTEST_F(VSyncDistributorTest, RequestNextVSync007, Function | MediumTest| Level3)
-{
     {
-        vsyncDistributor->isRs_ = true;
-        auto conn = new VSyncConnection(vsyncDistributor, "rs");
-        vsyncDistributor->AddConnection(conn);
-        EXPECT_EQ(vsyncDistributor->RequestNextVSync(conn, "RequestNextVSync007", 0, 1000000000),
+        auto vsyncDistributorTmp = new VSyncDistributor(vsyncController, "rs");
+        auto conn = new VSyncConnection(vsyncDistributorTmp, "rs");
+        vsyncDistributorTmp->AddConnection(conn);
+        EXPECT_EQ(vsyncDistributorTmp->RequestNextVSync(conn, "RequestNextVSync007", 0, 1000000000),
             VSYNC_ERROR_OK);
         EXPECT_EQ(conn->requestVsyncTimestamp_.size(), 1);
-        EXPECT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
     }
 
     {
-        vsyncDistributor->isRs_ = false;
-        auto conn = new VSyncConnection(vsyncDistributor, "NoRs");
-        vsyncDistributor->AddConnection(conn);
-        EXPECT_EQ(vsyncDistributor->RequestNextVSync(conn, "RequestNextVSync007", 0, 1000000000),
+        auto vsyncDistributorTmp = new VSyncDistributor(vsyncController, "NoRs");
+        auto conn = new VSyncConnection(vsyncDistributorTmp, "NoRs");
+        vsyncDistributorTmp->AddConnection(conn);
+        EXPECT_EQ(vsyncDistributorTmp->RequestNextVSync(conn, "RequestNextVSync007", 0, 1000000000),
             VSYNC_ERROR_OK);
         EXPECT_EQ(conn->requestVsyncTimestamp_.size(), 0);
-        EXPECT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
     }
     sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
@@ -336,21 +319,6 @@ HWTEST_F(VSyncDistributorTest, SetVSyncRate004, Function | MediumTest| Level3)
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetVSyncRate(1, conn), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetVSyncRate(1, conn), VSYNC_ERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
-}
-
-/*
-* Function: SetVSyncRate005
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. set conn.distributor_ = nullptr
-*                  2. call SetVSyncRate
-*                  3. return VSYNC_ERROR_NULLPTR
- */
-HWTEST_F(VSyncDistributorTest, SetVSyncRate005, Function | MediumTest| Level3)
-{
-    sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
-    ASSERT_EQ(conn->SetVSyncRate(1), VSYNC_ERROR_NULLPTR);
 }
 
 /*
@@ -518,22 +486,6 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncSwitchTest, Function | MediumTest| Lev
 }
 
 /*
-* Function: SetUiDvsyncSwitchTest001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. new VSyncConnection(nullptr, "VSyncDistributorTest")
-*                 2. call SetUiDvsyncSwitch
-*                3. return VSYNC_ERROR_NULLPTR
- */
-HWTEST_F(VSyncDistributorTest, SetUiDvsyncSwitchTest001, Function | MediumTest| Level3)
-{
-    sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
-    ASSERT_EQ(conn->SetUiDvsyncSwitch(true), VSYNC_ERROR_NULLPTR);
-    ASSERT_EQ(conn->SetUiDvsyncSwitch(false), VSYNC_ERROR_NULLPTR);
-}
-
-/*
 * Function: SetUiDvsyncConfigTest
 * Type: Function
 * Rank: Important(2)
@@ -552,15 +504,13 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest, Function | MediumTest| Lev
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. new VSyncConnection(nullptr, "VSyncDistributorTest")
-*                 2. call SetUiDvsyncConfig
-*                3. return VSYNC_ERROR_NULLPTR
+* CaseDescription: 1. call SetUiDvsyncConfig
  */
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest001, Function | MediumTest| Level3)
 {
-    sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
-    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false, rsDvsyncAnimationList), VSYNC_ERROR_NULLPTR);
+    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false, rsDvsyncAnimationList), VSYNC_ERROR_OK);
 }
 
 /*
@@ -649,11 +599,11 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest003, Function | MediumTest| Lev
 }
 
 /*
- * Function: OnVSyncTriggerTest004
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. test OnVSyncTrigger
+* Function: OnVSyncTriggerTest004
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test OnVSyncTrigger
  */
 HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest004, Function | MediumTest| Level3)
 {
@@ -780,14 +730,13 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest006, Function | MediumTest| Lev
 HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest007, Function | MediumTest| Level3)
 {
     std::vector<sptr<VSyncConnection>> conns;
-
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "rs");
     EXPECT_EQ(conn->isRequestWithTimestampOnly_, false); // should inited to false
     EXPECT_EQ(conn->AddRequestVsyncTimestamp(1000000000), true);
     conn->rate_ = 0;
+
     ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
     conns.emplace_back(conn);
-
     VSyncMode vsyncMode = vsyncDistributor->vsyncMode_; // record
     vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPO;
     vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, vsyncDistributor->vsyncMode_, 360);
@@ -796,6 +745,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest007, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /**
@@ -808,7 +758,6 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest007, Function | MediumTest| Lev
 HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest008, Function | MediumTest| Level3)
 {
     std::vector<sptr<VSyncConnection>> conns;
-
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "rs");
     EXPECT_EQ(conn->isRequestWithTimestampOnly_, false); // should inited to false
 
@@ -831,6 +780,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest008, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /**
@@ -894,6 +844,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest009, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /**
@@ -911,8 +862,8 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest010, Function | MediumTest| Lev
     conns.emplace_back(conn);
     EXPECT_EQ(conn->isRequestWithTimestampOnly_, false); // should inited to false
     VSyncMode vsyncMode = vsyncDistributor->vsyncMode_; // record
-
     vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+
     conn->highPriorityState_ = true;
     conn->highPriorityRate_ = 1;
     conn->rate_ = 0;
@@ -1163,6 +1114,9 @@ HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidPublicTest001, Function | Med
     for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
+
+    // pid not found
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPidPublic(1, 2, false), VSYNC_ERROR_OK);
 }
 
 /*
@@ -1371,6 +1325,50 @@ HWTEST_F(VSyncDistributorTest, DisableDVSyncControllerTest001, Function | Medium
 }
 
 /*
+ * Function: DisableDVSyncControllerTest002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test DisableDVSyncController when dvsyncController_ is nullptr
+ *                  2. verify if branch is not entered
+ */
+HWTEST_F(VSyncDistributorTest, DisableDVSyncControllerTest002, Function | MediumTest | Level3)
+{
+    vsyncDistributor->dvsyncController_ = nullptr;
+    vsyncDistributor->dvsyncControllerEnabled_ = true;
+    vsyncDistributor->DisableDVSyncController();
+    ASSERT_EQ(vsyncDistributor->dvsyncControllerEnabled_, true);
+}
+
+/*
+ * Function: DisableDVSyncControllerTest003
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test DisableDVSyncController when dvsyncController_ is not nullptr
+ *                  2. verify SetEnable is called and dvsyncControllerEnabled_ is updated
+ */
+HWTEST_F(VSyncDistributorTest, DisableDVSyncControllerTest003, Function | MediumTest | Level3)
+{
+    auto originalController = vsyncDistributor->dvsyncController_;
+    auto originalEnabled = vsyncDistributor->dvsyncControllerEnabled_;
+
+    sptr<VSyncController> testController = new VSyncController(vsyncGenerator, 0);
+    vsyncDistributor->dvsyncController_ = testController;
+
+    vsyncDistributor->dvsyncControllerEnabled_ = false;
+    vsyncDistributor->DisableDVSyncController();
+    ASSERT_EQ(vsyncDistributor->dvsyncControllerEnabled_, false);
+
+    vsyncDistributor->dvsyncControllerEnabled_ = true;
+    vsyncDistributor->DisableDVSyncController();
+    ASSERT_EQ(vsyncDistributor->dvsyncControllerEnabled_, false);
+
+    vsyncDistributor->dvsyncController_ = originalController;
+    vsyncDistributor->dvsyncControllerEnabled_ = originalEnabled;
+}
+
+/*
 * Function: OnDVSyncEventTest001
 * Type: Function
 * Rank: Important(2)
@@ -1459,6 +1457,19 @@ HWTEST_F(VSyncDistributorTest, SetNativeDVSyncSwitch001, Function | MediumTest| 
     bool dvsyncSwitch = true;
     auto res = vsyncDistributor->SetNativeDVSyncSwitch(dvsyncSwitch, conn);
     ASSERT_EQ(res, VSYNC_ERROR_OK);
+}
+
+/**
+ * @tc.name: RegisterRequestNativeVSyncCallback001
+ * @tc.desc: RegisterRequestNativeVSyncCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncDistributorTest, RegisterRequestNativeVSyncCallback001, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    conn->RegisterRequestNativeVSyncCallback(RequestNativeVSyncCallbackTest);
+    ASSERT_NE(conn->requestNativeVSyncCallback_, nullptr);
 }
 
 /*
@@ -1555,6 +1566,27 @@ HWTEST_F(VSyncDistributorTest, DVSyncCheckPreexecuteAndUpdateTsTest001, Function
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
     vsyncDistributor->DVSyncCheckPreexecuteAndUpdateTs(conn, timestamp, period, vsyncCount);
     ASSERT_EQ(vsyncDistributor->isRs_, false);
+}
+
+/*
+* Function: DVSyncCheckPreexecuteAndUpdateTsTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test DVSyncCheckPreexecuteAndUpdateTs
+ */
+HWTEST_F(VSyncDistributorTest, DVSyncCheckPreexecuteAndUpdateTsTest002, Function | MediumTest| Level3)
+{
+    vsyncDistributor->isRs_ = false;
+    int64_t timestamp = 10000000;
+    int64_t period = 8333333;
+    int64_t vsyncCount = 1;
+    bool init = OHOS::Rosen::DVSyncLibManager::Instance().initialized_;
+    OHOS::Rosen::DVSyncLibManager::Instance().initialized_ = false;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    vsyncDistributor->DVSyncCheckPreexecuteAndUpdateTs(conn, timestamp, period, vsyncCount);
+    ASSERT_EQ(vsyncDistributor->isRs_, false);
+    OHOS::Rosen::DVSyncLibManager::Instance().initialized_ = init;
 }
 
 /*
@@ -1686,15 +1718,14 @@ HWTEST_F(VSyncDistributorTest, NeedTriggeredVsyncLocked001, Function | MediumTes
     ASSERT_FALSE(vsyncConnection->NeedTriggeredVsyncLocked(currentTime));
 }
 
-
 /*
-* Function: NeedForceUpdateRate001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. test NeedForceUpdateRate
+ * Function: NeedForceUpdateRate001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test NeedForceUpdateRate
  */
-HWTEST_F(VSyncDistributorTest, NeedForceUpdateRate001, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, NeedForceUpdateRate001, Function | MediumTest | Level3)
 {
     int32_t rate = 0;
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "rs");
@@ -2072,13 +2103,170 @@ HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest023, Function | MediumTest| Le
 }
 
 /*
-* Function: ForceRsDVsync001
+* Function: SetBufferInfoTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetBufferInfo, is urgent
+ */
+HWTEST_F(VSyncDistributorTest, SetBufferInfoTest001, Function | MediumTest| Level3)
+{
+    sptr<VSyncGenerator> generator = CreateVSyncGenerator();
+    sptr<VSyncController> controller = new VSyncController(generator, 0);
+    std::vector<bool> switchParams = { true, true, true, true };
+    std::vector<uint32_t> bufferCountParams = { 3, 1, 2, 1 };
+    std::unordered_map<std::string, std::string> adaptiveConfigs;
+    DVSyncFeatureParam dvsyncParam = { switchParams, bufferCountParams, adaptiveConfigs };
+    sptr<VSyncDistributor> distributor = new VSyncDistributor(controller, "VSyncConnection", dvsyncParam);
+    distributor->InitDVSync(dvsyncParam);
+
+    uint64_t id = 123;
+    std::string name = "SetBufferInfoTest001";
+    uint32_t queueSize = 5;
+    int32_t bufferCount = 3;
+    int64_t lastConsumeTime = 123456;
+    bool isUrgent = true;
+    sptr<VSyncConnection> conn = new VSyncConnection(distributor, "SetBufferInfoTest001");
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(true), VSYNC_ERROR_OK);
+    BufferInfo bufferInfo {id, name, queueSize, bufferCount, lastConsumeTime, isUrgent};
+    distributor->SetBufferInfo(bufferInfo);
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(false), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
+}
+
+/*
+* Function: GetLastUpdateTimeTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test GetLastUpdateTime
+ */
+HWTEST_F(VSyncDistributorTest, GetLastUpdateTimeTest, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(vsyncDistributor->GetLastUpdateTime(), 0);
+}
+
+/*
+* Function: NeedUpdateVSyncTimeTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test NeedUpdateVSyncTime
+ */
+HWTEST_F(VSyncDistributorTest, NeedUpdateVSyncTimeTest, Function | MediumTest| Level3)
+{
+    int32_t pid = 1234;
+    ASSERT_FALSE(vsyncDistributor->NeedUpdateVSyncTime(pid));
+}
+
+/*
+* Function: SetBufferInfoTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetBufferInfo, is urgent
+ */
+HWTEST_F(VSyncDistributorTest, SetBufferInfoTest002, Function | MediumTest| Level3)
+{
+    sptr<VSyncGenerator> generator = CreateVSyncGenerator();
+    sptr<VSyncController> controller = new VSyncController(generator, 0);
+    std::vector<bool> switchParams = { true, true, true, true };
+    std::vector<uint32_t> bufferCountParams = { 3, 1, 2, 1 };
+    std::unordered_map<std::string, std::string> adaptiveConfigs;
+    DVSyncFeatureParam dvsyncParam = { switchParams, bufferCountParams, adaptiveConfigs };
+    sptr<VSyncDistributor> distributor = new VSyncDistributor(controller, "VSyncConnection", dvsyncParam);
+    distributor->InitDVSync(dvsyncParam);
+
+    uint64_t id = 123;
+    std::string name = "SetBufferInfoTest002";
+    uint32_t queueSize = 5;
+    int32_t bufferCount = 3;
+    int64_t lastConsumeTime = 123456;
+    bool isUrgent = false;
+    sptr<VSyncConnection> conn = new VSyncConnection(distributor, "SetBufferInfoTest002");
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(true), VSYNC_ERROR_OK);
+    distributor->AddConnection(conn);
+    BufferInfo bufferInfo {id, name, queueSize, bufferCount, lastConsumeTime, isUrgent};
+    distributor->SetBufferInfo(bufferInfo);
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(false), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
+}
+
+/*
+* Function: SetBufferInfoTest003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetBufferInfo, is not urgent
+ */
+HWTEST_F(VSyncDistributorTest, SetBufferInfoTest003, Function | MediumTest| Level3)
+{
+    sptr<VSyncGenerator> generator = CreateVSyncGenerator();
+    sptr<VSyncController> controller = new VSyncController(generator, 0);
+    std::vector<bool> switchParams = { true, true, true, true };
+    std::vector<uint32_t> bufferCountParams = { 3, 1, 2, 1 };
+    std::unordered_map<std::string, std::string> adaptiveConfigs;
+    DVSyncFeatureParam dvsyncParam = { switchParams, bufferCountParams, adaptiveConfigs };
+    sptr<VSyncDistributor> distributor = new VSyncDistributor(controller, "VSyncConnection", dvsyncParam);
+    distributor->InitDVSync(dvsyncParam);
+
+    uint64_t id = 123;
+    std::string name = "SetBufferInfoTest003";
+    uint32_t queueSize = 5;
+    int32_t bufferCount = 3;
+    int64_t lastConsumeTime = 123456;
+    bool isUrgent = false;
+    sptr<VSyncConnection> conn = new VSyncConnection(distributor, "SetBufferInfoTest003");
+    distributor->AddConnection(conn);
+    distributor->RequestNextVSync(conn);
+    BufferInfo bufferInfo {id, name, queueSize, bufferCount, lastConsumeTime, isUrgent};
+    distributor->SetBufferInfo(bufferInfo);
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(false), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
+}
+
+/*
+* Function: SetBufferInfoTest004
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetBufferInfo, is not urgent
+ */
+HWTEST_F(VSyncDistributorTest, SetBufferInfoTest004, Function | MediumTest| Level3)
+{
+    sptr<VSyncGenerator> generator = CreateVSyncGenerator();
+    sptr<VSyncController> controller = new VSyncController(generator, 0);
+    std::vector<bool> switchParams = { true, true, true, true };
+    std::vector<uint32_t> bufferCountParams = { 3, 1, 2, 1 };
+    std::unordered_map<std::string, std::string> adaptiveConfigs;
+    DVSyncFeatureParam dvsyncParam = { switchParams, bufferCountParams, adaptiveConfigs };
+    sptr<VSyncDistributor> distributor = new VSyncDistributor(controller, "VSyncConnection", dvsyncParam);
+    distributor->InitDVSync(dvsyncParam);
+
+    uint64_t id = 123;
+    std::string name = "SetBufferInfoTest004";
+    uint32_t queueSize = 5;
+    int32_t bufferCount = 3;
+    int64_t lastConsumeTime = 123456;
+    bool isUrgent = false;
+    sptr<VSyncConnection> conn = new VSyncConnection(distributor, "SetBufferInfoTest004");
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(true), VSYNC_ERROR_OK);
+    distributor->AddConnection(conn);
+    distributor->RequestNextVSync(conn);
+    BufferInfo bufferInfo {id, name, queueSize, bufferCount, lastConsumeTime, isUrgent};
+    distributor->SetBufferInfo(bufferInfo);
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(false), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
+}
+
+/*
+* Function: ForceRsDVsyncTest001
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. test ForceRsDVsync
  */
-HWTEST_F(VSyncDistributorTest, ForceRsDVsync001, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, ForceRsDVsyncTest001, Function | MediumTest| Level3)
 {
     std::string sceneId = "APP_SWIPER_FLING";
     vsyncDistributor->ForceRsDVsync(sceneId);

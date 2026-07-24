@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <securec.h>
 
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "memory/rs_canvas_dma_buffer_cache.h"

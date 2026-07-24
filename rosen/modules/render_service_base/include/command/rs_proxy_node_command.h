@@ -38,10 +38,10 @@ public:
 };
 
 ADD_COMMAND(RSProxyNodeCreate,
-    ARG(PERMISSION_APP, PROXY_NODE, PROXY_NODE_CREATE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0, 1>, PROXY_NODE, PROXY_NODE_CREATE,
         ProxyNodeCommandHelper::Create, NodeId, NodeId))
 ADD_COMMAND(RSProxyNodeResetContextVariableCache,
-    ARG(PERMISSION_APP, PROXY_NODE, PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE,
+    ARG(PERMISSION_APP, NodeIdPosTag<0>, PROXY_NODE, PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE,
         ProxyNodeCommandHelper::ResetContextVariableCache, NodeId))
 
 } // namespace Rosen

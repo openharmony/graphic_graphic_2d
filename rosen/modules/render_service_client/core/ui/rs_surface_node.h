@@ -355,6 +355,10 @@ public:
     // such as transparent background.
     void SetHardwareEnableHint(bool enable);
 
+    void SetSurfaceNodeType(RSSurfaceNodeType nodeType);
+    RSSurfaceNodeType GetSurfaceNodeType() const;
+    bool IsAppWindow() const;
+
     /**
      * @brief Determines whether the surfaceNode is a selfDrawing node.
      *
@@ -416,8 +420,6 @@ protected:
 
     void CreateRenderNode() override;
     bool isStaticFreeze_ = false;
-    // For RegisterBufferAvailableListener
-    BufferAvailableCallback BufferAvailableCallbackFunc();
 
     // For SetHidePrivacyContent
     bool needHidePrivacyContent_ = false;

@@ -34,6 +34,27 @@
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
+namespace {
+class DimensionSkiaImage : public Drawing::SkiaImage {
+public:
+    DimensionSkiaImage(int width, int height) : width_(width), height_(height) {}
+
+    int GetWidth() const override
+    {
+        return width_;
+    }
+
+    int GetHeight() const override
+    {
+        return height_;
+    }
+
+private:
+    int width_;
+    int height_;
+};
+} // namespace
+
 class RSPropertyDrawableUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -141,12 +162,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowAndCeilMatrixTransTest005, testi
 }
 
 /**
- * @tc.name: DrawAndBeginForegroundFilterTest006
- * @tc.desc: DrawFilter and BeginForegroundFilter test
+ * @tc.name: DrawAndBeginOffscreenTest006
+ * @tc.desc: DrawFilter and BeginOffscreen test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginOffscreenTest006, testing::ext::TestSize.Level1)
 {
     // first: DrawFilter test
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
@@ -185,23 +206,34 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     paintFilterCanvasTest1.ClipIRect(Drawing::RectI(0, 0, 0, 0));
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
+}
 
-    // second: BeginForegroundFilter test
+/**
+ * @tc.name: DrawAndBeginOffscreenTest007
+ * @tc.desc: DrawFilterWithDRM and BeginOffscreen test
+ * @tc.type: FUNC
+ * @tc.require:issueIA5Y41
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginOffscreenTest007, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    // first: BeginOffscreen test
     Drawing::Canvas canvasTest2;
     RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
     paintFilterCanvasTest2.surface_ = nullptr;
     RectF bounds = RectF(1.0f, 1.0f, 1.0f, 1.0f);
-    rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
+    rsPropertyDrawableUtils->BeginOffscreen(paintFilterCanvasTest2, bounds);
     Drawing::Surface surfaceTest2;
     paintFilterCanvasTest2.surface_ = &surfaceTest2;
-    rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
+    rsPropertyDrawableUtils->BeginOffscreen(paintFilterCanvasTest2, bounds);
     auto surfaceTest3 = Drawing::Surface::MakeRasterN32Premul(10, 10);
     paintFilterCanvasTest2.surface_ = surfaceTest3.get();
-    rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
+    rsPropertyDrawableUtils->BeginOffscreen(paintFilterCanvasTest2, bounds);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Width(), 0);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Height(), 0);
 
-    // third: DrawFilterWithDRM test
+    // second: DrawFilterWithDRM test
     Drawing::Canvas canvasTest3;
     RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
     rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, true);
@@ -292,6 +324,9 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     // GetAndResetBlurCnt test
     rsPropertyDrawableUtils->g_blurCnt = 0;
     EXPECT_EQ(rsPropertyDrawableUtils->GetAndResetBlurCnt(), 0);
+    rsPropertyDrawableUtils->g_blurCnt = 2;
+    EXPECT_EQ(rsPropertyDrawableUtils->GetAndResetBlurCnt(), 2);
+    EXPECT_EQ(rsPropertyDrawableUtils->GetAndResetBlurCnt(), 0);
     // DrawBackgroundEffect test
     Drawing::Canvas canvasTest1;
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
@@ -334,6 +369,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorFilterTest009, testing::ext::Test
 
     Drawing::Canvas canvasTest1;
     std::shared_ptr<Drawing::ColorFilter> colorFilter = nullptr;
+    rsPropertyDrawableUtils->DrawColorFilter(nullptr, colorFilter);
     rsPropertyDrawableUtils->DrawColorFilter(&canvasTest1, colorFilter);
 
     colorFilter = std::make_shared<Drawing::ColorFilter>();
@@ -571,6 +607,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMTest, testing::ext
     bool isDark = true;
     Drawing::Rect rect(0, 0, 0, 0);
 
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, nullptr, isDark, nullptr, "Tag1", "Tag2");
     rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, nullptr, "Tag1", "Tag2");
     EXPECT_TRUE(isDark);
     auto filterGEContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
@@ -649,6 +686,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest018, testing::ext:
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
     Drawing::Path drPath;
     Drawing::Matrix matrix;
+    EXPECT_EQ(rsPropertyDrawableUtilsTest->GetShadowRegionImage(nullptr, drPath, matrix), nullptr);
     auto resultTest1 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
     EXPECT_EQ(resultTest1, nullptr);
     auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
@@ -1874,6 +1912,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, PickColorAndGpuScaleImageTest001, testing:
     EXPECT_EQ(utils->GpuScaleImage(nullptr, image), nullptr);
     EXPECT_EQ(utils->GpuScaleImage(gpuContext, nullptr), nullptr);
     EXPECT_EQ(utils->GpuScaleImage(gpuContext, image), nullptr); // invalid dims
+
+    constexpr int largeDimension = 65535;
+    auto largeImage = std::make_shared<Drawing::Image>();
+    largeImage->imageImplPtr = std::make_shared<DimensionSkiaImage>(largeDimension, largeDimension);
+    EXPECT_EQ(utils->GpuScaleImage(gpuContext, largeImage), nullptr);
 
     utils->PickColor(gpuContext, image, color);
     utils->GpuScaleImage(gpuContext, image);

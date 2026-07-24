@@ -22,7 +22,6 @@
 
 namespace OHOS {
     namespace {
-        constexpr size_t STR_LEN = 10;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -91,13 +90,6 @@ namespace OHOS {
         bool nativeDVSyncSwitch = GetData<bool>();
         int32_t bufferCount = GetData<int32_t>();
         int32_t highPriorityRate = GetData<int32_t>();
-        int64_t windowNodeId = GetData<int64_t>();
-        uint32_t vsyncMaxRefreshRate = GetData<uint32_t>();
-        // int64_t timestamp = GetData<int64_t>(); car 2 compile
-        uint32_t pid = GetData<uint32_t>();
-        bool isSystemAnimateScene = GetData<bool>();
-        uint64_t id = GetData<uint64_t>();
-        bool isRender = GetData<bool>();
         bool compositeSceneEnable = GetData<bool>();
         bool nativeDelayEnable = GetData<bool>();
         std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
@@ -113,24 +105,6 @@ namespace OHOS {
         vsyncDistributor->SetUiDvsyncConfig(bufferCount, compositeSceneEnable,
             nativeDelayEnable, rsDvsyncAnimationList);
         vsyncDistributor->SetHighPriorityVSyncRate(highPriorityRate, conn);
-        vsyncDistributor->AddConnection(conn, windowNodeId);
-        vsyncDistributor->RemoveConnection(conn);
-        std::mutex mutex;
-        std::unique_lock<std::mutex> locker(mutex);
-        // vsyncDistributor->WaitForVsyncOrTimeOut(locker); car 2 compile
-        std::vector<sptr<Rosen::VSyncConnection>> conns = {conn};
-        // vsyncDistributor->PostVSyncEventPreProcess(timestamp, conns); car 2 compile
-        vsyncDistributor->EnableVSync();
-        vsyncDistributor->DisableVSync();
-        std::string name = GetStringFromData(STR_LEN);
-        vsyncDistributor->QosGetPidByName(name, pid);
-        vsyncDistributor->SetQosVSyncRateByPid(pid, rate, isSystemAnimateScene);
-        vsyncDistributor->SetQosVSyncRate(id, rate, isSystemAnimateScene);
-        vsyncDistributor->ChangeConnsRateLocked(vsyncMaxRefreshRate);
-        vsyncDistributor->SetFrameIsRender(isRender);
-        // vsyncDistributor->MarkRSAnimate();  car 2 compile
-        // vsyncDistributor->UnmarkRSAnimate(); car 2 compile
-        // vsyncDistributor->HasPendingUIRNV(); car 2 compile
         return true;
     }
 
@@ -174,6 +148,49 @@ namespace OHOS {
         vsyncDistributor->SetVsyncRateDiscountLTPS(pid, name, rateDiscount);
         return true;
     }
+
+    bool TestQosGetPidByName(const uint8_t* data, size_t size, int strlen)
+    {
+        if (data == nullptr) {
+            return false;
+        }
+
+        // get data
+        uint32_t pid = GetData<uint32_t>();
+        std::string name = GetStringFromData(strlen);
+        int64_t offset = GetData<int32_t>();
+
+        // test
+        sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
+        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
+        sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
+        vsyncDistributor->QosGetPidByName(name, pid);
+        vsyncDistributor->QosGetPidByName("WM" + name, pid);
+        vsyncDistributor->QosGetPidByName("NWeb" + name, pid);
+        vsyncDistributor->QosGetPidByName("ArkWebCore" + name, pid);
+        vsyncDistributor->QosGetPidByName("WM_" + name, pid);
+        vsyncDistributor->QosGetPidByName("NWeb_" + name, pid);
+        vsyncDistributor->QosGetPidByName("ArkWebCore_" + name, pid);
+        vsyncDistributor->QosGetPidByName("_WM" + name, pid);
+        vsyncDistributor->QosGetPidByName("_NWeb" + name, pid);
+        vsyncDistributor->QosGetPidByName("_ArkWebCore" + name, pid);
+        vsyncDistributor->QosGetPidByName("WM_a" + name, pid);
+        vsyncDistributor->QosGetPidByName("NWeb_a" + name, pid);
+        vsyncDistributor->QosGetPidByName("ArkWebCore_a" + name, pid);
+        vsyncDistributor->QosGetPidByName(name + "WM", pid);
+        vsyncDistributor->QosGetPidByName(name + "NWeb", pid);
+        vsyncDistributor->QosGetPidByName(name + "ArkWebCore", pid);
+        vsyncDistributor->QosGetPidByName(name + "WM_", pid);
+        vsyncDistributor->QosGetPidByName(name + "NWeb_", pid);
+        vsyncDistributor->QosGetPidByName(name + "ArkWebCore_", pid);
+        vsyncDistributor->QosGetPidByName(name + "_WM", pid);
+        vsyncDistributor->QosGetPidByName(name + "_NWeb", pid);
+        vsyncDistributor->QosGetPidByName(name + "_ArkWebCore", pid);
+        vsyncDistributor->QosGetPidByName(name + "a_WM", pid);
+        vsyncDistributor->QosGetPidByName(name + "a_NWeb", pid);
+        vsyncDistributor->QosGetPidByName(name + "a_ArkWebCore", pid);
+        return true;
+    }
 }
 
 /* Fuzzer entry point */
@@ -188,6 +205,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DoSomethingInterestingWithMyAPI(data, size);
     OHOS::DoSetQosVSyncRateByPidPublic(data, size);
     OHOS::DoSetVsyncRateDiscountLTPS(data, size);
+    for (int len = 0; len < 100; len++) { // max len is 100
+        OHOS::TestQosGetPidByName(data, size, len);
+    }
     return 0;
 }
 

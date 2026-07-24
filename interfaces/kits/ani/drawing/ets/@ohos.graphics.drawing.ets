@@ -452,6 +452,11 @@ namespace drawing {
       this.registerCleaner(this.nativeObj);
     };
 
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
+    };
+
     /**
      * Constructor for the samplingOptions.
      * @syscap SystemCapability.Graphics.Drawing
@@ -558,6 +563,11 @@ namespace drawing {
     constructor(pixelmap: image.PixelMap) {
       this.constructorNative(pixelmap);
       this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
     };
 
     /**
@@ -1568,6 +1578,11 @@ namespace drawing {
       this.registerCleaner(this.nativeObj);
     };
 
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
+    };
+
     /**
      * Constructor for the pen.
      * @syscap SystemCapability.Graphics.Drawing
@@ -1949,6 +1964,11 @@ namespace drawing {
       this.registerCleaner(this.nativeObj);
     };
 
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
+    };
+
     /**
      * Constructor for the Brush.
      * @syscap SystemCapability.Graphics.Drawing
@@ -2214,6 +2234,10 @@ namespace drawing {
       this.registerCleaner(this.nativeObj);
     };
 
+    constructor(nativePtr: long) {
+      this.bindNativePtr(nativePtr);
+    };
+
     /**
      * Constructor for the Typeface.
      * @syscap SystemCapability.Graphics.Drawing
@@ -2423,6 +2447,11 @@ namespace drawing {
     constructor() {
       this.constructorNative();
       this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
     };
 
     /**
@@ -3269,6 +3298,11 @@ namespace drawing {
     constructor(matrix: Matrix) {
       this.constructorNative(matrix);
       this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
     };
 
     /**
@@ -4221,6 +4255,11 @@ namespace drawing {
       this.registerCleaner(this.nativeObj);
     };
 
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
+    };
+
     /**
      * Creates an iterator and binds it with a path.
      * @param { Path } path - Path object bound to the iterator.
@@ -4282,6 +4321,11 @@ namespace drawing {
     constructor(path: Path) {
       this.constructorNative(path);
       this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
     };
 
     /**
@@ -5459,6 +5503,11 @@ namespace drawing {
       this.constructorNative(left, top, right, bottom);
       this.registerCleaner(this.nativeObj);
     };
+  
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
+    };
 
     /**
      * Creates an empty region.
@@ -5762,6 +5811,11 @@ namespace drawing {
     constructor(rect: common2D.Rect, xRadii: double, yRadii: double) {
       this.constructorNative(rect, xRadii, yRadii);
       this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(nativePtr: long) {
+      this.nativeObj = nativePtr;
+      this.registerCleaner(nativePtr);
     };
 
     /**

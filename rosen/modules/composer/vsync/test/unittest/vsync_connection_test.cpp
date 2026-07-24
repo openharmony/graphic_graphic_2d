@@ -154,6 +154,21 @@ HWTEST_F(VSyncConnectionTest, RequestNextVSync003, Function | MediumTest| Level3
 }
 
 /**
+ * Function: RequestNextVSync004
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RequestNextVSync
+ */
+HWTEST_F(VSyncConnectionTest, RequestNextVSync004, Function | MediumTest| Level3)
+{
+    std::string fromWhom("Test");
+    int64_t lastVSyncTS = 0;
+    auto res = vsyncConnectionProxyMock_->RequestNextVSync(fromWhom, lastVSyncTS);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
+}
+
+/**
  * @tc.name: OnRemoteDied001
  * @tc.desc: OnRemoteDied Test
  * @tc.type: FUNC
@@ -179,7 +194,7 @@ HWTEST_F(VSyncConnectionTest, OnRemoteDied001, Function | MediumTest| Level3)
 HWTEST_F(VSyncConnectionTest, SetNativeDVSyncSwitch001, Function | MediumTest| Level3)
 {
     auto res = vsyncConnectionProxyMock_->SetNativeDVSyncSwitch(true);
-    ASSERT_NE(res, NO_ERROR);
+    ASSERT_NE(res, VSYNC_ERROR_UNKOWN);
 }
 
 /*
@@ -220,8 +235,38 @@ HWTEST_F(VSyncConnectionTest, GetReceiveFd001, Function | MediumTest| Level3)
     int32_t fd = -1;
     ASSERT_EQ(VSyncConnectionTest::vsyncConnection->GetReceiveFd(fd), VSYNC_ERROR_OK);
     ASSERT_NE(fd, -1);
+}
 
+/*
+* Function: CloseReceiveFd001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call CloseReceiveFd
+ */
+HWTEST_F(VSyncConnectionTest, CloseReceiveFd001, Function | MediumTest| Level3)
+{
+    int32_t fd = -1;
     VSyncConnectionTest::vsyncConnection->CloseReceiveFd();
+    ASSERT_EQ(VSyncConnectionTest::vsyncConnection->GetReceiveFd(fd), VSYNC_ERROR_API_FAILED);
+    ASSERT_EQ(fd, -1);
+
+    VSyncConnectionTest::vsyncConnection->isDead_ = true;
+    VSyncConnectionTest::vsyncConnection->CloseReceiveFd();
+    VSyncConnectionTest::vsyncConnection->isDead_ = false;
+
+    sptr<LocalSocketPair> socketPair = VSyncConnectionTest::vsyncConnection->socketPair_;
+    VSyncConnectionTest::vsyncConnection->socketPair_ = nullptr;
+    VSyncConnectionTest::vsyncConnection->CloseReceiveFd();
+    VSyncConnectionTest::vsyncConnection->socketPair_ = socketPair;
+
+    VSyncConnectionTest::vsyncConnection->isDead_ = true;
+    VSyncConnectionTest::vsyncConnection->socketPair_ = nullptr;
+    VSyncConnectionTest::vsyncConnection->CloseReceiveFd();
+
+    VSyncConnectionTest::vsyncConnection->isDead_ = false;
+    VSyncConnectionTest::vsyncConnection->socketPair_ = socketPair;
+
     ASSERT_EQ(VSyncConnectionTest::vsyncConnection->GetReceiveFd(fd), VSYNC_ERROR_API_FAILED);
     ASSERT_EQ(fd, -1);
 }
@@ -231,8 +276,8 @@ HWTEST_F(VSyncConnectionTest, GetReceiveFd001, Function | MediumTest| Level3)
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1.create VsyncConnection with name
- *                  2.check isRsConn
+ * CaseDescription: 1. create VsyncConnection with name
+ *                  2. check isRsConn
  */
 HWTEST_F(VSyncConnectionTest, NewVsyncConnection001, Function | MediumTest| Level3)
 {
@@ -248,8 +293,8 @@ HWTEST_F(VSyncConnectionTest, NewVsyncConnection001, Function | MediumTest| Leve
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1.create VsyncConnection with name "test"
- *                  2.call AddRequestVsyncTimestamp and IsRequestVsyncTimestampEmpty
+ * CaseDescription: 1. create VsyncConnection with name "test"
+ *                  2. call AddRequestVsyncTimestamp and IsRequestVsyncTimestampEmpty
  */
 HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp001, Function | MediumTest| Level3)
 {
@@ -300,10 +345,10 @@ HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp002, Function | MediumTest
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1.create VsyncConnection with name "rs"
- *                  2.add -1 to VSyncConnection and check IsRequestVsyncTimestampEmpty value
- *                  3.add 0 to VSyncConnection and check IsRequestVsyncTimestampEmpty value
- *                  4.add 1000000000 to VSyncConnection and check IsRequestVsyncTimestampEmpty value
+ * CaseDescription: 1. create VsyncConnection with name "rs"
+ *                  2. add -1 to VsyncConnection and check IsRequestVsyncTimestampEmpty value
+ *                  3. add 0 to VsyncConnection and check IsRequestVsyncTimestampEmpty value
+ *                  4. add 1000000000 to VsyncConnection and check IsRequestVsyncTimestampEmpty value
  */
 HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp003, Function | MediumTest| Level3)
 {
@@ -325,8 +370,8 @@ HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp003, Function | MediumTest
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1.create VsyncConnection with name "rs"
- *                  2.add VsyncTimestamp over MAX_VSYNC_QUEUE_SIZE(30)
+ * CaseDescription: 1. create VsyncConnection with name "rs"
+ *                  2. add VsyncTimestamp over MAX_VSYNC_QUEUE_SIZE(30)
  */
 HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp004, Function | MediumTest| Level3)
 {
@@ -345,8 +390,8 @@ HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp004, Function | MediumTest
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1.create VsyncConnection with name "rs"
- *                  2.add same VsyncTimestamp over MAX_VSYNC_QUEUE_SIZE(30)
+ * CaseDescription: 1. create VsyncConnection with name "rs"
+ *                  2. add same VsyncTimestamp over MAX_VSYNC_QUEUE_SIZE(30)
  */
 HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp005, Function | MediumTest| Level3)
 {
@@ -511,16 +556,16 @@ HWTEST_F(VSyncConnectionTest, CheckIsReadyByTime_005, Function | MediumTest| Lev
     EXPECT_FALSE(result);
 }
 
-/*
-* Function: SetUiDvsyncConfig001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetUiDvsyncConfig
+/**
+ * Function: SetUiDvsyncConfig001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetUiDvsyncConfig
  */
 HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig001, Function | MediumTest| Level3)
 {
-    uint32_t bufferCount = 1;
+    int32_t bufferCount = 1;
     bool compositeSceneEnable = true;
     bool nativeDelayEnable = true;
     std::vector<std::string> rsDvsyncAnimationList {};
@@ -529,16 +574,16 @@ HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig001, Function | MediumTest| Level
     ASSERT_EQ(res, VSYNC_ERROR_OK);
 }
 
-/*
-* Function: SetUiDvsyncConfig002
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetUiDvsyncConfig
+/**
+ * Function: SetUiDvsyncConfig002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetUiDvsyncConfig
  */
 HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig002, Function | MediumTest| Level3)
 {
-    uint32_t bufferCount = 1;
+    int32_t bufferCount = 1;
     bool compositeSceneEnable = true;
     bool nativeDelayEnable = true;
     std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
@@ -547,16 +592,16 @@ HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig002, Function | MediumTest| Level
     ASSERT_EQ(res, VSYNC_ERROR_OK);
 }
 
-/*
-* Function: SetUiDvsyncConfig003
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetUiDvsyncConfig
+/**
+ * Function: SetUiDvsyncConfig003
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetUiDvsyncConfig
  */
 HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig003, Function | MediumTest| Level3)
 {
-    uint32_t bufferCount = 1;
+    int32_t bufferCount = 1;
     bool compositeSceneEnable = true;
     bool nativeDelayEnable = true;
     std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH",

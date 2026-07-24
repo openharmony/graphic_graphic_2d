@@ -21,6 +21,7 @@
 #include <utility>
 #include <mutex>
 #include <shared_mutex>
+#include <sys/types.h>
 #include <utility>
 #include <vector>
 
@@ -34,8 +35,8 @@ class RSITransactionDataCallback;
 class RSB_EXPORT RSTransactionDataCallbackManager {
 public:
     void RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
-        sptr<RSITransactionDataCallback> callback);
-    void TriggerTransactionDataCallback(uint64_t token, uint64_t timeStamp);
+        sptr<RSITransactionDataCallback> callback, pid_t callingPid);
+    void TriggerTransactionDataCallback(uint64_t token, uint64_t timeStamp, pid_t callingPid);
 
     static RSTransactionDataCallbackManager& Instance();
     static bool GetTransactionDataTestEnabled();
@@ -48,11 +49,17 @@ private:
     RSTransactionDataCallbackManager& operator=(const RSTransactionDataCallbackManager&) = delete;
     RSTransactionDataCallbackManager& operator=(RSTransactionDataCallbackManager&&) = delete;
 
-    sptr<RSITransactionDataCallback> PopTransactionDataCallback(uint64_t token, uint64_t timeStamp);
-    bool PushTransactionDataCallback(uint64_t token, uint64_t timeStamp,
-        sptr<RSITransactionDataCallback> callback);
+    struct TransactionDataCallbackInfo {
+        sptr<RSITransactionDataCallback> callback;
+        pid_t callingPid;
+    };
 
-    std::map<std::pair<uint64_t, uint64_t>, sptr<RSITransactionDataCallback>> transactionDataCallbacks_;
+    sptr<RSITransactionDataCallback> PopTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+        pid_t callingPid);
+    bool PushTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+        sptr<RSITransactionDataCallback> callback, pid_t callingPid);
+
+    std::map<std::pair<uint64_t, uint64_t>, TransactionDataCallbackInfo> transactionDataCallbacks_;
     std::mutex transactionDataCbMutex_;
     static void TransactionChangedCallback(const char* key, const char* value, void* context);
     static bool isDebugEnabled_;

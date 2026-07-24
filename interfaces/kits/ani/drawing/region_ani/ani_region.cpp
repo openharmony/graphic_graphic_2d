@@ -221,19 +221,12 @@ ani_object AniRegion::GetBoundaryPath(ani_env* env, ani_object obj)
     std::shared_ptr<Path> path = std::make_shared<Path>();
     aniRegion->GetRegion()->GetBoundaryPath(path.get());
 
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
-        AniGlobalMethod::GetInstance().pathCtor);
-    if (IsUndefined(env, aniObj)) {
-        ROSEN_LOGE("AniRegion::GetBoundaryPath failed cause aniObj is undefined");
-        return aniObj;
-    }
     AniPath* newAniPath = new AniPath(path);
-    ani_status ret = env->Object_SetField_Long(
-        aniObj, AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(newAniPath));
-    if (ret != ANI_OK) {
-        ROSEN_LOGE("AniRegion::GetBoundaryPath create new path failed %{public}d", ret);
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
+        AniGlobalMethod::GetInstance().pathCtorWithPtr, reinterpret_cast<ani_long>(newAniPath));
+    if (IsUndefined(env, aniObj)) {
+        ROSEN_LOGE("AniRegion::GetBoundaryPath failed create aniPath");
         delete newAniPath;
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param path.");
         return CreateAniUndefined(env);
     }
     return aniObj;
@@ -432,13 +425,14 @@ ani_object AniRegion::RegionTransferStatic(
     }
 
     auto aniRegion = new AniRegion(jsRegion->GetRegionPtr());
-    if (ANI_OK != env->Object_SetField_Long(
-        output, AniGlobalField::GetInstance().regionNativeObj, reinterpret_cast<ani_long>(aniRegion))) {
-        ROSEN_LOGE("AniFont::RegionTransferStatic failed create aniFont");
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().region,
+        AniGlobalMethod::GetInstance().regionCtorWithPtr, reinterpret_cast<ani_long>(aniRegion));
+    if (IsUndefined(env, aniObj)) {
+        ROSEN_LOGE("AniRegion::RegionTransferStatic failed create aniRegion");
         delete aniRegion;
         return CreateAniUndefined(env);
     }
-    return output;
+    return aniObj;
 }
 
 ani_long AniRegion::GetRegionAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

@@ -109,13 +109,14 @@ ani_object AniSamplingOptions::SamplingOptionsTransferStatic(
     }
 
     auto aniSamplingOptions = new AniSamplingOptions(jsSamplingOptions->GetSamplingOptions());
-    if (ANI_OK != env->Object_SetField_Long(output, AniGlobalField::GetInstance().samplingOptionsNativeObj,
-        reinterpret_cast<ani_long>(aniSamplingOptions))) {
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().samplingOptions,
+        AniGlobalMethod::GetInstance().samplingOptionsCtorWithPtr, reinterpret_cast<ani_long>(aniSamplingOptions));
+    if (IsUndefined(env, aniObj)) {
         ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic failed create aniSamplingOptions");
         delete aniSamplingOptions;
         return CreateAniUndefined(env);
     }
-    return output;
+    return aniObj;
 }
 
 ani_long AniSamplingOptions::GetSamplingOptionsAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

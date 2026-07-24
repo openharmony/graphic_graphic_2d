@@ -53,6 +53,7 @@ public:
     using RSCmdModifier::AddCommand;
     using RSCmdModifier::GetNode;
     using RSCmdModifier::node_;
+    using RSCmdModifier::index_;
 };
 
 /**
@@ -125,7 +126,7 @@ HWTEST_F(RSCommandModifierTest, AddCommandTest002, TestSize.Level1)
 
 /**
  * @tc.name: DumpParamTest001
- * @tc.desc: Test default DumpParam
+ * @tc.desc: Test default DumpParam outputs index
  * @tc.type: FUNC
  */
 HWTEST_F(RSCommandModifierTest, DumpParamTest001, TestSize.Level1)
@@ -134,7 +135,8 @@ HWTEST_F(RSCommandModifierTest, DumpParamTest001, TestSize.Level1)
     auto modifier = std::make_shared<TestableCmdModifier>(node);
     std::string out;
     modifier->DumpParam(out);
-    EXPECT_EQ(out, "{}");
+    EXPECT_NE(out.find("{index:"), std::string::npos);
+    EXPECT_NE(out.find("}"), std::string::npos);
 }
 
 /**
@@ -191,6 +193,66 @@ HWTEST_F(RSCommandModifierTest, AddCommandTest004, TestSize.Level1)
     std::unique_ptr<RSCommand> command = std::make_unique<RSSetNodeName>(node->GetId(), "test");
     bool result = modifier->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, node->GetId());
     EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: GenerateCmdModifierIndexTest001
+ * @tc.desc: Test GenerateCmdModifierIndex returns monotonically increasing values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCommandModifierTest, GenerateCmdModifierIndexTest001, TestSize.Level1)
+{
+    auto index1 = RSCmdModifier::GenerateCmdModifierIndex();
+    auto index2 = RSCmdModifier::GenerateCmdModifierIndex();
+    auto index3 = RSCmdModifier::GenerateCmdModifierIndex();
+    EXPECT_GT(index2, index1);
+    EXPECT_GT(index3, index2);
+    EXPECT_GE(index1, 1u);
+}
+
+/**
+ * @tc.name: GenerateCmdModifierIndexTest002
+ * @tc.desc: Test modifier index is assigned on construction
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCommandModifierTest, GenerateCmdModifierIndexTest002, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    auto modifier1 = std::make_shared<TestableCmdModifier>(node);
+    auto modifier2 = std::make_shared<TestableCmdModifier>(node);
+    EXPECT_GT(modifier2->GetIndex(), modifier1->GetIndex());
+    EXPECT_GE(modifier1->GetIndex(), 1u);
+}
+
+/**
+ * @tc.name: GenerateCmdModifierIndexTest003
+ * @tc.desc: Test DumpParam contains the index value matching GetIndex
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCommandModifierTest, GenerateCmdModifierIndexTest003, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    auto modifier = std::make_shared<TestableCmdModifier>(node);
+    std::string out;
+    modifier->DumpParam(out);
+    auto expectedStr = "{index:" + std::to_string(modifier->GetIndex()) + "}";
+    EXPECT_EQ(out, expectedStr);
+}
+
+/**
+ * @tc.name: GenerateCmdModifierIndexTest004
+ * @tc.desc: Test index is updated when SetParam changes the parameter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCommandModifierTest, GenerateCmdModifierIndexTest004, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    auto modifier = std::make_shared<TestableCmdModifier>(node);
+    uint64_t oldIndex = modifier->GetIndex();
+    // Simulate SetRSCmdProperty updating index on param change
+    modifier->index_ = RSCmdModifier::GenerateCmdModifierIndex();
+    uint64_t newIndex = modifier->GetIndex();
+    EXPECT_GT(newIndex, oldIndex);
 }
 
 } // namespace Rosen

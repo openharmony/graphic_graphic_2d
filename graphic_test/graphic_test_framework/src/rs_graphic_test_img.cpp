@@ -132,9 +132,11 @@ void ImageCustomModifier::Draw(DrawingContext& context) const
         std::cout << "Has nullptr, Draw none\n";
         Drawing::Rect rect;
         Drawing::Brush brush;
-        context.canvas->AttachBrush(brush);
-        context.canvas->DrawRect(rect);
-        context.canvas->DetachBrush();
+        if (context.canvas != nullptr) {
+            context.canvas->AttachBrush(brush);
+            context.canvas->DrawRect(rect);
+            context.canvas->DetachBrush();
+        }
         return;
     }
     int32_t width = width_->Get();
@@ -143,6 +145,9 @@ void ImageCustomModifier::Draw(DrawingContext& context) const
     auto pixelmap_ = DecodePixelMap(pathName, Media::AllocatorType::SHARE_MEM_ALLOC);
     if (pixelmap_ == nullptr) {
         std::cout << "***Test*** : pixelmap_ == nullptr\n";
+        return;
+    }
+    if (context.canvas == nullptr) {
         return;
     }
     auto image = std::make_shared<Rosen::RSImage>();

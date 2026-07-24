@@ -15,6 +15,7 @@
 
 #include "oh_filter_test_params.h"
 #include "oh_filter_test_utils.h"
+#include "rs_graphic_test_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -89,7 +90,8 @@ GRAPHIC_TEST(OHFilterReededGlassTest, EFFECT_TEST, ReededGlassTest)
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        DrawBackgroundNodeOHPixelMap(pixelMapNative, { x, y, sizeX, sizeY });
+        DrawBackgroundNodeOHPixelMap(pixelMapNative, {x, y, sizeX, sizeY});
+        OH_PixelmapNative_Release(pixelMapNative);
         OH_Filter_Release(ohFilter);
     }
 }

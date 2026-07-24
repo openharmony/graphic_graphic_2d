@@ -138,6 +138,10 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetWatermarkEnabledTest, TestSize.Level1)
     ASSERT_NE(surfaceNode->stagingRenderParams_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
+    EXPECT_EQ(surfaceParams->GetWatermarksEnabledMap().at("test"), true);
+    SurfaceNodeCommandHelper::SetWatermarkEnabled(context, nodeId, "test", false);
+    auto watermarkMap = surfaceParams->GetWatermarksEnabledMap();
+    EXPECT_EQ(watermarkMap.find("test") == watermarkMap.end(), true);
 }
 
 /**

@@ -18,6 +18,8 @@
 
 #include <atomic>
 #include <mutex>
+#include <optional>
+#include <unordered_map>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -41,6 +43,17 @@ public:
 
     static void SetDrawExcludedSubTreeForCache(bool value);
     static bool IsDrawingExcludedSubTreeForCache();
+
+    struct ContinuousUpdateInfo {
+        int32_t count = 0;
+        uint64_t vsyncId = UINT64_MAX;
+    };
+    static std::optional<ContinuousUpdateInfo> GetContinuousUpdateInfo(NodeId nodeId);
+    static void SetContinuousUpdateInfo(NodeId nodeId, int32_t count, uint64_t vsyncId);
+    static void ClearContinuousUpdateCount(NodeId nodeId);
+    static void UpdateContinuousUpdateCount(NodeId nodeId, uint64_t vsyncId);
+    static int32_t GetOrClearContinuousUpdateCount(
+        NodeId nodeId, uint64_t currentVsyncId, bool needUpdateCache);
 
     void SetLastFrameCacheRootHasExcludedChild(bool hasFilter);
     bool IsLastFrameCacheRootHasExcludedChild() const
@@ -94,6 +107,9 @@ private:
 
     static thread_local bool drawBlurForCache_;
     static thread_local bool drawExcludedSubTreeForCache_;
+
+    static inline std::mutex continuousUpdateTimeMapMutex_;
+    static inline std::unordered_map<NodeId, ContinuousUpdateInfo> continuousUpdateTimeMap_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
