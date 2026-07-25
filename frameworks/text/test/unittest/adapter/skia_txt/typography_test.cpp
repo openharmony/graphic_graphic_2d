@@ -3346,5 +3346,33 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetImageBounds001, Test
         }
     }
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyNegativeIndentsTest001
+ * @tc.desc: TDD test for paragraph with negative firstLineIndent and negative tailIndents, no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyNegativeIndentsTest001, TestSize.Level0)
+{
+    // Scenario from fuzzer: firstLineIndent and tailIndents can be negative.
+    // Paragraph should handle negative indents without crash.
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.tailIndents = {199.999};
+    typographyStyle.breakStrategy = BreakStrategy::BALANCED;
+    typographyStyle.maxLines = std::numeric_limits<size_t>::max();
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    style.fontSize = 14;
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(u"negative indent test text for layout");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(200);
+}
+
 } // namespace Rosen
 } // namespace OHOS
