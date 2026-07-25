@@ -38,6 +38,7 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_canvas_drawing_node_command.h"
 #include "command/rs_canvas_node_command.h"
+#include "command/rs_depth_node_command.h"
 #include "command/rs_effect_node_command.h"
 #include "command/rs_proxy_node_command.h"
 #include "command/rs_root_node_command.h"
@@ -1052,6 +1053,8 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
         EffectNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     } else if (nodeType == RSRenderNodeType::ROOT_NODE) {
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
+    } else if (nodeType == RSRenderNodeType::DEPTH_NODE) {
+        RSDepthNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     } else if (nodeType == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         RSCanvasDrawingNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     } else if (nodeType == RSRenderNodeType::WINDOW_KEYFRAME_NODE) {

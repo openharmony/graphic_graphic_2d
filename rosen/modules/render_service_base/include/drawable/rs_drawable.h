@@ -56,6 +56,7 @@ enum class RSDrawableSlot : int8_t {
     TRANSITION,
     ENV_FOREGROUND_COLOR,
     COLOR_PICKER,
+    SPATIAL_EFFECT,
     MATERIAL_FILTER,
     SHADOW,
     FOREGROUND_FILTER,

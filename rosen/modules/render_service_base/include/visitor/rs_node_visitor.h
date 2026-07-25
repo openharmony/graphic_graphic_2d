@@ -24,6 +24,7 @@ class RSRenderNode;
 class RSCanvasRenderNode;
 class RSScreenRenderNode;
 class RSLogicalDisplayRenderNode;
+class RSDepthRenderNode;
 class RSProxyRenderNode;
 class RSRootRenderNode;
 class RSSurfaceRenderNode;
@@ -46,6 +47,7 @@ public:
     virtual void QuickPrepareEffectRenderNode(RSEffectRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
     virtual void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node,
         bool isParentPrepareInReverseOrder = false) {}
+    virtual void QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
     virtual void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
     virtual void QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
     virtual void QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRenderNode& node,

@@ -36,8 +36,19 @@ public:
     RSObjAbsGeometry();
     ~RSObjAbsGeometry() override;
     void ConcatMatrix(const Drawing::Matrix& matrix);
+
     void UpdateMatrix(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset);
 
+    void ReplaceMatrix(const Drawing::Matrix& matrix, const Drawing::Matrix& absMatrix)
+    {
+        if (!matrix.IsIdentity()) {
+            matrix_ = matrix;
+        }
+        if (!absMatrix.IsIdentity()) {
+            absMatrix_ = absMatrix;
+        }
+        SetAbsRect();
+    }
     // Using by RenderService
     void UpdateByMatrixFromSelf();
 
