@@ -4404,6 +4404,35 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo002, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CollectEffectInfoOverloadEquivalence
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo 3-arg overload: a pre-locked
+ *           parent produces identical parent-flag results as the 2-arg form.
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfoOverloadEquivalence, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+    node->GetMutableRenderProperties().needFilter_ = true;
+    node->SetChildHasVisibleFilter(true);
+    bool isBlendNeedFilter = RSUniHwcComputeUtil::IsBlendNeedFilter(*node);
+    auto nodeParent = node->GetParent().lock();
+    ASSERT_NE(nodeParent, nullptr);
+    rsUniRenderVisitor->CollectEffectInfo(*node, isBlendNeedFilter, nodeParent);
+    ASSERT_TRUE(parent->ChildHasVisibleFilter());
+}
+
+/**
  * @tc.name: CollectEffectInfo003
  * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, useEffect
  * @tc.type: FUNC

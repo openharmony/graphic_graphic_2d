@@ -334,6 +334,9 @@ void ProcessGpuOfflineForTopLayer(
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter = false);
+    // Caller guarantees nodeParent is the locked parent of node and stays valid for the call;
+    // passing nullptr preserves the existing null-parent early-return semantics.
+    void CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter, const std::shared_ptr<RSRenderNode>& nodeParent);
 
     void UpdateVirtualDisplayInfo(RSLogicalDisplayRenderNode& node);
     void UpdateVirtualDisplaySecurityExemption(
