@@ -2635,7 +2635,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     if (args.String() == "-f") {
         path = args.String(1);
         nodeId = GetRootNodeId();
-        SendMessage("Current root nood ID: %llu", nodeId);
+        SendMessage("Current root nood ID: %" PRIu64, nodeId);
     }
 
     const auto node = GetRenderNode(nodeId);
