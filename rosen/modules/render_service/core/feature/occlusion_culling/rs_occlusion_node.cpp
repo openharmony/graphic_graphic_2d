@@ -264,10 +264,10 @@ bool OcclusionNode::IsOutOfRootRect(const RectI16 &absDrawRect)
 void OcclusionNode::UpdateClipRect(const RSRenderNode& node)
 {
     auto& renderProperties = node.GetRenderProperties();
-    int16_t boundsWidth = renderProperties.GetBoundsWidth();
-    int16_t boundsHeight = renderProperties.GetBoundsHeight();
-    clipOuterRect_.SetAll(0, 0, boundsWidth, boundsHeight);
-    clipInnerRect_.SetAll(0, 0, boundsWidth, boundsHeight);
+    auto dstDrawRectF = RectF(0, 0, renderProperties.GetBoundsWidth(), renderProperties.GetBoundsHeight());
+    auto dstDrawRect = GetMaxValidRectF().IntersectRect(dstDrawRectF).ConvertTo<int16_t>();
+    clipOuterRect_ = dstDrawRect;
+    clipInnerRect_ = dstDrawRect;
 }
 
 void OcclusionNode::UpdateSubTreeProp()

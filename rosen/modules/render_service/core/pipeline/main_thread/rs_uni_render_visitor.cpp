@@ -1124,7 +1124,7 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
     if (isQuickSkip) {
         // Record the surfaceNode object for later use in RSScreenRenderParams::OnSync to collect its drawable.
         // This ensures the drawable can updates the latest drawRegion, thus correctly skip drawing.
-        if (curScreenNode_) {
+        if (curScreenNode_ != nullptr && curLogicalDisplayNode_ != nullptr) {
             bool needCalcScreenSpecialLayer =
                 curScreenNode_->GetScreenProperty().IsVirtual() || hasMirrorUsedInSpecialLayer_;
             RSSpecialLayerUtils::DealWithSpecialLayer(node, *curLogicalDisplayNode_, needCalcScreenSpecialLayer);
@@ -1832,8 +1832,8 @@ CM_INLINE void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& no
 
 void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
 {
-    if (!curScreenNode_) {
-        RS_LOGE("UpdateNodeVisibleRegion curScreenNode is nullptr");
+    if (curScreenNode_ == nullptr || curLogicalDisplayNode_ == nullptr) {
+        RS_LOGE("UpdateNodeVisibleRegion curScreenNode or curLogicalDisplayNode is nullptr");
         return;
     }
     // occlusion - 0. Calculate node visible region considering accumulated opaque region of upper surface nodes.
@@ -1866,8 +1866,8 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
 
 CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node)
 {
-    if (!curScreenNode_) {
-        RS_LOGE("CalculateOpaqueAndTransparentRegion curScreenNode is nullptr");
+    if (curScreenNode_ == nullptr || curLogicalDisplayNode_ == nullptr) {
+        RS_LOGE("CalculateOpaqueAndTransparentRegion curScreenNode or curLogicalDisplayNode is nullptr");
         return;
     }
     // occlusion - 1. Only non-cross-screen main window surface node participate in occlusion.
