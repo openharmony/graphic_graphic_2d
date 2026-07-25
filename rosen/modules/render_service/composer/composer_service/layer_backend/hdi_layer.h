@@ -146,6 +146,7 @@ private:
     int32_t SetPerFrameParameterDisplayNit();
     int32_t SetPerFrameParameterBrightnessRatio();
     int32_t SetPerFrameLayerLinearMatrix();
+    int32_t SetPerFrameLayerGlassFree3D();
     int32_t SetPerFrameLayerSourceTuning(); // used for source crop tuning
     int32_t SetPerFrameLayerVcldParam();
     int32_t SetTunnelLayerParameters();

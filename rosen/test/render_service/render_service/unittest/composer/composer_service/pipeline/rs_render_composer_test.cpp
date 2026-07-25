@@ -506,6 +506,14 @@ public:
     {
         return brightnessRatio_;
     }
+    void RSRenderSurfaceLayer::SetGlassFree3D(bool glassFree3D) override
+    {
+        glassFree3D_ = glassFree3D;
+    }
+    bool RSRenderSurfaceLayer::GetGlassFree3D() const override
+    {
+        return glassFree3D_;
+    }
     void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix) override
     {
         layerLinearMatrix_ = layerLinearMatrix;
@@ -731,6 +739,7 @@ private:
     float sdrNit_ = 0.0f;
     float displayNit_ = 0.0f;
     float brightnessRatio_ = 0.0f;
+    bool glassFree3D_ = false;
     std::vector<float> layerLinearMatrix_;
     int32_t layerSourceTuning_ = 0;
     std::vector<std::string> windowsName_;

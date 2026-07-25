@@ -175,6 +175,7 @@ void RSBaseRenderEngine::Init(RenderEngineType type)
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     colorSpaceConverterDisplay_ = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
+    glassFree3DConverterDisplay_ = Media::VideoProcessingEngine::GlassFree3DConverterDisplay::Create();
 #endif
 }
 
@@ -752,7 +753,47 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::SKEW_Y),
             matrix.Get(Drawing::Matrix::SCALE_Y), matrix.Get(Drawing::Matrix::TRANS_Y));
     }
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (params.glassFree3D) {
+        Drawing::Rect absRect;
+        canvas.GetTotalMatrix().MapRect(absRect, params.dstRect);
+        Drawing::Matrix matrix = canvas.GetTotalMatrix();
+        // get VPE shader
+        auto inputShader = Drawing::ShaderEffect::CreateImageShader(
+            *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
+        if (inputShader == nullptr) {
+            RS_LOGW("RSBaseRenderEngine::DrawImage inputShader is nullptr.");
+            return;
+        }
+        std::shared_ptr<Drawing::ShaderEffect> outputShader;
+        Media::VideoProcessingEngine::GlassFree3DConverterDisplayParameter parameter3D = {
+            .width = absRect.GetWidth(),
+            .height = absRect.GetHeight(),
+            .screenWidth = canvas.GetWidth(),
+            .screenHeight = canvas.GetHeight(),
+            .coordX = absRect.GetLeft(),
+            .coordY = absRect.GetTop(),
+            .swingX = 0.0f, // Need VPE interface
+            .swingY = 0.0f, // Need VPE interface
+            .swingZ = 0.0f, // Need VPE interface
+            .panelName = "", // Need VPE interface
+            .converterType = params.use3DShader ? 1 : 0 // 1 means 3D, 0 means 2D
+        };
+        if (!glassFree3DConverterDisplay_) {
+            return;
+        }
+        glassFree3DConverterDisplay_->Process(inputShader, outputShader, parameter3D);
+        if (outputShader) {
+            params.paint.SetShaderEffect(outputShader);
+            canvas.AttachBrush(params.paint);
+            Drawing::AutoCanvasRestore autoRestore(canvas, true);
+            canvas.ResetMatrix();
+            canvas.DrawRect(params.dstRect);
+            canvas.DetachBrush();
+            return;
+        }
+    }
     // For sdr brightness ratio
     if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Applying brightness ratio: %{public}.2f", params.brightnessRatio);

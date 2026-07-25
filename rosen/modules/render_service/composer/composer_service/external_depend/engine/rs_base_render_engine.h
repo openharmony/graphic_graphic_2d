@@ -53,6 +53,7 @@
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "colorspace_converter_display.h"
+#include "glassfree3d_converter_display.h"
 #endif
 
 namespace OHOS {
@@ -361,6 +362,7 @@ private:
     static bool ConvertDrawingColorSpaceToSpaceInfo(const std::shared_ptr<Drawing::ColorSpace>& colorSpace,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
+    std::shared_ptr<Media::VideoProcessingEngine::GlassFree3DConverterDisplay> glassFree3DConverterDisplay_ = nullptr;
 #endif
 };
 } // namespace Rosen

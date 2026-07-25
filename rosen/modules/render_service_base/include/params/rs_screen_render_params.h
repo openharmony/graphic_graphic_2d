@@ -211,6 +211,9 @@ public:
     void SetUIMode3D(UIMode3D mode);
     UIMode3D GetUIMode3D() const;
 
+    void SetHasGlassFree3DLayer(bool hasGlassFree3DLayer);
+    bool GetHasGlassFree3DLayer() const;
+
     void SetDrawnRegion(const Occlusion::Region& region);
     const Occlusion::Region& GetDrawnRegion() const;
 
@@ -284,6 +287,7 @@ private:
     bool isHDRStatusChanged_ = false;
     VideoDimType videoDimType_ = VideoDimType::VIDEO_DIM_TYPE_2D;
     UIMode3D uiMode3D_ = UIMode3D::MODE_2D;
+    bool hasGlassFree3DLayer_ = false;
     // Only used in virtual expand screen to record accumulate frame status
     bool isAccumulatedDirty_ = false;
     bool isAccumulatedHdrStatusChanged_ = false;

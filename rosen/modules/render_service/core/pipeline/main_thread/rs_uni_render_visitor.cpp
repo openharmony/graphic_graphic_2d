@@ -818,6 +818,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     RSLayerSplitManager::GetInstance()->CheckNeedLeave();
     UpdateCompositeType(node);
     RSHdrUtil::UpdateSelfDrawingNodesNit(node);
+    UpdateSelfDrawingNodesFor3D(node);
     hwcVisitor_->UpdateHwcNodeEnable();
     UpdateSurfaceDirtyAndGlobalDirty();
     UpdateSurfaceOcclusionInfo();
@@ -2407,6 +2408,39 @@ void RSUniRenderVisitor::UpdateCompositeType(RSScreenRenderNode& node)
     }
 }
 
+void RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D(RSScreenRenderNode& node)
+{
+    const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
+    bool hasGlassFree3DLayer = false;
+    bool isOnInternalScreen =
+        node.GetScreenProperty().GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL;
+    for (const auto& selfDrawingNode : selfDrawingNodes) {
+        if (!selfDrawingNode) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D selfDrawingNode is nullptr");
+            continue;
+        }
+        if (!selfDrawingNode->IsOnTheTree()) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D node(%{public}s) is not on the tree",
+                selfDrawingNode->GetName().c_str());
+            continue;
+        }
+        auto ancestor = selfDrawingNode->GetAncestorScreenNode().lock();
+        if (!ancestor) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D ancestor is nullptr");
+            continue;
+        }
+        if (node.GetId() == ancestor->GetId()) {
+            if (selfDrawingNode->GetCompositionType() == CompositionType::COMPOSITION_3D_GLASS_FREE) {
+                hasGlassFree3DLayer = true;
+                RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D found glass free 3D layer: %{public}s",
+                    selfDrawingNode->GetName().c_str());
+            }
+            selfDrawingNode->SetIsOnInternalScreen(isOnInternalScreen);
+        }
+    }
+    node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
+}
+
 bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
 {
     // 1 init curScreen and curScreenDirtyManager
@@ -2427,6 +2461,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
     node.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_2D);
     node.SetUIMode3D(UIMode3D::MODE_2D);
+    node.SetHasGlassFree3DLayer(false);
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
     node.SetHasUniRenderHdrSurface(false);

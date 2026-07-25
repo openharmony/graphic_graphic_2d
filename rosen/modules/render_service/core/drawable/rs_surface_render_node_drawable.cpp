@@ -1576,6 +1576,11 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSAutoCanvasRestore arc(&canvas);
     auto params = RSUniRenderUtil::DealWithBufferDrawParam(canvas, surfaceParams, *this);
 
+    if (surfaceParams.GetCompositionType() == CompositionType::COMPOSITION_3D_GLASS_FREE) {
+        param.glassFree3D = true;
+        params.use3DShader = surfaceParams.GetIsOnInternalScreen() && !RSUniRenderThread::IsInCaptureProcess();
+    }
+
     UpdateRectForDelegateMode(surfaceParams, params);
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
 }
