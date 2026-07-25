@@ -221,6 +221,17 @@ HWTEST_F(RSUifirstManagerTest2, DoPurgePendingPostNodes000, TestSize.Level1)
     EXPECT_NE(surfaceParams, nullptr);
     surfaceParams->surfaceCacheContentStatic_ = true;
 
+    // Test case 1: GetUiFirstRootNodeId() == INVALID_NODEID (default case)
+    surfaceParams->SetUiFirstRootNode(INVALID_NODEID);
+    surfaceParams->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
+
+    // Test case 2: GetUiFirstRootNodeId() != INVALID_NODEID
+    pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
+    surfaceRenderNode->uifirstRootNodeId_ = nodeId;
+    surfaceRenderNode->InitRenderParams();
+    surfaceParams->SetUiFirstRootNode(nodeId); // Set valid uifirst root node id
+    surfaceParams->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_TRUE(pendingNode.empty());
 }
