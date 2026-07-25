@@ -2266,6 +2266,10 @@ void RSUniRenderVisitor::QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRe
 
 void RSUniRenderVisitor::UpdateRotationStatusForEffectNode(RSEffectRenderNode& node)
 {
+    if (!curScreenNode_ || !curLogicalDisplayNode_) {
+        RS_LOGE("%{public}s curScreenNode_ or curLogicalDisplayNode_ is nullptr", __func__);
+        return;
+    }
      // folding/expanding screen force invalidate cache.
     node.SetFoldStatusChanged(doAnimate_ &&
         curScreenNode_->GetScreenId() != node.GetCurrentAttachedScreenId());

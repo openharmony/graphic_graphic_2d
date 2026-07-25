@@ -341,13 +341,13 @@ napi_value MaskNapi::Create(napi_env env, std::shared_ptr<MaskPara> maskPara)
         MASK_LOG_E("MaskNapi CreateMask fail, mask is nullptr."));
     mask->SetMaskPara(maskPara);
     // Wrap Object(js) with Mask(native)
-    status = napi_wrap(env, maskObj, mask,
+    status = napi_wrap_s(env, maskObj, mask,
         [](napi_env env, void* data, void* hint) {
             Mask* maskObj = (Mask*)data;
             delete maskObj;
             maskObj = nullptr;
         },
-        nullptr, nullptr);
+        nullptr, &MASK_NAPI_TYPE_TAG, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok && maskObj != nullptr, nullptr, mask,
         MASK_LOG_E("MaskNapi CreateMask wrap fail"));
     return maskObj;
