@@ -85,7 +85,7 @@ enum class ParamValueType : uint8_t {
     if (val == (uint8_t)ParamValueType::UINT64) { return ParamValueType::UINT64; }
     else if (val == (uint8_t)ParamValueType::UINT32) { return ParamValueType::UINT32; }
     else if (val == (uint8_t)ParamValueType::UINT16) { return ParamValueType::UINT16; }
-    else if (val == (uint8_t)ParamValueType::UINT8) { return ParamValueType::UINT16; }
+    else if (val == (uint8_t)ParamValueType::UINT8) { return ParamValueType::UINT8; }
     else if (val == (uint8_t)ParamValueType::INT64) { return ParamValueType::INT64; }
     else if (val == (uint8_t)ParamValueType::INT32) { return ParamValueType::INT32; }
     else if (val == (uint8_t)ParamValueType::INT16) { return ParamValueType::INT16; }

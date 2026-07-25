@@ -394,19 +394,19 @@ HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageData, TestSize.Level1)
 {
     std::vector<uint8_t> dstImage;
     dstImage.reserve(HUNDRED);
-    auto imagePtr = std::make_shared<Image>();
-    imagePtr->data.resize(HUNDRED);
-    bool successfulCopied = PixelMapStorage::CopyImageData(imagePtr.get(), dstImage.data(), dstImage.capacity());
+    Image image;
+    image.data.resize(HUNDRED);
+    bool successfulCopied = PixelMapStorage::CopyImageData(image, dstImage.data(), dstImage.capacity());
     EXPECT_TRUE(successfulCopied);
 }
 
 HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataJpeg, TestSize.Level1)
 {
     const int CHANNELS = 3;
-    auto jpegImg = std::make_shared<Image>();
-    jpegImg->data.resize(sizeof(TextureHeader) + CHANNELS * HUNDRED);
+    Image jpegImg;
+    jpegImg.data.resize(sizeof(TextureHeader) + CHANNELS * HUNDRED);
 
-    TextureHeader* header = reinterpret_cast<TextureHeader*>(jpegImg->data.data());
+    TextureHeader* header = reinterpret_cast<TextureHeader*>(jpegImg.data.data());
 
     header->rgbEncodedSize = HUNDRED;
     header->totalOriginalSize = CHANNELS * HUNDRED;
@@ -415,17 +415,17 @@ HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataJpeg, TestSize.Level1)
     std::vector<uint8_t> dstImage;
     dstImage.reserve(HUNDRED * TEN);
 
-    bool copiedJpeg = PixelMapStorage::CopyImageData(jpegImg.get(), dstImage.data(), dstImage.capacity());
+    bool copiedJpeg = PixelMapStorage::CopyImageData(jpegImg, dstImage.data(), dstImage.capacity());
     EXPECT_TRUE(copiedJpeg);
 }
 
 HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataLZ4, TestSize.Level1)
 {
     const int CHANNELS = 3;
-    auto xlzz4Img = std::make_shared<Image>();
-    xlzz4Img->data.resize(sizeof(TextureHeader) + CHANNELS * HUNDRED);
+    Image xlzz4Img;
+    xlzz4Img.data.resize(sizeof(TextureHeader) + CHANNELS * HUNDRED);
 
-    TextureHeader* header = reinterpret_cast<TextureHeader*>(xlzz4Img->data.data());
+    TextureHeader* header = reinterpret_cast<TextureHeader*>(xlzz4Img.data.data());
 
     header->totalOriginalSize = CHANNELS * HUNDRED;
     header->magicNumber = 'XLZ4';
@@ -433,7 +433,7 @@ HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataLZ4, TestSize.Level1)
     std::vector<uint8_t> dstImage;
     dstImage.reserve(HUNDRED * TEN);
 
-    bool copiedLz4 = PixelMapStorage::CopyImageData(xlzz4Img.get(), dstImage.data(), dstImage.capacity());
+    bool copiedLz4 = PixelMapStorage::CopyImageData(xlzz4Img, dstImage.data(), dstImage.capacity());
     EXPECT_TRUE(copiedLz4);
 }
 
@@ -441,16 +441,16 @@ HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataFailing, TestSize.Level1)
 {
     std::vector<uint8_t> dstImage;
     dstImage.reserve(HUNDRED);
-    auto imagePtr = std::make_shared<Image>();
-    imagePtr->data.resize(HUNDRED);
+    Image image;
+    image.data.resize(HUNDRED);
     {
         std::cout << "Copy from null source" << std::endl;
-        bool nullSrc = PixelMapStorage::CopyImageData(nullptr, dstImage.data(), dstImage.capacity());
+        bool nullSrc = PixelMapStorage::CopyImageData(nullptr, std::numeric_limits<size_t>::max(), dstImage.data(), dstImage.capacity());
         EXPECT_FALSE(nullSrc);
     }
     {
         std::cout << "Copy to null destination" << std::endl;
-        bool nullDst = PixelMapStorage::CopyImageData(imagePtr.get(), nullptr, 100);
+        bool nullDst = PixelMapStorage::CopyImageData(image, nullptr, 100);
         EXPECT_FALSE(nullDst);
     }
     {
@@ -463,7 +463,7 @@ HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataFailing, TestSize.Level1)
     {
         std::cout << "Copy to empty destination" << std::endl;
         std::vector<uint8_t> emptyDstImage;
-        bool emptyDst = PixelMapStorage::CopyImageData(imagePtr.get(), emptyDstImage.data(), 0);
+        bool emptyDst = PixelMapStorage::CopyImageData(image, emptyDstImage.data(), 0);
         EXPECT_FALSE(emptyDst);
     }
 }
