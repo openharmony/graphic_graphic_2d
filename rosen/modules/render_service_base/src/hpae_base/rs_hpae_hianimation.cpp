@@ -169,6 +169,10 @@ void HianimationManager::CloseDevice()
     if (hianimationDevice_.closeDevice) {
         hianimationDevice_.closeDevice();
     }
+    if (libHandle_ != nullptr) {
+        dlclose(libHandle_);
+    }
+    libHandle_ = nullptr;
     hianimationDevice_ = {};
 #endif
 }
