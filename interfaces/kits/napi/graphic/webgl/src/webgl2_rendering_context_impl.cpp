@@ -844,6 +844,11 @@ napi_value WebGL2RenderingContextImpl::TexSubImage3D(napi_env env, const TexSubI
 {
     TexSubImage3DArg imgArg(arg);
     imgArg.Dump("WebGL2 texSubImage3D source");
+    if (imgArg.depth > SINGLE_SLICE_DEPTH) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION,
+            "TexImageSource upload does not support multiple depth slices");
+        return NVal::CreateNull(env).val_;
+    }
     GLvoid* data = nullptr;
     WebGLImageSource imageSource(env, version_, unpackFlipY_, unpackPremultiplyAlpha_);
     if (!NVal(env, source).IsNull()) {
@@ -856,7 +861,6 @@ napi_value WebGL2RenderingContextImpl::TexSubImage3D(napi_env env, const TexSubI
         data = imageSource.GetImageSourceData();
         imgArg.width = imageSource.GetWidth();
         imgArg.height = imageSource.GetHeight();
-        imgArg.depth = SINGLE_SLICE_DEPTH;
     } else {
         SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;

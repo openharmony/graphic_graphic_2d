@@ -629,11 +629,10 @@ public:
 
     inline static ColorParam FromRGBO(uint8_t red, uint8_t green, uint8_t blue, double opacity)
     {
-        constexpr double EPSILON = 1e-3;
         double op = opacity;
-        if (!(op >= -EPSILON)) {
+        if (!(op >= 0.0)) {
             op = 0.0;
-        } else if (op > 1.0 + EPSILON) {
+        } else if (op > 1.0) {
             op = 1.0;
         }
         return FromARGB(static_cast<uint8_t>(round(op * 0xff)) & 0xff, red, green, blue);
@@ -651,6 +650,7 @@ private:
     void DecodeDataForRGBA_USHORT_5551(const WebGLFormatMap* formatMap, uint8_t* array);
     void DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatMap, uint8_t* array);
     bool DecodeImageData(const WebGLFormatMap* formatMap, const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset);
+    bool CheckImageDataSize(const WebGLFormatMap* formatMap, size_t maxSize, uint64_t& pixels) const;
     GLenum CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, GLuint srcOffset);
     GLenum CheckPixelMapBytes();
 
@@ -658,12 +658,13 @@ private:
     std::tuple<bool, T> GetObjectIntField(napi_value resultObject, const std::string& name);
     bool HandleImageSourceData(napi_value resultData, napi_valuetype valueType);
     bool BuildPixelMapFromSource(std::unique_ptr<OHOS::Media::ImageSource>& imageSource, uint32_t errorCode);
+    bool GetSrcOffsetBytes(const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset, size_t& srcOffsetBytes) const;
 
     int webGLVersion_ { 0 };
     napi_env env_ { nullptr };
     bool unpackFlipY_ { false };
     bool unpackPremultiplyAlpha_ { false };
-    GLuint srcOffset_ { 0 };
+    size_t srcOffset_ { 0 };
     WebGLImageOption imageOption_ {};
     std::vector<uint32_t> imageData_ {};
     std::unique_ptr<OHOS::Media::PixelMap> pixelMap_ { nullptr };
