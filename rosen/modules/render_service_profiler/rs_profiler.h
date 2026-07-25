@@ -734,8 +734,8 @@ private:
         uint32_t fileVersion, uint32_t depth = 0u);
     RSB_EXPORT static std::string UnmarshalSubTree(RSContext& context, std::stringstream& data,
         RSRenderNode& attachNode, uint32_t fileVersion, bool clearImageCache = true);
-    RSB_EXPORT static std::string UnmarshalSubTreeLo(
-        RSContext& context, std::stringstream& data, RSRenderNode& attachNode, uint32_t fileVersion, uint32_t depth = 0u);
+    RSB_EXPORT static std::string UnmarshalSubTreeLo(RSContext& context, std::stringstream& data,
+        RSRenderNode& attachNode, uint32_t fileVersion,uint32_t depth = 0u);
 
     RSB_EXPORT static NodeId AdjustNodeId(NodeId nodeId, bool clearMockFlag);
 
