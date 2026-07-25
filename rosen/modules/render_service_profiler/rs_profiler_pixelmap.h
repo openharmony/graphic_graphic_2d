@@ -128,20 +128,19 @@ private:
     static bool IsDataValid(const void* data, size_t size);
 
     static int32_t EncodeSeqLZ4(const ImageData& source, ImageData& dst);
-    static int32_t DecodeSeqLZ4(const char* source, ImageData& dst, int32_t sourceSize, int32_t originalSize);
+    static bool DecodeSeqLZ4(const char* src, int32_t srcSize, int32_t dstSize, ImageData& dst);
 
     static void ExtractAlpha(const ImageData& image, ImageData& alpha, const ImageProperties& properties);
     static void ReplaceAlpha(ImageData& image, ImageData& alpha, const ImageProperties& properties);
-    static int32_t MakeStride(
-        ImageData& noPadding, ImageData& dst, const ImageProperties& properties, int32_t pixelBytes);
+    static void MakeStride(const ImageData& src, const ImageProperties& properties, int32_t pixelBytes, ImageData& dst);
 
     static int32_t EncodeJpeg(const ImageData& source, ImageData& dst, const ImageProperties& properties);
-    static int32_t DecodeJpeg(
-        const char* source, ImageData& dst, int32_t sourceSize, const ImageProperties& properties);
+    static bool DecodeJpeg(
+        const char* src, int32_t srcSize, int32_t dstSize, const ImageProperties& properties, ImageData& dst);
 
     static bool CopyImageData(const uint8_t* srcImage, size_t srcSize, uint8_t* dstImage, size_t dstSize);
     static bool CopyImageData(const ImageData& data, uint8_t* dstImage, size_t dstSize);
-    static bool CopyImageData(Image* image, uint8_t* dstImage, size_t dstSize);
+    static bool CopyImageData(Image& image, uint8_t* dstImage, size_t dstSize);
 
     static ImageData GenerateRawCopy(const uint8_t* data, size_t size);
     static ImageData GenerateMiniatureAstc(const uint8_t* data, size_t size);
