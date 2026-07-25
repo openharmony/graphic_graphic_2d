@@ -176,6 +176,7 @@ bool RoundCornerDisplay::GetBottomSurfaceSource()
 
 bool RoundCornerDisplay::HandleTopRcdDirty(RectI& dirtyRect)
 {
+    std::shared_lock<std::shared_mutex> lock(resourceMut_);
     if ((static_cast<uint8_t>(rcdDirtyType_) & static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP)) !=
         static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP)) {
         return false;
@@ -184,7 +185,6 @@ bool RoundCornerDisplay::HandleTopRcdDirty(RectI& dirtyRect)
         dirtyRect = dirtyRect.JoinRect(RectI(displayRect_.GetLeft(), displayRect_.GetTop(),
             curTop_->GetWidth(), curTop_->GetHeight()));
     }
-    std::shared_lock<std::shared_mutex> lock(resourceMut_);
     if (!hardInfo_.resourceChanged) {
         rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
             (~static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP)) & static_cast<uint8_t>(rcdDirtyType_));
@@ -194,6 +194,7 @@ bool RoundCornerDisplay::HandleTopRcdDirty(RectI& dirtyRect)
 
 bool RoundCornerDisplay::HandleBottomRcdDirty(RectI& dirtyRect)
 {
+    std::shared_lock<std::shared_mutex> lock(resourceMut_);
     if ((static_cast<uint8_t>(rcdDirtyType_) & static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_BOTTOM)) !=
         static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_BOTTOM)) {
         return false;
@@ -203,7 +204,6 @@ bool RoundCornerDisplay::HandleBottomRcdDirty(RectI& dirtyRect)
             RectI(displayRect_.GetLeft(), displayRect_.GetHeight() - curBottom_->GetHeight() + displayRect_.GetTop(),
             curBottom_->GetWidth(), curBottom_->GetHeight()));
     }
-    std::shared_lock<std::shared_mutex> lock(resourceMut_);
     if (!hardInfo_.resourceChanged) {
         rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
             (~static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_BOTTOM)) & static_cast<uint8_t>(rcdDirtyType_));
@@ -433,50 +433,6 @@ void RoundCornerDisplay::RcdChooseHardwareResource()
     }
     hardInfo_.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerDown);
     hardInfo_.bottomLayer->curBitmap = &bitmapBottomPortrait_;
-}
-
-void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int surfaceType)
-{
-    RS_TRACE_BEGIN("RCD::DrawOneRoundCorner : surfaceType" + std::to_string(surfaceType));
-    if (canvas == nullptr) {
-        RS_LOGE("[%{public}s] Canvas is null \n", __func__);
-        RS_TRACE_END();
-        return;
-    }
-    UpdateParameter(updateFlag_);
-    if (surfaceType == TOP_SURFACE) {
-        RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] draw TopSurface start  \n", __func__);
-        if (curTop_ != nullptr) {
-            Drawing::Brush brush;
-            canvas->AttachBrush(brush);
-            canvas->DrawImage(*curTop_, displayRect_.GetLeft(), displayRect_.GetTop(), Drawing::SamplingOptions());
-            canvas->DetachBrush();
-            RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] Draw top \n", __func__);
-        }
-    } else if (surfaceType == BOTTOM_SURFACE) {
-        RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] BottomSurface supported \n", __func__);
-        if (curBottom_ != nullptr) {
-            Drawing::Brush brush;
-            canvas->AttachBrush(brush);
-            canvas->DrawImage(*curBottom_, displayRect_.GetLeft(), displayRect_.GetHeight() - curBottom_->GetHeight() +
-                displayRect_.GetTop(), Drawing::SamplingOptions());
-            canvas->DetachBrush();
-            RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] Draw Bottom \n", __func__);
-        }
-    } else {
-        RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] Surface Type is not valid \n", __func__);
-    }
-    RS_TRACE_END();
-}
-
-void RoundCornerDisplay::DrawTopRoundCorner(RSPaintFilterCanvas* canvas)
-{
-    DrawOneRoundCorner(canvas, TOP_SURFACE);
-}
-
-void RoundCornerDisplay::DrawBottomRoundCorner(RSPaintFilterCanvas* canvas)
-{
-    DrawOneRoundCorner(canvas, BOTTOM_SURFACE);
 }
 
 void RoundCornerDisplay::PrintRCDInfo()

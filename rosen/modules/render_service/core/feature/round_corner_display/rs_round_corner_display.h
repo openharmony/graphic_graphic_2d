@@ -90,10 +90,6 @@ public:
     // update hardInfo_.resourceChanged after hw resource applied
     void UpdateHardwareResourcePrepared(bool prepared);
 
-    void DrawTopRoundCorner(RSPaintFilterCanvas* canvas);
-
-    void DrawBottomRoundCorner(RSPaintFilterCanvas* canvas);
-
     bool HandleTopRcdDirty(RectI& dirtyRect);
 
     bool HandleBottomRcdDirty(RectI& dirtyRect);
@@ -213,8 +209,6 @@ private:
     bool GetTopSurfaceSource();
 
     bool GetBottomSurfaceSource();
-
-    void DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int surfaceType);
 
     // update resource
     void UpdateParameter(std::map<std::string, bool> &updateFlag);
