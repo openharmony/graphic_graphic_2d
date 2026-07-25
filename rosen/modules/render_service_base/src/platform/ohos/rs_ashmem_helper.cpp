@@ -463,7 +463,6 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, dataSize, PROT_READ | PROT_WRITE);
     if (!ashmemAllocator) {
         ROSEN_LOGE("ParseFromAshmemParcel failed, ashmemAllocator is nullptr");
-        if (fd >= 0) { ::close(fd); }
         return nullptr;
     }
     void* data = ashmemAllocator->GetData();
@@ -482,7 +481,9 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
         auto* offsets = ashmemParcel->ReadBuffer(sizeof(binder_size_t) * offsetSize);
         if (offsets == nullptr) {
             ROSEN_LOGE("ParseFromAshmemParcel: read object offsets failed");
-            if (ashmemFdWorker) { ashmemFdWorker->EnableManualCloseFds(); }
+            if (ashmemFdWorker) {
+                ashmemFdWorker->EnableManualCloseFds();
+            }
             return nullptr;
         }
         // restore array that record the offsets of all fds
@@ -498,7 +499,9 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
 
     if (dataParcel->ReadInt32() != 0) { // identify normal parcel
         ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel failed");
-        if (ashmemFdWorker) { ashmemFdWorker->EnableManualCloseFds(); }
+        if (ashmemFdWorker) {
+            ashmemFdWorker->EnableManualCloseFds();
+        }
         return nullptr;
     }
 
