@@ -366,7 +366,8 @@ bool RSRenderInterpolatingSpringAnimation::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, normalizedInitialVelocity_) &&
             RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Marshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Marshalling(parcel, convergeParams_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::Marshalling, invalid parametter failed");
         return false;
     }
@@ -412,7 +413,8 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
             RSMarshallingHelper::Unmarshalling(parcel, normalizedInitialVelocity_) &&
             RSMarshallingHelper::Unmarshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, convergeParams_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, MarshallingHelper Fail");
         return false;
     }
@@ -681,7 +683,8 @@ bool RSRenderSpringAnimation::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, blendDuration_) &&
             RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Marshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Marshalling(parcel, convergeParams_))) {
         ROSEN_LOGE("RSRenderSpringAnimation::Marshalling, MarshallingHelper failed");
         return false;
     }
@@ -726,6 +729,7 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
             RSMarshallingHelper::Unmarshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
             RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, convergeParams_) &&
             RSMarshallingHelper::Unmarshalling(parcel, haveInitialVelocity))) {
         ROSEN_LOGE("RSRenderSpringAnimation::ParseParam, MarshallingHelper Fail");
         return false;
