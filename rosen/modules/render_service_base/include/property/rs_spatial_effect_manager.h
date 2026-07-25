@@ -36,8 +36,8 @@ public:
     void UnregisterDepthBackground(const std::shared_ptr<RSRenderNode>& renderNode);
     std::weak_ptr<RSRenderNode> GetMasterGlobalDepthNode(NodeId logicalDisplayNodeId);
     std::weak_ptr<RSRenderNode> GetAncestorDepthNode(const RSRenderNode& renderNode);
+    std::weak_ptr<RSRenderNode> GetDepthResourceNode(const RSRenderNode& renderNode);
     void ProcessDepthNodeAndSpatialEffectNodeDirty();
-    void PrepareSpatialEffectParams();
 
 private:
     RSSpatialEffectManager() = default;
@@ -54,16 +54,18 @@ private:
     static void CleanNodeMap(NodeMap& nodeMap);
     void CleanExpiredNodes();
     static void ResourceNodeInfectsDepthNodeDirty(const NodeMap& resourceNodeMap);
+    void BuildDepthDepthResourceNodeMap();
     bool IsMasterGlobalDepthNodeAndUpdate(const std::shared_ptr<RSDepthRenderNode>& depthNode);
     void SetSpatialEffectNodeDirty(const NodeMap& spatialEffectNodeMap);
-    void ProcessDepthResourceNodeParams();
-    void CopyGlobalDepthNodeParams();
 
+    // Ready after ApplyModifiers
     std::unordered_map<NodeId, std::pair<std::weak_ptr<RSRenderNode>, NodeMap>> depthSpatialEffectNodeMap_;
     std::unordered_map<NodeId, std::pair<std::weak_ptr<RSRenderNode>, std::pair<NodeId, std::weak_ptr<RSRenderNode>>>>
         spatialEffectDepthNodeMap_;
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> masterGlobalDepthNodeMap_;
-    NodeMap depthNodeMap_;
+    // Ready before Prepare
+    NodeMap masterGlobalDepthNodeMap_; // Key: logicalDisplayNodeId, Value: masterGlobalDepthNode
+    NodeMap depthDepthResourceNodeMap_; // Key: depthNodeId, Value: depthResourceNode
+    // Ready after ProcessCommand
     NodeMap depthResourceNodeMap_;
     NodeMap depthBackgroundNodeMap_;
 };
