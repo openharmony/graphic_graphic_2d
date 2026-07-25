@@ -2635,7 +2635,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     if (args.String() == "-f") {
         path = args.String(1);
         nodeId = GetRootNodeId();
-        SendMessage("Current root nood ID: %lu", nodeId);
+        SendMessage("Current root nood ID: %llu", nodeId);
     }
 
     const auto node = GetRenderNode(nodeId);
@@ -2665,7 +2665,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     RSSystemProperties::SetProfilerPixelCheckMode(false);
 
     file << stream.rdbuf();
-    SendMessage("Save SubTree Size: %lu", static_cast<size_t>(file.tellp()));
+    SendMessage("Save SubTree Size: %zu", static_cast<size_t>(file.tellp()));
     SendMessage("Save subTree Success, file path: %s", path.data());
 }
 
