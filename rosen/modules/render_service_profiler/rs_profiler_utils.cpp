@@ -220,7 +220,8 @@ int32_t Utils::ToInt32(const std::string& string)
     if ((errno == ERANGE) || (end == string.data()) || (*end != '\0')) {
         return 0;
     }
-    return static_cast<int32_t>(std::clamp(value, static_cast<int64_t>(std::numeric_limits<int32_t>::min()),
+    return static_cast<int32_t>(std::clamp(static_cast<int64_t>(value),
+        static_cast<int64_t>(std::numeric_limits<int32_t>::min()),
         static_cast<int64_t>(std::numeric_limits<int32_t>::max())));
 }
 
@@ -243,7 +244,8 @@ uint16_t Utils::ToUint16(const std::string& string)
 uint32_t Utils::ToUint32(const std::string& string)
 {
     return static_cast<uint32_t>(
-        std::clamp(ToUint64(string), 0ul, static_cast<uint64_t>(std::numeric_limits<uint32_t>::max())));
+        std::clamp(ToUint64(string), static_cast<uint64_t>(0),
+            static_cast<uint64_t>(std::numeric_limits<uint32_t>::max())));
 }
 
 uint64_t Utils::ToUint64(const std::string& string)
