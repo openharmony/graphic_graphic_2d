@@ -3636,7 +3636,12 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
 
 void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter)
 {
-    auto nodeParent = node.GetParent().lock();
+    CollectEffectInfo(node, isBlendNeedFilter, node.GetParent().lock());
+}
+
+void RSUniRenderVisitor::CollectEffectInfo(
+    RSRenderNode& node, bool isBlendNeedFilter, const std::shared_ptr<RSRenderNode>& nodeParent)
+{
     if (nodeParent == nullptr) {
         return;
     }
@@ -3657,9 +3662,9 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
-    if ((node.GetRenderProperties().GetUseEffect() || node.GetRenderProperties().HasHarmonium() ||
-        node.GetRenderProperties().HasSpatialGlassEffect() ||
-        node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
+    if ((properties.GetUseEffect() || properties.HasHarmonium() || properties.HasSpatialGlassEffect() ||
+            node.ChildHasVisibleEffect()) &&
+        node.ShouldPaint()) {
         nodeParent->UpdateVisibleEffectChild(node);
         nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
     }
@@ -3672,7 +3677,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
     if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
         nodeParent->SetChildHasSharedTransition(true);
     }
-    if (node.GetRenderProperties().GetSpatialEffectPara() || node.ChildHasSpatialEffect()) {
+    if (properties.GetSpatialEffectPara() || node.ChildHasSpatialEffect()) {
         nodeParent->SetChildHasSpatialEffect(true);
     }
     if (node.ChildHasVisibleHDRContent() || node.GetHDRStatus() != HdrStatus::NO_HDR) {
@@ -3682,8 +3687,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
         nodeParent->SetHasChildExcludedFromNodeGroup(true);
     }
     if (!renderGroupCacheRoots_.empty()) {
-        bool flag = !ROSEN_EQ(node.GetRenderProperties().GetTranslateX(), 0.0f) ||
-                    !ROSEN_EQ(node.GetRenderProperties().GetTranslateY(), 0.0f);
+        bool flag = !ROSEN_EQ(properties.GetTranslateX(), 0.0f) || !ROSEN_EQ(properties.GetTranslateY(), 0.0f);
         nodeParent->SetChildHasTranslateOnSqueeze(flag);
     }
     node.UpdateNodeColorSpace();
@@ -3763,17 +3767,17 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
         CollectFilterInfoAndUpdateDirty(node, *curDirtyManager);
         node.SetGlobalAlpha(curAlpha_);
     }
-    CollectEffectInfo(node, isBlendNeedFilter);
+    auto nodeParent = node.GetParent().lock();
+    CollectEffectInfo(node, isBlendNeedFilter, nodeParent);
     node.NodePostPrepare(curSurfaceNode_, prepareClipRect_);
     if (curScreenNode_ && curScreenNode_->GetId() != node.GetId()) {
         CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder, isBlendNeedFilter);
     }
     dynamicLayerSkipController_->VisitRenderNode(curSurfaceNode_, node);
     UpdateDrawingCacheInfoAfterChildren(node);
-    if (auto nodeParent = node.GetParent().lock()) {
+    if (nodeParent) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
-        nodeParent->GetOpincCache().UpdateSubTreeSupportFlag(
-            RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
+        nodeParent->GetOpincCache().UpdateSubTreeSupportFlag(RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
             RSOpincManager::OpincGetRootFlag(node),
             nodeParent->GetNodeGroupType() == RSRenderNode::NodeGroupType::NONE);
         nodeParent->GetOpincCache().UpdateSubTreeHasUnstableOpincNode(
@@ -3785,10 +3789,11 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (stagingRenderParams != nullptr) {
-        if (node.GetSharedTransitionParam() && node.GetRenderProperties().GetSandBox()) {
+        const auto& properties = node.GetRenderProperties();
+        if (node.GetSharedTransitionParam() && properties.GetSandBox()) {
             stagingRenderParams->SetAlpha(curAlpha_);
         } else {
-            stagingRenderParams->SetAlpha(node.GetRenderProperties().GetAlpha());
+            stagingRenderParams->SetAlpha(properties.GetAlpha());
         }
     }
 
