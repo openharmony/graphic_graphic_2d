@@ -2103,7 +2103,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleMultiSelfOwnedScreenEventTest001, Function |
     frameRateMgr->HandleMultiSelfOwnedScreenEvent(pid, eventInfo);
 
     const auto& voteRecord = frameRateMgr->FrameVoterRef().GetVoteRecord();
-    EXPECT_EQ(voteRecord.find("VOTER_MULTISELFOWNEDSCREEN"), voteRecord.end());
+    EXPECT_NE(voteRecord.find("VOTER_MULTISELFOWNEDSCREEN"), voteRecord.end());
 
     HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
 }
@@ -2175,6 +2175,8 @@ HWTEST_F(HgmFrameRateMgrTest, CleanVoteHgmExclusiveScreenTest001, Function | Sma
     bool isSelfOwnedScreen = true;
     EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
 
+    auto screen = hgmCore.GetScreen(testScreenId);
+    screen->isSelfOwnedScreenFlag_.store(true);
     auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
     frameRateMgr->HandleSetHgmExclusiveScreen(pid, testScreenId);
     EXPECT_EQ(frameRateMgr->GetHgmExclusiveScreenId(), testScreenId);

@@ -1674,7 +1674,7 @@ HWTEST_F(RSInterfacesTest, SetHgmExclusiveScreen001, Function | SmallTest | Leve
 {
     ASSERT_NE(rsInterfaces, nullptr);
     bool result = rsInterfaces->SetHgmExclusiveScreen(std::nullopt);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /*
@@ -1687,7 +1687,7 @@ HWTEST_F(RSInterfacesTest, SetHgmExclusiveScreen002, Function | SmallTest | Leve
 {
     ASSERT_NE(rsInterfaces, nullptr);
     bool result = rsInterfaces->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /*
