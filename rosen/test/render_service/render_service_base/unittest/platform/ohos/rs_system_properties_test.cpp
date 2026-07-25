@@ -496,17 +496,6 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetPrepareParallelRenderingEnabled
- * @tc.desc: GetPrepareParallelRenderingEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetPrepareParallelRenderingEnabled, TestSize.Level1)
-{
-    ASSERT_EQ(RSSystemProperties::GetPrepareParallelRenderingEnabled(), ParallelRenderingType::DISABLE);
-}
-
-/**
  * @tc.name: GetParallelRenderingEnabled
  * @tc.desc: GetParallelRenderingEnabled Test
  * @tc.type:FUNC
@@ -898,21 +887,6 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstBehindWindowFilterEnabled, TestSize.L
 HWTEST_F(RSSystemPropertiesTest, GetDumpImgEnabled, TestSize.Level1)
 {
     ASSERT_EQ(RSSystemProperties::GetDumpImgEnabled(), 0);
-}
-
-/**
- * @tc.name: FindNodeInTargetListSuccess
- * @tc.desc: FindNodeInTargetListSuccess Test
- * @tc.type:FUNC
- * @tc.require: issueI9V3Y2
- */
-HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSuccess, TestSize.Level1)
-{
-    std::string targetStr("A;B;C;D");
-    system::SetParameter("persist.sys.graphic.traceTargetList", targetStr);
-    std::string nodeStr("A");
-    EXPECT_TRUE(RSSystemProperties::FindNodeInTargetList(nodeStr));
-    system::SetParameter("persist.sys.graphic.traceTargetList", "");
 }
 
 /**

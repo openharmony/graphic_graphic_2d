@@ -275,7 +275,14 @@ bool RSAnimationFraction::IsFinished(bool isCustom) const
             const float animationScale = isCustom ? 1.0f : GetAnimationScale();
             return ROSEN_EQ(animationScale, 0.0f);
         }
-        int64_t totalDuration = (static_cast<int64_t>(duration_) * repeatCount_ + startDelay_) * MS_TO_NS;
+        int64_t durationMs = static_cast<int64_t>(duration_) * repeatCount_;
+        int64_t totalMs = durationMs + static_cast<int64_t>(startDelay_);
+        if (totalMs > INT64_MAX / MS_TO_NS) {
+            ROSEN_LOGE("IsFinished overflow, dur:%{public}d cnt:%{public}d delay:%{public}d",
+                duration_, repeatCount_, startDelay_);
+            return true;
+        }
+        int64_t totalDuration = totalMs * MS_TO_NS;
         return runningTime_ >= totalDuration;
     } else {
         return runningTime_ <= 0;

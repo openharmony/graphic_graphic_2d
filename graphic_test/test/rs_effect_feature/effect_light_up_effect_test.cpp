@@ -72,6 +72,15 @@ constexpr int COLUMN_COUNT_3 = 3;
 const std::string BG_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 }
 
+struct BlurConfig {
+    uint32_t maskColor = COLOR_MASK_RED;
+    int radius = BLUR_RADIUS_MEDIUM;
+    float saturation = SATURATION_MID;
+    float brightness = BRIGHTNESS_MID;
+    int colorMode = COLOR_MODE_DEFAULT;
+    float alpha = ALPHA_MAX;
+};
+
 class LightUpEffectTest : public RSGraphicTest {
 private:
     const int screenWidth = SCREEN_WIDTH;
@@ -82,751 +91,331 @@ public:
     {
         SetScreenSize(screenWidth, screenHeight);
     }
+
+    auto SetUpDegreeNode(float lightUpDegree)
+    {
+        auto testNode =
+            SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
+        testNode->SetLightUpEffectDegree(lightUpDegree);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+        return testNode;
+    }
+
+    auto SetUpBlurDegreeNode(float lightUpDegree, BlurConfig blur)
+    {
+        auto testNode =
+            SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
+        testNode->SetBorderStyle(0, 0, 0, 0);
+        testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
+        testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+        testNode->SetBackgroundBlurRadius(blur.radius);
+        testNode->SetBackgroundBlurSaturation(blur.saturation);
+        testNode->SetBackgroundBlurBrightness(blur.brightness);
+        testNode->SetBackgroundBlurColorMode(blur.colorMode);
+        testNode->SetBackgroundBlurMaskColor(Color(blur.maskColor));
+        testNode->SetLightUpEffectDegree(lightUpDegree);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+        return testNode;
+    }
+
+    auto SetUpBlurMaskDegreeNode(float lightUpDegree, BlurConfig blur)
+    {
+        auto testNode =
+            SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
+        testNode->SetBorderStyle(0, 0, 0, 0);
+        testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
+        testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+        testNode->SetBackgroundBlurRadius(blur.radius);
+        testNode->SetBackgroundBlurSaturation(blur.saturation);
+        testNode->SetBackgroundBlurBrightness(blur.brightness);
+        testNode->SetBackgroundBlurMaskColor(Color(blur.maskColor));
+        testNode->SetLightUpEffectDegree(lightUpDegree);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+        return testNode;
+    }
+
+    auto SetUpBlurAlphaDegreeNode(float lightUpDegree, BlurConfig blur)
+    {
+        auto testNode =
+            SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
+        testNode->SetBorderStyle(0, 0, 0, 0);
+        testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
+        testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+        testNode->SetBackgroundBlurRadius(blur.radius);
+        testNode->SetBackgroundBlurSaturation(blur.saturation);
+        testNode->SetBackgroundBlurBrightness(blur.brightness);
+        testNode->SetBackgroundBlurMaskColor(Color(blur.maskColor));
+        testNode->SetAlpha(blur.alpha);
+        testNode->SetLightUpEffectDegree(lightUpDegree);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+        return testNode;
+    }
 };
 
 /*
- * Test lightUpEffectDegree sweep: negative value
- * Verifies that a negative degree dims the content significantly
+ * Degree sweep: each value rendered at full-screen for isolated visual comparison
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_Negative_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    int x = 0;
-    int y = 0;
-    float lightUpDegree = LIGHT_UP_DEGREE_NEGATIVE;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    SetUpDegreeNode(LIGHT_UP_DEGREE_NEGATIVE);
 }
 
-/*
- * Test lightUpEffectDegree sweep: zero value
- * Verifies that zero degree makes content fully dark
- */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_Zero_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    int x = 0;
-    int y = 0;
-    float lightUpDegree = LIGHT_UP_DEGREE_ZERO;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    SetUpDegreeNode(LIGHT_UP_DEGREE_ZERO);
 }
 
-/*
- * Test lightUpEffectDegree sweep: 0.25 (quarter brightness)
- * Verifies reduced brightness with small positive degree
- */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_Quarter_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    int x = 0;
-    int y = 0;
-    float lightUpDegree = LIGHT_UP_DEGREE_QUARTER;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    SetUpDegreeNode(LIGHT_UP_DEGREE_QUARTER);
 }
 
-/*
- * Test lightUpEffectDegree sweep: 0.5 (half brightness)
- * Verifies moderate dimming with half degree
- */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_Half_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    int x = 0;
-    int y = 0;
-    float lightUpDegree = LIGHT_UP_DEGREE_HALF;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    SetUpDegreeNode(LIGHT_UP_DEGREE_HALF);
 }
 
-/*
- * Test lightUpEffectDegree sweep: 1.0 (default, no effect)
- * Verifies that default degree produces no visual change
- */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_Default_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    int x = 0;
-    int y = 0;
-    float lightUpDegree = LIGHT_UP_DEGREE_DEFAULT;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    SetUpDegreeNode(LIGHT_UP_DEGREE_DEFAULT);
 }
 
-/*
- * Test lightUpEffectDegree sweep: 1.5 (moderate light up)
- * Verifies moderate brightness increase
- */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_OneAndHalf_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    int x = 0;
-    int y = 0;
-    float lightUpDegree = LIGHT_UP_DEGREE_ONE_AND_HALF;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    SetUpDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF);
 }
 
-/*
- * Test lightUpEffectDegree sweep: 2.0 (double light up)
- * Verifies significant brightness increase
- */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_Double_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    int x = 0;
-    int y = 0;
-    float lightUpDegree = LIGHT_UP_DEGREE_DOUBLE;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    SetUpDegreeNode(LIGHT_UP_DEGREE_DOUBLE);
 }
 
-/*
- * Test lightUpEffectDegree sweep: 5.0 (large degree)
- * Verifies behavior with a large brightness boost
- */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_Large_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    int x = 0;
-    int y = 0;
-    float lightUpDegree = LIGHT_UP_DEGREE_LARGE;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    SetUpDegreeNode(LIGHT_UP_DEGREE_LARGE);
 }
 
-/*
- * Test lightUpEffectDegree sweep: 200.0 (extreme degree)
- * Verifies behavior with an extreme brightness boost (robustness)
- */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Degree_Extreme_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    int x = 0;
-    int y = 0;
-    float lightUpDegree = LIGHT_UP_DEGREE_EXTREME;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    SetUpDegreeNode(LIGHT_UP_DEGREE_EXTREME);
 }
 
 /*
- * Test lightUpEffect combined with background blur, mask color red, and color mode variations
- * Row layout: each row tests a different colorMode value with fixed lightUp + blur
+ * Degree + blur + red mask with varying degree and colorMode
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Red_ColorMode_Test1)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_RED);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    int colorMode = COLOR_MODE_INVALID;
-    float lightUpDegree = LIGHT_UP_DEGREE_DEFAULT;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_INVALID };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Red_ColorMode_Test2)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_RED);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    int colorMode = COLOR_MODE_DEFAULT;
-    float lightUpDegree = LIGHT_UP_DEGREE_DEFAULT;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_DEFAULT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Red_ColorMode_Test3)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_RED);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    int colorMode = COLOR_MODE_ALT;
-    float lightUpDegree = LIGHT_UP_DEGREE_DEFAULT;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_ALT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Red_ColorMode_Test4)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_RED);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    int colorMode = COLOR_MODE_EXTENDED;
-    float lightUpDegree = LIGHT_UP_DEGREE_DEFAULT;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_EXTENDED };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DOUBLE, blur);
 }
 
 /*
- * Test lightUpEffect combined with background blur and green mask color
- * Verifies lightUp with green overlay mask and different blur radii
+ * Degree + blur + green mask with varying degree and colorMode
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Green_ColorMode_Test1)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_GREEN);
-    int radius = BLUR_RADIUS_SMALL;
-    float saturation = SATURATION_MIN;
-    float brightness = BRIGHTNESS_MIN;
-    int colorMode = COLOR_MODE_DEFAULT;
-    float lightUpDegree = LIGHT_UP_DEGREE_HALF;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_SMALL, SATURATION_MIN, BRIGHTNESS_MIN, COLOR_MODE_DEFAULT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Green_ColorMode_Test2)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_GREEN);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    int colorMode = COLOR_MODE_ALT;
-    float lightUpDegree = LIGHT_UP_DEGREE_DEFAULT;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_ALT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Green_ColorMode_Test3)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_GREEN);
-    int radius = BLUR_RADIUS_LARGE;
-    float saturation = SATURATION_MAX;
-    float brightness = BRIGHTNESS_MAX;
-    int colorMode = COLOR_MODE_DEFAULT;
-    float lightUpDegree = LIGHT_UP_DEGREE_DOUBLE;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_LARGE, SATURATION_MAX, BRIGHTNESS_MAX, COLOR_MODE_DEFAULT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DOUBLE, blur);
 }
 
 /*
- * Test lightUpEffect combined with background blur and blue mask color
- * Verifies lightUp with blue overlay mask and varying saturation/brightness
+ * Degree + blur + blue mask with varying degree and colorMode
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Blue_ColorMode_Test1)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_BLUE);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    int colorMode = COLOR_MODE_INVALID;
-    float lightUpDegree = LIGHT_UP_DEGREE_ONE_AND_HALF;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_INVALID };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Blue_ColorMode_Test2)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_BLUE);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    int colorMode = COLOR_MODE_DEFAULT;
-    float lightUpDegree = LIGHT_UP_DEGREE_ONE_AND_HALF;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_DEFAULT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Blue_ColorMode_Test3)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_BLUE);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    int colorMode = COLOR_MODE_ALT;
-    float lightUpDegree = LIGHT_UP_DEGREE_ONE_AND_HALF;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurColorMode(colorMode);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, COLOR_MODE_ALT };
+    SetUpBlurDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
 }
 
 /*
- * Test lightUpEffect with background blur mask color sweep (black to transparent)
- * Combines increasing blur radius/saturation/brightness with varying mask colors
+ * Degree + blur + mask color sweep (black to transparent)
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_MaskColor_Black_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_BLACK);
-    int radius = BLUR_RADIUS_SMALL;
-    float saturation = SATURATION_MIN;
-    float brightness = BRIGHTNESS_MIN;
-    float lightUpDegree = LIGHT_UP_DEGREE_HALF;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_BLACK, BLUR_RADIUS_SMALL, SATURATION_MIN, BRIGHTNESS_MIN };
+    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_MaskColor_White_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_WHITE);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_LOW;
-    float brightness = BRIGHTNESS_LOW;
-    float lightUpDegree = LIGHT_UP_DEGREE_DEFAULT;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_WHITE, BLUR_RADIUS_MEDIUM, SATURATION_LOW, BRIGHTNESS_LOW };
+    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_MaskColor_Red_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_RED);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    float lightUpDegree = LIGHT_UP_DEGREE_ONE_AND_HALF;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID };
+    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_MaskColor_Transparent_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_TRANSPARENT);
-    int radius = BLUR_RADIUS_LARGE;
-    float saturation = SATURATION_MAX;
-    float brightness = BRIGHTNESS_MAX;
-    float lightUpDegree = LIGHT_UP_DEGREE_DOUBLE;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_TRANSPARENT, BLUR_RADIUS_LARGE, SATURATION_MAX, BRIGHTNESS_MAX };
+    SetUpBlurMaskDegreeNode(LIGHT_UP_DEGREE_DOUBLE, blur);
 }
 
 /*
- * Test lightUpEffect with background blur and alpha sweep
- * Verifies interaction between lightUp effect and node alpha
+ * Degree + blur + alpha sweep
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Min_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_RED);
-    int radius = BLUR_RADIUS_SMALL;
-    float saturation = SATURATION_MIN;
-    float brightness = BRIGHTNESS_MIN;
-    float alpha = ALPHA_MIN;
-    float lightUpDegree = LIGHT_UP_DEGREE_HALF;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetAlpha(alpha);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_SMALL, SATURATION_MIN, BRIGHTNESS_MIN, {}, ALPHA_MIN };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Low_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_GREEN);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_LOW;
-    float brightness = BRIGHTNESS_LOW;
-    float alpha = ALPHA_LOW;
-    float lightUpDegree = LIGHT_UP_DEGREE_DEFAULT;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetAlpha(alpha);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_MEDIUM, SATURATION_LOW, BRIGHTNESS_LOW, {}, ALPHA_LOW };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_DEFAULT, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Mid_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_BLUE);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    float alpha = ALPHA_MID;
-    float lightUpDegree = LIGHT_UP_DEGREE_ONE_AND_HALF;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetAlpha(alpha);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, {}, ALPHA_MID };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_High_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_RED);
-    int radius = BLUR_RADIUS_LARGE;
-    float saturation = SATURATION_HIGH;
-    float brightness = BRIGHTNESS_HIGH;
-    float alpha = ALPHA_HIGH;
-    float lightUpDegree = LIGHT_UP_DEGREE_DOUBLE;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetAlpha(alpha);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_LARGE, SATURATION_HIGH, BRIGHTNESS_HIGH, {}, ALPHA_HIGH };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_DOUBLE, blur);
 }
 
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Max_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_GREEN);
-    int radius = BLUR_RADIUS_LARGE;
-    float saturation = SATURATION_MAX;
-    float brightness = BRIGHTNESS_MAX;
-    float alpha = ALPHA_MAX;
-    float lightUpDegree = LIGHT_UP_DEGREE_LARGE;
-    int x = 0;
-    int y = 0;
-    auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetAlpha(alpha);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_LARGE, SATURATION_MAX, BRIGHTNESS_MAX, {}, ALPHA_MAX };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_LARGE, blur);
 }
 
 /*
- * Test lightUpEffect with over-range alpha (robustness)
- * Verifies behavior when alpha exceeds the normal 0-1 range
+ * Degree + blur + alpha: over-range alpha (robustness)
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_Over_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    Color color = Color(COLOR_MASK_BLUE);
-    int radius = BLUR_RADIUS_MEDIUM;
-    float saturation = SATURATION_MID;
-    float brightness = BRIGHTNESS_MID;
-    float alpha = ALPHA_OVER;
-    float lightUpDegree = LIGHT_UP_DEGREE_ONE_AND_HALF;
-    int x = 0;
-    int y = 0;
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, {}, ALPHA_OVER };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_ONE_AND_HALF, blur);
+}
+
+/*
+ * Degree + blur + alpha: zero and negative degree combined with alpha
+ */
+GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_ZeroDegree_Test)
+{
+    BlurConfig blur = { COLOR_MASK_RED, BLUR_RADIUS_MEDIUM, SATURATION_MID, BRIGHTNESS_MID, {}, ALPHA_MID };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_ZERO, blur);
+}
+
+GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_QuarterDegree_Test)
+{
+    BlurConfig blur = { COLOR_MASK_GREEN, BLUR_RADIUS_SMALL, SATURATION_LOW, BRIGHTNESS_LOW, {}, ALPHA_LOW };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_QUARTER, blur);
+}
+
+GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Blur_Alpha_NegativeDegree_Test)
+{
+    BlurConfig blur = { COLOR_MASK_BLUE, BLUR_RADIUS_LARGE, SATURATION_HIGH, BRIGHTNESS_HIGH, {}, ALPHA_HIGH };
+    SetUpBlurAlphaDegreeNode(LIGHT_UP_DEGREE_NEGATIVE, blur);
+}
+
+/*
+ * Compose: two lightUp filters with different degree combinations
+ */
+GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Compose_Half_And_OneAndHalf_Test)
+{
+    auto filter1 = std::make_shared<RSLightUpEffectFilter>(LIGHT_UP_DEGREE_HALF);
+    auto filter2 = std::make_shared<RSLightUpEffectFilter>(LIGHT_UP_DEGREE_ONE_AND_HALF);
+    auto composedFilter = filter1->Compose(filter2);
     auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
-    testNode->SetBorderStyle(0, 0, 0, 0);
-    testNode->SetBorderWidth(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-    testNode->SetBackgroundBlurRadius(radius);
-    testNode->SetBackgroundBlurSaturation(saturation);
-    testNode->SetBackgroundBlurBrightness(brightness);
-    testNode->SetBackgroundBlurMaskColor(color);
-    testNode->SetAlpha(alpha);
-    testNode->SetLightUpEffectDegree(lightUpDegree);
+        SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
+    testNode->SetBackgroundFilter(composedFilter);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 }
 
-/*
- * Test RSLightUpEffectFilter Compose functionality
- * Verifies that composing two lightUp filters produces a valid result
- */
-GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Compose_Test)
+GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Compose_Quarter_And_Double_Test)
 {
-    auto sizeX = screenWidth;
-    auto sizeY = screenHeight;
-    float lightUpDegree1 = LIGHT_UP_DEGREE_HALF;
-    float lightUpDegree2 = LIGHT_UP_DEGREE_ONE_AND_HALF;
-    auto filter1 = std::make_shared<RSLightUpEffectFilter>(lightUpDegree1);
-    auto filter2 = std::make_shared<RSLightUpEffectFilter>(lightUpDegree2);
+    auto filter1 = std::make_shared<RSLightUpEffectFilter>(LIGHT_UP_DEGREE_QUARTER);
+    auto filter2 = std::make_shared<RSLightUpEffectFilter>(LIGHT_UP_DEGREE_DOUBLE);
     auto composedFilter = filter1->Compose(filter2);
-    int x = 0;
-    int y = 0;
     auto testNode =
-        SetUpNodeBgImage(BG_IMAGE_PATH, { x, y, sizeX - SCREEN_MARGIN, sizeY - SCREEN_MARGIN });
+        SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
+    testNode->SetBackgroundFilter(composedFilter);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Compose_Double_And_Quarter_Test)
+{
+    auto filter1 = std::make_shared<RSLightUpEffectFilter>(LIGHT_UP_DEGREE_DOUBLE);
+    auto filter2 = std::make_shared<RSLightUpEffectFilter>(LIGHT_UP_DEGREE_QUARTER);
+    auto composedFilter = filter1->Compose(filter2);
+    auto testNode =
+        SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
+    testNode->SetBackgroundFilter(composedFilter);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Compose_Large_And_Negative_Test)
+{
+    auto filter1 = std::make_shared<RSLightUpEffectFilter>(LIGHT_UP_DEGREE_LARGE);
+    auto filter2 = std::make_shared<RSLightUpEffectFilter>(LIGHT_UP_DEGREE_NEGATIVE);
+    auto composedFilter = filter1->Compose(filter2);
+    auto testNode =
+        SetUpNodeBgImage(BG_IMAGE_PATH, { 0, 0, screenWidth - SCREEN_MARGIN, screenHeight - SCREEN_MARGIN });
     testNode->SetBackgroundFilter(composedFilter);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 }
 
 /*
- * Test lightUpEffect grid layout: multiple degrees in a grid
- * Verifies different lightUp degrees side by side for visual comparison
+ * Grid layout: all degree values side by side for visual comparison
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Grid_Degree_Test)
 {
@@ -853,8 +442,7 @@ GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Grid_Degree_Tes
 }
 
 /*
- * Test lightUpEffect grid layout: degrees combined with background blur
- * Verifies lightUp + blur combination in a multi-cell grid
+ * Grid layout: degrees combined with background blur
  */
 GRAPHIC_TEST(LightUpEffectTest, EFFECT_TEST, Set_Light_Up_Effect_Grid_Blur_Test)
 {

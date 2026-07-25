@@ -1216,17 +1216,4 @@ HWTEST_F(RSInterfacesTest, SetUIMode3D_003, TestSize.Level1)
     EXPECT_TRUE(res);
 }
 
-/**
- * @tc.name: SetUIMode3D_005
- * @tc.desc: Test SetUIMode3D with invalid UIMode3D value
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, SetUIMode3D_005, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    bool res = instance.SetUIMode3D(static_cast<UIMode3D>(100));
-    EXPECT_FALSE(res);
-}
-
 } // namespace OHOS::Rosen

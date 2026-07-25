@@ -68,6 +68,8 @@ ohos_shared_library("drawing_napi") {
 
   external_deps = [
     "napi:ace_napi",
+    "node:node_header_notice",
+    "libuv:uv",
     "skia:skia_canvaskit",
   ]
 
@@ -188,7 +190,10 @@ if (is_arkui_x) {
       "$rosen_text_root:rosen_text",
     ]
 
-    external_deps = [ "napi:ace_napi" ]
+    external_deps = [
+      "napi:ace_napi",
+      "node:node_header_notice",
+    ]
 
     if (current_os == "ohos" || current_os == "ohos_ng") {
       if (arkgraphic2d_drawing_api_metrics) {

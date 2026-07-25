@@ -338,6 +338,54 @@ HWTEST_F(RSColorPickerUtilsTest, CollectColorPickerNodeIdsDeduplicates, TestSize
     EXPECT_EQ(result.size(), 1u);
 }
 
+/**
+ * @tc.name: CollectColorPickerNodeIdsFilterNodeNull
+ * @tc.desc: Test CollectColorPickerNodeIds handles filterNode nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, CollectColorPickerNodeIdsFilterNodeNull, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext->weak_from_this());
+
+    NodeId nonExistentNodeId = 999;
+    surfaceNode->visibleFilterChild_.push_back(nonExistentNodeId);
+
+    std::vector<std::shared_ptr<RSRenderNode>> surfaces;
+    surfaces.push_back(surfaceNode);
+
+    auto result = RSColorPickerUtils::CollectColorPickerNodeIds(surfaces, nodeMap);
+
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: CollectColorPickerNodeIdsFilterNodeNoColorPicker
+ * @tc.desc: Test CollectColorPickerNodeIds handles filterNode without color picker drawable
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, CollectColorPickerNodeIdsFilterNodeNoColorPicker, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext->weak_from_this());
+
+    NodeId filterNodeId = 100;
+    auto filterNode = std::make_shared<RSRenderNode>(filterNodeId);
+    nodeMap.RegisterRenderNode(filterNode);
+    surfaceNode->visibleFilterChild_.push_back(filterNodeId);
+
+    std::vector<std::shared_ptr<RSRenderNode>> surfaces;
+    surfaces.push_back(surfaceNode);
+
+    auto result = RSColorPickerUtils::CollectColorPickerNodeIds(surfaces, nodeMap);
+
+    EXPECT_TRUE(result.empty());
+}
+
 // ============================================================================
 // RSColorPickerUtils::ShouldColorPickForNode Tests
 // ============================================================================

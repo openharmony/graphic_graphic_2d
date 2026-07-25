@@ -164,6 +164,146 @@ HWTEST_F(RSPixelMapShaderTest, UnmarshallingTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UnmarshallingInvalidTileXTest
+ * @tc.desc: Verify Unmarshalling rejects an out-of-range tileX_ enum value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapShaderTest, UnmarshallingInvalidTileXTest, TestSize.Level1)
+{
+    constexpr int32_t INVALID_TILE_MODE = 999;
+    int width = 200;
+    int height = 300;
+    std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMap(width, height);
+    ASSERT_NE(pixelMap, nullptr);
+
+    RSPixelMapShader* marshalSrc = new RSPixelMapShader(pixelMap, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
+    ASSERT_NE(marshalSrc, nullptr);
+    marshalSrc->tileX_ = static_cast<Drawing::TileMode>(INVALID_TILE_MODE);
+    Parcel parcel;
+    ASSERT_EQ(marshalSrc->Marshalling(parcel), true);
+    delete marshalSrc;
+
+    RSPixelMapShader* result = new RSPixelMapShader();
+    ASSERT_NE(result, nullptr);
+    EXPECT_FALSE(result->Unmarshalling(parcel));
+    delete result;
+}
+
+/**
+ * @tc.name: UnmarshallingInvalidTileYTest
+ * @tc.desc: Verify Unmarshalling rejects an out-of-range tileY_ enum value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapShaderTest, UnmarshallingInvalidTileYTest, TestSize.Level1)
+{
+    constexpr int32_t INVALID_TILE_MODE = 999;
+    int width = 200;
+    int height = 300;
+    std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMap(width, height);
+    ASSERT_NE(pixelMap, nullptr);
+
+    RSPixelMapShader* marshalSrc = new RSPixelMapShader(pixelMap, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
+    ASSERT_NE(marshalSrc, nullptr);
+    marshalSrc->tileY_ = static_cast<Drawing::TileMode>(INVALID_TILE_MODE);
+    Parcel parcel;
+    ASSERT_EQ(marshalSrc->Marshalling(parcel), true);
+    delete marshalSrc;
+
+    RSPixelMapShader* result = new RSPixelMapShader();
+    ASSERT_NE(result, nullptr);
+    EXPECT_FALSE(result->Unmarshalling(parcel));
+    delete result;
+}
+
+/**
+ * @tc.name: UnmarshallingInvalidSamplingFilterTest
+ * @tc.desc: Verify Unmarshalling rejects an out-of-range SamplingOptions filter enum.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapShaderTest, UnmarshallingInvalidSamplingFilterTest, TestSize.Level1)
+{
+    constexpr int32_t INVALID_FILTER_MODE = 999;
+    int width = 200;
+    int height = 300;
+    std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMap(width, height);
+    ASSERT_NE(pixelMap, nullptr);
+
+    RSPixelMapShader* marshalSrc = new RSPixelMapShader(pixelMap, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
+    ASSERT_NE(marshalSrc, nullptr);
+    marshalSrc->sampling_.filter = static_cast<Drawing::FilterMode>(INVALID_FILTER_MODE);
+    Parcel parcel;
+    ASSERT_EQ(marshalSrc->Marshalling(parcel), true);
+    delete marshalSrc;
+
+    RSPixelMapShader* result = new RSPixelMapShader();
+    ASSERT_NE(result, nullptr);
+    EXPECT_FALSE(result->Unmarshalling(parcel));
+    delete result;
+}
+
+/**
+ * @tc.name: UnmarshallingInvalidSamplingMipmapTest
+ * @tc.desc: Verify Unmarshalling rejects an out-of-range SamplingOptions mipmap enum.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapShaderTest, UnmarshallingInvalidSamplingMipmapTest, TestSize.Level1)
+{
+    constexpr int32_t INVALID_MIPMAP_MODE = 999;
+    int width = 200;
+    int height = 300;
+    std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMap(width, height);
+    ASSERT_NE(pixelMap, nullptr);
+
+    RSPixelMapShader* marshalSrc = new RSPixelMapShader(pixelMap, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
+    ASSERT_NE(marshalSrc, nullptr);
+    marshalSrc->sampling_.mipmap = static_cast<Drawing::MipmapMode>(INVALID_MIPMAP_MODE);
+    Parcel parcel;
+    ASSERT_EQ(marshalSrc->Marshalling(parcel), true);
+    delete marshalSrc;
+
+    RSPixelMapShader* result = new RSPixelMapShader();
+    ASSERT_NE(result, nullptr);
+    EXPECT_FALSE(result->Unmarshalling(parcel));
+    delete result;
+}
+
+/**
+ * @tc.name: UnmarshallingValidEnumBoundaryTest
+ * @tc.desc: Verify Unmarshalling accepts all valid enum boundary values.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapShaderTest, UnmarshallingValidEnumBoundaryTest, TestSize.Level1)
+{
+    int width = 200;
+    int height = 300;
+    std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMap(width, height);
+    ASSERT_NE(pixelMap, nullptr);
+
+    // Cover min/max boundaries of TileMode, FilterMode and MipmapMode.
+    const Drawing::TileMode tileModes[] = { Drawing::TileMode::CLAMP, Drawing::TileMode::DECAL };
+    const Drawing::SamplingOptions samplings[] = {
+        Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE),
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR),
+    };
+    for (Drawing::TileMode tileX : tileModes) {
+        for (Drawing::TileMode tileY : tileModes) {
+            for (const auto& sampling : samplings) {
+                RSPixelMapShader marshalSrc(pixelMap, tileX, tileY, sampling, Drawing::Matrix());
+                Parcel parcel;
+                ASSERT_TRUE(marshalSrc.Marshalling(parcel));
+
+                RSPixelMapShader result;
+                EXPECT_TRUE(result.Unmarshalling(parcel));
+            }
+        }
+    }
+}
+
+/**
  * @tc.name: GenerateBaseObjectTest
  * @tc.desc:
  * @tc.type: FUNC

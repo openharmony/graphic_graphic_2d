@@ -221,7 +221,6 @@ public:
     static bool GetDrawTextAsBitmap();
     static void SetCacheEnabledForRotation(bool flag);
     static bool GetCacheEnabledForRotation();
-    static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
     static void SetHgmRefreshRateModesEnabled(std::string param);
@@ -297,7 +296,6 @@ public:
     static bool GetDebugTraceEnabled();
     static bool GetImageReleaseUsingPostTask();
     static int GetDebugTraceLevel();
-    static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
     static bool IsSmallFoldDevice();
     static bool IsFoldDeviceOfOldDss();

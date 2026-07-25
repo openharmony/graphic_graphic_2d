@@ -53,6 +53,9 @@ __attribute__((__always_inline__))__inline__ static OHOS::GlHookTable *GetHookTa
         }
     }
 
+    if (g_pfnGetGlHookTable == nullptr || g_pfnGetGlHookTableKey == nullptr) {
+        return nullptr;
+    }
     OHOS::GlHookTable *table = g_pfnGetGlHookTable();
     g_glHookTableKey = g_pfnGetGlHookTableKey();
     return table;

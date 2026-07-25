@@ -1885,7 +1885,7 @@ public:
 
     void OnUIExtension(std::shared_ptr<RSUIExtensionData> uiExtensionData, uint64_t userId) override
     {
-        if (cb_ != nullptr) {
+        if (cb_ != nullptr && uiExtensionData != nullptr) {
             cb_(uiExtensionData, userId);
         }
     }

@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#include <cmath>
+
+#include "animation/rs_animation_common.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_interpolator.h"
@@ -23,12 +26,11 @@
 #include "animation/rs_render_path_animation.h"
 #include "animation/rs_render_property_animation.h"
 #include "animation/rs_render_spring_animation.h"
-#include "animation/rs_render_transition_effect.h"
 #include "animation/rs_render_transition.h"
+#include "animation/rs_render_transition_effect.h"
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
 #include "platform/common/rs_log.h"
-
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -270,6 +272,10 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
             parcel.ReadBool(isRepeatCallbackEnable) && parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) &&
             parcel.ReadInt32(fpsPreferred) && parcel.ReadInt32(componentScene) && parcel.ReadUint64(token))) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
+        return false;
+    }
+    if (ROSEN_LE(speed, 0.0f) || std::isinf(speed) || std::isnan(speed)) {
+        ROSEN_LOGE("RSRenderAnimation::ParseParam, invalid speed:%{public}f", speed);
         return false;
     }
     SetDuration(duration);
@@ -523,7 +529,13 @@ bool RSRenderKeyframeAnimation::ParseDurationKeyframesParam(Parcel& parcel, int 
     float endFraction = 0.0;
     for (int i = 0; i < keyframeSize; i++) {
         if (!(parcel.ReadFloat(startFraction)) || !(parcel.ReadFloat(endFraction))) {
-            ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling duration value failed");
+            ROSEN_LOGE("RSRenderKeyframeAnimation::ParseDurationKeyframesParam, Unmarshalling fraction failed");
+            return false;
+        }
+        if (std::isnan(startFraction) || std::isnan(endFraction) || startFraction < FRACTION_MIN ||
+            endFraction > FRACTION_MAX || startFraction > endFraction) {
+            ROSEN_LOGE("RSRenderKeyframeAnimation::ParseDurationKeyframesParam, invalid fraction "
+                "startFraction:%{public}f endFraction:%{public}f", startFraction, endFraction);
             return false;
         }
         std::shared_ptr<RSRenderPropertyBase> tupValue1;
@@ -975,6 +987,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSAnimationTimingProtoco
           parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) &&
           parcel.ReadBool(autoReverse))) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling, RSAnimationTimingProtocol failed");
+        return false;
+    }
+
+    if (ROSEN_LE(speed, 0.0f) || std::isinf(speed) || std::isnan(speed)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling, RSAnimationTimingProtocol invalid speed:%{public}f", speed);
         return false;
     }
 

@@ -233,7 +233,8 @@ void RSDynamicLayerSkipController::DetectScreenLayerValidity(RSSurfaceRenderNode
     // 1. The self-drawing area covers the full screen (determined by bounds and area).
     // 2. The hardware enable status of these self-drawing nodes will be re-checked later.
     bool isValidTargetApp = targetSelfDrawingArea.GetBound() == Occlusion::Rect(screenRect_) &&
-        targetSelfDrawingArea.Area() == screenRect_.GetWidth() * screenRect_.GetHeight();
+        targetSelfDrawingArea.Area() ==
+        static_cast<int64_t>(screenRect_.GetWidth()) * static_cast<int64_t>(screenRect_.GetHeight());
     RS_TRACE_NAME_FMT("Target App: %s, targetSelfDrawingArea: %s, screenRect: %s", rootNode.GetName().c_str(),
         targetSelfDrawingArea.GetRegionInfo().c_str(), screenRect_.ToString().c_str());
     if (!isValidTargetApp) {

@@ -1124,7 +1124,7 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
     if (isQuickSkip) {
         // Record the surfaceNode object for later use in RSScreenRenderParams::OnSync to collect its drawable.
         // This ensures the drawable can updates the latest drawRegion, thus correctly skip drawing.
-        if (curScreenNode_) {
+        if (curScreenNode_ != nullptr && curLogicalDisplayNode_ != nullptr) {
             bool needCalcScreenSpecialLayer =
                 curScreenNode_->GetScreenProperty().IsVirtual() || hasMirrorUsedInSpecialLayer_;
             RSSpecialLayerUtils::DealWithSpecialLayer(node, *curLogicalDisplayNode_, needCalcScreenSpecialLayer);
@@ -1832,8 +1832,8 @@ CM_INLINE void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& no
 
 void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
 {
-    if (!curScreenNode_) {
-        RS_LOGE("UpdateNodeVisibleRegion curScreenNode is nullptr");
+    if (curScreenNode_ == nullptr || curLogicalDisplayNode_ == nullptr) {
+        RS_LOGE("UpdateNodeVisibleRegion curScreenNode or curLogicalDisplayNode is nullptr");
         return;
     }
     // occlusion - 0. Calculate node visible region considering accumulated opaque region of upper surface nodes.
@@ -1866,8 +1866,8 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
 
 CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node)
 {
-    if (!curScreenNode_) {
-        RS_LOGE("CalculateOpaqueAndTransparentRegion curScreenNode is nullptr");
+    if (curScreenNode_ == nullptr || curLogicalDisplayNode_ == nullptr) {
+        RS_LOGE("CalculateOpaqueAndTransparentRegion curScreenNode or curLogicalDisplayNode is nullptr");
         return;
     }
     // occlusion - 1. Only non-cross-screen main window surface node participate in occlusion.
@@ -2266,6 +2266,10 @@ void RSUniRenderVisitor::QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRe
 
 void RSUniRenderVisitor::UpdateRotationStatusForEffectNode(RSEffectRenderNode& node)
 {
+    if (!curScreenNode_ || !curLogicalDisplayNode_) {
+        RS_LOGE("%{public}s curScreenNode_ or curLogicalDisplayNode_ is nullptr", __func__);
+        return;
+    }
      // folding/expanding screen force invalidate cache.
     node.SetFoldStatusChanged(doAnimate_ &&
         curScreenNode_->GetScreenId() != node.GetCurrentAttachedScreenId());
@@ -3632,7 +3636,12 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
 
 void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter)
 {
-    auto nodeParent = node.GetParent().lock();
+    CollectEffectInfo(node, isBlendNeedFilter, node.GetParent().lock());
+}
+
+void RSUniRenderVisitor::CollectEffectInfo(
+    RSRenderNode& node, bool isBlendNeedFilter, const std::shared_ptr<RSRenderNode>& nodeParent)
+{
     if (nodeParent == nullptr) {
         return;
     }
@@ -3649,13 +3658,13 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
 
     // Handle ColorPickerDrawable - MERGE into filter handling
     if (isBlendNeedFilter || node.ChildHasVisibleFilter() ||
-        node.GetColorPickerDrawable()) {
+        node.HasColorPickerDrawable()) {
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
-    if ((node.GetRenderProperties().GetUseEffect() || node.GetRenderProperties().HasHarmonium() ||
-        node.GetRenderProperties().HasSpatialGlassEffect() ||
-        node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
+    if ((properties.GetUseEffect() || properties.HasHarmonium() || properties.HasSpatialGlassEffect() ||
+            node.ChildHasVisibleEffect()) &&
+        node.ShouldPaint()) {
         nodeParent->UpdateVisibleEffectChild(node);
         nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
     }
@@ -3668,7 +3677,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
     if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
         nodeParent->SetChildHasSharedTransition(true);
     }
-    if (node.GetRenderProperties().GetSpatialEffectPara() || node.ChildHasSpatialEffect()) {
+    if (properties.GetSpatialEffectPara() || node.ChildHasSpatialEffect()) {
         nodeParent->SetChildHasSpatialEffect(true);
     }
     if (node.ChildHasVisibleHDRContent() || node.GetHDRStatus() != HdrStatus::NO_HDR) {
@@ -3678,8 +3687,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
         nodeParent->SetHasChildExcludedFromNodeGroup(true);
     }
     if (!renderGroupCacheRoots_.empty()) {
-        bool flag = !ROSEN_EQ(node.GetRenderProperties().GetTranslateX(), 0.0f) ||
-                    !ROSEN_EQ(node.GetRenderProperties().GetTranslateY(), 0.0f);
+        bool flag = !ROSEN_EQ(properties.GetTranslateX(), 0.0f) || !ROSEN_EQ(properties.GetTranslateY(), 0.0f);
         nodeParent->SetChildHasTranslateOnSqueeze(flag);
     }
     node.UpdateNodeColorSpace();
@@ -3759,17 +3767,17 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
         CollectFilterInfoAndUpdateDirty(node, *curDirtyManager);
         node.SetGlobalAlpha(curAlpha_);
     }
-    CollectEffectInfo(node, isBlendNeedFilter);
+    auto nodeParent = node.GetParent().lock();
+    CollectEffectInfo(node, isBlendNeedFilter, nodeParent);
     node.NodePostPrepare(curSurfaceNode_, prepareClipRect_);
     if (curScreenNode_ && curScreenNode_->GetId() != node.GetId()) {
         CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder, isBlendNeedFilter);
     }
     dynamicLayerSkipController_->VisitRenderNode(curSurfaceNode_, node);
     UpdateDrawingCacheInfoAfterChildren(node);
-    if (auto nodeParent = node.GetParent().lock()) {
+    if (nodeParent) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
-        nodeParent->GetOpincCache().UpdateSubTreeSupportFlag(
-            RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
+        nodeParent->GetOpincCache().UpdateSubTreeSupportFlag(RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
             RSOpincManager::OpincGetRootFlag(node),
             nodeParent->GetNodeGroupType() == RSRenderNode::NodeGroupType::NONE);
         nodeParent->GetOpincCache().UpdateSubTreeHasUnstableOpincNode(
@@ -3781,10 +3789,11 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (stagingRenderParams != nullptr) {
-        if (node.GetSharedTransitionParam() && node.GetRenderProperties().GetSandBox()) {
+        const auto& properties = node.GetRenderProperties();
+        if (node.GetSharedTransitionParam() && properties.GetSandBox()) {
             stagingRenderParams->SetAlpha(curAlpha_);
         } else {
-            stagingRenderParams->SetAlpha(node.GetRenderProperties().GetAlpha());
+            stagingRenderParams->SetAlpha(properties.GetAlpha());
         }
     }
 
@@ -4472,6 +4481,10 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
 
 void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
 {
+    auto handler = node.GetRSSurfaceHandler();
+    if (handler == nullptr || !handler->HasReceivedTunnelLayerInfo()) {
+        return;
+    }
     auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node.GetId());
     uint64_t tunnelLayerId = 0;
     uint32_t property = TUNNEL_PROP_INVALID;

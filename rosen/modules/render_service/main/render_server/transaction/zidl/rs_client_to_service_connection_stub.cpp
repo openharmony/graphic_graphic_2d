@@ -1679,6 +1679,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (scaleMode >= static_cast<uint32_t>(ScreenScaleMode::INVALID_MODE)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE scaleMode is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool result = SetVirtualMirrorScreenScaleMode(id, static_cast<ScreenScaleMode>(scaleMode));
             if (!reply.WriteBool(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE Write parcel failed!");

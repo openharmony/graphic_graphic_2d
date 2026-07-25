@@ -983,7 +983,7 @@ napi_value ColorPickerNapi::DiscriminatePictureLightDegree(napi_env env, napi_ca
 
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
 
-    napi_value result;
+    napi_value result = nullptr;
     PictureLightColorDegree rst;
     errorCode = thisColorPicker->nativeColorPicker_->DiscriminatePictureLightDegree(rst);
     if (errorCode == SUCCESS) {
@@ -1053,9 +1053,17 @@ napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_i
  
     napi_value arrayValue = nullptr;
     std::vector<ColorManager::Color> colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
+    napi_value undefinedValue = nullptr;
+    status = napi_get_undefined(env, &undefinedValue);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && undefinedValue != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors get undefined fail"));
     napi_create_array_with_length(env, std::max(1u, static_cast<uint32_t>(colors.size())), &arrayValue);
     for (uint32_t i = 0; i < std::max(1u, static_cast<uint32_t>(colors.size())); ++i) {
-        napi_value colorValue = i >= colors.size() ?  nullptr : BuildJsColor(env, colors[i]);
+        napi_value colorValue = undefinedValue;
+        if (i < colors.size()) {
+            napi_value value = BuildJsColor(env, colors[i]);
+            colorValue = value == nullptr ? undefinedValue : value;
+        }
         napi_set_element(env, arrayValue, i, colorValue);
     }
 
@@ -1093,15 +1101,26 @@ napi_value ColorPickerNapi::GetTopProportionColorsAndPercentage(napi_env env, na
 
     std::vector<double> percentage = thisColorPicker->nativeColorPicker_->GetTopProportion(colorsNum);
     std::vector<ColorManager::Color> colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
+    napi_value undefinedValue = nullptr;
+    status = napi_get_undefined(env, &undefinedValue);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && undefinedValue != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetTopProportionColorsAndPercentage get undefined fail"));
     napi_value mapNapiValue {nullptr};
     status = napi_create_map(env, &mapNapiValue);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && mapNapiValue != nullptr, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetTopProportion create map fail"));
     for (uint32_t i = 0; i < std::max(1u, static_cast<uint32_t>(percentage.size())); ++i) {
-        napi_value colorValue = i >= colors.size() ?  nullptr : BuildJsColor(env, colors[i]);
-        napi_value percentageValue = nullptr;
+        napi_value colorValue = undefinedValue;
+        if (i < colors.size()) {
+            napi_value value = BuildJsColor(env, colors[i]);
+            colorValue = value == nullptr ? undefinedValue : value;
+        }
+        napi_value percentageValue = undefinedValue;
         if (i < percentage.size()) {
-            napi_create_double(env, percentage[i], &percentageValue);
+            napi_value value = nullptr;
+            if (napi_create_double(env, percentage[i], &value) == napi_ok && value != nullptr) {
+                percentageValue = value;
+            }
         }
         napi_map_set_property(env, mapNapiValue, colorValue, percentageValue);
     }
@@ -1131,7 +1150,7 @@ napi_value ColorPickerNapi::ComplexityDegree(napi_env env, napi_callback_info in
 
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
 
-    napi_value result;
+    napi_value result = nullptr;
     PictureComplexityDegree rst;
     errorCode = thisColorPicker->nativeColorPicker_->ComplexityDegree(rst);
     if (errorCode == SUCCESS) {
@@ -1167,7 +1186,7 @@ napi_value ColorPickerNapi::ShadeDegree(napi_env env, napi_callback_info info)
 
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
 
-    napi_value result;
+    napi_value result = nullptr;
     PictureShadeDegree rst;
     errorCode = thisColorPicker->nativeColorPicker_->ShadeDegree(rst);
     if (errorCode == SUCCESS) {

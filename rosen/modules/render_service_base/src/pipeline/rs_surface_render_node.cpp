@@ -1590,7 +1590,14 @@ void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByWindow(bool isOnTree, Gra
 void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (!GetRSSurfaceHandler() || !GetRSSurfaceHandler()->GetBuffer()) {
+    auto surfaceHandler = GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata node(%{public}s) did not have surfaceHandler.",
+            GetName().c_str());
+        return;
+    }
+    const sptr<SurfaceBuffer>& buffer = surfaceHandler->GetBuffer();
+    if (!buffer) {
         RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata node(%{public}s) did not have buffer.",
             GetName().c_str());
         return;
@@ -1598,7 +1605,6 @@ void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
     if (IsSplitSurfaceNode()) {
         return;
     }
-    const sptr<SurfaceBuffer>& buffer = GetRSSurfaceHandler()->GetBuffer();
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
@@ -1940,12 +1946,17 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
         return;
     }
     if (!isUniRender) {
-        bool diff =
+        bool diff = GetRenderProperties().GetFrameGravity() != Gravity::RESIZE
+            && ROSEN_EQ(GetGlobalAlpha(), 1.0f);
 #ifndef ROSEN_CROSS_PLATFORM
-            (GetDstRect().width_ > surfaceHandler_->GetBuffer()->GetWidth() ||
-                GetDstRect().height_ > surfaceHandler_->GetBuffer()->GetHeight()) &&
+        auto buffer = surfaceHandler_->GetBuffer();
+        if (buffer != nullptr) {
+            diff = diff && (GetDstRect().width_ > buffer->GetWidth() ||
+                GetDstRect().height_ > buffer->GetHeight());
+        } else {
+            diff = diff && (GetDstRect().width_ > 0 || GetDstRect().height_ > 0);
+        }
 #endif
-            GetRenderProperties().GetFrameGravity() != Gravity::RESIZE && ROSEN_EQ(GetGlobalAlpha(), 1.0f);
         if (!IsTransparent() && !diff) {
             accumulatedRegion.OrSelf(curRegion);
         }

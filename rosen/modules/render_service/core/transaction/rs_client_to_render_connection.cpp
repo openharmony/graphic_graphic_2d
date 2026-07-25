@@ -568,7 +568,9 @@ void RSClientToRenderConnection::RegisterTransactionDataCallback(uint64_t token,
     if (renderPipelineAgent_ == nullptr) {
         return;
     }
-    renderPipelineAgent_->RegisterTransactionDataCallback(token, timeStamp, callback);
+    // bind the callback to the trusted remote pid of this connection,
+    // so that a forged token from another process cannot trigger it
+    renderPipelineAgent_->RegisterTransactionDataCallback(token, timeStamp, callback, remotePid_);
 }
 
 ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value)

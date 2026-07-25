@@ -3387,6 +3387,36 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRegionInSkippedSurfaceNodeTestHpae,
     rsUniRenderVisitor->UpdateFilterRegionInSkippedSurfaceNode(*rsRootRenderNode, dirtyManager);
 }
 
+/**
+ * @tc.name: UpdateRotationStatusForEffectNode
+ * @tc.desc: Test UpdateRotationStatusForEffectNode with invalid and valid display nodes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateRotationStatusForEffectNode, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(effectNode, nullptr);
+    const auto initialScreenId = effectNode->GetCurrentAttachedScreenId();
+
+    rsUniRenderVisitor->UpdateRotationStatusForEffectNode(*effectNode);
+    EXPECT_EQ(effectNode->GetCurrentAttachedScreenId(), initialScreenId);
+
+    constexpr ScreenId screenId = 1;
+    rsUniRenderVisitor->curScreenNode_ =
+        std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID + 1, screenId, rsContext->weak_from_this());
+    rsUniRenderVisitor->UpdateRotationStatusForEffectNode(*effectNode);
+    EXPECT_EQ(effectNode->GetCurrentAttachedScreenId(), initialScreenId);
+
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ =
+        std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_NODE_ID + 2, displayConfig, rsContext->weak_from_this());
+    rsUniRenderVisitor->UpdateRotationStatusForEffectNode(*effectNode);
+    EXPECT_EQ(effectNode->GetCurrentAttachedScreenId(), screenId);
+}
+
 /*
  * @tc.name: CheckMergeSurfaceDirtysForDisplay001
  * @tc.desc: Test CheckMergeSurfaceDirtysForDisplay with transparent node
@@ -4400,6 +4430,35 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo002, TestSize.Level2)
     bool isUnSupportLayer = RSLayerCacheManagerBase::IsNodeUnSupportLayer(node);
     EXPECT_TRUE(isUnSupportLayer);
     rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
+    ASSERT_TRUE(parent->ChildHasVisibleFilter());
+}
+
+/**
+ * @tc.name: CollectEffectInfoOverloadEquivalence
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo 3-arg overload: a pre-locked
+ *           parent produces identical parent-flag results as the 2-arg form.
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfoOverloadEquivalence, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+    node->GetMutableRenderProperties().needFilter_ = true;
+    node->SetChildHasVisibleFilter(true);
+    bool isBlendNeedFilter = RSUniHwcComputeUtil::IsBlendNeedFilter(*node);
+    auto nodeParent = node->GetParent().lock();
+    ASSERT_NE(nodeParent, nullptr);
+    rsUniRenderVisitor->CollectEffectInfo(*node, isBlendNeedFilter, nodeParent);
     ASSERT_TRUE(parent->ChildHasVisibleFilter());
 }
 
@@ -7906,6 +7965,9 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId003, TestSize.Level2)
 
     constexpr uint64_t tunnelLayerId = 3002;
     RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), tunnelLayerId, TUNNEL_PROP_INVALID);
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->MarkTunnelLayerInfoReceived();
 
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
 

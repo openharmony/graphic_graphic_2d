@@ -482,7 +482,7 @@ ohos_unittest("RSMultiRenderProcessManagerTest") {
 }
 
 ###############################################################################
-ohos_unittest("RSRenderMultiProcessManagerRepositoryTest") {
+ohos_unittest("RSMultiRenderProcessManagerRepositoryTest") {
     module_out_path = module_output_path
 
     sources = [ "rs_render_multi_process_manager_repository_test.cpp" ]
@@ -658,7 +658,7 @@ group("unittest") {
         ":RSRenderSingleProcessManagerTest",
         ":RSRenderModeConfigParserTest",
         ":RSMultiRenderProcessManagerTest",
-        ":RSRenderMultiProcessManagerRepositoryTest",
+        ":RSMultiRenderProcessManagerRepositoryTest",
         ":RenderServiceTest",
         "dfx:unittest",
     ]

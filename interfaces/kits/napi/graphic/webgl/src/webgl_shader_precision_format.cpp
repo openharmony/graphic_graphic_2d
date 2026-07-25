@@ -34,13 +34,7 @@ WebGLShaderPrecisionFormat* WebGLShaderPrecisionFormat::GetObjectFromArg(napi_en
         LOGE("WebGLShaderPrecisionFormat::GetObjectFromArg invalid arg.");
         return nullptr;
     }
-    WebGLShaderPrecisionFormat* obj = nullptr;
-    napi_status status = napi_unwrap(env, funcArg.GetThisVar(), (void**)&obj);
-    if (status != napi_ok) {
-        LOGE("WebGLShade webGLShaderPrecisionFormat failed.");
-        return nullptr;
-    }
-    return obj;
+    return WebGLObject::GetObjectInstance<WebGLShaderPrecisionFormat>(env, funcArg.GetThisVar());
 }
 
 napi_value WebGLShaderPrecisionFormat::GetShaderPrecisionFormatRangeMin(napi_env env, napi_callback_info info)

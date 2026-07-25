@@ -90,6 +90,11 @@ do \
 namespace OHOS {
 namespace Rosen {
 namespace UIEffect {
+inline constexpr napi_type_tag MASK_NAPI_TYPE_TAG = {
+    .lower = 0x2cf223d5603c4132,
+    .upper = 0x9f12af0784a90fc9
+};
+
 constexpr uint32_t NUM_0 = 0;
 constexpr uint32_t NUM_1 = 1;
 constexpr uint32_t NUM_2 = 2;

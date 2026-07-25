@@ -67,5 +67,24 @@ HWTEST_F(RSRenderNodeShadowDrawableTest, DrawTest, TestSize.Level1)
     EXPECT_FALSE(rsRenderNodeShadowDrawable->nodeDrawable_->GetRenderParams()->GetShouldPaint());
 }
 
+/**
+ * @tc.name: DrawWithValidShadowIndexTest
+ * @tc.desc: Verify Draw continues when shadow index is within draw command list bounds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeShadowDrawableTest, DrawWithValidShadowIndexTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto nodeDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    auto rsRenderNodeShadowDrawable = std::make_shared<DrawableV2::RSRenderNodeShadowDrawable>(node, nodeDrawable);
+    rsRenderNodeShadowDrawable->nodeDrawable_->drawCmdIndex_.shadowIndex_ = 0;
+    rsRenderNodeShadowDrawable->nodeDrawable_->drawCmdList_.resize(1);
+
+    Drawing::Canvas canvas;
+    rsRenderNodeShadowDrawable->Draw(canvas);
+
+    EXPECT_EQ(rsRenderNodeShadowDrawable->nodeDrawable_->GetRenderParams(), nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

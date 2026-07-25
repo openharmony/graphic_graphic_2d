@@ -221,5 +221,91 @@ HWTEST_F(RSRenderComposerClientTest, SetScreenBacklightTest, Function | SmallTes
     EXPECT_NE(clientNormal, nullptr);
     clientNormal->SetScreenBacklight(0);
 }
+
+/**
+ * @tc.name: SubUnExecuteTaskNumTest_BothTrue
+ * @tc.desc: Test SubUnExecuteTaskNum when unExecuteTaskNum_ > 0 (true) and acquiredBufferCount_ > 0 (true)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderComposerClientTest, SubUnExecuteTaskNumTest_BothTrue, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSComposerClient> client = CreateClient();
+    ASSERT_NE(client, nullptr);
+
+    const int32_t initValue = 5;
+    client->unExecuteTaskNum_.store(initValue);
+    client->acquiredBufferCount_.store(initValue);
+
+    client->SubUnExecuteTaskNum();
+
+    EXPECT_EQ(client->unExecuteTaskNum_.load(), initValue - 1);
+    EXPECT_EQ(client->acquiredBufferCount_.load(), initValue - 1);
+}
+
+/**
+ * @tc.name: SubUnExecuteTaskNumTest_UnExecuteTrueAcquiredFalse
+ * @tc.desc: Test SubUnExecuteTaskNum when unExecuteTaskNum_ > 0 (true) but acquiredBufferCount_ <= 0 (false)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderComposerClientTest, SubUnExecuteTaskNumTest_UnExecuteTrueAcquiredFalse, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSComposerClient> client = CreateClient();
+    ASSERT_NE(client, nullptr);
+
+    const int32_t initUnExecute = 5;
+    const int32_t initAcquired = 0;
+    client->unExecuteTaskNum_.store(initUnExecute);
+    client->acquiredBufferCount_.store(initAcquired);
+
+    client->SubUnExecuteTaskNum();
+
+    EXPECT_EQ(client->unExecuteTaskNum_.load(), initUnExecute);
+    EXPECT_EQ(client->acquiredBufferCount_.load(), initAcquired);
+}
+
+/**
+ * @tc.name: SubUnExecuteTaskNumTest_UnExecuteFalseAcquiredTrue
+ * @tc.desc: Test SubUnExecuteTaskNum when unExecuteTaskNum_ <= 0 (false) but acquiredBufferCount_ > 0 (true)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderComposerClientTest, SubUnExecuteTaskNumTest_UnExecuteFalseAcquiredTrue, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSComposerClient> client = CreateClient();
+    ASSERT_NE(client, nullptr);
+
+    const int32_t initUnExecute = 0;
+    const int32_t initAcquired = 5;
+    client->unExecuteTaskNum_.store(initUnExecute);
+    client->acquiredBufferCount_.store(initAcquired);
+
+    client->SubUnExecuteTaskNum();
+
+    EXPECT_EQ(client->unExecuteTaskNum_.load(), initUnExecute);
+    EXPECT_EQ(client->acquiredBufferCount_.load(), initAcquired);
+}
+
+/**
+ * @tc.name: SubUnExecuteTaskNumTest_BothFalse
+ * @tc.desc: Test SubUnExecuteTaskNum when unExecuteTaskNum_ <= 0 (false) and acquiredBufferCount_ <= 0 (false)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderComposerClientTest, SubUnExecuteTaskNumTest_BothFalse, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSComposerClient> client = CreateClient();
+    ASSERT_NE(client, nullptr);
+
+    const int32_t initValue = 0;
+    client->unExecuteTaskNum_.store(initValue);
+    client->acquiredBufferCount_.store(initValue);
+
+    client->SubUnExecuteTaskNum();
+
+    EXPECT_EQ(client->unExecuteTaskNum_.load(), initValue);
+    EXPECT_EQ(client->acquiredBufferCount_.load(), initValue);
+}
 } // namespace Rosen
 } // namespace OHOS
