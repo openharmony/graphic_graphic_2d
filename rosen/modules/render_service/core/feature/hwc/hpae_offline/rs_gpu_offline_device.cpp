@@ -136,7 +136,7 @@ bool RSGPUOfflineDevice::PostProcessOfflineTask(
 bool RSGPUOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<GPUOfflineContext>& offlineContext,
     RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId)
 {
-    if(surfaceParams == nullptr) {
+    if (surfaceParams == nullptr) {
         RS_LOGW("surfaceParams is nullptr");
         return false;
     }
@@ -436,7 +436,7 @@ bool RSGPUOfflineDevice::DrawHDRImage(RSSurfaceRenderParams& surfaceParams,
     }
 
     auto canvas = renderFrame->GetCanvas();
-    if(canvas == nullptr) {
+    if (canvas == nullptr) {
         RS_LOGW("RSGPUOfflineDevice::GPU offline GetCanvas failed, force redraw next frame");
         return false;
     }
