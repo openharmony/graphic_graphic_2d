@@ -81,20 +81,33 @@ enum class ParamValueType : uint8_t {
     BOOL,
 };
 
-[[maybe_unused]] static ParamValueType ValidateParamValueType(uint8_t val) {
-    if (val == (uint8_t)ParamValueType::UINT64) { return ParamValueType::UINT64; }
-    else if (val == (uint8_t)ParamValueType::UINT32) { return ParamValueType::UINT32; }
-    else if (val == (uint8_t)ParamValueType::UINT16) { return ParamValueType::UINT16; }
-    else if (val == (uint8_t)ParamValueType::UINT8) { return ParamValueType::UINT8; }
-    else if (val == (uint8_t)ParamValueType::INT64) { return ParamValueType::INT64; }
-    else if (val == (uint8_t)ParamValueType::INT32) { return ParamValueType::INT32; }
-    else if (val == (uint8_t)ParamValueType::INT16) { return ParamValueType::INT16; }
-    else if (val == (uint8_t)ParamValueType::INT8) { return ParamValueType::INT8; }
-    else if (val == (uint8_t)ParamValueType::DOUBLE) { return ParamValueType::DOUBLE; }
-    else if (val == (uint8_t)ParamValueType::FLOAT) { return ParamValueType::FLOAT; }
-    else if (val == (uint8_t)ParamValueType::BOOL) { return ParamValueType::BOOL; }
+[[maybe_unused]] static ParamValueType ValidateParamValueType(uint8_t val)
+{
+    if (val == (uint8_t)ParamValueType::UINT64) {
+        return ParamValueType::UINT64;
+    } else if (val == (uint8_t)ParamValueType::UINT32) {
+        return ParamValueType::UINT32;
+    } else if (val == (uint8_t)ParamValueType::UINT16) {
+        return ParamValueType::UINT16;
+    } else if (val == (uint8_t)ParamValueType::UINT8) {
+        return ParamValueType::UINT8;
+    } else if (val == (uint8_t)ParamValueType::INT64) {
+        return ParamValueType::INT64;
+    } else if (val == (uint8_t)ParamValueType::INT32) {
+        return ParamValueType::INT32;
+    } else if (val == (uint8_t)ParamValueType::INT16) {
+        return ParamValueType::INT16;
+    } else if (val == (uint8_t)ParamValueType::INT8) {
+        return ParamValueType::INT8;
+    } else if (val == (uint8_t)ParamValueType::DOUBLE) {
+        return ParamValueType::DOUBLE;
+    } else if (val == (uint8_t)ParamValueType::FLOAT) {
+        return ParamValueType::FLOAT;
+    } else if (val == (uint8_t)ParamValueType::BOOL) {
+        return ParamValueType::BOOL;
+    }
     return ParamValueType::UNKNOWN;
-};
+}
 
 union ParamValue {
     uint64_t uint64{0};

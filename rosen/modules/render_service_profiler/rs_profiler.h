@@ -710,7 +710,8 @@ private:
 
     RSB_EXPORT static void MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion,
         std::shared_ptr<ProfilerMarshallingJob> job);
-    RSB_EXPORT static void MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion, uint32_t depth = 0u);
+    RSB_EXPORT static void MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
+        uint32_t depth = 0u);
     RSB_EXPORT static void MarshalNode(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
         bool skipDrawCmdMoifiers = false, bool isBetaRecording = false);
     RSB_EXPORT static void MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
@@ -719,7 +720,8 @@ private:
         bool skipDrawCmdModifiers, bool isBetaRecording);
 
     RSB_EXPORT static std::string UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
-    RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion, uint32_t depth = 0u);
+    RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion,
+        uint32_t depth = 0u);
     RSB_EXPORT static std::string UnmarshalNode(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalNode(
         RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion);
@@ -728,8 +730,8 @@ private:
 
     RSB_EXPORT static void MarshalSubTree(RSContext& context, std::stringstream& data, const RSRenderNode& node,
         uint32_t fileVersion, bool clearImageCache = true);
-    RSB_EXPORT static void MarshalSubTreeLo(
-        RSContext& context, std::stringstream& data, const RSRenderNode& node, uint32_t fileVersion, uint32_t depth = 0u);
+    RSB_EXPORT static void MarshalSubTreeLo(RSContext& context, std::stringstream& data, const RSRenderNode& node,
+        uint32_t fileVersion, uint32_t depth = 0u);
     RSB_EXPORT static std::string UnmarshalSubTree(RSContext& context, std::stringstream& data,
         RSRenderNode& attachNode, uint32_t fileVersion, bool clearImageCache = true);
     RSB_EXPORT static std::string UnmarshalSubTreeLo(

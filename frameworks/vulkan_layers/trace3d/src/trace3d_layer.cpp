@@ -551,8 +551,8 @@ void* DebugLayerGetProcAddr(const char *funcName, eglMustCastToProperFunctionPoi
 
     if (debugLayerPtrs.getProcAddr) {
         ptr = debugLayerPtrs.getProcAddr(funcName, next);
-     }
-     return static_cast<void *>(ptr);
+    }
+    return static_cast<void *>(ptr);
 }
 
 } // extern "C"

@@ -445,7 +445,8 @@ HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataFailing, TestSize.Level1)
     image.data.resize(HUNDRED);
     {
         std::cout << "Copy from null source" << std::endl;
-        bool nullSrc = PixelMapStorage::CopyImageData(nullptr, std::numeric_limits<size_t>::max(), dstImage.data(), dstImage.capacity());
+        bool nullSrc = PixelMapStorage::CopyImageData(nullptr, std::numeric_limits<size_t>::max(),
+            dstImage.data(), dstImage.capacity());
         EXPECT_FALSE(nullSrc);
     }
     {

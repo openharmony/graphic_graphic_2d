@@ -277,7 +277,8 @@ void RSProfiler::LogShaderCall(const std::string& shaderType, const std::shared_
         GetCustomMetrics().AddInt(RSPROFILER_METRIC_WATER_RIPPLE_BLUR_SHADER_CALLS, 1);
     }
     GetCustomMetrics().AddInt(RSPROFILER_METRIC_BLUR_SHADER_CALLS, 1);
-    GetCustomMetrics().AddFloat(RSPROFILER_METRIC_BLUR_AREA_SHADER_CALLS, srcImage ? srcImage->GetWidth() * srcImage->GetHeight() : 0);
+    GetCustomMetrics().AddFloat(RSPROFILER_METRIC_BLUR_AREA_SHADER_CALLS,
+        srcImage ? srcImage->GetWidth() * srcImage->GetHeight() : 0);
 }
 
 uint32_t RSProfiler::GetCommandCount()

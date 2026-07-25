@@ -659,7 +659,8 @@ bool PixelMapStorage::DecodeSeqLZ4(const char* src, int32_t srcSize, int32_t dst
 #endif
 }
 
-bool PixelMapStorage::DecodeJpeg(const char* src, int32_t srcSize, int32_t dstSize, const ImageProperties& properties, ImageData& dst)
+bool PixelMapStorage::DecodeJpeg(const char* src, int32_t srcSize, int32_t dstSize,
+    const ImageProperties& properties, ImageData& dst)
 {
     if ((srcSize <= 0) || (dstSize <= 0)) {
         return false;
