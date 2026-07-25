@@ -104,6 +104,7 @@ void RSTransactionHandler::MoveCommandByNodeId(std::shared_ptr<RSTransactionHand
         MoveRemoteCommandByNodeId(transactionHandler, nodeId);
     }
     if (renderThreadClient_ != nullptr) {
+        std::unique_lock<std::mutex> dstHandlerCmdLock(transactionHandler->mutex_);
         MoveCommonCommandByNodeId(transactionHandler, nodeId);
     }
 }

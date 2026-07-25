@@ -59,12 +59,12 @@ ErrCode RSClientToServiceConnectionProxy::GetUniRenderEnabled(bool& enable)
     option.SetFlags(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("GetUniRenderEnabled: WriteInterfaceToken RSIClientToServiceConnection::GetDescriptor() err.");
-        return false;
+        return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return false;
+        return ERR_INVALID_VALUE;
     }
     if (!reply.ReadBool(enable)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::GetUniRenderEnabled Read enable failed!");
