@@ -485,17 +485,7 @@ void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> c
         callback->OnSurfaceCapture(id, captureConfig, pixelmap.get());
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     };
-    if (!captureConfig.isSync) {
-        RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
-    } else {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-        if (node == nullptr || !node->GetCommandExecuted()) {
-            RSOffscreenRenderThread::Instance().InSertCaptureTask(id, offscreenRenderTask);
-            return;
-        }
-        RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
-        node->SetCommandExecuted(false);
-    }
+    RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
 #endif
 }
 }
