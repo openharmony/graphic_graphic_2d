@@ -294,9 +294,9 @@ void RSScreenManager::SetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId, Sc
 uint64_t RSScreenManager::GetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId)
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
-    auto iter = std::find_if(screens_.cbegin(), screens_.cend(), [](const auto& node) {
+    auto iter = std::find_if(screens_.cbegin(), screens_.cend(), [&vsyncEnabledScreenId](const auto& node) {
         const auto& screen = node.second;
-        return screen && !screen->IsVirtual();
+        return screen && !screen->IsVirtual() && node.first != vsyncEnabledScreenId;
     });
     if (iter != screens_.end()) {
         vsyncEnabledScreenId = iter->first;

@@ -38,9 +38,6 @@ ohos_shared_library("libnative_vsync") {
     boundary_sanitize = true
     integer_overflow = true
     ubsan = true
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
   }
   sources = [ "native_vsync.cpp" ]
 
