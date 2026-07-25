@@ -218,6 +218,10 @@ void SurfaceNodeCommandHelper::MarkUIHidden(RSContext& context, NodeId id, bool 
 
 void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nodeId, uint8_t surfaceNodeType)
 {
+    if (surfaceNodeType >= static_cast<uint8_t>(RSSurfaceNodeType::NODE_MAX)) {
+        ROSEN_LOGE("SetSurfaceNodeType invalid type:%{public}u", surfaceNodeType);
+        return;
+    }
     auto type = static_cast<RSSurfaceNodeType>(surfaceNodeType);
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetSurfaceNodeType(type);
