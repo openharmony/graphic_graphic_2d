@@ -1500,6 +1500,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    // renderEngine must be valid so branches below the top-level null check are exercised
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     surfaceParams->isInFixedRotation_ = false;
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
     ASSERT_FALSE(surfaceParams->GetHardwareEnabled());
@@ -1525,6 +1527,48 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceDrawable_->name_ = "pointer window";
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer when renderEngine is nullptr (early return at top)
+ * @tc.type: FUNC
+ * @tc.require: issueIAOJHQ
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    // renderEngine is nullptr: function must early return before any branch below the top-level check
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+
+    // fixed-rotation path: isInRotationFixed_ would be set true if function proceeded past the guard
+    RSSurfaceRenderNodeDrawable::isInRotationFixed_ = false;
+    surfaceParams->isInFixedRotation_ = true;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    EXPECT_FALSE(RSSurfaceRenderNodeDrawable::isInRotationFixed_);
+
+    // hardware-enabled path with needMakeImage (the original location of the renderEngine null check)
+    surfaceParams->isInFixedRotation_ = false;
+    surfaceParams->isHardwareEnabled_ = true;
+    surfaceParams->SetNeedMakeImage(true);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+
+    // hard-cursor path
+    surfaceParams->isHardCursor_ = true;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+
+    // normal draw path
+    surfaceParams->isHardwareEnabled_ = false;
+    surfaceParams->isHardCursor_ = false;
+    surfaceParams->isInFixedRotation_ = false;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+
+    // restore engine so subsequent tests are not affected
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
 }
 
 /**
@@ -2140,6 +2184,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest003, 
 {
     ASSERT_NE(drawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    // renderEngine must be valid so the hardware-enabled + needMakeImage branch is exercised
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     surfaceParams->isHardwareEnabled_ = true;
     surfaceParams->SetNeedMakeImage(true);
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(*canvas_, *surfaceParams);
