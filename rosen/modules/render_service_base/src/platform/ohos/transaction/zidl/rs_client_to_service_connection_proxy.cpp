@@ -2352,7 +2352,7 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedColorGamuts(
         mode.clear();
         std::vector<uint32_t> modeRecv;
         if (!reply.ReadUInt32Vector(&modeRecv)) {
-            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedColorGamuts Read vector failed");
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedColorGamuts Read modeRecv failed");
             return READ_PARCEL_ERR;
         }
         for (auto i : modeRecv) {
@@ -2391,7 +2391,7 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedMetaDataKeys(
         keys.clear();
         std::vector<uint32_t> keyRecv;
         if (!reply.ReadUInt32Vector(&keyRecv)) {
-            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedMetaDataKeys Read vector failed");
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedMetaDataKeys Read keyRecv failed");
             return READ_PARCEL_ERR;
         }
         for (auto i : keyRecv) {
@@ -2767,7 +2767,7 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats(
         hdrFormats.clear();
         std::vector<uint32_t> hdrFormatsRecv;
         if (!reply.ReadUInt32Vector(&hdrFormatsRecv)) {
-            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats Read vector failed");
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats Read hdrFormatsRecv failed");
             return READ_PARCEL_ERR;
         }
         std::transform(hdrFormatsRecv.begin(), hdrFormatsRecv.end(), back_inserter(hdrFormats),
@@ -2870,7 +2870,7 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedColorSpaces(
         colorSpaces.clear();
         std::vector<uint32_t> colorSpacesRecv;
         if (!reply.ReadUInt32Vector(&colorSpacesRecv)) {
-            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedColorSpaces Read vector failed");
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedColorSpaces Read colorSpacesRecv failed");
             return READ_PARCEL_ERR;
         }
         std::transform(colorSpacesRecv.begin(), colorSpacesRecv.end(), back_inserter(colorSpaces),

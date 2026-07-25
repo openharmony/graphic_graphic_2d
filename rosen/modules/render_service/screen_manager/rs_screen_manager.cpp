@@ -277,23 +277,23 @@ void RSScreenManager::UpdateFoldScreenConnectStatusLocked(ScreenId screenId, boo
 
 void RSScreenManager::SetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId, ScreenId screenId, bool enabled)
 {
+    auto screen = GetScreen(screenId);
+    if (screen == nullptr) {
+        RS_LOGE("SetScreenVsyncEnableById:%{public}d failed, screen %{public}" PRIu64 " not found", enabled, screenId);
+        return;
+    }
     if (vsyncEnabledScreenId != INVALID_SCREEN_ID) {
-        if (vsyncEnabledScreenId == screenId && screens_.find(screenId) != screens_.end()) {
-            screens_[screenId]->SetScreenVsyncEnabled(true);
+        if (vsyncEnabledScreenId == screenId) {
+            screen->SetScreenVsyncEnabled(true);
         }
     } else {
-        auto screen = GetScreen(screenId);
-        if (screen == nullptr) {
-            RS_LOGE("SetScreenVsyncEnableById:%{public}d failed, screen %{public}" PRIu64 " not found",
-                enabled, screenId);
-            return;
-        }
         screen->SetScreenVsyncEnabled(enabled);
     }
 }
 
 uint64_t RSScreenManager::GetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId)
 {
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     auto iter = std::find_if(screens_.cbegin(), screens_.cend(), [](const auto& node) {
         const auto& screen = node.second;
         return screen && !screen->IsVirtual();
