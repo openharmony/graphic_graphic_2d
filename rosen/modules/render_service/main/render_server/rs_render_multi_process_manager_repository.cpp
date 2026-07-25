@@ -17,6 +17,9 @@
 
 #include <algorithm>
 #include <chrono>
+#include <fstream>
+#include <sstream>
+#include <unistd.h>
 
 #include "platform/common/rs_log.h"
 
@@ -153,6 +156,12 @@ std::optional<ProcessUniqueId> RSRenderMultiProcessManagerRepository::GetValidRe
 
 bool RSRenderMultiProcessManagerRepository::IsValidRenderProcessPid(pid_t pid) const
 {
+    auto ppidOpt = ReadPpidFromProc(pid);
+    if (!ppidOpt.has_value() || *ppidOpt != getpid()) {
+        RS_LOGE("%{public}s: pid %{public}u is not a child of render_service",
+            __func__, pid);
+        return false;
+    }
     std::unique_lock<std::mutex> lock(mutex_);
     bool result = validPidCv_.wait_for(lock, std::chrono::seconds(5),
         [this, pid]() {
@@ -164,6 +173,29 @@ bool RSRenderMultiProcessManagerRepository::IsValidRenderProcessPid(pid_t pid) c
             __func__, pid);
     }
     return result;
+}
+
+std::optional<pid_t> RSRenderMultiProcessManagerRepository::ReadPpidFromProc(pid_t pid) const
+{
+    std::ifstream ifs("/proc/" + std::to_string(pid) + "/stat");
+    std::string line;
+    if (!std::getline(ifs, line)) {
+        RS_LOGE("%{public}s: failed to read /proc/%{public}u/stat", __func__, pid);
+        return std::nullopt;
+    }
+    auto closeParen = line.rfind(')');
+    if (closeParen == std::string::npos) {
+        RS_LOGE("%{public}s: invalid /proc/%{public}u/stat format", __func__, pid);
+        return std::nullopt;
+    }
+    std::istringstream iss(line.substr(closeParen + 1));
+    char state = '\0';
+    pid_t ppid = -1;
+    if (!(iss >> state >> ppid)) {
+        RS_LOGE("%{public}s: failed to parse /proc/%{public}u/stat", __func__, pid);
+        return std::nullopt;
+    }
+    return ppid;
 }
 
 sptr<RSIServiceToRenderConnection> RSRenderMultiProcessManagerRepository::GetServiceToRenderConnByGroupId(
