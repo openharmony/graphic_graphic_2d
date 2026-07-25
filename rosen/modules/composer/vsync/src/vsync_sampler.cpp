@@ -125,8 +125,8 @@ uint64_t VSyncSampler::JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bo
         if (vsyncEnabledScreenId != screenId) {
             return vsyncEnabledScreenId;
         }
-        vsyncEnabledScreenId = INVALID_SCREEN_ID;
-        vsyncEnabledScreenId = getScreenVsyncEnableByIdCallback_(vsyncEnabledScreenId);
+        auto enableScreenId = getScreenVsyncEnableByIdCallback_(screenId);
+        vsyncEnabledScreenId = enableScreenId == screenId ? INVALID_SCREEN_ID : enableScreenId;
     }
     return vsyncEnabledScreenId;
 }
