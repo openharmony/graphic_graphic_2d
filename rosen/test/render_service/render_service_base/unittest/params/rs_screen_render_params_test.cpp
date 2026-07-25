@@ -174,6 +174,8 @@ HWTEST_F(RSScreenRenderParamsTest, Fingerprint001, TestSize.Level1)
     EXPECT_TRUE(params.GetFingerprint());
 }
 
+
+
 /**
  * @tc.name: ResetVirtualExpandAccumulatedParams
  * @tc.desc: test ResetVirtualExpandAccumulatedParams can set target params to false

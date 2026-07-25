@@ -4559,6 +4559,8 @@ HWTEST_F(RSMainThreadTest, UpdateScreenNodeScreenId004, TestSize.Level1)
     mainThread->context_->globalRootRenderNode_ = backUpRootNode;
 }
 
+
+
 /**
  * @tc.name: CheckSystemSceneStatus001
  * @tc.desc: Test CheckSystemSceneStatus, APPEAR_MISSION_CENTER

@@ -1508,3 +1508,4 @@ HWTEST(RSRenderSurfaceLayerTest, Dump_AllProperties_OutputContainsAllFields, Tes
     EXPECT_NE(result.find("surfaceName = full_dump_test"), std::string::npos);
     EXPECT_NE(result.find("ancoSrcRect = [10, 20, 30, 40]"), std::string::npos);
 }
+

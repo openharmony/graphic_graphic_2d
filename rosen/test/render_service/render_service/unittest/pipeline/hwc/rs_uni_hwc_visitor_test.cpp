@@ -2472,6 +2472,8 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha005, TestSize.
     ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
 }
 
+
+
 /**
  * @tc.name: GetHwcVisibleEffectDirty001
  * @tc.desc: Test GetHwcVisibleEffectDirty Function

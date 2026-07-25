@@ -560,6 +560,8 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest3, Function | SmallTest | 
     EXPECT_EQ(layer->GetLayerSourceTuning(), 100);
 }
 
+
+
 /**
  * @tc.name: LayerPropertiesChangeTest
  * @tc.desc: Test Change RSLayer Properties

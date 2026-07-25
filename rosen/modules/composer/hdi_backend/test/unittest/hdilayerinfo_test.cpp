@@ -644,6 +644,8 @@ HWTEST_F(HdiLayerInfoTest, SetLayerMaskInfo002, Function | MediumTest | Level1)
     HdiLayerInfo::LayerMask Get = HdiLayerInfoTest::hdiLayerInfo_->GetLayerMaskInfo();
     ASSERT_EQ(layerMask, Get);
 }
+
+
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

@@ -1506,6 +1506,8 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKeyFailure_ReturnsError, F
     ASSERT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
 }
 
+
+
 /**
  * Function: SetLayerColor_ColorsMatch_TrueBranch
  * Type: Function

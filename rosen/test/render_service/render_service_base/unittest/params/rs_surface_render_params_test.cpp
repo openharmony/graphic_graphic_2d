@@ -535,6 +535,8 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     EXPECT_EQ(params.GetSurfaceBufferOpaque(), true);
 }
 
+
+
 /**
  * @tc.name: IsRelated
  * @tc.desc: Test function IsRelated

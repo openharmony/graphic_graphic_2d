@@ -2101,6 +2101,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCD_WithZOrderTest001, 
     EXPECT_EQ(info.zOrder, 100);
 }
 
+
+
 // ==================== CreateLayer Additional Tests ====================
 
 /**

@@ -695,6 +695,8 @@ HWTEST_F(RSScreenRenderNodeTest, UpdatePartialRenderParams, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 
+
+
 /**
  * @tc.name: UpdateDisplayDirtyManager
  * @tc.desc: test results of UpdateDisplayDirtyManager

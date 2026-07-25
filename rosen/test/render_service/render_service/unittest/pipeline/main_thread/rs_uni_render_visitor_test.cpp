@@ -6751,6 +6751,8 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessAncoNode002, TestSize.Level2)
     rsUniRenderVisitor->ProcessAncoNode(hwcNodePtr, ancoHasGpu);
 }
 
+
+
 /**
  * @tc.name: IsFirstFrameOfOverdrawSwitch
  * @tc.desc: Test IsFirstFrameOfOverdrawSwitch
