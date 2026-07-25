@@ -75,6 +75,11 @@ public:
     {
         isNewOnTree_ = isNewOnTree;
     }
+    void SetClean() override
+    {
+        isNewOnTree_ = false;
+        RSRenderNode::SetClean();
+    }
     bool GetNewOnTree()
     {
         return isNewOnTree_;
