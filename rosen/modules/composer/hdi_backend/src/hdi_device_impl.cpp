@@ -18,7 +18,6 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstdlib>
-#include <iservmgr_hdi.h>
 #include <mutex>
 #include <scoped_bytrace.h>
 #include <securec.h>
@@ -41,13 +40,8 @@ using namespace OHOS::HDI::Display::Composer::V1_2;
 using namespace OHOS::HDI::Display::Composer::V1_3;
 using namespace OHOS::HDI::Display::Composer::V1_4;
 using namespace OHOS::HDI::Display::Composer::V1_5;
-using IDisplayComposerInterfaceSptr = sptr<Composer::V1_4::IDisplayComposerInterface>;
+using IDisplayComposerInterfaceSptr = sptr<Composer::V1_5::IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
-using IDisplayComposerInterfaceSptr_v5 = sptr<Composer::V1_5::IDisplayComposerInterface>;
-static IDisplayComposerInterfaceSptr_v5 g_composer_v5;
-static sptr<IRemoteObject> g_composer_service;
-constexpr int GET_COMPOSER_DELAY_TIME = 10000; // 10 ms
-static const char* COMPOSER_SERVICE_NAME = "display_composer_service";
 }
 
 class HwcDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -77,42 +71,19 @@ HdiDeviceImpl::~HdiDeviceImpl()
 
 bool HdiDeviceImpl::Init()
 {
-    while (g_composer_service == nullptr) {
-        auto servMgr = OHOS::HDI::ServiceManager::V1_0::IServiceManager::Get();
-        if (servMgr == nullptr) {
-            HLOGE("%{public}s::get IServiceManager failed!", __func__);
-            continue;
+    if (g_composer == nullptr) {
+        g_composer = Composer::V1_5::IDisplayComposerInterface::Get();
+        if (g_composer == nullptr) {
+            HLOGE("IDisplayComposerInterface::Get return nullptr.");
+            return false;
         }
-        sptr<IRemoteObject> remote = servMgr->GetService(COMPOSER_SERVICE_NAME);
-        if (remote != nullptr) {
-            g_composer_service = remote;
-            break;
-        }
-        HLOGE("%{public}s:get display_composer_service remote object failed!", __func__);
-        usleep(GET_COMPOSER_DELAY_TIME);
     }
-    if (g_composer != nullptr) {
-        return true;
-    }
-    g_composer_v5 = Composer::V1_5::IDisplayComposerInterface::Get();
-    if (g_composer_v5 != nullptr) {
-        g_composer = g_composer_v5;
-        return true;
-    }
-    HLOGW("Composer::V1_5::IDisplayComposerInterface::Get fail, fallback to lower version");
-    g_composer = Composer::V1_4::IDisplayComposerInterface::Get();
-    if (g_composer != nullptr) {
-        return true;
-    }
-    HLOGE("Composer::V1_4::IDisplayComposerInterface::Get fail, no available composer interface.");
-    return false;
+    return true;
 }
 
 void HdiDeviceImpl::Destroy()
 {
     g_composer = nullptr;
-    g_composer_v5 = nullptr;
-    g_composer_service = nullptr;
 }
 
 /* set & get device screen info begin */
@@ -836,22 +807,22 @@ int32_t HdiDeviceImpl::CommitTunnelLayer(uint32_t screenId, uint64_t tunnleId, i
 int32_t HdiDeviceImpl::GetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode,
     uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode)
 {
-    CHECK_FUNC(g_composer_v5);
-    return g_composer_v5->GetDisplayVCPFeature(screenId, vcpCode, currentValue, maximumValue, errorCode);
+    CHECK_FUNC(g_composer);
+    return g_composer->GetDisplayVCPFeature(screenId, vcpCode, currentValue, maximumValue, errorCode);
 }
 
 int32_t HdiDeviceImpl::SetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode, uint16_t currentValue)
 {
-    CHECK_FUNC(g_composer_v5);
-    return g_composer_v5->SetDisplayVCPFeature(screenId, vcpCode, currentValue);
+    CHECK_FUNC(g_composer);
+    return g_composer->SetDisplayVCPFeature(screenId, vcpCode, currentValue);
 }
 
 int32_t HdiDeviceImpl::GetLayerSolidFilledColor(uint32_t screenId, uint32_t layerId, uint32_t& solidFilledColor)
 {
-    CHECK_FUNC(g_composer_v5);
+    CHECK_FUNC(g_composer);
     solidFilledColor = 0;
     LayerColor layerColor;
-    auto ret = g_composer_v5->GetLayerColor(screenId, layerId, layerColor);
+    auto ret = g_composer->GetLayerColor(screenId, layerId, layerColor);
     if (ret == GRAPHIC_DISPLAY_SUCCESS) {
         solidFilledColor = (layerColor.a << 24) | (layerColor.r << 16) | (layerColor.g << 8) | layerColor.b;
     }
