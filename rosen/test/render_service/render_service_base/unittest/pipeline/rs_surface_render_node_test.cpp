@@ -2736,37 +2736,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion002, 
 }
 
 /**
- * @tc.name: UpdateVirtualScreenWhiteListInfo
- * @tc.desc: test UpdateVirtualScreenWhiteListInfo.
- * @tc.type: FUNC
- * @tc.require: issueICF7P6
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    std::shared_ptr<RSSurfaceRenderNode> parent = nullptr;
-    node->SetParent(parent);
-    node->SetLeashPersistentId(id + 1);
-    ASSERT_EQ(node->parent_.lock(), nullptr);
-    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> allWhiteListInfo;
-    ScreenId screenId = 1;
-    allWhiteListInfo[screenId] = {node->GetId()};
-    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo[screenId]);
-    parent = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    node->SetParent(parent);
-    ASSERT_NE(node->parent_.lock(), nullptr);
-    allWhiteListInfo[screenId] = {node->GetLeashPersistentId()};
-    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo[screenId]);
-
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->RSRenderNode::SyncWhiteListInfoToParent();
-
-    parent->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
-    parent->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo[screenId]);
-}
-
-/**
  * @tc.name: GetSourceDisplayRenderNodeId
  * @tc.desc: test Set/GetSourceDisplayRenderNodeId.
  * @tc.type: FUNC
