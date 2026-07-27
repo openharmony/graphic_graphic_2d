@@ -1188,7 +1188,12 @@ void RSServiceToRenderConnectionProxy::ReportGameStateData(GameStateData info)
     }
 
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    auto remote = Remote();
+    if (remote == nullptr) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy:%{public}s remote nullptr err.", __func__);
+        return;
+    }
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy sendrequest error : %{public}d", err);
         return;
