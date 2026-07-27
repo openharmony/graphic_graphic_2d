@@ -54,6 +54,8 @@ config("graphic_napi_effect_kit_config") {
 
 if (is_arkui_x) {
   ohos_source_set("effectkit") {
+    branch_protector_ret = "pac_ret"
+    
     configs = [ ":graphic_napi_effect_kit_config" ]
     include_dirs = [
       "//third_party/json/single_include/nlohmann",
@@ -106,6 +108,8 @@ if (is_arkui_x) {
   }
 } else {
   ohos_shared_library("effectkit") {
+    branch_protector_ret = "pac_ret"
+
     include_dirs =
         [ "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include" ]
 

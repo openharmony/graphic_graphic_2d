@@ -388,6 +388,7 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
         UNMARSHALL_CASE(ScreenPropertyType::IS_HDI_ROG_ENABLE)
         default:
             RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
+            return false;
     }
     return true;
 }
@@ -432,12 +433,22 @@ bool RSScreenProperty::UnmarshallingData(Parcel& data)
     }
 
     for (uint32_t i = 0; i < size; i++) {
-        ScreenPropertyType type = static_cast<ScreenPropertyType>(data.ReadUint32());
-        sptr<ScreenPropertyBase> prop = nullptr;
-        if (!ScreenPropertyBase::Unmarshalling(data, type, prop)) {
+        uint32_t type = 0;
+        if (!data.ReadUint32(type)) {
+            RS_LOGE("%{public}s read type failed", __func__);
             return false;
         }
-        screenProperties_.insert_or_assign(type, prop);
+        if (type >= static_cast<uint32_t>(ScreenPropertyType::SCREEN_PROPERTY_TYPE_SIZE)) {
+            RS_LOGE("%{public}s invalid type: %{public}u", __func__, type);
+            return false;
+        }
+        ScreenPropertyType screenPropertyType = static_cast<ScreenPropertyType>(type);
+        sptr<ScreenPropertyBase> prop = nullptr;
+        if (!ScreenPropertyBase::Unmarshalling(data, screenPropertyType, prop)) {
+            RS_LOGE("%{public}s unmarshalling failed type: %{public}u", __func__, type);
+            return false;
+        }
+        screenProperties_.insert_or_assign(screenPropertyType, prop);
     }
     return true;
 }

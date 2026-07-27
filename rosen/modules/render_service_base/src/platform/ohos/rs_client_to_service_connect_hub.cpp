@@ -54,6 +54,7 @@ RSClientToServiceConnectHub::RSClientToServiceConnectHub() {}
 
 RSClientToServiceConnectHub::~RSClientToServiceConnectHub() noexcept
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (UNLIKELY(!renderService_)) {
         ROSEN_LOGE("~RSClientToServiceConnectHub renderService_ is null");
         return;
@@ -193,14 +194,18 @@ bool RSClientToServiceConnectHub::Connect()
 
 void RSClientToServiceConnectHub::ConnectDied()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    renderService_ = nullptr;
-    if (conn_) {
-        conn_->RunOnRemoteDiedCallback();
+    sptr<RSIClientToServiceConnection> conn;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        renderService_ = nullptr;
+        conn = conn_;
+        conn_ = nullptr;
+        deathRecipient_ = nullptr;
+        token_ = nullptr;
     }
-    conn_ = nullptr;
-    deathRecipient_ = nullptr;
-    token_ = nullptr;
+    if (conn) {
+        conn->RunOnRemoteDiedCallback();
+    }
 }
 
 void RSClientToServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)

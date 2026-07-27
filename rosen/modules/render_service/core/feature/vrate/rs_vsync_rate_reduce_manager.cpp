@@ -204,7 +204,7 @@ int RSVsyncRateReduceManager::UpdateRatesLevel()
     // 2: level down
     if (newLevel <= 0) {
         newLevel = lastRatesLevel;
-        for (int i = 0; i <= lastRatesLevel; ++i) {
+        for (int i = 0; i < lastRatesLevel; ++i) {
             if (totalDuration < static_cast<float>(BALANCE_FRAME_COUNT) * WORKLOAD_TIMES_DOWN[i]) {
                 newLevel = i;
                 break;

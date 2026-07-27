@@ -18,7 +18,6 @@
 #include "hpae_base/rs_hpae_log.h"
 
 namespace OHOS::Rosen {
-constexpr const char* DESKTOP_NAME = "SCBDesktop";
 RSHpaeBaseData &RSHpaeBaseData::GetInstance()
 {
     static RSHpaeBaseData hpaeBaseDataInstance;
@@ -42,13 +41,6 @@ void RSHpaeBaseData::Reset()
 void RSHpaeBaseData::SyncHpaeStatus(HpaeStatus status)
 {
     hpaeStatus_ = status;
-}
-
-void RSHpaeBaseData::NotifyOfftree(const std::string nodeName, bool isOnTree)
-{
-    if (isOnTree == false && (nodeName.find(DESKTOP_NAME) != std::string::npos)) {
-        desktopOffTree_ = true;
-    }
 }
 
 void RSHpaeBaseData::SetDesktopOffTree(bool offTree)

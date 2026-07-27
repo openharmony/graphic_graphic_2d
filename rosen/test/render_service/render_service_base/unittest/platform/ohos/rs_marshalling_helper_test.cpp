@@ -721,6 +721,19 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest011, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarshallingMotionBlurParaNullTest
+ * @tc.desc: Verify Marshalling returns false when MotionBlurParam is null
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingMotionBlurParaNullTest, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<MotionBlurParam> val;
+    EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, val));
+}
+
+/**
  * @tc.name: UnmarshallingTest012
  * @tc.desc: Verify function Unmarshalling
  * @tc.type:FUNC
@@ -2759,5 +2772,35 @@ HWTEST_F(RSMarshallingHelperTest, IRemoteObjectMarshallingRoundTripTest, TestSiz
     ASSERT_TRUE(dstVal != nullptr);
 }
 #endif
+
+/**
+ * @tc.name: UnmarshallingMapExceedMaxSizeTest
+ * @tc.desc: Verify std::map Unmarshalling rejects oversized size
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingMapExceedMaxSizeTest, TestSize.Level1)
+{
+    Parcel parcel;
+    uint32_t oversized = static_cast<uint32_t>(RSMarshallingHelper::UNMARSHALLING_MAX_VECTOR_SIZE) + 1;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, oversized));
+    std::map<int, int> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_TRUE(val.empty());
+}
+
+/**
+ * @tc.name: MarshallingMapExceedMaxSizeTest
+ * @tc.desc: Verify std::map Marshalling rejects oversized map
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingMapExceedMaxSizeTest, TestSize.Level1)
+{
+    Parcel parcel;
+    std::map<int, int> val;
+    for (int i = 0; i <= static_cast<int>(RSMarshallingHelper::UNMARSHALLING_MAX_VECTOR_SIZE); ++i) {
+        val[i] = i;
+    }
+    EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, val));
+}
 } // namespace Rosen
 } // namespace OHOS

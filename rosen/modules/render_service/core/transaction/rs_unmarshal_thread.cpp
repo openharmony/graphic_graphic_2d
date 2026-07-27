@@ -154,6 +154,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (!transData) {
             return;
         }
+        transData->SetCallingPid(callingPid);
         if (isNonSystemAppCalling) {
             const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
             if (!transData->IsCallingPidValid(callingPid, nodeMap)) {

@@ -118,8 +118,10 @@ public:
 };
 RSInterfaces* RSWindowCaptureTaskTest::rsInterfaces_ = nullptr;
 std::shared_ptr<RenderContext> RSWindowCaptureTaskTest::renderContext_ = nullptr;
-RSDisplayNodeConfig RSWindowCaptureTaskTest::defaultConfig_ = {INVALID_SCREEN_ID, false, INVALID_SCREEN_ID};
-RSDisplayNodeConfig RSWindowCaptureTaskTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
+RSDisplayNodeConfig RSWindowCaptureTaskTest::defaultConfig_ = { INVALID_SCREEN_ID, DisplayMode::EXPAND,
+    INVALID_SCREEN_ID };
+RSDisplayNodeConfig RSWindowCaptureTaskTest::mirrorConfig_ = { INVALID_SCREEN_ID, DisplayMode::MIRROR,
+    INVALID_SCREEN_ID };
 std::shared_ptr<RSSurfaceNode> RSWindowCaptureTaskTest::surfaceNode_ = nullptr;
 std::shared_ptr<CustomizedSurfaceCapture> RSWindowCaptureTaskTest::surfaceCaptureCb_ = nullptr;
 

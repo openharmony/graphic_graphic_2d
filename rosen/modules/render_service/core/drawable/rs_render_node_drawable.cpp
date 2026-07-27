@@ -395,18 +395,14 @@ bool RSRenderNodeDrawable::SkipDrawByWhiteList(Drawing::Canvas& canvas)
         return false;
     }
 
-    // 2. if node is in the white list, don't filter the node
+    // 2. white list is empty, or white list root ids is not empty, draw normally
     if (IsWhiteListNode()) {
         return false;
     }
-    
-    // 3. if node's child is in the white list, only draw children
+
     const auto& params = GetRenderParams();
     if (params != nullptr) {
-        const auto& screenIds = params->GetScreensWithSubTreeWhitelist();
-        if (screenIds.find(curDisplayScreenId_) != screenIds.end()) {
-            DrawChildren(canvas, params->GetFrameRect());
-        }
+        DrawChildren(canvas, params->GetFrameRect());
     }
     return true;
 }
@@ -705,7 +701,10 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && RSOpincDrawCache::IsAutoCacheEnable();
-    autoCacheRenderNodeInfos_.clear();
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
+        autoCacheRenderNodeInfos_.clear();
+    }
     ClearOpincState();
 #endif
 }
@@ -725,7 +724,12 @@ void RSRenderNodeDrawable::DrawDfxForCacheInfo(
     }
 
     if (autoCacheDrawingEnable_ && !isDrawingCacheDfxEnabled_) {
-        for (const auto& info : autoCacheRenderNodeInfos_) {
+        decltype(autoCacheRenderNodeInfos_) infosCopy;
+        {
+            std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
+            infosCopy = autoCacheRenderNodeInfos_;
+        }
+        for (const auto& info : infosCopy) {
             RSUniRenderUtil::DrawRectForDfx(
                 canvas, info.first, Drawing::Color::COLOR_BLUE, 0.2f, info.second); // alpha 0.2 by default
         }
@@ -1061,8 +1065,13 @@ void RSRenderNodeDrawable::DrawCachedImage(
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    if (RSOpincDrawCacheHelper::TryDrawOpincAutoCache(*this, canvas, *cacheImage,
-        samplingOptions, autoCacheRenderNodeInfos_)) {
+    bool opincCacheResult = false;
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
+        opincCacheResult = RSOpincDrawCacheHelper::TryDrawOpincAutoCache(*this, canvas, *cacheImage,
+            samplingOptions, autoCacheRenderNodeInfos_);
+    }
+    if (opincCacheResult) {
         canvas.DetachBrush();
         return;
     }

@@ -396,6 +396,7 @@ public:
     void SetSpatialEffectLeftBottom(const Vector3f& leftBottom);
     void SetSpatialEffectRightBottom(const Vector3f& rightBottom);
     void SetSpatialEffectOcclusionWeight(float occlusionWeight);
+    void SetSpatialEffectMode(int mode);
     void SetDepthEffectPara(const std::optional<DepthEffectPara>& depthEffectPara);
     std::optional<DepthEffectPara> GetDepthEffectPara() const;
     void SetSpatialEffectPara(const std::optional<SpatialEffectPara>& spatialEffectPara);
@@ -714,6 +715,7 @@ public:
         RectF rectSelf;
         RectF depNodeRect;
         std::array<Vector3f, 4> cornerPoints;
+        SpatialEffectMode spatialEffectMode = SpatialEffectMode::WORLD_XYZ_MODE;
     };
 
     struct SpatialEffectPerspectiveResults {
@@ -723,6 +725,13 @@ public:
 
     void ApplySpatialEffectMatrix();
     static SpatialEffectPerspectiveResults CalculateSpatialEffectMatrix(const SpatialEffectMatrixParams& params,
+        const Drawing::GECameraIntrinsics& intrinsics, const Drawing::GECameraExtrinsics& extrinsics);
+    static bool CalculateDstPointsByWorldXYZ(SpatialEffectPerspectiveResults& ret,
+        const SpatialEffectMatrixParams& params, const Drawing::GECameraIntrinsics& intrinsics,
+        const Drawing::GECameraExtrinsics& extrinsics);
+    static void CalculateDstPointsByNdcXY(SpatialEffectPerspectiveResults& ret,
+        const SpatialEffectMatrixParams& params);
+    SpatialEffectPara::CornerPositions CalculateWorldXYZ(const std::array<Vector3f, 4>& uvzPoints,
         const Drawing::GECameraIntrinsics& intrinsics, const Drawing::GECameraExtrinsics& extrinsics);
 
     bool IsDirty() const;

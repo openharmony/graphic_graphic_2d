@@ -129,6 +129,7 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM, ThresholdType::ZERO },
     { RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM, ThresholdType::ZERO },
     { RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT, ThresholdType::ZERO },
+    { RSPropertyType::SPATIAL_EFFECT_MODE, ThresholdType::ZERO },
     { RSPropertyType::SHADOW_IS_FILLED, ThresholdType::ZERO },
     { RSPropertyType::SHADOW_DISABLE_SDF_BLUR, ThresholdType::ZERO },
     { RSPropertyType::OUTLINE_COLOR, ThresholdType::COLOR },

@@ -322,6 +322,10 @@ ErrCode RSClientToServiceConnection::GetBackgroundRebuildEnabled(bool& res)
 
 void RSClientToServiceConnection::GetSurfaceRootNodeId(NodeId& windowNodeId)
 {
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
@@ -1825,6 +1829,15 @@ void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventI
     }
 }
 
+bool RSClientToServiceConnection::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    if (hgmContext_ == nullptr) {
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
+        return false;
+    }
+    return hgmContext_->SetHgmExclusiveScreen(remotePid_, screenId.value_or(INVALID_SCREEN_ID));
+}
+
 
 void RSClientToServiceConnection::SetWindowExpectedRefreshRate(
     const std::unordered_map<uint64_t, EventInfo>& eventInfos)
@@ -2145,6 +2158,25 @@ ErrCode RSClientToServiceConnection::SetVmaCacheStatus(bool flag)
         conn->SetVmaCacheStatus(flag);
     }
     return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnection::SetUIMode3D(UIMode3D mode)
+{
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.size() == 0) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    ErrCode ret = ERR_OK;
+    for (auto conn : serviceToRenderConns) {
+        ErrCode retTmp = conn->SetUIMode3D(mode);
+        ret = (ret != ERR_OK) ? ret : retTmp;
+    }
+    return ret;
 }
 
 #ifdef TP_FEATURE_ENABLE

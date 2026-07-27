@@ -143,7 +143,6 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
-    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect);
 
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
@@ -193,6 +192,19 @@ public:
     {
         return isGlobalDarkColorMode_;
     }
+
+    void SetUIMode3D(UIMode3D mode)
+    {
+        RS_LOGI("SetUIMode3D %{public}d.", mode);
+        uiMode_ = mode;
+    }
+
+    UIMode3D GetUIMode3D() const
+    {
+        return uiMode_;
+    }
+
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect);
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
@@ -329,6 +341,7 @@ public:
 
     bool IsPCThreeFingerScenesListScene() const
     {
+        std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
         return !threeFingerScenesList_.empty();
     }
 
@@ -715,6 +728,7 @@ private:
     std::atomic<bool> screenPowerOnChanged_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::atomic<bool> isGlobalDarkColorMode_ = false;
+    std::atomic<UIMode3D> uiMode_ = UIMode3D::MODE_2D;
     // for statistic of jank frames
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
@@ -852,7 +866,7 @@ private:
     // for surface occlusion change callback
     std::mutex surfaceOcclusionMutex_;
     std::vector<NodeId> lastRegisteredSurfaceOnTree_;
-    std::mutex systemAnimatedScenesMutex_;
+    mutable std::mutex systemAnimatedScenesMutex_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> systemAnimatedScenesList_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> threeFingerScenesList_;
     std::unordered_map<NodeId, // map<node ID, <pid, callback, partition points vector, level>>

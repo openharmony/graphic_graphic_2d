@@ -150,7 +150,9 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = pixelMapCache_.find(uniqueId);
         if (it != pixelMapCache_.end()) {
-            it->second.second--;
+            if (it->second.second > 0) {
+                it->second.second--;
+            }
             if (it->second.first == nullptr || it->second.second == 0) {
                 pixelMap = it->second.first;
                 bool shouldCount = pixelMap && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC;
@@ -253,7 +255,10 @@ void RSImageCache::DecreaseRefCountAndDiscardEditablePixelMapCache(uint64_t uniq
             editablePixelMapCache_.erase(it);
             return;
         }
-        if (--it->second.second == 0) {
+        if (it->second.second > 0) {
+            it->second.second--;
+        }
+        if (it->second.second == 0) {
             pixelMap = it->second.first;
             editablePixelMapCache_.erase(it);
         }
@@ -277,7 +282,10 @@ void RSImageCache::DecreaseRefCountAndReleaseEditablePixelMapCache(uint64_t uniq
             editablePixelMapCache_.erase(it);
             return;
         }
-        if (--it->second.second == 0) {
+        if (it->second.second > 0) {
+            it->second.second--;
+        }
+        if (it->second.second == 0) {
             pixelMap = it->second.first;
             editablePixelMapCache_.erase(it);
         }

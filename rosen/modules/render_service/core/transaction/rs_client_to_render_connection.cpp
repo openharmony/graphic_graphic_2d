@@ -298,6 +298,7 @@ ErrCode RSClientToRenderConnection::CreateDisplayNode(const RSDisplayNodeConfig&
     bool& success)
 {
     if (renderPipelineAgent_ == nullptr) {
+        success = false;
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->CreateDisplayNode(displayNodeConfig, nodeId, success);
@@ -306,6 +307,7 @@ ErrCode RSClientToRenderConnection::CreateDisplayNode(const RSDisplayNodeConfig&
 ErrCode RSClientToRenderConnection::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
 {
     if (renderPipelineAgent_ == nullptr) {
+        success = false;
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->CreateNode(config, success);
@@ -566,7 +568,9 @@ void RSClientToRenderConnection::RegisterTransactionDataCallback(uint64_t token,
     if (renderPipelineAgent_ == nullptr) {
         return;
     }
-    renderPipelineAgent_->RegisterTransactionDataCallback(token, timeStamp, callback);
+    // bind the callback to the trusted remote pid of this connection,
+    // so that a forged token from another process cannot trigger it
+    renderPipelineAgent_->RegisterTransactionDataCallback(token, timeStamp, callback, remotePid_);
 }
 
 ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value)
@@ -615,6 +619,11 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::SET_SURFACE_WATERMARK");
+    if (!isSystemCalling && GetCallingPid() != pid) {
+        RS_LOGE("RSClientToRenderConnection::SetSurfaceWatermark %{public}s,"
+            "callingPid != pid", name.c_str());
+        return WATER_MARK_RS_CONNECTION_ERROR;
+    }
     return renderPipelineAgent_->SetSurfaceWatermark(pid, name, watermark,
         nodeIdList, watermarkType, isSystemCalling, rowCount, colCount);
 }
@@ -628,6 +637,11 @@ void RSClientToRenderConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const 
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::CLEAR_SURFACE_WATERMARK_FOR_NODES");
+    if (!isSystemCalling && GetCallingPid() != pid) {
+        RS_LOGE("RSClientToRenderConnection::ClearSurfaceWatermarkForNodes %{public}s,"
+            "callingPid != pid", name.c_str());
+        return;
+    }
     renderPipelineAgent_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList, isSystemCalling);
 }
     
@@ -639,6 +653,11 @@ void RSClientToRenderConnection::ClearSurfaceWatermark(pid_t pid, const std::str
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::CLEAR_SURFACE_WATERMARK");
+    if (!isSystemCalling && GetCallingPid() != pid) {
+        RS_LOGE("RSClientToRenderConnection::ClearSurfaceWatermark %{public}s,"
+            "callingPid != pid", name.c_str());
+        return;
+    }
     renderPipelineAgent_->ClearSurfaceWatermark(pid, name, isSystemCalling);
 }
 

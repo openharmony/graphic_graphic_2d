@@ -162,7 +162,8 @@ private:
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
     void CollectHwcAndFilterNodesInSkippedSubTree(RSRenderNode& node);
-    void CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder = false);
+    void CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder = false,
+        bool isBlendNeedFilter = false);
     // restore node's flag and filter dirty collection
     void PostPrepare(RSRenderNode& node, bool isParentPrepareInReverseOrder = false, bool subTreeSkipped = false);
     void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
@@ -188,9 +189,8 @@ private:
     bool InitScreenInfo(RSScreenRenderNode& node);
     bool InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node);
 
-    void UpdateCompositeType(RSScreenRenderNode& node);
+    void UpdateCompositeType(RSScreenRenderNode& node, DisplayMode mode);
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
-    bool IsFilterNode(RSRenderNode& node) const;
     bool NeedPrepareChildrenInReverseOrder(RSRenderNode& node) const;
     bool IsLeashAndHasMainSubNode(RSRenderNode& node) const;
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
@@ -333,7 +333,10 @@ void ProcessGpuOfflineForTopLayer(
         RSDirtyRegionManager& dirtyManager);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
-    void CollectEffectInfo(RSRenderNode& node);
+    void CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter = false);
+    // Caller guarantees nodeParent is the locked parent of node and stays valid for the call;
+    // passing nullptr preserves the existing null-parent early-return semantics.
+    void CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter, const std::shared_ptr<RSRenderNode>& nodeParent);
 
     void UpdateVirtualDisplayInfo(RSLogicalDisplayRenderNode& node);
     void UpdateVirtualDisplaySecurityExemption(

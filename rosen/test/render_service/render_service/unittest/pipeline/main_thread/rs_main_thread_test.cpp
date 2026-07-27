@@ -163,7 +163,7 @@ public:
     {
         return connectToRenderConnection_;
     }
-    bool IsValidRenderProcessPid(pid_t pid) const override { return false; }
+    sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
@@ -5238,7 +5238,7 @@ HWTEST_F(RSMainThreadTest, HasMirrorDisplay003, TestSize.Level2)
     id++;
     displayNode3->isMirroredScreen_ = true;
     displayNode3->SetMirrorSource(mirrorSourceNode2);
-    displayNode2->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
+    displayNode2->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE;
     node1->AddChild(displayNode3);
     node1->GenerateFullChildrenList();
 

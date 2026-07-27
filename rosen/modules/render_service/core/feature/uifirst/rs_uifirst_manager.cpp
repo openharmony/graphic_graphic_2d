@@ -189,6 +189,7 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     pendingPostNodes_.erase(nodePtr->GetId());
     pendingPostCardNodes_.erase(nodePtr->GetId());
     nodePtr->SetUifirstStartingWindowId(INVALID_NODEID);
+    RemoveFirstFrameCacheGeneratedNode(nodePtr->GetId());
     if (SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE)) {
         // enable ->disable
         SetNodeNeedForceUpdateFlag(true);
@@ -219,6 +220,7 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     } else {
         nodePtr->SetIsNodeToBeCaptured(false);
         rsSubThreadCache.ResetUifirst();
+        rsSubThreadCache.ResetWindowCache();
     }
     rsSubThreadCache.ResetCacheReuseCount();
 }

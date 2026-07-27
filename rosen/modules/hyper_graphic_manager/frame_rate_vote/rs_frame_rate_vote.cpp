@@ -35,7 +35,7 @@ constexpr int32_t VIDEO_VOTE_DELAYS_TIME = 1000 * 1000;
 constexpr int32_t NORMAL_BUFFER_COUNT = 1;
 constexpr int32_t BUFFER_COUNT_THRESHOLD = 4;
 }
-std::atomic<bool> RSFrameRateVote::isVideoApp_{false};
+std::atomic<bool> RSFrameRateVote::isVideoApp_ = {false};
 
 RSFrameRateVote::RSFrameRateVote()
 {
@@ -101,13 +101,13 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
         return;
     }
 
-    if (CheckSurfaceNodeIdChange(surfaceNodeId) || CheckAvailableBufferCount(bufferCount)) {
+    if (isVoted_ && (CheckSurfaceNodeIdChange(surfaceNodeId) || CheckAvailableBufferCount(bufferCount))) {
         ReleaseSurfaceMap(lastSurfaceNodeId_);
         return;
     }
 
     // transactionFlags_ format is [pid, eventId]
-    std::string transactionFlags;
+    std::string transactionFlags = "";
     std::string strLastVotedPid;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -259,8 +259,8 @@ void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std
     }
     pid_t pid = 0;
     auto resultPid = std::from_chars(pidIt->second.data(), pidIt->second.data() + pidIt->second.size(), pid);
-    if (resultPid.ec != std::errc() || pid <= 0) {
-        RS_LOGE("SetVideoRateInfo read pid fail or invalid pid value");
+    if (resultPid.ec != std::errc() || resultPid.ptr != pidIt->second.data() + pidIt->second.size() || pid <= 0) {
+        RS_LOGD("SetVideoRateInfo read pid fail or invalid pid value");
         return;
     }
 
@@ -271,7 +271,7 @@ void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std
     }
     uint32_t decRate = 0;
     auto resultRate = std::from_chars(rateIt->second.data(), rateIt->second.data() + rateIt->second.size(), decRate);
-    if (resultRate.ec != std::errc()) {
+    if (resultRate.ec != std::errc() || resultRate.ptr != rateIt->second.data() + rateIt->second.size()) {
         RS_LOGE("SetVideoRateInfo read decRate fail");
         return;
     }
@@ -294,12 +294,13 @@ void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std
 bool RSFrameRateVote::CheckSurfaceNodeIdChange(uint64_t surfaceNodeId)
 {
     const auto lastUpdateTime = lastSurfaceNodeIdUpdateTime_.load(std::memory_order_relaxed);
+    const auto lastId = lastSurfaceNodeIdForCheck_.load(std::memory_order_relaxed);
     lastSurfaceNodeIdUpdateTime_.store(static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count()), std::memory_order_relaxed);
+    lastSurfaceNodeIdForCheck_.store(surfaceNodeId, std::memory_order_relaxed);
     const auto duration = (lastSurfaceNodeIdUpdateTime_.load(std::memory_order_relaxed) > lastUpdateTime) ?
         (lastSurfaceNodeIdUpdateTime_.load(std::memory_order_relaxed) - lastUpdateTime) : 0;
 
-    const uint64_t lastId = lastSurfaceNodeId_.load();
     if (surfaceNodeId != lastId && static_cast<uint64_t>(duration) < DANMU_MAX_INTERVAL_TIME) {
         RS_LOGD("sId changed, curId: %{public}" PRIu64 ", lastId: %{public}" PRIu64 "",
             surfaceNodeId, lastId);

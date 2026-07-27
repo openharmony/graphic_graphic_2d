@@ -32,6 +32,8 @@ config("native_vsync_public_config") {
 }
 
 ohos_shared_library("libnative_vsync") {
+  branch_protector_ret = "pac_ret"
+
   sanitize = {
     boundary_sanitize = true
     integer_overflow = true

@@ -84,8 +84,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
             if (hasComposerConn) {
-                if (auto remoteObj1 = data.ReadRemoteObject()) {
-                    renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                auto remoteObj1 = data.ReadRemoteObject();
+                if (!remoteObj1) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER renderToComposerConn "
+                            "remote object is null",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+                renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                if (!renderToComposerConn) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER renderToComposerConn iface_cast failed",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
             }
             bool hasComposerToRenderConn = false;
@@ -96,8 +108,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
             if (hasComposerToRenderConn) {
-                if (auto remoteObj2 = data.ReadRemoteObject()) {
-                    composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                auto remoteObj2 = data.ReadRemoteObject();
+                if (!remoteObj2) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER composerToRenderConn "
+                            "remote object is null",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+                composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                if (!composerToRenderConn) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER composerToRenderConn iface_cast failed",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
             }
             auto replyMessage =
@@ -710,6 +734,22 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSServiceToRenderStub::REGISTER_UIEXTENSION_CALLBACK Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D): {
+            uint32_t modeVal = 0;
+            if (!data.ReadUint32(modeVal)) {
+                RS_LOGE("%{public}s Read mode failed!", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (modeVal >= static_cast<uint32_t>(UIMode3D::MODE_TYPE_BUTT)) {
+                RS_LOGE("%{public}s invalid mode: %{public}u", __func__, modeVal);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            UIMode3D mode = static_cast<UIMode3D>(modeVal);
+            ret = SetUIMode3D(mode);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE): {

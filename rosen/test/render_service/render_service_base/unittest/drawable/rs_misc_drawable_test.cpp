@@ -657,4 +657,62 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomRestoreDrawable001, TestSize.Level1)
     drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: RSChildrenDrawableClearDrawableVec001
+ * @tc.desc: Test clearDrawableVec on populated RSChildrenDrawable
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawableClearDrawableVec001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSRenderNode> childOne = std::make_shared<RSRenderNode>(2);
+    std::shared_ptr<RSRenderNode> childTwo = std::make_shared<RSRenderNode>(3);
+    auto drawableOne = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(std::make_shared<RSRenderNode>(10));
+    auto drawableTwo = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(std::make_shared<RSRenderNode>(11));
+    childOne->renderDrawable_ = drawableOne;
+    childTwo->renderDrawable_ = drawableTwo;
+    node.AddChild(childOne, -1);
+    node.AddChild(childTwo, -1);
+    node.GenerateFullChildrenList();
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSChildrenDrawable>(
+        DrawableV2::RSChildrenDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+    ASSERT_TRUE(drawable->needSync_);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(canvas.get(), rect.get());
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->clearDrawableVec();
+    drawable->OnDraw(canvas.get(), rect.get());
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->clearDrawableVec();
+    drawable->needSync_ = false;
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+}
+
+/**
+ * @tc.name: RSChildrenDrawableClearDrawableVec002
+ * @tc.desc: Test clearDrawableVec on empty RSChildrenDrawable
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawableClearDrawableVec002, TestSize.Level1)
+{
+    DrawableV2::RSChildrenDrawable childrenDrawable;
+    childrenDrawable.clearDrawableVec();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    childrenDrawable.OnDraw(canvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
 } // namespace OHOS::Rosen

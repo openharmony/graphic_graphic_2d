@@ -1052,6 +1052,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
 // MotionBlurPara
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<MotionBlurParam>& val)
 {
+    if (!val) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling MotionBlurParam val is null");
+        return false;
+    }
     bool success = Marshalling(parcel, val->radius);
     success &= Marshalling(parcel, val->scaleAnchor[0]);
     success &= Marshalling(parcel, val->scaleAnchor[1]);

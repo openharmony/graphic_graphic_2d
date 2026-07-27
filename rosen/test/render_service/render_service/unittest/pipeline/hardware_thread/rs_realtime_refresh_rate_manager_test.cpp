@@ -348,6 +348,7 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate001, TestSize.Level1)
     ASSERT_EQ(realtimeRefreshRateByScreenId, 0);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: GetRefreshRate002
  * @tc.desc: test GetRefreshRate where showEnabled_ and collectEnabled_ are true and false
@@ -491,6 +492,7 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate004, TestSize.Level1)
     uint32_t realtimeRefreshRateByScreenId3 = instance.GetRealtimeRefreshRateByScreenId(0);
     ASSERT_EQ(realtimeRefreshRateByScreenId3, 90);
 }
+#endif
 
 /**
  * @tc.name: RSInterface001

@@ -41,6 +41,12 @@ public:
 
     Rosen::ScreenId GetActiveScreenId();
 
+protected:
+    sptr<IRemoteObject> GetConnectToRender(Rosen::ScreenId screenId);
+    Rosen::ScreenId GetFirstScreenId();
+    bool HasScreenId(Rosen::ScreenId screenId);
+    bool HasScreen();
+
 public:
     std::shared_ptr<BootCompileProgress> bootCompileProgress_;
     std::string configPath_;

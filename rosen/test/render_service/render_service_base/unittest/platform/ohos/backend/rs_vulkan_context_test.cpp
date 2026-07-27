@@ -820,5 +820,19 @@ HWTEST_F(RSVulkanContextTest, RequireSemaphoreTest, TestSize.Level2)
         EXPECT_EQ(res, VK_NULL_HANDLE);
     }
 }
+
+/**
+ * @tc.name: SetupDeviceProcAddressesFailTest
+ * @tc.desc: test results of SetupDeviceProcAddresses when it fails
+ * @tc.type:FUNC
+ * @tc.require: issueICDVVY
+ */
+HWTEST_F(RSVulkanContextTest, SetupDeviceProcAddressesFailTest, TestSize.Level2)
+{
+    auto interface = std::make_shared<RsVulkanInterface>();
+    VkDevice device = VK_NULL_HANDLE;
+    auto ret = interface->SetupDeviceProcAddresses(device);
+    EXPECT_FALSE(ret);
+}
 } // namespace Rosen
 } // namespace OHOS

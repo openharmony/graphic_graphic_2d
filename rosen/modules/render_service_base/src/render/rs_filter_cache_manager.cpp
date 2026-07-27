@@ -51,12 +51,9 @@ constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 bool RSFilterCacheManager::isCCMFilterCacheEnable_ = true;
 bool RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
 
-float g_hdrBrightnessRatio = 1.0f;
-
 RSFilterCacheManager::RSFilterCacheManager()
 {
     hpaeCacheManager_ = std::make_shared<RSHpaeFilterCacheManager>();
-    cachedHdrBrightness_ = RSFilterCacheManager::GetScrHdr();
 }
 
 RSFilterCacheManager::~RSFilterCacheManager()
@@ -185,7 +182,6 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
     filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect, { discardCanvas, false });
     filter->PostProcess(canvas);
     cachedFilterHash_ = filter->Hash();
-    cachedHdrBrightness_ = RSFilterCacheManager::GetScrHdr();
     return true;
 }
 
@@ -287,7 +283,6 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
         if (canvas.GetSurface()) {
             RS_TRACE_NAME_FMT("ForceTakeSnapshot: %s", src.ToString().c_str());
             auto snapshot = canvas.GetSurface()->GetImageSnapshot(src, false);
-            cachedHdrBrightness_ = RSFilterCacheManager::GetScrHdr();
             filter->PreProcess(snapshot);
             ReplaceCachedEffectData(std::move(snapshot), src, cachedSnapshot_);
             InvalidateFilterCache(FilterCacheType::FILTERED_SNAPSHOT);
@@ -340,7 +335,6 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
     snapshotRegion_ = RectI(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
     ReplaceCachedEffectData(std::move(snapshot), snapshotIBounds, cachedSnapshot_);
     cachedFilterHash_ = 0;
-    cachedHdrBrightness_ = RSFilterCacheManager::GetScrHdr();
 }
 
 void RSFilterCacheManager::GenerateFilteredSnapshot(
@@ -1030,22 +1024,12 @@ void RSFilterCacheManager::PrintDebugInfo(NodeId nodeID)
         cacheUpdateInterval_, pendingPurge_);
 }
 
-void RSFilterCacheManager::SetScrHdr(float value)
-{
-    g_hdrBrightnessRatio = value;
-}
-
-float RSFilterCacheManager::GetScrHdr()
-{
-    return g_hdrBrightnessRatio;
-}
-
 std::shared_ptr<Drawing::Surface> RSFilterCacheManager::CreateOffscreenSurface(
     Drawing::Surface* surface, const Drawing::RectI& offscreenRect,
     const std::shared_ptr<RSDrawingFilter>& filter) const
 {
     // HDR FIX FORMAT
-    if (ROSEN_LNE(g_hdrBrightnessRatio, 1.0f) &&
+    if (ROSEN_LNE(surface->GetHdrScale(), 1.0f) &&
         surface->GetImageInfo().GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_1010102 && filter) {
         auto ngFilter = filter->GetNGRenderFilter();
         if (ngFilter && ngFilter->ContainsType(RSNGEffectType::FROSTED_GLASS)) {

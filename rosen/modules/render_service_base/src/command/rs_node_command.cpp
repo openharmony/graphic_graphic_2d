@@ -100,12 +100,13 @@ void RSNodeCommandHelper::MarkRepaintBoundary(RSContext& context, NodeId nodeId,
 }
 
 void RSNodeCommandHelper::MarkNodeSingleFrameComposer(RSContext& context,
-    NodeId nodeId, bool isNodeSingleFrameComposer, pid_t pid)
+    NodeId nodeId, bool isNodeSingleFrameComposer)
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
-        RSSingleFrameComposer::AddOrRemoveAppPidToMap(isNodeSingleFrameComposer, pid);
-        node->MarkNodeSingleFrameComposer(isNodeSingleFrameComposer, pid);
+        pid_t nodePid = ExtractPid(nodeId);
+        RSSingleFrameComposer::AddOrRemoveAppPidToMap(isNodeSingleFrameComposer, nodePid);
+        node->MarkNodeSingleFrameComposer(isNodeSingleFrameComposer);
     }
 }
 

@@ -137,11 +137,11 @@ public:
     void SetScreenRotation(const uint32_t& rotation);
 
     /**
-     * @brief Sets the mirror configuration of screen.
+     * @brief Sets the configuration of screen.
      *
      * @param displayNodeConfig Indicates the configuration settings for the screen.
      */
-    void SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displayNodeConfig);
+    void SetDisplayNodeConfig(const RSDisplayNodeConfig& displayNodeConfig);
 
     /**
      * @brief Gets whether it is a security screen.
@@ -196,7 +196,7 @@ private:
     void RegisterNodeMap() override;
     uint64_t screenId_;
     bool isSecurityDisplay_ = false;
-    bool isMirrorDisplay_ = false;
+    DisplayMode displayMode_ = DisplayMode::INVALID;
     bool isBootAnimation_ = false;
 };
 } // namespace Rosen

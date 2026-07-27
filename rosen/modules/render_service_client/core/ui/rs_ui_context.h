@@ -259,7 +259,8 @@ private:
     RSUIContext& operator=(const RSUIContext&&) = delete;
 
     void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, std::string& out);
-    void DestroyModifiersDraw();
+    void ClearCanvasDrawingNodeResource();
+    bool DestroyModifiersDraw();
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     CommitTransactionCallback CreateCommitTransactionCallback();

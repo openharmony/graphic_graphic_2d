@@ -296,10 +296,10 @@ HWTEST_F(RSColorSpaceUtilTest, ApiColorSpaceNameToCMColorSpaceType002, TestSize.
     EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_ADOBERGB_FULL);
 
     type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DCI_P3);
-    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_FULL);
 
     type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DISPLAY_P3);
-    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_DISPLAY_P3_SRGB);
+    EXPECT_EQ(type, GraphicCM_ColorSpaceType::GRAPHIC_CM_P3_FULL);
 
     // Alias of DISPLAY_P3
     type = RSColorSpaceUtil::ApiColorSpaceNameToCMColorSpaceType(ApiColorSpaceName::DISPLAY_P3_SRGB);

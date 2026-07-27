@@ -117,6 +117,66 @@ static const std::unordered_set<RSDrawableSlot> filterDrawableSlotsSupportGetRec
 constexpr uint32_t SET_IS_ON_THE_TREE_THRESHOLD = 50;
 static uint32_t g_setIsOntheTreeCnt = 0;
 constexpr size_t CACHE_FILTER_DRAWABLE_SIZE = 3;
+
+#ifndef ROSEN_ARKUI_X
+static std::array<std::function<void(DrawCmdIndex&, int)>,
+    static_cast<size_t>(RSDrawableSlot::MAX)> rsDrawableSlotToIndexVec;
+static void InitRsDrawableSlotToIndexVec()
+{
+    for (size_t i = 0; i < static_cast<size_t>(RSDrawableSlot::MAX); i++) {
+        rsDrawableSlotToIndexVec[i] = nullptr;
+    }
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::TRANSITION)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.transitionIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.envForeGroundColorIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::COLOR_PICKER)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.colorPickerIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::MATERIAL_FILTER)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.materialFilterIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::SHADOW)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.shadowIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::MATERIAL_SHADER)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.materialShaderIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BG_SAVE_BOUNDS)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.bgSaveBoundsIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.clipToBoundsIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_COLOR)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.backgroundColorIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_NG_SHADER)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.backgroundNgShaderIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_IMAGE)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.backgroundImageIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.backgroundFilterIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::USE_EFFECT)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.useEffectIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_STYLE)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.backgroudStyleIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.envForegroundColorStrategyIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BG_RESTORE_BOUNDS)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.bgRestoreBoundsIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::FRAME_OFFSET)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.frameOffsetIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_FRAME)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.clipToFrameIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::CUSTOM_CLIP_TO_FRAME)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.customClipToFrameIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::CONTENT_STYLE)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.contentIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::CHILDREN)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.childrenIndex_ = index;};
+}
+ 
+static inline std::function<void(DrawCmdIndex&, int)>& GetRsDrawableSlotToIndexVecFunc(int8_t slot)
+{
+    static std::once_flag initFlag;
+    std::call_once(initFlag, InitRsDrawableSlotToIndexVec);
+    return rsDrawableSlotToIndexVec[static_cast<int8_t>(slot)];
+}
+#endif
 } // namespace
 
 using RSCacheFilterPara = std::pair<bool, RSDrawableSlot>; // first: update condition, second: slot
@@ -203,7 +263,11 @@ bool RSRenderNode::HasValidModifierInOpincSplit(int8_t slot) const
         }
         auto typeString = ModifierNG::RSModifierTypeString::GetModifierTypeString(type);
         for (const auto& modifier : slot) {
-            const auto& drawOpItems = modifier->GetPropertySimpleDrawCmdList()->GetDrawOpItems();
+            const auto& cmdList = modifier->GetPropertySimpleDrawCmdList();
+            if (cmdList == nullptr) {
+                return true;
+            }
+            const auto& drawOpItems = cmdList->GetDrawOpItems();
             if (drawOpItems.empty() || (drawOpItems.size() == 1 && drawOpItems[0]->GetType() == invalidType)) {
                 RS_LOGW("solidLayer: CheckCmdIn2Modifier ret is false %{public}s", typeString.c_str());
                 return true;
@@ -236,6 +300,9 @@ std::string DrawNodeTypeToString(DrawNodeType nodeType)
         "DrawPropertyType",
         "GeometryPropertyType"
     };
+    if (nodeType >= end(typeMap) - begin(typeMap)) {
+        return "undefinedType";
+    }
     return typeMap[nodeType];
 }
 
@@ -1241,11 +1308,15 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
     auto sortedChildren = GetSortedChildren();
     const int childrenCntLimit = 10;
     if (!isFullChildrenListValid_) {
-        out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size());
-        if (!fullChildrenList_->empty()) {
+        auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+        if (!currentList) {
+            return;
+        }
+        out += ", Children list needs update, current count: " + std::to_string(currentList->size());
+        if (!currentList->empty()) {
             int cnt = 0;
             out += "(";
-            for (auto child = fullChildrenList_->begin(); child != fullChildrenList_->end(); child++) {
+            for (auto child = currentList->begin(); child != currentList->end(); child++) {
                 if (cnt > childrenCntLimit) {
                     break;
                 }
@@ -2774,6 +2845,15 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
 }
 #endif
 
+bool RSRenderNode::HasColorPickerDrawable() const
+{
+    if (UNLIKELY(!drawableVec_)) {
+        return false;
+    }
+    auto it = drawableVec_->find(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER));
+    return it != drawableVec_->end() && it->second != nullptr;
+}
+
 std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
 {
     if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
@@ -2815,7 +2895,7 @@ bool RSRenderNode::IsColorPickerOnlyNode() const
 {
     // Node is color-picker-only if it was added to visibleFilterChild_
     // only because of ColorPickerDrawable, not because of real filter/blend/fg color
-    return GetColorPickerDrawable() != nullptr && !HasVisibleFilterProperty(*this);
+    return HasColorPickerDrawable() && !HasVisibleFilterProperty(*this);
 }
 
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
@@ -3453,7 +3533,11 @@ void RSRenderNode::UpdateDrawableVecV2()
         dirtySlotShadow.emplace(RSDrawableSlot::SHADOW);
         RSDrawable::UpdateDirtySlots(*this, drawableMap, dirtySlotShadow);
         // Step 4: Generate drawCmdList from drawables
-        UpdateDisplayList();
+        if (RSSystemProperties::GetUpdateDisplayListExtEnabled()) {
+            UpdateDisplayListExt();
+        } else {
+            UpdateDisplayList();
+        }
     }
     // If any effect drawable become dirty, check all effect drawable and do edr update
     auto needUpdateEDR = std::any_of(edrDrawableSlots.begin(), edrDrawableSlots.end(), [&dirtySlots](auto slot) {
@@ -3625,6 +3709,67 @@ void RSRenderNode::UpdateDisplayList()
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetContentEmpty(false);
 #endif
+#endif
+}
+
+void RSRenderNode::UpdateDisplayListExt()
+{
+#ifndef ROSEN_ARKUI_X
+    // Planning: use the mask from DrawableVecStatus in rs_drawable.cpp
+    constexpr uint8_t NODE_NOT_EMPTY = 1 << 5;
+    constexpr DrawCmdIndex INIT_DRAW_CMD_INDEX;
+    stagingDrawCmdList_.clear();
+    drawCmdListNeedSync_ = true;
+    if (UNLIKELY((drawableVecStatus_ & NODE_NOT_EMPTY) == 0)) {
+        // NODE_NOT_EMPTY is not set, so nothing to draw, just skip
+        stagingRenderParams_->SetContentEmpty(GetType() == RSRenderNodeType::CANVAS_NODE);
+        return;
+    }
+    auto& drawablemap = GetDrawableVec(__func__);
+    stagingDrawCmdIndex_ = INIT_DRAW_CMD_INDEX;
+    int8_t index = 0;
+    // Track the last valid index at each slot range boundary for computing derived indexes.
+    // Value is -1 if no drawable in that range; derived index = lastIdx + 1 (yields 0 when empty).
+    int8_t lastIdxUpToMaterialShader = -1;
+    int8_t lastIdxUpToContentStyle = -1;
+    int8_t lastIdxUpToChildren = -1;
+    int8_t lastIdxUpToRestoreFrame = -1;
+    int8_t lastIdxUpToRestoreBlender = -1;
+    for (auto &[slot, drawable] : drawablemap) {
+        if (!drawable) {
+            continue;
+        }
+        stagingDrawCmdList_.emplace_back(drawable);
+        const auto& func = GetRsDrawableSlotToIndexVecFunc(static_cast<int8_t>(slot));
+        if (func) {
+            func(stagingDrawCmdIndex_, index);
+        }
+        if (slot <= static_cast<int8_t>(RSDrawableSlot::MATERIAL_SHADER)) {
+            lastIdxUpToMaterialShader = index;
+        }
+        if (slot <= static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)) {
+            lastIdxUpToContentStyle = index;
+        }
+        if (slot <= static_cast<int8_t>(RSDrawableSlot::CHILDREN)) {
+            lastIdxUpToChildren = index;
+        }
+        if (slot <= static_cast<int8_t>(RSDrawableSlot::RESTORE_FRAME)) {
+            lastIdxUpToRestoreFrame = index;
+        }
+        if (slot <= static_cast<int8_t>(RSDrawableSlot::RESTORE_BLENDER)) {
+            lastIdxUpToRestoreBlender = index;
+        }
+        index++;
+    }
+    stagingDrawCmdIndex_.renderGroupBeginIndex_ = lastIdxUpToMaterialShader + 1;
+    stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = lastIdxUpToMaterialShader + 1;
+    stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdIndex_.contentIndex_ == -1
+        ? lastIdxUpToContentStyle + 1 : stagingDrawCmdIndex_.contentIndex_;
+    stagingDrawCmdIndex_.foregroundBeginIndex_ = lastIdxUpToChildren + 1;
+    stagingDrawCmdIndex_.renderGroupEndIndex_ = lastIdxUpToRestoreFrame + 1;
+    stagingDrawCmdIndex_.foregroundFilterEndIndex_ = lastIdxUpToRestoreBlender + 1;
+    stagingDrawCmdIndex_.endIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
+    stagingRenderParams_->SetContentEmpty(false);
 #endif
 }
 
@@ -3880,6 +4025,9 @@ void RSRenderNode::SetNodeGroupHasChildInBlacklist(bool inBlacklist)
 
 void RSRenderNode::SetNeedClearRenderGroupCache(bool needClear)
 {
+    if (!stagingRenderParams_) {
+        return;
+    }
     stagingRenderParams_->SetNeedClearRenderGroupCache(needClear);
 }
 
@@ -3919,35 +4067,23 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 
 void RSRenderNode::MarkSuggestLayerPartRenderNode(bool isLayerPartRender)
 {
-    RS_LOGD("RSRenderNode::MarkSuggestLayerPartRenderNode id:%{public}" PRIu64" isLayerPartRender:%{public}d",
+    RS_TRACE_NAME_FMT("MarkSuggestLayerPartRenderNode id:%" PRIu64 ", isLayerPartRender:%d",
         GetId(), isLayerPartRender);
-    // only support surface node mark
-    if (GetType() != RSRenderNodeType::SURFACE_NODE) {
-        return;
-    }
-    // Get bundleName from surface node for white list check
-    auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (surfaceNode == nullptr) {
-        return;
-    }
-    std::string bundleName = surfaceNode->GetBundleName();
-    // Check white list
-    if (!RsCommonHook::Instance().IsInLayerPartRenderWhiteList(bundleName)) {
-        RS_LOGD("RSRenderNode::MarkSuggestLayerPartRenderNode bundleName:%{public}s not in white list, skip",
-            bundleName.c_str());
-        return;
-    }
-    auto parent = GetParent().lock();
-    if (parent != nullptr && parent->GetType() == RSRenderNodeType::SURFACE_NODE) {
-        auto grandparent = parent->GetParent().lock();
-        if (grandparent != nullptr && grandparent->GetType() == RSRenderNodeType::CANVAS_NODE) {
-            auto& layerPartRenderCache = grandparent->GetLayerPartRenderCache();
-            layerPartRenderCache.MarkSuggestLayerPartRenderNode(isLayerPartRender);
-            layerPartRenderCache.SetLayerPartRenderNodeStrategyType(
-                isLayerPartRender ? NodeStrategyType::NODE_GROUP : NodeStrategyType::CACHE_DISABLE);
-            RS_TRACE_NAME_FMT("MarkSuggestLayerPartRender id:%" PRIu64 ", isLayerPartRender:%d",
-                grandparent->GetId(), isLayerPartRender);
+    if (GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto parent = GetParent().lock();
+        if (parent != nullptr && parent->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            auto grandparent = parent->GetParent().lock();
+            if (grandparent != nullptr && grandparent->GetType() == RSRenderNodeType::CANVAS_NODE) {
+                auto& layerPartRenderCache = grandparent->GetLayerPartRenderCache();
+                layerPartRenderCache.MarkSuggestLayerPartRenderNode(isLayerPartRender);
+                SetDirty();
+            }
         }
+    } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
+        // create partlayer root cache
+        auto& layerPartRootCache = GetLayerPartRenderCache();
+        layerPartRootCache.MarkSuggestLayerPartRenderNode(isLayerPartRender);
+        SetDirty();
     }
 }
 
@@ -4184,7 +4320,7 @@ void RSRenderNode::GenerateFullChildrenList()
 {
     // both children_ and disappearingChildren_ are empty, no need to generate fullChildrenList_
     if (children_.empty() && disappearingChildren_.empty()) {
-        auto prevFullChildrenList = fullChildrenList_;
+        auto prevFullChildrenList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
         isFullChildrenListValid_ = true;
         isChildrenSorted_ = true;
         std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
@@ -4240,7 +4376,7 @@ void RSRenderNode::GenerateFullChildrenList()
     });
 
     // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
-    auto prevFullChildrenList = fullChildrenList_;
+    auto prevFullChildrenList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 
     // Update the flag to indicate that children are now valid and sorted
     isFullChildrenListValid_ = true;
@@ -4254,7 +4390,11 @@ void RSRenderNode::GenerateFullChildrenList()
 void RSRenderNode::ResortChildren()
 {
     // Make a copy of the fullChildrenList for sorting
-    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+    auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+    if (!currentList) {
+        return;
+    }
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*currentList);
 
     // temporary fix for wrong z-order
     for (auto& child : *fullChildrenList) {
@@ -4268,7 +4408,7 @@ void RSRenderNode::ResortChildren()
     });
 
     // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
-    auto prevFullChildrenList = fullChildrenList_;
+    auto prevFullChildrenList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 
     // Update the flag to indicate that children are now sorted
     isChildrenSorted_ = true;
@@ -4323,6 +4463,9 @@ void RSRenderNode::SetChildHasVisibleFilter(bool val)
 {
     childHasVisibleFilter_ = val;
 #ifdef RS_ENABLE_GPU
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
     stagingRenderParams_->SetChildHasVisibleFilter(val);
 #endif
 }
@@ -4330,12 +4473,15 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 {
     childHasVisibleEffect_ = val;
 #ifdef RS_ENABLE_GPU
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
     stagingRenderParams_->SetChildHasVisibleEffect(val);
 #endif
 }
 void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 {
-    if (HasVisibleFilterProperty(childNode) || childNode.GetColorPickerDrawable()) {
+    if (HasVisibleFilterProperty(childNode) || childNode.HasColorPickerDrawable()) {
         visibleFilterChild_.emplace_back(childNode.GetId());
     }
     auto& childFilterNodes = childNode.GetVisibleFilterChild();
@@ -4613,31 +4759,6 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType() const
         }
     }
     return NodeGroupType::NONE;
-}
-
-void RSRenderNode::SyncWhiteListInfoToParent()
-{
-    if (auto nodeParent = GetParent().lock()) {
-        auto& parentParams = nodeParent->GetStagingRenderParams();
-        parentParams->AddScreensWithSubTreeWhitelist(
-            stagingRenderParams_->GetScreensWithSubTreeWhitelist());
-    }
-}
-
-void RSRenderNode::AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (stagingRenderParams_ == nullptr) {
-        return;
-    }
-    stagingRenderParams_->AddScreensWithSubTreeWhitelist(screenIds);
-}
-
-void RSRenderNode::SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (stagingRenderParams_ == nullptr) {
-        return;
-    }
-    stagingRenderParams_->SetScreensWithSubTreeWhitelist(screenIds);
 }
 
 void RSRenderNode::MarkNonGeometryChanged()
@@ -4964,7 +5085,7 @@ void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
 bool RSRenderNode::GetUifirstSupportFlag()
 {
     if (sharedTransitionParam_ && !sharedTransitionParam_->IsInAppTranSition()) {
-        RS_TRACE_NAME_FMT("SharedTransition inNodeId:%" PRIu64, " outNodeId:%" PRIu64,
+        RS_TRACE_NAME_FMT("uifirst disable by SharedTransition inNodeId:%" PRIu64 ", outNodeId:%" PRIu64,
             sharedTransitionParam_->inNodeId_, sharedTransitionParam_->outNodeId_);
         return false;
     }
@@ -5041,10 +5162,11 @@ void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
 void RSRenderNode::RemoveChildFromFulllist(NodeId id)
 {
     // Make a copy of the fullChildrenList
-    if (!fullChildrenList_) {
+    auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+    if (!currentList) {
         return;
     }
-    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*currentList);
 
     fullChildrenList->erase(std::remove_if(fullChildrenList->begin(),
         fullChildrenList->end(), [id](const auto& node) { return id == node->GetId(); }), fullChildrenList->end());
@@ -5228,7 +5350,11 @@ void RSRenderNode::UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType typ
     RS_LOGD("RSRenderNode::UpdateDrawableAfterPostPrepare drawableChanged:%{public}d", drawableChanged);
     if (drawableChanged) {
         RSDrawable::UpdateSaveRestore(*this, drawableMap, drawableVecStatus_);
-        UpdateDisplayList();
+        if (RSSystemProperties::GetUpdateDisplayListExtEnabled()) {
+            UpdateDisplayListExt();
+        } else {
+            UpdateDisplayList();
+        }
     }
     if (dirtySlots_.empty()) {
         dirtySlots_ = std::move(dirtySlots);
@@ -5615,19 +5741,6 @@ void RSRenderNode::NodePostPrepare(
     UpdateAbsDrawRect();
     ResetChangeState();
     SetHasUnobscuredUEC();
-    // only container nodes outside the surfaceNode need to mark whitelist info
-    if (curSurfaceNode == nullptr) {
-        SyncWhiteListInfoToParent();
-    }
-}
-
-RSDrawable::Vec& RSRenderNode::GetDrawableVec(const char* func) const
-{
-    if (UNLIKELY(!drawableVec_)) {
-        drawableVec_ = std::make_unique<RSDrawable::Vec>();
-        ROSEN_LOGD("drawableVec_ is nullptr, %{public}s", func);
-    }
-    return *drawableVec_;
 }
 
 void RSRenderNode::InitRenderDrawableAndDrawableVec()

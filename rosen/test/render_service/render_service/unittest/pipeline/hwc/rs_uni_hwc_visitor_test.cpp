@@ -819,6 +819,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterIntersection_001, TestS
     // hwcNode on the tree whose absRect intersects the filter rect below
     auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
     hwcNode->isOnTheTree_ = true;
     hwcNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI(0, 0, 100, 100);
 
@@ -860,6 +861,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterIntersection_002, TestS
     // hwcNode on the tree whose absRect intersects the filter rect below
     auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
     hwcNode->isOnTheTree_ = true;
     hwcNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI(0, 0, 100, 100);
 
@@ -900,6 +902,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterIntersection_003, TestS
 
     auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(hwcNode, nullptr);
+    hwcNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
     hwcNode->isOnTheTree_ = true;
     hwcNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI(0, 0, 100, 100);
 
@@ -2707,7 +2710,7 @@ HWTEST_F(RSUniHwcVisitorTest, IsDisableHwcOnExpandScreen001, TestSize.Level2)
     EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
-    screenNode->SetCompositeType(CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
     rsUniRenderVisitor->curScreenNode_ = screenNode;
     EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
 

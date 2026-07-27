@@ -21,6 +21,8 @@ config("render_config") {
 }
 
 ohos_source_set("webgl_src") {
+  branch_protector_ret = "pac_ret"
+
   include_dirs = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/common",

@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "feature/opinc/rs_layer_part_draw_cache.h"
-#include "params/rs_canvas_drawing_render_params.h"
+#include "params/rs_render_params.h"
 #include "parameters.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -62,9 +62,9 @@ const RectI PARTIAL_CACHE_REGION = {
 
 class RSOpincDrawCacheLayerPartTest : public testing::Test {
 public:
-    static std::shared_ptr<RSCanvasDrawingRenderParams> CreateRenderParams(bool enabled)
+    static std::shared_ptr<RSRenderParams> CreateRenderParams(bool enabled)
     {
-        auto params = std::make_shared<RSCanvasDrawingRenderParams>(GenerateUniqueNodeIdForRS());
+        auto params = std::make_shared<RSRenderParams>(GenerateUniqueNodeIdForRS());
         params->SetLayerPartRenderEnabled(enabled);
         params->SetLayerPartRenderCurrentFrameDirtyRegion(DEFAULT_DIRTY_RECT);
         params->SetAbsDrawRect(DEFAULT_DIRTY_RECT);

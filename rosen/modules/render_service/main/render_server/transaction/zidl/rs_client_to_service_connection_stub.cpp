@@ -156,6 +156,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT),
@@ -194,6 +195,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP),
@@ -1677,6 +1679,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (scaleMode >= static_cast<uint32_t>(ScreenScaleMode::INVALID_MODE)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE scaleMode is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool result = SetVirtualMirrorScreenScaleMode(id, static_cast<ScreenScaleMode>(scaleMode));
             if (!reply.WriteBool(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE Write parcel failed!");
@@ -2396,7 +2403,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE): {
             DataBaseRs info;
-            if (!ReadDataBaseRs(info, data)) {
+            if (!ReadDataBaseRs(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2405,7 +2412,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE): {
             DataBaseRs info;
-            if (!ReadDataBaseRs(info, data)) {
+            if (!ReadDataBaseRs(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2414,7 +2421,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME): {
             DataBaseRs info;
-            if (!ReadDataBaseRs(info, data)) {
+            if (!ReadDataBaseRs(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2423,7 +2430,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START): {
             AppInfo info;
-            if (!ReadAppInfo(info, data)) {
+            if (!ReadAppInfo(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2432,7 +2439,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END): {
             AppInfo info;
-            if (!ReadAppInfo(info, data)) {
+            if (!ReadAppInfo(info, data, callingPid)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2549,6 +2556,23 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 eventName, eventStatus, minRefreshRate, maxRefreshRate, description
             };
             NotifyRefreshRateEvent(eventInfo);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN) : {
+            ScreenId screenId{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(screenId)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_HGM_EXCLUSIVE_SCREEN Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::optional<ScreenId> optScreenId;
+            if (screenId != INVALID_SCREEN_ID) {
+                optScreenId = screenId;
+            }
+            bool result = SetHgmExclusiveScreen(optScreenId);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID) : {
@@ -3077,6 +3101,21 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             SetVmaCacheStatus(flag);
             break;
         }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D) : {
+            uint32_t mode{0};
+            if (!data.ReadUint32(mode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_UI_MODE_3D read mode failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (mode >= static_cast<uint32_t>(UIMode3D::MODE_TYPE_BUTT)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_UI_MODE_3D invalid mode: %{public}u", mode);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetUIMode3D(static_cast<UIMode3D>(mode));
+            break;
+        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP) : {
             std::string nodeIdStr;
             bool isTop{false};
@@ -3514,7 +3553,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
     return ret;
 }
 
-bool RSClientToServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParcel& data)
+bool RSClientToServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParcel& data, pid_t callingPid)
 {
     if (!data.ReadInt32(info.appPid) || !data.ReadInt32(info.eventType) ||
         !data.ReadInt32(info.versionCode) || !data.ReadInt64(info.uniqueId) ||
@@ -3522,15 +3561,20 @@ bool RSClientToServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessagePa
         !data.ReadInt64(info.endVsyncTime) || !data.ReadBool(info.isDisplayAnimator) ||
         !data.ReadString(info.sceneId) || !data.ReadString(info.versionName) ||
         !data.ReadString(info.bundleName) || !data.ReadString(info.processName) ||
-        !data.ReadString(info.abilityName) ||!data.ReadString(info.pageUrl) ||
+        !data.ReadString(info.abilityName) || !data.ReadString(info.pageUrl) ||
         !data.ReadString(info.sourceType) || !data.ReadString(info.note)) {
         RS_LOGE("RSClientToServiceConnectionStub::ReadDataBaseRs Read parcel failed!");
+        return false;
+    }
+    if (!IsValidCallingPid(info.appPid, callingPid)) {
+        RS_LOGE("RSClientToServiceConnectionStub::ReadDataBaseRs invalid callingPid=%{public}d, appPid=%{public}d",
+            callingPid, info.appPid);
         return false;
     }
     return true;
 }
 
-bool RSClientToServiceConnectionStub::ReadAppInfo(AppInfo& info, MessageParcel& data)
+bool RSClientToServiceConnectionStub::ReadAppInfo(AppInfo& info, MessageParcel& data, pid_t callingPid)
 {
     if (!data.ReadInt64(info.startTime)) {
         RS_LOGE("RSClientToServiceConnectionStub::ReadAppInfo Read startTime failed!");
@@ -3558,6 +3602,11 @@ bool RSClientToServiceConnectionStub::ReadAppInfo(AppInfo& info, MessageParcel& 
     }
     if (!data.ReadString(info.processName)) {
         RS_LOGE("RSClientToServiceConnectionStub::ReadAppInfo Read processName failed!");
+        return false;
+    }
+    if (!IsValidCallingPid(info.pid, callingPid)) {
+        RS_LOGE("RSClientToServiceConnectionStub::ReadAppInfo invalid callingPid=%{public}d, pid=%{public}d",
+            callingPid, info.pid);
         return false;
     }
     return true;

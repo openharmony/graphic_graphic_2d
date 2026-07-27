@@ -53,7 +53,7 @@ void RSCanvasModifiersDrawable::Reset()
 }
 
 void RSCanvasModifiersDrawable::CreateProducerSurface(
-    std::weak_ptr<RSRenderInterface> weakRenderInterface, const std::string& cacheDir)
+    std::weak_ptr<RSRenderInterface> weakRenderInterface, const std::string& cacheDir, size_t& maxGpuResourceBytes)
 {
     auto renderInterface = weakRenderInterface.lock();
     if (renderInterface == nullptr) {
@@ -72,6 +72,10 @@ void RSCanvasModifiersDrawable::CreateProducerSurface(
         RS_LOGE("RSCanvasModifiersDrawable::CreateProducerSurface, null surface, nodeId=%{public}" PRIu64, nodeId_);
         return;
     }
+
+    static std::once_flag flag;
+    std::call_once(flag,
+        [gpuContext, &maxGpuResourceBytes]() { gpuContext->GetResourceCacheLimits(nullptr, &maxGpuResourceBytes); });
     auto producerSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
     producerSurface->SetSkContext(gpuContext);
     producerSurface->SetTimeOut(2); // Timeout 2ms
@@ -193,7 +197,7 @@ std::unique_ptr<RSSurfaceFrame> RSCanvasModifiersDrawable::RequestBufferAndDrawH
         return nullptr;
     }
 
-    if (drawingSurface_ != nullptr) {
+    if (drawingSurface_ != nullptr && drawingSurface_ != drawingSurface) {
         if (auto lastCanvas = drawingSurface_->GetCanvas()) {
             canvas->InheritStateAndContentFrom(lastCanvas.get(), false);
         }
@@ -418,9 +422,21 @@ void RSCanvasModifiersDraw::StartThread()
 
 void RSCanvasModifiersDraw::WaitAllTasksFinish()
 {
-    if (threadStarted_.load()) {
-        PostSyncTask([]() { RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish"); });
+    if (!threadStarted_.load()) {
+        return;
     }
+    PostSyncTask([canvasModifiersDraw = shared_from_this()]() {
+        RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish");
+        if (auto gpuContext =
+                RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(canvasModifiersDraw->cacheDir_)) {
+            gpuContext->FlushAndSubmit(true);
+            gpuContext->PurgeUnlockedResources(true);
+            canvasModifiersDraw->drawableMap_.clear();
+            canvasModifiersDraw->canvasNewSemaphoreInfos_.clear();
+            canvasModifiersDraw->canvasExpiredSemaphoreInfos_.clear();
+            canvasModifiersDraw->transactionConfigList_.clear();
+        }
+    });
 }
 
 void RSCanvasModifiersDraw::Destroy()
@@ -501,7 +517,7 @@ void RSCanvasModifiersDraw::OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderIn
         if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
             auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
             drawable.nodeId_ = nodeId;
-            drawable.CreateProducerSurface(weakRenderInterface, canvasModifiersDraw->cacheDir_);
+            drawable.CreateProducerSurface(weakRenderInterface, canvasModifiersDraw->cacheDir_, maxGpuResourceBytes_);
         }
     });
 }
@@ -588,11 +604,20 @@ void RSCanvasModifiersDraw::UpdateCanvasContent(NodeId nodeId, Drawing::DrawCmdL
 {
     std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
     PostTask([weakCanvasModifiersDraw, nodeId, drawCmdList] {
-        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-            if (auto* destroySemaphoreInfo = drawable.UpdateContent(drawCmdList, false)) {
-                canvasModifiersDraw->canvasNewSemaphoreInfos_.emplace_back(destroySemaphoreInfo);
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        if (canvasModifiersDraw == nullptr) {
+            return;
+        }
+        if (canvasModifiersDraw->needRestoreGpuCacheLimit_) {
+            if (auto gpuContext =
+                    RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(canvasModifiersDraw->cacheDir_)) {
+                gpuContext->SetResourceCacheLimits(0, maxGpuResourceBytes_);
+                canvasModifiersDraw->needRestoreGpuCacheLimit_ = false;
             }
+        }
+        auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+        if (auto* destroySemaphoreInfo = drawable.UpdateContent(drawCmdList, false)) {
+            canvasModifiersDraw->canvasNewSemaphoreInfos_.emplace_back(destroySemaphoreInfo);
         }
     });
 }
@@ -696,11 +721,16 @@ void RSCanvasModifiersDraw::DoCleanFreeBuffers(int64_t maxDuration)
     if (freeDrawableList.empty()) {
         return;
     }
-    if (auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir_)) {
+    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir_);
+    if (gpuContext != nullptr) {
         gpuContext->FlushAndSubmit(true);
     }
     for (auto* drawable : freeDrawableList) {
         drawable->CleanBuffer();
+    }
+    if (gpuContext != nullptr) {
+        gpuContext->SetResourceCacheLimits(0, 0);
+        needRestoreGpuCacheLimit_ = true;
     }
 }
 } // namespace Rosen

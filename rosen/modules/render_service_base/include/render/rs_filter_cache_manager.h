@@ -148,8 +148,6 @@ public:
     void ClearEffectCacheWithDrawnRegion(const RSPaintFilterCanvas& canvas, const Drawing::RectI& filterBound);
 
     void MarkDebugEnabled();
-    RSB_EXPORT static void SetScrHdr(float value);
-    RSB_EXPORT static float GetScrHdr();
     bool IsFilterCacheMemExceedThreshold() const;
 
 private:
@@ -252,8 +250,6 @@ private:
     bool snapshotNeedUpdate_ = false;
 
     bool debugEnabled_ = false;
-
-    float cachedHdrBrightness_ = 1.0f;
 
 public:
     static bool isCCMFilterCacheEnable_;

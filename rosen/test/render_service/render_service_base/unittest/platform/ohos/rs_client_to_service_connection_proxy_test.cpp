@@ -1383,6 +1383,8 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation, TestS
     int32_t sourceType = 2;
     proxy->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     proxy->NotifyDynamicModeEvent(true);
+    proxy->SetHgmExclusiveScreen(std::nullopt);
+    proxy->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
     proxy->SetCacheEnabledForRotation(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }

@@ -1505,24 +1505,18 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
 GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams)
 {
     GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    auto ancestorDrawable = surfaceParams.GetAncestorScreenDrawable().lock();
-    if (!ancestorDrawable) {
-        RS_LOGE("ancestorDrawable return nullptr");
-        return targetColorGamut;
-    }
-    auto ancestorDisplayDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(ancestorDrawable);
+    auto ancestorDisplayDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(
+        surfaceParams.GetAncestorScreenDrawable().lock());
     if (!ancestorDisplayDrawable) {
-        RS_LOGE("ancestorDisplayDrawable return nullptr");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut ancestorDisplayDrawable return nullptr");
         return targetColorGamut;
     }
-    auto& ancestorParam = ancestorDrawable->GetRenderParams();
-    if (!ancestorParam) {
-        RS_LOGE("ancestorParam return nullptr");
+    auto screenParam = static_cast<RSScreenRenderParams*>(ancestorDisplayDrawable->GetRenderParams().get());
+    if (!screenParam) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut screenParam is null!");
         return targetColorGamut;
     }
-
-    auto renderParams = static_cast<RSScreenRenderParams*>(ancestorParam.get());
-    targetColorGamut = renderParams->GetNewColorSpace();
+    targetColorGamut = screenParam->GetNewColorSpace();
     RS_LOGD("params.targetColorGamut is %{public}d in DealWithSelfDrawingNodeBuffer", targetColorGamut);
     return targetColorGamut;
 }
@@ -1530,6 +1524,11 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (!renderEngine) {
+        RS_LOGE("DealWithSelfDrawingNodeBuffer renderEngine is nullptr");
+        return;
+    }
     if ((surfaceParams.GetHardwareEnabled() || surfaceParams.GetHardCursorStatus()) &&
         !RSUniRenderThread::IsInCaptureProcess()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
@@ -1545,11 +1544,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
             Drawing::Matrix rotateMatrix = canvas.GetTotalMatrix();
             rotateMatrix.PreConcat(params.matrix);
 
-            auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-            if (!renderEngine) {
-                RS_LOGE("DealWithSelfDrawingNodeBuffer renderEngine is nullptr");
-                return;
-            }
             VideoInfo videoInfo;
             auto surfaceNodeImage = renderEngine->CreateImageFromBuffer(canvas, params, videoInfo);
 

@@ -207,17 +207,17 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, UnRegisterExpectedFpsUpdateCallbackByLi
 HWTEST_F(RSRenderFrameRateLinkerMapTest, UnRegisterExpectedFpsUpdateCallbackByListenerTest002, TestSize.Level1)
 {
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
-    FrameRateLinkerId id1 = 1;
+    pid_t listenerPid = 1;
+    FrameRateLinkerId id1 = static_cast<uint64_t>(listenerPid) << 32;
     auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id1);
     ASSERT_NE(frameRateLinker, nullptr);
 
     frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker);
     EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id1), frameRateLinker);
 
-    pid_t listenerPid = 1;
     auto cb = sptr<CustomFrameRateLinkerCallback>::MakeSptr();
     EXPECT_TRUE(frameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(
-        listenerPid, static_cast<int32_t>(id1), cb));
+        listenerPid, static_cast<int32_t>(ExtractPid(id1)), cb));
     EXPECT_NE(frameRateLinker->expectedFpsChangeCallbacks_.find(listenerPid),
         frameRateLinker->expectedFpsChangeCallbacks_.end());
 

@@ -80,6 +80,9 @@
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+#include "feature/video_3d/rs_tv_shutter_3d_manager.h"
+#endif
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "frame_report.h"
@@ -87,6 +90,7 @@
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "memory/rs_canvas_dma_buffer_cache.h"
 #include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
@@ -547,7 +551,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSLayerSplitManager::GetInstance()->Reset();
         ClearNeedDropframePidList();
         if (renderThreadParams_) {
-            renderThreadParams_->ClearWhiteListRect();
+            renderThreadParams_->GetMutableScreenSpecialLayerParam().ClearWhiteListRect();
         }
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -2128,20 +2132,20 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 hgmRenderContext_->UpdateSurfaceData(surfaceHandler, surfaceNode);
             }
             PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+            const bool isTunnelCandidate = surfaceHandler->HasReceivedTunnelLayerInfo();
             auto parentNode = surfaceNode->GetParent().lock();
             RSBaseSurfaceUtil::DropFrameConfig dropFrameConfig;
             dropFrameConfig.enable = IsNeedDropFrameByPid(surfaceHandler->GetNodeId());
             dropFrameConfig.level = GetDropFrameLevelByPid(surfaceHandler->GetNodeId());
-            auto outcome = tunnelRouteArbiter_->ArbitrateAndClaim(surfaceNode);
+            auto outcome = isTunnelCandidate
+                ? tunnelRouteArbiter_->ArbitrateAndClaim(surfaceNode)
+                : RSTunnelRouteArbiter::MainThreadOutcome::NOT_TUNNEL_ACTIVE;
             bool goNormal = outcome != RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT;
             bool comsumeResult = false;
             if (goNormal) {
-                if (RSTunnelRuntimeStore::HasPendingBuffer(surfaceNode->GetId())) {
-                    tunnelLayerManager_->TransferTunnelPendingBufferToNormalConsume(surfaceNode);
-                }
                 comsumeResult = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
                     *surfaceHandler, timestamp_, dropFrameConfig,
-                    parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
+                    parentNode ? parentNode->GetId() : 0, surfaceNode);
                 tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
             } else if (outcome == RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT) {
                 comsumeResult = true;
@@ -2185,18 +2189,23 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(surfaceNode->GetId()));
                     surfaceNode->UpdateBufferInfo(buffer, bufferOwnerCount, surfaceHandler->GetDamageRegion(),
                         surfaceHandler->GetAcquireFence(), preBuffer, preBufferOwnerCount);
-                    if (surfaceHandler->GetBufferSizeChanged() || surfaceHandler->GetBufferTransformTypeChanged()) {
+                    auto scalingModeChanged = surfaceHandler->CheckScalingModeChanged();
+                    if (surfaceHandler->GetBufferSizeChanged() || surfaceHandler->GetBufferTransformTypeChanged() ||
+                        scalingModeChanged) {
                         surfaceNode->SetContentDirty();
                         doDirectComposition_ = false;
-                        surfaceHandler->SetBufferTransformTypeChanged(false);
                         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                            "surfaceNode buffer size changed", surfaceNode->GetName().c_str(), surfaceNode->GetId());
+                            "bufferSizeChanged[%d], bufferTransformTypeChanged[%d], bufferScalingModeChanged[%d]",
+                            surfaceNode->GetName().c_str(), surfaceNode->GetId(),
+                            surfaceHandler->GetBufferSizeChanged(), surfaceHandler->GetBufferTransformTypeChanged(),
+                            scalingModeChanged);
                         RS_LOGD("ConsumeAndUpdateAllNodes name:%{public}s id:%{public}" PRIu64 " buffer size changed, "
                                 "buffer:[%{public}d, %{public}d], preBuffer:[%{public}d, %{public}d]",
                             surfaceNode->GetName().c_str(), surfaceNode->GetId(),
                             buffer ? buffer->GetSurfaceBufferWidth() : 0, buffer ? buffer->GetSurfaceBufferHeight() : 0,
                             preBuffer ? preBuffer->GetSurfaceBufferWidth() : 0,
                             preBuffer ? preBuffer->GetSurfaceBufferHeight() : 0);
+                        surfaceHandler->SetBufferTransformTypeChanged(false);
                     }
 #endif
                 }
@@ -2323,6 +2332,10 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 }
                 return;
             }
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+            UIMode3D uiMode3D = RSMainThread::Instance()->GetUIMode3D();
+            RSTvShutter3DManager::Instance().UpdateSurfaceNodeCompositionType(surfaceNode, uiMode3D);
+#endif
             auto videoHdrStatus = RSHdrUtil::CheckIsHdrSurface(*surfaceNode);
             surfaceNode->ClearHDRVideoStatus();
             surfaceNode->UpdateHDRStatus(videoHdrStatus, true);
@@ -2464,7 +2477,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool isMultiDisplay = IsMultiDisplay();
 
     // check all children of global root node, and only disable hardware composer
-    // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
+    // in case node's composite type is UNI_RENDER_VIRTUAL_EXPAND/EXTEND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
     auto itr = std::find_if(children->begin(), children->end(),
         [](const std::shared_ptr<RSRenderNode>& child) -> bool {
@@ -2539,7 +2552,7 @@ void RSMainThread::AddWhiteListRect(const std::unordered_set<ScreenId>& screenId
     if (renderThreadParams_ == nullptr) {
         return;
     }
-    renderThreadParams_->AddWhiteListRect(screenIds, rect);
+    renderThreadParams_->GetMutableScreenSpecialLayerParam().AddWhiteListRect(screenIds, rect);
 }
 
 void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
@@ -6258,7 +6271,8 @@ void RSMainThread::AddSplitTransaction(std::unique_ptr<RSTransactionData> transa
     if (!transaction) {
         return;
     }
-    pendingSplitPid_ = transaction->GetSendingPid();
+    pid_t callingPid = transaction->GetCallingPid();
+    pendingSplitPid_ = (callingPid > 0) ? callingPid : transaction->GetSendingPid();
     pendingSplitTransactions_.push_back(std::move(transaction));
     RS_TRACE_NAME_FMT("AddSplitTransaction: pending rebuild transactions count = %zu",
         pendingSplitTransactions_.size());

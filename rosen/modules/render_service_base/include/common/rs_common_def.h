@@ -205,8 +205,9 @@ enum class RSProcessorType : uint32_t {
 
 enum class CompositeType : uint32_t {
     UNI_RENDER_COMPOSITE = 0,
-    UNI_RENDER_MIRROR_COMPOSITE,
-    UNI_RENDER_EXPAND_COMPOSITE,
+    UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE,
+    UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE,
+    UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE,
     HARDWARE_COMPOSITE,
     SOFTWARE_COMPOSITE
 };
@@ -581,6 +582,19 @@ enum class RSUIFirstSwitch {
     FORCE_DISABLE_CARD = 6, // force close uifirst on card
 };
 
+enum class UIMode3D : uint32_t {
+    MODE_2D = 0,              // 2D display mode
+    MODE_SHUTTER_3D = 1,      // Shutter 3D display mode
+    MODE_GLASSESFREE_3D = 2,    // Glasses-free 3D display mode
+    MODE_TYPE_BUTT,
+};
+
+enum class CompositionType : uint32_t {
+    COMPOSITION_DEFAULT = 0,
+    COMPOSITION_3D_SHUTTER = 1,
+    COMPOSITION_3D_GLASS_FREE = 2,
+};
+
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
@@ -659,12 +673,28 @@ using RSSurfaceTextureUpdateCallBack = std::function<void(std::vector<float>&)>;
 using RSSurfaceTextureInitTypeCallBack = std::function<void(int32_t&)>;
 // codes for arkui-x end
 
+enum class DisplayMode : uint8_t {
+    INVALID = 0,  // Invalid/initial display mode
+    MIRROR,       // Mirror display mode
+    EXPAND,       // Expanded display mode
+    INDEPENDENT   // Special extend mode, doesn't support cross-screen dragging
+};
+
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;
-    bool isMirrored = false;
+    DisplayMode displayMode = DisplayMode::INVALID;
     NodeId mirrorNodeId = 0;
     bool isSync = false;
     uint32_t mirrorSourceRotation = 4; // default INVALID_SCREEN_ROTATION
+
+    std::string ToString() const
+    {
+        return std::string("Config[screenId:") + std::to_string(screenId) +
+               ", displayMode:" + std::to_string(static_cast<uint8_t>(displayMode)) +
+               ", sourceDisplayNodeId:" + std::to_string(mirrorNodeId) +
+               ", isSync:" + std::to_string(isSync) +
+               ", mirrorSourceRotation:" + std::to_string(mirrorSourceRotation) + "]";
+    }
 };
 
 // ability state of surface node
