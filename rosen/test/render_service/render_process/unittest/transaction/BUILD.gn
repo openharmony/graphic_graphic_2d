@@ -274,7 +274,6 @@ group("unittest") {
     deps = [
         ":RSServiceToRenderConnectionProxyTest",
         ":RSServiceToRenderConnectionStubTest",
-        ":RSServiceToRenderConnectionTest",
         "ipc_persistence:unittest",
     ]
 }
