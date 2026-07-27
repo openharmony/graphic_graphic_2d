@@ -115,7 +115,7 @@ Prepare 链路：
 
 - `RSRenderServiceVisitor::PrepareChildren` 递归遍历，每个节点 `Prepare` 先 `ApplyModifiers()` 再递归子树；快速路径 `QuickPrepare` 末尾补 `UpdateRenderParams()` + `AddToPendingSyncList()`。
 - `ApplyModifiers` 按 `dirtyTypesNG_` 对每种 modifier 先 reset 再 `ApplyLegacyProperty` 写回 `RSProperties`，随后 `RSProperties::OnApplyModifiers` 做帧偏移、像素拉伸、filter 推导。
-- 绝对矩阵：`UpdateDrawRect` → `UpdateGeometryByParent` → `RSObjAbsGeometry::UpdateMatrix`，把父矩阵与自身 transform（pivot/scale/rotate/translate 等）合成出 `absMatrix_` 并 `SetAbsRect`。
+- 矩阵：`UpdateDrawRect` → `UpdateGeometryByParent` → `RSObjAbsGeometry::UpdateMatrix`，把父矩阵与自身 transform（pivot/scale/rotate/translate 等）合成出 `absMatrix_` 并 `SetAbsRect`。
 - 快照同步：`UpdateRenderParams` 把几何/alpha/filter 等逐项 Set 进 `stagingRenderParams_`；帧末 `OnSync` 调 `RSRenderParams::OnSync` 把 staging 拷到 render params（matrix 走 Swap），保证渲染线程读到帧内不变的快照。
 
 脏区域合并（`RSDirtyRegionManager`）：
