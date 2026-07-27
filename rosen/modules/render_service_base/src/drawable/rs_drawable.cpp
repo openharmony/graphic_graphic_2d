@@ -91,7 +91,6 @@ static inline RSDrawable::Ptr ModifierGenerator(const RSRenderNode& node)
 constexpr int GEN_LUT_SIZE = static_cast<int>(RSDrawableSlot::MAX);
 static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGeneratorLut = {
     nullptr, // SAVE_ALL
-    nullptr, // SAVE_CLIP_TO_BOUNDS
 
     // Bounds Geometry
     RSMaskDrawable::OnGenerate,                                      // MASK,
@@ -104,6 +103,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSForegroundFilterDrawable::OnGenerate,                          // FOREGROUND_FILTER
     RSOutlineDrawable::OnGenerate,                                   // OUTLINE,
     RSMaterialShaderDrawable::OnGenerate,                            // MATERIAL_SHADER,
+    nullptr,                                                         // SAVE_CLIP_TO_BOUNDS
 
     // BG properties in Bounds Clip
     nullptr,                                                         // BG_SAVE_BOUNDS,
