@@ -73,7 +73,7 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
         fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
     }
-#if defined(ROSEN_OHOS)
+#if defined(ROSEN_OHOS) && defined(RS_GRAPHIC_MEDIACOMMON_ENABLE)
     taskHandleMap_.clear();
 #endif
 }
