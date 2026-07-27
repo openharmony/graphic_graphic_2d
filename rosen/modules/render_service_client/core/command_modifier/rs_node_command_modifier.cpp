@@ -15,6 +15,7 @@
 
 #include "command_modifier/rs_node_command_modifier.h"
 
+#include "command/rs_spatial_effect_command.h"
 #include "ui/rs_node.h"
 
 namespace OHOS {
@@ -155,6 +156,15 @@ void IsCrossNodeCmdModifier::UpdateToRender()
     AddCommand(command, node->IsRenderServiceNode());
 }
 
+void IsDepthBackgroundCmdModifier::UpdateToRender()
+{
+    auto node = GetNode();
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetIsDepthBackground>(
+        node->GetId(), param_.isDepthBackground_);
+    AddCommand(command, node->IsRenderServiceNode());
+}
+
 void NodeGroupCmdModifier::UpdateToRender()
 {
     auto node = GetNode();
@@ -247,6 +257,11 @@ void OutOfParentCmdModifier::DumpParam(std::string& out) const
 void IsCrossNodeCmdModifier::DumpParam(std::string& out) const
 {
     out += "{isCrossNode:" + std::string(param_.isCrossNode_ ? "true" : "false") + "}";
+}
+
+void IsDepthBackgroundCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{isDepthBackground:" + std::string(param_.isDepthBackground_ ? "true" : "false") + "}";
 }
 
 void NodeGroupCmdModifier::DumpParam(std::string& out) const

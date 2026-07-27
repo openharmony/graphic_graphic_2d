@@ -46,6 +46,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties_painter.h"
+#include "property/rs_spatial_effect_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 #include "transaction/rs_render_service_client.h"
@@ -3267,6 +3268,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
         surfaceParams->culledEntireSubtree_.clear();
     }
     surfaceParams->SetNeedSync(true);
+    surfaceParams->isDepthSrc_ = isDepthResource_;
 
     RSRenderNode::UpdateRenderParams();
 #endif
@@ -3565,6 +3567,28 @@ bool RSSurfaceRenderNode::GetSdrHasMetadata() const
 #else
     return false;
 #endif
+}
+
+void RSSurfaceRenderNode::SetIsDepthResource(bool isDepthResource)
+{
+    isDepthResource_ = isDepthResource;
+
+    if (isDepthResource) {
+        RSSpatialEffectManager::Instance()->RegisterDepthResource(shared_from_this());
+    } else {
+        RSSpatialEffectManager::Instance()->UnregisterDepthResource(shared_from_this());
+    }
+}
+
+void RSSurfaceRenderNode::SetIsDepthBackground(bool isDepthBackground)
+{
+    isDepthBackground_ = isDepthBackground;
+
+    if (isDepthBackground) {
+        RSSpatialEffectManager::Instance()->RegisterDepthBackground(shared_from_this());
+    } else {
+        RSSpatialEffectManager::Instance()->UnregisterDepthBackground(shared_from_this());
+    }
 }
 
 void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEnabled,

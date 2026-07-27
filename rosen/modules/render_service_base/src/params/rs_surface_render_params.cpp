@@ -722,6 +722,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->captureConfig_ = std::move(captureConfig_);
         targetSurfaceParams->captureCallback_ = std::move(captureCallback_);
     }
+    targetSurfaceParams->isDepthSrc_ = isDepthSrc_;
     targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
     targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
     targetSurfaceParams->vcldInfo_ = vcldInfo_;

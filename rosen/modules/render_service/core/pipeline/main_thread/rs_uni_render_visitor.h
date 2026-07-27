@@ -56,6 +56,7 @@ public:
     void QuickPrepareScreenRenderNode(RSScreenRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
     void QuickPrepareLogicalDisplayRenderNode(
         RSLogicalDisplayRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
+    void QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
     void QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bool isParentPrepareInReverseOrder = false) override;
     void QuickPrepareWindowKeyFrameRenderNode(
