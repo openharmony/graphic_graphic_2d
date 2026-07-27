@@ -99,11 +99,23 @@ void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isPro
     acquiredMandatoryProcAddresses_ = OpenLibraryHandle() && SetupLoaderProcAddresses();
 
     interfaceType_ = vulkanInterfaceType;
-    CreateInstance();
-    SelectPhysicalDevice(isProtected);
-    CreateDevice(isProtected, isHtsEnable);
+    if (!CreateInstance()) {
+        ROSEN_LOGE("Failed to create Vulkan instance");
+        return;
+    }
+    if (!SelectPhysicalDevice(isProtected)) {
+        ROSEN_LOGE("Failed to select physical device");
+        return;
+    }
+    if (!CreateDevice(isProtected, isHtsEnable)) {
+        ROSEN_LOGE("Failed to create Vulkan device");
+        return;
+    }
     std::unique_lock<std::mutex> lock(vkMutex_);
-    CreateSkiaBackendContext(&backendContext_, isProtected);
+    if (!CreateSkiaBackendContext(&backendContext_, isProtected)) {
+        ROSEN_LOGE("Failed to create Skia backend context");
+        return;
+    }
 }
 
 RsVulkanInterface::~RsVulkanInterface()
@@ -208,6 +220,11 @@ bool RsVulkanInterface::SelectPhysicalDevice(bool isProtected)
     uint32_t deviceCount = 0;
     if (vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr) != VK_SUCCESS) {
         ROSEN_LOGE("vkEnumeratePhysicalDevices failed");
+        return false;
+    }
+
+    if (deviceCount == 0) {
+        ROSEN_LOGE("No physical devices found");
         return false;
     }
 
