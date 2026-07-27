@@ -97,7 +97,7 @@ void RSBaseSurfaceUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vecto
 }
 
 CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-    uint64_t presentWhen, const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId
+    uint64_t presentWhen, const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId,
     const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
     surfaceHandler.ResetCurrentFrameBufferConsumed();
