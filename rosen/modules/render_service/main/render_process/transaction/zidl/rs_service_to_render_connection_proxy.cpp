@@ -1193,11 +1193,8 @@ void RSServiceToRenderConnectionProxy::ReportGameStateData(GameStateData info)
         ROSEN_LOGE("RSServiceToRenderConnectionProxy:%{public}s remote nullptr err.", __func__);
         return;
     }
-    int32_t err = remote->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy sendrequest error : %{public}d", err);
-        return;
-    }
+    int32_t ret = remote->SendRequest(code, data, reply, option);
+    ROSEN_LOGI("RSServiceToRenderConnectionProxy sendrequest ret : %{public}d", ret);
 }
 
 ErrCode RSServiceToRenderConnectionProxy::SetBehindWindowFilterEnabled(bool enabled)
