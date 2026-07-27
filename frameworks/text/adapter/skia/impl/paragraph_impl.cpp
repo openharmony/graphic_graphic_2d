@@ -733,9 +733,14 @@ TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitR
 
 void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) const
 {
+    size_t lineCount = GetLineCount();
+    if (lineCount == 0) {
+        TEXT_LOGW("lineCount is 0");
+        return;
+    }
     Range<size_t> ellipsisRange = GetEllipsisTextRange();
     skt::TextRange textRange = paragraph_->getUtf16TextRange();
-    skt::TextRange lastLineTextRange = paragraph_->getLineUtf16TextRange(GetLineCount() - 1, true);
+    skt::TextRange lastLineTextRange = paragraph_->getLineUtf16TextRange(lineCount - 1, true);
     // If there is no ellipsis, the fit range is 0 to end index of last line.
     if (ellipsisRange.start == INFINITE_RANGE_INDEX) {
         fitRanges.push_back({0, lastLineTextRange.end});

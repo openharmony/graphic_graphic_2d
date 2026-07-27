@@ -326,6 +326,11 @@ std::shared_ptr<Drawing::Typeface> ExtractTypefaceFromJS(napi_env env, napi_valu
         return nullptr;
     }
 
+    if (!OHOS::Rosen::Drawing::JsTypeface::IsInstanceOf(env, jsObject)) {
+        TEXT_LOGW("jsObject is not a Typeface instance");
+        return nullptr;
+    }
+
     void* nativeObject = nullptr;
     napi_status unwrapStatus = napi_unwrap(env, jsObject, &nativeObject);
     if (unwrapStatus == napi_ok && nativeObject != nullptr) {
