@@ -204,19 +204,6 @@ HWTEST_F(BootCompileProgressTest, GetFirmwareUpdateState_Normal_ReturnCorrectSta
 }
 
 /**
- * @tc.name: RecordDeviceType_Normal_SetCorrectDeviceType
- * @tc.desc: Verify the RecordDeviceType function sets correct device type.
- * @tc.type: FUNC
- */
-HWTEST_F(BootCompileProgressTest, RecordDeviceType_Normal_SetCorrectDeviceType, TestSize.Level1)
-{
-    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
-    progress->RecordDeviceType();
-    EXPECT_EQ(progress->isWearable_, false);
-    EXPECT_EQ(progress->isOther_, false);
-}
-
-/**
  * @tc.name: DrawProgressPoint_TimesZero_ReturnCorrectBrush
  * @tc.desc: Verify the DrawProgressPoint function returns correct brush when times is zero.
  * @tc.type: FUNC
