@@ -14,6 +14,7 @@
  */
 
 #include "feature/layer/rs_layer_cache_manager_base.h"
+#include "feature/opinc/rs_opinc_manager.h"
 #include "params/rs_render_params.h"
 
 namespace OHOS {
@@ -52,6 +53,19 @@ void RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(RSRenderNode& node,
     if (renderParams) {
         renderParams->SetLayerParamsIsUnSupportLayer(isUnSupportLayer);
     }
+}
+
+bool RSLayerCacheManagerBase::CheckNodeUnSupportLayer(RSRenderNode& node)
+{
+    auto& properties = node.GetRenderProperties();
+    return (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || RSOpincManager::IsSuggestOpincNode(node) ||
+            node.GetSharedTransitionParam() || properties.IsSpherizeValid() || properties.IsAttractionValid() ||
+            properties.NeedFilter() || properties.GetUseEffect() || properties.HasHarmonium() ||
+            node.ChildHasVisibleEffect() || properties.GetSandBox().has_value() || properties.IsShadowValid() ||
+            properties.IsColorBlendModeValid() || properties.IsColorBlendApplyTypeOffscreen() ||
+            properties.GetLinearGradientBlurPara() != nullptr || properties.IsFgBrightnessValid() ||
+            properties.GetForegroundFilter() != nullptr || properties.GetFilter() != nullptr ||
+            node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
 }
 } // namespace Rosen
 } // namespace OHOS
