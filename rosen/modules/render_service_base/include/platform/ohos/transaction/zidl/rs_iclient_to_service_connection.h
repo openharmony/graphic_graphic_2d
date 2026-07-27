@@ -76,7 +76,7 @@ public:
 
     virtual ErrCode GetUniRenderEnabled(bool& enable) = 0;
 
-    virtual ErrCode GetBackgroundRebuildEnabled(bool& enable) = 0;
+    virtual ErrCode GetBackgroundRebuildEnabled(uint8_t& enable) = 0;
 
     virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
                                           const std::string& name,

@@ -735,6 +735,11 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    return false;
+}
+
 bool RSSystemProperties::ViewDrawNodeType()
 {
     return false;

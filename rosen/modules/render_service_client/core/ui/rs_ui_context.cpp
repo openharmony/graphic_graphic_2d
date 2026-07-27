@@ -32,12 +32,6 @@ RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRem
         std::make_shared<RSTransactionHandler>(token, rsRenderInterface_->GetRSRenderPipelineClient());
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
     rsSyncTransactionHandler_->SetTransactionHandler(rsTransactionHandler_);
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        modifiersDrawThread_ = std::make_shared<RSModifiersDrawThread>();
-        canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
-    }
-#endif
 }
 
 RSUIContext::~RSUIContext()
@@ -352,8 +346,8 @@ void RSUIContext::UnblockUIThread()
 CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
 {
     if (modifiersDrawThread_ == nullptr) {
-        RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null modifiersDrawThread.");
-        return nullptr;
+        modifiersDrawThread_ = std::make_shared<RSModifiersDrawThread>();
+        canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
     }
 
     modifiersDrawThread_->Start();
