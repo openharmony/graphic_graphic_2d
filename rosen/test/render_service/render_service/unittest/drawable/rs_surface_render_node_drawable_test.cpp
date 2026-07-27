@@ -1526,7 +1526,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     surfaceDrawable_->name_ = "pointer window";
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
 
-    
+    surfaceParams->SetCompositionType(CompositionType::COMPOSITION_3D_GLASS_FREE);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
 }
 
 /**
