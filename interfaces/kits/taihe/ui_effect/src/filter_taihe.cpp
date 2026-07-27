@@ -255,6 +255,11 @@ bool FilterImpl::GetFractionStops(
         UIEFFECT_LOG_E("call GetFractionStops failed, get ani array failed");
         return false;
     }
+    const size_t Max_FRACTION_STOPS = 1000;
+    if (len > Max_FRACTION_STOPS) {
+        UIEFFECT_LOG_E("call GetFractionStops failed, array length exceeds limit: %{public}zu", Max_FRACTION_STOPS);
+        return false;
+    }
     ani_ref tupleObj {};
     for (ani_size i = 0; i < len; i++) {
         if (env->Array_Get(arrayObj, i, &tupleObj) != ANI_OK) {
@@ -300,13 +305,10 @@ Filter FilterImpl::RadiusGradientBlur(double value, uintptr_t options)
         }
     }
     ani_object direction {};
-    if (env->Object_GetPropertyByName_Ref(
-        ani_obj, "direction", reinterpret_cast<ani_ref *>(&direction)) == ANI_OK) {
-        ani_enum_item enumItem = static_cast<ani_enum_item>(direction);
-        ani_int value = 0;
-        if (env->EnumItem_GetValue_Int(enumItem, &value) == ANI_OK) {
+    if (env->EnumItem_GetValue_Int(enumItem, &value) == ANI_OK
+            && (OHOS::Rosen::GradientDirection::LEFT <= value
+            && value <= OHOS::Rosen::GradientDirection::NONE)) {
             para->SetDirection(static_cast<OHOS::Rosen::GradientDirection>(value));
-        }
     }
 
     nativeFilter_->AddPara(para);
