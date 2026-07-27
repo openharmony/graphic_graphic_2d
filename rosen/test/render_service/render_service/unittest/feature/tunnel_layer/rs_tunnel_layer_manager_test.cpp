@@ -167,10 +167,8 @@ HWTEST_F(RSTunnelLayerManagerTest, MarkTunnelBufferConsumedForNormal001, TestSiz
 
     RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetCommittedTunnelBufferId(bufferId + 1);
     tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node, nullptr);
-<<<<<<< HEAD
-=======
+
     EXPECT_TRUE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
->>>>>>> 43a0c49c04a8d63fc38664df5f6ad83681896898
     EXPECT_FALSE(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).IsCommittedTunnelBuffer());
 
     RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetCommittedTunnelBufferId(bufferId);

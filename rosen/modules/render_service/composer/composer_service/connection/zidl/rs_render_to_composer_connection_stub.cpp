@@ -151,13 +151,6 @@ int32_t RSRenderToComposerConnectionStub::CommitTunnelLayerBySurfaceIdStub(OHOS:
         return COMPOSITOR_ERROR_OK;
     }
 
-    if (buffer == nullptr) {
-        RS_LOGE("%{public}s buffer is null", __func__);
-        reply.WriteInt32(GRAPHIC_DISPLAY_FAILURE);
-        reply.WriteBool(false);
-        return COMPOSITOR_ERROR_OK;
-    }
-
     bool hasAcquireFence = data.ReadBool();
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     if (hasAcquireFence) {

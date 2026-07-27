@@ -19,8 +19,6 @@
 #include "rs_composer_client.h"
 #include "rs_surface_layer.h"
 #include "rs_surface_solid_filled_color_layer.h"
-#include "rs_render_surface_rcd_layer.h"
-#include "rs_render_surface_solid_filled_color_layer.h"
 #include "surface_buffer_impl.h"
 
 using namespace testing;
@@ -250,8 +248,6 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerProperty001, Function | MediumTest| Level1)
     uint32_t devId = 1;
     uint32_t layerId = 2;
     uint32_t property = 3;
-
-    HdiLayerTest::hdiLayer_->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
 
     HdiLayerTest::rsLayer_->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
     HdiLayerTest::hdiLayer_->UpdateRSLayer(HdiLayerTest::rsLayer_);
@@ -835,7 +831,6 @@ HWTEST_F(HdiLayerTest, ClearBufferCache002, Function | MediumTest| Level1)
 HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest, Function | MediumTest| Level1)
 {
     ASSERT_NE(hdiLayer_, nullptr);
-    hdiLayer_->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
     auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetTunnelLayerId(1);
     rsLayer->SetTunnelLayerProperty(1);
@@ -863,7 +858,6 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest, Function | MediumTest| Leve
 HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest002, Function | MediumTest| Level1)
 {
     ASSERT_NE(hdiLayer_, nullptr);
-    hdiLayer_->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
     auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetTunnelLayerId(2);
     rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
@@ -887,7 +881,6 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest002, Function | MediumTest| L
 HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest003, Function | MediumTest| Level1)
 {
     ASSERT_NE(hdiLayer_, nullptr);
-    hdiLayer_->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
     auto prevRsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     prevRsLayer->SetTunnelLayerId(2);
     prevRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
@@ -947,7 +940,6 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerPropertyWithHasSetTunnelFlag, Function | Me
     auto hdiLayer = HdiLayer::CreateHdiLayer(0);
     ASSERT_NE(hdiLayer, nullptr);
     ASSERT_EQ(hdiLayer->SetHdiDeviceMock(&hdiDeviceMock), GRAPHIC_DISPLAY_SUCCESS);
-    hdiLayer->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
 
     hdiLayer->hasSetTunnel_ = true;
     hdiLayer->tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
@@ -5338,57 +5330,6 @@ HWTEST_F(HdiLayerTest, SetPerFrameLayerSolidFillParam_PrevNotNull_NotSolidFill_D
         .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     auto ret = hdiLayer_->SetPerFrameLayerSolidFillParam();
     ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
-}
-
-/**
- * Function: SavePrevRSLayer_RCDLayer_CreatesRCDPrevLayer
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1. set rsLayer_ to RSRenderSurfaceRCDLayer, prevRSLayer_ to nullptr
- *                  2. call SavePrevRSLayer()
- *                  3. verify prevRSLayer_ is created as RSRenderSurfaceRCDLayer
- *                   Cover branch: rsLayer_->IsScreenRCDLayer() is true (line 817 true)
- */
-HWTEST_F(HdiLayerTest, SavePrevRSLayer_RCDLayer_CreatesRCDPrevLayer, Function | MediumTest | Level1)
-{
-    ASSERT_NE(hdiLayer_, nullptr);
-    auto rcdRsLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
-    ASSERT_NE(rcdRsLayer, nullptr);
-    hdiLayer_->rsLayer_ = rcdRsLayer;
-    hdiLayer_->prevRSLayer_ = nullptr;
-
-    hdiLayer_->SavePrevRSLayer();
-
-    ASSERT_NE(hdiLayer_->prevRSLayer_, nullptr);
-    EXPECT_TRUE(hdiLayer_->prevRSLayer_->IsScreenRCDLayer());
-    EXPECT_FALSE(hdiLayer_->prevRSLayer_->IsSolidFilledColorLayer());
-}
-
-/**
- * Function: SavePrevRSLayer_SolidColorLayer_CreatesSolidColorPrevLayer
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1. set rsLayer_ to RSRenderSurfaceSolidFilledColorLayer, prevRSLayer_ to nullptr
- *                  2. call SavePrevRSLayer()
- *                  3. verify prevRSLayer_ is created as RSRenderSurfaceSolidFilledColorLayer
- *                   Cover branch: rsLayer_->IsSolidFilledColorLayer() is true (line 819 true)
- */
-HWTEST_F(HdiLayerTest, SavePrevRSLayer_SolidColorLayer_CreatesSolidColorPrevLayer,
-    Function | MediumTest | Level1)
-{
-    ASSERT_NE(hdiLayer_, nullptr);
-    auto solidColorRsLayer = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
-    ASSERT_NE(solidColorRsLayer, nullptr);
-    hdiLayer_->rsLayer_ = solidColorRsLayer;
-    hdiLayer_->prevRSLayer_ = nullptr;
-
-    hdiLayer_->SavePrevRSLayer();
-
-    ASSERT_NE(hdiLayer_->prevRSLayer_, nullptr);
-    EXPECT_FALSE(hdiLayer_->prevRSLayer_->IsScreenRCDLayer());
-    EXPECT_TRUE(hdiLayer_->prevRSLayer_->IsSolidFilledColorLayer());
 }
 } // namespace
 } // namespace Rosen
