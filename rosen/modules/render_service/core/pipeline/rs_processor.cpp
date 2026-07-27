@@ -41,7 +41,7 @@ namespace OHOS {
 namespace Rosen {
 
 bool RSProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+    std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid)
 {
 #ifdef RS_ENABLE_GPU
     if (renderEngine == nullptr) {

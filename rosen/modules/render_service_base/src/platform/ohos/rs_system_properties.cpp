@@ -1856,5 +1856,12 @@ bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
     static bool enable = system::GetBoolParameter("persist.graphic.enable_delegate_composite_dfx", false);
     return enable;
 }
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
+{
+    static bool virtualScreenParallelEnabled = system::GetBoolParameter(
+        "persist.sys.graphic.virtualScreenParallel.enabled", true);
+    return virtualScreenParallelEnabled;
+}
 } // namespace Rosen
 } // namespace OHOS

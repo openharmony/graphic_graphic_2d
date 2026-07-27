@@ -883,5 +883,10 @@ bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
 {
     return false;
 }
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

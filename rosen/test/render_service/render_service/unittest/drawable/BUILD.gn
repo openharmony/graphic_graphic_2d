@@ -96,6 +96,7 @@ ohos_unittest("RSScreenRenderNodeDrawableTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
@@ -223,6 +224,7 @@ ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",

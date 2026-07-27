@@ -30,6 +30,8 @@
 #include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
+class RSBaseRenderEngine;
+class RSVirtualScreenParallelManager;
 class RSProcessor;
 class RSSLRScaleFunction;
 struct CaptureParam {
@@ -695,6 +697,26 @@ public:
         return isDrawRelated_;
     }
 
+    void SetVirtualScreenParallelManager(std::shared_ptr<RSVirtualScreenParallelManager> manager)
+    {
+        virtualScreenParallelManager_ = manager;
+    }
+
+    std::shared_ptr<RSVirtualScreenParallelManager> GetVirtualScreenParallelManager() const
+    {
+        return virtualScreenParallelManager_;
+    }
+
+    void SetCollectedVirtualScreenNodeIds(std::unordered_set<NodeId> nodeIds)
+    {
+        collectedVirtualScreenNodeIds_ = std::move(nodeIds);
+    }
+
+    const std::unordered_set<NodeId>& GetCollectedVirtualScreenNodeIds() const
+    {
+        return collectedVirtualScreenNodeIds_;
+    }
+
 private:
     bool virtualDirtyRefresh_ = false;
     // Used by hardware thred
@@ -790,6 +812,8 @@ private:
     NodeId cachedSurfaceNodeId_{0};
 #endif
     bool isDrawRelated_ = false;
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
+    std::unordered_set<NodeId> collectedVirtualScreenNodeIds_;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

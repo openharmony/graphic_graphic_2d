@@ -47,7 +47,7 @@ public:
 #endif
     // called by render thread
     bool InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-        std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
+        std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid = 0) override;
     bool UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable) override;
     void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) override;

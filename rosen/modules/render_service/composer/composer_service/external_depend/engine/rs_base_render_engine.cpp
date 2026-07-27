@@ -137,7 +137,7 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 {
 }
 
-void RSBaseRenderEngine::Init(RenderEngineType type)
+void RSBaseRenderEngine::Init(RenderEngineType type, int32_t tid)
 {
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = RenderContext::Create();
@@ -149,7 +149,7 @@ void RSBaseRenderEngine::Init(RenderEngineType type)
     }
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(tid);
         renderContext_->SetUpGpuContext(skContext_);
     } else {
         renderContext_->SetUpGpuContext();
@@ -217,12 +217,12 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<RSLayerPtr>& layers)
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const std::shared_ptr<RSSurfaceOhos>& rsSurface,
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
-    const FrameContextConfig& frameContextConfig)
+    const FrameContextConfig& frameContextConfig, int32_t tid)
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(tid);
         if (renderContext_ == nullptr) {
             return nullptr;
         }
@@ -280,7 +280,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
 
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surface>& targetSurface,
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
-    const FrameContextConfig& frameContextConfig)
+    const FrameContextConfig& frameContextConfig, int32_t tid)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(targetSurface)");
     if (targetSurface == nullptr) {
@@ -309,7 +309,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     }
 
     RS_OPTIONAL_TRACE_END();
-    return RequestFrame(rsSurface, config, forceCPU, useAFBC, frameContextConfig);
+    return RequestFrame(rsSurface, config, forceCPU, useAFBC, frameContextConfig, tid);
 }
 
 std::shared_ptr<RSSurfaceOhos> RSBaseRenderEngine::MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU)

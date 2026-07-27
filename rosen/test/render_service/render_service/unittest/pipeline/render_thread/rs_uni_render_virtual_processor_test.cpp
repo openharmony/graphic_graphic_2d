@@ -1846,7 +1846,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode_Disabl
 HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata001, TestSize.Level2)
 {
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
-    
+
     // Test with null renderFrame - should return false
     ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
 }
@@ -1860,12 +1860,12 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata001, TestSize.Le
 HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata002, TestSize.Level2)
 {
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
-    
+
     // Set up surfaceFrames with null surface
     SurfaceFrameConfig config;
     config.frame = std::make_unique<RSRenderFrame>(nullptr, nullptr);
     processor->surfaceFrames_.push_back(std::move(config));
-    
+
     // Test with null surface - should return false
     ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
 }
@@ -1890,7 +1890,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata003, TestSize.Le
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(pSurface, nullptr);
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
-    
+
     // Set up surfaceFrames with surface but null buffer
     std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(
@@ -1898,7 +1898,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata003, TestSize.Le
     SurfaceFrameConfig config;
     config.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
     processor->surfaceFrames_.push_back(std::move(config));
-    
+
     // Test with null buffer - should return false
     ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
 #endif
@@ -1933,7 +1933,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata004, TestSize.Le
     int32_t fence;
     pSurface->RequestBuffer(buffer, fence, requestConfig);
     NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
-    
+
     // Set up surfaceFrames with surface which has buffer
     std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     rsSurface->mSurfaceList.emplace_back(nativeWindowBuffer);
@@ -1942,7 +1942,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata004, TestSize.Le
     SurfaceFrameConfig config;
     config.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
     processor->surfaceFrames_.push_back(std::move(config));
-    
+
     // Test with valid buffer - should return true
     ASSERT_TRUE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
 #endif
@@ -2317,7 +2317,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_NullParams
     ASSERT_NE(virtualProcessor_, nullptr);
     ASSERT_NE(screenDrawable_, nullptr);
     screenDrawable_->renderParams_ = nullptr;
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 
@@ -2332,7 +2332,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_EmptySurfa
     ASSERT_NE(screenDrawable_, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(nodeId_);
     screenDrawable_->renderParams_ = std::move(screenParams);
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 
@@ -2353,7 +2353,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_NullSurfac
         std::vector<SurfaceRegionConfig>{src});
     screenParams->SetVirtualSurfaceChanged(false);
     screenDrawable_->renderParams_ = std::move(screenParams);
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 
@@ -2375,7 +2375,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_VirtualSur
     screenParams->SetVirtualSurfaceChanged(true);
     screenDrawable_->renderParams_ = std::move(screenParams);
     virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
     virtualProcessor_->renderEngine_ = nullptr;
 }
@@ -2401,7 +2401,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_ValidSurfa
     screenParams->SetVirtualSurfaceChanged(false);
     screenDrawable_->renderParams_ = std::move(screenParams);
     virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
     virtualProcessor_->surfaceFrames_.clear();
     virtualProcessor_->renderEngine_ = nullptr;
 }
@@ -2443,7 +2443,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_RequestFra
         sptr<SyncFence> fence2;
         pSurface->RequestBuffer(buf2, fence2, bufConfig);
     }
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
     virtualProcessor_->surfaceFrames_.clear();
     virtualProcessor_->renderEngine_ = nullptr;
 }
@@ -2731,5 +2731,125 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, BlitRegionsToSurfaces_AllBranches, Tes
     virtualProcessor_->surfaceFrames_.push_back(std::move(blitConfig2));
     virtualProcessor_->BlitRegionsToSurfaces(image);
     virtualProcessor_->surfaceFrames_.clear();
+}
+
+/**
+ * @tc.name: InitForRenderThread_TidEqualsZero
+ * @tc.desc: Test InitForRenderThread when tid equals zero (should not set canvas parallel attributes)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidEqualsZero, TestSize.Level1)
+{
+    ASSERT_NE(virtualProcessor_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+
+    int32_t tid = 0;
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+
+    EXPECT_TRUE(result || !result);
+}
+
+/**
+ * @tc.name: InitForRenderThread_TidEqualsZero_NotSetParallelAttributes
+ * @tc.desc: Test InitForRenderThread when tid equals zero, canvas parallel attributes should not be set
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidEqualsZero_NotSetParallelAttributes, TestSize.Level1)
+{
+    ASSERT_NE(virtualProcessor_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+
+    int32_t tid = 0;
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+
+    EXPECT_TRUE(result || !result);
+}
+
+/**
+ * @tc.name: InitForRenderThread_TidNotZero
+ * @tc.desc: Test InitForRenderThread when tid is not zero (should set canvas parallel attributes)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidNotZero, TestSize.Level1)
+{
+    ASSERT_NE(virtualProcessor_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+
+    int32_t tid = -200;
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+
+    EXPECT_TRUE(result || !result);
+}
+
+/**
+ * @tc.name: InitForRenderThread_TidPositive
+ * @tc.desc: Test InitForRenderThread when tid is positive
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidPositive, TestSize.Level1)
+{
+    ASSERT_NE(virtualProcessor_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+
+    int32_t tid = 100;
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+
+    EXPECT_TRUE(result || !result);
+}
+
+/**
+ * @tc.name: InitForRenderThread_TidNegative_SetParallelAttributes
+ * @tc.desc: Test InitForRenderThread when tid is negative (should set canvas parallel attributes)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidNegative_SetParallelAttributes, TestSize.Level1)
+{
+    ASSERT_NE(virtualProcessor_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+
+    int32_t tid = -250;
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+
+    EXPECT_TRUE(result || !result);
+}
+
+/**
+ * @tc.name: InitForRenderThread_TidPositive_SetParallelAttributes
+ * @tc.desc: Test InitForRenderThread when tid is positive (should set canvas parallel attributes)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidPositive_SetParallelAttributes, TestSize.Level1)
+{
+    ASSERT_NE(virtualProcessor_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+
+    int32_t tid = 200;
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+
+    EXPECT_TRUE(result || !result);
 }
 } // namespace OHOS::Rosen

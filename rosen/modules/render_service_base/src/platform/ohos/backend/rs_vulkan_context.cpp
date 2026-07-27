@@ -502,7 +502,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::DoCreateDrawingContext(s
     return drawingContext;
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir)
+std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir, int32_t tid)
 {
     auto drawingContext = DoCreateDrawingContext(cacheDir);
     int maxResources = 0;
@@ -516,6 +516,11 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std
         drawingContext->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
     RsVulkanContext::SaveNewDrawingContext(gettid(), drawingContext);
+    int32_t realTid = gettid();
+    if (tid != 0) {
+        realTid = tid;
+    }
+    RSVulkanContext::SavaNewDrawingContext(realTid, drawingContext);
     return drawingContext;
 }
 
@@ -879,9 +884,14 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(VkQueue
     return VK_ERROR_UNKNOWN;
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext()
+std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext(int32_t tid)
 {
     static thread_local int tidForRecyclable = gettid();
+    if (tid != 0) {
+        tidForRecyclable = tid;
+    } else {
+        tidForRecyclable = gettid();
+    }
     {
         std::lock_guard<std::mutex> lock(drawingContextMutex_);
         switch (vulkanInterfaceType_) {
@@ -903,7 +913,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext()
             }
         }
     }
-    return GetRsVulkanInterface().CreateDrawingContext();
+    return GetRsVulkanInterface().CreateDrawingContext("", tid);
 }
 
 std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext(const std::string& cacheDir)
