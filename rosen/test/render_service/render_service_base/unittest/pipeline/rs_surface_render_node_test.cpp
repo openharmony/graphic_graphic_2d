@@ -3402,7 +3402,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSingleFrameComposerTest, TestSize.L
 
     ASSERT_FALSE(node->GetNodeIsSingleFrameComposer());
 
-    node->MarkNodeSingleFrameComposer(true, getpid());
+    node->MarkNodeSingleFrameComposer(true);
     ASSERT_TRUE(node->GetNodeIsSingleFrameComposer());
 
     auto composer = node->GetSingleFrameComposer();

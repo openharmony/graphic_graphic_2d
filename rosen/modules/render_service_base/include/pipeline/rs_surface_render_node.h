@@ -1544,7 +1544,9 @@ public:
         return isForeground_;
     }
     bool GetNodeIsSingleFrameComposer() const override;
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) override;
+
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
+
     std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const override
     {
         if (!singleFrameComposer_) {

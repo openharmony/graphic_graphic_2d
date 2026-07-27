@@ -795,7 +795,7 @@ public:
     {
         return false;
     }
-    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) {}
+    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) {}
     // only RSSurfaceRenderNode holds singleFrameComposer_
     virtual std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const
     {

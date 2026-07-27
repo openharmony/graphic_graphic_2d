@@ -163,7 +163,7 @@ public:
         bool includeProperty);
     static void ExcludedFromNodeGroup(RSContext& context, NodeId nodeId, bool isExcluded);
     static void MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary);
-    static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
+    static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw);
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
     static void MarkLayerPartRender(RSContext& context, NodeId nodeId, bool isLayerPartRender);
 
@@ -388,7 +388,7 @@ ADD_COMMAND(RSMarkRepaintBoundary,
         RSNodeCommandHelper::MarkRepaintBoundary, NodeId, bool))
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER,
-        RSNodeCommandHelper::MarkNodeSingleFrameComposer, NodeId, bool, pid_t))
+        RSNodeCommandHelper::MarkNodeSingleFrameComposer, NodeId, bool))
 ADD_COMMAND(RSMarkSuggestOpincNode,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, RS_NODE, MARK_SUGGEST_OPINC_NODE,
         RSNodeCommandHelper::MarkSuggestOpincNode, NodeId, bool, bool))
