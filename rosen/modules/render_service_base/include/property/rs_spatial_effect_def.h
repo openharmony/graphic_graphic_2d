@@ -30,6 +30,11 @@ enum class DepthSpaceType : int16_t {
     GLOBAL = 1
 };
 
+enum class SpatialEffectMode : int16_t {
+    WORLD_XYZ_MODE = 0,
+    NDC_XY_WORLD_Z_MODE = 1
+};
+
 struct DepthCameraPara {
     Vector3f position;
     Vector4f quaternion;
@@ -86,6 +91,7 @@ struct SpatialEffectPara {
     };
 
     float occlusionWeight = 0.0f;
+    SpatialEffectMode spatialEffectMode = SpatialEffectMode::WORLD_XYZ_MODE;
 
     SpatialEffectPara() {};
     ~SpatialEffectPara() {};
@@ -111,6 +117,7 @@ struct SpatialEffectPara {
 struct SpatialEffectVariantPara {
     std::variant<float, SpatialEffectPara::CornerPositions> position;
     float occlusionWeight = 0.0f;
+    SpatialEffectMode spatialEffectMode = SpatialEffectMode::WORLD_XYZ_MODE;
 
     SpatialEffectVariantPara() = default;
 
