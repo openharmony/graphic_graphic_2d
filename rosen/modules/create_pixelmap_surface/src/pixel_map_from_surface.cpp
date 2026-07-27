@@ -24,6 +24,7 @@
 #include <scoped_bytrace.h>
 #include <string>
 #include "common/rs_background_thread.h"
+#include "common/rs_common_def.h"
 #include "draw/canvas.h"
 #include "image/image.h"
 #include "native_window.h"
@@ -477,8 +478,14 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(surfaceBuffer_->GetFormat());
     if (pixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
         pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
-        auto sx = dstRect.GetWidth() / srcDrawRect.GetWidth();
-        auto sy = dstRect.GetHeight() / srcDrawRect.GetHeight();
+        auto srcWidth = srcDrawRect.GetWidth();
+        auto srcHeight = srcDrawRect.GetHeight();
+        if (ROSEN_LE(srcWidth, 0.0f) || ROSEN_LE(srcHeight, 0.0f)) {
+            RS_LOGE("[PixelMapFromSurface] CanvasDrawImage srcRect width or height is invalid");
+            return false;
+        }
+        auto sx = dstRect.GetWidth() / srcWidth;
+        auto sy = dstRect.GetHeight() / srcHeight;
         auto tx = dstRect.GetLeft() - srcDrawRect.GetLeft() * sx;
         auto ty = dstRect.GetTop() - srcDrawRect.GetTop() * sy;
         matrix.SetScaleTranslate(sx, sy, tx, ty);
