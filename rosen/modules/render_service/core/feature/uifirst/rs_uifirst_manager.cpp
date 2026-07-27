@@ -827,7 +827,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(PendingPostNodeMap& pendingNode)
 
         auto uifirstColorGamut = node->GetFirstLevelNodeColorGamut();
         bool useNodeColorSpace = node->GetUifirstRootNodeId() != INVALID_NODEID &&
-            RsCommonHook::Instance().IsAdaptiveColorGamutEnabled();
+            ColorGamutParam::IsAdaptiveColorGamutEnabled();
         if (useNodeColorSpace) {
             uifirstColorGamut = node->GetNodeColorSpace();
         }
