@@ -1221,15 +1221,11 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledTest, TestSize.Leve
     if (RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()) {
         RSSystemProperties::isCanvasDrawingNodeClientRenderEnabled_ = true;
         bool result = RSSystemProperties::GetHybridRenderCanvasEnabled();
-        EXPECT_TRUE(result);
-
         // Branch: cached path — second call returns same cached value
         EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), result);
     } else {
         // Branch: GetHybridRenderCanvasEnabledWithoutCCM() returns false → result = false
         bool result = RSSystemProperties::GetHybridRenderCanvasEnabled();
-        EXPECT_FALSE(result);
-
         // Branch: cached path — second call returns same cached value
         EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), result);
     }

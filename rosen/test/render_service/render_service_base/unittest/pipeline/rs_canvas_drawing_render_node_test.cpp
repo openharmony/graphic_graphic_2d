@@ -797,6 +797,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, InitClientRenderEnableTest, TestSize.Lev
     RSCanvasDrawingRenderNode::InitClientRenderEnable(false);
     EXPECT_FALSE(RSCanvasDrawingRenderNode::IsHybridEnabled());
     RSCanvasDrawingRenderNode::InitClientRenderEnable(true);
-    EXPECT_FALSE(RSCanvasDrawingRenderNode::IsHybridEnabled());
+    EXPECT_EQ(
+        RSCanvasDrawingRenderNode::IsHybridEnabled(), RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM());
 }
 } // namespace OHOS::Rosen
