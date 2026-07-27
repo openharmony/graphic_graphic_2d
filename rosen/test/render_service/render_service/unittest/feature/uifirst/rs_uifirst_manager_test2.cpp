@@ -230,10 +230,13 @@ HWTEST_F(RSUifirstManagerTest2, DoPurgePendingPostNodes000, TestSize.Level1)
     pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
     surfaceRenderNode->uifirstRootNodeId_ = nodeId;
     surfaceRenderNode->InitRenderParams();
+    bool isAdaptiveColorGamutEnable = RsCommonHook::Instance().IsAdaptiveColorGamutEnabled();
+    RsCommonHook::Instance().SetAdaptiveColorGamutEnable(true);
     surfaceParams->SetUiFirstRootNode(nodeId); // Set valid uifirst root node id
     surfaceParams->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_TRUE(pendingNode.empty());
+    RsCommonHook::Instance().SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnable);
 }
 
 /**

@@ -826,7 +826,9 @@ void RSUifirstManager::DoPurgePendingPostNodes(PendingPostNodeMap& pendingNode)
         subThreadCache.SetUifirstSurfaceCacheContentStatic(true);
 
         auto uifirstColorGamut = node->GetFirstLevelNodeColorGamut();
-        if (node->GetUifirstRootNodeId() != INVALID_NODEID) {
+        bool useNodeColorSpace = node->GetUifirstRootNodeId() != INVALID_NODEID &&
+            RsCommonHook::Instance().IsAdaptiveColorGamutEnabled();
+        if (useNodeColorSpace) {
             uifirstColorGamut = node->GetNodeColorSpace();
         }
         SyncHDRDisplayParam(drawable, uifirstColorGamut);
