@@ -197,47 +197,35 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSelfDrawingNodesFor3D_GlassFree3DLayer, T
 }
 
 /**
- * @tc.name: SetHasGlassFree3DLayerTest
- * @tc.desc: test SetHasGlassFree3DLayer and GetHasGlassFree3DLayer
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: SetIsOnInternalScreenTest001
+ * @tc.desc: test SetIsOnInternalScreen and GetIsOnInternalScreen without InitRenderParams
+ * @tc.type:FUNC
  */
-HWTEST_F(RSScreenRenderNodeTest, SetHasGlassFree3DLayerTest, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsOnInternalScreenTest001, TestSize.Level1)
 {
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-    EXPECT_FALSE(screenNode->GetHasGlassFree3DLayer());
-
-    // Set same value, should return early
-    screenNode->SetHasGlassFree3DLayer(false);
-    EXPECT_FALSE(screenNode->GetHasGlassFree3DLayer());
-
-    screenNode->SetHasGlassFree3DLayer(true);
-    EXPECT_FALSE(screenNode->GetHasGlassFree3DLayer());
-
-    screenNode->InitRenderParams();
-    screenNode->SetHasGlassFree3DLayer(true);
-    EXPECT_TRUE(screenNode->GetHasGlassFree3DLayer());
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    // Without InitRenderParams, surfaceParam is nullptr, GetIsOnInternalScreen returns true
+    node->SetIsOnInternalScreen(false);
+    EXPECT_TRUE(node->GetIsOnInternalScreen());
 }
 
 /**
- * @tc.name: SetHasGlassFree3DLayer_WithStagingParams
- * @tc.desc: Test SetHasGlassFree3DLayer syncs to staging params
- * @tc.type: FUNC
- * @tc.require:
+ * @tc.name: SetIsOnInternalScreenTest002
+ * @tc.desc: test SetIsOnInternalScreen and GetIsOnInternalScreen with InitRenderParams
+ * @tc.type:FUNC
  */
-HWTEST_F(RSScreenRenderNodeTest, SetHasGlassFree3DLayer_WithStagingParams, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsOnInternalScreenTest002, TestSize.Level1)
 {
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
-    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
-    auto screenParams = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
-    ASSERT_NE(screenParams, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->InitRenderParams();
+    auto param = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
 
-    screenNode->SetHasGlassFree3DLayer(true);
-    EXPECT_TRUE(screenParams->GetHasGlassFree3DLayer());
+    node->SetIsOnInternalScreen(false);
+    EXPECT_FALSE(node->GetIsOnInternalScreen());
 
-    screenNode->SetHasGlassFree3DLayer(false);
-    EXPECT_FALSE(screenParams->GetHasGlassFree3DLayer());
+    node->SetIsOnInternalScreen(true);
+    EXPECT_TRUE(node->GetIsOnInternalScreen());
 }
 
 /**
