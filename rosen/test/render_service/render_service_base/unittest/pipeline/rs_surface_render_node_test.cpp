@@ -107,6 +107,19 @@ HWTEST_F(RSSurfaceRenderNodeTest, RSSurfaceRenderNodeCreate001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateCompositionType_NullSurfaceNode
+ * @tc.desc: Test UpdateCompositionType with null surfaceNode returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, UpdateCompositionType_NullSurfaceNode, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    // Null surfaceNode should not crash
+    mainThread->UpdateCompositionType(nullptr, UIMode3D::MODE_GLASSESFREE_3D);
+}
+
+/**
  * @tc.name: SetIsOnInternalScreenTest001
  * @tc.desc: test SetIsOnInternalScreen and GetIsOnInternalScreen without InitRenderParams
  * @tc.type:FUNC
