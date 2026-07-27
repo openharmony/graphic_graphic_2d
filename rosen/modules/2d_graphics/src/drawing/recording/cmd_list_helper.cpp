@@ -543,6 +543,10 @@ std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(const CmdList& cmdList, 
         typefaceData->BuildWithoutCopy(data, fontHandle.size);
         typeface = Typeface::Deserialize(typefaceData->GetData(), typefaceData->GetSize());
     }
+    if (!typeface) {
+        LOGD("font typeface is nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
     typeface->SetIsCustomTypeface(fontHandle.isCustomTypeface);
     typeface->SetIsThemeTypeface(fontHandle.isThemeTypeface);
     auto result = std::make_shared<Font>(typeface, fontHandle.fontSize, fontHandle.fontScaleX, fontHandle.fontSkewX);
