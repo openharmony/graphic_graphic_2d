@@ -752,6 +752,11 @@ bool RSSystemProperties::GetDebugFmtTraceEnabled()
     return GetDebugTraceEnabled();
 }
 
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    return false;
+}
+
 void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
 {
 }

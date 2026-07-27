@@ -401,8 +401,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BACKGROUND_REBUILD_ENABLED): {
-            bool enable;
-            if (GetBackgroundRebuildEnabled(enable) != ERR_OK || !reply.WriteBool(enable)) {
+            uint8_t enable = 0;
+            if (GetBackgroundRebuildEnabled(enable) != ERR_OK || !reply.WriteUint8(enable)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_BACKGROUND_REBUILD_ENABLED read enable failed!");
                 ret = ERR_INVALID_REPLY;
             }

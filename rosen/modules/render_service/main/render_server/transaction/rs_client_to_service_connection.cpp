@@ -314,9 +314,12 @@ ErrCode RSClientToServiceConnection::GetUniRenderEnabled(bool& res)
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnection::GetBackgroundRebuildEnabled(bool& res)
+ErrCode RSClientToServiceConnection::GetBackgroundRebuildEnabled(uint8_t& res)
 {
-    res = RSBackgroundRebuildParam::Instance().IsBackgroundRebuildEnabled();
+    uint8_t backgroundRebuildEnabled = RSBackgroundRebuildParam::Instance().IsBackgroundRebuildEnabled() ? 1 : 0;
+    uint8_t canvasDrawingNodeBufferEnabled = NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled() ? 1 : 0;
+    // High 4 bits store backgroundRebuildEnabled, low 4 bits store canvasDrawingNodeBufferEnabled
+    res = (backgroundRebuildEnabled << 4) | canvasDrawingNodeBufferEnabled;
     return ERR_OK;
 }
 

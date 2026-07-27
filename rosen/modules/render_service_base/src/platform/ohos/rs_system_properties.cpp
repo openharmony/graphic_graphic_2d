@@ -211,8 +211,10 @@ bool RSSystemProperties::GetBackgroundRebuildEnabled()
         return isBackgroundRebuildEnabled_;
     }
 
-    isBackgroundRebuildEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(
+    uint8_t remoteValue = std::static_pointer_cast<RSRenderServiceClient>(
         RSIRenderClient::CreateRenderServiceClient())->GetBackgroundRebuildEnabled();
+    isBackgroundRebuildEnabled_ = (remoteValue & 0xF0) != 0;
+    isCanvasDrawingNodeClientRenderEnabled_ = (remoteValue & 0x0F) != 0;
     inited = true;
     ROSEN_LOGD("RSSystemProperties::GetBackgroundRebuildEnabled:%{public}d", isBackgroundRebuildEnabled_);
     return isBackgroundRebuildEnabled_;
@@ -1616,10 +1618,25 @@ bool RSSystemProperties::GetHybridRenderDfxEnabled()
 
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
-    static bool canvasEnabled =
-        Drawing::SystemProperties::IsUseVulkan() &&
-        system::GetParameter("const.product.devicetype", "phone") == "phone" &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
+    static bool inited = false;
+    static bool canvasEnabled = false;
+    if (inited) {
+        return canvasEnabled;
+    }
+
+    canvasEnabled = GetHybridRenderCanvasEnabledWithoutCCM();
+    if (canvasEnabled) {
+        GetBackgroundRebuildEnabled();
+        canvasEnabled = isCanvasDrawingNodeClientRenderEnabled_;
+    }
+    inited = true;
+    return canvasEnabled;
+}
+
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    static bool canvasEnabled = Drawing::SystemProperties::IsUseVulkan() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
     return canvasEnabled;
 }
 

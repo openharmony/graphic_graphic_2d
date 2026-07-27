@@ -114,13 +114,13 @@ MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
     return memoryGraphic;
 }
 
-bool RSRenderServiceClient::GetBackgroundRebuildEnabled()
+uint8_t RSRenderServiceClient::GetBackgroundRebuildEnabled()
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
-        return false;
+        return 0;
     }
-    bool enable;
+    uint8_t enable = 0;
     clientToService->GetBackgroundRebuildEnabled(enable);
     return enable;
 }
