@@ -2450,9 +2450,8 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     RSLayerSplitManager::GetInstance()->InitSplitSurface(screenInfo);
     curScreenDirtyManager_->SetSurfaceSize(screenProperty.GetWidth(), screenProperty.GetHeight());
     curScreenDirtyManager_->SetActiveSurfaceRect(screenProperty.GetActiveRect());
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto allBlackList = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
-    auto allWhiteList = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    auto allBlackList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
+    auto allWhiteList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_WHITE_LIST);
     if (allBlackList_ != allBlackList || allWhiteList_ != allWhiteList) {
         allBlackList_ = std::move(allBlackList);
         allWhiteList_ = std::move(allWhiteList);
@@ -4252,6 +4251,8 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     }
     renderThreadParams->surfaceColorGamutMap_ = std::move(surfaceColorGamutMap_);
     renderThreadParams->SetTunnelLayerSnapshots(std::move(tunnelLayerSnapshots_));
+    renderThreadParams->GetMutableScreenSpecialLayerParam().SetGlobalBlackList(
+        ScreenSpecialLayerInfo::GetGlobalBlackList());
 }
 
 void RSUniRenderVisitor::SendRcdMessage(RSScreenRenderNode& node)

@@ -35,7 +35,7 @@ const std::map<ScreenPropertyType, SpecialLayerType> SCREEN_SPECIAL_LAYER_PROPER
 };
 const GetFunc GET_WHITE_LIST = [](const auto& screenProperty) { return screenProperty.GetWhiteList(); };
 const std::map<SpecialLayerType, GetFunc> GET_SCREEN_SPECIAL_LAYER = {
-    {SpecialLayerType::IS_BLACK_LIST, RSSpecialLayerUtils::GetMergeBlackList},
+    {SpecialLayerType::IS_BLACK_LIST, RSSpecialLayerUtils::GetMergeBlackListInMainThread},
     {SpecialLayerType::IS_WHITE_LIST, GET_WHITE_LIST}
 };
 }
@@ -191,34 +191,7 @@ bool RSSpecialLayerUtils::HasMirrorDisplay(const RSRenderNodeMap& nodeMap)
     return hasMirrorDisplay;
 }
 
-std::unordered_set<uint64_t> RSSpecialLayerUtils::GetAllBlackList(const RSRenderNodeMap& nodeMap)
-{
-    std::unordered_set<uint64_t> allBlackList;
-    nodeMap.TraverseScreenNodes(
-        [&allBlackList](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
-        if (screenRenderNode != nullptr) {
-            auto currentBlackList = RSSpecialLayerUtils::GetMergeBlackList(screenRenderNode->GetScreenProperty());
-            allBlackList.insert(currentBlackList.begin(), currentBlackList.end());
-        }
-    });
-    return allBlackList;
-}
-
-std::unordered_set<uint64_t> RSSpecialLayerUtils::GetAllWhiteList(const RSRenderNodeMap& nodeMap)
-{
-    std::unordered_set<uint64_t> allWhiteList;
-    nodeMap.TraverseScreenNodes(
-        [&allWhiteList](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
-            if (screenRenderNode != nullptr) {
-                auto currentWhiteList = screenRenderNode->GetScreenProperty().GetWhiteList();
-                allWhiteList.insert(currentWhiteList.begin(), currentWhiteList.end());
-            }
-        }
-    );
-    return allWhiteList;
-}
-
-std::unordered_set<NodeId> RSSpecialLayerUtils::GetMergeBlackList(const RSScreenProperty& screenProperty)
+std::unordered_set<NodeId> RSSpecialLayerUtils::GetMergeBlackListInMainThread(const RSScreenProperty& screenProperty)
 {
     if (!screenProperty.EnableSkipWindow()) {
         return screenProperty.GetBlackList();
@@ -226,6 +199,21 @@ std::unordered_set<NodeId> RSSpecialLayerUtils::GetMergeBlackList(const RSScreen
     std::unordered_set<NodeId> blackList = screenProperty.GetBlackList();
     const auto& globalBlackList = ScreenSpecialLayerInfo::GetGlobalBlackList();
     blackList.insert(globalBlackList.begin(), globalBlackList.end());
+    return blackList;
+}
+
+std::unordered_set<NodeId> RSSpecialLayerUtils::GetMergeBlackListInRenderThread(const RSScreenProperty& screenProperty)
+{
+    std::unordered_set<NodeId> blackList = screenProperty.GetBlackList();
+    if (!screenProperty.EnableSkipWindow()) {
+        return blackList;
+    }
+    const auto& params = RSRenderThreadParamsManager::Instance().GetRSRenderThreadParams();
+    if (params != nullptr) {
+        const auto& param = params->GetScreenSpecialLayerParam();
+        const auto& globalBlackList = param.GetGlobalBlackList();
+        blackList.insert(globalBlackList.begin(), globalBlackList.end());
+    }
     return blackList;
 }
 
@@ -240,8 +228,8 @@ void RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(const RSRenderNodeMap& n
             if (!screenProperty.EnableSkipWindow()) {
                 return;
             }
-            ScreenSpecialLayerInfo::Update(
-                SpecialLayerType::IS_BLACK_LIST, screenProperty.GetScreenId(), GetMergeBlackList(screenProperty));
+            ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_BLACK_LIST, screenProperty.GetScreenId(),
+                GetMergeBlackListInMainThread(screenProperty));
         }
     );
     NotifyScreenSpecialLayerChange();
@@ -384,7 +372,8 @@ void RSSpecialLayerUtils::SetWhiteListRectToMetaData(RSPaintFilterCanvas& canvas
 
     // If there is no or more than one whitelist rect, do not set crop rect
     auto screenId = mirrorScreenProperty.GetScreenId();
-    const auto& whiteListRects = uniParam.GetWhiteListRectByScreenId(screenId);
+    const auto& screenSpecialLayerParam = uniParam.GetScreenSpecialLayerParam();
+    const auto& whiteListRects = screenSpecialLayerParam.GetWhiteListRectByScreenId(screenId);
     if (whiteListRects.size() != 1) {
         RS_LOGD("%{public}s: skip crop setting, screen %{public}" PRIu64 " whitelist rect count = %{public}zu",
             __func__, screenId, whiteListRects.size());
