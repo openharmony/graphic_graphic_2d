@@ -3541,10 +3541,13 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     auto& properties = node.GetRenderProperties();
     bool isUnSupportLayer =
         (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || RSOpincManager::IsSuggestOpincNode(node) ||
-            properties.IsShadowValid() || properties.IsBgBrightnessValid() || properties.IsColorBlendModeValid() ||
-            properties.IsColorBlendApplyTypeOffscreen() || properties.GetLinearGradientBlurPara() != nullptr ||
-            properties.IsFgBrightnessValid() || properties.GetForegroundFilter() != nullptr ||
-            properties.GetFilter() != nullptr || node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+            node.GetSharedTransitionParam() || properties.IsSpherizeValid() || properties.IsAttractionValid() ||
+            properties.NeedFilter() || properties.GetUseEffect() || properties.HasHarmonium() ||
+            node.ChildHasVisibleEffect() || properties.GetSandBox().has_value() || properties.IsShadowValid() ||
+            properties.IsColorBlendModeValid() || properties.IsColorBlendApplyTypeOffscreen() ||
+            properties.GetLinearGradientBlurPara() != nullptr || properties.IsFgBrightnessValid() ||
+            properties.GetForegroundFilter() != nullptr || properties.GetFilter() != nullptr ||
+            node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*nodeParent, true);
     }
