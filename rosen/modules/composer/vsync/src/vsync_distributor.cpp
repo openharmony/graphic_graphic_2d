@@ -39,6 +39,7 @@
 #endif
 
 #include "dvsync_lib_manager.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -78,7 +79,8 @@ void VSyncConnection::VSyncConnectionDeathRecipient::OnRemoteDied(const wptr<IRe
         VLOGI("%{public}s: token doesn't match, ignore it.", __func__);
         return;
     }
-    VLOGD("%{public}s: clear socketPair, conn name:%{public}s.", __func__, vsyncConn->info_.name_.c_str());
+    RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "%{public}s: clear socketPair, conn name:%{public}s.",
+        __func__, __func__, vsyncConn->info_.name_.c_str());
     VsyncError ret = vsyncConn->Destroy();
     if (ret != VSYNC_ERROR_OK) {
         VLOGE("vsync connection clearAll failed!");
@@ -663,7 +665,8 @@ void VSyncDistributor::ConnPostEvent(sptr<VSyncConnection> con, int64_t now, int
 {
     DVSyncLibManager::Instance().SetAppRequestedStatus(con, false);
     int32_t ret = con->PostEvent(now, period, vsyncCount);
-    VLOGD("Distributor name: %{public}s, Conn name: %{public}s, ret: %{public}d",
+    RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "Distributor name: %{public}s, Conn name: %{public}s, ret: %{public}d",
+        __func__,
         name_.c_str(), con->info_.name.c_str(), ret);
     if (ret == 0 || ret == ERRNO_OTHER) {
         RemoveConnection(con);
@@ -906,7 +909,8 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
                 connection->info_.name_.c_str(), connection->rate_, connection->highPriorityRate_);
         }
     }
-    VLOGD("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
+    RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "conn name:%{public}s, rate:%{public}d",
+        __func__, connection->info_.name_.c_str(), connection->rate_);
     return VSYNC_ERROR_OK;
 }
 
@@ -924,7 +928,7 @@ VsyncError VSyncDistributor::SetVSyncRate(int32_t rate, const sptr<VSyncConnecti
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     connection->rate_ = rate;
-    VLOGD("conn name:%{public}s", connection->info_.name_.c_str());
+    RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "conn name:%{public}s", __func__, connection->info_.name_.c_str());
     EnableVSync();
     return VSYNC_ERROR_OK;
 }
@@ -945,7 +949,8 @@ VsyncError VSyncDistributor::SetHighPriorityVSyncRate(int32_t highPriorityRate, 
     }
     connection->highPriorityRate_ = highPriorityRate;
     connection->highPriorityState_ = true;
-    VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+    RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "in, conn name:%{public}s, highPriorityRate:%{public}d",
+        __func__, connection->info_.name_.c_str(),
           connection->highPriorityRate_);
     EnableVSync();
     return VSYNC_ERROR_OK;
@@ -980,7 +985,8 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bo
     }
     auto iter = connectionsMap_.find(pid);
     if (iter == connectionsMap_.end()) {
-        VLOGD("%{public}s:%{public}d pid[%{public}u] can not found", __func__, __LINE__, pid);
+        RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "%{public}s:%{public}d pid[%{public}u] can not found",
+            __func__, __func__, __LINE__, pid);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     bool isNeedNotify = false;
@@ -994,7 +1000,8 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bo
             connection->highPriorityState_ = true;
             RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByPid pid:%u, rate:%d, connName:%s",
                 pid, rate, connection->info_.name_.c_str());
-            VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+            RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "in, conn name:%{public}s, highPriorityRate:%{public}d",
+                __func__, connection->info_.name_.c_str(),
                 connection->highPriorityRate_);
             isNeedNotify = true;
         }
@@ -1020,7 +1027,7 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t r
     for (const auto& windowId : tmpVec) {
         VsyncError ret = SetQosVSyncRateLocked(windowId, rate, isSystemAnimateScene);
         if (ret != VSYNC_ERROR_OK) {
-            VLOGD("windowId:%{public}" PRUint " is not exit", windowId);
+            RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "windowId:%{public}" PRUint " is not exit", __func__, windowId);
             return VSYNC_ERROR_INVALID_ARGUMENTS;
         }
     }
@@ -1084,7 +1091,8 @@ VsyncError VSyncDistributor::SetVsyncRateDiscountLTPS(uint32_t pid, const std::s
             connection->info_.name_.compare(name) == 0) {
             connection->highPriorityRate_ = static_cast<int32_t>(rateDiscount);
             connection->highPriorityState_ = true;
-            VLOGD("SetVsyncRateDiscountLTPS conn name:%{public}s, highPriorityRate:%{public}d",
+            RS_LOGD_IF(DEBUG_VSYNC,
+                "%{public}s: " "SetVsyncRateDiscountLTPS conn name:%{public}s, highPriorityRate:%{public}d", __func__,
                 connection->info_.name_.c_str(), connection->highPriorityRate_);
             isNeedNotify = true;
         }
@@ -1108,7 +1116,8 @@ VsyncError VSyncDistributor::SetQosVSyncRateByConnId(uint64_t connId, int32_t ra
             connection->highPriorityState_ = rate != 1;
             RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByConnId connId:%" PRIu64 ", rate:%d, connName:%s",
                 connId, rate, connection->info_.name_.c_str());
-            VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+            RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "in, conn name:%{public}s, highPriorityRate:%{public}d",
+                __func__, connection->info_.name_.c_str(),
                 connection->highPriorityRate_);
             isNeedNotify = true;
         }
@@ -1140,7 +1149,8 @@ VsyncError VSyncDistributor::SetQosVSyncRateLocked(uint64_t windowNodeId, int32_
             connection->highPriorityState_ = true;
             RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByWindowId windowNodeId:%" PRIu64 ", rate:%d,"
                 " connName:%s", windowNodeId, rate, connection->info_.name_.c_str());
-            VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+            RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "in, conn name:%{public}s, highPriorityRate:%{public}d",
+                __func__, connection->info_.name_.c_str(),
                 connection->highPriorityRate_);
             isNeedNotify = true;
         }

@@ -33,6 +33,7 @@
 #include "sandbox_utils.h"
 #include <rs_trace.h>
 #include "qos.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -231,7 +232,9 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
         int64_t periodNotShared = listener_->GetPeriod();
         int64_t timeStampNotShared = listener_->GetTimeStamp();
         if (periodNotShared == 0 || timeStampNotShared == 0) {
-            VLOGD("%{public}s Hardware vsync is not available. please try again later!", __func__);
+            RS_LOGD_IF(DEBUG_VSYNC,
+                "%{public}s: " "%{public}s Hardware vsync is not available. please try again later!",
+                    __func__, __func__);
             return VSYNC_ERROR_UNKOWN;
         }
         period = periodNotShared;
@@ -240,7 +243,9 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
         int64_t periodShared = listener_->GetPeriodShared();
         int64_t timeStampShared = listener_->GetTimeStampShared();
         if (periodShared == 0 || timeStampShared == 0) {
-            VLOGD("%{public}s Hardware vsync is not available. please try again later!", __func__);
+            RS_LOGD_IF(DEBUG_VSYNC,
+                "%{public}s: " "%{public}s Hardware vsync is not available. please try again later!",
+                    __func__, __func__);
             return VSYNC_ERROR_UNKOWN;
         }
         period = periodShared;
@@ -290,7 +295,8 @@ VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount, bool compositeS
     if (!init_) {
         return VSYNC_ERROR_API_FAILED;
     }
-    VLOGD("SetUiDvsyncConfig bufferCount:%d compositeSceneEnable:%d nativeDelayEnable:%d",
+    RS_LOGD_IF(DEBUG_VSYNC,
+        "%{public}s: " "SetUiDvsyncConfig bufferCount:%d compositeSceneEnable:%d nativeDelayEnable:%d", __func__,
         bufferCount, compositeSceneEnable, nativeDelayEnable);
     return connection_->SetUiDvsyncConfig(bufferCount, compositeSceneEnable, nativeDelayEnable, rsDvsyncAnimationList);
 }

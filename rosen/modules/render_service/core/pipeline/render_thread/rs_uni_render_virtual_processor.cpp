@@ -53,7 +53,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     auto screenStatus = screenProperty.GetVirtualScreenStatus();
     if (screenStatus == VIRTUAL_SCREEN_PAUSE) {
         RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s ScreenId[%" PRIu64 "] paused", __func__, virtualScreenId_);
-        RS_LOGD("RSUniRenderVirtualProcessor::%{public}s, ScreenId[%{public}" PRIu64 "] paused",
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::%{public}s, ScreenId[%{public}" PRIu64 "] paused",
             __func__, virtualScreenId_);
         return false;
     }
@@ -99,16 +99,18 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         if (virtualScreenFixedP3 || (virtualScreenColorSpace != GRAPHIC_COLOR_GAMUT_SRGB &&
             mainScreenColorSpace != GRAPHIC_COLOR_GAMUT_SRGB)) {
             renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-            RS_LOGD("RSUniRenderVirtualProcessor::Init Set virtual screen buffer colorGamut to P3.");
+            RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::Init Set virtual screen buffer colorGamut to P3.");
         }
         mirrorScreenHDR = RSHdrUtil::IsHDRCast(params, renderFrameConfig_);
-        RS_LOGD("RSUniRenderVirtualProcessor::Init HDRCast mirrorScreenHDR: %{public}d", mirrorScreenHDR);
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::Init HDRCast mirrorScreenHDR: %{public}d",
+            mirrorScreenHDR);
     } else {
         if (virtualScreenColorSpace != GRAPHIC_COLOR_GAMUT_SRGB) {
             renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
         }
         expandScreenHDR = RSHdrUtil::IsHDRCast(params, renderFrameConfig_);
-        RS_LOGD("RSUniRenderVirtualProcessor::Init HDRCast expandScreenHDR: %{public}d", expandScreenHDR);
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::Init HDRCast expandScreenHDR: %{public}d",
+            expandScreenHDR);
     }
 
     SetVirtualScreenSize(screenDrawable);
@@ -132,7 +134,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         return false;
     }
 
-    RS_LOGD("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed, colorSpace: %d.",
         renderFrameConfig_.colorGamut);
     // Apply color space to all surfaces
@@ -140,7 +142,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         auto rsSurface = surfaceFrames_[0].frame->GetSurface();
         if (rsSurface) {
             if (SetColorSpaceForMetadata(rsSurface->GetColorSpace()) != GSERROR_OK) {
-                RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata failed.");
+                RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::SetColorSpaceForMetadata failed.");
             }
         }
     }
@@ -152,7 +154,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         if (frame) {
             RSHdrUtil::EraseHDRMetadataKey(frame);
             if (RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, frame, isHDRCast) != GSERROR_OK) {
-                RS_LOGD("RSUniRenderVirtualProcessor::Init SetMeadata failed");
+                RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::Init SetMeadata failed");
             }
         }
         auto& canvas = surfaceFrames_[i].canvas;
@@ -266,7 +268,7 @@ void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSLogicalDisplayRenderN
     auto rotationAngle = static_cast<ScreenRotation>((rotationDiff + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
     OriginScreenRotation(rotationAngle, renderFrameConfig_.width, renderFrameConfig_.height);
 
-    RS_LOGD("RSUniRenderVirtualProcessor::CanvasInit, id: %{public}" PRIu64 ", "
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::CanvasInit, id: %{public}" PRIu64 ", "
         "screen(%{public}f, %{public}f, %{public}f, %{public}f), "
         "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, rotationAngle: %{public}d, "
         "scaleMode: %{public}d, autoBufferRotation: %{public}d, mirrorSourceRotation: %{public}" PRIu32,
@@ -299,12 +301,14 @@ GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut 
     CM_ColorSpaceInfo colorSpaceInfo;
     GSError ret = MetadataHelper::ConvertColorSpaceTypeToInfo(iter->second, colorSpaceInfo);
     if (ret != GSERROR_OK) {
-        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata ConvertColorSpaceTypeToInfo failed.");
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RSUniRenderVirtualProcessor::SetColorSpaceForMetadata ConvertColorSpaceTypeToInfo failed.");
         return ret;
     }
     std::vector<uint8_t> colorSpaceVec;
     if (MetadataHelper::ConvertMetadataToVec(colorSpaceInfo, colorSpaceVec) != GSERROR_OK) {
-        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata ConvertMetadataToVec failed.");
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RSUniRenderVirtualProcessor::SetColorSpaceForMetadata ConvertMetadataToVec failed.");
         return GSERROR_API_FAILED;
     }
     return SetMetadataForAllSurfaces(ATTRKEY_COLORSPACE_INFO, colorSpaceVec);
@@ -314,30 +318,30 @@ GSError RSUniRenderVirtualProcessor::SetMetadataForAllSurfaces(uint32_t key, con
 {
     GSError finalResult = GSERROR_OK;
     if (surfaceFrames_.empty()) {
-        RS_LOGD("%{public}s: No surface frames available to set metadata.", __func__);
+        RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: No surface frames available to set metadata.", __func__);
         return GSERROR_INVALID_ARGUMENTS;
     }
     for (size_t i = 0; i < surfaceFrames_.size(); ++i) {
         auto& frame = surfaceFrames_[i].frame;
         if (!frame) {
-            RS_LOGD("%{public}s: surfaceFrames_[%zu] frame is null.", __func__, i);
+            RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: surfaceFrames_[%zu] frame is null.", __func__, i);
             finalResult = GSERROR_INVALID_ARGUMENTS;
             continue;
         }
         auto rsSurface = frame->GetSurface();
         if (!rsSurface) {
-            RS_LOGD("%{public}s: surfaceFrames_[%zu] rsSurface is null.", __func__, i);
+            RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: surfaceFrames_[%zu] rsSurface is null.", __func__, i);
             finalResult = GSERROR_INVALID_ARGUMENTS;
             continue;
         }
         auto buffer = rsSurface->GetCurrentBuffer();
         if (!buffer) {
-            RS_LOGD("%{public}s: surfaceFrames_[%zu] buffer is null.", __func__, i);
+            RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: surfaceFrames_[%zu] buffer is null.", __func__, i);
             finalResult = GSERROR_NO_BUFFER;
             continue;
         }
         if (buffer->SetMetadata(key, data) != GSERROR_OK) {
-            RS_LOGD("%{public}s: surfaceFrames_[%zu] SetMetadata failed.", __func__, i);
+            RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: surfaceFrames_[%zu] SetMetadata failed.", __func__, i);
             finalResult = GSERROR_API_FAILED;
         }
     }
@@ -349,7 +353,7 @@ bool RSUniRenderVirtualProcessor::SetCropRectForMetadata(
 {
     std::vector<uint8_t> data;
     if (MetadataHelper::ConvertMetadataToVec(metaRegion, data) != GSERROR_OK) {
-        RS_LOGD("%{public}s : ConvertMetadataToVec failed.", __func__);
+        RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s : ConvertMetadataToVec failed.", __func__);
         return false;
     }
     return SetMetadataForAllSurfaces(HDI::Display::Graphic::Common::V1_0::ATTRKEY_CROP_REGION, data) == GSERROR_OK;
@@ -366,7 +370,7 @@ void RSUniRenderVirtualProcessor::SetDirtyInfo(const std::vector<RectI>& damageR
         }
     }
     if (SetRoiRegionToCodec(damageRegion) != GSERROR_OK) {
-        RS_LOGD("RSUniRenderVirtualProcessor::SetDirtyInfo SetRoiRegionToCodec failed.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::SetDirtyInfo SetRoiRegionToCodec failed.");
     }
 }
 
@@ -398,7 +402,7 @@ GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(const std::vector<RectI
     std::vector<uint8_t> roiRegionsVec;
     auto ret = MetadataHelper::ConvertMetadataToVec(roiRegions, roiRegionsVec);
     if (ret != GSERROR_OK) {
-        RS_LOGD("RSUniRenderVirtualProcessor::SetRoiRegionToCodec ConvertMetadataToVec failed.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::SetRoiRegionToCodec ConvertMetadataToVec failed.");
         return ret;
     }
 
@@ -476,7 +480,7 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
         if (!drawMirrorCopy_) {
             canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
         }
-        RS_LOGD("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed: Scale With VisibleRect, "
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::ScaleMirrorIfNeed: Scale With VisibleRect, "
             "mirrorScaleX_: %{public}f, mirrorScaleY_: %{public}f", mirrorScaleX_, mirrorScaleY_);
     } else {
         canvas.Translate(-mirroredTranslateX_, -mirroredTranslateY_);
@@ -496,7 +500,8 @@ void RSUniRenderVirtualProcessor::MergeMirrorFenceToHardwareEnabledDrawables(con
     }
     for (const auto& [screenNodeId, _, drawable] : renderThreadParams->GetHardwareEnabledTypeDrawables()) {
         if (screenNodeId != mirroredScreenNodeId_) {
-            RS_LOGD("RSUniRenderVirtualProcessor::%{public}s drawable not on mirroredscreen!", __func__);
+            RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::%{public}s drawable not on mirroredscreen!",
+                __func__);
             continue;
         }
         if (!drawable) {
@@ -519,7 +524,8 @@ void RSUniRenderVirtualProcessor::MergeMirrorFenceToHardwareEnabledDrawables(con
         }
         RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: fence merged id: %" PRIu64 " name: %s",
             __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
-        RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: fence merged id: %{public}" PRIu64 " name: %{public}s",
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RSUniRenderVirtualProcessor::%{public}s: fence merged id: %{public}" PRIu64 " name: %{public}s",
             __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
         buffer->SetAndMergeSyncFence(acquireFence);
     }
@@ -540,7 +546,7 @@ void RSUniRenderVirtualProcessor::PostProcess()
         if (isMirror_) {
             MergeMirrorFenceToHardwareEnabledDrawables(frame->GetAcquireFence());
         }
-        RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
         return;
     }
@@ -585,7 +591,7 @@ void RSUniRenderVirtualProcessor::Fill(RSPaintFilterCanvas& canvas,
         mirrorScaleX_ = mirrorWidth / mainWidth;
         mirrorScaleY_ = mirrorHeight / mainHeight;
         canvas.Scale(mirrorScaleX_, mirrorScaleY_);
-        RS_LOGD("RSUniRenderVirtualProcessor::Fill: scaleX: %{public}f, scaleY: %{public}f",
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::Fill: scaleX: %{public}f, scaleY: %{public}f",
             mirrorScaleX_, mirrorScaleY_);
     }
 }
@@ -618,14 +624,14 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
         }
         slrManager_->CheckOrRefreshColorSpace(renderFrameConfig_.colorGamut);
         slrManager_->CanvasScale(canvas);
-        RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR, color is %{public}d.",
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::UniScale: Scale With SLR, color is %{public}d.",
             renderFrameConfig_.colorGamut);
         return;
     }
 
     canvas.Scale(mirrorScaleX_, mirrorScaleY_);
     canvas.Translate(startX, startY);
-    RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Translate startX: %{public}f, startY: %{public}f"
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::UniScale: Translate startX: %{public}f, startY: %{public}f"
         " scaleX: %{public}f, scaleY: %{public}f", startX, startY, mirrorScaleX_, mirrorScaleY_);
 }
 
@@ -647,7 +653,7 @@ void RSUniRenderVirtualProcessor::ProcessCacheImage(Drawing::Image& cacheImage)
     }
     if (EnableSlrScale() && slrManager_) {
         slrManager_->ProcessCacheImage(*canvas_, cacheImage);
-        RS_LOGD("RSUniRenderVirtualProcessor::ProcessCacheImage: Darw With SLR.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::ProcessCacheImage: Darw With SLR.");
         return;
     }
     RSUniRenderUtil::ProcessCacheImage(*canvas_, cacheImage);
@@ -683,7 +689,7 @@ void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode(const Drawing:
     Drawing::Region clipRegion;
     clipRegion.SetRect(rectI);
     canvas_->ClipRegion(clipRegion);
-    RS_LOGD("RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode, clipRect: %{public}s",
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode, clipRect: %{public}s",
         rectI.ToString().c_str());
 }
 
@@ -722,7 +728,8 @@ void RSUniRenderVirtualProcessor::SetVirtualScreenSize(DrawableV2::RSScreenRende
         } else if (CheckIfBufferSizeNeedChange(firstBufferRotation, curBufferRotation)) {
             std::swap(renderFrameConfig_.width, renderFrameConfig_.height);
             std::swap(virtualScreenWidth_, virtualScreenHeight_);
-            RS_LOGD("RSUniRenderVirtualProcessor::%{public}s, swap buffer width and height, width: %{public}d, "
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RSUniRenderVirtualProcessor::%{public}s, swap buffer width and height, width: %{public}d, "
                 "height: %{public}d", __func__, renderFrameConfig_.width, renderFrameConfig_.height);
             RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: swap buffer width and height, "
                 "width: %d, height: %d", __func__, renderFrameConfig_.width, renderFrameConfig_.height);
@@ -765,7 +772,7 @@ void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
         config.region = surfaceRegion.region;
 
         if (!config.surface) {
-            RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: surface at index %{public}zu is null",
+            RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::%{public}s: surface at index %{public}zu is null",
                 __func__, i);
             continue;
         }
@@ -781,7 +788,8 @@ void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
             uint64_t pSurfaceUniqueId = config.surface->GetUniqueId();
             auto rsSurface = screenDrawable.GetVirtualSurface(pSurfaceUniqueId);
             if (rsSurface == nullptr) {
-                RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: Make rssurface for surface index %{public}zu",
+                RS_LOGD_IF(DEBUG_PIPELINE,
+                    "RSUniRenderVirtualProcessor::%{public}s: Make rssurface for surface index %{public}zu",
                     __func__, i);
                 rsSurface = renderEngine_->MakeRSSurface(config.surface, forceCPU_);
                 screenDrawable.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
@@ -801,7 +809,8 @@ void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
         config.canvas = config.frame->GetCanvas();
 
         if (!config.canvas) {
-            RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: Canvas is null for surface index %{public}zu",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RSUniRenderVirtualProcessor::%{public}s: Canvas is null for surface index %{public}zu",
                 __func__, i);
             continue;
         }
@@ -809,7 +818,7 @@ void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
         surfaceFrames_.push_back(std::move(config));
     }
 
-    RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: surface count=%{public}zu",
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::%{public}s: surface count=%{public}zu",
         __func__, surfaceFrames_.size());
 }
 
@@ -845,7 +854,8 @@ void RSUniRenderVirtualProcessor::CopyToSecondarySurfaces()
         }
         canvas->DrawImage(*snapshot, 0, 0, sampling);
 
-        RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: Copied to surface index %{public}zu", __func__, i);
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::%{public}s: Copied to surface index %{public}zu",
+            __func__, i);
         RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Copied to surface index %zu", __func__, i);
     }
 }
@@ -897,7 +907,8 @@ void RSUniRenderVirtualProcessor::FlushBuffer(std::vector<sptr<SyncFence>>& fenc
         if (fence && fence->IsValid()) {
             fences.emplace_back(fence);
         }
-        RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: FlushBuffer succeed for surface index %{public}zu, "
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RSUniRenderVirtualProcessor::%{public}s: FlushBuffer succeed for surface index %{public}zu, "
             "fence is %{public}s", __func__, i, fence && fence->IsValid() ? "valid" : "invalid");
     }
 }
@@ -941,7 +952,8 @@ void RSUniRenderVirtualProcessor::BlitRegionsToSurfaces(const std::shared_ptr<Dr
         canvas->DrawImageRect(*offscreenImage, srcRect, dstRect, sampling,
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 
-        RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: Blitted region [%{public}d,%{public}d,%{public}d,%{public}d]"
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RSUniRenderVirtualProcessor::%{public}s: Blitted region [%{public}d,%{public}d,%{public}d,%{public}d]"
              " to surface index %{public}zu", __func__, region.left_, region.top_, region.width_, region.height_, i);
         RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Blitted region [%d,%d,%d,%d]"
              " to surface index %zu", __func__, region.left_, region.top_, region.width_, region.height_, i);

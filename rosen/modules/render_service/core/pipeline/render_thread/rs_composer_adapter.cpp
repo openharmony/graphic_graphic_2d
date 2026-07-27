@@ -229,7 +229,8 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     int height = std::clamp<int>(localRect.GetHeight(), 0, frameHeight - top);
     GraphicIRect newSrcRect = {left, top, width, height};
 
-    RS_LOGD("RsDebug DealWithNodeGravity: name[%{public}s], gravity[%{public}d], oldDstRect[%{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug DealWithNodeGravity: name[%{public}s], gravity[%{public}d], oldDstRect[%{public}d"
         " %{public}d %{public}d %{public}d], newDstRect[%{public}d %{public}d %{public}d %{public}d],"\
         " oldSrcRect[%{public}d %{public}d %{public}d %{public}d], newSrcRect[%{public}d %{public}d"
         " %{public}d %{public}d].", node.GetName().c_str(), static_cast<int>(frameGravity),
@@ -436,7 +437,8 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
     }
     const auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
     if (isTunnelCheck == false && buffer == nullptr) {
-        RS_LOGD("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer:node(%{public}" PRIu64 ") has"
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer:node(%{public}" PRIu64 ") has"
             " no available buffer.", node.GetId());
         return false;
     }
@@ -450,7 +452,8 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
 
     if (!node.IsNotifyRTBufferAvailable()) {
         // Only ipc for one time.
-        RS_LOGD("RsDebug RSPhysicalScreenProcessor::ProcessSurface id = %{public}" PRIu64 " Notify RT buffer available",
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug RSPhysicalScreenProcessor::ProcessSurface id = %{public}" PRIu64 " Notify RT buffer available",
             node.GetId());
         node.NotifyRTBufferAvailable();
     }
@@ -465,7 +468,7 @@ RSLayerPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node) const
     auto surfaceHandler = node.GetRSSurfaceHandler();
     ComposeInfo info = BuildComposeInfo(node);
     if (IsOutOfScreenRegion(info)) {
-        RS_LOGD("RsDebug RSComposerAdapter::CreateBufferLayer: node(%{public}" PRIu64
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSComposerAdapter::CreateBufferLayer: node(%{public}" PRIu64
                 ") out of screen region, no need to composite.",
             node.GetId());
         return nullptr;
@@ -474,7 +477,7 @@ RSLayerPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node) const
     AppendFormat(traceInfo, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
     RS_TRACE_NAME(traceInfo.c_str());
-    RS_LOGD(
+    RS_LOGD_IF(DEBUG_PIPELINE, 
         "RsDebug RSComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:[%{public}s]"
         " dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer"
         " [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z:%{public}f, globalZOrder:%{public}d,"
@@ -505,7 +508,7 @@ RSLayerPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) const
     auto surfaceHandler = node.GetRSSurfaceHandler();
     ComposeInfo info = BuildComposeInfo(node, true);
     if (IsOutOfScreenRegion(info)) {
-        RS_LOGD("RsDebug RSComposerAdapter::CreateTunnelLayer: node(%{public}" PRIu64
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSComposerAdapter::CreateTunnelLayer: node(%{public}" PRIu64
                 ") out of screen region, no need to composite.",
             node.GetId());
         return nullptr;
@@ -524,7 +527,8 @@ RSLayerPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) const
     layer->SetTunnelLayerGeneration(RSTunnelRuntimeStore::GetTunnelLayerGeneration(node.GetId()));
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer(), &node);
     LayerRotate(layer, node);
-    RS_LOGD("RsDebug RSComposerAdapter::CreateTunnelLayer surfaceNode id:%{public}" PRIu64 " name:[%{public}s] dst"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug RSComposerAdapter::CreateTunnelLayer surfaceNode id:%{public}" PRIu64 " name:[%{public}s] dst"
         " [%{public}d %{public}d %{public}d %{public}d]"
         "SrcRect [%{public}d %{public}d], z:%{public}f, globalZOrder:%{public}d, blendType = %{public}d",
         node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
@@ -570,7 +574,7 @@ RSLayerPtr RSComposerAdapter::CreateLayer(RSScreenRenderNode& node) const
     }
 
     ComposeInfo info = BuildComposeInfo(node);
-    RS_LOGD("RSComposerAdapter::ProcessSurface screenNode id:%{public}" PRIu64 " dst [%{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSComposerAdapter::ProcessSurface screenNode id:%{public}" PRIu64 " dst [%{public}d"
         " %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d]"
         " surfaceBuffer [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d",
         node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
@@ -639,27 +643,32 @@ static void SetLayerSize(const RSLayerPtr& layer, const ScreenInfo& screenInfo)
     // screenRotation: anti-clockwise, surfaceTransform: anti-clockwise, layerTransform: clockwise
     switch (screenRotation) {
         case ScreenRotation::ROTATION_90: {
-            RS_LOGD("RsDebug ScreenRotation 90, Before Rotate layer size [%{public}d %{public}d"
+            RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug ScreenRotation 90, Before Rotate layer size [%{public}d %{public}d"
                 " %{public}d %{public}d]", rect.x, rect.y, rect.w, rect.h);
             layer->SetLayerSize(GraphicIRect {rect.y, screenHeight - rect.x - rect.w, rect.h, rect.w});
-            RS_LOGD("RsDebug ScreenRotation 90, After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 90, After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             break;
         }
         case ScreenRotation::ROTATION_180: {
-            RS_LOGD("RsDebug ScreenRotation 180, Before Rotate layer size [%{public}d %{public}d %{public}d"
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 180, Before Rotate layer size [%{public}d %{public}d %{public}d"
                 " %{public}d]", rect.x, rect.y, rect.w, rect.h);
             layer->SetLayerSize(
                 GraphicIRect {screenWidth - rect.x - rect.w, screenHeight - rect.y - rect.h, rect.w, rect.h});
-            RS_LOGD("RsDebug ScreenRotation 180,After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 180,After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             break;
         }
         case ScreenRotation::ROTATION_270: {
-            RS_LOGD("RsDebug ScreenRotation 270, Before Rotate layer size [%{public}d %{public}d %{public}d"
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 270, Before Rotate layer size [%{public}d %{public}d %{public}d"
                 " %{public}d]", rect.x, rect.y, rect.w, rect.h);
             layer->SetLayerSize(GraphicIRect {screenWidth - rect.y - rect.h, rect.x, rect.h, rect.w});
-            RS_LOGD("RsDebug ScreenRotation 270,After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 270,After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             break;
         }
@@ -709,7 +718,8 @@ void RSComposerAdapter::LayerCrop(const RSLayerPtr& layer) const
     dirtyRegions.emplace_back(srcRect);
     layer->SetDirtyRegions(dirtyRegions);
     layer->SetCropRect(srcRect);
-    RS_LOGD("RsDebug RSComposerAdapter::LayerCrop layer has been cropped dst[%{public}d %{public}d %{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug RSComposerAdapter::LayerCrop layer has been cropped dst[%{public}d %{public}d %{public}d"
         " %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
         dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
 }
@@ -764,7 +774,8 @@ void RSComposerAdapter::LayerScaleDown(const RSLayerPtr& layer)
         dirtyRegions.emplace_back(srcRect);
         layer->SetDirtyRegions(dirtyRegions);
         layer->SetCropRect(srcRect);
-        RS_LOGD("RsDebug RSComposerAdapter::LayerScaleDown layer has been scaledown dst[%{public}d %{public}d"
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug RSComposerAdapter::LayerScaleDown layer has been scaledown dst[%{public}d %{public}d"
             " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
             dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
     }
@@ -781,7 +792,7 @@ void RSComposerAdapter::LayerPresentTimestamp(const RSLayerPtr& layer, const spt
         return;
     }
     if (surface->SetPresentTimestamp(buffer->GetSeqNum(), layer->GetPresentTimestamp()) != GSERROR_OK) {
-        RS_LOGD("RsDebug RSComposerAdapter::LayerPresentTimestamp: SetPresentTimestamp failed");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSComposerAdapter::LayerPresentTimestamp: SetPresentTimestamp failed");
     }
 }
 

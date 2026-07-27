@@ -48,7 +48,8 @@ constexpr uint64_t USAGE_NONE_PREMULTIPLIED = 1ULL << 62;
 inline void LogPrevalidateLayerInfo(const char* nodeName, uint64_t nodeId,
     const RequestLayerInfo& info, const RSScreenProperty& screenProperty)
 {
-    RS_LOGD("PrevalidateLayerInfo %{public}s, %{public}" PRIu64 ", src: %{public}u,%{public}u,%{public}u,%{public}u"
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "PrevalidateLayerInfo %{public}s, %{public}" PRIu64 ",
+        src: %{public}u,%{public}u,%{public}u,%{public}u"
         " dst: %{public}u,%{public}u,%{public}u,%{public}u, z: %{public}" PRIu32 ", bufferUsage: %{public}" PRIu64 ","
         " layerUsage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d,"
         " isRogResolution: %{public}d, isHdiRogEnable: %{public}d, rogRatio: %{public}f, %{public}f",

@@ -23,6 +23,7 @@
 #include <scoped_bytrace.h>
 #include <string>
 #include <rs_trace.h>
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -229,10 +230,10 @@ int32_t VSyncSampler::StartSample(bool forceReSample)
     std::lock_guard<std::mutex> lock(mutex_);
     if (!forceReSample && hardwareVSyncStatus_) {
         RS_TRACE_NAME("Already Start Sample.");
-        VLOGD("Already Start Sample.");
+        RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "Already Start Sample.", __func__);
         return VSYNC_ERROR_OK;
     }
-    VLOGD("Enable Screen Vsync");
+    RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "Enable Screen Vsync", __func__);
     numSamples_ = 0;
     modeUpdated_ = false;
     SetScreenVsyncEnabledInRSMainThreadLocked(vsyncEnabledScreenId_, true);
@@ -329,7 +330,7 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     bool shouldDisableScreenVsync = modeUpdated_ && (error_ < ERROR_THRESHOLD / 2);
     if (shouldDisableScreenVsync) {
         // disabled screen vsync in rsMainThread
-        VLOGD("Disable Screen Vsync");
+        RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "Disable Screen Vsync", __func__);
         SetScreenVsyncEnabledInRSMainThreadLocked(vsyncEnabledScreenId_, false);
     }
 
