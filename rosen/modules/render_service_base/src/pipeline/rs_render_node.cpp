@@ -4818,7 +4818,7 @@ void RSRenderNode::OnSync()
     bool isLayerNode = nodeGroupType_ == NodeGroupType::GROUPED_BY_LAYER &&
                        stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
     if (isLayerNode) {
-        auto& layerParams = stagingRenderParams_->GetLayerParams();
+        const auto& layerParams = stagingRenderParams_->GetLayerParams();
         bool isLayerCacheDisabled = (layerParams && layerParams->isUnSupportLayer) || IsNodeParentHasUIFirstCache();
         if (isLayerCacheDisabled) {
             stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
