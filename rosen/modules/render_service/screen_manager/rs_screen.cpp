@@ -221,7 +221,8 @@ void RSScreen::PhysicalScreenInit() noexcept
     property_.SetSupportedColorGamuts(supportedPhysicalColorGamuts_);
     backlightLevel_ = GetScreenBacklight();
 
-    if (property_.GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL) {
+    if (property_.GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL ||
+        MultiScreenParam::IsSkipFrameByActiveRefreshRate()) {
         property_.SetSkipFrameOption(
             DEFAULT_SKIP_FRAME_INTERVAL, INVALID_EXPECTED_REFRESH_RATE, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
     }
