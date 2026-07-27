@@ -374,7 +374,7 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
             ", activeModeId: %{public}d, size:[%{public}u, %{public}u], RefreshRate:[%{public}u]",
             __func__, property_.GetId(), activeMode->id, activeMode->width, activeMode->height, activeMode->freshRate);
     }
-    if (resolutionChanging) {
+    if (activeMode && resolutionChanging) {
         UpdateSamplingScale(activeMode->width, activeMode->height, property_.GetWidth(), property_.GetHeight());
         UPDATE_PROPERTY(State, preState);
     }

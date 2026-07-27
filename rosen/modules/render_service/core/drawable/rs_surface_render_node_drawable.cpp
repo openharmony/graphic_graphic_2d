@@ -1524,6 +1524,11 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (!renderEngine) {
+        RS_LOGE("DealWithSelfDrawingNodeBuffer renderEngine is nullptr");
+        return;
+    }
     if ((surfaceParams.GetHardwareEnabled() || surfaceParams.GetHardCursorStatus()) &&
         !RSUniRenderThread::IsInCaptureProcess()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
@@ -1539,11 +1544,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
             Drawing::Matrix rotateMatrix = canvas.GetTotalMatrix();
             rotateMatrix.PreConcat(params.matrix);
 
-            auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-            if (!renderEngine) {
-                RS_LOGE("DealWithSelfDrawingNodeBuffer renderEngine is nullptr");
-                return;
-            }
             VideoInfo videoInfo;
             auto surfaceNodeImage = renderEngine->CreateImageFromBuffer(canvas, params, videoInfo);
 

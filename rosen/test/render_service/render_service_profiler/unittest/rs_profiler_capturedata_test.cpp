@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "rs_profiler_archive.h"
 #include "rs_profiler_capturedata.h"
 
 using namespace testing;

@@ -48,9 +48,9 @@ bool TrySetScreenNodeByScreenId(RSContext& context, ScreenId id, Lambda&& lambda
 
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
-    RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::Create displayNodeId[%" PRIu64 "], screenId[%" PRIu64 "]",
-        id, config.screenId);
-    
+    RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::%s displayNodeId[%" PRIu64 "], %s", __func__, id,
+        config.ToString().c_str());
+
     auto node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
         config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     auto& nodeMap = context.GetMutableNodeMap();
@@ -183,27 +183,27 @@ void DisplayNodeCommandHelper::SetSecurityDisplay(RSContext& context, NodeId id,
 
 void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
+    RS_LOGI("DisplayNodeCommandHelper::%{public}s, NodeId[%{public}" PRIu64 "], %{public}s", __func__, id,
+        config.ToString().c_str());
     auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id);
     if (node == nullptr) {
         RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
         return;
     }
 
-    bool isMirror = config.isMirrored;
-    node->SetIsMirrorDisplay(isMirror);
-    if (isMirror) {
+    DisplayMode mode = config.displayMode;
+    node->SetDisplayMode(mode);
+    if (mode == DisplayMode::MIRROR) {
         NodeId mirroredNodeId = config.mirrorNodeId;
         auto& nodeMap = context.GetNodeMap();
         auto mirrorSourceNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(mirroredNodeId);
         if (mirrorSourceNode == nullptr) {
-            RS_LOGW("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%{public}" PRIu64 "]"
-                "mirroredNodeId:[%{public}" PRIu64 "]", id, mirroredNodeId);
+            RS_LOGW("DisplayNodeCommandHelper::%{public}s fail, displayNodeId[%{public}" PRIu64
+                    "], mirroredNodeId[%{public}" PRIu64 "]", __func__, id, mirroredNodeId);
             return;
         }
         node->SetMirrorSource(mirrorSourceNode);
         node->SetMirrorSourceRotation(static_cast<ScreenRotation>(config.mirrorSourceRotation));
-        RS_LOGI("DisplayNodeCommandHelper::%{public}s displayNodeId: %{public}" PRIu64 " mirrorSource: %{public}" PRIu64
-            " mirrorSourceRotation: %{public}" PRIu32, __func__, id, mirroredNodeId, config.mirrorSourceRotation);
     } else {
         node->ResetMirrorSource();
     }

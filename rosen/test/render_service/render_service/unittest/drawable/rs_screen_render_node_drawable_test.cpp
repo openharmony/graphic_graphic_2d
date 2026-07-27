@@ -785,7 +785,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest005, TestSize.Level1)
     params->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
     screenDrawable_->OnDraw(canvas);
     // when isVirtualExpandComposite is true
-    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    params->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE;
     screenDrawable_->OnDraw(canvas);
     params->isAccumulatedDirty_ = true;
     screenDrawable_->OnDraw(canvas);
@@ -902,8 +902,8 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     screenDrawable_->OnDraw(canvas);
     EXPECT_EQ(RSUniRenderThread::Instance().GetVisibleRect().left_, 1);
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
-    // when comositeType is not UNI_RENDER_MIRROR_COMPOSITE
-    params->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
+    // when comositeType is not UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE
+    params->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE;
     screenDrawable_->OnDraw(canvas);
 }
 
@@ -918,7 +918,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest011, TestSize.Level1)
     ASSERT_NE(screenDrawable_, nullptr);
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    params->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE;
     screenDrawable_->OnDraw(canvas);
 }
 
@@ -2188,7 +2188,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_MultiSurfaceExpandNoSkip, Te
     ASSERT_NE(screenDrawable_, nullptr);
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    params->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE;
     // Set multi-surface configs with 2 entries so isMultiSurfaceExpand = true
     SurfaceRegionConfig config1;
     SurfaceRegionConfig config2;
@@ -2207,7 +2207,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_SingleSurfaceExpandSkip, Tes
     ASSERT_NE(screenDrawable_, nullptr);
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    params->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE;
     // Default: configs empty (size=0), isAccumulatedDirty_=false, isAccumulatedHdrStatusChanged_=false
     // CheckVirtualExpandScreenSkip returns true -> early return (skip)
     params->isAccumulatedDirty_ = false;
@@ -2225,7 +2225,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_SingleSurfaceExpandNoSkip, T
     ASSERT_NE(screenDrawable_, nullptr);
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    params->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE;
     // Set isAccumulatedDirty_=true so CheckVirtualExpandScreenSkip returns false -> no skip
     params->isAccumulatedDirty_ = true;
     screenDrawable_->OnDraw(canvas);

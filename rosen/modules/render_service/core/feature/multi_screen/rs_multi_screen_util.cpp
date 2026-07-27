@@ -66,7 +66,7 @@ void RSMultiScreenUtil::HandleMirrorDisplay(
 
     const auto& screenProperty = screenParams->GetScreenProperty();
     uniParam->SetSecurityDisplay(params.IsSecurityDisplay());
-    drawable.currentBlackList_ = RSSpecialLayerUtils::GetMergeBlackList(screenProperty);
+    drawable.currentBlackList_ = RSSpecialLayerUtils::GetMergeBlackListInRenderThread(screenProperty);
     RSUniRenderThread::Instance().SetBlackList(drawable.currentBlackList_);
     drawable.curVisibleRect_ = RSUniRenderThread::Instance().GetVisibleRect();
     drawable.enableVisibleRect_ = RSUniRenderThread::Instance().GetEnableVisibleRect();
@@ -133,7 +133,7 @@ void RSMultiScreenUtil::HandleVirtualExtendDisplay(
 
     const auto& screenProperty = screenParams->GetScreenProperty();
     uniParam->SetSecurityDisplay(params.IsSecurityDisplay());
-    drawable.currentBlackList_ = RSSpecialLayerUtils::GetMergeBlackList(screenProperty);
+    drawable.currentBlackList_ = RSSpecialLayerUtils::GetMergeBlackListInRenderThread(screenProperty);
     RSUniRenderThread::Instance().SetBlackList(drawable.currentBlackList_);
     RSUniRenderThread::Instance().SetWhiteList(screenProperty.GetWhiteList());
     drawable.curSecExemption_ = params.GetSecurityExemption();

@@ -356,7 +356,7 @@ RSDisplayNodeConfig RandomDataCustomizedType::GetRandomRSDisplayNodeConfig()
 {
     RSDisplayNodeConfig data = {
         .screenId = RandomDataBasicType::GetRandomUint64(),
-        .isMirrored = RandomDataBasicType::GetRandomBool(),
+        .displayMode = static_cast<DisplayMode>(RandomDataBasicType::GetRandomUint8()),
         .mirrorNodeId = RandomDataBasicType::GetRandomUint64(),
         .isSync = RandomDataBasicType::GetRandomBool(),
     };

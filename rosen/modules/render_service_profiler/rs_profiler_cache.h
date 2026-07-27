@@ -58,8 +58,10 @@ public:
     static bool Add(uint64_t id, Image&& image);
     static bool Exists(uint64_t id);
     static Image* Get(uint64_t id);
+    static Image Copy(uint64_t id);
     static size_t Size();
     static size_t Consumption();
+    static bool Fits(size_t size);
     static void Reset();
 
     static std::string Dump();

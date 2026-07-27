@@ -84,8 +84,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
             if (hasComposerConn) {
-                if (auto remoteObj1 = data.ReadRemoteObject()) {
-                    renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                auto remoteObj1 = data.ReadRemoteObject();
+                if (!remoteObj1) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER renderToComposerConn "
+                            "remote object is null",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+                renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                if (!renderToComposerConn) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER renderToComposerConn iface_cast failed",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
             }
             bool hasComposerToRenderConn = false;
@@ -96,8 +108,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
             if (hasComposerToRenderConn) {
-                if (auto remoteObj2 = data.ReadRemoteObject()) {
-                    composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                auto remoteObj2 = data.ReadRemoteObject();
+                if (!remoteObj2) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER composerToRenderConn "
+                            "remote object is null",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+                composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                if (!composerToRenderConn) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER composerToRenderConn iface_cast failed",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
             }
             auto replyMessage =

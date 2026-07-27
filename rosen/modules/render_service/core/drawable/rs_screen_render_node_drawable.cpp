@@ -654,7 +654,8 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     RSMainThread::Instance()->RemoveForceRefreshTask();
 
-    bool isVirtualExpandComposite = params->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    bool isVirtualExpandComposite = compositeType == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
+                                    compositeType == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE;
     if (isVirtualExpandComposite) {
         RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params,
             syncDirtyManager->IsCurrentFrameDirty());
@@ -737,7 +738,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSMultiScreenUtil::HandleMirrorScreen(*this, *mirrorSourceParams, *params, processor);
         return;
     }
-    if (compositeType == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+    if (isVirtualExpandComposite) {
         RSMultiScreenUtil::HandleVirtualExtendScreen(*this, *params, processor);
         return;
     }

@@ -126,8 +126,12 @@ bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displa
         ROSEN_LOGE("RSRenderPipelineClient::CreateNode clientToRenderConnection_ nullptr");
         return false;
     }
-    bool success;
-    clientToRenderConnection->CreateDisplayNode(displayNodeConfig, nodeId, success);
+    bool success = false;
+    ErrCode err = clientToRenderConnection->CreateDisplayNode(displayNodeConfig, nodeId, success);
+    if (err != ERR_OK) {
+        ROSEN_LOGE("RSRenderPipelineClient::CreateDisplayNode failed, err:%{public}d", err);
+        return false;
+    }
     return success;
 }
 
@@ -138,8 +142,12 @@ bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
         ROSEN_LOGE("RSRenderPipelineClient::CreateNode clientToRenderConnection_ nullptr");
         return false;
     }
-    bool success;
-    clientToRenderConnection->CreateNode(config, success);
+    bool success = false;
+    ErrCode err = clientToRenderConnection->CreateNode(config, success);
+    if (err != ERR_OK) {
+        ROSEN_LOGE("RSRenderPipelineClient::CreateNode failed, err:%{public}d", err);
+        return false;
+    }
     return success;
 }
 
@@ -295,8 +303,11 @@ uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHideP
 {
     auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
     if (clientToRenderConnection != nullptr) {
-        uint32_t resCode;
-        clientToRenderConnection->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
+        uint32_t resCode = static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+        ErrCode err = clientToRenderConnection->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
+        if (err != ERR_OK) {
+            ROSEN_LOGE("RSRenderPipelineClient::SetHidePrivacyContent failed, err:%{public}d", err);
+        }
         return resCode;
     }
     ROSEN_LOGE("RSRenderPipelineClient::SetHidePrivacyContent clientToRenderConnection_ is nullptr!");

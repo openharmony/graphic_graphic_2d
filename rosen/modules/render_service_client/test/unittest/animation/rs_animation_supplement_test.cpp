@@ -801,7 +801,7 @@ HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest020, TestSize.Level1)
     RectT<float> rect4;
     rect3.Intersect(rect4);
 
-    RSDisplayNodeConfig config = { 0, false, 0 };
+    RSDisplayNodeConfig config = { 0, DisplayMode::EXPAND, 0 };
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     displayNode->Marshalling(parcel);
 

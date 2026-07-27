@@ -50,7 +50,7 @@ HWTEST_F(RSDisplayModeTest, CreateExpand, Function | MediumTest  | Level2)
     /**
     * step1. create RSDisplayNode
     */
-    RSDisplayNodeConfig config  = {screenId1, false, 0};
+    RSDisplayNodeConfig config  = {screenId1, DisplayMode::EXPAND, 0};
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     ASSERT_TRUE(displayNode != nullptr);
 
@@ -80,11 +80,11 @@ HWTEST_F(RSDisplayModeTest, CreateMirror, Function | MediumTest  | Level2)
     /**
     * step1. create RSDisplayNode
     */
-    RSDisplayNodeConfig configSrc = {screenId1, false, 0};
+    RSDisplayNodeConfig configSrc = {screenId1, DisplayMode::EXPAND, 0};
     RSDisplayNode::SharedPtr displayNodeSrc = RSDisplayNode::Create(configSrc);
     ASSERT_TRUE(displayNodeSrc != nullptr);
 
-    RSDisplayNodeConfig config = {screenId2, true, displayNodeSrc->GetId()};
+    RSDisplayNodeConfig config = {screenId2, DisplayMode::MIRROR, displayNodeSrc->GetId()};
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     ASSERT_TRUE(displayNode != nullptr);
 
@@ -105,21 +105,21 @@ HWTEST_F(RSDisplayModeTest, CreateMirror, Function | MediumTest  | Level2)
 }
 
 /**
- * @tc.name: SetDisplayNodeMirrorConfigExpand
+ * @tc.name: SetDisplayModeExpand
  * @tc.desc: Modify display mode type to expand display
  * @tc.type:FUNC
  * @tc.require: issueI5CAAF
  */
-HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigExpand, Function | MediumTest  | Level2)
+HWTEST_F(RSDisplayModeTest, SetDisplayModeExpand, Function | MediumTest  | Level2)
 {
     /**
     * step1. create RSDisplayNode
     */
-    RSDisplayNodeConfig configSrc = {screenId1, false, 0};
+    RSDisplayNodeConfig configSrc = {screenId1, DisplayMode::EXPAND, 0};
     RSDisplayNode::SharedPtr displayNodeSrc = RSDisplayNode::Create(configSrc);
     ASSERT_TRUE(displayNodeSrc != nullptr);
 
-    RSDisplayNodeConfig config = {screenId2, true, screenId1};
+    RSDisplayNodeConfig config = {screenId2, DisplayMode::MIRROR, screenId1};
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     ASSERT_TRUE(displayNode != nullptr);
     auto isMirrorDisplay = displayNode->IsMirrorDisplay();
@@ -128,8 +128,8 @@ HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigExpand, Function | MediumT
     /**
     * step2. set display mode
     */
-    RSDisplayNodeConfig configNew = {screenId2, false, 0};
-    displayNode->SetDisplayNodeMirrorConfig(configNew);
+    RSDisplayNodeConfig configNew = {screenId2, DisplayMode::EXPAND, 0};
+    displayNode->SetDisplayNodeConfig(configNew);
     isMirrorDisplay = displayNode->IsMirrorDisplay();
     EXPECT_EQ(isMirrorDisplay, false);
 
@@ -147,21 +147,21 @@ HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigExpand, Function | MediumT
 }
 
 /**
- * @tc.name: SetDisplayNodeMirrorConfigMirror
+ * @tc.name: SetDisplayModeMirror
  * @tc.desc: Modify display mode type to mirror display
  * @tc.type:FUNC
  * @tc.require: issueI5CAAF
  */
-HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigMirror, Function | MediumTest  | Level2)
+HWTEST_F(RSDisplayModeTest, SetDisplayModeMirror, Function | MediumTest  | Level2)
 {
     /**
     * step1. create RSDisplayNode
     */
-    RSDisplayNodeConfig configSrc = {screenId1, false, 0};
+    RSDisplayNodeConfig configSrc = {screenId1, DisplayMode::EXPAND, 0};
     RSDisplayNode::SharedPtr displayNodeSrc = RSDisplayNode::Create(configSrc);
     ASSERT_TRUE(displayNodeSrc != nullptr);
 
-    RSDisplayNodeConfig config = {screenId2, false, 0};
+    RSDisplayNodeConfig config = {screenId2, DisplayMode::EXPAND, 0};
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     ASSERT_TRUE(displayNode != nullptr);
     auto isMirrorDisplay = displayNode->IsMirrorDisplay();
@@ -170,8 +170,8 @@ HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigMirror, Function | MediumT
     /**
     * step2. set display mode
     */
-    RSDisplayNodeConfig configNew = {screenId2, true, displayNodeSrc->GetId()};
-    displayNode->SetDisplayNodeMirrorConfig(configNew);
+    RSDisplayNodeConfig configNew = {screenId2, DisplayMode::MIRROR, displayNodeSrc->GetId()};
+    displayNode->SetDisplayNodeConfig(configNew);
     isMirrorDisplay = displayNode->IsMirrorDisplay();
     EXPECT_EQ(isMirrorDisplay, true);
 

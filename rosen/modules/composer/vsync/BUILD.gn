@@ -87,9 +87,6 @@ ohos_shared_library("libvsync") {
     boundary_sanitize = true
     integer_overflow = true
     ubsan = true
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
   }
   sources = [
     "src/vsync_callback_listener.cpp",

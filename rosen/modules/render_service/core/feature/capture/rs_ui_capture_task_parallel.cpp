@@ -229,6 +229,10 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
             RS_LOGE("RSUiCaptureTaskParallel::CreateResources: Invalid RSRenderEndNode");
             return false;
         }
+        if (UNLIKELY(endNodeDrawable_ == nullptr)) {
+            RS_LOGE("RSUiCaptureTaskParallel::Run: endNodeDrawable_ is nullptr!");
+            return false;
+        }
         const auto& endNodeParams = endNodeDrawable_->GetRenderParams();
         if (UNLIKELY(!endNodeParams)) {
             RS_LOGE("RSUiCaptureTaskParallel::Run: endNodeParams is nullptr!");
