@@ -391,16 +391,6 @@ const GraphicPresentTimestamp& RSRenderSurfaceLayer::GetPresentTimestamp() const
     return presentTimestamp_;
 }
 
-void RSRenderSurfaceLayer::SetGlassFree3D(bool glassFree3D)
-{
-    glassFree3D_ = glassFree3D;
-}
-
-bool RSRenderSurfaceLayer::GetGlassFree3D() const
-{
-    return glassFree3D_;
-}
-
 void RSRenderSurfaceLayer::SetSdrNit(float sdrNit)
 {
     sdrNit_ = sdrNit;
@@ -439,6 +429,16 @@ void RSRenderSurfaceLayer::SetLayerLinearMatrix(const std::vector<float>& layerL
 const std::vector<float>& RSRenderSurfaceLayer::GetLayerLinearMatrix() const
 {
     return layerLinearMatrix_;
+}
+
+void RSRenderSurfaceLayer::SetGlassFree3D(bool glassFree3D)
+{
+    glassFree3D_ = glassFree3D;
+}
+
+bool RSRenderSurfaceLayer::GetGlassFree3D() const
+{
+    return glassFree3D_;
 }
 
 void RSRenderSurfaceLayer::SetLayerSourceTuning(int32_t layerSource)

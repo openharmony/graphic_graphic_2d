@@ -506,11 +506,11 @@ public:
     {
         return brightnessRatio_;
     }
-    void RSRenderSurfaceLayer::SetGlassFree3D(bool glassFree3D) override
+    void SetGlassFree3D(bool glassFree3D) override
     {
         glassFree3D_ = glassFree3D;
     }
-    bool RSRenderSurfaceLayer::GetGlassFree3D() const override
+    bool GetGlassFree3D() const override
     {
         return glassFree3D_;
     }

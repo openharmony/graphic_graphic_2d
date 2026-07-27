@@ -2330,7 +2330,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
             UpdateCompositionType(surfaceNode, uiMode3D);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
-            UIMode3D uiMode3D = RSMainThread::Instance()->GetUIMode3D();
             RSTvShutter3DManager::Instance().UpdateSurfaceNodeCompositionType(surfaceNode, uiMode3D);
 #endif
             auto videoHdrStatus = RSHdrUtil::CheckIsHdrSurface(*surfaceNode);

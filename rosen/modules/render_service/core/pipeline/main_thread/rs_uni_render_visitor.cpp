@@ -2410,10 +2410,14 @@ void RSUniRenderVisitor::UpdateCompositeType(RSScreenRenderNode& node)
 
 void RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D(RSScreenRenderNode& node)
 {
-    const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
     bool hasGlassFree3DLayer = false;
+    if (RSMainThread::Instance()->GetUIMode3D() != UIMode3D::MODE_GLASSESFREE_3D) {
+        node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
+        return;
+    }
     bool isOnInternalScreen =
         node.GetScreenProperty().GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL;
+    const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
     for (const auto& selfDrawingNode : selfDrawingNodes) {
         if (!selfDrawingNode) {
             RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D selfDrawingNode is nullptr");
