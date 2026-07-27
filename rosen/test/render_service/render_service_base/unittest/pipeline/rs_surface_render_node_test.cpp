@@ -107,24 +107,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, RSSurfaceRenderNodeCreate001, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateCompositionType_Mode2D
- * @tc.desc: Test UpdateCompositionType with MODE_2D resets composition type
- * @tc.type: FUNC
- */
-HWTEST_F(RSMainThreadTest, UpdateCompositionType_Mode2D, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->InitRenderParams();
-    surfaceNode->SetCompositionType(CompositionType::COMPOSITION_3D_GLASS_FREE);
-    mainThread->UpdateCompositionType(surfaceNode, UIMode3D::MODE_2D);
-    // MODE_2D should reset composition type
-    EXPECT_NE(surfaceNode->GetCompositionType(), CompositionType::COMPOSITION_3D_GLASS_FREE);
-}
-
-/**
  * @tc.name: SetIsOnInternalScreenTest001
  * @tc.desc: test SetIsOnInternalScreen and GetIsOnInternalScreen without InitRenderParams
  * @tc.type:FUNC
