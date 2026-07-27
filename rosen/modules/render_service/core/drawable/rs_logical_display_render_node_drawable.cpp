@@ -174,7 +174,9 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSMultiScreenUtil::HandleMirrorDisplay(*this, *params, processor);
         return;
     }
-    if (params->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+    bool isVirtualExtendComposite = params->GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
+        params->GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE;
+    if (isVirtualExtendComposite) {
         RSMultiScreenUtil::HandleVirtualExtendDisplay(*this, *params, processor);
         return;
     }
@@ -665,7 +667,7 @@ void RSLogicalDisplayRenderNodeDrawable::CheckDirtyRefresh(CompositeType type, b
         if (hasSecSurface) {
             uniParam->SetVirtualDirtyRefresh(true);
         }
-    } else if (type == CompositeType::UNI_RENDER_MIRROR_COMPOSITE) {
+    } else if (type == CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE) {
         if ((((!enableVisibleRect_ && hasSecSurface) || (enableVisibleRect_ && hasSecLayerInVisibleRect)) &&
             !uniParam->GetSecExemption()) || params->GetVirtualScreenMuteStatus()) {
             uniParam->SetVirtualDirtyRefresh(true);

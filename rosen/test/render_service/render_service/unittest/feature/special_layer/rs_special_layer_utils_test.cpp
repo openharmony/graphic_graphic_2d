@@ -133,9 +133,8 @@ HWTEST_F(RSSpecialLayerUtilsTest, CheckSpecialLayerIntersectMirrorDisplay, TestS
     std::shared_ptr<RSLogicalDisplayRenderNode> mirrorNode =
         std::make_shared<RSLogicalDisplayRenderNode>(nodeId++, config);
     auto sourceNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
-    mirrorNode->isMirrorDisplay_ = true;
+    mirrorNode->SetDisplayMode(DisplayMode::MIRROR);
 
-    mirrorNode->SetIsMirrorDisplay(true);
     mirrorNode->SetMirrorSource(sourceNode);
     RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(*mirrorNode, *sourceNode);
     ASSERT_NE(mirrorNode->GetMirrorSource().lock(), nullptr);
@@ -654,7 +653,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, HasMirrorDisplay_WithMirrorSourceTest, TestSiz
     auto mirrorNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId++, config);
     auto sourceNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId++, config);
 
-    mirrorNode->SetIsMirrorDisplay(true);
+    mirrorNode->SetDisplayMode(DisplayMode::MIRROR);
     mirrorNode->SetMirrorSource(sourceNode);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(mirrorNode);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(sourceNode);
@@ -694,7 +693,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, HasMirrorDisplay_ExpiredMirrorSourceTest, Test
     auto mirrorNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId++, config);
     auto sourceNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId++, config);
 
-    mirrorNode->SetIsMirrorDisplay(true);
+    mirrorNode->SetDisplayMode(DisplayMode::MIRROR);
     mirrorNode->SetMirrorSource(sourceNode);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(mirrorNode);
 
@@ -733,7 +732,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, HasMirrorDisplay_MultipleDisplayNodesTest, Tes
     auto displayNode1 = std::make_shared<RSLogicalDisplayRenderNode>(nodeId++, config);
     auto mirrorNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId++, config);
     auto sourceNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId++, config);
-    mirrorNode->SetIsMirrorDisplay(true);
+    mirrorNode->SetDisplayMode(DisplayMode::MIRROR);
     mirrorNode->SetMirrorSource(sourceNode);
 
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
@@ -1529,7 +1528,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, HasMirrorDisplay_UpdateMirrorSourceMap001, Tes
     // Create mirror node
     auto mirrorNode = std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), config);
     nodeMap.RegisterRenderNode(mirrorNode);
-    mirrorNode->SetIsMirrorDisplay(true);
+    mirrorNode->SetDisplayMode(DisplayMode::MIRROR);
     mirrorNode->SetMirrorSource(sourceNode);
 
     ASSERT_TRUE(RSSpecialLayerUtils::HasMirrorDisplay(nodeMap));

@@ -166,10 +166,9 @@ public:
     void SetMirrorSource(SharedPtr node);
     void ResetMirrorSource();
     WeakPtr GetMirrorSource() const;
-    void SetIsMirrorDisplay(bool isMirror);
+    void SetDisplayMode(DisplayMode displayMode);
+    DisplayMode GetDisplayMode() const;
     bool IsMirrorDisplay() const;
-    bool IsMirrorDisplayChanged() const;
-    void ResetMirrorDisplayChangedFlag();
     void SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus);
     bool GetVirtualScreenMuteStatus() const;
     void SetDisplaySpecialSurfaceChanged(bool displaySpecialSurfaceChanged);
@@ -253,14 +252,13 @@ private:
     std::unordered_map<NodeId, uint32_t> hdrNodeMap_;
     std::unordered_map<NodeId, uint32_t> blendModeNodeMap_;
     bool isSecurityDisplay_ = false;
-    bool isMirrorDisplay_ = false;
     WeakPtr mirrorSource_;
-    bool isMirrorDisplayChanged_ = false;
     bool virtualScreenMuteStatus_ = false;
     bool isSecurityExemption_ = false;
     bool hasSecLayerInVisibleRect_ = false;
     bool hasSecLayerInVisibleRectChanged_ = false;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
+    DisplayMode displayMode_ = DisplayMode::INVALID;
     bool hasCaptureWindow_ = false;
 
     bool isBootAnimation_ = false;

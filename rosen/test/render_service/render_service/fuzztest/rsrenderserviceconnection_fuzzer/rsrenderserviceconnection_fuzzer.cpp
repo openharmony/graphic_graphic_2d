@@ -730,7 +730,7 @@ bool DoCreateNode1()
     }
     RSDisplayNodeConfig displayNodeConfig;
     displayNodeConfig.screenId = GetData<uint64_t>();
-    displayNodeConfig.isMirrored = GetData<bool>();
+    displayNodeConfig.displayMode = static_cast<DisplayMode>(GetData<uint8_t>());
     displayNodeConfig.mirrorNodeId = GetData<uint64_t>();
     displayNodeConfig.isSync = GetData<bool>();
     uint64_t nodeId = GetData<uint64_t>();
