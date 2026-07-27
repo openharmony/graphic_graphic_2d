@@ -766,21 +766,30 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             RS_LOGW("RSBaseRenderEngine::DrawImage inputShader is nullptr.");
             return;
         }
+        int32_t absWidth = static_cast<int32_t>(absRect.GetWidth());
+        int32_t absHeight = static_cast<int32_t>(absRect.GetHeight());
+        bool isFullScreen = (absWidth == canvas.GetWidth() && ROSEN_EQ(absRect.GetLeft(), 0.0f) &&
+            absHeight * 2 > canvas.GetHeight()) || (absHeight == canvas.GetHeight() &&
+            ROSEN_EQ(absRect.GetTop(), 0.0f) && absWidth * 2 > canvas.GetWidth());
         std::shared_ptr<Drawing::ShaderEffect> outputShader;
         Media::VideoProcessingEngine::GlassFree3DConverterDisplayParameter parameter3D = {
-            .width = absRect.GetWidth(),
-            .height = absRect.GetHeight(),
-            .screenWidth = canvas.GetWidth(),
-            .screenHeight = canvas.GetHeight(),
+            .width = absWidth,
+            .height = absHeight,
+            .screenWidth = canvas.GetHeight(),
+            .screenHeight = canvas.GetWidth(),
             .coordX = absRect.GetLeft(),
             .coordY = absRect.GetTop(),
             .swingX = 0.0f, // Need VPE interface
             .swingY = 0.0f, // Need VPE interface
             .swingZ = 0.0f, // Need VPE interface
             .panelName = "", // Need VPE interface
-            .converterType = params.use3DShader ? 1 : 0 // 1 means 3D, 0 means 2D
+            .converterType = params.use3DShader && isFullScreen ? 1 : 0 // 1 means 3D, 0 means 2D
         };
+        RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage glassFree3D absRect width[%d], height[%d], canvas width[%d],"
+            "height[%d], left: %f, top: %f, use3DShader: %d, isFullScreen: %d", absWidth, absHeight, canvas.GetWidth(),
+            canvas.GetHeight(), absRect.GetLeft(), absRect.GetTop(), params.use3DShader, isFullScreen);
         if (!glassFree3DConverterDisplay_) {
+            RS_LOGE("RSBaseRenderEngine::DrawImage glassFree3DConverterDisplay is nullptr.");
             return;
         }
         glassFree3DConverterDisplay_->Process(inputShader, outputShader, parameter3D);
@@ -789,11 +798,12 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             canvas.AttachBrush(params.paint);
             Drawing::AutoCanvasRestore autoRestore(canvas, true);
             canvas.ResetMatrix();
-            canvas.DrawRect(params.dstRect);
+            canvas.DrawRect(absRect);
             canvas.DetachBrush();
             return;
         }
     }
+
     // For sdr brightness ratio
     if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Applying brightness ratio: %{public}.2f", params.brightnessRatio);
