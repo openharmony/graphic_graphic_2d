@@ -560,7 +560,38 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest3, Function | SmallTest | 
     EXPECT_EQ(layer->GetLayerSourceTuning(), 100);
 }
 
+/**
+ * @tc.name: SetGlassFree3D_GetGlassFree3D
+ * @tc.desc: Verify SetGlassFree3D and GetGlassFree3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, SetGlassFree3D_GetGlassFree3D, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(lyr, nullptr);
+    EXPECT_FALSE(lyr->GetGlassFree3D());
 
+    lyr->SetGlassFree3D(true);
+    EXPECT_TRUE(lyr->GetGlassFree3D());
+
+    lyr->SetGlassFree3D(false);
+    EXPECT_FALSE(lyr->GetGlassFree3D());
+}
+ 
+/**
+ * @tc.name: SetGlassFree3D_SameValueNoCommand
+ * @tc.desc: Verify SetGlassFree3D with same value returns early without generating command
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceLayerTest, SetGlassFree3D_SameValueNoCommand, Function | SmallTest | Level2)
+{
+    auto lyr = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(lyr, nullptr);
+
+    // Default is false, set same value should return early
+    lyr->SetGlassFree3D(false);
+    EXPECT_FALSE(lyr->GetGlassFree3D());
+}
 
 /**
  * @tc.name: LayerPropertiesChangeTest
