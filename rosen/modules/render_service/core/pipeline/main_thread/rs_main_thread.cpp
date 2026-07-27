@@ -919,6 +919,9 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
     }
 
     ClearSurfaceWatermark(pid);
+    if (context_) {
+        context_->GetMutableInheritedPropertyManager().ClearByPid(pid);
+    }
 
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
             auto &monitor = SelfDrawingNodeMonitor::GetInstance();

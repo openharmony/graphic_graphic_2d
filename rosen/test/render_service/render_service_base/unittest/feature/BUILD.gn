@@ -562,6 +562,36 @@ ohos_unittest("RSDynamicLayerSkipControllerTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSInheritedPropertyManagerTest  ##################################
+ohos_unittest("RSInheritedPropertyManagerTest") {
+  module_out_path = module_output_path
+
+  sources =
+      [ "inherited_property/rs_inherited_property_manager_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+
+  deps =
+      [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
@@ -585,5 +615,6 @@ group("unittest") {
     ":RSBufferReclaimTest",
     ":RSPowerOffRenderSkipTest",
     ":RSDynamicLayerSkipControllerTest",
+    ":RSInheritedPropertyManagerTest",
   ]
 }
