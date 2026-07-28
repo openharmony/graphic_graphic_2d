@@ -515,12 +515,11 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std
     } else {
         drawingContext->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
-    RsVulkanContext::SaveNewDrawingContext(gettid(), drawingContext);
     int32_t realTid = gettid();
     if (tid != 0) {
         realTid = tid;
     }
-    RSVulkanContext::SavaNewDrawingContext(realTid, drawingContext);
+    RSVulkanContext::SaveNewDrawingContext(realTid, drawingContext);
     return drawingContext;
 }
 

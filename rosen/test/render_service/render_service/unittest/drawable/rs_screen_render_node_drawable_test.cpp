@@ -243,7 +243,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     auto result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
@@ -251,7 +250,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     screenDrawable_->surfaceCreated_ = true;
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
 /**
@@ -297,7 +295,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
     auto result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->forceCommitReason_ = 1;
     RSUniRenderThread::Instance().Sync(move(renderParams));
@@ -964,8 +961,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
-    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
-    RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
     EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 }
@@ -2111,11 +2106,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignGpuTileInvalid, Te
     params->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
     params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    auto renderContext = RenderContext::Create();
-    renderEngine->renderContext_ = renderContext;
-    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
-    RSUniRenderThread::Instance().uniRenderEngine_->Init();
 
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->isDirtyAlignEnabled_ = true;
@@ -2137,8 +2127,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignGpuTileInvalid, Te
     RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(64, 0));
     EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
     screenDrawable_->OnDraw(canvas);
-
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
 /**
@@ -2161,8 +2149,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion,
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
-    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
-    RSUniRenderThread::Instance().uniRenderEngine_->Init();
 
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->isDirtyAlignEnabled_ = true;
@@ -2175,8 +2161,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion,
     EXPECT_EQ(RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD, 1);
 
     screenDrawable_->OnDraw(canvas);
-
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
 /**

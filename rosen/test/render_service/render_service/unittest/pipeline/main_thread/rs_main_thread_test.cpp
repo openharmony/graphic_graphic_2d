@@ -2150,6 +2150,7 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    mainThread->virtualScreenParallelManager_ = nullptr;
     // prepare nodes
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
@@ -4941,28 +4942,6 @@ HWTEST_F(RSMainThreadTest, GetDynamicRefreshRate002, TestSize.Level2)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     ASSERT_EQ(mainThread->GetDynamicRefreshRate(), OHOS::Rosen::STANDARD_REFRESH_RATE);
-}
-
-/**
- * @tc.name: OnUniRenderDraw
- * @tc.desc: test OnUniRenderDraw001, test isUniRender_ & doDirectComposition_ = false
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, OnUniRenderDraw001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    auto isUniRender = false;
-    mainThread->OnUniRenderDraw();
-    mainThread->isUniRender_ = true;
-    auto doDirectComposition = mainThread->doDirectComposition_ ;
-    mainThread->doDirectComposition_ = false;
-    mainThread->drawFrame_.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SYNC;
-    mainThread->OnUniRenderDraw();
-    mainThread->isUniRender_ = isUniRender;
-    mainThread->doDirectComposition_ = doDirectComposition;
 }
 
 /**

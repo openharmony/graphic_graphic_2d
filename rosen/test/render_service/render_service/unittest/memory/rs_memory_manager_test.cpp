@@ -1515,7 +1515,6 @@ HWTEST_F(RSMemoryManagerTest, GpuReportFromKernel001, TestSize.Level1)
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     std::string recvInfo = "ACTION=MEMORY_OVER_LIMIT";
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
     RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = renderContext;
