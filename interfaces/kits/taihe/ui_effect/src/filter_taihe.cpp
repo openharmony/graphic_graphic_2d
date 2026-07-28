@@ -305,10 +305,15 @@ Filter FilterImpl::RadiusGradientBlur(double value, uintptr_t options)
         }
     }
     ani_object direction {};
-    if (env->EnumItem_GetValue_Int(enumItem, &value) == ANI_OK
+    if (env->Object_GetPropertyByName_Ref(
+        ani_obj, "direction", reinterpret_cast<ani_ref *>(&direction)) == ANI_OK) {
+        ani_enum_item enumItem = static_cast<ani_enum_item>(direction);
+        ani_int value = 0;
+        if (env->EnumItem_GetValue_Int(enumItem, &value) == ANI_OK
             && (OHOS::Rosen::GradientDirection::LEFT <= value
             && value <= OHOS::Rosen::GradientDirection::NONE)) {
             para->SetDirection(static_cast<OHOS::Rosen::GradientDirection>(value));
+        }
     }
 
     nativeFilter_->AddPara(para);
