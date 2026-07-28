@@ -32,8 +32,8 @@ std::shared_ptr<ProcessOfflineFuture> RSHpaeOfflineProcessSyncer::RegisterPosted
             return future;
         }
     }
-    RS_OFFLINE_LOGW("Register task, taskId=[%{public}" PRIu64 "-%{public}" PRIu64 "] already exists.",
-         taskId.first, taskId.second);
+    RS_OFFLINE_LOGW("Task with taskId=[%{public}" PRIu64 "-%{public}" PRIu64 "] already exists.",
+        taskId.first, taskId.second);
     return nullptr;
 }
 
@@ -81,7 +81,6 @@ bool RSHpaeOfflineProcessSyncer::WaitForTaskAndGetResult(offlineTaskId taskId,
         RS_OFFLINE_LOGE("%{public}s, task is null.", __func__);
         return false;
     }
-
     std::unique_lock<std::mutex> lock(future->mtx);
     if (timeout == std::chrono::milliseconds::max()) {
         future->cv.wait(lock, [future] { return future->done; });

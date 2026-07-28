@@ -15,11 +15,9 @@
 
 #ifndef RS_CORE_FEATURE_HWC_OFFLINE_PROCESSOR_H
 #define RS_CORE_FEATURE_HWC_OFFLINE_PROCESSOR_H
-
 #include <atomic>
 #include <cstdint>
 #include <map>
-#include <mutex>
 #include <unordered_map>
 #include <deque>
 
@@ -28,7 +26,6 @@
 #include "feature/hwc/hpae_offline/rs_offline_device.h"
 #include "feature/hwc/hpae_offline/rs_gpu_offline_device.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_device.h"
-
 namespace OHOS {
 namespace Rosen {
 
@@ -39,7 +36,6 @@ public:
 
     bool IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
         OfflineDeviceType offlineDeviceType);
-
     bool PostProcessOfflineTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
         offlineTaskId taskId);
     bool PostProcessOfflineTask(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, offlineTaskId taskId);
@@ -69,6 +65,6 @@ private:
 };
 
 } // namespace Rosen
-} // namespace OHOS
+} // OHOS
 
 #endif // RS_CORE_FEATURE_HWC_OFFLINE_PROCESSOR_H

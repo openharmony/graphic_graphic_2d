@@ -19,13 +19,9 @@
 namespace OHOS {
 namespace Rosen {
 
-RSOfflineProcessor::RSOfflineProcessor()
-{
-}
+RSOfflineProcessor::RSOfflineProcessor() {}
 
-RSOfflineProcessor::~RSOfflineProcessor()
-{
-}
+RSOfflineProcessor::~RSOfflineProcessor() {}
 
 RSOfflineProcessor& RSOfflineProcessor::GetOfflineProcessor()
 {
