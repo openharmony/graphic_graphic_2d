@@ -3554,5 +3554,54 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetHwcChildrenDisabledState_New_001, TestSize.
     surfaceNode->SetHwcChildrenDisabledState();
     EXPECT_TRUE(hwcChild->IsHardwareForcedDisabled());
 }
+
+/**
+ * @tc.name: SetRebuildingState001
+ * @tc.desc: Test SetRebuildingState normal path: false->true sets params and member
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState001, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_NE(surfaceRenderNode.stagingRenderParams_, nullptr);
+    surfaceRenderNode.SetRebuildingState(true);
+    EXPECT_TRUE(surfaceRenderNode.isRebuildingState_);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
+    EXPECT_TRUE(surfaceParams->GetRebuildingState());
+}
+
+/**
+ * @tc.name: SetRebuildingState002
+ * @tc.desc: Test SetRebuildingState same-value early return has no side effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState002, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
+    surfaceParams->needSync_ = false;
+    surfaceRenderNode.SetRebuildingState(false); // same as default false -> early return
+    EXPECT_FALSE(surfaceRenderNode.isRebuildingState_);
+    EXPECT_FALSE(surfaceParams->needSync_);
+}
+
+/**
+ * @tc.name: SetRebuildingState003
+ * @tc.desc: Test SetRebuildingState with null stagingRenderParams_ returns early without crash
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState003, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = nullptr;
+    ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
+    surfaceRenderNode.SetRebuildingState(true);
+    EXPECT_FALSE(surfaceRenderNode.isRebuildingState_);
+}
 } // namespace Rosen
 } // namespace OHOS
