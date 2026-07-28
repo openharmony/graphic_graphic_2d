@@ -73,6 +73,7 @@ using SetEnableFunc = void (*)(bool enable, bool& isGeneratorEnable);
 using InitDvsyncControllerFunc = void (*)(const sptr<VSyncGenerator>& gen, int64_t offset,
                                           sptr<VSyncController>& controller);
 using SetVSyncTimeUpdatedFunc = void (*)();
+using NeedSkipRsCommitDelayFunc = bool (*)();
 
 //dvsync delay
 using ToDelayFunc = void (*)(const AppExecFwk::InnerEvent::Callback& callback, const std::string& name, int32_t fd);
@@ -136,7 +137,7 @@ public:
     int64_t GetVsyncCount(int64_t& VsyncCount);
     void InitDvsyncController(const sptr<VSyncGenerator>& gen, int64_t offset, sptr<VSyncController>& controller);
     void SetVSyncTimeUpdated();
-
+    bool NeedSkipRsCommitDelay() const;
 //dvsync delay
     void ToDelay(const AppExecFwk::InnerEvent::Callback& callback, const std::string& name, int32_t fd);
     void SetTouchEvent(int32_t touchType);
@@ -190,7 +191,7 @@ private:
     GetVsyncCountFunc getVsyncCountFunc_ = nullptr;
     InitDvsyncControllerFunc initDvsyncControllerFunc_ = nullptr;
     SetVSyncTimeUpdatedFunc setVSyncTimeUpdatedFunc_ = nullptr;
-
+    NeedSkipRsCommitDelayFunc needSkipRsCommitDelayFunc_ = nullptr;
     //dvsync delay
     ToDelayFunc toDelayFunc_ = nullptr;
     SetTouchEventFunc setTouchEventFunc_ = nullptr;

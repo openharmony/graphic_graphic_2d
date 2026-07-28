@@ -105,6 +105,7 @@ HWTEST_F(DVSyncLibManagerTest, Initialize001, Function | MediumTest| Level1)
     DVSyncLibManagerTest::dvsyncLibManager.IsAppRequested();
     DVSyncLibManagerTest::dvsyncLibManager.GetVSyncConnectionApp(vsyncConnection);
 
+    ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.NeedSkipRsCommitDelay(), false);
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.NeedUpdateVSyncTime(pid), false);
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetLastUpdateTime(), 0);
 }
@@ -308,6 +309,8 @@ HWTEST_F(DVSyncLibManagerTest, Initialize005, Function | MediumTest| Level1)
     ASSERT_NE(DVSyncLibManagerTest::dvsyncLibManager.setToCurrentPeriodFunc_, nullptr);
     DVSyncLibManagerTest::dvsyncLibManager.SetVSyncTimeUpdated();
     ASSERT_NE(DVSyncLibManagerTest::dvsyncLibManager.setVSyncTimeUpdatedFunc_, nullptr);
+    DVSyncLibManagerTest::dvsyncLibManager.NeedSkipRsCommitDelay();
+    ASSERT_NE(DVSyncLibManagerTest::dvsyncLibManager.needSkipRsCommitDelayFunc_, nullptr);
     DVSyncLibManagerTest::dvsyncLibManager.Shutdown();
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.libHandle_, nullptr);
 }
@@ -404,6 +407,8 @@ HWTEST_F(DVSyncLibManagerTest, LoadFunction002, Function | MediumTest| Level1)
         dvsyncLibManager.initDvsyncControllerFunc_);
     loadSuccess &= dvsyncLibManager.LoadFunction("WrongSetVSyncTimeUpdated",
         dvsyncLibManager.setVSyncTimeUpdatedFunc_);
+    loadSuccess &= dvsyncLibManager.LoadFunction("WrongNeedSkipRsCommitDelay",
+        dvsyncLibManager.needSkipRsCommitDelayFunc_);
     loadSuccess &= dvsyncLibManager.LoadFunction("WrongToDelay", dvsyncLibManager.toDelayFunc_);
     loadSuccess &= dvsyncLibManager.LoadFunction("WrongSetTouchEvent", dvsyncLibManager.setTouchEventFunc_);
     loadSuccess &= dvsyncLibManager.LoadFunction("WrongUpdateDelayInfo", dvsyncLibManager.updateDelayInfoFunc_);
