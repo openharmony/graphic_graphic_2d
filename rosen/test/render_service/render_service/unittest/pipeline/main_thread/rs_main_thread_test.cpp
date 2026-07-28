@@ -7708,6 +7708,37 @@ HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands009, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessSplitTransactionCommands010
+ * @tc.desc: Test rebuild drain resets isRebuildingState_ on the pid's surface nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands010, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2900;
+    constexpr NodeId surfaceId = MakeNodeId(pidA, 1);
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    ASSERT_NE(nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceId), nullptr);
+    surfaceNode->isRebuildingState_ = true;
+
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_FALSE(surfaceNode->isRebuildingState_);
+
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
  * @tc.name: ProcessRSTransactionData001
  * @tc.desc: Test rebuild-scene transaction is routed to AddSplitTransaction
  * @tc.type: FUNC

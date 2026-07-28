@@ -6399,6 +6399,13 @@ void RSMainThread::ProcessSplitTransactionCommands()
             pid_t completedPid = pid;
             it = pendingSplitTransactions_.erase(it);
             ProcessPendingCommandsDuringRebuild(completedPid);
+            context_->GetNodeMap().TraversalNodesByPid(completedPid,
+                [](const std::shared_ptr<RSBaseRenderNode>& node) {
+                    auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+                    if (surfaceNode) {
+                        surfaceNode->SetRebuildingState(false);
+                    }
+                });
         } else {
             // Stay on this pid to process its next transaction within the same frame budget;
             // the inner loop's time-slice check breaks and requests next vsync when the budget is exhausted.
