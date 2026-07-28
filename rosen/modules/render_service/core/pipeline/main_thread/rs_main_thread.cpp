@@ -876,10 +876,8 @@ void RSMainThread::CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid) noexcep
 
 void RSMainThread::ClearRebuildTransactionData(pid_t pid)
 {
-    RS_TRACE_BEGIN("ClearRebuildTransactionData");
     pendingCommandsDuringRebuild_.erase(pid);
     pendingSplitTransactions_.erase(pid);
-    RS_TRACE_END();
 }
 
 void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
@@ -887,7 +885,11 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
     RS_TRACE_NAME_FMT("CleanResources %d, forRefresh: %d", pid, forRefresh);
     // Clear this pid's rebuild queue and cached commands; surface nodes are removed by the
     // CleanRenderNodes->FilterNodeByPid that follows, so no per-node state reset is needed here.
-    ClearRebuildTransactionData(pid);
+    {
+        RS_TRACE_BEGIN("ClearRebuildTransactionData");
+        ClearRebuildTransactionData(pid);
+        RS_TRACE_END();
+    }
 
     // 0. CleanRenderNodes
     {
