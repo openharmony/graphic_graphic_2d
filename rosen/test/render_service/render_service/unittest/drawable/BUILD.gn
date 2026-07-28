@@ -293,6 +293,8 @@ ohos_unittest("RSRefreshRateDfxTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native"]
