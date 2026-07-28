@@ -77,7 +77,7 @@ void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     // the HasReceivedTunnelLayerInfo check above since they set layer info via HandleLppTunnelLayerId
     // rather than OnTunnelLayerInfoChanged. This avoids the per-frame store mutex + entry creation
     // for the common case of ordinary surfaces going through the normal consume path every frame.
-    auto* tunnelRuntime = RSTunnelRuntimeStore::TryGet(surfaceNode->GetId());
+    auto tunnelRuntime = RSTunnelRuntimeStore::TryGet(surfaceNode->GetId());
     if (tunnelRuntime == nullptr ||
         tunnelRuntime->GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
         return;

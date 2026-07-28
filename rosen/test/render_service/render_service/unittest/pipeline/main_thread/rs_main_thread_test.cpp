@@ -3397,6 +3397,7 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes_KeepDirectSkipsRedundantVsyn
 
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
     ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->MarkTunnelLayerInfoReceived();
     surfaceHandler->SetAvailableBufferCount(1);
     mainThread->requestNextVsyncTime_ = -1;
 
