@@ -5859,5 +5859,19 @@ void RSRenderNode::AccumulateParentGeoDirty()
         GetMutableRenderProperties().SetParentGeoDirty(parentGeoDirty);
     }
 }
+
+void RSRenderNode::MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
+{
+    if (isAccessibilityConfigChanged) {
+        accessibilityConfigChangedNodeSet_.insert(GetId());
+    } else {
+        accessibilityConfigChangedNodeSet_.erase(GetId());
+    }
+}
+
+bool RSRenderNode::IsAccessibilityConfigChangedNode() const
+{
+    return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
+}
 } // namespace Rosen
 } // namespace OHOS

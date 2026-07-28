@@ -1038,19 +1038,9 @@ public:
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
-    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
-    {
-        if (isAccessibilityConfigChanged) {
-            accessibilityConfigChangedNodeSet_.insert(GetId());
-        } else {
-            accessibilityConfigChangedNodeSet_.erase(GetId());
-        }
-    }
+    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged);
 
-    bool IsAccessibilityConfigChangedNode() const
-    {
-        return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
-    }
+    bool IsAccessibilityConfigChangedNode() const;
 
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
