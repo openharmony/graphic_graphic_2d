@@ -95,6 +95,8 @@ ohos_prebuilt_etc("vulkan_swapchain_layer_json") {
 
 ## Build libVkLayer_Trace3D.so {{{
 ohos_shared_library("VkLayer_Trace3D") {
+  branch_protector_ret = "pac_ret"
+  
   sources = [
     "trace3d/include/trace3d/api_platform/trace3d_api_platform.h",
     "trace3d/src/trace3d_api_platform.cpp",
