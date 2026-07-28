@@ -303,7 +303,36 @@ rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.h @chenlushen
 rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.cpp @chenlushen
 
 [capture]
-rosen/modules/render_service/core/feature/capture @chuchengcheng
+rosen/modules/render_service/core/feature/capture/rs_ui_capture_solo_task_parallel.cpp @chuchengcheng
+rosen/modules/render_service/core/feature/capture/rs_surface_capture_task_parallel.cpp @chuchengcheng
+rosen/modules/render_service/core/feature/capture/rs_ui_capture_task_parallel.cpp @chuchengcheng
+
+[ut_test_2d_framework]
+rosen/test/render_service/render_service_base/unittest/pipeline/rs_render_node_map_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_base_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_canvas_drawing_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_canvas_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_command_factory_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_display_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_effect_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_frame_rate_linker_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_message_processor_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_node_showing_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_proxy_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_root_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_surface_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_render_pipeline_client_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_client_to_render_connection_proxy_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_client_to_service_connection_proxy_test.cpp @gao_yufan
+rosen/test/render_service/render_service/unittest/transaction/rs_client_to_render_connection_stub_test.cpp @gao_yufan
+rosen/test/render_service/render_service/unittest/transaction/rs_client_to_service_connection_stub_test.cpp @gao_yufan
+rosen/test/render_service/render_service/unittest/pipeline/main_thread/rs_main_thread_test.cpp @gao_yufan
+rosen/test/render_service/render_service_client/unittest/render_thread/rs_render_thread_visitor_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/transaction/ @gao_yufan
+rosen/test/render_service/render_service/unittest/pipeline/main_thread/rs_uni_render_visitor_test.cpp @gao_yufan
+rosen/test/render_service/render_service/unittest/pipeline/main_thread/rs_render_pipeline_agent_test.cpp @gao_yufan
+rosen/test/render_service/render_process/unittest/transaction/ipc_persistence/rs_ipc_persistence_data_test.cpp @gao_yufan
 
 [rs_render_context]
 rosen/modules/render_service_base/src/platform/ohos/backend/rs_vulkan_context.cpp @zhouhuan31
