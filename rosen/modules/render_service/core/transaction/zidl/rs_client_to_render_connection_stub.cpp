@@ -523,6 +523,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (mirrorSourceRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+                RS_LOGE("RSClientToRenderConnectionStub::CREATE_DISPLAY_NODE mirrorSourceRotation is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RSDisplayNodeConfig config = {
                 .screenId = screenId,
                 .displayMode = static_cast<DisplayMode>(displayMode),
