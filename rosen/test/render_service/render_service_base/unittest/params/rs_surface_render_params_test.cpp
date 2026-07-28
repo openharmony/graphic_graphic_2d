@@ -536,6 +536,42 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsOnInternalScreenTest
+ * @tc.desc: Test SetIsOnInternalScreen and GetIsOnInternalScreen
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsOnInternalScreenTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_TRUE(params.GetIsOnInternalScreen());
+
+    params.SetIsOnInternalScreen(params.GetIsOnInternalScreen());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetIsOnInternalScreen(false);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_FALSE(params.GetIsOnInternalScreen());
+}
+
+/**
+ * @tc.name: SetGlassFree3DTest
+ * @tc.desc: Test SetGlassFree3D and GetGlassFree3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetGlassFree3DTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_FALSE(params.GetGlassFree3D());
+
+    params.SetGlassFree3D(params.GetGlassFree3D());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetGlassFree3D(true);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_TRUE(params.GetGlassFree3D());
+}
+
+/**
  * @tc.name: IsRelated
  * @tc.desc: Test function IsRelated
  * @tc.type: FUNC

@@ -107,6 +107,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, RSSurfaceRenderNodeCreate001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsOnInternalScreenTest001
+ * @tc.desc: test SetIsOnInternalScreen and GetIsOnInternalScreen without InitRenderParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsOnInternalScreenTest001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    // Without InitRenderParams, surfaceParam is nullptr, GetIsOnInternalScreen returns true
+    node->SetIsOnInternalScreen(false);
+    EXPECT_TRUE(node->GetIsOnInternalScreen());
+}
+
+/**
+ * @tc.name: SetIsOnInternalScreenTest002
+ * @tc.desc: test SetIsOnInternalScreen and GetIsOnInternalScreen with InitRenderParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsOnInternalScreenTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->InitRenderParams();
+    auto param = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
+
+    node->SetIsOnInternalScreen(false);
+    EXPECT_FALSE(node->GetIsOnInternalScreen());
+
+    node->SetIsOnInternalScreen(true);
+    EXPECT_TRUE(node->GetIsOnInternalScreen());
+}
+
+/**
  * @tc.name: SetContextMatrix001
  * @tc.desc: test
  * @tc.type:FUNC

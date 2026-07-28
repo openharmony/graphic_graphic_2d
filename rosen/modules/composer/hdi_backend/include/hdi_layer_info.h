@@ -417,6 +417,16 @@ public:
         layerLinearMatrix_ = layerLinearMatrix;
     }
 
+    void SetGlassFree3D(bool glassFree3D)
+    {
+        glassFree3D_ = glassFree3D;
+    }
+
+    bool GetGlassFree3D() const
+    {
+        return glassFree3D_;
+    }
+
     // source crop tuning
     int32_t GetLayerSourceTuning() const
     {
@@ -576,6 +586,7 @@ private:
     bool needBilinearInterpolation_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
     mutable std::mutex mutex_;
+    bool glassFree3D_ = false;
     float sdrNit_ = 500.0f; // default sdr nit
     float displayNit_ = 500.0f; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr

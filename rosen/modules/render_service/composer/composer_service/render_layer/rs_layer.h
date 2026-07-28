@@ -111,6 +111,8 @@ public:
     virtual float GetBrightnessRatio() const = 0;
     virtual void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix) = 0;
     virtual const std::vector<float>& GetLayerLinearMatrix() const = 0;
+    virtual void SetGlassFree3D(bool glassFree3D) = 0;
+    virtual bool GetGlassFree3D() const = 0;
     virtual void SetLayerSourceTuning(int32_t layerSource) = 0;
     virtual int32_t GetLayerSourceTuning() const = 0;
     virtual void SetWindowsName(std::vector<std::string>& windowsName) = 0;

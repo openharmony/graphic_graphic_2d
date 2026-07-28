@@ -1250,6 +1250,25 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
     }
 }
 
+void RSSurfaceRenderNode::SetIsOnInternalScreen(bool isOnInternalScreen)
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return;
+    }
+    surfaceParam->SetIsOnInternalScreen(isOnInternalScreen);
+    AddToPendingSyncList();
+}
+
+bool RSSurfaceRenderNode::GetIsOnInternalScreen() const
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return true;
+    }
+    return surfaceParam->GetIsOnInternalScreen();
+}
+
 void RSSurfaceRenderNode::SetCompositionType(CompositionType type)
 {
     auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
