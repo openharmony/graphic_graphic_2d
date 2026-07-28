@@ -564,7 +564,7 @@ bool RSHpaeOfflineDevice::PostProcessOfflineTask(
     auto* params = surfaceDrawable->GetRenderParams().get();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params);
     RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "-%{public}" PRIu64 "] by drawable",
-        taskId.first, taskId.second);
+            taskId.first, taskId.second);
     return PostOfflineTaskCommon(context, surfaceParams, taskId);
 }
 
