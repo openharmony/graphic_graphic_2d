@@ -302,6 +302,9 @@ bool RSDrawFrame::CheckCanvasSkipSync(std::shared_ptr<RSRenderNode> node)
             return false;
         }
     }
+    if (node->IsUIRenderDirectorStopped()) {
+        return false; // caller will skip sync for this node in current frame
+    }
     return true;
 }
 

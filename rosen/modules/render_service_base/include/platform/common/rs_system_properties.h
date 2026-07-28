@@ -417,6 +417,7 @@ public:
     static bool GetRebuildSceneEnabled();
     static bool IsRenderNodeRebuildEnabled();
     static bool RebuildDebugEnabled();
+    static bool IsDestroyTokenNodeOnStopEnabled();
 
     static bool GetRsDelegateCompositeCleanCacheDfxEnable();
 private:

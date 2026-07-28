@@ -30,6 +30,7 @@
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
+#include "platform/common/rs_system_properties.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -1475,6 +1476,29 @@ HWTEST_F(RSUIDirectorTest, GoStopIdempotentTest, TestSize.Level1)
     EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
     director->GoStop();
     EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+}
+
+/**
+ * @tc.name: GoStopWithRebuildDisabledTest
+ * @tc.desc: Test GoStop still syncs STOP state when the rebuild switches are disabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoStopWithRebuildDisabledTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    // make sure GetBackgroundRebuildEnabled has cached its value, then force the switch off
+    (void)RSSystemProperties::GetBackgroundRebuildEnabled();
+    bool savedBackgroundRebuildEnabled = RSSystemProperties::isBackgroundRebuildEnabled_;
+    RSSystemProperties::isBackgroundRebuildEnabled_ = false;
+
+    director->GoBackground();
+    director->GoStop();
+    // the STOP state is synced and the RSUIDirectorGoStop command is posted even when rebuild is disabled
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+
+    RSSystemProperties::isBackgroundRebuildEnabled_ = savedBackgroundRebuildEnabled;
 }
 
 /**

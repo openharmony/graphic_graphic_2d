@@ -890,6 +890,11 @@ bool RSSystemProperties::RebuildDebugEnabled()
     return false;
 }
 
+bool RSSystemProperties::IsDestroyTokenNodeOnStopEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetXcomponentEdrEnabled()
 {
     return false;

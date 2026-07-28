@@ -2118,6 +2118,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (UNLIKELY(surfaceNode == nullptr)) {
                 return;
             }
+            if (surfaceNode->IsUIRenderDirectorStopped()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("ConsumeAndUpdateAllNodes skip stopped director node %" PRIu64,
+                    surfaceNode->GetId());
+                return;
+            }
             surfaceNode->ResetSurfaceNodeStates();
             // Reset BasicGeoTrans info at the beginning of cmd process
             if (surfaceNode->IsLeashOrMainWindow()) {

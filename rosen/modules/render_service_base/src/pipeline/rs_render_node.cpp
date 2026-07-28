@@ -63,6 +63,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_ui_render_director.h"
 #include "pipeline/rs_union_render_node.h"
 #include "pipeline/sk_resource_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
@@ -4655,6 +4656,32 @@ void RSRenderNode::ResetGeoUpdateDelay()
 bool RSRenderNode::GetGeoUpdateDelay() const
 {
     return geoUpdateDelay_;
+}
+
+bool RSRenderNode::IsUIRenderDirectorStopped()
+{
+    // tokens are generated as (tid << 32) | counter, 0 means no associated UIContext
+    if (GetUIContextToken() == 0) {
+        return false;
+    }
+    std::shared_ptr<RSUIRenderDirector> director;
+    {
+        std::lock_guard<std::mutex> lock(uiRenderDirectorCacheMutex_);
+        director = cachedUIRenderDirector_.lock();
+    }
+    if (director == nullptr) {
+        auto context = context_.lock();
+        if (context == nullptr) {
+            return false;
+        }
+        director = context->GetUIRenderDirector(ExtractPid(GetId()), GetUIContextToken());
+        if (director == nullptr) {
+            return false;
+        }
+        std::lock_guard<std::mutex> lock(uiRenderDirectorCacheMutex_);
+        cachedUIRenderDirector_ = director;
+    }
+    return director->GetCurrentState() == RSUIDirectorLifecycleState::STOP;
 }
 
 void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent)

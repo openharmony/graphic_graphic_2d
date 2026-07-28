@@ -17,7 +17,9 @@
 
 #include "command/rs_ui_director_command.h"
 #include "common/rs_common_def.h"
+#include "parameters.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_render_node.h"
 #include "pipeline/rs_ui_render_director.h"
 
 using namespace testing;
@@ -32,8 +34,16 @@ public:
     void TearDown() override;
 };
 
-void RSUIDirectorCommandTest::SetUpTestCase() {}
-void RSUIDirectorCommandTest::TearDownTestCase() {}
+void RSUIDirectorCommandTest::SetUpTestCase()
+{
+    // IsDestroyTokenNodeOnStopEnabled is statically cached on first call, so set the switch off
+    // before any test runs to cover the disabled branch in this test binary.
+    OHOS::system::SetParameter("persist.sys.graphic.destroytokennodeonstop.enabled", "false");
+}
+void RSUIDirectorCommandTest::TearDownTestCase()
+{
+    OHOS::system::SetParameter("persist.sys.graphic.destroytokennodeonstop.enabled", "");
+}
 void RSUIDirectorCommandTest::SetUp() {}
 void RSUIDirectorCommandTest::TearDown() {}
 
@@ -95,6 +105,32 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperMissingDirectorTest, Te
     RSUIDirectorCommandHelper::GoDestroy(rsContext, nodeId, token);
 
     EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperGoStopDestroyDisabledTest
+ * @tc.desc: Test GoStop keeps token node when destroy switch is disabled, but always syncs STOP state.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopDestroyDisabledTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 400;
+    constexpr uint64_t token = 401;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    node->SetUIContextToken(token);
+    rsContext.GetMutableNodeMap().RegisterRenderNode(node);
+
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+    auto director = rsContext.GetUIRenderDirector(pid, token);
+    ASSERT_NE(director, nullptr);
+
+    RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+    EXPECT_NE(rsContext.GetMutableNodeMap().GetRenderNode(nodeId), nullptr);
 }
 
 } // namespace OHOS::Rosen

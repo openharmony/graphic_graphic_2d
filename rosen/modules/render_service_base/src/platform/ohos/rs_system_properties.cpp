@@ -1889,6 +1889,13 @@ bool RSSystemProperties::RebuildDebugEnabled()
     return rebuildDebugEnabled;
 }
 
+bool RSSystemProperties::IsDestroyTokenNodeOnStopEnabled()
+{
+    static bool enabled =
+        OHOS::system::GetBoolParameter("persist.sys.graphic.destroytokennodeonstop.enabled", true);
+    return enabled;
+}
+
 bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
 {
     static bool enable = system::GetBoolParameter("persist.graphic.enable_delegate_composite_dfx", false);

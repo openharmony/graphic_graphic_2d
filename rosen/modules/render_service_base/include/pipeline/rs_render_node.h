@@ -71,6 +71,7 @@ class RSRenderNodeShadowDrawable;
 }
 class RSRenderParams;
 class RSContext;
+class RSUIRenderDirector;
 class RSNodeVisitor;
 class RSCommand;
 class RSLayer;
@@ -139,6 +140,10 @@ public:
     void SetUIContextToken(uint64_t token)
     {
         uiContextToken_ = token;
+        {
+            std::lock_guard<std::mutex> lock(uiRenderDirectorCacheMutex_);
+            cachedUIRenderDirector_.reset();
+        }
         if (std::find(uiContextTokenList_.begin(), uiContextTokenList_.end(), token) == uiContextTokenList_.end()) {
             uiContextTokenList_.emplace_back(token);
         }
@@ -151,6 +156,7 @@ public:
     {
         return uiContextTokenList_;
     }
+    bool IsUIRenderDirectorStopped();
     void RemoveFromTree(bool skipTransition = false);
 
     virtual bool IsHardwareEnabledType() const
@@ -1331,6 +1337,10 @@ private:
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
     uint64_t uiContextToken_ = 0;
     std::vector<uint64_t> uiContextTokenList_;
+    // cache of the (pid, uiContextToken_) -> RSUIRenderDirector lookup, only successful lookups are cached;
+    // reset in SetUIContextToken, expires automatically when the director is destroyed
+    mutable std::mutex uiRenderDirectorCacheMutex_;
+    std::weak_ptr<RSUIRenderDirector> cachedUIRenderDirector_;
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
