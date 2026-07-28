@@ -804,6 +804,7 @@ napi_value WebGL2RenderingContextBase::CopyTexSubImage3D(napi_env env, napi_call
         return NVal::CreateNull(env).val_;
     }
     CopyTexSubImage3DArg imgArg = {};
+    imgArg.func = Impl::IMAGE_COPY_TEX_SUB_IMAGE_3D;
     bool succ = false;
     tie(succ, imgArg.target) = NVal(env, funcArg[NARG_POS::FIRST]).ToGLenum();
     if (!succ) {

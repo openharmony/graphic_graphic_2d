@@ -36,7 +36,7 @@
 namespace OHOS {
 namespace Rosen {
 bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+    std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid)
 {
     if (!RSProcessor::InitForRenderThread(screenDrawable, renderEngine)) {
         return false;
@@ -115,7 +115,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
 
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
-    RequestFramesForAllSurfaces(screenDrawable);
+    RequestFramesForAllSurfaces(screenDrawable, tid);
     // surfaceFrames_[0] is always the primary surface (the first successfully created frame).
     if (surfaceFrames_.empty()) {
         RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): "
@@ -130,6 +130,10 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): Canvas is null!",
             virtualScreenId_);
         return false;
+    }
+    if (tid != 0) {
+        canvas_->SetParallelThreadIdx(std::abs(tid));
+        canvas_->SetParallelThreadId(RSUniRenderThread::Instance().GetTid());
     }
 
     RS_LOGD("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
@@ -734,7 +738,7 @@ void RSUniRenderVirtualProcessor::SetVirtualScreenSize(DrawableV2::RSScreenRende
 }
 
 void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
-    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
+    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, int32_t tid)
 {
     RS_TRACE_FUNC();
     surfaceFrames_.clear();
@@ -774,7 +778,7 @@ void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
 #ifdef RS_ENABLE_GL
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             frame = renderEngine_->RequestFrame(config.surface, renderFrameConfig_, forceCPU_, false,
-                frameContextConfig);
+                frameContextConfig, tid);
         }
 #endif
         if (frame == nullptr) {
@@ -788,7 +792,7 @@ void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
             }
             frame = renderEngine_->RequestFrame(
                 std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false,
-                frameContextConfig);
+                frameContextConfig, tid);
         }
 
         if (frame == nullptr) {

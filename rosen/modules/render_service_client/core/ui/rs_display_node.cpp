@@ -33,10 +33,11 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
     const RSDisplayNodeConfig& displayNodeConfig, std::shared_ptr<RSUIContext> rsUIContext)
 {
     SharedPtr node(new RSDisplayNode(displayNodeConfig, rsUIContext));
-    RS_TRACE_NAME_FMT("RSDisplayNode::Create displayNodeId[%" PRIu64 "], config[screenId=%" PRIu64
-        ", isMirror=%d, mirroredNodeId=%" PRIu64 ", isSync=%d, mirrorSourceRotation=%" PRIu32 "]",
-        node->GetId(), displayNodeConfig.screenId, displayNodeConfig.isMirrored, displayNodeConfig.mirrorNodeId,
-        displayNodeConfig.isSync, displayNodeConfig.mirrorSourceRotation);
+
+    RS_TRACE_NAME_FMT("RSDisplayNode::%s, NodeId[%" PRIu64 "], %s", __func__, node->GetId(),
+        displayNodeConfig.ToString().c_str());
+    RS_LOGI("RSDisplayNode::%{public}s, NodeId[%{public}" PRIu64 "], %{public}s", __func__, node->GetId(),
+        displayNodeConfig.ToString().c_str());
 
     if (rsUIContext != nullptr) {
         rsUIContext->GetMutableNodeMap().RegisterNode(node);
@@ -63,11 +64,6 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
             return nullptr;
         }
     }
-    HILOG_COMM_INFO("RSDisplayNode::Create, id:%{public}" PRIu64 " config[screenId=%{public}" PRIu64
-        ", isMirror=%{public}d, mirroredNodeId=%{public}" PRIu64 ", isSync=%{public}d, "
-        "mirrorSourceRotation: %{public}" PRIu32 "]", node->GetId(), displayNodeConfig.screenId,
-        displayNodeConfig.isMirrored, displayNodeConfig.mirrorNodeId, displayNodeConfig.isSync,
-        displayNodeConfig.mirrorSourceRotation);
     node->SetUIContextToken();
     return node;
 }
@@ -116,7 +112,9 @@ void RSDisplayNode::RemoveDisplayNodeFromTree()
 
 bool RSDisplayNode::Marshalling(Parcel& parcel) const
 {
-    bool success = parcel.WriteUint64(GetId()) && parcel.WriteUint64(screenId_) && parcel.WriteBool(isMirrorDisplay_);
+    bool success = parcel.WriteUint64(GetId()) &&
+                   parcel.WriteUint64(screenId_) &&
+                   parcel.WriteUint8(static_cast<uint8_t>(displayMode_));
     if (!success) {
         ROSEN_LOGE("RSDisplayNode::Marshalling failed");
     }
@@ -127,8 +125,8 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
 {
     uint64_t id = UINT64_MAX;
     uint64_t screenId = UINT64_MAX;
-    bool isMirror = false;
-    if (!(parcel.ReadUint64(id) && parcel.ReadUint64(screenId) && parcel.ReadBool(isMirror))) {
+    uint8_t displayMode = 0;
+    if (!(parcel.ReadUint64(id) && parcel.ReadUint64(screenId) && parcel.ReadUint8(displayMode))) {
         ROSEN_LOGE("RSDisplayNode::Unmarshalling, read param failed");
         return nullptr;
     }
@@ -138,7 +136,10 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
         return prevNode->ReinterpretCastTo<RSDisplayNode>();
     }
 
-    RSDisplayNodeConfig config { .screenId = screenId, .isMirrored = isMirror };
+    RSDisplayNodeConfig config {
+        .screenId = screenId,
+        .displayMode = static_cast<DisplayMode>(displayMode)
+    };
 
     SharedPtr displayNode(new RSDisplayNode(config, id));
     RSNodeMap::MutableInstance().RegisterNode(displayNode);
@@ -208,19 +209,19 @@ void RSDisplayNode::SetDisplayContentRect(const Rect& contentRect)
         GetId(), contentRect.x, contentRect.y, contentRect.w, contentRect.h);
 }
 
-void RSDisplayNode::SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displayNodeConfig)
+void RSDisplayNode::SetDisplayNodeConfig(const RSDisplayNodeConfig& displayNodeConfig)
 {
-    isMirrorDisplay_ = displayNodeConfig.isMirrored;
+    displayMode_ = displayNodeConfig.displayMode;
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetDisplayMode>(GetId(), displayNodeConfig);
     AddCommand(command, true);
-    ROSEN_LOGD("RSDisplayNode::SetDisplayNodeMirrorConfig, displayNodeId:[%{public}" PRIu64 "]"
-        " isMirror:[%{public}d]", GetId(), displayNodeConfig.isMirrored);
+    ROSEN_LOGI("RSDisplayNode::%{public}s, NodeId[%{public}" PRIu64 "], %{public}s", __func__, GetId(),
+        displayNodeConfig.ToString().c_str());
 }
 
 // LCOV_EXCL_START
 bool RSDisplayNode::IsMirrorDisplay() const
 {
-    return isMirrorDisplay_;
+    return displayMode_ == DisplayMode::MIRROR;
 }
 // LCOV_EXCL_STOP
 
@@ -251,11 +252,11 @@ void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
 }
 
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(true, false, rsUIContext, true), screenId_(config.screenId), isMirrorDisplay_(config.isMirrored)
+    : RSNode(true, false, rsUIContext, true), screenId_(config.screenId), displayMode_(config.displayMode)
 {}
 
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(true, id, false, rsUIContext, true), screenId_(config.screenId), isMirrorDisplay_(config.isMirrored)
+    : RSNode(true, id, false, rsUIContext, true), screenId_(config.screenId), displayMode_(config.displayMode)
 {}
 
 void RSDisplayNode::SetBootAnimation(bool isBootAnimation)

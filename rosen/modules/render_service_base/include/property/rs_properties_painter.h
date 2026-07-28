@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_PAINTER_H
 #define RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_PAINTER_H
 
+#include <atomic>
+
 #include "common/rs_macros.h"
 #include "property/rs_properties.h"
 #include "draw/surface.h"
@@ -99,7 +101,7 @@ private:
         const std::shared_ptr<RSBorder>& border, const bool isOutline);
     static std::shared_ptr<Drawing::Canvas> GetEmptyCanvas();
 
-    inline static int g_blurCnt = 0;
+    inline static std::atomic<int> g_blurCnt = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <array>
+#include <limits>
 #include <numeric>
 #include <vector>
 #include <memory>
@@ -382,6 +383,10 @@ void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float f
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
     }
+    if (!propertyCallback) {
+        ROSEN_LOGE("RSNode::AddKeyFrame, propertyCallback is null!");
+        return;
+    }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     implicitAnimator->BeginImplicitKeyFrameAnimation(fraction, timingCurve);
@@ -396,6 +401,10 @@ void RSNode::AddKeyFrame(
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
     }
+    if (!propertyCallback) {
+        ROSEN_LOGE("RSNode::AddKeyFrame, propertyCallback is null!");
+        return;
+    }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     implicitAnimator->BeginImplicitKeyFrameAnimation(fraction);
@@ -408,6 +417,10 @@ void RSNode::AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
 {
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::AddDurationKeyFrame, rsUIContext is null!");
+        return;
+    }
+    if (!propertyCallback) {
+        ROSEN_LOGE("RSNode::AddDurationKeyFrame, propertyCallback is null!");
         return;
     }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
@@ -640,16 +653,16 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
             ROSEN_LOGE("Failed to add animation, animation already exists!");
             return;
         }
-    }
 
-    // Note: Animation cancellation logic is now handled by RSImplicitAnimator. The code below might cause Spring
-    // Animations with a zero duration to not inherit velocity correctly, an issue slated for future resolution.
-    // This code is retained to ensure backward compatibility with specific arkui component animations.
-    if (animation->GetDuration() <= 0 && id_ != 0) {
-        FinishAnimationByProperty(animation->GetPropertyId());
-    }
+        // Note: Animation cancellation logic is now handled by RSImplicitAnimator. The code below might cause Spring
+        // Animations with a zero duration to not inherit velocity correctly, an issue slated for future resolution.
+        // This code is retained to ensure backward compatibility with specific arkui component animations.
+        if (animation->GetDuration() <= 0 && id_ != 0) {
+            FinishAnimationByProperty(animation->GetPropertyId());
+        }
 
-    AddAnimationInner(animation);
+        AddAnimationInner(animation);
+    }
 
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
@@ -1988,8 +2001,10 @@ void RSNode::SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrateg
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerStrategy>(strategy);
     static constexpr uint64_t MIN_INTERVAL = 180; // unit: ms
+    static constexpr uint64_t MAX_INTERVAL = static_cast<uint64_t>(std::numeric_limits<int>::max());
+    int safeInterval = static_cast<int>(std::clamp(interval, MIN_INTERVAL, MAX_INTERVAL));
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
-        &ModifierNG::RSColorPickerModifier::SetColorPickerInterval>(std::max(interval, MIN_INTERVAL));
+        &ModifierNG::RSColorPickerModifier::SetColorPickerInterval>(safeInterval);
 }
 
 void RSNode::SetColorPickerOptions(uint64_t interval, std::pair<uint32_t, uint32_t> notifyThreshold,
@@ -2228,6 +2243,9 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
     // To do: generate composed filter here. Now we just set compositing blur in v1.0.
     auto filterParas = compositingFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
+        if (filterPara == nullptr) {
+            continue;
+        }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
             paramCounts[static_cast<size_t>(SetUIXXFilterCascadeType::CP_BLUR)]++;
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
@@ -2392,10 +2410,10 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         }
         auto backgroundColorEffectPara = std::static_pointer_cast<BackgroundColorEffectPara>(visualEffectPara);
         auto blender = backgroundColorEffectPara->GetBlender();
-        auto brightnessBlender = std::static_pointer_cast<BrightnessBlender>(blender);
-        if (brightnessBlender == nullptr) {
+        if (blender == nullptr || blender->GetBlenderType() != Blender::BRIGHTNESS_BLENDER) {
             continue;
         }
+        auto brightnessBlender = std::static_pointer_cast<BrightnessBlender>(blender);
         if (brightnessBlender->GetHdr() && ROSEN_GNE(brightnessBlender->GetFraction(), 0.0f)) {
             hasHdrBrightnessBlender = true;
         }

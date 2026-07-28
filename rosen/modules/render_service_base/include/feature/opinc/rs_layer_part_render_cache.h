@@ -32,6 +32,8 @@ public:
     void MarkSuggestLayerPartRenderNode(bool isLayerPartRender)
     {
         isSuggestLayerPartRenderNode_ = isLayerPartRender;
+        SetLayerPartRenderNodeStrategyType(
+            isLayerPartRender ? NodeStrategyType::NODE_GROUP : NodeStrategyType::CACHE_DISABLE);
     }
 
     bool IsSuggestLayerPartRenderNode() const

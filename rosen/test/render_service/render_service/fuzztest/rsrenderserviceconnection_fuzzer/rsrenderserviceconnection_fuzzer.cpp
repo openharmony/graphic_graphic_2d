@@ -730,7 +730,7 @@ bool DoCreateNode1()
     }
     RSDisplayNodeConfig displayNodeConfig;
     displayNodeConfig.screenId = GetData<uint64_t>();
-    displayNodeConfig.isMirrored = GetData<bool>();
+    displayNodeConfig.displayMode = static_cast<DisplayMode>(GetData<uint8_t>());
     displayNodeConfig.mirrorNodeId = GetData<uint64_t>();
     displayNodeConfig.isSync = GetData<bool>();
     uint64_t nodeId = GetData<uint64_t>();
@@ -1227,6 +1227,27 @@ bool DONotifyDynamicModeEvent()
     return true;
 }
 
+bool DOSetHgmExclusiveScreen()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    uint64_t screenId = GetData<uint64_t>();
+    std::optional<ScreenId> optScreenId;
+    if (screenId != INVALID_SCREEN_ID) {
+        optScreenId = screenId;
+    }
+    rsToServiceConn_->SetHgmExclusiveScreen(optScreenId);
+
+    optScreenId = 0;
+    rsToServiceConn_->SetHgmExclusiveScreen(optScreenId);
+
+    std::optional<ScreenId> optScreenId2;
+    rsToServiceConn_->SetHgmExclusiveScreen(optScreenId2);
+
+    return true;
+}
+
 bool DONotifyHgmConfigEvent()
 {
     if (rsToServiceConn_ == nullptr) {
@@ -1662,6 +1683,7 @@ void DoFuzzerTest2()
     DONotifyRefreshRateEvent();
     DONotifyTouchEvent();
     DONotifyDynamicModeEvent();
+    DOSetHgmExclusiveScreen();
     DOSetCacheEnabledForRotation();
     DOSetOnRemoteDiedCallback();
     DOSetVmaCacheStatus();

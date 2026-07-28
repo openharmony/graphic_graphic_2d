@@ -24,7 +24,12 @@ using namespace OHOS;
 bool BootCompatibleDisplayStrategy::PrepareScreenConfig(BootAnimationConfig& config)
 {
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
-    config.screenId = connectToRenderMap_.begin()->first;
+    Rosen::ScreenId firstScreenId = GetFirstScreenId();
+    if (firstScreenId == Rosen::INVALID_SCREEN_ID) {
+        LOGE("connectToRenderMap_ is empty, cannot prepare screen config");
+        return false;
+    }
+    config.screenId = firstScreenId;
     if (config.rotateScreenId >= 0) {
         SubscribeActiveScreenIdChanged();
         Rosen::ScreenId activeScreenId = GetActiveScreenId();
@@ -48,7 +53,7 @@ bool BootCompatibleDisplayStrategy::PrepareScreenConfig(BootAnimationConfig& con
             config.screenStatus = status;
         }
     }
-    if (connectToRenderMap_.find(config.screenId) == connectToRenderMap_.end()) {
+    if (!HasScreenId(config.screenId)) {
         LOGE("screen is not prepare:" BPUBU64 "", config.screenId);
         return false;
     }
@@ -59,8 +64,12 @@ void BootCompatibleDisplayStrategy::RunAnimationAndOta(BootAnimationConfig& conf
 {
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
+    sptr<IRemoteObject> connectToRender = GetConnectToRender(config.screenId);
+    if (connectToRender == nullptr) {
+        LOGE("RunAnimationAndOta screen is not in connectToRenderMap_:" BPUBU64 "", config.screenId);
+        return;
+    }
     operator_ = std::make_shared<BootAnimationOperation>();
-    sptr<IRemoteObject> connectToRender = connectToRenderMap_.find(config.screenId)->second;
     operator_->Init(config, modeInfo.GetScreenWidth(), modeInfo.GetScreenHeight(), duration, connectToRender);
     if (operator_->GetThread().joinable()) {
         operator_->GetThread().join();
@@ -80,9 +89,12 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
     }
 
     GetConnectToRenderMap(configs.size());
-    if (!noScreen_ || connectToRenderMap_.empty()) {
-        PrepareScreenConfig(configs[0]);
-        RunAnimationAndOta(configs[0], duration);
+    if (HasScreen()) {
+        if (PrepareScreenConfig(configs[0])) {
+            RunAnimationAndOta(configs[0], duration);
+        } else {
+            LOGE("PrepareScreenConfig failed, skip animation");
+        }
     } else {
         LOGI("BootCompatibleDisplayStrategy::No screen connected");
     }

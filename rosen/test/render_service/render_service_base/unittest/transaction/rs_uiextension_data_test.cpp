@@ -42,6 +42,35 @@ void RSUIExtensionDataTest::SetUp() {}
 void RSUIExtensionDataTest::TearDown() {}
 
 /**
+ * @tc.name: MarshallingFailureTest
+ * @tc.desc: test marshalling and unmarshalling failure.
+ * @tc.type:FUNC
+ * @tc.require: issueIAAOIJ
+ */
+HWTEST_F(RSUIExtensionDataTest, MarshallingFailureTest, TestSize.Level1)
+{
+    Parcel parcel;
+    RSUIExtensionData uiExtensionData;
+    auto& secData = uiExtensionData.secData_;
+    NodeId id = 1;
+    secData.insert(std::make_pair(id, std::vector<SecSurfaceInfo>()));
+    SecSurfaceInfo surfaceInfo;
+    secData[id].push_back(surfaceInfo);
+    secData[id][0].uiExtensionRectInfo.relativeCoords.SetAll(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    secData[id][0].hostPid = DEFAULT_HOST_PID;
+    secData[id][0].uiExtensionPid = DEFAULT_UIEXTENSION_PID;
+
+    SecRectInfo rectInfo;
+    rectInfo.relativeCoords.SetAll(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    secData[id][0].upperNodes.push_back(rectInfo);
+    parcel.WriteInt32(-1); // write non-sense data to cause unmarshalling failure
+    uiExtensionData.Marshalling(parcel);
+    // Unmarshalling failure test
+    auto result = RSUIExtensionData::Unmarshalling(parcel);
+    ASSERT_EQ(result, nullptr);
+}
+
+/**
  * @tc.name: MarshallingOneNodeTest
  * @tc.desc: test marshalling and unmarshalling one node.
  * @tc.type:FUNC

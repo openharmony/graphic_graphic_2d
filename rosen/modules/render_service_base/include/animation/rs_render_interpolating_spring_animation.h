@@ -30,8 +30,8 @@ public:
 
     void DumpAnimationInfo(std::string& out) const override;
 
-    void SetSpringParameters(
-        float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio = 0.00025f);
+    void SetSpringParameters(float response, float dampingRatio, float normalizedInitialVelocity,
+        float minimumAmplitudeRatio = 0.00025f, std::optional<ConvergeParams> convergeParams = std::nullopt);
     void SetZeroThreshold(float zeroThreshold);
 
     ~RSRenderInterpolatingSpringAnimation() override = default;
@@ -67,6 +67,8 @@ private:
 
     // used to determine whether the animation is near finish
     float zeroThreshold_ = 0.0f;
+
+    std::optional<ConvergeParams> convergeParams_ { std::nullopt };
 
     friend class RSInterpolatingSpringAnimation;
 };

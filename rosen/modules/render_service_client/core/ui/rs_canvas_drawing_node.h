@@ -223,6 +223,7 @@ private:
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     static inline uint32_t maxGpuSupportedWidth_ = 0;
     static inline uint32_t maxGpuSupportedHeight_ = 0;
+    static inline bool hybridEnabled_ = false;
 
     bool skipContentModifierDraw_ = false;
  

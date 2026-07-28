@@ -82,6 +82,8 @@ public:
     }
 
     bool IsNodeMemClearEnable() override;
+
+    static void InitClientRenderEnable(bool ccmEnabled);
  
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     const std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler() const
@@ -157,6 +159,8 @@ private:
     size_t opCountAfterReset_ = 0;
 
     bool modifiersApplied_ = false;
+
+    static inline bool hybridEnabled_ = false;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;

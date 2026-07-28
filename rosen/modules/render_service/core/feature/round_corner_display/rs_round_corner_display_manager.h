@@ -58,9 +58,6 @@ public:
     // Check the layer is RCD layer via layername
     bool CheckLayerIsRCD(const std::string& layerName);
 
-    // the soft draw api: draw all rendertarget node input and canvas.
-    void DrawRoundCorner(const RCDLayerInfoVec& layerInfos, RSPaintFilterCanvas* canvas);
-
     // only add once rcd module for screen via nodeId
     void AddRoundCornerDisplay(NodeId id);
 
@@ -96,12 +93,6 @@ public:
 
 private:
     bool CheckExist(NodeId id);
-
-    // the soft draw top rcd api: draw rendertarget node input and canvas.
-    void DrawTopRoundCorner(NodeId id, RSPaintFilterCanvas* canvas);
-
-    // the soft draw bottom rcd api: draw rendertarget node input and canvas.
-    void DrawBottomRoundCorner(NodeId id, RSPaintFilterCanvas* canvas);
 
     // remove rcd module for screen via nodeId
     void RemoveRoundCornerDisplay(NodeId id);

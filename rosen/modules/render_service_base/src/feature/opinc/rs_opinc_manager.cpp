@@ -307,6 +307,7 @@ void RSOpincManager::InitLayerPartRenderNode(bool isCCMLayerPartRenderEnabled, R
         layerPartRenderDirtyManager->Clear();
     }
     mutableLayerPartRenderCache.SetLayerPartRender(true);
+    RS_OPTIONAL_TRACE_FMT("InitLayerPartRenderNode success id:%" PRIu64 ", isLayerPartRender:1", node.GetId());
 }
 
 bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,

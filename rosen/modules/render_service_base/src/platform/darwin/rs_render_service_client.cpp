@@ -38,9 +38,9 @@ MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
     return {};
 }
 
-bool RSRenderServiceClient::GetBackgroundRebuildEnabled()
+uint8_t RSRenderServiceClient::GetBackgroundRebuildEnabled()
 {
-    return {};
+    return 0;
 }
 
 std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
@@ -610,6 +610,11 @@ void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string
 
 void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+}
+
+bool RSRenderServiceClient::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    return {};
 }
 
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)

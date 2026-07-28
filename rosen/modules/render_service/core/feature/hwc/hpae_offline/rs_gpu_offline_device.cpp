@@ -35,6 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t MAX_NUM_INVALID_FRAME = 10;
+constexpr float BRIGHTNESS_RATIO_EPSILON = 1e-6;
 }
 using namespace HDI::Display::Graphic::Common::V1_0;
 
@@ -135,6 +136,10 @@ bool RSGPUOfflineDevice::PostProcessOfflineTask(
 bool RSGPUOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<GPUOfflineContext>& offlineContext,
     RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId)
 {
+    if (surfaceParams == nullptr) {
+        RS_LOGW("surfaceParams is nullptr");
+        return false;
+    }
     if (offlineContext->skipDraw) {
         return SetResultWhenSkipDraw(offlineContext, surfaceParams, taskId);
     }
@@ -249,6 +254,7 @@ void RSGPUOfflineDevice::TryRemoveContext(NodeId nodeId)
 
 bool RSGPUOfflineDevice::CanDeleteDevice()
 {
+    std::unique_lock<std::mutex> tryLock(cacheMutex_);
     return offlineContextCache_.empty();
 }
 
@@ -466,7 +472,8 @@ BufferDrawParam RSGPUOfflineDevice::CreateBufferDrawParam(const GPUOfflineSubThr
     params.targetColorGamut = taskContext.drawParams.targetColorGamut;
     params.sdrNits = taskContext.drawParams.sdrNit;
     params.tmoNits = taskContext.drawParams.displayNit;
-    params.displayNits = params.tmoNits / std::pow(taskContext.drawParams.brightnessRatio, 2.2f);
+    float clampedRatio = std::max(taskContext.drawParams.brightnessRatio, BRIGHTNESS_RATIO_EPSILON)
+    params.displayNits = params.tmoNits / std::pow(clampedRatio, 2.2f);
     params.layerLinearMatrix = taskContext.drawParams.layerLinearMatrix;
     params.isHdrRedraw = true;
 #endif

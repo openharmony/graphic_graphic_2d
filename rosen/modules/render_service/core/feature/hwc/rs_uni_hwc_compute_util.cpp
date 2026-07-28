@@ -381,7 +381,15 @@ void RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, 
     const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        RS_LOGE("UpdateHwcNodeByScalingMode surfaceHandler is nullptr");
+        return;
+    }
     const auto buffer = surfaceHandler->GetBuffer();
+    if (!buffer) {
+        RS_LOGE("UpdateHwcNodeByScalingMode buffer is nullptr");
+        return;
+    }
     const auto consumer = surfaceHandler->GetConsumer();
     float bufferWidth = buffer->GetSurfaceBufferWidth();
     float bufferHeight = buffer->GetSurfaceBufferHeight();

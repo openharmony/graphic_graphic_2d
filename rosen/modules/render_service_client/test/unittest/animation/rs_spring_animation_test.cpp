@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-#include "rs_animation_base_test.h"
+#include "gtest/gtest.h"
 #include "rs_animation_test_utils.h"
 
 #include "animation/rs_interpolating_spring_animation.h"
-#include "ui/rs_ui_context_manager.h"
 #include "animation/rs_spring_animation.h"
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_context.h"
 #include "animation/rs_spring_interpolator.h"
 
 using namespace testing;
@@ -27,8 +28,18 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 using namespace ANIMATIONTEST;
-class RSSpringAnimationTest : public RSAnimationBaseTest {
+class RSSpringAnimationTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
 };
+
+void RSSpringAnimationTest::SetUpTestCase() {}
+void RSSpringAnimationTest::TearDownTestCase() {}
+void RSSpringAnimationTest::SetUp() {}
+void RSSpringAnimationTest::TearDown() {}
 
 class RSNodeMock : public RSNode {
 public:
@@ -194,7 +205,8 @@ HWTEST_F(RSSpringAnimationTest, RebuildInRender001, TestSize.Level1)
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     auto springAnimation = std::make_shared<RSSpringAnimation>(rsUIContext, property, startProperty, endProperty);
     springAnimation->SetDuration(300);
     springAnimation->SetRebuildParam({0.5f, false});
@@ -204,5 +216,339 @@ HWTEST_F(RSSpringAnimationTest, RebuildInRender001, TestSize.Level1)
     ASSERT_EQ(springAnimation->GetRebuildParam().isReverseCycle, false);
     GTEST_LOG_(INFO) << "RSSpringAnimationTest RebuildInRender001 end";
 }
+
+/**
+ * @tc.name: CreateRenderAnimationNullValues001
+ * @tc.desc: Verify CreateRenderAnimation returns nullptr when originValue/startValue/endValue are null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, CreateRenderAnimationNullValues001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest CreateRenderAnimationNullValues001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto springAnimation = std::make_shared<RSSpringAnimation>(nullptr, property, endValue);
+    springAnimation->originValue_ = nullptr;
+    springAnimation->startValue_ = nullptr;
+    springAnimation->endValue_ = nullptr;
+    auto result = springAnimation->CreateRenderAnimation();
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest CreateRenderAnimationNullValues001 end";
+}
+
+/**
+ * @tc.name: CreateRenderAnimationStartValueNull001
+ * @tc.desc: Verify CreateRenderAnimation returns nullptr when only startValue is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, CreateRenderAnimationStartValueNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest CreateRenderAnimationStartValueNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto springAnimation = std::make_shared<RSSpringAnimation>(nullptr, property, startValue, endValue);
+    springAnimation->originValue_ = property;
+    springAnimation->startValue_ = nullptr;
+    springAnimation->endValue_ = endValue;
+    auto result = springAnimation->CreateRenderAnimation();
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest CreateRenderAnimationStartValueNull001 end";
+}
+
+/**
+ * @tc.name: CreateRenderAnimationEndValueNull001
+ * @tc.desc: Verify CreateRenderAnimation returns nullptr when only endValue is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, CreateRenderAnimationEndValueNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest CreateRenderAnimationEndValueNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto springAnimation = std::make_shared<RSSpringAnimation>(nullptr, property, startValue, endValue);
+    springAnimation->originValue_ = property;
+    springAnimation->startValue_ = startValue;
+    springAnimation->endValue_ = nullptr;
+    auto result = springAnimation->CreateRenderAnimation();
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest CreateRenderAnimationEndValueNull001 end";
+}
+
+/**
+ * @tc.name: CreateRenderAnimationAllNonNull001
+ * @tc.desc: Verify CreateRenderAnimation returns valid animation when all values are non-null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, CreateRenderAnimationAllNonNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest CreateRenderAnimationAllNonNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto springAnimation = std::make_shared<RSSpringAnimation>(nullptr, property, startValue, endValue);
+    springAnimation->originValue_ = property;
+    springAnimation->startValue_ = startValue;
+    springAnimation->endValue_ = endValue;
+    auto result = springAnimation->CreateRenderAnimation();
+    EXPECT_NE(result, nullptr);
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest CreateRenderAnimationAllNonNull001 end";
+}
+
+/**
+ * @tc.name: OnStartAnimationNull001
+ * @tc.desc: Verify OnStart handles CreateRenderAnimation returning nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, OnStartAnimationNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest OnStartAnimationNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto springAnimation = std::make_shared<RSSpringAnimation>(nullptr, property, endValue);
+    springAnimation->property_ = nullptr;
+    springAnimation->originValue_ = nullptr;
+    springAnimation->startValue_ = nullptr;
+    springAnimation->endValue_ = nullptr;
+    springAnimation->OnStart();
+    EXPECT_FALSE(springAnimation->IsRunning());
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest OnStartAnimationNull001 end";
+}
+
+/**
+ * @tc.name: RebuildInRenderAnimationNull001
+ * @tc.desc: Verify RebuildInRender handles CreateRenderAnimation returning nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, RebuildInRenderAnimationNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest RebuildInRenderAnimationNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto springAnimation = std::make_shared<RSSpringAnimation>(nullptr, property, endValue);
+    springAnimation->originValue_ = nullptr;
+    springAnimation->startValue_ = nullptr;
+    springAnimation->endValue_ = nullptr;
+    springAnimation->RebuildInRender();
+    EXPECT_FALSE(springAnimation->IsRunning());
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest RebuildInRenderAnimationNull001 end";
+}
+
+/**
+ * @tc.name: RebuildInRenderAnimationNullWithTarget001
+ * @tc.desc: Verify RebuildInRender handles animation nullptr with valid target
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, RebuildInRenderAnimationNullWithTarget001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest RebuildInRenderAnimationNullWithTarget001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
+    auto springAnimation = std::make_shared<RSSpringAnimation>(rsUIContext, property, endValue);
+    springAnimation->target_ = canvasNode;
+    springAnimation->originValue_ = nullptr;
+    springAnimation->startValue_ = nullptr;
+    springAnimation->endValue_ = nullptr;
+    springAnimation->SetRebuildParam({0.5f, false});
+    springAnimation->RebuildInRender();
+    EXPECT_FLOAT_EQ(springAnimation->GetRebuildParam().fraction, 0.5f);
+    EXPECT_FALSE(springAnimation->IsRunning());
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest RebuildInRenderAnimationNullWithTarget001 end";
+}
+
+/**
+ * @tc.name: InterpolatingSpringCreateRenderAnimationNull001
+ * @tc.desc: Verify RSInterpolatingSpringAnimation CreateRenderAnimation returns nullptr with null values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolatingSpringCreateRenderAnimationNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringCreateRenderAnimationNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(nullptr, property, byValue);
+    animation->originValue_ = nullptr;
+    animation->startValue_ = startValue;
+    animation->endValue_ = byValue;
+    auto result = animation->CreateRenderAnimation();
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringCreateRenderAnimationNull001 end";
+}
+
+/**
+ * @tc.name: InterpolatingSpringCreateRenderAnimationStartValueNull001
+ * @tc.desc: Verify CreateRenderAnimation returns nullptr when only startValue is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolatingSpringCreateRenderAnimationStartValueNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringCreateRenderAnimationStartValueNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(nullptr, property, byValue);
+    animation->originValue_ = property;
+    animation->startValue_ = nullptr;
+    animation->endValue_ = byValue;
+    auto result = animation->CreateRenderAnimation();
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringCreateRenderAnimationStartValueNull001 end";
+}
+
+/**
+ * @tc.name: InterpolatingSpringCreateRenderAnimationEndValueNull001
+ * @tc.desc: Verify CreateRenderAnimation returns nullptr when only endValue is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolatingSpringCreateRenderAnimationEndValueNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringCreateRenderAnimationEndValueNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(nullptr, property, byValue);
+    animation->originValue_ = property;
+    animation->startValue_ = startValue;
+    animation->endValue_ = nullptr;
+    auto result = animation->CreateRenderAnimation();
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringCreateRenderAnimationEndValueNull001 end";
+}
+
+/**
+ * @tc.name: InterpolatingSpringCreateRenderAnimationAllNonNull001
+ * @tc.desc: Verify CreateRenderAnimation returns valid animation when all values are non-null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolatingSpringCreateRenderAnimationAllNonNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringCreateRenderAnimationAllNonNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(nullptr, property, byValue);
+    animation->originValue_ = property;
+    animation->startValue_ = startValue;
+    animation->endValue_ = byValue;
+    auto result = animation->CreateRenderAnimation();
+    EXPECT_NE(result, nullptr);
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringCreateRenderAnimationAllNonNull001 end";
+}
+
+/**
+ * @tc.name: InterpolatingSpringOnStartAnimationNull001
+ * @tc.desc: Verify RSInterpolatingSpringAnimation OnStart handles CreateRenderAnimation returning nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolatingSpringOnStartAnimationNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringOnStartAnimationNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(nullptr, property, byValue);
+    animation->property_ = nullptr;
+    animation->originValue_ = nullptr;
+    animation->startValue_ = nullptr;
+    animation->endValue_ = nullptr;
+    animation->OnStart();
+    EXPECT_FALSE(animation->IsRunning());
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringOnStartAnimationNull001 end";
+}
+
+/**
+ * @tc.name: InterpolatingSpringOnStartPropertyNull001
+ * @tc.desc: Verify RSInterpolatingSpringAnimation OnStart handles property_ null in isCustom_ branch
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolatingSpringOnStartPropertyNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringOnStartPropertyNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(
+        nullptr, property, startValue, endValue);
+    animation->isCustom_ = true;
+    animation->property_ = nullptr;
+    animation->originValue_ = property;
+    animation->startValue_ = startValue;
+    animation->endValue_ = endValue;
+    animation->OnStart();
+    EXPECT_FALSE(animation->IsRunning());
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringOnStartPropertyNull001 end";
+}
+
+/**
+ * @tc.name: InterpolatingSpringRebuildInRenderAnimationNull001
+ * @tc.desc: Verify RSInterpolatingSpringAnimation RebuildInRender handles CreateRenderAnimation returning nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolatingSpringRebuildInRenderAnimationNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringRebuildInRenderAnimationNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(nullptr, property, byValue);
+    animation->originValue_ = nullptr;
+    animation->RebuildInRender();
+    EXPECT_FALSE(animation->IsRunning());
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringRebuildInRenderAnimationNull001 end";
+}
+
+/**
+ * @tc.name: InterpolatingSpringRebuildInRenderAnimationNullWithTarget001
+ * @tc.desc: Verify RebuildInRender handles animation nullptr with valid target
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolatingSpringRebuildInRenderAnimationNullWithTarget001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringRebuildInRenderAnimationNullWithTarget001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto byValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    auto canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
+    auto animation = std::make_shared<RSInterpolatingSpringAnimation>(rsUIContext, property, byValue);
+    animation->target_ = canvasNode;
+    animation->originValue_ = nullptr;
+    animation->SetRebuildParam({0.5f, false});
+    animation->RebuildInRender();
+    EXPECT_FLOAT_EQ(animation->GetRebuildParam().fraction, 0.5f);
+    EXPECT_FALSE(animation->IsRunning());
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolatingSpringRebuildInRenderAnimationNullWithTarget001 end";
+}
+
+/**
+ * @tc.name: SpringOnStartPropertyNull001
+ * @tc.desc: Verify RSSpringAnimation OnStart handles property_ null in isCustom_ branch
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, SpringOnStartPropertyNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SpringOnStartPropertyNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    auto springAnimation = std::make_shared<RSSpringAnimation>(rsUIContext, property, startValue, endValue);
+    springAnimation->isCustom_ = true;
+    springAnimation->property_ = nullptr;
+    springAnimation->originValue_ = property;
+    springAnimation->startValue_ = startValue;
+    springAnimation->endValue_ = endValue;
+    springAnimation->OnStart();
+    EXPECT_FALSE(springAnimation->IsRunning());
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SpringOnStartPropertyNull001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

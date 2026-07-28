@@ -891,9 +891,7 @@ Drawing::ColorQuad RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing
 
 int RSPropertiesPainter::GetAndResetBlurCnt()
 {
-    auto blurCnt = g_blurCnt;
-    g_blurCnt = 0;
-    return blurCnt;
+    return g_blurCnt.exchange(0);
 }
 
 void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas,

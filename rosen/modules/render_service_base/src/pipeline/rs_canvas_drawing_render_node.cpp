@@ -59,9 +59,6 @@ constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300; // limit of the drawcmdlists.
 constexpr uint32_t DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_PER_FRAME = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_FOR_CACHE = 200000;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-const bool HYBRID_ENABLED = RSSystemProperties::GetHybridRenderCanvasEnabled();
-#endif
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -69,7 +66,7 @@ RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
 {
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this) - sizeof(RSCanvasRenderNode));
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (HYBRID_ENABLED) {
+    if (hybridEnabled_) {
         InitSurfaceHandler();
     }
 #endif
@@ -833,7 +830,12 @@ bool RSCanvasDrawingRenderNode::IsNodeMemClearEnable()
 {
     return false;
 }
- 
+
+void RSCanvasDrawingRenderNode::InitClientRenderEnable(bool ccmEnabled)
+{
+    hybridEnabled_ = ccmEnabled && RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM();
+}
+
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
@@ -905,7 +907,7 @@ bool RSCanvasDrawingRenderNode::IsBufferDraw()
  
 bool RSCanvasDrawingRenderNode::IsHybridEnabled()
 {
-    return HYBRID_ENABLED;
+    return hybridEnabled_;
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE
 } // namespace Rosen

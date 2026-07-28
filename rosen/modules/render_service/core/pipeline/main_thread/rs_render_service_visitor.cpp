@@ -82,6 +82,7 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
         RS_LOGE("PrepareLogicalDisplayRenderNode curScreenNode is nullptr");
         return;
     }
+    isSecurityDisplay_ = node.GetSecurityDisplay();
     const auto& screenProperty = curScreenNode_->GetScreenProperty();
     int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
     int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
@@ -97,10 +98,11 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
-            RS_LOGI("PrepareScreenRenderNode mirrorSource haven't existed");
+            RS_LOGI("%{public}s mirrorSource haven't existed", __func__);
             return;
         }
         if (mParallelEnable) {
+            RS_LOGD_IF(DEBUG_SCREEN, "%{public}s mParallelEnable", __func__);
             CreateCanvas(logicalScreenWidth, logicalScreenHeight, true);
         }
         PrepareChildren(*existingSource);

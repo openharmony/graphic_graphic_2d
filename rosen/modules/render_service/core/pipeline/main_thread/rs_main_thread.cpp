@@ -90,6 +90,7 @@
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "memory/rs_canvas_dma_buffer_cache.h"
 #include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
@@ -113,6 +114,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -480,6 +482,7 @@ RSMainThread::RSMainThread() : systemAnimatedScenesEnabled_(RSSystemParameters::
     context_->Initialize();
     tunnelLayerManager_ = std::make_unique<RSTunnelLayerManager>(context_);
     tunnelRouteArbiter_ = std::make_unique<RSTunnelRouteArbiter>();
+    virtualScreenParallelManager_ = std::make_shared<RSVirtualScreenParallelManager>();
 }
 
 RSMainThread::~RSMainThread() noexcept
@@ -539,6 +542,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #ifdef RS_ENABLE_GPU
             // fill the params, and sync to render thread later
             renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+            renderThreadParams_->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
 #endif
         }
         RenderFrameStart(timestamp_);
@@ -550,7 +554,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSLayerSplitManager::GetInstance()->Reset();
         ClearNeedDropframePidList();
         if (renderThreadParams_) {
-            renderThreadParams_->ClearWhiteListRect();
+            renderThreadParams_->GetMutableScreenSpecialLayerParam().ClearWhiteListRect();
         }
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -2148,20 +2152,20 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 hgmRenderContext_->UpdateSurfaceData(surfaceHandler, surfaceNode);
             }
             PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+            const bool isTunnelCandidate = surfaceHandler->HasReceivedTunnelLayerInfo();
             auto parentNode = surfaceNode->GetParent().lock();
             RSBaseSurfaceUtil::DropFrameConfig dropFrameConfig;
             dropFrameConfig.enable = IsNeedDropFrameByPid(surfaceHandler->GetNodeId());
             dropFrameConfig.level = GetDropFrameLevelByPid(surfaceHandler->GetNodeId());
-            auto outcome = tunnelRouteArbiter_->ArbitrateAndClaim(surfaceNode);
+            auto outcome = isTunnelCandidate
+                ? tunnelRouteArbiter_->ArbitrateAndClaim(surfaceNode)
+                : RSTunnelRouteArbiter::MainThreadOutcome::NOT_TUNNEL_ACTIVE;
             bool goNormal = outcome != RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT;
             bool comsumeResult = false;
             if (goNormal) {
-                if (RSTunnelRuntimeStore::HasPendingBuffer(surfaceNode->GetId())) {
-                    tunnelLayerManager_->TransferTunnelPendingBufferToNormalConsume(surfaceNode);
-                }
                 comsumeResult = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
                     *surfaceHandler, timestamp_, dropFrameConfig,
-                    parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
+                    parentNode ? parentNode->GetId() : 0, surfaceNode);
                 tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
             } else if (outcome == RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT) {
                 comsumeResult = true;
@@ -2205,18 +2209,23 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(surfaceNode->GetId()));
                     surfaceNode->UpdateBufferInfo(buffer, bufferOwnerCount, surfaceHandler->GetDamageRegion(),
                         surfaceHandler->GetAcquireFence(), preBuffer, preBufferOwnerCount);
-                    if (surfaceHandler->GetBufferSizeChanged() || surfaceHandler->GetBufferTransformTypeChanged()) {
+                    auto scalingModeChanged = surfaceHandler->CheckScalingModeChanged();
+                    if (surfaceHandler->GetBufferSizeChanged() || surfaceHandler->GetBufferTransformTypeChanged() ||
+                        scalingModeChanged) {
                         surfaceNode->SetContentDirty();
                         doDirectComposition_ = false;
-                        surfaceHandler->SetBufferTransformTypeChanged(false);
                         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
-                            "surfaceNode buffer size changed", surfaceNode->GetName().c_str(), surfaceNode->GetId());
+                            "bufferSizeChanged[%d], bufferTransformTypeChanged[%d], bufferScalingModeChanged[%d]",
+                            surfaceNode->GetName().c_str(), surfaceNode->GetId(),
+                            surfaceHandler->GetBufferSizeChanged(), surfaceHandler->GetBufferTransformTypeChanged(),
+                            scalingModeChanged);
                         RS_LOGD("ConsumeAndUpdateAllNodes name:%{public}s id:%{public}" PRIu64 " buffer size changed, "
                                 "buffer:[%{public}d, %{public}d], preBuffer:[%{public}d, %{public}d]",
                             surfaceNode->GetName().c_str(), surfaceNode->GetId(),
                             buffer ? buffer->GetSurfaceBufferWidth() : 0, buffer ? buffer->GetSurfaceBufferHeight() : 0,
                             preBuffer ? preBuffer->GetSurfaceBufferWidth() : 0,
                             preBuffer ? preBuffer->GetSurfaceBufferHeight() : 0);
+                        surfaceHandler->SetBufferTransformTypeChanged(false);
                     }
 #endif
                 }
@@ -2488,7 +2497,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool isMultiDisplay = IsMultiDisplay();
 
     // check all children of global root node, and only disable hardware composer
-    // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
+    // in case node's composite type is UNI_RENDER_VIRTUAL_EXPAND/EXTEND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
     auto itr = std::find_if(children->begin(), children->end(),
         [](const std::shared_ptr<RSRenderNode>& child) -> bool {
@@ -2563,7 +2572,7 @@ void RSMainThread::AddWhiteListRect(const std::unordered_set<ScreenId>& screenId
     if (renderThreadParams_ == nullptr) {
         return;
     }
-    renderThreadParams_->AddWhiteListRect(screenIds, rect);
+    renderThreadParams_->GetMutableScreenSpecialLayerParam().AddWhiteListRect(screenIds, rect);
 }
 
 void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
@@ -2949,6 +2958,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     RSUifirstManager::Instance().RefreshUIFirstParam();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
+    uniVisitor->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
     int64_t rsPeriod = 0;
     if (receiver_) {
         receiver_->GetVSyncPeriod(rsPeriod);
@@ -3479,6 +3489,11 @@ void RSMainThread::OnUniRenderDraw()
     if (needPostAndWait_) {
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
+
+        std::unordered_set<NodeId> nodeIds;
+        virtualScreenParallelManager_->GetStagingNodeIds(nodeIds);
+        renderThreadParams_->SetCollectedVirtualScreenNodeIds(std::move(nodeIds));
+
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
         RsFrameReport::CheckPostAndWaitPoint();
         drawFrame_.PostAndWait();
@@ -4073,6 +4088,7 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
         if (!renderThreadParams_) {
             // fill the params, and sync to render thread later
             renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+            renderThreadParams_->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
         }
         renderThreadParams_->SetIsUniRenderAndOnVsync(true);
         renderThreadParams_->SetOnVsyncStartTime(onVsyncStartTime);
@@ -6284,7 +6300,10 @@ void RSMainThread::AddSplitTransaction(std::unique_ptr<RSTransactionData> transa
     }
     // Queue per pid; record the total-time start only when this pid's queue goes empty->non-empty,
     // so a later transaction in the same rebuild burst does not reset the budget.
-    pid_t pid = transaction->GetSendingPid();
+    pid_t pid = transaction->GetCallingPid();
+    if (pid <= 0) {
+        pid = transaction->GetSendingPid();
+    }
     auto& state = pendingSplitTransactions_[pid];
     if (state.transactions.empty()) {
         state.startTimeMs = GetCurrentSteadyTimeMsFloat();

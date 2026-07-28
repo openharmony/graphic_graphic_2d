@@ -1659,7 +1659,8 @@ void RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(
         }
         canvas.ConcatMatrix(matrix);
         auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        surfaceNodeDrawable->DealWithSelfDrawingNodeBuffer(*rscanvas, *surfaceParams);
+        surfaceNodeDrawable->DealWithSelfDrawingNodeBuffer(*rscanvas, *surfaceParams,
+            params.GetVirtualScreenParallelManager());
     }
 }
 

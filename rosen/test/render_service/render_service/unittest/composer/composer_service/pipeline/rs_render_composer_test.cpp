@@ -5039,6 +5039,76 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ClearOutputOnDisconnect_Fals
 }
 
 /**
+ * Function: ProcessComposerFrame_UnExecuteTaskNumDecrement_True
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set unExecuteTaskNum_ to a positive value (line 330 condition true)
+ *                  3. call ProcessComposerFrame
+ *                  4. verify unExecuteTaskNum_ is decremented by 1
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_UnExecuteTaskNumDecrement_True, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
+
+    // Set unExecuteTaskNum_ > 0 (line 330 condition true)
+    constexpr int32_t initUnExecuteTaskNum = 5;
+    tmpRsRenderComposer->unExecuteTaskNum_.store(initUnExecuteTaskNum);
+    tmpRsRenderComposer->isDisconnected_ = false;
+
+    std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetLayerSize({ 100, 100, 100, 100 });
+    tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+
+    // Verify unExecuteTaskNum_ was decremented by 1 (line 330-331)
+    EXPECT_EQ(tmpRsRenderComposer->unExecuteTaskNum_.load(), initUnExecuteTaskNum - 1);
+}
+
+/**
+ * Function: ProcessComposerFrame_UnExecuteTaskNumDecrement_False
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set unExecuteTaskNum_ to 0 (line 330 condition false)
+ *                  3. call ProcessComposerFrame
+ *                  4. verify unExecuteTaskNum_ is not decremented
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_UnExecuteTaskNumDecrement_False, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
+
+    // Set unExecuteTaskNum_ <= 0 (line 330 condition false)
+    constexpr int32_t initUnExecuteTaskNum = 0;
+    tmpRsRenderComposer->unExecuteTaskNum_.store(initUnExecuteTaskNum);
+    tmpRsRenderComposer->isDisconnected_ = false;
+
+    std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetLayerSize({ 100, 100, 100, 100 });
+    tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+
+    // Verify unExecuteTaskNum_ is not decremented (line 330 condition false, branch skipped)
+    EXPECT_EQ(tmpRsRenderComposer->unExecuteTaskNum_.load(), initUnExecuteTaskNum);
+}
+
+/**
  * Function: ComposerProcess_ContextNullptr_WithValidOutput
  * Type: Function
  * Rank: Important(2)

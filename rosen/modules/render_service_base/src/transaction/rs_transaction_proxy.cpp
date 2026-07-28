@@ -252,7 +252,7 @@ void RSTransactionProxy::CloseSyncTransaction()
 
 void RSTransactionProxy::StartCloseSyncTransactionFallbackTask(bool isOpen)
 {
-    std::unique_lock<std::mutex> cmdLock(mutex_);
+    std::unique_lock<std::mutex> lock(closeSyncFallBackMutex_);
     static uint32_t num = 0;
     const std::string name = "CloseSyncTransactionFallbackTask";
     const int timeOutDelay = 5000;
@@ -260,7 +260,7 @@ void RSTransactionProxy::StartCloseSyncTransactionFallbackTask(bool isOpen)
         num++;
         auto taskName = name + std::to_string(num);
         taskNames_.push(taskName);
-        auto task = [this]() {
+        auto task = [this, taskName]() {
             RS_TRACE_NAME("CloseSyncTransaction timeout");
             ROSEN_LOGE("CloseSyncTransaction timeout");
             auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -268,7 +268,8 @@ void RSTransactionProxy::StartCloseSyncTransactionFallbackTask(bool isOpen)
                 transactionProxy->CommitSyncTransaction();
                 transactionProxy->CloseSyncTransaction();
             }
-            if (!taskNames_.empty()) {
+            std::unique_lock<std::mutex> lock(closeSyncFallBackMutex_);
+            if (!taskNames_.empty() && taskNames_.front() == taskName) {
                 taskNames_.pop();
             }
         };

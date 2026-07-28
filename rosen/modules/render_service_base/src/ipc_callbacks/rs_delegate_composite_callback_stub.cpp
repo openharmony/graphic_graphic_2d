@@ -20,6 +20,7 @@ namespace OHOS {
 namespace Rosen {
 
 #ifndef ROSEN_CROSS_PLATFORM
+constexpr uint32_t MAX_DELEGATE_CALLBACK_PARCEL_SIZE = 1024;
 static void RsDelegateCompositeCallbackPrintLog(const std::string &log)
 {
     ROSEN_LOGE("DelegateModeDebugTag: %{public}s:%{public}s", __func__, log.c_str());
@@ -53,8 +54,11 @@ int32_t RSWebProxyComposerCallbackStub::OnRemoteRequest(uint32_t code, MessagePa
             }
 
             RS_OPTIONAL_TRACE_NAME_FMT(
-                "RSWebProxyComposerCallbackStub ON_COMPLETE:%llu, srcId=%llu, queueSize=%u",
-                time, srcId, size);
+                "RSWebProxyComposerCallbackStub ON_COMPLETE:%llu, srcId=%llu, queueSize=%u", time, srcId, size);
+            if (size > MAX_DELEGATE_CALLBACK_PARCEL_SIZE) {
+                RsDelegateCompositeCallbackPrintLog("RSWebProxyComposerCallbackStub fail: size exceed limit");
+                break;
+            }
             for (uint32_t i = 0; i < size; i++) {
                 if (!arguments.ReadUint64(seqNum)) {
                     RsDelegateCompositeCallbackPrintLog("read seqNum fail");
@@ -126,9 +130,13 @@ int32_t SurfaceNodeBufferReleaseCallbackStub::OnRemoteRequest(uint32_t code, Mes
                 break;
             }
             std::queue<OnCompletedRet> queue;
+            if (size > MAX_DELEGATE_CALLBACK_PARCEL_SIZE) {
+                RsDelegateCompositeCallbackPrintLog("SurfaceNodeBufferReleaseCallbackStub fail: size exceed limit");
+                break;
+            }
             for (uint32_t i = 0; i < size; i++) {
                 OnCompletedRet onCompletedRet;
-                if (!arguments.ReadUint64(onCompletedRet.nodeId) ||!arguments.ReadUint64(onCompletedRet.queueId) ||
+                if (!arguments.ReadUint64(onCompletedRet.nodeId) || !arguments.ReadUint64(onCompletedRet.queueId) ||
                     !arguments.ReadUint32(onCompletedRet.bufferSeqNum)) {
                     RsDelegateCompositeCallbackPrintLog("read onCompletedRet fail");
                     break;

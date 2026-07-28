@@ -35,18 +35,21 @@ sptr<RSScreenProperty> RSScreenThreadSafeProperty::Clone() const
 
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetId(ScreenId id)
 {
+    UniqueLock lock(propertyMutex_);
     auto prop = property_->Set<ScreenPropertyType::ID>(id);
     return { ScreenPropertyType::ID, prop };
 }
 
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetIsVirtual(bool isVirtual)
 {
+    UniqueLock lock(propertyMutex_);
     auto prop = property_->Set<ScreenPropertyType::IS_VIRTUAL>(isVirtual);
     return { ScreenPropertyType::IS_VIRTUAL, prop };
 }
 
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetName(const std::string& name)
 {
+    UniqueLock lock(propertyMutex_);
     auto prop = property_->Set<ScreenPropertyType::NAME>(name);
     return { ScreenPropertyType::NAME, prop };
 }
@@ -269,12 +272,14 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetPowerStatus(S
 
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenType(RSScreenType screenType)
 {
+    UniqueLock lock(propertyMutex_);
     auto prop = property_->Set<ScreenPropertyType::SCREEN_TYPE>(static_cast<uint32_t>(screenType));
     return { ScreenPropertyType::SCREEN_TYPE, prop };
 }
 
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetConnectionType(ScreenConnectionType connectionType)
 {
+    UniqueLock lock(propertyMutex_);
     auto prop = property_->Set<ScreenPropertyType::CONNECTION_TYPE>(static_cast<uint32_t>(connectionType));
     return { ScreenPropertyType::CONNECTION_TYPE, prop };
 }
@@ -302,6 +307,7 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetVirtualSecLay
 
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetIsHardCursorSupport(bool isHardCursorSupport)
 {
+    UniqueLock lock(propertyMutex_);
     auto prop = property_->Set<ScreenPropertyType::IS_HARD_CURSOR_SUPPORT>(isHardCursorSupport);
     return { ScreenPropertyType::IS_HARD_CURSOR_SUPPORT, prop };
 }
@@ -309,6 +315,7 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetIsHardCursorS
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSupportedColorGamuts(
     std::vector<ScreenColorGamut> colorGamuts)
 {
+    UniqueLock lock(propertyMutex_);
     auto prop = property_->Set<ScreenPropertyType::SUPPORTED_COLOR_GAMUTS>(colorGamuts);
     return { ScreenPropertyType::SUPPORTED_COLOR_GAMUTS, prop };
 }
@@ -389,16 +396,19 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetHdiRogEnable(
 
 ScreenId RSScreenThreadSafeProperty::GetId() const
 {
+    SharedLock lock(propertyMutex_);
     return property_->GetScreenId();
 }
 
 bool RSScreenThreadSafeProperty::IsVirtual() const
 {
+    SharedLock lock(propertyMutex_);
     return property_->IsVirtual();
 }
 
 std::string RSScreenThreadSafeProperty::Name() const
 {
+    SharedLock lock(propertyMutex_);
     return property_->Name();
 }
 
@@ -614,11 +624,13 @@ ScreenPowerStatus RSScreenThreadSafeProperty::GetPowerStatus() const
 
 RSScreenType RSScreenThreadSafeProperty::GetScreenType() const
 {
+    SharedLock lock(propertyMutex_);
     return property_->GetScreenType();
 }
 
 ScreenConnectionType RSScreenThreadSafeProperty::GetConnectionType() const
 {
+    SharedLock lock(propertyMutex_);
     return property_->GetConnectionType();
 }
 
@@ -642,11 +654,13 @@ int32_t RSScreenThreadSafeProperty::GetVirtualSecLayerOption() const
 
 bool RSScreenThreadSafeProperty::GetIsHardCursorSupport() const
 {
+    SharedLock lock(propertyMutex_);
     return property_->IsHardCursorSupport();
 }
 
 std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamuts() const
 {
+    SharedLock lock(propertyMutex_);
     return property_->GetScreenSupportedColorGamuts();
 }
 

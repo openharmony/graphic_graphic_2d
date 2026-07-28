@@ -93,6 +93,7 @@ ohos_shared_library("drawing_ani_core") {
     "runtime_core:ani",
     "runtime_core:libarkruntime",
     "napi:ace_napi",
+    "node:node_header_notice",
     "runtime_core:ani_helpers",
   ]
 
@@ -193,6 +194,7 @@ ohos_shared_library("drawing_ani") {
     "runtime_core:ani",
     "runtime_core:libarkruntime",
     "napi:ace_napi",
+    "node:node_header_notice",
     "runtime_core:ani_helpers",
   ]
 

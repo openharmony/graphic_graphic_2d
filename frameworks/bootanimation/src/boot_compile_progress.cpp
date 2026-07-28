@@ -214,6 +214,7 @@ bool BootCompileProgress::RegisterVsyncCallback()
     if (ret) {
         compileRunner_->Stop();
         LOGE("set vsync rate failed");
+        return false;
     }
 
     startTimeMs_ = GetSystemCurrentTime();
@@ -352,7 +353,10 @@ void BootCompileProgress::UpdateCompileProgress()
             return;
         }
         int64_t showTime = now - startTimeMs_;
-        int64_t halfTimeLimitSec_ = timeLimitSec_ * SEC_MS * HALF_PERCENT;
+        int64_t halfTimeLimitSec_ = static_cast<int64_t>(timeLimitSec_) * SEC_MS * HALF_PERCENT;
+        if (halfTimeLimitSec_ <= 0) {
+            return;
+        }
         if (showTime <= halfTimeLimitSec_) {
             progress_ = (int32_t)(showTime * NINETY_PERCENT / halfTimeLimitSec_);
         } else {

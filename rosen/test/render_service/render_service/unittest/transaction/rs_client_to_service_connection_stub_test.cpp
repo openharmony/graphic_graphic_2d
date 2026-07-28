@@ -186,7 +186,7 @@ public:
     }
 
     bool returnNullConnection_ = false;
-    bool IsValidRenderProcessPid(pid_t pid) const override { return false; }
+    sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
@@ -444,6 +444,24 @@ void RSClientToServiceConnectionStubTest::CreateComposerAdapterWithScreenInfo(ui
 
     sptr<RSClientToServiceConnection>::MakeSptr(
         0, nullptr, nullptr, nullptr, nullptr, renderService_.vsyncManager_->GetVsyncManagerAgent());
+}
+
+/**
+ * @tc.name: GetSurfaceRootNodeIdNullAgentTest001
+ * @tc.desc: Test GetSurfaceRootNodeId when renderProcessManagerAgent_ is nullptr (early-return branch).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetSurfaceRootNodeIdNullAgentTest001, TestSize.Level1)
+{
+    // renderProcessManagerAgent_ is nullptr -> GetSurfaceRootNodeId early-returns without crash.
+    auto conn = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, nullptr, nullptr, nullptr, nullptr, renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(conn, nullptr);
+    NodeId tmp = 1234;
+    NodeId windowNodeId = tmp;
+    conn->GetSurfaceRootNodeId(windowNodeId);
+    EXPECT_EQ(windowNodeId, tmp);
 }
 
 /**
@@ -4287,6 +4305,39 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRefreshRateMode, TestSize.Level
 }
 
 /**
+ * @tc.name: SetHgmExclusiveScreen
+ * @tc.desc: Test SetHgmExclusiveScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetHgmExclusiveScreen, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_HGM_EXCLUSIVE_SCREEN);
+
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    ScreenId screenId = 0;
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint64(screenId);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+
+    screenId = INVALID_SCREEN_ID;
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteUint64(screenId);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
  * @tc.name: SyncFrameRateRange001
  * @tc.desc: Test SyncFrameRateRange001
  * @tc.type: FUNC
@@ -5373,12 +5424,21 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level
     connection->renderProcessManagerAgent_ = nullptr;
     // test SetCacheEnabledForRotation
     connection->SetCacheEnabledForRotation(false);
-    // test GetActiveDirtyRegionInfo
+    // test func of infoCollection when renderProcessManagerAgent_ is nullptr
     connection->GetActiveDirtyRegionInfo();
+    connection->GetGlobalDirtyRegionInfo();
+    connection->GetLayerComposeInfo();
+    connection->GetHwcDisabledReasonInfo();
+    int64_t hdrOnDuration = 0;
+    connection->GetHdrOnDuration(hdrOnDuration);
     // test GetHdrOnDuration and SetVmaCacheStatus and SetCurtainScreenUsingStatus
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;
     ASSERT_NE(connection->renderProcessManagerAgent_, nullptr);
-    int64_t hdrOnDuration = 0;
+    // test func of infoCollection when renderProcessManagerAgent_ is not nullptr
+    connection->GetActiveDirtyRegionInfo();
+    connection->GetGlobalDirtyRegionInfo();
+    connection->GetLayerComposeInfo();
+    connection->GetHwcDisabledReasonInfo();
     connection->GetHdrOnDuration(hdrOnDuration);
     connection->SetVmaCacheStatus(false);
     connection->SetCurtainScreenUsingStatus(false);
@@ -5466,6 +5526,59 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase008, TestSize.Level
     // test GetPidGpuMemoryInMB
     float gpuMemInMB = 0.0;
     connection->GetPidGpuMemoryInMB(0, gpuMemInMB);
+}
+
+/**
+ * @tc.name: testnullptrCase009
+ * @tc.desc: Test testnullptrCase
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase009, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    auto renderProcessManagerAgent = connection->renderProcessManagerAgent_;
+    auto vsyncManagerAgent = connection->vsyncManagerAgent_;
+
+    connection->renderProcessManagerAgent_ = nullptr;
+    // test NotifyLightFactorStatus
+    connection->NotifyLightFactorStatus(0);
+    // test NotifyAppStrategyConfigChangeEvent
+    const std::string pkgName = "";
+    const std::vector<std::pair<std::string, std::string>> newConfig = {};
+    connection->NotifyAppStrategyConfigChangeEvent(pkgName, 0, newConfig);
+    // test NotifyRefreshRateEvent
+    EventInfo eventInfo;
+    connection->NotifyRefreshRateEvent(eventInfo);
+    // tese SetWindowExpectedRefreshRate
+    const std::unordered_map<uint64_t, EventInfo> eventInfos = {};
+    connection->SetWindowExpectedRefreshRate(eventInfos);
+    // test SetWindowExpectedRefreshRate
+    std::unordered_map<std::string, EventInfo> refreshRateEventInfos = {};
+    connection->SetWindowExpectedRefreshRate(refreshRateEventInfos);
+    // test NotifySoftVsyncRateDiscountEvent
+    connection->NotifySoftVsyncRateDiscountEvent(0, pkgName, 0);
+    // test NotifyTouchEvent
+    connection->vsyncManagerAgent_ = nullptr;
+    connection->NotifyTouchEvent(0, 0, 0);
+    connection->vsyncManagerAgent_ = vsyncManagerAgent;
+    // test NotifyDynamicModeEvent
+    connection->NotifyDynamicModeEvent(false);
+    // test NotifyHgmConfigEvent
+    connection->NotifyHgmConfigEvent(pkgName, false);
+    // test NotifyXComponentExpectedFrameRate
+    connection->NotifyXComponentExpectedFrameRate(pkgName, 0);
+    // test SetHgmExclusiveScreen
+    connection->SetHgmExclusiveScreen(std::nullopt);
+    connection->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
+    auto hgmContext = connection->hgmContext_;
+    connection->hgmContext_ = nullptr;
+    EXPECT_FALSE(connection->SetHgmExclusiveScreen(std::nullopt));
+    connection->hgmContext_ = hgmContext;
 }
 
 /**
@@ -6424,6 +6537,190 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_Success, TestSiz
     data.WriteString("key");
     data.WriteString("value");
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportEventResponse_PidValidation
+ * @tc.desc: Test ReportEventResponse with valid pid (callingPid == getpid())
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportEventResponse_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(getpid());
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteBool(false);
+    data.WriteString("sceneId");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportEventComplete_PidValidation
+ * @tc.desc: Test ReportEventComplete with valid pid (callingPid == getpid())
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportEventComplete_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(getpid());
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteBool(false);
+    data.WriteString("sceneId");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportEventJankFrame_PidValidation
+ * @tc.desc: Test ReportEventJankFrame with valid pid (callingPid == getpid())
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportEventJankFrame_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(getpid());
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteBool(false);
+    data.WriteString("sceneId");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankStart_PidValidation
+ * @tc.desc: Test ReportRsSceneJankStart with valid pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportRsSceneJankStart_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt32(getpid());
+    data.WriteString("");
+    data.WriteInt32(0);
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankStart_InvalidData
+ * @tc.desc: Test ReportRsSceneJankStart with invalid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportRsSceneJankStart_InvalidData, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankEnd_InvalidData
+ * @tc.desc: Test ReportRsSceneJankEnd with invalid data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportRsSceneJankEnd_InvalidData, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ReportRsSceneJankEnd_PidValidation
+ * @tc.desc: Test ReportRsSceneJankEnd with valid pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportRsSceneJankEnd_PidValidation, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt64(0);
+    data.WriteInt64(0);
+    data.WriteInt32(getpid());
+    data.WriteString("");
+    data.WriteInt32(0);
+    data.WriteString("");
+    data.WriteString("");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
 }

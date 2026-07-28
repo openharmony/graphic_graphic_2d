@@ -19,6 +19,8 @@
 #include "rs_composer_client.h"
 #include "rs_surface_layer.h"
 #include "rs_surface_solid_filled_color_layer.h"
+#include "rs_render_surface_rcd_layer.h"
+#include "rs_render_surface_solid_filled_color_layer.h"
 #include "surface_buffer_impl.h"
 
 using namespace testing;
@@ -5330,6 +5332,57 @@ HWTEST_F(HdiLayerTest, SetPerFrameLayerSolidFillParam_PrevNotNull_NotSolidFill_D
         .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     auto ret = hdiLayer_->SetPerFrameLayerSolidFillParam();
     ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SavePrevRSLayer_RCDLayer_CreatesRCDPrevLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rsLayer_ to RSRenderSurfaceRCDLayer, prevRSLayer_ to nullptr
+ *                  2. call SavePrevRSLayer()
+ *                  3. verify prevRSLayer_ is created as RSRenderSurfaceRCDLayer
+ *                   Cover branch: rsLayer_->IsScreenRCDLayer() is true (line 817 true)
+ */
+HWTEST_F(HdiLayerTest, SavePrevRSLayer_RCDLayer_CreatesRCDPrevLayer, Function | MediumTest | Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto rcdRsLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdRsLayer, nullptr);
+    hdiLayer_->rsLayer_ = rcdRsLayer;
+    hdiLayer_->prevRSLayer_ = nullptr;
+
+    hdiLayer_->SavePrevRSLayer();
+
+    ASSERT_NE(hdiLayer_->prevRSLayer_, nullptr);
+    EXPECT_TRUE(hdiLayer_->prevRSLayer_->IsScreenRCDLayer());
+    EXPECT_FALSE(hdiLayer_->prevRSLayer_->IsSolidFilledColorLayer());
+}
+
+/**
+ * Function: SavePrevRSLayer_SolidColorLayer_CreatesSolidColorPrevLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rsLayer_ to RSRenderSurfaceSolidFilledColorLayer, prevRSLayer_ to nullptr
+ *                  2. call SavePrevRSLayer()
+ *                  3. verify prevRSLayer_ is created as RSRenderSurfaceSolidFilledColorLayer
+ *                   Cover branch: rsLayer_->IsSolidFilledColorLayer() is true (line 819 true)
+ */
+HWTEST_F(HdiLayerTest, SavePrevRSLayer_SolidColorLayer_CreatesSolidColorPrevLayer,
+    Function | MediumTest | Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto solidColorRsLayer = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+    ASSERT_NE(solidColorRsLayer, nullptr);
+    hdiLayer_->rsLayer_ = solidColorRsLayer;
+    hdiLayer_->prevRSLayer_ = nullptr;
+
+    hdiLayer_->SavePrevRSLayer();
+
+    ASSERT_NE(hdiLayer_->prevRSLayer_, nullptr);
+    EXPECT_FALSE(hdiLayer_->prevRSLayer_->IsScreenRCDLayer());
+    EXPECT_TRUE(hdiLayer_->prevRSLayer_->IsSolidFilledColorLayer());
 }
 } // namespace
 } // namespace Rosen

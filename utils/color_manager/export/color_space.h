@@ -137,8 +137,16 @@ Matrix3x3 operator/(const Vector3& a, const Vector3& b);
 
 Matrix3x3 Invert(const Matrix3x3& src);
 
+inline bool FloatNearlyEqualZero(const float num)
+{
+    return fabs(num) < FLT_EPSILON;
+}
+
 inline Vector3 XYZ(const Vector3& xyY)
 {
+    if (FloatNearlyEqualZero(xyY[1])) {
+        return {};
+    }
     return Vector3 {(xyY[0] * xyY[2]) / xyY[1], xyY[2],
         ((1 - xyY[0] - xyY[1]) * xyY[2]) / xyY[1]};
 }
@@ -153,15 +161,13 @@ inline bool FloatNearlyEqual(float a, float b)
     return std::abs(a - b) < FLT_EPSILON;
 }
 
-inline bool FloatNearlyEqualZero(const float num)
-{
-    return fabs(num) < FLT_EPSILON;
-}
-
 inline std::array<float, DIMES_2> ComputeWhitePoint(Matrix3x3 &toXYZ)
 {
     Vector3 w = toXYZ * Vector3 {1.0f};
     float sumW = w[0] + w[1] + w[2];
+    if (FloatNearlyEqualZero(sumW)) {
+        return ILLUMINANT_D50_XY;
+    }
     return {{w[0] / sumW, w[1] / sumW}};
 }
 

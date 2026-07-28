@@ -90,6 +90,7 @@ public:
     bool PreAllocateProtectedBuffer(int32_t width, int32_t height);
 
     void MarkAsHpaeSurface();
+    void ClearHpaeBuffer();
     void PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC);
 
     void OnFlushBuffer();

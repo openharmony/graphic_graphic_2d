@@ -189,6 +189,7 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     pendingPostNodes_.erase(nodePtr->GetId());
     pendingPostCardNodes_.erase(nodePtr->GetId());
     nodePtr->SetUifirstStartingWindowId(INVALID_NODEID);
+    RemoveFirstFrameCacheGeneratedNode(nodePtr->GetId());
     if (SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE)) {
         // enable ->disable
         SetNodeNeedForceUpdateFlag(true);
@@ -219,6 +220,7 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     } else {
         nodePtr->SetIsNodeToBeCaptured(false);
         rsSubThreadCache.ResetUifirst();
+        rsSubThreadCache.ResetWindowCache();
     }
     rsSubThreadCache.ResetCacheReuseCount();
 }
@@ -1243,8 +1245,7 @@ void RSUifirstManager::SetNodePriority(std::list<NodeId>& result, PendingPostNod
                 focusNodeThreadIndex_ = rsSubThreadCache.GetLastFrameUsedThreadIndex();
             }
         }
-        if (RSSystemProperties::GetUIFirstOptScheduleEnabled() &&
-            rsSubThreadCache.GetSurfaceSkipCount() >= UIFIRST_TASKSKIP_PRIO_THRESHOLD) {
+        if (rsSubThreadCache.GetSurfaceSkipCount() >= UIFIRST_TASKSKIP_PRIO_THRESHOLD) {
             postOrder += rsSubThreadCache.GetSurfaceSkipPriority();
         }
         rsSubThreadCache.SetUifirstPostOrder(postOrder);
@@ -1293,9 +1294,6 @@ void RSUifirstManager::SortSubThreadNodesPriority()
 
 void RSUifirstManager::MarkPostNodesPriority()
 {
-    if (!RSSystemProperties::GetUIFirstOptScheduleEnabled()) {
-        return;
-    }
     int postTaskCount = 0;
     for (auto& id : sortedSubThreadNodeIds_) {
         auto drawable = GetSurfaceDrawableByID(id);

@@ -188,6 +188,9 @@ public:
     bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const;
     void DumpCommand(std::string& dumpString);
 
+    void SetCallingPid(pid_t pid) { callingPid_ = pid; }
+    pid_t GetCallingPid() const { return callingPid_; }
+
     void SetDVSyncUpdate(bool dvsyncTimeUpdate)
     {
         dvsyncTimeUpdate_ = dvsyncTimeUpdate;
@@ -261,6 +264,7 @@ private:
     uint64_t dvsyncTime_ = 0;
     bool isRebuildTransactionSequence_ { false };
     RSTransactionDataScenes scene_ = RSTransactionDataScenes::Default;
+    pid_t callingPid_ = -1;
 
     friend class RSTransactionProxy;
     friend class RSTransactionHandler;

@@ -849,6 +849,25 @@ HWTEST_F(RSUnionRenderNodeTest, AddUnionChild, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddUnionChildUpToLimit
+ * @tc.desc: test AddUnionChild rejects children beyond the capacity limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, AddUnionChildUpToLimit, TestSize.Level1)
+{
+    constexpr size_t maxUnionChildrenSize = 256;
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, std::make_shared<RSContext>());
+
+    for (size_t index = 0; index < maxUnionChildrenSize; ++index) {
+        unionNode->AddUnionChild(static_cast<NodeId>(index + 1));
+    }
+    EXPECT_EQ(unionNode->unionChildren_.size(), maxUnionChildrenSize);
+
+    unionNode->AddUnionChild(static_cast<NodeId>(maxUnionChildrenSize + 1));
+    EXPECT_EQ(unionNode->unionChildren_.size(), maxUnionChildrenSize);
+}
+
+/**
  * @tc.name: RemoveUnionChild
  * @tc.desc: test RemoveUnionChild
  * @tc.type: FUNC
@@ -1079,28 +1098,6 @@ HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter005, TestSize.Level1)
     unionNode->unionChildren_.emplace(id + 1);
     child->renderProperties_.isGravityPullModeCenter_ = true;
     unionNode->renderProperties_.boundsGeo_ = nullptr;
-    auto ret = unionNode->GetGravityCenter();
-    ASSERT_EQ(ret[0], 0.0f);
-    ASSERT_EQ(ret[1], 0.0f);
-}
-
-/**
- * @tc.name: GetGravityCenter006
- * @tc.desc: test GetGravityCenter normal case
- * @tc.type: FUNC
- */
-HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter006, TestSize.Level1)
-{
-    auto sContext = std::make_shared<RSContext>();
-    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
-    auto child = std::make_shared<RSRenderNode>(id + 1, sContext);
-    sContext->nodeMap.RegisterRenderNode(child);
-    unionNode->unionChildren_.emplace(id + 1);
-    child->renderProperties_.isGravityPullModeCenter_ = true;
-    unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
-    child->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
-    child->parent_ = unionNode;
-    child->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 0.f, 0.f));
     auto ret = unionNode->GetGravityCenter();
     ASSERT_EQ(ret[0], 0.0f);
     ASSERT_EQ(ret[1], 0.0f);

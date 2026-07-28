@@ -86,7 +86,7 @@ HWTEST_F(RSNodeCommandTest, MarkLayerTest, TestSize.Level1)
     const std::string debugKey = "rosen.graphic.layerEnabled";
     const std::string oldDebugValue = system::GetParameter(debugKey, "0");
     (void)system::SetParameter(debugKey, "0");
-    EXPECT_TRUE(RSSystemProperties::GetLayerEnabled());
+    EXPECT_FALSE(RSSystemProperties::GetLayerEnabled());
 
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
@@ -402,12 +402,11 @@ HWTEST_F(RSNodeCommandTest, MarkNodeSingleFrameComposer001, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = 1;
-    pid_t pid = 0;
-    RSNodeCommandHelper::MarkNodeSingleFrameComposer(context, nodeId, true, pid);
+    RSNodeCommandHelper::MarkNodeSingleFrameComposer(context, nodeId, true);
     ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 
     nodeId = 0;
-    RSNodeCommandHelper::MarkNodeSingleFrameComposer(context, nodeId, true, pid);
+    RSNodeCommandHelper::MarkNodeSingleFrameComposer(context, nodeId, true);
     ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
 

@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_FRAME_STABILITY_TYPES_H
 
 #include <cstdint>
+#include "common/rs_common_def.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,6 +55,20 @@ struct FrameStabilityTarget {
     uint64_t id = 0;
     FrameStabilityTargetType type = FrameStabilityTargetType::SCREEN;
 };
+
+inline bool IsValidFrameStabilityTargetType(uint32_t typeValue)
+{
+    return typeValue >= static_cast<uint32_t>(FrameStabilityTargetType::SCREEN) &&
+           typeValue <= static_cast<uint32_t>(FrameStabilityTargetType::WINDOW);
+}
+
+inline bool IsValidFrameStabilityConfig(const FrameStabilityConfig& config)
+{
+    return config.stableDuration >= MIN_STABLE_DURATION &&
+           config.stableDuration <= MAX_STABLE_DURATION &&
+           ROSEN_GE(config.changePercent, MIN_CHANGE_PERCENT) &&
+           ROSEN_LE(config.changePercent, MAX_CHANGE_PERCENT);
+}
 } // namespace namespace Rosen
 } // namespace OHOS
 

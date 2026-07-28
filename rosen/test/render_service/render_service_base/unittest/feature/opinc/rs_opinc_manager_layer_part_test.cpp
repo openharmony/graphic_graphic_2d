@@ -915,4 +915,39 @@ HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNodeEmptyWhiteLi
     // Verify that opincCache is not marked
     ASSERT_FALSE(surfaceNode->GetLayerPartRenderCache().IsLayerPartRender());
 }
+
+/**
+ * @tc.name: MarkSuggestLayerPartRenderNodeAutoSetStrategyTypeTrue
+ * @tc.desc: Verify MarkSuggestLayerPartRenderNode(true) auto sets strategy to NODE_GROUP
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNodeAutoSetStrategyTypeTrue, TestSize.Level1)
+{
+    auto node = CreateCanvasNode(DEFAULT_NODE_ID);
+    auto& layerPartRenderCache = node->GetLayerPartRenderCache();
+
+    layerPartRenderCache.MarkSuggestLayerPartRenderNode(true);
+
+    ASSERT_TRUE(layerPartRenderCache.IsSuggestLayerPartRenderNode());
+    ASSERT_EQ(layerPartRenderCache.GetLayerPartRenderNodeStrategyType(), NodeStrategyType::NODE_GROUP);
+}
+
+/**
+ * @tc.name: MarkSuggestLayerPartRenderNodeAutoSetStrategyTypeFalse
+ * @tc.desc: Verify MarkSuggestLayerPartRenderNode(false) auto sets strategy to CACHE_DISABLE
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNodeAutoSetStrategyTypeFalse, TestSize.Level1)
+{
+    auto node = CreateCanvasNode(SECOND_NODE_ID);
+    auto& layerPartRenderCache = node->GetLayerPartRenderCache();
+    layerPartRenderCache.SetLayerPartRenderNodeStrategyType(NodeStrategyType::NODE_GROUP);
+
+    layerPartRenderCache.MarkSuggestLayerPartRenderNode(false);
+
+    ASSERT_FALSE(layerPartRenderCache.IsSuggestLayerPartRenderNode());
+    ASSERT_EQ(layerPartRenderCache.GetLayerPartRenderNodeStrategyType(), NodeStrategyType::CACHE_DISABLE);
+}
 } // namespace OHOS::Rosen

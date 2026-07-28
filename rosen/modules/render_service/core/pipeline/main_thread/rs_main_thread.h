@@ -76,6 +76,7 @@ class RSTunnelLayerStateHandler;
 class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
+class RSVirtualScreenParallelManager;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -143,7 +144,6 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
-    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect);
 
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
@@ -204,6 +204,8 @@ public:
     {
         return uiMode_;
     }
+
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect);
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
@@ -340,6 +342,7 @@ public:
 
     bool IsPCThreeFingerScenesListScene() const
     {
+        std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
         return !threeFingerScenesList_.empty();
     }
 
@@ -510,6 +513,10 @@ public:
     std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
     void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
 
+    std::shared_ptr<RSVirtualScreenParallelManager> GetVirtualScreenParallelManager() const
+    {
+        return virtualScreenParallelManager_;
+    }
     // for rebuild transaction
     bool IsRebuildTransactionInProgress() const; // any pid currently rebuilding
     bool IsPidRebuilding(pid_t pid) const;       // the given pid has pending rebuild transactions
@@ -866,7 +873,7 @@ private:
     // for surface occlusion change callback
     std::mutex surfaceOcclusionMutex_;
     std::vector<NodeId> lastRegisteredSurfaceOnTree_;
-    std::mutex systemAnimatedScenesMutex_;
+    mutable std::mutex systemAnimatedScenesMutex_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> systemAnimatedScenesList_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> threeFingerScenesList_;
     std::unordered_map<NodeId, // map<node ID, <pid, callback, partition points vector, level>>
@@ -933,6 +940,7 @@ private:
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
     std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
 
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
     // for rebuild transaction
     // Per-pid rebuild state: each pid owns its own queue and total-time start point,
     // so concurrent rebuilds of different pids do not interfere with each other.

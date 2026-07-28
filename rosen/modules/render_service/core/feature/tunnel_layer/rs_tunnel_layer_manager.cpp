@@ -62,48 +62,6 @@ RSTunnelLayerManager::RSTunnelLayerManager(std::shared_ptr<RSContext> context)
     : context_(context)
 {}
 
-void RSTunnelLayerManager::TransferTunnelPendingBufferToNormalConsume(
-    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
-{
-    if (surfaceNode == nullptr) {
-        return;
-    }
-
-    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
-    if (surfaceHandler == nullptr) {
-        return;
-    }
-    if (!Rosen::IsNewTunnelEnabled()) {
-        return;
-    }
-    auto consumer = surfaceHandler->GetConsumer();
-    if (consumer == nullptr) {
-        return;
-    }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
-
-    if (surfaceHandler->GetHoldBuffer() != nullptr || surfaceHandler->GetHoldReturnValue() != nullptr) {
-        if (tunnelRuntime.HasPendingBuffer()) {
-            surfaceHandler->SetAvailableBufferCount(std::max(surfaceHandler->GetAvailableBufferCount(), 1));
-        }
-        return;
-    }
-
-    RSSurfaceHandler::SurfaceBufferEntry pendingBuffer;
-    if (!tunnelRuntime.TakePendingBuffer(pendingBuffer)) {
-        return;
-    }
-
-    surfaceHandler->SetHoldBuffer(std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>(pendingBuffer));
-    consumer->SetBufferHold(true);
-    int32_t availableCount = static_cast<int32_t>(consumer->GetAvailableBufferCount());
-    surfaceHandler->SetAvailableBufferCount(availableCount > 0 ? availableCount : 1);
-    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s transfer pending to RS normal, bufferId=%" PRIu64,
-        __func__, pendingBuffer.buffer->GetBufferId());
-    RS_LOGD("%{public}s%{public}s transfer pending buffer to RS normal, bufferId:%{public}" PRIu64,
-        TUNNEL_DEBUG_PREFIX, __func__, pendingBuffer.buffer->GetBufferId());
-}
-
 void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
     const std::shared_ptr<RSComposerClientManager>& clientManager) const
@@ -111,12 +69,17 @@ void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     if (surfaceNode == nullptr) {
         return;
     }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
-    if (tunnelRuntime.GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    if (surfaceHandler == nullptr || !surfaceHandler->HasReceivedTunnelLayerInfo()) {
         return;
     }
-    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
-    if (surfaceHandler == nullptr) {
+    // TryGet (no create): non-tunnel surfaces never enter the store, and LPP surfaces are gated out by
+    // the HasReceivedTunnelLayerInfo check above since they set layer info via HandleLppTunnelLayerId
+    // rather than OnTunnelLayerInfoChanged. This avoids the per-frame store mutex + entry creation
+    // for the common case of ordinary surfaces going through the normal consume path every frame.
+    auto* tunnelRuntime = RSTunnelRuntimeStore::TryGet(surfaceNode->GetId());
+    if (tunnelRuntime == nullptr ||
+        tunnelRuntime->GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
         return;
     }
     auto buffer = surfaceHandler->GetBuffer();
@@ -125,7 +88,7 @@ void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     if (buffer == nullptr || bufferOwnerCount == nullptr || consumer == nullptr) {
         return;
     }
-    if (!tunnelRuntime.IsCommittedTunnelBuffer()) {
+    if (!tunnelRuntime->IsCommittedTunnelBuffer()) {
         return;
     }
     if (clientManager) {
@@ -134,7 +97,7 @@ void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     RSUniRenderThread::Instance().ReplacePendingReleaseBufferFence(
         consumer, buffer, SyncFence::InvalidFence(), bufferOwnerCount);
     surfaceHandler->SetCurrentFrameBufferConsumed();
-    tunnelRuntime.ClearCommittedTunnelBuffer();
+    tunnelRuntime->ClearCommittedTunnelBuffer();
 }
 
 void RSTunnelLayerManager::ClearRuntimeStateByPid(pid_t remotePid)
@@ -172,7 +135,11 @@ void RSTunnelLayerManager::UpdateTunnelLayerState(
         return;
     }
 
-    if (!Rosen::IsNewTunnelEnabled() && !surfaceHandler->IsCurrentFrameBufferConsumed()) {
+    if (!surfaceHandler->HasReceivedTunnelLayerInfo()) {
+        return;
+    }
+
+    if (!Rosen::IsNewTunnelEnabled() || !surfaceHandler->IsCurrentFrameBufferConsumed()) {
         return;
     }
     uint64_t cachedTunnelLayerId = 0;

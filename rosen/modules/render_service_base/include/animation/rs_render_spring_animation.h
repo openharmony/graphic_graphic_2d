@@ -31,7 +31,8 @@ public:
 
     void DumpAnimationInfo(std::string& out) const override;
     void SetSpringParameters(float response, float dampingRatio, float blendDuration = 0.0f,
-        float minimumAmplitudeRatio = SPRING_MIN_AMPLITUDE_RATIO);
+        float minimumAmplitudeRatio = SPRING_MIN_AMPLITUDE_RATIO,
+        std::optional<ConvergeParams> convergeParams = std::nullopt);
     void SetZeroThreshold(float zeroThreshold);
     void SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& velocity);
     void InheritSpringAnimation(const std::shared_ptr<RSRenderAnimation>& prevAnimation, bool isCustom = false);
@@ -87,6 +88,8 @@ private:
 
     // used to determine whether the animation is near finish
     float zeroThreshold_ = 0.0f;
+
+    std::optional<ConvergeParams> convergeParams_ { std::nullopt };
 
     friend class RSSpringAnimation;
 };

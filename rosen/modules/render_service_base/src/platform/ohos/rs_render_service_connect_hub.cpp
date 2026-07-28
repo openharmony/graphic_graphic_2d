@@ -97,6 +97,7 @@ void RSRenderServiceConnectHub::ExecuteAndClearDiedCallbacks()
 
 RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (UNLIKELY(!renderService_)) {
         ROSEN_LOGE(
             "~RSRenderServiceConnectHub Remove connection token and deathRecipient_ failed, renderService_ is null");

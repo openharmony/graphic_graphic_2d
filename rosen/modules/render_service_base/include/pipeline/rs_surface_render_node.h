@@ -747,7 +747,6 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer);
-    void UpdateVirtualScreenWhiteListInfo(const std::unordered_set<ScreenId>& screenIds);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const
@@ -1546,7 +1545,9 @@ public:
         return isForeground_;
     }
     bool GetNodeIsSingleFrameComposer() const override;
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) override;
+
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
+
     std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const override
     {
         if (!singleFrameComposer_) {

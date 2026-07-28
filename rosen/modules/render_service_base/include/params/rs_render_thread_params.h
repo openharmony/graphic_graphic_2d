@@ -30,6 +30,8 @@
 #include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
+class RSBaseRenderEngine;
+class RSVirtualScreenParallelManager;
 class RSProcessor;
 class RSSLRScaleFunction;
 struct CaptureParam {
@@ -532,24 +534,14 @@ public:
         return isSecurityExemption_;
     }
 
-    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect)
+    ScreenSpecialLayerParam& GetMutableScreenSpecialLayerParam()
     {
-        for (auto screenId : screenIds) {
-            whiteListRect_[screenId].push_back(rect);
-        }
+        return screenSpecialLayerParam_;
     }
 
-    std::vector<Drawing::Rect> GetWhiteListRectByScreenId(ScreenId screenId) const
+    const ScreenSpecialLayerParam& GetScreenSpecialLayerParam() const
     {
-        if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
-            return iter->second;
-        }
-        return {};
-    }
-
-    void ClearWhiteListRect()
-    {
-        whiteListRect_.clear();
+        return screenSpecialLayerParam_;
     }
 
     bool IsOverDrawEnabled() const
@@ -705,6 +697,26 @@ public:
         return isDrawRelated_;
     }
 
+    void SetVirtualScreenParallelManager(std::shared_ptr<RSVirtualScreenParallelManager> manager)
+    {
+        virtualScreenParallelManager_ = manager;
+    }
+
+    std::shared_ptr<RSVirtualScreenParallelManager> GetVirtualScreenParallelManager() const
+    {
+        return virtualScreenParallelManager_;
+    }
+
+    void SetCollectedVirtualScreenNodeIds(std::unordered_set<NodeId> nodeIds)
+    {
+        collectedVirtualScreenNodeIds_ = std::move(nodeIds);
+    }
+
+    const std::unordered_set<NodeId>& GetCollectedVirtualScreenNodeIds() const
+    {
+        return collectedVirtualScreenNodeIds_;
+    }
+
 private:
     bool virtualDirtyRefresh_ = false;
     // Used by hardware thred
@@ -788,7 +800,7 @@ private:
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
-    std::map<ScreenId, std::vector<Drawing::Rect>> whiteListRect_;
+    ScreenSpecialLayerParam screenSpecialLayerParam_;
     bool isSecurityExemption_ = false;
     // use to mark security display
     bool isSecurityDisplay_ = false;
@@ -800,6 +812,8 @@ private:
     NodeId cachedSurfaceNodeId_{0};
 #endif
     bool isDrawRelated_ = false;
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
+    std::unordered_set<NodeId> collectedVirtualScreenNodeIds_;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

@@ -1309,21 +1309,21 @@ HWTEST_F(RSJankStatsTest, UpdateJankFrameTestWithJankHistogram, TestSize.Level1)
     jankFrames.jankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
     rsJankStats->rtLastEndTimeSteady_ = 0;
     rsJankStats->UpdateJankFrame(jankFrames, false, 60);
-    EXPECT_EQ(jankFrames.jankCount_[0], 1);
+    EXPECT_EQ(jankFrames.jankCount_[7], 1);
 
     jankFrames.isFirstFrame_ = false;
     jankFrames.jankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
     rsJankStats->rtLastEndTimeSteady_ = 0;
     rsJankStats->rtEndTimeSteady_ = 600;
     rsJankStats->UpdateJankFrame(jankFrames, false, 60);
-    EXPECT_EQ(jankFrames.jankCount_[1], 1);
+    EXPECT_EQ(jankFrames.jankCount_[7], 1);
 
     jankFrames.isFirstFrame_ = false;
     jankFrames.jankCount_ = {0, 0, 0, 0, 0, 0, 0, 0};
     rsJankStats->rtLastEndTimeSteady_ = 0;
     rsJankStats->rtEndTimeSteady_ = 1100;
     rsJankStats->UpdateJankFrame(jankFrames, false, 60);
-    EXPECT_EQ(jankFrames.jankCount_[4], 1);
+    EXPECT_EQ(jankFrames.jankCount_[7], 1);
 }
 } // namespace Rosen
 } // namespace OHOS
