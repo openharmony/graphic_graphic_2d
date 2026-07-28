@@ -288,7 +288,7 @@ void RSImageDetailEnhancerThread::ExecuteTaskAsync(const Drawing::Rect& dst,
     int srcWidth = image->GetWidth();
     int srcHeight = image->GetHeight();
     float scaleRatio = static_cast<float>(dstWidth) / static_cast<float>(srcWidth);
-    if (scaleRatio > slrParams_.rangeParams.back().rangeMax) {
+    if (!slrParams_.rangeParams.empty() && scaleRatio > slrParams_.rangeParams.back().rangeMax) {
         dstImage = ScaleByAAE(dstSurfaceBuffer, image);
     }
     if (dstImage == nullptr) {
@@ -683,7 +683,11 @@ sptr<SurfaceBuffer> DetailEnhancerUtils::CreateSurfaceBuffer(const std::shared_p
         .timeout = 0,
         .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
     };
-    surfaceBuffer->Alloc(bufConfig);
+    GSError allocRect = surfaceBuffer->Alloc(bufConfig);
+    if (allocRect != GSERROR_OK) {
+        RS_LOGE("DetailEnhancerUtils dst buffer alloc failed");
+        return nullptr;
+    }
 #ifndef ROSEN_CROSS_PLATFORM
     auto srcSurfaceBuffer = static_cast<SurfaceBuffer*>(pixelMap->GetFd());
     if (srcSurfaceBuffer == nullptr) {
