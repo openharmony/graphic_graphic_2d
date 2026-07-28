@@ -7492,6 +7492,31 @@ HWTEST_F(RSMainThreadTest, AddSplitTransaction001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddSplitTransaction002
+ * @tc.desc: Test AddSplitTransaction uses trusted callingPid (not forgeable sendingPid) as map key
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddSplitTransaction002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t callingPid = 2100;
+    constexpr pid_t sendingPid = 2200;
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetCallingPid(callingPid);
+    txn->SetSendingPid(sendingPid);
+    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(txn));
+    EXPECT_TRUE(mainThread->IsPidRebuilding(callingPid));
+    EXPECT_FALSE(mainThread->IsPidRebuilding(sendingPid));
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
  * @tc.name: ProcessSplitTransactionCommands001
  * @tc.desc: Test ProcessSplitTransactionCommands early-returns when map is empty
  * @tc.type: FUNC
@@ -7741,6 +7766,37 @@ HWTEST_F(RSMainThreadTest, ProcessRSTransactionData003, TestSize.Level1)
     auto normalTxn = MakeNormalTransactionForTest(pidA);
     mainThread->ProcessRSTransactionData(normalTxn, pidA);
     EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+}
+
+/**
+ * @tc.name: ProcessRSTransactionData004
+ * @tc.desc: Test rebuild deferral uses trusted callingPid, not the untrusted pid param (from sendingPid)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessRSTransactionData004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t callingPid = 2300;
+    constexpr pid_t sendingPid = 2400;
+    auto rebuildTxn = std::make_unique<RSTransactionData>();
+    rebuildTxn->SetCallingPid(callingPid);
+    rebuildTxn->SetSendingPid(sendingPid);
+    rebuildTxn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(rebuildTxn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(callingPid));
+    auto normalTxn = std::make_unique<RSTransactionData>();
+    normalTxn->SetCallingPid(callingPid);
+    normalTxn->SetSendingPid(sendingPid);
+    mainThread->ProcessRSTransactionData(normalTxn, sendingPid);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(callingPid), 1u);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_[callingPid].size(), 1u);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(sendingPid), 0u);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
 }
 
 /**
