@@ -177,7 +177,7 @@ void RSVirtualScreenParallelManager::CleanupThreadResources(ScreenId screenId)
     RS_TRACE_NAME_FMT("%s screenId: %" PRIu64, __func__, screenId);
     RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId);
     std::shared_ptr<ffrt::queue> ffrtThread = nullptr;
-    int32_t tid;
+    int32_t tid = 0;
     {
         std::unique_lock<ffrt::mutex> lock(taskMutex_);
         constexpr auto timeoutMs = std::chrono::milliseconds(VIRTUAL_SCREEN_TASK_WAIT_TIMEOUT_MS);

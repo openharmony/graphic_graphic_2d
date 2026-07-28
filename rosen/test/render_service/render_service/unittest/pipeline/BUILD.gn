@@ -758,6 +758,7 @@ ohos_unittest("RSUniRenderUtilTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
+    "ffrt:libffrt",
     "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
