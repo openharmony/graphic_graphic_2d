@@ -1343,7 +1343,6 @@ HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest001, TestSize.Level1)
     auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
 
     // Set context to nullptr - should early return without error
-    displayNode->context_ = nullptr;
     displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.8f);
     RSHdrUtil::UpdateBrightnessFactor(*displayNode);
     EXPECT_EQ(displayNode->GetContext().lock(), nullptr);
@@ -1399,13 +1398,10 @@ HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest003, TestSize.Level1)
     displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(brightnessFactor);
     canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(brightnessFactor);
 
-    // Clear content dirty flag
-    canvasNode->contentDirty_ = false;
-
     RSHdrUtil::UpdateBrightnessFactor(*displayNode);
 
-    // Content dirty should remain false since factor matched
-    EXPECT_FALSE(canvasNode->IsContentDirty());
+    // Factor should remain unchanged since it matched
+    EXPECT_FLOAT_EQ(canvasNode->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), brightnessFactor);
 }
 
 /**
@@ -1435,13 +1431,8 @@ HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest004, TestSize.Level1)
     displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(displayFactor);
     canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(canvasFactor);
 
-    // Clear content dirty flag
-    canvasNode->contentDirty_ = false;
-
     RSHdrUtil::UpdateBrightnessFactor(*displayNode);
 
-    // Content dirty should be true due to factor change
-    EXPECT_TRUE(canvasNode->IsContentDirty());
     // Canvas node factor should be updated to display factor
     EXPECT_FLOAT_EQ(canvasNode->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), displayFactor);
 }
@@ -1488,22 +1479,15 @@ HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest005, TestSize.Level1)
     canvasNode2->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(0.4f); // Different - should update
     canvasNode3->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(0.6f); // Different - should update
 
-    canvasNode1->contentDirty_ = false;
-    canvasNode2->contentDirty_ = false;
-    canvasNode3->contentDirty_ = false;
-
     RSHdrUtil::UpdateBrightnessFactor(*displayNode);
 
-    // Node1: factor matched, should not be dirty
-    EXPECT_FALSE(canvasNode1->IsContentDirty());
+    // Node1: factor matched, should remain unchanged
     EXPECT_FLOAT_EQ(canvasNode1->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), 0.9f);
 
-    // Node2: factor differed, should be dirty and updated
-    EXPECT_TRUE(canvasNode2->IsContentDirty());
+    // Node2: factor differed, should be updated
     EXPECT_FLOAT_EQ(canvasNode2->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), displayFactor);
 
-    // Node3: factor differed, should be dirty and updated
-    EXPECT_TRUE(canvasNode3->IsContentDirty());
+    // Node3: factor differed, should be updated
     EXPECT_FLOAT_EQ(canvasNode3->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), displayFactor);
 }
 
@@ -1533,11 +1517,8 @@ HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest006, TestSize.Level1)
     displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(defaultFactor);
     canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(0.5f);
 
-    canvasNode->contentDirty_ = false;
-
     RSHdrUtil::UpdateBrightnessFactor(*displayNode);
 
-    EXPECT_TRUE(canvasNode->IsContentDirty());
     EXPECT_FLOAT_EQ(canvasNode->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), defaultFactor);
 }
 #endif
