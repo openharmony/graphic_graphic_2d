@@ -505,7 +505,7 @@ bool RSCoverageNGShaderDrawable::OnUpdate(const RSRenderNode& node)
         return true;
     }
     stagingLightSourcesAndPosVec_.reserve(lightSourcesAndPosMap.size());
-    for (auto& [lightSourcePtr, pos] : lightSourcesAndPosMap) {	 
+    for (auto& [lightSourcePtr, pos] : lightSourcesAndPosMap) {
         stagingLightSourcesAndPosVec_.emplace_back(std::move(*lightSourcePtr), std::move(pos));
     }
     stagingIlluminatedType_ = illuminatedPtr->GetIlluminatedType();
