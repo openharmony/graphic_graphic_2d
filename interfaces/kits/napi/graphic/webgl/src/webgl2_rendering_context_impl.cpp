@@ -34,6 +34,10 @@
 namespace OHOS {
 namespace Rosen {
 namespace Impl {
+namespace {
+constexpr size_t ATTRIB_I4_COMPONENT_COUNT = 4;
+constexpr GLint SINGLE_SLICE_DEPTH = 1;
+} // namespace
 using namespace std;
 constexpr size_t MAX_UNIFORM_COUNT = 65536;
 void WebGL2RenderingContextImpl::Init()
@@ -840,6 +844,11 @@ napi_value WebGL2RenderingContextImpl::TexSubImage3D(napi_env env, const TexSubI
 {
     TexSubImage3DArg imgArg(arg);
     imgArg.Dump("WebGL2 texSubImage3D source");
+    if (imgArg.depth > SINGLE_SLICE_DEPTH) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION,
+            "TexImageSource upload does not support multiple depth slices");
+        return NVal::CreateNull(env).val_;
+    }
     GLvoid* data = nullptr;
     WebGLImageSource imageSource(env, version_, unpackFlipY_, unpackPremultiplyAlpha_);
     if (!NVal(env, source).IsNull()) {
@@ -852,7 +861,6 @@ napi_value WebGL2RenderingContextImpl::TexSubImage3D(napi_env env, const TexSubI
         data = imageSource.GetImageSourceData();
         imgArg.width = imageSource.GetWidth();
         imgArg.height = imageSource.GetHeight();
-        imgArg.depth = 1;
     } else {
         SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
@@ -1235,8 +1243,7 @@ napi_value WebGL2RenderingContextImpl::VertexAttribI4iv(napi_env env, GLuint ind
         LOGE("WebGL vertexAttribI4iv invalid data type %{public}u", bufferData.GetBufferDataType());
         return NVal::CreateNull(env).val_;
     }
-    constexpr size_t attribI4ComponentCount = 4;
-    if (bufferData.GetBufferLength() < attribI4ComponentCount * sizeof(GLint)) {
+    if (bufferData.GetBufferLength() < ATTRIB_I4_COMPONENT_COUNT * sizeof(GLint)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer too small, need >=4 elements");
         return NVal::CreateNull(env).val_;
     }
@@ -1263,8 +1270,7 @@ napi_value WebGL2RenderingContextImpl::VertexAttribI4uiv(napi_env env, GLuint in
         LOGE("WebGL2 vertexAttribI4uiv invalid data type %{public}d", bufferData.GetBufferDataType());
         return NVal::CreateNull(env).val_;
     }
-    constexpr size_t attribI4ComponentCount = 4;
-    if (bufferData.GetBufferLength() < attribI4ComponentCount * sizeof(GLuint)) {
+    if (bufferData.GetBufferLength() < ATTRIB_I4_COMPONENT_COUNT * sizeof(GLuint)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer too small, need >=4 elements");
         return NVal::CreateNull(env).val_;
     }
