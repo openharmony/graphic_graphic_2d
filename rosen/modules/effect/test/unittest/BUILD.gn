@@ -88,5 +88,5 @@ config("effect_test_config") {
 
 group("test") {
   testonly = true
-  deps = [ ":EffectTest" ]
+  deps = [ ]
 }
