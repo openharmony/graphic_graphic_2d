@@ -43,6 +43,7 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSUniHwcVisitor;
 class RSOcclusionHandler;
+class RSVirtualScreenParallelManager;
 class RSProtectiveSolidRenderNode;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
@@ -117,6 +118,16 @@ public:
     void MarkHardwareForcedDisabled();
 
     void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
+
+    void SetVirtualScreenParallelManager(std::shared_ptr<RSVirtualScreenParallelManager> manager)
+    {
+        virtualScreenParallelManager_ = manager;
+    }
+
+    std::shared_ptr<RSVirtualScreenParallelManager> GetVirtualScreenParallelManager() const
+    {
+        return virtualScreenParallelManager_;
+    }
 
     bool GetIsPartialRenderEnabled() const
     {
@@ -402,6 +413,7 @@ void ProcessGpuOfflineForTopLayer(
 
     void UpdateHardWareForcedDisabledStateForDelegateMode(
         std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr, std::optional<bool>& isHardwareForcedDisabled);
+    void CollectVirtualScreenNodeId(RSScreenRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
@@ -566,6 +578,8 @@ void ProcessGpuOfflineForTopLayer(
     size_t rsScreenNodeNum_ = 0;
 
     bool isSkipDrawInVirtualScreen_ = false;
+
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
 
     // used for finding the first effect render node to check to need to enabled debug
     bool hasEffectNodeInParent_ = false;

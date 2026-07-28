@@ -795,7 +795,7 @@ public:
     {
         return false;
     }
-    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) {}
+    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) {}
     // only RSSurfaceRenderNode holds singleFrameComposer_
     virtual std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const
     {
@@ -1038,19 +1038,9 @@ public:
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
-    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
-    {
-        if (isAccessibilityConfigChanged) {
-            accessibilityConfigChangedNodeSet_.insert(GetId());
-        } else {
-            accessibilityConfigChangedNodeSet_.erase(GetId());
-        }
-    }
+    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged);
 
-    bool IsAccessibilityConfigChangedNode() const
-    {
-        return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
-    }
+    bool IsAccessibilityConfigChangedNode() const;
 
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
@@ -1455,8 +1445,6 @@ private:
     void FilterModifiersByPid(pid_t pid);
 
     bool UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
-    RectI GetDrawCmdListRect() const;
-    void CollectAndUpdateRenderFitRect();
     void CollectAndUpdateLocalShadowRect();
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();

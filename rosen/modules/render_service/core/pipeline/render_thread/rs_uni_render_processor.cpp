@@ -86,7 +86,7 @@ bool RSUniRenderProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBase
 }
 
 bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+    std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid)
 {
     if (!RSProcessor::InitForRenderThread(screenDrawable, renderEngine)) {
         return false;

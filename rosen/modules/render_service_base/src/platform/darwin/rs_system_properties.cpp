@@ -752,6 +752,11 @@ bool RSSystemProperties::GetDebugFmtTraceEnabled()
     return GetDebugTraceEnabled();
 }
 
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    return false;
+}
+
 void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
 {
 }
@@ -886,6 +891,11 @@ bool RSSystemProperties::GetXcomponentEdrEnabled()
 }
 
 bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
 {
     return false;
 }

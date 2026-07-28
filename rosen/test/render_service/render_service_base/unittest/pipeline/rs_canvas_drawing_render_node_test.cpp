@@ -786,4 +786,18 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SplitDrawCmdListTest, TestSize.Level1)
     node->SplitDrawCmdList(1, drawCmdList, false);
     EXPECT_TRUE(drawCmdList->IsEmpty());
 }
+
+/**
+ * @tc.name: InitClientRenderEnableTest
+ * @tc.desc: Test InitClientRenderEnable with ccmEnabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, InitClientRenderEnableTest, TestSize.Level1)
+{
+    RSCanvasDrawingRenderNode::InitClientRenderEnable(false);
+    EXPECT_FALSE(RSCanvasDrawingRenderNode::IsHybridEnabled());
+    RSCanvasDrawingRenderNode::InitClientRenderEnable(true);
+    EXPECT_EQ(
+        RSCanvasDrawingRenderNode::IsHybridEnabled(), RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM());
+}
 } // namespace OHOS::Rosen

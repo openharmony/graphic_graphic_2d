@@ -37,6 +37,8 @@ constexpr uint32_t MAX_LIST_SIZE = 50;
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
 constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
+constexpr size_t PIDLIST_SIZE_MAX = 128;
+constexpr size_t HWC_EVENT_DATA_SIZE_MAX = 100;
 } // namespace
 
 static void TypefaceXcollieCallback(void* arg)
@@ -1013,6 +1015,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (eventData.size() > HWC_EVENT_DATA_SIZE_MAX) {
+                RS_LOGE("HandleHwcEvent: eventData size %{public}zu exceeds max %{public}zu.",
+                    eventData.size(), HWC_EVENT_DATA_SIZE_MAX);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             HandleHwcEvent(deviceId, eventId, eventData);
             break;
         }
@@ -1020,6 +1028,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             std::vector<int32_t> pidList;
             if (!data.ReadInt32Vector(&pidList)) {
                 RS_LOGE("SetGpuCrcDirtyEnabledPidList: read pidList err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (pidList.size() > PIDLIST_SIZE_MAX) {
+                RS_LOGE("SetGpuCrcDirtyEnabledPidList: pidList size %{public}zu exceeds max %{public}zu.",
+                    pidList.size(), PIDLIST_SIZE_MAX);
                 ret = ERR_INVALID_DATA;
                 break;
             }

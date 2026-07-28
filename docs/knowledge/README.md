@@ -25,7 +25,6 @@
 | inner_api surface/composer | `inner-api-surface-composer.md` | `inner_api/`, `Surface/Composer` | inner API |
 | NAPI/CJ/ANI/Taihe | `napi-cj-ani-taihe.md` | `interfaces/kits/`, `Napi`, `Ani`, `CJ` | 语言/XTS |
 | Rust 基础绑定 | `rust-binding.md` | `render_service_base/rust/`, `lib.rs` | rust target |
-| samples/演示工程 | `samples.md` | `rosen/samples/`, `hello_*` | sample |
 
 ## RS 管线/节点
 

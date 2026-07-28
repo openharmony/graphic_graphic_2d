@@ -56,6 +56,7 @@
 #include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_depth_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -763,6 +764,18 @@ void RSUniRenderVisitor::UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTr
     }
 }
 
+void RSUniRenderVisitor::CollectVirtualScreenNodeId(RSScreenRenderNode& node)
+{
+    if (virtualScreenParallelManager_) {
+        auto screenParams = static_cast<RSScreenRenderParams*>(node.GetRenderParams().get());
+        if (screenParams) {
+            screenParams->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
+        }
+        virtualScreenParallelManager_->CollectVirtualScreenNodeId(
+            screenParams->GetScreenId(), node.GetId(), node.GetCompositeType());
+    }
+}
+
 void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     UpdateCurFrameInfoDetail(node);
@@ -816,6 +829,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     PostPrepare(node, isParentPrepareInReverseOrder);
     node.UpdateChildHwcNode();
     RSLayerSplitManager::GetInstance()->CheckNeedLeave();
+    CollectVirtualScreenNodeId(node);
     RSHdrUtil::UpdateSelfDrawingNodesNit(node);
     UpdateSelfDrawingNodesFor3D(node);
     hwcVisitor_->UpdateHwcNodeEnable();

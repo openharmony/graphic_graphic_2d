@@ -99,11 +99,23 @@ void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isPro
     acquiredMandatoryProcAddresses_ = OpenLibraryHandle() && SetupLoaderProcAddresses();
 
     interfaceType_ = vulkanInterfaceType;
-    CreateInstance();
-    SelectPhysicalDevice(isProtected);
-    CreateDevice(isProtected, isHtsEnable);
+    if (!CreateInstance()) {
+        ROSEN_LOGE("Failed to create Vulkan instance");
+        return;
+    }
+    if (!SelectPhysicalDevice(isProtected)) {
+        ROSEN_LOGE("Failed to select physical device");
+        return;
+    }
+    if (!CreateDevice(isProtected, isHtsEnable)) {
+        ROSEN_LOGE("Failed to create Vulkan device");
+        return;
+    }
     std::unique_lock<std::mutex> lock(vkMutex_);
-    CreateSkiaBackendContext(&backendContext_, isProtected);
+    if (!CreateSkiaBackendContext(&backendContext_, isProtected)) {
+        ROSEN_LOGE("Failed to create Skia backend context");
+        return;
+    }
 }
 
 RsVulkanInterface::~RsVulkanInterface()
@@ -208,6 +220,11 @@ bool RsVulkanInterface::SelectPhysicalDevice(bool isProtected)
     uint32_t deviceCount = 0;
     if (vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr) != VK_SUCCESS) {
         ROSEN_LOGE("vkEnumeratePhysicalDevices failed");
+        return false;
+    }
+
+    if (deviceCount == 0) {
+        ROSEN_LOGE("No physical devices found");
         return false;
     }
 
@@ -502,7 +519,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::DoCreateDrawingContext(s
     return drawingContext;
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir)
+std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir, int32_t tid)
 {
     auto drawingContext = DoCreateDrawingContext(cacheDir);
     int maxResources = 0;
@@ -516,6 +533,11 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std
         drawingContext->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
     RsVulkanContext::SaveNewDrawingContext(gettid(), drawingContext);
+    int32_t realTid = gettid();
+    if (tid != 0) {
+        realTid = tid;
+    }
+    RSVulkanContext::SavaNewDrawingContext(realTid, drawingContext);
     return drawingContext;
 }
 
@@ -879,9 +901,14 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(VkQueue
     return VK_ERROR_UNKNOWN;
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext()
+std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext(int32_t tid)
 {
     static thread_local int tidForRecyclable = gettid();
+    if (tid != 0) {
+        tidForRecyclable = tid;
+    } else {
+        tidForRecyclable = gettid();
+    }
     {
         std::lock_guard<std::mutex> lock(drawingContextMutex_);
         switch (vulkanInterfaceType_) {
@@ -903,7 +930,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext()
             }
         }
     }
-    return GetRsVulkanInterface().CreateDrawingContext();
+    return GetRsVulkanInterface().CreateDrawingContext("", tid);
 }
 
 std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext(const std::string& cacheDir)

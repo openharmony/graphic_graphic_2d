@@ -114,6 +114,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -481,6 +482,7 @@ RSMainThread::RSMainThread() : systemAnimatedScenesEnabled_(RSSystemParameters::
     context_->Initialize();
     tunnelLayerManager_ = std::make_unique<RSTunnelLayerManager>(context_);
     tunnelRouteArbiter_ = std::make_unique<RSTunnelRouteArbiter>();
+    virtualScreenParallelManager_ = std::make_shared<RSVirtualScreenParallelManager>();
 }
 
 RSMainThread::~RSMainThread() noexcept
@@ -540,6 +542,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #ifdef RS_ENABLE_GPU
             // fill the params, and sync to render thread later
             renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+            renderThreadParams_->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
 #endif
         }
         RenderFrameStart(timestamp_);
@@ -2957,6 +2960,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     RSUifirstManager::Instance().RefreshUIFirstParam();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
+    uniVisitor->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
     int64_t rsPeriod = 0;
     if (receiver_) {
         receiver_->GetVSyncPeriod(rsPeriod);
@@ -3487,6 +3491,11 @@ void RSMainThread::OnUniRenderDraw()
     if (needPostAndWait_) {
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
+
+        std::unordered_set<NodeId> nodeIds;
+        virtualScreenParallelManager_->GetStagingNodeIds(nodeIds);
+        renderThreadParams_->SetCollectedVirtualScreenNodeIds(std::move(nodeIds));
+
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
         RsFrameReport::CheckPostAndWaitPoint();
         drawFrame_.PostAndWait();
@@ -4081,6 +4090,7 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
         if (!renderThreadParams_) {
             // fill the params, and sync to render thread later
             renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+            renderThreadParams_->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
         }
         renderThreadParams_->SetIsUniRenderAndOnVsync(true);
         renderThreadParams_->SetOnVsyncStartTime(onVsyncStartTime);

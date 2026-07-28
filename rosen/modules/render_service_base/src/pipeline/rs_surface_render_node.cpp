@@ -3144,7 +3144,7 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
     return isNodeSingleFrameComposer_ || flag;
 }
 
-void RSSurfaceRenderNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid)
+void RSSurfaceRenderNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
 {
     isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
 }

@@ -16,7 +16,6 @@
 #include "recording/draw_cmd.h"
 
 #include <cstdint>
-#include <sstream>
 
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
@@ -1082,9 +1081,7 @@ void DrawVerticesOpItem::DumpItems(std::string& out) const
 {
     out += " blend_mode:" + std::to_string(static_cast<int>(mode_));
     out += " vertices:";
-    std::stringstream stream;
-    stream << std::hex << vertices_.get();
-    out += std::string(stream.str());
+    out += (vertices_ != nullptr) ? "valid" : "null";
 }
 
 /* DrawColorOpItem */

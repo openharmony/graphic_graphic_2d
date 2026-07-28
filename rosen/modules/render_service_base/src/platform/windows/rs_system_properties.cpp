@@ -735,6 +735,11 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    return false;
+}
+
 bool RSSystemProperties::ViewDrawNodeType()
 {
     return false;
@@ -880,6 +885,11 @@ bool RSSystemProperties::GetXcomponentEdrEnabled()
 }
 
 bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
 {
     return false;
 }

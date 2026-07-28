@@ -88,8 +88,10 @@ public:
     static void HandleVirtualExtendScreen(
         RSScreenRenderNodeDrawable& drawable,
         RSScreenRenderParams& params,
-        const std::shared_ptr<RSProcessor>& processor);
-    
+        const std::shared_ptr<RSProcessor>& processor,
+        std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr,
+        int32_t tid = 0);
+
     static void DumpRenderStrategy(
         RSLogicalDisplayRenderNodeDrawable& drawable,
         ScreenId screenId,
