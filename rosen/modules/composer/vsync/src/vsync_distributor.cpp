@@ -225,7 +225,7 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
         int64_t receiveData[3];
         socketPair->ReceiveData(receiveData, sizeof(receiveData));
         ret = socketPair->SendData(data, sizeof(data));
-        VLOGW("vsync signal is not processed in time, please check pid:%{public}d, ret:%{public}d", proxyPid_, ret);
+        VLOGW("check pid:%{public}d", proxyPid_);
     }
     if (ret > -1) {
         ScopedDebugTrace successful("successful");
@@ -612,7 +612,6 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
         std::lock_guard<std::mutex> locker(mutex_);
         if (isFirstSend_) {
             isFirstSend_ = false;
-            VLOGI("F send");
         }
         // Start of DVSync
         DVSyncRecordVSync(now, period, refreshRate, false);
