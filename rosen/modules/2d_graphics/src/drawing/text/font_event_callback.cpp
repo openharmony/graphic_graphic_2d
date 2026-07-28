@@ -45,8 +45,12 @@ void FontEventCallbackManager::CallbackSet::AddCallback(FontEventCallback cb)
 
 void FontEventCallbackManager::CallbackSet::ExecuteCallbacks(const FontEventInfo& info) const
 {
-    std::lock_guard<std::mutex> lock(mutex);
-    for (const auto& cb : callbacks) {
+    std::unordered_set<FontEventCallback> callbacksCopy;
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        callbacksCopy = callbacks;
+    }
+    for (const auto& cb : callbacksCopy) {
         cb(info);
     }
 }
