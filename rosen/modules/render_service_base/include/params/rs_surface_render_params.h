@@ -880,6 +880,11 @@ public:
         return captureCallback_;
     }
 
+    bool IsDepthSrc() const
+    {
+        return isDepthSrc_;
+    }
+
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
     ScreenRotation GetAppRotationCorrection() const;
 
@@ -1038,6 +1043,8 @@ private:
     bool isOcclusionCullingOn_ = false;
     std::unordered_set<NodeId> culledNodes_;
     std::unordered_set<NodeId> culledEntireSubtree_;
+
+    bool isDepthSrc_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

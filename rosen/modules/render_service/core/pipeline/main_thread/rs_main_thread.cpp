@@ -126,6 +126,7 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
+#include "property/rs_spatial_effect_manager.h"
 #include "render/rs_image_cache.h"
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_typeface_cache.h"
@@ -2915,6 +2916,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
+        RSSpatialEffectManager::Instance()->ProcessDepthNodeAndSpatialEffectNodeDirty();
         rootNode->QuickPrepare(uniVisitor);
         uniVisitor->ResetCrossNodesVisitedStatus();
 
@@ -3133,6 +3135,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         }
 #endif
     }
+    pipelineParam_.dvsyncNeedSkipRsCommitDelay =
+            RSSystemProperties::DvsyncSkipRsCommitDelayEnabled() &&
+            rsVsyncManagerAgent_ != nullptr && rsVsyncManagerAgent_->DvsyncNeedSkipRsCommitDelay();
 
 #ifdef RS_ENABLE_GPU
     RSUniRenderThread::Instance().PostSyncTask([this, processor, screenNode]() mutable {
@@ -5772,6 +5777,7 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag)
     pipelineParam_.actualTimestamp = currentTimestamp;
     pipelineParam_.vsyncId = frameCount;
     pipelineParam_.hasGameScene = FrameReport::GetInstance().HasGameScene();
+    pipelineParam_.dvsyncNeedSkipRsCommitDelay = false;  // recalculated only in direct composition scene.
     auto &frameDeadline = RsFrameDeadlinePredict::GetInstance();
     uint32_t currentRate = pipelineParam_.pendingScreenRefreshRate ? pipelineParam_.pendingScreenRefreshRate :
         GetRefreshRate();

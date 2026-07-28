@@ -33,9 +33,11 @@ public:
     static bool IsSplitScreenSourceTuning();
     static const std::unordered_map<std::string, std::string>& GetSourceTuningForAppMap();
     static const std::unordered_map<std::string, std::string>& GetSolidColorLayerMap();
+    static const std::unordered_map<std::string, std::string>& GetSourceTuningForHmsApp();
 
 protected:
     static void SetSourceTuningForApp(std::string appName, std::string val);
+    static void SetSourceTuningForHmsApp(std::string appName, std::string val);
     static void SetSolidColorLayerForApp(std::string appName, std::string val);
     static void SetSolidLayerEnable(bool isEnable);
     static void SetDisableHwcOnExpandScreen(bool isEnable);
@@ -50,6 +52,7 @@ private:
     inline static bool isDisableHwcInScaleScene_ = false;
     inline static bool isSplitScreenSourceTuning_ = false;
     inline static std::unordered_map<std::string, std::string> sourceTuningMap_;
+    inline static std::unordered_map<std::string, std::string> hmsAppSourceTuningMap_;
     inline static std::unordered_map<std::string, std::string> solidColorLayerMap_;
 
     friend class HWCParamParse;

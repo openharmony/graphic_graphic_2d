@@ -494,5 +494,4 @@ struct RSForegroundBlurPara {
 };
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_DEF_H

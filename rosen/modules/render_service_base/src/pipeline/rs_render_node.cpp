@@ -846,6 +846,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     childHasVisibleFilter_ = false;
     childHasVisibleEffect_ = false;
     childHasSharedTransition_ = false;
+    childHasSpatialEffect_ = false;
     visibleFilterChild_.clear();
     visibleEffectChild_.clear();
     childrenRect_.Clear();
@@ -1399,6 +1400,10 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
             out += "LOGICAL_DISPLAY_NODE";
             break;
         }
+        case RSRenderNodeType::DEPTH_NODE: {
+            out += "DEPTH_NODE";
+            break;
+        }
         case RSRenderNodeType::UNION_NODE: {
             out += "UNION_NODE";
             break;
@@ -1624,6 +1629,10 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         SetSubTreeDirty(false);
         SetTreeStateChangeDirty(false);
         UpdateChildrenOutOfRectFlag(false); // collect again
+        return true;
+    }
+    if (childHasSpatialEffect_ &&
+        (GetRenderProperties().IsParentGeoDirty() || GetRenderProperties().IsCurGeoDirty())) {
         return true;
     }
     if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || GetSubSurfaceCnt() > 0) {
@@ -1880,62 +1889,6 @@ const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
     return renderDrawable_->renderParams_;
 }
 #endif
-
-RectI RSRenderNode::GetDrawCmdListRect() const
-{
-    int32_t width = 0;
-    int32_t height = 0;
-    RSRenderNode::ModifierNGContainer customModifiers[] = {
-        GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::TRANSITION_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::BACKGROUND_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::FOREGROUND_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::OVERLAY_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::NODE_MODIFIER),
-    };
-
-    for (auto& slot : customModifiers) {
-        for (auto& modifier : slot) {
-            auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
-            auto propertyPtr = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
-                modifier->GetProperty(propertyType));
-            auto drawCmdListPtr = propertyPtr ? propertyPtr->Get() : nullptr;
-            if (drawCmdListPtr == nullptr) {
-                continue;
-            }
-            width = width > drawCmdListPtr->GetWidth() ? width : drawCmdListPtr->GetWidth();
-            height = height > drawCmdListPtr->GetHeight() ? height : drawCmdListPtr->GetHeight();
-        }
-    }
-    return RectI(0, 0, width, height);
-}
-
-void RSRenderNode::CollectAndUpdateRenderFitRect()
-{
-    const auto& properties = GetRenderProperties();
-    if (properties.GetFrameGravity() == Gravity::TOP_LEFT) {
-        return;
-    }
-    auto drawRegion = properties.GetDrawRegion();
-    if (drawRegion == nullptr) {
-        return;
-    }
-    auto drawCmdListRect = GetDrawCmdListRect();
-    if (drawCmdListRect.IsEmpty()) {
-        return;
-    }
-    Drawing::Matrix mat;
-    RSPropertiesPainter::GetGravityMatrix(properties.GetFrameGravity(),
-        properties.GetFrameRect(), drawCmdListRect.GetWidth(), drawCmdListRect.GetHeight(), mat);
-    Drawing::Rect srcRegion(
-        drawRegion->GetLeft(), drawRegion->GetTop(), drawRegion->GetRight(), drawRegion->GetBottom());
-    Drawing::Rect dstRegion;
-    if (mat.MapRect(dstRegion, srcRegion)) {
-        selfDrawRect_ = selfDrawRect_.JoinRect(
-            RectF(dstRegion.GetLeft(), dstRegion.GetTop(), dstRegion.GetWidth(), dstRegion.GetHeight()));
-    }
-}
-
 void RSRenderNode::CollectAndUpdateLocalShadowRect()
 {
     // update shadow if shadow changes
@@ -2085,7 +2038,6 @@ bool RSRenderNode::UpdateSelfDrawRect()
     if (auto drawRegion = properties.GetDrawRegion()) {
         selfDrawRect_ = selfDrawRect_.JoinRect(*drawRegion);
     }
-    CollectAndUpdateRenderFitRect();
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
@@ -3306,6 +3258,16 @@ void RSRenderNode::SetChildHasSharedTransition(bool val)
 bool RSRenderNode::ChildHasSharedTransition() const
 {
     return childHasSharedTransition_;
+}
+
+void RSRenderNode::SetChildHasSpatialEffect(bool val)
+{
+    childHasSpatialEffect_ = val;
+}
+
+bool RSRenderNode::ChildHasSpatialEffect() const
+{
+    return childHasSpatialEffect_;
 }
 
 void RSRenderNode::MarkForegroundFilterCache()

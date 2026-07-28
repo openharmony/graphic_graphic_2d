@@ -769,6 +769,7 @@ void RSPipelineDumper::DumpNodeInfo(pid_t pid, uint64_t token, std::string& dump
         {RSRenderNodeType::CANVAS_NODE, 0},
         {RSRenderNodeType::EFFECT_NODE, 0},
         {RSRenderNodeType::LOGICAL_DISPLAY_NODE, 0},
+        {RSRenderNodeType::DEPTH_NODE, 0},
         {RSRenderNodeType::WINDOW_KEYFRAME_NODE, 0},
         {RSRenderNodeType::ROOT_NODE, 0},
         {RSRenderNodeType::CANVAS_DRAWING_NODE, 0},
@@ -815,6 +816,7 @@ void RSPipelineDumper::DumpNodeInfo(pid_t pid, uint64_t token, std::string& dump
     dumpString.append("CanvasDrawingNode: " +
                       std::to_string(nodeTypeCount[RSRenderNodeType::CANVAS_DRAWING_NODE]) + "\n");
 #endif
+    dumpString.append("DepthNode: " + std::to_string(nodeTypeCount[RSRenderNodeType::DEPTH_NODE]) + "\n");
     dumpString.append("EffectNode: " + std::to_string(nodeTypeCount[RSRenderNodeType::EFFECT_NODE]) + "\n");
     dumpString.append("ProxyNode: " + std::to_string(nodeTypeCount[RSRenderNodeType::PROXY_NODE]) + "\n");
     dumpString.append("WindowKeyFrameNode: " +

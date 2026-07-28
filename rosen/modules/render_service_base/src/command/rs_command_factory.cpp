@@ -23,6 +23,7 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_canvas_drawing_node_command.h"
 #include "command/rs_canvas_node_command.h"
+#include "command/rs_depth_node_command.h"
 #ifndef ROSEN_ARKUI_X
 #include "command/rs_display_node_command.h"
 #include "feature/window_keyframe/rs_window_keyframe_node_command.h"
@@ -39,6 +40,8 @@
 #include "command/rs_animation_command.h"
 // read showing property commands
 #include "command/rs_node_showing_command.h"
+
+#include "command/rs_spatial_effect_command.h"
 
 #undef ROSEN_INSTANTIATE_COMMAND_TEMPLATE
 

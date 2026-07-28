@@ -25,6 +25,11 @@ void HWCParam::SetSourceTuningForApp(std::string appName, std::string val)
     sourceTuningMap_[std::move(appName)] = std::move(val);
 }
 
+void HWCParam::SetSourceTuningForHmsApp(std::string appName, std::string val)
+{
+    hmsAppSourceTuningMap_[std::move(appName)] = std::move(val);
+}
+
 void HWCParam::SetSolidColorLayerForApp(std::string appName, std::string val)
 {
     solidColorLayerMap_[std::move(appName)] = std::move(val);
@@ -43,6 +48,11 @@ bool HWCParam::IsDisableHwcOnExpandScreen()
 const std::unordered_map<std::string, std::string>& HWCParam::GetSourceTuningForAppMap()
 {
     return sourceTuningMap_;
+}
+
+const std::unordered_map<std::string, std::string>& HWCParam::GetSourceTuningForHmsApp()
+{
+    return hmsAppSourceTuningMap_;
 }
 
 const std::unordered_map<std::string, std::string>& HWCParam::GetSolidColorLayerMap()

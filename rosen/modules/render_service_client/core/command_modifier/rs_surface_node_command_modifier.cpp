@@ -15,6 +15,7 @@
 
 #include "command_modifier/rs_surface_node_command_modifier.h"
 
+#include "command/rs_spatial_effect_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
@@ -557,6 +558,20 @@ void BufferAvailableCallbackCmdModifier::DumpParam(std::string& out) const
 void SurfaceDefaultSizeCmdModifier::DumpParam(std::string& out) const
 {
     out += "{width:" + std::to_string(param_.width_) + ", height:" + std::to_string(param_.height_) + "}";
+}
+
+void IsDepthResourceCmdModifier::UpdateToRender()
+{
+    auto node = GetNode();
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetIsDepthResource>(
+        node->GetId(), param_.isDepthResource_);
+    AddCommand(command, node->IsRenderServiceNode());
+}
+
+void IsDepthResourceCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{isDepthResource:" + std::string(param_.isDepthResource_ ? "true" : "false") + "}";
 }
 
 void ForceHardwareAndFixRotationCmdModifier::UpdateToRender()

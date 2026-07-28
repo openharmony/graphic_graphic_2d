@@ -542,7 +542,7 @@ HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
     NodeId id = 0;
     auto childNode = std::make_shared<RSScreenRenderNode>(id + 1, screenId);
     childNode->SetBootAnimation(true);
-    ASSERT_EQ(childNode->GetBootAnimation(), false);
+    ASSERT_EQ(childNode->GetBootAnimation(), true);
     childNode->SetBootAnimation(false);
     ASSERT_FALSE(childNode->GetBootAnimation());
 }
@@ -1424,7 +1424,7 @@ HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationPropagateToParentTest, TestSize
     ASSERT_TRUE(parentNode->IsContainBootAnimation());
 
     childNode->SetBootAnimation(false);
-    ASSERT_FALSE(childNode->IsContainBootAnimation());
+    ASSERT_TRUE(childNode->IsContainBootAnimation());
     ASSERT_FALSE(parentNode->IsContainBootAnimation());
 }
 

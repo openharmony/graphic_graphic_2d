@@ -33,6 +33,7 @@
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
+#include "common/rs_common_tools.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
 #include "draw/color.h"
@@ -52,6 +53,8 @@
 #include "property/rs_color_picker_def.h"
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
+#include "property/rs_spatial_effect_manager.h"
+#include "util/ge_transform_helper.h"
 #include "render/rs_attraction_effect_filter.h"
 #include "render/rs_color_adaptive_filter.h"
 #include "render/rs_colorful_shadow_filter.h"
@@ -327,12 +330,197 @@ const RSObjGeometry& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
+RSProperties::SpatialEffectPerspectiveResults RSProperties::CalculateSpatialEffectMatrix(
+    const SpatialEffectMatrixParams& params,
+    const Drawing::GECameraIntrinsics& intrinsics, const Drawing::GECameraExtrinsics& extrinsics)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "RSProperties::CalculateSpatialEffectMatrix intrinsics: fov=%f, aspectRatio=%f, near=%f, far=%f, "
+        "extrinsics: position=[%f, %f, %f], rotation=[%f, %f, %f, %f]",
+        intrinsics.fov, intrinsics.aspectRatio, intrinsics.near, intrinsics.far,
+        extrinsics.position[0], extrinsics.position[1], extrinsics.position[2],
+        extrinsics.rotation.x_, extrinsics.rotation.y_, extrinsics.rotation.z_, extrinsics.rotation.w_);
+    // src Points
+    std::array<Drawing::Point, SpatialEffectPara::CORNER_NUMBER> srcPoints = {
+        Drawing::Point(params.rectSelf.GetLeft(), params.rectSelf.GetTop()),
+        Drawing::Point(params.rectSelf.GetRight(), params.rectSelf.GetTop()),
+        Drawing::Point(params.rectSelf.GetRight(), params.rectSelf.GetBottom()),
+        Drawing::Point(params.rectSelf.GetLeft(), params.rectSelf.GetBottom()),
+    };
+
+    std::array<float, 16> vpMatrix = PerspectiveTransformCalculator::ComputeVPMatrix(intrinsics,
+        extrinsics, params.cornerPoints);
+
+    SpatialEffectPerspectiveResults ret;
+    ret.transformMatrix = Drawing::Matrix();
+    for (int i = 0; i < SpatialEffectPara::CORNER_NUMBER; ++i) {
+        const Vector3f& point = params.cornerPoints[i];
+
+        float x = point.x_;
+        float y = point.y_;
+        float z = point.z_;
+        float w = 1.0f;
+
+        float outX = vpMatrix[0] * x + vpMatrix[4] * y + vpMatrix[8]  * z + vpMatrix[12] * w;
+        float outY = vpMatrix[1] * x + vpMatrix[5] * y + vpMatrix[9]  * z + vpMatrix[13] * w;
+        float outZ = vpMatrix[2] * x + vpMatrix[6] * y + vpMatrix[10] * z + vpMatrix[14] * w;
+        float outW = vpMatrix[3] * x + vpMatrix[7] * y + vpMatrix[11] * z + vpMatrix[15] * w;
+
+        if (std::abs(outW) > 1e-6f) {
+            outX /= outW;
+            outY /= outW;
+            outZ /= outW;
+        } else {
+            ROSEN_LOGE("CalculateSpatialEffectMatrix: ndc calculation failed, outW=%{public}f", outW);
+            return ret;
+        }
+
+        ret.dstPoints[i] = {
+            (1.0 + outX) * 0.5 * params.depNodeRect.GetWidth(),
+            (1.0 + outY) * 0.5 * params.depNodeRect.GetHeight()
+        };
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSProperties::CalculateSpatialEffectMatrix i:%d, ndc x=%f, y=%f, z=%f, dstX=%f, dstY=%f", i, outX, outY,
+            outZ, (1.0 + outX) * 0.5 * params.depNodeRect.GetWidth(),
+            (1.0 + outY) * 0.5 * params.depNodeRect.GetHeight());
+    }
+
+    auto succ = ret.transformMatrix.SetPolyToPoly(srcPoints.data(), ret.dstPoints.data(), srcPoints.size());
+    if (!succ) {
+        ROSEN_LOGE("CalculateSpatialEffectMatrix: SetPolyToPoly failed");
+    }
+
+    return ret;
+}
+
+void RSProperties::ApplySpatialEffectMatrix()
+{
+    auto renderNode = backref_.lock();
+    if (!renderNode) {
+        ROSEN_LOGE("ApplySpatialEffectMatrix: renderNode expired");
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSProperties::ApplySpatialEffectMatrix nodeid=%" PRIu64 "", renderNode->GetId());
+
+    auto depthNode = RSSpatialEffectManager::Instance()->GetAncestorDepthNode(*renderNode).lock();
+    if (!depthNode) {
+        ROSEN_LOGE("ApplySpatialEffectMatrix: depthNode not found");
+        return;
+    }
+
+    std::shared_ptr<RSRenderNode> masterGlobalDepNode = nullptr;
+
+    if (auto node = depthNode->template ReinterpretCastTo<RSDepthRenderNode>()) {
+        if (node->GetDepthSpaceType() == DepthSpaceType::GLOBAL) {
+            masterGlobalDepNode = RSSpatialEffectManager::Instance()->GetMasterGlobalDepthNode(
+                renderNode->GetLogicalDisplayNodeId()).lock();
+            if (!masterGlobalDepNode) {
+                ROSEN_LOGE("ApplySpatialEffectMatrix: global depthNode not found");
+                return;
+            }
+        }
+    }
+
+    auto& propertiesDep = depthNode->GetMutableRenderProperties();
+
+    auto absMatrixDep = propertiesDep.GetBoundsGeometry()->GetAbsMatrix();
+    auto absMatrixSelf = GetBoundsGeometry()->GetAbsMatrix();
+    auto matrixSelf = GetBoundsGeometry()->GetMatrix();
+
+    Drawing::Matrix matrixDepInv;
+    if (!absMatrixDep.Invert(matrixDepInv)) {
+        RS_LOGE("matrixDepInv failed to get invert matrix");
+        return;
+    }
+    auto matrixRelaDep = absMatrixSelf;
+    matrixRelaDep.PostConcat(matrixDepInv);
+
+    Drawing::Matrix matrixSelfInv;
+    if (!matrixSelf.Invert(matrixSelfInv)) {
+        RS_LOGE("matrixSelf failed to get invert matrix");
+        return;
+    }
+
+    auto matrixRelaDepNoSelf = matrixRelaDep * matrixSelfInv;
+
+    Drawing::Matrix matrixRelaDepNoSelfInv;
+    if (!matrixRelaDepNoSelf.Invert(matrixRelaDepNoSelfInv)) {
+        RS_LOGE("matrixRelaDepNoSelfInv failed to get invert matrix");
+        return;
+    }
+
+    auto cameraPara = masterGlobalDepNode ? masterGlobalDepNode->GetMutableRenderProperties().GetDepthCameraPara()
+        : propertiesDep.GetDepthCameraPara();
+    if (!cameraPara.has_value()) {
+        ROSEN_LOGE("ApplySpatialEffectMatrix: depth camera parameters missing");
+        return;
+    }
+    auto rectSelf = GetBoundsRect();
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = cameraPara->yFov;
+    intrinsics.aspectRatio = propertiesDep.GetBoundsWidth() / propertiesDep.GetBoundsHeight();
+    intrinsics.near = cameraPara->zNear;
+    intrinsics.far = cameraPara->zFar;
+    intrinsics.xOffset = cameraPara->offset.x_;
+    intrinsics.yOffset = cameraPara->offset.y_;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = cameraPara->position.x_;
+    extrinsics.position[1] = cameraPara->position.y_;
+    extrinsics.position[2] = cameraPara->position.z_;
+    extrinsics.rotation = cameraPara->quaternion;
+
+    auto para = GetSpatialEffectPara().value();
+    SpatialEffectPara::CornerPositions cornerPoints = {para.leftTop, para.rightTop, para.rightBottom, para.leftBottom};
+
+    RectF depNodeRect(
+        propertiesDep.GetBoundsPositionX(),
+        propertiesDep.GetBoundsPositionY(),
+        propertiesDep.GetBoundsWidth(),
+        propertiesDep.GetBoundsHeight()
+    );
+
+    SpatialEffectMatrixParams matrixParams{
+        .rectSelf = rectSelf,
+        .depNodeRect = depNodeRect,
+        .cornerPoints = cornerPoints
+    };
+
+    auto perspectiveResults = CalculateSpatialEffectMatrix(matrixParams, intrinsics, extrinsics);
+    if (!perspectiveResults.transformMatrix.IsIdentity()) {
+        ProcessSpatialEffectDstPoints(perspectiveResults, depNodeRect, absMatrixDep, renderNode);
+        boundsGeo_->ReplaceMatrix(matrixRelaDepNoSelfInv * perspectiveResults.transformMatrix,
+            absMatrixDep * perspectiveResults.transformMatrix);
+    } else {
+        ROSEN_LOGE("ApplySpatialEffectMatrix: transformMatrix is identity (SetPolyToPoly may have failed)");
+    }
+}
+
+void RSProperties::ProcessSpatialEffectDstPoints(const SpatialEffectPerspectiveResults& perspectiveResults,
+    const RectF& depNodeRect, const Drawing::Matrix& absMatrixDep,
+    const std::shared_ptr<RSRenderNode>& renderNode)
+{
+    SetSpatialEffectDstPoints(std::vector<Drawing::Point>(perspectiveResults.dstPoints.begin(),
+        perspectiveResults.dstPoints.end()));
+
+    if (auto& drawable = TemplateUtils::findMapValueRef(renderNode->GetDrawableVec(__func__),
+        static_cast<int8_t>(RSDrawableSlot::SPATIAL_EFFECT))) {
+        drawable->OnUpdate(*renderNode);
+    } else {
+        ROSEN_LOGE("RSProperties::ProcessSpatialEffectDstPoints updates failed");
+    }
+}
+
 bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     const std::optional<Drawing::Point>& offset)
 {
     static thread_local Drawing::Matrix prevAbsMatrix;
     prevAbsMatrix.Swap(prevAbsMatrix_);
     boundsGeo_->UpdateMatrix(parentMatrix, offset);
+    if (GetSpatialEffectPara()) {
+        ApplySpatialEffectMatrix();
+    }
     prevAbsMatrix_ = boundsGeo_->GetAbsMatrix();
     if (!RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         return true;
@@ -1957,6 +2145,291 @@ void RSProperties::SetDynamicDimDegree(const std::optional<float>& DimDegree)
     contentDirty_ = true;
 }
 
+void RSProperties::SetDepthImage(const std::shared_ptr<RSImage>& depthImage)
+{
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+
+    GetEffect().depthImage_ = depthImage;
+
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSImage> RSProperties::GetDepthImage() const
+{
+    return effect_ ? effect_->depthImage_ : nullptr;
+}
+
+void RSProperties::SetDepthCameraPara(const DepthCameraPara& depthCameraPara)
+{
+    GetEffect().depthCameraPara_ = depthCameraPara;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::optional<DepthCameraPara> RSProperties::GetDepthCameraPara() const
+{
+    return effect_ ? effect_->depthCameraPara_ : std::nullopt;
+}
+
+void RSProperties::SetDepthLightPara(const DepthLightPara& depthLightPara)
+{
+    GetEffect().depthLightPara_ = depthLightPara;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::optional<DepthLightPara> RSProperties::GetDepthLightPara() const
+{
+    return effect_ ? effect_->depthLightPara_ : std::nullopt;
+}
+
+void RSProperties::SetDepthImageMatrix(const Matrix3f& imageMatrix)
+{
+    GetEffect().depthImageMatrix_ = imageMatrix;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::optional<Matrix3f> RSProperties::GetDepthImageMatrix() const
+{
+    return effect_ ? effect_->depthImageMatrix_ : std::nullopt;
+}
+
+void RSProperties::SetSpatialEffectDepth(float depth)
+{
+    auto& spatialEffectVariantPara = GetEffect().spatialEffectVariantPara_;
+    if (!spatialEffectVariantPara.has_value() || spatialEffectVariantPara->PerspectiveEnabled()) {
+        spatialEffectVariantPara = DepthEffectPara();
+    }
+
+    std::get<float>(spatialEffectVariantPara->position) = depth;
+    SetDirty();
+    contentDirty_ = true;
+
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+}
+
+void RSProperties::SetSpatialEffectLeftTop(const Vector3f& leftTop)
+{
+    auto& spatialEffectVariantPara = GetEffect().spatialEffectVariantPara_;
+    if (!spatialEffectVariantPara.has_value() || !spatialEffectVariantPara->PerspectiveEnabled()) {
+        spatialEffectVariantPara = SpatialEffectPara();
+    }
+
+    std::get<SpatialEffectPara::CornerPositions>(spatialEffectVariantPara->position)
+        [SpatialEffectPara::LEFT_TOP_INDEX] = leftTop;
+    SetDirty();
+    contentDirty_ = true;
+
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+}
+
+void RSProperties::SetSpatialEffectRightTop(const Vector3f& rightTop)
+{
+    auto& spatialEffectVariantPara = GetEffect().spatialEffectVariantPara_;
+    if (!spatialEffectVariantPara.has_value() || !spatialEffectVariantPara->PerspectiveEnabled()) {
+        spatialEffectVariantPara = SpatialEffectPara();
+    }
+
+    std::get<SpatialEffectPara::CornerPositions>(spatialEffectVariantPara->position)
+        [SpatialEffectPara::RIGHT_TOP_INDEX] = rightTop;
+    SetDirty();
+    contentDirty_ = true;
+
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+}
+
+void RSProperties::SetSpatialEffectLeftBottom(const Vector3f& leftBottom)
+{
+    auto& spatialEffectVariantPara = GetEffect().spatialEffectVariantPara_;
+    if (!spatialEffectVariantPara.has_value() || !spatialEffectVariantPara->PerspectiveEnabled()) {
+        spatialEffectVariantPara = SpatialEffectPara();
+    }
+
+    std::get<SpatialEffectPara::CornerPositions>(spatialEffectVariantPara->position)
+        [SpatialEffectPara::LEFT_BOTTOM_INDEX] = leftBottom;
+    SetDirty();
+    contentDirty_ = true;
+
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+}
+
+void RSProperties::SetSpatialEffectRightBottom(const Vector3f& rightBottom)
+{
+    auto& spatialEffectVariantPara = GetEffect().spatialEffectVariantPara_;
+    if (!spatialEffectVariantPara.has_value() || !spatialEffectVariantPara->PerspectiveEnabled()) {
+        spatialEffectVariantPara = SpatialEffectPara();
+    }
+
+    std::get<SpatialEffectPara::CornerPositions>(spatialEffectVariantPara->position)
+        [SpatialEffectPara::RIGHT_BOTTOM_INDEX] = rightBottom;
+    SetDirty();
+    contentDirty_ = true;
+
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+}
+
+void RSProperties::SetSpatialEffectOcclusionWeight(float occlusionWeight)
+{
+    auto& spatialEffectVariantPara = GetEffect().spatialEffectVariantPara_;
+    if (!spatialEffectVariantPara.has_value()) {
+        spatialEffectVariantPara = SpatialEffectVariantPara();
+    }
+
+    spatialEffectVariantPara->occlusionWeight = occlusionWeight;
+    SetDirty();
+    contentDirty_ = true;
+
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+    RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+}
+
+void RSProperties::SetDepthEffectPara(const std::optional<DepthEffectPara>& depthEffectPara)
+{
+    GetEffect().spatialEffectVariantPara_ = depthEffectPara;
+    SetDirty();
+    contentDirty_ = true;
+
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+
+    if (depthEffectPara.has_value()) {
+        RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+    } else {
+        RSSpatialEffectManager::Instance()->UnregisterSpatialEffect(renderNode);
+    }
+}
+
+std::optional<DepthEffectPara> RSProperties::GetDepthEffectPara() const
+{
+    if (!effect_) {
+        return std::nullopt;
+    }
+    const auto& spatialEffectVariantPara = effect_->spatialEffectVariantPara_;
+    if (!spatialEffectVariantPara) {
+        return std::nullopt;
+    }
+    if (spatialEffectVariantPara->PerspectiveEnabled()) {
+        return std::nullopt;
+    }
+
+    DepthEffectPara ret;
+    ret.depth = std::get<float>(spatialEffectVariantPara->position);
+    ret.occlusionWeight = spatialEffectVariantPara->occlusionWeight;
+    return ret;
+}
+
+void RSProperties::SetSpatialEffectPara(const std::optional<SpatialEffectPara>& spatialEffectPara)
+{
+    GetEffect().spatialEffectVariantPara_ = spatialEffectPara;
+    SetDirty();
+    contentDirty_ = true;
+    geoDirty_ = true;
+
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+
+    if (spatialEffectPara.has_value()) {
+        RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+    } else {
+        RSSpatialEffectManager::Instance()->UnregisterSpatialEffect(renderNode);
+    }
+}
+
+std::optional<SpatialEffectPara> RSProperties::GetSpatialEffectPara() const
+{
+    if (!effect_) {
+        return std::nullopt;
+    }
+    const auto& spatialEffectVariantPara = effect_->spatialEffectVariantPara_;
+    if (!spatialEffectVariantPara) {
+        return std::nullopt;
+    }
+    if (!spatialEffectVariantPara->PerspectiveEnabled()) {
+        return std::nullopt;
+    }
+
+    SpatialEffectPara ret;
+    ret.corners = std::get<SpatialEffectPara::CornerPositions>(spatialEffectVariantPara->position);
+    ret.occlusionWeight = spatialEffectVariantPara->occlusionWeight;
+    return ret;
+}
+
+void RSProperties::SetSpatialEffectVariantPara(const std::optional<SpatialEffectVariantPara>& spatialEffectVariantPara)
+{
+    GetEffect().spatialEffectVariantPara_ = spatialEffectVariantPara;
+    SetDirty();
+    contentDirty_ = true;
+
+    auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
+
+    if (spatialEffectVariantPara.has_value()) {
+        RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+    } else {
+        RSSpatialEffectManager::Instance()->UnregisterSpatialEffect(renderNode);
+    }
+}
+
+std::optional<SpatialEffectVariantPara> RSProperties::GetSpatialEffectVariantPara() const
+{
+    return effect_ ? effect_->spatialEffectVariantPara_ : std::nullopt;
+}
+
+bool RSProperties::GetSpatialEffectOcclusionEnabled() const
+{
+    if (!effect_) {
+        return false;
+    }
+    if (!effect_->spatialEffectVariantPara_) {
+        return false;
+    }
+    return ROSEN_GNE(effect_->spatialEffectVariantPara_->occlusionWeight, 0.0f);
+}
+
+void RSProperties::SetSpatialEffectDstPoints(const std::optional<std::vector<Drawing::Point>>& dstPoints)
+{
+    GetEffect().spatialEffectDstPoints_ = dstPoints;
+}
+
+std::optional<std::vector<Drawing::Point>> RSProperties::GetSpatialEffectDstPoints() const
+{
+    return effect_ ? effect_->spatialEffectDstPoints_ : std::nullopt;
+}
+
 void RSProperties::SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para)
 {
     GetEffect().motionBlurPara_ = para;
@@ -2478,6 +2951,11 @@ bool RSProperties::NeedClip() const
 void RSProperties::SetDirty()
 {
     isDirty_ = true;
+}
+
+void RSProperties::SetGeoDirty()
+{
+    geoDirty_ = true;
 }
 
 void RSProperties::ResetDirty()

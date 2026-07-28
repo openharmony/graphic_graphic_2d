@@ -573,6 +573,9 @@ bool RSHdrUtil::IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfi
 
 bool RSHdrUtil::NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams)
 {
+    if (!RSSystemProperties::GetEdrGainEnabled() || RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
+        return true;
+    }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     auto displayNode = nodeMap.GetRenderNode<const RSLogicalDisplayRenderNode>(id);
     if (!displayNode) {

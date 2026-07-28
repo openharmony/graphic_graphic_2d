@@ -21,6 +21,8 @@
 #include "drawable/rs_property_drawable.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_def.h"
+#include "params/rs_depth_render_params.h"
+#include "params/rs_render_params.h"
 
 namespace OHOS::Rosen {
 class RSFilter;
@@ -274,6 +276,38 @@ private:
     bool stagingBoundsGeoValid_ = false;
     RectF boundsRect_;
     RectF stagingBoundsRect_;
+};
+
+class RSSpatialEffectDrawable : public RSPropertyDrawable {
+public:
+    RSSpatialEffectDrawable() = default;
+    ~RSSpatialEffectDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
+
+private:
+    bool IsParamsValid() const;
+    bool IsNeedSkipOcclusion(const RSDepthRenderParams& depthParam) const;
+    static Vector4f CalcDepthPlane(const RSDepthRenderParams& params, const SpatialEffectVariantPara& para,
+        const std::optional<std::vector<Drawing::Point>>& dstPoints, const Drawing::RectI drawRect);
+    void CalcDepthMapMatrix(
+        Drawing::Matrix& outMatrix, const Drawing::RectI& drawRect, const RSDepthRenderParams& params) const;
+    std::shared_ptr<Drawing::Image> CaptureSurfaceSnapshot(const RSDepthRenderParams& depthParam,
+        Drawing::Canvas* canvas, const Drawing::Rect* rect, Drawing::RectI& outDrawRect) const;
+    std::shared_ptr<Drawing::Image> CreateOcclusionImage(const RSDepthRenderParams& depthParam,
+        Drawing::Canvas* canvas, const Drawing::RectI& drawRect, std::shared_ptr<Drawing::Image> backgroundImage) const;
+    void RenderOcclusionEffect(
+        Drawing::Canvas* canvas, const Drawing::RectI& drawRect, std::shared_ptr<Drawing::Image> occlusionImage) const;
+
+    std::weak_ptr<RSRenderNodeDrawableAdapter> stagingDepthNodeDrawable_;
+    std::weak_ptr<RSRenderNodeDrawableAdapter> depthNodeDrawable_;
+    std::optional<SpatialEffectVariantPara> stagingSpatialEffectPara_;
+    std::optional<SpatialEffectVariantPara> spatialEffectPara_;
+    std::optional<std::vector<Drawing::Point>> stagingSpatialEffectDstPoints_;
+    std::optional<std::vector<Drawing::Point>> spatialEffectDstPoints_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

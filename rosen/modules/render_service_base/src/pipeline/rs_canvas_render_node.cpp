@@ -31,6 +31,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
+#include "property/rs_spatial_effect_manager.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_light_up_effect_filter.h"
 #include "platform/common/rs_log.h"
@@ -409,6 +410,17 @@ void RSCanvasRenderNode::OnSetPixelmap(const std::shared_ptr<Media::PixelMap>& p
     }
     SetHdrPhotoHeadroom(newHeadroom);
 #endif
+}
+
+void RSCanvasRenderNode::SetIsDepthBackground(bool isDepthBackground)
+{
+    isDepthBackground_ = isDepthBackground;
+
+    if (isDepthBackground) {
+        RSSpatialEffectManager::Instance()->RegisterDepthBackground(shared_from_this());
+    } else {
+        RSSpatialEffectManager::Instance()->UnregisterDepthBackground(shared_from_this());
+    }
 }
 
 void RSCanvasRenderNode::SetColorGamut(uint32_t gamut)

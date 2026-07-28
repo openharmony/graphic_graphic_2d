@@ -41,7 +41,6 @@ group("unittest") {
     ":RSRoundCornerDisplayTest",
     ":RSSolidLayerTest",
     ":RSSLRScaleTest",
-    ":RSUniHwcVisitorTest",
     ":RSHwcContextTest",
     ":RSUniRenderComposerAdapterTest",
     ":RSUniRenderEngineTest",

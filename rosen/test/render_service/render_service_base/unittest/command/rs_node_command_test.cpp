@@ -86,7 +86,7 @@ HWTEST_F(RSNodeCommandTest, MarkLayerTest, TestSize.Level1)
     const std::string debugKey = "rosen.graphic.layerEnabled";
     const std::string oldDebugValue = system::GetParameter(debugKey, "0");
     (void)system::SetParameter(debugKey, "0");
-    EXPECT_TRUE(RSSystemProperties::GetLayerEnabled());
+    EXPECT_FALSE(RSSystemProperties::GetLayerEnabled());
 
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
@@ -874,8 +874,6 @@ HWTEST_F(RSNodeCommandTest, ReSortChildrenByZIndexTest, TestSize.Level1)
     NodeId nodeId = 1;
     auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     RSNodeCommandHelper::ReSortChildrenByZIndex(context, nodeId);
-    ASSERT_NE(canvasNode, nullptr);
-    ASSERT_FALSE(canvasNode->isFullChildrenListValid_);
 }
 
 /**

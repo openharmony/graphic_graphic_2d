@@ -1289,6 +1289,43 @@ private:
     SurfaceDefaultSizeCmdParam param_;
 };
 
+struct IsDepthResourceCmdParam {
+    bool isDepthResource_;
+};
+
+class IsDepthResourceCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::IS_DEPTH_RESOURCE;
+
+    IsDepthResourceCmdModifier(std::weak_ptr<RSNode> node, const IsDepthResourceCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param)
+    {
+    }
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const IsDepthResourceCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const IsDepthResourceCmdParam& GetParam() const
+    {
+        return param_;
+    }
+
+private:
+    IsDepthResourceCmdParam param_;
+};
+
 struct ForceHardwareAndFixRotationCmdParam {
     bool flag_;
 };
