@@ -61,6 +61,7 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
+#include "pipeline/main_thread/rs_surface_permission.h"
 #include "rs_profiler.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
@@ -1357,6 +1358,8 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
         return ERR_INVALID_VALUE;
     }
+    sptr<ISurfacePermission> permission = new RSSurfacePermission();
+    surface->SetPermissionRules(permission);
     ConfigureForceTunnelLayer(config, surface);
 
     RS_TRACE_NAME_FMT("RSRenderPipelineAgent::CreateNodeAndSurface, nodeId: %" PRIu64 ", uniqueId: %" PRIu64
