@@ -20,7 +20,9 @@
 #include "sandbox_utils.h"
 #include "platform/common/rs_system_properties.h"
 
+#include "animation/rs_animation_fraction.h"
 #include "animation/rs_animation_trace_utils.h"
+#include "animation/rs_interpolator.h"
 #include "command/rs_message_processor.h"
 #include "command/rs_ui_director_command.h"
 #include "modifier/rs_modifier_manager.h"
@@ -63,6 +65,7 @@ namespace Rosen {
 constexpr int32_t INSTANCE_ID_UNDEFINED_TASK_RUNNER = 0;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
+static std::once_flag g_initAnimationFlag;
 constexpr int NODE_ID = 1; // Image size difference
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectToRenderRemote,
@@ -80,8 +83,12 @@ RSUIDirector::~RSUIDirector()
 
 void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext)
 {
-    AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
-    AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(AnimationDestroyInRenderCallbackProcessor);
+    std::call_once(g_initAnimationFlag, []() {
+        AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
+        AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(AnimationDestroyInRenderCallbackProcessor);
+        RSInterpolator::Init();
+        RSAnimationFraction::Init();
+    });
     RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor);
     RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor);
     std::call_once(g_initDumpNodeTreeProcessorFlag,
@@ -124,8 +131,6 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     GoCreate();
     GoResume();
     GoForeground();
-    RSInterpolator::Init();
-    RSAnimationFraction::Init();
     if (isUniRenderEnabled_) {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
         InitHybridRender();
