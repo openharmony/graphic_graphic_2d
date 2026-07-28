@@ -182,10 +182,10 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface001, TestSize.Level1)
     auto globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     RSTypefaceCache& typefaceCache = RSTypefaceCache::Instance();
     typefaceCache.typefaceHashCode_.emplace(globalUniqueId, 0);
-    instance.RegisterTypeface(typeface);
-    EXPECT_NE(Drawing::TypefaceMap::GetTypefaceByUniqueId(typeface->GetUniqueID()), nullptr);
+    EXPECT_FALSE(instance.RegisterTypeface(typeface));
+    EXPECT_EQ(Drawing::TypefaceMap::GetTypefaceByUniqueId(typeface->GetUniqueID()), nullptr);
     typeface = nullptr;
-    EXPECT_EQ(instance.RegisterTypeface(typeface), -1);
+    EXPECT_FALSE(instance.RegisterTypeface(typeface));
     typefaceCache.typefaceHashCode_.clear();
 }
 
@@ -202,8 +202,7 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface002, TestSize.Level1)
     auto typeface =
         Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
     ASSERT_NE(typeface, nullptr);
-    int32_t result = instance.RegisterTypeface(typeface);
-    EXPECT_EQ(result, typeface->GetFd());
+    EXPECT_TRUE(instance.RegisterTypeface(typeface));
     EXPECT_NE(Drawing::TypefaceMap::GetTypefaceByUniqueId(typeface->GetUniqueID()), nullptr);
     EXPECT_TRUE(instance.UnRegisterTypeface(typeface->GetHash()));
 }
@@ -232,11 +231,11 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface003, TestSize.Level1)
         ashmem.release());
     typeface->UpdateStream(std::move(stream));
     typeface->SetFd(fd);
-    int32_t result = instance.RegisterTypeface(typeface);
+    bool result = instance.RegisterTypeface(typeface);
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        EXPECT_EQ(result, INVALID_FD);
+        EXPECT_FALSE(result);
     } else {
-        EXPECT_EQ(result, fd);
+        EXPECT_TRUE(result);
     }
 }
 

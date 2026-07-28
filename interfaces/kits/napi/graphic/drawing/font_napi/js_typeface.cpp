@@ -237,7 +237,7 @@ napi_value JsTypeface::OnMakeFromCurrent(napi_env env, napi_callback_info info)
     rawTypeface->SetSize(m_typeface->GetSize());
     rawTypeface->SetHash(m_typeface->GetHash());
     if (rawTypeface->IsCustomTypeface() && Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         ROSEN_LOGE("JsTypeface::OnMakeFromCurrent MakeRegister Typeface failed.");
         return nullptr;
     }
@@ -273,7 +273,7 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         ROSEN_LOGE("JsTypeface::MakeFromFile MakeRegister Typeface failed.");
         return nullptr;
     }
@@ -319,7 +319,7 @@ napi_value JsTypeface::MakeFromFileWithArguments(napi_env env, napi_callback_inf
         return nullptr;
     }
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         ROSEN_LOGE("JsTypeface::MakeFromFileWithArguments MakeRegister Typeface failed.");
         return nullptr;
     }
@@ -357,7 +357,7 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         ROSEN_LOGE("JsTypeface::MakeFromRawFile MakeRegister Typeface failed.");
         return nullptr;
     }
@@ -403,9 +403,9 @@ napi_value JsTypeface::MakeFromRawFileWithArguments(napi_env env, napi_callback_
         ROSEN_LOGE("JsTypeface::MakeFromRawFileWithArguments create rawTypeface failed!");
         return nullptr;
     }
-    
+
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         ROSEN_LOGE("JsTypeface::MakeFromRawFileWithArguments MakeRegister Typeface failed.");
         return nullptr;
     }

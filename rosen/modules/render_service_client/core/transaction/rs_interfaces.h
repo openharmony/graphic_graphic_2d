@@ -473,9 +473,9 @@ public:
     /**
      * @brief Register typeface.
      * @param tf font's typeface.
-     * @return return -1 if register failed, else return fd.
+     * @return return true if register success, else return false.
      */
-    int32_t RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf);
+    bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf);
 
     /**
      * @brief UnRegister typeface.
