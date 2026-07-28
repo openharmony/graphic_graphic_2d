@@ -1,0 +1,39 @@
+@startuml HandleSetHgmExclusiveScreen_ClassDiagram
+' 类图：仅 HgmFrameRateManager 类
+' 仅保留 HandleSetHgmExclusiveScreen 函数体直接访问到的成员变量与成员函数
+' 基准：rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_frame_rate_manager.cpp:809-824
+
+skinparam classAttributeIconSize 0
+skinparam monospace true
+skinparam shadowing false
+title HgmFrameRateManager::HandleSetHgmExclusiveScreen 类图
+
+class HgmFrameRateManager {
+    - hgmExclusiveScreenId_ : std::atomic<ScreenId>
+    - cleanPidCallback_ : std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>>
+    ----
+    + HandleSetHgmExclusiveScreen(pid : pid_t, screenId : ScreenId) : bool
+}
+
+note right of HgmFrameRateManager::HandleSetHgmExclusiveScreen
+  <b>函数体逻辑</b>:
+  1. screenId != INVALID_SCREEN_ID:
+     - HgmCore::Instance().GetScreen(screenId) 取 HgmScreen
+     - 校验 screen 存在且 GetSelfOwnedScreenFlag() 为 true，否则返回 false
+     - cleanPidCallback_[pid].insert(HGM_EXCLUSIVE_SCREEN)
+  2. screenId == INVALID_SCREEN_ID:
+     - cleanPidCallback_[pid].erase(HGM_EXCLUSIVE_SCREEN)
+  3. hgmExclusiveScreenId_.store(screenId); 返回 true
+
+  <b>本函数直接访问的成员</b>:
+  - 成员变量: hgmExclusiveScreenId_, cleanPidCallback_
+  - 成员函数: 无 (仅本函数自身)
+
+  <b>引用的外部符号</b>:
+  - 常量: INVALID_SCREEN_ID
+  - 枚举值: CleanPidCallbackType::HGM_EXCLUSIVE_SCREEN
+  - 静态: HgmCore::Instance()
+  - 方法: HgmCore::GetScreen(), HgmScreen::GetSelfOwnedScreenFlag()
+end note
+
+@enduml

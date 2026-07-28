@@ -1,0 +1,67 @@
+@startuml HandleSetHgmExclusiveScreen_Sequence
+
+skinparam monospace true
+skinparam shadowing false
+skinparam sequenceMessageAlign direction
+title 时序图
+
+participant "APS" as App #LightBlue
+participant "RSInterfaces" as Ifaces #White
+participant "HgmContext" as Ctx #LightYellow
+participant "HgmFrameRateManager" as FreqMgr #LightGreen
+participant "HgmCore" as Core #White
+participant "HgmScreen" as Screen #White
+
+== 客户端侧 ==
+App -> Ifaces : SetHgmExclusiveScreen(optional<ScreenId>)
+activate Ifaces
+
+note over Ifaces, Ctx
+  中间层已折叠:
+  - IPC: RSRenderServiceClient → Proxy (WriteInterfaceToken/WriteUint64, TF_SYNC)
+    → Binder → Stub::OnRemoteRequest (ReadUint64) → RSClientToServiceConnection (携带 remotePid_ 作为 pid)
+  - 线程投递: HgmContext 通过 HgmTaskHandleThread::ScheduleTask(...).wait()
+    把任务同步投递到 Hgm 线程执行，IPC 线程在此阻塞
+end note
+
+Ifaces -> Ctx : SetHgmExclusiveScreen(pid, screenId.value_or(INVALID))
+activate Ctx
+Ctx -> FreqMgr : frameRateManager->HandleSetHgmExclusiveScreen(pid, screenId)
+activate FreqMgr
+
+== HandleSetHgmExclusiveScreen 函数体 ==
+alt screenId != INVALID_SCREEN_ID
+    FreqMgr -> Core : HgmCore::Instance().GetScreen(screenId)
+    activate Core
+    Core --> FreqMgr : sptr<HgmScreen> screen
+    deactivate Core
+    FreqMgr -> Screen : screen->GetSelfOwnedScreenFlag()
+    activate Screen
+    Screen --> FreqMgr : bool selfOwned
+    deactivate Screen
+    note right of FreqMgr
+      若 !screen 或 !selfOwned
+      则 return false (不写入 hgmExclusiveScreenId_)
+    end note
+    FreqMgr -> FreqMgr : cleanPidCallback_[pid].insert(HGM_EXCLUSIVE_SCREEN)
+else screenId == INVALID_SCREEN_ID
+    FreqMgr -> FreqMgr : cleanPidCallback_[pid].erase(HGM_EXCLUSIVE_SCREEN)
+end
+FreqMgr -> FreqMgr : hgmExclusiveScreenId_.store(screenId)
+FreqMgr --> Ctx : return true
+deactivate FreqMgr
+
+== 结果回传 ==
+Ctx --> Ifaces : return result
+deactivate Ctx
+Ifaces --> App : return bool
+deactivate Ifaces
+
+note over Screen, Core
+  <b>后续消费 (非本接口调用链, 仅说明)</b>:
+  HgmHardwareUtils::ApplyRefreshRate 在 RSHardwareThread
+  通过 GetHgmExclusiveScreenId() 读取 hgmExclusiveScreenId_，
+  当其有效且 screenId != exclusiveScreenId 时跳过该屏刷新率切换。
+end note
+
+@enduml
