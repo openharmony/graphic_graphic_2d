@@ -32,6 +32,7 @@ config("graphic_napi_hyper_graphic_manager_config") {
 }
 
 ohos_shared_library("libhgmnapi") {
+  branch_protector_ret = "pac_ret"
   include_dirs = [
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",

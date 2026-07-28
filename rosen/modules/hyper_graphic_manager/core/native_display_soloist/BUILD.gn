@@ -32,6 +32,7 @@ config("native_display_soloist_config") {
 }
 
 ohos_shared_library("libnative_display_soloist") {
+  branch_protector_ret = "pac_ret"
   if (rs_enable_gpu) {
     sources = [ "native_display_soloist.cpp" ]
   }
