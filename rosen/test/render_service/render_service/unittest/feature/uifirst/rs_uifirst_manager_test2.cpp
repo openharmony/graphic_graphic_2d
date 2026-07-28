@@ -51,9 +51,6 @@ public:
 void RSUifirstManagerTest2::SetUpTestCase()
 {
     mainThread_ = RSMainThread::Instance();
-    if (mainThread_) {
-        uifirstManager_.mainThread_ = mainThread_;
-    }
     RSTestUtil::InitRenderNodeGC();
 }
 
@@ -180,6 +177,11 @@ HWTEST_F(RSUifirstManagerTest2, NeedPurgePendingPostNodesInner, TestSize.Level1)
 
     subThreadCache.cacheCompletedSurfaceInfo_.isContainShadow = true;
     ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, true);
+    EXPECT_FALSE(ret);
+
+    // surfaceParams null
+    drawable->renderParams_ = nullptr;
+    ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, false);
     EXPECT_FALSE(ret);
 }
 

@@ -242,11 +242,8 @@ void RSUifirstManager::ResetWindowCache(std::shared_ptr<RSSurfaceRenderNode>& no
 
 void RSUifirstManager::MergeOldDirty(NodeId id)
 {
-    if (!mainThread_) {
-        return;
-    }
     auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-        mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
+        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
     if (!node) {
         return;
     }
@@ -300,10 +297,7 @@ void RSUifirstManager::MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRend
 
 void RSUifirstManager::RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable)
 {
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    auto nodeSp = mainThread_->GetContext().GetNodeMap().GetRenderNode(drawable->GetId());
+    auto nodeSp = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(drawable->GetId());
     if (nodeSp == nullptr) {
         return;
     }
@@ -329,12 +323,9 @@ void RSUifirstManager::RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRe
 
 void RSUifirstManager::ProcessForceUpdateNode()
 {
-    if (!mainThread_) {
-        return;
-    }
     std::vector<std::shared_ptr<RSRenderNode>> toDirtyNodes;
     for (auto id : pendingForceUpdateNode_) {
-        auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
         if (!surfaceNode || surfaceNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::ARKTS_CARD) {
             continue;
@@ -448,7 +439,7 @@ void RSUifirstManager::ProcessSkippedNode(const std::unordered_set<NodeId>& node
 {
     for (auto& id : nodes) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-            mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
+            RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
         if (UNLIKELY(!surfaceNode)) {
             continue;
         }
@@ -490,10 +481,10 @@ void RSUifirstManager::ProcessDoneNode()
 
     // reset node when node is not doing
     for (auto it = capturedNodes_.begin(); it != capturedNodes_.end();) {
-        if (mainThread_ && subthreadProcessingNode_.find(*it) == subthreadProcessingNode_.end()) {
+        if (subthreadProcessingNode_.find(*it) == subthreadProcessingNode_.end()) {
             // reset uifirst
             auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-                mainThread_->GetContext().GetNodeMap().GetRenderNode(*it));
+                RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(*it));
             if (node == nullptr) {
                 it = capturedNodes_.erase(it);
                 continue;
@@ -632,10 +623,14 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
 {
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-    if (!surfaceParams || !surfaceParams->GetAncestorScreenNode().lock()) {
+    if (!surfaceParams) {
         return;
     }
-    auto ancestor = surfaceParams->GetAncestorScreenNode().lock()->ReinterpretCastTo<RSScreenRenderNode>();
+    auto ancestorLocked = surfaceParams->GetAncestorScreenNode().lock();
+    if (!ancestorLocked) {
+        return;
+    }
+    auto ancestor = ancestorLocked->ReinterpretCastTo<RSScreenRenderNode>();
     if (!ancestor) {
         return;
     }
@@ -783,6 +778,9 @@ bool RSUifirstManager::NeedPurgePendingPostNodesInner(
     bool cachedStaticContent)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+    if (!surfaceParams) {
+        return false;
+    }
     bool needUpdateCache = !surfaceParams->IsUIFirstLeashAllEnable() &&
         drawable->GetRsSubThreadCache().IsContainShadow();
     if (needUpdateCache) {
@@ -987,12 +985,9 @@ void RSUifirstManager::UpdateSkipSyncNode()
     if (subthreadProcessingNode_.size() == 0) {
         return;
     }
-    if (!mainThread_) {
-        return;
-    }
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end(); it++) {
         RS_OPTIONAL_TRACE_NAME_FMT("doing%" PRIu64"", it->first);
-        auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(it->first);
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(it->first);
         if (!node) {
             continue;
         }
@@ -1075,9 +1070,11 @@ RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawabl
     auto uifirstRootId = params->GetUifirstRootNodeId() != INVALID_NODEID ?
         params->GetUifirstRootNodeId() : params->GetFirstLevelNodeId();
     auto& curRootIdState = GetUifirstCachedState(uifirstRootId);
+    const auto& stagingParams = node->GetStagingRenderParams();
     RS_OPTIONAL_TRACE_NAME_FMT("node[%" PRIu64 " %" PRIu64 "] drawable[%"
         PRIu64 " %" PRIu64 "] and curNodeId [%" PRIu64"] cacheState[%d]",
-        node->GetStagingRenderParams()->GetUifirstRootNodeId(), node->GetStagingRenderParams()->GetFirstLevelNodeId(),
+        stagingParams ? stagingParams->GetUifirstRootNodeId() : INVALID_NODEID,
+        stagingParams ? stagingParams->GetFirstLevelNodeId() : INVALID_NODEID,
         params->GetUifirstRootNodeId(), params->GetFirstLevelNodeId(), node->GetId(), curRootIdState);
 
     if (curRootIdState == CacheProcessStatus::DOING || curRootIdState == CacheProcessStatus::WAITING ||
@@ -1154,10 +1151,7 @@ void RSUifirstManager::RestoreSkipSyncNode()
     }
     for (auto id : toDelete) {
         pendingSyncForSkipBefore_.erase(id);
-        if (!mainThread_) {
-            continue;
-        }
-        auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
         if (!surfaceNode) {
             continue;
@@ -1558,14 +1552,9 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
 {
     int64_t curSysTime = GetCurSysTime();
     currentFrameEvent_.clear();
-    if (!mainThread_) {
-        mainThread_ = RSMainThread::Instance();
-    }
-    if (mainThread_) {
-        const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-        entryViewNodeId_ = nodeMap.GetEntryViewNodeId();
-        negativeScreenNodeId_ = nodeMap.GetNegativeScreenNodeId();
-    }
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    entryViewNodeId_ = nodeMap.GetEntryViewNodeId();
+    negativeScreenNodeId_ = nodeMap.GetNegativeScreenNodeId();
     {
         std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
         for (auto it = globalFrameEvent_.begin(); it != globalFrameEvent_.end();) {

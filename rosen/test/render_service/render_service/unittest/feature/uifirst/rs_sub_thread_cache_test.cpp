@@ -721,6 +721,11 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest001, TestSize.Level1)
     surfaceDrawable_->uifirstDrawCmdIndex_.endIndex_ = 0;
     surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
     EXPECT_FALSE(surfaceDrawable_->uifirstDrawCmdList_.empty());
+
+    // uifirstParams null
+    surfaceDrawable_->uifirstRenderParams_ = nullptr;
+    surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
+    EXPECT_FALSE(surfaceDrawable_->uifirstDrawCmdList_.empty());
 }
 
 
