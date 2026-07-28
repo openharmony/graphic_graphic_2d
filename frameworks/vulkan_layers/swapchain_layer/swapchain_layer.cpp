@@ -48,6 +48,7 @@
 #endif
 
 #define SWAPCHAIN_SURFACE_NAME "VK_LAYER_OHOS_surface"
+#define VK_SWAPCHAIN_CREATE_FORCE_LINEAR_BIT_OHOS 0x00000400
 using namespace OHOS;
 
 enum Extension {
