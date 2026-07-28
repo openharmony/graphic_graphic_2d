@@ -22,6 +22,7 @@
 #include "hdi_log.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
+#include "rs_render_surface_solid_filled_color_layer.h"
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -37,6 +38,7 @@ const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
 const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 const std::string GENERIC_METADATA_KEY_VCLD_PARAM = "VcldParam";
+const std::string GENERIC_METADATA_KEY_SOLIC_FILL = "SolidFill";
 }
 
 template<typename T>
@@ -812,8 +814,13 @@ void HdiLayer::CheckRet(int32_t ret, const char* func)
 void HdiLayer::SavePrevRSLayer()
 {
     if (prevRSLayer_ == nullptr) {
-        prevRSLayer_ = rsLayer_->IsScreenRCDLayer() ? std::make_shared<RSRenderSurfaceRCDLayer>() :
-            std::make_shared<RSRenderSurfaceLayer>();
+        if (rsLayer_->IsScreenRCDLayer()) {
+            prevRSLayer_ = std::make_shared<RSRenderSurfaceRCDLayer>();
+        } else if (rsLayer_->IsSolidFilledColorLayer()) {
+            prevRSLayer_ = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+        } else {
+            prevRSLayer_ = std::make_shared<RSRenderSurfaceLayer>();
+        }
     }
     prevRSLayer_->CopyLayerInfo(rsLayer_);
 }
@@ -885,6 +892,9 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_VCLD_PARAM) {
             ret = SetPerFrameLayerVcldParam();
             CheckRet(ret, "SetLayerVcldParam");
+        } else if (key == GENERIC_METADATA_KEY_SOLIC_FILL) {
+            ret = SetPerFrameLayerSolidFillParam();
+            CheckRet(ret, "SetLayerSolidFillParam");
         }
     }
     SetTunnelLayerParameters();
@@ -981,6 +991,25 @@ int32_t HdiLayer::SetPerFrameLayerVcldParam()
     *reinterpret_cast<RSVcldParam*>(valueBlob.data()) = rsLayer_->GetVcldInfo();
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_VCLD_PARAM, valueBlob);
+}
+
+int32_t HdiLayer::SetPerFrameLayerSolidFillParam()
+{
+    if (prevRSLayer_ != nullptr) {
+        if (rsLayer_->IsSolidFilledColorLayer() && rsLayer_->GetLayerSize() == prevRSLayer_->GetLayerSize()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        } else if (!rsLayer_->IsSolidFilledColorLayer()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    } else {
+        if (!rsLayer_->IsSolidFilledColorLayer()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+    std::vector<int8_t> valueBlob(sizeof(int32_t));
+    *reinterpret_cast<int32_t*>(valueBlob.data()) = rsLayer_->IsSolidFilledColorLayer();
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SOLIC_FILL, valueBlob);
 }
 
 void HdiLayer::ClearBufferCache()
