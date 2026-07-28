@@ -292,7 +292,7 @@ public:
                                                  size_t rowBytes);
 
     /**
-     * @brief              Scale Image using the specified options.
+     * @brief Scale Image using the specified options.
      * Use AAE hardware to scale Image
      * Performance is lower than Nearest and Bilinear. Verify if the scaling performance meets requirements before use.
      * Supported scaling factor: 0.5 to 2.0.

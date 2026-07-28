@@ -349,6 +349,7 @@ public:
      */
     void SetAbnormalPid(pid_t pid);
 
+
     /**
      * @brief Register GPU memory statistics callback.
      * @param callback Callback for memory allocation/deallocation.
@@ -392,9 +393,9 @@ public:
     void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func);
 
     /**
-     * @brief                       Register callback function for single frame drawop limit exceeded
-     * @param drawOpOverCallback    Single frame drawop limit exceeded
-     */
+    * @brief                       Register callback function for single frame drawop limit exceeded
+    * @param drawOpOverCallback    Single frame drawop limit exceeded
+    */
     void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback);
 
     /**
