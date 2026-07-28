@@ -30,6 +30,7 @@
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_log.h"
@@ -1228,6 +1229,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     // Adapt to the subtree feature to ensure the correct thread ID(TID) is set.
     RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
+    RSVirtualScreenThreadIdAdapt::AdaptVirtualScreenFfrtThreadId(canvas, threadId);
 
     bool isHdrOn = params.SelfOrChildHasHDR();
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
@@ -1270,10 +1272,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     RSLayerPartDrawCacheHelper::PushLayerPartRenderDirtyRegion(*this, params, *curCanvas, *cacheCanvas,
         RSRenderNodeDrawable::GetTotalProcessedNodeCount());
     // copy current canvas properties into cacheCanvas
-    const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (renderEngine) {
-        cacheCanvas->SetHighContrast(renderEngine->IsHighContrastEnabled());
-    }
+    cacheCanvas->SetHighContrast(RSBaseRenderEngine::IsHighContrastEnabled());
     cacheCanvas->CopyConfigurationToOffscreenCanvas(*curCanvas);
     cacheCanvas->CopyHDRConfiguration(*curCanvas);
     // Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures

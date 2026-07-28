@@ -27,9 +27,11 @@
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "params/rs_render_thread_params.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
@@ -235,7 +237,9 @@ void RSMultiScreenUtil::HandleMirrorScreen(
 void RSMultiScreenUtil::HandleVirtualExtendScreen(
     RSScreenRenderNodeDrawable& drawable,
     RSScreenRenderParams& params,
-    const std::shared_ptr<RSProcessor>& processor)
+    const std::shared_ptr<RSProcessor>& processor,
+    std::shared_ptr<RSBaseRenderEngine> renderEngine,
+    int32_t tid)
 {
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (!uniParam) {
@@ -250,7 +254,10 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
 
     RSUniRenderThread::BufferManagerGuard bufferGuard;
     DirtyStatusAutoUpdate dirtyStatusAutoUpdate(*uniParam, params.GetChildDisplayCount() == 1);
-    if (!processor || !processor->InitForRenderThread(drawable, RSUniRenderThread::Instance().GetRenderEngine())) {
+    if (!renderEngine) {
+        renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    }
+    if (!processor || !processor->InitForRenderThread(drawable, renderEngine, tid)) {
         // Clear cacheImgForCapture so that mirrorScreen avoid using an expired cache
         drawable.cacheImgForCapture_ = nullptr;
         drawable.SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);

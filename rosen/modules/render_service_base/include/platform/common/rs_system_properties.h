@@ -415,6 +415,7 @@ public:
     static bool GetRebuildSceneEnabled();
     static bool IsRenderNodeRebuildEnabled();
     static bool RebuildDebugEnabled();
+    static bool GetVirtualScreenParallelEnabled();
 
     static bool GetRsDelegateCompositeCleanCacheDfxEnable();
 private:

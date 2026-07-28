@@ -76,6 +76,7 @@ class RSTunnelLayerStateHandler;
 class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
+class RSVirtualScreenParallelManager;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -512,6 +513,10 @@ public:
     std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
     void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
 
+    std::shared_ptr<RSVirtualScreenParallelManager> GetVirtualScreenParallelManager() const
+    {
+        return virtualScreenParallelManager_;
+    }
     // for rebuild transaction
     bool IsRebuildTransactionInProgress() const;
     void AddSplitTransaction(std::unique_ptr<RSTransactionData> transaction);
@@ -933,6 +938,7 @@ private:
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
     std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
 
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
     // for rebuild transaction
     std::deque<std::unique_ptr<RSTransactionData>> pendingSplitTransactions_;
     pid_t pendingSplitPid_ = -1;
