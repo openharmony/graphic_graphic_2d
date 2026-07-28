@@ -694,7 +694,10 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
         writer.writeImage(skiaImage_.get());
         size_t length = writer.bytesWritten();
         std::shared_ptr<Data> data = std::make_shared<Data>();
-        data->BuildUninitialized(length);
+        if (!data->BuildUninitialized(length)) {
+            LOGD("SkiaImage::Serialize, BuildUninitialized failed.");
+            return nullptr;
+        }
         writer.writeToMemory(data->WritableData());
         return data;
     } else {
@@ -734,7 +737,10 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
         }
         size_t length = writer.bytesWritten();
         std::shared_ptr<Data> data = std::make_shared<Data>();
-        data->BuildUninitialized(length);
+        if (!data->BuildUninitialized(length)) {
+            LOGD("SkiaImage::Serialize, BuildUninitialized failed.");
+            return nullptr;
+        }
         writer.writeToMemory(data->WritableData());
         return data;
     }
