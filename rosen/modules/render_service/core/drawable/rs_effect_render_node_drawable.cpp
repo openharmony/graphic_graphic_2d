@@ -25,10 +25,7 @@ namespace OHOS::Rosen::DrawableV2 {
 RSEffectRenderNodeDrawable::Registrar RSEffectRenderNodeDrawable::instance_;
 
 RSEffectRenderNodeDrawable::RSEffectRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
-    : RSRenderNodeDrawable(std::move(node))
-{
-    renderNode_ = node;
-}
+    : RSRenderNodeDrawable(std::move(node)) {}
 
 RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {

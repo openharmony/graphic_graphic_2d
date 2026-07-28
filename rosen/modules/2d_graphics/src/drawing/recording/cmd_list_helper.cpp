@@ -502,6 +502,9 @@ OpFontHandle CmdListHelper::AddFontToCmdList(CmdList& cmdList, const Font* font)
         return {};
     }
     auto typeface = font->GetTypeface();
+    if (!typeface) {
+        return {};
+    }
     auto data = typeface->Serialize();
     if (!data || data->GetSize() == 0) {
         LOGD("font typeface serialize invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -539,6 +542,10 @@ std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(const CmdList& cmdList, 
         auto typefaceData = std::make_shared<Data>();
         typefaceData->BuildWithoutCopy(data, fontHandle.size);
         typeface = Typeface::Deserialize(typefaceData->GetData(), typefaceData->GetSize());
+    }
+    if (!typeface) {
+        LOGD("font typeface is nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
     }
     typeface->SetIsCustomTypeface(fontHandle.isCustomTypeface);
     typeface->SetIsThemeTypeface(fontHandle.isThemeTypeface);

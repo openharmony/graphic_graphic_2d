@@ -243,6 +243,11 @@ void RSServiceToRenderConnection::SetVmaCacheStatus(bool flag)
     renderPipelineAgent_->SetVmaCacheStatus(flag);
 }
 
+ErrCode RSServiceToRenderConnection::SetUIMode3D(UIMode3D mode)
+{
+    return renderPipelineAgent_->SetUIMode3D(mode);
+}
+
 ErrCode RSServiceToRenderConnection::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
 {
     return renderPipelineAgent_->SetForceRefresh(nodeIdStr, isForceRefresh);

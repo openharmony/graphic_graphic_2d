@@ -102,8 +102,11 @@ void RSOcclusionHandler::CollectSubTree(const RSRenderNode& node,
     // Therefore, the first-level children may have been deleted, so we need to traverse the children to ensure
     // the lightweight tree correctly follows the RS tree.
     CollectNodeInner(node);
-    auto sortChildren = *(node.GetSortedChildren());
-    std::for_each(sortChildren.begin(), sortChildren.end(), [&](std::shared_ptr<RSRenderNode> child) {
+    auto sortedChildren = node.GetSortedChildren();
+    if (sortedChildren == nullptr) {
+        return;
+    }
+    std::for_each(sortedChildren->begin(), sortedChildren->end(), [&](std::shared_ptr<RSRenderNode> child) {
         if (!child) {
             return;
         }
@@ -133,8 +136,11 @@ void RSOcclusionHandler::CollectSubTreeInner(const RSRenderNode& node)
     if (itNode == occlusionNodes_.end() || itNode->second == nullptr) {
         return;
     }
-    auto sortChildren = *(node.GetSortedChildren());
-    std::for_each(sortChildren.begin(), sortChildren.end(), [&](std::shared_ptr<RSRenderNode> node) {
+    auto sortedChildren = node.GetSortedChildren();
+    if (sortedChildren == nullptr) {
+        return;
+    }
+    std::for_each(sortedChildren->begin(), sortedChildren->end(), [&](std::shared_ptr<RSRenderNode> node) {
         if (node) {
             CollectSubTreeInner(*node);
         }
@@ -187,11 +193,16 @@ void RSOcclusionHandler::CalculateFrameOcclusion()
 void RSOcclusionHandler::DumpSubTreeOcclusionInfo(const RSRenderNode& node)
 {
     auto sortChildren = node.GetSortedChildren();
+    if (sortChildren == nullptr) {
+        return;
+    }
     auto it = occlusionNodes_.find(node.GetId());
     if (it == occlusionNodes_.end() || it->second == nullptr) {
         RS_TRACE_NAME_FMT("DumpSubTreeOcclusionInfo: error, node id: %" PRIu64 " not collect", node.GetId());
         for (const auto& child : *sortChildren) {
-            DumpSubTreeOcclusionInfo(*child);
+            if (child != nullptr) {
+                DumpSubTreeOcclusionInfo(*child);
+            }
         }
         return;
     }
@@ -201,7 +212,9 @@ void RSOcclusionHandler::DumpSubTreeOcclusionInfo(const RSRenderNode& node)
     RS_TRACE_NAME_FMT("%s isSubtreeCulled:%d isNodeCulled:%d",
         ocNode->GetOcclusionNodeInfoString().c_str(), isSubtreeCulled, isNodeCulled);
     for (const auto& child : *sortChildren) {
-        DumpSubTreeOcclusionInfo(*child);
+        if (child != nullptr) {
+            DumpSubTreeOcclusionInfo(*child);
+        }
     }
 }
 

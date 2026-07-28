@@ -180,6 +180,11 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
     return vpeSurface;
 }
 
+bool RSVpeManager::IsConfigNameSkipped(const std::string& name)
+{
+    return name == "RosenWeb" || name == "delegate_child" || name == "delegate_child_video";
+}
+
 sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, const RSSurfaceRenderNodeConfig& config)
 {
     RS_TRACE_NAME_FMT("RSVpeManager::Create name: %s nodeId:%" PRIu64, config.name.c_str(), config.id);
@@ -189,7 +194,8 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
         return nullptr;
     }
 
-    if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE || config.name == "RosenWeb") {
+    if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE ||
+        IsConfigNameSkipped(config.name)) {
         return surface;
     }
 
@@ -197,7 +203,8 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
         return surface;
     }
     sptr<Surface> vpeSurface = surface;
-    std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER };
+    std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER,
+        VIDEO_TYPE_AI3D_ENHANCER };
     for (auto& type : supportTypes) {
         if (VpeVideo::IsSupported(type, parameter)) {
             vpeSurface = GetVpeVideoSurface(type, vpeSurface, config);

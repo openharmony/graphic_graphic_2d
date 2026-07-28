@@ -114,9 +114,6 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     } else {
         // force fallback animaiions send to RS if no render thread
         RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-        InitHybridRender();
-#endif
     }
     if (!cacheDir_.empty()) {
         RSRenderThread::Instance().SetCacheDir(cacheDir_);
@@ -129,6 +126,11 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     GoForeground();
     RSInterpolator::Init();
     RSAnimationFraction::Init();
+    if (isUniRenderEnabled_) {
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        InitHybridRender();
+#endif
+    }
 }
 
 void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
@@ -490,7 +492,7 @@ void RSUIDirector::ExecuteGoDestroy(bool isTextureExport)
         // child windows to be unable to find the UIContext during animation callback.
         if (!skipDestroyUIContext_) {
             RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
-            rsUIContext_->DestroyModifiersDraw();
+            rsUIContext_->ClearCanvasDrawingNodeResource();
         }
         rsUIContext_ = nullptr;
     }
@@ -623,11 +625,14 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (rsUIContext_ == nullptr) {
+    if (cacheDir_.empty()) {
         return;
     }
-    if (cacheDir_.empty()) {
+    if (!isUniRenderEnabled_) {
+        RSRenderThread::Instance().SetCacheDir(cacheDir_);
+    }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (rsUIContext_ == nullptr) {
         return;
     }
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {

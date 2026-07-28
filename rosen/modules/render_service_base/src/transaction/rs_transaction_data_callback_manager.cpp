@@ -30,18 +30,19 @@ RSTransactionDataCallbackManager& RSTransactionDataCallbackManager::Instance()
 }
 
 void RSTransactionDataCallbackManager::RegisterTransactionDataCallback(uint64_t token,
-    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
+    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback, pid_t callingPid)
 {
     RS_LOGD("RSTransactionDataCallbackManager save data, timeStamp: %{public}"
         PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-    if (!PushTransactionDataCallback(token, timeStamp, callback)) {
+    if (!PushTransactionDataCallback(token, timeStamp, callback, callingPid)) {
         RS_LOGE("RegisterTransactionDataCallback register callback err");
     }
 }
 
-void RSTransactionDataCallbackManager::TriggerTransactionDataCallback(uint64_t token, uint64_t timeStamp)
+void RSTransactionDataCallbackManager::TriggerTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+    pid_t callingPid)
 {
-    if (auto callback = PopTransactionDataCallback(token, timeStamp)) {
+    if (auto callback = PopTransactionDataCallback(token, timeStamp, callingPid)) {
         RS_LOGD("RSTransactionDataCallbackManager trigger data, timeStamp: %{public}"
             PRIu64 " token: %{public}" PRIu64, timeStamp, token);
         callback->OnAfterProcess(token, timeStamp);
@@ -52,7 +53,7 @@ void RSTransactionDataCallbackManager::TriggerTransactionDataCallback(uint64_t t
 }
 
 bool RSTransactionDataCallbackManager::PushTransactionDataCallback(uint64_t token,
-    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
+    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback, pid_t callingPid)
 {
     std::lock_guard<std::mutex> lock{ transactionDataCbMutex_ };
     if (transactionDataCallbacks_.size() >= MAX_TRANSACTION_DATA_CALLBACKS) {
@@ -63,25 +64,34 @@ bool RSTransactionDataCallbackManager::PushTransactionDataCallback(uint64_t toke
     if (transactionDataCallbacks_.find(std::make_pair(token, timeStamp)) == std::end(transactionDataCallbacks_)) {
         RS_LOGD("RSTransactionDataCallbackManager push data, timeStamp: %{public}"
             PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-        transactionDataCallbacks_.emplace(std::make_pair(token, timeStamp), callback);
+        transactionDataCallbacks_.emplace(std::make_pair(token, timeStamp),
+            TransactionDataCallbackInfo { callback, callingPid });
         return true;
     }
     return false;
 }
 
 sptr<RSITransactionDataCallback> RSTransactionDataCallbackManager::PopTransactionDataCallback(uint64_t token,
-    uint64_t timeStamp)
+    uint64_t timeStamp, pid_t callingPid)
 {
     std::lock_guard<std::mutex> lock { transactionDataCbMutex_ };
     auto iter = transactionDataCallbacks_.find(std::make_pair(token, timeStamp));
-    if (iter != std::end(transactionDataCallbacks_)) {
-        RS_LOGD("RSTransactionDataCallbackManager pop data, timeStamp: %{public}"
-            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-        auto callback = iter->second;
-        transactionDataCallbacks_.erase(iter);
-        return callback;
+    if (iter == std::end(transactionDataCallbacks_)) {
+        return nullptr;
     }
-    return nullptr;
+    // both pids come from trusted binder callingPid; skip the check only when either side is unknown,
+    // so that a forged token/pid from another process cannot pop this entry
+    if (iter->second.callingPid > 0 && callingPid > 0 && iter->second.callingPid != callingPid) {
+        RS_LOGW("RSTransactionDataCallbackManager pop rejected, pid mismatch, timeStamp: %{public}"
+            PRIu64 " token: %{public}" PRIu64 " registerPid: %{public}d triggerPid: %{public}d",
+            timeStamp, token, static_cast<int>(iter->second.callingPid), static_cast<int>(callingPid));
+        return nullptr;
+    }
+    RS_LOGD("RSTransactionDataCallbackManager pop data, timeStamp: %{public}"
+        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+    auto callback = iter->second.callback;
+    transactionDataCallbacks_.erase(iter);
+    return callback;
 }
 
 RSTransactionDataCallbackManager::RSTransactionDataCallbackManager()

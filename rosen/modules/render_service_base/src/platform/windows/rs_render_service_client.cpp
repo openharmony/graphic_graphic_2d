@@ -38,9 +38,9 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     return {};
 }
 
-bool RSRenderServiceClient::GetBackgroundRebuildEnabled()
+uint8_t RSRenderServiceClient::GetBackgroundRebuildEnabled()
 {
-    return {};
+    return 0;
 }
 
 MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
@@ -612,6 +612,11 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
 }
 
+bool RSRenderServiceClient::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    return {};
+}
+
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
 }
@@ -682,6 +687,11 @@ int64_t RSRenderServiceClient::GetHdrOnDuration()
 
 void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 {
+}
+
+bool RSRenderServiceClient::SetUIMode3D(UIMode3D mode)
+{
+    return false;
 }
 
 #ifdef TP_FEATURE_ENABLE

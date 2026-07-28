@@ -14,11 +14,15 @@
  */
 #ifndef ROSEN_CROSS_PLATFORM
 #include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
-#include "common/rs_optional_trace.h"
-#include "buffer_extra_data_impl.h"
-#include "command/rs_delegate_composite_command.h"
-#include "platform/common/rs_log.h"
+
+#include <charconv>
 #include <string>
+
+#include "buffer_extra_data_impl.h"
+
+#include "command/rs_delegate_composite_command.h"
+#include "common/rs_optional_trace.h"
+#include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
@@ -26,9 +30,9 @@ namespace Rosen {
 
 constexpr uint32_t CLIENT_PID_SHIFT_BITS = 48;
 constexpr uint32_t BUFFER_QUEUE_SIZE = 16;
-static uint32_t GenePidBySeqNum(uint64_t seqNum)
+static pid_t GenePidBySeqNum(uint64_t seqNum)
 {
-    return (seqNum >> CLIENT_PID_SHIFT_BITS);
+    return static_cast<pid_t>(seqNum >> CLIENT_PID_SHIFT_BITS);
 }
 
 const std::string CLIENT_PID = "RS-WEB-PROXY-COMPOSER-CLIENT-PID";
@@ -131,7 +135,7 @@ RsDelegateCompositeCallbackManager& RsDelegateCompositeCallbackManager::GetInsta
 void RsDelegateCompositeCallbackManager::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
 {
     std::lock_guard<std::mutex> lock(surfaceTransactionMapMutex_);
-    uint32_t pid = GenePidBySeqNum(listenerId);
+    pid_t pid = GenePidBySeqNum(listenerId);
     auto iter = surfaceTransactionListenerMap_.find(pid);
     if (iter != surfaceTransactionListenerMap_.end()) {
         iter->second.erase(listenerId);
@@ -177,8 +181,8 @@ void RsDelegateCompositeCallbackManager::NotifySurfaceTransactionListener(uint64
     std::lock_guard<std::mutex> lock(surfaceTransactionMapMutex_);
     std::map<uint64_t, std::queue<uint64_t>> surfaceTransactionCmdInfoMap;
     GetSurfaceTransactionCmdInfoLocked(surfaceTransactionCmdInfoMap);
-    for (auto &item : surfaceTransactionCmdInfoMap) {
-        uint32_t pid = GenePidBySeqNum(item.first);
+    for (auto& item : surfaceTransactionCmdInfoMap) {
+        pid_t pid = GenePidBySeqNum(item.first);
         auto iter1 = surfaceTransactionListenerMap_.find(pid);
         if (iter1 != surfaceTransactionListenerMap_.end()) {
             auto iter2 = iter1->second.find(item.first);
@@ -232,11 +236,16 @@ bool RsDelegateCompositeCallbackManager::GetInfo(sptr<IConsumerSurface> cSurface
     }
     std::string pidTmp = cSurface->GetUserData(CLIENT_PID);
     std::string nodeIdTmp = cSurface->GetUserData(NODE_ID);
-    if (pidTmp == "" || nodeIdTmp == "") {
+    if (pidTmp.empty() || nodeIdTmp.empty()) {
         return false;
     }
-    nodeId = static_cast<uint64_t>(std::stoull(nodeIdTmp));
-    pid = static_cast<pid_t>(std::stoul(pidTmp));
+    auto resultNodeId = std::from_chars(nodeIdTmp.data(), nodeIdTmp.data() + nodeIdTmp.size(), nodeId);
+    auto resultPid = std::from_chars(pidTmp.data(), pidTmp.data() + pidTmp.size(), pid);
+    if (resultNodeId.ec != std::errc() || resultPid.ec != std::errc()) {
+        ROSEN_LOGE("DelegateModeDebugTag: GetInfo parse fail, pid=%{public}s, nodeId=%{public}s", pidTmp.c_str(),
+            nodeIdTmp.c_str());
+        return false;
+    }
     return true;
 }
 
@@ -249,10 +258,10 @@ void RsDelegateCompositeCallbackManager::AddBufferReleaseInfo(NodeId nodeId, uin
         .nodeId = nodeId,
         .clientPid = clientPid,
         .queueId = surfaceId,
-        .bufferSeqNum = bufferSeqNum,
 #ifdef ROSEN_OHOS
         .releaseFence = releaseFence,
 #endif
+        .bufferSeqNum = bufferSeqNum,
     };
     AddBufferReleaseInfoInner(clientPid, onCompletedRet);
 }
@@ -300,10 +309,10 @@ bool RsDelegateCompositeCallbackManager::PrepareBufferReleaseInfo(NodeId nodeId,
         .nodeId = nodeId,
         .clientPid = clientPid,
         .queueId = surfaceId,
-        .bufferSeqNum = buffer->GetSeqNum(),
 #ifdef ROSEN_OHOS
         .releaseFence = releaseFence,
 #endif
+        .bufferSeqNum = buffer->GetSeqNum(),
     };
     currentSurfaceNodeBufferReleaseInfoMapTmp_[bufferId] = onCompletedRet;
     return true;

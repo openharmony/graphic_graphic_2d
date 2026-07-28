@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,23 +13,7 @@
  * limitations under the License.
  */
 
-#ifndef EGL_MANAGER_TEST_H
-#define EGL_MANAGER_TEST_H
+#ifndef FUZZTEST_RSINTERFACES_DISPLAY_SCREEN_UIMODE_3D_FUZZER_H
+#define FUZZTEST_RSINTERFACES_DISPLAY_SCREEN_UIMODE_3D_FUZZER_H
 
-#include <gtest/gtest.h>
-
-namespace OHOS {
-namespace Rosen {
-
-class EglManagerTest : public testing::Test {
-public:
-    static void SetUpTestCase() {};
-    static void TearDownTestCase() {};
-    void SetUp() override {};
-    void TearDown() override {};
-};
-
-} // namespace Rosen
-} // namespace OHOS
-
-#endif // EGL_MANAGER_TEST_H
+#endif

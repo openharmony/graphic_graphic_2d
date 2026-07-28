@@ -30,6 +30,12 @@ void RSDepthNodeCommandHelper::Create(RSContext& context, NodeId id, bool isText
 
 void RSDepthNodeCommandHelper::SetType(RSContext& context, NodeId id, DepthSpaceType depthSpaceType)
 {
+    if (depthSpaceType < DepthSpaceType::DEPTH_SPACE_TYPE_MIN ||
+        depthSpaceType > DepthSpaceType::DEPTH_SPACE_TYPE_MAX) {
+        RS_LOGE("RSDepthNodeCommandHelper::SetType invalid depthSpaceType=%{public}d",
+            static_cast<int32_t>(depthSpaceType));
+        return;
+    }
     if (const auto& node = context.GetNodeMap().GetRenderNode<RSDepthRenderNode>(id)) {
         node->SetDepthSpaceType(depthSpaceType);
     }

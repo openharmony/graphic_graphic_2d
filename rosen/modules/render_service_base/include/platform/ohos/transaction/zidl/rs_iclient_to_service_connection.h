@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_ICLIENT_TO_SERVICE_CONNECTION_H
 
 #include <iremote_broker.h>
+#include <optional>
 #include <string>
 #include "transaction/rs_render_service_client_info.h"
 #ifndef ENABLE_RS_PROXY
@@ -75,7 +76,7 @@ public:
 
     virtual ErrCode GetUniRenderEnabled(bool& enable) = 0;
 
-    virtual ErrCode GetBackgroundRebuildEnabled(bool& enable) = 0;
+    virtual ErrCode GetBackgroundRebuildEnabled(uint8_t& enable) = 0;
 
     virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
                                           const std::string& name,
@@ -317,6 +318,8 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId) = 0;
+
     virtual sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) = 0;
 
     virtual void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) = 0;
@@ -371,6 +374,8 @@ public:
     virtual ErrCode GetHdrOnDuration(int64_t& hdrOnDuration) = 0;
 
     virtual ErrCode SetVmaCacheStatus(bool flag) = 0;
+
+    virtual ErrCode SetUIMode3D(UIMode3D mode) = 0;
 
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;

@@ -19,6 +19,8 @@
 #include "rs_composer_client.h"
 #include "rs_surface_layer.h"
 #include "rs_surface_solid_filled_color_layer.h"
+#include "rs_render_surface_rcd_layer.h"
+#include "rs_render_surface_solid_filled_color_layer.h"
 #include "surface_buffer_impl.h"
 
 using namespace testing;
@@ -1502,6 +1504,110 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKeyFailure_ReturnsError, F
         .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
     auto ret = hdiLayer_->SetPerFrameParameters();
     ASSERT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: SetPerFrameLayerGlassFree3DTest
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. prevRSLayer_ is nullptr
+ *                  2. call SetPerFrameLayerGlassFree3D
+ *                  3. verify device is called and returns success
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameLayerGlassFree3DTest, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    hdiLayer_->rsLayer_ = curRSLayer;
+    hdiLayer_->prevRSLayer_ = nullptr;
+    auto ret = hdiLayer_->InitDevice();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameterSmq(_, _, _, _))
+        .WillRepeatedly(testing::Return(0));
+    ret = hdiLayer_->SetPerFrameLayerGlassFree3D();
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * Function: SetPerFrameLayerGlassFree3D_PrevSameValue_EarlyReturn
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. prevRSLayer_ is not nullptr and has same GlassFree3D value
+ *                  2. call SetPerFrameLayerGlassFree3D
+ *                  3. verify early return with success (no device call needed)
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameLayerGlassFree3D_PrevSameValue_EarlyReturn, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto prevRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    prevRSLayer->SetGlassFree3D(true);
+    hdiLayer_->prevRSLayer_ = prevRSLayer;
+
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    curRSLayer->SetGlassFree3D(true);
+    hdiLayer_->rsLayer_ = curRSLayer;
+    auto ret = hdiLayer_->InitDevice();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+
+    ret = hdiLayer_->SetPerFrameLayerGlassFree3D();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetPerFrameLayerGlassFree3D_PrevDiffValue_DeviceCalled
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. prevRSLayer_ is not nullptr and has different GlassFree3D value
+ *                  2. call SetPerFrameLayerGlassFree3D
+ *                  3. verify device call is made
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameLayerGlassFree3D_PrevDiffValue_DeviceCalled, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto prevRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    prevRSLayer->SetGlassFree3D(false);
+    hdiLayer_->prevRSLayer_ = prevRSLayer;
+
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    curRSLayer->SetGlassFree3D(true);
+    hdiLayer_->rsLayer_ = curRSLayer;
+    auto ret = hdiLayer_->InitDevice();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameterSmq(_, _, _, _))
+        .WillOnce(testing::Return(0));
+    ret = hdiLayer_->SetPerFrameLayerGlassFree3D();
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * Function: SetPerFrameParameters_GlassFree3DKey_Success
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Set paramKey_ with GlassFree3D key
+ *                  2. call SetPerFrameParameters
+ *                  3. verify success
+ *                   Cover branch: key == GENERIC_METADATA_KEY_GLASS_FREE_3D (line 884 true)
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameParameters_GlassFree3DKey_Success, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    paramKey_.clear();
+    paramKey_.push_back("GlassFree3D");
+
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    curRSLayer->SetGlassFree3D(true);
+    hdiLayer_->rsLayer_ = curRSLayer;
+    hdiLayer_->prevRSLayer_ = nullptr;
+
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameterSmq(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    auto ret = hdiLayer_->SetPerFrameParameters();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /**
@@ -5330,6 +5436,57 @@ HWTEST_F(HdiLayerTest, SetPerFrameLayerSolidFillParam_PrevNotNull_NotSolidFill_D
         .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     auto ret = hdiLayer_->SetPerFrameLayerSolidFillParam();
     ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SavePrevRSLayer_RCDLayer_CreatesRCDPrevLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rsLayer_ to RSRenderSurfaceRCDLayer, prevRSLayer_ to nullptr
+ *                  2. call SavePrevRSLayer()
+ *                  3. verify prevRSLayer_ is created as RSRenderSurfaceRCDLayer
+ *                   Cover branch: rsLayer_->IsScreenRCDLayer() is true (line 817 true)
+ */
+HWTEST_F(HdiLayerTest, SavePrevRSLayer_RCDLayer_CreatesRCDPrevLayer, Function | MediumTest | Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto rcdRsLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdRsLayer, nullptr);
+    hdiLayer_->rsLayer_ = rcdRsLayer;
+    hdiLayer_->prevRSLayer_ = nullptr;
+
+    hdiLayer_->SavePrevRSLayer();
+
+    ASSERT_NE(hdiLayer_->prevRSLayer_, nullptr);
+    EXPECT_TRUE(hdiLayer_->prevRSLayer_->IsScreenRCDLayer());
+    EXPECT_FALSE(hdiLayer_->prevRSLayer_->IsSolidFilledColorLayer());
+}
+
+/**
+ * Function: SavePrevRSLayer_SolidColorLayer_CreatesSolidColorPrevLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set rsLayer_ to RSRenderSurfaceSolidFilledColorLayer, prevRSLayer_ to nullptr
+ *                  2. call SavePrevRSLayer()
+ *                  3. verify prevRSLayer_ is created as RSRenderSurfaceSolidFilledColorLayer
+ *                   Cover branch: rsLayer_->IsSolidFilledColorLayer() is true (line 819 true)
+ */
+HWTEST_F(HdiLayerTest, SavePrevRSLayer_SolidColorLayer_CreatesSolidColorPrevLayer,
+    Function | MediumTest | Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto solidColorRsLayer = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+    ASSERT_NE(solidColorRsLayer, nullptr);
+    hdiLayer_->rsLayer_ = solidColorRsLayer;
+    hdiLayer_->prevRSLayer_ = nullptr;
+
+    hdiLayer_->SavePrevRSLayer();
+
+    ASSERT_NE(hdiLayer_->prevRSLayer_, nullptr);
+    EXPECT_FALSE(hdiLayer_->prevRSLayer_->IsScreenRCDLayer());
+    EXPECT_TRUE(hdiLayer_->prevRSLayer_->IsSolidFilledColorLayer());
 }
 } // namespace
 } // namespace Rosen

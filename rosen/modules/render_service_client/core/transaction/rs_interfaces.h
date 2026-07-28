@@ -813,6 +813,13 @@ public:
      */
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
 
+     /**
+     * @brief Set UI display mode.
+     * @param mode UI display mode (2D, Shutter 3D, or Glasses-free 3D).
+     * @return True if success, false if failed.
+     */
+    bool SetUIMode3D(UIMode3D mode);
+
     /**
      * @brief Set screen correction, used to correct screen rotation.
      * @param id Screen id.
@@ -1163,6 +1170,13 @@ public:
      * @param eventInfo the information of event.
      */
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
+
+    /**
+     * @brief Set HGM exclusive screen.
+     * @param screenId the exclusive screen id, nullopt to disable exclusive mode.
+     * @return return true on success, return false on failure.
+     */
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId);
 
     /*
     * @brief Support setting softVsync frame rate through windowId.

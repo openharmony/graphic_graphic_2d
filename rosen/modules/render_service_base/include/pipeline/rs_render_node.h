@@ -157,6 +157,11 @@ public:
     {
         return false;
     }
+    // Type-only check
+    virtual bool IsHwcLayerType() const
+    {
+        return false;
+    }
     // manage renderNode's child hardware enabled nodes and filter nodes info
     std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() { return allHwcNodeAndFilterNode_; }
     const std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() const { return allHwcNodeAndFilterNode_; }
@@ -790,7 +795,7 @@ public:
     {
         return false;
     }
-    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) {}
+    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) {}
     // only RSSurfaceRenderNode holds singleFrameComposer_
     virtual std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const
     {
@@ -1033,19 +1038,9 @@ public:
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
-    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
-    {
-        if (isAccessibilityConfigChanged) {
-            accessibilityConfigChangedNodeSet_.insert(GetId());
-        } else {
-            accessibilityConfigChangedNodeSet_.erase(GetId());
-        }
-    }
+    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged);
 
-    bool IsAccessibilityConfigChangedNode() const
-    {
-        return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
-    }
+    bool IsAccessibilityConfigChangedNode() const;
 
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
@@ -1092,11 +1087,7 @@ public:
     // Enable HWCompose
     RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
     const RSHwcRecorder& GetConstHwcRecorder() const { return hwcRecorder_; }
-    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
 
-    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
-
-    void SyncWhiteListInfoToParent();
     bool IsForegroundFilterEnable();
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
@@ -1124,6 +1115,7 @@ public:
         rsLayersPerScreen_[screenId] = layer;
     }
 
+    bool HasColorPickerDrawable() const;
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
     // Called every frame to handle state transitions and sync
     // return true if current state is COLOR_PICK and need to transition back to PREPARING
@@ -1259,6 +1251,14 @@ protected:
     PrimitiveDirtyBitmap stagingSelfPrimDirtyBitmap_;
     PrimitiveDirtyBitmap stagingInfectiousPrimDirtyBitmap_;
 #endif
+    inline RSDrawable::Vec& GetDrawableVec(const char* func) const
+    {
+        if (LIKELY(drawableVec_ != nullptr)) {
+            return *drawableVec_;
+        }
+        drawableVec_ = std::make_unique<RSDrawable::Vec>();
+        return *drawableVec_;
+    }
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
@@ -1445,8 +1445,6 @@ private:
     void FilterModifiersByPid(pid_t pid);
 
     bool UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
-    RectI GetDrawCmdListRect() const;
-    void CollectAndUpdateRenderFitRect();
     void CollectAndUpdateLocalShadowRect();
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
@@ -1465,6 +1463,7 @@ private:
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
 
     void UpdateDisplayList();
+    void UpdateDisplayListExt();
     void UpdateShadowRect();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
@@ -1479,7 +1478,6 @@ private:
 
     bool HasValidModifierInOpincSplit(int8_t slot) const;
 
-    RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();
     friend class DrawFuncOpItem;
     friend class RSContext;

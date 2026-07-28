@@ -936,7 +936,7 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
 
-    screenNode->SetCompositeType(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE);
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // failed GetScreenColorGamut
 
     screenNode->screenId_ = virtualScreenId; // pass GetScreenColorGamut
@@ -973,7 +973,7 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest002, TestSize.Level1)
 
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
-    screenNode->SetCompositeType(CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
     ScreenColorGamut colorGamut;
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // failed GetScreenColorGamut
 
@@ -983,6 +983,26 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest002, TestSize.Level1)
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
     EXPECT_EQ(screenManager_->GetScreenColorGamut(screenNode->GetScreenId(), colorGamut), StatusCode::SUCCESS);
     EXPECT_EQ(static_cast<GraphicColorGamut>(colorGamut), GRAPHIC_COLOR_GAMUT_BT2100_HLG);
+}
+
+/**
+ * @tc.name: HandleVirtualScreenHDRStatusTest003
+ * @tc.desc: Test HandleVirtualScreenHDRStatus
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest003, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode);
+    EXPECT_EQ(screenNode->GetCompositeType(), CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE);
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

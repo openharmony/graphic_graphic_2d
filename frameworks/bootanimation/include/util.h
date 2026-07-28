@@ -20,6 +20,7 @@
 #include "cJSON.h"
 #include "contrib/minizip/unzip.h"
 #include "contrib/minizip/zip.h"
+#include <climits>
 #include <cstdint>
 #include <dirent.h>
 #include <functional>
@@ -101,6 +102,10 @@ public:
     {
         if (ibufsize == 0) {
             LOGE("MemStruct SetBuffer size is invalid!");
+            return;
+        }
+        if (ibufsize >= ULONG_MAX - 1) {
+            LOGE("MemStruct SetBuffer size overflow: ibufsize too large!");
             return;
         }
         if (memBuffer == nullptr) {

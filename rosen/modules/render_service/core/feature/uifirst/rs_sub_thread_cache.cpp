@@ -752,6 +752,10 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
     if (!GetCurDirtyRegionWithMatrix(surfaceParams->GetDirtyRegionMatrix(), curDirtyRegion, curAbsDrawRect)) {
         return false;
     }
+    if (curAbsDrawRect.IsEmpty()) {
+        RS_LOGE("CalculateUifirstDirtyRegion curAbsDrawRect is empty");
+        return false;
+    }
     float boundsWidth = isContainShadow ?
         surfaceParams->GetLocalDrawRect().GetWidth() : surfaceParams->GetBounds().GetWidth();
     float boundsHeight = isContainShadow ?

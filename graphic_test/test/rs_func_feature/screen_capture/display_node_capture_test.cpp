@@ -164,7 +164,7 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
         return;
     }
 
-    RSDisplayNodeConfig displayNodeConfig = {screenId, false, 0, true};
+    RSDisplayNodeConfig displayNodeConfig = {screenId, DisplayMode::EXPAND, 0, true};
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     if (!displayNode) {
         LOGE("displayNode is nullptr");
@@ -233,7 +233,7 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
         return;
     }
 
-    RSDisplayNodeConfig displayNodeConfig = {screenId, false, 0, true};
+    RSDisplayNodeConfig displayNodeConfig = {screenId, DisplayMode::EXPAND, 0, true};
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     if (!displayNode) {
         LOGE("displayNode is nullptr");

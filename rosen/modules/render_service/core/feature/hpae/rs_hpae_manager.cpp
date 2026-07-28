@@ -313,6 +313,7 @@ void RSHpaeManager::RegisterHpaeCallback(RSRenderNode& node, const std::shared_p
 
         stagingHpaeStatus_.gotHpaeBlurNode = true;
         stagingHpaeStatus_.blurNodeId = node.GetId();
+        stagingHpaeStatus_.screenNodeId = screenNode->GetId();
         const auto &renderProperty = node.GetRenderProperties();
         stagingHpaeStatus_.tileMode = renderProperty.GetPixelStretchTileMode();
         stagingHpaeStatus_.greyCoef = renderProperty.GetGreyCoef();
@@ -407,8 +408,11 @@ bool RSHpaeManager::UpdateBufferIfNeed(const BufferRequestConfig& bufferConfig, 
 }
 
 void RSHpaeManager::CheckHpaeBlur(bool isHdrOn, GraphicPixelFormat pixelFormat, GraphicColorGamut colorSpace,
-    bool isHebc)
+    bool isHebc, NodeId screenNodeId)
 {
+    if (hpaeStatus_.screenNodeId != screenNodeId) {
+        return;
+    }
     if (isHebc && !isHdrOn && (HasHpaeBlurNode() || hpaeFrameState_ == HpaeFrameState::ALLOC_BUF)) {
         SetUpHpaeSurface(pixelFormat, colorSpace, isHebc);
     }

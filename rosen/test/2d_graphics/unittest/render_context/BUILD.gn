@@ -68,6 +68,8 @@ config("render_context_public_config") {
 }
 
 ohos_static_library("render_context") {
+  branch_protector_ret = "pac_ret"
+
   visibility = [ ":*" ]
   testonly = true
 

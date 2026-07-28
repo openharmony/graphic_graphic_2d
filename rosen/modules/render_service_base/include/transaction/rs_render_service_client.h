@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <refbase.h>
 #include "common/rs_common_def.h"
@@ -112,7 +113,7 @@ public:
 #endif
 #ifndef ENABLE_RS_PROXY
     bool GetUniRenderEnabled();
-    bool GetBackgroundRebuildEnabled();
+    uint8_t GetBackgroundRebuildEnabled();
 
     sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
 
@@ -350,6 +351,8 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId);
+
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos);
@@ -394,6 +397,8 @@ public:
     int64_t GetHdrOnDuration();
 
     void SetVmaCacheStatus(bool flag);
+
+    bool SetUIMode3D(UIMode3D mode);
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
 

@@ -62,6 +62,7 @@ public:
     void CloseSyncTransaction();
     void SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         flushEmptyCallback_ = flushEmptyCallback;
     }
 
@@ -81,6 +82,7 @@ public:
 
     void SetRSRenderPipelineClient(std::shared_ptr<RSRenderPipelineClient> rsRenderPipelineClient)
     {
+        std::scoped_lock lock(mutex_, mutexForRT_);
         renderPipelineClient_ = rsRenderPipelineClient;
     }
 
@@ -122,6 +124,7 @@ private:
     std::atomic<uint32_t> uiSkipCount_ = 0;
     uint32_t transactionDataIndex_ = 0;
     std::queue<std::string> taskNames_ {};
+    std::mutex closeSyncFallBackMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

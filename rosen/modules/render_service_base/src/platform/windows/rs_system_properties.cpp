@@ -184,6 +184,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetUpdateDisplayListExtEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDynamicLayerSkipEnabled()
 {
     return false;
@@ -238,11 +243,6 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 }
 
 bool RSSystemProperties::GetCacheEnabledForRotation()
-{
-    return {};
-}
-
-ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     return {};
 }
@@ -350,11 +350,6 @@ bool RSSystemProperties::GetDebugTraceEnabled()
 int RSSystemProperties::GetDebugTraceLevel()
 {
     return 0;
-}
-
-bool RSSystemProperties::FindNodeInTargetList(std::string node)
-{
-    return false;
 }
 
 bool RSSystemProperties::IsFoldScreenFlag()
@@ -740,6 +735,11 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    return false;
+}
+
 bool RSSystemProperties::ViewDrawNodeType()
 {
     return false;
@@ -885,6 +885,11 @@ bool RSSystemProperties::GetXcomponentEdrEnabled()
 }
 
 bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
 {
     return false;
 }

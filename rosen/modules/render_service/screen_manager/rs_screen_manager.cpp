@@ -277,26 +277,26 @@ void RSScreenManager::UpdateFoldScreenConnectStatusLocked(ScreenId screenId, boo
 
 void RSScreenManager::SetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId, ScreenId screenId, bool enabled)
 {
+    auto screen = GetScreen(screenId);
+    if (screen == nullptr) {
+        RS_LOGE("SetScreenVsyncEnableById:%{public}d failed, screen %{public}" PRIu64 " not found", enabled, screenId);
+        return;
+    }
     if (vsyncEnabledScreenId != INVALID_SCREEN_ID) {
-        if (vsyncEnabledScreenId == screenId && screens_.find(screenId) != screens_.end()) {
-            screens_[screenId]->SetScreenVsyncEnabled(true);
+        if (vsyncEnabledScreenId == screenId) {
+            screen->SetScreenVsyncEnabled(true);
         }
     } else {
-        auto screen = GetScreen(screenId);
-        if (screen == nullptr) {
-            RS_LOGE("SetScreenVsyncEnableById:%{public}d failed, screen %{public}" PRIu64 " not found",
-                enabled, screenId);
-            return;
-        }
         screen->SetScreenVsyncEnabled(enabled);
     }
 }
 
 uint64_t RSScreenManager::GetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId)
 {
-    auto iter = std::find_if(screens_.cbegin(), screens_.cend(), [](const auto& node) {
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
+    auto iter = std::find_if(screens_.cbegin(), screens_.cend(), [&vsyncEnabledScreenId](const auto& node) {
         const auto& screen = node.second;
-        return screen && !screen->IsVirtual();
+        return screen && !screen->IsVirtual() && node.first != vsyncEnabledScreenId;
     });
     if (iter != screens_.end()) {
         vsyncEnabledScreenId = iter->first;
@@ -539,6 +539,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 
 int32_t RSScreenManager::AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
 {
+    std::lock_guard<std::mutex> lock(specialLayerListMutex_);
     auto virtualScreen = GetScreen(id);
     if (virtualScreen == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
@@ -608,6 +609,7 @@ int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::v
 
 int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
 {
+    std::lock_guard<std::mutex> lock(specialLayerListMutex_);
     if (id == INVALID_SCREEN_ID) {
         return AddGlobalBlackList(blackList);
     }

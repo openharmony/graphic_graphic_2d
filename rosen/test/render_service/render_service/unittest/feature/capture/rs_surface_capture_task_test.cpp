@@ -121,8 +121,10 @@ public:
 };
 RSInterfaces* RSSurfaceCaptureTaskTest::rsInterfaces_ = nullptr;
 std::shared_ptr<RenderContext> RSSurfaceCaptureTaskTest::renderContext_ = nullptr;
-RSDisplayNodeConfig RSSurfaceCaptureTaskTest::defaultConfig_ = {INVALID_SCREEN_ID, false, INVALID_SCREEN_ID};
-RSDisplayNodeConfig RSSurfaceCaptureTaskTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
+RSDisplayNodeConfig RSSurfaceCaptureTaskTest::defaultConfig_ = { INVALID_SCREEN_ID, DisplayMode::EXPAND,
+    INVALID_SCREEN_ID };
+RSDisplayNodeConfig RSSurfaceCaptureTaskTest::mirrorConfig_ = { INVALID_SCREEN_ID, DisplayMode::MIRROR,
+    INVALID_SCREEN_ID };
 std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskTest::surfaceNode_ = nullptr;
 std::shared_ptr<CustomizedSurfaceCapture> RSSurfaceCaptureTaskTest::surfaceCaptureCb_ = nullptr;
 

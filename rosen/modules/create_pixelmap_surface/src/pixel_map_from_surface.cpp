@@ -20,9 +20,11 @@
 #endif
 
 #include "pixel_map_from_surface.h"
+#include "pixel_map_from_surface_utils.h"
 #include <scoped_bytrace.h>
 #include <string>
 #include "common/rs_background_thread.h"
+#include "common/rs_common_def.h"
 #include "draw/canvas.h"
 #include "image/image.h"
 #include "native_window.h"
@@ -476,8 +478,14 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(surfaceBuffer_->GetFormat());
     if (pixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
         pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
-        auto sx = dstRect.GetWidth() / srcDrawRect.GetWidth();
-        auto sy = dstRect.GetHeight() / srcDrawRect.GetHeight();
+        auto srcWidth = srcDrawRect.GetWidth();
+        auto srcHeight = srcDrawRect.GetHeight();
+        if (ROSEN_LE(srcWidth, 0.0f) || ROSEN_LE(srcHeight, 0.0f)) {
+            RS_LOGE("[PixelMapFromSurface] CanvasDrawImage srcRect width or height is invalid");
+            return false;
+        }
+        auto sx = dstRect.GetWidth() / srcWidth;
+        auto sy = dstRect.GetHeight() / srcHeight;
         auto tx = dstRect.GetLeft() - srcDrawRect.GetLeft() * sx;
         auto ty = dstRect.GetTop() - srcDrawRect.GetTop() * sy;
         matrix.SetScaleTranslate(sx, sy, tx, ty);
@@ -705,10 +713,7 @@ OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
 
     int32_t bufferWidth = surfaceBuffer->GetWidth();
     int32_t bufferHeight = surfaceBuffer->GetHeight();
-    if (srcRect.width > bufferWidth || srcRect.height > bufferHeight ||
-        srcRect.left >= bufferWidth || srcRect.top >= bufferHeight ||
-        static_cast<int64_t>(srcRect.left) + static_cast<int64_t>(srcRect.width) > static_cast<int64_t>(bufferWidth) ||
-        static_cast<int64_t>(srcRect.top) + static_cast<int64_t>(srcRect.height) > static_cast<int64_t>(bufferHeight)) {
+    if (!IsSrcRectValid(bufferWidth, bufferHeight, srcRect)) {
         RS_LOGE("invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d],"
             "bufferWidth=%{public}d, bufferHeight=%{public}d",
             srcRect.left, srcRect.top, srcRect.width, srcRect.height, bufferWidth, bufferHeight);
@@ -881,9 +886,12 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
         RS_LOGE("surfaceBuffer invalid argument: surfaceBuffer is nullptr");
         return nullptr;
     }
-    if (srcRect.left < 0 || srcRect.top < 0 || srcRect.width <= 0 || srcRect.height <= 0) {
-        RS_LOGE("surfaceBuffer invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d]",
-            srcRect.left, srcRect.top, srcRect.width, srcRect.height);
+    int32_t bufferWidth = surfaceBuffer->GetWidth();
+    int32_t bufferHeight = surfaceBuffer->GetHeight();
+    if (!IsSrcRectValid(bufferWidth, bufferHeight, srcRect)) {
+        RS_LOGE("surfaceBuffer invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d],"
+            "bufferWidth=%{public}d, bufferHeight=%{public}d",
+            srcRect.left, srcRect.top, srcRect.width, srcRect.height, bufferWidth, bufferHeight);
         return nullptr;
     }
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))

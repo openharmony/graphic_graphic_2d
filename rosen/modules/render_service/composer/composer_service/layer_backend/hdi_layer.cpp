@@ -22,6 +22,7 @@
 #include "hdi_log.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
+#include "rs_render_surface_solid_filled_color_layer.h"
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -34,6 +35,7 @@ static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
+const std::string GENERIC_METADATA_KEY_GLASS_FREE_3D = "GlassFree3D";
 const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 const std::string GENERIC_METADATA_KEY_VCLD_PARAM = "VcldParam";
@@ -813,8 +815,13 @@ void HdiLayer::CheckRet(int32_t ret, const char* func)
 void HdiLayer::SavePrevRSLayer()
 {
     if (prevRSLayer_ == nullptr) {
-        prevRSLayer_ = rsLayer_->IsScreenRCDLayer() ? std::make_shared<RSRenderSurfaceRCDLayer>() :
-            std::make_shared<RSRenderSurfaceLayer>();
+        if (rsLayer_->IsScreenRCDLayer()) {
+            prevRSLayer_ = std::make_shared<RSRenderSurfaceRCDLayer>();
+        } else if (rsLayer_->IsSolidFilledColorLayer()) {
+            prevRSLayer_ = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+        } else {
+            prevRSLayer_ = std::make_shared<RSRenderSurfaceLayer>();
+        }
     }
     prevRSLayer_->CopyLayerInfo(rsLayer_);
 }
@@ -880,6 +887,9 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX) {
             ret = SetPerFrameLayerLinearMatrix();
             CheckRet(ret, "SetLayerLinearMatrix");
+        } else if (key == GENERIC_METADATA_KEY_GLASS_FREE_3D) {
+            ret = SetPerFrameLayerGlassFree3D();
+            CheckRet(ret, "SetPerFrameLayerGlassFree3D");
         } else if (key == GENERIC_METADATA_KEY_SOURCE_CROP_TUNING) {
             ret = SetPerFrameLayerSourceTuning();
             CheckRet(ret, "SetLayerSourceTuning");
@@ -955,6 +965,19 @@ int32_t HdiLayer::SetPerFrameLayerLinearMatrix()
     }
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX, valueBlob);
+}
+
+int32_t HdiLayer::SetPerFrameLayerGlassFree3D()
+{
+    if (prevRSLayer_ != nullptr) {
+        if (rsLayer_->GetGlassFree3D() == prevRSLayer_->GetGlassFree3D()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+    std::vector<int8_t> valueBlob(sizeof(bool));
+    *reinterpret_cast<bool*>(valueBlob.data()) = rsLayer_->GetGlassFree3D();
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_GLASS_FREE_3D, valueBlob);
 }
 
 int32_t HdiLayer::SetPerFrameLayerSourceTuning()

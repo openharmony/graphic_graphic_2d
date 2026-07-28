@@ -57,7 +57,7 @@ sptr<RSIRenderService> ConnectToServer()
             RS_LOGE("%{public}s: samgr is null", __func__);
             continue;
         }
-        auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE); // chenke fix
+        auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
         if (!remoteObject) {
             RS_LOGE("%{public}s: remoteObject is null", __func__);
             continue;

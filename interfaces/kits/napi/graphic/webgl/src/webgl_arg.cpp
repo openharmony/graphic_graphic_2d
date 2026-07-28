@@ -72,7 +72,7 @@ bool WebGLArg::GetWebGLArg(napi_value data, WebGLArgValue& arg, const WebGLArgIn
         case ARG_SIZEPTR: {
             int64_t v = 0;
             tie(succ, v) = NVal(env_, data).ToInt64();
-            arg.glSizeptr = static_cast<GLsizei>(v);
+            arg.glSizeptr = static_cast<GLsizeiptr>(v);
             break;
         }
         default:
@@ -195,6 +195,11 @@ napi_status WebGLReadBufferArg::GetArrayElement(
     size_t requiredSize = static_cast<size_t>(length) * sizeof(dstT);
     if (requiredSize / sizeof(dstT) != length) {
         LOGE("WebGL GetArrayElement: array size too large, overflow or exceeds limit");
+        return napi_invalid_arg;
+    }
+    constexpr size_t MAX_ALLOC_SIZE = 1024 * 1024;
+    if (requiredSize > MAX_ALLOC_SIZE) {
+        LOGE("WebGL GetArrayElement: array size too large, exceeds limit");
         return napi_invalid_arg;
     }
 
@@ -350,7 +355,7 @@ napi_value WebGLWriteBufferArg::GenExternalArray()
         status = napi_create_external_arraybuffer(
             env_, data_, dataLen_,
             [](napi_env env_, void* finalizeData, void* finalizeHint) {
-                free(finalizeData);
+                delete[] static_cast<uint8_t*>(finalizeData);
             },
             nullptr, &outputBuffer);
     }
@@ -452,7 +457,13 @@ tuple<bool, T> WebGLImageSource::GetObjectIntField(napi_value resultObject, cons
     }
     int64_t res = 0;
     status = napi_get_value_int64(env_, result, &res);
-    return make_tuple(status == napi_ok, static_cast<T>(res));
+    if (status != napi_ok) {
+        return make_tuple(false, 0);
+    }
+    if (res < std::numeric_limits<T>::min() || res > std::numeric_limits<T>::max()) {
+        return make_tuple(false, 0);
+    }
+    return make_tuple(true, static_cast<T>(res));
 }
 
 const WebGLFormatMap *WebGLImageSource::GetWebGLFormatMap(GLenum type, GLenum format)
@@ -480,6 +491,34 @@ WebGLImageSource::~WebGLImageSource()
     imageData_.clear();
 }
 
+bool WebGLImageSource::BuildPixelMapFromSource(
+    std::unique_ptr<OHOS::Media::ImageSource>& imageSource, uint32_t errorCode)
+{
+    if (imageSource == nullptr) {
+        LOGE("WebGl ImageSource fail to get errorCode %{public}u", errorCode);
+        return false;
+    }
+
+    ImageInfo imageInfo;
+    errorCode = imageSource->GetImageInfo(0, imageInfo);
+    if (errorCode != 0) {
+        return false;
+    }
+    errorCode = imageSource->GetImageInfo(imageInfo);
+    LOGD("WebGl ImageSource  [%{public}d %{public}d] pixelFormat %{public}u colorSpace %{public}u"
+        " alphaType  %{public}u", imageInfo.size.width, imageInfo.size.height, imageInfo.pixelFormat,
+        imageInfo.colorSpace, imageInfo.alphaType);
+    imageOption_.width = imageInfo.size.width;
+    imageOption_.height = imageInfo.size.height;
+    DecodeOptions decodeOpts;
+    pixelMap_ = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    if (pixelMap_ == nullptr) {
+        LOGE("WebGl ImageSource fail to create pixel map");
+        return false;
+    }
+    return true;
+}
+
 bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuetype valueType)
 {
     uint32_t errorCode = 0;
@@ -497,37 +536,18 @@ bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuety
         imageSource = ImageSource::CreateImageSource(source.get(), opts, errorCode);
     } else if (valueType == napi_number) { // Fd
         int32_t fd = 0;
-        napi_get_value_int32(env_, resultData, &fd);
+        napi_status status = napi_get_value_int32(env_, resultData, &fd);
+        if (status != napi_ok) {
+            LOGE("WebGl ImageSource invalid fd type");
+            return false;
+        }
         LOGD("WebGl ImageSource fdIndex is [%{public}d]", fd);
         imageSource = ImageSource::CreateImageSource(fd, opts, errorCode);
     } else {
         LOGE("WebGl ImageSource not support type %{public}u", valueType);
         return false;
     }
-    if (imageSource == nullptr) {
-        LOGE("WebGl ImageSource fail to get errorCode %{public}u", errorCode);
-        return false;
-    }
-
-    ImageInfo imageInfo;
-    errorCode = imageSource->GetImageInfo(0, imageInfo);
-    if (errorCode == 0) {
-        errorCode = imageSource->GetImageInfo(imageInfo);
-        LOGD("WebGl ImageSource  [%{public}d %{public}d] pixelFormat %{public}u colorSpace %{public}u"
-            " alphaType  %{public}u", imageInfo.size.width, imageInfo.size.height, imageInfo.pixelFormat,
-            imageInfo.colorSpace, imageInfo.alphaType);
-        imageOption_.width = imageInfo.size.width;
-        imageOption_.height = imageInfo.size.height;
-    } else {
-        return false;
-    }
-    DecodeOptions decodeOpts;
-    pixelMap_ = imageSource->CreatePixelMap(decodeOpts, errorCode);
-    if (pixelMap_ == nullptr) {
-        LOGE("WebGl ImageSource fail to create pixel map");
-        return false;
-    }
-    return true;
+    return BuildPixelMapFromSource(imageSource, errorCode);
 }
 
 void WebGLImageSource::DecodeData(const WebGLFormatMap* formatMap, uint8_t* array)
@@ -535,7 +555,9 @@ void WebGLImageSource::DecodeData(const WebGLFormatMap* formatMap, uint8_t* arra
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             // 0,1,2,3 -- red,green,blue,alpha
             imageData_.emplace_back(FromARGB(static_cast<uint8_t>(data[3]),
                 static_cast<uint8_t>(data[0]), static_cast<uint8_t>(data[1]), static_cast<uint8_t>(data[2])).value);
@@ -548,7 +570,9 @@ void WebGLImageSource::DecodeDataForRGB_UBYTE(const WebGLFormatMap* formatMap, u
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             // 0,1,2 -- red,green,blue
             imageData_.emplace_back(FromRGB(
                 static_cast<uint8_t>(data[0]), static_cast<uint8_t>(data[1]), static_cast<uint8_t>(data[2])).value);
@@ -561,7 +585,9 @@ void WebGLImageSource::DecodeDataForRGBA_USHORT_4444(const WebGLFormatMap* forma
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             ColorParam_4_4_4_4 param;
             param.value = *reinterpret_cast<uint16_t *>(data);
             imageData_.emplace_back(FromARGB(
@@ -575,7 +601,9 @@ void WebGLImageSource::DecodeDataForRGBA_USHORT_5551(const WebGLFormatMap* forma
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             ColorParam_5_5_5_1 param;
             param.value = *reinterpret_cast<uint16_t *>(data);
             imageData_.emplace_back(FromARGB(
@@ -589,7 +617,9 @@ void WebGLImageSource::DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatM
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             ColorParam_5_6_5 param;
             param.value = *reinterpret_cast<uint16_t *>(data);
             imageData_.emplace_back(FromRGB(param.rgb.red, param.rgb.green, param.rgb.blue).value);
@@ -600,14 +630,19 @@ void WebGLImageSource::DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatM
 bool WebGLImageSource::DecodeImageData(
     const WebGLFormatMap* formatMap, const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset)
 {
-    size_t maxSize = bufferDataArg->GetBufferLength() - srcOffset * formatMap->bytesPrePixel;
-    LOGD("GenImageSource element count %{public}zu %{public}u", maxSize, formatMap->bytesPrePixel);
-    if (maxSize < static_cast<size_t>(imageOption_.height * imageOption_.width * formatMap->bytesPrePixel)) {
-        LOGE("Invalid data element");
+    size_t bufLen = bufferDataArg->GetBufferLength();
+    size_t srcOffsetBytes = 0;
+    if (!GetSrcOffsetBytes(bufferDataArg, srcOffset, srcOffsetBytes)) {
+        LOGE("DecodeImageData srcOffset out of bounds, srcOffset %{public}u bufLen %{public}zu", srcOffset, bufLen);
+        return false;
+    }
+    size_t maxSize = bufLen - srcOffsetBytes;
+    uint64_t pixels = 0;
+    if (!CheckImageDataSize(formatMap, maxSize, pixels)) {
         return false;
     }
 
-    uint8_t *start = bufferDataArg->GetBuffer() + srcOffset;
+    uint8_t *start = bufferDataArg->GetBuffer() + srcOffsetBytes;
     switch (formatMap->decodeFunc) {
         case DECODE_RGBA_UBYTE:
             DecodeData(formatMap, start);
@@ -630,10 +665,108 @@ bool WebGLImageSource::DecodeImageData(
     }
 
     LOGD("GenImageSource imageData_ %{public}zu ", imageData_.size());
-    if (imageData_.size() != static_cast<size_t>(imageOption_.height * imageOption_.width)) {
+    if (imageData_.size() != static_cast<size_t>(pixels)) {
         return false;
     }
     return true;
+}
+
+bool WebGLImageSource::CheckImageDataSize(
+    const WebGLFormatMap* formatMap, size_t maxSize, uint64_t& pixels) const
+{
+    if (imageOption_.height <= 0 || imageOption_.width <= 0) {
+        LOGE("DecodeImageData invalid width/height");
+        return false;
+    }
+    uint64_t height = static_cast<uint64_t>(imageOption_.height);
+    uint64_t width = static_cast<uint64_t>(imageOption_.width);
+    pixels = height * width;
+    if (pixels / height != width) {
+        LOGE("DecodeImageData height*width overflow");
+        return false;
+    }
+    uint64_t bytesPerPixel = static_cast<uint64_t>(formatMap->bytesPrePixel);
+    uint64_t requiredBytes = pixels * bytesPerPixel;
+    if (pixels != 0 && requiredBytes / pixels != bytesPerPixel) {
+        LOGE("DecodeImageData pixels*bytesPerPixel overflow");
+        return false;
+    }
+    if (requiredBytes > maxSize) {
+        LOGE("Invalid data element");
+        return false;
+    }
+    return true;
+}
+
+bool WebGLImageSource::GetSrcOffsetBytes(
+    const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset, size_t& srcOffsetBytes) const
+{
+    size_t elementSize = bufferDataArg->GetBufferDataSize();
+    if (elementSize == 0 || static_cast<size_t>(srcOffset) > std::numeric_limits<size_t>::max() / elementSize) {
+        return false;
+    }
+    srcOffsetBytes = static_cast<size_t>(srcOffset) * elementSize;
+    return srcOffsetBytes <= bufferDataArg->GetBufferLength();
+}
+
+GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, GLuint srcOffset)
+{
+    size_t bufLen = readBuffer_->GetBufferLength();
+    size_t srcOffsetBytes = 0;
+    if (!GetSrcOffsetBytes(readBuffer_.get(), srcOffset, srcOffsetBytes)) {
+        return GL_INVALID_VALUE;
+    }
+    uint64_t depth = static_cast<uint64_t>(std::max(imageOption_.depth, 1));
+    uint64_t requiredBytes = depth * static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
+        formatMap->bytesPrePixel;
+    if (requiredBytes > bufLen - srcOffsetBytes) {
+        return GL_INVALID_OPERATION;
+    }
+    srcOffset_ = srcOffsetBytes;
+    return GL_NO_ERROR;
+}
+
+GLenum WebGLImageSource::CheckPixelMapBytes()
+{
+    if (pixelMap_ == nullptr) {
+        return GL_NO_ERROR;
+    }
+    uint32_t componentCount = 0;
+    switch (imageOption_.format) {
+        case GL_RGBA:
+        case GL_RGBA_INTEGER:
+            componentCount = 4;
+            break;
+        case GL_RGB:
+        case GL_RGB_INTEGER:
+            componentCount = 3;
+            break;
+        case GL_LUMINANCE_ALPHA:
+        case GL_RG:
+        case GL_RG_INTEGER:
+            componentCount = 2;
+            break;
+        case GL_LUMINANCE:
+        case GL_ALPHA:
+        case GL_RED:
+        case GL_RED_INTEGER:
+            componentCount = 1;
+            break;
+        default:
+            break;
+    }
+    if (componentCount == 0) {
+        return GL_NO_ERROR;
+    }
+    uint64_t bytesPerPixel = static_cast<uint64_t>(componentCount) *
+        WebGLArg::GetWebGLDataSize(imageOption_.type);
+    uint64_t depth = (imageOption_.depth > 0) ? static_cast<uint64_t>(imageOption_.depth) : 1;
+    uint64_t need = static_cast<uint64_t>(imageOption_.width) * imageOption_.height * depth * bytesPerPixel;
+    if (need > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
+        LOGE("WebGl ImageSource pixelMap too small need %{public}" PRIu64, need);
+        return GL_INVALID_OPERATION;
+    }
+    return GL_NO_ERROR;
 }
 
 GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value pixels, GLuint srcOffset)
@@ -649,7 +782,7 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
     }
     const WebGLFormatMap *formatMap = GetWebGLFormatMap(imageOption_.type, imageOption_.format);
     if (formatMap == nullptr) {
-        return false;
+        return GL_INVALID_ENUM;
     }
     napi_status status = readBuffer_->GenBufferData(pixels, formatMap->dataType);
     if (status != napi_ok) {
@@ -659,8 +792,11 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
         return GL_INVALID_OPERATION;
     }
     if (!(unpackFlipY_ || unpackPremultiplyAlpha_)) {
-        srcOffset_ = srcOffset;
-        return GL_NO_ERROR;
+        return CheckSrcOffsetBounds(formatMap, srcOffset);
+    }
+    if (imageOption_.depth > 1) {
+        LOGE("WebGl ImageSource transformation does not support multiple depth slices");
+        return GL_INVALID_OPERATION;
     }
     bool succ = false;
     if (readBuffer_->GetBufferDataType() == BUFFER_DATA_UINT_8 ||
@@ -717,7 +853,10 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
     if (valueType == napi_object) {
         return GenImageSource(imageOption_, resultData, 0);
     }
-    return HandleImageSourceData(resultData, valueType) ? GL_NO_ERROR : GL_INVALID_VALUE;
+    if (!HandleImageSourceData(resultData, valueType)) {
+        return GL_INVALID_VALUE;
+    }
+    return CheckPixelMapBytes();
 }
 
 WebGLReadBufferArg *WebGLImageSource::GetWebGLReadBuffer() const

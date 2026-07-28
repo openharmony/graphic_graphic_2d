@@ -43,6 +43,7 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override {}
+    void OnDrawVirtualExpand(std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid);
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
@@ -178,7 +179,11 @@ private:
     void CheckHpaeBlurRun(bool isHdrOn);
 
     bool CheckScreenFreezeSkip(RSScreenRenderParams& params);
-    
+
+    bool PrepareForDraw(std::shared_ptr<RSProcessor>& processor, RSScreenRenderParams*& params,
+        bool isVirtualExpandSkip, ScreenId& paramScreenId,
+        std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr);
+
     // hpae offline
     void CheckAndPostAsyncProcessOfflineTask();
     bool ProcessOfflineSurfaceDrawable(const std::shared_ptr<RSProcessor>& processor,
@@ -223,12 +228,12 @@ private:
     bool filterCacheOcclusionUpdated_ = false;
 
     bool accumulateDirtyInSkipFrame_ = false;
+    uint64_t curDisplayScreenId_ = 0;
 
 #ifdef USE_PRIMITIVE
     std::vector<RectI> lastDamageRegionrects_;
     bool lastIsRegionClipped_ = false;
 #endif
-
     friend class RSMultiScreenUtil;
 };
 

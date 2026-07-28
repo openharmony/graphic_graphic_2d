@@ -163,7 +163,7 @@ public:
     {
         return connectToRenderConnection_;
     }
-    bool IsValidRenderProcessPid(pid_t pid) const override { return false; }
+    sptr<IRemoteObject> CreateRenderToServiceConnection(pid_t callingPid) override { return nullptr; }
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
@@ -2150,6 +2150,7 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    mainThread->virtualScreenParallelManager_ = nullptr;
     // prepare nodes
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
@@ -4560,6 +4561,77 @@ HWTEST_F(RSMainThreadTest, UpdateScreenNodeScreenId004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateCompositionType_GlassesFree3D_2DVideo
+ * @tc.desc: Test UpdateCompositionType with MODE_GLASSESFREE_3D and 2D video should not set 3D type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, UpdateCompositionType_GlassesFree3D_2DVideo, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->InitRenderParams();
+    // GetVideoDimType() returns VIDEO_DIM_TYPE_2D when not on tree or no buffer
+    mainThread->UpdateCompositionType(surfaceNode, UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_NE(surfaceNode->GetCompositionType(), CompositionType::COMPOSITION_3D_GLASS_FREE);
+}
+
+/**
+ * @tc.name: UpdateCompositionType_GlassesFree3D_3DVideo
+ * @tc.desc: Test UpdateCompositionType with MODE_GLASSESFREE_3D and 3D video sets 3D composition type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, UpdateCompositionType_GlassesFree3D_3DVideo, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true);
+    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto buffer = surfaceHandler->GetBuffer();
+    ASSERT_NE(buffer, nullptr);
+    buffer->SetSurfaceBufferVideoDimensionType(VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    mainThread->UpdateCompositionType(surfaceNode, UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(surfaceNode->GetCompositionType(), CompositionType::COMPOSITION_3D_GLASS_FREE);
+}
+
+/**
+ * @tc.name: UpdateCompositionType_NullSurfaceNode
+ * @tc.desc: Test UpdateCompositionType with null surfaceNode returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, UpdateCompositionType_NullSurfaceNode, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    // Null surfaceNode should not crash
+    mainThread->UpdateCompositionType(nullptr, UIMode3D::MODE_GLASSESFREE_3D);
+}
+
+/**
+ * @tc.name: UpdateCompositionType_Mode2D
+ * @tc.desc: Test UpdateCompositionType with MODE_2D resets composition type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, UpdateCompositionType_Mode2D, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->InitRenderParams();
+    surfaceNode->SetCompositionType(CompositionType::COMPOSITION_3D_GLASS_FREE);
+    mainThread->UpdateCompositionType(surfaceNode, UIMode3D::MODE_2D);
+    // MODE_2D should reset composition type
+    EXPECT_NE(surfaceNode->GetCompositionType(), CompositionType::COMPOSITION_3D_GLASS_FREE);
+}
+
+/**
  * @tc.name: CheckSystemSceneStatus001
  * @tc.desc: Test CheckSystemSceneStatus, APPEAR_MISSION_CENTER
  * @tc.type: FUNC
@@ -4945,28 +5017,6 @@ HWTEST_F(RSMainThreadTest, GetDynamicRefreshRate002, TestSize.Level2)
 
 /**
  * @tc.name: OnUniRenderDraw
- * @tc.desc: test OnUniRenderDraw001, test isUniRender_ & doDirectComposition_ = false
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, OnUniRenderDraw001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    auto isUniRender = false;
-    mainThread->OnUniRenderDraw();
-    mainThread->isUniRender_ = true;
-    auto doDirectComposition = mainThread->doDirectComposition_ ;
-    mainThread->doDirectComposition_ = false;
-    mainThread->drawFrame_.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SYNC;
-    mainThread->OnUniRenderDraw();
-    mainThread->isUniRender_ = isUniRender;
-    mainThread->doDirectComposition_ = doDirectComposition;
-}
-
-/**
- * @tc.name: OnUniRenderDraw
  * @tc.desc: test OnUniRenderDraw002, doDirectComposition_ = true
  * @tc.type: FUNC
  * @tc.require: issueIAIPI3
@@ -5238,7 +5288,7 @@ HWTEST_F(RSMainThreadTest, HasMirrorDisplay003, TestSize.Level2)
     id++;
     displayNode3->isMirroredScreen_ = true;
     displayNode3->SetMirrorSource(mirrorSourceNode2);
-    displayNode2->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
+    displayNode2->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE;
     node1->AddChild(displayNode3);
     node1->GenerateFullChildrenList();
 

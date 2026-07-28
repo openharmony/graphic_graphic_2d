@@ -377,12 +377,12 @@ HWTEST_F(RSAnimationOthersClientTest, CancelAnimationByProperty, TestSize.Level1
     auto rsNode = RSCanvasNode::Create();
     PropertyId id = 0;
     rsNode->animatingPropertyNum_.insert({ id, 1 });
-    delete RSTransactionProxy::instance_;
+    auto savedInstance = RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     rsNode->CancelAnimationByProperty(id, true);
     EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
 
-    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    RSTransactionProxy::instance_ = savedInstance;
     rsNode->CancelAnimationByProperty(id, true);
     EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
 }

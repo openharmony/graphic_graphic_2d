@@ -126,8 +126,12 @@ bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displa
         ROSEN_LOGE("RSRenderPipelineClient::CreateNode clientToRenderConnection_ nullptr");
         return false;
     }
-    bool success;
-    clientToRenderConnection->CreateDisplayNode(displayNodeConfig, nodeId, success);
+    bool success = false;
+    ErrCode err = clientToRenderConnection->CreateDisplayNode(displayNodeConfig, nodeId, success);
+    if (err != ERR_OK) {
+        ROSEN_LOGE("RSRenderPipelineClient::CreateDisplayNode failed, err:%{public}d", err);
+        return false;
+    }
     return success;
 }
 
@@ -138,8 +142,12 @@ bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
         ROSEN_LOGE("RSRenderPipelineClient::CreateNode clientToRenderConnection_ nullptr");
         return false;
     }
-    bool success;
-    clientToRenderConnection->CreateNode(config, success);
+    bool success = false;
+    ErrCode err = clientToRenderConnection->CreateNode(config, success);
+    if (err != ERR_OK) {
+        ROSEN_LOGE("RSRenderPipelineClient::CreateNode failed, err:%{public}d", err);
+        return false;
+    }
     return success;
 }
 
@@ -295,8 +303,11 @@ uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHideP
 {
     auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
     if (clientToRenderConnection != nullptr) {
-        uint32_t resCode;
-        clientToRenderConnection->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
+        uint32_t resCode = static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+        ErrCode err = clientToRenderConnection->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
+        if (err != ERR_OK) {
+            ROSEN_LOGE("RSRenderPipelineClient::SetHidePrivacyContent failed, err:%{public}d", err);
+        }
         return resCode;
     }
     ROSEN_LOGE("RSRenderPipelineClient::SetHidePrivacyContent clientToRenderConnection_ is nullptr!");
@@ -1104,15 +1115,6 @@ int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
         ROSEN_LOGE("RegisterFrameStabilityDetection clientToRenderConnection == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
-        ROSEN_LOGE("RegisterFrameStabilityDetection invalid stableDuration: %{public}u", config.stableDuration);
-        return INVALID_ARGUMENTS;
-    }
-    if (ROSEN_LNE(config.changePercent, MIN_CHANGE_PERCENT) ||
-        ROSEN_GNE(config.changePercent, MAX_CHANGE_PERCENT)) {
-        ROSEN_LOGE("RegisterFrameStabilityDetection invalid changePercent: %{public}f", config.changePercent);
-        return INVALID_ARGUMENTS;
-    }
     sptr<CustomFrameStabilityCallback> cb = new CustomFrameStabilityCallback(callback);
     return clientToRenderConnection->RegisterFrameStabilityDetection(target, config, cb);
 }
@@ -1135,15 +1137,6 @@ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
     if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::StartFrameStabilityCollection clientToRenderConnection == nullptr!");
         return RENDER_SERVICE_NULL;
-    }
-    if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
-        ROSEN_LOGE("StartFrameStabilityCollection invalid stableDuration: %{public}u", config.stableDuration);
-        return INVALID_ARGUMENTS;
-    }
-    if (ROSEN_LNE(config.changePercent, MIN_CHANGE_PERCENT) ||
-        ROSEN_GNE(config.changePercent, MAX_CHANGE_PERCENT)) {
-        ROSEN_LOGE("StartFrameStabilityCollection invalid changePercent: %{public}f", config.changePercent);
-        return INVALID_ARGUMENTS;
     }
     return clientToRenderConnection->StartFrameStabilityCollection(target, config);
 }

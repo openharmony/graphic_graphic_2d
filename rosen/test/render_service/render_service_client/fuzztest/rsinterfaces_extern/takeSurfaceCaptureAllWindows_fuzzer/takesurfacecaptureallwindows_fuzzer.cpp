@@ -57,7 +57,7 @@ void DoTakeSurfaceCaptureWithAllWindows(FuzzedDataProvider& fdp)
     // Construct RSDisplayNodeConfig from fuzz data
     RSDisplayNodeConfig displayConfig = {
         .screenId = fdp.ConsumeIntegral<uint64_t>(),
-        .isMirrored = fdp.ConsumeBool(),
+        .displayMode = static_cast<DisplayMode>(fdp.ConsumeIntegral<uint8_t>()),
         .mirrorNodeId = fdp.ConsumeIntegral<uint64_t>(),
         .isSync = fdp.ConsumeBool(),
         .mirrorSourceRotation = fdp.ConsumeIntegral<uint32_t>()

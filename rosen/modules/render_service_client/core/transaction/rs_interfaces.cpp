@@ -660,6 +660,11 @@ int32_t RSInterfaces::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
     return renderServiceClient_->SetScreenGamutMap(id, mode);
 }
 
+bool RSInterfaces::SetUIMode3D(UIMode3D mode)
+{
+    return renderServiceClient_->SetUIMode3D(mode);
+}
+
 int32_t RSInterfaces::SetScreenCorrection(ScreenId id, ScreenRotation screenRotation)
 {
     return renderServiceClient_->SetScreenCorrection(id, screenRotation);
@@ -967,6 +972,11 @@ void RSInterfaces::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName
 void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
+}
+
+bool RSInterfaces::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    return renderServiceClient_->SetHgmExclusiveScreen(screenId);
 }
 
 void RSInterfaces::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)

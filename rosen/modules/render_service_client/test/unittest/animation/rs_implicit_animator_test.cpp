@@ -1605,5 +1605,65 @@ HWTEST_F(RSImplicitAnimatorTest, KeyFrameGroupType001, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest KeyFrameGroupType001 end";
 }
+
+/**
+ * @tc.name: BeginImplicitDurationKeyFrameInvalidDuration001
+ * @tc.desc: Verify BeginImplicitDurationKeyFrameAnimation rejects negative duration
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, BeginImplicitDurationKeyFrameInvalidDuration001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest BeginImplicitDurationKeyFrameInvalidDuration001 start";
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(300);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE;
+    implicitAnimator->OpenImplicitAnimation(protocol, curve);
+    implicitAnimator->BeginImplicitDurationKeyFrameAnimation(-100, curve);
+    EXPECT_EQ(implicitAnimator->durationKeyframeParams_.size(), 1u);
+    implicitAnimator->CloseImplicitAnimation();
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest BeginImplicitDurationKeyFrameInvalidDuration001 end";
+}
+
+/**
+ * @tc.name: BeginImplicitDurationKeyFrameDurationZero001
+ * @tc.desc: Verify BeginImplicitDurationKeyFrameAnimation accepts duration == 0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, BeginImplicitDurationKeyFrameDurationZero001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest BeginImplicitDurationKeyFrameDurationZero001 start";
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(300);
+    RSAnimationTimingCurve curve;
+    implicitAnimator->OpenImplicitAnimation(protocol, curve);
+    implicitAnimator->BeginImplicitDurationKeyFrameAnimation(0, curve);
+    auto topParams = implicitAnimator->durationKeyframeParams_.top();
+    EXPECT_EQ(std::get<0>(topParams), true);
+    EXPECT_EQ(std::get<2>(topParams), 0);
+    implicitAnimator->CloseImplicitAnimation();
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest BeginImplicitDurationKeyFrameDurationZero001 end";
+}
+
+/**
+ * @tc.name: EndImplicitDurationKeyFrameEmptyParams001
+ * @tc.desc: Verify EndImplicitDurationKeyFrameAnimation handles empty durationKeyframeParams_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, EndImplicitDurationKeyFrameEmptyParams001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest EndImplicitDurationKeyFrameEmptyParams001 start";
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(300);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::LINEAR;
+    implicitAnimator->OpenImplicitAnimation(protocol, curve);
+    implicitAnimator->BeginImplicitKeyFrameAnimation(0.5f, curve);
+    implicitAnimator->durationKeyframeParams_ = {};
+    implicitAnimator->EndImplicitDurationKeyFrameAnimation();
+    EXPECT_EQ(implicitAnimator->implicitAnimationParams_.size(), 2u);
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest EndImplicitDurationKeyFrameEmptyParams001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

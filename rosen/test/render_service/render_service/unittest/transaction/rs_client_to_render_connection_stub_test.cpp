@@ -59,6 +59,7 @@
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_frame_stability_types.h"
+#include "transaction/rs_occlusion_data.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 using namespace testing;
@@ -3788,7 +3789,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest003, 
 
     // Test RegisterTransactionDataCallback
     sptr<RSITransactionDataCallback> transactionCallback = nullptr;
-    agent->RegisterTransactionDataCallback(12345, 0, transactionCallback);
+    agent->RegisterTransactionDataCallback(12345, 0, transactionCallback, 0);
     // Should return without crash
 }
 
@@ -4497,6 +4498,33 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeAndSurfaceTest001, TestSi
 }
 
 /**
+ * @tc.name: CreateNodeAndSurfaceNodeMaxTest001
+ * @tc.desc: Test CREATE_NODE_AND_SURFACE rejects RSSurfaceNodeType::NODE_MAX (>= boundary).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeAndSurfaceNodeMaxTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint64(0); // nodeId
+    data.WriteString("NodeMaxSurface");
+    // NODE_MAX is the sentinel end value and must be rejected by the >= nodeTypeMax check.
+    data.WriteUint8(static_cast<uint8_t>(RSSurfaceNodeType::NODE_MAX));
+    data.WriteBool(false); // isTextureExportNode
+    data.WriteBool(false); // isSync
+    data.WriteUint8(static_cast<uint8_t>(SurfaceWindowType::DEFAULT_WINDOW));
+    data.WriteBool(false); // unobscured
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: RegisterOcclusionChangeCallbackTest001
  * @tc.desc: Test REGISTER_OCCLUSION_CHANGE_CALLBACK interface code path
  * @tc.type: FUNC
@@ -4654,6 +4682,40 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallb
     EXPECT_EQ(res, StatusCode::INVALID_ARGUMENTS);
     renderPipelineAgent_->rsRenderPipeline_ = pipeline;
     res = renderPipelineAgent_->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
+    EXPECT_EQ(res, StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallbackTest003
+ * @tc.desc: Test RegisterSurfaceOcclusionChangeCallback with partitionPoints.size() > MAX_PARTITION_POINTS
+ * @tc.type: FUNC
+ * @tc.require: issue25078
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallbackTest003, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+    pid_t pid = getpid();
+    NodeId id = 1;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints(MAX_PARTITION_POINTS + 1, 0.5f);
+    auto res = renderPipelineAgent_->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
+    EXPECT_EQ(res, StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallbackTest004
+ * @tc.desc: Test RegisterSurfaceOcclusionChangeCallback with partitionPoints.size() == MAX_PARTITION_POINTS
+ * @tc.type: FUNC
+ * @tc.require: issue25078
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallbackTest004, TestSize.Level1)
+{
+    ASSERT_NE(renderPipelineAgent_, nullptr);
+    pid_t pid = getpid();
+    NodeId id = 1;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints(MAX_PARTITION_POINTS, 0.5f);
+    auto res = renderPipelineAgent_->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
     EXPECT_EQ(res, StatusCode::INVALID_ARGUMENTS);
 }
 

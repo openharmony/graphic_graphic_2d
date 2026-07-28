@@ -895,6 +895,15 @@ public:
     void SetIsParticipateInOcclusion(bool isParticipateInOcclusion);
     bool GetIsParticipateInOcclusion() const;
 
+    void SetCompositionType(CompositionType type);
+    CompositionType GetCompositionType() const;
+
+    void SetIsOnInternalScreen(bool isOnInternalScreen);
+    bool GetIsOnInternalScreen() const;
+
+    void SetGlassFree3D(bool enable);
+    bool GetGlassFree3D() const;
+
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 
     void SetSplitLayerTag(bool splitLayerTag)
@@ -1019,6 +1028,9 @@ private:
 
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
+    CompositionType compositionType_ = CompositionType::COMPOSITION_DEFAULT;
+    bool glassFree3D_ = false;
+    bool isOnInternalScreen_ = true;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

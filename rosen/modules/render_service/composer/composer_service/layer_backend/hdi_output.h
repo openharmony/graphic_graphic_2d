@@ -178,8 +178,6 @@ private:
     std::unordered_set<uint64_t> invalidTunnelSurfaceIds_;
     // surfaceId -> last failed tunnelLayerGeneration; suppresses tunnel retry until generation changes.
     std::unordered_map<uint64_t, uint64_t> tunnelFallbackGenerations_;
-    // solidLayer unique id -- layer ptr
-    std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> solidSurfaceIdMap_;
     /* only used for GetLayerSolidFilledColor find hdi layer id */
     std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> solidRSLayerIdMap_;
     uint32_t screenId_;
@@ -205,8 +203,8 @@ private:
     int32_t CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<RSLayer>& rsLayer);
     void DestroyLayerBySurfaceIdLocked(uint64_t surfaceId);
     void UnregisterGlobalTunnelLayersLocked() const;
-    void UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer, uint32_t& solidLayerCount);
-    bool UpdateSolidColorLayerLocked(const std::shared_ptr<RSLayer>& rsLayer, uint32_t& solidLayerCount);
+    void UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer);
+    bool UpdateSolidColorLayerLocked(const std::shared_ptr<RSLayer>& rsLayer);
     void DeletePrevLayersLocked();
     void ResetLayerStatusLocked();
     void ReorderLayerInfoLocked(std::vector<LayerDumpInfo>& dumpLayerInfos) const;

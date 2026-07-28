@@ -2279,6 +2279,21 @@ HWTEST_F(RSPropertiesTest, NeedHwcFilter001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DisableHWCForFilter001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, DisableHWCForFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.DisableHWCForFilter());
+
+    properties.GetEffect().useEffect_ = true;
+    properties.UpdateFilter();
+    EXPECT_TRUE(properties.DisableHWCForFilter());
+}
+
+/**
  * @tc.name: NeedBlurFuzed001
  * @tc.desc: test results of NeedBlurFuzed
  * @tc.type:FUNC

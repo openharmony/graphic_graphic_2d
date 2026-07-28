@@ -26,6 +26,7 @@
 #endif
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "pipeline/rs_virtual_screen_thread_id_adapt.h"
 #include "pipeline/sk_resource_manager.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_image_cache.h"
@@ -585,6 +586,7 @@ void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContex
     // Adapt to the subtree feature to ensure the correct thread ID(TID) is set.
     RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
+    RSVirtualScreenThreadIdAdapt::AdaptVirtualScreenFfrtThreadId(canvas, threadId);
     cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, threadId);
 
     std::lock_guard<std::mutex> lock(mutex_);
@@ -723,6 +725,7 @@ void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
         // Adapt to the subtree feature to ensure the correct thread ID (TID) is set.
         RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
+        RSVirtualScreenThreadIdAdapt::AdaptVirtualScreenFfrtThreadId(canvas, threadId);
         if (!pixelMap_->IsEditable()) {
             imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, threadId);
         }

@@ -1138,15 +1138,6 @@ void RSSurfaceRenderNode::SetScreenSpecialLayerStatus(ScreenId screenId, uint32_
     }
 }
 
-void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (!IsLeashOrMainWindow()) {
-        return;
-    }
-    SetScreensWithSubTreeWhitelist(screenIds);
-    SyncWhiteListInfoToParent();
-}
-
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
 {
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
@@ -1257,6 +1248,57 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
         surfaceParam->SetHDRPresent(hasHdrPresent);
         AddToPendingSyncList();
     }
+}
+
+void RSSurfaceRenderNode::SetIsOnInternalScreen(bool isOnInternalScreen)
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return;
+    }
+    surfaceParam->SetIsOnInternalScreen(isOnInternalScreen);
+    AddToPendingSyncList();
+}
+
+bool RSSurfaceRenderNode::GetIsOnInternalScreen() const
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return true;
+    }
+    return surfaceParam->GetIsOnInternalScreen();
+}
+
+void RSSurfaceRenderNode::SetCompositionType(CompositionType type)
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return;
+    }
+    surfaceParam->SetCompositionType(type);
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::ResetCompositionType()
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return;
+    }
+    if (surfaceParam->GetCompositionType() == CompositionType::COMPOSITION_DEFAULT) {
+        return;
+    }
+    surfaceParam->SetCompositionType(CompositionType::COMPOSITION_DEFAULT);
+    AddToPendingSyncList();
+}
+
+CompositionType RSSurfaceRenderNode::GetCompositionType() const
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return CompositionType::COMPOSITION_DEFAULT;
+    }
+    return surfaceParam->GetCompositionType();
 }
 
 void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
@@ -1558,7 +1600,14 @@ void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByWindow(bool isOnTree, Gra
 void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (!GetRSSurfaceHandler() || !GetRSSurfaceHandler()->GetBuffer()) {
+    auto surfaceHandler = GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata node(%{public}s) did not have surfaceHandler.",
+            GetName().c_str());
+        return;
+    }
+    const sptr<SurfaceBuffer>& buffer = surfaceHandler->GetBuffer();
+    if (!buffer) {
         RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata node(%{public}s) did not have buffer.",
             GetName().c_str());
         return;
@@ -1566,7 +1615,6 @@ void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
     if (IsSplitSurfaceNode()) {
         return;
     }
-    const sptr<SurfaceBuffer>& buffer = GetRSSurfaceHandler()->GetBuffer();
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
@@ -1908,12 +1956,17 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
         return;
     }
     if (!isUniRender) {
-        bool diff =
+        bool diff = GetRenderProperties().GetFrameGravity() != Gravity::RESIZE
+            && ROSEN_EQ(GetGlobalAlpha(), 1.0f);
 #ifndef ROSEN_CROSS_PLATFORM
-            (GetDstRect().width_ > surfaceHandler_->GetBuffer()->GetWidth() ||
-                GetDstRect().height_ > surfaceHandler_->GetBuffer()->GetHeight()) &&
+        auto buffer = surfaceHandler_->GetBuffer();
+        if (buffer != nullptr) {
+            diff = diff && (GetDstRect().width_ > buffer->GetWidth() ||
+                GetDstRect().height_ > buffer->GetHeight());
+        } else {
+            diff = diff && (GetDstRect().width_ > 0 || GetDstRect().height_ > 0);
+        }
 #endif
-            GetRenderProperties().GetFrameGravity() != Gravity::RESIZE && ROSEN_EQ(GetGlobalAlpha(), 1.0f);
         if (!IsTransparent() && !diff) {
             accumulatedRegion.OrSelf(curRegion);
         }
@@ -2794,6 +2847,56 @@ void RSSurfaceRenderNode::OnApplyModifiers()
     }
 }
 
+bool RSSurfaceRenderNode::IsFullScreen() const
+{
+    if (!IsOnTheTree()) {
+        return false;
+    }
+    if (GetCompositionType() != CompositionType::COMPOSITION_3D_SHUTTER) {
+        return false;
+    }
+    auto context = GetContext().lock();
+    if (!context) {
+        return false;
+    }
+    const uint32_t percentage = 90; /* 90: 90% of the rect */
+    const uint32_t fullRange = 100; /* 100: full range of the rect */
+    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(GetScreenNodeId());
+    if (screenNode) {
+        const auto& screenInfo = screenNode->GetScreenInfo();
+        const auto& nodeProperties = GetRenderProperties();
+        auto rect = nodeProperties.GetBoundsGeometry()->GetAbsRect();
+        RS_TRACE_NAME_FMT("IsFullScreen: surface width[%d], height[%d], screen width[%d], height[%d]",
+            rect.GetWidth(), rect.GetHeight(), screenInfo.width, screenInfo.height);
+        if (GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_SBS) {
+            return rect.GetWidth() >= screenInfo.width * percentage / fullRange;
+        }
+        if (GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_TAB) {
+            return rect.GetHeight() >= screenInfo.height * percentage / fullRange;
+        }
+    }
+    return false;
+}
+
+VideoDimType RSSurfaceRenderNode::GetVideoDimType() const
+{
+    if (!IsOnTheTree()) {
+        return VideoDimType::VIDEO_DIM_TYPE_2D;
+    }
+    if (!GetRSSurfaceHandler()) {
+        return VideoDimType::VIDEO_DIM_TYPE_2D;
+    }
+#ifndef ROSEN_CROSS_PLATFORM
+    const auto& buffer = GetRSSurfaceHandler()->GetBuffer();
+    if (!buffer) {
+        return VideoDimType::VIDEO_DIM_TYPE_2D;
+    }
+    return buffer->GetSurfaceBufferVideoDimensionType();
+#else
+    return VideoDimType::VIDEO_DIM_TYPE_2D;
+#endif
+}
+
 void RSSurfaceRenderNode::SetTotalMatrix(const Drawing::Matrix& totalMatrix)
 {
     totalMatrix_ = totalMatrix;
@@ -3041,7 +3144,7 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
     return isNodeSingleFrameComposer_ || flag;
 }
 
-void RSSurfaceRenderNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid)
+void RSSurfaceRenderNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
 {
     isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
 }

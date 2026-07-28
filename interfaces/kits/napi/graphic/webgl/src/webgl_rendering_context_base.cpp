@@ -2767,7 +2767,7 @@ napi_value WebGLRenderingContextBase::GetShaderInfoLog(napi_env env, napi_callba
     GLuint shaderId = webGlShader->GetShaderId();
     GLint length = 0;
     glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &length);
-    if (length == 0) {
+    if (length <= 0) {
         return NVal::CreateUTF8String(env, "").val_;
     }
     GLsizei size = 0;
@@ -2800,7 +2800,7 @@ napi_value WebGLRenderingContextBase::GetProgramInfoLog(napi_env env, napi_callb
     GLint length = 0;
     GLsizei size = 0;
     glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &length);
-    if (length == 0) {
+    if (length <= 0) {
         return NVal::CreateUTF8String(env, "").val_;
     }
     std::unique_ptr<char[]> buf = std::make_unique<char[]>(length + 1);

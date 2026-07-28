@@ -27,6 +27,7 @@
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
+#include "pipeline/rs_virtual_screen_thread_id_adapt.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
 #include "common/rs_common_tools.h"
@@ -376,6 +377,7 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
     // Adapt to the subtree feature to ensure the correct thread ID (TID) is set.
     RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
+    RSVirtualScreenThreadIdAdapt::AdaptVirtualScreenFfrtThreadId(canvas, threadId);
     if (!pixelMap->IsEditable()) {
         imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(
             rsImage_->GetUniqueId(), threadId);

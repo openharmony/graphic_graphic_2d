@@ -41,7 +41,7 @@ namespace OHOS {
 namespace Rosen {
 
 bool RSProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+    std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid)
 {
 #ifdef RS_ENABLE_GPU
     if (renderEngine == nullptr) {
@@ -107,7 +107,7 @@ bool RSProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEng
     auto children = node.GetChildrenList();
     std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
 
-    // Find the display node with boot animation first， or will cause black screen during boot animation.
+    // Find the display node with boot animation first, or will cause black screen during boot animation.
     for (const auto& child : children) {
         if (auto node = child.lock()) {
             if (node->GetBootAnimation()) {
@@ -124,11 +124,20 @@ bool RSProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEng
         CalculateScreenTransformMatrix(mirrorSource ? *mirrorSource : *displayNode);
         if (auto mirroredScreenNode = node.GetMirrorSource().lock()) {
             mirroredScreenInfo_ = mirroredScreenNode->GetScreenProperty().GetScreenInfo();
+            mirroredScreenInfo_.rotation = mirrorSource ? mirrorSource->GetRotation() : ScreenRotation::ROTATION_0;
             CalculateMirrorAdaptiveMatrix();
         }
     } else {
         RS_LOGE("RSProcessor::Init screenNode has no children");
     }
+
+    RS_LOGD_IF(DEBUG_SCREEN, "RSProcessor::%{public}s hasMirrorDisplay[%{public}d], mirroredScreenId[%{public}" PRIu64
+            "], mirrorSourceScreenWidth[%{public}" PRIu32 "], mirrorSourceScreenHeight[%{public}" PRIu32
+            "], curScreenWidth[%{public}" PRIu32 "], curScreenHeight[%{public}" PRIu32
+            "], mirrorAdaptiveCoefficient[%{public}f]",
+        __func__, !displayNode->GetMirrorSource().expired(), mirroredScreenInfo_.id,
+        mirroredScreenInfo_.GetRotatedWidth(), mirroredScreenInfo_.GetRotatedHeight(), screenInfo_.GetRotatedWidth(),
+        screenInfo_.GetRotatedHeight(), mirrorAdaptiveCoefficient_);
 
     // set default render frame config
     ComposerScreenInfo composerScreenInfo;

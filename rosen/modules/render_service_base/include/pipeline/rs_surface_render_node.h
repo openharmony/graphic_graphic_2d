@@ -285,6 +285,11 @@ public:
             IsLayerTop();
     }
 
+    bool IsHwcLayerType() const override
+    {
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE || IsLayerTop();
+    }
+
     void SetPreSubHighPriorityType(bool priorityType);
 
     bool IsDynamicHardwareEnable() const
@@ -742,7 +747,6 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer);
-    void UpdateVirtualScreenWhiteListInfo(const std::unordered_set<ScreenId>& screenIds);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const
@@ -826,6 +830,10 @@ public:
     {
         uifirstState_.forceUpdate = b;
     }
+
+    bool IsFullScreen() const;
+
+    VideoDimType GetVideoDimType() const;
 
     RSUIFirstSwitch GetUIFirstSwitch() const
     {
@@ -1536,7 +1544,9 @@ public:
         return isForeground_;
     }
     bool GetNodeIsSingleFrameComposer() const override;
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) override;
+
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
+
     std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const override
     {
         if (!singleFrameComposer_) {
@@ -1980,6 +1990,13 @@ public:
     {
         return topLayerZOrder_;
     }
+
+    void ResetCompositionType();
+    void SetCompositionType(CompositionType type);
+    CompositionType GetCompositionType() const;
+
+    void SetIsOnInternalScreen(bool isOnInternalScreen);
+    bool GetIsOnInternalScreen() const;
 
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }

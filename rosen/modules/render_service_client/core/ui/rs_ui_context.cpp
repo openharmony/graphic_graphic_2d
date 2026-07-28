@@ -18,6 +18,7 @@
 #include "animation/rs_interactive_implict_animator.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_command.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_ui_context_manager.h"
 
@@ -31,18 +32,12 @@ RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRem
         std::make_shared<RSTransactionHandler>(token, rsRenderInterface_->GetRSRenderPipelineClient());
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
     rsSyncTransactionHandler_->SetTransactionHandler(rsTransactionHandler_);
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        modifiersDrawThread_ = std::make_shared<RSModifiersDrawThread>();
-        canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
-    }
-#endif
 }
 
 RSUIContext::~RSUIContext()
 {
     RS_LOGI("~RSUIContext: Token:%{public}" PRIu64, token_);
-    DestroyModifiersDraw();
+    ClearCanvasDrawingNodeResource();
 }
 
 const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
@@ -300,11 +295,25 @@ bool RSUIContext::WaitForRebuildNormal(uint32_t timeoutMs)
     return true;
 }
 
-void RSUIContext::DestroyModifiersDraw()
+void RSUIContext::ClearCanvasDrawingNodeResource()
+{
+    if (DestroyModifiersDraw()) {
+        return;
+    }
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (RSUniRenderJudgement::IsUniRender() && rsRenderInterface_ != nullptr &&
+        (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled() ||
+            RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled())) {
+        rsRenderInterface_->RegisterCanvasCallback(nullptr);
+    }
+#endif
+}
+
+bool RSUIContext::DestroyModifiersDraw()
 {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        return;
+        return false;
     }
     if (auto transaction = GetRSTransaction()) {
         transaction->SetCommitTransactionCallback(nullptr);
@@ -319,7 +328,9 @@ void RSUIContext::DestroyModifiersDraw()
         canvasModifiersDrawAgent_->Destroy();
         canvasModifiersDrawAgent_ = nullptr;
     }
+    return true;
 #endif
+    return false;
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
@@ -335,8 +346,8 @@ void RSUIContext::UnblockUIThread()
 CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
 {
     if (modifiersDrawThread_ == nullptr) {
-        RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null modifiersDrawThread.");
-        return nullptr;
+        modifiersDrawThread_ = std::make_shared<RSModifiersDrawThread>();
+        canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
     }
 
     modifiersDrawThread_->Start();

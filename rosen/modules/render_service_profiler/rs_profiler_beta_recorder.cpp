@@ -33,11 +33,11 @@ static constexpr float INACTIVITY_THRESHOLD_SECONDS = 0.02f;
 static DeviceInfo g_deviceInfo;
 static std::mutex g_deviceInfoMutex;
 static std::atomic_bool g_started = false;
-static double g_inactiveTimestamp = 0.0;
+static std::atomic<double> g_inactiveTimestamp = 0.0;
 static std::atomic<double> g_recordsTimestamp = 0.0;
 static double g_currentFrameDirtyRegion = 0.0;
 static uint64_t g_lastParcelTime = 0;
-static int g_animationCount = 0;
+static std::atomic<int> g_animationCount = 0;
 
 // implemented in rs_profiler.cpp
 void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& out);

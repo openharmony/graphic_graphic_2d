@@ -244,7 +244,7 @@ public:
         return std::to_string(VK_API_VERSION_1_2);
     }
 
-    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(std::string cacheDir = "");
+    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(std::string cacheDir = "", int32_t tid = 0);
     std::shared_ptr<Drawing::GPUContext> DoCreateDrawingContext(std::string cacheDir = "");
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
 
@@ -390,7 +390,7 @@ public:
         return GetRsVulkanInterface().GetVulkanDeviceStatus();
     }
 
-    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
+    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(int32_t tid = 0);
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext(const std::string& cacheDir = "");
     std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext(const std::string& cacheDir = "");
     static void ReleaseDrawingContextMap();
