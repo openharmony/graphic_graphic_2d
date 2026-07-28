@@ -537,7 +537,7 @@ bool RSHpaeOfflineDevice::PostProcessOfflineTask(
     auto* params = surfaceNode->GetStagingRenderParams().get();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params);
     RS_OFFLINE_LOGD("start to proces offline surface (by node), task[%{public}" PRIu64 "-%{public}" PRIu64 "]",
-        taskId.first, taskId.second);
+            taskId.first, taskId.second);
     return PostOfflineTaskCommon(context, surfaceParams, taskId);
 }
 
