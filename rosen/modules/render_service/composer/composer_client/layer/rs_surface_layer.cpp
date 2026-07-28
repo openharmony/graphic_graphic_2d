@@ -692,6 +692,20 @@ const std::vector<float>& RSSurfaceLayer::GetLayerLinearMatrix() const
     return layerLinearMatrix_;
 }
 
+void RSSurfaceLayer::SetGlassFree3D(bool glassFree3D)
+{
+    if (glassFree3D_ == glassFree3D) {
+        return;
+    }
+    glassFree3D_ = glassFree3D;
+    SetRSLayerCmd<RSRenderLayerGlassFree3DCmd>(glassFree3D);
+}
+
+bool RSSurfaceLayer::GetGlassFree3D() const
+{
+    return glassFree3D_;
+}
+
 void RSSurfaceLayer::SetLayerSourceTuning(int32_t layerSource)
 {
     if (layerSource_ == layerSource) {

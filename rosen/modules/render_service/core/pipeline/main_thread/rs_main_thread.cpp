@@ -2317,8 +2317,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
     isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
     const auto& nodeMap = GetContext().GetNodeMap();
+    UIMode3D uiMode3D = GetUIMode3D();
     nodeMap.TraverseSurfaceNodes(
-        [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        [this, &nodeMap, uiMode3D](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
             }
@@ -2356,8 +2357,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 }
                 return;
             }
+            UpdateCompositionType(surfaceNode, uiMode3D);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
-            UIMode3D uiMode3D = RSMainThread::Instance()->GetUIMode3D();
             RSTvShutter3DManager::Instance().UpdateSurfaceNodeCompositionType(surfaceNode, uiMode3D);
 #endif
             auto videoHdrStatus = RSHdrUtil::CheckIsHdrSurface(*surfaceNode);
@@ -2559,6 +2560,24 @@ void RSMainThread::ReleaseAllNodesBuffer()
 uint32_t RSMainThread::GetRefreshRate() const
 {
     return GetDynamicRefreshRate();
+}
+
+void RSMainThread::UpdateCompositionType(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, UIMode3D uiMode3D)
+{
+#ifdef RS_ENABLE_GPU
+    if (!surfaceNode) {
+        return;
+    }
+    surfaceNode->ResetCompositionType();
+    if (uiMode3D == UIMode3D::MODE_GLASSESFREE_3D) {
+        auto videoDimType = surfaceNode->GetVideoDimType();
+        RS_TRACE_NAME_FMT("%s MODE_GLASSESFREE_3D name:%s id:%" PRIu64 ", videoDimType: %d",
+            __func__, surfaceNode->GetName().c_str(), surfaceNode->GetId(), videoDimType);
+        if (videoDimType != VideoDimType::VIDEO_DIM_TYPE_2D) {
+            surfaceNode->SetCompositionType(CompositionType::COMPOSITION_3D_GLASS_FREE);
+        }
+    }
+#endif
 }
 
 uint32_t RSMainThread::GetDynamicRefreshRate() const

@@ -1996,6 +1996,9 @@ public:
     void SetCompositionType(CompositionType type);
     CompositionType GetCompositionType() const;
 
+    void SetIsOnInternalScreen(bool isOnInternalScreen);
+    bool GetIsOnInternalScreen() const;
+
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
 

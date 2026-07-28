@@ -335,6 +335,28 @@ UIMode3D RSScreenRenderNode::GetUIMode3D() const
     return uiMode3D_;
 }
 
+void RSScreenRenderNode::SetHasGlassFree3DLayer(bool hasGlassFree3DLayer)
+{
+    if (hasGlassFree3DLayer_ == hasGlassFree3DLayer) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::SetHasGlassFree3DLayer screenParams is null");
+        return;
+    }
+    hasGlassFree3DLayer_ = hasGlassFree3DLayer;
+    screenParams->SetHasGlassFree3DLayer(hasGlassFree3DLayer);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+bool RSScreenRenderNode::GetHasGlassFree3DLayer() const
+{
+    return hasGlassFree3DLayer_;
+}
+
 void RSScreenRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
 {
     dirtyManager_->SetBufferAge(bufferage);

@@ -175,6 +175,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSScreenRen
     const auto curDisplayParam = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
     if (curDisplayParam) {
         info.brightnessRatio = curDisplayParam->GetBrightnessRatio();
+        info.glassFree3D = curDisplayParam->GetHasGlassFree3DLayer();
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
@@ -286,6 +287,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetDisplayNit(info.displayNit);
     layer->SetBrightnessRatio(info.brightnessRatio);
     layer->SetLayerLinearMatrix(info.layerLinearMatrix);
+    layer->SetGlassFree3D(info.glassFree3D);
     uint32_t cycleBufferNum = 0;
     surface->GetCycleBuffersNumber(cycleBufferNum);
     layer->SetCycleBuffersNum(cycleBufferNum);

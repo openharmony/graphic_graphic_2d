@@ -749,7 +749,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->vcldInfo_ = vcldInfo_;
     targetSurfaceParams->vcldRoundRect_ = vcldRoundRect_;
     targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
+    targetSurfaceParams->isOnInternalScreen_ = isOnInternalScreen_;
     targetSurfaceParams->compositionType_ = compositionType_;
+    targetSurfaceParams->glassFree3D_ = glassFree3D_;
     targetSurfaceParams->uifirstParams_.leashAllEnabled = uifirstParams_.leashAllEnabled;
     targetSurfaceParams->uifirstParams_.isPartialSynced = uifirstParams_.isPartialSynced;
     targetSurfaceParams->isWebProxyComposerNode_ = isWebProxyComposerNode_;
@@ -926,6 +928,34 @@ void RSSurfaceRenderParams::SetCompositionType(CompositionType type)
 CompositionType RSSurfaceRenderParams::GetCompositionType() const
 {
     return compositionType_;
+}
+
+void RSSurfaceRenderParams::SetIsOnInternalScreen(bool isOnInternalScreen)
+{
+    if (isOnInternalScreen_ == isOnInternalScreen) {
+        return;
+    }
+    isOnInternalScreen_ = isOnInternalScreen;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetIsOnInternalScreen() const
+{
+    return isOnInternalScreen_;
+}
+
+void RSSurfaceRenderParams::SetGlassFree3D(bool enable)
+{
+    if (glassFree3D_ == enable) {
+        return;
+    }
+    glassFree3D_ = enable;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetGlassFree3D() const
+{
+    return glassFree3D_;
 }
 
 void RSSurfaceRenderParams::SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams)

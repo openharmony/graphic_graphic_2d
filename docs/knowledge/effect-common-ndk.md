@@ -25,7 +25,6 @@
 | effect_utils.h | `rosen/modules/effect/color_picker/include/effect_utils.h` | 工具函数 |
 | effect_config.gni | `rosen/modules/effect/effect_config.gni` | 构建配置 |
 | skia_effectChain/ | `rosen/modules/effect/skia_effectChain/` | Skia 效果链实现 |
-| egl/ | `rosen/modules/effect/egl/` | EGL 上下文管理 |
 
 ## 核心模型
 
