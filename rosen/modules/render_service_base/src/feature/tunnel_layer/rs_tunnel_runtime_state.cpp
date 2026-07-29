@@ -20,23 +20,16 @@ namespace Rosen {
 std::mutex RSTunnelRuntimeStore::mutex_;
 std::unordered_map<NodeId, std::unique_ptr<RSTunnelRuntimeState>> RSTunnelRuntimeStore::tunnelRuntimeStates_;
 
-RSTunnelRuntimeState::~RSTunnelRuntimeState() noexcept
-{
-    Clear();
-}
-
 void RSTunnelRuntimeState::SetLayerInfo(uint64_t tunnelLayerId, uint32_t property)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    tunnelLayerId_ = tunnelLayerId;
-    tunnelLayerProperty_ = property;
+    tunnelLayerId_.store(tunnelLayerId, std::memory_order_release);
+    tunnelLayerProperty_.store(property, std::memory_order_release);
 }
 
 void RSTunnelRuntimeState::GetLayerInfo(uint64_t& tunnelLayerId, uint32_t& property) const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    tunnelLayerId = tunnelLayerId_;
-    property = tunnelLayerProperty_;
+    tunnelLayerId = tunnelLayerId_.load(std::memory_order_acquire);
+    property = tunnelLayerProperty_.load(std::memory_order_acquire);
 }
 
 RSTunnelRuntimeState::TunnelState RSTunnelRuntimeState::GetTunnelState() const
@@ -80,80 +73,10 @@ bool RSTunnelRuntimeState::IsCurrentTunnelLayerGeneration(uint64_t tunnelLayerGe
 
 void RSTunnelRuntimeState::Clear()
 {
-#ifndef ROSEN_CROSS_PLATFORM
-    RSSurfaceHandler::SurfaceBufferEntry pendingBuffer;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        pendingBuffer = pendingBuffer_;
-        pendingBuffer_ = RSSurfaceHandler::SurfaceBufferEntry();
-        tunnelLayerId_ = 0;
-        tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
-    }
+    SetLayerInfo(0, TUNNEL_PROP_INVALID);
     SetBuilding();
-    ReleasePendingBuffer(pendingBuffer);
-#else
-    std::lock_guard<std::mutex> lock(mutex_);
-    tunnelLayerId_ = 0;
-    tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
-    SetBuilding();
-#endif
     ClearCommittedTunnelBuffer();
 }
-
-#ifndef ROSEN_CROSS_PLATFORM
-bool RSTunnelRuntimeState::IsPendingBufferValid(const RSSurfaceHandler::SurfaceBufferEntry& buffer)
-{
-    return buffer.buffer != nullptr && buffer.bufferOwnerCount_ != nullptr &&
-        buffer.bufferOwnerCount_->bufferId_ != 0;
-}
-
-void RSTunnelRuntimeState::ReleasePendingBuffer(RSSurfaceHandler::SurfaceBufferEntry& buffer)
-{
-    if (!IsPendingBufferValid(buffer)) {
-        return;
-    }
-    buffer.bufferOwnerCount_->DecRef();
-    buffer = RSSurfaceHandler::SurfaceBufferEntry();
-}
-
-bool RSTunnelRuntimeState::HasPendingBuffer() const
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    return IsPendingBufferValid(pendingBuffer_);
-}
-
-void RSTunnelRuntimeState::SetPendingBuffer(RSSurfaceHandler::SurfaceBufferEntry buffer)
-{
-    if (buffer.buffer != nullptr && buffer.bufferOwnerCount_ != nullptr) {
-        buffer.bufferOwnerCount_->bufferId_ = buffer.buffer->GetBufferId();
-    }
-    if (!IsPendingBufferValid(buffer)) {
-        return;
-    }
-
-    RSSurfaceHandler::SurfaceBufferEntry oldBuffer;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (IsPendingBufferValid(pendingBuffer_) &&
-            pendingBuffer_.bufferOwnerCount_ != buffer.bufferOwnerCount_) {
-            oldBuffer = pendingBuffer_;
-        }
-        pendingBuffer_ = buffer;
-    }
-    ReleasePendingBuffer(oldBuffer);
-}
-
-bool RSTunnelRuntimeState::TakePendingBuffer(RSSurfaceHandler::SurfaceBufferEntry& buffer)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!IsPendingBufferValid(pendingBuffer_)) {
-        return false;
-    }
-    buffer = pendingBuffer_;
-    pendingBuffer_ = RSSurfaceHandler::SurfaceBufferEntry();
-    return true;
-}
-#endif
 
 void RSTunnelRuntimeState::SetCommittedTunnelBufferId(uint64_t bufferId)
 {
@@ -225,15 +148,10 @@ RSTunnelRuntimeState::ClaimResult RSTunnelRuntimeState::TryClaimByMain(bool need
             return ClaimResult::GO_NORMAL;
         }
     }
-    // Listener owns the buffer this vsync; main must not consume. Mark intent-to-switch
-    // via pendingParam_, listener's ReleaseByListener will RequestNextVSync on release.
     if (expected == Phase::TUNNEL_INFLIGHT) {
         pendingParam_.store(true, std::memory_order_release);
         return ClaimResult::KEEP_DIRECT;
     }
-    // Already in NORMAL_PREPARING (previous frame's render commit not yet acked back to
-    // main looper). Back-to-back normal prepare is safe: phase stays the same, listener
-    // is still locked out, and an upcoming OnRenderCommitDone will advance to COMMITTED.
     if (expected == Phase::NORMAL_PREPARING) {
         pendingParam_.store(false, std::memory_order_release);
         return ClaimResult::GO_NORMAL;
@@ -248,11 +166,6 @@ void RSTunnelRuntimeState::OnRenderCommitDone()
         std::memory_order_acq_rel, std::memory_order_acquire);
 }
 
-// Released by main when a GO_NORMAL claim cannot reach commit (e.g. AcquireBuffer failed
-// because the consumer queue was drained by a prior tunnel direct path). Without this,
-// phase would stay NORMAL_PREPARING; KEEP_DIRECT only relaxes NORMAL_COMMITTED, and the
-// listener's TryClaimByListener rejects every non-IDLE/COMMITTED phase, deadlocking both
-// consumption paths until the next commit-done that never arrives.
 void RSTunnelRuntimeState::AbandonNormalClaim()
 {
     Phase expected = Phase::NORMAL_PREPARING;
@@ -283,17 +196,14 @@ RSTunnelRuntimeState& RSTunnelRuntimeStore::GetOrCreate(NodeId nodeId)
     return *tunnelRuntime;
 }
 
-bool RSTunnelRuntimeState::IsBufferSizeChanged(const uint32_t bufferSize) const
+RSTunnelRuntimeState* RSTunnelRuntimeStore::TryGet(NodeId nodeId)
 {
-#ifdef ROSEN_CROSS_PLATFORM
-    return false;
-#else
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!(pendingBuffer_.buffer)) {
-        return false;
+    auto iter = tunnelRuntimeStates_.find(nodeId);
+    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
+        return nullptr;
     }
-    return bufferSize != pendingBuffer_.buffer->GetSize();
-#endif
+    return iter->second.get();
 }
 
 bool RSTunnelRuntimeStore::GetLayerInfoIfPresent(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property)
@@ -329,20 +239,6 @@ uint64_t RSTunnelRuntimeStore::GetTunnelLayerGeneration(NodeId nodeId)
     return iter->second->GetTunnelLayerGeneration();
 }
 
-bool RSTunnelRuntimeStore::HasPendingBuffer(NodeId nodeId)
-{
-#ifdef ROSEN_CROSS_PLATFORM
-    return false;
-#else
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = tunnelRuntimeStates_.find(nodeId);
-    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
-        return false;
-    }
-    return iter->second->HasPendingBuffer();
-#endif
-}
-
 bool RSTunnelRuntimeStore::IsTunnelActive(NodeId nodeId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -355,16 +251,12 @@ bool RSTunnelRuntimeStore::IsTunnelActive(NodeId nodeId)
 
 void RSTunnelRuntimeStore::Clear(NodeId nodeId)
 {
-    RSTunnelRuntimeState* runtime = nullptr;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        auto iter = tunnelRuntimeStates_.find(nodeId);
-        if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
-            return;
-        }
-        runtime = iter->second.get();
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = tunnelRuntimeStates_.find(nodeId);
+    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
+        return;
     }
-    runtime->Clear();
+    iter->second->Clear();
 }
 
 void RSTunnelRuntimeStore::Erase(NodeId nodeId)

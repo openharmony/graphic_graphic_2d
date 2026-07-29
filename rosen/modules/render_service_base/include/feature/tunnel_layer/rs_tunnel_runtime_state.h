@@ -26,7 +26,6 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
-#include "pipeline/rs_surface_handler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -51,7 +50,7 @@ public:
     };
 
     RSTunnelRuntimeState() = default;
-    ~RSTunnelRuntimeState() noexcept;
+    ~RSTunnelRuntimeState() noexcept = default;
 
 #ifndef ROSEN_CROSS_PLATFORM
     struct LastFrameRouteSnapshot {
@@ -81,12 +80,6 @@ public:
     bool IsCurrentTunnelLayerGeneration(uint64_t tunnelLayerGeneration) const;
     void Clear();
 
-#ifndef ROSEN_CROSS_PLATFORM
-    bool HasPendingBuffer() const;
-    void SetPendingBuffer(RSSurfaceHandler::SurfaceBufferEntry buffer);
-    bool TakePendingBuffer(RSSurfaceHandler::SurfaceBufferEntry& buffer);
-#endif
-
     void SetCommittedTunnelBufferId(uint64_t bufferId);
     bool IsCommittedTunnelBuffer() const;
     void ClearCommittedTunnelBuffer();
@@ -104,7 +97,6 @@ public:
     const LastFrameRouteSnapshot& GetLastFrameRouteSnapshot() const;
     void UpdateLastFrameRouteSnapshot(const LastFrameRouteSnapshot& snapshot);
 #endif
-    bool IsBufferSizeChanged(const uint32_t bufferSize) const;
     void SetTunnelLayer(std::shared_ptr<RSLayer> tunnelLayer)
     {
         tunnelLayer_ = tunnelLayer;
@@ -115,14 +107,8 @@ public:
     }
 
 private:
-#ifndef ROSEN_CROSS_PLATFORM
-    static bool IsPendingBufferValid(const RSSurfaceHandler::SurfaceBufferEntry& buffer);
-    static void ReleasePendingBuffer(RSSurfaceHandler::SurfaceBufferEntry& buffer);
-#endif
-
-    mutable std::mutex mutex_;
-    uint64_t tunnelLayerId_ = 0;
-    uint32_t tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
+    std::atomic<uint64_t> tunnelLayerId_ { 0 };
+    std::atomic<uint32_t> tunnelLayerProperty_ { TUNNEL_PROP_INVALID };
     std::atomic<TunnelState> tunnelState_ { TunnelState::BUILDING };
     std::atomic<uint64_t> tunnelLayerGeneration_ { 1 };
     std::atomic<Phase> phase_ { Phase::TUNNEL_IDLE };
@@ -131,7 +117,6 @@ private:
     std::shared_ptr<RSLayer> tunnelLayer_ { nullptr };
 
 #ifndef ROSEN_CROSS_PLATFORM
-    RSSurfaceHandler::SurfaceBufferEntry pendingBuffer_;
     LastFrameRouteSnapshot lastFrameRouteSnapshot_;
 #endif
 };
@@ -182,11 +167,11 @@ public:
     ~RSTunnelRuntimeStore() = delete;
 
     static RSTunnelRuntimeState& GetOrCreate(NodeId nodeId);
+    static RSTunnelRuntimeState* TryGet(NodeId nodeId);
     static bool GetLayerInfoIfPresent(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property);
     static void GetLayerInfoOrDefault(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property);
     static void SetLayerInfo(NodeId nodeId, uint64_t tunnelLayerId, uint32_t property);
     static uint64_t GetTunnelLayerGeneration(NodeId nodeId);
-    static bool HasPendingBuffer(NodeId nodeId);
     static bool IsTunnelActive(NodeId nodeId);
     static void Clear(NodeId nodeId);
     static void Erase(NodeId nodeId);
