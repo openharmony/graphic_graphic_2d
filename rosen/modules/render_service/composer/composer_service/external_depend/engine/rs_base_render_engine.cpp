@@ -98,10 +98,6 @@ static void ApplyYcbcrChannelSwapFilter(Drawing::Brush& paint)
     auto existingFilter = filter.GetColorFilter();
     if (existingFilter) {
         auto composed = Drawing::ColorFilter::CreateComposeColorFilter(*existingFilter, *rbSwapFilter);
-        if (composed == nullptr) {
-            RS_LOGE("ApplyYcbcrChannelSwapFilter: failed to compose R↔B swap with existing color filter");
-            return;
-        }
         filter.SetColorFilter(composed);
         RS_LOGD("ApplyYcbcrChannelSwapFilter: composed with existing filter");
     } else {
@@ -838,10 +834,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         auto existingFilter = filter.GetColorFilter();
         if (existingFilter) {
             auto composed = Drawing::ColorFilter::CreateComposeColorFilter(*existingFilter, *luminanceColorFilter);
-            if (composed == nullptr) {
-                RS_LOGE("DrawImage: failed to compose luminance with existing color filter");
-                return;
-            }
             filter.SetColorFilter(composed);
             RS_LOGD("DrawImage: composed luminance with existing color filter");
         } else {
