@@ -181,7 +181,8 @@ void EffectImageChain::UpdateCanvas()
         EFFECT_COMM_LOG_E("EffectImageChain::UpdateCanvas: canvasRec is invalid");
         return;
     }
-    if (canvasRec_.GetRight() != imageRec_.GetRight() || canvasRec_.GetBottom() != imageRec_.GetBottom()) {
+    if (!ROSEN_EQ(canvasRec_.GetRight(), imageRec_.GetRight()) ||
+        !ROSEN_EQ(canvasRec_.GetBottom(), imageRec_.GetBottom())) {
         float scaleX = imageRec_.GetRight() / canvasRec_.GetRight();
         float scaleY = imageRec_.GetBottom() / canvasRec_.GetBottom();
         ScaleCanvas(scaleX, scaleY);
@@ -280,7 +281,7 @@ DrawingError EffectImageChain::ApplyDrawingFilter(const std::shared_ptr<Drawing:
 DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& tileMode,
     bool isDirection, float angle)
 {
-    if (radius < 0.0f) { // invalid radius
+    if (ROSEN_LNE(radius, 0.0f)) { // invalid radius
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
@@ -328,10 +329,10 @@ static std::shared_ptr<GEShaderFilter> GenerateGEXShaderFilter(Drawing::GEFilter
 DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
     float maskRadiusX, float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees)
 {
-    if (blurRadius < 0.0f) { // invalid radius
+    if (ROSEN_LNE(blurRadius, 0.0f)) { // invalid radius
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    if (maskRadiusX <= 0.0f || maskRadiusY <= 0.0f) {
+    if (ROSEN_LE(maskRadiusX, 0.0f) || ROSEN_LE(maskRadiusY, 0.0f)) {
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
@@ -707,7 +708,8 @@ void EffectImageChain::DrawOnFilter()
     canvas_->Save();
     canvas_->ResetMatrix();
     canvas_->AttachPaint(paint);
-    if (imageRec_.GetRight() != canvasRec_.GetRight() || imageRec_.GetBottom() != canvasRec_.GetBottom()) {
+    if (!ROSEN_EQ(imageRec_.GetRight(), canvasRec_.GetRight()) ||
+        !ROSEN_EQ(imageRec_.GetBottom(), canvasRec_.GetBottom())) {
         canvas_->DrawImageRect(*image_,
             imageRec_,
             canvasRec_,
@@ -1064,10 +1066,10 @@ DrawingError EffectImageChain::ApplyReededGlass(
 DrawingError EffectImageChain::ApplyScale(
     float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
 {
-    if (scaleX <= 0.0f || scaleY <= 0.0f) {
+    if (ROSEN_LE(scaleX, 0.0f) || ROSEN_LE(scaleY, 0.0f)) {
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    if (scaleX == 1.0f || scaleY == 1.0f) {
+    if (ROSEN_EQ(scaleX, 1.0f) || ROSEN_EQ(scaleY, 1.0f)) {
         return DrawingError::ERR_OK;
     }
     std::lock_guard<std::mutex> lock(apiMutex_);
