@@ -320,7 +320,9 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, ui
     const bool isConsiderRsStartTime =
         jankFrames.isDisplayAnimator_ || jankFrames.isFirstFrame_ || isFirstSetEnd_;
     const float accumulatedTime = accumulatedBufferCount_ * standardFrameTime;
-    const int64_t frameDuration = std::max<int64_t>(0, GetEffectiveFrameTime(isConsiderRsStartTime) - accumulatedTime);
+    // The first frame of animation does not participate in frame duration statistics
+    const int64_t frameDuration = (jankFrames.totalFrames_ == 0) ? 0 :
+        std::max<int64_t>(0, GetEffectiveFrameTime(isConsiderRsStartTime) - accumulatedTime);
     const int64_t frameTechDuration = GetEffectiveFrameTime(true);
     const int32_t missedFramesToReport = static_cast<int32_t>(frameDuration / VSYNC_PERIOD);
     jankFrames.totalFrames_++;
@@ -710,7 +712,9 @@ void RSJankStats::ReportEventJankFrameWithoutDelay(const JankFrames& jankFrames)
         return;
     }
     const auto &info = jankFrames.info_;
-    float aveFrameTimeSteady = jankFrames.totalFrameTimeSteady_ / static_cast<float>(jankFrames.totalFrames_);
+    // The first frame of animation does not participate in average frame time calculation
+    float aveFrameTimeSteady = jankFrames.totalFrames_ > 1 ?
+        jankFrames.totalFrameTimeSteady_ / static_cast<float>(jankFrames.totalFrames_ - 1) : 0;
     bool isReportTaskDelayed = false;
     int64_t maxFrameTimeFromStart = 0;
     int64_t maxHitchTimeFromStart = 0;
@@ -752,8 +756,9 @@ void RSJankStats::ReportEventJankFrameWithDelay(const JankFrames& jankFrames) co
         return;
     }
     const auto &info = jankFrames.info_;
-    float aveFrameTimeSteady =
-        jankFrames.lastTotalFrameTimeSteady_ / static_cast<float>(jankFrames.lastTotalFrames_);
+    // The first frame of animation does not participate in average frame time calculation
+    float aveFrameTimeSteady = jankFrames.lastTotalFrames_ > 1 ?
+        jankFrames.lastTotalFrameTimeSteady_ / static_cast<float>(jankFrames.lastTotalFrames_ - 1) : 0;
     bool isReportTaskDelayed = true;
     int64_t maxFrameTimeFromStart = 0;
     int64_t maxHitchTimeFromStart = 0;
