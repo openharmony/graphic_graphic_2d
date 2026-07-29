@@ -920,6 +920,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
         return;
     }
     UpdateVirtualDisplayInfo(node);
+    RSHdrUtil::UpdateBrightnessFactor(node);
     auto dirtyFlag = dirtyFlag_;
     displayNodeRotationChanged_ = node.IsRotationChanged();
     dirtyFlag_ |= displayNodeRotationChanged_;
