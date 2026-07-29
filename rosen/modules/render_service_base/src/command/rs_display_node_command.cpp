@@ -15,6 +15,7 @@
 
 #include "command/rs_display_node_command.h"
 
+#include <cmath>
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -189,6 +190,20 @@ void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, con
     if (node == nullptr) {
         RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
         return;
+    }
+
+    if (!std::isfinite(config.positionZ)) {
+        RS_LOGE("DisplayNodeCommandHelper::%{public}s invalid positionZ", __func__);
+        return;
+    }
+
+    auto screenRenderNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(node->GetParent().lock());
+    if (!screenRenderNode) {
+        RS_LOGE("DisplayNodeCommandHelper::%{public}s parent of displayNodeId[%{public}" PRIu64 "] is invalid",
+            __func__, id);
+    } else if (!ROSEN_EQ(screenRenderNode->GetRenderProperties().GetPositionZ(), config.positionZ)) {
+        screenRenderNode->GetMutableRenderProperties().SetPositionZ(config.positionZ);
+        screenRenderNode->MarkParentNeedRegenerateChildren();
     }
 
     DisplayMode mode = config.displayMode;

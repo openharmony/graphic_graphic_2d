@@ -69,6 +69,9 @@ void RSScreenRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
     if (!visitor) {
         return;
     }
+    // Set geometry properties before ApplyModifiers, so that valid geometry properties can be used in ApplyModifier
+    auto screenInfo = screenProperty_.GetScreenInfo();
+    SetScreenInfo(screenInfo);
     ApplyModifiers();
     visitor->QuickPrepareScreenRenderNode(*this, isParentPrepareInReverseOrder);
 }

@@ -686,6 +686,7 @@ struct RSDisplayNodeConfig {
     NodeId mirrorNodeId = 0;
     bool isSync = false;
     uint32_t mirrorSourceRotation = 4; // default INVALID_SCREEN_ROTATION
+    float positionZ = 0.0f;
 
     std::string ToString() const
     {
@@ -693,7 +694,8 @@ struct RSDisplayNodeConfig {
                ", displayMode:" + std::to_string(static_cast<uint8_t>(displayMode)) +
                ", sourceDisplayNodeId:" + std::to_string(mirrorNodeId) +
                ", isSync:" + std::to_string(isSync) +
-               ", mirrorSourceRotation:" + std::to_string(mirrorSourceRotation) + "]";
+               ", mirrorSourceRotation:" + std::to_string(mirrorSourceRotation) +
+               ", positionZ:" + std::to_string(positionZ) + "]";
     }
 };
 

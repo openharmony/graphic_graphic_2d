@@ -4191,7 +4191,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualDisplayInfo002, TestSize.Level2)
     // 11 non-zero node id
     auto rsDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(11, config, rsContext->weak_from_this());
     rsDisplayRenderNode->InitRenderParams();
-    rsDisplayRenderNode->SetIsMirrorDisplay(true);
+    rsDisplayRenderNode->SetDisplayMode(DisplayMode::MIRROR);
     ASSERT_EQ(rsDisplayRenderNode->GetMirrorSource().lock(), nullptr);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -4228,7 +4228,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualDisplayInfo003, TestSize.Level2)
     auto rsDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(
         id, displayConfig, rsContext->weak_from_this());
     rsDisplayRenderNode->InitRenderParams();
-    rsDisplayRenderNode->SetIsMirrorDisplay(true);
+    rsDisplayRenderNode->SetDisplayMode(DisplayMode::MIRROR);
 
     displayConfig.screenId = mirrorId;
     auto mirrorNode = std::make_shared<RSLogicalDisplayRenderNode>(

@@ -14,6 +14,7 @@
  */
 
 #include "rs_client_to_render_connection_stub.h"
+#include <cmath>
 #include <memory>
 #include "ivsync_connection.h"
 #ifdef RES_SCHED_ENABLE
@@ -507,10 +508,17 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             uint64_t screenId{0};
             uint8_t displayMode{0};
             uint32_t mirrorSourceRotation{static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)};
+            float positionZ{0.0f};
             if (!data.ReadUint64(mirrorId) ||
                 !data.ReadUint64(screenId) ||
                 !data.ReadUint8(displayMode) ||
-                !data.ReadUint32(mirrorSourceRotation)) {
+                !data.ReadUint32(mirrorSourceRotation) ||
+                !data.ReadFloat(positionZ)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!std::isfinite(positionZ)) {
+                RS_LOGE("CREATE_DISPLAY_NODE invalid positionZ: not finite");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -520,6 +528,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .mirrorNodeId = mirrorId,
                 .isSync = true,
                 .mirrorSourceRotation = mirrorSourceRotation,
+                .positionZ = positionZ,
             };
             bool success = false;
             if (CreateDisplayNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {

@@ -1082,7 +1082,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, HasMirrorDisplay001, TestSize.Level1)
     ASSERT_NE(sourceNode, nullptr);
     ASSERT_NE(displayNode1, nullptr);
     ASSERT_NE(displayNode2, nullptr);
-    displayNode1->SetIsMirrorDisplay(true);
+    displayNode1->SetDisplayMode(DisplayMode::MIRROR);
     displayNode1->SetMirrorSource(sourceNode);
     displayNode2->SetMirrorSource(nullptr);
 
