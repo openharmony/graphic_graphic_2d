@@ -3087,7 +3087,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            static constexpr uint32_t MAX_NAME_LEN = 256;
+            static const uint32_t MAX_NAME_LEN = 256;
             if (packageName.size() > MAX_NAME_LEN || pageName.size() > MAX_NAME_LEN) {
                 ret = ERR_INVALID_DATA;
                 break;

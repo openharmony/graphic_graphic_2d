@@ -62,18 +62,19 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 
     uint32_t pageNameSize;
     if (!parcel.ReadUint32(pageNameSize)) {
+        RS_LOGE("RSHgmConfigData Unmarshalling read page base Failed");
         delete data;
         return nullptr;
     }
-    len = static_cast<size_t>(pageNameSize);
     if (pageNameSize > MAX_PAGE_NAME_SIZE) {
-        RS_LOGE("RSHgmConfigData Unmarshalling read railed, page size:%{public}u", pageNameSize);
+        RS_LOGE("RSHgmConfigData Unmarshalling read failed, page size:%{public}u", pageNameSize);
         delete data;
         return nullptr;
     }
     for (uint32_t i = 0; i < pageNameSize; i++) {
         std::string pageName;
         if (!parcel.ReadString(pageName)) {
+            RS_LOGE("RSHgmConfigData Unmarshalling read page data failed");
             delete data;
             return nullptr;
         }
@@ -102,9 +103,13 @@ bool RSHgmConfigData::Marshalling(Parcel& parcel) const
         }
     }
 
-    parcel.WriteUint32(pageNameList_.size());
+    if (!parcel.WriteUint32(pageNameList_.size())) {
+        return false;
+    }
     for (auto& item : pageNameList_) {
-        parcel.WriteString(item);
+        if (!parcel.WriteString(item)) {
+            return false;
+        }
     }
 
     return flag;
