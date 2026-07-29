@@ -19,7 +19,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t size_t MAX_PAGE_URL_PID_KEYS = 256;
+constexpr size_t MAX_PAGE_URL_PID_KEYS = 256;
 }
 
 void HgmAppPageUrlStrategy::SetPageUrlConfig(PolicyConfigData::PageUrlConfigMap pageUrlConfig)
