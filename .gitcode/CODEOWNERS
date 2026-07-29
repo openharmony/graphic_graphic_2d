@@ -200,6 +200,8 @@ rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.h @aslk
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.cpp @aslklw
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.h @aslklw
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @aslklw
+rosen/modules/render_service/core/pipeline/main_thread/rs_uni_render_visitor.cpp @chuchengcheng
+rosen/modules/render_service/core/pipeline/main_thread/rs_uni_render_visitor.h @chuchengcheng
 
 [buffer_manager]
 rosen/modules/render_service/core/pipeline/buffer_manager/rs_buffer_manager.cpp @lipeng123s
