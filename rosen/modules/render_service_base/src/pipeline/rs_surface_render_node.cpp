@@ -1282,7 +1282,6 @@ bool RSSurfaceRenderNode::GetIsOnInternalScreen() const
     }
     return surfaceParam->GetIsOnInternalScreen();
 }
-}
 
 void RSSurfaceRenderNode::SetCompositionType(CompositionType type)
 {
