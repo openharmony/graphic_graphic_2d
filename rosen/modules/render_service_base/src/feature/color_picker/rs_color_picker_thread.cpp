@@ -30,6 +30,10 @@
 
 #include "rs_trace.h"
 
+#ifdef RES_BASE_SCHED_ENABLE
+#include "qos.h"
+#endif
+
 namespace OHOS::Rosen {
 RSColorPickerThread& RSColorPickerThread::Instance()
 {
@@ -42,6 +46,14 @@ RSColorPickerThread::RSColorPickerThread()
     RS_LOGI("RSColorPickerThread Start!");
     runner_ = AppExecFwk::EventRunner::Create("RSColorPickerThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+#ifdef RES_BASE_SCHED_ENABLE
+    PostTask(
+        [this]() {
+            auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+            RS_LOGI("RSColorPickerThread: SetThreadQos retcode = %{public}d", ret);
+        },
+        0);
+#endif
 }
 
 bool RSColorPickerThread::PostTask(const std::function<void()>& task, int64_t delayTime)
