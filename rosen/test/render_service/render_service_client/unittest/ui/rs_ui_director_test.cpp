@@ -30,7 +30,6 @@
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
-#include "platform/common/rs_system_properties.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"

@@ -20,6 +20,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_ui_render_director.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
