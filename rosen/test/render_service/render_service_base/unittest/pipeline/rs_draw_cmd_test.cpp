@@ -1265,4 +1265,50 @@ HWTEST_F(RSDrawCmdTest, DrawSurfaceBufferOpItemPlaybackRecording001, TestSize.Le
     drawSurfaceBufferOpItem.Playback(&recCanvas, &rect);
     EXPECT_GT(cmdList->GetSize(), sizeBefore);
 }
+
+/**
+ * @tc.name: RSExtendImageObjectFlushImageCacheTest001
+ * @tc.desc: test FlushImageCache with null and valid rsImage_ for Object and BaseObj
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendImageObjectFlushImageCacheTest001, TestSize.Level1)
+{
+    // RSExtendImageObject: rsImage_ is nullptr by default, should not crash
+    RSExtendImageObject extendImageObject;
+    extendImageObject.FlushImageCache();
+    // RSExtendImageObject: with valid pixelMap, FlushCache should not crash
+    RSExtendImageObject extendImageObjectWithPixelMap(pixelMap, imageInfo);
+    extendImageObjectWithPixelMap.FlushImageCache();
+
+    // RSExtendImageBaseObj: rsImage_ is nullptr by default, should not crash
+    RSExtendImageBaseObj extendImageBaseObj;
+    extendImageBaseObj.FlushImageCache();
+    // RSExtendImageBaseObj: with valid pixelMap
+    Drawing::Rect src(0, 0, 100, 100);
+    Drawing::Rect dst(0, 0, 100, 100);
+    RSExtendImageBaseObj extendImageBaseObjWithPixelMap(pixelMap, src, dst);
+    extendImageBaseObjWithPixelMap.FlushImageCache();
+}
+
+/**
+ * @tc.name: RSExtendImageObjectFlushImageCacheTest002
+ * @tc.desc: test FlushImageCache with null and valid rsImage_ for NineObject and LatticeObject
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendImageObjectFlushImageCacheTest002, TestSize.Level1)
+{
+    // RSExtendImageNineObject: rsImage_ is nullptr by default, should not crash
+    RSExtendImageNineObject extendImageNineObj;
+    extendImageNineObj.FlushImageCache();
+    // RSExtendImageNineObject: with valid pixelMap
+    RSExtendImageNineObject extendImageNineObjWithPixelMap(pixelMap);
+    extendImageNineObjWithPixelMap.FlushImageCache();
+
+    // RSExtendImageLatticeObject: rsImage_ is nullptr by default, should not crash
+    RSExtendImageLatticeObject extendImageLatticeObj;
+    extendImageLatticeObj.FlushImageCache();
+    // RSExtendImageLatticeObject: with valid pixelMap
+    RSExtendImageLatticeObject extendImageLatticeObjWithPixelMap(pixelMap);
+    extendImageLatticeObjWithPixelMap.FlushImageCache();
+}
 } // namespace OHOS::Rosen
