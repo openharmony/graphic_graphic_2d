@@ -60,7 +60,7 @@ public:
     static bool GetResourceInfoParams(napi_env env, ResourceInfo& info, napi_value paramsNApi);
     static bool GetResourceRawFileDataBuffer(std::unique_ptr<uint8_t[]>&& buffer,
         size_t& len, ResourceInfo& info);
-
+    
     static uint32_t HandleIncorrectColor(const std::string& newColorStr);
     static bool GetResourceColor(napi_env env, napi_value res, uint32_t& result);
     static uint32_t GetColorNumberResult(uint32_t origin);

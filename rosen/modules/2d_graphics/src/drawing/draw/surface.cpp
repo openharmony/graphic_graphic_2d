@@ -218,6 +218,11 @@ int Surface::Height() const
     return impl_->Height();
 }
 
+sk_sp<SkSurface> Surface::GetSkSurface() const
+{
+    return impl_->GetSkSurface();
+}
+
 TileGranularity Surface::GetRenderAreaGranularity()
 {
     if (!impl_) {
@@ -225,11 +230,6 @@ TileGranularity Surface::GetRenderAreaGranularity()
         return {0, 0};
     }
     return impl_->GetRenderAreaGranularity();
-}
-
-sk_sp<SkSurface> Surface::GetSkSurface() const
-{
-    return impl_->GetSkSurface();
 }
 
 void Surface::SetHdrScale(float hdrColorScale)

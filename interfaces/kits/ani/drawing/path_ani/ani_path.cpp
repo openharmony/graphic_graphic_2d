@@ -861,20 +861,20 @@ void AniPath::ToggleInverseFillType(ani_env* env, ani_object obj)
     aniPath->GetPath()->ToggleInverseFillType();
 }
 
-ani_object AniPath::Approximate(ani_env* env, ani_object obj, ani_double acceptableErrorobj)
+ani_object AniPath::Approximate(ani_env* env, ani_object obj, ani_double acceptableError)
 {
     auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return CreateAniUndefined(env);
     }
-    if (acceptableErrorobj < 0.0) {
+    if (acceptableError < 0.0) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
             "AniPath::approximate acceptableError is invaild.");
         return CreateAniUndefined(env);
     }
     std::vector<scalar> points;
-    aniPath->GetPath()->Approximate(static_cast<scalar>(acceptableErrorobj), points);
+    aniPath->GetPath()->Approximate(static_cast<scalar>(acceptableError), points);
 
     int32_t arrayLength = static_cast<int32_t>(points.size());
     ani_array arrayObj = CreateAniArrayWithSize(env, arrayLength);

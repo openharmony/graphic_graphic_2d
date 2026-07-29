@@ -20,6 +20,7 @@
 #include <utility>
 #include <vector>
 
+#include "drawing/engine_adapter/impl_interface/prim_list_impl.h"
 #include "utils/drawing_macros.h"
 
 namespace OHOS {
@@ -35,6 +36,12 @@ public:
 
     PrimList(const PrimList&) = delete;
     PrimList& operator=(const PrimList&) = delete;
+
+    template<typename T>
+    T* GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
 
     /**
      * @brief Updates the alpha factor for all primitives.

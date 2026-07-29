@@ -240,7 +240,7 @@ napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
             double srcLtrb[ARGC_FOUR] = {0};
             if (!ConvertFromJsRect(env, argv[ARGC_ONE], srcLtrb, ARGC_FOUR)) {
                 return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                    "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+                    "Incorrect parameter2 type. The type of left, top, right and bottom must be number.");
             }
             srcRect = Drawing::Rect(srcLtrb[ARGC_ZERO], srcLtrb[ARGC_ONE], srcLtrb[ARGC_TWO], srcLtrb[ARGC_THREE]);
         }
@@ -259,7 +259,7 @@ napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
             double dstLtrb[ARGC_FOUR] = {0};
             if (!ConvertFromJsRect(env, argv[ARGC_TWO], dstLtrb, ARGC_FOUR)) {
                 return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                    "Incorrect parameter2 type. The type of left, top, right and bottom must be number.");
+                    "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
             }
             dstRect = Drawing::Rect(dstLtrb[ARGC_ZERO], dstLtrb[ARGC_ONE], dstLtrb[ARGC_TWO], dstLtrb[ARGC_THREE]);
         }

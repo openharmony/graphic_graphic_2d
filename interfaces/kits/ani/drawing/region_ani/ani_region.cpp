@@ -262,14 +262,14 @@ ani_boolean AniRegion::IsEqual(ani_env* env, ani_object obj, ani_object aniOther
     auto aniRegion = GetNativeFromObj<AniRegion>(env, obj, AniGlobalField::GetInstance().regionNativeObj);
     if (aniRegion == nullptr || aniRegion->GetRegion() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniRegion::SetRegion aniRegion is nullptr.");
+            "AniRegion::IsEqual aniRegion is nullptr.");
         return false;
     }
 
     auto otherAniRegion = GetNativeFromObj<AniRegion>(env, aniOtherobj, AniGlobalField::GetInstance().regionNativeObj);
     if (otherAniRegion == nullptr || otherAniRegion->GetRegion() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniRegion::SetRegion other aniRegion is nullptr.");
+            "AniRegion::IsEqual other aniRegion is nullptr.");
         return false;
     }
 

@@ -361,6 +361,8 @@ ani_object AniShaderEffect::CreateImageShader(ani_env* env, ani_object obj, ani_
     std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMap);
     if (image == nullptr) {
         ROSEN_LOGE("AniShaderEffect::CreateImageShader image is nullptr");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniShaderEffect::CreateImageShader ExtractDrawingImage  is nullptr.");
         return CreateAniUndefined(env);
     }
 
@@ -385,9 +387,9 @@ ani_object AniShaderEffect::CreateImageShader(ani_env* env, ani_object obj, ani_
     Drawing::Matrix drawingMatrix;
     if (IsReferenceValid(env, aniMatrix)) {
         auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix, AniGlobalField::GetInstance().matrixNativeObj);
-        if (aniMatrixObj == nullptr) {
+        if (aniMatrixObj == nullptr || aniMatrixObj->GetMatrix() == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "AniShaderEffect::CreateImageShader get matrix failed.");
+                "AniShaderEffect::CreateImageShader object is nullpt.");
             return CreateAniUndefined(env);
         }
         drawingMatrix = *aniMatrixObj->GetMatrix();

@@ -108,7 +108,7 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
 #ifdef SKIA_OHOS
- 	     grOptions.clearSmallTexture = options.GetIsUniRender();
+ 	grOptions.clearSmallTexture = options.GetIsUniRender();
 #endif
 #ifdef USE_M133_SKIA
     grContext_ = GrDirectContexts::MakeGL(std::move(glInterface), grOptions);
@@ -316,9 +316,8 @@ void SkiaGPUContext::PurgeUnlockedResources(bool scratchResourcesOnly)
         return;
     }
 #ifdef USE_M133_SKIA
-    auto opts =
-        scratchResourcesOnly ? GrPurgeResourceOptions::kScratchResourcesOnly : GrPurgeResourceOptions::kAllResources;
-    grContext_->purgeUnlockedResources(opts);
+    size_t bytesToPurge = 0;
+    grContext_->purgeUnlockedResources(bytesToPurge, scratchResourcesOnly);
 #else
     grContext_->purgeUnlockedResources(scratchResourcesOnly);
 #endif

@@ -33,7 +33,7 @@ ani_status AniRectUtils::AniInit(ani_env *env)
         ani_native_function { "contains", "C{@ohos.graphics.common2D.common2D.Rect}dd:z",
             reinterpret_cast<void*>(Contains) },
         ani_native_function { "contains", "C{@ohos.graphics.common2D.common2D.Rect}dddd:z",
-            reinterpret_cast<void*>(ContainsWithVaule) },
+            reinterpret_cast<void*>(ContainsWithValue) },
         ani_native_function { "isIntersect", nullptr, reinterpret_cast<void*>(IsIntersect) },
         ani_native_function { "centerX", nullptr, reinterpret_cast<void*>(CenterX) },
         ani_native_function { "centerY", nullptr, reinterpret_cast<void*>(CenterY) },
@@ -96,13 +96,13 @@ ani_boolean AniRectUtils::Contains(ani_env* env, ani_object obj, ani_object aniR
     return isContains;
 }
  
-ani_boolean AniRectUtils::ContainsWithVaule(ani_env* env, ani_object obj, ani_object aniRectObj, ani_double left,
+ani_boolean AniRectUtils::ContainsWithValue(ani_env* env, ani_object obj, ani_object aniRectObj, ani_double left,
     ani_double top, ani_double right, ani_double bottom)
 {
     Drawing::Rect drawingRect;
     if (!GetRectFromAniRectObj(env, aniRectObj, drawingRect)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniRectUtils::ContainsWithVaule invalid params: aniRectObj. ");
+            "AniRectUtils::ContainsWithValue invalid params: aniRectObj. ");
         return false;
     }
     Drawing::Rect other = Drawing::Rect(left, top, right, bottom);
@@ -299,7 +299,7 @@ void AniRectUtils::SetRect(ani_env* env, ani_object obj, ani_object rectobj, ani
     std::vector<double> ltrb;
     if (!GetValueFromAniRectObj(env, rectobj, ltrb)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniRectUtils::SetRect Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            "AniRectUtils::SetRect Incorrect parameter1 type. The type of left, top, right and bottom must be number.");
         return;
     }
 

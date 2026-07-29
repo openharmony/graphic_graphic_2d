@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 #include "config/DrawingConfig.h"
 #ifdef DRAWING_DISABLE_API
 #include <string>
@@ -24,6 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
 int flagCount = static_cast<int>(DrawingConfig::DrawingDisableFlag::COUNT);
 std::mutex DrawingConfig::mutex;
 std::vector<bool> gDrawingDisableFlags(flagCount, false);
@@ -46,7 +46,6 @@ std::vector<std::string> gDrawingDisableFlagStr = {
     "disablePie",
     "disableCircle",
     "disableBackground",
-    "disableGetShadowBounds",
     "disableShadow",
     "disableShadowStyle",
     "disableColor",

@@ -205,7 +205,7 @@ public:
     int32_t GetFd() const;
 
     /**
-     * @brief Set a ashmem fd for this typeface.
+     * @brief Set an ashmem fd for this typeface.
      */
     void SetFd(int32_t fd);
 
@@ -216,7 +216,7 @@ public:
     static uint32_t CalculateHash(const uint8_t* data, size_t size, uint32_t index = 0);
 
     /**
-     * @brief   Update stream for this typeface.
+     * @brief   Set stream for this typeface, new stream must have the same data as the old one.
      */
     void UpdateStream(std::unique_ptr<MemoryStream> stream);
 
