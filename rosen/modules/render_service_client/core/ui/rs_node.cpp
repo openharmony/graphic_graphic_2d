@@ -4816,12 +4816,15 @@ std::string RSNode::DumpNode(int depth) const
     ss << " lazyLoad[" << std::to_string(lazyLoad_) << "]";
     ss << " nodeState[" << DumpNodeState() << "]";
 
-    if (!animations_.empty()) {
-        ss << " animation:" << std::to_string(animations_.size());
-    }
-    for (const auto& [animationId, animation] : animations_) {
-        if (animation) {
-            ss << " animationInfo:" << animation->DumpAnimation();
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        if (!animations_.empty()) {
+            ss << " animation:" << std::to_string(animations_.size());
+        }
+        for (const auto& [animationId, animation] : animations_) {
+            if (animation) {
+                ss << " animationInfo:" << animation->DumpAnimation();
+            }
         }
     }
     auto rsUIContextPtr = rsUIContext_;
