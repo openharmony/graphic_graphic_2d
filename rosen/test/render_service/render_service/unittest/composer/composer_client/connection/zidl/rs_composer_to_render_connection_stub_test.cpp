@@ -1199,4 +1199,66 @@ HWTEST_F(RSComposerToRenderConnectionStubTest,
     ASSERT_EQ(captured.releaseBufferFenceVec.size(), 0u);
     EXPECT_EQ(reply.ReadInt32(), COMPOSITOR_ERROR_OK);
 }
+
+/**
+ * Function: Stub_OnRemoteRequest_ReleaseLayerBuffers_LastSwapBufferTimeReadFail_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. write valid token, screenId, both vecSize=0 but omit lastSwapBufferTime
+ *                  2. expect COMPOSITOR_ERROR_BINDER_ERROR (ReadInt64 for lastSwapBufferTime fails)
+ */
+HWTEST_F(RSComposerToRenderConnectionStubTest,
+    Stub_OnRemoteRequest_ReleaseLayerBuffers_LastSwapBufferTimeReadFail_TrueBranch, TestSize.Level1)
+{
+    RSComposerToRenderConnection stub;
+    bool called = false;
+    stub.RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) { called = true; });
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+
+    ASSERT_TRUE(data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint64(42u));  // screenId
+    ASSERT_TRUE(data.WriteUint32(0u));   // timestampVec size = 0
+    ASSERT_TRUE(data.WriteUint32(0u));   // releaseBufferFenceVec size = 0
+    // Missing lastSwapBufferTime - ReadInt64 will fail, triggers true branch
+
+    int ret = stub.OnRemoteRequest(
+        IRSComposerToRenderConnection::ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS, data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+    EXPECT_FALSE(called);
+}
+
+/**
+ * Function: Stub_OnRemoteRequest_ReleaseLayerBuffers_LastSwapBufferTimeReadSuccess_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. write valid token, screenId, both vecSize=0 and lastSwapBufferTime
+ *                  2. expect COMPOSITOR_ERROR_OK (ReadInt64 for lastSwapBufferTime succeeds)
+ */
+HWTEST_F(RSComposerToRenderConnectionStubTest,
+    Stub_OnRemoteRequest_ReleaseLayerBuffers_LastSwapBufferTimeReadSuccess_FalseBranch, TestSize.Level1)
+{
+    RSComposerToRenderConnection stub;
+    ReleaseLayerBuffersInfo captured {};
+    stub.RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) { captured = info; });
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+
+    ASSERT_TRUE(data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint64(77u));  // screenId
+    ASSERT_TRUE(data.WriteUint32(0u));  // timestampVec size = 0
+    ASSERT_TRUE(data.WriteUint32(0u));  // releaseBufferFenceVec size = 0
+    ASSERT_TRUE(data.WriteInt64(55555)); // lastSwapBufferTime
+
+    int ret = stub.OnRemoteRequest(
+        IRSComposerToRenderConnection::ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS, data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    EXPECT_EQ(captured.screenId, 77u);
+    EXPECT_EQ(captured.lastSwapBufferTime, 55555);
+    EXPECT_EQ(reply.ReadInt32(), COMPOSITOR_ERROR_OK);
+}
 } // namespace OHOS::Rosen

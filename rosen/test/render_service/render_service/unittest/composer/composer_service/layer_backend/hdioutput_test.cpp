@@ -5400,6 +5400,48 @@ HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_MultipleLayers_RetrieveCorrectO
     auto ret = output->GetLayerSolidFilledColor(70011, solidFilledColor);
     EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
+
+/**
+ * Function: GetDisplayClientTargetProperty_DeviceNull_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create HdiOutput with device_ set to nullptr
+ *                  2. call GetDisplayClientTargetProperty
+ *                  3. expect ROSEN_ERROR_NOT_INIT (CHECK_DEVICE_NULL true branch)
+ */
+HWTEST_F(HdiOutputTest, GetDisplayClientTargetProperty_DeviceNull_TrueBranch, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = nullptr;
+
+    int32_t pixelFormat = 0;
+    int32_t dataspace = 0;
+    auto ret = output->GetDisplayClientTargetProperty(pixelFormat, dataspace);
+    EXPECT_EQ(ret, ROSEN_ERROR_NOT_INIT);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_DeviceNull_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create HdiOutput with device_ set to nullptr
+ *                  2. call GetLayerSolidFilledColor
+ *                  3. expect ROSEN_ERROR_NOT_INIT (CHECK_DEVICE_NULL true branch)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_DeviceNull_TrueBranch, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = nullptr;
+
+    constexpr uint64_t testLayerId = 70099;
+    uint32_t solidFilledColor = 0;
+    auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
+    EXPECT_EQ(ret, ROSEN_ERROR_NOT_INIT);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

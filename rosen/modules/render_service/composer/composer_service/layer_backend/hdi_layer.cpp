@@ -513,7 +513,7 @@ int32_t HdiLayer::SetLayerTunnelHandle()
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    if (rsLayer_->GetTunnelHandle() == nullptr) {
+    if (rsLayer_->GetTunnelHandle() == nullptr || rsLayer_->GetTunnelHandle()->GetHandle() == nullptr) {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, nullptr);
     } else {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, rsLayer_->GetTunnelHandle()->GetHandle());

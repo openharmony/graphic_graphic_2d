@@ -31,6 +31,14 @@
         }                                                            \
     } while (0)
 
+#define CHECK_FUNC_RETURN_BOOL(composerSptr)                                     \
+    do {                                                             \
+        if ((composerSptr) == nullptr) {                             \
+            HLOGD("[%{public}s]composerSptr is nullptr.", __func__); \
+            return false;                         \
+        }                                                            \
+    } while (0)
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -106,7 +114,7 @@ int32_t HdiDeviceImpl::RegHotPlugCallback(HotPlugCallback callback, void *data)
 
 bool HdiDeviceImpl::RegHwcDeadCallback(OnHwcDeadCallback callback, void *data)
 {
-    CHECK_FUNC(g_composer);
+    CHECK_FUNC_RETURN_BOOL(g_composer);
     sptr<HwcDeathRecipient> recipient = new HwcDeathRecipient(callback, data);
     return g_composer->AddDeathRecipient(recipient);
 }
