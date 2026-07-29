@@ -394,6 +394,7 @@ public:
         PaintHandle paintHandle;
     };
     DrawPixelMapLatticeOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawPixelMapLatticeOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle, Lattice&& lattice);
     DrawPixelMapLatticeOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Lattice& lattice,
         const Drawing::Rect& dst, Drawing::FilterMode filterMode, const Paint& paint);
     ~DrawPixelMapLatticeOpItem() override = default;

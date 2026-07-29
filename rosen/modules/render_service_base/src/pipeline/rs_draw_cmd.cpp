@@ -1195,6 +1195,14 @@ DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(
     lattice_ = CmdListHelper::GetLatticeFromCmdList(cmdList, handle->latticeHandle);
 }
 
+DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(
+    const DrawCmdList& cmdList, DrawPixelMapLatticeOpItem::ConstructorHandle* handle, Lattice&& lattice)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_LATTICE_OPITEM),
+      lattice_(std::move(lattice)), dst_(handle->dst), filterMode_(handle->filterMode)
+{
+    objectHandle_ = CmdListHelper::GetImageLatticeObjecFromCmdList(cmdList, handle->objectHandle);
+}
+
 DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
     const Drawing::Lattice& lattice, const Drawing::Rect& dst, Drawing::FilterMode filterMode, const Paint& paint)
     : DrawWithPaintOpItem(paint, PIXELMAP_LATTICE_OPITEM), lattice_(lattice), dst_(dst), filterMode_(filterMode)
@@ -1211,7 +1219,13 @@ std::shared_ptr<DrawOpItem> DrawPixelMapLatticeOpItem::Unmarshalling(const DrawC
             static_cast<int>(constructorHandle->filterMode));
         return nullptr;
     }
-    return std::make_shared<DrawPixelMapLatticeOpItem>(cmdList, constructorHandle);
+
+    auto lattice = CmdListHelper::GetLatticeFromCmdList(cmdList, constructorHandle->latticeHandle);
+    if (!CmdListHelper::ValidateLattice(lattice)) {
+        LOGD("DrawPixelMapLatticeOpItem Unmarshalling invalid lattice");
+        return nullptr;
+    }
+    return std::make_shared<DrawPixelMapLatticeOpItem>(cmdList, constructorHandle, std::move(lattice));
 }
 
 void DrawPixelMapLatticeOpItem::Marshalling(DrawCmdList& cmdList)
