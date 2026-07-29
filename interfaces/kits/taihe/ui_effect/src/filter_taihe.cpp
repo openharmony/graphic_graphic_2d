@@ -311,7 +311,6 @@ Filter FilterImpl::RadiusGradientBlur(double value, uintptr_t options)
         ani_int value = 0;
         if (env->EnumItem_GetValue_Int(enumItem, &value) == ANI_OK)
         {
-            // 强枚举转int，解决类型比较报错
             const ani_int minDir = static_cast<ani_int>(OHOS::Rosen::GradientDirection::LEFT);
             const ani_int maxDir = static_cast<ani_int>(OHOS::Rosen::GradientDirection::NONE);
             if (value >= minDir && value <= maxDir)
