@@ -78,6 +78,92 @@ HWTEST_F(GpuDirtyRegionCollectionTest, UpdateActiveDirtyInfoForDFXTest002, TestS
 }
 
 /**
+ * @tc.name: UpdateActiveDirtyInfoForDFXTest003
+ * @tc.desc: Test UpdateActiveDirtyInfoForDFX with vector<RectI> when map reaches max capacity (10000)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuDirtyRegionCollectionTest, UpdateActiveDirtyInfoForDFXTest003, TestSize.Level1)
+{
+    std::shared_ptr<GpuDirtyRegionCollection> gpuDirtyRegionCollection = std::make_shared<GpuDirtyRegionCollection>();
+    ASSERT_NE(gpuDirtyRegionCollection, nullptr);
+
+    // Fill the map to reach MAX_SIZE (10000) + 1
+    constexpr uint32_t MAX_SIZE = 10000;
+    std::string windowName = "TestWindow";
+    NodeId baseId = 1;
+
+    // Add entries until map size equals MAX_SIZE
+    for (uint32_t i = 0; i < MAX_SIZE; i++) {
+        NodeId id = baseId + i;
+        RectI rect = { 1, 1, 1, 1 };
+        std::vector<RectI> rectIs = { rect };
+        gpuDirtyRegionCollection->UpdateActiveDirtyInfoForDFX(id, windowName, rectIs);
+    }
+
+    // Verify map size reached MAX_SIZE
+    EXPECT_EQ(gpuDirtyRegionCollection->activeDirtyRegionInfoMap_.size(), MAX_SIZE);
+
+    // Try to add one more entry - should be rejected due to capacity limit
+    NodeId newId = baseId + MAX_SIZE;
+    RectI newRect = { 1, 1, 1, 1 };
+    std::vector<RectI> newRectIs = { newRect };
+    gpuDirtyRegionCollection->UpdateActiveDirtyInfoForDFX(newId, windowName, newRectIs);
+
+    // Map size should remain at MAX_SIZE (new entry rejected)
+    EXPECT_EQ(gpuDirtyRegionCollection->activeDirtyRegionInfoMap_.size(), MAX_SIZE);
+
+    // Verify original entries are still accessible
+    EXPECT_TRUE(gpuDirtyRegionCollection->activeDirtyRegionInfoMap_[baseId].activeFramesNumber > 0);
+
+    // Reset for other tests
+    gpuDirtyRegionCollection->ResetActiveDirtyRegionInfo();
+    EXPECT_TRUE(gpuDirtyRegionCollection->activeDirtyRegionInfoMap_.empty());
+}
+
+/**
+ * @tc.name: UpdateActiveDirtyInfoForDFXTest004
+ * @tc.desc: Test UpdateActiveDirtyInfoForDFX with Rect when map reaches max capacity (10000)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuDirtyRegionCollectionTest, UpdateActiveDirtyInfoForDFXTest004, TestSize.Level1)
+{
+    std::shared_ptr<GpuDirtyRegionCollection> gpuDirtyRegionCollection = std::make_shared<GpuDirtyRegionCollection>();
+    ASSERT_NE(gpuDirtyRegionCollection, nullptr);
+
+    // Fill the map to reach MAX_SIZE (10000) + 1
+    constexpr uint32_t MAX_SIZE = 10000;
+    std::string windowName = "TestWindow";
+    NodeId baseId = 1;
+
+    // Add entries until map size equals MAX_SIZE
+    for (uint32_t i = 0; i < MAX_SIZE; i++) {
+        NodeId id = baseId + i;
+        Rect rect = { 1, 1, 1, 1 };
+        gpuDirtyRegionCollection->UpdateActiveDirtyInfoForDFX(id, windowName, rect);
+    }
+
+    // Verify map size reached MAX_SIZE
+    EXPECT_EQ(gpuDirtyRegionCollection->activeDirtyRegionInfoMap_.size(), MAX_SIZE);
+
+    // Try to add one more entry - should be rejected due to capacity limit
+    NodeId newId = baseId + MAX_SIZE;
+    Rect newRect = { 1, 1, 1, 1 };
+    gpuDirtyRegionCollection->UpdateActiveDirtyInfoForDFX(newId, windowName, newRect);
+
+    // Map size should remain at MAX_SIZE (new entry rejected)
+    EXPECT_EQ(gpuDirtyRegionCollection->activeDirtyRegionInfoMap_.size(), MAX_SIZE);
+
+    // Verify original entries are still accessible
+    EXPECT_TRUE(gpuDirtyRegionCollection->activeDirtyRegionInfoMap_[baseId].activeFramesNumber > 0);
+
+    // Reset for other tests
+    gpuDirtyRegionCollection->ResetActiveDirtyRegionInfo();
+    EXPECT_TRUE(gpuDirtyRegionCollection->activeDirtyRegionInfoMap_.empty());
+}
+
+/**
  * @tc.name: UpdateGlobalDirtyInfoForDFX001
  * @tc.desc: UpdateGlobalDirtyInfoForDFX test
  * @tc.type:FUNC

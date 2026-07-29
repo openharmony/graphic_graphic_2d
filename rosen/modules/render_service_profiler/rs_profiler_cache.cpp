@@ -61,7 +61,7 @@ bool ImageCache::Exists(uint64_t id)
 
 bool ImageCache::Add(uint64_t id, Image&& image)
 {
-    if (image.IsValid() && !Exists(id)) {
+    if (image.IsValid() && Fits(image.Size()) && !Exists(id)) {
         consumption_ += image.Size();
         const std::lock_guard<std::mutex> guard(mutex_);
         cache_.insert({ id, image });
@@ -77,6 +77,13 @@ Image* ImageCache::Get(uint64_t id)
     return (item != cache_.end()) ? &item->second : nullptr;
 }
 
+Image ImageCache::Copy(uint64_t id)
+{
+    const std::lock_guard<std::mutex> guard(mutex_);
+    const auto item = cache_.find(id);
+    return (item != cache_.end()) ? item->second : Image {};
+}
+
 size_t ImageCache::Size()
 {
     const std::lock_guard<std::mutex> guard(mutex_);
@@ -86,6 +93,12 @@ size_t ImageCache::Size()
 size_t ImageCache::Consumption()
 {
     return consumption_;
+}
+
+bool ImageCache::Fits(size_t size)
+{
+    constexpr size_t maxConsumption = 1024u * 1024u * 1024u;
+    return (Consumption() + size) <= maxConsumption;
 }
 
 void ImageCache::Reset()
@@ -119,9 +132,16 @@ void ImageCache::Deserialize(Archive& archive)
         uint64_t id = 0u;
         archive.Serialize(id);
 
-        Image image {};
+        Image image;
         image.Serialize(archive);
-        cache_.insert({ id, image });
+        if (!Fits(image.Size())) {
+            break;
+        }
+
+        if (image.IsValid()) {
+            consumption_ += image.Size();
+            cache_.insert({ id, image });
+        }
     }
 }
 

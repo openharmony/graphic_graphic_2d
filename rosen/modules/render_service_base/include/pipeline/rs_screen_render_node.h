@@ -554,6 +554,9 @@ public:
     void SetUIMode3D(UIMode3D mode);
     UIMode3D GetUIMode3D() const;
 
+    void SetHasGlassFree3DLayer(bool hasGlassFree3DLayer);
+    bool GetHasGlassFree3DLayer() const;
+
     void SetScreenDirtyFlag(bool flag) { screenDirtyFlag_ = flag; }
     bool GetAndResetScreenDirtyFlag() { return std::exchange(screenDirtyFlag_, false); }
     void SetVirtualSurfaceChanged(bool isChanged);
@@ -595,6 +598,7 @@ private:
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;
     bool hasFingerprint_ = false;
+    bool hasGlassFree3DLayer_ = false;
     VideoDimType videoDimType_ = VideoDimType::VIDEO_DIM_TYPE_2D;
     UIMode3D uiMode3D_ = UIMode3D::MODE_2D;
     bool isGeometryInitialized_ = false;

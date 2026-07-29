@@ -107,6 +107,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, RSSurfaceRenderNodeCreate001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsOnInternalScreenTest001
+ * @tc.desc: test SetIsOnInternalScreen and GetIsOnInternalScreen without InitRenderParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsOnInternalScreenTest001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    // Without InitRenderParams, surfaceParam is nullptr, GetIsOnInternalScreen returns true
+    node->SetIsOnInternalScreen(false);
+    EXPECT_TRUE(node->GetIsOnInternalScreen());
+}
+
+/**
+ * @tc.name: SetIsOnInternalScreenTest002
+ * @tc.desc: test SetIsOnInternalScreen and GetIsOnInternalScreen with InitRenderParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsOnInternalScreenTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->InitRenderParams();
+    auto param = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
+
+    node->SetIsOnInternalScreen(false);
+    EXPECT_FALSE(node->GetIsOnInternalScreen());
+
+    node->SetIsOnInternalScreen(true);
+    EXPECT_TRUE(node->GetIsOnInternalScreen());
+}
+
+/**
  * @tc.name: SetContextMatrix001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -217,10 +249,11 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceNodeType003, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRenderNodeTest, CheckContainerDirtyStatusAndUpdateDirty001, TestSize.Level1)
 {
-    RSSurfaceRenderNodeConfig config;
+    NodeId id = 1;
+    RSSurfaceNodeType type = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = type };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
 
-    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     bool containerDirty = false;
     node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
     EXPECT_EQ(containerDirty, false);
@@ -2735,37 +2768,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion002, 
 }
 
 /**
- * @tc.name: UpdateVirtualScreenWhiteListInfo
- * @tc.desc: test UpdateVirtualScreenWhiteListInfo.
- * @tc.type: FUNC
- * @tc.require: issueICF7P6
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    std::shared_ptr<RSSurfaceRenderNode> parent = nullptr;
-    node->SetParent(parent);
-    node->SetLeashPersistentId(id + 1);
-    ASSERT_EQ(node->parent_.lock(), nullptr);
-    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> allWhiteListInfo;
-    ScreenId screenId = 1;
-    allWhiteListInfo[screenId] = {node->GetId()};
-    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo[screenId]);
-    parent = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    node->SetParent(parent);
-    ASSERT_NE(node->parent_.lock(), nullptr);
-    allWhiteListInfo[screenId] = {node->GetLeashPersistentId()};
-    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo[screenId]);
-
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->RSRenderNode::SyncWhiteListInfoToParent();
-
-    parent->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
-    parent->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo[screenId]);
-}
-
-/**
  * @tc.name: GetSourceDisplayRenderNodeId
  * @tc.desc: test Set/GetSourceDisplayRenderNodeId.
  * @tc.type: FUNC
@@ -3432,7 +3434,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSingleFrameComposerTest, TestSize.L
 
     ASSERT_FALSE(node->GetNodeIsSingleFrameComposer());
 
-    node->MarkNodeSingleFrameComposer(true, getpid());
+    node->MarkNodeSingleFrameComposer(true);
     ASSERT_TRUE(node->GetNodeIsSingleFrameComposer());
 
     auto composer = node->GetSingleFrameComposer();

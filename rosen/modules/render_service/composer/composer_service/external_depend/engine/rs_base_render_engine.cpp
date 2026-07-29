@@ -66,6 +66,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+constexpr float HALF_PIXEL_OFFSET = 0.5f;
 
 std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
     const std::vector<RectI>& rects, const RectI& surfaceRect) const
@@ -137,7 +138,7 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 {
 }
 
-void RSBaseRenderEngine::Init(RenderEngineType type)
+void RSBaseRenderEngine::Init(RenderEngineType type, int32_t tid)
 {
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = RenderContext::Create();
@@ -149,7 +150,7 @@ void RSBaseRenderEngine::Init(RenderEngineType type)
     }
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(tid);
         renderContext_->SetUpGpuContext(skContext_);
     } else {
         renderContext_->SetUpGpuContext();
@@ -175,6 +176,7 @@ void RSBaseRenderEngine::Init(RenderEngineType type)
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     colorSpaceConverterDisplay_ = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
+    glassFree3DConverterDisplay_ = Media::VideoProcessingEngine::GlassFree3DConverterDisplay::Create();
 #endif
 }
 
@@ -217,12 +219,12 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<RSLayerPtr>& layers)
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const std::shared_ptr<RSSurfaceOhos>& rsSurface,
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
-    const FrameContextConfig& frameContextConfig)
+    const FrameContextConfig& frameContextConfig, int32_t tid)
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(tid);
         if (renderContext_ == nullptr) {
             return nullptr;
         }
@@ -280,7 +282,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
 
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surface>& targetSurface,
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
-    const FrameContextConfig& frameContextConfig)
+    const FrameContextConfig& frameContextConfig, int32_t tid)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(targetSurface)");
     if (targetSurface == nullptr) {
@@ -309,7 +311,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     }
 
     RS_OPTIONAL_TRACE_END();
-    return RequestFrame(rsSurface, config, forceCPU, useAFBC, frameContextConfig);
+    return RequestFrame(rsSurface, config, forceCPU, useAFBC, frameContextConfig, tid);
 }
 
 std::shared_ptr<RSSurfaceOhos> RSBaseRenderEngine::MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU)
@@ -752,7 +754,57 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::SKEW_Y),
             matrix.Get(Drawing::Matrix::SCALE_Y), matrix.Get(Drawing::Matrix::TRANS_Y));
     }
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (params.glassFree3D) {
+        Drawing::Rect absRect;
+        canvas.GetTotalMatrix().MapRect(absRect, params.dstRect);
+        Drawing::Matrix matrix = canvas.GetTotalMatrix();
+        // get VPE shader
+        auto inputShader = Drawing::ShaderEffect::CreateImageShader(
+            *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
+        if (inputShader == nullptr) {
+            RS_LOGW("RSBaseRenderEngine::DrawImage inputShader is nullptr.");
+            return;
+        }
+        int32_t absWidth = static_cast<int32_t>(absRect.GetWidth());
+        int32_t absHeight = static_cast<int32_t>(absRect.GetHeight());
+        bool isFullScreen = (absWidth == canvas.GetWidth() && ROSEN_EQ(absRect.GetLeft(), 0.0f) &&
+            absHeight * 2 > canvas.GetHeight()) || (absHeight == canvas.GetHeight() &&
+            ROSEN_EQ(absRect.GetTop(), 0.0f) && absWidth * 2 > canvas.GetWidth());
+        std::shared_ptr<Drawing::ShaderEffect> outputShader;
+        Media::VideoProcessingEngine::GlassFree3DConverterDisplayParameter parameter3D = {
+            .width = absWidth,
+            .height = absHeight,
+            .screenWidth = canvas.GetHeight(),
+            .screenHeight = canvas.GetWidth(),
+            .coordX = absRect.GetLeft(),
+            .coordY = absRect.GetTop(),
+            .swingX = 0.0f, // Need VPE interface
+            .swingY = 0.0f, // Need VPE interface
+            .swingZ = 0.0f, // Need VPE interface
+            .panelName = "", // Need VPE interface
+            .converterType = params.use3DShader && isFullScreen ? 1 : 0 // 1 means 3D, 0 means 2D
+        };
+        RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage glassFree3D absRect width[%d], height[%d], canvas width[%d],"
+            "height[%d], left: %f, top: %f, use3DShader: %d, isFullScreen: %d", absWidth, absHeight, canvas.GetWidth(),
+            canvas.GetHeight(), absRect.GetLeft(), absRect.GetTop(), params.use3DShader, isFullScreen);
+        if (!glassFree3DConverterDisplay_) {
+            RS_LOGE("RSBaseRenderEngine::DrawImage glassFree3DConverterDisplay is nullptr.");
+            return;
+        }
+        glassFree3DConverterDisplay_->Process(inputShader, outputShader, parameter3D);
+        if (outputShader) {
+            params.paint.SetShaderEffect(outputShader);
+            canvas.AttachBrush(params.paint);
+            Drawing::AutoCanvasRestore autoRestore(canvas, true);
+            canvas.ResetMatrix();
+            canvas.DrawRect(absRect);
+            canvas.DetachBrush();
+            return;
+        }
+    }
+
     // For sdr brightness ratio
     if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Applying brightness ratio: %{public}.2f", params.brightnessRatio);
@@ -890,6 +942,7 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
     auto scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
     auto skewX = matrix.Get(Drawing::Matrix::SKEW_X);
     auto skewY = matrix.Get(Drawing::Matrix::SKEW_Y);
+    auto translateY = matrix.Get(Drawing::Matrix::TRANS_Y);
     if (ROSEN_EQ(skewX, 0.0f) && ROSEN_EQ(skewY, 0.0f)) {
         if (!ROSEN_EQ(std::abs(scaleX), 1.0f) || !ROSEN_EQ(std::abs(scaleY), 1.0f)) {
             // has scale
@@ -902,6 +955,10 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
         }
     } else {
         // skew and/or non 90 degrees rotation
+        return true;
+    }
+    if (ROSEN_EQ(std::abs(translateY - std::floor(translateY)), HALF_PIXEL_OFFSET)) {
+        RS_LOGE("RSBaseRenderEngine::NeedBilinearInterpolation translateY=%{public}.2f", translateY);
         return true;
     }
     return false;

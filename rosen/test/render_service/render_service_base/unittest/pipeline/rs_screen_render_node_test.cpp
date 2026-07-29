@@ -696,6 +696,50 @@ HWTEST_F(RSScreenRenderNodeTest, UpdatePartialRenderParams, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHasGlassFree3DLayerTest
+ * @tc.desc: test SetHasGlassFree3DLayer and GetHasGlassFree3DLayer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetHasGlassFree3DLayerTest, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    EXPECT_FALSE(screenNode->GetHasGlassFree3DLayer());
+
+    // Set same value, should return early
+    screenNode->SetHasGlassFree3DLayer(false);
+    EXPECT_FALSE(screenNode->GetHasGlassFree3DLayer());
+
+    screenNode->SetHasGlassFree3DLayer(true);
+    EXPECT_FALSE(screenNode->GetHasGlassFree3DLayer());
+
+    screenNode->InitRenderParams();
+    screenNode->SetHasGlassFree3DLayer(true);
+    EXPECT_TRUE(screenNode->GetHasGlassFree3DLayer());
+}
+
+/**
+ * @tc.name: SetHasGlassFree3DLayer_WithStagingParams
+ * @tc.desc: Test SetHasGlassFree3DLayer syncs to staging params
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetHasGlassFree3DLayer_WithStagingParams, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+
+    screenNode->SetHasGlassFree3DLayer(true);
+    EXPECT_TRUE(screenParams->GetHasGlassFree3DLayer());
+
+    screenNode->SetHasGlassFree3DLayer(false);
+    EXPECT_FALSE(screenParams->GetHasGlassFree3DLayer());
+}
+
+/**
  * @tc.name: UpdateDisplayDirtyManager
  * @tc.desc: test results of UpdateDisplayDirtyManager
  * @tc.type:FUNC

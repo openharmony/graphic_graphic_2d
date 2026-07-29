@@ -18,6 +18,7 @@
 #include <condition_variable>
 #include <cstdint>
 #include <list>
+#include <memory>
 #include <mutex>
 
 #include "system/rs_system_parameters.h"
@@ -71,6 +72,7 @@ private:
     std::shared_ptr<RSTimer> timer_ = nullptr;
     int longFrameCount_ = 0;
     ExceptionCheck exceptionCheck_;
+    std::unique_ptr<RSRenderThreadParams> virtualExpandThreadParams_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

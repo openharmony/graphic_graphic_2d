@@ -110,6 +110,8 @@ public:
     float GetBrightnessRatio() const override;
     void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix) override;
     const std::vector<float>& GetLayerLinearMatrix() const override;
+    void SetGlassFree3D(bool glassFree3D) override;
+    bool GetGlassFree3D() const override;
     void SetLayerSourceTuning(int32_t layerSource) override;
     int32_t GetLayerSourceTuning() const override;
     void SetWindowsName(std::vector<std::string>& windowsName) override;
@@ -232,6 +234,7 @@ private:
     float brightnessRatio_ = 1.0f; // default ratio for sdr
     std::vector<float> layerLinearMatrix_
         = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // matrix for linear colorspace
+    bool glassFree3D_ = false; // glass free 3D mode
     uint64_t nodeId_ = 0;
     uint64_t tunnelLayerId_ = 0;
     uint32_t tunnelLayerProperty_ = 0;

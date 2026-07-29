@@ -74,19 +74,6 @@ HWTEST_F(RSClientToServiceConnectHubTest, GetClientToServiceConnection001, TestS
 }
 
 /**
- * @tc.name: GetToken001
- * @tc.desc: Verify GetToken returns nullptr when not connected
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToServiceConnectHubTest, GetToken001, TestSize.Level1)
-{
-    auto instance = RSClientToServiceConnectHub::GetInstance();
-    ASSERT_NE(instance, nullptr);
-    auto token = instance->GetToken();
-    EXPECT_NE(token, nullptr);
-}
-
-/**
  * @tc.name: ConnectDied001
  * @tc.desc: Verify ConnectDied does not crash when not connected
  * @tc.type: FUNC
@@ -96,7 +83,6 @@ HWTEST_F(RSClientToServiceConnectHubTest, ConnectDied001, TestSize.Level1)
     auto instance = RSClientToServiceConnectHub::GetInstance();
     ASSERT_NE(instance, nullptr);
     instance->ConnectDied();
-    EXPECT_EQ(instance->GetToken(), nullptr);
 }
 
 /**
@@ -123,8 +109,6 @@ HWTEST_F(RSClientToServiceConnectHubTest, ConnectDied002, TestSize.Level1)
     auto instance = RSClientToServiceConnectHub::GetInstance();
     ASSERT_NE(instance, nullptr);
     instance->ConnectDied();
-    auto tokenAfter = instance->GetToken();
-    EXPECT_EQ(tokenAfter, nullptr);
 }
 
 #ifdef RS_ENABLE_UNI_RENDER

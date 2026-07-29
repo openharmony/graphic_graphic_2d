@@ -72,6 +72,7 @@ public:
     void CloseSyncTransaction();
     void SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         flushEmptyCallback_ = flushEmptyCallback;
     }
 

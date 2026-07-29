@@ -24,6 +24,7 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -1246,6 +1247,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessTest, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     auto uniParams = std::make_shared<RSRenderThreadParams>();
     ASSERT_NE(uniParams, nullptr);
+    auto virtualScreenManager = std::make_shared<RSVirtualScreenParallelManager>();
+    uniParams->SetVirtualScreenParallelManager(virtualScreenManager);
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
     EXPECT_FALSE(surfaceParams->GetBuffer());
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, true);
@@ -1292,6 +1295,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcess_StoppedByRangeCapTest
     RSPaintFilterCanvas canvas(&drawingCanvas);
     auto uniParams = std::make_shared<RSRenderThreadParams>();
     ASSERT_NE(uniParams, nullptr);
+    auto virtualScreenManager = std::make_shared<RSVirtualScreenParallelManager>();
+    uniParams->SetVirtualScreenParallelManager(virtualScreenManager);
     canvas.SetUICapture(true);
     RSUniRenderThread::GetCaptureParam().endNodeId_ = surfaceParams->GetId();
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
@@ -1474,16 +1479,17 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSelfDrawingNodeBufferTest, TestSiz
     RSPaintFilterCanvas canvas(&drawingCanvas);
     BufferDrawParam params;
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager =
+        std::make_shared<RSVirtualScreenParallelManager>();
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
 
     Color color(255, 255, 255);
     surfaceParams->backgroundColor_ = color;
-    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
-    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
     surfaceParams->rrect_.radius_[0].x_ = 1.f;
-    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
     surfaceParams->selfDrawingType_ = SelfDrawingNodeType::VIDEO;
-    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
     ASSERT_FALSE(surfaceParams->GetHardwareEnabled());
 }
 
@@ -1500,31 +1506,82 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager =
+        std::make_shared<RSVirtualScreenParallelManager>();
+    // renderEngine must be valid so branches below the top-level null check are exercised
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     surfaceParams->isInFixedRotation_ = false;
-    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
     ASSERT_FALSE(surfaceParams->GetHardwareEnabled());
     ASSERT_FALSE(surfaceParams->IsInFixedRotation());
 
     surfaceParams->isInFixedRotation_ = true;
-    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
     surfaceParams->isHardwareEnabled_ = true;
     surfaceDrawable_->name_ = "test";
     surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     surfaceParams->isLayerTop_ = false;
-    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
     ASSERT_TRUE(surfaceParams->GetHardwareEnabled());
 
     surfaceParams->isHardCursor_ = true;
-    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
     ASSERT_TRUE(surfaceParams->GetHardCursorStatus());
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabledTopSurface());
 
     surfaceParams->isLayerTop_ = true;
-    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
     ASSERT_TRUE(surfaceParams->IsLayerTop());
     surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceDrawable_->name_ = "pointer window";
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+
+    surfaceParams->SetCompositionType(CompositionType::COMPOSITION_3D_GLASS_FREE);
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer when renderEngine is nullptr (early return at top)
+ * @tc.type: FUNC
+ * @tc.require: issueIAOJHQ
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager =
+        std::make_shared<RSVirtualScreenParallelManager>();
+    // renderEngine is nullptr: function must early return before any branch below the top-level check
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+
+    // fixed-rotation path: isInRotationFixed_ would be set true if function proceeded past the guard
+    RSSurfaceRenderNodeDrawable::isInRotationFixed_ = false;
+    surfaceParams->isInFixedRotation_ = true;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+    EXPECT_FALSE(RSSurfaceRenderNodeDrawable::isInRotationFixed_);
+
+    // hardware-enabled path with needMakeImage (the original location of the renderEngine null check)
+    surfaceParams->isInFixedRotation_ = false;
+    surfaceParams->isHardwareEnabled_ = true;
+    surfaceParams->SetNeedMakeImage(true);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+
+    // hard-cursor path
+    surfaceParams->isHardCursor_ = true;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+
+    // normal draw path
+    surfaceParams->isHardwareEnabled_ = false;
+    surfaceParams->isHardCursor_ = false;
+    surfaceParams->isInFixedRotation_ = false;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+
+    // restore engine so subsequent tests are not affected
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
 }
 
 /**
@@ -1546,12 +1603,14 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSelfDrawingNodeBufferTest001, Test
     surfaceParams->vcldInfo_.enable = true;
     surfaceParams->vcldInfo_.radius = 25;
     surfaceParams->vcldRoundRect_ = RRect({0, 0, 500, 500}, {25, 25, 25, 25});
-    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager =
+        std::make_shared<RSVirtualScreenParallelManager>();
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
 
     surfaceParams->vcldInfo_.enable = false;
     surfaceParams->vcldInfo_.radius = 0;
     surfaceParams->vcldRoundRect_ = RRect({0, 0, 500, 500}, {0, 0, 0, 0});
-    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
 }
 
 /**
@@ -2140,9 +2199,13 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest003, 
 {
     ASSERT_NE(drawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    // renderEngine must be valid so the hardware-enabled + needMakeImage branch is exercised
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     surfaceParams->isHardwareEnabled_ = true;
     surfaceParams->SetNeedMakeImage(true);
-    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(*canvas_, *surfaceParams);
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager =
+        std::make_shared<RSVirtualScreenParallelManager>();
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(*canvas_, *surfaceParams, virtualScreenParallelManager);
 }
 
 /**
@@ -2227,7 +2290,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawBufferForRotationFixedTest, TestSi
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    surfaceDrawable_->DrawBufferForRotationFixed(*canvas_, *surfaceParams);
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager =
+        std::make_shared<RSVirtualScreenParallelManager>();
+    surfaceDrawable_->DrawBufferForRotationFixed(*canvas_, *surfaceParams, virtualScreenParallelManager);
     ASSERT_TRUE(canvas_->envStack_.top().hasOffscreenLayer_);
 }
 
@@ -2263,7 +2328,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWatermark01, TestSize.Level1)
     opts.size.width = 0;
     opts.size.height = height;
     std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
-    
+
     // Test 1
     std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> watermarks;
     std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> gridCounts;
@@ -2558,7 +2623,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawRelatedSourceNodeTest, TestSize.Le
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     uniParams->SetDrawRelated(false);
     ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
- 
+
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     uniParams->SetDrawRelated(true);
     ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
@@ -3208,7 +3273,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Le
     // OnDraw should return early for abnormal process
     surfaceDrawable_->OnDraw(*canvas_);
     ASSERT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::MEMORYOVER_SKIP);
-    
+
     // Clean up
     std::set<pid_t> exitedPids = {pid};
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
@@ -3576,5 +3641,377 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, FinishOffscreenRenderHDR002, TestSize.
  
     // Restore
     RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(false);
+}
+
+/**
+ * @tc.name: DrawSelfDrawingNodeBuffer_GetRenderEngineByTid_True
+ * @tc.desc: Test DrawSelfDrawingNodeBuffer when GetRenderEngineByTid returns true
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSelfDrawingNodeBuffer_GetRenderEngineByTid_True, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+    if (!RSUniRenderThread::Instance().uniRenderEngine_) {
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
+    }
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    BufferDrawParam params;
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DrawSelfDrawingNodeBuffer_GetRenderEngineByTid_False
+ * @tc.desc: Test DrawSelfDrawingNodeBuffer when GetRenderEngineByTid returns false
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSelfDrawingNodeBuffer_GetRenderEngineByTid_False, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    BufferDrawParam params;
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    canvas.SetParallelThreadIdx(100);
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DrawSelfDrawingNodeBuffer_1771True
+ * @tc.desc: Test DrawSelfDrawingNodeBuffer when line 1771 condition is true (GetRenderEngineByTid returns false)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSelfDrawingNodeBuffer_1771True, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    BufferDrawParam params;
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    canvas.SetParallelThreadIdx(100);
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DrawSelfDrawingNodeBuffer_RenderEngineNull
+ * @tc.desc: Test DrawSelfDrawingNodeBuffer when renderEngine from RSUniRenderThread is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSelfDrawingNodeBuffer_RenderEngineNull, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    BufferDrawParam params;
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    canvas.SetParallelThreadIdx(100);
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DrawBufferForRotationFixed_GetRenderEngineByTid_True
+ * @tc.desc: Test DrawBufferForRotationFixed when GetRenderEngineByTid returns true
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawBufferForRotationFixed_GetRenderEngineByTid_True, TestSize.Level1)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->isInFixedRotation_ = true;
+    surfaceDrawable_->DrawBufferForRotationFixed(*canvas_, *surfaceParams, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DrawBufferForRotationFixed_GetRenderEngineByTid_False
+ * @tc.desc: Test DrawBufferForRotationFixed when GetRenderEngineByTid returns false
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawBufferForRotationFixed_GetRenderEngineByTid_False, TestSize.Level1)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->isInFixedRotation_ = true;
+    canvas_->SetParallelThreadIdx(100);
+    surfaceDrawable_->DrawBufferForRotationFixed(*canvas_, *surfaceParams, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DrawBufferForRotationFixed_1749True
+ * @tc.desc: Test DrawBufferForRotationFixed when line 1749 condition is true (GetRenderEngineByTid returns false)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawBufferForRotationFixed_1749True, TestSize.Level1)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->isInFixedRotation_ = true;
+    canvas_->SetParallelThreadIdx(100);
+    surfaceDrawable_->DrawBufferForRotationFixed(*canvas_, *surfaceParams, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DrawBufferForRotationFixed_1749False
+ * @tc.desc: Test DrawBufferForRotationFixed when line 1749 condition is false (GetRenderEngineByTid returns true)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawBufferForRotationFixed_1749False, TestSize.Level1)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    int32_t tid = -100;
+    auto renderEngine = std::make_shared<RSUniRenderEngine>();
+    virtualScreenParallelManager->tidToUniRenderEngineMap_[tid] = renderEngine;
+
+    surfaceParams->isInFixedRotation_ = true;
+    canvas_->SetParallelThreadIdx(100);
+    surfaceDrawable_->DrawBufferForRotationFixed(*canvas_, *surfaceParams, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer_GetRenderEngineByTid_True
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer when GetRenderEngineByTid returns true
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBuffer_GetRenderEngineByTid_True, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->isInFixedRotation_ = false;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer_GetRenderEngineByTid_False
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer when GetRenderEngineByTid returns false
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBuffer_GetRenderEngineByTid_False, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->isInFixedRotation_ = false;
+    canvas.SetParallelThreadIdx(100);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer_GetRenderEngineByTidSuccess
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer when GetRenderEngineByTid returns true (line 1547 condition false)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBuffer_GetRenderEngineByTidSuccess, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->isInFixedRotation_ = false;
+    canvas.SetParallelThreadIdx(100);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer_RenderEngineNullptr
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer when GetRenderEngineByTid returns false and renderEngine is nullptr
+ *           (line 1547 condition true, line 1549 condition true)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBuffer_RenderEngineNullptr, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceParams->isInFixedRotation_ = false;
+    canvas.SetParallelThreadIdx(100);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer_1547True_1549True
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer when line 1547 condition is true and line 1549 condition is true
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBuffer_1547True_1549True, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->SetHardwareEnabled(true);
+    surfaceParams->SetNeedMakeImage(true);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetParallelThreadIdx(100);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer_HardwareEnabledFalse
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer when HardwareEnabled is false (cannot reach line 1547)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBuffer_HardwareEnabledFalse, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->SetHardwareEnabled(false);
+    surfaceParams->SetNeedMakeImage(false);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(virtualScreenParallelManager, nullptr);
+
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams, virtualScreenParallelManager);
 }
 } // namespace OHOS::Rosen

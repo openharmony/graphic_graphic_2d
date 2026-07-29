@@ -221,6 +221,10 @@ RSCommand* TransactionBufferCommand::UnmarshallingCmdTypeSetBuffer(MessageParcel
         return nullptr;
     }
     std::vector<RSTransactionConfig> configList;
+    if (size > SURFACE_PARCEL_SIZE_LIMIT) {
+        RsDelegateCompositeCommandPrintLog("UnmarshallingCmdTypeSetBuffer fail: size exceed limit");
+        return nullptr;
+    }
     for (uint32_t i = 0; i < size; i++) {
         RSTransactionConfig config;
         if (Transaction::ReadTransactionConfigFromMessageParcel(*messageParcel, config) != GSERROR_OK) {

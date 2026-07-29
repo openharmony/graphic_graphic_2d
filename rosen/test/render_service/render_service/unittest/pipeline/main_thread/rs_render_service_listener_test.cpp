@@ -523,7 +523,7 @@ HWTEST_F(RSRenderServiceListenerTest, OnTunnelLayerInfoChanged003, TestSize.Leve
     RSTunnelRuntimeStore::GetLayerInfoOrDefault(node->GetId(), storedTunnelLayerId, storedProperty);
     EXPECT_EQ(storedTunnelLayerId, 0u);
     EXPECT_EQ(storedProperty, TUNNEL_PROP_INVALID);
- 
+
     RSTunnelRuntimeStore::Erase(node->GetId());
 }
 } // namespace OHOS::Rosen

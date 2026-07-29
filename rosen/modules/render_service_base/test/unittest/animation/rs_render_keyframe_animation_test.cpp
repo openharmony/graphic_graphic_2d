@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <cmath>
+
 #include "gtest/gtest.h"
 
 #include "animation/rs_interpolator.h"
@@ -555,6 +557,146 @@ HWTEST_F(RSRenderKeyframeAnimationTest, RebuildPropertyValue003, TestSize.Level1
     renderKeyframeAnimation->RebuildPropertyValue(0.5f);
     EXPECT_NE(renderKeyframeAnimation->valueEstimator_, nullptr);
     GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest RebuildPropertyValue003 end";
+}
+
+/**
+ * @tc.name: ParseDurationKeyframesFractionNaN001
+ * @tc.desc: Verify ParseDurationKeyframesParam rejects NaN fraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, ParseDurationKeyframesFractionNaN001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesFractionNaN001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f);
+    auto interpolator = std::make_shared<LinearInterpolator>();
+
+    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property);
+    renderKeyframeAnimation->isDurationKeyframe_ = true;
+    renderKeyframeAnimation->durationKeyframes_.emplace_back(
+        NAN, 1.0f, property1, interpolator);
+
+    Parcel parcel;
+    bool marshalResult = renderKeyframeAnimation->Marshalling(parcel);
+    ASSERT_TRUE(marshalResult);
+
+    parcel.RewindRead(0);
+    auto result = RSRenderKeyframeAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesFractionNaN001 end";
+}
+
+/**
+ * @tc.name: ParseDurationKeyframesEndFractionNaN001
+ * @tc.desc: Verify ParseDurationKeyframesParam rejects NaN endFraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, ParseDurationKeyframesEndFractionNaN001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesEndFractionNaN001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f);
+    auto interpolator = std::make_shared<LinearInterpolator>();
+
+    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property);
+    renderKeyframeAnimation->isDurationKeyframe_ = true;
+    renderKeyframeAnimation->durationKeyframes_.emplace_back(
+        0.0f, NAN, property1, interpolator);
+
+    Parcel parcel;
+    bool marshalResult = renderKeyframeAnimation->Marshalling(parcel);
+    ASSERT_TRUE(marshalResult);
+
+    parcel.RewindRead(0);
+    auto result = RSRenderKeyframeAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesEndFractionNaN001 end";
+}
+
+/**
+ * @tc.name: ParseDurationKeyframesEndFractionOverMax001
+ * @tc.desc: Verify ParseDurationKeyframesParam rejects endFraction exceeding FRACTION_MAX
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, ParseDurationKeyframesEndFractionOverMax001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesEndFractionOverMax001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f);
+    auto interpolator = std::make_shared<LinearInterpolator>();
+
+    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property);
+    renderKeyframeAnimation->isDurationKeyframe_ = true;
+    renderKeyframeAnimation->durationKeyframes_.emplace_back(
+        0.5f, 1.5f, property1, interpolator);
+
+    Parcel parcel;
+    bool marshalResult = renderKeyframeAnimation->Marshalling(parcel);
+    ASSERT_TRUE(marshalResult);
+
+    parcel.RewindRead(0);
+    auto result = RSRenderKeyframeAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesEndFractionOverMax001 end";
+}
+
+/**
+ * @tc.name: ParseDurationKeyframesFractionOutOfRange001
+ * @tc.desc: Verify ParseDurationKeyframesParam rejects out-of-range fraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, ParseDurationKeyframesFractionOutOfRange001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesFractionOutOfRange001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f);
+    auto interpolator = std::make_shared<LinearInterpolator>();
+
+    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property);
+    renderKeyframeAnimation->isDurationKeyframe_ = true;
+    renderKeyframeAnimation->durationKeyframes_.emplace_back(
+        -0.5f, 1.5f, property1, interpolator);
+
+    Parcel parcel;
+    bool marshalResult = renderKeyframeAnimation->Marshalling(parcel);
+    ASSERT_TRUE(marshalResult);
+
+    parcel.RewindRead(0);
+    auto result = RSRenderKeyframeAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesFractionOutOfRange001 end";
+}
+
+/**
+ * @tc.name: ParseDurationKeyframesFractionInverted001
+ * @tc.desc: Verify ParseDurationKeyframesParam rejects startFraction > endFraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, ParseDurationKeyframesFractionInverted001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesFractionInverted001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f);
+    auto interpolator = std::make_shared<LinearInterpolator>();
+
+    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property);
+    renderKeyframeAnimation->isDurationKeyframe_ = true;
+    renderKeyframeAnimation->durationKeyframes_.emplace_back(
+        0.8f, 0.2f, property1, interpolator);
+
+    Parcel parcel;
+    bool marshalResult = renderKeyframeAnimation->Marshalling(parcel);
+    ASSERT_TRUE(marshalResult);
+
+    parcel.RewindRead(0);
+    auto result = RSRenderKeyframeAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest ParseDurationKeyframesFractionInverted001 end";
 }
 
 } // namespace Rosen

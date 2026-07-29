@@ -101,6 +101,10 @@ bool RSRcdSurfaceRenderNode::CreateSurface(sptr<IBufferConsumerListener> listene
     consumerListener_ = listener;
     auto producer = consumer->GetProducer();
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
+    if (surface == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode::CreateSurface create producer surface fail");
+        return false;
+    }
     auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     surface_ = client->CreateRSSurface(surface);
     rcdExtInfo_.surfaceCreated = true;
@@ -191,8 +195,9 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
         SetGlobalZOrder(RCD_LAYER_Z_TOP1);
     } else {
         rcdExtInfo_.srcRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
-        rcdExtInfo_.dstRect_ = RectI(displayRect_.GetLeft(), displayRect_.GetHeight() - bitmapHeight +
-            displayRect_.GetTop(), bitmapWidth, bitmapHeight);
+        auto dstTop = static_cast<int>(displayRect_.GetHeight()) - static_cast<int>(bitmapHeight) +
+            static_cast<int>(displayRect_.GetTop());
+        rcdExtInfo_.dstRect_ = RectI(displayRect_.GetLeft(), dstTop, bitmapWidth, bitmapHeight);
         SetGlobalZOrder(RCD_LAYER_Z_TOP2);
     }
     return true;
@@ -200,11 +205,14 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
 
 RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(const Drawing::Bitmap& src)
 {
-    if (src.GetPixels() == nullptr) {
+    if (src.GetPixels() == nullptr || (src.GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
+        src.GetColorType() != Drawing::ColorType::COLORTYPE_BGRA_8888)) {
         RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap Bitmap error");
         return nullptr;
     }
     Media::InitializationOptions opts;
+    opts.pixelFormat = src.GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_8888 ? Media::PixelFormat::RGBA_8888 :
+        Media::PixelFormat::BGRA_8888;
     opts.size.width = src.GetWidth();
     opts.size.height = src.GetHeight();
     opts.allocatorType = Media::AllocatorType::DMA_ALLOC;
@@ -253,6 +261,18 @@ bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
     return true;
 }
 
+void RSRcdSurfaceRenderNode::SetRCDInfo(HardwareLayerInfo &cldLayerInfo, int height, int width, uint32_t offset)
+{
+    const uint32_t bytesPerPixel = 4; // 4 means four bytes per pixel
+    cldInfo_.cldSize = static_cast<uint32_t>(cldLayerInfo.bufferSize);
+    cldInfo_.cldWidth = static_cast<uint32_t>(cldLayerInfo.cldWidth);
+    cldInfo_.cldHeight = static_cast<uint32_t>(cldLayerInfo.cldHeight);
+    cldInfo_.cldStride = static_cast<uint32_t>(cldLayerInfo.cldWidth * bytesPerPixel);
+    cldInfo_.exWidth = static_cast<uint32_t>(width);
+    cldInfo_.exHeight = static_cast<uint32_t>(height);
+    cldInfo_.cldDataOffset = offset;
+}
+
 bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInfo,
     int height, int width)
 {
@@ -266,20 +286,10 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
         RS_LOGE("RSRcdSurfaceRenderNode check cldLayerInfo and size failed");
         return false;
     }
-    const uint32_t bytesPerPixel = 4; // 4 means four bytes per pixel
-    cldInfo_.cldSize = static_cast<uint32_t>(cldLayerInfo.bufferSize);
-    cldInfo_.cldWidth = static_cast<uint32_t>(cldLayerInfo.cldWidth);
-    cldInfo_.cldHeight = static_cast<uint32_t>(cldLayerInfo.cldHeight);
-    cldInfo_.cldStride = static_cast<uint32_t>(cldLayerInfo.cldWidth * bytesPerPixel);
-    cldInfo_.exWidth = static_cast<uint32_t>(width);
-    cldInfo_.exHeight = static_cast<uint32_t>(height);
-
-    int offset = 0;
-    int offsetCldInfo = 0;
-    int stride = nodeBuffer->GetStride();
-    offsetCldInfo = height * stride;
-    offset = (height + 1) * stride;
-    cldInfo_.cldDataOffset = static_cast<uint32_t>(offset);
+    int32_t stride = nodeBuffer->GetStride();
+    int32_t offset = (height + 1) * stride;
+    SetRCDInfo(cldLayerInfo, height, width, static_cast<uint32_t>(offset));
+    int32_t offsetCldInfo = height * stride;
     uint8_t *img = static_cast<uint8_t*>(nodeBuffer->GetVirAddr());
     uint32_t bufferSize = nodeBuffer->GetSize();
     if (img == nullptr || offsetCldInfo < 0 || bufferSize < static_cast<uint32_t>(offsetCldInfo) + sizeof(cldInfo_)) {
@@ -294,7 +304,12 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
     std::ifstream addBufferFile(cldLayerInfo.pathBin, std::ifstream::binary | std::ifstream::in);
     if (addBufferFile) {
         addBufferFile.seekg(0, addBufferFile.end);
-        int addBufferSize = addBufferFile.tellg();
+        int32_t addBufferSize = addBufferFile.tellg();
+        if (offset > static_cast<int32_t>(bufferSize) - addBufferSize) {
+            RS_LOGE("[%{public}s] hardware buffer overflow error", __func__);
+            addBufferFile.close();
+            return false;
+        }
         addBufferFile.seekg(0, addBufferFile.beg);
         addBufferFile.read(reinterpret_cast<char*>(img + offset), addBufferSize);
         addBufferFile.close();

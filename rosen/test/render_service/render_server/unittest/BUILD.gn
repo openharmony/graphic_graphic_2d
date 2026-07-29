@@ -319,6 +319,8 @@ ohos_unittest("RSRenderProcessManagerTest") {
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
         "safwk:system_ability_fwk",
+        "egl:libEGL",
+        "opengles:libGLES",
     ]
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -480,7 +482,7 @@ ohos_unittest("RSMultiRenderProcessManagerTest") {
 }
 
 ###############################################################################
-ohos_unittest("RSRenderMultiProcessManagerRepositoryTest") {
+ohos_unittest("RSMultiRenderProcessManagerRepositoryTest") {
     module_out_path = module_output_path
 
     sources = [ "rs_render_multi_process_manager_repository_test.cpp" ]
@@ -656,7 +658,7 @@ group("unittest") {
         ":RSRenderSingleProcessManagerTest",
         ":RSRenderModeConfigParserTest",
         ":RSMultiRenderProcessManagerTest",
-        ":RSRenderMultiProcessManagerRepositoryTest",
+        ":RSMultiRenderProcessManagerRepositoryTest",
         ":RenderServiceTest",
         "dfx:unittest",
     ]

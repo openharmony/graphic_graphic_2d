@@ -74,7 +74,7 @@ void RSUIDirectorCommandHelper::GoBackground(RSContext& context, NodeId nodeId, 
 void RSUIDirectorCommandHelper::GoStop(RSContext& context, NodeId nodeId, uint64_t token)
 {
     pid_t pid = ExtractPid(nodeId);
-    if (RSSystemProperties::IsDestroyTokenNodeOnStopEnabled()) {
+    if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::GetBackgroundRebuildEnabled()) {
         context.GetMutableNodeMap().DestroyTokenNode(pid, token);
     }
     auto director = context.GetUIRenderDirector(pid, token);

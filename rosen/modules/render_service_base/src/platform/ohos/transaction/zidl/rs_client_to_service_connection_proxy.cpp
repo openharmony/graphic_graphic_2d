@@ -72,7 +72,7 @@ ErrCode RSClientToServiceConnectionProxy::GetUniRenderEnabled(bool& enable)
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnectionProxy::GetBackgroundRebuildEnabled(bool& enable)
+ErrCode RSClientToServiceConnectionProxy::GetBackgroundRebuildEnabled(uint8_t& enable)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -87,10 +87,10 @@ ErrCode RSClientToServiceConnectionProxy::GetBackgroundRebuildEnabled(bool& enab
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BACKGROUND_REBUILD_ENABLED);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        enable = false;
+        enable = 0;
         return ERR_INVALID_VALUE;
     }
-    if (!reply.ReadBool(enable)) {
+    if (!reply.ReadUint8(enable)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::GetBackgroundRebuildEnabled Read enable failed!");
         return ERR_INVALID_VALUE;
     }
@@ -486,6 +486,7 @@ ErrCode RSClientToServiceConnectionProxy::SetVirtualScreenTypeBlackList(
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetVirtualScreenTypeBlackList: Send Request err.");
+        repCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
 
@@ -2350,7 +2351,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedColorGamuts(
     if (result == SUCCESS) {
         mode.clear();
         std::vector<uint32_t> modeRecv;
-        reply.ReadUInt32Vector(&modeRecv);
+        if (!reply.ReadUInt32Vector(&modeRecv)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedColorGamuts Read modeRecv failed");
+            return READ_PARCEL_ERR;
+        }
         for (auto i : modeRecv) {
             mode.push_back(static_cast<ScreenColorGamut>(i));
         }
@@ -2386,7 +2390,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedMetaDataKeys(
     if (result == SUCCESS) {
         keys.clear();
         std::vector<uint32_t> keyRecv;
-        reply.ReadUInt32Vector(&keyRecv);
+        if (!reply.ReadUInt32Vector(&keyRecv)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedMetaDataKeys Read keyRecv failed");
+            return READ_PARCEL_ERR;
+        }
         for (auto i : keyRecv) {
             keys.push_back(static_cast<ScreenHDRMetadataKey>(i));
         }
@@ -2759,7 +2766,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats(
     if (result == SUCCESS) {
         hdrFormats.clear();
         std::vector<uint32_t> hdrFormatsRecv;
-        reply.ReadUInt32Vector(&hdrFormatsRecv);
+        if (!reply.ReadUInt32Vector(&hdrFormatsRecv)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats Read hdrFormatsRecv failed");
+            return READ_PARCEL_ERR;
+        }
         std::transform(hdrFormatsRecv.begin(), hdrFormatsRecv.end(), back_inserter(hdrFormats),
                        [](uint32_t i) -> ScreenHDRFormat {return static_cast<ScreenHDRFormat>(i);});
     }
@@ -2859,7 +2869,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenSupportedColorSpaces(
     if (result == SUCCESS) {
         colorSpaces.clear();
         std::vector<uint32_t> colorSpacesRecv;
-        reply.ReadUInt32Vector(&colorSpacesRecv);
+        if (!reply.ReadUInt32Vector(&colorSpacesRecv)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedColorSpaces Read colorSpacesRecv failed");
+            return READ_PARCEL_ERR;
+        }
         std::transform(colorSpacesRecv.begin(), colorSpacesRecv.end(), back_inserter(colorSpaces),
                        [](uint32_t i) -> GraphicCM_ColorSpaceType {return static_cast<GraphicCM_ColorSpaceType>(i);});
     }
@@ -4635,13 +4648,19 @@ ErrCode RSClientToServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnab
 #endif
 void RSClientToServiceConnectionProxy::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
+    std::lock_guard<std::mutex> lock(onRemoteDiedCallbackMutex_);
     OnRemoteDiedCallback_ = callback;
 }
 
 void RSClientToServiceConnectionProxy::RunOnRemoteDiedCallback()
 {
-    if (OnRemoteDiedCallback_) {
-        OnRemoteDiedCallback_();
+    OnRemoteDiedCallback callback;
+    {
+        std::lock_guard<std::mutex> lock(onRemoteDiedCallbackMutex_);
+        callback = OnRemoteDiedCallback_;
+    }
+    if (callback) {
+        callback();
     }
 }
 

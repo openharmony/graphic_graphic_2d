@@ -264,7 +264,11 @@ bool RSRenderNode::HasValidModifierInOpincSplit(int8_t slot) const
         }
         auto typeString = ModifierNG::RSModifierTypeString::GetModifierTypeString(type);
         for (const auto& modifier : slot) {
-            const auto& drawOpItems = modifier->GetPropertySimpleDrawCmdList()->GetDrawOpItems();
+            const auto& cmdList = modifier->GetPropertySimpleDrawCmdList();
+            if (cmdList == nullptr) {
+                return true;
+            }
+            const auto& drawOpItems = cmdList->GetDrawOpItems();
             if (drawOpItems.empty() || (drawOpItems.size() == 1 && drawOpItems[0]->GetType() == invalidType)) {
                 RS_LOGW("solidLayer: CheckCmdIn2Modifier ret is false %{public}s", typeString.c_str());
                 return true;
@@ -297,6 +301,9 @@ std::string DrawNodeTypeToString(DrawNodeType nodeType)
         "DrawPropertyType",
         "GeometryPropertyType"
     };
+    if (nodeType >= end(typeMap) - begin(typeMap)) {
+        return "undefinedType";
+    }
     return typeMap[nodeType];
 }
 
@@ -1302,11 +1309,15 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
     auto sortedChildren = GetSortedChildren();
     const int childrenCntLimit = 10;
     if (!isFullChildrenListValid_) {
-        out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size());
-        if (!fullChildrenList_->empty()) {
+        auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+        if (!currentList) {
+            return;
+        }
+        out += ", Children list needs update, current count: " + std::to_string(currentList->size());
+        if (!currentList->empty()) {
             int cnt = 0;
             out += "(";
-            for (auto child = fullChildrenList_->begin(); child != fullChildrenList_->end(); child++) {
+            for (auto child = currentList->begin(); child != currentList->end(); child++) {
                 if (cnt > childrenCntLimit) {
                     break;
                 }
@@ -1901,62 +1912,6 @@ const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
     return renderDrawable_->renderParams_;
 }
 #endif
-
-RectI RSRenderNode::GetDrawCmdListRect() const
-{
-    int32_t width = 0;
-    int32_t height = 0;
-    RSRenderNode::ModifierNGContainer customModifiers[] = {
-        GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::TRANSITION_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::BACKGROUND_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::FOREGROUND_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::OVERLAY_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::NODE_MODIFIER),
-    };
-
-    for (auto& slot : customModifiers) {
-        for (auto& modifier : slot) {
-            auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
-            auto propertyPtr = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
-                modifier->GetProperty(propertyType));
-            auto drawCmdListPtr = propertyPtr ? propertyPtr->Get() : nullptr;
-            if (drawCmdListPtr == nullptr) {
-                continue;
-            }
-            width = width > drawCmdListPtr->GetWidth() ? width : drawCmdListPtr->GetWidth();
-            height = height > drawCmdListPtr->GetHeight() ? height : drawCmdListPtr->GetHeight();
-        }
-    }
-    return RectI(0, 0, width, height);
-}
-
-void RSRenderNode::CollectAndUpdateRenderFitRect()
-{
-    const auto& properties = GetRenderProperties();
-    if (properties.GetFrameGravity() == Gravity::TOP_LEFT) {
-        return;
-    }
-    auto drawRegion = properties.GetDrawRegion();
-    if (drawRegion == nullptr) {
-        return;
-    }
-    auto drawCmdListRect = GetDrawCmdListRect();
-    if (drawCmdListRect.IsEmpty()) {
-        return;
-    }
-    Drawing::Matrix mat;
-    RSPropertiesPainter::GetGravityMatrix(properties.GetFrameGravity(),
-        properties.GetFrameRect(), drawCmdListRect.GetWidth(), drawCmdListRect.GetHeight(), mat);
-    Drawing::Rect srcRegion(
-        drawRegion->GetLeft(), drawRegion->GetTop(), drawRegion->GetRight(), drawRegion->GetBottom());
-    Drawing::Rect dstRegion;
-    if (mat.MapRect(dstRegion, srcRegion)) {
-        selfDrawRect_ = selfDrawRect_.JoinRect(
-            RectF(dstRegion.GetLeft(), dstRegion.GetTop(), dstRegion.GetWidth(), dstRegion.GetHeight()));
-    }
-}
-
 void RSRenderNode::CollectAndUpdateLocalShadowRect()
 {
     // update shadow if shadow changes
@@ -2106,7 +2061,6 @@ bool RSRenderNode::UpdateSelfDrawRect()
     if (auto drawRegion = properties.GetDrawRegion()) {
         selfDrawRect_ = selfDrawRect_.JoinRect(*drawRegion);
     }
-    CollectAndUpdateRenderFitRect();
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
@@ -2835,6 +2789,15 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
 }
 #endif
 
+bool RSRenderNode::HasColorPickerDrawable() const
+{
+    if (UNLIKELY(!drawableVec_)) {
+        return false;
+    }
+    auto it = drawableVec_->find(static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER));
+    return it != drawableVec_->end() && it->second != nullptr;
+}
+
 std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
 {
     if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
@@ -2876,7 +2839,7 @@ bool RSRenderNode::IsColorPickerOnlyNode() const
 {
     // Node is color-picker-only if it was added to visibleFilterChild_
     // only because of ColorPickerDrawable, not because of real filter/blend/fg color
-    return GetColorPickerDrawable() != nullptr && !HasVisibleFilterProperty(*this);
+    return HasColorPickerDrawable() && !HasVisibleFilterProperty(*this);
 }
 
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
@@ -4301,7 +4264,7 @@ void RSRenderNode::GenerateFullChildrenList()
 {
     // both children_ and disappearingChildren_ are empty, no need to generate fullChildrenList_
     if (children_.empty() && disappearingChildren_.empty()) {
-        auto prevFullChildrenList = fullChildrenList_;
+        auto prevFullChildrenList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
         isFullChildrenListValid_ = true;
         isChildrenSorted_ = true;
         std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
@@ -4357,7 +4320,7 @@ void RSRenderNode::GenerateFullChildrenList()
     });
 
     // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
-    auto prevFullChildrenList = fullChildrenList_;
+    auto prevFullChildrenList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 
     // Update the flag to indicate that children are now valid and sorted
     isFullChildrenListValid_ = true;
@@ -4371,7 +4334,11 @@ void RSRenderNode::GenerateFullChildrenList()
 void RSRenderNode::ResortChildren()
 {
     // Make a copy of the fullChildrenList for sorting
-    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+    auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+    if (!currentList) {
+        return;
+    }
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*currentList);
 
     // temporary fix for wrong z-order
     for (auto& child : *fullChildrenList) {
@@ -4385,7 +4352,7 @@ void RSRenderNode::ResortChildren()
     });
 
     // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
-    auto prevFullChildrenList = fullChildrenList_;
+    auto prevFullChildrenList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 
     // Update the flag to indicate that children are now sorted
     isChildrenSorted_ = true;
@@ -4458,7 +4425,7 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 }
 void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 {
-    if (HasVisibleFilterProperty(childNode) || childNode.GetColorPickerDrawable()) {
+    if (HasVisibleFilterProperty(childNode) || childNode.HasColorPickerDrawable()) {
         visibleFilterChild_.emplace_back(childNode.GetId());
     }
     auto& childFilterNodes = childNode.GetVisibleFilterChild();
@@ -4762,31 +4729,6 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType() const
         }
     }
     return NodeGroupType::NONE;
-}
-
-void RSRenderNode::SyncWhiteListInfoToParent()
-{
-    if (auto nodeParent = GetParent().lock()) {
-        auto& parentParams = nodeParent->GetStagingRenderParams();
-        parentParams->AddScreensWithSubTreeWhitelist(
-            stagingRenderParams_->GetScreensWithSubTreeWhitelist());
-    }
-}
-
-void RSRenderNode::AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (stagingRenderParams_ == nullptr) {
-        return;
-    }
-    stagingRenderParams_->AddScreensWithSubTreeWhitelist(screenIds);
-}
-
-void RSRenderNode::SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (stagingRenderParams_ == nullptr) {
-        return;
-    }
-    stagingRenderParams_->SetScreensWithSubTreeWhitelist(screenIds);
 }
 
 void RSRenderNode::MarkNonGeometryChanged()
@@ -5113,7 +5055,7 @@ void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
 bool RSRenderNode::GetUifirstSupportFlag()
 {
     if (sharedTransitionParam_ && !sharedTransitionParam_->IsInAppTranSition()) {
-        RS_TRACE_NAME_FMT("SharedTransition inNodeId:%" PRIu64, " outNodeId:%" PRIu64,
+        RS_TRACE_NAME_FMT("uifirst disable by SharedTransition inNodeId:%" PRIu64 ", outNodeId:%" PRIu64,
             sharedTransitionParam_->inNodeId_, sharedTransitionParam_->outNodeId_);
         return false;
     }
@@ -5190,10 +5132,11 @@ void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
 void RSRenderNode::RemoveChildFromFulllist(NodeId id)
 {
     // Make a copy of the fullChildrenList
-    if (!fullChildrenList_) {
+    auto currentList = std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+    if (!currentList) {
         return;
     }
-    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*currentList);
 
     fullChildrenList->erase(std::remove_if(fullChildrenList->begin(),
         fullChildrenList->end(), [id](const auto& node) { return id == node->GetId(); }), fullChildrenList->end());
@@ -5768,10 +5711,6 @@ void RSRenderNode::NodePostPrepare(
     UpdateAbsDrawRect();
     ResetChangeState();
     SetHasUnobscuredUEC();
-    // only container nodes outside the surfaceNode need to mark whitelist info
-    if (curSurfaceNode == nullptr) {
-        SyncWhiteListInfoToParent();
-    }
 }
 
 void RSRenderNode::InitRenderDrawableAndDrawableVec()
@@ -5946,6 +5885,20 @@ void RSRenderNode::AccumulateParentGeoDirty()
             parentPtr->GetRenderProperties().IsCurGeoDirty();
         GetMutableRenderProperties().SetParentGeoDirty(parentGeoDirty);
     }
+}
+
+void RSRenderNode::MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
+{
+    if (isAccessibilityConfigChanged) {
+        accessibilityConfigChangedNodeSet_.insert(GetId());
+    } else {
+        accessibilityConfigChangedNodeSet_.erase(GetId());
+    }
+}
+
+bool RSRenderNode::IsAccessibilityConfigChangedNode() const
+{
+    return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
 }
 } // namespace Rosen
 } // namespace OHOS

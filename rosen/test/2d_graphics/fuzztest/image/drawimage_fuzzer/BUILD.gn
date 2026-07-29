@@ -33,6 +33,10 @@ ohos_fuzztest("DrawImageFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  defines = []
+  if (graphic_2d_feature_enable_vulkan) {
+    defines += [ "RS_ENABLE_VK" ]
+  }
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/include",

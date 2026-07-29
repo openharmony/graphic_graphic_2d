@@ -211,8 +211,10 @@ bool RSSystemProperties::GetBackgroundRebuildEnabled()
         return isBackgroundRebuildEnabled_;
     }
 
-    isBackgroundRebuildEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(
+    uint8_t remoteValue = std::static_pointer_cast<RSRenderServiceClient>(
         RSIRenderClient::CreateRenderServiceClient())->GetBackgroundRebuildEnabled();
+    isBackgroundRebuildEnabled_ = (remoteValue & 0xF0) != 0;
+    isCanvasDrawingNodeClientRenderEnabled_ = (remoteValue & 0x0F) != 0;
     inited = true;
     ROSEN_LOGD("RSSystemProperties::GetBackgroundRebuildEnabled:%{public}d", isBackgroundRebuildEnabled_);
     return isBackgroundRebuildEnabled_;
@@ -614,13 +616,6 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return cacheEnabledForRotation_.load();
-}
-
-ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
-{
-    static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
-        std::atoi((system::GetParameter("persist.rosen.prepareparallelrender.enabled", "1")).c_str()));
-    return systemPropertiePrepareType;
 }
 
 ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
@@ -1027,14 +1022,6 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
     return debugEnable;
 }
 
-bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.optSchedule.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
 bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
@@ -1104,37 +1091,6 @@ bool RSSystemProperties::GetBufferOwnerCountDfxEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
-}
-
-bool RSSystemProperties::FindNodeInTargetList(std::string node)
-{
-    static std::string targetStr = system::GetParameter("persist.sys.graphic.traceTargetList", "");
-    static auto strSize = targetStr.size();
-    if (strSize == 0) {
-        return false;
-    }
-    static std::vector<std::string> targetVec;
-    static bool loaded = false;
-    if (!loaded) {
-        const std::string pattern = ";";
-        targetStr += pattern;
-        strSize = targetStr.size();
-        std::string::size_type pos;
-        for (std::string::size_type i = 0; i < strSize; i++) {
-            pos = targetStr.find(pattern, i);
-            if (pos >= strSize) {
-                break;
-            }
-            auto str = targetStr.substr(i, pos - i);
-            if (str.size() > 0) {
-                targetVec.emplace_back(str);
-            }
-            i = pos;
-        }
-        loaded = true;
-    }
-    bool res = std::find(targetVec.begin(), targetVec.end(), node) != targetVec.end();
-    return res;
 }
 
 bool RSSystemProperties::IsFoldScreenFlag()
@@ -1654,10 +1610,25 @@ bool RSSystemProperties::GetHybridRenderDfxEnabled()
 
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
-    static bool canvasEnabled =
-        Drawing::SystemProperties::IsUseVulkan() &&
-        system::GetParameter("const.product.devicetype", "phone") == "phone" &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
+    static bool inited = false;
+    static bool canvasEnabled = false;
+    if (inited) {
+        return canvasEnabled;
+    }
+
+    canvasEnabled = GetHybridRenderCanvasEnabledWithoutCCM();
+    if (canvasEnabled) {
+        GetBackgroundRebuildEnabled();
+        canvasEnabled = isCanvasDrawingNodeClientRenderEnabled_;
+    }
+    inited = true;
+    return canvasEnabled;
+}
+
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    static bool canvasEnabled = Drawing::SystemProperties::IsUseVulkan() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
     return canvasEnabled;
 }
 
@@ -1889,17 +1860,17 @@ bool RSSystemProperties::RebuildDebugEnabled()
     return rebuildDebugEnabled;
 }
 
-bool RSSystemProperties::IsDestroyTokenNodeOnStopEnabled()
-{
-    static bool enabled =
-        OHOS::system::GetBoolParameter("persist.sys.graphic.destroytokennodeonstop.enabled", true);
-    return enabled;
-}
-
 bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
 {
     static bool enable = system::GetBoolParameter("persist.graphic.enable_delegate_composite_dfx", false);
     return enable;
+}
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
+{
+    static bool virtualScreenParallelEnabled = system::GetBoolParameter(
+        "persist.sys.graphic.virtualScreenParallel.enabled", true);
+    return virtualScreenParallelEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

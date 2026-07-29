@@ -1730,13 +1730,13 @@ HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeSetDirty002, TestSize.L
 }
 
 /**
- * @tc.name: MarkSuggestLayerPartRenderNodeNonSurfaceEarlyReturn001
- * @tc.desc: Verify MarkSuggestLayerPartRenderNode on a canvas node returns early because it cannot
- *           be cast to a surface node, leaving its own cache and dirty flag unchanged
+ * @tc.name: MarkSuggestLayerPartRenderNodeOnCanvasNodeSetsCacheAndDirty001
+ * @tc.desc: Verify MarkSuggestLayerPartRenderNode(true) on a canvas node creates the partlayer root
+ *           cache, sets the suggest flag and NODE_GROUP strategy, and marks the caller canvas node dirty
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeNonSurfaceEarlyReturn001, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeOnCanvasNodeSetsCacheAndDirty001, TestSize.Level1)
 {
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID + 70, context);
     ASSERT_NE(canvasNode, nullptr);
@@ -1746,9 +1746,9 @@ HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeNonSurfaceEarlyReturn00
 
     canvasNode->MarkSuggestLayerPartRenderNode(true);
 
-    ASSERT_FALSE(canvasNode->IsDirty());
-    ASSERT_FALSE(canvasNode->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
-    ASSERT_NE(canvasNode->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
+    ASSERT_TRUE(canvasNode->IsDirty());
+    ASSERT_TRUE(canvasNode->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
+    ASSERT_EQ(canvasNode->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
         NodeStrategyType::NODE_GROUP);
 }
 
@@ -4254,26 +4254,6 @@ HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
 }
 
 /*
- * @tc.name: SyncWhiteListInfoToParent
- * @tc.desc: Test function SyncWhiteListInfoToParent
- * @tc.type: FUNC
- * @tc.require: issueICF7P6
- */
-HWTEST_F(RSRenderNodeTest, SyncWhiteListInfoToParent, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(1);
-    ASSERT_NE(node, nullptr);
-    std::shared_ptr<RSRenderNode> parent = nullptr;
-    node->SetParent(parent);
-    ASSERT_EQ(node->parent_.lock(), nullptr);
-    node->SyncWhiteListInfoToParent();
-
-    parent = std::make_shared<RSRenderNode>(id + 1);
-    node->SetParent(parent);
-    ASSERT_NE(node->parent_.lock(), nullptr);
-}
-
-/*
  * @tc.name: GetNeedUseCmdlistDrawRegion001
  * @tc.desc: Test function GetNeedUseCmdlistDrawRegion when application to which the node belongs is not targetScene
  * @tc.type: FUNC
@@ -4755,6 +4735,49 @@ HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable002, TestSize.Level1)
     auto retrievedDrawable = node.GetColorPickerDrawable();
     EXPECT_NE(retrievedDrawable, nullptr);
     EXPECT_EQ(retrievedDrawable, colorPickerDrawable);
+}
+
+/**
+ * @tc.name: HasColorPickerDrawable001
+ * @tc.desc: Test HasColorPickerDrawable001 returns nullptr when drawable is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasColorPickerDrawable001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+
+    EXPECT_FALSE(node->HasColorPickerDrawable());
+}
+
+/**
+ * @tc.name: HasColorPickerDrawable002
+ * @tc.desc: Test HasColorPickerDrawable002 returns nullptr when drawable is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasColorPickerDrawable002, TestSize.Level1)
+{
+    RSRenderNode node(1);
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+    EXPECT_TRUE(node.HasColorPickerDrawable());
+}
+
+/**
+ * @tc.name: HasColorPickerDrawable003
+ * @tc.desc: Test HasColorPickerDrawable returns false when drawableVec_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasColorPickerDrawable003, TestSize.Level1)
+{
+    RSRenderNode node(1);
+    node.drawableVec_.reset();
+    EXPECT_FALSE(node.HasColorPickerDrawable());
 }
 
 /**

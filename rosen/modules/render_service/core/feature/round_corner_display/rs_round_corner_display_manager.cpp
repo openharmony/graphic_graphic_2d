@@ -207,48 +207,6 @@ void RoundCornerDisplayManager::UpdateHardwareResourcePrepared(NodeId id, bool p
     rcdMap_[id]->UpdateHardwareResourcePrepared(prepared);
 }
 
-void RoundCornerDisplayManager::DrawRoundCorner(const RoundCornerDisplayManager::RCDLayerInfoVec& layerInfos,
-    RSPaintFilterCanvas* canvas)
-{
-    std::lock_guard<std::mutex> lock(rcdMapMut_);
-    for (const auto& layerInfo : layerInfos) {
-        if (layerInfo.second == RoundCornerDisplayManager::RCDLayerType::TOP) {
-            DrawTopRoundCorner(layerInfo.first, canvas);
-        }
-        if (layerInfo.second == RoundCornerDisplayManager::RCDLayerType::BOTTOM) {
-            DrawBottomRoundCorner(layerInfo.first, canvas);
-        }
-    }
-}
-
-void RoundCornerDisplayManager::DrawTopRoundCorner(NodeId id, RSPaintFilterCanvas* canvas)
-{
-    if (!CheckExist(id)) {
-        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module not exist \n", __func__, id);
-        return;
-    }
-    if (rcdMap_[id] == nullptr) {
-        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module is null \n", __func__, id);
-        RemoveRoundCornerDisplay(id);
-        return;
-    }
-    rcdMap_[id]->DrawTopRoundCorner(canvas);
-}
-
-void RoundCornerDisplayManager::DrawBottomRoundCorner(NodeId id, RSPaintFilterCanvas* canvas)
-{
-    if (!CheckExist(id)) {
-        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module not exist \n", __func__, id);
-        return;
-    }
-    if (rcdMap_[id] == nullptr) {
-        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module is null \n", __func__, id);
-        RemoveRoundCornerDisplay(id);
-        return;
-    }
-    rcdMap_[id]->DrawBottomRoundCorner(canvas);
-}
-
 bool RoundCornerDisplayManager::HandleRoundCornerDirtyRect(NodeId id, RectI &dirtyRect, const RCDLayerType type)
 {
     std::lock_guard<std::mutex> lock(rcdMapMut_);

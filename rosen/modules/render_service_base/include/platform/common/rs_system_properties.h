@@ -221,7 +221,6 @@ public:
     static bool GetDrawTextAsBitmap();
     static void SetCacheEnabledForRotation(bool flag);
     static bool GetCacheEnabledForRotation();
-    static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
     static void SetHgmRefreshRateModesEnabled(std::string param);
@@ -283,7 +282,6 @@ public:
     static bool GetHpaeOfflineEnabled();
     static bool GetXcomponentEdrEnabled();
     static bool GetUIFirstDebugEnabled();
-    static bool GetUIFirstOptScheduleEnabled();
     static bool GetUIFirstBehindWindowEnabled();
     static bool GetUIFirstDirtyEnabled();
     static bool GetUIFirstDirtyDebugEnabled();
@@ -297,7 +295,6 @@ public:
     static bool GetDebugTraceEnabled();
     static bool GetImageReleaseUsingPostTask();
     static int GetDebugTraceLevel();
-    static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
     static bool IsSmallFoldDevice();
     static bool IsFoldDeviceOfOldDss();
@@ -378,6 +375,7 @@ public:
     static bool GetTimeVsyncDisabled();
 
     static bool GetHybridRenderCanvasEnabled();
+    static bool GetHybridRenderCanvasEnabledWithoutCCM();
     static bool GetHybridRenderDfxEnabled();
 
     static bool GetVKImageUseEnabled();
@@ -417,7 +415,7 @@ public:
     static bool GetRebuildSceneEnabled();
     static bool IsRenderNodeRebuildEnabled();
     static bool RebuildDebugEnabled();
-    static bool IsDestroyTokenNodeOnStopEnabled();
+    static bool GetVirtualScreenParallelEnabled();
 
     static bool GetRsDelegateCompositeCleanCacheDfxEnable();
 private:
@@ -425,6 +423,7 @@ private:
 
     static inline bool isUniRenderEnabled_ = false;
     static inline bool isBackgroundRebuildEnabled_ = false;
+    static inline bool isCanvasDrawingNodeClientRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static std::atomic_bool cacheEnabledForRotation_ = false;
     static inline bool forceHpsBlurDisabled_ = false;

@@ -43,6 +43,7 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSUniHwcVisitor;
 class RSOcclusionHandler;
+class RSVirtualScreenParallelManager;
 class RSProtectiveSolidRenderNode;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
@@ -118,6 +119,16 @@ public:
 
     void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
 
+    void SetVirtualScreenParallelManager(std::shared_ptr<RSVirtualScreenParallelManager> manager)
+    {
+        virtualScreenParallelManager_ = manager;
+    }
+
+    std::shared_ptr<RSVirtualScreenParallelManager> GetVirtualScreenParallelManager() const
+    {
+        return virtualScreenParallelManager_;
+    }
+
     bool GetIsPartialRenderEnabled() const
     {
         return isPartialRenderEnabled_;
@@ -189,7 +200,8 @@ private:
     bool InitScreenInfo(RSScreenRenderNode& node);
     bool InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node);
 
-    void UpdateCompositeType(RSScreenRenderNode& node);
+    void UpdateCompositeType(RSScreenRenderNode& node, DisplayMode mode);
+    void UpdateSelfDrawingNodesFor3D(RSScreenRenderNode& node);
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
     bool NeedPrepareChildrenInReverseOrder(RSRenderNode& node) const;
     bool IsLeashAndHasMainSubNode(RSRenderNode& node) const;
@@ -334,6 +346,9 @@ void ProcessGpuOfflineForTopLayer(
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter = false);
+    // Caller guarantees nodeParent is the locked parent of node and stays valid for the call;
+    // passing nullptr preserves the existing null-parent early-return semantics.
+    void CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter, const std::shared_ptr<RSRenderNode>& nodeParent);
 
     void UpdateVirtualDisplayInfo(RSLogicalDisplayRenderNode& node);
     void UpdateVirtualDisplaySecurityExemption(
@@ -398,6 +413,7 @@ void ProcessGpuOfflineForTopLayer(
 
     void UpdateHardWareForcedDisabledStateForDelegateMode(
         std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr, std::optional<bool>& isHardwareForcedDisabled);
+    void CollectVirtualScreenNodeId(RSScreenRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
@@ -562,6 +578,8 @@ void ProcessGpuOfflineForTopLayer(
     size_t rsScreenNodeNum_ = 0;
 
     bool isSkipDrawInVirtualScreen_ = false;
+
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
 
     // used for finding the first effect render node to check to need to enabled debug
     bool hasEffectNodeInParent_ = false;

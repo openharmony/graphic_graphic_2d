@@ -401,8 +401,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BACKGROUND_REBUILD_ENABLED): {
-            bool enable;
-            if (GetBackgroundRebuildEnabled(enable) != ERR_OK || !reply.WriteBool(enable)) {
+            uint8_t enable = 0;
+            if (GetBackgroundRebuildEnabled(enable) != ERR_OK || !reply.WriteUint8(enable)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_BACKGROUND_REBUILD_ENABLED read enable failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -1676,6 +1676,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             uint32_t scaleMode{0};
             if (!data.ReadUint64(id) || !data.ReadUint32(scaleMode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (scaleMode >= static_cast<uint32_t>(ScreenScaleMode::INVALID_MODE)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE scaleMode is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }

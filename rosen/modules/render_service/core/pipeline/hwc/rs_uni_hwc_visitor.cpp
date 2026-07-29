@@ -568,6 +568,11 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
             continue;
         }
+        if (hwcNodePtr->GetCompositionType() == CompositionType::COMPOSITION_3D_GLASS_FREE) {
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by glass free 3d layer",
+                hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
+        }
         inputHwclayers++;
         if (hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
             uniRenderVisitor_.drmNodes_.emplace_back(hwcNode);
@@ -887,6 +892,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     }
 }
 
+#ifdef HVE_BLUR_ENABLE
 bool RSUniHwcVisitor::IsHveBlurFilterEnabled(
     const RSRenderNode& filterNode, const RectI& filterRect, RSSurfaceRenderNode& hwcNode)
 {
@@ -902,6 +908,7 @@ bool RSUniHwcVisitor::IsHveBlurFilterEnabled(
     HveFilter::GetHveFilter().PushHveFilterSurfaceNodeMapping(filterNode.GetId(), hwcNode.GetId());
     return true;
 }
+#endif
 
 namespace {
 void ColorPickerCheckHwcIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
@@ -941,7 +948,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByColorPicker()
 
 void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterIntersection()
 {
-    std::vector<std::pair<std::shared_ptr<RSRenderNode>, RectI>> filterNodes;
+    std::vector<std::tuple<std::shared_ptr<RSRenderNode>, RectI, bool>> filterNodes;
     auto& allNodes = uniRenderVisitor_.curScreenNode_->GetAllHwcNodeAndFilterNode();
     for (auto reverseIter = allNodes.rbegin(); reverseIter != allNodes.rend(); ++reverseIter) {
         auto node = reverseIter->lock();
@@ -955,7 +962,20 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterIntersection()
             if (filterRect.IsEmpty()) {
                 continue;
             }
-            filterNodes.emplace_back(node, filterRect);
+            auto instanceRootNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetInstanceRootNode());
+            auto curDirtyManager = instanceRootNode ? instanceRootNode->GetDirtyManager() :
+                uniRenderVisitor_.curScreenDirtyManager_;
+            if (curDirtyManager) {
+                bool isIntersect = curDirtyManager->GetCurrentFrameDirtyRegion().Intersect(filterRect);
+                if (instanceRootNode && instanceRootNode->IsTransparent() &&
+                    (!isIntersect || (isIntersect && (node->GetRenderProperties().GetBackgroundFilter() ||
+                        node->GetRenderProperties().GetNeedDrawBehindWindow()) &&
+                        !node->IsBackgroundInAppOrNodeSelfDirty()))) {
+                    filterNodes.emplace_back(node, filterRect, true);
+                    continue;
+                }
+            }
+            filterNodes.emplace_back(node, filterRect, false);
         } else {
             auto hwcNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
             if (!hwcNode) {
@@ -968,7 +988,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterIntersection()
 
 void RSUniHwcVisitor::CheckHwcNodeFilterIntersection(
     const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-    const std::vector<std::pair<std::shared_ptr<RSRenderNode>, RectI>>& filterNodes)
+    const std::vector<std::tuple<std::shared_ptr<RSRenderNode>, RectI, bool>>& filterNodes)
 {
     if (hwcNode->IsOnTheTree() && RSSystemProperties::GetHveFilterEnabled()) {
         hwcNode->ResetMakeImageState();
@@ -981,23 +1001,23 @@ void RSUniHwcVisitor::CheckHwcNodeFilterIntersection(
     bool intersectedWithAIBar = false;
     bool checkDrawAIBar = false;
     for (auto filter = filterNodes.begin(); filter != filterNodes.end(); ++filter) {
-        bool isIntersect = !hwcRect.IntersectRect(filter->second).IsEmpty();
+        bool isIntersect = !hwcRect.IntersectRect(std::get<1>(*filter)).IsEmpty();
         if (!isIntersect) {
             continue;
         }
-        auto filterNode = filter->first;
+        auto filterNode = std::get<0>(*filter);
         if (filterNode == nullptr) {
             RS_LOGD("RSUniHwcVisitor::CheckHwcNodeFilterIntersection filterNode is null.");
             continue;
         }
-        if (filterNode->IsAIBarFilter()) {
+        if (filterNode->IsAIBarFilter() && std::get<2>(*filter)) {
             auto screenId = uniRenderVisitor_.curScreenNode_->GetScreenId();
             RSMainThread::Instance()->GetMutableAIBarNodes()[screenId].insert(filterNode);
             intersectedWithAIBar = true;
             HveFilter::GetHveFilter().PushHveFilterSurfaceNodeMapping(filterNode->GetId(),
                 hwcNode->GetId());
             bool intersectHwcDamage = RSSystemProperties::GetAIBarOptEnabled() ?
-                RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*hwcNode, filter->second) : true;
+                RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*hwcNode, std::get<1>(*filter)) : true;
             if (filterNode->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage)) {
                 RS_LOGD("RSUniHwcVisitor::CheckHwcNodeFilterIntersection skip intersection for using cache");
                 continue;
@@ -1006,9 +1026,11 @@ void RSUniHwcVisitor::CheckHwcNodeFilterIntersection(
                 continue;
             }
         }
-        if (IsHveBlurFilterEnabled(*filterNode, filter->second, *hwcNode)) {
+#ifdef HVE_BLUR_ENABLE
+        if (IsHveBlurFilterEnabled(*filterNode, std::get<1>(*filter), *hwcNode)) {
             continue;
         }
+#endif
         auto parentNode = hwcNode->GetParent().lock();
         // The following trace is relied on by DFX, do not modify its content, format, or order.
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64" parentId:%" PRIu64
@@ -1040,7 +1062,9 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
     }
 
     // virtual expand screen
-    if (uniRenderVisitor_.curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+    CompositeType type = uniRenderVisitor_.curScreenNode_->GetCompositeType();
+    if (type == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
+        type == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE) {
         return true;
     }
 

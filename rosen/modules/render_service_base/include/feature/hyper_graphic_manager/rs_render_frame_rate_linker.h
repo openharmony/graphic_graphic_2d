@@ -45,7 +45,7 @@ public:
     ~RSRenderFrameRateLinker();
 
     FrameRateLinkerId GetId() const { return id_; }
-    int32_t GetAceAnimatorExpectedFrameRate() { return animatorExpectedFrameRate_; }
+    int32_t GetAceAnimatorExpectedFrameRate() { return animatorExpectedFrameRate_.load(); }
     std::string GetVsyncName() { return vsyncName_; }
     uint64_t GetWindowNodeId() { return windowNodeId_; }
     uint32_t GetFrameRate() const;
@@ -69,10 +69,10 @@ private:
     FrameRateLinkerId id_ = 0;
     ObserverType observer_ = nullptr; // will not be copied to other obj
     const std::string xcomponentId_ = "";
-    int32_t animatorExpectedFrameRate_ = -1;
+    std::atomic<int32_t> animatorExpectedFrameRate_ = {-1};
     std::string vsyncName_;
     uint64_t windowNodeId_ = 0;
-    TimePoint nativeVSyncTimePoint_ = std::chrono::steady_clock::time_point::min();
+    TimePoint nativeVSyncTimePoint_ = std::chrono::steady_clock::time_point();
 
     mutable std::mutex mutex_;
     FrameRateRange expectedRange_;

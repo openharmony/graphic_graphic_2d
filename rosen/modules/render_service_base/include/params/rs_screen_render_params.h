@@ -27,7 +27,10 @@
 #include "screen_manager/rs_screen_info.h"
 #include "screen_manager/rs_screen_property.h"
 #include "pipeline/rs_surface_render_node.h"
+
 namespace OHOS::Rosen {
+class RSVirtualScreenParallelManager;
+
 class RSB_EXPORT RSScreenRenderParams : public RSRenderParams {
 public:
     explicit RSScreenRenderParams(NodeId id);
@@ -211,6 +214,9 @@ public:
     void SetUIMode3D(UIMode3D mode);
     UIMode3D GetUIMode3D() const;
 
+    void SetHasGlassFree3DLayer(bool hasGlassFree3DLayer);
+    bool GetHasGlassFree3DLayer() const;
+
     void SetDrawnRegion(const Occlusion::Region& region);
     const Occlusion::Region& GetDrawnRegion() const;
 
@@ -259,6 +265,16 @@ public:
 
     void SetScreenRotationForDelegate(ScreenRotation rotation);
     ScreenRotation GetScreenRotationForDelegate() const;
+    void SetVirtualScreenParallelManager(std::shared_ptr<RSVirtualScreenParallelManager> manager)
+    {
+        virtualScreenParallelManager_ = manager;
+    }
+
+    std::shared_ptr<RSVirtualScreenParallelManager> GetVirtualScreenParallelManager() const
+    {
+        return virtualScreenParallelManager_;
+    }
+
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
@@ -284,6 +300,7 @@ private:
     bool isHDRStatusChanged_ = false;
     VideoDimType videoDimType_ = VideoDimType::VIDEO_DIM_TYPE_2D;
     UIMode3D uiMode3D_ = UIMode3D::MODE_2D;
+    bool hasGlassFree3DLayer_ = false;
     // Only used in virtual expand screen to record accumulate frame status
     bool isAccumulatedDirty_ = false;
     bool isAccumulatedHdrStatusChanged_ = false;
@@ -312,6 +329,7 @@ private:
     ScreenRotation logicalCameraRotationCorrection_ = ScreenRotation::ROTATION_0;
     bool hasForceHwcHdrSurface_ = false;
     ScreenRotation rotation_ = ScreenRotation::ROTATION_0;
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
 };
 } // namespace OHOS::Rosen
 

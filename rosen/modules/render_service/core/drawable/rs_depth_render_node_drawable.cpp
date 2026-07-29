@@ -19,6 +19,7 @@
 #include "params/rs_depth_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -53,6 +54,14 @@ void RSDepthRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         auto bufferDrawParams = RSUniRenderUtil::CreateBufferDrawParam(*surfaceDrawable, false, threadId);
 
         auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+        if (uniParam) {
+            auto virtualScreenParallelManager = uniParam->GetVirtualScreenParallelManager();
+            if (virtualScreenParallelManager) {
+                virtualScreenParallelManager->GetRenderEngineByTid(
+                    -paintFilterCanvas->GetParallelThreadIdx(), renderEngine);
+            }
+        }
         if (!renderEngine) {
             RS_LOGE("RSDepthRenderNodeDrawable::OnDraw renderEngine is nullptr");
             return;

@@ -56,6 +56,7 @@
 #include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_depth_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -763,6 +764,18 @@ void RSUniRenderVisitor::UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTr
     }
 }
 
+void RSUniRenderVisitor::CollectVirtualScreenNodeId(RSScreenRenderNode& node)
+{
+    if (virtualScreenParallelManager_) {
+        auto screenParams = static_cast<RSScreenRenderParams*>(node.GetRenderParams().get());
+        if (screenParams) {
+            screenParams->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
+        }
+        virtualScreenParallelManager_->CollectVirtualScreenNodeId(
+            screenParams->GetScreenId(), node.GetId(), node.GetCompositeType());
+    }
+}
+
 void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     UpdateCurFrameInfoDetail(node);
@@ -816,8 +829,9 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     PostPrepare(node, isParentPrepareInReverseOrder);
     node.UpdateChildHwcNode();
     RSLayerSplitManager::GetInstance()->CheckNeedLeave();
-    UpdateCompositeType(node);
+    CollectVirtualScreenNodeId(node);
     RSHdrUtil::UpdateSelfDrawingNodesNit(node);
+    UpdateSelfDrawingNodesFor3D(node);
     hwcVisitor_->UpdateHwcNodeEnable();
     UpdateSurfaceDirtyAndGlobalDirty();
     UpdateSurfaceOcclusionInfo();
@@ -868,19 +882,21 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Clear();
-    curLogicalDisplayNode_->SetCompositeType(curScreenNode_->GetCompositeType());
     curLogicalDisplayNode_->SetHasCaptureWindow(false);
     occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
+    DisplayMode displayMode = curLogicalDisplayNode_->GetDisplayMode();
     auto mirrorSourceNode = curLogicalDisplayNode_->GetMirrorSource().lock();
     auto mirrorSourceScreenNode = mirrorSourceNode ?
         std::static_pointer_cast<RSScreenRenderNode>(mirrorSourceNode->GetParent().lock()) : nullptr;
-    if (mirrorSourceScreenNode) {
+    if (displayMode == DisplayMode::MIRROR && mirrorSourceScreenNode) {
         curScreenNode_->SetIsMirrorScreen(true);
         curScreenNode_->SetMirrorSource(mirrorSourceScreenNode);
     } else {
         curScreenNode_->SetIsMirrorScreen(false);
         curScreenNode_->ResetMirrorSource();
     }
+    UpdateCompositeType(*curScreenNode_, displayMode);
+    curLogicalDisplayNode_->SetCompositeType(curScreenNode_->GetCompositeType());
     curScreenNode_->GetLogicalDisplayNodeDrawables().push_back(curLogicalDisplayNode_->GetRenderDrawable());
     return true;
 }
@@ -1124,7 +1140,7 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
     if (isQuickSkip) {
         // Record the surfaceNode object for later use in RSScreenRenderParams::OnSync to collect its drawable.
         // This ensures the drawable can updates the latest drawRegion, thus correctly skip drawing.
-        if (curScreenNode_) {
+        if (curScreenNode_ != nullptr && curLogicalDisplayNode_ != nullptr) {
             bool needCalcScreenSpecialLayer =
                 curScreenNode_->GetScreenProperty().IsVirtual() || hasMirrorUsedInSpecialLayer_;
             RSSpecialLayerUtils::DealWithSpecialLayer(node, *curLogicalDisplayNode_, needCalcScreenSpecialLayer);
@@ -1832,8 +1848,8 @@ CM_INLINE void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& no
 
 void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
 {
-    if (!curScreenNode_) {
-        RS_LOGE("UpdateNodeVisibleRegion curScreenNode is nullptr");
+    if (curScreenNode_ == nullptr || curLogicalDisplayNode_ == nullptr) {
+        RS_LOGE("UpdateNodeVisibleRegion curScreenNode or curLogicalDisplayNode is nullptr");
         return;
     }
     // occlusion - 0. Calculate node visible region considering accumulated opaque region of upper surface nodes.
@@ -1849,7 +1865,8 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
     if (needRecalculateOcclusion_) {
         bool isSecVirtualExpandComposite =
             curLogicalDisplayNode_->GetSecurityDisplay() &&
-            curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+            (curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
+             curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE);
         Occlusion::Region subResult = isSecVirtualExpandComposite ?
             selfDrawRegion.Sub(occlusionRegionWithoutSkipLayer_) : selfDrawRegion.Sub(accumulatedOcclusionRegion_);
         node.SetVisibleRegion(subResult);
@@ -1866,8 +1883,8 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
 
 CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node)
 {
-    if (!curScreenNode_) {
-        RS_LOGE("CalculateOpaqueAndTransparentRegion curScreenNode is nullptr");
+    if (curScreenNode_ == nullptr || curLogicalDisplayNode_ == nullptr) {
+        RS_LOGE("CalculateOpaqueAndTransparentRegion curScreenNode or curLogicalDisplayNode is nullptr");
         return;
     }
     // occlusion - 1. Only non-cross-screen main window surface node participate in occlusion.
@@ -2266,6 +2283,10 @@ void RSUniRenderVisitor::QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRe
 
 void RSUniRenderVisitor::UpdateRotationStatusForEffectNode(RSEffectRenderNode& node)
 {
+    if (!curScreenNode_ || !curLogicalDisplayNode_) {
+        RS_LOGE("%{public}s curScreenNode_ or curLogicalDisplayNode_ is nullptr", __func__);
+        return;
+    }
      // folding/expanding screen force invalidate cache.
     node.SetFoldStatusChanged(doAnimate_ &&
         curScreenNode_->GetScreenId() != node.GetCurrentAttachedScreenId());
@@ -2305,8 +2326,6 @@ bool RSUniRenderVisitor::NeedPrepareChildrenInReverseOrder(RSRenderNode& node) c
 
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
-    // clear whitelist info
-    node.SetScreensWithSubTreeWhitelist({});
     if (UNLIKELY(node.HasRemovedChild())) {
         MergeRemovedChildDirtyRegion(node, true);
     }
@@ -2388,23 +2407,72 @@ void RSUniRenderVisitor::RegisterHpaeCallback(RSRenderNode& node)
 #endif
 }
 
-void RSUniRenderVisitor::UpdateCompositeType(RSScreenRenderNode& node)
+void RSUniRenderVisitor::UpdateCompositeType(RSScreenRenderNode& node, DisplayMode mode)
 {
-    auto mirrorNode = node.GetMirrorSource().lock();
-    switch (node.GetScreenInfo().state) {
-        case ScreenState::PRODUCER_SURFACE_ENABLE:
-            node.SetCompositeType(mirrorNode ?
-                CompositeType::UNI_RENDER_MIRROR_COMPOSITE :
-                CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
-            break;
-        case ScreenState::HDI_OUTPUT_ENABLE:
-            node.SetCompositeType(node.IsForceSoftComposite() ?
-                CompositeType::SOFTWARE_COMPOSITE :
-                CompositeType::UNI_RENDER_COMPOSITE);
-            break;
-        default:
-            break;
+    ScreenState state = node.GetScreenInfo().state;
+    // physical screen
+    if (state == ScreenState::HDI_OUTPUT_ENABLE) {
+        node.SetCompositeType(node.IsForceSoftComposite() ? CompositeType::SOFTWARE_COMPOSITE :
+                                                            CompositeType::UNI_RENDER_COMPOSITE);
+        return;
     }
+
+    // virtual screen
+    if (state == ScreenState::PRODUCER_SURFACE_ENABLE) {
+        switch (mode) {
+            case DisplayMode::MIRROR:
+                node.SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE);
+                break;
+            case DisplayMode::EXPAND:
+                node.SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
+                break;
+            case DisplayMode::INDEPENDENT:
+                node.SetCompositeType(CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE);
+                break;
+            default:
+                RS_LOGE("RSUniRenderVisitor::%{public}s, invalid displayMode[%{public}d]", __func__,
+                    static_cast<int>(mode));
+                break;
+        }
+        return;
+    }
+}
+
+void RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D(RSScreenRenderNode& node)
+{
+    bool hasGlassFree3DLayer = false;
+    if (RSMainThread::Instance()->GetUIMode3D() != UIMode3D::MODE_GLASSESFREE_3D) {
+        node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
+        return;
+    }
+    bool isOnInternalScreen =
+        node.GetScreenProperty().GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL;
+    const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
+    for (const auto& selfDrawingNode : selfDrawingNodes) {
+        if (!selfDrawingNode) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D selfDrawingNode is nullptr");
+            continue;
+        }
+        if (!selfDrawingNode->IsOnTheTree()) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D node(%{public}s) is not on the tree",
+                selfDrawingNode->GetName().c_str());
+            continue;
+        }
+        auto ancestor = selfDrawingNode->GetAncestorScreenNode().lock();
+        if (!ancestor) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D ancestor is nullptr");
+            continue;
+        }
+        if (node.GetId() == ancestor->GetId()) {
+            if (selfDrawingNode->GetCompositionType() == CompositionType::COMPOSITION_3D_GLASS_FREE) {
+                hasGlassFree3DLayer = true;
+                RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D found glass free 3D layer: %{public}s",
+                    selfDrawingNode->GetName().c_str());
+            }
+            selfDrawingNode->SetIsOnInternalScreen(isOnInternalScreen);
+        }
+    }
+    node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
 }
 
 bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
@@ -2427,6 +2495,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
     node.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_2D);
     node.SetUIMode3D(UIMode3D::MODE_2D);
+    node.SetHasGlassFree3DLayer(false);
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
     node.SetHasUniRenderHdrSurface(false);
@@ -2448,9 +2517,8 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     RSLayerSplitManager::GetInstance()->InitSplitSurface(screenInfo);
     curScreenDirtyManager_->SetSurfaceSize(screenProperty.GetWidth(), screenProperty.GetHeight());
     curScreenDirtyManager_->SetActiveSurfaceRect(screenProperty.GetActiveRect());
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto allBlackList = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
-    auto allWhiteList = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    auto allBlackList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
+    auto allWhiteList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_WHITE_LIST);
     if (allBlackList_ != allBlackList || allWhiteList_ != allWhiteList) {
         allBlackList_ = std::move(allBlackList);
         allWhiteList_ = std::move(allWhiteList);
@@ -3632,7 +3700,12 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
 
 void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedFilter)
 {
-    auto nodeParent = node.GetParent().lock();
+    CollectEffectInfo(node, isBlendNeedFilter, node.GetParent().lock());
+}
+
+void RSUniRenderVisitor::CollectEffectInfo(
+    RSRenderNode& node, bool isBlendNeedFilter, const std::shared_ptr<RSRenderNode>& nodeParent)
+{
     if (nodeParent == nullptr) {
         return;
     }
@@ -3649,13 +3722,13 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
 
     // Handle ColorPickerDrawable - MERGE into filter handling
     if (isBlendNeedFilter || node.ChildHasVisibleFilter() ||
-        node.GetColorPickerDrawable()) {
+        node.HasColorPickerDrawable()) {
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
-    if ((node.GetRenderProperties().GetUseEffect() || node.GetRenderProperties().HasHarmonium() ||
-        node.GetRenderProperties().HasSpatialGlassEffect() ||
-        node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
+    if ((properties.GetUseEffect() || properties.HasHarmonium() || properties.HasSpatialGlassEffect() ||
+            node.ChildHasVisibleEffect()) &&
+        node.ShouldPaint()) {
         nodeParent->UpdateVisibleEffectChild(node);
         nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
     }
@@ -3668,7 +3741,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
     if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
         nodeParent->SetChildHasSharedTransition(true);
     }
-    if (node.GetRenderProperties().GetSpatialEffectPara() || node.ChildHasSpatialEffect()) {
+    if (properties.GetSpatialEffectPara() || node.ChildHasSpatialEffect()) {
         nodeParent->SetChildHasSpatialEffect(true);
     }
     if (node.ChildHasVisibleHDRContent() || node.GetHDRStatus() != HdrStatus::NO_HDR) {
@@ -3678,8 +3751,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
         nodeParent->SetHasChildExcludedFromNodeGroup(true);
     }
     if (!renderGroupCacheRoots_.empty()) {
-        bool flag = !ROSEN_EQ(node.GetRenderProperties().GetTranslateX(), 0.0f) ||
-                    !ROSEN_EQ(node.GetRenderProperties().GetTranslateY(), 0.0f);
+        bool flag = !ROSEN_EQ(properties.GetTranslateX(), 0.0f) || !ROSEN_EQ(properties.GetTranslateY(), 0.0f);
         nodeParent->SetChildHasTranslateOnSqueeze(flag);
     }
     node.UpdateNodeColorSpace();
@@ -3759,17 +3831,17 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
         CollectFilterInfoAndUpdateDirty(node, *curDirtyManager);
         node.SetGlobalAlpha(curAlpha_);
     }
-    CollectEffectInfo(node, isBlendNeedFilter);
+    auto nodeParent = node.GetParent().lock();
+    CollectEffectInfo(node, isBlendNeedFilter, nodeParent);
     node.NodePostPrepare(curSurfaceNode_, prepareClipRect_);
     if (curScreenNode_ && curScreenNode_->GetId() != node.GetId()) {
         CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder, isBlendNeedFilter);
     }
     dynamicLayerSkipController_->VisitRenderNode(curSurfaceNode_, node);
     UpdateDrawingCacheInfoAfterChildren(node);
-    if (auto nodeParent = node.GetParent().lock()) {
+    if (nodeParent) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
-        nodeParent->GetOpincCache().UpdateSubTreeSupportFlag(
-            RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
+        nodeParent->GetOpincCache().UpdateSubTreeSupportFlag(RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
             RSOpincManager::OpincGetRootFlag(node),
             nodeParent->GetNodeGroupType() == RSRenderNode::NodeGroupType::NONE);
         nodeParent->GetOpincCache().UpdateSubTreeHasUnstableOpincNode(
@@ -3781,10 +3853,11 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (stagingRenderParams != nullptr) {
-        if (node.GetSharedTransitionParam() && node.GetRenderProperties().GetSandBox()) {
+        const auto& properties = node.GetRenderProperties();
+        if (node.GetSharedTransitionParam() && properties.GetSandBox()) {
             stagingRenderParams->SetAlpha(curAlpha_);
         } else {
-            stagingRenderParams->SetAlpha(node.GetRenderProperties().GetAlpha());
+            stagingRenderParams->SetAlpha(properties.GetAlpha());
         }
     }
 
@@ -4245,6 +4318,8 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     }
     renderThreadParams->surfaceColorGamutMap_ = std::move(surfaceColorGamutMap_);
     renderThreadParams->SetTunnelLayerSnapshots(std::move(tunnelLayerSnapshots_));
+    renderThreadParams->GetMutableScreenSpecialLayerParam().SetGlobalBlackList(
+        ScreenSpecialLayerInfo::GetGlobalBlackList());
 }
 
 void RSUniRenderVisitor::SendRcdMessage(RSScreenRenderNode& node)
@@ -4472,6 +4547,10 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
 
 void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
 {
+    auto handler = node.GetRSSurfaceHandler();
+    if (handler == nullptr || !handler->HasReceivedTunnelLayerInfo()) {
+        return;
+    }
     auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node.GetId());
     uint64_t tunnelLayerId = 0;
     uint32_t property = TUNNEL_PROP_INVALID;
@@ -4528,6 +4607,14 @@ void RSUniRenderVisitor::UpdateFixedSize(RSLogicalDisplayRenderNode& node)
     if (node.IsRotationChanged() ||
         RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION) {
         // skip getting fixed size during rotation and snapshot rotation.
+
+        RS_LOGI_LIMIT("RSUniRenderVisitor::%{public}s, isRotationChanged[%{public}d], "
+                      "SystemAnimatedScenes[%{public}" PRIu32 "]",
+            __func__, node.IsRotationChanged(),
+            static_cast<uint32_t>(RSMainThread::Instance()->GetSystemAnimatedScenes()));
+        RS_TRACE_NAME_FMT("RSUniRenderVisitor::%s, isRotationChanged[%d], SystemAnimatedScenes[%" PRIu32 "]", __func__,
+            node.IsRotationChanged(), static_cast<uint32_t>(RSMainThread::Instance()->GetSystemAnimatedScenes()));
+
         return;
     }
 

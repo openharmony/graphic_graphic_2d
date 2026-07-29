@@ -331,6 +331,25 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand013, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSurfaceNodeTypeInvalidTest
+ * @tc.desc: Verify SetSurfaceNodeType rejects out-of-range enum value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetSurfaceNodeTypeInvalidTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = 20;
+    SurfaceNodeCommandHelper::Create(context, id);
+    uint8_t invalidType = static_cast<uint8_t>(RSSurfaceNodeType::NODE_MAX);
+    SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, invalidType);
+    uint8_t overRangeType = static_cast<uint8_t>(RSSurfaceNodeType::NODE_MAX) + 10;
+    SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, overRangeType);
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->GetSurfaceNodeType(), RSSurfaceNodeType::DEFAULT);
+}
+
+/**
  * @tc.name: TestRSSurfaceNodeCommand015
  * @tc.desc: SetContextAlpha test.
  * @tc.type: FUNC

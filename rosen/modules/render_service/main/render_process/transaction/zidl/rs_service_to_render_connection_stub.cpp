@@ -37,6 +37,8 @@ constexpr uint32_t MAX_LIST_SIZE = 50;
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
 constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
+constexpr size_t PIDLIST_SIZE_MAX = 128;
+constexpr size_t HWC_EVENT_DATA_SIZE_MAX = 100;
 } // namespace
 
 static void TypefaceXcollieCallback(void* arg)
@@ -84,8 +86,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
             if (hasComposerConn) {
-                if (auto remoteObj1 = data.ReadRemoteObject()) {
-                    renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                auto remoteObj1 = data.ReadRemoteObject();
+                if (!remoteObj1) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER renderToComposerConn "
+                            "remote object is null",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+                renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                if (!renderToComposerConn) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER renderToComposerConn iface_cast failed",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
             }
             bool hasComposerToRenderConn = false;
@@ -96,8 +110,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
             if (hasComposerToRenderConn) {
-                if (auto remoteObj2 = data.ReadRemoteObject()) {
-                    composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                auto remoteObj2 = data.ReadRemoteObject();
+                if (!remoteObj2) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER composerToRenderConn "
+                            "remote object is null",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+                composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                if (!composerToRenderConn) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER composerToRenderConn iface_cast failed",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
             }
             auto replyMessage =
@@ -989,6 +1015,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (eventData.size() > HWC_EVENT_DATA_SIZE_MAX) {
+                RS_LOGE("HandleHwcEvent: eventData size %{public}zu exceeds max %{public}zu.",
+                    eventData.size(), HWC_EVENT_DATA_SIZE_MAX);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             HandleHwcEvent(deviceId, eventId, eventData);
             break;
         }
@@ -996,6 +1028,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             std::vector<int32_t> pidList;
             if (!data.ReadInt32Vector(&pidList)) {
                 RS_LOGE("SetGpuCrcDirtyEnabledPidList: read pidList err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (pidList.size() > PIDLIST_SIZE_MAX) {
+                RS_LOGE("SetGpuCrcDirtyEnabledPidList: pidList size %{public}zu exceeds max %{public}zu.",
+                    pidList.size(), PIDLIST_SIZE_MAX);
                 ret = ERR_INVALID_DATA;
                 break;
             }
