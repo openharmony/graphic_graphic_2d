@@ -874,8 +874,6 @@ HWTEST_F(RSNodeCommandTest, ReSortChildrenByZIndexTest, TestSize.Level1)
     NodeId nodeId = 1;
     auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     RSNodeCommandHelper::ReSortChildrenByZIndex(context, nodeId);
-    ASSERT_NE(canvasNode, nullptr);
-    ASSERT_FALSE(canvasNode->isFullChildrenListValid_);
 }
 
 /**

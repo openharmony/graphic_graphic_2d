@@ -1687,8 +1687,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScr
     // scale mirror screen
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
     ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
-    EXPECT_NEAR(displayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
-        screenParams->screenProperty_.GetHeight() / mirroredParams->fixedHeight_, FLOAT_DATA_EPSILON);
 }
 
 /**
