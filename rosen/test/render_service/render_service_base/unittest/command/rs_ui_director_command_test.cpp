@@ -20,7 +20,6 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_ui_render_director.h"
-#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -140,9 +139,9 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopDestroyTokenNodeG
         renderNode->SetUIContextToken(token);
         rsContext.GetMutableNodeMap().RegisterRenderNode(renderNode);
         ASSERT_NE(rsContext.GetMutableNodeMap().GetRenderNode(nodeId), nullptr);
- 
+
         RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
- 
+
         // Node should be removed because DestroyTokenNode was called
         EXPECT_EQ(rsContext.GetMutableNodeMap().GetRenderNode(nodeId), nullptr);
         auto director = rsContext.GetUIRenderDirector(pid, token);

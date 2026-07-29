@@ -46,7 +46,9 @@
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_ui_render_director.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_innovation.h"
@@ -7420,5 +7422,53 @@ HWTEST_F(RSMainThreadTest, GetProtectiveSolidDrawables002, TestSize.Level1)
     mainThread->protectiveSolidDrawables_.clear();
 }
 
+/**
+ * @tc.name: ConsumeAndUpdateAllNodesStoppedDirector001
+ * @tc.desc: ConsumeAndUpdateAllNodes skips surface nodes whose director is in STOP state.
+ * @tc.type: FUNC
+ * @tc.require: issueI590LM
+ */
+HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodesStoppedDirector001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->timestamp_ = 1000;
+
+    // Clear node maps
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->OnRegister(mainThread->context_);
+    EXPECT_TRUE(mainThread->context_->GetMutableNodeMap().RegisterRenderNode(rsSurfaceRenderNode));
+
+    // Set up a director and put it in STOP state
+    constexpr uint64_t token = 9999;
+    rsSurfaceRenderNode->SetUIContextToken(token);
+    pid_t pid = ExtractPid(rsSurfaceRenderNode->GetId());
+    mainThread->context_->CreateUIRenderDirector(pid, token);
+    auto director = mainThread->context_->GetUIRenderDirector(pid, token);
+    ASSERT_NE(director, nullptr);
+    director->OnStateSync(RSUIDirectorLifecycleState::STOP);
+    ASSERT_TRUE(rsSurfaceRenderNode->IsUIRenderDirectorStopped());
+
+    // Reset forceRefresh before the call
+    mainThread->isForceRefresh_ = false;
+    // Provide a buffer so ConsumeAndUpdateAllNodes would normally process this node
+    auto surfaceHandler = rsSurfaceRenderNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetAvailableBufferCount(1);
+
+    mainThread->ConsumeAndUpdateAllNodes();
+
+    // When the director is STOP, ConsumeAndUpdateAllNodes skips the node early,
+    // so isForceRefresh_ should remain false (the node's ForceRefresh is never checked)
+    EXPECT_FALSE(mainThread->isForceRefresh_);
+
+    mainThread->isUniRender_ = isUniRender;
+}
 } // namespace OHOS::Rosen
 #endif
