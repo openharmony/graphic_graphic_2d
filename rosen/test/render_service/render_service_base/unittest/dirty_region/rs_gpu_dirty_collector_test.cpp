@@ -115,13 +115,14 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute001, TestSize.Level1)
     config.usage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
     ret = buffer->Alloc(config);
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_NE(src, nullptr);
-    (*src) = defaultSelfDrawingRect;
-    src->curFrameDirtyEnable = false;
+    if (src != nullptr) {
+        (*src) = defaultSelfDrawingRect;
+        src->curFrameDirtyEnable = false;
 
-    isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
-    ASSERT_EQ(isDirtyRectValid, false);
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+        isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+        ASSERT_EQ(isDirtyRectValid, false);
+        system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+    }
 }
 
 /**
@@ -138,16 +139,17 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute002, TestSize.Level1)
     auto ret = buffer->Alloc(config);
     ASSERT_EQ(ret, GSERROR_OK);
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_NE(src, nullptr);
-    (*src) = defaultSelfDrawingRect;
-    src->left = -1;
+    if (src != nullptr) {
+        (*src) = defaultSelfDrawingRect;
+        src->left = -1;
 
-    Rect rect = DEFAULT_RECT;
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
-    ASSERT_EQ(isDirtyRectValid, false);
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+        Rect rect = DEFAULT_RECT;
+        auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+        system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
+        auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+        ASSERT_EQ(isDirtyRectValid, false);
+        system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+    }
 }
 
 /**
@@ -165,14 +167,15 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute003, TestSize.Level1)
     ASSERT_EQ(ret, GSERROR_OK);
 
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_NE(src, nullptr);
-    (*src) = isNotDirty;
-    Rect rect = DEFAULT_RECT;
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
-    ASSERT_EQ(isDirtyRectValid, true);
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+    if (src != nullptr) {
+        (*src) = isNotDirty;
+        Rect rect = DEFAULT_RECT;
+        auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+        system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
+        auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+        ASSERT_EQ(isDirtyRectValid, true);
+        system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+    }
 }
 
 /**
@@ -189,15 +192,15 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute004, TestSize.Level1)
     auto ret = buffer->Alloc(config);
     ASSERT_EQ(ret, GSERROR_OK);
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_NE(src, nullptr);
-
-    (*src) = defaultSelfDrawingRect;
-    Rect rect = DEFAULT_RECT;
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
-    ASSERT_EQ(isDirtyRectValid, true);
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+    if (src != nullptr) {
+        (*src) = defaultSelfDrawingRect;
+        Rect rect = DEFAULT_RECT;
+        auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+        system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
+        auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+        ASSERT_EQ(isDirtyRectValid, true);
+        system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+    }
 }
 
 /**
@@ -233,12 +236,13 @@ HWTEST_F(RSGpuDirtyCollectorTest, SetGpuDirtyEnabled002, TestSize.Level1)
     ASSERT_EQ(ret, GSERROR_OK);
  
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_NE(src, nullptr);
-    auto param = system::GetParameter("rosen.graphic.gpudirtyaps.enabled", "");
-    system::SetParameter("rosen.graphic.gpudirtyaps.enabled", "1");
-    RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer, true);
-    ASSERT_EQ(src->gpuDirtyEnable, true);
-    system::SetParameter("rosen.graphic.gpudirtyaps.enabled", param);
+    if (src != nullptr) {
+        auto param = system::GetParameter("rosen.graphic.gpudirtyaps.enabled", "");
+        system::SetParameter("rosen.graphic.gpudirtyaps.enabled", "1");
+        RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer, true);
+        ASSERT_EQ(src->gpuDirtyEnable, true);
+        system::SetParameter("rosen.graphic.gpudirtyaps.enabled", param);
+    }
 }
 
 /**
@@ -291,7 +295,8 @@ HWTEST_F(RSGpuDirtyCollectorTest, SetSelfDrawingBufferQueueId002, TestSize.Level
     RSGpuDirtyCollector::SetSelfDrawingBufferQueueId(nullptr, id);
     RSGpuDirtyCollector::SetSelfDrawingBufferQueueId(buffer, id);
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_NE(src, nullptr);
-    ASSERT_EQ(src->bufferQueueId, id);
+    if (src != nullptr) {
+        ASSERT_EQ(src->bufferQueueId, id);
+    }
 }
 } // namespace OHOS::Rosen

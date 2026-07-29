@@ -21,6 +21,7 @@
 #include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
@@ -488,7 +489,14 @@ HWTEST_F(RSPropertyDrawableTest, IsFilterCacheValidForPartialRender_WithFilterDr
         std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     adapter->filterDrawables_ = { filterDrawable };
     
+    bool origCCMEnable = RSFilterCacheManager::isCCMFilterCacheEnable_;
+    auto origUniRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = true;
+    RSUniRenderJudgement::uniRenderEnabledType_ =
+        UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
     EXPECT_TRUE(adapter->IsFilterCacheValidForPartialRender());
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = origCCMEnable;
+    RSUniRenderJudgement::uniRenderEnabledType_ = origUniRenderType;
 }
 
 /**
