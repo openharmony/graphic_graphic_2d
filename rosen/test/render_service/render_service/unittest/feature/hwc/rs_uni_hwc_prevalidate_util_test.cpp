@@ -906,7 +906,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppEnabled, T
 
     RequestLayerInfo info;
     bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
-        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
     ASSERT_EQ(ret, true);
     EXPECT_EQ(surfaceNode->GetArsrTag(), false);
     EXPECT_EQ(info.perFrameParameters.find("ArsrDoEnhance"), info.perFrameParameters.end());
@@ -933,7 +933,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppNotEnabled
 
     RequestLayerInfo info;
     bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
-        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
     ASSERT_EQ(ret, true);
     EXPECT_EQ(surfaceNode->GetArsrTag(), true);
     auto it = info.perFrameParameters.find("ArsrDoEnhance");
@@ -963,7 +963,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppNotFound, 
 
     RequestLayerInfo info;
     bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
-        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
     ASSERT_EQ(ret, true);
     EXPECT_EQ(surfaceNode->GetArsrTag(), true);
     auto it = info.perFrameParameters.find("ArsrDoEnhance");
@@ -994,7 +994,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppArsrPreDis
 
     RequestLayerInfo info;
     bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
-        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
     ASSERT_EQ(ret, true);
     EXPECT_EQ(info.perFrameParameters.find("ArsrDoEnhance"), info.perFrameParameters.end());
 }
@@ -1020,7 +1020,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppNonYuvBuff
 
     RequestLayerInfo info;
     bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
-        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
     ASSERT_EQ(ret, true);
     EXPECT_EQ(info.perFrameParameters.find("ArsrDoEnhance"), info.perFrameParameters.end());
 }
