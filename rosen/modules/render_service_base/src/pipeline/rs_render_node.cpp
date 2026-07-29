@@ -4625,28 +4625,16 @@ bool RSRenderNode::GetGeoUpdateDelay() const
     return geoUpdateDelay_;
 }
 
-bool RSRenderNode::IsUIRenderDirectorStopped()
+bool RSRenderNode::IsUIRenderDirectorStopped() const
 {
-    // tokens are generated as (tid << 32) | counter, 0 means no associated UIContext
-    if (GetUIContextToken() == 0) {
+    auto context = context_.lock();
+    if (context == nullptr) {
         return false;
     }
-    std::shared_ptr<RSUIRenderDirector> director;
-    {
-        std::lock_guard<std::mutex> lock(uiRenderDirectorCacheMutex_);
-        director = cachedUIRenderDirector_.lock();
-    }
+    std::shared_ptr<RSUIRenderDirector> director =
+        context->GetUIRenderDirector(ExtractPid(GetId()), GetUIContextToken());
     if (director == nullptr) {
-        auto context = context_.lock();
-        if (context == nullptr) {
-            return false;
-        }
-        director = context->GetUIRenderDirector(ExtractPid(GetId()), GetUIContextToken());
-        if (director == nullptr) {
-            return false;
-        }
-        std::lock_guard<std::mutex> lock(uiRenderDirectorCacheMutex_);
-        cachedUIRenderDirector_ = director;
+        return false;
     }
     return director->GetCurrentState() == RSUIDirectorLifecycleState::STOP;
 }
