@@ -54,8 +54,8 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
         HILOG_COMM_ERROR("HgmConfigCallbackManager %{public}s : callback is null.", __func__);
         return;
     }
-    if (animDynamicCfgCallbacks_.find(pid) == animDynamicCfgCallbacks_.end() &&
-        animDynamicCfgCallbacks_.size() >= MAX_CALLBACK_PID_KEYS) {
+    if (animDynamicCfgCallbacks_.size() >= MAX_CALLBACK_PID_KEYS &&
+        animDynamicCfgCallbacks_.find(pid) == animDynamicCfgCallbacks_.end()) {
         HGM_LOGI("HgmConfigCallbackManager %{public}s : pid %{public}d rejected", __func__, pid);
         return;
     }
@@ -100,8 +100,8 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
         HILOG_COMM_ERROR("HgmRefreshRateModeCallbackManager %{public}s : callback is null.", __func__);
         return;
     }
-    if (refreshRateModeCallbacks_.find(pid) == refreshRateModeCallbacks_.end() &&
-        refreshRateModeCallbacks_.size() >= MAX_CALLBACK_PID_KEYS) {
+    if (refreshRateModeCallbacks_.size() >= MAX_CALLBACK_PID_KEYS &&
+        refreshRateModeCallbacks_.find(pid) == refreshRateModeCallbacks_.end()) {
         HGM_LOGI("HgmConfigCallbackManager %{public}s : pid %{public}" PRIu64 " rejected", __func__, pid);
         return;
     }
@@ -122,8 +122,8 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
         }
         return;
     }
-    if (refreshRateUpdateCallbacks_.find(pid) == refreshRateUpdateCallbacks_.end() &&
-        refreshRateUpdateCallbacks_.size() >= MAX_CALLBACK_PID_KEYS) {
+    if (refreshRateUpdateCallbacks_.size() >= MAX_CALLBACK_PID_KEYS &&
+        refreshRateUpdateCallbacks_.find(pid) == refreshRateUpdateCallbacks_.end()) {
         HGM_LOGI("HgmConfigCallbackManager %{public}s : pid %{public}" PRIu64 " rejected", __func__, pid);
         return;
     }
