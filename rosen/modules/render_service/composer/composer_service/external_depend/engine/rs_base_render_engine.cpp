@@ -86,7 +86,7 @@ static void ApplyYcbcrChannelSwapFilter(Drawing::Brush& paint)
         1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f, 0.0f
     };
-    auto rbSwapFilter = Drawing::ColorFilter::CreateFloatColorFilter(rbSwapMatrix);
+    static auto rbSwapFilter = Drawing::ColorFilter::CreateFloatColorFilter(rbSwapMatrix);
     if (rbSwapFilter == nullptr) {
         RS_LOGE("ApplyYcbcrChannelSwapFilter: failed to create R↔B swap color filter");
         return;
