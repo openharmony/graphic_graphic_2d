@@ -155,6 +155,17 @@ public:
     {
         firstBufferRotation_ = bufferRotation;
     }
+
+    bool IsFirstFrameFlushed() const
+    {
+        return firstFrameFlushed_;
+    }
+
+    void SetFirstFrameFlushed(bool flushed)
+    {
+        firstFrameFlushed_ = flushed;
+    }
+
     void CheckAndUpdateFilterCacheOcclusionFast();
 
 private:
@@ -229,6 +240,8 @@ private:
 
     bool accumulateDirtyInSkipFrame_ = false;
     uint64_t curDisplayScreenId_ = 0;
+
+    bool firstFrameFlushed_ = false;
 
 #ifdef USE_PRIMITIVE
     std::vector<RectI> lastDamageRegionrects_;
