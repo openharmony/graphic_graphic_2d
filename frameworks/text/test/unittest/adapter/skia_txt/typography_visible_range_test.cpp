@@ -116,7 +116,9 @@ HWTEST_F(OhDrawingTypographyTest, TypographyGetVisibleTextRangesZeroMaxLineTest,
     ASSERT_NE(typography, nullptr);
 
     std::vector<TextRange> ranges = typography->GetVisibleTextRanges();
-    EXPECT_EQ(ranges.size(), 0);
+    EXPECT_EQ(ranges.size(), 1);
+    EXPECT_EQ(ranges[0].start, 0);
+    EXPECT_EQ(ranges[0].end, 0);
 }
 
 /*

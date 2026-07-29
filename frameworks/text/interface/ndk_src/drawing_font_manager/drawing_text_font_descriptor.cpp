@@ -542,18 +542,17 @@ OH_Drawing_FontVariationInstance* OH_Drawing_GetFontVariationInstanceByIndex(
         return nullptr;
     }
 
-    {
-        std::unique_lock<std::shared_mutex> cacheLock(g_instanceCacheMutex);
-        ObjectArray* instanceArray = reinterpret_cast<ObjectArray*>(array);
-        if (instanceArray != nullptr && instanceArray->addr != nullptr &&
-            instanceArray->type == ObjectType::FONT_VARIATION_INSTANCE && index < instanceArray->num) {
-            Drawing::FontParser::FontVariationInstance* variationInstance =
-                static_cast<Drawing::FontParser::FontVariationInstance*>(instanceArray->addr);
-            auto* instance = &variationInstance[index];
-
+    ObjectArray* instanceArray = reinterpret_cast<ObjectArray*>(array);
+    if (instanceArray != nullptr && instanceArray->addr != nullptr &&
+        instanceArray->type == ObjectType::FONT_VARIATION_INSTANCE && index < instanceArray->num) {
+        Drawing::FontParser::FontVariationInstance* variationInstance =
+            static_cast<Drawing::FontParser::FontVariationInstance*>(instanceArray->addr);
+        auto* instance = &variationInstance[index];
+        {
+            std::unique_lock<std::shared_mutex> cacheLock(g_instanceCacheMutex);
             g_instanceCache.try_emplace(instance, instanceArray, nullptr);
-            return reinterpret_cast<OH_Drawing_FontVariationInstance*>(instance);
         }
+        return reinterpret_cast<OH_Drawing_FontVariationInstance*>(instance);
     }
 
     return nullptr;

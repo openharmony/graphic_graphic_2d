@@ -736,6 +736,7 @@ void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) const
     size_t lineCount = GetLineCount();
     if (lineCount == 0) {
         TEXT_LOGW("lineCount is 0");
+        fitRanges.push_back({0, 0})
         return;
     }
     Range<size_t> ellipsisRange = GetEllipsisTextRange();
