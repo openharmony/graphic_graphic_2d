@@ -1911,7 +1911,6 @@ ErrCode RSClientToServiceConnection::NotifyXComponentExpectedFrameRate(const std
         RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
-
     hgmContext_->NotifyXComponentExpectedFrameRate(remotePid_, id, expectedFrameRate);
     return ERR_OK;
 }
