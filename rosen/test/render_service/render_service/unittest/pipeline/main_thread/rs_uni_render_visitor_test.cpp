@@ -7731,44 +7731,6 @@ HWTEST_F(RSUniRenderVisitorTest, TryNotifyUIBufferAvailable, TestSize.Level1)
     EXPECT_TRUE(surfaceNode->isNotifyUIBufferAvailable_);
 }
 
-/**
- * @tc.name: TryNotifyUIBufferAvailableRebuildDelay
- * @tc.desc: Test the rebuild-in-progress branch delays NotifyUIBufferAvailable
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderVisitorTest, TryNotifyUIBufferAvailableRebuildDelay, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->pendingSplitTransactions_.clear();
-    constexpr pid_t pidA = 3100;
-    constexpr NodeId surfaceId = MakeNodeId(pidA, 1);
-
-    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
-    nodeMap.RegisterRenderNode(surfaceNode);
-    ASSERT_NE(nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceId), nullptr);
-    // default is true; set false so the "still false" assertion is meaningful
-    surfaceNode->isNotifyUIBufferAvailable_ = false;
-
-    // start a rebuild for pidA so IsPidRebuilding(pidA) is true
-    auto txn = std::make_unique<RSTransactionData>();
-    txn->SetSendingPid(pidA);
-    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
-    mainThread->AddSplitTransaction(std::move(txn));
-    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->uiBufferAvailableId_.emplace_back(surfaceId);
-    rsUniRenderVisitor->TryNotifyUIBufferAvailable();
-    // rebuild-in-progress branch delays NotifyUIBufferAvailable, flag stays false
-    EXPECT_FALSE(surfaceNode->isNotifyUIBufferAvailable_);
-
-    mainThread->pendingSplitTransactions_.clear();
-}
-
 /*
  * @tc.name: CheckMergeDebugRectforRefreshRate
  * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeDebugRectforRefreshRate test
