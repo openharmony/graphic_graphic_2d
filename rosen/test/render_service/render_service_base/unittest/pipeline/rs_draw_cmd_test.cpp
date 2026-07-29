@@ -1273,21 +1273,34 @@ HWTEST_F(RSDrawCmdTest, DrawSurfaceBufferOpItemPlaybackRecording001, TestSize.Le
  */
 HWTEST_F(RSDrawCmdTest, RSExtendImageObjectFlushImageCacheTest001, TestSize.Level1)
 {
-    // RSExtendImageObject: rsImage_ is nullptr by default, should not crash
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> validPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(validPixelMap, nullptr);
+
+    // RSExtendImageObject: rsImage_ is nullptr by default
     RSExtendImageObject extendImageObject;
     extendImageObject.FlushImageCache();
-    // RSExtendImageObject: with valid pixelMap, FlushCache should not crash
-    RSExtendImageObject extendImageObjectWithPixelMap(pixelMap, imageInfo);
-    extendImageObjectWithPixelMap.FlushImageCache();
+    EXPECT_EQ(extendImageObject.rsImage_, nullptr);
 
-    // RSExtendImageBaseObj: rsImage_ is nullptr by default, should not crash
+    // RSExtendImageObject: with valid pixelMap, rsImage_ is set and FlushImageCache enters if branch
+    RSExtendImageObject extendImageObjectWithPixelMap(validPixelMap, imageInfo);
+    extendImageObjectWithPixelMap.FlushImageCache();
+    ASSERT_NE(extendImageObjectWithPixelMap.rsImage_, nullptr);
+
+    // RSExtendImageBaseObj: rsImage_ is nullptr by default
     RSExtendImageBaseObj extendImageBaseObj;
     extendImageBaseObj.FlushImageCache();
-    // RSExtendImageBaseObj: with valid pixelMap
+    EXPECT_EQ(extendImageBaseObj.rsImage_, nullptr);
+
+    // RSExtendImageBaseObj: with valid pixelMap, rsImage_ is set and FlushImageCache enters if branch
     Drawing::Rect src(0, 0, 100, 100);
     Drawing::Rect dst(0, 0, 100, 100);
-    RSExtendImageBaseObj extendImageBaseObjWithPixelMap(pixelMap, src, dst);
+    RSExtendImageBaseObj extendImageBaseObjWithPixelMap(validPixelMap, src, dst);
     extendImageBaseObjWithPixelMap.FlushImageCache();
+    ASSERT_NE(extendImageBaseObjWithPixelMap.rsImage_, nullptr);
 }
 
 /**
@@ -1297,18 +1310,31 @@ HWTEST_F(RSDrawCmdTest, RSExtendImageObjectFlushImageCacheTest001, TestSize.Leve
  */
 HWTEST_F(RSDrawCmdTest, RSExtendImageObjectFlushImageCacheTest002, TestSize.Level1)
 {
-    // RSExtendImageNineObject: rsImage_ is nullptr by default, should not crash
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> validPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(validPixelMap, nullptr);
+
+    // RSExtendImageNineObject: rsImage_ is nullptr by default
     RSExtendImageNineObject extendImageNineObj;
     extendImageNineObj.FlushImageCache();
-    // RSExtendImageNineObject: with valid pixelMap
-    RSExtendImageNineObject extendImageNineObjWithPixelMap(pixelMap);
-    extendImageNineObjWithPixelMap.FlushImageCache();
+    EXPECT_EQ(extendImageNineObj.rsImage_, nullptr);
 
-    // RSExtendImageLatticeObject: rsImage_ is nullptr by default, should not crash
+    // RSExtendImageNineObject: with valid pixelMap, rsImage_ is set and FlushImageCache enters if branch
+    RSExtendImageNineObject extendImageNineObjWithPixelMap(validPixelMap);
+    extendImageNineObjWithPixelMap.FlushImageCache();
+    ASSERT_NE(extendImageNineObjWithPixelMap.rsImage_, nullptr);
+
+    // RSExtendImageLatticeObject: rsImage_ is nullptr by default
     RSExtendImageLatticeObject extendImageLatticeObj;
     extendImageLatticeObj.FlushImageCache();
-    // RSExtendImageLatticeObject: with valid pixelMap
-    RSExtendImageLatticeObject extendImageLatticeObjWithPixelMap(pixelMap);
+    EXPECT_EQ(extendImageLatticeObj.rsImage_, nullptr);
+
+    // RSExtendImageLatticeObject: with valid pixelMap, rsImage_ is set and FlushImageCache enters if branch
+    RSExtendImageLatticeObject extendImageLatticeObjWithPixelMap(validPixelMap);
     extendImageLatticeObjWithPixelMap.FlushImageCache();
+    ASSERT_NE(extendImageLatticeObjWithPixelMap.rsImage_, nullptr);
 }
 } // namespace OHOS::Rosen
