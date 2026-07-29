@@ -25,6 +25,7 @@ sptr<HgmConfigCallbackManager> HgmConfigCallbackManager::instance_ = nullptr;
 namespace {
 constexpr int32_t DESTROYED_XCOMPONENT_FRAMERATE = -1;
 constexpr int32_t MAX_XCOMPONENT_ID_NUMS = 50;
+constexpr size_t MAX_CALLBACK_PID_KEYS = 256;
 }
 
 sptr<HgmConfigCallbackManager> HgmConfigCallbackManager::GetInstance() noexcept
@@ -51,6 +52,14 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
 {
     if (callback == nullptr) {
         HILOG_COMM_ERROR("HgmConfigCallbackManager %{public}s : callback is null.", __func__);
+        return;
+    }
+    if (animDynamicCfgCallbacks_.find(pid) == animDynamicCfgCallbacks_.end() &&
+        animDynamicCfgCallbacks_.size() >= MAX_CALLBACK_PID_KEYS) {
+        HGM_LOGE("HgmConfigCallbackManager %{public}s : pid %{public}d rejected, "
+            "callback size %{public}u exceed limit %{public}u",
+            __func__, pid, static_cast<uint32_t>(animDynamicCfgCallbacks_.size()),
+            static_cast<uint32_t>(MAX_CALLBACK_PID_KEYS));
         return;
     }
     animDynamicCfgCallbacks_[pid] = callback;
@@ -94,6 +103,14 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
         HILOG_COMM_ERROR("HgmRefreshRateModeCallbackManager %{public}s : callback is null.", __func__);
         return;
     }
+    if (refreshRateModeCallbacks_.find(pid) == refreshRateModeCallbacks_.end() &&
+        refreshRateModeCallbacks_.size() >= MAX_CALLBACK_PID_KEYS) {
+        HGM_LOGE("HgmRefreshRateModeCallbackManager %{public}s : pid %{public}d rejected, "
+            "callback size %{public}u exceed limit %{public}u",
+            __func__, pid, static_cast<uint32_t>(refreshRateModeCallbacks_.size()),
+            static_cast<uint32_t>(MAX_CALLBACK_PID_KEYS));
+        return;
+    }
     refreshRateModeCallbacks_[pid] = callback;
     HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : add a remote callback succeed.", __func__);
 
@@ -109,6 +126,14 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
             refreshRateUpdateCallbacks_.erase(pid);
             HGM_LOGD("refreshRateUpdateCallbacks unregister succ, remove pid %{public}d", pid);
         }
+        return;
+    }
+    if (refreshRateUpdateCallbacks_.find(pid) == refreshRateUpdateCallbacks_.end() &&
+        refreshRateUpdateCallbacks_.size() >= MAX_CALLBACK_PID_KEYS) {
+        HGM_LOGE("HgmRefreshRateUpdateCallbackManager %{public}s : pid %{public}d rejected, "
+            "callback size %{public}u exceed limit %{public}u",
+            __func__, pid, static_cast<uint32_t>(refreshRateUpdateCallbacks_.size()),
+            static_cast<uint32_t>(MAX_CALLBACK_PID_KEYS));
         return;
     }
     refreshRateUpdateCallbacks_[pid] = callback;
@@ -257,6 +282,8 @@ void HgmConfigCallbackManager::SyncXComponentExpectedFrameRateCallback(
             HGM_LOGE("HgmConfigCallbackManager xcomponentIdNums is largest");
             return;
         }
+    } else if (xcomponentExpectedFrameRate_.size() >= MAX_CALLBACK_PID_KEYS) {
+        return;
     }
 
     // store framerate
