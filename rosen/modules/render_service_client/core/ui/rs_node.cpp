@@ -664,6 +664,8 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
         AddAnimationInner(animation);
     }
 
+    RebuildTree();
+
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
         animation->Pause();
