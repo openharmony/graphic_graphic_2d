@@ -275,6 +275,7 @@ constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 const std::string  FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
 constexpr uint32_t MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME = 1;
+constexpr size_t REBUILD_TRACE_INDEX_ENTRY_OVERHEAD = 24; // '[' + ',' + ']' + max 20 digits of uint64_t
 
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE = 96 * (1 << 20);
@@ -6424,7 +6425,7 @@ void RSMainThread::ProcessPendingCommandsDuringRebuild(pid_t pid)
 
     std::string pidStr = std::to_string(pid);
     std::string indexInfo;
-    indexInfo.reserve(it->second.size() * (pidStr.size() + 24));
+    indexInfo.reserve(it->second.size() * (pidStr.size() + REBUILD_TRACE_INDEX_ENTRY_OVERHEAD));
     for (const auto& transaction : it->second) {
         if (transaction) {
             indexInfo += '[';
