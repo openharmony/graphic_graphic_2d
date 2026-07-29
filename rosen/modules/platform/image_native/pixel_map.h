@@ -197,6 +197,8 @@ public:
         transformData_ = transformData;
     }
 
+    NATIVEEXPORT void FlushCache() const;
+
 private:
     static constexpr uint8_t TLV_VARINT_BITS = 7;
     static constexpr uint8_t TLV_VARINT_MASK = 0x7F;
