@@ -178,7 +178,7 @@ public:
 
 private:
     static std::mutex mutex_;
-    static std::unordered_map<NodeId, std::unique_ptr<RSTunnelRuntimeState>> tunnelRuntimeStates_;
+    static std::unordered_map<NodeId, std::shared_ptr<RSTunnelRuntimeState>> tunnelRuntimeStates_;
 };
 } // namespace Rosen
 } // namespace OHOS

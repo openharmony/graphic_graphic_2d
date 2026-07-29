@@ -183,13 +183,16 @@ bool RSTunnelLayerManager::HandleLppTunnelLayerId(
 void RSTunnelLayerManager::ResetTunnelLayerState(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
     const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
+    if (surfaceNode == nullptr) {
+        return;
+    }
     uint64_t tunnelLayerId = 0;
     uint32_t tunnelLayerProperty = TUNNEL_PROP_INVALID;
     RSTunnelRuntimeStore::GetLayerInfoOrDefault(surfaceNode->GetId(), tunnelLayerId, tunnelLayerProperty);
     if (tunnelLayerId != 0) {
         auto tunnelLayerGeneration = RSTunnelRuntimeStore::GetTunnelLayerGeneration(surfaceNode->GetId());
         ProcessLayerStateChanged(surfaceHandler, surfaceNode->GetId(), LayerStateChange::UNAVAILABLE,
-            tunnelLayerGeneration, surfaceHandler->GetConsumer());
+            tunnelLayerGeneration, surfaceHandler ? surfaceHandler->GetConsumer() : nullptr);
         return;
     }
     RSTunnelLayerHelper::ResetTunnelState(surfaceNode);

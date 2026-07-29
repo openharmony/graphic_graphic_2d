@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 std::mutex RSTunnelRuntimeStore::mutex_;
-std::unordered_map<NodeId, std::unique_ptr<RSTunnelRuntimeState>> RSTunnelRuntimeStore::tunnelRuntimeStates_;
+std::unordered_map<NodeId, std::shared_ptr<RSTunnelRuntimeState>> RSTunnelRuntimeStore::tunnelRuntimeStates_;
 
 void RSTunnelRuntimeState::SetLayerInfo(uint64_t tunnelLayerId, uint32_t property)
 {
@@ -191,7 +191,7 @@ RSTunnelRuntimeState& RSTunnelRuntimeStore::GetOrCreate(NodeId nodeId)
     std::lock_guard<std::mutex> lock(mutex_);
     auto& tunnelRuntime = tunnelRuntimeStates_[nodeId];
     if (tunnelRuntime == nullptr) {
-        tunnelRuntime = std::make_unique<RSTunnelRuntimeState>();
+        tunnelRuntime = std::make_shared<RSTunnelRuntimeState>();
     }
     return *tunnelRuntime;
 }
