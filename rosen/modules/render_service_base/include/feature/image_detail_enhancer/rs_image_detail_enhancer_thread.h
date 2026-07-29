@@ -108,6 +108,7 @@ private:
     std::unordered_map<uint64_t, bool> processStatusMap_ = {};
     std::unordered_map<uint64_t, bool> processReadyMap_ = {};
     std::function<void(uint64_t)> callback_{};
+    std::mutex callbackMutex_{};
     mutable std::mutex mapMutex_{};
     float curCache_ = 0.0f;
     long long releaseTime_ = 0;
