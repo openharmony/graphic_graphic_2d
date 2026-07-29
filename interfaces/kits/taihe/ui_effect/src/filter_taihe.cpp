@@ -309,8 +309,7 @@ Filter FilterImpl::RadiusGradientBlur(double value, uintptr_t options)
         ani_obj, "direction", reinterpret_cast<ani_ref *>(&direction)) == ANI_OK) {
         ani_enum_item enumItem = static_cast<ani_enum_item>(direction);
         ani_int value = 0;
-        if (env->EnumItem_GetValue_Int(enumItem, &value) == ANI_OK)
-        {
+        if (env->EnumItem_GetValue_Int(enumItem, &value) == ANI_OK) {
             const ani_int minDir = static_cast<ani_int>(OHOS::Rosen::GradientDirection::LEFT);
             const ani_int maxDir = static_cast<ani_int>(OHOS::Rosen::GradientDirection::NONE);
             if (value >= minDir && value <= maxDir)
