@@ -3539,15 +3539,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
         return;
     }
     auto& properties = node.GetRenderProperties();
-    bool isUnSupportLayer =
-        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || RSOpincManager::IsSuggestOpincNode(node) ||
-            node.GetSharedTransitionParam() || properties.IsSpherizeValid() || properties.IsAttractionValid() ||
-            properties.NeedFilter() || properties.GetUseEffect() || properties.HasHarmonium() ||
-            node.ChildHasVisibleEffect() || properties.GetSandBox().has_value() || properties.IsShadowValid() ||
-            properties.IsColorBlendModeValid() || properties.IsColorBlendApplyTypeOffscreen() ||
-            properties.GetLinearGradientBlurPara() != nullptr || properties.IsFgBrightnessValid() ||
-            properties.GetForegroundFilter() != nullptr || properties.GetFilter() != nullptr ||
-            node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+    bool isUnSupportLayer = RSLayerCacheManagerBase::CheckNodeUnSupportLayer(node);
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*nodeParent, true);
     }
