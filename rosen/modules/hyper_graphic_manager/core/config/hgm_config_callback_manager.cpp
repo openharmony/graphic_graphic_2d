@@ -270,7 +270,7 @@ void HgmConfigCallbackManager::SyncXComponentExpectedFrameRateCallback(
             return;
         }
         if (xcomponentIdFps.size() >= MAX_XCOMPONENT_ID_NUMS) {
-            HGM_LOGI("HgmConfigCallbackManager %{public}s : xcomponentId rejected", __func__,);
+            HGM_LOGI("HgmConfigCallbackManager %{public}s : xcomponentId rejected", __func__);
             return;
         }
     } else if (xcomponentExpectedFrameRate_.size() >= MAX_CALLBACK_PID_KEYS) {

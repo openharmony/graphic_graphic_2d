@@ -18,6 +18,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+uint32_t size_t MAX_PAGE_URL_PID_KEYS = 256;
+}
 
 void HgmAppPageUrlStrategy::SetPageUrlConfig(PolicyConfigData::PageUrlConfigMap pageUrlConfig)
 {
@@ -91,7 +94,6 @@ void HgmAppPageUrlStrategy::NotifyPageName(pid_t pid, const std::string& package
         " isEnter=%{public}d", pid, packageName.c_str(), pageName.c_str(), isEnter);
     VoterInfo voterInfo = {false, packageName, pageName};
     if (pageUrlVoterInfo_.count(pid) <= 0) {
-        static const size_t MAX_PAGE_URL_PID_KEYS = 256;
         if (pageUrlVoterInfo_.size() > MAX_PAGE_URL_PID_KEYS) {
             return;
         }
