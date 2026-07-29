@@ -28,6 +28,7 @@ enum RSLayerParcelType : uint16_t {
     RS_LAYER_DESTROY = 0x0001,
     RS_LAYER_UPDATE,
     RS_RCD_LAYER_UPDATE,
+    RS_SOLID_FILLED_COLOR_LAYER_UPDATE,
 };
 
 enum class LayerMask : uint16_t {

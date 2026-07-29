@@ -35,7 +35,7 @@
 
 namespace OHOS::Rosen {
 using ComposerFallbackCallback = std::function<void(const sptr<Surface>& surface,
-    const std::vector<RSLayerPtr>& layers)>;
+    const std::vector<RSLayerPtr>& layers, const std::shared_ptr<HdiOutput>& output)>;
 using SetHardwareTaskNumCallback = std::function<void(uint32_t num)>;
 using SetTaskEndWithTimeCallback = std::function<void(int64_t time)>;
 using GetRealTimeOffsetOfDvsyncCallback = std::function<uint64_t(uint64_t timestamp, int64_t& preTime)>;
@@ -113,7 +113,8 @@ private:
     void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<std::shared_ptr<RSLayer>>& layers,
         const Vector2f& rogRatio);
     void ResetScreenRCDRedrawState(std::vector<std::shared_ptr<RSLayer>>& layers);
-    void Redraw(const sptr<Surface>& surface, const std::vector<std::shared_ptr<RSLayer>>& layers);
+    void Redraw(const sptr<Surface>& surface, const std::vector<std::shared_ptr<RSLayer>>& layers,
+        const std::shared_ptr<HdiOutput>& output);
     GraphicColorGamut ComputeTargetColorGamut(const sptr<SurfaceBuffer>& buffer);
     GraphicPixelFormat ComputeTargetPixelFormat(const sptr<SurfaceBuffer>& buffer);
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);

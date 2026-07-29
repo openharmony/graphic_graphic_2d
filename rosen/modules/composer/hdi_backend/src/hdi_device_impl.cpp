@@ -804,6 +804,18 @@ int32_t HdiDeviceImpl::CommitTunnelLayer(uint32_t screenId, uint64_t tunnleId, i
     return g_composer->CommitTunnelLayer(screenId, tunnleId, releaseFence);
 }
 
+int32_t HdiDeviceImpl::GetLayerSolidFilledColor(uint32_t screenId, uint32_t layerId, uint32_t& solidFilledColor)
+{
+    CHECK_FUNC(g_composer);
+    solidFilledColor = 0;
+    LayerColor layerColor;
+    auto ret = g_composer->GetLayerColor(screenId, layerId, layerColor);
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        solidFilledColor = (layerColor.a << 24) | (layerColor.r << 16) | (layerColor.g << 8) | layerColor.b;
+    }
+    return ret;
+}
+
 int32_t HdiDeviceImpl::GetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode,
     uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode)
 {

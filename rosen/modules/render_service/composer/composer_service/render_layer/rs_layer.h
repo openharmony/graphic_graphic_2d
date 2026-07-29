@@ -176,6 +176,10 @@ public:
     {
         return false;
     };
+    virtual bool IsSolidFilledColorLayer() const
+    {
+        return false;
+    };
     virtual bool GetIsNeedComposition() const = 0;
     virtual void SetIsNeedComposition(bool isNeedComposition) = 0;
     virtual void SetVcldInfo(const RSVcldParam& vcldInfo) = 0;

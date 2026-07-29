@@ -269,6 +269,7 @@ private:
     bool splitLayerTag_ = false;
     // opinc_split end
     friend class RSSurfaceRCDLayer;
+    friend class RSSurfaceSolidFilledColorLayer;
     friend std::shared_ptr<RSLayer> Create(RSLayerId rsLayerId, const std::shared_ptr<RSComposerContext>& context);
 };
 } // namespace Rosen
