@@ -4029,6 +4029,26 @@ HWTEST_F(RSNodeTest, SetVisualEffect, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetVisualEffectWithInvalidBlenderType
+ * @tc.desc: test SetVisualEffect skips a blender whose type is not brightness
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEffectWithInvalidBlenderType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto effectObj = std::make_shared<VisualEffect>();
+    auto para = std::make_shared<BackgroundColorEffectPara>();
+    para->SetBlender(std::make_shared<ShadowBlender>());
+    effectObj->AddPara(para);
+
+    rsNode->SetVisualEffect(effectObj.get());
+
+    auto modifier =
+        rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::BACKGROUND_COLOR);
+    EXPECT_EQ(modifier, nullptr);
+}
+
+/**
  * @tc.name: SetandGetTranslateVector001
  * @tc.desc:
  * @tc.type:FUNC

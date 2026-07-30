@@ -338,10 +338,10 @@ float EffectNapi::GetSpecialValue(napi_env env, napi_value argValue)
 {
     double tmp = 0.0;
     if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
-        napi_get_value_double(env, argValue, &tmp) == napi_ok && tmp >= 0) {
+        napi_get_value_double(env, argValue, &tmp) == napi_ok) {
             return static_cast<float>(tmp);
     }
-    return tmp;
+    return 0.0f;
 }
 
 static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arraySize)
@@ -886,7 +886,8 @@ napi_value EffectNapi::CreateColorGradientEffect(napi_env env, napi_callback_inf
 
     if (argCount > NUM_3) {
         Mask* mask = nullptr;
-        if (napi_unwrap(env, argValue[NUM_3], reinterpret_cast<void**>(&mask)) && mask != nullptr) {
+        if (napi_unwrap_s(env, argValue[NUM_3], &MASK_NAPI_TYPE_TAG,
+            reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
             para->SetMask(mask->GetMaskPara());
         }
     }
@@ -1129,7 +1130,8 @@ napi_value EffectNapi::CreateFrostedGlassEffect(napi_env env, napi_callback_info
 
     if (realArgc >= minArgc + NUM_2) {
         Mask* mask = nullptr;
-        if (napi_unwrap(env, argv[NUM_26], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
+        if (napi_unwrap_s(env, argv[NUM_26], &MASK_NAPI_TYPE_TAG,
+            reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
             para->SetMask(mask->GetMaskPara());
         }
     }
@@ -1169,14 +1171,15 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
         UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect fail"));
 
     Mask* useEffectMask = nullptr;
-    status = napi_unwrap(env, argv[NUM_1], reinterpret_cast<void**>(&useEffectMask));
+    status = napi_unwrap_s(env, argv[NUM_1], &MASK_NAPI_TYPE_TAG, reinterpret_cast<void**>(&useEffectMask));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && useEffectMask != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect useEffectMask napi_unwrap fail"));
     para->SetUseEffectMask(useEffectMask->GetMaskPara());
 
     if (realArgc >= NUM_3) {
         Mask* mask = nullptr;
-        if (napi_unwrap(env, argv[NUM_2], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
+        if (napi_unwrap_s(env, argv[NUM_2], &MASK_NAPI_TYPE_TAG,
+            reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
             para->SetMask(mask->GetMaskPara());
         }
     }
