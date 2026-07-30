@@ -88,6 +88,7 @@ constexpr int32_t MAX_VISIBLE_REGION_INFO = 150;
 }
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
+RSSurfaceRenderNodeDrawable::ProtectiveSolidRegistrar RSSurfaceRenderNodeDrawable::protectiveSolidInstance_;
 
 RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawable(std::move(node)), syncDirtyManager_(std::make_shared<RSDirtyRegionManager>())

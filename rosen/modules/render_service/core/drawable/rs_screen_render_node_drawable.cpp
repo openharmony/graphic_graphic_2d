@@ -40,6 +40,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/frame_stability/rs_frame_stability_manager.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/layer/rs_layer_cache_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -644,6 +645,25 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     uniParam->SetRSProcessor(processor);
+
+    auto& protectiveSolidDrawables = uniParam->GetProtectiveSolidDrawables();
+    for (const auto& [screenNodeId, _, drawable] : protectiveSolidDrawables) {
+        if (UNLIKELY(!drawable || screenNodeId != params->GetId())) {
+            continue;
+        }
+        auto nodeId = drawable->GetId();
+        auto& protectiveSolidNodes = RSMainThread::Instance()->GetProtectiveSolidNodes();
+        auto it = std::find_if(protectiveSolidNodes.begin(), protectiveSolidNodes.end(),
+            [nodeId](const auto& node) {return node->GetId() == nodeId; });
+        if (it == protectiveSolidNodes.end()) {
+            continue;
+        }
+        auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
+        if (!surfaceDrawable) {
+            continue;
+        }
+        processor->CreateProtectiveSolidLayerForRenderThread(*surfaceDrawable);
+    }
 
     if (!screenProperty.IsVirtual()) {
         if (auto composerClientManager = RSUniRenderThread::Instance().GetComposerClientManager()) {
