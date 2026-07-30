@@ -94,6 +94,23 @@ void JsTypeface::Destructor(napi_env env, void *nativeObject, void *finalize)
     }
 }
 
+bool JsTypeface::IsInstanceOf(napi_env env, napi_value obj)
+{
+    if (obj == nullptr || constructor_ == nullptr) {
+        ROSEN_LOGE("obj or constructor_ is null");
+        return false;
+    }
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status != napi_ok) {
+        ROSEN_LOGE("Failed to get reference value, ret %{public}d", status);
+        return false;
+    }
+    bool isInstance = false;
+    status = napi_instanceof(env, obj, constructor, &isInstance);
+    return (status == napi_ok) && isInstance;
+}
+
 JsTypeface::~JsTypeface()
 {
     if (m_typeface != nullptr) {

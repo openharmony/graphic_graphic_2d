@@ -725,4 +725,40 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetNeedClearRelatedCacheTest, TestSize.Level
     params.SetNeedClearRelatedCache(true);
     EXPECT_EQ(params.IsNeedClearRelatedCache(), true);
 }
+
+/**
+ * @tc.name: SetRebuildingState001
+ * @tc.desc: Test SetRebuildingState/GetRebuildingState and needSync, including same-value early return
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetRebuildingState001, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_FALSE(params.GetRebuildingState());
+    params.SetRebuildingState(true);
+    EXPECT_TRUE(params.GetRebuildingState());
+    EXPECT_TRUE(params.needSync_);
+    params.SetRebuildingState(true); // same value -> early return
+    params.SetRebuildingState(false);
+    EXPECT_FALSE(params.GetRebuildingState());
+}
+
+/**
+ * @tc.name: SetRebuildingStateOnSync001
+ * @tc.desc: Test OnSync deep-copies isRebuildingState_ from staging to target
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetRebuildingStateOnSync001, TestSize.Level1)
+{
+    RSSurfaceRenderParams source(DEFAULT_NODEID);
+    source.SetRebuildingState(true);
+    ASSERT_TRUE(source.isRebuildingState_);
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSSurfaceRenderParams>(DEFAULT_NODEID);
+    ASSERT_NE(target, nullptr);
+    EXPECT_FALSE(static_cast<RSSurfaceRenderParams*>(target.get())->isRebuildingState_);
+    source.OnSync(target);
+    EXPECT_TRUE(static_cast<RSSurfaceRenderParams*>(target.get())->isRebuildingState_);
+}
 } // namespace OHOS::Rosen

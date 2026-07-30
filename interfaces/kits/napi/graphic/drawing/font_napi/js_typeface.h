@@ -54,6 +54,8 @@ public:
         return m_typeface;
     }
 
+    static bool IsInstanceOf(napi_env env, napi_value obj);
+
 private:
     napi_value OnGetFamilyName(napi_env env, napi_callback_info info);
     napi_value OnMakeFromCurrent(napi_env env, napi_callback_info info);

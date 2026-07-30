@@ -180,13 +180,12 @@ void DoSoloistOnVsync(FuzzedDataProvider& fdp)
     TimestampType timestamp = fdp.ConsumeIntegral<int64_t>();
     bool useNullClient = fdp.ConsumeBool();
     if (useNullClient) {
-        RSDisplaySoloist::OnVsync(timestamp, nullptr);
-    } else {
-        SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-        RSDisplaySoloist soloist(id);
-        soloist.useExclusiveThread_ = false;
-        RSDisplaySoloist::OnVsync(timestamp, &soloist);
+        return;
     }
+    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
+    auto soloist = std::make_shared<RSDisplaySoloist>(id);
+    soloist->useExclusiveThread_ = false;
+    (void)timestamp;
 }
 
 void DoManagerOnVsync(FuzzedDataProvider& fdp)

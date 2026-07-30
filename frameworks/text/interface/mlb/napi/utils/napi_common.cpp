@@ -326,6 +326,11 @@ std::shared_ptr<Drawing::Typeface> ExtractTypefaceFromJS(napi_env env, napi_valu
         return nullptr;
     }
 
+    if (!OHOS::Rosen::Drawing::JsTypeface::IsInstanceOf(env, jsObject)) {
+        TEXT_LOGW("jsObject is not a Typeface instance");
+        return nullptr;
+    }
+
     void* nativeObject = nullptr;
     napi_status unwrapStatus = napi_unwrap(env, jsObject, &nativeObject);
     if (unwrapStatus == napi_ok && nativeObject != nullptr) {
@@ -347,7 +352,6 @@ std::vector<std::shared_ptr<Drawing::Typeface>> ExtractTypefacesFromArray(
     napi_env env, napi_value typefacesArray, uint32_t arrayLength)
 {
     std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
-    typefaces.reserve(arrayLength);
 
     for (uint32_t i = 0; i < arrayLength; i++) {
         napi_value elementValue = nullptr;

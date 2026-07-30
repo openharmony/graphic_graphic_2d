@@ -1340,7 +1340,6 @@ private:
     static inline std::unordered_map<NodeId, int> subSurfaceCntMap_;
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
-    std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
     std::weak_ptr<RSContext> context_ = {};

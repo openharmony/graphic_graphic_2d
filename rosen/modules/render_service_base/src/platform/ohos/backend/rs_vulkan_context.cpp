@@ -536,7 +536,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std
     if (tid != 0) {
         realTid = tid;
     }
-    RSVulkanContext::SaveNewDrawingContext(realTid, drawingContext);
+    RsVulkanContext::SaveNewDrawingContext(realTid, drawingContext);
     return drawingContext;
 }
 

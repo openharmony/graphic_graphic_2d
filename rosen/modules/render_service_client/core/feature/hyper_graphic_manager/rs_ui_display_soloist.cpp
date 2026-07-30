@@ -61,14 +61,6 @@ RSDisplaySoloist::RSDisplaySoloist(SoloistIdType instanceId)
     vsyncTimeoutTaskName_ = TIME_OUT_TASK + std::to_string(instanceId_);
 }
 
-void RSDisplaySoloist::OnVsync(TimestampType timestamp, void* client)
-{
-    auto soloist = static_cast<RSDisplaySoloist*>(client);
-    if (soloist && soloist->useExclusiveThread_) {
-        soloist->VsyncCallbackInner(timestamp);
-    }
-}
-
 void RSDisplaySoloist::VsyncCallbackInner(TimestampType timestamp)
 {
 #ifdef RS_ENABLE_GPU
@@ -157,7 +149,14 @@ void RSDisplaySoloist::RequestNextVSync()
     }
 
     if (subReceiver_ && useExclusiveThread_) {
-        subReceiver_->RequestNextVSync(subFrameCallback_);
+        subReceiver_->RequestNextVSync(VSyncReceiver::FrameCallback{
+            .userData_ = nullptr,
+            .callback_ = [weak = weak_from_this()](TimestampType timestamp, void*) {
+                if (auto soloist = weak.lock(); soloist && soloist->useExclusiveThread_) {
+                    soloist->VsyncCallbackInner(timestamp);
+                }
+            },
+        });
         hasRequestedVsync_ = true;
     }
 #endif

@@ -387,6 +387,9 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip001, TestSize.Le
     params->SetAccumulatedDirty(false);
     params->SetAccumulatedHdrStatusChanged(false);
     bool result = RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *screenDrawable);
+    ASSERT_FALSE(result);
+    screenDrawable->firstFrameFlushed_ = true;
+    result = RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *screenDrawable);
     ASSERT_TRUE(result);
 }
 
@@ -401,6 +404,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip002, TestSize.Le
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
     ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->firstFrameFlushed_ = true;
     screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
@@ -422,6 +426,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip003, TestSize.Le
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
     ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->firstFrameFlushed_ = true;
     screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
     ASSERT_NE(screenParams, nullptr);
@@ -449,6 +454,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip004, TestSize.Le
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
     ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->firstFrameFlushed_ = true;
     screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
     ASSERT_NE(params, nullptr);

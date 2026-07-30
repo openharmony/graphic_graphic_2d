@@ -296,6 +296,11 @@ bool GradientShaderObjBase::UnmarshalCommonData(Parcel& parcel)
         LOGE("GradientShaderObjBase::UnmarshalCommonData, failed to read tile mode");
         return false;
     }
+    if (modeValue < static_cast<int32_t>(TileMode::CLAMP) ||
+        modeValue > static_cast<int32_t>(TileMode::MIRROR)) {
+        LOGD("GradientShaderObjBase::UnmarshalCommonData, invalid tile mode: %{public}d", modeValue);
+        return false;
+    }
     mode_ = static_cast<TileMode>(modeValue);
 
     // Read matrix and colorSpace

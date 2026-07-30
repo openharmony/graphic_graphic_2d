@@ -102,6 +102,6 @@ bool ImageEnhanceManager::IsNumber(const std::string& str)
     auto number = static_cast<uint32_t>(std::count_if(str.begin(), str.end(), [](unsigned char c) {
         return std::isdigit(c);
     }));
-    return number == str.length() || (str.compare(0, 1, "-") == 0 && number == str.length() - 1);
+    return number == str.length() || (str.compare(0, 1, "-") == 0 && number >= 1 && number == str.length() - 1);
 }
 } // namespace OHOS::Rosen

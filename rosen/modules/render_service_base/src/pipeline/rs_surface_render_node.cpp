@@ -1250,6 +1250,20 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
     }
 }
 
+void RSSurfaceRenderNode::SetRebuildingState(bool isRebuildingState)
+{
+    if (isRebuildingState_ == isRebuildingState) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRebuildingState(isRebuildingState);
+    AddToPendingSyncList();
+    isRebuildingState_ = isRebuildingState;
+}
+
 void RSSurfaceRenderNode::SetIsOnInternalScreen(bool isOnInternalScreen)
 {
     auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());

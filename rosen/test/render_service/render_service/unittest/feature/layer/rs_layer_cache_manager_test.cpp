@@ -895,6 +895,7 @@ HWTEST_F(RSLayerCacheManagerTest, IsNodeUnSupportLayerTest, TestSize.Level1)
     canvasNode->stagingRenderParams_->SetLayerParamsIsUnSupportLayer(true);
     EXPECT_TRUE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(canvasNode));
     EXPECT_TRUE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(*canvasNode));
+    RSLayerCacheManagerBase::CheckNodeUnSupportLayer(*canvasNode);
 
     canvasNode->stagingRenderParams_ = nullptr;
     auto& renderParams1 = canvasNode->GetStagingRenderParams();

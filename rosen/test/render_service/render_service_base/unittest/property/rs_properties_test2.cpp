@@ -698,54 +698,6 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHDRBrightnessFactor003
- * @tc.desc: test results of SetHDRBrightnessFactor
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
-{
-    RSProperties properties;
-    float initialFactor = 1.0f;
-
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
-    properties.backref_ = node;
-    properties.SetHDRBrightnessFactor(initialFactor);
-
-    NodeId displayNodeId = 5;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
-
-    NodeId screenRenderNodeId = 2;
-    ScreenId screenId = 0;
-    auto context = std::make_shared<RSContext>();
-    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
-
-    properties.backref_ = displayNode;
-    displayNode->IncreaseHDRNode(screenRenderNodeId);
-    EXPECT_NE(displayNode->hdrNodeMap_.find(screenRenderNodeId), displayNode->hdrNodeMap_.end());
-    properties.SetHDRBrightnessFactor(0.5f);
-
-    NodeId nodeId1 = 0;
-    auto node1 = std::make_shared<RSRenderNode>(nodeId1);
-    pid_t pid1 = ExtractPid(nodeId1);
-    context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
-    displayNode->IncreaseHDRNode(nodeId1);
-    properties.SetHDRBrightnessFactor(0.6f);
-
-    pid_t pid = ExtractPid(screenRenderNodeId);
-    context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = screenRenderNode;
-    properties.SetHDRBrightnessFactor(0.8f);
-
-    ScreenId displayNodeId2 = 6;
-    auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
-    properties.backref_ = displayNode2;
-    displayNode->IncreaseHDRNode(3);
-    EXPECT_NE(displayNode->hdrNodeMap_.find(3), displayNode->hdrNodeMap_.end());
-    properties.SetHDRBrightnessFactor(0.9f);
-}
-
-/**
  * @tc.name: SetCanvasNodeHDRBrightnessFactor001
  * @tc.desc: test results of SetCanvasNodeHDRBrightnessFactor
  * @tc.type: FUNC

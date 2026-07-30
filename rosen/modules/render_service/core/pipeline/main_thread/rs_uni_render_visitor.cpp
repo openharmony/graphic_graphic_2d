@@ -920,6 +920,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
         return;
     }
     UpdateVirtualDisplayInfo(node);
+    RSHdrUtil::UpdateBrightnessFactor(node);
     auto dirtyFlag = dirtyFlag_;
     displayNodeRotationChanged_ = node.IsRotationChanged();
     dirtyFlag_ |= displayNodeRotationChanged_;
@@ -3710,12 +3711,7 @@ void RSUniRenderVisitor::CollectEffectInfo(
         return;
     }
     auto& properties = node.GetRenderProperties();
-    bool isUnSupportLayer =
-        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || RSOpincManager::IsSuggestOpincNode(node) ||
-            properties.IsShadowValid() || properties.IsBgBrightnessValid() || properties.IsColorBlendModeValid() ||
-            properties.IsColorBlendApplyTypeOffscreen() || properties.GetLinearGradientBlurPara() != nullptr ||
-            properties.IsFgBrightnessValid() || properties.GetForegroundFilter() != nullptr ||
-            properties.GetFilter() != nullptr || node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+    bool isUnSupportLayer = RSLayerCacheManagerBase::CheckNodeUnSupportLayer(node);
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*nodeParent, true);
     }
@@ -4511,21 +4507,19 @@ void RSUniRenderVisitor::SetHdrWhenMultiDisplayChange()
 
 void RSUniRenderVisitor::TryNotifyUIBufferAvailable()
 {
-    bool hasRebuildTransaction = RSMainThread::Instance()->IsRebuildTransactionInProgress();
-    pid_t pendingPid = -1;
-    if (hasRebuildTransaction) {
-        pendingPid = RSMainThread::Instance()->GetPendingSplitPid();
-    }
-    
     for (auto& id : uiBufferAvailableId_) {
-        if (hasRebuildTransaction && ExtractPid(id) == pendingPid) {
-            RS_LOGI("TryNotifyUIBufferAvailable: rebuild transaction in progress, delay NotifyUIBufferAvailable");
-            continue;
-        }
         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
         auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
+        if (RSMainThread::Instance()->IsPidRebuilding(ExtractPid(id))) {
+            RS_LOGI("TryNotifyUIBufferAvailable: rebuild transaction in progress, delay NotifyUIBufferAvailable");
+            if (surfaceNode) {
+                surfaceNode->SetRebuildingState(true);
+            }
+            continue;
+        }
         if (surfaceNode) {
             surfaceNode->NotifyUIBufferAvailable();
+            surfaceNode->SetRebuildingState(false);
         }
     }
     uiBufferAvailableId_.clear();

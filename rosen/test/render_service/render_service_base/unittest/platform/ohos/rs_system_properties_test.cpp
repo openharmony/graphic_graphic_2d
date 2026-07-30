@@ -1230,5 +1230,17 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledTest, TestSize.Leve
         EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), result);
     }
 }
+
+/**
+ * @tc.name: GetSplitTransactionMaxTotalTimeMs001
+ * @tc.desc: GetSplitTransactionMaxTotalTimeMs Test - returns a positive total time budget (default 100.0ms)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSplitTransactionMaxTotalTimeMs001, TestSize.Level1)
+{
+    auto value = RSSystemProperties::GetSplitTransactionMaxTotalTimeMs();
+    EXPECT_GT(value, 0.0f);
+}
 } // namespace Rosen
 } // namespace OHOS

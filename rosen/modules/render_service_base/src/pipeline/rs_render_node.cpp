@@ -139,6 +139,8 @@ static void InitRsDrawableSlotToIndexVec()
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.shadowIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::MATERIAL_SHADER)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.materialShaderIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::SAVE_CLIP_TO_BOUNDS)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.saveClipToBoundsIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BG_SAVE_BOUNDS)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.bgSaveBoundsIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] =
@@ -207,6 +209,7 @@ bool RSRenderNode::IsPureBackgroundColor(bool isOpincSplit) const
 
     static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
         RSDrawableSlot::SAVE_ALL,
+        RSDrawableSlot::SAVE_CLIP_TO_BOUNDS,
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
         RSDrawableSlot::BACKGROUND_COLOR,
@@ -2917,24 +2920,20 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
             }
         }
     };
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
     RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
-    auto regionChangeCheckFunc = [this](RSDrawableSlot slot) {
-        auto filterDrawable = GetFilterDrawable(slot);
-        if (filterDrawable != nullptr) {
-            auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-            auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-            bool regionChanged = snapshotRegion != lastSnapshotRegion &&
-                !IsForceClearOrUseFilterCache(filterDrawable);
-            RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] drawable:%d UpdateFilterCacheWithSelfDirty"
-                " lastRect:%s, currRegion:%s", GetId(), static_cast<int>(slot), lastSnapshotRegion.ToString().c_str(),
-                snapshotRegion.ToString().c_str());
-            if (regionChanged) {
-                MarkFilterStatusChanged(filterDrawable, slot == RSDrawableSlot::COMPOSITING_FILTER, true);
-            }
+    auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
+    if (filterDrawable != nullptr) {
+        auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
+        auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
+        bool regionChanged = (properties.GetFilter() && snapshotRegion != lastSnapshotRegion) &&
+            !IsForceClearOrUseFilterCache(filterDrawable);
+        RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] compositing UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
+            GetId(), lastSnapshotRegion.ToString().c_str(), snapshotRegion.ToString().c_str());
+        if (regionChanged) {
+            MarkFilterStatusChanged(filterDrawable, true, true);
         }
-    };
-    regionChangeCheckFunc(RSDrawableSlot::MATERIAL_FILTER);
-    regionChangeCheckFunc(RSDrawableSlot::COMPOSITING_FILTER);
+    }
 #endif
 }
 
@@ -3583,6 +3582,9 @@ void RSRenderNode::UpdateDisplayList()
 
     // Update index of MATERIAL_SHADER
     stagingDrawCmdIndex_.materialShaderIndex_ = AppendDrawFunc(RSDrawableSlot::MATERIAL_SHADER);
+
+    // Update index of SAVE_CLIP_TO_BOUNDS
+    stagingDrawCmdIndex_.saveClipToBoundsIndex_ = AppendDrawFunc(RSDrawableSlot::SAVE_CLIP_TO_BOUNDS);
     
     stagingDrawCmdIndex_.renderGroupBeginIndex_ = stagingDrawCmdList_.size();
     stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
@@ -3674,7 +3676,7 @@ void RSRenderNode::UpdateDisplayListExt()
     int8_t index = 0;
     // Track the last valid index at each slot range boundary for computing derived indexes.
     // Value is -1 if no drawable in that range; derived index = lastIdx + 1 (yields 0 when empty).
-    int8_t lastIdxUpToMaterialShader = -1;
+    int8_t lastIdxUpToSaveClipToBounds = -1;
     int8_t lastIdxUpToContentStyle = -1;
     int8_t lastIdxUpToChildren = -1;
     int8_t lastIdxUpToRestoreFrame = -1;
@@ -3688,8 +3690,8 @@ void RSRenderNode::UpdateDisplayListExt()
         if (func) {
             func(stagingDrawCmdIndex_, index);
         }
-        if (slot <= static_cast<int8_t>(RSDrawableSlot::MATERIAL_SHADER)) {
-            lastIdxUpToMaterialShader = index;
+        if (slot <= static_cast<int8_t>(RSDrawableSlot::SAVE_CLIP_TO_BOUNDS)) {
+            lastIdxUpToSaveClipToBounds = index;
         }
         if (slot <= static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)) {
             lastIdxUpToContentStyle = index;
@@ -3705,8 +3707,8 @@ void RSRenderNode::UpdateDisplayListExt()
         }
         index++;
     }
-    stagingDrawCmdIndex_.renderGroupBeginIndex_ = lastIdxUpToMaterialShader + 1;
-    stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = lastIdxUpToMaterialShader + 1;
+    stagingDrawCmdIndex_.renderGroupBeginIndex_ = lastIdxUpToSaveClipToBounds + 1;
+    stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = lastIdxUpToSaveClipToBounds + 1;
     stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdIndex_.contentIndex_ == -1
         ? lastIdxUpToContentStyle + 1 : stagingDrawCmdIndex_.contentIndex_;
     stagingDrawCmdIndex_.foregroundBeginIndex_ = lastIdxUpToChildren + 1;
@@ -4897,8 +4899,8 @@ void RSRenderNode::OnSync()
     bool isLayerNode = nodeGroupType_ == NodeGroupType::GROUPED_BY_LAYER &&
                        stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
     if (isLayerNode) {
-        bool isLayerCacheDisabled =
-            RSLayerCacheManagerBase::IsNodeUnSupportLayer(shared_from_this()) || IsNodeParentHasUIFirstCache();
+        const auto& layerParams = stagingRenderParams_->GetLayerParams();
+        bool isLayerCacheDisabled = (layerParams && layerParams->isUnSupportLayer) || IsNodeParentHasUIFirstCache();
         if (isLayerCacheDisabled) {
             stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         } else {

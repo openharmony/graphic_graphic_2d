@@ -94,6 +94,10 @@ int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& t
             break;
         default:
             ROSEN_LOGE("Wrong type of timing curve!");
+            globalImplicitParams_.pop();
+            implicitAnimations_.pop();
+            keyframeAnimations_.pop();
+            durationKeyframeParams_.pop();
             return 0;
     }
     return static_cast<int>(globalImplicitParams_.size()) - 1;

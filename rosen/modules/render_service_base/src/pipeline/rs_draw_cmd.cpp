@@ -542,6 +542,13 @@ void RSExtendImageObject::PurgeMipmapMem()
 }
 #endif
 
+void RSExtendImageObject::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
+    }
+}
+
 RSExtendImageObject::~RSExtendImageObject()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
@@ -623,6 +630,13 @@ void RSExtendImageBaseObj::Purge()
     }
 }
 
+void RSExtendImageBaseObj::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
+    }
+}
+
 bool RSExtendImageBaseObj::Marshalling(Parcel &parcel) const
 {
     bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
@@ -682,6 +696,13 @@ void RSExtendImageNineObject::Purge()
     }
 }
 
+void RSExtendImageNineObject::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
+    }
+}
+
 bool RSExtendImageNineObject::Marshalling(Parcel &parcel) const
 {
     bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
@@ -735,6 +756,13 @@ void RSExtendImageLatticeObject::Purge()
 {
     if (rsImage_) {
         rsImage_->Purge();
+    }
+}
+
+void RSExtendImageLatticeObject::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
     }
 }
 
@@ -801,8 +829,20 @@ DrawImageWithParmOpItem::DrawImageWithParmOpItem(const std::shared_ptr<Image>& i
 
 std::shared_ptr<DrawOpItem> DrawImageWithParmOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawImageWithParmOpItem>(
-        cmdList, static_cast<DrawImageWithParmOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawImageWithParmOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
+        constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawImageWithParmOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
+        constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
+        LOGD("DrawImageWithParmOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawImageWithParmOpItem>(cmdList, constructorHandle);
 }
 
 void DrawImageWithParmOpItem::Marshalling(DrawCmdList& cmdList)
@@ -867,8 +907,20 @@ DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(const std::shared_ptr<Med
 
 std::shared_ptr<DrawOpItem> DrawPixelMapWithParmOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPixelMapWithParmOpItem>(
-        cmdList, static_cast<DrawPixelMapWithParmOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawPixelMapWithParmOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
+        constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawPixelMapWithParmOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
+        constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
+        LOGD("DrawPixelMapWithParmOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawPixelMapWithParmOpItem>(cmdList, constructorHandle);
 }
 
 void DrawPixelMapWithParmOpItem::Marshalling(DrawCmdList& cmdList)
@@ -951,8 +1003,20 @@ void DrawHybridPixelMapOpItem::Marshalling(DrawCmdList& cmdList)
 
 std::shared_ptr<DrawOpItem> DrawHybridPixelMapOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawHybridPixelMapOpItem>(
-        cmdList, static_cast<DrawHybridPixelMapOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawHybridPixelMapOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
+        constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawHybridPixelMapOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
+        constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
+        LOGD("DrawHybridPixelMapOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawHybridPixelMapOpItem>(cmdList, constructorHandle);
 }
 
 void DrawHybridPixelMapOpItem::SetNodeId(NodeId id)
@@ -1026,8 +1090,20 @@ DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(const std::shared_ptr<Media::Pixe
 
 std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPixelMapRectOpItem>(
-        cmdList, static_cast<DrawPixelMapRectOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawPixelMapRectOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
+        constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawPixelMapRectOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
+        constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
+        LOGD("DrawPixelMapRectOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawPixelMapRectOpItem>(cmdList, constructorHandle);
 }
 
 void DrawPixelMapRectOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1088,8 +1164,14 @@ DrawPixelMapNineOpItem::DrawPixelMapNineOpItem(const std::shared_ptr<Media::Pixe
 
 std::shared_ptr<DrawOpItem> DrawPixelMapNineOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPixelMapNineOpItem>(
-        cmdList, static_cast<DrawPixelMapNineOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawPixelMapNineOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->filterMode < Drawing::FilterMode::NEAREST ||
+        constructorHandle->filterMode > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawPixelMapNineOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->filterMode));
+        return nullptr;
+    }
+    return std::make_shared<DrawPixelMapNineOpItem>(cmdList, constructorHandle);
 }
 
 void DrawPixelMapNineOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1141,6 +1223,14 @@ DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(
     lattice_ = CmdListHelper::GetLatticeFromCmdList(cmdList, handle->latticeHandle);
 }
 
+DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(
+    const DrawCmdList& cmdList, DrawPixelMapLatticeOpItem::ConstructorHandle* handle, Lattice&& lattice)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_LATTICE_OPITEM),
+      lattice_(std::move(lattice)), dst_(handle->dst), filterMode_(handle->filterMode)
+{
+    objectHandle_ = CmdListHelper::GetImageLatticeObjecFromCmdList(cmdList, handle->objectHandle);
+}
+
 DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
     const Drawing::Lattice& lattice, const Drawing::Rect& dst, Drawing::FilterMode filterMode, const Paint& paint)
     : DrawWithPaintOpItem(paint, PIXELMAP_LATTICE_OPITEM), lattice_(lattice), dst_(dst), filterMode_(filterMode)
@@ -1150,8 +1240,20 @@ DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(const std::shared_ptr<Media
 
 std::shared_ptr<DrawOpItem> DrawPixelMapLatticeOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPixelMapLatticeOpItem>(
-        cmdList, static_cast<DrawPixelMapLatticeOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawPixelMapLatticeOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->filterMode < Drawing::FilterMode::NEAREST ||
+        constructorHandle->filterMode > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawPixelMapLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->filterMode));
+        return nullptr;
+    }
+
+    auto lattice = CmdListHelper::GetLatticeFromCmdList(cmdList, constructorHandle->latticeHandle);
+    if (!CmdListHelper::ValidateLattice(lattice)) {
+        LOGD("DrawPixelMapLatticeOpItem Unmarshalling invalid lattice");
+        return nullptr;
+    }
+    return std::make_shared<DrawPixelMapLatticeOpItem>(cmdList, constructorHandle, std::move(lattice));
 }
 
 void DrawPixelMapLatticeOpItem::Marshalling(DrawCmdList& cmdList)
