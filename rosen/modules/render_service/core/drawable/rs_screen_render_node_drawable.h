@@ -178,7 +178,7 @@ private:
     void CheckHpaeBlurRun(bool isHdrOn);
 
     bool CheckScreenFreezeSkip(RSScreenRenderParams& params);
-    
+
     // hpae offline
     void CheckAndPostAsyncProcessOfflineTask();
     bool ProcessOfflineSurfaceDrawable(const std::shared_ptr<RSProcessor>& processor,
@@ -228,7 +228,6 @@ private:
     std::vector<RectI> lastDamageRegionrects_;
     bool lastIsRegionClipped_ = false;
 #endif
-
     friend class RSMultiScreenUtil;
 };
 } // namespace DrawableV2
