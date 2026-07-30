@@ -396,7 +396,7 @@ napi_value WebGL2RenderingContextImpl::IsVertexArray(napi_env env, napi_value ob
     }
     vertexArrayId = webGLVertexArrayObject->GetVertexArrays();
     GLboolean returnValue = glIsVertexArray(vertexArrayId);
-    LOGD("WebGL2 isVertexArray %{public}u %{public}u", vertexArrayId, returnValue);
+    LOGD("WebGL2 isVertexArray %{public}u %{public}d", vertexArrayId, returnValue);
     return NVal::CreateBool(env, returnValue).val_;
 }
 
@@ -437,7 +437,7 @@ napi_value WebGL2RenderingContextImpl::IsSync(napi_env env, napi_value syncObj)
     }
     int64_t syncId = webGlSync->GetSync();
     GLboolean returnValue = glIsSync(reinterpret_cast<GLsync>(syncId));
-    LOGD("WebGL2 isSync syncId %{public}" PRIi64 " result %{public}u", syncId, returnValue);
+    LOGD("WebGL2 isSync syncId %{public}" PRIi64 " result %{public}d", syncId, returnValue);
     return NVal::CreateBool(env, static_cast<bool>(returnValue)).val_;
 }
 
@@ -1476,12 +1476,12 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
         dstSize = static_cast<GLsizeiptr>(ext.length * elementSize);
     }
 
-    // offset is validated to be non-negative, safe to convert to uint64_t
-    uint64_t offset64 = static_cast<uint64_t>(offset);
-    if (offset64 + static_cast<uint64_t>(dstSize) > static_cast<uint64_t>(writeBuffer->GetBufferSize())) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "check buffer size failed");
-        return NVal::CreateNull(env).val_;
-    }
+   // offset is validated to be non-negative, safe to convert to uint64_t
+        uint64_t offset64 = static_cast<uint64_t>(offset);
+        if (offset64 + static_cast<uint64_t>(dstSize) > static_cast<uint64_t>(writeBuffer->GetBufferSize())) {
+            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "check buffer size failed");
+            return NVal::CreateNull(env).val_;
+        }
 
     GLuint dstOffset = static_cast<GLuint>(dstOffsetBytes);
     LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{private}p",
@@ -1800,7 +1800,7 @@ napi_value WebGL2RenderingContextImpl::GetInternalFormatParameter(
     GLint length = -1;
     if (pname == GL_SAMPLES) {
         glGetInternalformativ(target, internalFormat, GL_NUM_SAMPLE_COUNTS, 1, &length);
-        LOGD("WebGL2 getInternalformatParameter length %{public}d", length);
+        LOGD("WebGL2 getInternalformatParameter length %{public}u", length);
     } else {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "pname %{public}u", pname);
         return NVal::CreateNull(env).val_;

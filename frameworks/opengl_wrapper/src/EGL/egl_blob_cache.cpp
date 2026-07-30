@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <atomic>
- #include "egl_blob_cache.h"
+#include "egl_blob_cache.h"
 #include "wrapper_log.h"
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -498,7 +498,7 @@ uint32_t BlobCache::CrcGen(const uint8_t *buf, size_t len)
 bool BlobCache::ValidFile(uint8_t *buf, size_t len)
 {
     if (len < CACHE_HEAD) {
-        WLOGE("Buffer too short for cache header");
+        WLOGE("Buffer length is %{public}zu, too short for cache header", len);
         return false;
     }
     
