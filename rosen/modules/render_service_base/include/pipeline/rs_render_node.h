@@ -151,6 +151,7 @@ public:
     {
         return uiContextTokenList_;
     }
+    bool IsUIRenderDirectorStopped() const;
     void RemoveFromTree(bool skipTransition = false);
 
     virtual bool IsHardwareEnabledType() const
