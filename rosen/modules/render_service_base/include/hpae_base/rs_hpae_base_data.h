@@ -33,6 +33,7 @@ constexpr NodeId INVALID_BLUR_NODE_ID = INVALID_NODEID; // 0
 using HpaeStatus = struct HpaeStatus_ {
     bool gotHpaeBlurNode = false;
     NodeId blurNodeId = INVALID_BLUR_NODE_ID;
+    NodeId screenNodeId = INVALID_NODEID;
     bool hpaeBlurEnabled = false;
 
     std::optional<Vector4f> pixelStretch;
