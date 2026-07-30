@@ -64,7 +64,7 @@ namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
 
-#ifdef RS_P7885
+#ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
 static bool NeedYcbcrChannelSwap(const BufferDrawParam& params)
 {
     if (params.useCPU || params.buffer == nullptr) {
@@ -769,7 +769,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-#ifdef RS_P7885
+#ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
     if (NeedYcbcrChannelSwap(params)) {
         ApplyYcbcrChannelSwapFilter(params.paint);
     }
@@ -806,7 +806,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         luminanceMatrix.SetScale(params.brightnessRatio, params.brightnessRatio, params.brightnessRatio, 1.0f);
         auto luminanceColorFilter =
             std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX, luminanceMatrix);
-#ifdef RS_P7885
+#ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
         auto existingFilter = filter.GetColorFilter();
         if (existingFilter) {
             auto composed = Drawing::ColorFilter::CreateComposeColorFilter(*existingFilter, *luminanceColorFilter);
