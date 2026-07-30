@@ -68,7 +68,7 @@
         "graphic_2d_feature_enable_drm",
         "graphic_2d_feature_enable_mediacommon",
         "graphic_2d_feature_enable_image_detail_enhancer",
-        "graphic_2d_feature_p7885"
+        "graphic_2d_feature_enable_swap_ycbcr_channel"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
