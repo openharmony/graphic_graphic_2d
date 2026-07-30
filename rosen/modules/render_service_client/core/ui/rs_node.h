@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <deque>
 #include <optional>
 #include <unordered_map>
 
