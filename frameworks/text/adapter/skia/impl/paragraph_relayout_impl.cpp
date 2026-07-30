@@ -264,7 +264,7 @@ namespace {
 
         [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
             skt::StrutStyle& strutStyle =  paragraph.getParagraphStyle().exportStrutStyle();
-            strutStyle.setForceStrutHeight(style.strutHeight);
+            strutStyle.setForceStrutHeight(style.forceStrutHeight);
 
             if (!strutStyle.getStrutEnabled()) {
                 return;

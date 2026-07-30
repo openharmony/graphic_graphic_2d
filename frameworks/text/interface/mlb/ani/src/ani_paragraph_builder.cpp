@@ -212,8 +212,6 @@ ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
     ani_object typographyObj = AniParagraph::SetTypography(env, typographyPtr);
     if (AniTextUtils::IsUndefined(env, typographyObj)) {
         TEXT_LOGE("Failed to create typography obj");
-        delete typographyPtr;
-        typographyPtr = nullptr;
     }
     return typographyObj;
 }
