@@ -71,6 +71,7 @@ declare_args() {
   graphic_2d_feature_hetero_hdr_enable = false
   graphic_2d_feature_mhc_enable = false
   graphic_2d_feature_enable_primitive = false
+  graphic_2d_feature_hve_blur_enable = true;
 }
 
 declare_args() {
@@ -96,6 +97,10 @@ if (graphic_2d_feature_product == "tablet") {
   enable_full_screen_recongnize = true
 }
 
+if (graphic_2d_feature_product == "pc") {
+  graphic_2d_feature_hve_blur_enable = false
+}
+ 	 
 gpu_defines = []
 accessibility_defines = []
 
@@ -145,6 +150,10 @@ if (graphic_2d_feature_hetero_hdr_enable) {
 
 if (graphic_2d_feature_mhc_enable) {
   gpu_defines += [ "MHC_ENABLE" ]
+}
+
+if (graphic_2d_feature_hve_blur_enable) {
+  gpu_defines += [ "HVE_BLUR_ENABLE" ]
 }
 
 if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
