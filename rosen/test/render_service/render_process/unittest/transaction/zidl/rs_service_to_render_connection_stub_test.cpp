@@ -1123,6 +1123,58 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart003, TestSize.Lev
 }
 
 /**
+ * @tc.name: AvcodecVideoStart004
+ * @tc.desc: Test AvcodecVideoStart when uniqueIdList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    std::vector<uint64_t> uniqueIdList(9, 1000);
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 60;
+    uint64_t reportTime = 1000;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    data.WriteUint64(reportTime);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStart005
+ * @tc.desc: Test AvcodecVideoStart when surfaceNameList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    std::vector<uint64_t> uniqueIdList = {1000};
+    std::vector<std::string> surfaceNameList(9, "surface");
+    uint32_t fps = 60;
+    uint64_t reportTime = 1000;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    data.WriteUint64(reportTime);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: AvcodecVideoStop001
  * @tc.desc: Test AvcodecVideoStop when reading data fails
  * @tc.type: FUNC
@@ -1187,6 +1239,54 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop003, TestSize.Leve
     data.WriteUint32(fps);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop004
+ * @tc.desc: Test AvcodecVideoStop when uniqueIdList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    std::vector<uint64_t> uniqueIdList(9, 1000);
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 60;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop005
+ * @tc.desc: Test AvcodecVideoStop when surfaceNameList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    std::vector<uint64_t> uniqueIdList = {1000};
+    std::vector<std::string> surfaceNameList(9, "surface");
+    uint32_t fps = 60;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**
