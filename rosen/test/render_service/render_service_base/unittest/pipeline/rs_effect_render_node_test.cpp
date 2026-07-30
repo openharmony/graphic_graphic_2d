@@ -226,7 +226,11 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest002, TestSize
         std::make_unique<DrawableV2::RSFilterDrawable::FilterVisibleRectInfo>();
     backgroundFilterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 10, 10);
     rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
-    EXPECT_FALSE(rsEffectRenderNode.backgroundFilterRegionChanged_);
+    if (RSProperties::filterCacheEnabled_) {
+        EXPECT_TRUE(rsEffectRenderNode.backgroundFilterRegionChanged_);
+    } else {
+        EXPECT_FALSE(rsEffectRenderNode.backgroundFilterRegionChanged_);
+    }
 }
 
 /**
