@@ -171,7 +171,7 @@ void RSCanvasNode::FinishRecording()
 
 void RSCanvasNode::OnFinishRecording(Drawing::DrawCmdListPtr& drawCmdList, ModifierNG::RSModifierType modifierType)
 {
-    if (drawCmdList) { // CanvasDrawingNode should set drawCmdList nullptr.
+    if (drawCmdList && !drawCmdList->IsEmpty()) { // CanvasDrawingNode should set drawCmdList nullptr.
         auto type = static_cast<uint16_t>(modifierType);
         PushRSCmdModifierToQueue<FinishRecordCmdModifier>(FinishRecordCmdParam{
             type, drawCmdList
