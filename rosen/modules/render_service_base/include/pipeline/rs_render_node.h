@@ -1509,9 +1509,11 @@ struct RSB_EXPORT SharedTransitionParam {
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
     bool IsLower(const NodeId nodeId) const;
     void UpdateHierarchy(const NodeId nodeId);
-    bool IsInAppTranSition() const
+    bool IsCrossAppTranSition() const
     {
-        return !crossApplication_;
+        auto inNode = inNode_.lock();
+        auto outNode = outNode_.lock();
+        return crossApplication_ && inNode && outNode;
     }
     void InternalUnregisterSelf();
     bool HasRelation();

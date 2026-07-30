@@ -5044,7 +5044,7 @@ void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
 
 bool RSRenderNode::GetUifirstSupportFlag()
 {
-    if (sharedTransitionParam_ && !sharedTransitionParam_->IsInAppTranSition()) {
+    if (sharedTransitionParam_ && sharedTransitionParam_->IsCrossAppTranSition()) {
         RS_TRACE_NAME_FMT("uifirst disable by SharedTransition inNodeId:%" PRIu64 ", outNodeId:%" PRIu64,
             sharedTransitionParam_->inNodeId_, sharedTransitionParam_->outNodeId_);
         return false;
