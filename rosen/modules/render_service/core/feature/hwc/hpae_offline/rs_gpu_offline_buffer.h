@@ -40,7 +40,6 @@ struct NativeWindowBufferInfo : public Parcelable {
     NativeWindowBufferInfo(NativeWindowBufferBaseInfo &info) : baseInfo(info) {};
     NativeWindowBufferBaseInfo baseInfo;
     bool mUseAutoSeq = false;
-
     ~NativeWindowBufferInfo()
     {
         baseInfo.sfbuffer = nullptr;
@@ -50,8 +49,9 @@ struct NativeWindowBufferInfo : public Parcelable {
 
     bool ReadFromParcel(MessageParcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
-    static NativeWindowBufferInfo *Unmarshalling(Parcel &parcel, bool autoSeq = false);
+    static OHOS::sptr<NativeWindowBufferInfo> Unmarshalling(Parcel &parcel, bool autoSeq = false);
 };
+
 
 class RSGPUOfflineBuffer {
 public:
@@ -59,7 +59,7 @@ public:
     ~RSGPUOfflineBuffer();
 
     std::unique_ptr<RSRenderFrame> RequestFrame(std::shared_ptr<RSBaseRenderEngine> renderEngine,
-        const BufferRequestConfig& config, bool isHebc);
+        const BufferRequestConfig& config, bool isHebc, SingleBufferMode switchType);
     sptr<SurfaceBuffer> ConsumeAndGetBuffer();
     std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler();
     void CleanCache(bool cleanAll);
@@ -81,7 +81,6 @@ private:
     bool surfaceCreated_ = false;
     std::string layerName_;
     uint32_t bufferSize_ = 4;
-    bool isFirstRequest_ = true;
     BufferRequestConfig currentConfig_{
         .width = 0,
         .height = 0,
