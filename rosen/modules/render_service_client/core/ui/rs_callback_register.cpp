@@ -26,7 +26,7 @@ public:
 #if defined(ARKUI_X_ENABLE) || defined(ROSEN_PREVIEW)
         auto registerCB = [](std::shared_ptr<Drawing::Typeface> tf) {
             if (tf != nullptr) {
-                Drawing::TypefaceMap::InserTypeface(tf->GetUniqueID(), tf);
+                Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
             }
             return 1;
         };
