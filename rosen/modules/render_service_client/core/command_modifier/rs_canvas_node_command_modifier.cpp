@@ -107,10 +107,6 @@ void DrawOnNodeCmdModifier::UpdateToRender() // only go foreground call this fun
         return;
     }
 
-    std::unique_ptr<RSCommand> clearRecordingCommand = std::make_unique<RSCanvasNodeClearRecording>(
-        node->GetId());
-    AddCommand(clearRecordingCommand, node->IsRenderServiceNode());
-
     std::unique_ptr<RSCommand> updateRecordingCommand = std::make_unique<RSCanvasNodeUpdateRecording>(
         node->GetId(), drawCmdList, param_.modifierType_);
     AddCommand(updateRecordingCommand, node->IsRenderServiceNode());
@@ -126,10 +122,6 @@ RSCmdModifier::UpdateResult DrawOnNodeCmdModifier::UpdateToRenderWithResult()
         ROSEN_LOGE("DrawOnNodeCmdModifier::UpdateToRenderWithResult() simpleDrawCmdList_ is empty");
         return false;
     }
-
-    std::unique_ptr<RSCommand> clearRecordingCommand = std::make_unique<RSCanvasNodeClearRecording>(
-        node->GetId());
-    AddCommand(clearRecordingCommand, node->IsRenderServiceNode());
 
     std::unique_ptr<RSCommand> updateRecordingCommand = std::make_unique<RSCanvasNodeUpdateRecording>(
         node->GetId(), drawCmdList, param_.modifierType_);

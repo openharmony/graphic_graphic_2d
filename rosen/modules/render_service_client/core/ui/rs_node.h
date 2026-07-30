@@ -2139,6 +2139,7 @@ protected:
     bool hybridRenderCanvas_ = false;
 
     mutable std::unordered_map<RSCmdModifierType, std::shared_ptr<RSCmdModifier>> rsCmdModifiers_;
+    mutable std::deque<std::shared_ptr<RSCmdModifier>> rsCmdModifierQueue_;
     /**
      * @brief Called when child nodes are added to this node.
      */
@@ -2165,6 +2166,22 @@ protected:
             return it->second;
         }
         return nullptr;
+    }
+
+    template<typename ModifierType, typename ParamType>
+    void PushRSCmdModifierToQueue(const ParamType& param)
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        auto modifier = std::make_shared<ModifierType>(weak_from_this(), param);
+        rsCmdModifierQueue_.push_back(modifier);
+    }
+
+    void PopFrontRSCmdModifierQueue()
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        if (!rsCmdModifierQueue_.empty()) {
+            rsCmdModifierQueue_.pop_front();
+        }
     }
 
     std::vector<PropertyId> GetModifierIds() const;
@@ -2361,6 +2378,11 @@ private:
         // commands are sent in the correct order when pushing to foreground
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         std::vector<std::shared_ptr<RSCmdModifier>> sortedModifiers;
+        for (auto& modifier : rsCmdModifierQueue_) {
+            if (modifier) {
+                sortedModifiers.push_back(modifier);
+            }
+        }
         for (auto& [type, modifier] : rsCmdModifiers_) {
             if (modifier) {
                 sortedModifiers.push_back(modifier);
@@ -2378,6 +2400,7 @@ private:
     void ClearAllRSCmdModifiers() {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         rsCmdModifiers_.clear();
+        rsCmdModifierQueue_.clear();
     }
 
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
