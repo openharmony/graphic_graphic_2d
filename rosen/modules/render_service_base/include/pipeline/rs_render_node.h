@@ -1513,7 +1513,7 @@ struct RSB_EXPORT SharedTransitionParam {
     {
         auto inNode = inNode_.lock();
         auto outNode = outNode_.lock();
-        return !crossApplication_ && inNode && outNode;
+        return inNode && outNode && !crossApplication_;
     }
     void InternalUnregisterSelf();
     bool HasRelation();
