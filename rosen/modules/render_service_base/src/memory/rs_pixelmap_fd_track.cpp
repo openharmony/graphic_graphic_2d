@@ -18,7 +18,7 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef ROSEN_OHOS
+#ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
 #include "platform/common/rs_hisysevent.h"
 #include "xcollie/process_kill_reason.h"
@@ -93,7 +93,7 @@ void RSPixelMapFdTrack::RemoveFdRecord(int32_t pid, const void* addr, Media::All
 bool RSPixelMapFdTrack::CheckFdRecordAndKillProcess(int32_t pid)
 {
     std::unordered_map<int32_t, int32_t> pidsToKill;
-#ifdef ROSEN_OHOS
+#ifdef RS_ENABLE_UNI_RENDER
     CheckFdRecordAndGetPidsToKill(pidsToKill, pid);
     for (const auto [ pidToKill, fdCount ] : pidsToKill) {
         ReportFdOverLimit(pidToKill);
@@ -178,7 +178,7 @@ bool RSPixelMapFdTrack::KillProcessByPid(int32_t pid, const std::string& reason)
 {
     RS_TRACE_NAME_FMT("RSPixelMapFdTrack::KillProcessByPid pid %" PRId32, pid);
 
-#ifdef ROSEN_OHOS
+#ifdef RS_ENABLE_UNI_RENDER
     AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, reason};
     killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_FD_EXCEEDS_LIMIT;
     int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, killReason);
@@ -202,7 +202,7 @@ void RSPixelMapFdTrack::ReportFdOverLimit(int32_t pid)
     std::string combinedInfo = "=== AshmemInfo ===\n" + ashmemInfo + "\n\n=== DmaBufInfo ===\n" + dmaBufInfo;
     WriteFdMemInfoToFile(RS_FD_MEM_PATH, combinedInfo);
 
-#ifdef ROSEN_OHOS
+#ifdef RS_ENABLE_UNI_RENDER
     RS_TRACE_NAME("RSPixelMapFdTrack::ReportFdOverLimit HiSysEventWrite");
     int ret = RSHiSysEvent::EventWrite(RSEventName::RENDER_MEMORY_OVER_WARNING, RSEventType::RS_STATISTIC,
         "PID", pid,
