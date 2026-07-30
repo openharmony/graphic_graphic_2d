@@ -85,13 +85,12 @@ void RSDrawFrame::RenderFrame()
     HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
     StartCheck();
-
     auto renderEngine = unirenderInstance_.GetRenderEngine();
     // Use GPUGuard to manage GPU draw lifecycle (RAII-based)
     // The guard will automatically call EndGPUDraw() when destroyed
     GPUGuard gpuGuard(renderEngine->GetGPUCacheManager());
-
     RsFrameReport::UniRenderStart();
+
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsStart();
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
@@ -118,9 +117,9 @@ void RSDrawFrame::RenderFrame()
 #ifdef SUBTREE_PARALLEL_ENABLE
     RSParallelManager::Singleton().Clear();
 #endif
+    RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
     ReleaseSelfDrawingNodeBuffer();
     NotifyClearGpuCache();
-    RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
     if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
         unirenderInstance_.PurgeCacheBetweenFrames();
@@ -161,7 +160,7 @@ void RSDrawFrame::EndCheck()
         exceptionCheck_.exceptionMoment_ = timer_->GetSeconds();
         exceptionCheck_.UploadRenderExceptionData();
         RS_LOGE("RSDrawFrame::EndCheck PID:%{public}d, UID:%{public}u, PROCESS_NAME:%{public}s, \
-            EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}" PRId64", EXCEPTION_POINT:%{public}s",
+            EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}" PRIu64", EXCEPTION_POINT:%{public}s",
             getpid(), getuid(), exceptionCheck_.processName_.c_str(), longFrameCount_,
             exceptionCheck_.exceptionMoment_, exceptionCheck_.exceptionPoint_.c_str());
     }
@@ -184,10 +183,6 @@ void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
 void RSDrawFrame::PostAndWait()
 {
     RS_TRACE_NAME_FMT("PostAndWait, parallel type %d", static_cast<int>(rsParallelType_));
-
-    RsFrameReport::SendCommandsStart();
-    RsFrameReport::RenderEnd();
- 
     uint32_t renderFrameNumber = RS_PROFILER_GET_FRAME_NUMBER();
     switch (rsParallelType_) {
         case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
@@ -196,8 +191,8 @@ void RSDrawFrame::PostAndWait()
                 RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber);
                 RenderFrame();
                 unirenderInstance_.ClearResource();
-                RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
                 unirenderInstance_.SetMainLooping(false);
+                RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
             });
             break;
         }
@@ -214,11 +209,12 @@ void RSDrawFrame::PostAndWait()
                 unirenderInstance_.SetMainLooping(true);
                 RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber);
                 RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationBegin();
+                unirenderInstance_.SetMainLooping(true);
                 RenderFrame();
                 unirenderInstance_.ClearResource();
+                unirenderInstance_.SetMainLooping(false);
                 RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationEnd();
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
-                unirenderInstance_.SetMainLooping(false);
             });
 
             frameCV_.wait(frameLock, [this] { return canUnblockMainThread; });
