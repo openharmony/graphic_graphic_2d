@@ -339,6 +339,13 @@ void RSImageBase::DePurge()
 #endif
 }
 
+void RSImageBase::FlushCache()
+{
+    if (pixelMap_ != nullptr) {
+        pixelMap_->FlushCache();
+    }
+}
+
 void RSImageBase::MarkRenderServiceImage()
 {
     renderServiceImage_ = true;
