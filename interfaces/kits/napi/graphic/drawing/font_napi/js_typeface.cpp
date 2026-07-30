@@ -147,6 +147,9 @@ napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Type
 
 std::shared_ptr<Typeface> LoadZhCnTypeface()
 {
+#if defined(ROSEN_ARKUI_X)
+    return Typeface::MakeDefault();
+#else
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(JsTypeface::ZH_CN_TTF);
     if (typeface == nullptr) {
         typeface = Typeface::MakeDefault();
