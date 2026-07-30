@@ -880,5 +880,4 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_001, TestSize.Level1)
     filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
     ASSERT_FALSE(filterRect.IsEmpty());
 }
-
 } // namespace OHOS::Rosen
