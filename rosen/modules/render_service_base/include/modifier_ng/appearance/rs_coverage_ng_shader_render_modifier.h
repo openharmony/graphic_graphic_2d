@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,30 +13,35 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_OVERLAY_NG_SHADER_RENDER_MODIFIER_H
-#define RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_OVERLAY_NG_SHADER_RENDER_MODIFIER_H
+#ifndef RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_COVERAGE_NG_SHADER_RENDER_MODIFIER_H
+#define RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_COVERAGE_NG_SHADER_RENDER_MODIFIER_H
 
 #include "modifier_ng/rs_render_modifier_ng.h"
 
 namespace OHOS::Rosen::ModifierNG {
-class RSB_EXPORT RSOverlayNGShaderRenderModifier : public RSRenderModifier {
+class RSB_EXPORT RSCoverageNGShaderRenderModifier : public RSDisplayListRenderModifier {
 public:
-    RSOverlayNGShaderRenderModifier() = default;
-    ~RSOverlayNGShaderRenderModifier() override = default;
+    RSCoverageNGShaderRenderModifier() = default;
+    ~RSCoverageNGShaderRenderModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::OVERLAY_NG_SHADER;
+    static inline constexpr auto Type = RSModifierType::COVERAGE_NG_SHADER;
+    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
+    // LCOV_EXCL_STOP
+
     static void ResetProperties(RSProperties& properties);
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
+    // LCOV_EXCL_START
     const LegacyPropertyApplierMap& GetLegacyPropertyApplierMap() const override
     {
         return LegacyPropertyApplierMap_;
     }
+    // LCOV_EXCL_STOP
 };
 } // namespace OHOS::Rosen::ModifierNG
-#endif // RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_OVERLAY_NG_SHADER_RENDER_MODIFIER_H
+#endif // RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_COVERAGE_NG_SHADER_RENDER_MODIFIER_H

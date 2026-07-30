@@ -48,7 +48,7 @@ enum class RSModifierType : uint16_t {
     USE_EFFECT = 18,
     BLENDER = 19,
 
-    OVERLAY_NG_SHADER = 20,
+    COVERAGE_NG_SHADER = 20,
     PARTICLE_EFFECT = 21,
     COMPOSITING_FILTER = 22,
     BACKGROUND_FILTER = 23,
@@ -72,6 +72,7 @@ enum class RSModifierType : uint16_t {
     SPATIAL_EFFECT = 39,
     MATERIAL_SHADER = 40,
     USE_UNION = 41,
+    OVERLAY_NG_SHADER = 42,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -131,7 +132,7 @@ public:
             case RSModifierType::PIXEL_STRETCH: return "PixelStretch";
             case RSModifierType::USE_EFFECT: return "UseEffect";
             case RSModifierType::BLENDER: return "Blender";
-            case RSModifierType::OVERLAY_NG_SHADER: return "OverlayNGShader";
+            case RSModifierType::COVERAGE_NG_SHADER: return "CoverageNGShader";
             case RSModifierType::PARTICLE_EFFECT: return "ParticleEffect";
             case RSModifierType::DEPTH_SPACE: return "DepthSpace";
             case RSModifierType::SPATIAL_EFFECT: return "SpatialEffect";
@@ -152,6 +153,7 @@ public:
             case RSModifierType::MATERIAL_FILTER: return "MaterialFilter";
             case RSModifierType::MATERIAL_SHADER: return "MaterialShader";
             case RSModifierType::COLOR_PICKER : return "ColorPicker";
+            case RSModifierType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             case RSModifierType::USE_UNION: return "UseUnion";
             case RSModifierType::CHILDREN: return "Children";
             default: return "Invalid";
@@ -339,6 +341,7 @@ public:
             case RSPropertyType::COLOR_PICKER_INTERVAL : return "ColorPickerInterval";
             case RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD : return "ColorPickerNotifyThreshold";
             case RSPropertyType::COLOR_ADAPTIVE : return "ColorAdaptive";
+            case RSPropertyType::COVERAGE_NG_SHADER: return "CoverageNGShader";
             case RSPropertyType::DOUBLE_SIDED: return "DoubleSided";
             case RSPropertyType::CHILDREN: return "Children";
             case RSPropertyType::DEPTH_IMAGE: return "DepthImage";
@@ -352,6 +355,7 @@ public:
             case RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM: return "SpatialEffectRightBottom";
             case RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT: return "SpatialEffectOcclusionWeight";
             case RSPropertyType::MATERIAL_SHADER: return "MaterialShader";
+            case RSPropertyType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             default: return "Unknown";
         }
         return "Unknown";

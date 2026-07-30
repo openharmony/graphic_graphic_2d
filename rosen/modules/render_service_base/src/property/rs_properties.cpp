@@ -5001,9 +5001,9 @@ void RSProperties::SetBloom(float bloomIntensity)
     contentDirty_ = true;
 }
 
-void RSProperties::SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader)
+void RSProperties::SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& coverageShader)
 {
-    GetEffect().olRenderShader_ = overlayShader;
+    GetEffect().coRenderShader_ = coverageShader;
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
@@ -5030,6 +5030,22 @@ Vector4f RSProperties::GetLightPosition() const
 int RSProperties::GetIlluminatedType() const
 {
     return GetIlluminated() ? static_cast<int>(GetIlluminated()->GetIlluminatedType()) : 0;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetCoverageNGShader() const
+{
+    if (effect_) {
+        return effect_->coRenderShader_;
+    }
+    return nullptr;
+}
+
+void RSProperties::SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader)
+{
+    GetEffect().olRenderShader_ = overlayShader;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
 }
 
 std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetOverlayNGShader() const
