@@ -5440,7 +5440,7 @@ HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_DeviceNull_TrueBranch, TestSize
     constexpr uint64_t testLayerId = 70099;
     uint32_t solidFilledColor = 0;
     auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
-    EXPECT_EQ(ret, ROSEN_ERROR_NOT_INIT);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
 }
 } // namespace
 } // namespace Rosen

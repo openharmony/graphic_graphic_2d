@@ -326,6 +326,7 @@ int32_t HdiLayer::SetLayerBuffer()
         layerBuffer.handle = currBuffer_->GetBufferHandle();
         if (layerBuffer.handle == nullptr) {
             HLOGE("Get buffer handle failed.");
+            return GRAPHIC_DISPLAY_NULL_PTR;
         }
     }
 

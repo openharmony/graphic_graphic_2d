@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 static constexpr size_t PARCEL_MAX_CAPACITY = 4000 * 1024; // upper bound of parcel capacity
-static constexpr size_t PAYLOAD_SIZE_MAX = 1000;
+static constexpr size_t PAYLOAD_SIZE_MAX = 10000;
 static constexpr uint64_t MAX_ADVANCE_TIME = 1000000000;  // one second advance most
 static constexpr uint32_t SURFACE_FPS_OP_NUM_MAX = 32; // max SurfaceFpsOpNum
 

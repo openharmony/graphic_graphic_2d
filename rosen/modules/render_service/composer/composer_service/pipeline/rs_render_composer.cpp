@@ -1163,7 +1163,8 @@ bool RSRenderComposer::GetDisplayClientTargetProperty(GraphicPixelFormat& pixelF
     int32_t dataspaceInt = 0;
     if (hdiOutput_ != nullptr) {
         int32_t ret = hdiOutput_->GetDisplayClientTargetProperty(pixelFormatInt, dataspaceInt);
-        if (ret == GRAPHIC_DISPLAY_SUCCESS && pixelFormatInt < GRAPHIC_PIXEL_FMT_BUTT) {
+        if (ret == GRAPHIC_DISPLAY_SUCCESS && pixelFormatInt >= GRAPHIC_PIXEL_FMT_CLUT8 &&
+            pixelFormatInt < GRAPHIC_PIXEL_FMT_BUTT) {
             // Direct cast from int32_t to GraphicPixelFormat
             pixelFormat = static_cast<GraphicPixelFormat>(pixelFormatInt);
             return true;

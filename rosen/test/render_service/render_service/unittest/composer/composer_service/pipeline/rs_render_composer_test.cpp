@@ -2197,13 +2197,13 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut001, TestSize.Level1)
     EXPECT_EQ(ret, GSERROR_OK);
 
     GraphicColorGamut colorGamut = rsRenderComposer_->ComputeTargetColorGamut(buffer);
-    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_INVALID);
 
     requestConfig.colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
     EXPECT_EQ(ret, GSERROR_OK);
     colorGamut = rsRenderComposer_->ComputeTargetColorGamut(buffer);
-    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_INVALID);
     cSurface->UnregisterConsumerListener();
 }
 

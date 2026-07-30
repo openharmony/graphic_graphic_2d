@@ -21,12 +21,13 @@
 #include <mutex>
 #include <scoped_bytrace.h>
 #include <securec.h>
+#include "platform/common/rs_log.h"
 #include "v1_5/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
     do {                                                             \
         if ((composerSptr) == nullptr) {                             \
-            HLOGD("[%{public}s]composerSptr is nullptr.", __func__); \
+            RS_LOGD_IF(DEBUG_COMPOSER, "[%{public}s]composerSptr is nullptr.", __func__); \
             return GRAPHIC_DISPLAY_NULL_PTR;                         \
         }                                                            \
     } while (0)
@@ -34,7 +35,7 @@
 #define CHECK_FUNC_RETURN_BOOL(composerSptr)                                     \
     do {                                                             \
         if ((composerSptr) == nullptr) {                             \
-            HLOGD("[%{public}s]composerSptr is nullptr.", __func__); \
+            RS_LOGD_IF(DEBUG_COMPOSER, "[%{public}s]composerSptr is nullptr.", __func__); \
             return false;                         \
         }                                                            \
     } while (0)

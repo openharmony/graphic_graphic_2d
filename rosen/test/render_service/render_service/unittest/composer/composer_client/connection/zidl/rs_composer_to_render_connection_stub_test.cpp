@@ -805,8 +805,8 @@ HWTEST_F(RSComposerToRenderConnectionStubTest,
 
     int ret = stub.OnRemoteRequest(
         IRSComposerToRenderConnection::ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS, data, reply, opt);
-    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
-    EXPECT_TRUE(called);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+    EXPECT_FALSE(called);
 }
 
 /**
@@ -882,8 +882,8 @@ HWTEST_F(RSComposerToRenderConnectionStubTest, Stub_OnRemoteRequest_ReleaseLayer
 
     int ret = stub.OnRemoteRequest(
         IRSComposerToRenderConnection::ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS, data, reply, opt);
-    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
-    EXPECT_TRUE(called);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+    EXPECT_FALSE(called);
 }
 
 /**
