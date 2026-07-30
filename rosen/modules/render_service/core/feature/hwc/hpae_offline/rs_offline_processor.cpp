@@ -19,13 +19,9 @@
 namespace OHOS {
 namespace Rosen {
 
-RSOfflineProcessor::RSOfflineProcessor()
-{
-}
+RSOfflineProcessor::RSOfflineProcessor() {}
 
-RSOfflineProcessor::~RSOfflineProcessor()
-{
-}
+RSOfflineProcessor::~RSOfflineProcessor() {}
 
 RSOfflineProcessor& RSOfflineProcessor::GetOfflineProcessor()
 {
@@ -90,7 +86,6 @@ bool RSOfflineProcessor::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRend
     OfflineDeviceType deviceType)
 {
     RS_TRACE_NAME("RSOfflineProcessor::IsRSOfflineProcessorReady");
-    RS_LOGD("RSOfflineProcessor::IsRSOfflineProcessorReady for type: %{public}d", static_cast<int>(deviceType));
     auto offlineDevice = GetOrCreateOfflineDevice(deviceType, true);
     if (offlineDevice == nullptr) {
         RS_LOGW("RSOfflineProcessor::Offline device is invalid");
@@ -102,18 +97,23 @@ bool RSOfflineProcessor::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRend
     }
 
     std::lock_guard<std::mutex> lock(deviceTypeMapMutex_);
-    if (static_cast<int>(deviceTypeMap_.size()) >= deviceTypeMapMaxSize_) {
-        auto it = deviceTypeMap_.begin();
-        deviceTypeMap_.erase(it);
+    if (deviceTypeMap_.size() >= deviceTypeMapMaxSize_) {
+        auto oldestNodeId = deviceTypeInsertOrder_.front();
+        deviceTypeInsertOrder_.pop_front();
+        deviceTypeMap_.erase(oldestNodeId);
+        RS_LOGD("RSOfflineProcessor::IsRSOfflineProcessorReady clear deviceTypeMap_: node [%{public}" PRIu64,
+            oldestNodeId);
     }
-    deviceTypeMap_.insert(std::make_pair(surfaceNode->GetId(), deviceType));
+    auto result = deviceTypeMap_.emplace(surfaceNode->GetId(), deviceType);
+    if (result.second) {
+        deviceTypeInsertOrder_.push_back(surfaceNode->GetId());
+    }
     return true;
 }
 
 void RSOfflineProcessor::CheckAndPostClearOfflineResourceTask(OfflineDeviceType deviceType,
     const std::vector<uint64_t>& offlineNodeIds)
 {
-    RS_TRACE_NAME("RSOfflineProcessor::CheckAndPostClearOfflineResourceTask");
     auto offlineDevice = GetOrCreateOfflineDevice(deviceType, false);
     if (offlineDevice == nullptr) {
         return;
