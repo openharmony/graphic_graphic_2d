@@ -24,8 +24,8 @@
 #include "common/rs_thread_looper.h"
 #include "engine/rs_base_render_engine.h"
 #include "event_handler.h"
-#include "params/rs_render_thread_params.h"
 #include "pipeline/buffer_manager/rs_buffer_manager.h"
+#include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
 #include "rs_composer_client_manager.h"
 #ifdef RES_SCHED_ENABLE
@@ -108,6 +108,8 @@ public:
     void DumpMem(DfxString& log, bool isLite = false);
     void DumpGpuMem(DfxString& log, const std::vector<std::pair<NodeId, std::string>>& nodeTags);
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
+    uint32_t GetWatermarkRowCount () const;
+    uint32_t GetWatermarkColCount () const;
     uint64_t GetFrameCount() const
     {
         return frameCount_;
@@ -291,6 +293,26 @@ public:
         bufferManager_.ReleaseBufferById(seqNum);
     }
 
+        void AddScreenHasProtectedLayerSet(ScreenId screenId)
+    {
+        hasProtectedLayerScreenIdSet_.emplace(screenId);
+    }
+
+    const std::unordered_set<ScreenId>& GetScreenHasProtectedLayerSet()
+    {
+        return hasProtectedLayerScreenIdSet_;
+    }
+
+    void ClearScreenHasProtectedLayerSet()
+    {
+        hasProtectedLayerScreenIdSet_.clear();
+    }
+
+    const std::shared_ptr<RSComposerClientManager>& GetComposerClientManager() const
+    {
+        return composerClientManager_;
+    }
+
     struct BufferManagerGuard {
         BufferManagerGuard()
         {
@@ -313,27 +335,6 @@ public:
 
         sptr<SyncFence> fence_ = SyncFence::InvalidFence();
     };
-
-    void AddScreenHasProtectedLayerSet(ScreenId screenId)
-    {
-        hasProtectedLayerScreenIdSet_.emplace(screenId);
-    }
-
-    const std::unordered_set<ScreenId>& GetScreenHasProtectedLayerSet()
-    {
-        return hasProtectedLayerScreenIdSet_;
-    }
-
-    void ClearScreenHasProtectedLayerSet()
-    {
-        hasProtectedLayerScreenIdSet_.clear();
-    }
-
-    const std::shared_ptr<RSComposerClientManager>& GetComposerClientManager() const
-    {
-        return composerClientManager_;
-    }
-
     using CommitDoneCallback = std::function<void(ScreenId)>;
     void SetCommitDoneCallback(CommitDoneCallback callback);
     void NotifyCommitDone(ScreenId screenId);
