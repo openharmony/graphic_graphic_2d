@@ -240,6 +240,17 @@ public:
     void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
     bool GetHasForceHwcHdrSurface() const;
 
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetProtectiveSolidDrawables() const
+    {
+        return protectiveSolidDrawables_;
+    }
+
+    void SetProtectiveSolidDrawables(
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> protectiveSolidDrawables)
+    {
+        protectiveSolidDrawables_ = protectiveSolidDrawables;
+    }
+
     void SetScreenRotationForDelegate(ScreenRotation rotation);
     ScreenRotation GetScreenRotationForDelegate() const;
 private:
@@ -247,6 +258,7 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> protectiveSolidDrawables_;
     bool isDirtyAlignEnabled_ = false;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;
     ScreenInfo screenInfo_;

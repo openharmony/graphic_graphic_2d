@@ -28,6 +28,7 @@ class RSDepthRenderNode;
 class RSProxyRenderNode;
 class RSRootRenderNode;
 class RSSurfaceRenderNode;
+class RSProtectiveSolidRenderNode;
 class RSEffectRenderNode;
 class RSUnionRenderNode;
 class RSWindowKeyFrameRenderNode;
@@ -49,6 +50,8 @@ public:
         bool isParentPrepareInReverseOrder = false) {}
     virtual void QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
     virtual void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
+    virtual void QuickPrepareProtectiveSolidRenderNode(RSProtectiveSolidRenderNode& node,
+        bool isParentPrepareInReverseOrder = false) {}
     virtual void QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
     virtual void QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRenderNode& node,
         bool isParentPrepareInReverseOrder = false) {}
