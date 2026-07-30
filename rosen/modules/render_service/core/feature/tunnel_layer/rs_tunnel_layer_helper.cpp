@@ -236,8 +236,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
 
     auto existingBuffer = surfaceHandler->GetBuffer();
     if (existingBuffer != nullptr && existingBuffer->GetSize() != pendingBuffer.buffer->GetSize()) {
-        RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());
-        pendingBuffer.bufferOwnerCount_->ClearReleaseCallback();
+        pendingBuffer.bufferOwnerCount_->OnBufferReleased();
         return false;
     }
 
@@ -248,8 +247,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     if (!canCommit || consumer == nullptr || composerClientManager == nullptr) {
         tunnelRuntime.SetLayerInfo(0, TUNNEL_PROP_INVALID);
         tunnelRuntime.SetBuilding();
-        RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());
-        pendingBuffer.bufferOwnerCount_->ClearReleaseCallback();
+        pendingBuffer.bufferOwnerCount_->OnBufferReleased();
         return false;
     }
 
@@ -263,8 +261,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     if (!CommitBuffer(commitInfo, composerClientManager, releaseFence)) {
         tunnelRuntime.SetLayerInfo(0, TUNNEL_PROP_INVALID);
         tunnelRuntime.SetBuilding();
-        RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());
-        pendingBuffer.bufferOwnerCount_->ClearReleaseCallback();
+        pendingBuffer.bufferOwnerCount_->OnBufferReleased();
         return false;
     }
 
