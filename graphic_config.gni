@@ -71,7 +71,7 @@ declare_args() {
   graphic_2d_feature_hetero_hdr_enable = false
   graphic_2d_feature_mhc_enable = false
   graphic_2d_feature_enable_primitive = false
-  graphic_2d_feature_hve_blur_enable = true;
+  graphic_2d_feature_hve_blur_enable = true
 }
 
 declare_args() {
