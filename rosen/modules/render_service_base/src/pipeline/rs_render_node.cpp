@@ -127,6 +127,8 @@ static void InitRsDrawableSlotToIndexVec()
     for (size_t i = 0; i < static_cast<size_t>(RSDrawableSlot::MAX); i++) {
         rsDrawableSlotToIndexVec[i] = nullptr;
     }
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::MASK)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.maskIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::TRANSITION)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.transitionIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR)] =
@@ -3566,6 +3568,8 @@ void RSRenderNode::UpdateDisplayList()
         return (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(endIndex))
             != nullptr ? stagingDrawCmdList_.size() - 1 : -1);
     };
+    // Update index of MASK
+    stagingDrawCmdIndex_.maskIndex_ = AppendDrawFunc(RSDrawableSlot::MASK);
     // Update index of TRANSITION
     stagingDrawCmdIndex_.transitionIndex_ = AppendDrawFunc(RSDrawableSlot::TRANSITION);
 

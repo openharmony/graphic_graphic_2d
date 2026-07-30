@@ -56,10 +56,12 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-    
-    // PLANNING: add support for op drop
 
+    auto maskIndex = nodeDrawable_->drawCmdIndex_.maskIndex_;
     for (auto i = 0; i <= shadowIndex; i++) {
+        if (i != maskIndex && i != shadowIndex) {
+            continue;
+        }
         if (nodeDrawable_->drawCmdList_[i] == nullptr) {
             RS_LOGE("RSRenderNodeShadowDrawable::OnDraw drawCmdList_[%{public}d] is nullptr", i);
             continue;

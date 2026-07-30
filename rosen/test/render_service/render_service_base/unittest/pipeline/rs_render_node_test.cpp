@@ -5532,6 +5532,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest002, TestSize.Level1)
 
     // SHADOW(7)≤MATERIAL_SHADER, BG_COLOR(14)≤CONTENT_STYLE, CONTENT_STYLE(28)→contentIndex_!=-1,
     // CHILDREN(29)>CONTENT_STYLE, FG_COLOR(39) unmapped+>RESTORE_FRAME, RESTORE_ALL(51)>RESTORE_BLENDER
+    vec[static_cast<int8_t>(RSDrawableSlot::MASK)] = std::make_shared<DrawableTest>();
     vec[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = std::make_shared<DrawableTest>();
     vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
     vec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
@@ -5541,6 +5542,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest002, TestSize.Level1)
 
     node->UpdateDisplayListExt();
     EXPECT_FALSE(node->stagingDrawCmdList_.empty());
+    EXPECT_NE(node->stagingDrawCmdIndex_.maskIndex_, -1);
     EXPECT_GT(node->stagingDrawCmdIndex_.renderGroupBeginIndex_, 0);
     EXPECT_EQ(node->stagingDrawCmdIndex_.contentIndex_,
         node->stagingDrawCmdIndex_.backgroundEndIndex_);
@@ -5594,6 +5596,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest004, TestSize.Level1)
         auto params = std::make_unique<RSRenderParams>(node->GetId());
         node->stagingRenderParams_ = std::move(params);
         node->drawableVecStatus_ = status;
+        vec[static_cast<int8_t>(RSDrawableSlot::MASK)] = std::make_shared<DrawableTest>();
         vec[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = std::make_shared<DrawableTest>();
         vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
         vec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
@@ -5601,6 +5604,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest004, TestSize.Level1)
         vec[static_cast<int8_t>(RSDrawableSlot::RESTORE_ALL)] = std::make_shared<DrawableTest>();
     };
     auto assertIndexEqual = [](const DrawCmdIndex& a, const DrawCmdIndex& b) {
+        EXPECT_EQ(a.maskIndex_, b.maskIndex_);
         EXPECT_EQ(a.transitionIndex_, b.transitionIndex_);
         EXPECT_EQ(a.shadowIndex_, b.shadowIndex_);
         EXPECT_EQ(a.backgroundColorIndex_, b.backgroundColorIndex_);
