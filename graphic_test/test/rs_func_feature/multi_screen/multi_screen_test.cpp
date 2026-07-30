@@ -1044,7 +1044,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenBlackLis
         screenId2, displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -1099,7 +1099,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenBlackLis
     displayNode1->RSNode::AddChild(surfaceNode0);
     displayNode1->SetBackgroundColor(SK_ColorBLACK);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     // mirrorScreen
@@ -1182,7 +1182,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenBlackLis
     displayNode1->RSNode::AddChild(surfaceNode0);
     displayNode1->SetBackgroundColor(SK_ColorBLACK);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     // mirrorScreen
@@ -1258,7 +1258,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     displayNode->RSNode::AddChild(surfaceNode1);
     displayNode->RSNode::AddChild(surfaceNode2);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
@@ -1302,7 +1302,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     displayNode->RSNode::AddChild(surfaceNode1);
     displayNode->RSNode::AddChild(surfaceNode2);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
@@ -1349,7 +1349,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     // add surface node as display node child
     displayNode->RSNode::AddChild(surfaceNode1);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
@@ -1418,7 +1418,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     displayNode->RSNode::AddChild(canvasNode1);
     displayNode->RSNode::AddChild(canvasNode3);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
@@ -1457,7 +1457,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     displayNode->RSNode::AddChild(surfaceNode1);
     displayNode->RSNode::AddChild(surfaceNode2);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
@@ -1497,7 +1497,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     displayNode->RSNode::AddChild(surfaceNode1);
     displayNode->RSNode::AddChild(surfaceNode2);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
@@ -1536,7 +1536,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     displayNode->RSNode::AddChild(surfaceNode1);
     displayNode->RSNode::AddChild(surfaceNode2);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
@@ -1576,7 +1576,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     displayNode->RSNode::AddChild(surfaceNode1);
     displayNode->RSNode::AddChild(surfaceNode2);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
@@ -1626,7 +1626,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -1678,7 +1678,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTes
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -1733,7 +1733,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetCastScreenEnableSkipW
     displayNode1->RSNode::AddChild(surfaceNode0);
     displayNode1->SetBackgroundColor(SK_ColorBLACK);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     // mirrorScreen
@@ -1850,7 +1850,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetCastScreenEnableSkipW
         screenId2, displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -1935,7 +1935,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetCastScreenEnableSkipW
         screenId2, displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -4432,7 +4432,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest001)
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, false);
     ASSERT_NE(displayNode2, nullptr);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -4479,7 +4479,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest002)
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
     ASSERT_NE(displayNode2, nullptr);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -4532,7 +4532,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest003)
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, false);
     ASSERT_NE(displayNode2, nullptr);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -4585,7 +4585,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest004)
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
     ASSERT_NE(displayNode2, nullptr);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -4639,7 +4639,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest005)
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, false);
     ASSERT_NE(displayNode2, nullptr);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -4693,7 +4693,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest006)
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
     ASSERT_NE(displayNode2, nullptr);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -4739,7 +4739,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSnapshotSkipLayerTest
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, false);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
@@ -4785,7 +4785,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSnapshotSkipLayerTest
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
 
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
