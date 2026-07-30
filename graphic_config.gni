@@ -100,7 +100,7 @@ if (graphic_2d_feature_product == "tablet") {
 if (graphic_2d_feature_product == "pc") {
   graphic_2d_feature_hve_blur_enable = false
 }
- 	 
+
 gpu_defines = []
 accessibility_defines = []
 
