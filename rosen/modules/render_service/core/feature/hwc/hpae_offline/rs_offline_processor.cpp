@@ -19,13 +19,9 @@
 namespace OHOS {
 namespace Rosen {
 
-RSOfflineProcessor::RSOfflineProcessor()
-{
-}
+RSOfflineProcessor::RSOfflineProcessor() {}
 
-RSOfflineProcessor::~RSOfflineProcessor()
-{
-}
+RSOfflineProcessor::~RSOfflineProcessor() {}
 
 RSOfflineProcessor& RSOfflineProcessor::GetOfflineProcessor()
 {
@@ -90,7 +86,6 @@ bool RSOfflineProcessor::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRend
     OfflineDeviceType deviceType)
 {
     RS_TRACE_NAME("RSOfflineProcessor::IsRSOfflineProcessorReady");
-    RS_LOGD("RSOfflineProcessor::IsRSOfflineProcessorReady for type: %{public}d", static_cast<int>(deviceType));
     auto offlineDevice = GetOrCreateOfflineDevice(deviceType, true);
     if (offlineDevice == nullptr) {
         RS_LOGW("RSOfflineProcessor::Offline device is invalid");
@@ -119,7 +114,6 @@ bool RSOfflineProcessor::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRend
 void RSOfflineProcessor::CheckAndPostClearOfflineResourceTask(OfflineDeviceType deviceType,
     const std::vector<uint64_t>& offlineNodeIds)
 {
-    RS_TRACE_NAME("RSOfflineProcessor::CheckAndPostClearOfflineResourceTask");
     auto offlineDevice = GetOrCreateOfflineDevice(deviceType, false);
     if (offlineDevice == nullptr) {
         return;
