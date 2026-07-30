@@ -21,12 +21,18 @@ config("render_config") {
 }
 
 ohos_source_set("webgl_src") {
+  branch_protector_ret = "pac_ret"
+  
   include_dirs = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/common",
   ]
 
-  sources = [ "common/napi/n_class.cpp" ]
+  sources = [
+    "common/napi/n_class.cpp",
+    "common/napi/n_func_arg.cpp",
+    "common/napi/n_val.cpp"
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -40,8 +46,6 @@ ohos_source_set("webgl_src") {
 
   if (rs_enable_gpu) {
     sources += [
-      "common/napi/n_func_arg.cpp",
-      "common/napi/n_val.cpp",
       "src/egl_manager.cpp",
       "src/module.cpp",
       "src/util.cpp",
@@ -98,6 +102,7 @@ ohos_source_set("webgl_src") {
 }
 
 ohos_shared_library("libwebglnapi") {
+  branch_protector_ret = "pac_ret"
   external_deps = [ "hilog:libhilog" ]
   deps = [ ":webgl_src" ]
   if (rs_enable_gpu) {
