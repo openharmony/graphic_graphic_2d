@@ -29,7 +29,7 @@ EGLBoolean OHGraphicsQueryGLImpl(void)
     return supportOpengl ? EGL_TRUE : EGL_FALSE;
 }
 
-__eglMustCastToProperFunctionPointerType EglGetProcAddressCustomImpl(const char *procname)
+__eglMustCastToProperFunctionPointerType EglGetProcAddressCustomImpl(const char* procname)
 {
     void* func = nullptr;
     if (OHOS::gGetProcAddress && OHOS::gGetProcAddress != &EglGetProcAddressCustomImpl) {
@@ -40,8 +40,7 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressCustomImpl(const char 
         return __eglMustCastToProperFunctionPointerType(func);
     }
 
-    auto it = OHOS::gCustomMap.find(procname);
-    if (it != OHOS::gCustomMap.end()) {
+    if (auto it = OHOS::gCustomMap.find(procname); it != OHOS::gCustomMap.end()) {
         return __eglMustCastToProperFunctionPointerType(it->second);
     }
     WLOGD("EglGetProcAddressCustomImpl did not find an entry for %{public}s", procname);
