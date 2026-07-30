@@ -118,7 +118,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     RequestFramesForAllSurfaces(screenDrawable, tid);
     // surfaceFrames_[0] is always the primary surface (the first successfully created frame).
     if (surfaceFrames_.empty()) {
-        RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): "
+        RS_LOGD("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): "
             "No valid surfaces in multi-surface configs!",
             virtualScreenId_);
         return false;
@@ -796,7 +796,7 @@ void RSUniRenderVirtualProcessor::RequestFramesForAllSurfaces(
         }
 
         if (frame == nullptr) {
-            RS_LOGE("RSUniRenderVirtualProcessor::%{public}s: RequestFrame failed for surface index %{public}zu",
+            RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: RequestFrame failed for surface index %{public}zu",
                 __func__, i);
             continue;
         }
