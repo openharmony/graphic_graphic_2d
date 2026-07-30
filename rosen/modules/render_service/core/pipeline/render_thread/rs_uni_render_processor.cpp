@@ -260,7 +260,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetSdrNit(renderParams.GetSdrNit());
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
-    layer->SetLayerLinearMatrix((offlineResult && offlineResult->isGPUOffline) ?  
+    layer->SetLayerLinearMatrix((offlineResult && offlineResult->isGPUOffline) ?
         offlineResult->linearMatrix : renderParams.GetLayerLinearMatrix());
     layer->SetDelegateMode(params.GetDelegateMode());
     auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : renderParams.GetBufferOwnerCount();

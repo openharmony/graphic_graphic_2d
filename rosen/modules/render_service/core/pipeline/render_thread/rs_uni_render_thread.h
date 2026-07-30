@@ -108,8 +108,8 @@ public:
     void DumpMem(DfxString& log, bool isLite = false);
     void DumpGpuMem(DfxString& log, const std::vector<std::pair<NodeId, std::string>>& nodeTags);
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
-    uint32_t GetWatermarkRowCount () const;
-    uint32_t GetWatermarkColCount () const;
+    uint32_t GetWatermarkRowCount() const;
+    uint32_t GetWatermarkColCount() const;
     uint64_t GetFrameCount() const
     {
         return frameCount_;
