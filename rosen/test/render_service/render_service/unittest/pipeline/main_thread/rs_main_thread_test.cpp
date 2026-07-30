@@ -7420,5 +7420,482 @@ HWTEST_F(RSMainThreadTest, GetProtectiveSolidDrawables002, TestSize.Level1)
     mainThread->protectiveSolidDrawables_.clear();
 }
 
+// ====================== Split/Rebuild Transaction (per-pid) tests ======================
+
+static std::unique_ptr<RSTransactionData> MakeRebuildTransactionForTest(pid_t pid)
+{
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetSendingPid(pid);
+    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    return txn;
+}
+
+static std::unique_ptr<RSTransactionData> MakeNormalTransactionForTest(pid_t pid)
+{
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetSendingPid(pid);
+    return txn;
+}
+
+/**
+ * @tc.name: IsPidRebuilding001
+ * @tc.desc: Test IsPidRebuilding / IsRebuildTransactionInProgress reflect per-pid rebuild state
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, IsPidRebuilding001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1000;
+    constexpr pid_t pidB = 2000;
+    EXPECT_FALSE(mainThread->IsRebuildTransactionInProgress());
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    EXPECT_TRUE(mainThread->IsRebuildTransactionInProgress());
+    EXPECT_TRUE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidB));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_FALSE(mainThread->IsRebuildTransactionInProgress());
+}
+
+/**
+ * @tc.name: AddSplitTransaction001
+ * @tc.desc: Test AddSplitTransaction queues per-pid and records startTimeMs only on empty->non-empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddSplitTransaction001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1100;
+    constexpr pid_t pidB = 1200;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    auto& stateA = mainThread->pendingSplitTransactions_[pidA];
+    EXPECT_EQ(stateA.transactions.size(), 1u);
+    EXPECT_GT(stateA.startTimeMs, 0.0f);
+    float firstStartA = stateA.startTimeMs;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    EXPECT_EQ(mainThread->pendingSplitTransactions_[pidA].transactions.size(), 2u);
+    EXPECT_EQ(mainThread->pendingSplitTransactions_[pidA].startTimeMs, firstStartA);
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidB));
+    EXPECT_TRUE(mainThread->IsPidRebuilding(pidB));
+    EXPECT_GT(mainThread->pendingSplitTransactions_[pidB].startTimeMs, 0.0f);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: AddSplitTransaction002
+ * @tc.desc: Test AddSplitTransaction uses trusted callingPid (not forgeable sendingPid) as map key
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddSplitTransaction002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t callingPid = 2100;
+    constexpr pid_t sendingPid = 2200;
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetCallingPid(callingPid);
+    txn->SetSendingPid(sendingPid);
+    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(txn));
+    EXPECT_TRUE(mainThread->IsPidRebuilding(callingPid));
+    EXPECT_FALSE(mainThread->IsPidRebuilding(sendingPid));
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands001
+ * @tc.desc: Test ProcessSplitTransactionCommands early-returns when map is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    EXPECT_FALSE(mainThread->IsRebuildTransactionInProgress());
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsRebuildTransactionInProgress());
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands002
+ * @tc.desc: Test single pid rebuild drains and erases the entry
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1300;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands003
+ * @tc.desc: Test multiple pids rebuild independently; both drain in one pass
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1400;
+    constexpr pid_t pidB = 1500;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidB));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidB));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidB));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands004
+ * @tc.desc: Test null transaction at front is popped and loop continues
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1600;
+    std::unique_ptr<RSTransactionData> nullTxn;
+    mainThread->pendingSplitTransactions_[pidA].transactions.push_back(std::move(nullTxn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands005
+ * @tc.desc: Test a single pid's multiple transactions are processed back-to-back in one frame
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2400;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    ASSERT_EQ(mainThread->pendingSplitTransactions_[pidA].transactions.size(), 3u);
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands006
+ * @tc.desc: Test empty-deque map entry is erased via the defensive check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2500;
+    // inject an entry with an empty transactions deque (defensive branch)
+    mainThread->pendingSplitTransactions_[pidA];
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands007
+ * @tc.desc: Test time-check entry true / time-slice false / command process true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands007, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2600;
+    auto txn = MakeRebuildTransactionForTest(pidA);
+    txn->payload_.resize(1);
+    txn->payload_[0] = std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>(
+        0, FollowType::NONE, std::make_unique<RSBaseNodeAddChild>(0, 1, 3));
+    mainThread->AddSplitTransaction(std::move(txn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands008
+ * @tc.desc: Test command process false branch (null command in payload)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands008, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2700;
+    auto txn = MakeRebuildTransactionForTest(pidA);
+    txn->payload_.resize(1);
+    txn->payload_[0] = std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>(0, FollowType::NONE, nullptr);
+    mainThread->AddSplitTransaction(std::move(txn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands009
+ * @tc.desc: Test isTotalTimeExceeded true skips the time-slice check (force-finish)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands009, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2800;
+    auto txn = MakeRebuildTransactionForTest(pidA);
+    txn->payload_.resize(1);
+    txn->payload_[0] = std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>(
+        0, FollowType::NONE, std::make_unique<RSBaseNodeAddChild>(0, 1, 3));
+    mainThread->AddSplitTransaction(std::move(txn));
+    // force isTotalTimeExceeded=true (startTimeMs far in the past) to skip the time-slice check
+    mainThread->pendingSplitTransactions_[pidA].startTimeMs = 0.0f;
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands010
+ * @tc.desc: Test rebuild drain resets isRebuildingState_ on the pid's surface nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands010, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2900;
+    constexpr NodeId surfaceId = MakeNodeId(pidA, 1);
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    ASSERT_NE(nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceId), nullptr);
+    surfaceNode->isRebuildingState_ = true;
+
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_FALSE(surfaceNode->isRebuildingState_);
+
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: ProcessRSTransactionData001
+ * @tc.desc: Test rebuild-scene transaction is routed to AddSplitTransaction
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessRSTransactionData001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1700;
+    auto txn = MakeRebuildTransactionForTest(pidA);
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessRSTransactionData(txn, pidA);
+    EXPECT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->pendingSplitTransactions_.clear();
+}
+
+/**
+ * @tc.name: ProcessRSTransactionData002
+ * @tc.desc: Test normal transaction during rebuild is cached per-pid, not processed immediately
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessRSTransactionData002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1800;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    auto normalTxn = MakeNormalTransactionForTest(pidA);
+    mainThread->ProcessRSTransactionData(normalTxn, pidA);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_[pidA].size(), 1u);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: ProcessRSTransactionData003
+ * @tc.desc: Test normal transaction with no rebuild in progress is not cached
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessRSTransactionData003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1900;
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    auto normalTxn = MakeNormalTransactionForTest(pidA);
+    mainThread->ProcessRSTransactionData(normalTxn, pidA);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+}
+
+/**
+ * @tc.name: ProcessRSTransactionData004
+ * @tc.desc: Test rebuild deferral uses trusted callingPid, not the untrusted pid param (from sendingPid)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessRSTransactionData004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t callingPid = 2300;
+    constexpr pid_t sendingPid = 2400;
+    auto rebuildTxn = std::make_unique<RSTransactionData>();
+    rebuildTxn->SetCallingPid(callingPid);
+    rebuildTxn->SetSendingPid(sendingPid);
+    rebuildTxn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(rebuildTxn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(callingPid));
+    auto normalTxn = std::make_unique<RSTransactionData>();
+    normalTxn->SetCallingPid(callingPid);
+    normalTxn->SetSendingPid(sendingPid);
+    mainThread->ProcessRSTransactionData(normalTxn, sendingPid);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(callingPid), 1u);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_[callingPid].size(), 1u);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(sendingPid), 0u);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: ProcessPendingCommandsDuringRebuild001
+ * @tc.desc: Test ProcessPendingCommandsDuringRebuild is a no-op when nothing cached
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessPendingCommandsDuringRebuild001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2000;
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+    mainThread->ProcessPendingCommandsDuringRebuild(pidA);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+}
+
+/**
+ * @tc.name: ProcessPendingCommandsDuringRebuild002
+ * @tc.desc: Test ProcessPendingCommandsDuringRebuild replays and erases cached transactions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessPendingCommandsDuringRebuild002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2100;
+    mainThread->pendingCommandsDuringRebuild_[pidA].emplace_back(MakeNormalTransactionForTest(pidA));
+    ASSERT_EQ(mainThread->pendingCommandsDuringRebuild_[pidA].size(), 1u);
+    mainThread->ProcessPendingCommandsDuringRebuild(pidA);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+}
+
+/**
+ * @tc.name: CleanResourcesRebuildState001
+ * @tc.desc: Test CleanResources(pid) erases only that pid's rebuild state, leaving other pids intact
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CleanResourcesRebuildState001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2200;
+    constexpr pid_t pidB = 2300;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidB));
+    mainThread->pendingCommandsDuringRebuild_[pidA].emplace_back(MakeNormalTransactionForTest(pidA));
+    mainThread->pendingCommandsDuringRebuild_[pidB].emplace_back(MakeNormalTransactionForTest(pidB));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidB));
+    mainThread->CleanResources(pidA, false);
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_TRUE(mainThread->IsPidRebuilding(pidB));
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidB), 1u);
+    mainThread->CleanResources(pidB, false);
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidB));
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
 } // namespace OHOS::Rosen
 #endif

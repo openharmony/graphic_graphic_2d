@@ -400,6 +400,9 @@ public:
 
     void SetLayerInfo(const RSLayerInfo& layerInfo);
     const RSLayerInfo& GetLayerInfo() const override;
+
+    void SetRebuildingState(bool isRebuildingState);
+    bool GetRebuildingState() const;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
     void SetNeedMakeImage(bool enabled);
@@ -998,6 +1001,7 @@ private:
     bool isLastFrameHardwareEnabled_ = false;
     bool subHighPriorityType_ = false;
     bool isFixRotationByUser_ = false;
+    bool isRebuildingState_ = false;
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool animateState_ = false;

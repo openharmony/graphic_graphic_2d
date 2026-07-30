@@ -312,6 +312,7 @@ public:
 
     static float GetSplitTransactionMaxProcessTimeMs();
     static size_t GetSplitTransactionCheckInterval();
+    static float GetSplitTransactionMaxTotalTimeMs();
 
     static bool GetSecurityPermissionCheckEnabled();
     static bool GetEffectMergeEnabled();
