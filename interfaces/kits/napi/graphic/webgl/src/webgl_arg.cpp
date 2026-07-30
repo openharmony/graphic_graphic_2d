@@ -513,7 +513,7 @@ bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuety
     errorCode = imageSource->GetImageInfo(0, imageInfo);
     if (errorCode == 0) {
         errorCode = imageSource->GetImageInfo(imageInfo);
-        LOGD("WebGl ImageSource  [%{public}d %{public}d] pixelFormat %{public}u colorSpace %{public}u"
+        LOGD("WebGl ImageSource  [%{public}u %{public}u] pixelFormat %{public}u colorSpace %{public}u"
             " alphaType  %{public}u", imageInfo.size.width, imageInfo.size.height, imageInfo.pixelFormat,
             imageInfo.colorSpace, imageInfo.alphaType);
         imageOption_.width = imageInfo.size.width;
@@ -731,7 +731,7 @@ GLvoid* WebGLImageSource::GetImageSourceData() const
         return readBuffer_ == nullptr ? nullptr : reinterpret_cast<GLvoid*>(readBuffer_->GetBuffer() + srcOffset_);
     }
 
-    LOGD("WebGl ImageSource [%{public}d %{public}d] byteCount %{public}d pixelBytes %{public}d rowBytes %{public}d "
+    LOGD("WebGl ImageSource [%{public}u %{public}u] byteCount %{public}u pixelBytes %{public}u rowBytes %{public}u "
         " flipY %{public}u premultiplyAlpha %{public}u", pixelMap_->GetWidth(), pixelMap_->GetHeight(),
         pixelMap_->GetByteCount(), pixelMap_->GetPixelBytes(), pixelMap_->GetRowBytes(),
         unpackFlipY_, unpackPremultiplyAlpha_);
@@ -868,13 +868,13 @@ void TexStorageArg::Dump(const std::string& info) const
 void TexSubImage2DArg::Dump(const std::string& info) const
 {
     TexImageArg::Dump(info);
-    LOGD("xOffset %{public}d yOffset %{public}d", xOffset, yOffset);
+    LOGD("xOffset %{public}u yOffset %{public}u", xOffset, yOffset);
 }
 
 void TexSubImage3DArg::Dump(const std::string& info) const
 {
     TexImageArg::Dump(info);
-    LOGD("xOffset %{public}d yOffset %{public}d zOffset %{public}d", xOffset, yOffset, zOffset);
+    LOGD("xOffset %{public}u yOffset %{public}u zOffset %{public}u", xOffset, yOffset, zOffset);
 }
 
 void PixelsArg::Dump(const std::string& info) const
@@ -885,8 +885,8 @@ void PixelsArg::Dump(const std::string& info) const
 
 void VertexAttribArg::Dump(const std::string &info) const
 {
-    LOGD("%{public}s vertexAttrib index %{public}u %{public}d type %{public}u %{public}u "
-        "stride [%{public}d %{public}u]",
+    LOGD("%{public}s vertexAttrib index %{public}u %{public}d type %{public}u %{public}d "
+        "stride [%{public}u %{public}u]",
         info.c_str(), index, size, type, normalized, stride, static_cast<unsigned int>(offset));
 }
 

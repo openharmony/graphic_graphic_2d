@@ -26,5 +26,6 @@ namespace OHOS {
     EGLint EglGetErrorImpl();
     EglWrapperFuncPointer FindEglWrapperApi(const std::string &name);
     bool CheckEglWrapperApi(const std::string &name);
+    const char *EglQueryStringImpl(EGLDisplay dpy, EGLint name);
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_ENTRY_H
