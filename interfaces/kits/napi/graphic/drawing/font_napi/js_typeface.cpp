@@ -172,6 +172,7 @@ std::shared_ptr<Typeface> LoadZhCnTypeface()
         typeface = Typeface::MakeDefault();
     }
     return typeface;
+#endif
 }
 
 std::shared_ptr<Typeface> JsTypeface::GetZhCnTypeface()

@@ -28,8 +28,8 @@ public:
             if (tf != nullptr) {
                 Drawing::TypefaceMap::InserTypeface(tf->GetUniqueID(), tf);
             }
-             return 1;
-            };
+            return 1;
+        };
         auto destroyedCB = [](uint32_t id) {};
 #else
         auto registerCB = [](std::shared_ptr<Drawing::Typeface> tf) {
