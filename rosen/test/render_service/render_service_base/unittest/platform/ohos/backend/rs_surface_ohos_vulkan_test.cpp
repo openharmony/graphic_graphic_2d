@@ -250,8 +250,10 @@ HWTEST_F(RSSurfaceOhosVulkanTest, PreAllocateHpaeBuffer001, TestSize.Level1)
     int32_t height = 1;
     rsSurface.PreAllocateHpaeBuffer(width, height, 1, true);
 
-    NativeWindowBuffer windowBuffer;
-    rsSurface.hpaeSurfaceBufferList_.emplace_back(std::make_pair(&windowBuffer, 0));
+    NativeWindowBuffer windowBuffer1;
+    NativeWindowBuffer windowBuffer2;
+    rsSurface.hpaeSurfaceBufferList_.emplace_back(std::make_pair(&windowBuffer1, 0));
+    rsSurface.hpaeSurfaceBufferList_.emplace_back(std::make_pair(&windowBuffer2, -1));
     rsSurface.hpaeSurfaceBufferList_.emplace_back(std::make_pair(nullptr, 0));
     rsSurface.PreAllocateHpaeBuffer(width, height, 1, false);
     EXPECT_TRUE(rsSurface.mNativeWindow != nullptr);
