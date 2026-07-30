@@ -70,6 +70,47 @@ namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
 
+#ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
+static bool NeedYcbcrChannelSwap(const BufferDrawParam& params)
+{
+    if (params.useCPU || params.buffer == nullptr) {
+        return false;
+    }
+    if (!RSSystemProperties::IsUseVulkan()) {
+        return false;
+    }
+    auto format = params.buffer->GetFormat();
+    return format == GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
+}
+
+static void ApplyYcbcrChannelSwapFilter(Drawing::Brush& paint)
+{
+    RS_LOGD("ApplyYcbcrChannelSwapFilter: applying R↔B swap color filter for Vulkan YCbCr buffer");
+    static constexpr float rbSwapMatrix[Drawing::ColorFilter::MATRIX_SIZE] = {
+        0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f, 0.0f
+    };
+    static auto rbSwapFilter = Drawing::ColorFilter::CreateFloatColorFilter(rbSwapMatrix);
+    if (rbSwapFilter == nullptr) {
+        RS_LOGE("ApplyYcbcrChannelSwapFilter: failed to create R↔B swap color filter");
+        return;
+    }
+    Drawing::Filter filter = paint.GetFilter();
+    auto existingFilter = filter.GetColorFilter();
+    if (existingFilter) {
+        auto composed = Drawing::ColorFilter::CreateComposeColorFilter(*existingFilter, *rbSwapFilter);
+        filter.SetColorFilter(composed);
+        RS_LOGD("ApplyYcbcrChannelSwapFilter: composed with existing filter");
+    } else {
+        filter.SetColorFilter(rbSwapFilter);
+        RS_LOGD("ApplyYcbcrChannelSwapFilter: set as standalone filter (no existing filter)");
+    }
+    paint.SetFilter(filter);
+}
+#endif
+
 std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
     const std::vector<RectI>& rects, const RectI& surfaceRect) const
 {
@@ -741,6 +782,12 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
+#ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
+    if (NeedYcbcrChannelSwap(params)) {
+        ApplyYcbcrChannelSwapFilter(params.paint);
+    }
+#endif
+
     Drawing::SamplingOptions samplingOptions;
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = Drawing::SamplingOptions();
@@ -786,7 +833,18 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         luminanceMatrix.SetScale(params.brightnessRatio, params.brightnessRatio, params.brightnessRatio, 1.0f);
         auto luminanceColorFilter =
             std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX, luminanceMatrix);
+#ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
+        auto existingFilter = filter.GetColorFilter();
+        if (existingFilter) {
+            auto composed = Drawing::ColorFilter::CreateComposeColorFilter(*existingFilter, *luminanceColorFilter);
+            filter.SetColorFilter(composed);
+            RS_LOGD("DrawImage: composed luminance with existing color filter");
+        } else {
+            filter.SetColorFilter(luminanceColorFilter);
+        }
+#else
         filter.SetColorFilter(luminanceColorFilter);
+#endif
         params.paint.SetFilter(filter);
     }
 
