@@ -209,8 +209,8 @@ RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBi
     opts.size.height = src.GetHeight();
     opts.allocatorType = Media::AllocatorType::DMA_ALLOC;
     RSRcdSurfaceRenderNode::PixelMapPtr pixelMap = Media::PixelMap::Create(opts);
-    if (!pixelMap) {
-        RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap PixelMap Create failed");
+    if (pixelMap == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap create pixelMap error");
         return nullptr;
     }
     auto size = pixelMap->GetRowBytes() * pixelMap->GetHeight();
