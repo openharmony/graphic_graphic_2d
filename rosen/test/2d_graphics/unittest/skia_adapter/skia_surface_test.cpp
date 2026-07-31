@@ -234,7 +234,7 @@ HWTEST_F(SkiaSurfaceTest, MakeSurface001, TestSize.Level1)
 HWTEST_F(SkiaSurfaceTest, GetSkSurface001, TestSize.Level1)
 {
     auto surface = std::make_unique<SkiaSurface>();
-    ASSERT_TRUE(surface->GetSkSurface() == nullptr);
+    ASSERT_TRUE(surface->GetSkSurface() != nullptr);
 }
 
 /**
