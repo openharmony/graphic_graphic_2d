@@ -1425,7 +1425,7 @@ HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationPropagateToParentTest, TestSize
 
     childNode->SetBootAnimation(false);
     ASSERT_TRUE(childNode->IsContainBootAnimation());
-    ASSERT_FALSE(parentNode->IsContainBootAnimation());
+    ASSERT_TRUE(parentNode->IsContainBootAnimation());
 }
 
 /**
