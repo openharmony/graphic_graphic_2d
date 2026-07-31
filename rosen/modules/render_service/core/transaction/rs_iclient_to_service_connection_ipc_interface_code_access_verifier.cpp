@@ -389,10 +389,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO_TO_SP");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_POWER_STATUS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_POWER_STATUS");
             break;
@@ -628,10 +624,8 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         // CREATE_CONNECTION shares the same code value with SET_DUAL_SCREEN_STATE and has no
         // sender on this interface, it is covered here as well.
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DUAL_SCREEN_STATE):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHIC):
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_TOTAL_APP_MEM_SIZE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HDR_ON_DURATION):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_UPDATE_CALLBACK):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_MODE_CHANGE_CALLBACK): {
             hasPermission = true;
@@ -645,6 +639,9 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         default: {
             // Deny IPCs that are not listed above, including dead codes without stub handlers.
+            // GET_MEMORY_GRAPHIC, GET_REFRESH_INFO and GET_REFRESH_INFO_BY_PID_AND_UNIQUEID are
+            // intentionally denied here: the stub entry exemption lets them reach their handlers,
+            // which enforce self-pid validation via IsValidCallingPid.
             hasPermission = false;
             break;
         }

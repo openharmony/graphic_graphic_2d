@@ -171,10 +171,10 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK):
         case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK):
         // Capture IPCs: the stub entry exemption list and the per-case permissions/self-pid
-        // checks decide the final access, keep them reachable here. TAKE_SURFACE_CAPTURE has a
-        // registered CAPTURE_SCREEN permission which is not enforced yet, it is a candidate
-        // for CheckPermission once the callers are confirmed.
-        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE):
+        // checks decide the final access, keep them reachable here. TAKE_SURFACE_CAPTURE is
+        // intentionally not listed so that accessible stays false and its handler falls back
+        // to the isSystemCalling/selfCapture checks; its registered CAPTURE_SCREEN permission
+        // is a candidate for CheckPermission once the callers are confirmed.
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SELF_SURFACE_CAPTURE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE_SOLO):
         // The following IPCs are probably used by system components only or have no active
