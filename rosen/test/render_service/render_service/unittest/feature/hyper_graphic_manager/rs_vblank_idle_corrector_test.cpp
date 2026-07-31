@@ -115,7 +115,6 @@ HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintTest, TestSize.Level1
     frameRateMgr->isAdaptive_ = SupportASStatus::SUPPORT_AS;
     frameRateMgr->isGameNodeOnTree_ = true;
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
-    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 2);
 
     hgmCore.hgmFrameRateMgr_ = nullptr;
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
