@@ -49,6 +49,7 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "memory/rs_tag_tracker.h"
 #include "monitor/self_drawing_node_monitor.h"
@@ -1206,6 +1207,16 @@ void RSUniRenderVisitor::QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bo
     RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
+void RSUniRenderVisitor::QuickPrepareProtectiveSolidRenderNode(RSProtectiveSolidRenderNode& node,
+    bool isParentPrepareInReverseOrder)
+{
+    RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareProtectiveSolidRenderNode [%s] nodeId[%" PRIu64 "]",
+        node.GetName().c_str(), node.GetId());
+    UpdateCurFrameInfoDetail(node);
+    node.UpdateProtectiveSolidLayerInfo(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    node.AddToPendingSyncList();
+}
+
 void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     UpdateCurFrameInfoDetail(node);
@@ -2233,6 +2244,10 @@ void RSUniRenderVisitor::QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRe
 
 void RSUniRenderVisitor::UpdateRotationStatusForEffectNode(RSEffectRenderNode& node)
 {
+    if (!curScreenNode_ || !curLogicalDisplayNode_) {
+        RS_LOGE("%{public}s curScreenNode_ or curLogicalDisplayNode_ is nullptr", __func__);
+        return;
+    }
      // folding/expanding screen force invalidate cache.
     node.SetFoldStatusChanged(doAnimate_ &&
         curScreenNode_->GetScreenId() != node.GetCurrentAttachedScreenId());
@@ -2783,7 +2798,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
     std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers)
 {
     const auto& hwcNodes = curScreenNode_->GetChildHwcNodes();
-    if (hwcNodes.empty()) {
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    if (hwcNodes.empty() && nodeMap.GetProtectiveSolidNodeMapSize() == 0) {
         return;
     }
     std::optional<bool> isHardwareForcedDisabled;
@@ -2847,6 +2863,24 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
 
         UpdateHardWareForcedDisabledStateForDelegateMode(hwcNodePtr, isHardwareForcedDisabled);
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
+    }
+    if (nodeMap.GetProtectiveSolidNodeMapSize() > 0) {
+        nodeMap.TraverseProtectiveSolidNodes([this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+            if (!surfaceNode) {
+                return;
+            }
+            auto node = std::static_pointer_cast<RSProtectiveSolidRenderNode>(surfaceNode);
+            if (!node) {
+                return;
+            }
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+            if (!surfaceParams) {
+                return;
+            }
+            auto layer = surfaceParams->GetLayerInfo();
+            layer.zOrder = globalZOrder_++;
+            surfaceParams->SetLayerInfo(layer);
+        });
     }
     curScreenNode_->SetDisplayGlobalZOrder(globalZOrder_);
 }
@@ -3588,15 +3622,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node, bool isBlendNeedF
         return;
     }
     auto& properties = node.GetRenderProperties();
-    bool isUnSupportLayer =
-        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || RSOpincManager::IsSuggestOpincNode(node) ||
-            node.GetSharedTransitionParam() || properties.IsSpherizeValid() || properties.IsAttractionValid() ||
-            properties.NeedFilter() || properties.GetUseEffect() || properties.HasHarmonium() ||
-            node.ChildHasVisibleEffect() || properties.GetSandBox().has_value() || properties.IsShadowValid() ||
-            properties.IsColorBlendModeValid() || properties.IsColorBlendApplyTypeOffscreen() ||
-            properties.GetLinearGradientBlurPara() != nullptr || properties.IsFgBrightnessValid() ||
-            properties.GetForegroundFilter() != nullptr || properties.GetFilter() != nullptr ||
-            node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+    bool isUnSupportLayer = RSLayerCacheManagerBase::CheckNodeUnSupportLayer(node);
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*nodeParent, true);
     }

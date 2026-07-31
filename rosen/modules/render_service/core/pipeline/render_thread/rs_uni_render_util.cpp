@@ -184,6 +184,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSScreenRender
         Occlusion::Region surfaceRect = Occlusion::Region(Occlusion::Rect(dirtyManager->GetSurfaceRect()));
         damageRegion.AndSelf(surfaceRect);
     }
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // overlay display expand dirty region
     RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, drawnRegion, damageRegion);
@@ -423,13 +424,13 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
 void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer, RectF& localBounds)
 {
     if (buffer == nullptr) {
-        RS_LOGE("buffer or surface is nullptr");
+        RS_LOGE("buffer is nullptr");
         return;
     }
     uint32_t srcWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
     uint32_t srcHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
-    float newWidth = 0.0f;
-    float newHeight = 0.0f;
+    float newWidth = 0;
+    float newHeight = 0;
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
@@ -511,7 +512,7 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
                 params.srcRect.GetLeft() + params.srcRect.GetWidth(),
                 params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
     }
-    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown name: srcRect [%{public}f %{public}f %{public}f %{public}f]",
+    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown srcRect [%{public}f %{public}f %{public}f %{public}f]",
         params.srcRect.GetLeft(), params.srcRect.GetTop(), params.srcRect.GetWidth(), params.srcRect.GetHeight());
 }
 
@@ -754,11 +755,11 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
- 
+
     auto boundWidth = nodeParams->GetBounds().GetWidth();
     auto boundHeight = nodeParams->GetBounds().GetHeight();
     params.dstRect = Drawing::Rect(0, 0, boundWidth, boundHeight);
- 
+
     const sptr<SurfaceBuffer> buffer = nodeParams->GetBuffer();
     if (buffer == nullptr) {
         return params;
@@ -770,7 +771,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     if (consumer == nullptr) {
         return params;
     }
- 
+
     GraphicAlphaType alphaType = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
     if (consumer->GetAlphaType(alphaType) == GSERROR_OK) {
         params.alphaType = static_cast<Drawing::AlphaType>(alphaType);
@@ -965,6 +966,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
         // if rotation fixed, no need to calculate scaling mode, it is contained in dstRect
         return params;
     }
+
     RSAncoManager::UpdateCropRectForAnco(layer->GetAncoFlags(), layer->GetAncoSrcRect(),
         { buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), buffer->GetFormat() }, params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
@@ -975,6 +977,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateLayerBufferDrawParam(RSLayerPtr): Parameters creation completed");
+
     if (layer->GetDelegateMode()) {
         auto srcRect = layer->GetCropRect();
         params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
@@ -1302,6 +1305,7 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
             return;
         }
     }
+
     // continue to traverse.
     for (const auto& child : *node->GetSortedChildren()) {
         TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData, isUnobscured);
@@ -1621,7 +1625,7 @@ void RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(
             return false;
         }
         return firstDrawable->GetRenderParams()->GetLayerInfo().zOrder <
-            secondDrawable->GetRenderParams()->GetLayerInfo().zOrder;
+                secondDrawable->GetRenderParams()->GetLayerInfo().zOrder;
     });
 
     Drawing::AutoCanvasRestore acr(canvas, true);

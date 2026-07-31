@@ -60,6 +60,7 @@ declare_args() {
   graphic_2d_feature_enable_mediacommon = false
   graphic_2d_feature_enable_image_detail_enhancer = false
   graphic_2d_feature_rs_modifiers_draw_enable = false
+  graphic_2d_feature_enable_swap_ycbcr_channel = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -71,6 +72,7 @@ declare_args() {
   graphic_2d_feature_hetero_hdr_enable = false
   graphic_2d_feature_mhc_enable = false
   graphic_2d_feature_enable_primitive = false
+  graphic_2d_feature_hve_blur_enable = true
 }
 
 declare_args() {
@@ -94,6 +96,10 @@ if (graphic_2d_feature_product == "phone" ||
 
 if (graphic_2d_feature_product == "tablet") {
   enable_full_screen_recongnize = true
+}
+
+if (graphic_2d_feature_product == "pc") {
+  graphic_2d_feature_hve_blur_enable = false
 }
 
 gpu_defines = []
@@ -147,6 +153,10 @@ if (graphic_2d_feature_mhc_enable) {
   gpu_defines += [ "MHC_ENABLE" ]
 }
 
+if (graphic_2d_feature_hve_blur_enable) {
+  gpu_defines += [ "HVE_BLUR_ENABLE" ]
+}
+
 if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
   gpu_defines += [
     "RS_ENABLE_EGLIMAGE",
@@ -181,6 +191,10 @@ if (graphic_2d_feature_parallel_render_enable) {
 
 if (graphic_2d_feature_enable_chipset_vsync) {
   gpu_defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
+}
+
+if (graphic_2d_feature_enable_swap_ycbcr_channel) {
+  gpu_defines += [ "RS_ENABLE_SWAP_YCBCR_CHANNEL" ]
 }
 
 tp_defines = []

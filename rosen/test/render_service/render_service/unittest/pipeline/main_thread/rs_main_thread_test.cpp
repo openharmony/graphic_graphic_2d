@@ -32,6 +32,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "params/rs_render_params.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -6964,6 +6965,92 @@ HWTEST_F(RSMainThreadTest, SetWindowModeType001, TestSize.Level1)
     mainThread->SetWindowModeType(1);
     HWCParam::SetSplitScreenSourceTuning(false);
     mainThread->SetWindowModeType(1);
+}
+
+/**
+ * @tc.name: GetProtectiveSolidNodes001
+ * @tc.desc: Test GetProtectiveSolidNodes returns empty vector by default
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSMainThreadTest, GetProtectiveSolidNodes001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->protectiveSolidNodes_.clear();
+    const auto& nodes = mainThread->GetProtectiveSolidNodes();
+    EXPECT_TRUE(nodes.empty());
+}
+
+/**
+ * @tc.name: GetProtectiveSolidNodes002
+ * @tc.desc: Test GetProtectiveSolidNodes returns correct nodes
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSMainThreadTest, GetProtectiveSolidNodes002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node1 = std::make_shared<RSProtectiveSolidRenderNode>(100, rsContext);
+    auto node2 = std::make_shared<RSProtectiveSolidRenderNode>(200, rsContext);
+
+    mainThread->protectiveSolidNodes_.clear();
+    mainThread->protectiveSolidNodes_.emplace_back(node1);
+    mainThread->protectiveSolidNodes_.emplace_back(node2);
+
+    const auto& nodes = mainThread->GetProtectiveSolidNodes();
+    EXPECT_EQ(nodes.size(), 2);
+    EXPECT_EQ(nodes[0]->GetId(), 100);
+    EXPECT_EQ(nodes[1]->GetId(), 200);
+
+    mainThread->protectiveSolidNodes_.clear();
+}
+
+/**
+ * @tc.name: GetProtectiveSolidDrawables001
+ * @tc.desc: Test GetProtectiveSolidDrawables returns empty vector by default
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSMainThreadTest, GetProtectiveSolidDrawables001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->protectiveSolidDrawables_.clear();
+    const auto& drawables = mainThread->GetProtectiveSolidDrawables();
+    EXPECT_TRUE(drawables.empty());
+}
+
+/**
+ * @tc.name: GetProtectiveSolidDrawables002
+ * @tc.desc: Test GetProtectiveSolidDrawables returns correct drawables
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSMainThreadTest, GetProtectiveSolidDrawables002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(100, rsContext);
+    auto drawable = node->GetRenderDrawable();
+
+    mainThread->protectiveSolidDrawables_.clear();
+    mainThread->protectiveSolidDrawables_.emplace_back(std::make_tuple(
+        static_cast<NodeId>(1), static_cast<NodeId>(2), drawable));
+
+    const auto& drawables = mainThread->GetProtectiveSolidDrawables();
+    EXPECT_EQ(drawables.size(), 1);
+    EXPECT_EQ(std::get<0>(drawables[0]), 1);
+    EXPECT_EQ(std::get<1>(drawables[0]), 2);
+
+    mainThread->protectiveSolidDrawables_.clear();
 }
 
 } // namespace OHOS::Rosen

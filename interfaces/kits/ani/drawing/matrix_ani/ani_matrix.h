@@ -72,7 +72,7 @@ private:
     static ani_object MatrixTransferStatic(
         ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
     static ani_long GetMatrixAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    void OnSetMatrix(ani_env* env, ani_object obj, ani_object matrixArryaObj);
+    void OnSetMatrix(ani_env* env, ani_object obj, ani_object matrixArrayObj);
     std::shared_ptr<Matrix>* GetMatrixPtrAddr();
     std::shared_ptr<Matrix> matrix_ = nullptr;
 };

@@ -261,7 +261,7 @@ ani_object AniTypeface::MakeFromRawFileWithArguments(ani_env* env, ani_object ob
     if (!AniTool::GetResourceInfo(env, resource, resourceInfo) ||
         !AniTool::GetResourceRawFileDataBuffer(std::move(rawFileArrayBuffer), rawFileArrayBufferSize, resourceInfo)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniTypeface::makeFromRawFileWithArguments get rawfilebuffer failed.");
+            "AniTypeface::MakeFromRawFileWithArguments get rawfilebuffer failed.");
         return CreateAniUndefined(env);
     }
 

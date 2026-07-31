@@ -16,6 +16,7 @@
 #include "js_typeface.h"
 #include "js_typefacearguments.h"
 
+
 #include "native_value.h"
 #include "utils/typeface_hash_map.h"
 #include "js_drawing_utils.h"
@@ -40,7 +41,6 @@ napi_value JsTypeface::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("makeFromRawFileWithArguments", JsTypeface::MakeFromRawFileWithArguments),
         DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsTypeface::TypefaceTransferDynamic),
     };
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
                                            sizeof(properties) / sizeof(properties[0]), properties, &constructor);

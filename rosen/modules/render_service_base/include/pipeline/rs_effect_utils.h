@@ -18,7 +18,6 @@
 
 #include "effect/rs_render_effect_common_def.h"
 #include "pipeline/rs_render_node.h"
-#include "property/rs_properties.h"
 
 namespace OHOS {
 
@@ -30,9 +29,6 @@ public:
 
     // true：causes filter cache to be generated offscreen.
     static bool IsOffscreenForFilterCache(RSRenderNode& node);
-
-    // true: has filter that only depends on background
-    static bool HasBackgroundDependentFilter(const RSProperties& properties);
 };
 } // namespace Rosen
 } // namespace OHOS

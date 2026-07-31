@@ -49,6 +49,7 @@
 #include "pipeline/hwc/rs_hwc_context.h"
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
@@ -102,6 +103,16 @@ private:
 class RSMainThread {
 public:
     static RSMainThread* Instance();
+
+    const std::vector<std::shared_ptr<RSProtectiveSolidRenderNode>>& GetProtectiveSolidNodes() const
+    {
+        return protectiveSolidNodes_;
+    }
+
+    const RSRenderThreadParams::DrawablesVec& GetProtectiveSolidDrawables() const
+    {
+        return protectiveSolidDrawables_;
+    }
 
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
@@ -809,6 +820,8 @@ private:
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
     std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;
+    std::vector<std::shared_ptr<RSProtectiveSolidRenderNode>> protectiveSolidNodes_;
+    DrawablesVec protectiveSolidDrawables_;
 
     // for aibar
     std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet> aibarNodes_;

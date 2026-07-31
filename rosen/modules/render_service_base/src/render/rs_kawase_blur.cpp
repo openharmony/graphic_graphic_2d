@@ -229,6 +229,10 @@ void KawaseBlurFilter::OutputOriginalImage(Drawing::Canvas& canvas, const std::s
         brush.SetFilter(filter);
     }
     Drawing::Matrix inputMatrix;
+    if (image->GetWidth() == 0 || image->GetHeight() == 0) {
+        ROSEN_LOGE("KawaseBlurFilter::OutputOriginalImage image width or height is 0");
+        return;
+    }
     float scaleW = dst.GetWidth() / image->GetWidth();
     float scaleH = dst.GetHeight() / image->GetHeight();
     inputMatrix.Translate(-src.GetLeft(), -src.GetTop());

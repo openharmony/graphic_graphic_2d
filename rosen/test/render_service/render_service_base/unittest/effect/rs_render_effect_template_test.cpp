@@ -799,4 +799,86 @@ HWTEST_F(RSNGRenderEffectTemplateTest, UpdateVisualEffectParamImplShapeValid, Te
     RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(*testEffect, "test_shape", validShape);
     EXPECT_NE(testEffect->GetImpl(), nullptr);
 }
+
+static std::shared_ptr<RSNGRenderShapeBase> BuildNestedUnionShapeChain(int32_t depth)
+{
+    std::shared_ptr<RSNGRenderShapeBase> current;
+    for (int32_t i = 0; i < depth; ++i) {
+        auto op = std::static_pointer_cast<RSNGRenderSDFUnionOpShape>(
+            RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE));
+        if (current != nullptr) {
+            op->Setter<SDFUnionOpShapeShapeXRenderTag>(current);
+        }
+        current = op;
+    }
+    return current;
+}
+
+/**
+ * @tc.name: ShapeRecursionGuardGenerateDiscardsBeyondLimit
+ * @tc.desc: Verify GenerateGEVisualEffect keeps the root and discards the exceeding tail
+ *           (non-null return = discard, contrasted with Unmarshalling whole-tree-failure)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderEffectTemplateTest, ShapeRecursionGuardGenerateDiscardsBeyondLimit, TestSize.Level1)
+{
+    constexpr int32_t exceedDepth = RSShapeRecursionGuard::MAX_DEPTH + 2;
+    auto root = BuildNestedUnionShapeChain(exceedDepth);
+    ASSERT_NE(root, nullptr);
+    EXPECT_EQ(RSShapeRecursionGuard::Depth(), 0);
+    auto geShape = root->GenerateGEVisualEffect();
+    EXPECT_NE(geShape, nullptr);
+    EXPECT_EQ(RSShapeRecursionGuard::Depth(), 0);
+}
+
+/**
+ * @tc.name: ShapeRecursionGuardGenerateThreadLocalReset
+ * @tc.desc: Verify thread_local depth resets between calls (RAII balance through bail path)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderEffectTemplateTest, ShapeRecursionGuardGenerateThreadLocalReset, TestSize.Level1)
+{
+    constexpr int32_t exceedDepth = RSShapeRecursionGuard::MAX_DEPTH + 2;
+    auto root = BuildNestedUnionShapeChain(exceedDepth);
+    ASSERT_NE(root, nullptr);
+    EXPECT_EQ(RSShapeRecursionGuard::Depth(), 0);
+    EXPECT_NE(root->GenerateGEVisualEffect(), nullptr);
+    EXPECT_EQ(RSShapeRecursionGuard::Depth(), 0);
+    EXPECT_NE(root->GenerateGEVisualEffect(), nullptr);
+    EXPECT_EQ(RSShapeRecursionGuard::Depth(), 0);
+}
+
+/**
+ * @tc.name: ShapeRecursionGuardCalculateHashDeepNestingNoCrash
+ * @tc.desc: Verify CalculateHash discards the exceeding tail without crash, depth resets
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderEffectTemplateTest, ShapeRecursionGuardCalculateHashDeepNestingNoCrash, TestSize.Level1)
+{
+    constexpr int32_t exceedDepth = RSShapeRecursionGuard::MAX_DEPTH + 2;
+    auto root = BuildNestedUnionShapeChain(exceedDepth);
+    ASSERT_NE(root, nullptr);
+    EXPECT_EQ(RSShapeRecursionGuard::Depth(), 0);
+    uint32_t hash = root->CalculateHash();
+    EXPECT_NE(hash, 0u);
+    EXPECT_EQ(RSShapeRecursionGuard::Depth(), 0);
+}
+
+/**
+ * @tc.name: ShapeRecursionGuardUnmarshallingDeepNestingFails
+ * @tc.desc: Verify Unmarshalling rejects the whole tree (returns false) when depth exceeds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderEffectTemplateTest, ShapeRecursionGuardUnmarshallingDeepNestingFails, TestSize.Level1)
+{
+    constexpr int32_t exceedDepth = RSShapeRecursionGuard::MAX_DEPTH + 2;
+    auto root = BuildNestedUnionShapeChain(exceedDepth);
+    ASSERT_NE(root, nullptr);
+    Parcel parcel;
+    ASSERT_TRUE(root->Marshalling(parcel));
+    EXPECT_EQ(RSShapeRecursionGuard::Depth(), 0);
+    std::shared_ptr<RSNGRenderShapeBase> result;
+    EXPECT_FALSE(RSNGRenderShapeBase::Unmarshalling(parcel, result));
+    EXPECT_EQ(RSShapeRecursionGuard::Depth(), 0);
+}
 } // namespace OHOS::Rosen

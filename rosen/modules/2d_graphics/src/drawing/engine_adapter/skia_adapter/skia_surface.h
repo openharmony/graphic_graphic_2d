@@ -41,7 +41,6 @@ public:
 #ifdef RS_ENABLE_GPU
     bool Bind(const Image& image) override;
     bool Bind(const FrameBuffer& frameBuffer) override;
-    
 #ifdef RS_ENABLE_VK
     static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,
         TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
@@ -62,7 +61,6 @@ public:
     std::shared_ptr<Surface> MakeSurface(int width, int height) const override;
     std::shared_ptr<Surface> MakeSurface(const ImageInfo& imageInfo) const override;
     BackendTexture GetBackendTexture(BackendAccess access) const override;
-    
     void SetSkSurface(const sk_sp<SkSurface>& skSurface);
     void FlushAndSubmit(bool syncCpu) override;
     SemaphoresSubmited Flush(FlushInfo *drawingflushInfo = nullptr) override;

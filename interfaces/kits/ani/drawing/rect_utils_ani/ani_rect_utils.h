@@ -29,7 +29,7 @@ public:
 
     static ani_boolean ContainsWithObject(ani_env* env, ani_object obj, ani_object aniRectObj, ani_object aniOtherRect);
     static ani_boolean Contains(ani_env* env, ani_object obj, ani_object aniRectObj, ani_double x, ani_double y);
-    static ani_boolean ContainsWithVaule(ani_env* env, ani_object obj, ani_object aniRectObj, ani_double left,
+    static ani_boolean ContainsWithValue(ani_env* env, ani_object obj, ani_object aniRectObj, ani_double left,
         ani_double top, ani_double right, ani_double bottom);
     static void Inset(ani_env* env, ani_object obj, ani_object aniRectObj,
         ani_double left, ani_double top, ani_double right, ani_double bottom);

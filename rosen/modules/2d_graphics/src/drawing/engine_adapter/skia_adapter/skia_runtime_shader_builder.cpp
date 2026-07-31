@@ -64,7 +64,6 @@ std::shared_ptr<Image> SkiaRuntimeShaderBuilder::MakeImage(GPUContext* grContext
     if (!skRuntimeShaderBuilder_ || !grContext) {
         return nullptr;
     }
-#ifdef RS_ENABLE_GPU
 #ifdef USE_M133_SKIA
     auto drawSurface = SkSurfaces::RenderTarget(grContext->GetImpl<SkiaGPUContext>()->GetGrContext().get(),
         skgpu::Budgeted::kNo,
@@ -94,9 +93,6 @@ std::shared_ptr<Image> SkiaRuntimeShaderBuilder::MakeImage(GPUContext* grContext
     image->GetImpl<SkiaImage>()->SetSkImage(skImage);
 
     return image;
-#endif
-#else
-    return {};
 #endif
 }
 

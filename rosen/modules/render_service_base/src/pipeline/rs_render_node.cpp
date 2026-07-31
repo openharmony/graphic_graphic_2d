@@ -102,7 +102,7 @@ const std::unordered_set<RSDrawableSlot> edrDrawableSlots = {
     RSDrawableSlot::BACKGROUND_NG_SHADER,
     RSDrawableSlot::COMPOSITING_FILTER,
     RSDrawableSlot::BLENDER,
-    RSDrawableSlot::OVERLAY_NG_SHADER,
+    RSDrawableSlot::COVERAGE_NG_SHADER,
 };
 
 // ensure the corresponding drawable type inherits from RSFilterDrawable.
@@ -1410,6 +1410,10 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
         }
         case RSRenderNodeType::WINDOW_KEYFRAME_NODE: {
             out += "WINDOW_KEYFRAME_NODE";
+            break;
+        }
+        case RSRenderNodeType::PROTECTIVE_SOLID_NODE: {
+            out += "PROTECTIVE_SOLID_NODE";
             break;
         }
         default: {
@@ -2885,24 +2889,20 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
             }
         }
     };
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
     RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
-    auto regionChangeCheckFunc = [this](RSDrawableSlot slot) {
-        auto filterDrawable = GetFilterDrawable(slot);
-        if (filterDrawable != nullptr) {
-            auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-            auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-            bool regionChanged = snapshotRegion != lastSnapshotRegion &&
-                !IsForceClearOrUseFilterCache(filterDrawable);
-            RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] drawable:%d UpdateFilterCacheWithSelfDirty"
-                " lastRect:%s, currRegion:%s", GetId(), static_cast<int>(slot), lastSnapshotRegion.ToString().c_str(),
-                snapshotRegion.ToString().c_str());
-            if (regionChanged) {
-                MarkFilterStatusChanged(filterDrawable, slot == RSDrawableSlot::COMPOSITING_FILTER, true);
-            }
+    auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
+    if (filterDrawable != nullptr) {
+        auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
+        auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
+        bool regionChanged = (properties.GetFilter() && snapshotRegion != lastSnapshotRegion) &&
+            !IsForceClearOrUseFilterCache(filterDrawable);
+        RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] compositing UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
+            GetId(), lastSnapshotRegion.ToString().c_str(), snapshotRegion.ToString().c_str());
+        if (regionChanged) {
+            MarkFilterStatusChanged(filterDrawable, true, true);
         }
-    };
-    regionChangeCheckFunc(RSDrawableSlot::MATERIAL_FILTER);
-    regionChangeCheckFunc(RSDrawableSlot::COMPOSITING_FILTER);
+    }
 #endif
 }
 
@@ -4380,6 +4380,9 @@ void RSRenderNode::SetChildHasVisibleFilter(bool val)
 {
     childHasVisibleFilter_ = val;
 #ifdef RS_ENABLE_GPU
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
     stagingRenderParams_->SetChildHasVisibleFilter(val);
 #endif
 }
@@ -4387,6 +4390,9 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 {
     childHasVisibleEffect_ = val;
 #ifdef RS_ENABLE_GPU
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
     stagingRenderParams_->SetChildHasVisibleEffect(val);
 #endif
 }
@@ -4856,8 +4862,8 @@ void RSRenderNode::OnSync()
     bool isLayerNode = nodeGroupType_ == NodeGroupType::GROUPED_BY_LAYER &&
                        stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
     if (isLayerNode) {
-        bool isLayerCacheDisabled =
-            RSLayerCacheManagerBase::IsNodeUnSupportLayer(shared_from_this()) || IsNodeParentHasUIFirstCache();
+        const auto& layerParams = stagingRenderParams_->GetLayerParams();
+        bool isLayerCacheDisabled = (layerParams && layerParams->isUnSupportLayer) || IsNodeParentHasUIFirstCache();
         if (isLayerCacheDisabled) {
             stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         } else {
@@ -5024,12 +5030,12 @@ void RSRenderNode::UpdateDrawableEnableEDR()
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
     auto& drawablePtr =
-        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::OVERLAY_NG_SHADER));
+        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::COVERAGE_NG_SHADER));
     if (!drawablePtr) {
         return;
     }
     drawablePtr->OnUpdate(*shared_from_this());
-    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::OVERLAY_NG_SHADER);
+    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COVERAGE_NG_SHADER);
     // The illuminated node has no attribute changes, so it does not call applymodifier, and consequently does not
     // call SetEnableHdrEffect. Therefore, here we need call SetEnableHdrEffect.
     SetEnableHdrEffect(drawablePtr->GetEnableEDR());

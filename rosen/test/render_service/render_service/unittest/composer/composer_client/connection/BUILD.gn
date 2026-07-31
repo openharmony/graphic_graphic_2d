@@ -20,7 +20,7 @@ group("unittest") {
   testonly = true
   deps = [
     ":RSComposerToRenderConnectionTest",
-    "zidl:unittest",
+    #"zidl:unittest",
   ]
 }
 

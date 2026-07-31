@@ -180,6 +180,7 @@ enum class RSRenderNodeType : uint32_t {
     RS_NODE                = 0x0001u,
     SCREEN_NODE            = 0x0011u,
     SURFACE_NODE           = 0x0021u,
+    PROTECTIVE_SOLID_NODE  = 0x1021u,
     PROXY_NODE             = 0x0041u,
     CANVAS_NODE            = 0x0081u,
     EFFECT_NODE            = 0x0101u,

@@ -23,6 +23,7 @@
 #include "rs_composer_client.h"
 #include "rs_surface_layer.h"
 #include "rs_render_surface_layer.h"
+#include "rs_surface_solid_filled_color_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -812,7 +813,7 @@ HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_MultipleIds, testing::ext::T
  */
 HWTEST_F(HdiOutputTest, SetRSLayers_VariousTypes, Function | MediumTest | Level3)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -846,9 +847,9 @@ HWTEST_F(HdiOutputTest, SetRSLayers_VariousTypes, Function | MediumTest | Level3
     rsLayers.push_back(layer5);
 
     std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(0);
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_[0] = hdiLayer;
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_[0] = hdiLayer;
     HdiOutputTest::hdiOutput_->SetRSLayers(rsLayers);
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
 }
 
 /**
@@ -883,7 +884,7 @@ HWTEST_F(HdiOutputTest, DirtyRegions_Default, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiOutputTest, CheckSupportCopybitMetadata_AfterInit, Function | MediumTest | Level3)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -902,7 +903,7 @@ HWTEST_F(HdiOutputTest, CheckSupportCopybitMetadata_AfterInit, Function | Medium
  */
 HWTEST_F(HdiOutputTest, RegPrepareComplete_NullParams, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -923,7 +924,7 @@ HWTEST_F(HdiOutputTest, RegPrepareComplete_NullParams, Function | MediumTest | L
  */
 HWTEST_F(HdiOutputTest, DeletePrevLayersLocked_SolidSurfaceMap, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -937,13 +938,13 @@ HWTEST_F(HdiOutputTest, DeletePrevLayersLocked_SolidSurfaceMap, Function | Mediu
     hdiLayer2->SetLayerStatus(false);
     HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(
         HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(), hdiLayer1);
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_[id] = hdiLayer1;
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_[id + 1] = hdiLayer2;
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_[id] = hdiLayer1;
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_[id + 1] = hdiLayer2;
     HdiOutputTest::hdiOutput_->DeletePrevLayersLocked();
-    ASSERT_NE(static_cast<int32_t>(HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.size()), 0);
+    ASSERT_NE(static_cast<int32_t>(HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.size()), 0);
     hdiLayer1->SetLayerStatus(false);
     HdiOutputTest::hdiOutput_->DeletePrevLayersLocked();
-    ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.size()), 0);
+    ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.size()), 0);
 }
 
 /**
@@ -1213,7 +1214,7 @@ HWTEST_F(HdiOutputTest, DumpHitchs_WithLayers, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->fences_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
 
     // hdilayer has rslayer SetUniRenderFlag false
@@ -1230,9 +1231,9 @@ HWTEST_F(HdiOutputTest, DumpHitchs_WithLayers, Function | MediumTest | Level1)
     hdiLayer2->UpdateRSLayer(rsLayer2);
     HdiOutputTest::hdiOutput_->surfaceIdMap_[2] = hdiLayer2;
 
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_[1] = nullptr;
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_[1] = nullptr;
     std::shared_ptr<HdiLayer> hdiLayer0 = HdiLayer::CreateHdiLayer(0);
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_[0] = hdiLayer0;
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_[0] = hdiLayer0;
 
     std::string ret = "";
     HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
@@ -1253,7 +1254,7 @@ HWTEST_F(HdiOutputTest, DumpFps_WithUniRenderFlags, Function | MediumTest | Leve
     HdiOutputTest::hdiOutput_->fences_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
 
     // hdilayer has rslayer SetUniRenderFlag false
@@ -1308,7 +1309,7 @@ HWTEST_F(HdiOutputTest, DumpFps_WithWindowsName, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->fences_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
 
     // hdilayer has rslayer SetUniRenderFlag true, windowsName not find
@@ -1354,7 +1355,7 @@ HWTEST_F(HdiOutputTest, Dump_WithSurface, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->fences_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
 
     // hdilayer has rslayer SetUniRenderFlag false
     std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(1);
@@ -1498,7 +1499,7 @@ HWTEST_F(HdiOutputTest, ReorderRSLayers_WithNullLayers, Function | MediumTest | 
  */
 HWTEST_F(HdiOutputTest, DeletePrevLayersLocked_MaskLayer, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -1529,7 +1530,7 @@ HWTEST_F(HdiOutputTest, DeletePrevLayersLocked_MaskLayer, Function | MediumTest 
  */
 HWTEST_F(HdiOutputTest, GetRSLayers_WithLayers, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -1602,7 +1603,7 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm_WithWhitelist, Function | MediumTe
  */
 HWTEST_F(HdiOutputTest, SetVsyncSamplerEnabled_Default, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -1622,7 +1623,7 @@ HWTEST_F(HdiOutputTest, SetVsyncSamplerEnabled_Default, Function | MediumTest | 
  */
 HWTEST_F(HdiOutputTest, SetPendingMode_Default, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -1642,7 +1643,7 @@ HWTEST_F(HdiOutputTest, SetPendingMode_Default, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiOutputTest, ClearFpsDump_VariousSurfaceStates, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
 
     std::string result = "";
@@ -1682,7 +1683,7 @@ HWTEST_F(HdiOutputTest, ClearFpsDump_VariousSurfaceStates, Function | MediumTest
  */
 HWTEST_F(HdiOutputTest, ClearBufferCache_VariousStates, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -1742,7 +1743,7 @@ HWTEST_F(HdiOutputTest, GetFrameBufferSurface_NullProducerSurface, Function | Me
  */
 HWTEST_F(HdiOutputTest, CheckSupportArsrPreMetadata_AfterInit, Function | MediumTest | Level1)
 {
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
+    HdiOutputTest::hdiOutput_->solidRSLayerIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
@@ -3389,7 +3390,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers_CompleteFlow, Function | MediumTest | Leve
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. clear surfaceIdMap_ and solidSurfaceIdMap_
+ * CaseDescription: 1. clear surfaceIdMap_ and solidRSLayerIdMap_
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify no crash and empty result
  */
@@ -3399,7 +3400,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_EmptyMaps_AllIfConditions, F
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
@@ -3424,7 +3425,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ValidLayerInSurfaceIdMap_Pro
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Create HdiLayer with RSLayer
     uint64_t surfaceId = 1500;
@@ -3463,7 +3464,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullHdiLayerInSurfaceIdMap_S
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add nullptr HdiLayer to surfaceIdMap_
     hdiOutput->surfaceIdMap_[1502] = nullptr;
@@ -3494,7 +3495,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_LayerWithoutRSLayer_Skipped,
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Create HdiLayer without RSLayer
     uint32_t layerId = 1503;
@@ -3514,22 +3515,22 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_LayerWithoutRSLayer_Skipped,
 }
 
 /**
- * Function: DumpLayerInfoForSplitRender_ValidLayerInSolidSurfaceIdMap_Processed
+ * Function: DumpLayerInfoForSplitRender_ValidLayerInsolidRSLayerIdMap_Processed
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. add valid HdiLayer to solidSurfaceIdMap_
+ * CaseDescription: 1. add valid HdiLayer to solidRSLayerIdMap_
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify line 836 condition is false
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ValidLayerInSolidSurfaceIdMap_Processed,
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ValidLayerInsolidRSLayerIdMap_Processed,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Create HdiLayer with RSLayer for solid color layer
     uint64_t solidSurfaceId = 1600;
@@ -3541,8 +3542,8 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ValidLayerInSolidSurfaceIdMa
     ASSERT_NE(rsLayer, nullptr);
     hdiLayer->UpdateRSLayer(rsLayer);
 
-    // Add to solidSurfaceIdMap_
-    hdiOutput->solidSurfaceIdMap_[solidSurfaceId] = hdiLayer;
+    // Add to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer;
 
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
@@ -3566,7 +3567,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_SurfaceNull_DefaultName, Fun
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Create HdiLayer with RSLayer but nullptr Surface
     uint64_t surfaceId = 1700;
@@ -3606,7 +3607,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_MixedValidAndInvalidLayers_A
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add valid layer to surfaceIdMap_ (line 836 false)
     uint64_t surfaceId1 = 1800;
@@ -3623,13 +3624,13 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_MixedValidAndInvalidLayers_A
     std::shared_ptr<HdiLayer> hdiLayer2 = std::make_shared<HdiLayer>(1803);
     hdiOutput->surfaceIdMap_[1804] = hdiLayer2;
 
-    // Add valid layer to solidSurfaceIdMap_ (line 836 false)
+    // Add valid layer to solidRSLayerIdMap_ (line 836 false)
     uint64_t solidSurfaceId = 1900;
     uint32_t layerId3 = 1901;
     std::shared_ptr<HdiLayer> hdiLayer3 = std::make_shared<HdiLayer>(layerId3);
     std::shared_ptr<RSSurfaceLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>(layerId3, nullptr);
     hdiLayer3->UpdateRSLayer(rsLayer3);
-    hdiOutput->solidSurfaceIdMap_[solidSurfaceId] = hdiLayer3;
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer3;
 
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
@@ -3653,7 +3654,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_MultipleValidLayers_AllProce
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add multiple valid layers to surfaceIdMap_
     for (uint32_t i = 0; i < 3; i++) {
@@ -3665,14 +3666,14 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_MultipleValidLayers_AllProce
         hdiOutput->surfaceIdMap_[surfaceId] = hdiLayer;
     }
 
-    // Add multiple valid layers to solidSurfaceIdMap_
+    // Add multiple valid layers to solidRSLayerIdMap_
     for (uint32_t i = 0; i < 2; i++) {
         uint64_t solidSurfaceId = 2200 + i;
         uint32_t layerId = 2300 + i;
         std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(layerId);
         std::shared_ptr<RSSurfaceLayer> rsLayer = std::make_shared<RSSurfaceLayer>(layerId, nullptr);
         hdiLayer->UpdateRSLayer(rsLayer);
-        hdiOutput->solidSurfaceIdMap_[solidSurfaceId] = hdiLayer;
+        hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer;
     }
 
     std::string result;
@@ -3697,7 +3698,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ReorderLayerInfoMixed_AllCon
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Test ReorderLayerInfoLocked line 974 conditions
 
@@ -3716,7 +3717,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ReorderLayerInfoMixed_AllCon
     std::shared_ptr<HdiLayer> hdiLayer2 = std::make_shared<HdiLayer>(2403);
     hdiOutput->surfaceIdMap_[2404] = hdiLayer2;
 
-    // Test ReorderLayerInfoLocked line 986 conditions in solidSurfaceIdMap_
+    // Test ReorderLayerInfoLocked line 986 conditions in solidRSLayerIdMap_
 
     // Valid solid layer (line 986 false)
     uint64_t solidSurfaceId1 = 2500;
@@ -3724,14 +3725,14 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ReorderLayerInfoMixed_AllCon
     std::shared_ptr<HdiLayer> hdiLayer3 = std::make_shared<HdiLayer>(layerId3);
     std::shared_ptr<RSSurfaceLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>(layerId3, nullptr);
     hdiLayer3->UpdateRSLayer(rsLayer3);
-    hdiOutput->solidSurfaceIdMap_[solidSurfaceId1] = hdiLayer3;
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId1] = hdiLayer3;
 
     // nullptr solid layer (line 986 true)
-    hdiOutput->solidSurfaceIdMap_[2502] = nullptr;
+    hdiOutput->solidRSLayerIdMap_[2502] = nullptr;
 
     // Solid layer without RSLayer (line 986 true)
     std::shared_ptr<HdiLayer> hdiLayer4 = std::make_shared<HdiLayer>(2503);
-    hdiOutput->solidSurfaceIdMap_[2504] = hdiLayer4;
+    hdiOutput->solidRSLayerIdMap_[2504] = hdiLayer4;
 
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
@@ -3741,25 +3742,25 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_ReorderLayerInfoMixed_AllCon
 }
 
 /**
- * Function: DumpLayerInfoForSplitRender_NullptrInSolidSurfaceIdMap_Skipped
+ * Function: DumpLayerInfoForSplitRender_NullptrInsolidRSLayerIdMap_Skipped
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. add nullptr HdiLayer to solidSurfaceIdMap_
+ * CaseDescription: 1. add nullptr HdiLayer to solidRSLayerIdMap_
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify line 986 condition is true (skipped)
  */
-HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullptrInSolidSurfaceIdMap_Skipped,
+HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullptrInsolidRSLayerIdMap_Skipped,
     Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
-    // Add nullptr HdiLayer to solidSurfaceIdMap_
-    hdiOutput->solidSurfaceIdMap_[2600] = nullptr;
+    // Add nullptr HdiLayer to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[2600] = nullptr;
 
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
@@ -3774,7 +3775,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullptrInSolidSurfaceIdMap_S
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. add HdiLayer without RSLayer to solidSurfaceIdMap_
+ * CaseDescription: 1. add HdiLayer without RSLayer to solidRSLayerIdMap_
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify solid layer is skipped (skipped)
  */
@@ -3785,7 +3786,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_SolidLayerWithoutRSLayer_Ski
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Create HdiLayer without RSLayer
     uint32_t layerId = 2700;
@@ -3793,8 +3794,8 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_SolidLayerWithoutRSLayer_Ski
     ASSERT_NE(hdiLayer, nullptr);
     // Don't set RSLayer
 
-    // Add to solidSurfaceIdMap_
-    hdiOutput->solidSurfaceIdMap_[2701] = hdiLayer;
+    // Add to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[2701] = hdiLayer;
 
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
@@ -3808,7 +3809,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_SolidLayerWithoutRSLayer_Ski
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. both surfaceIdMap_ and solidSurfaceIdMap_ are empty
+ * CaseDescription: 1. both surfaceIdMap_ and solidRSLayerIdMap_ are empty
  *                  2. call DumpLayerInfoForSplitRender
  *                  3. verify only header is output, no layer info
  */
@@ -3818,7 +3819,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_AllMapsEmpty_NoLayerOutput, 
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
@@ -3842,7 +3843,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_OnlyValidLayers_AllProcessed
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add 2 valid layers to surfaceIdMap_
     for (uint32_t i = 0; i < 2; i++) {
@@ -3854,13 +3855,13 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_OnlyValidLayers_AllProcessed
         hdiOutput->surfaceIdMap_[surfaceId] = hdiLayer;
     }
 
-    // Add 1 valid layer to solidSurfaceIdMap_
+    // Add 1 valid layer to solidRSLayerIdMap_
     uint64_t solidSurfaceId = 3000;
     uint32_t layerId3 = 3100;
     std::shared_ptr<HdiLayer> hdiLayer3 = std::make_shared<HdiLayer>(layerId3);
     std::shared_ptr<RSSurfaceLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>(layerId3, nullptr);
     hdiLayer3->UpdateRSLayer(rsLayer3);
-    hdiOutput->solidSurfaceIdMap_[solidSurfaceId] = hdiLayer3;
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer3;
 
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
@@ -3884,16 +3885,16 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_AllNullLayers_AllSkipped, Fu
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add nullptr HdiLayer to surfaceIdMap_
     hdiOutput->surfaceIdMap_[8001] = nullptr;
     hdiOutput->surfaceIdMap_[8002] = nullptr;
     hdiOutput->surfaceIdMap_[8003] = nullptr;
 
-    // Add nullptr HdiLayer to solidSurfaceIdMap_
-    hdiOutput->solidSurfaceIdMap_[9001] = nullptr;
-    hdiOutput->solidSurfaceIdMap_[9002] = nullptr;
+    // Add nullptr HdiLayer to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[9001] = nullptr;
+    hdiOutput->solidRSLayerIdMap_[9002] = nullptr;
 
     std::string result;
     hdiOutput->DumpLayerInfoForSplitRender(result);
@@ -3918,7 +3919,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_AlternatingNullLayers_MixedP
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add alternating valid and nullptr layers
     hdiOutput->surfaceIdMap_[8501] = nullptr;
@@ -3955,7 +3956,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_LayerWithNullRSLayer_AfterVa
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add valid layer first
     auto hdiLayer1 = std::make_shared<HdiLayer>(1);
@@ -3989,7 +3990,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullLayersInBetween_ValidPro
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add valid layers with null layers in between
     hdiOutput->surfaceIdMap_[8701] = nullptr;
@@ -4022,7 +4023,7 @@ HWTEST_F(HdiOutputTest, DumpLayerInfoForSplitRender_NullLayersInBetween_ValidPro
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. clear surfaceIdMap_ and solidSurfaceIdMap_
+ * CaseDescription: 1. clear surfaceIdMap_ and solidRSLayerIdMap_
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify no crash, no layers processed
  */
@@ -4032,11 +4033,11 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_EmptyMaps_NoLayersProcessed, Func
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Verify maps are empty
     ASSERT_TRUE(hdiOutput->surfaceIdMap_.empty());
-    ASSERT_TRUE(hdiOutput->solidSurfaceIdMap_.empty());
+    ASSERT_TRUE(hdiOutput->solidRSLayerIdMap_.empty());
 
     // Should not crash when maps are empty
     hdiOutput->DumpCurrentFrameLayers();
@@ -4057,7 +4058,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ValidLayerWithSurface, Function |
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Create HdiLayer with RSLayer
     uint64_t surfaceId = 3200;
@@ -4091,7 +4092,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_NullHdiLayerInSurfaceIdMap, Funct
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add nullptr HdiLayer to surfaceIdMap_
     hdiOutput->surfaceIdMap_[3202] = nullptr;
@@ -4116,7 +4117,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_LayerWithoutRSLayer, Function | M
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Create HdiLayer without RSLayer
     uint32_t layerId = 3203;
@@ -4137,7 +4138,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_LayerWithoutRSLayer, Function | M
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. add nullptr to solidSurfaceIdMap_
+ * CaseDescription: 1. add nullptr to solidRSLayerIdMap_
  *                  2. call DumpCurrentFrameLayers
  *                  3. verify line 873 condition is true
  */
@@ -4148,12 +4149,12 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_NullRSLayerInSolidSurfaceIdMap,
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
-    // Add nullptr HdiLayer to solidSurfaceIdMap_
-    hdiOutput->solidSurfaceIdMap_[3300] = nullptr;
-    ASSERT_EQ(hdiOutput->solidSurfaceIdMap_.size(), 1);
-    // Should not crash when solidSurfaceIdMap_ contains nullptr
+    // Add nullptr HdiLayer to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[3300] = nullptr;
+    ASSERT_EQ(hdiOutput->solidRSLayerIdMap_.size(), 1);
+    // Should not crash when solidRSLayerIdMap_ contains nullptr
     hdiOutput->DumpCurrentFrameLayers();
 }
 
@@ -4173,7 +4174,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MixedValidAndInvalidLayers,
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add valid layer to surfaceIdMap_ (line 873 may be true/false depending on GetSurface())
     uint64_t surfaceId1 = 3400;
@@ -4190,17 +4191,17 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MixedValidAndInvalidLayers,
     std::shared_ptr<HdiLayer> hdiLayer2 = std::make_shared<HdiLayer>(3403);
     hdiOutput->surfaceIdMap_[3404] = hdiLayer2;
 
-    // Add valid layer to solidSurfaceIdMap_
+    // Add valid layer to solidRSLayerIdMap_
     uint64_t solidSurfaceId = 3500;
     uint32_t layerId3 = 3501;
     std::shared_ptr<HdiLayer> hdiLayer3 = std::make_shared<HdiLayer>(layerId3);
     std::shared_ptr<RSSurfaceLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>(layerId3, nullptr);
     hdiLayer3->UpdateRSLayer(rsLayer3);
-    hdiOutput->solidSurfaceIdMap_[solidSurfaceId] = hdiLayer3;
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer3;
 
     // Verify maps contain expected number of entries
     EXPECT_EQ(hdiOutput->surfaceIdMap_.size(), 3u);
-    EXPECT_EQ(hdiOutput->solidSurfaceIdMap_.size(), 1u);
+    EXPECT_EQ(hdiOutput->solidRSLayerIdMap_.size(), 1u);
 
     // Should not crash with mixed valid and invalid layers
     hdiOutput->DumpCurrentFrameLayers();
@@ -4222,7 +4223,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MultipleValidLayers, Function | M
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add multiple valid layers to surfaceIdMap_
     for (uint32_t i = 0; i < 3; i++) {
@@ -4234,19 +4235,19 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MultipleValidLayers, Function | M
         hdiOutput->surfaceIdMap_[surfaceId] = hdiLayer;
     }
 
-    // Add multiple valid layers to solidSurfaceIdMap_
+    // Add multiple valid layers to solidRSLayerIdMap_
     for (uint32_t i = 0; i < 2; i++) {
         uint64_t solidSurfaceId = 3800 + i;
         uint32_t layerId = 3900 + i;
         std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(layerId);
         std::shared_ptr<RSSurfaceLayer> rsLayer = std::make_shared<RSSurfaceLayer>(layerId, nullptr);
         hdiLayer->UpdateRSLayer(rsLayer);
-        hdiOutput->solidSurfaceIdMap_[solidSurfaceId] = hdiLayer;
+        hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer;
     }
 
     // Verify maps contain expected number of layers
     EXPECT_EQ(hdiOutput->surfaceIdMap_.size(), 3u);
-    EXPECT_EQ(hdiOutput->solidSurfaceIdMap_.size(), 2u);
+    EXPECT_EQ(hdiOutput->solidRSLayerIdMap_.size(), 2u);
 
     // Should not crash with multiple valid layers
     hdiOutput->DumpCurrentFrameLayers();
@@ -4267,19 +4268,19 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_AllNullLayers, Function | MediumT
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add nullptr layers to surfaceIdMap_
     hdiOutput->surfaceIdMap_[4000] = nullptr;
     hdiOutput->surfaceIdMap_[4001] = nullptr;
 
-    // Add nullptr layers to solidSurfaceIdMap_
-    hdiOutput->solidSurfaceIdMap_[4100] = nullptr;
-    hdiOutput->solidSurfaceIdMap_[4101] = nullptr;
+    // Add nullptr layers to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[4100] = nullptr;
+    hdiOutput->solidRSLayerIdMap_[4101] = nullptr;
 
     // Verify maps contain expected number of nullptr layers
     EXPECT_EQ(hdiOutput->surfaceIdMap_.size(), 2u);
-    EXPECT_EQ(hdiOutput->solidSurfaceIdMap_.size(), 2u);
+    EXPECT_EQ(hdiOutput->solidRSLayerIdMap_.size(), 2u);
 
     // Line 873 will be true for all layers (hdiLayer == nullptr)
     // Should not crash
@@ -4301,7 +4302,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_AllLayersWithoutRSLayer, Function
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add layers without RSLayer to surfaceIdMap_
     for (uint32_t i = 0; i < 2; i++) {
@@ -4309,15 +4310,15 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_AllLayersWithoutRSLayer, Function
         hdiOutput->surfaceIdMap_[4300 + i] = hdiLayer;
     }
 
-    // Add layers without RSLayer to solidSurfaceIdMap_
+    // Add layers without RSLayer to solidRSLayerIdMap_
     for (uint32_t i = 0; i < 2; i++) {
         std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(4400 + i);
-        hdiOutput->solidSurfaceIdMap_[4500 + i] = hdiLayer;
+        hdiOutput->solidRSLayerIdMap_[4500 + i] = hdiLayer;
     }
 
     // Verify maps contain expected number of layers
     EXPECT_EQ(hdiOutput->surfaceIdMap_.size(), 2u);
-    EXPECT_EQ(hdiOutput->solidSurfaceIdMap_.size(), 2u);
+    EXPECT_EQ(hdiOutput->solidRSLayerIdMap_.size(), 2u);
 
     // Line 873 will be true for all layers (GetRSLayer() == nullptr)
     // Should not crash
@@ -4339,7 +4340,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ReorderLayerInfoCalled_VerifyLaye
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add layers with different z-order
     for (uint32_t i = 0; i < 3; i++) {
@@ -4372,7 +4373,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ComprehensiveTest, Function | Med
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Test all three conditions in line 873:
 
@@ -4394,7 +4395,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ComprehensiveTest, Function | Med
 
     // Add solid layer without RSLayer (GetRSLayer() == nullptr, true)
     std::shared_ptr<HdiLayer> hdiLayer3 = std::make_shared<HdiLayer>(5000);
-    hdiOutput->solidSurfaceIdMap_[5001] = hdiLayer3;
+    hdiOutput->solidRSLayerIdMap_[5001] = hdiLayer3;
 
     // Add valid solid layer (all non-null, false branch)
     uint64_t solidSurfaceId = 5100;
@@ -4402,11 +4403,11 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ComprehensiveTest, Function | Med
     std::shared_ptr<HdiLayer> hdiLayer4 = std::make_shared<HdiLayer>(layerId4);
     std::shared_ptr<RSSurfaceLayer> rsLayer4 = std::make_shared<RSSurfaceLayer>(layerId4, nullptr);
     hdiLayer4->UpdateRSLayer(rsLayer4);
-    hdiOutput->solidSurfaceIdMap_[solidSurfaceId] = hdiLayer4;
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer4;
 
     // Verify maps contain expected number of layers
     EXPECT_EQ(hdiOutput->surfaceIdMap_.size(), 3u);
-    EXPECT_EQ(hdiOutput->solidSurfaceIdMap_.size(), 2u);
+    EXPECT_EQ(hdiOutput->solidRSLayerIdMap_.size(), 2u);
 
     // Should not crash
     hdiOutput->DumpCurrentFrameLayers();
@@ -4427,7 +4428,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_MutexLock_VerifyThreadSafety, Fun
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add some layers
     uint64_t surfaceId = 5200;
@@ -4457,7 +4458,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_SurfaceNullCheck_Skipped, Functio
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Create HdiLayer with RSLayer
     // Note: RSSurfaceLayer created with nullptr surface will have GetSurface() == nullptr
@@ -4493,7 +4494,7 @@ HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers_ValidLayerWithSurface_Executed, F
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Create HdiLayer with RSLayer and valid Surface
     uint64_t surfaceId = 5400;
@@ -4542,7 +4543,7 @@ HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_CallsDumpLayerInfoForSplitRender,
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add valid layer to surfaceIdMap_
     auto hdiLayer = std::make_shared<HdiLayer>(1);
@@ -4572,7 +4573,7 @@ HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_NoLayers_OnlyHeader, Function | M
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Call Dump with isSplitRender = true
     std::string result;
@@ -4597,7 +4598,7 @@ HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_WithNullLayers_LayersSkipped, Fun
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add nullptr HdiLayer to surfaceIdMap_
     hdiOutput->surfaceIdMap_[6101] = nullptr;
@@ -4631,7 +4632,7 @@ HWTEST_F(HdiOutputTest, Dump_IsSplitRenderFalse_SkipsDumpLayerInfoForSplitRender
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add valid layer
     auto hdiLayer = std::make_shared<HdiLayer>(1);
@@ -4662,7 +4663,7 @@ HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_MultipleLayers_AllProcessed, Func
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add multiple valid layers
     for (int i = 0; i < 3; i++) {
@@ -4694,7 +4695,7 @@ HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_ValidAndNullLayers_MixedProcessin
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add mix of valid and null layers
     hdiOutput->surfaceIdMap_[6401] = nullptr;
@@ -4731,7 +4732,7 @@ HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_NullHdiLayer_Skipped, Function | 
 
     // Clear existing maps
     hdiOutput->surfaceIdMap_.clear();
-    hdiOutput->solidSurfaceIdMap_.clear();
+    hdiOutput->solidRSLayerIdMap_.clear();
 
     // Add layer without RSLayer
     auto hdiLayer = std::make_shared<HdiLayer>(1);
@@ -4851,8 +4852,7 @@ HWTEST_F(HdiOutputTest, TunnelToGraphicUpdateNotifiesUnavailable, Function | Med
     output->createHdiLayerFunc_ = [](uint32_t) -> std::shared_ptr<HdiLayer> { return nullptr; };
 
     auto graphicRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID);
-    uint32_t solidLayerCount = 0;
-    output->UpdateRSLayerLocked(graphicRsLayer, solidLayerCount);
+    output->UpdateRSLayerLocked(graphicRsLayer);
 
     EXPECT_EQ(callbackData.nodeId, TEST_NODE_ID);
     EXPECT_EQ(callbackData.tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID);
@@ -5005,8 +5005,7 @@ HWTEST_F(HdiOutputTest, TunnelFallbackThresholdBranches, Function | MediumTest |
     auto existingGraphicLayer = CreateHdiOutputHdiLayer(secondRsLayer);
     ASSERT_NE(existingGraphicLayer, nullptr);
     output->surfaceIdMap_[TEST_SURFACE_ID_SECOND] = existingGraphicLayer;
-    uint32_t solidLayerCount = 0;
-    output->UpdateRSLayerLocked(secondRsLayer, solidLayerCount);
+    output->UpdateRSLayerLocked(secondRsLayer);
     EXPECT_EQ(callbackData.nodeId, TEST_NODE_ID_SECOND);
     EXPECT_EQ(callbackData.tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID_SECOND);
     EXPECT_FALSE(callbackData.success);
@@ -5047,17 +5046,16 @@ HWTEST_F(HdiOutputTest, TunnelFallbackDeclineEmitsOncePerGenerationOnUpdate,
     ASSERT_NE(existingGraphicLayer, nullptr);
     output->surfaceIdMap_[TEST_SURFACE_ID] = existingGraphicLayer;
 
-    uint32_t solidLayerCount = 0;
     auto requestedTunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
         GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
-    output->UpdateRSLayerLocked(requestedTunnelRsLayer, solidLayerCount);
+    output->UpdateRSLayerLocked(requestedTunnelRsLayer);
     EXPECT_EQ(callbackData.count, 1u);
     EXPECT_FALSE(callbackData.success);
     EXPECT_EQ(callbackData.tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID);
 
     auto sameGenerationRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
         GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
-    output->UpdateRSLayerLocked(sameGenerationRsLayer, solidLayerCount);
+    output->UpdateRSLayerLocked(sameGenerationRsLayer);
     EXPECT_EQ(callbackData.count, 1u);
 
     registryOutput->UnregisterGlobalTunnelLayersLocked();
@@ -5218,6 +5216,189 @@ HWTEST_F(HdiOutputTest, ClearRecoveredInvalidTunnelSurfaceIdsLocked_SimplifiedEr
     output->ClearRecoveredInvalidTunnelSurfaceIdsLocked();
     EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 2u);
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(id1) == 0);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_LayerFound_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid filled color layer and add to solidRSLayerIdMap_
+ *                  2. call GetLayerSolidFilledColor
+ *                  3. verify layer is found and color is retrieved
+ *                   Cover branch: iter != solidRSLayerIdMap_.end() (line 1675 true)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_LayerFound_Success, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    constexpr uint64_t testLayerId = 70001;
+    auto rsLayer = RSSurfaceSolidFilledColorLayer::Create(testLayerId, ctx);
+    ASSERT_NE(rsLayer, nullptr);
+
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+
+    output->solidRSLayerIdMap_[testLayerId] = hdiLayer;
+
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_LayerNotFound_Failure
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetLayerSolidFilledColor with non-existent layer id
+ *                  2. verify failure is returned
+ *                   Cover branch: iter == solidRSLayerIdMap_.end() (line 1675 false)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_LayerNotFound_Failure, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    constexpr uint64_t nonExistentLayerId = 70002;
+    uint32_t solidFilledColor = 0;
+    auto ret = output->GetLayerSolidFilledColor(nonExistentLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_HdiCallFailed_LogDebug
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid filled color layer and add to map
+ *                  2. mock HDI call to return failure
+ *                  3. verify failure is returned and debug log is printed
+ *                   Cover branch: ret != GRAPHIC_DISPLAY_SUCCESS (line 1679 true)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_HdiCallFailed_LogDebug, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    constexpr uint64_t testLayerId = 70003;
+    auto rsLayer = RSSurfaceSolidFilledColorLayer::Create(testLayerId, ctx);
+    ASSERT_NE(rsLayer, nullptr);
+
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+
+    output->solidRSLayerIdMap_[testLayerId] = hdiLayer;
+
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_HdiCallSuccess_ReturnSuccess
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid filled color layer and add to map
+ *                  2. mock HDI call to return success
+ *                  3. verify success is returned
+ *                   Cover branch: ret == GRAPHIC_DISPLAY_SUCCESS (line 1679 false)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_HdiCallSuccess_ReturnSuccess, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    constexpr uint64_t testLayerId = 70004;
+    auto rsLayer = RSSurfaceSolidFilledColorLayer::Create(testLayerId, ctx);
+    ASSERT_NE(rsLayer, nullptr);
+
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+
+    output->solidRSLayerIdMap_[testLayerId] = hdiLayer;
+
+    uint32_t solidFilledColor = 0;
+    constexpr uint32_t expectedColor = 0xFF112233;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillOnce(testing::DoAll(testing::SetArgReferee<2>(expectedColor), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+    auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_EmptyMap_Failure
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetLayerSolidFilledColor when map is empty
+ *                  2. verify failure is returned
+ *                   Cover branch: iter == solidRSLayerIdMap_.end() (line 1675 false)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_EmptyMap_Failure, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    output->solidRSLayerIdMap_.clear();
+
+    constexpr uint64_t testLayerId = 70005;
+    uint32_t solidFilledColor = 0;
+    auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: GetLayerSolidFilledColor_MultipleLayers_RetrieveCorrectOne
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create multiple solid filled color layers
+ *                  2. retrieve each layer's color
+ *                  3. verify correct layer is retrieved
+ *                   Cover branch: iter != solidRSLayerIdMap_.end() (line 1675 true)
+ */
+HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_MultipleLayers_RetrieveCorrectOne, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+
+    for (int i = 0; i < 3; i++) {
+        uint64_t testLayerId = 70010 + i;
+        auto rsLayer = RSSurfaceSolidFilledColorLayer::Create(testLayerId, ctx);
+        ASSERT_NE(rsLayer, nullptr);
+
+        auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+        ASSERT_NE(hdiLayer, nullptr);
+        hdiLayer->UpdateRSLayer(rsLayer);
+
+        output->solidRSLayerIdMap_[testLayerId] = hdiLayer;
+    }
+
+    uint32_t solidFilledColor = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetLayerSolidFilledColor(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    auto ret = output->GetLayerSolidFilledColor(70011, solidFilledColor);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
 } // namespace
 } // namespace Rosen
