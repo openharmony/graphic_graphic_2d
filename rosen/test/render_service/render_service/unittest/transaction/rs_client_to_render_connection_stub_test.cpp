@@ -3220,6 +3220,63 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest002, TestSize
 }
 
 /**
+ * @tc.name: TakeSurfaceCaptureBlackListOverLimit001
+ * @tc.desc: Test TAKE_SURFACE_CAPTURE rejects an oversized blackList (DoS bound)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureBlackListOverLimit001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data.WriteUint64(nodeId);
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+
+    RSSurfaceCaptureConfig captureConfig;
+    data.WriteFloat(captureConfig.scaleX);
+    data.WriteFloat(captureConfig.scaleY);
+    data.WriteBool(captureConfig.useDma);
+    data.WriteBool(captureConfig.useCurWindow);
+    data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data.WriteBool(captureConfig.isSync);
+    data.WriteBool(captureConfig.isHdrCapture);
+    data.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent));
+    data.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data.WriteBool(captureConfig.needErrorCode);
+    data.WriteFloat(captureConfig.mainScreenRect.left_);
+    data.WriteFloat(captureConfig.mainScreenRect.top_);
+    data.WriteFloat(captureConfig.mainScreenRect.right_);
+    data.WriteFloat(captureConfig.mainScreenRect.bottom_);
+    data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
+    data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
+    // one over the cap; MAX_CAPTURE_BLACK_LIST_SIZE == 1024 in the stub under test
+    constexpr size_t OVERSIZED_BLACK_LIST_SIZE = 1025;
+    std::vector<uint64_t> overLimitBlackList(OVERSIZED_BLACK_LIST_SIZE, 0);
+    data.WriteUInt64Vector(overLimitBlackList);
+    data.WriteUint32(captureConfig.backGroundColor);
+    data.WriteUint32(captureConfig.colorSpace.first);
+    data.WriteBool(captureConfig.colorSpace.second);
+    data.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data.WriteBool(captureConfig.dynamicRangeMode.second);
+    data.WriteBool(captureConfig.isSyncRender);
+    data.WriteBool(captureConfig.windowSync);
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: TakeSurfaceCaptureTest003
  * @tc.desc: Test TakeSurfaceCapture with UICAPTURE type and selfCapture permission
  * @tc.type: FUNC

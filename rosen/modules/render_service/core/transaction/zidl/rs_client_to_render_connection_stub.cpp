@@ -62,6 +62,7 @@ const uint32_t MAX_VOTER_SIZE = 100;
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 constexpr size_t MAX_NODE_ID_LIST_SIZE = 100000;
+constexpr size_t MAX_CAPTURE_BLACK_LIST_SIZE = 1024;
 
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
@@ -1996,6 +1997,10 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         !data.ReadBool(captureConfig.isSyncRender) ||
         !data.ReadBool(captureConfig.windowSync)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
+        return false;
+    }
+    if (captureConfig.blackList.size() > MAX_CAPTURE_BLACK_LIST_SIZE) {
+        RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig blackList size exceeds limit!");
         return false;
     }
     if (captureType >= static_cast<uint8_t>(SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT)) {
