@@ -437,7 +437,7 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate003, TestSize.Level1)
     ASSERT_TRUE(instance.currRealtimeRefreshRateMap_.empty());
 
     instance.screenRefreshRateMap_.emplace(0, 90);
-    instance.currRealtimeRefreshRateMap_  .emplace(0, 120);
+    instance.currRealtimeRefreshRateMap_.emplace(0, 120);
     auto [currentRefreshRate3, realtimeRefreshRate3] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate3, 90);
     ASSERT_EQ(realtimeRefreshRate3, 90);
@@ -485,7 +485,7 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate004, TestSize.Level1)
     ASSERT_TRUE(instance.currRealtimeRefreshRateMap_.empty());
 
     instance.screenRefreshRateMap_.emplace(0, 90);
-    instance.realtimeFrameCountMap_.emplace(0, 120);
+    instance.currRealtimeRefreshRateMap_.emplace(0, 120);
     auto [currentRefreshRate3, realtimeRefreshRate3] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate3, 90);
     ASSERT_EQ(realtimeRefreshRate3, 90);

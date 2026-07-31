@@ -23,7 +23,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Mock {
-
 class MockHgmFrameRateManager : public HgmFrameRateManager {
 public:
     MockHgmFrameRateManager() = default;
@@ -36,5 +35,4 @@ public:
 } // namespace Mock
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // MOCK_HGM_FRAME_RATE_MANAGER_H
