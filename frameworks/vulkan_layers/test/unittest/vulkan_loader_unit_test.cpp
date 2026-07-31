@@ -946,7 +946,7 @@ HWTEST_F(VulkanLoaderUnitTest, fpCreateSwapchainKHR_Fail_Test, TestSize.Level1)
 
 /**
  * @tc.name: test fpCreateSwapchainKHR with FORCE_LINEAR flag
- * @tc.desc: test fpCreateSwapchainKHR with VK_SWAPCHAIN_CREATE_FORCE_LINEAR_BIT_EXT flag set,
+ * @tc.desc: test fpCreateSwapchainKHR with VK_SWAPCHAIN_CREATE_FORCE_LINEAR_BIT_OHOS flag set,
  *           which should set BUFFER_USAGE_CPU_READ in grallocUsage
  * @tc.type: FUNC
  * @tc.require: issueI6SKRO
