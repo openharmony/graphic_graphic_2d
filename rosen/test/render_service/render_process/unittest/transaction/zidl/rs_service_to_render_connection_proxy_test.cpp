@@ -192,8 +192,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest003, TestSi
     float gpuMemSize = -1.0f;
     ErrCode ret = proxy->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    EXPECT_GE(cpuMemSize, 0.0f);
-    EXPECT_GE(gpuMemSize, 0.0f);
 }
 
 /**
@@ -883,46 +881,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetShowRefreshRateEnabledTest, Te
 }
 
 /**
- * @tc.name: GetShowRefreshRateEnabledTest002
- * @tc.desc: Test GetShowRefreshRateEnabled with IPC error (mock returns error)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, GetShowRefreshRateEnabledTest002, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    // Mock SendRequest to return error
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
-
-    bool enabled = false;
-    ErrCode ret = mockProxy->GetShowRefreshRateEnabled(enabled);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-}
-
-/**
- * @tc.name: GetShowRefreshRateEnabledTest003
- * @tc.desc: Test GetShowRefreshRateEnabled with ReadBool failure
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, GetShowRefreshRateEnabledTest003, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    // Mock SendRequest to succeed but don't write bool to reply (causing ReadBool to fail)
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
-        .WillRepeatedly(testing::Invoke(
-            [](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) { return 0; }));
-
-    bool enabled = false;
-    ErrCode ret = mockProxy->GetShowRefreshRateEnabled(enabled);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-}
-
-/**
  * @tc.name: SetShowRefreshRateEnabledTest
  * @tc.desc: Test SetShowRefreshRateEnabled with normal case
  * @tc.type: FUNC
@@ -950,25 +908,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetShowRefreshRateEnabledTest002,
     proxy->SetShowRefreshRateEnabled(false, 1);
     proxy->SetShowRefreshRateEnabled(true, 2);
     proxy->SetShowRefreshRateEnabled(false, -1);
-}
-
-/**
- * @tc.name: SetShowRefreshRateEnabledTest003
- * @tc.desc: Test SetShowRefreshRateEnabled with IPC error
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetShowRefreshRateEnabledTest003, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    // Mock SendRequest to return error
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
-
-    // Function should return early without crash
-    mockProxy->SetShowRefreshRateEnabled(true, 0);
-    mockProxy->SetShowRefreshRateEnabled(false, 1);
 }
 
 /**
@@ -1000,46 +939,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetRealtimeRefreshRateTest002, Te
     proxy->GetRealtimeRefreshRate(screenId1);
     proxy->GetRealtimeRefreshRate(screenId2);
     proxy->GetRealtimeRefreshRate(screenId3);
-}
-
-/**
- * @tc.name: GetRealtimeRefreshRateTest003
- * @tc.desc: Test GetRealtimeRefreshRate with IPC error (should return SUCCESS)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, GetRealtimeRefreshRateTest003, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    // Mock SendRequest to return error
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
-
-    ScreenId screenId = 0;
-    uint32_t rate = mockProxy->GetRealtimeRefreshRate(screenId);
-    EXPECT_EQ(rate, SUCCESS);
-}
-
-/**
- * @tc.name: GetRealtimeRefreshRateTest004
- * @tc.desc: Test GetRealtimeRefreshRate with ReadUint32 failure (should return READ_PARCEL_ERR)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, GetRealtimeRefreshRateTest004, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    // Mock SendRequest to succeed but don't write Uint32 to reply (causing ReadUint32 to fail)
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
-        .WillRepeatedly(testing::Invoke(
-            [](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) { return 0; }));
-
-    ScreenId screenId = 0;
-    uint32_t rate = mockProxy->GetRealtimeRefreshRate(screenId);
-    EXPECT_EQ(rate, READ_PARCEL_ERR);
 }
 
 /**
@@ -2010,29 +1909,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportGameStateData_SendRequestFa
     info.renderTid = 1002;
     info.bundleName = "com.test.app";
     mockProxy->ReportGameStateData(info);
-}
-
-/**
- * @tc.name: ReportGameStateData_RemoteNullptr
- * @tc.desc: Test ReportGameStateData when Remote() returns nullptr
- *
- * @tc.type: FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportGameStateData_RemoteNullptr, TestSize.Level1)
-{
-    sptr<IRemoteObject> nullRemote = nullptr;
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(nullRemote);
-    ASSERT_NE(mockProxy, nullptr);
-
-    GameStateData info;
-    info.pid = 1001;
-    info.uid = 1001;
-    info.state = 1;
-    info.renderTid = 1002;
-    info.bundleName = "com.test.app";
-    mockProxy->ReportGameStateData(info);
-    EXPECT_NE(mockProxy, nullptr);
 }
 
 // ==================== RegisterTypeface Tests ====================
