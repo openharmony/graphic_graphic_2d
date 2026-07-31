@@ -692,6 +692,7 @@ VKAPI_ATTR VkResult SetWindowBufferUsage(VkDevice device, NativeWindow* window,
     if (createInfo->flags & VK_SWAPCHAIN_CREATE_FORCE_LINEAR_BIT_OHOS) {
         grallocUsage |= BUFFER_USAGE_CPU_READ;
     }
+
     VkLayerDispatchTable* pDisp =
         GetLayerDataPtr(GetDispatchKey(device))->deviceDispatchTable.get();
     if (pDisp->GetSwapchainGrallocUsageOHOS != nullptr) {
