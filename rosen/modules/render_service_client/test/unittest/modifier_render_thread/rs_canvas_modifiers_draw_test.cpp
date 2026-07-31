@@ -658,6 +658,10 @@ HWTEST_F(RSCanvasModifiersDrawTest, GetBitmap_Basic001, TestSize.Level1)
     Drawing::Bitmap bitmap;
     bool result = canvasModifiersDraw->GetBitmap(nodeId, bitmap);
     EXPECT_FALSE(result);
+    auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bitmap.SetFormat(bitmapFormat);
+    result = canvasModifiersDraw->GetBitmap(nodeId, bitmap);
+    EXPECT_FALSE(result);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, GetPixelMap_Basic001, TestSize.Level1)

@@ -522,6 +522,7 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
         SetNeedProcess(true);
     }
     RSRenderNode::ApplyModifiers();
+    bufferDirty_ = false;
 }
 
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type)
@@ -849,7 +850,10 @@ void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buff
     if (buffer == nullptr && canvasParams->GetBuffer() == nullptr) {
         return;
     }
- 
+
+    bufferDirty_ = true;
+    MarkNonGeometryChanged();
+    SetContentDirty();
     if (!firstBufferAcquired_ && buffer != nullptr) {
         firstBufferAcquired_ = true;
         ClearOp();

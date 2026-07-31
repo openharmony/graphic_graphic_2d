@@ -1874,11 +1874,9 @@ void RSMainThread::ProcessCommandForUniRender()
                 doDirectComposition_ = false;
                 auto buffer = surfaceHandler->GetBuffer();
                 auto preBuffer = surfaceHandler->GetPreBuffer();
-                const auto& consumer = surfaceHandler->GetConsumer();
                 canvasDrawingNode->UpdateBufferInfo(buffer, surfaceHandler->GetBufferOwnerCount(),
                     surfaceHandler->GetDamageRegion(), surfaceHandler->GetAcquireFence(), preBuffer,
                     surfaceHandler->GetPreBufferOwnerCount());
-                canvasDrawingNode->SetContentDirty();
             }
 #endif
         } else if (canvasDrawingNode->IsNeedProcess()) {
