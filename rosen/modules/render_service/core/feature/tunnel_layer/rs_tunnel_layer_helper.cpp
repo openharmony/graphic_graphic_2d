@@ -445,8 +445,8 @@ RSTunnelLayerHelper::ListenerHandleResult RSTunnelLayerHelper::HandleListenerBuf
     }
     auto claimedFrom = RSTunnelRuntimeState::Phase::TUNNEL_IDLE;
     if (!tunnelRuntime.TryClaimByListener(claimedFrom)) {
-        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, nodeId=%" PRIu64 ", reason=phase,"
-            "phase=%s, pending=%d, claimedFrom:%d",
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, nodeId=%" PRIu64 ", reason=phase, phase=%s, "
+            "pending=%d, claimedFrom:%d",
             __func__, node->GetId(), ToPhaseName(tunnelRuntime.GetPhase()),
             tunnelRuntime.IsPendingParam(), claimedFrom);
         RS_LOGD("TUNNEL_DEBUG %{public}s rejected, nodeId:%{public}" PRIu64

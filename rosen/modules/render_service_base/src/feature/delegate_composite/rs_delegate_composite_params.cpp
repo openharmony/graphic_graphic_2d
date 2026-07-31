@@ -17,15 +17,13 @@
 
 namespace OHOS {
 namespace Rosen {
-
 RsDelegateCompositeParams::RsDelegateCompositeParams(std::string name, NodeId nodeId)
 {
     name_ = name;
     nodeId_ = nodeId;
 }
 
-void RsDelegateCompositeParams::SetDelegateDstRect(float positionX, float positionY,
-    float positionZ, float positionW)
+void RsDelegateCompositeParams::SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW)
 {
     delegateDstRect_.x_ = positionX;
     delegateDstRect_.y_ = positionY;
@@ -35,13 +33,12 @@ void RsDelegateCompositeParams::SetDelegateDstRect(float positionX, float positi
         positionX, positionY, positionZ, positionW, name_.c_str());
 }
 
-Vector4f RsDelegateCompositeParams::GetDelegateDstRect()
+const Vector4f& RsDelegateCompositeParams::GetDelegateDstRect()
 {
     return delegateDstRect_;
 }
 
-void RsDelegateCompositeParams::SetDelegateSrcRect(float positionX, float positionY,
-    float positionZ, float positionW)
+void RsDelegateCompositeParams::SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW)
 {
     delegateSrcRect_.x_ = positionX;
     delegateSrcRect_.y_ = positionY;
@@ -51,7 +48,7 @@ void RsDelegateCompositeParams::SetDelegateSrcRect(float positionX, float positi
         positionX, positionY, positionZ, positionW, name_.c_str());
 }
 
-Vector4f RsDelegateCompositeParams::GetDelegateSrcRect()
+const Vector4f& RsDelegateCompositeParams::GetDelegateSrcRect()
 {
     return delegateSrcRect_;
 }
