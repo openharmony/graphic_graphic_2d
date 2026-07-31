@@ -1634,7 +1634,7 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
     AddToPendingSyncList();
 }
 
-bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
+bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded)
 {
     auto checkType = RSSystemProperties::GetSubTreePrepareCheckType();
     if (checkType == SubTreePrepareCheckType::DISABLED) {
@@ -1659,8 +1659,9 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
-    if (childHasSpatialEffect_ &&
-        (GetRenderProperties().IsParentGeoDirty() || GetRenderProperties().IsCurGeoDirty())) {
+
+    // isAccumGeoDirty represents self or ancestor geoDirty
+    if (childHasSpatialEffect_ && isAccumGeoDirty) {
         return true;
     }
     if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || GetSubSurfaceCnt() > 0) {
@@ -5877,15 +5878,6 @@ uint32_t RSRenderNode::GetHdrUIComponentHeadroom() const
 void RSRenderNode::ReSortChildrenByZIndex()
 {
     isFullChildrenListValid_ = false;
-}
-
-void RSRenderNode::AccumulateParentGeoDirty()
-{
-    if (auto parentPtr = GetParent().lock()) {
-        bool parentGeoDirty = parentPtr->GetRenderProperties().IsParentGeoDirty() ||
-            parentPtr->GetRenderProperties().IsCurGeoDirty();
-        GetMutableRenderProperties().SetParentGeoDirty(parentGeoDirty);
-    }
 }
 
 void RSRenderNode::MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
