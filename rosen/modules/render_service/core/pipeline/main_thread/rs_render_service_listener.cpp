@@ -302,14 +302,12 @@ void RSRenderServiceListener::ConsumeBufferToKeepQueueRunning(std::weak_ptr<RSSu
             RS_TRACE_NAME_FMT("OnBufferAvailable acquire buffer begin nodeId: %" PRId64, nodeId);
             auto handler = weakHandler.lock();
             if (handler == nullptr) {
-                RS_LOGD_IF(DEBUG_PIPELINE,
-                    "RSRenderServiceListener::ConsumeBufferToKeepQueueRunning PostTask handler is nullptr");
+                RS_LOGD_IF(DEBUG_PIPELINE, "ConsumeBufferToKeepQueueRunning PostTask handler is nullptr");
                 return;
             }
             const auto &consumer = handler->GetConsumer();
             if (consumer == nullptr) {
-                RS_LOGD_IF(DEBUG_PIPELINE,
-                    "RSRenderServiceListener::ConsumeBufferToKeepQueueRunning PostTask consumer is nullptr");
+                RS_LOGD_IF(DEBUG_PIPELINE, "ConsumeBufferToKeepQueueRunning PostTask consumer is nullptr");
                 return;
             }
 

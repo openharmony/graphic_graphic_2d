@@ -590,11 +590,11 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
 
     RS_LOGD_IF(DEBUG_PIPELINE,
         "RSBaseRenderEngine::ColorSpaceConvertor parameter inPrimaries = %{public}u, inMetadataType = %{public}u, "
-            "outPrimaries = %{public}u, outMetadataType = %{public}u, "
-            "tmoNits = %{public}.2f, currentDisplayNits = %{public}.2f, sdrNits = %{public}.2f",
-            parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
-            parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
-            parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits);
+        "outPrimaries = %{public}u, outMetadataType = %{public}u, "
+        "tmoNits = %{public}.2f, currentDisplayNits = %{public}.2f, sdrNits = %{public}.2f",
+        parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
+        parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
+        parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits);
 
     return true;
 }

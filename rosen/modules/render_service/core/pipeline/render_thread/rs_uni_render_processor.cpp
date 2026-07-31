@@ -382,7 +382,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     if (offlineResult) {
         SetDeviceOfflineOriginalInfo(layer, params);
     }
-    params.SetPreBuffer(nullptr, nullptr);
+    params.ClearPreBufferOnly();
     layer->SetZorder(layerInfo.zOrder);
     layer->SetRotationFixed(params.GetFixRotationByUser());
     RSRenderThreadParams::TunnelLayerSnapshot tunnelLayerSnapshot;

@@ -477,7 +477,7 @@ RSLayerPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node) const
     AppendFormat(traceInfo, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
     RS_TRACE_NAME(traceInfo.c_str());
-    RS_LOGD_IF(DEBUG_PIPELINE, 
+    RS_LOGD_IF(DEBUG_PIPELINE,
         "RsDebug RSComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:[%{public}s]"
         " dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer"
         " [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z:%{public}f, globalZOrder:%{public}d,"

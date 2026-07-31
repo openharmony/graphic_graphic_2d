@@ -2431,6 +2431,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenColorGamut(ScreenId id, Scree
             ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenColorGamut Read mode failed");
             return READ_PARCEL_ERR;
         }
+        if (readMode >= static_cast<uint32_t>(ScreenColorGamut::COLOR_GAMUT_BUTT)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenColorGamut colorGamut out of range: %u", readMode);
+            return READ_PARCEL_ERR;
+        }
         mode = static_cast<ScreenColorGamut>(readMode);
     }
     return result;
@@ -2689,6 +2693,10 @@ int32_t RSClientToServiceConnectionProxy::GetPixelFormat(ScreenId id, GraphicPix
             ROSEN_LOGE("RSClientToServiceConnectionProxy::GetPixelFormat Read readFormat failed");
             return READ_PARCEL_ERR;
         }
+        if (readFormat >= GRAPHIC_PIXEL_FMT_BUTT) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetPixelFormat pixelFormat out of range: 0x%u", readFormat);
+            return READ_PARCEL_ERR;
+        }
         pixelFormat = static_cast<GraphicPixelFormat>(readFormat);
     }
     return result;
@@ -2804,6 +2812,10 @@ int32_t RSClientToServiceConnectionProxy::GetScreenHDRFormat(ScreenId id, Screen
         uint32_t readFormat{0};
         if (!reply.ReadUint32(readFormat)) {
             ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenHDRFormat1 Read readFormat failed");
+            return READ_PARCEL_ERR;
+        }
+        if (readFormat >= static_cast<uint32_t>(ScreenHDRFormat::SCREEN_HDR_FORMAT_BUTT)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenHDRFormat hdrFormat out of range: %u", readFormat);
             return READ_PARCEL_ERR;
         }
         hdrFormat = static_cast<ScreenHDRFormat>(readFormat);

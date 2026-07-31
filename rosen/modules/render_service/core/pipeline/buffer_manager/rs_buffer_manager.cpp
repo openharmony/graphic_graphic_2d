@@ -345,7 +345,7 @@ void RSBufferManager::OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::w
             bufferOwnerCount->OnBufferReleased();
             decedSet.insert(bufferId);
         } else {
-            RS_LOGD_IF(DEBUG_PIPELINE,"OnReleaseLayerBuffers: bufferId %{public}" PRIu64 " has no ownerCount",
+            RS_LOGD_IF(DEBUG_PIPELINE, "OnReleaseLayerBuffers: bufferId %{public}" PRIu64 " has no ownerCount",
                 bufferId);
         }
     }

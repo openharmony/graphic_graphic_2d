@@ -111,8 +111,7 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
         pid_t entryPid = static_cast<pid_t>(it->first >> 32);
         if (entryPid == pid) {
             RS_LOGD_IF(DEBUG_NODE, "RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback: "
-                    "Removing %{public}zu buffers for pid=%{public}d",
-                    it->second.size(), pid);
+                "Removing %{public}zu buffers for pid=%{public}d", it->second.size(), pid);
             it = surfaceBufferInfoMap_.erase(it);
         } else {
             ++it;

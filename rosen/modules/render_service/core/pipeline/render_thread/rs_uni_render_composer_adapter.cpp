@@ -930,9 +930,8 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const RSLayerPtr& layer, RSSurfa
     dirtyRegions.emplace_back(srcRect);
     layer->SetDirtyRegions(dirtyRegions);
     layer->SetCropRect(srcRect);
-    RS_LOGD_IF(DEBUG_PIPELINE,
-        "RsDebug RSUniRenderComposerAdapter::LayerScaleDown layer has been scaledown dst[%{public}d %{public}d"
-        " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
+    RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSUniRenderComposerAdapter::LayerScaleDown layer has been scaledown "
+        "dst[%{public}d %{public}d %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
         dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
 }
 
@@ -1088,9 +1087,8 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
         RS_LOGE("RSUniRenderComposerAdapter::CreateLY fail, surfaceHandler is nullptr");
         return nullptr;
     }
-    RS_LOGD_IF(DEBUG_PIPELINE,
-        "RSUniRenderComposerAdapter::CreateLayer screenDrawableNode id:%{public}" PRIu64 " available "
-        "buffer:%{public}d", screenDrawable.GetId(), surfaceHandler->GetAvailableBufferCount());
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderComposerAdapter::CreateLayer screenDrawableNode id:%{public}" PRIu64
+        " available buffer:%{public}d", screenDrawable.GetId(), surfaceHandler->GetAvailableBufferCount());
     if (!screenDrawable.IsSurfaceCreated()) {
         sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
         if (!screenDrawable.CreateSurface(listener)) {

@@ -326,6 +326,7 @@ int32_t HdiLayer::SetLayerBuffer()
         layerBuffer.handle = currBuffer_->GetBufferHandle();
         if (layerBuffer.handle == nullptr) {
             HLOGE("Get buffer handle failed.");
+            return GRAPHIC_DISPLAY_NULL_PTR;
         }
     }
 
@@ -513,7 +514,7 @@ int32_t HdiLayer::SetLayerTunnelHandle()
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    if (rsLayer_->GetTunnelHandle() == nullptr) {
+    if (rsLayer_->GetTunnelHandle() == nullptr || rsLayer_->GetTunnelHandle()->GetHandle() == nullptr) {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, nullptr);
     } else {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, rsLayer_->GetTunnelHandle()->GetHandle());

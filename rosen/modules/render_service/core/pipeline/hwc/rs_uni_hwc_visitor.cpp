@@ -286,20 +286,19 @@ void RSUniHwcVisitor::ProcessSolidLayerDisabled(RSSurfaceRenderNode& node)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("solidLayer: name:%s id:%" PRIu64 " solidLayer enabling condition is not met.",
         node.GetName().c_str(), node.GetId());
-    RS_LOGD_IF(DEBUG_PIPELINE, "solidLayer: solidLayer enabling condition is not met, name: %{public}s",
-        node.GetName().c_str());
+    RS_LOGD_IF(DEBUG_PIPELINE, "solidLayer: enabling condition is not met, name: %{public}s", node.GetName().c_str());
     const auto& renderProperties = node.GetRenderProperties();
     Color appBackgroundColor = renderProperties.GetBackgroundColor();
     // Non-xcom or pure black nodes are not processed and are allowed to pass.
     if (static_cast<uint8_t>(appBackgroundColor.GetAlpha()) == MAX_ALPHA &&
         appBackgroundColor == RgbPalette::Black()) {
-        RS_LOGD_IF(DEBUG_PIPELINE, "solidLayer: background color is black: %{public}s, go hwc directly",
+        RS_LOGD_IF(DEBUG_PIPELINE, "solidLayer: background color is black: %{public}s, go directly",
             node.GetName().c_str());
         return;
     }
     if (static_cast<uint8_t>(appBackgroundColor.GetAlpha()) == MAX_ALPHA &&
         node.GetSelfDrawingNodeType() != SelfDrawingNodeType::XCOM) {
-        RS_LOGD_IF(DEBUG_PIPELINE, "solidLayer: solid color surface node: %{public}s, go hwc directly",
+        RS_LOGD_IF(DEBUG_PIPELINE, "solidLayer: solid color surface node: %{public}s, go directly",
             node.GetName().c_str());
         return;
     }
