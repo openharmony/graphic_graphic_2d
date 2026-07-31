@@ -884,17 +884,17 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, IsSubTreeNeedPrepare, TestSize.Level2)
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    ASSERT_TRUE(node->IsSubTreeNeedPrepare(true, true));
+    ASSERT_TRUE(node->IsSubTreeNeedPrepare(true, false, true));
     node->nodeType_ = RSSurfaceNodeType::DEFAULT;
-    ASSERT_FALSE(node->IsSubTreeNeedPrepare(true, true));
+    ASSERT_FALSE(node->IsSubTreeNeedPrepare(true, false, true));
     auto parent = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
     node->parent_ = parent;
-    ASSERT_FALSE(node->IsSubTreeNeedPrepare(true, true));
+    ASSERT_FALSE(node->IsSubTreeNeedPrepare(true, false, true));
     parent->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    ASSERT_FALSE(node->IsSubTreeNeedPrepare(true, true));
+    ASSERT_FALSE(node->IsSubTreeNeedPrepare(true, false, true));
     auto& properties = node->GetMutableRenderProperties();
     properties.curGeoDirty_ = true;
-    ASSERT_TRUE(node->IsSubTreeNeedPrepare(true, true));
+    ASSERT_TRUE(node->IsSubTreeNeedPrepare(true, false, true));
 }
 
 /**

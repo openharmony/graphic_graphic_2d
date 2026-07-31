@@ -1634,7 +1634,7 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
     AddToPendingSyncList();
 }
 
-bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
+bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded)
 {
     auto checkType = RSSystemProperties::GetSubTreePrepareCheckType();
     if (checkType == SubTreePrepareCheckType::DISABLED) {
@@ -1659,8 +1659,9 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
-    if (childHasSpatialEffect_ &&
-        (GetRenderProperties().IsParentGeoDirty() || GetRenderProperties().IsCurGeoDirty())) {
+
+    // isAccumGeoDirty represents self or ancestor geoDirty
+    if (childHasSpatialEffect_ && isAccumGeoDirty) {
         return true;
     }
     if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || GetSubSurfaceCnt() > 0) {
@@ -4880,9 +4881,10 @@ void RSRenderNode::OnSync()
         return;
     }
     // uifirstSkipPartialSync means don't need to trylock whether drawable is onDraw or not
+    bool skipPartialSync = IsUifirstSkipPartialSync();
     DrawableV2::RSRenderNodeSingleDrawableLocker
-        singleLocker(IsUifirstSkipPartialSync() ? nullptr : renderDrawable_.get());
-    if (!IsUifirstSkipPartialSync() && UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker(skipPartialSync ? nullptr : renderDrawable_.get());
+    if (!skipPartialSync && UNLIKELY(!singleLocker.IsLocked())) {
 #ifdef RS_ENABLE_GPU
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
 #endif
@@ -4940,7 +4942,7 @@ void RSRenderNode::OnSync()
         }
         unobscuredUECChildrenNeedSync_ = false;
     }
-    if (!IsUifirstSkipPartialSync()) {
+    if (!skipPartialSync) {
         if (!dirtySlots_.empty()) {
             auto& drawableMap = GetDrawableVec(__func__);
             for (const auto& slot : dirtySlots_) {
@@ -5876,15 +5878,6 @@ uint32_t RSRenderNode::GetHdrUIComponentHeadroom() const
 void RSRenderNode::ReSortChildrenByZIndex()
 {
     isFullChildrenListValid_ = false;
-}
-
-void RSRenderNode::AccumulateParentGeoDirty()
-{
-    if (auto parentPtr = GetParent().lock()) {
-        bool parentGeoDirty = parentPtr->GetRenderProperties().IsParentGeoDirty() ||
-            parentPtr->GetRenderProperties().IsCurGeoDirty();
-        GetMutableRenderProperties().SetParentGeoDirty(parentGeoDirty);
-    }
 }
 
 void RSRenderNode::MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)

@@ -476,6 +476,7 @@ public:
     sptr<SurfaceBuffer> GetBuffer() const override;
     void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount) override;
+    void ClearPreBufferOnly();
     sptr<SurfaceBuffer> GetPreBuffer() override;
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;

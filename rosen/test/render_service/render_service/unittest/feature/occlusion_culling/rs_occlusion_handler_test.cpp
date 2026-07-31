@@ -411,6 +411,7 @@ HWTEST_F(RSOcclusionHandlerTest, CollectNodeInner_ParentIgnoredChildStillCollect
     parentNode->parent_ = nodePtr;
     parentNode->instanceRootNodeId_ = firstNodeId;
     parentNode->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
+    parentNode->isTextureExportNode_ = true;
     rsOcclusionHandler->CollectNode(*parentNode);
 
     auto itParent = rsOcclusionHandler->occlusionNodes_.find(secondNodeId);
@@ -444,6 +445,7 @@ HWTEST_F(RSOcclusionHandlerTest, CollectSubTreeInner_IgnoredNodeChildrenStillCol
     ignoredNode->parent_ = nodePtr;
     ignoredNode->instanceRootNodeId_ = firstNodeId;
     ignoredNode->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
+    ignoredNode->isTextureExportNode_ = true;
     ignoredNode->renderProperties_.SetBounds(Vector4f{0, 0, 100, 100});
 
     std::shared_ptr<RSRenderNode> grandChildNode = std::make_shared<RSRenderNode>(thirdNodeId);

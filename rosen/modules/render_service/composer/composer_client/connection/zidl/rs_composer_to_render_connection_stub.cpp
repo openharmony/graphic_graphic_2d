@@ -149,7 +149,10 @@ int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel&
         sptr<SyncFence> fence = SyncFence::ReadFromMessageParcel(data);
         releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(layerId, buffer, fence));
     }
-    data.ReadInt64(releaseLayerInfo.lastSwapBufferTime);
+    if (!data.ReadInt64(releaseLayerInfo.lastSwapBufferTime)) {
+        RS_LOGE("%{public}s read lastSwapBufferTime error", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     auto replyMessage = ReleaseLayerBuffers(releaseLayerInfo);
     reply.WriteInt32(replyMessage);
     return COMPOSITOR_ERROR_OK;
