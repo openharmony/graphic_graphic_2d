@@ -119,7 +119,7 @@ napi_value WebGLRenderingContextBaseImpl::CreateTextureObject(napi_env env)
 
 napi_value WebGLRenderingContextBaseImpl::ActiveTexture(napi_env env, GLenum texture)
 {
-    if (texture < GL_TEXTURE0 || static_cast<GLint>(texture - GL_TEXTURE0) >= maxTextureImageUnits_) {
+    if (texture < GL_TEXTURE0 || (texture - GL_TEXTURE0) >= static_cast<GLenum>(maxTextureImageUnits_)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM,
             "WebGL activeTexture texture unit out of range %{public}u", texture);
         return NVal::CreateNull(env).val_;
@@ -447,6 +447,10 @@ napi_value WebGLRenderingContextBaseImpl::ShaderSource(napi_env env, napi_value 
     uint32_t shaderId = webGlShader->GetShaderId();
     if (!WebGLArg::CheckString(source)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "checkString failed.");
+        return NVal::CreateNull(env).val_;
+    }
+    if (source.size() > static_cast<size_t>(std::numeric_limits<GLint>::max())) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "shader source too long");
         return NVal::CreateNull(env).val_;
     }
     GLint length = static_cast<GLint>(source.size());
@@ -1380,12 +1384,23 @@ napi_value WebGLRenderingContextBaseImpl::VertexAttribPointer(napi_env env, cons
     if (!CheckGLenum(vertexInfo.type, { GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_FLOAT }, {})) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
             "WebGL vertexAttribPointer invalid type %{public}u", vertexInfo.type);
+        return NVal::CreateNull(env).val_;
     }
     GLenum result = CheckVertexAttribPointer(env, vertexInfo);
     if (result) {
         SET_ERROR(result);
         return NVal::CreateNull(env).val_;
     }
+    VertexAttribInfo* info = GetVertexAttribInfo(vertexInfo.index);
+    if (info == nullptr) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "vertexAttribPointer invalid index");
+        return NVal::CreateNull(env).val_;
+    }
+    info->glType = vertexInfo.type;
+    info->size = vertexInfo.size;
+    info->stride = vertexInfo.stride;
+    info->offset = vertexInfo.offset;
+    info->bufferId = boundBufferIds_[BoundBufferType::ARRAY_BUFFER];
     glVertexAttribPointer(vertexInfo.index, vertexInfo.size, vertexInfo.type, vertexInfo.normalized,
         vertexInfo.stride, reinterpret_cast<GLvoid*>(vertexInfo.offset));
     LOGD("WebGL vertexAttribPointer index %{public}u result %{public}u", vertexInfo.index, GetError_());
@@ -1412,6 +1427,10 @@ napi_value WebGLRenderingContextBaseImpl::EnableVertexAttribArray(napi_env env, 
         return NVal::CreateNull(env).val_;
     }
     LOGD("WebGL enableVertexAttribArray index %{public}" PRIi64, index);
+    VertexAttribInfo* info = GetVertexAttribInfo(index);
+    if (info != nullptr) {
+        info->enabled = true;
+    }
     glEnableVertexAttribArray(static_cast<GLuint>(index));
     return NVal::CreateNull(env).val_;
 }
@@ -1424,6 +1443,10 @@ napi_value WebGLRenderingContextBaseImpl::DisableVertexAttribArray(napi_env env,
         return NVal::CreateNull(env).val_;
     }
     LOGD("WebGL disableVertexAttribArray index %{public}" PRIi64, index);
+    VertexAttribInfo* info = GetVertexAttribInfo(index);
+    if (info != nullptr) {
+        info->enabled = false;
+    }
     glDisableVertexAttribArray(index);
     return NVal::CreateNull(env).val_;
 }
@@ -1635,6 +1658,9 @@ static std::tuple<GLenum, GLsizei, T*> CheckUniformDataInfo(
          static_cast<size_t>(info->srcLength));
     if (isHighWebGL) {
         if (count <= info->srcOffset || count < info->srcLength) {
+            return make_tuple(WebGLRenderingContextBase::INVALID_VALUE, 0, nullptr);
+        }
+        if (info->srcLength != 0 && info->srcOffset > count - info->srcLength) {
             return make_tuple(WebGLRenderingContextBase::INVALID_VALUE, 0, nullptr);
         }
         count = info->srcLength != 0 ? info->srcLength : count - info->srcOffset;
@@ -2565,9 +2591,6 @@ bool WebGLRenderingContextBaseImpl::CheckBufferTarget(napi_env env, GLenum targe
             index = BoundBufferType::PIXEL_UNPACK_BUFFER;
             break;
         default:
-            if (IsHighWebGL()) {
-                break;
-            }
             return false;
     }
     return true;
@@ -2829,12 +2852,28 @@ GLenum WebGLRenderingContextBaseImpl::CheckReadPixelsArg(napi_env env, const Pix
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
 
-    // Step 3: requiredBytes = height * rowBytes
+    // Step 3: account for PACK_ALIGNMENT row stride
+    // Each row is padded to a multiple of packAlignment; only the last row is unpadded
+    uint64_t packAlign = static_cast<uint64_t>(packAlignment_);
+    if (packAlign == 0) {
+        packAlign = 1;
+    }
+    uint64_t rowStride = (rowBytes + packAlign - 1) / packAlign * packAlign;
+
+    // Step 4: requiredBytes = rowStride * (height - 1) + rowBytes
     uint64_t height64 = static_cast<uint64_t>(arg.height);
-    uint64_t requiredBytes = height64 * rowBytes;
-    if (rowBytes > 0 && requiredBytes / rowBytes != height64) {
-        LOGE("WebGL readPixels overflow in requiredBytes calculation");
-        return WebGLRenderingContextBase::INVALID_VALUE;
+    uint64_t requiredBytes = 0;
+    if (height64 > 0) {
+        if (rowStride > 0 && height64 - 1 > UINT64_MAX / rowStride) {
+            LOGE("WebGL readPixels overflow in requiredBytes calculation");
+            return WebGLRenderingContextBase::INVALID_VALUE;
+        }
+        requiredBytes = rowStride * (height64 - 1);
+        if (requiredBytes > UINT64_MAX - rowBytes) {
+            LOGE("WebGL readPixels overflow in final requiredBytes addition");
+            return WebGLRenderingContextBase::INVALID_VALUE;
+        }
+        requiredBytes += rowBytes;
     }
 
     // Validate remaining capacity is sufficient for required bytes

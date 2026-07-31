@@ -147,12 +147,14 @@ void BlobCache::Init(EglWrapperDisplay* display)
 void BlobCache::SetBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
                             EGLsizeiANDROID valueSize)
 {
-    BlobCache::Get()->SetBlobLock(key, keySize, value, valueSize);
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
+    BlobCache::Get()->SetBlob(key, keySize, value, valueSize);
 }
 EGLsizeiANDROID BlobCache::GetBlobFunc(const void *key, EGLsizeiANDROID keySize, void *value,
                                        EGLsizeiANDROID valueSize)
 {
-    return BlobCache::Get()->GetBlobLock(key, keySize, value, valueSize);
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
+    return BlobCache::Get()->GetBlob(key, keySize, value, valueSize);
 }
 
 void BlobCache::SetBlobLock(const void* key, EGLsizeiANDROID keySize, const void* value,
@@ -207,7 +209,7 @@ void BlobCache::SetBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     }
     if (blobSize_ >= blobSizeMax_) {
         int count = 0;
-        while (count <= MAX_SHADER_DELETE) {
+        while (count <= MAX_SHADER_DELETE && blobSize_ > 0 && tail_->prev_ != head_) {
             std::shared_ptr<Blob> deleteblob = tail_->prev_;
             deleteblob->prev_->next_ = tail_;
             tail_->prev_ = deleteblob->prev_;
@@ -309,6 +311,7 @@ void BlobCache::SetCacheShaderSize(int shadermax)
     if (shadermax <= 0 || shadermax > MAX_SHADER) {
         return;
     }
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
     blobSizeMax_ = shadermax;
 }
 
@@ -359,7 +362,12 @@ void BlobCache::WriteToDisk()
     }
     size_t headsize = sizeof(CacheHeader);
     size_t bufsize = filesize + CACHE_HEAD;
-    uint8_t *buf = new uint8_t[bufsize];
+    uint8_t *buf = new (std::nothrow) uint8_t[bufsize];
+    if (buf == nullptr) {
+        WLOGE("WriteToDisk alloc buf failed, size %{public}zu", bufsize);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
+        return;
+    }
     size_t offset = CACHE_HEAD;
     for (auto item = mBlobMap_.begin(); item != mBlobMap_.end(); ++item) {
         CacheHeader* eheader = reinterpret_cast<CacheHeader*>(&buf[offset]);
@@ -435,7 +443,7 @@ void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
     }
     size_t headsize = sizeof(CacheHeader);
     size_t byteoffset = CACHE_HEAD;
-    while (byteoffset < filesize - CACHE_HEAD) {
+    while (byteoffset + headsize <= filesize) {
         const CacheHeader* eheader = reinterpret_cast<CacheHeader*>(&buf[byteoffset]);
         size_t keysize = eheader->keySize;
         size_t valuesize = eheader->valueSize;

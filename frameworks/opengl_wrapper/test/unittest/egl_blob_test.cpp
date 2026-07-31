@@ -378,4 +378,86 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
     free(key);
     free(value);
 }
+
+/**
+ * @tc.name: EvictionSmallShaderSizeTest
+ * @tc.desc: test eviction loop when blobSizeMax_ is set small (<=150), verifying
+ *          no null deref on head_->prev_ (bound check tail_->prev_ != head_)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglBlobTest, EvictionSmallShaderSizeTest, Level1)
+{
+    BlobCache* cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+    cache->Terminate();
+    cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+
+    cache->SetCacheShaderSize(1);
+    ASSERT_EQ(cache->blobSizeMax_, 1);
+
+    for (int i = 0; i < 10; ++i) {
+        void* key = malloc(4);
+        void* value = malloc(4);
+        ASSERT_NE(key, nullptr);
+        ASSERT_NE(value, nullptr);
+        *(static_cast<int*>(key)) = i;
+        *(static_cast<int*>(value)) = i * 100;
+        cache->SetBlobFunc(key, 4, value, 4);
+        free(key);
+        free(value);
+    }
+    ASSERT_EQ(cache->GetMapSize(), 1);
+    cache->Terminate();
+}
+
+/**
+ * @tc.name: EvictionDefaultSizeTest
+ * @tc.desc: test eviction loop with default blobSizeMax_ (600), insert >600 blobs
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglBlobTest, EvictionDefaultSizeTest, Level2)
+{
+    BlobCache* cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+    cache->Terminate();
+    cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+
+    for (int i = 0; i < 650; ++i) {
+        void* key = malloc(4);
+        void* value = malloc(4);
+        ASSERT_NE(key, nullptr);
+        ASSERT_NE(value, nullptr);
+        *(static_cast<int*>(key)) = i;
+        *(static_cast<int*>(value)) = i * 100;
+        cache->SetBlobFunc(key, 4, value, 4);
+        free(key);
+        free(value);
+    }
+    ASSERT_LE(cache->GetMapSize(), cache->blobSizeMax_);
+    cache->Terminate();
+}
+
+/**
+ * @tc.name: SetCacheShaderSizeBoundaryTest
+ * @tc.desc: test SetCacheShaderSize boundary values (0, MAX_SHADER, MAX_SHADER+1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglBlobTest, SetCacheShaderSizeBoundaryTest, Level1)
+{
+    BlobCache* cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+
+    int original = cache->blobSizeMax_;
+    cache->SetCacheShaderSize(0);
+    ASSERT_EQ(cache->blobSizeMax_, original);
+    cache->SetCacheShaderSize(MAX_SHADER + 1);
+    ASSERT_EQ(cache->blobSizeMax_, original);
+    cache->SetCacheShaderSize(MAX_SHADER);
+    ASSERT_EQ(cache->blobSizeMax_, MAX_SHADER);
+    cache->SetCacheShaderSize(1);
+    ASSERT_EQ(cache->blobSizeMax_, 1);
+    cache->Terminate();
+}
 } // OHOS::Rosen
