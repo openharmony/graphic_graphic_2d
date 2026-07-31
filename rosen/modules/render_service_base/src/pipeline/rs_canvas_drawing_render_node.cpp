@@ -522,7 +522,9 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
         SetNeedProcess(true);
     }
     RSRenderNode::ApplyModifiers();
+#ifdef RS_MODIFIERS_DRAW_ENABLE
     bufferDirty_ = false;
+#endif
 }
 
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type)
