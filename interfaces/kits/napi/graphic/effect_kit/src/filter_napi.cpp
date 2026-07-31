@@ -128,7 +128,9 @@ FilterNapi::FilterNapi() : env_(nullptr), wrapper_(nullptr)
 FilterNapi::~FilterNapi()
 {
     EFFECT_LOG_D("~FilterNapi");
-    napi_delete_reference(env_, wrapper_);
+    if (env_ != nullptr && wrapper_ != nullptr) {
+        napi_delete_reference(env_, wrapper_);
+    }
 }
 
 void FilterNapi::Destructor(napi_env env,
@@ -289,7 +291,9 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
 napi_value FilterNapi::CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
+    napi_status status = napi_create_object(env, &objValue);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && objValue != nullptr, nullptr,
+        EFFECT_LOG_E("FilterNapi CreateEffectFromPtr create object fail"));
 
     FilterNapi* filterNapi = new (std::nothrow) FilterNapi();
     if (filterNapi == nullptr) {
@@ -297,7 +301,7 @@ napi_value FilterNapi::CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::
     }
     filterNapi->env_ = env;
     filterNapi->srcPixelMap_  = pixelMap;
-    auto status = napi_wrap_s(env, objValue, filterNapi, FilterNapi::Destructor, nullptr,
+    status = napi_wrap_s(env, objValue, filterNapi, FilterNapi::Destructor, nullptr,
         &FilterNapi::NAPI_TYPE_TAG, nullptr);
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterNapi,
         EFFECT_LOG_E("FilterNapi CreateEffectFromPtr wrap fail"));
