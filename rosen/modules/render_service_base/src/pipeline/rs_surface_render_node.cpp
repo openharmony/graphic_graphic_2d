@@ -1138,15 +1138,6 @@ void RSSurfaceRenderNode::SetScreenSpecialLayerStatus(ScreenId screenId, uint32_
     }
 }
 
-void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (!IsLeashOrMainWindow()) {
-        return;
-    }
-    SetScreensWithSubTreeWhitelist(screenIds);
-    SyncWhiteListInfoToParent();
-}
-
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
 {
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());

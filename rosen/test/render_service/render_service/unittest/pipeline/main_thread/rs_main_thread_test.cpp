@@ -2910,6 +2910,52 @@ HWTEST_F(RSMainThreadTest, SurfaceOcclusionCallback005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SurfaceOcclusionCallBackIfOnTreeStateChanged001
+ * @tc.desc: Verify SurfaceOcclusionCallBackIfOnTreeStateChanged detects on-tree state change
+ * @tc.type: FUNC
+ * @tc.require: issueI24779
+ */
+HWTEST_F(RSMainThreadTest, SurfaceOcclusionCallBackIfOnTreeStateChanged001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    // reset to avoid cross-test state leakage
+    mainThread->savedAppWindowNode_.clear();
+    mainThread->lastRegisteredSurfaceOnTree_.clear();
+
+    // prepare savedAppWindowNode_: two nodes both on tree
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node1, nullptr);
+    node1->SetIsOnTheTree(true);
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node2, nullptr);
+    node2->SetIsOnTheTree(true);
+    mainThread->savedAppWindowNode_[1] = std::make_pair(node1, node1);
+    mainThread->savedAppWindowNode_[2] = std::make_pair(node2, node2);
+
+    // first call: lastRegisteredSurfaceOnTree_ was empty, now {1, 2} -> changed
+    bool result = mainThread->SurfaceOcclusionCallBackIfOnTreeStateChanged();
+    EXPECT_TRUE(result);
+
+    // second call: same on-tree state -> not changed
+    result = mainThread->SurfaceOcclusionCallBackIfOnTreeStateChanged();
+    EXPECT_FALSE(result);
+
+    // toggle node2 off the tree: registered set changes to {1} -> changed
+    node2->SetIsOnTheTree(false);
+    result = mainThread->SurfaceOcclusionCallBackIfOnTreeStateChanged();
+    EXPECT_TRUE(result);
+
+    // cleanup
+    mainThread->savedAppWindowNode_.clear();
+    mainThread->lastRegisteredSurfaceOnTree_.clear();
+}
+
+/**
  * @tc.name: CheckSurfaceOcclusionNeedProcess
  * @tc.desc: CheckSurfaceOcclusionNeedProcess Test while node out of appWindow
  * @tc.type: FUNC
