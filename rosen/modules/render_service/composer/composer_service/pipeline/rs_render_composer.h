@@ -60,7 +60,7 @@ private:
 };
 } // namespace Composer
 
-class RSRenderComposer {
+class RSRenderComposer : public std::enable_shared_from_this<RSRenderComposer> {
 public:
     RSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     ~RSRenderComposer();
