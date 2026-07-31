@@ -23,6 +23,7 @@
 #include "feature/hyper_graphic_manager/hgm_info_parcel.h"
 #include "feature/hyper_graphic_manager/hgm_rp_energy.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
+#include "hgm_frame_rate_manager.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
 #include "rp_frame_rate_policy.h"
 
@@ -52,7 +53,7 @@ public:
 
     std::shared_ptr<HgmRPEnergy> GetHgmRPEnergy() { return hgmRPEnergy_; }
 
-    bool AdaptiveStatus() const { return isAdaptive_.load(); }
+    int32_t AdaptiveStatus() const { return isAdaptive_.load(); }
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); }
     bool IsAdaptiveVsyncReady() const { return isAdaptiveVsyncReady_.load(); }
 
@@ -76,8 +77,8 @@ private:
 
     const std::shared_ptr<HgmRPEnergy> hgmRPEnergy_;
 
-    std::atomic<bool> isAdaptive_ = false;
-    std::string gameNodeName_;
+    std::atomic<int32_t> isAdaptive_ = SupportASStatus::NOT_SUPPORT;
+    std::string gameNodeName_ = "";
     std::atomic<bool> isGameNodeOnTree_ = false;
     std::atomic<bool> isAdaptiveVsyncReady_ = false;
 

@@ -67,7 +67,7 @@ HWTEST_F(RSValueEstimatorTest, EstimateFraction001, TestSize.Level1)
 /**
  * @tc.name: InitCurveAnimationValueTest
  * @tc.desc: Verify the InitCurveAnimationValue
- * @tc.type: FUNC
+ * @tc.type:FUNC
  */
 HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueTest, TestSize.Level1)
 {
@@ -94,7 +94,7 @@ HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueTest, TestSize.Level1)
 /**
  * @tc.name: UpdateAnimationValueTest
  * @tc.desc: Verify the UpdateAnimationValue
- * @tc.type: FUNC
+ * @tc.type:FUNC
  */
 HWTEST_F(RSValueEstimatorTest, UpdateAnimationValueTest, TestSize.Level1)
 {
@@ -128,16 +128,20 @@ HWTEST_F(RSValueEstimatorTest, UpdateAnimationValueTest, TestSize.Level1)
 HWTEST_F(RSValueEstimatorTest, RebuildValue001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue001 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
-    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
-    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
-    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    constexpr float PROPERTY_INIT = 5.0f;
+    constexpr float START_VAL = 2.0f;
+    constexpr float END_VAL = 8.0f;
+    constexpr float LAST_VAL = 8.0f;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(PROPERTY_INIT);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(START_VAL);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(END_VAL);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(LAST_VAL);
     auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<float>>();
     curveValueEstimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
     curveValueEstimator->RebuildValue(0.5f);
-    float expectedBase = 5.0f - (8.0f - 2.0f);
-    float expectedResult = expectedBase * (1.0f - 0.5f) + 5.0f * 0.5f;
-    EXPECT_FLOAT_EQ(property->Get(), expectedResult);
+    constexpr float EXPECTED_BASE = PROPERTY_INIT - (END_VAL - START_VAL);
+    constexpr float EXPECTED_RESULT = EXPECTED_BASE * (1.0f - 0.5f) + PROPERTY_INIT * 0.5f;
+    EXPECT_FLOAT_EQ(property->Get(), EXPECTED_RESULT);
     GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue001 end";
 }
 
@@ -149,15 +153,19 @@ HWTEST_F(RSValueEstimatorTest, RebuildValue001, TestSize.Level1)
 HWTEST_F(RSValueEstimatorTest, RebuildValue002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue002 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
-    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
-    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
-    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    constexpr float PROPERTY_INIT = 5.0f;
+    constexpr float START_VAL = 2.0f;
+    constexpr float END_VAL = 8.0f;
+    constexpr float LAST_VAL = 8.0f;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(PROPERTY_INIT);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(START_VAL);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(END_VAL);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(LAST_VAL);
     auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<float>>();
     curveValueEstimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
     curveValueEstimator->RebuildValue(0.0f);
-    float expectedBase = 5.0f - (8.0f - 2.0f);
-    EXPECT_FLOAT_EQ(property->Get(), expectedBase);
+    constexpr float EXPECTED_BASE = PROPERTY_INIT - (END_VAL - START_VAL);
+    EXPECT_FLOAT_EQ(property->Get(), EXPECTED_BASE);
     GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue002 end";
 }
 
@@ -169,16 +177,18 @@ HWTEST_F(RSValueEstimatorTest, RebuildValue002, TestSize.Level1)
 HWTEST_F(RSValueEstimatorTest, RebuildValue003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue003 start";
-    float propertyInit = 5.0f;
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(propertyInit);
-    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
-    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
-    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    constexpr float PROPERTY_INIT = 5.0f;
+    constexpr float START_VAL = 2.0f;
+    constexpr float END_VAL = 8.0f;
+    constexpr float LAST_VAL = 8.0f;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(PROPERTY_INIT);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(START_VAL);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(END_VAL);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(LAST_VAL);
     auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<float>>();
     curveValueEstimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
     curveValueEstimator->RebuildValue(1.0f);
-    float expectedResult = propertyInit;
-    EXPECT_FLOAT_EQ(property->Get(), expectedResult);
+    EXPECT_FLOAT_EQ(property->Get(), PROPERTY_INIT);
     GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue003 end";
 }
 

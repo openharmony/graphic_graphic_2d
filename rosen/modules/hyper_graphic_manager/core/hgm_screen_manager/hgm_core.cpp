@@ -146,7 +146,6 @@ int32_t HgmCore::InitXmlConfig()
     if (!mParser_) {
         mParser_ = std::make_unique<XMLParser>();
     }
-
     if (mParser_->LoadConfiguration(GetHgmXmlPath().c_str()) != EXEC_SUCCESS) {
         HGM_LOGW("failed to load prod xml configuration file");
     }
@@ -173,7 +172,7 @@ void HgmCore::SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSet
         CreateVSyncGenerator()->SetVSyncMaxTE(maxTE_);
     } else {
         maxTE_ = 0;
-        HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
+        HGM_LOGW("failed to find TE strategy for LTPO");
     }
 
     if (auto iter = ltpoConfig.find("maxTE144"); iter != ltpoConfig.end() && XMLParser::IsNumber(iter->second)) {
@@ -183,11 +182,11 @@ void HgmCore::SetMaxTEConfig(const PolicyConfigData::ScreenSetting& curScreenSet
             CreateVSyncGenerator()->SetVSyncMaxTE144(maxTE144_);
         } else {
             maxTE144_ = 0;
-            HGM_LOGW("HgmCore TE 144 strategy for LTPO must be a multiple of 144");
+            HGM_LOGW("TE 144 strategy for LTPO must be a multiple of 144");
         }
     } else {
         maxTE144_ = 0;
-        HGM_LOGW("HgmCore failed to find TE 144 strategy for LTPO");
+        HGM_LOGW("failed to find TE 144 strategy for LTPO");
     }
 }
 

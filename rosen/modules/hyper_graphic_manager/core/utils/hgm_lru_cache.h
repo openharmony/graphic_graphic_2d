@@ -27,9 +27,13 @@ public:
     explicit HgmLRUCache(uint32_t capacity) : capacity_(capacity) {}
     virtual ~HgmLRUCache() = default;
 
-    bool Existed(Value value) const { return searchHelper_.find(value) != searchHelper_.end(); }
+    bool Existed(Value value) const
+    {
+        return searchHelper_.find(value) != searchHelper_.end();
+    }
 
-    void Put(Value value) {
+    void Put(Value value)
+    {
         if (capacity_ == 0) {
             return;
         }
@@ -52,14 +56,19 @@ public:
         }
     }
 
-    void Erase(Value value) {
+    void Erase(Value value)
+    {
         if (auto iter = searchHelper_.find(value); iter != searchHelper_.end()) {
             valueCache_.erase(iter->second);
             searchHelper_.erase(iter);
         }
     }
 
-    void Clear() { valueCache_.clear(); searchHelper_.clear(); }
+    void Clear()
+    {
+        valueCache_.clear();
+        searchHelper_.clear();
+    }
 
     size_t Size() { return valueCache_.size(); }
 

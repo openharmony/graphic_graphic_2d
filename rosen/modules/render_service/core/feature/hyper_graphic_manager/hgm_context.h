@@ -17,6 +17,7 @@
 #define HGM_CONTEXT_H
 
 #include "event_handler.h"
+#include "hgm_frame_rate_manager.h"
 #include "hgm_info_parcel.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "screen_manager/rs_screen_property.h"
@@ -68,7 +69,7 @@ public:
     ErrCode NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus);
     ErrCode NotifyAppStrategyConfigChangeEvent(pid_t pid, const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig);
-        void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
+    void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
     void NotifyPackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void NotifyHgmConfigEvent(const std::string& eventName, bool state);
     void NotifyPageName(pid_t pid, const std::string& packageName, const std::string& pageName, bool isEnter);
@@ -90,6 +91,8 @@ private:
 
     void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
+
+    void InitHfbcConfig();
 
     const std::shared_ptr<AppExecFwk::EventHandler> renderServiceHandler_;
     const sptr<VSyncDistributor> appVSyncDistributor_;
@@ -113,8 +116,8 @@ private:
     int32_t pipelineOffsetPulseNum_ = 0;
     std::shared_ptr<RPHgmConfigData> rpHgmConfigData_ = nullptr;
 
-    bool isAdaptive_ = false;
-    std::string gameNodeName_;
+    int32_t isAdaptive_ = SupportASStatus::NOT_SUPPORT;
+    std::string gameNodeName_ = "";
 };
 } // namespace OHOS
 } // namespace Rosen

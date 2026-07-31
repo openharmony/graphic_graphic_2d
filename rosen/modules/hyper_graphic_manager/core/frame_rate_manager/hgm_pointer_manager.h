@@ -62,7 +62,7 @@ private:
     std::string pkgName_;
     HgmSimpleTimer activeTimeoutTimer_;
     HgmSimpleTimer rsIdleTimeoutTimer_;
-    PointerInfo pointerInfo_{ "", PointerState::POINTER_IDLE_STATE, OLED_120_HZ };
+    PointerInfo pointerInfo_ = { "", PointerState::POINTER_IDLE_STATE, OLED_120_HZ };
 };
 } // OHOS::Rosen
 #endif // HGM_POINTER_MANAGER_H

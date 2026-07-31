@@ -280,7 +280,7 @@ HWTEST_F(HgmCommandTest, GetAceSceneDynamicSettingMapTest001, Function | SmallTe
 
 /**
  * @tc.name: GetAceSceneDynamicSettingMapTest002
- * @tc.desc: test when screenConfigs_ is empty
+ * @tc.desc: test when settingModeMap is empty
  * @tc.type: FUNC
  * @tc.require:
  */
