@@ -6817,7 +6817,7 @@ HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 
     SurfaceFpsOp addOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
     SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 2, "test_surface2", 200};
@@ -6847,21 +6847,21 @@ HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
     EXPECT_TRUE(foundAdd);
     EXPECT_TRUE(foundRemove);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 }
 
 /**
- * @tc.name: RmvSurfaceFpsOpTest
- * @tc.desc: Test Func RmvSurfaceFpsOp with removal
+ * @tc.name: RemoveSurfaceFpsOpTest
+ * @tc.desc: Test Func RemoveSurfaceFpsOp with removal
  * @tc.type: FUNC
  * @tc.require: issue22921
  */
-HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, RemoveSurfaceFpsOpTest, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 
     SurfaceFpsOp addOp1 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
     SurfaceFpsOp addOp2 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 2, "test_surface2", 200};
@@ -6872,10 +6872,10 @@ HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
     mainThread->AddSurfaceFpsOp(removeOp);
     mainThread->AddSurfaceFpsOp(otherOp);
 
-    std::vector<SurfaceFpsOp> rmvList;
-    rmvList.push_back(addOp1);
+    std::vector<SurfaceFpsOp> removeList;
+    removeList.push_back(addOp1);
 
-    mainThread->RmvSurfaceFpsOp(rmvList);
+    mainThread->RemoveSurfaceFpsOp(removeList);
     auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
     EXPECT_EQ(surfaceFpsOpList.size(), 2u);
 
@@ -6895,10 +6895,10 @@ HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
     EXPECT_TRUE(foundAdd2);
     EXPECT_TRUE(foundRemove);
 
-    rmvList.push_back(addOp2);
-    rmvList.push_back(removeOp);
-    rmvList.push_back(otherOp);
-    mainThread->RmvSurfaceFpsOp(rmvList);
+    removeList.push_back(addOp2);
+    removeList.push_back(removeOp);
+    removeList.push_back(otherOp);
+    mainThread->RemoveSurfaceFpsOp(removeList);
     surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
     EXPECT_EQ(surfaceFpsOpList.size(), 0u);
 }
