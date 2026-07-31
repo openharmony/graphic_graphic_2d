@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "cJSON.h"
+#include "third_party/cJSON/cJSON.h"
 
 #include "configs/safuzz_config.h"
 #include "configs/test_case_config.h"

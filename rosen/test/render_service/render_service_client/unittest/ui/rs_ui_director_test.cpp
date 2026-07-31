@@ -33,6 +33,7 @@
 #include "ui/rs_ui_director.h"
 
 #ifdef RS_ENABLE_VK
+#include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
@@ -664,7 +665,7 @@ HWTEST_F(RSUIDirectorTest, SetCacheDir, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetCacheDir002, TestSize.Level1)
 {
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && defined(RS_MODIFIERS_DRAW_ENABLE)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     if (!RSSystemProperties::GetHybridRenderEnabled()) {
