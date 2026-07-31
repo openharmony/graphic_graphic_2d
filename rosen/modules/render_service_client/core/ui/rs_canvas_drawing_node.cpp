@@ -455,6 +455,7 @@ void RSCanvasDrawingNode::OnFinishRecording(
  
     if (RenderInClient(drawCmdList)) {
         drawCmdList = nullptr;
+        return;
     }
     RSCanvasNode::OnFinishRecording(drawCmdList, modifierType);
 }
