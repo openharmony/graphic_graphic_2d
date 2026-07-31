@@ -1320,6 +1320,8 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isForcePrepare_ = false;
     bool isParentTreeDirty_ = false;
+    // marks the node as "on the traversal path"
+    bool inTraversalPath_ = false;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> commandExecuted_ = false;

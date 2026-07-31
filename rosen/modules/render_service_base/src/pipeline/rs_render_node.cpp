@@ -179,6 +179,29 @@ static inline std::function<void(DrawCmdIndex&, int)>& GetRsDrawableSlotToIndexV
     return rsDrawableSlotToIndexVec[static_cast<int8_t>(slot)];
 }
 #endif
+
+// RAII guard that marks a node as "on the traversal path"
+class RSPrepareCycleGuard {
+public:
+    explicit RSPrepareCycleGuard(bool& flag)
+        : inTraversalPath_(flag), isTraversed_(inTraversalPath_)
+    {
+        inTraversalPath_ = true;
+    }
+    ~RSPrepareCycleGuard()
+    {
+        if (!isTraversed_) {
+            inTraversalPath_ = false;
+        }
+    }
+    bool HasCycle() const { return isTraversed_; }
+    RSPrepareCycleGuard(const RSPrepareCycleGuard&) = delete;
+    RSPrepareCycleGuard& operator=(const RSPrepareCycleGuard&) = delete;
+
+private:
+    bool& inTraversalPath_;
+    bool isTraversed_ = false;
+};
 } // namespace
 
 using RSCacheFilterPara = std::pair<bool, RSDrawableSlot>; // first: update condition, second: slot
@@ -1670,6 +1693,12 @@ void RSRenderNode::PrepareChildrenForApplyModifiers()
 void RSRenderNode::PrepareSelfNodeForApplyModifiers()
 {
 #ifdef RS_ENABLE_GPU
+    RSPrepareCycleGuard guard(inTraversalPath_);
+    if (guard.HasCycle()) {
+        ROSEN_LOGE("RSRenderNode::PrepareSelfNodeForApplyModifiers cycle detected, skip node[id:%{public}"
+            PRIu64 "], and return", GetId());
+        return;
+    }
     if (IsNodeMemClearEnable()) {
         ROSEN_LOGD("RSRenderNode::PrepareSelfNodeForApplyModifiers, node[id:%{public}" PRIu64 "]", GetId());
         InitRenderDrawableAndDrawableVec();
