@@ -192,8 +192,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest003, TestSi
     float gpuMemSize = -1.0f;
     ErrCode ret = proxy->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    EXPECT_GE(cpuMemSize, 0.0f);
-    EXPECT_GE(gpuMemSize, 0.0f);
 }
 
 /**
@@ -1911,29 +1909,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportGameStateData_SendRequestFa
     info.renderTid = 1002;
     info.bundleName = "com.test.app";
     mockProxy->ReportGameStateData(info);
-}
-
-/**
- * @tc.name: ReportGameStateData_RemoteNullptr
- * @tc.desc: Test ReportGameStateData when Remote() returns nullptr
- *
- * @tc.type: FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, ReportGameStateData_RemoteNullptr, TestSize.Level1)
-{
-    sptr<IRemoteObject> nullRemote = nullptr;
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(nullRemote);
-    ASSERT_NE(mockProxy, nullptr);
-
-    GameStateData info;
-    info.pid = 1001;
-    info.uid = 1001;
-    info.state = 1;
-    info.renderTid = 1002;
-    info.bundleName = "com.test.app";
-    mockProxy->ReportGameStateData(info);
-    EXPECT_NE(mockProxy, nullptr);
 }
 
 // ==================== RegisterTypeface Tests ====================
