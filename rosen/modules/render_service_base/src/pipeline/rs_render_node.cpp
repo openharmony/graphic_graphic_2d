@@ -20,6 +20,8 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <sstream>
+#include <thread>
 #include <utility>
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -1784,6 +1786,11 @@ void RSRenderNode::FallbackAnimationsToRoot()
 {
     if (!animationManager_ || animationManager_->animations_.empty()) {
         return;
+    }
+    if (auto currentTid = std::this_thread::get_id(); currentTid != animationManager_->creationTid_) {
+        std::ostringstream oss;
+        oss << "creationTid=" << animationManager_->creationTid_ << ", currentTid=" << currentTid;
+        ROSEN_LOGE("RSRenderNode::FallbackAnimationsToRoot, not on main thread, %{public}s", oss.str().c_str());
     }
 
     auto context = GetContext().lock();
@@ -4543,9 +4550,12 @@ void RSRenderNode::DestroyColorPickerInRender()
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(GetId()), command);
 }
 
-void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+bool RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    GetOrCreateAnimationManager()->AddAnimation(animation);
+    if (auto mgr = GetOrCreateAnimationManager()) {
+        return mgr->AddAnimation(animation);
+    }
+    return false;
 }
 
 RectI RSRenderNode::GetOldDirty() const

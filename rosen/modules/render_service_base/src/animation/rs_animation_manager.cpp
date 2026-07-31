@@ -16,7 +16,9 @@
 #include "animation/rs_animation_manager.h"
 
 #include <algorithm>
+#include <sstream>
 #include <string>
+#include <thread>
 
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
@@ -36,6 +38,18 @@ namespace OHOS {
 namespace Rosen {
 class RSRootRenderNode;
 
+RSAnimationManager::RSAnimationManager() : creationTid_(std::this_thread::get_id()) {}
+
+RSAnimationManager::~RSAnimationManager()
+{
+    if (auto currentTid = std::this_thread::get_id(); currentTid != creationTid_) {
+        std::ostringstream oss;
+        oss << "creationTid=" << creationTid_ << ", currentTid=" << currentTid;
+        ROSEN_LOGE(
+            "RSAnimationManager::~RSAnimationManager, destroyed on non-main thread, %{public}s", oss.str().c_str());
+    }
+}
+
 void RSAnimationManager::DumpAnimations(std::string& out) const
 {
     RS_TRACE_NAME_FMT("DumpAnimations, size: %zu", animations_.size());
@@ -52,24 +66,25 @@ void RSAnimationManager::DumpAnimations(std::string& out) const
     out.append("]");
 }
 
-void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+bool RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     if (animation == nullptr) {
         ROSEN_LOGE("RSAnimationManager::AddAnimation, The animation is nullptr");
-        return;
+        return false;
     }
     AnimationId key = animation->GetAnimationId();
     if (animations_.find(key) != animations_.end()) {
         ROSEN_LOGE("RSAnimationManager::AddAnimation, The animation already exists when is added");
-        return;
+        return false;
     }
     auto it = std::find(pendingCancelAnimation_.begin(), pendingCancelAnimation_.end(), key);
     if (it != pendingCancelAnimation_.end()) {
         pendingCancelAnimation_.erase(it);
         ROSEN_LOGE("RSAnimationManager::AddAnimation, animation is a pendingCancelAnimation");
-        return;
+        return false;
     }
     animations_.emplace(key, animation);
+    return true;
 }
 
 void RSAnimationManager::RemoveAnimation(AnimationId keyId)
