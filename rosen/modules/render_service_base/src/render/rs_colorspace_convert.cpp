@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "render/rs_colorspace_convert.h"
 
 #include <dlfcn.h>

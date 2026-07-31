@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 #include "render/rs_colorspace_convert.h"
 
 #include "gmock/gmock.h"
