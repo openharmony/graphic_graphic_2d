@@ -2328,4 +2328,54 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawVirtualExpand_PrepareForDrawFalse
 
     screenDrawable_->OnDrawVirtualExpand(renderEngine, tid);
 }
+
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+/**
+ * @tc.name: OnDrawTest_3DMode2D
+ * @tc.desc: Test OnDraw with UIMode3D::MODE_2D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DMode2D, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->isAccumulatedDirty_ = true;
+    RSMainThread::Instance().SetUIMode3D(UIMode3D::MODE_2D);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(RSMainThread::Instance().GetUIMode3D(), UIMode3D::MODE_2D);
+}
+
+/**
+ * @tc.name: OnDrawTest_3DModeShutter
+ * @tc.desc: Test OnDraw with UIMode3D::MODE_SHUTTER_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DModeShutter, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->isAccumulatedDirty_ = true;
+    RSMainThread::Instance().SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(RSMainThread::Instance().GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+}
+
+/**
+ * @tc.name: OnDrawTest_3DModeGlassesFree
+ * @tc.desc: Test OnDraw with UIMode3D::MODE_GLASSESFREE_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DModeGlassesFree, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->isAccumulatedDirty_ = true;
+    RSMainThread::Instance().SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_EQ(RSMainThread::Instance().GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+}
+#endif
 } // namespace OHOS::Rosen

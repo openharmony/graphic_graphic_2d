@@ -469,4 +469,34 @@ HWTEST_F(TvMetadataTest, SetUniRenderThreadParam_001, TestSize.Level1)
     ASSERT_EQ(1, renderThreadParams->cachedSurfaceNodeId_);
     ASSERT_EQ(true, renderThreadParams->cachedSurfaceNodeOnTheTree_);
 }
+
+/**
+ * @tc.name: SetVideoDimType_001
+ * @tc.desc: Test SetVideoDimType with different values
+ * @tc.type: FUNC
+ */
+HWTEST_F(TvMetadataTest, SetVideoDimType_001, TestSize.Level1)
+{
+    RSTvMetadataManager::SetVideoDimType(0);
+    EXPECT_EQ(RSTvMetadataManager::videoDimType_, 0U);
+    RSTvMetadataManager::SetVideoDimType(1);
+    EXPECT_EQ(RSTvMetadataManager::videoDimType_, 1U);
+    RSTvMetadataManager::SetVideoDimType(2);
+    EXPECT_EQ(RSTvMetadataManager::videoDimType_, 2U);
+}
+
+/**
+ * @tc.name: SetVideoDimType_002
+ * @tc.desc: Test SetVideoDimType with different VideoDimType values
+ * @tc.type: FUNC
+ */
+HWTEST_F(TvMetadataTest, SetVideoDimType_002, TestSize.Level1)
+{
+    RSTvMetadataManager::SetVideoDimType(static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_2D));
+    EXPECT_EQ(RSTvMetadataManager::videoDimType_, static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_2D));
+    RSTvMetadataManager::SetVideoDimType(static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_SBS));
+    EXPECT_EQ(RSTvMetadataManager::videoDimType_, static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_SBS));
+    RSTvMetadataManager::SetVideoDimType(static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_TAB));
+    EXPECT_EQ(RSTvMetadataManager::videoDimType_, static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_TAB));
+}
 }
