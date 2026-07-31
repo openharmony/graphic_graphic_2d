@@ -151,6 +151,7 @@ public:
     {
         return uiContextTokenList_;
     }
+    bool IsUIRenderDirectorStopped() const;
     void RemoveFromTree(bool skipTransition = false);
 
     virtual bool IsHardwareEnabledType() const
@@ -539,7 +540,7 @@ public:
 
     std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
     std::shared_ptr<RSAnimationManager> GetOrCreateAnimationManager();
-    void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
+    bool AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void DestroyAnimationInRender();
     void DestroyColorPickerInRender();
 
@@ -1038,19 +1039,9 @@ public:
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
-    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
-    {
-        if (isAccessibilityConfigChanged) {
-            accessibilityConfigChangedNodeSet_.insert(GetId());
-        } else {
-            accessibilityConfigChangedNodeSet_.erase(GetId());
-        }
-    }
+    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged);
 
-    bool IsAccessibilityConfigChangedNode() const
-    {
-        return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
-    }
+    bool IsAccessibilityConfigChangedNode() const;
 
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
@@ -1349,7 +1340,6 @@ private:
     static inline std::unordered_map<NodeId, int> subSurfaceCntMap_;
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
-    std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
     std::weak_ptr<RSContext> context_ = {};
@@ -1455,8 +1445,6 @@ private:
     void FilterModifiersByPid(pid_t pid);
 
     bool UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
-    RectI GetDrawCmdListRect() const;
-    void CollectAndUpdateRenderFitRect();
     void CollectAndUpdateLocalShadowRect();
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
@@ -1521,9 +1509,11 @@ struct RSB_EXPORT SharedTransitionParam {
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
     bool IsLower(const NodeId nodeId) const;
     void UpdateHierarchy(const NodeId nodeId);
-    bool IsInAppTranSition() const
+    bool IsCrossAppTranSition() const
     {
-        return !crossApplication_;
+        auto inNode = inNode_.lock();
+        auto outNode = outNode_.lock();
+        return crossApplication_ && inNode && outNode;
     }
     void InternalUnregisterSelf();
     bool HasRelation();

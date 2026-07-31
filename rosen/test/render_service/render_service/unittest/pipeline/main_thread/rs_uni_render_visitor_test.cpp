@@ -36,6 +36,7 @@
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "engine/rs_uni_render_engine.h"
 #include "feature/color_picker/rs_color_picker_utils.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
@@ -6901,6 +6902,96 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessAncoNode002, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateSelfDrawingNodesFor3D_NullSelfDrawingNode
+ * @tc.desc: Test UpdateSelfDrawingNodesFor3D with null self-drawing node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateSelfDrawingNodesFor3D_NullSelfDrawingNode, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto context = mainThread->GetWeakContext();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(9999, 0, context);
+    ASSERT_NE(screenNode, nullptr);
+
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+
+    // Add a null node to selfDrawingNodes
+    mainThread->selfDrawingNodes_.clear();
+    mainThread->selfDrawingNodes_.push_back(nullptr);
+    visitor->UpdateSelfDrawingNodesFor3D(*screenNode);
+    EXPECT_FALSE(screenNode->GetHasGlassFree3DLayer());
+}
+
+/**
+ * @tc.name: UpdateSelfDrawingNodesFor3D_NodeNotOnTree
+ * @tc.desc: Test UpdateSelfDrawingNodesFor3D with node not on the tree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateSelfDrawingNodesFor3D_NodeNotOnTree, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto context = mainThread->GetWeakContext();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(9998, 0, context);
+    ASSERT_NE(screenNode, nullptr);
+
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(10001, context);
+    surfaceNode->SetIsOnTheTree(false);
+    mainThread->selfDrawingNodes_.clear();
+    mainThread->selfDrawingNodes_.push_back(surfaceNode);
+    visitor->UpdateSelfDrawingNodesFor3D(*screenNode);
+    EXPECT_FALSE(screenNode->GetHasGlassFree3DLayer());
+}
+
+/**
+ * @tc.name: UpdateSelfDrawingNodesFor3D_GlassFree3DLayer
+ * @tc.desc: Test UpdateSelfDrawingNodesFor3D with a COMPOSITION_3D_GLASS_FREE self-drawing node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateSelfDrawingNodesFor3D_GlassFree3DLayer, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto context = mainThread->GetWeakContext();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(10002, 0, context);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
+    ASSERT_NE(screenNode, nullptr);
+
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10003;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, context);
+    surfaceNode->InitRenderParams();
+    surfaceNode->SetIsOnTheTree(true);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+
+    mainThread->selfDrawingNodes_.clear();
+    mainThread->selfDrawingNodes_.push_back(surfaceNode);
+    mainThread->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    visitor->UpdateSelfDrawingNodesFor3D(*screenNode);
+
+    surfaceNode->SetAncestorScreenNode(screenNode);
+    visitor->UpdateSelfDrawingNodesFor3D(*screenNode);
+    surfaceNode->SetCompositionType(CompositionType::COMPOSITION_3D_GLASS_FREE);
+    visitor->UpdateSelfDrawingNodesFor3D(*screenNode);
+    EXPECT_TRUE(screenNode->GetHasGlassFree3DLayer());
+
+    mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(surfaceNode->GetId());
+    mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
+}
+
+/**
  * @tc.name: IsFirstFrameOfOverdrawSwitch
  * @tc.desc: Test IsFirstFrameOfOverdrawSwitch
  * @tc.type: FUNC
@@ -10571,6 +10662,121 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode006, TestS
     EXPECT_EQ(layerInfo.boundRect.x, 10);
     EXPECT_EQ(layerInfo.boundRect.y, 20);
     EXPECT_FLOAT_EQ(layerInfo.alpha, 0.8f);
+}
+
+/**
+ * @tc.name: CollectVirtualScreenNodeId_ManagerNull
+ * @tc.desc: Test CollectVirtualScreenNodeId when virtualScreenParallelManager_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectVirtualScreenNodeId_ManagerNull, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    NodeId screenNodeId = 10;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+
+    rsUniRenderVisitor->CollectVirtualScreenNodeId(*screenNode);
+}
+
+/**
+ * @tc.name: CollectVirtualScreenNodeId_ManagerNotNull
+ * @tc.desc: Test CollectVirtualScreenNodeId when virtualScreenParallelManager_ is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectVirtualScreenNodeId_ManagerNotNull, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    rsUniRenderVisitor->SetVirtualScreenParallelManager(virtualScreenParallelManager);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    NodeId screenNodeId = 10;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+
+    rsUniRenderVisitor->CollectVirtualScreenNodeId(*screenNode);
+}
+
+/**
+ * @tc.name: CollectVirtualScreenNodeId_ScreenParamsNull
+ * @tc.desc: Test CollectVirtualScreenNodeId when screenParams is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectVirtualScreenNodeId_ScreenParamsNull, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    rsUniRenderVisitor->SetVirtualScreenParallelManager(virtualScreenParallelManager);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    NodeId screenNodeId = 10;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+
+    rsUniRenderVisitor->CollectVirtualScreenNodeId(*screenNode);
+}
+
+/**
+ * @tc.name: CollectVirtualScreenNodeId_ScreenParamsNotNull
+ * @tc.desc: Test CollectVirtualScreenNodeId when screenParams is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectVirtualScreenNodeId_ScreenParamsNotNull, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    rsUniRenderVisitor->SetVirtualScreenParallelManager(virtualScreenParallelManager);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    NodeId screenNodeId = 10;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenNode->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+
+    rsUniRenderVisitor->CollectVirtualScreenNodeId(*screenNode);
+}
+
+/**
+ * @tc.name: CollectVirtualScreenNodeId_AllConditionsTrue
+ * @tc.desc: Test CollectVirtualScreenNodeId when all conditions are true
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectVirtualScreenNodeId_AllConditionsTrue, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    rsUniRenderVisitor->SetVirtualScreenParallelManager(virtualScreenParallelManager);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    NodeId screenNodeId = 10;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+
+    rsUniRenderVisitor->CollectVirtualScreenNodeId(*screenNode);
 }
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

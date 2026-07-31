@@ -432,6 +432,16 @@ const std::vector<float>& RSRenderSurfaceLayer::GetLayerLinearMatrix() const
     return layerLinearMatrix_;
 }
 
+void RSRenderSurfaceLayer::SetGlassFree3D(bool glassFree3D)
+{
+    glassFree3D_ = glassFree3D;
+}
+
+bool RSRenderSurfaceLayer::GetGlassFree3D() const
+{
+    return glassFree3D_;
+}
+
 void RSRenderSurfaceLayer::SetLayerSourceTuning(int32_t layerSource)
 {
     layerSource_ = layerSource;
@@ -739,6 +749,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     displayNit_ = rsLayer->GetDisplayNit();
     brightnessRatio_ = rsLayer->GetBrightnessRatio();
     layerLinearMatrix_ = rsLayer->GetLayerLinearMatrix();
+    glassFree3D_ = rsLayer->GetGlassFree3D();
     layerSource_ = rsLayer->GetLayerSourceTuning();
     rotationFixed_ = rsLayer->GetRotationFixed();
     arsrTag_ = rsLayer->GetLayerArsr();

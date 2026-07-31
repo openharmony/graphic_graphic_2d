@@ -2473,6 +2473,45 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha005, TestSize.
 }
 
 /**
+ * @tc.name: UpdateHwcNodeEnable_GlassFree3D_ForcesDisabled
+ * @tc.desc: Test that HWC node with COMPOSITION_3D_GLASS_FREE type is hardware forced disabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_GlassFree3D_ForcesDisabled, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    NodeId screenNodeId = 1;
+    auto displayNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
+
+    // Create a HWC node with COMPOSITION_3D_GLASS_FREE type
+    RSSurfaceRenderNodeConfig hwcConfig;
+    hwcConfig.id = 700;
+    hwcConfig.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto hwcNode = std::make_shared<RSSurfaceRenderNode>(hwcConfig, rsContext->weak_from_this());
+    hwcNode->InitRenderParams();
+    hwcNode->SetIsOnTheTree(true);
+    hwcNode->SetHardwareForcedDisabledState(false);
+    hwcNode->SetHardwareEnabled(true, SelfDrawingNodeType::DEFAULT, true);
+    hwcNode->SetCompositionType(CompositionType::COMPOSITION_3D_GLASS_FREE);
+
+    displayNode->ClearAllHwcNodeAndFilterNode();
+    displayNode->GetAllHwcNodeAndFilterNode().push_back(RSRenderNode::WeakPtr(hwcNode));
+    displayNode->ResetChildHwcNodes();
+    displayNode->UpdateChildHwcNode();
+
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+
+    // Glass free 3D layer should be hardware forced disabled
+    EXPECT_TRUE(hwcNode->IsHardwareForcedDisabled());
+}
+
+/**
  * @tc.name: GetHwcVisibleEffectDirty001
  * @tc.desc: Test GetHwcVisibleEffectDirty Function
  * @tc.type: FUNC

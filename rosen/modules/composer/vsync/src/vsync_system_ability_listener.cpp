@@ -22,7 +22,6 @@
 #include "res_type.h"
 #include "system_ability_definition.h"
 #include "ressched_event_listener.h"
-#include "platform/common/rs_log.h"
 #endif
 
 namespace OHOS {
@@ -56,8 +55,7 @@ void VSyncSystemAbilityListener::OnAddSystemAbility(int32_t systemAbilityId, con
 
 void VSyncSystemAbilityListener::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId)
 {
-    RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "%{public}s: remove system ability %{public}d.",
-        __func__, __func__, systemAbilityId);
+    VLOGD("%{public}s: remove system ability %{public}d.", __func__, systemAbilityId);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1252,6 +1252,39 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
     }
 }
 
+void RSSurfaceRenderNode::SetRebuildingState(bool isRebuildingState)
+{
+    if (isRebuildingState_ == isRebuildingState) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRebuildingState(isRebuildingState);
+    AddToPendingSyncList();
+    isRebuildingState_ = isRebuildingState;
+}
+
+void RSSurfaceRenderNode::SetIsOnInternalScreen(bool isOnInternalScreen)
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return;
+    }
+    surfaceParam->SetIsOnInternalScreen(isOnInternalScreen);
+    AddToPendingSyncList();
+}
+
+bool RSSurfaceRenderNode::GetIsOnInternalScreen() const
+{
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParam) {
+        return true;
+    }
+    return surfaceParam->GetIsOnInternalScreen();
+}
+
 void RSSurfaceRenderNode::SetCompositionType(CompositionType type)
 {
     auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
@@ -2035,10 +2068,9 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
         false : isHardwareForcedDisabled_;
 #ifndef ROSEN_CROSS_PLATFORM
     auto buffer = surfaceHandler_->GetBuffer();
-    RS_LOGD_IF(DEBUG_NODE, "RSSurfaceRenderNode::UpdateHwcNodeLayerInfo: name:%{public}s id:%{public}" PRIu64 ",
-        bufferFormat:%d,"
-        " src:%{public}s, dst:%{public}s, bounds:[%{public}d, %{public}d] buffer:[%{public}d, %{public}d]"
-        " transform:%{public}d, zOrder:%{public}d, cur:%{public}d, last:%{public}d",
+    RS_LOGD_IF(DEBUG_NODE, "RSSurfaceRenderNode::UpdateHwcNodeLayerInfo: name:%{public}s id:%{public}" PRIu64
+        ", bufferFormat:%d, src:%{public}s, dst:%{public}s, bounds:[%{public}d, %{public}d] "
+        "buffer:[%{public}d, %{public}d] transform:%{public}d, zOrder:%{public}d, cur:%{public}d, last:%{public}d",
         GetName().c_str(), GetId(), buffer ? buffer->GetFormat() : -1,
         srcRect_.ToString().c_str(),
         dstRect_.ToString().c_str(),

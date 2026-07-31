@@ -139,14 +139,14 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetBackgroundRebuildEnabled001, T
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
         .WillRepeatedly(
             testing::Invoke([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
-                reply.WriteBool(true);
+                reply.WriteUint8(0x10);
                 return 0;
             }));
 
-    bool enable = false;
+    uint8_t enable = 0;
     auto ret = mockproxy->GetBackgroundRebuildEnabled(enable);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_TRUE(enable);
+    EXPECT_EQ(enable, 0x10);
 }
 
 /**
@@ -163,14 +163,14 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetBackgroundRebuildEnabled002, T
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
         .WillRepeatedly(
             testing::Invoke([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
-                reply.WriteBool(false);
+                reply.WriteUint8(0);
                 return 0;
             }));
 
-    bool enable = true;
+    uint8_t enable = 0xFF;
     auto ret = mockproxy->GetBackgroundRebuildEnabled(enable);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_FALSE(enable);
+    EXPECT_EQ(enable, 0);
 }
 
 /**
@@ -186,14 +186,14 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetBackgroundRebuildEnabled003, T
 
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
 
-    bool enable = false;
+    uint8_t enable = 0;
     auto ret = mockproxy->GetBackgroundRebuildEnabled(enable);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
 /**
  * @tc.name: GetBackgroundRebuildEnabled004
- * @tc.desc: Test GetBackgroundRebuildEnabled when ReadBool fails
+ * @tc.desc: Test GetBackgroundRebuildEnabled when ReadUint8 fails
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -208,7 +208,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetBackgroundRebuildEnabled004, T
                 return 0;
             }));
 
-    bool enable = false;
+    uint8_t enable = 0;
     auto ret = mockproxy->GetBackgroundRebuildEnabled(enable);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }

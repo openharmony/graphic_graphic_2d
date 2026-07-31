@@ -72,7 +72,7 @@ ErrCode RSClientToServiceConnectionProxy::GetUniRenderEnabled(bool& enable)
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnectionProxy::GetBackgroundRebuildEnabled(bool& enable)
+ErrCode RSClientToServiceConnectionProxy::GetBackgroundRebuildEnabled(uint8_t& enable)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -87,10 +87,10 @@ ErrCode RSClientToServiceConnectionProxy::GetBackgroundRebuildEnabled(bool& enab
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BACKGROUND_REBUILD_ENABLED);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        enable = false;
+        enable = 0;
         return ERR_INVALID_VALUE;
     }
-    if (!reply.ReadBool(enable)) {
+    if (!reply.ReadUint8(enable)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::GetBackgroundRebuildEnabled Read enable failed!");
         return ERR_INVALID_VALUE;
     }

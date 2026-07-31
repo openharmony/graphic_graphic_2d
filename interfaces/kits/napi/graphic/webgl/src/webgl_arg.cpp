@@ -197,8 +197,8 @@ napi_status WebGLReadBufferArg::GetArrayElement(
         LOGE("WebGL GetArrayElement: array size too large, overflow or exceeds limit");
         return napi_invalid_arg;
     }
-    constexpr size_t maxAllocSize = 1024 * 1024;
-    if (requiredSize > maxAllocSize) {
+    constexpr size_t MAX_ALLOC_SIZE = 1024 * 1024;
+    if (requiredSize > MAX_ALLOC_SIZE) {
         LOGE("WebGL GetArrayElement: array size too large, exceeds limit");
         return napi_invalid_arg;
     }
@@ -505,7 +505,7 @@ bool WebGLImageSource::BuildPixelMapFromSource(
         return false;
     }
     errorCode = imageSource->GetImageInfo(imageInfo);
-    LOGD("WebGl ImageSource  [%{public}d %{public}d] pixelFormat %{public}u colorSpace %{public}u"
+    LOGD("WebGl ImageSource  [%{public}u %{public}u] pixelFormat %{public}u colorSpace %{public}u"
         " alphaType  %{public}u", imageInfo.size.width, imageInfo.size.height, imageInfo.pixelFormat,
         imageInfo.colorSpace, imageInfo.alphaType);
     imageOption_.width = imageInfo.size.width;
@@ -555,7 +555,9 @@ void WebGLImageSource::DecodeData(const WebGLFormatMap* formatMap, uint8_t* arra
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             // 0,1,2,3 -- red,green,blue,alpha
             imageData_.emplace_back(FromARGB(static_cast<uint8_t>(data[3]),
                 static_cast<uint8_t>(data[0]), static_cast<uint8_t>(data[1]), static_cast<uint8_t>(data[2])).value);
@@ -568,7 +570,9 @@ void WebGLImageSource::DecodeDataForRGB_UBYTE(const WebGLFormatMap* formatMap, u
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             // 0,1,2 -- red,green,blue
             imageData_.emplace_back(FromRGB(
                 static_cast<uint8_t>(data[0]), static_cast<uint8_t>(data[1]), static_cast<uint8_t>(data[2])).value);
@@ -581,7 +585,9 @@ void WebGLImageSource::DecodeDataForRGBA_USHORT_4444(const WebGLFormatMap* forma
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             ColorParam_4_4_4_4 param;
             param.value = *reinterpret_cast<uint16_t *>(data);
             imageData_.emplace_back(FromARGB(
@@ -595,7 +601,9 @@ void WebGLImageSource::DecodeDataForRGBA_USHORT_5551(const WebGLFormatMap* forma
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             ColorParam_5_5_5_1 param;
             param.value = *reinterpret_cast<uint16_t *>(data);
             imageData_.emplace_back(FromARGB(
@@ -609,7 +617,9 @@ void WebGLImageSource::DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatM
     imageData_.clear();
     for (int32_t i = 0; i < imageOption_.height; ++i) {
         for (int32_t j = 0; j < imageOption_.width; ++j) {
-            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            size_t pixelIndex = static_cast<size_t>(i) * static_cast<size_t>(imageOption_.width) +
+                static_cast<size_t>(j);
+            uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             ColorParam_5_6_5 param;
             param.value = *reinterpret_cast<uint16_t *>(data);
             imageData_.emplace_back(FromRGB(param.rgb.red, param.rgb.green, param.rgb.blue).value);
@@ -621,19 +631,18 @@ bool WebGLImageSource::DecodeImageData(
     const WebGLFormatMap* formatMap, const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset)
 {
     size_t bufLen = bufferDataArg->GetBufferLength();
-    if (srcOffset > bufLen) {
+    size_t srcOffsetBytes = 0;
+    if (!GetSrcOffsetBytes(bufferDataArg, srcOffset, srcOffsetBytes)) {
         LOGE("DecodeImageData srcOffset out of bounds, srcOffset %{public}u bufLen %{public}zu", srcOffset, bufLen);
         return false;
     }
-    size_t maxSize = bufLen - srcOffset;
-    uint64_t need = static_cast<uint64_t>(imageOption_.height) * imageOption_.width * formatMap->bytesPrePixel;
-    LOGD("GenImageSource maxSize %{public}zu bytesPrePixel %{public}u", maxSize, formatMap->bytesPrePixel);
-    if (need > maxSize) {
-        LOGE("Invalid data element");
+    size_t maxSize = bufLen - srcOffsetBytes;
+    uint64_t pixels = 0;
+    if (!CheckImageDataSize(formatMap, maxSize, pixels)) {
         return false;
     }
 
-    uint8_t *start = bufferDataArg->GetBuffer() + srcOffset;
+    uint8_t *start = bufferDataArg->GetBuffer() + srcOffsetBytes;
     switch (formatMap->decodeFunc) {
         case DECODE_RGBA_UBYTE:
             DecodeData(formatMap, start);
@@ -656,25 +665,64 @@ bool WebGLImageSource::DecodeImageData(
     }
 
     LOGD("GenImageSource imageData_ %{public}zu ", imageData_.size());
-    if (imageData_.size() != static_cast<size_t>(imageOption_.height * imageOption_.width)) {
+    if (imageData_.size() != static_cast<size_t>(pixels)) {
         return false;
     }
     return true;
 }
 
+bool WebGLImageSource::CheckImageDataSize(
+    const WebGLFormatMap* formatMap, size_t maxSize, uint64_t& pixels) const
+{
+    if (imageOption_.height <= 0 || imageOption_.width <= 0) {
+        LOGE("DecodeImageData invalid width/height");
+        return false;
+    }
+    uint64_t height = static_cast<uint64_t>(imageOption_.height);
+    uint64_t width = static_cast<uint64_t>(imageOption_.width);
+    pixels = height * width;
+    if (pixels / height != width) {
+        LOGE("DecodeImageData height*width overflow");
+        return false;
+    }
+    uint64_t bytesPerPixel = static_cast<uint64_t>(formatMap->bytesPrePixel);
+    uint64_t requiredBytes = pixels * bytesPerPixel;
+    if (pixels != 0 && requiredBytes / pixels != bytesPerPixel) {
+        LOGE("DecodeImageData pixels*bytesPerPixel overflow");
+        return false;
+    }
+    if (requiredBytes > maxSize) {
+        LOGE("Invalid data element");
+        return false;
+    }
+    return true;
+}
+
+bool WebGLImageSource::GetSrcOffsetBytes(
+    const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset, size_t& srcOffsetBytes) const
+{
+    size_t elementSize = bufferDataArg->GetBufferDataSize();
+    if (elementSize == 0 || static_cast<size_t>(srcOffset) > std::numeric_limits<size_t>::max() / elementSize) {
+        return false;
+    }
+    srcOffsetBytes = static_cast<size_t>(srcOffset) * elementSize;
+    return srcOffsetBytes <= bufferDataArg->GetBufferLength();
+}
+
 GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, GLuint srcOffset)
 {
     size_t bufLen = readBuffer_->GetBufferLength();
-    if (srcOffset > bufLen) {
+    size_t srcOffsetBytes = 0;
+    if (!GetSrcOffsetBytes(readBuffer_.get(), srcOffset, srcOffsetBytes)) {
         return GL_INVALID_VALUE;
     }
-    uint64_t depth = (imageOption_.depth > 0) ? static_cast<uint64_t>(imageOption_.depth) : 1;
-    uint64_t need = depth * static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
+    uint64_t depth = static_cast<uint64_t>(std::max(imageOption_.depth, 1));
+    uint64_t requiredBytes = depth * static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
         formatMap->bytesPrePixel;
-    if (static_cast<uint64_t>(srcOffset) + need > bufLen) {
+    if (requiredBytes > bufLen - srcOffsetBytes) {
         return GL_INVALID_OPERATION;
     }
-    srcOffset_ = srcOffset;
+    srcOffset_ = srcOffsetBytes;
     return GL_NO_ERROR;
 }
 
@@ -745,6 +793,10 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
     }
     if (!(unpackFlipY_ || unpackPremultiplyAlpha_)) {
         return CheckSrcOffsetBounds(formatMap, srcOffset);
+    }
+    if (imageOption_.depth > 1) {
+        LOGE("WebGl ImageSource transformation does not support multiple depth slices");
+        return GL_INVALID_OPERATION;
     }
     bool succ = false;
     if (readBuffer_->GetBufferDataType() == BUFFER_DATA_UINT_8 ||
@@ -818,7 +870,7 @@ GLvoid* WebGLImageSource::GetImageSourceData() const
         return readBuffer_ == nullptr ? nullptr : reinterpret_cast<GLvoid*>(readBuffer_->GetBuffer() + srcOffset_);
     }
 
-    LOGD("WebGl ImageSource [%{public}d %{public}d] byteCount %{public}d pixelBytes %{public}d rowBytes %{public}d "
+    LOGD("WebGl ImageSource [%{public}u %{public}u] byteCount %{public}u pixelBytes %{public}u rowBytes %{public}u "
         " flipY %{public}u premultiplyAlpha %{public}u", pixelMap_->GetWidth(), pixelMap_->GetHeight(),
         pixelMap_->GetByteCount(), pixelMap_->GetPixelBytes(), pixelMap_->GetRowBytes(),
         unpackFlipY_, unpackPremultiplyAlpha_);
@@ -955,13 +1007,13 @@ void TexStorageArg::Dump(const std::string& info) const
 void TexSubImage2DArg::Dump(const std::string& info) const
 {
     TexImageArg::Dump(info);
-    LOGD("xOffset %{public}d yOffset %{public}d", xOffset, yOffset);
+    LOGD("xOffset %{public}u yOffset %{public}u", xOffset, yOffset);
 }
 
 void TexSubImage3DArg::Dump(const std::string& info) const
 {
     TexImageArg::Dump(info);
-    LOGD("xOffset %{public}d yOffset %{public}d zOffset %{public}d", xOffset, yOffset, zOffset);
+    LOGD("xOffset %{public}u yOffset %{public}u zOffset %{public}u", xOffset, yOffset, zOffset);
 }
 
 void PixelsArg::Dump(const std::string& info) const
@@ -972,8 +1024,8 @@ void PixelsArg::Dump(const std::string& info) const
 
 void VertexAttribArg::Dump(const std::string &info) const
 {
-    LOGD("%{public}s vertexAttrib index %{public}u %{public}d type %{public}u %{public}u "
-        "stride [%{public}d %{public}u]",
+    LOGD("%{public}s vertexAttrib index %{public}u %{public}d type %{public}u %{public}d "
+        "stride [%{public}u %{public}u]",
         info.c_str(), index, size, type, normalized, stride, static_cast<unsigned int>(offset));
 }
 

@@ -664,6 +664,8 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
         AddAnimationInner(animation);
     }
 
+    RebuildTree();
+
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
         animation->Pause();
@@ -4712,11 +4714,11 @@ std::string RSCmdModifierTypeToString(RSCmdModifierType type)
 void RSNode::DumpRSCmdModifiers(std::string& out) const
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    if (rsCmdModifiers_.empty()) {
+    if (rsCmdModifiers_.empty() && rsCmdModifierQueue_.empty()) {
         out += "RSCmdModifiers: [empty]";
         return;
     }
- 
+
     out += "RSCmdModifiers: [";
     bool first = true;
     for (const auto& [type, modifier] : rsCmdModifiers_) {
@@ -4727,6 +4729,18 @@ void RSNode::DumpRSCmdModifiers(std::string& out) const
             out += ", ";
         }
         out += "type=" + RSCmdModifierTypeToString(type);
+        out += ", param=";
+        modifier->DumpParam(out);
+        first = false;
+    }
+    for (const auto& modifier : rsCmdModifierQueue_) {
+        if (!modifier) {
+            continue;
+        }
+        if (!first) {
+            out += ", ";
+        }
+        out += "type=" + RSCmdModifierTypeToString(modifier->GetType());
         out += ", param=";
         modifier->DumpParam(out);
         first = false;
@@ -4816,12 +4830,15 @@ std::string RSNode::DumpNode(int depth) const
     ss << " lazyLoad[" << std::to_string(lazyLoad_) << "]";
     ss << " nodeState[" << DumpNodeState() << "]";
 
-    if (!animations_.empty()) {
-        ss << " animation:" << std::to_string(animations_.size());
-    }
-    for (const auto& [animationId, animation] : animations_) {
-        if (animation) {
-            ss << " animationInfo:" << animation->DumpAnimation();
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        if (!animations_.empty()) {
+            ss << " animation:" << std::to_string(animations_.size());
+        }
+        for (const auto& [animationId, animation] : animations_) {
+            if (animation) {
+                ss << " animationInfo:" << animation->DumpAnimation();
+            }
         }
     }
     auto rsUIContextPtr = rsUIContext_;

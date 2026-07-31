@@ -2633,15 +2633,6 @@ sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeI
             remotePid);
         return nullptr;
     }
-    auto bundleName = GetBundleName(remotePid);
-    if (!NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled()) {
-        RS_LOGE("CreateCanvasDrawingNodeSurface: ccm disabled, nodeId=%{public}" PRIu64, nodeId);
-        return nullptr;
-    }
-    if (!bundleName.empty() && !NodeMemReleaseParam::IsCanvasBufferEnabled(bundleName)) {
-        RS_LOGE("CreateCanvasDrawingNodeSurface: bundleName ccm blacklist, nodeId=%{public}" PRIu64, nodeId);
-        return nullptr;
-    }
  
     sptr<Surface> producerPurface = nullptr;
     auto task = [&producerPurface, nodeId, mainThread = rsRenderPipeline->GetMainThread()]() -> void {

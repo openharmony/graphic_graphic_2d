@@ -26,7 +26,6 @@
 #include "rs_frame_report.h"
 #include "vsync_log.h"
 #include <rs_trace.h>
-#include "platform/common/rs_log.h"
 
 static int64_t SystemTime()
 {
@@ -134,8 +133,7 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
         frameCallbacks_.clear();
     }
 
-    RS_LOGD_IF(DEBUG_VSYNC, "%{public}s: " "dataCount:%{public}d, cb == nullptr:%{public}d",
-        __func__, dataCount, (cb == nullptr));
+    VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
     RS_TRACE_NAME_FMT("ReceiveVsync name:%s dataCount: %ldbytes now:%" PRId64 " expectedEnd: %" PRId64 ""
         " vsyncId:%" PRId64 ", fd:%d", name_.c_str(),

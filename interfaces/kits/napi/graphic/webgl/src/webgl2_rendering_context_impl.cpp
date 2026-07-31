@@ -34,6 +34,10 @@
 namespace OHOS {
 namespace Rosen {
 namespace Impl {
+namespace {
+constexpr size_t ATTRIB_I4_COMPONENT_COUNT = 4;
+constexpr GLint SINGLE_SLICE_DEPTH = 1;
+} // namespace
 using namespace std;
 constexpr size_t MAX_UNIFORM_COUNT = 65536;
 void WebGL2RenderingContextImpl::Init()
@@ -392,7 +396,7 @@ napi_value WebGL2RenderingContextImpl::IsVertexArray(napi_env env, napi_value ob
     }
     vertexArrayId = webGLVertexArrayObject->GetVertexArrays();
     GLboolean returnValue = glIsVertexArray(vertexArrayId);
-    LOGD("WebGL2 isVertexArray %{public}u %{public}u", vertexArrayId, returnValue);
+    LOGD("WebGL2 isVertexArray %{public}u %{public}d", vertexArrayId, returnValue);
     return NVal::CreateBool(env, returnValue).val_;
 }
 
@@ -433,7 +437,7 @@ napi_value WebGL2RenderingContextImpl::IsSync(napi_env env, napi_value syncObj)
     }
     int64_t syncId = webGlSync->GetSync();
     GLboolean returnValue = glIsSync(reinterpret_cast<GLsync>(syncId));
-    LOGD("WebGL2 isSync syncId %{public}" PRIi64 " result %{public}u", syncId, returnValue);
+    LOGD("WebGL2 isSync syncId %{public}" PRIi64 " result %{public}d", syncId, returnValue);
     return NVal::CreateBool(env, static_cast<bool>(returnValue)).val_;
 }
 
@@ -840,6 +844,11 @@ napi_value WebGL2RenderingContextImpl::TexSubImage3D(napi_env env, const TexSubI
 {
     TexSubImage3DArg imgArg(arg);
     imgArg.Dump("WebGL2 texSubImage3D source");
+    if (imgArg.depth > SINGLE_SLICE_DEPTH) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION,
+            "TexImageSource upload does not support multiple depth slices");
+        return NVal::CreateNull(env).val_;
+    }
     GLvoid* data = nullptr;
     WebGLImageSource imageSource(env, version_, unpackFlipY_, unpackPremultiplyAlpha_);
     if (!NVal(env, source).IsNull()) {
@@ -852,7 +861,6 @@ napi_value WebGL2RenderingContextImpl::TexSubImage3D(napi_env env, const TexSubI
         data = imageSource.GetImageSourceData();
         imgArg.width = imageSource.GetWidth();
         imgArg.height = imageSource.GetHeight();
-        imgArg.depth = 1;
     } else {
         SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
@@ -1235,8 +1243,7 @@ napi_value WebGL2RenderingContextImpl::VertexAttribI4iv(napi_env env, GLuint ind
         LOGE("WebGL vertexAttribI4iv invalid data type %{public}u", bufferData.GetBufferDataType());
         return NVal::CreateNull(env).val_;
     }
-    constexpr size_t attribI4ComponentCount = 4;
-    if (bufferData.GetBufferLength() < attribI4ComponentCount * sizeof(GLint)) {
+    if (bufferData.GetBufferLength() < ATTRIB_I4_COMPONENT_COUNT * sizeof(GLint)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer too small, need >=4 elements");
         return NVal::CreateNull(env).val_;
     }
@@ -1263,8 +1270,7 @@ napi_value WebGL2RenderingContextImpl::VertexAttribI4uiv(napi_env env, GLuint in
         LOGE("WebGL2 vertexAttribI4uiv invalid data type %{public}d", bufferData.GetBufferDataType());
         return NVal::CreateNull(env).val_;
     }
-    constexpr size_t attribI4ComponentCount = 4;
-    if (bufferData.GetBufferLength() < attribI4ComponentCount * sizeof(GLuint)) {
+    if (bufferData.GetBufferLength() < ATTRIB_I4_COMPONENT_COUNT * sizeof(GLuint)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer too small, need >=4 elements");
         return NVal::CreateNull(env).val_;
     }
@@ -1470,12 +1476,12 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
         dstSize = static_cast<GLsizeiptr>(ext.length * elementSize);
     }
 
-    // offset is validated to be non-negative, safe to convert to uint64_t
-    uint64_t offset64 = static_cast<uint64_t>(offset);
-    if (offset64 + static_cast<uint64_t>(dstSize) > static_cast<uint64_t>(writeBuffer->GetBufferSize())) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "check buffer size failed");
-        return NVal::CreateNull(env).val_;
-    }
+   // offset is validated to be non-negative, safe to convert to uint64_t
+        uint64_t offset64 = static_cast<uint64_t>(offset);
+        if (offset64 + static_cast<uint64_t>(dstSize) > static_cast<uint64_t>(writeBuffer->GetBufferSize())) {
+            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "check buffer size failed");
+            return NVal::CreateNull(env).val_;
+        }
 
     GLuint dstOffset = static_cast<GLuint>(dstOffsetBytes);
     LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{private}p",
@@ -1794,7 +1800,7 @@ napi_value WebGL2RenderingContextImpl::GetInternalFormatParameter(
     GLint length = -1;
     if (pname == GL_SAMPLES) {
         glGetInternalformativ(target, internalFormat, GL_NUM_SAMPLE_COUNTS, 1, &length);
-        LOGD("WebGL2 getInternalformatParameter length %{public}d", length);
+        LOGD("WebGL2 getInternalformatParameter length %{public}u", length);
     } else {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "pname %{public}u", pname);
         return NVal::CreateNull(env).val_;

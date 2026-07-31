@@ -42,6 +42,7 @@
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_task_dispatcher.h"

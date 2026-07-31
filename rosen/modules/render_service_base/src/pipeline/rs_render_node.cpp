@@ -20,6 +20,8 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <sstream>
+#include <thread>
 #include <utility>
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -63,6 +65,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_ui_render_director.h"
 #include "pipeline/rs_union_render_node.h"
 #include "pipeline/sk_resource_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
@@ -138,6 +141,8 @@ static void InitRsDrawableSlotToIndexVec()
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.shadowIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::MATERIAL_SHADER)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.materialShaderIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::SAVE_CLIP_TO_BOUNDS)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.saveClipToBoundsIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BG_SAVE_BOUNDS)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.bgSaveBoundsIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] =
@@ -206,6 +211,7 @@ bool RSRenderNode::IsPureBackgroundColor(bool isOpincSplit) const
 
     static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
         RSDrawableSlot::SAVE_ALL,
+        RSDrawableSlot::SAVE_CLIP_TO_BOUNDS,
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
         RSDrawableSlot::BACKGROUND_COLOR,
@@ -1782,6 +1788,11 @@ void RSRenderNode::FallbackAnimationsToRoot()
     if (!animationManager_ || animationManager_->animations_.empty()) {
         return;
     }
+    if (auto currentTid = std::this_thread::get_id(); currentTid != animationManager_->creationTid_) {
+        std::ostringstream oss;
+        oss << "creationTid=" << animationManager_->creationTid_ << ", currentTid=" << currentTid;
+        ROSEN_LOGE("RSRenderNode::FallbackAnimationsToRoot, not on main thread, %{public}s", oss.str().c_str());
+    }
 
     auto context = GetContext().lock();
     if (!context) {
@@ -1911,62 +1922,6 @@ const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
     return renderDrawable_->renderParams_;
 }
 #endif
-
-RectI RSRenderNode::GetDrawCmdListRect() const
-{
-    int32_t width = 0;
-    int32_t height = 0;
-    RSRenderNode::ModifierNGContainer customModifiers[] = {
-        GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::TRANSITION_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::BACKGROUND_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::FOREGROUND_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::OVERLAY_STYLE),
-        GetModifiersNG(ModifierNG::RSModifierType::NODE_MODIFIER),
-    };
-
-    for (auto& slot : customModifiers) {
-        for (auto& modifier : slot) {
-            auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
-            auto propertyPtr = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
-                modifier->GetProperty(propertyType));
-            auto drawCmdListPtr = propertyPtr ? propertyPtr->Get() : nullptr;
-            if (drawCmdListPtr == nullptr) {
-                continue;
-            }
-            width = width > drawCmdListPtr->GetWidth() ? width : drawCmdListPtr->GetWidth();
-            height = height > drawCmdListPtr->GetHeight() ? height : drawCmdListPtr->GetHeight();
-        }
-    }
-    return RectI(0, 0, width, height);
-}
-
-void RSRenderNode::CollectAndUpdateRenderFitRect()
-{
-    const auto& properties = GetRenderProperties();
-    if (properties.GetFrameGravity() == Gravity::TOP_LEFT) {
-        return;
-    }
-    auto drawRegion = properties.GetDrawRegion();
-    if (drawRegion == nullptr) {
-        return;
-    }
-    auto drawCmdListRect = GetDrawCmdListRect();
-    if (drawCmdListRect.IsEmpty()) {
-        return;
-    }
-    Drawing::Matrix mat;
-    RSPropertiesPainter::GetGravityMatrix(properties.GetFrameGravity(),
-        properties.GetFrameRect(), drawCmdListRect.GetWidth(), drawCmdListRect.GetHeight(), mat);
-    Drawing::Rect srcRegion(
-        drawRegion->GetLeft(), drawRegion->GetTop(), drawRegion->GetRight(), drawRegion->GetBottom());
-    Drawing::Rect dstRegion;
-    if (mat.MapRect(dstRegion, srcRegion)) {
-        selfDrawRect_ = selfDrawRect_.JoinRect(
-            RectF(dstRegion.GetLeft(), dstRegion.GetTop(), dstRegion.GetWidth(), dstRegion.GetHeight()));
-    }
-}
-
 void RSRenderNode::CollectAndUpdateLocalShadowRect()
 {
     // update shadow if shadow changes
@@ -2116,7 +2071,6 @@ bool RSRenderNode::UpdateSelfDrawRect()
     if (auto drawRegion = properties.GetDrawRegion()) {
         selfDrawRect_ = selfDrawRect_.JoinRect(*drawRegion);
     }
-    CollectAndUpdateRenderFitRect();
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
@@ -2973,24 +2927,20 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
             }
         }
     };
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
     RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
-    auto regionChangeCheckFunc = [this](RSDrawableSlot slot) {
-        auto filterDrawable = GetFilterDrawable(slot);
-        if (filterDrawable != nullptr) {
-            auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-            auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-            bool regionChanged = snapshotRegion != lastSnapshotRegion &&
-                !IsForceClearOrUseFilterCache(filterDrawable);
-            RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] drawable:%d UpdateFilterCacheWithSelfDirty"
-                " lastRect:%s, currRegion:%s", GetId(), static_cast<int>(slot), lastSnapshotRegion.ToString().c_str(),
-                snapshotRegion.ToString().c_str());
-            if (regionChanged) {
-                MarkFilterStatusChanged(filterDrawable, slot == RSDrawableSlot::COMPOSITING_FILTER, true);
-            }
+    auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
+    if (filterDrawable != nullptr) {
+        auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
+        auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
+        bool regionChanged = (properties.GetFilter() && snapshotRegion != lastSnapshotRegion) &&
+            !IsForceClearOrUseFilterCache(filterDrawable);
+        RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] compositing UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
+            GetId(), lastSnapshotRegion.ToString().c_str(), snapshotRegion.ToString().c_str());
+        if (regionChanged) {
+            MarkFilterStatusChanged(filterDrawable, true, true);
         }
-    };
-    regionChangeCheckFunc(RSDrawableSlot::MATERIAL_FILTER);
-    regionChangeCheckFunc(RSDrawableSlot::COMPOSITING_FILTER);
+    }
 #endif
 }
 
@@ -3639,6 +3589,9 @@ void RSRenderNode::UpdateDisplayList()
 
     // Update index of MATERIAL_SHADER
     stagingDrawCmdIndex_.materialShaderIndex_ = AppendDrawFunc(RSDrawableSlot::MATERIAL_SHADER);
+
+    // Update index of SAVE_CLIP_TO_BOUNDS
+    stagingDrawCmdIndex_.saveClipToBoundsIndex_ = AppendDrawFunc(RSDrawableSlot::SAVE_CLIP_TO_BOUNDS);
     
     stagingDrawCmdIndex_.renderGroupBeginIndex_ = stagingDrawCmdList_.size();
     stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
@@ -3730,7 +3683,7 @@ void RSRenderNode::UpdateDisplayListExt()
     int8_t index = 0;
     // Track the last valid index at each slot range boundary for computing derived indexes.
     // Value is -1 if no drawable in that range; derived index = lastIdx + 1 (yields 0 when empty).
-    int8_t lastIdxUpToMaterialShader = -1;
+    int8_t lastIdxUpToSaveClipToBounds = -1;
     int8_t lastIdxUpToContentStyle = -1;
     int8_t lastIdxUpToChildren = -1;
     int8_t lastIdxUpToRestoreFrame = -1;
@@ -3744,8 +3697,8 @@ void RSRenderNode::UpdateDisplayListExt()
         if (func) {
             func(stagingDrawCmdIndex_, index);
         }
-        if (slot <= static_cast<int8_t>(RSDrawableSlot::MATERIAL_SHADER)) {
-            lastIdxUpToMaterialShader = index;
+        if (slot <= static_cast<int8_t>(RSDrawableSlot::SAVE_CLIP_TO_BOUNDS)) {
+            lastIdxUpToSaveClipToBounds = index;
         }
         if (slot <= static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)) {
             lastIdxUpToContentStyle = index;
@@ -3761,8 +3714,8 @@ void RSRenderNode::UpdateDisplayListExt()
         }
         index++;
     }
-    stagingDrawCmdIndex_.renderGroupBeginIndex_ = lastIdxUpToMaterialShader + 1;
-    stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = lastIdxUpToMaterialShader + 1;
+    stagingDrawCmdIndex_.renderGroupBeginIndex_ = lastIdxUpToSaveClipToBounds + 1;
+    stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = lastIdxUpToSaveClipToBounds + 1;
     stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdIndex_.contentIndex_ == -1
         ? lastIdxUpToContentStyle + 1 : stagingDrawCmdIndex_.contentIndex_;
     stagingDrawCmdIndex_.foregroundBeginIndex_ = lastIdxUpToChildren + 1;
@@ -4594,9 +4547,12 @@ void RSRenderNode::DestroyColorPickerInRender()
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(GetId()), command);
 }
 
-void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+bool RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    GetOrCreateAnimationManager()->AddAnimation(animation);
+    if (auto mgr = GetOrCreateAnimationManager()) {
+        return mgr->AddAnimation(animation);
+    }
+    return false;
 }
 
 RectI RSRenderNode::GetOldDirty() const
@@ -4679,6 +4635,20 @@ void RSRenderNode::ResetGeoUpdateDelay()
 bool RSRenderNode::GetGeoUpdateDelay() const
 {
     return geoUpdateDelay_;
+}
+
+bool RSRenderNode::IsUIRenderDirectorStopped() const
+{
+    auto context = context_.lock();
+    if (context == nullptr) {
+        return false;
+    }
+    std::shared_ptr<RSUIRenderDirector> director =
+        context->GetUIRenderDirector(ExtractPid(GetId()), GetUIContextToken());
+    if (director == nullptr) {
+        return false;
+    }
+    return director->GetCurrentState() == RSUIDirectorLifecycleState::STOP;
 }
 
 void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent)
@@ -4939,8 +4909,8 @@ void RSRenderNode::OnSync()
     bool isLayerNode = nodeGroupType_ == NodeGroupType::GROUPED_BY_LAYER &&
                        stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
     if (isLayerNode) {
-        bool isLayerCacheDisabled =
-            RSLayerCacheManagerBase::IsNodeUnSupportLayer(shared_from_this()) || IsNodeParentHasUIFirstCache();
+        const auto& layerParams = stagingRenderParams_->GetLayerParams();
+        bool isLayerCacheDisabled = (layerParams && layerParams->isUnSupportLayer) || IsNodeParentHasUIFirstCache();
         if (isLayerCacheDisabled) {
             stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         } else {
@@ -5084,7 +5054,7 @@ void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
 
 bool RSRenderNode::GetUifirstSupportFlag()
 {
-    if (sharedTransitionParam_ && !sharedTransitionParam_->IsInAppTranSition()) {
+    if (sharedTransitionParam_ && sharedTransitionParam_->IsCrossAppTranSition()) {
         RS_TRACE_NAME_FMT("uifirst disable by SharedTransition inNodeId:%" PRIu64 ", outNodeId:%" PRIu64,
             sharedTransitionParam_->inNodeId_, sharedTransitionParam_->outNodeId_);
         return false;
@@ -5915,6 +5885,20 @@ void RSRenderNode::AccumulateParentGeoDirty()
             parentPtr->GetRenderProperties().IsCurGeoDirty();
         GetMutableRenderProperties().SetParentGeoDirty(parentGeoDirty);
     }
+}
+
+void RSRenderNode::MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
+{
+    if (isAccessibilityConfigChanged) {
+        accessibilityConfigChangedNodeSet_.insert(GetId());
+    } else {
+        accessibilityConfigChangedNodeSet_.erase(GetId());
+    }
+}
+
+bool RSRenderNode::IsAccessibilityConfigChangedNode() const
+{
+    return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -56,6 +56,7 @@
 #include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_depth_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -766,6 +767,18 @@ void RSUniRenderVisitor::UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTr
     }
 }
 
+void RSUniRenderVisitor::CollectVirtualScreenNodeId(RSScreenRenderNode& node)
+{
+    if (virtualScreenParallelManager_) {
+        auto screenParams = static_cast<RSScreenRenderParams*>(node.GetRenderParams().get());
+        if (screenParams) {
+            screenParams->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
+        }
+        virtualScreenParallelManager_->CollectVirtualScreenNodeId(
+            screenParams->GetScreenId(), node.GetId(), node.GetCompositeType());
+    }
+}
+
 void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     UpdateCurFrameInfoDetail(node);
@@ -819,7 +832,9 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     PostPrepare(node, isParentPrepareInReverseOrder);
     node.UpdateChildHwcNode();
     RSLayerSplitManager::GetInstance()->CheckNeedLeave();
+    CollectVirtualScreenNodeId(node);
     RSHdrUtil::UpdateSelfDrawingNodesNit(node);
+    UpdateSelfDrawingNodesFor3D(node);
     hwcVisitor_->UpdateHwcNodeEnable();
     UpdateSurfaceDirtyAndGlobalDirty();
     UpdateSurfaceOcclusionInfo();
@@ -908,6 +923,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
         return;
     }
     UpdateVirtualDisplayInfo(node);
+    RSHdrUtil::UpdateBrightnessFactor(node);
     auto dirtyFlag = dirtyFlag_;
     displayNodeRotationChanged_ = node.IsRotationChanged();
     dirtyFlag_ |= displayNodeRotationChanged_;
@@ -2429,6 +2445,43 @@ void RSUniRenderVisitor::UpdateCompositeType(RSScreenRenderNode& node, DisplayMo
     }
 }
 
+void RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D(RSScreenRenderNode& node)
+{
+    bool hasGlassFree3DLayer = false;
+    if (RSMainThread::Instance()->GetUIMode3D() != UIMode3D::MODE_GLASSESFREE_3D) {
+        node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
+        return;
+    }
+    bool isOnInternalScreen =
+        node.GetScreenProperty().GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL;
+    const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
+    for (const auto& selfDrawingNode : selfDrawingNodes) {
+        if (!selfDrawingNode) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D selfDrawingNode is nullptr");
+            continue;
+        }
+        if (!selfDrawingNode->IsOnTheTree()) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D node(%{public}s) is not on the tree",
+                selfDrawingNode->GetName().c_str());
+            continue;
+        }
+        auto ancestor = selfDrawingNode->GetAncestorScreenNode().lock();
+        if (!ancestor) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D ancestor is nullptr");
+            continue;
+        }
+        if (node.GetId() == ancestor->GetId()) {
+            if (selfDrawingNode->GetCompositionType() == CompositionType::COMPOSITION_3D_GLASS_FREE) {
+                hasGlassFree3DLayer = true;
+                RS_LOGD("RSUniRenderVisitor::UpdateSelfDrawingNodesFor3D found glass free 3D layer: %{public}s",
+                    selfDrawingNode->GetName().c_str());
+            }
+            selfDrawingNode->SetIsOnInternalScreen(isOnInternalScreen);
+        }
+    }
+    node.SetHasGlassFree3DLayer(hasGlassFree3DLayer);
+}
+
 bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
 {
     // 1 init curScreen and curScreenDirtyManager
@@ -2449,6 +2502,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     hwcVisitor_->colorPickerHwcDisabledSurfaces_.clear();
     node.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_2D);
     node.SetUIMode3D(UIMode3D::MODE_2D);
+    node.SetHasGlassFree3DLayer(false);
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
     node.SetHasUniRenderHdrSurface(false);
@@ -3665,12 +3719,7 @@ void RSUniRenderVisitor::CollectEffectInfo(
         return;
     }
     auto& properties = node.GetRenderProperties();
-    bool isUnSupportLayer =
-        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || RSOpincManager::IsSuggestOpincNode(node) ||
-            properties.IsShadowValid() || properties.IsBgBrightnessValid() || properties.IsColorBlendModeValid() ||
-            properties.IsColorBlendApplyTypeOffscreen() || properties.GetLinearGradientBlurPara() != nullptr ||
-            properties.IsFgBrightnessValid() || properties.GetForegroundFilter() != nullptr ||
-            properties.GetFilter() != nullptr || node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+    bool isUnSupportLayer = RSLayerCacheManagerBase::CheckNodeUnSupportLayer(node);
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*nodeParent, true);
     }
@@ -4467,21 +4516,19 @@ void RSUniRenderVisitor::SetHdrWhenMultiDisplayChange()
 
 void RSUniRenderVisitor::TryNotifyUIBufferAvailable()
 {
-    bool hasRebuildTransaction = RSMainThread::Instance()->IsRebuildTransactionInProgress();
-    pid_t pendingPid = -1;
-    if (hasRebuildTransaction) {
-        pendingPid = RSMainThread::Instance()->GetPendingSplitPid();
-    }
-    
     for (auto& id : uiBufferAvailableId_) {
-        if (hasRebuildTransaction && ExtractPid(id) == pendingPid) {
-            RS_LOGI("TryNotifyUIBufferAvailable: rebuild transaction in progress, delay NotifyUIBufferAvailable");
-            continue;
-        }
         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
         auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
+        if (RSMainThread::Instance()->IsPidRebuilding(ExtractPid(id))) {
+            RS_LOGI("TryNotifyUIBufferAvailable: rebuild transaction in progress, delay NotifyUIBufferAvailable");
+            if (surfaceNode) {
+                surfaceNode->SetRebuildingState(true);
+            }
+            continue;
+        }
         if (surfaceNode) {
             surfaceNode->NotifyUIBufferAvailable();
+            surfaceNode->SetRebuildingState(false);
         }
     }
     uiBufferAvailableId_.clear();

@@ -25,7 +25,6 @@
 | inner_api surface/composer | `inner-api-surface-composer.md` | `inner_api/`, `Surface/Composer` | inner API |
 | NAPI/CJ/ANI/Taihe | `napi-cj-ani-taihe.md` | `interfaces/kits/`, `Napi`, `Ani`, `CJ` | 语言/XTS |
 | Rust 基础绑定 | `rust-binding.md` | `render_service_base/rust/`, `lib.rs` | rust target |
-| samples/演示工程 | `samples.md` | `rosen/samples/`, `hello_*` | sample |
 
 ## RS 管线/节点
 
@@ -75,7 +74,8 @@
 | HPAE/LPP/RDO | `hpae-lpp-rdo.md` | `hpae/`, `lpp/`, `rdo/` | 设备/性能 |
 | capture/截图 | `capture.md` | `capture/`, `Capture` | capture/fuzz |
 | DRM/水印/安全层 | `drm-watermark.md` | `drm/`, `watermark/`, `Watermark` | 安全/设备 |
-| 鼠标/圆角/关键帧 | `pointer-round-corner.md` | `pointer_window_manager/`, `round_corner_display/` | 功能 |
+| 鼠标/关键帧 | `pointer-window-manager.md` | `pointer_window_manager/` | 功能 |
+| 圆角显示/RCD | `round-corner-display.md` | `round_corner_display/`, `RoundCornerDisplay`, `RCD` | RCD/功能 |
 | 后窗滤镜/跳帧 | `behind-window-filter.md` | `behind_window_filter/`, `dynamic_layer_skip/`, `Skip` | feature |
 | buffer 回收/内存 | `buffer-reclaim.md` | `buffer_reclaim/`, `memory_info_manager/`, `Memory` | memory |
 | 单帧/省电/VCLD | `single-frame-power.md` | `single_frame_composer/`, `power_off_render_skip/`, `vcld/` | feature |

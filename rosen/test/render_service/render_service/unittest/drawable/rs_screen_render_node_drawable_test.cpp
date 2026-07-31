@@ -28,6 +28,7 @@
 #include "params/rs_render_thread_params.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -242,7 +243,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     auto result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
@@ -250,7 +250,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     screenDrawable_->surfaceCreated_ = true;
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
 /**
@@ -296,7 +295,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
     auto result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->forceCommitReason_ = 1;
     RSUniRenderThread::Instance().Sync(move(renderParams));
@@ -963,8 +961,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
-    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
-    RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
     EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 }
@@ -2110,11 +2106,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignGpuTileInvalid, Te
     params->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
     params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    auto renderContext = RenderContext::Create();
-    renderEngine->renderContext_ = renderContext;
-    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
-    RSUniRenderThread::Instance().uniRenderEngine_->Init();
 
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->isDirtyAlignEnabled_ = true;
@@ -2136,8 +2127,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignGpuTileInvalid, Te
     RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(64, 0));
     EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
     screenDrawable_->OnDraw(canvas);
-
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
 /**
@@ -2160,8 +2149,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion,
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
-    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
-    RSUniRenderThread::Instance().uniRenderEngine_->Init();
 
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->isDirtyAlignEnabled_ = true;
@@ -2174,8 +2161,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion,
     EXPECT_EQ(RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD, 1);
 
     screenDrawable_->OnDraw(canvas);
-
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
 /**
@@ -2229,5 +2214,118 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_SingleSurfaceExpandNoSkip, T
     // Set isAccumulatedDirty_=true so CheckVirtualExpandScreenSkip returns false -> no skip
     params->isAccumulatedDirty_ = true;
     screenDrawable_->OnDraw(canvas);
+}
+
+/**
+ * @tc.name: OnDrawVirtualExpand_RenderEngineNull
+ * @tc.desc: Test OnDrawVirtualExpand when renderEngine is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawVirtualExpand_RenderEngineNull, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
+
+    int32_t tid = -200;
+
+    screenDrawable_->OnDrawVirtualExpand(renderEngine, tid);
+}
+
+/**
+ * @tc.name: Destructor_ParamsNull
+ * @tc.desc: Test destructor when params is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, Destructor_ParamsNull, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(screenNode, nullptr);
+
+    auto screenDrawable = std::make_shared<RSScreenRenderNodeDrawable>(screenNode);
+    ASSERT_NE(screenDrawable, nullptr);
+
+    screenDrawable->renderParams_ = nullptr;
+
+    screenDrawable.reset();
+}
+
+/**
+ * @tc.name: Destructor_ManagerNotNull
+ * @tc.desc: Test destructor when GetVirtualScreenParallelManager is not nullptr (line 159)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, Destructor_ManagerNotNull, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(screenNode, nullptr);
+
+    auto screenDrawable = std::make_shared<RSScreenRenderNodeDrawable>(screenNode);
+    ASSERT_NE(screenDrawable, nullptr);
+
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(1);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    auto manager = std::make_shared<RSVirtualScreenParallelManager>();
+    params->SetVirtualScreenParallelManager(manager);
+
+    screenDrawable.reset();
+}
+
+/**
+ * @tc.name: OnDrawVirtualExpand_1019True_RenderEngineNull
+ * @tc.desc: Test OnDrawVirtualExpand when PrepareForDraw returns false due to
+ * renderEngine nullptr (line 1019 condition true)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawVirtualExpand_1019True_RenderEngineNull, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    params->childDisplayCount_ = 1;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
+    int32_t tid = -200;
+
+    screenDrawable_->OnDrawVirtualExpand(renderEngine, tid);
+}
+
+/**
+ * @tc.name: OnDrawVirtualExpand_PrepareForDrawFalse_ChildDisplayCountZero
+ * @tc.desc: Test OnDrawVirtualExpand when PrepareForDraw returns false due to childDisplayCount=0 (line 527)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawVirtualExpand_PrepareForDrawFalse_ChildDisplayCountZero, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    params->childDisplayCount_ = 0;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    auto renderContext = RenderContext::Create();
+    renderEngine->renderContext_ = renderContext;
+    int32_t tid = -200;
+
+    screenDrawable_->OnDrawVirtualExpand(renderEngine, tid);
 }
 } // namespace OHOS::Rosen

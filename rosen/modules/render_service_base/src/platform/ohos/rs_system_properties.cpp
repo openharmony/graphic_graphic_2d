@@ -211,8 +211,10 @@ bool RSSystemProperties::GetBackgroundRebuildEnabled()
         return isBackgroundRebuildEnabled_;
     }
 
-    isBackgroundRebuildEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(
+    uint8_t remoteValue = std::static_pointer_cast<RSRenderServiceClient>(
         RSIRenderClient::CreateRenderServiceClient())->GetBackgroundRebuildEnabled();
+    isBackgroundRebuildEnabled_ = (remoteValue & 0xF0) != 0;
+    isCanvasDrawingNodeClientRenderEnabled_ = (remoteValue & 0x0F) != 0;
     inited = true;
     ROSEN_LOGD("RSSystemProperties::GetBackgroundRebuildEnabled:%{public}d", isBackgroundRebuildEnabled_);
     return isBackgroundRebuildEnabled_;
@@ -1020,14 +1022,6 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
     return debugEnable;
 }
 
-bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.optSchedule.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
 bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
@@ -1216,6 +1210,14 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
     static bool singleFrameComposerEnabled =
         (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposer", "0")).c_str()) != 0);
     return singleFrameComposerEnabled;
+}
+
+// Per-pid total time budget for a rebuild; once exceeded the time-slice check is skipped to force finish.
+float RSSystemProperties::GetSplitTransactionMaxTotalTimeMs()
+{
+    static float maxTotalTimeMs =
+        std::atof((system::GetParameter("persist.sys.graphic.splitTransactionMaxTotalTimeMs", "100.0")).c_str());
+    return maxTotalTimeMs;
 }
 
 bool RSSystemProperties::GetEffectMergeEnabled()
@@ -1616,10 +1618,25 @@ bool RSSystemProperties::GetHybridRenderDfxEnabled()
 
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
-    static bool canvasEnabled =
-        Drawing::SystemProperties::IsUseVulkan() &&
-        system::GetParameter("const.product.devicetype", "phone") == "phone" &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
+    static bool inited = false;
+    static bool canvasEnabled = false;
+    if (inited) {
+        return canvasEnabled;
+    }
+
+    canvasEnabled = GetHybridRenderCanvasEnabledWithoutCCM();
+    if (canvasEnabled) {
+        GetBackgroundRebuildEnabled();
+        canvasEnabled = isCanvasDrawingNodeClientRenderEnabled_;
+    }
+    inited = true;
+    return canvasEnabled;
+}
+
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    static bool canvasEnabled = Drawing::SystemProperties::IsUseVulkan() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
     return canvasEnabled;
 }
 
@@ -1855,6 +1872,13 @@ bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
 {
     static bool enable = system::GetBoolParameter("persist.graphic.enable_delegate_composite_dfx", false);
     return enable;
+}
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
+{
+    static bool virtualScreenParallelEnabled = system::GetBoolParameter(
+        "persist.sys.graphic.virtualScreenParallel.enabled", true);
+    return virtualScreenParallelEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

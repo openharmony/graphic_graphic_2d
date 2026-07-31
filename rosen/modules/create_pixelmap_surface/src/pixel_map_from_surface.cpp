@@ -75,7 +75,6 @@ constexpr Drawing::scalar ROTATE_90 = 90.0f;
 constexpr Drawing::scalar ROTATE_180 = 180.0f;
 constexpr Drawing::scalar ROTATE_270 = 270.0f;
 
-#ifdef RS_ENABLE_GPU
 // LCOV_EXCL_START
 static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_t &height,
     const std::unique_ptr<Media::PixelMap>& pixelmap)
@@ -115,7 +114,6 @@ static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_
     return surfaceBuffer;
 #endif
 }
-#endif
 
 #if defined(RS_ENABLE_GL)
 class DmaMem {
@@ -169,7 +167,6 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
         }
     }
     EGLint attrs[] = { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE, };
-
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (disp == EGL_NO_DISPLAY) {
         RS_LOGE("egl get display fail in GetSkSurfaceFromSurfaceBuffer");
@@ -210,8 +207,7 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
 #endif
     return skSurface;
 }
-#endif
-// LCOV_EXCL_STOP
+#endif // LCOV_EXCL_STOP
 
 class PixelMapFromSurface {
 public:
@@ -304,7 +300,7 @@ void PixelMapFromSurface::Clear() noexcept
     surfaceBuffer_ = nullptr;
     surface_ = nullptr;
 
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) // LCOV_EXCL_START
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         if (texId_ != 0U) {
             glDeleteTextures(1, &texId_);
@@ -317,7 +313,7 @@ void PixelMapFromSurface::Clear() noexcept
             }
         }
     }
-#endif
+#endif // LCOV_EXCL_STOP
 
     if (nativeWindowBuffer_ != nullptr) {
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
@@ -325,7 +321,6 @@ void PixelMapFromSurface::Clear() noexcept
     }
 }
 
-// LCOV_EXCL_START
 #if defined(RS_ENABLE_VK)
 static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
@@ -344,6 +339,7 @@ static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 }
 #endif
 
+// LCOV_EXCL_START
 #if defined(RS_ENABLE_GL)
 std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreatePixelMapForGL(
     sk_sp<GrDirectContext> grContext, const OHOS::Media::Rect &srcRect)
@@ -411,23 +407,20 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::GetPixelMapForGL(con
         RS_LOGE("GetPixelMapForGL nativeWindowBuffer_ or surfaceBuffer_ is null");
         return nullptr;
     }
-
     auto gpuContext = RSBackgroundThread::Instance().GetShareGPUContext();
     if (!gpuContext) {
         RS_LOGE("get gpuContext  fail");
         return nullptr;
     }
-
     sk_sp<GrDirectContext> grContext = nullptr;
     auto skiaGpuContext = gpuContext->GetImpl<Drawing::SkiaGPUContext>();
     if (skiaGpuContext) {
         grContext = skiaGpuContext->GetGrContext();
     }
     if (!grContext) {
-        RS_LOGE("get gpuContext  fail");
+        RS_LOGE("get grContext  fail");
         return nullptr;
     }
-
     if (!CreateEGLImage()) {
         return nullptr;
     }
@@ -666,7 +659,7 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::GetPixelMapForVK(con
     options.pixelFormat = PixelFormat::RGBA_8888;
     auto pixelMap = PixelMap::Create(options);
     if (!pixelMap) {
-        RS_LOGE("create pixelMap fail in CreateForVK");
+        RS_LOGE("create pixelMap fail in GetPixcelMapForVK");
         return nullptr;
     }
 
@@ -899,7 +892,7 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
         RS_LOGE("surfaceBuffer check GPUContext fail");
         return nullptr;
     }
-#endif
+#endif // LCOV_EXCL_START
     RS_LOGI("PixelMapFromSurface::Create surfaceBuffer srcRect[%{public}d, %{public}d, %{public}d, %{public}d]",
         srcRect.left, srcRect.top, srcRect.width, srcRect.height);
 
@@ -921,7 +914,7 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
         RS_LOGE("surfaceBuffer Create pixelMap fail");
         Clear();
     }
-    return pixelMap;
+    return pixelMap; // LCOV_EXCL_STOP
 }
 
 void PixelMapFromSurface::SetRotationEnabled(bool transformEnabled)
@@ -1056,7 +1049,7 @@ bool PixelMapFromSurface::ShouldSwapDimensions()
         transform_ == GraphicTransformType::GRAPHIC_FLIP_V_ROT90 ||
         transform_ == GraphicTransformType::GRAPHIC_FLIP_H_ROT270 ||
         transform_ == GraphicTransformType::GRAPHIC_FLIP_V_ROT270) {
-            return true;
+        return true;
     } else {
         return false;
     }

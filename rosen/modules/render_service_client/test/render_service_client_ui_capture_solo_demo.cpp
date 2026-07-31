@@ -43,6 +43,7 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_texture_export.h"
 #include "ui/rs_ui_director.h"
+#include "ui/rs_ui_context.h"
 #include "window.h"
 
 using namespace OHOS;
@@ -274,43 +275,43 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 {
     cout << "rs local capture solo demo Init Rosen Backend!" << endl;
 
-    rootNode = RSRootNode::Create();
+    rootNode = RSRootNode::Create(false, false, rsUiDirector->GetRSUIContext());
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
     rootNode->SetBackgroundColor(SK_ColorRED);
 
     rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
-    canvasNode = RSCanvasNode::Create();
+    canvasNode = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     canvasNode->SetBounds(10, 10, 600, 1000);
     canvasNode->SetFrame(10, 10, 600, 1000);
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
     rootNode->AddChild(canvasNode, -1);
 
-    canvasNode2 = RSCanvasNode::Create();
+    canvasNode2 = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     canvasNode2->SetBounds(5, 5, 400, 800);
     canvasNode2->SetFrame(5, 5, 400, 800);
     canvasNode2->SetBackgroundColor(SK_ColorBLUE);
     canvasNode->AddChild(canvasNode2, -1);
 
     RSSurfaceNodeConfig config;
-    surfaceNode1 = RSSurfaceNode::Create(config, false);
+    surfaceNode1 = RSSurfaceNode::Create(config, false, rsUiDirector->GetRSUIContext());
     RenderContextInit();
     DrawSurfaceNode(surfaceNode1);
     canvasNode2->AddChild(surfaceNode1, -1);
 
-    effectNode = RSEffectNode::Create();
+    effectNode = RSEffectNode::Create(false, false, rsUiDirector->GetRSUIContext());
     effectNode->SetBounds(5, 5, 250, 550);
     effectNode->SetFrame(5, 5, 250, 550);
     effectNode->SetBackgroundColor(SK_ColorRED);
     surfaceNode1->AddChild(effectNode, -1);
 
-    myLittleRootNode = RSRootNode::Create();
+    myLittleRootNode = RSRootNode::Create(false, false, rsUiDirector->GetRSUIContext());
     myLittleRootNode->SetBounds(5, 5, 200, 500);
     myLittleRootNode->SetFrame(5, 5, 200, 500);
     myLittleRootNode->SetBackgroundColor(SK_ColorYELLOW);
     surfaceNode1->AddChild(myLittleRootNode, -1);
 
-    canvasDrawingNode = RSCanvasDrawingNode::Create();
+    canvasDrawingNode = RSCanvasDrawingNode::Create(false, false, rsUiDirector->GetRSUIContext());
     canvasDrawingNode->SetBounds(5, 5, 100, 300);
     canvasDrawingNode->SetFrame(5, 5, 100, 300);
     canvasDrawingNode->SetBackgroundColor(SK_ColorGREEN);
@@ -342,11 +343,18 @@ int main()
 
     cout << "rs local capture solo demo" << endl;
     DisplayId displayId = DisplayManager::GetInstance().GetDefaultDisplayId();
+    auto connectToRender =
+        OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(displayId);
+    auto rsUiDirector = RSUIDirector::Create(connectToRender);
+    rsUiDirector->SendMessages();
+
+    cout << "rs local capture solo demo init" << endl;
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.SurfaceNodeName = "capture_solo_demo";
     RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
     cout << "RSSurfaceNode:: Create" << endl;
-    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType, true, false,
+        rsUiDirector->GetRSUIContext());
     if (!surfaceNode) {
         return -1;
     }
@@ -357,15 +365,10 @@ int main()
     screenId = DisplayManager::GetInstance().GetDisplayById(displayId)->GetId();
     cout << "ScreenId: " << screenId << endl;
     surfaceNode->AttachToDisplay(screenId);
-
-    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
-    
-    RSTransaction::FlushImplicitTransaction();
-    cout << "rs local capture solo demo init" << endl;
     rsUiDirector->SetRSSurfaceNode(surfaceNode);
 
     Init(rsUiDirector, 1260, 2720);
-    RSTransaction::FlushImplicitTransaction();
+    rsUiDirector->SendMessages();
     sleep(4);
 
     cout << "rs local capture solo demo createPixelmap" << endl;
@@ -390,6 +393,7 @@ int main()
     cout << "removing from tree... " << endl;
     surfaceNode1->RemoveChild(myLittleRootNode);
     RSTransaction::FlushImplicitTransaction();
+    rsUiDirector->SendMessages();
     sleep(2);
     pixelMapIdPairVector = RSInterfaces::GetInstance().TakeSurfaceCaptureSoloNodeList(rootNode);
     sleep(2);
@@ -405,6 +409,7 @@ int main()
     cout << "adding to tree... " << endl;
     surfaceNode1->AddChild(myLittleRootNode, -1);
     RSTransaction::FlushImplicitTransaction();
+    rsUiDirector->SendMessages();
     sleep(2);
     pixelMapIdPairVector = RSInterfaces::GetInstance().TakeSurfaceCaptureSoloNodeList(rootNode);
     sleep(2);

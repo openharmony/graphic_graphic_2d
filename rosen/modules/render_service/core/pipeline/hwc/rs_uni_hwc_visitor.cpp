@@ -581,6 +581,11 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
             continue;
         }
+        if (hwcNodePtr->GetCompositionType() == CompositionType::COMPOSITION_3D_GLASS_FREE) {
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by glass free 3d layer",
+                hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
+        }
         inputHwclayers++;
         if (hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
             uniRenderVisitor_.drmNodes_.emplace_back(hwcNode);

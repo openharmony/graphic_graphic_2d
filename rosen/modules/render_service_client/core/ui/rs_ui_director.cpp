@@ -114,9 +114,6 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     } else {
         // force fallback animaiions send to RS if no render thread
         RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-        InitHybridRender();
-#endif
     }
     if (!cacheDir_.empty()) {
         RSRenderThread::Instance().SetCacheDir(cacheDir_);
@@ -129,6 +126,11 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     GoForeground();
     RSInterpolator::Init();
     RSAnimationFraction::Init();
+    if (isUniRenderEnabled_) {
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        InitHybridRender();
+#endif
+    }
 }
 
 void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
@@ -423,8 +425,8 @@ void RSUIDirector::GoStop()
         currentUIDirectorState_ == RSUIDirectorLifecycleState::RESUME) {
         if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::GetBackgroundRebuildEnabled()) {
             ExecuteGoStop();
-            AddUIDirectorCommand<RSUIDirectorGoStop>();
         }
+        AddUIDirectorCommand<RSUIDirectorGoStop>(); // always sync STOP state to render service
     }
     currentUIDirectorState_ = RSUIDirectorLifecycleState::STOP;
 }

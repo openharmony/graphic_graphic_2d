@@ -400,6 +400,9 @@ public:
 
     void SetLayerInfo(const RSLayerInfo& layerInfo);
     const RSLayerInfo& GetLayerInfo() const override;
+
+    void SetRebuildingState(bool isRebuildingState);
+    bool GetRebuildingState() const;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
     void SetNeedMakeImage(bool enabled);
@@ -898,6 +901,12 @@ public:
     void SetCompositionType(CompositionType type);
     CompositionType GetCompositionType() const;
 
+    void SetIsOnInternalScreen(bool isOnInternalScreen);
+    bool GetIsOnInternalScreen() const;
+
+    void SetGlassFree3D(bool enable);
+    bool GetGlassFree3D() const;
+
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 
     void SetSplitLayerTag(bool splitLayerTag)
@@ -992,6 +1001,7 @@ private:
     bool isLastFrameHardwareEnabled_ = false;
     bool subHighPriorityType_ = false;
     bool isFixRotationByUser_ = false;
+    bool isRebuildingState_ = false;
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool animateState_ = false;
@@ -1023,6 +1033,8 @@ private:
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
     CompositionType compositionType_ = CompositionType::COMPOSITION_DEFAULT;
+    bool glassFree3D_ = false;
+    bool isOnInternalScreen_ = true;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

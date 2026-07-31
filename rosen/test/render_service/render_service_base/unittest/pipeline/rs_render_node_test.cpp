@@ -42,6 +42,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_ui_render_director.h"
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
@@ -1729,13 +1730,13 @@ HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeSetDirty002, TestSize.L
 }
 
 /**
- * @tc.name: MarkSuggestLayerPartRenderNodeNonSurfaceEarlyReturn001
- * @tc.desc: Verify MarkSuggestLayerPartRenderNode on a canvas node returns early because it cannot
- *           be cast to a surface node, leaving its own cache and dirty flag unchanged
+ * @tc.name: MarkSuggestLayerPartRenderNodeOnCanvasNodeSetsCacheAndDirty001
+ * @tc.desc: Verify MarkSuggestLayerPartRenderNode(true) on a canvas node creates the partlayer root
+ *           cache, sets the suggest flag and NODE_GROUP strategy, and marks the caller canvas node dirty
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeNonSurfaceEarlyReturn001, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeOnCanvasNodeSetsCacheAndDirty001, TestSize.Level1)
 {
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID + 70, context);
     ASSERT_NE(canvasNode, nullptr);
@@ -1745,9 +1746,9 @@ HWTEST_F(RSRenderNodeTest, MarkSuggestLayerPartRenderNodeNonSurfaceEarlyReturn00
 
     canvasNode->MarkSuggestLayerPartRenderNode(true);
 
-    ASSERT_FALSE(canvasNode->IsDirty());
-    ASSERT_FALSE(canvasNode->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
-    ASSERT_NE(canvasNode->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
+    ASSERT_TRUE(canvasNode->IsDirty());
+    ASSERT_TRUE(canvasNode->GetLayerPartRenderCache().IsSuggestLayerPartRenderNode());
+    ASSERT_EQ(canvasNode->GetLayerPartRenderCache().GetLayerPartRenderNodeStrategyType(),
         NodeStrategyType::NODE_GROUP);
 }
 
@@ -4423,6 +4424,38 @@ HWTEST_F(RSRenderNodeTest, RepaintBoundary, TestSize.Level1)
     ASSERT_NE(renderNode, nullptr);
     renderNode->MarkRepaintBoundary(true);
     ASSERT_EQ(renderNode->IsRepaintBoundary(), true);
+}
+
+/*
+ * @tc.name: IsUIRenderDirectorStopped
+ * @tc.desc: Test IsUIRenderDirectorStopped returns true only when the context director is in STOP state
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, IsUIRenderDirectorStopped, TestSize.Level1)
+{
+    constexpr pid_t pid = 600;
+    constexpr uint64_t token = 601;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+    auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(renderNode, nullptr);
+
+    // no context injected
+    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
+
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    renderNode->OnRegister(context);
+    // no director created yet
+    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
+
+    renderNode->SetUIContextToken(token);
+    context->CreateUIRenderDirector(pid, token);
+    auto director = context->GetUIRenderDirector(pid, token);
+    ASSERT_NE(director, nullptr);
+    // director is not in STOP state
+    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
+
+    director->OnStateSync(RSUIDirectorLifecycleState::STOP);
+    EXPECT_TRUE(renderNode->IsUIRenderDirectorStopped());
 }
 
 #ifdef SUBTREE_PARALLEL_ENABLE

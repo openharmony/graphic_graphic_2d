@@ -374,7 +374,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canva
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hwcTopNodes;
     RSUniRenderUtil::CollectHardwareEnabledNodesByDisplayNodeId(hwcNodes, hwcTopNodes, params.GetId());
 
-    RS_LOGI("RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: \
+    RS_LOGD("RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: \
         process RSScreenRenderNode(id:[%{public}" PRIu64 "]) \
         Using UniRender buffer with hwcNodes(%{public}zu), hwcTopNodes(%{public}zu).",
         GetId(), hwcNodes.size(), hwcTopNodes.size());

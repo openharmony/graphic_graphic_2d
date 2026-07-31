@@ -99,10 +99,6 @@ public:
         return GRADIENT_BLEND_K;
     }
 
-    float GetDefaultBrightness()
-    {
-        return 1.0f;
-    }
 private:
     std::vector<Vector4f> colors_;
     std::vector<Vector2f> positions_;

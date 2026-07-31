@@ -76,6 +76,7 @@ class RSTunnelLayerStateHandler;
 class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
+class RSVirtualScreenParallelManager;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -512,11 +513,17 @@ public:
     std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
     void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
 
+    std::shared_ptr<RSVirtualScreenParallelManager> GetVirtualScreenParallelManager() const
+    {
+        return virtualScreenParallelManager_;
+    }
     // for rebuild transaction
-    bool IsRebuildTransactionInProgress() const;
+    bool IsRebuildTransactionInProgress() const; // any pid currently rebuilding
+    bool IsPidRebuilding(pid_t pid) const;       // the given pid has pending rebuild transactions
     void AddSplitTransaction(std::unique_ptr<RSTransactionData> transaction);
     void ProcessSplitTransactionCommands(); // 在 ProcessCommand 中调用，处理分帧事务的一部分命令
-    pid_t GetPendingSplitPid() const;
+    void ProcessPendingCommandsDuringRebuild(pid_t pid); // replay normal transactions cached during the pid's rebuild
+    void ClearRebuildTransactionData(pid_t pid); // clear this pid's rebuild queue and cached commands
 
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
@@ -623,6 +630,7 @@ private:
     float GetCurrentSteadyTimeMsFloat() const;
     void RequestNextVsyncForCachedCommand(std::string& transactionFlags, pid_t pid, uint64_t curIndex);
     void UpdateLuminanceAndColorTemp();
+    void UpdateCompositionType(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, UIMode3D uiMode3D);
 
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
     void UIExtensionNodesTraverseAndCallback();
@@ -933,9 +941,17 @@ private:
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
     std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
 
+    std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
     // for rebuild transaction
-    std::deque<std::unique_ptr<RSTransactionData>> pendingSplitTransactions_;
-    pid_t pendingSplitPid_ = -1;
+    // Per-pid rebuild state: each pid owns its own queue and total-time start point,
+    // so concurrent rebuilds of different pids do not interfere with each other.
+    struct SplitRebuildState {
+        std::deque<std::unique_ptr<RSTransactionData>> transactions;
+        float startTimeMs = 0.0f; // wall-clock start of this pid's rebuild, for the per-pid total-time budget
+    };
+    std::unordered_map<pid_t, SplitRebuildState> pendingSplitTransactions_;
+    // normal transactions arriving during a pid's rebuild, replayed once that pid's rebuild fully drains
+    std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> pendingCommandsDuringRebuild_;
 
     // for protectiveSolidNode
     std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;

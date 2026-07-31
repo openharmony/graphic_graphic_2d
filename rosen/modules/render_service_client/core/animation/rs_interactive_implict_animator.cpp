@@ -75,7 +75,7 @@ bool RSInteractiveImplictAnimator::ValidateTimingProtocol(RSAnimationTimingProto
     }
 
     float speed = timingProtocol.GetSpeed();
-    if (ROSEN_LE(speed, 0.0f) || std::isinf(speed) || std::isnan(speed)) {
+    if (ROSEN_LE(speed, 0.0f) || !std::isfinite(speed)) {
         ROSEN_LOGW("RSInteractiveImplictAnimator::ValidateTimingProtocol: Invalid speed[%{public}f]. Using default "
             "value 1.0f.", speed);
         timingProtocol.SetSpeed(1.0f);
@@ -191,6 +191,11 @@ size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> c
         return 0;
     }
 
+    if (!callback) {
+        ROSEN_LOGE("RSInteractiveImplictAnimator::AddImplictAnimation, callback is null");
+        return 0;
+    }
+
     implicitAnimator->OpenInterActiveImplicitAnimation(true, isGroupAnimator_, timingProtocol_, timingCurve_, nullptr);
     callback();
     auto animations = implicitAnimator->CloseInterActiveImplicitAnimation(true);
@@ -222,6 +227,11 @@ size_t RSInteractiveImplictAnimator::AddAnimation(std::function<void()> callback
         return 0;
     }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
+
+    if (!callback) {
+        ROSEN_LOGE("RSInteractiveImplictAnimator::AddAnimation, callback is null");
+        return 0;
+    }
 
     implicitAnimator->OpenInterActiveImplicitAnimation(false, isGroupAnimator_, timingProtocol_, timingCurve_, nullptr);
     callback();

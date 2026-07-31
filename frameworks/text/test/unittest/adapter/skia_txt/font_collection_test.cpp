@@ -66,7 +66,7 @@ void AdapterFontCollectionTest::SetUpTestSuite()
 
 void AdapterFontCollectionTest::SetUp()
 {
-    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto tf) { return tf->GetFd(); });
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto tf) { return true; });
     auto callback = [](const FontCollection* fc, const FontEventInfo& info) {
         EXPECT_NE(fc, nullptr);
         EXPECT_FALSE(info.familyName.empty());

@@ -39,7 +39,6 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_effect_render_node.h"
-#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -355,7 +354,8 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
         .intersectRegion_ = filterRegion,
         .filterDirty_ = filterRegion,
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
-        .isBackgroundFilterClean_ = RSEffectUtils::HasBackgroundDependentFilter(filterProperties) &&
+        .isBackgroundFilterClean_ =
+            (filterProperties.GetBackgroundFilter() || filterProperties.GetNeedDrawBehindWindow()) &&
             !filterNode.IsBackgroundInAppOrNodeSelfDirty(),
         .forceDisablePartialRender_ = filterNode.IsPixelStretchValid() ||
             filterNode.GetRenderProperties().NeedDisabledPartialRender()
@@ -444,6 +444,10 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
 {
     // Regardless of whether the current frame is skipped, the state needs to be accumulated
     if (!RSSystemProperties::GetVirtualExpandScreenSkipEnabled()) {
+        return false;
+    }
+
+    if (!screenDrawable.IsFirstFrameFlushed()) {
         return false;
     }
 

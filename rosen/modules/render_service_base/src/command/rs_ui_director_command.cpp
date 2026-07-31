@@ -19,6 +19,7 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_ui_render_director.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -73,7 +74,9 @@ void RSUIDirectorCommandHelper::GoBackground(RSContext& context, NodeId nodeId, 
 void RSUIDirectorCommandHelper::GoStop(RSContext& context, NodeId nodeId, uint64_t token)
 {
     pid_t pid = ExtractPid(nodeId);
-    context.GetMutableNodeMap().DestroyTokenNode(pid, token);
+    if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::GetBackgroundRebuildEnabled()) {
+        context.GetMutableNodeMap().DestroyTokenNode(pid, token);
+    }
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
         RS_LOGE("RSUIDirectorCommandHelper::GoStop failed to find director for token: %{public}" PRIu64, token);

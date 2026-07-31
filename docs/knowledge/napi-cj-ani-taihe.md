@@ -2,129 +2,185 @@
 
 ## 适用范围
 
-改动涉及 interfaces/kits 中 NAPI、CJ、ANI、Taihe 多语言公开 API 绑定和 XTS 验证时，先读本文，再回到代码确认当前实现。
+改动涉及 `interfaces/kits/` 中 NAPI、CJ、ANI、Taihe 绑定，或 Text 目录下对应绑定、
+公开 API 行为、SysCap、权限与 XTS 验证时，先读本文。
 
-本文是背景知识和排查路线，不替代代码。修改前仍需读取对应头文件、实现文件和测试。
+先区分“目录中存在实现”和“已进入部件聚合”。正式随本部件打包的入口以
+`interfaces/kits/*/BUILD.gn` 的 package group 和 `bundle.json` 为准。
+
+## 四类入口定位
+
+| 入口 | 本仓角色 | 主要声明或注册方式 |
+| --- | --- | --- |
+| NAPI | JavaScript/ArkTS Native API 绑定 | `napi_module`、`napi_module_register` |
+| CJ | 仓颉 FFI 绑定 | 导出 C ABI/FFI 函数 |
+| ANI | ArkTS Native Interface 运行时绑定 | `ANI_Constructor`、native method 绑定 |
+| Taihe | IDL 与代码生成链路 | `.taihe` → ANI/ABI 桥接代码、ETS 和 ABC |
+
+Taihe 在本仓中不是第五套独立底层能力。它根据 IDL 生成 ANI 桥接层，再与手写 native 实现
+共同构建。目录名或 target 名带 `taihe`，不代表它与 ANI 运行时无关。
 
 ## 快速代码地图
 
-| 方向 | 关键文件（完整路径） |
+| 方向 | 关键路径 |
 | --- | --- |
-| NAPI 构建入口 | `interfaces/kits/napi/BUILD.gn` |
-| NAPI Drawing | `interfaces/kits/napi/graphic/drawing/` |
-| NAPI ColorManager | `interfaces/kits/napi/graphic/color_manager/` |
-| NAPI EffectKit | `interfaces/kits/napi/graphic/effect_kit/` |
-| NAPI HDR Capability | `interfaces/kits/napi/graphic/hdr_capability/` |
-| NAPI HGM | `interfaces/kits/napi/graphic/hyper_graphic_manager/` |
-| NAPI UIEffect | `interfaces/kits/napi/graphic/ui_effect/` |
-| NAPI WebGL | `interfaces/kits/napi/graphic/webgl/` |
-| NAPI WindowAnimation | `interfaces/kits/napi/graphic/animation/window_animation_manager/` |
-| NAPI Text | `frameworks/text/interface/mlb/napi/` |
-| CJ 构建入口 | `interfaces/kits/cj/BUILD.gn` |
-| CJ ColorManager | `interfaces/kits/cj/color_manager/` |
-| CJ EffectKit | `interfaces/kits/cj/effect_kit/` |
-| ANI 构建入口 | `interfaces/kits/ani/BUILD.gn` |
-| ANI ColorManager | `interfaces/kits/ani/color_manager/` |
-| ANI Drawing | `interfaces/kits/ani/drawing/` |
-| ANI EffectKit | `interfaces/kits/ani/effect_kit/` |
-| ANI HDR Capability | `interfaces/kits/ani/hdr_capability/` |
-| ANI UIEffect | `interfaces/kits/ani/ui_effect/` |
-| ANI WindowAnimation | `interfaces/kits/ani/window_animation_manager/` |
-| ANI Text | `frameworks/text/interface/mlb/ani/` |
-| Taihe 构建入口 | `interfaces/kits/taihe/BUILD.gn` |
+| NAPI 聚合 | `interfaces/kits/napi/BUILD.gn` |
+| NAPI 图形模块 | `interfaces/kits/napi/graphic/` |
+| CJ 聚合 | `interfaces/kits/cj/BUILD.gn` |
+| CJ 模块 | `interfaces/kits/cj/{color_manager,effect_kit}/` |
+| ANI 聚合 | `interfaces/kits/ani/BUILD.gn` |
+| ANI 模块 | `interfaces/kits/ani/` |
+| Taihe 聚合 | `interfaces/kits/taihe/BUILD.gn` |
 | Taihe UIEffect | `interfaces/kits/taihe/ui_effect/` |
+| NAPI Text | `frameworks/text/interface/mlb/napi/` |
+| ANI Text | `frameworks/text/interface/mlb/ani/` |
+| 部件聚合和头文件 | `bundle.json` |
 
-## 核心模型
+## 当前进入 package group 的能力
 
-### 四层语言绑定
+| 能力 | NAPI | CJ | ANI group | Taihe group |
+| --- | --- | --- | --- | --- |
+| Drawing | `drawingnapi` | — | `ani_drawing` | — |
+| ColorManager | 普通版和 Sendable 版 | `cj_color_manager_ffi` | `ani_color_space_manager` | — |
+| EffectKit | `effectkit` | `cj_effect_kit_ffi` | `effectKit_ani`、ABC | — |
+| HDR Capability | `hdrcapability_napi` | — | `ani_hdr_capability` | — |
+| HGM | `libhgmnapi` | — | — | — |
+| UIEffect | `uieffect_napi` | — | — | `uieffect_taihe_native`、ABC |
+| WebGL | `libwebglnapi` | — | — | — |
+| WindowAnimation | `windowanimationmanager_napi` | — | Taihe 生成的 ANI target | — |
+| Text | `textnapi` | — | `text_engine_ani_group` | — |
 
-本仓通过 `interfaces/kits/` 下四个子目录为同一图形能力提供四种语言绑定：
+`interfaces/kits/ani/ui_effect/` 中仍有 `uiEffect_ani` 实现，但当前 `ani_packages` 没有依赖它。
+部件正式聚合的是 `interfaces/kits/taihe/ui_effect/`。不能仅凭目录存在就宣称产物已部署。
 
-1. **NAPI**（`interfaces/kits/napi/`）：JavaScript/TypeScript API，面向 ArkTS 应用和系统应用。是覆盖面最广的绑定层。
-2. **CJ**（`interfaces/kits/cj/`）：仓颉语言 FFI 绑定，面向仓颉应用。当前仅覆盖 color_manager 和 effect_kit。
-3. **ANI**（`interfaces/kits/ani/`）：ArkUI Native Interface 绑定，面向 C/C++ 原生模块。覆盖 color_manager、drawing、effect_kit、hdr_capability、ui_effect、window_animation_manager 和 text。
-4. **Taihe**（`interfaces/kits/taihe/`）：太合语言绑定。当前仅覆盖 ui_effect。
+## 绑定层的数据流
 
-### NAPI 模块列表
+一项公开能力通常经过以下层次：
 
-NAPI 是最完整的绑定层，`napi/BUILD.gn` 中 `napi_packages` group 包含以下 target：
+1. API 声明：ArkTS/ETS 文件、Taihe IDL、CJ FFI 头文件或 NAPI 导出名。
+2. 加载与注册：`napi_module_register`、`ANI_Constructor` 或 Taihe 生成的注册代码。
+3. 参数转换和生命周期：JS/ETS/CJ 值与 C++ 对象互转，native 指针清理和异常映射。
+4. 共享核心：`2d_graphics`、`color_manager`、`effect`、RS Client 等内部实现。
+5. 构建与部署：共享库、生成的 ABC、package group 和 `bundle.json`。
 
-| target 名 | 模块 |
-| --- | --- |
-| `drawingnapi` | 2D 绘制（Canvas、Pen、Path 等） |
-| `colorspacemanager_napi` | 色彩空间管理 |
-| `sendablecolorspacemanager_napi` | Sendable 色彩空间管理 |
-| `effectkit` | 效果滤镜 |
-| `hdrcapability_napi` | HDR 能力查询 |
-| `libhgmnapi` | 超图形管理器（刷新率控制） |
-| `uieffect_napi` | UI 特效 |
-| `libwebglnapi` | WebGL |
-| `windowanimationmanager_napi` | 窗口动画管理 |
-| `textnapi` | 文本排版（路径在 `frameworks/text/interface/mlb/napi/`） |
+公开行为变更不能只改第 3 层。
+声明、加载库名、构建依赖、权限、错误语义和测试都属于接口。
 
-### CJ 模块列表
+## 测试与 XTS 边界
 
-| target 名 | 模块 |
-| --- | --- |
-| `cj_color_manager_ffi` | 色彩空间管理 |
-| `cj_effect_kit_ffi` | 效果滤镜 |
+本仓的 `interfaces/kits/{napi,cj,ani,taihe}` 和 Text 绑定目录中，当前没有统一聚合的
+`ohos_unittest`、`ohos_moduletest` 或 XTS target。ANI 目录中的 `drawing_test.ets`、
+`effectKit_entry.ets` 等是构建或示例入口，不能等同于 XTS 覆盖。
 
-### ANI 模块列表
+因此：
 
-| target 名 | 模块 |
-| --- | --- |
-| `ani_color_space_manager` | 色彩空间管理 |
-| `ani_drawing` | 2D 绘制 |
-| `effectKit_ani` / `effectKit_etc` | 效果滤镜 |
-| `ani_hdr_capability` | HDR 能力查询 |
-| `window_animation_manager_taihe_group` | 窗口动画管理 |
-| `text_engine_ani_group` | 文本排版（路径在 `frameworks/text/interface/mlb/ani/`） |
+- 本仓可做 package target 构建、注册符号核对和底层模块测试。
+- 公共 API 的 XTS 用例名、覆盖率和执行入口不能从本仓得出，应在对应 XTS 仓确认。
+- 未拿到 XTS 仓或设备时，最终结论必须写“未验证”，不能把编译通过当作 API 行为通过。
 
-### Taihe 模块列表
+## 新增绑定的最小闭环
 
-| target 名 | 模块 |
-| --- | --- |
-| `uieffect_taihe_native` / `uiEffect_etc` | UI 特效 |
+本仓没有单独的开发规范或脚手架，现阶段应复用同类目录，按以下最小闭环实施：
 
-### inner_kits 中的多语言头文件
+1. 定义公开声明、命名空间、类型、错误和可选参数。
+2. 实现 native 注册、参数校验、对象所有权和异常转换。
+3. 接入共享核心能力，避免复制业务逻辑。
+4. 声明 `.so`、生成 ABC/IDL target，并加入对应 package group。
+5. 检查 `bundle.json`、安装目录、加载库名、SysCap 和权限。
+6. 增加语言侧正向、非法参数、生命周期和权限测试，并确认外部 XTS。
 
-`bundle.json` 的 `inner_kits` 声明了多语言绑定的公开头文件：
+这是一份由现有实现归纳的仓内检查清单，不是跨仓 API 发布规范。新增公开 API、错误码或
+默认行为前仍需人工确认。
 
-- NAPI Drawing：`canvas_napi/js_canvas.h`（header_base: `interfaces/kits/napi/graphic/drawing`）
-- NAPI Text：`paragraph_napi/js_paragraph.h`（header_base: `frameworks/text/interface/mlb/napi`）
-- NAPI ColorManager：`color_space_object_convertor.h`、`js_color_space.h` 等
-- NAPI HDR：`js_hdr_format_utils.h`
-- CJ ColorManager：`cj_color_manager.h`、`cj_color_mgr_utils.h`
-- ANI ColorManager：`ani_color_space_object_convertor.h`
-- ANI Drawing：`canvas_ani/ani_canvas.h`
-- ANI Text：`ani_paragraph.h`
+## 关键能力差异
 
-### 同步约束
+### 普通与 Sendable ColorManager
 
-同一图形能力在多种语言中暴露时，行为必须一致。例如：
-- color_manager 在 NAPI、CJ、ANI 三种绑定中均有暴露，底层都调用 `utils/color_manager/` 和 `interfaces/inner_api/color_manager/`。
-- effect_kit 在 NAPI、CJ、ANI、Taihe 四种绑定中均有暴露，底层调用 `rosen/modules/effect/`。
-- window_animation_manager 在 NAPI 和 ANI 中暴露。
+两者使用相同的 native `ColorSpace` 和相同的 `create` 参数解析，差异在 JS 对象封装：
 
-## 设计背景与决策理由
+- 普通模块名为 `graphics.colorSpaceManager`，使用普通对象和 `napi_wrap`，同时导出
+  `ColorSpace`、`CMError`、`CMErrorCode`。
+- Sendable 模块名为 `graphics.sendableColorSpaceManager`，使用
+  `napi_create_sendable_object_with_properties` 和 `napi_wrap_sendable`，只导出 `create`。
+- 两者最终都依赖 `utils/color_manager`，颜色空间计算语义不应分叉。
 
-| 决策 | 代码体现 | 设计意图 |
-| --- | --- | --- |
-| 四语言并列目录 | `interfaces/kits/{napi,cj,ani,taihe}/` | 各语言绑定独立构建、独立部署、独立版本管理，互不影响 |
-| NAPI 覆盖最广 | NAPI 有 10 个子模块，CJ 仅 2 个，Taihe 仅 1 个 | 优先保障 ArkTS 生态完整性，新语言绑定按需求逐步扩展 |
-| Text 独立于 kits 目录 | `frameworks/text/interface/mlb/napi/` 和 `ani/` 不在 `interfaces/kits/` 下 | Text 模块有独立的构建和版本路径，通过 `$rosen_text_root` 变量引用 |
-| ANI WindowAnimation 使用 taihe_group 命名 | `ani/BUILD.gn` 中 `window_animation_manager:window_animation_manager_taihe_group` | ANI 版窗口动画管理器内部复用了 Taihe 层实现，命名反映了代码复用关系 |
-| base_group 包含全部语言绑定 | `bundle.json` 中 `base_group` 包含 `napi_packages`、`ffi_packages`、`ani_packages`、`taihe_packages` | 语言绑定属于基础能力，所有产品形态都必须部署 |
-| inner_kits 声明头文件 | `bundle.json` 中为 CJ、ANI 等绑定声明公开头文件 | 允许其他部件依赖这些绑定的头文件进行二次开发 |
+Sendable 对象的跨并发实例使用规则由 NAPI 运行时定义。本仓能确认对象创建和包装方式，
+不能仅靠这段实现推导所有线程、序列化或传递限制。
 
-## 待补充背景
+### NAPI 与 ANI Drawing
 
-这些内容需要模块责任人后续补充，不能仅靠静态扫描完全确定：
+两者当前覆盖 Canvas、Path、Pen、Brush、Font、Typeface、Filter、Region、Matrix 等
+相近对象族，但声明和注册链路独立：
 
-- 每种语言绑定的 XTS 测试覆盖范围和验证策略。
-- CJ/ANI/Taihe 新增绑定的开发规范和模板（当前只能从已有代码推断）。
-- Sendable ColorManager（`sendablecolorspacemanager_napi`）与普通 ColorManager 的运行时差异。
-- ANI 版 Drawing 和 NAPI 版 Drawing 的功能差异（ANI 可能是子集）。
-- Taihe UIEffect 的 API 设计与 NAPI UIEffect 的对应关系。
-- 各语言绑定中 syscap 声明与 `bundle.json` 中 syscap 列表的一致性。
-- 改动公开行为时，四层语言绑定需要同步修改的具体流程和检查清单。
+- NAPI 以 `DrawingInit` 注册 JS 类和方法。
+- ANI 以 ETS 声明、`ANI_Constructor` 和 native method 表绑定，并额外生成 ABC。
+- ANI 使用独立的 native 生命周期清理和运行时类型签名。
+
+目录级组件相近不代表方法、重载、错误和权限一一一致。判断具体 API 是否对齐时，
+应对照 NAPI 的 `js_drawing_init.cpp`、各 `js_*` 实现，以及 ANI 的 ETS 声明、
+`ani_drawing_module.cpp` 和各 `ani_*` 实现，逐项比较签名和异常行为。
+
+### NAPI 与 Taihe UIEffect
+
+两者都调用 RS Client UIEffect 和 2D `Filter`、`VisualEffect`、`Mask` 等核心对象，但绑定
+方式和当前 API 面不同：
+
+- NAPI 直接在 C++ 中声明并注册 `createFilter`、`createEffect` 等方法。
+- Taihe 以两份 `.taihe` IDL 定义 API，生成 ANI/ABI、ETS，再连接 `*_taihe.cpp` 实现。
+- Taihe IDL 覆盖 Blur、PixelStretch、LiquidMaterial 等能力；NAPI 还存在 frosted glass、
+  motion blur 等当前 IDL 未声明的方法。
+
+因此 Taihe 不是 NAPI 的机械转译。修改共享能力时，要分别检查 NAPI 注册表、Taihe IDL、
+生成产物输入和两侧 native 参数校验。
+
+## SysCap 核对
+
+`bundle.json.component.syscap` 是部件级能力列表，不是每个绑定文件注解的简单并集。公开声明
+还可能引用依赖部件的 SysCap，例如图片能力。
+
+检查顺序应为：
+
+1. 从公开 ETS、头文件或 IDL 收集 `@syscap`。
+2. 区分本部件提供的能力和依赖部件提供的能力。
+3. 本部件能力与 `bundle.json.component.syscap` 核对。
+4. 依赖能力与 `bundle.json.component.deps` 及对应部件声明核对。
+5. 再检查权限校验和系统应用限制，SysCap 不能替代权限。
+
+例如 ANI Drawing 使用 `SystemCapability.Graphics.Drawing`，该项存在于本部件 SysCap；
+EffectKit 声明中的图片 SysCap 则属于 multimedia image 依赖。两者都可能正确。
+
+## `inner_kits` 的边界
+
+`bundle.json` 当前为部分绑定声明内部可见头文件，包括：
+
+- NAPI Drawing、Text、ColorManager 转换层和 HDR 工具。
+- CJ ColorManager 和 EffectKit。
+- ANI ColorManager 转换层、Drawing 和 Text。
+
+`inner_kits` 不是语言 API 清单，也不代表头文件是 SDK 公共 API。修改其中的 target、
+`header_base`、结构体或符号可能影响其他部件，需先做依赖检索和兼容性确认。
+
+## 公开行为变更检查清单
+
+1. 先确认变更是否涉及公开 API、默认值、错误码、权限或 XTS 预期；涉及则先人工确认。
+2. 找到底层共享能力和所有已聚合的语言入口，不以目录数量代替 package group 检查。
+3. 同步声明、native 注册、参数转换、对象生命周期和错误语义。
+4. 检查异步回调的线程归属、native 指针所有权和异常路径释放。
+5. 同步共享库、ABC/IDL、package group、`bundle.json` 和安装路径。
+6. 核对 SysCap、权限、系统应用限制和加载库名。
+7. 为每个受影响入口验证正常、边界、非法参数和生命周期场景。
+8. 到外部 XTS 仓确认用例；无法访问时明确记录缺口。
+
+## 验证建议
+
+静态检查至少包括：
+
+- package group 是否引用正确 target，target 名是否真实存在。
+- NAPI 模块名、ANI/Taihe 加载库名和输出名是否一致。
+- ETS、Taihe IDL、native 签名和错误分支是否对应。
+- `bundle.json` 的 SysCap、依赖和 `inner_kits` 是否与变更匹配。
+- `git diff --check` 和路径引用检查。
+
+构建从 OpenHarmony 源码根目录执行，优先构建受影响的 package target 和底层模块。
+公共 API 行为还需对应语言运行时、XTS 和必要的真实设备验证；
+没有这些环境时不得声称完整通过。

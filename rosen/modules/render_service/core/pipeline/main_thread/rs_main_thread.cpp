@@ -114,6 +114,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -274,6 +275,7 @@ constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 const std::string  FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
 constexpr uint32_t MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME = 1;
+constexpr size_t REBUILD_TRACE_INDEX_ENTRY_OVERHEAD = 24; // '[' + ',' + ']' + max 20 digits of uint64_t
 
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE = 96 * (1 << 20);
@@ -481,6 +483,7 @@ RSMainThread::RSMainThread() : systemAnimatedScenesEnabled_(RSSystemParameters::
     context_->Initialize();
     tunnelLayerManager_ = std::make_unique<RSTunnelLayerManager>(context_);
     tunnelRouteArbiter_ = std::make_unique<RSTunnelRouteArbiter>();
+    virtualScreenParallelManager_ = std::make_shared<RSVirtualScreenParallelManager>();
 }
 
 RSMainThread::~RSMainThread() noexcept
@@ -540,6 +543,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #ifdef RS_ENABLE_GPU
             // fill the params, and sync to render thread later
             renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+            renderThreadParams_->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
 #endif
         }
         RenderFrameStart(timestamp_);
@@ -580,6 +584,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         TraverseCanvasDrawingNodes();
         RS_PROFILER_ON_RENDER_END();
         OnUniRenderDraw();
+        ProcessSplitTransactionCommands();
         UIExtensionNodesTraverseAndCallback();
         if (!isUniRender_) {
             ReleaseAllNodesBuffer();
@@ -870,9 +875,23 @@ void RSMainThread::CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid) noexcep
 }
 #endif
 
+void RSMainThread::ClearRebuildTransactionData(pid_t pid)
+{
+    pendingCommandsDuringRebuild_.erase(pid);
+    pendingSplitTransactions_.erase(pid);
+}
+
 void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
 {
     RS_TRACE_NAME_FMT("CleanResources %d, forRefresh: %d", pid, forRefresh);
+    // Clear this pid's rebuild queue and cached commands; surface nodes are removed by the
+    // CleanRenderNodes->FilterNodeByPid that follows, so no per-node state reset is needed here.
+    {
+        RS_TRACE_BEGIN("ClearRebuildTransactionData");
+        ClearRebuildTransactionData(pid);
+        RS_TRACE_END();
+    }
+
     // 0. CleanRenderNodes
     {
         RS_TRACE_BEGIN("CleanRenderNodes");
@@ -1830,9 +1849,6 @@ void RSMainThread::ProcessCommandForUniRender()
 #endif
     ProcessNeedAttachedNodes();
 
-    // 处理重建事务的命令（在 Vsync 之后）
-    ProcessSplitTransactionCommands();
- 
     const auto& nodeMap = context_->GetNodeMap();
     nodeMap.TraverseCanvasDrawingNodes([this](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
         if (canvasDrawingNode == nullptr) {
@@ -1978,6 +1994,15 @@ void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& 
         return;
     }
 
+    // Defer normal transactions for a pid that is mid-rebuild, to avoid interleaving with rebuild commands.
+    pid_t callingPid = rsTransactionData->GetCallingPid();
+    pid_t rebuildPid = (callingPid > 0) ? callingPid : pid;
+    if (IsPidRebuilding(rebuildPid)) {
+        RS_TRACE_NAME_FMT("ProcessRSTransactionData: cache transaction during rebuild");
+        pendingCommandsDuringRebuild_[rebuildPid].emplace_back(std::move(rsTransactionData));
+        return;
+    }
+
     // 普通事务直接处理
     rsTransactionData->Process(*context_);
 }
@@ -2117,6 +2142,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     if (UNLIKELY(consumeAndUpdateNode_ == nullptr)) {
         consumeAndUpdateNode_ = [this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (UNLIKELY(surfaceNode == nullptr)) {
+                return;
+            }
+            if (surfaceNode->IsUIRenderDirectorStopped()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("ConsumeAndUpdateAllNodes skip stopped director node %" PRIu64,
+                    surfaceNode->GetId());
                 return;
             }
             surfaceNode->ResetSurfaceNodeStates();
@@ -2294,8 +2324,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
     isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
     const auto& nodeMap = GetContext().GetNodeMap();
+    UIMode3D uiMode3D = GetUIMode3D();
     nodeMap.TraverseSurfaceNodes(
-        [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        [this, &nodeMap, uiMode3D](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
             }
@@ -2333,8 +2364,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 }
                 return;
             }
+            UpdateCompositionType(surfaceNode, uiMode3D);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
-            UIMode3D uiMode3D = RSMainThread::Instance()->GetUIMode3D();
             RSTvShutter3DManager::Instance().UpdateSurfaceNodeCompositionType(surfaceNode, uiMode3D);
 #endif
             auto videoHdrStatus = RSHdrUtil::CheckIsHdrSurface(*surfaceNode);
@@ -2536,6 +2567,24 @@ void RSMainThread::ReleaseAllNodesBuffer()
 uint32_t RSMainThread::GetRefreshRate() const
 {
     return GetDynamicRefreshRate();
+}
+
+void RSMainThread::UpdateCompositionType(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, UIMode3D uiMode3D)
+{
+#ifdef RS_ENABLE_GPU
+    if (!surfaceNode) {
+        return;
+    }
+    surfaceNode->ResetCompositionType();
+    if (uiMode3D == UIMode3D::MODE_GLASSESFREE_3D) {
+        auto videoDimType = surfaceNode->GetVideoDimType();
+        RS_TRACE_NAME_FMT("%s MODE_GLASSESFREE_3D name:%s id:%" PRIu64 ", videoDimType: %d",
+            __func__, surfaceNode->GetName().c_str(), surfaceNode->GetId(), videoDimType);
+        if (videoDimType != VideoDimType::VIDEO_DIM_TYPE_2D) {
+            surfaceNode->SetCompositionType(CompositionType::COMPOSITION_3D_GLASS_FREE);
+        }
+    }
+#endif
 }
 
 uint32_t RSMainThread::GetDynamicRefreshRate() const
@@ -2939,6 +2988,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     RSUifirstManager::Instance().RefreshUIFirstParam();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
+    uniVisitor->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
     int64_t rsPeriod = 0;
     if (receiver_) {
         receiver_->GetVSyncPeriod(rsPeriod);
@@ -3469,6 +3519,11 @@ void RSMainThread::OnUniRenderDraw()
     if (needPostAndWait_) {
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
+
+        std::unordered_set<NodeId> nodeIds;
+        virtualScreenParallelManager_->GetStagingNodeIds(nodeIds);
+        renderThreadParams_->SetCollectedVirtualScreenNodeIds(std::move(nodeIds));
+
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
         RsFrameReport::CheckPostAndWaitPoint();
         drawFrame_.PostAndWait();
@@ -4064,6 +4119,7 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
         if (!renderThreadParams_) {
             // fill the params, and sync to render thread later
             renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+            renderThreadParams_->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
         }
         renderThreadParams_->SetIsUniRenderAndOnVsync(true);
         renderThreadParams_->SetOnVsyncStartTime(onVsyncStartTime);
@@ -6264,9 +6320,9 @@ bool RSMainThread::IsRebuildTransactionInProgress() const
     return !pendingSplitTransactions_.empty();
 }
  
-pid_t RSMainThread::GetPendingSplitPid() const
+bool RSMainThread::IsPidRebuilding(pid_t pid) const
 {
-    return pendingSplitPid_;
+    return pendingSplitTransactions_.count(pid) > 0;
 }
  
 void RSMainThread::AddSplitTransaction(std::unique_ptr<RSTransactionData> transaction)
@@ -6274,11 +6330,17 @@ void RSMainThread::AddSplitTransaction(std::unique_ptr<RSTransactionData> transa
     if (!transaction) {
         return;
     }
+    // Queue per pid; record the total-time start only when this pid's queue goes empty->non-empty,
+    // so a later transaction in the same rebuild burst does not reset the budget.
     pid_t callingPid = transaction->GetCallingPid();
-    pendingSplitPid_ = (callingPid > 0) ? callingPid : transaction->GetSendingPid();
-    pendingSplitTransactions_.push_back(std::move(transaction));
-    RS_TRACE_NAME_FMT("AddSplitTransaction: pending rebuild transactions count = %zu",
-        pendingSplitTransactions_.size());
+    pid_t pid = (callingPid > 0) ? callingPid : transaction->GetSendingPid();
+    auto& state = pendingSplitTransactions_[pid];
+    if (state.transactions.empty()) {
+        state.startTimeMs = GetCurrentSteadyTimeMsFloat();
+    }
+    state.transactions.push_back(std::move(transaction));
+    RS_TRACE_NAME_FMT(
+        "AddSplitTransaction: pid=%d pending rebuild transactions count = %zu", pid, state.transactions.size());
 }
  
 void RSMainThread::ProcessSplitTransactionCommands()
@@ -6286,48 +6348,114 @@ void RSMainThread::ProcessSplitTransactionCommands()
     if (pendingSplitTransactions_.empty()) {
         return;
     }
- 
+
     RS_TRACE_NAME("ProcessSplitTransactionCommands: start processing rebuild transactions");
- 
+
+    // startTime is the frame-level 2ms budget shared across pids; MAX_TOTAL_TIME_MS is a per-pid
+    // anti-starvation cap: once a pid's rebuild exceeds it, the time-slice check is skipped to force finish.
     const float MAX_PROCESS_TIME_MS = RSSystemProperties::GetSplitTransactionMaxProcessTimeMs();
+    const float MAX_TOTAL_TIME_MS = RSSystemProperties::GetSplitTransactionMaxTotalTimeMs();
     const float startTime = GetCurrentSteadyTimeMsFloat();
     const size_t CHECK_INTERVAL = RSSystemProperties::GetSplitTransactionCheckInterval();
-    bool isRemain = false;
- 
-    while (!pendingSplitTransactions_.empty()) {
-        auto& transaction = pendingSplitTransactions_.front();
-        if (!transaction) {
-            pendingSplitTransactions_.pop_front();
+
+    for (auto it = pendingSplitTransactions_.begin(); it != pendingSplitTransactions_.end();) {
+        pid_t pid = it->first;
+        auto& state = it->second;
+        while (!state.transactions.empty() && !state.transactions.front()) {
+            state.transactions.pop_front();
+        }
+        if (state.transactions.empty()) {
+            it = pendingSplitTransactions_.erase(it);
             continue;
         }
- 
+        // Per-pid total time exceeded: skip the per-frame time-slice check and finish this pid's remaining commands.
+        const bool isTotalTimeExceeded = (startTime - state.startTimeMs >= MAX_TOTAL_TIME_MS);
+        auto& transaction = state.transactions.front();
+
         auto& payload = transaction->GetPayload();
         size_t commandCount = payload.size();
- 
+        bool needNextVsync = false;
         for (size_t i = 0; i < commandCount; ++i) {
-            if (CHECK_INTERVAL != 0 && i % CHECK_INTERVAL == 0) {
+            if (!isTotalTimeExceeded && CHECK_INTERVAL != 0 && i % CHECK_INTERVAL == 0) {
                 const float currentTime = GetCurrentSteadyTimeMsFloat();
                 if (currentTime - startTime >= MAX_PROCESS_TIME_MS) {
-                    RS_TRACE_NAME_FMT("ProcessSplitTransactionCommands: time limit reached, processed %zu/%zu "
-                        "commands", i, commandCount);
                     payload.erase(payload.begin(), payload.begin() + i);
+                    RS_TRACE_NAME_FMT("ProcessSplitTransactionCommands: time limit reached, pid=%d processed %zu/%zu "
+                                      "commands",
+                        pid, i, commandCount);
                     RS_TRACE_NAME("ProcessSplitTransactionCommands: has remaining commands, requesting next vsync");
                     RequestNextVSync("ProcessSplitTransactionCommands");
-                    return;
+                    needNextVsync = true;
+                    break;
                 }
             }
- 
+
             auto& [nodeId, followType, command] = payload[i];
             if (command != nullptr && command->IsCallingPidValid()) {
                 RS_PROFILER_EXECUTE_COMMAND(&*command);
                 command->Process(*context_);
             }
         }
- 
-        RS_TRACE_NAME_FMT("ProcessSplitTransactionCommands: processed transaction with %zu commands", commandCount);
-        pendingSplitTransactions_.pop_front();
+        if (needNextVsync) {
+            return;
+        }
+
+        RS_TRACE_NAME_FMT(
+            "ProcessSplitTransactionCommands: processed transaction with %zu commands, pid=%d", commandCount, pid);
+        state.transactions.pop_front();
+        if (state.transactions.empty()) {
+            // This pid's rebuild is fully done: replay its cached normal transactions and drop the entry.
+            pid_t completedPid = pid;
+            it = pendingSplitTransactions_.erase(it);
+            ProcessPendingCommandsDuringRebuild(completedPid);
+            context_->GetNodeMap().TraversalNodesByPid(completedPid,
+                [](const std::shared_ptr<RSBaseRenderNode>& node) {
+                    auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+                    if (surfaceNode) {
+                        surfaceNode->SetRebuildingState(false);
+                    }
+                });
+        } else {
+            // Stay on this pid to process its next transaction within the same frame budget;
+            // the inner loop's time-slice check breaks and requests next vsync when the budget is exhausted.
+            continue;
+        }
     }
-    pendingSplitPid_ = -1;
+}
+
+void RSMainThread::ProcessPendingCommandsDuringRebuild(pid_t pid)
+{
+    // Replays normal transactions deferred during the pid's rebuild (in arrival order), then clears the cache.
+    auto it = pendingCommandsDuringRebuild_.find(pid);
+    if (it == pendingCommandsDuringRebuild_.end() || it->second.empty()) {
+        return;
+    }
+
+    std::string pidStr = std::to_string(pid);
+    std::string indexInfo;
+    indexInfo.reserve(it->second.size() * (pidStr.size() + REBUILD_TRACE_INDEX_ENTRY_OVERHEAD));
+    for (const auto& transaction : it->second) {
+        if (transaction) {
+            indexInfo += '[';
+            indexInfo += pidStr;
+            indexInfo += ',';
+            indexInfo += std::to_string(transaction->GetIndex());
+            indexInfo += ']';
+        }
+    }
+    RS_TRACE_NAME_FMT("ProcessPendingCommandsDuringRebuild: processing %zu cached transactions after rebuild%s",
+        it->second.size(), indexInfo.c_str());
+
+    auto pendingVec = std::move(it->second);
+    pendingCommandsDuringRebuild_.erase(it);
+
+    for (auto& transaction : pendingVec) {
+        if (!transaction) {
+            continue;
+        }
+        context_->transactionTimestamp_ = transaction->GetTimestamp();
+        transaction->Process(*context_);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

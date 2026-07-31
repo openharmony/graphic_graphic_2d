@@ -16,10 +16,13 @@
 #include <memory>
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "common/rs_common_def.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
+#include "pipeline/rs_ui_render_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -136,6 +139,38 @@ HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailable001, TestSize.Level1)
     rsSurfaceRenderNode->SetIsNotifyUIBufferAvailable(true);
     rsListener->OnBufferAvailable();
     ASSERT_EQ(rsSurfaceRenderNode->IsNotifyUIBufferAvailable(), true);
+}
+
+/**
+ * @tc.name: OnBufferAvailableStoppedDirector001
+ * @tc.desc: Test OnBufferAvailable consumes buffer via ConsumeBufferToKeepQueueRunning when director is STOP.
+ * @tc.type: FUNC
+ * @tc.require: issueI590LM
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailableStoppedDirector001, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    node->OnRegister(context);
+    uint64_t token = 12345;
+    node->SetUIContextToken(token);
+    pid_t pid = ExtractPid(node->GetId());
+    context->CreateUIRenderDirector(pid, token);
+    auto director = context->GetUIRenderDirector(pid, token);
+    ASSERT_NE(director, nullptr);
+    director->OnStateSync(RSUIDirectorLifecycleState::STOP);
+    ASSERT_TRUE(node->IsUIRenderDirectorStopped());
+
+    surfaceHandler->ResetBufferAvailableCount();
+    node->SetIsNotifyUIBufferAvailable(false);
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+    rsListener->OnBufferAvailable();
+    // the buffer is consumed by ConsumeBufferToKeepQueueRunning, the normal notify path is skipped
+    EXPECT_GE(surfaceHandler->GetAvailableBufferCount(), 1);
+    EXPECT_FALSE(node->IsNotifyUIBufferAvailable());
 }
 
 /**
