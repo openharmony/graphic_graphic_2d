@@ -85,7 +85,7 @@ bool RejectDirectCommit(NodeId nodeId, const char* reason, uint64_t tunnelLayerI
 }
 
 bool CanCommitBufferDirect(const std::shared_ptr<RSSurfaceRenderNode>& node,
-    uint64_t& tunnelLayerId, uint32_t& property)
+    RSTunnelRuntimeState& tunnelRuntime, uint64_t& tunnelLayerId, uint32_t& property)
 {
     if (node == nullptr) {
         return RejectDirectCommit(0, "node_null");
@@ -99,7 +99,7 @@ bool CanCommitBufferDirect(const std::shared_ptr<RSSurfaceRenderNode>& node,
     if (consumer == nullptr) {
         return RejectDirectCommit(nodeId, "consumer_null");
     }
-    if (!RSTunnelRuntimeStore::GetOrCreate(nodeId).IsTunnelDirectAllowed()) {
+    if (!tunnelRuntime.IsTunnelDirectAllowed()) {
         return RejectDirectCommit(nodeId, "runtime_not_active");
     }
     if (!node->IsOnTheTree()) {
@@ -124,28 +124,6 @@ bool CanCommitBufferDirect(const std::shared_ptr<RSSurfaceRenderNode>& node,
         return RejectDirectCommit(nodeId, "invalid_layer_info", tunnelLayerId, property);
     }
     return true;
-}
-
-void PreparePendingTunnelBufferForFallback(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-    const RSSurfaceHandler::SurfaceBufferEntry& pendingBuffer)
-{
-    uint64_t bufferId = pendingBuffer.buffer->GetBufferId();
-    if (surfaceHandler->GetHoldReturnValue() != nullptr) {
-        surfaceHandler->SetAvailableBufferCount(std::max(surfaceHandler->GetAvailableBufferCount(), 1));
-        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s holdReturnValue occupied, keep tunnel pending bufferId=%" PRIu64,
-            __func__, bufferId);
-        RS_LOGD("%{public}s%{public}s holdReturnValue occupied, keep tunnel pending bufferId:%{public}" PRIu64,
-            TUNNEL_DEBUG_PREFIX, __func__, bufferId);
-        return;
-    }
-    auto consumer = surfaceHandler->GetConsumer();
-    int32_t availableBufferCount = consumer == nullptr ? 0 : static_cast<int32_t>(consumer->GetAvailableBufferCount());
-    surfaceHandler->SetAvailableBufferCount(availableBufferCount > 0 ? availableBufferCount : 1);
-    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s bufferId=%" PRIu64 ", available=%d", __func__,
-        bufferId, surfaceHandler->GetAvailableBufferCount());
-    RS_LOGD("%{public}s%{public}s keep pending buffer for fallback, bufferId:%{public}" PRIu64
-        ", available:%{public}d",
-        TUNNEL_DEBUG_PREFIX, __func__, bufferId, surfaceHandler->GetAvailableBufferCount());
 }
 
 bool CommitBuffer(const TunnelLayerCommitInfo& commitInfo,
@@ -218,13 +196,12 @@ bool RSTunnelLayerHelper::ResolveTunnelLayerInfo(
 }
 
 bool RSTunnelLayerHelper::TryCommitBufferDirect(const std::shared_ptr<RSSurfaceRenderNode>& node,
-    const std::shared_ptr<RSComposerClientManager>& composerClientManager, bool consumePendingBuffer,
-    bool previousFrameWasRs)
+    const std::shared_ptr<RSComposerClientManager>& composerClientManager,
+    bool previousFrameWasRs, RSTunnelRuntimeState& tunnelRuntime)
 {
     if (node == nullptr) {
         return false;
     }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
     if (!tunnelRuntime.IsTunnelDirectAllowed()) {
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s reject, nodeId=%" PRIu64 ", state=%s",
             __func__, node->GetId(), ToTunnelStateName(tunnelRuntime.GetTunnelState()));
@@ -232,53 +209,47 @@ bool RSTunnelLayerHelper::TryCommitBufferDirect(const std::shared_ptr<RSSurfaceR
             TUNNEL_DEBUG_PREFIX, __func__, node->GetId(), ToTunnelStateName(tunnelRuntime.GetTunnelState()));
         return false;
     }
-    // The tunnel-direct check must happen before AcquirePendingBuffer. If RS normal is consuming
-    // this surface, tunnel direct must leave the producer queue untouched.
-    if (consumePendingBuffer && !tunnelRuntime.HasPendingBuffer()) {
-        uint64_t tunnelLayerId = 0;
-        uint32_t property = TUNNEL_PROP_INVALID;
-        if (!CanCommitBufferDirect(node, tunnelLayerId, property)) {
-            return false;
-        }
-        if (!AcquirePendingBuffer(node) && !tunnelRuntime.HasPendingBuffer()) {
-            return false;
-        }
+    uint64_t tunnelLayerId = 0;
+    uint32_t property = TUNNEL_PROP_INVALID;
+    if (!CanCommitBufferDirect(node, tunnelRuntime, tunnelLayerId, property)) {
+        return false;
     }
-    return TryCommitPendingBuffer(node, composerClientManager, consumePendingBuffer, previousFrameWasRs);
+    auto pendingBuffer = AcquirePendingBuffer(node, tunnelRuntime);
+    if (pendingBuffer.buffer == nullptr) {
+        return false;
+    }
+    return TryCommitPendingBuffer(node, composerClientManager, previousFrameWasRs, tunnelRuntime, pendingBuffer);
 }
 
 bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurfaceRenderNode>& node,
-    const std::shared_ptr<RSComposerClientManager>& composerClientManager, bool fallbackOnFailure,
-    bool previousFrameWasRs)
+    const std::shared_ptr<RSComposerClientManager>& composerClientManager,
+    bool previousFrameWasRs, RSTunnelRuntimeState& tunnelRuntime,
+    RSSurfaceHandler::SurfaceBufferEntry pendingBuffer)
 {
-    if (node == nullptr) {
+    if (node == nullptr || pendingBuffer.buffer == nullptr) {
         return false;
     }
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
     if (surfaceHandler == nullptr) {
         return false;
     }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
 
-    if (surfaceHandler->GetBuffer() &&
-        tunnelRuntime.IsBufferSizeChanged(surfaceHandler->GetBuffer()->GetSize())) {
-        return false;
-    }
-
-    RSSurfaceHandler::SurfaceBufferEntry pendingBuffer;
-    if (!tunnelRuntime.TakePendingBuffer(pendingBuffer)) {
+    auto existingBuffer = surfaceHandler->GetBuffer();
+    if (existingBuffer != nullptr && existingBuffer->GetSize() != pendingBuffer.buffer->GetSize()) {
+        RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());
+        pendingBuffer.bufferOwnerCount_->ClearReleaseCallback();
         return false;
     }
 
     uint64_t tunnelLayerId = 0;
     uint32_t property = TUNNEL_PROP_INVALID;
     auto consumer = surfaceHandler->GetConsumer();
-    bool canCommit = CanCommitBufferDirect(node, tunnelLayerId, property);
+    bool canCommit = CanCommitBufferDirect(node, tunnelRuntime, tunnelLayerId, property);
     if (!canCommit || consumer == nullptr || composerClientManager == nullptr) {
-        if (fallbackOnFailure) {
-            PreparePendingTunnelBufferForFallback(surfaceHandler, pendingBuffer);
-        }
-        tunnelRuntime.SetPendingBuffer(pendingBuffer);
+        tunnelRuntime.SetLayerInfo(0, TUNNEL_PROP_INVALID);
+        tunnelRuntime.SetBuilding();
+        RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());
+        pendingBuffer.bufferOwnerCount_->ClearReleaseCallback();
         return false;
     }
 
@@ -292,10 +263,8 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     if (!CommitBuffer(commitInfo, composerClientManager, releaseFence)) {
         tunnelRuntime.SetLayerInfo(0, TUNNEL_PROP_INVALID);
         tunnelRuntime.SetBuilding();
-        if (fallbackOnFailure) {
-            PreparePendingTunnelBufferForFallback(surfaceHandler, pendingBuffer);
-        }
-        tunnelRuntime.SetPendingBuffer(pendingBuffer);
+        RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());
+        pendingBuffer.bufferOwnerCount_->ClearReleaseCallback();
         return false;
     }
 
@@ -353,27 +322,26 @@ void RSTunnelLayerHelper::ResetTunnelState(const std::shared_ptr<RSSurfaceRender
     }
 }
 
-bool RSTunnelLayerHelper::AcquirePendingBuffer(const std::shared_ptr<RSSurfaceRenderNode>& node)
+RSSurfaceHandler::SurfaceBufferEntry RSTunnelLayerHelper::AcquirePendingBuffer(
+    const std::shared_ptr<RSSurfaceRenderNode>& node, RSTunnelRuntimeState& tunnelRuntime)
 {
     if (node == nullptr) {
-        return false;
+        return {};
     }
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
-    auto tunnelState = tunnelRuntime.GetTunnelState();
     if (!tunnelRuntime.IsTunnelDirectAllowed()) {
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s reject, nodeId=%" PRIu64 ", state=%s",
-            __func__, node->GetId(), ToTunnelStateName(tunnelState));
+            __func__, node->GetId(), ToTunnelStateName(tunnelRuntime.GetTunnelState()));
         RS_LOGD("%{public}s%{public}s reject, nodeId:%{public}" PRIu64 ", state:%{public}s",
-            TUNNEL_DEBUG_PREFIX, __func__, node->GetId(), ToTunnelStateName(tunnelState));
-        return false;
+            TUNNEL_DEBUG_PREFIX, __func__, node->GetId(), ToTunnelStateName(tunnelRuntime.GetTunnelState()));
+        return {};
     }
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
     if (surfaceHandler == nullptr || surfaceHandler->GetAvailableBufferCount() <= 0) {
-        return false;
+        return {};
     }
     auto consumer = surfaceHandler->GetConsumer();
     if (consumer == nullptr) {
-        return false;
+        return {};
     }
 
     IConsumerSurface::AcquireBufferReturnValue returnValue;
@@ -382,13 +350,12 @@ bool RSTunnelLayerHelper::AcquirePendingBuffer(const std::shared_ptr<RSSurfaceRe
     if (ret != SURFACE_ERROR_OK || returnValue.buffer == nullptr) {
         RS_LOGD_IF(DEBUG_PIPELINE, "%{public}sRSTunnelLayerHelper::AcquirePendingBuffer failed, "
             "nodeId:%{public}" PRIu64 ", ret:%{public}d", TUNNEL_DEBUG_PREFIX, surfaceHandler->GetNodeId(), ret);
-        return false;
+        return {};
     }
 
     auto pendingBuffer = CreateTunnelPendingBuffer(returnValue);
     RSUniRenderThread::Instance().AddPendingReleaseBuffer(
         consumer, pendingBuffer.buffer, SyncFence::InvalidFence(), pendingBuffer.bufferOwnerCount_);
-    tunnelRuntime.SetPendingBuffer(pendingBuffer);
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s success, nodeId=%" PRIu64 ", bufferId=%" PRIu64 ", available=%u",
         __func__, surfaceHandler->GetNodeId(), returnValue.buffer->GetBufferId(),
         consumer->GetAvailableBufferCount());
@@ -396,7 +363,7 @@ bool RSTunnelLayerHelper::AcquirePendingBuffer(const std::shared_ptr<RSSurfaceRe
         ", available:%{public}u",
         TUNNEL_DEBUG_PREFIX, __func__, surfaceHandler->GetNodeId(), returnValue.buffer->GetBufferId(),
         consumer->GetAvailableBufferCount());
-    return true;
+    return pendingBuffer;
 }
 
 RSLayerPtr RSTunnelLayerHelper::CreateTunnelLayer(const std::shared_ptr<RSSurfaceRenderNode>& node,
@@ -490,10 +457,9 @@ RSTunnelLayerHelper::ListenerHandleResult RSTunnelLayerHelper::HandleListenerBuf
     RS_OPTIONAL_TRACE_NAME_FMT("HandleListenerBuffer claimedFrom:%d", claimedFrom);
     bool previousFrameWasRs = claimedFrom == RSTunnelRuntimeState::Phase::NORMAL_COMMITTED ||
         claimedFrom == RSTunnelRuntimeState::Phase::TUNNEL_IDLE;
-    bool hasCommitCandidateBuffer = surfaceHandler->GetAvailableBufferCount() > 0 ||
-        tunnelRuntime.HasPendingBuffer();
+    bool hasCommitCandidateBuffer = surfaceHandler->GetAvailableBufferCount() > 0;
     bool directCommitted = hasCommitCandidateBuffer &&
-        TryCommitBufferDirect(node, composerClientManager, true, previousFrameWasRs);
+        TryCommitBufferDirect(node, composerClientManager, previousFrameWasRs, tunnelRuntime);
     if (directCommitted) {
         RSMainThread::Instance()->ResetConsecutiveDoCompSuccessCount();
     }

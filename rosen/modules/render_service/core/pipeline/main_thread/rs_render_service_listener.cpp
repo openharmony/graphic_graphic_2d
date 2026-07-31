@@ -65,8 +65,9 @@ void RSRenderServiceListener::OnBufferAvailable()
 
     bool isNewTunnelEnabled = Rosen::IsNewTunnelEnabled();
     auto doFastCompose = CheckFastCompose(consumer);
-    if (isNewTunnelEnabled) {
-        auto *surfaceRenderNodeRaw = node->AsRSSurfaceRenderNode();
+    bool isTunnelCandidate = isNewTunnelEnabled && surfaceHandler->HasReceivedTunnelLayerInfo();
+    if (isTunnelCandidate) {
+        auto* surfaceRenderNodeRaw = node->AsRSSurfaceRenderNode();
         if (surfaceRenderNodeRaw != nullptr) {
             std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode(node, surfaceRenderNodeRaw);
             auto handleResult =
@@ -152,6 +153,9 @@ void RSRenderServiceListener::OnTunnelLayerInfoChanged(const TunnelLayerState& s
 {
     RSTunnelRuntimeStore::SetLayerInfo(nodeId_, state.tunnelLayerId, state.property);
     RSTunnelLayerHelper::BeginTunnelBuilding(nodeId_, state.tunnelLayerId, state.property);
+    if (auto handler = surfaceHandler_.lock()) {
+        handler->MarkTunnelLayerInfoReceived();
+    }
     RS_LOGD("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelLayerInfoChanged id = %{public}" PRIu64
         ", tunnelLayerId = %{public}" PRIu64 ", property = %{public}u",
         nodeId_, state.tunnelLayerId, state.property);
