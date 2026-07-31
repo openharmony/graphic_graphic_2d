@@ -604,7 +604,67 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_APS_CONFIG_PARAMS");
             break;
         }
+        // IPCs invoked by third-party applications on the normal rendering path, allowed explicitly.
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_UNI_RENDER_ENABLED):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_BACKGROUND_REBUILD_ENABLED):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_VSYNC_CONNECTION):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SYNC_FRAME_RATE_RANGE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_FRAME_RATE_LINKER):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_HGM_CFG_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_PAGE_NAME):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_JANK_STATS):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_RESPONSE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_COMPLETE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_JANK_FRAME):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_RS_SCENE_JANK_START):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_RS_SCENE_JANK_END):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_TYPEFACE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NEED_REGISTER_TYPEFACE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SHARED_TYPEFACE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_TYPEFACE): {
+            hasPermission = true;
+            break;
+        }
+        // CREATE_PIXEL_MAP_FROM_SURFACE may be invoked by application processes via ArkUI component
+        // snapshot, keep it allowed until the caller is confirmed; see docs/ipc_access_control_audit.md.
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_PIXEL_MAP_FROM_SURFACE): {
+            hasPermission = true;
+            break;
+        }
+        // IPCs invoked by system components only. CREATE_CONNECTION shares the same code value with
+        // SET_DUAL_SCREEN_STATE and has no sender on this interface, it is covered by the same case.
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DUAL_SCREEN_STATE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_DUAL_SCREEN_STATE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHIC): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHIC");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_TOTAL_APP_MEM_SIZE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_TOTAL_APP_MEM_SIZE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HDR_ON_DURATION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_HDR_ON_DURATION");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_UPDATE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REFRESH_RATE_UPDATE_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_MODE_CHANGE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REFRESH_RATE_MODE_CHANGE_CALLBACK");
+            break;
+        }
         default: {
+            // Deny IPCs that are not listed above, including dead codes without stub handlers.
+            hasPermission = false;
             break;
         }
     }

@@ -384,11 +384,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
     }
     auto accessible = securityManager_.IsInterfaceCodeAccessible(code);
-    if (!accessible &&
-        code != static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC) &&
-        code != static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
-        code != static_cast<uint32_t>(
-            RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID)) {
+    if (!accessible) {
         RS_LOGE("RSClientToServiceConnectionStub::OnRemoteRequest no permission code:%{public}u", code);
         return ERR_INVALID_STATE;
     }
