@@ -47,6 +47,9 @@ public:
     void CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
     void UpdateHwcNodeEnable();
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+    void UpdateHwcNodeEnableByShutter3DLayer();
+#endif
     void UpdateHwcNodeEnableByNodeBelow();
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
