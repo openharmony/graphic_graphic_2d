@@ -82,12 +82,12 @@ void TestSetColorSpaceConverterDisplayParameter(uint32_t hdrMetadataType, uint32
     ASSERT_TRUE(static_cast<uint32_t>(parameter.inputColorSpace.metadataType) == hdrMetadataType);
     ASSERT_TRUE(static_cast<uint32_t>(parameter.outputColorSpace.metadataType) == hdrMetadataType);
  
-    constexpr float HDR_DEFAULT_TMO_NIT = 1000.0f;
+    constexpr float hdrDefaultTmoNit = 1000.0f;
     if (expectScalerOne) {
-        ASSERT_TRUE(parameter.tmoNits == HDR_DEFAULT_TMO_NIT);
+        ASSERT_TRUE(parameter.tmoNits == hdrDefaultTmoNit);
     }
-    ASSERT_TRUE(parameter.sdrNits == HDR_DEFAULT_TMO_NIT);
-    ASSERT_TRUE(parameter.currentDisplayNits == HDR_DEFAULT_TMO_NIT);
+    ASSERT_TRUE(parameter.sdrNits == hdrDefaultTmoNit);
+    ASSERT_TRUE(parameter.currentDisplayNits == hdrDefaultTmoNit);
 }
 } // namespace
 
