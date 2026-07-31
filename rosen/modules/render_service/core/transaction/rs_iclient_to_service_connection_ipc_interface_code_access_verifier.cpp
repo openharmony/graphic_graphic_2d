@@ -622,44 +622,25 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_TYPEFACE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::NEED_REGISTER_TYPEFACE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SHARED_TYPEFACE):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_TYPEFACE): {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_TYPEFACE):
+        // The following IPCs are probably used by system components only, but their callers are
+        // out of this repository and unconfirmed; keep them allowed until confirmed.
+        // CREATE_CONNECTION shares the same code value with SET_DUAL_SCREEN_STATE and has no
+        // sender on this interface, it is covered here as well.
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DUAL_SCREEN_STATE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHIC):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_TOTAL_APP_MEM_SIZE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HDR_ON_DURATION):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_UPDATE_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_MODE_CHANGE_CALLBACK): {
             hasPermission = true;
             break;
         }
         // CREATE_PIXEL_MAP_FROM_SURFACE may be invoked by application processes via ArkUI component
-        // snapshot, keep it allowed until the caller is confirmed; see docs/ipc_access_control_audit.md.
+        // snapshot, keep it allowed until the caller is confirmed.
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_PIXEL_MAP_FROM_SURFACE): {
             hasPermission = true;
-            break;
-        }
-        // IPCs invoked by system components only. CREATE_CONNECTION shares the same code value with
-        // SET_DUAL_SCREEN_STATE and has no sender on this interface, it is covered by the same case.
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DUAL_SCREEN_STATE): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_DUAL_SCREEN_STATE");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHIC): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHIC");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_TOTAL_APP_MEM_SIZE): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_TOTAL_APP_MEM_SIZE");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HDR_ON_DURATION): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_HDR_ON_DURATION");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_UPDATE_CALLBACK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REFRESH_RATE_UPDATE_CALLBACK");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::REFRESH_RATE_MODE_CHANGE_CALLBACK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REFRESH_RATE_MODE_CHANGE_CALLBACK");
             break;
         }
         default: {

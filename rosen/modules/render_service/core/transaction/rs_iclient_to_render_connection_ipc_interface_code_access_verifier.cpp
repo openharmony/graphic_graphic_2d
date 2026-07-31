@@ -150,7 +150,60 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FREE_MULTI_WINDOW_STATUS");
             break;
         }
+        // IPCs invoked on the normal rendering path of application processes (including ArkUI,
+        // ArkWeb and media consumers running in app processes), allowed explicitly.
+        case static_cast<CodeUnderlyingType>(CodeEnumType::COMMIT_TRANSACTION):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::EXECUTE_SYNCHRONOUS_TASK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_NODE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_NODE_AND_SURFACE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_APPLICATION_AGENT):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_TRANSACTION_DATA_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_BITMAP):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PIXELMAP):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HARDWARE_ENABLED):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::MARK_WEB_NODE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_TRANSACTION_LISTENER):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_TRANSACTION_LISTENER):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_BUFFER_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_BUFFER_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK):
+        // Capture IPCs: the stub entry exemption list and the per-case permissions/self-pid
+        // checks decide the final access, keep them reachable here. TAKE_SURFACE_CAPTURE has a
+        // registered CAPTURE_SCREEN permission which is not enforced yet, it is a candidate
+        // for CheckPermission once the callers are confirmed.
+        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SELF_SURFACE_CAPTURE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE_SOLO):
+        // The following IPCs are probably used by system components only or have no active
+        // sender in this repository, keep them allowed until the callers are confirmed.
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HIDE_PRIVACY_CONTENT):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_LOGICAL_CAMERA_ROTATION_CORRECTION):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MAX_GPU_BUFFER_SIZE): {
+            hasPermission = true;
+            break;
+        }
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        // CanvasDrawingNode DMA buffer callbacks used by ArkUI Canvas in app processes.
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_CANVAS_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER): {
+            hasPermission = true;
+            break;
+        }
+#endif
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        // Hybrid canvas client rendering surfaces used by ArkUI Canvas in app processes.
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_CANVAS_DRAWING_NODE_SURFACE):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::RELEASE_CANVAS_DRAWING_NODE_SURFACE): {
+            hasPermission = true;
+            break;
+        }
+#endif
         default: {
+            // Deny IPCs that are not listed above, including dead codes without stub handlers.
+            hasPermission = false;
             break;
         }
     }
