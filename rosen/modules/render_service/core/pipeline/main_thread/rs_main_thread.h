@@ -511,7 +511,7 @@ public:
     // for surface fps op
     void AddSurfaceFpsOp(const SurfaceFpsOp& op);
     std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
-    void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
+    void RemoveSurfaceFpsOp(const std::vector<SurfaceFpsOp>& removeList);
 
     std::shared_ptr<RSVirtualScreenParallelManager> GetVirtualScreenParallelManager() const
     {
@@ -939,7 +939,7 @@ private:
 
     // for surface fps op
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
-    std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
+    std::unordered_map<NodeId, SurfaceFpsOp> removeSurfaceFpsOpMap_;
 
     std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
     // for rebuild transaction
