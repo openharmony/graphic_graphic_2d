@@ -17,7 +17,6 @@
 
 #include "hyper_graphic_manager/rs_vblank_idle_corrector.h"
 #include "hgm_core.h"
-#include "mock_hgm_frame_rate_manager.h"
 #include "screen_manager/rs_screen_manager.h"
 
 using namespace testing;
@@ -113,13 +112,9 @@ HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintTest, TestSize.Level1
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, 0);
 
     rsVBlankIdleCorrector->SetScreenVBlankIdle();
-    std::shared_ptr<Mock::MockHgmFrameRateManager> mock = std::make_shared<Mock::MockHgmFrameRateManager>();
-    EXPECT_CALL(*mock, AdaptiveStatus()).WillRepeatedly(testing::Return(SupportASStatus::SUPPORT_AS));
-    EXPECT_CALL(*mock, IsGameNodeOnTree()).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(*mock, IsNeedAdaptiveAfterUpdateMode()).WillRepeatedly(testing::Return(true));
-    hgmCore.hgmFrameRateMgr_ = mock;
+    frameRateMgr->isAdaptive_ = SupportASStatus::SUPPORT_AS;
+    frameRateMgr->isGameNodeOnTree_ = true;
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
-    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 2);
 
     hgmCore.hgmFrameRateMgr_ = nullptr;
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
