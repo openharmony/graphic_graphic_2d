@@ -1336,7 +1336,6 @@ private:
     static const inline RS_HIDDEN auto EmptyChildrenList =
         std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     static inline std::unordered_set<NodeId> containBootAnimationNodeSet_;
-    static inline std::unordered_set<NodeId> accessibilityConfigChangedNodeSet_;
     static inline std::unordered_map<NodeId, int> subSurfaceCntMap_;
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;

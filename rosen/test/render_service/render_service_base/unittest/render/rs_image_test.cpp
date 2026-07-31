@@ -370,6 +370,40 @@ HWTEST_F(RSImageTest, SetRadiusTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRadiusTest002
+ * @tc.desc: Verify function SetRadius with invalid radius size
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, SetRadiusTest002, TestSize.Level1)
+{
+    auto image = std::make_shared<RSImage>();
+    image->hasRadius_ = true;
+
+    std::vector<Drawing::Point> emptyRadius;
+    image->SetRadius(emptyRadius);
+    EXPECT_FALSE(image->hasRadius_);
+
+    image->hasRadius_ = true;
+    std::vector<Drawing::Point> radius1 = { Drawing::Point { 1.f, 1.f} };
+    image->SetRadius(radius1);
+    EXPECT_FALSE(image->hasRadius_);
+
+    image->hasRadius_ = true;
+    std::vector<Drawing::Point> radius2 = { Drawing::Point { 1.f, 1.f}, Drawing::Point { 1.f, 1.f} };
+    image->SetRadius(radius2);
+    EXPECT_FALSE(image->hasRadius_);
+
+    image->hasRadius_ = true;
+    std::vector<Drawing::Point> radius3 = {
+        Drawing::Point { 1.f, 1.f},
+        Drawing::Point { 1.f, 1.f},
+        Drawing::Point { 1.f, 1.f}
+    };
+    image->SetRadius(radius3);
+    EXPECT_FALSE(image->hasRadius_);
+}
+
+/**
  * @tc.name: SetScaleTest001
  * @tc.desc: Verify function SetScale
  * @tc.type:FUNC
@@ -752,22 +786,6 @@ HWTEST_F(RSImageTest, SetFitMatrixTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetFitMatrixTest
- * @tc.desc: Test RSImageTest.GetFitMatrix
- * @tc.type:FUNC
- * @tc.require: issueIAIT5Z
- */
-HWTEST_F(RSImageTest, GetFitMatrixTest, TestSize.Level1)
-{
-    auto rsImage = std::make_shared<RSImage>();
-    ASSERT_NE(rsImage, nullptr);
-    Drawing::Matrix matrix;
-    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
-    rsImage->fitMatrix_ = matrix;
-    EXPECT_EQ(rsImage->GetFitMatrix(), matrix);
-}
-
-/**
  * @tc.name: addImageMatrixTest001
  * @tc.desc: addImageMatrixtest001.
  * @tc.type: FUNC
@@ -803,7 +821,7 @@ HWTEST_F(RSImageTest, addImageMatrixTest002, TestSize.Level1)
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
-    EXPECT_EQ(image.GetFitMatrix(), matrix);
+    EXPECT_EQ(image.fitMatrix_.value(), matrix);
 }
 
 /**

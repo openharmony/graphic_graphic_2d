@@ -109,7 +109,7 @@ int32_t RSAnimationRateDecider::CalculatePreferredRate(const PropertyValue& prop
 
 int32_t RSAnimationRateDecider::ProcessVector4f(const PropertyValue& property, const FrameRateGetFunc& func)
 {
-    auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property);
+    auto animatableProperty = property->CastToAnimatablePropertyOf<Vector4f>(__func__);
     auto propertyUnit = property->GetPropertyUnit();
     if (!animatableProperty || propertyUnit != RSPropertyUnit::PIXEL_POSITION) {
         return 0;
@@ -130,7 +130,7 @@ int32_t RSAnimationRateDecider::ProcessVector2f(const PropertyValue& property, c
 {
     float velocity = 0.0f;
     if (property->GetPropertyUnit() == RSPropertyUnit::RATIO_SCALE) {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(property);
+        auto animatableProperty = property->CastToAnimatablePropertyOf<Vector2f>(__func__);
         if (animatableProperty != nullptr) {
             auto data = animatableProperty->Get();
             // Vector2f data include data[0], data[1]

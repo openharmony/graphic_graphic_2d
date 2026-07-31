@@ -45,7 +45,11 @@ void RSColorPickerRenderModifier::ResetProperties(RSProperties& properties)
 
 void RSColorPickerRenderModifier::SetLastContrastColorScheme(RSProperties& properties, RSRenderPropertyBase& property)
 {
-    const auto value = static_cast<RSRenderProperty<int>&>(property).Get();
+    auto propertyPtr = property.CastToPropertyOf<int>(__func__);
+    if (!propertyPtr) {
+        return;
+    }
+    const auto value = propertyPtr->Get();
     auto lastContrastColorScheme = static_cast<ContrastColorScheme>(value);
     if (lastContrastColorScheme != ContrastColorScheme::LIGHT && lastContrastColorScheme != ContrastColorScheme::DARK) {
         lastContrastColorScheme = ContrastColorScheme::INVALID;

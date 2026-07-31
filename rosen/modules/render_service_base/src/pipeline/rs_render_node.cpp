@@ -119,6 +119,8 @@ constexpr uint32_t SET_IS_ON_THE_TREE_THRESHOLD = 50;
 static uint32_t g_setIsOntheTreeCnt = 0;
 constexpr size_t CACHE_FILTER_DRAWABLE_SIZE = 3;
 
+static inline std::unordered_set<NodeId> accessibilityConfigChangedNodeSet_;
+
 #ifndef ROSEN_ARKUI_X
 static std::array<std::function<void(DrawCmdIndex&, int)>,
     static_cast<size_t>(RSDrawableSlot::MAX)> rsDrawableSlotToIndexVec;

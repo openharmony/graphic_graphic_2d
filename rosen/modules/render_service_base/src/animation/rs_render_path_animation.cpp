@@ -234,7 +234,7 @@ void RSRenderPathAnimation::OnDetach()
 void RSRenderPathAnimation::SetPathValue(const Vector2f& value, float tangent)
 {
     SetRotationValue(tangent);
-    auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(property_);
+    auto animatableProperty = property_->CastToAnimatablePropertyOf<Vector2f>(__func__);
     if (animatableProperty != nullptr) {
         animatableProperty->Set(value);
     }
@@ -243,7 +243,7 @@ void RSRenderPathAnimation::SetPathValue(const Vector2f& value, float tangent)
 void RSRenderPathAnimation::SetPathValue(const Vector4f& value, float tangent)
 {
     SetRotationValue(tangent);
-    auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property_);
+    auto animatableProperty = property_->CastToAnimatablePropertyOf<Vector4f>(__func__);
     if (animatableProperty != nullptr) {
         animatableProperty->Set(value);
     }
@@ -274,7 +274,9 @@ void RSRenderPathAnimation::SetRotation(const float tangent)
         return;
     }
 
-    auto property = std::static_pointer_cast<RSRenderProperty<float>>(target->GetProperty(rotationId_));
+    auto baseProperty = target->GetProperty(rotationId_);
+    auto property = baseProperty ?
+        baseProperty->CastToPropertyOf<float>(__func__) : nullptr;
     if (property != nullptr) {
         property->Set(tangent);
     }
@@ -290,7 +292,9 @@ void RSRenderPathAnimation::GetPosTanValue(float fraction, Vector2f& position, f
 void RSRenderPathAnimation::UpdateVector2fPathValue(Vector2f& value)
 {
     if (needAddOrigin_) {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(GetOriginValue());
+        auto originValue = GetOriginValue();
+        auto animatableProperty = originValue ?
+            originValue->CastToAnimatablePropertyOf<Vector2f>(__func__) : nullptr;
         if (animatableProperty) {
             value += animatableProperty->Get();
         }
@@ -302,7 +306,9 @@ void RSRenderPathAnimation::UpdateVector4fPathValue(Vector4f& value, const Vecto
     value[0] = position[0];
     value[1] = position[1];
     if (needAddOrigin_) {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(GetOriginValue());
+        auto originValue = GetOriginValue();
+        auto animatableProperty = originValue ?
+            originValue->CastToAnimatablePropertyOf<Vector4f>(__func__) : nullptr;
         if (animatableProperty) {
             value[0] += animatableProperty->Get()[0];
             value[1] += animatableProperty->Get()[1];

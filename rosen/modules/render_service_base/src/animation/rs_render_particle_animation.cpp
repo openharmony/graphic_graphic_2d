@@ -69,7 +69,7 @@ bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime,
             deltaTime, renderParticleVector_.renderParticleVector_, renderParticleVector_.imageVector_);
         particleSystem_->UpdateParticle(deltaTime, renderParticleVector_.renderParticleVector_);
     }
-    if (auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_)) {
+    if (auto property = property_->CastToPropertyOf<RSRenderParticleVector>(__func__)) {
         property->Set(renderParticleVector_);
     }
 
@@ -100,7 +100,7 @@ void RSRenderParticleAnimation::FillRebuildProgress()
         rebuildRunningTimeNs_, renderParticleVector_.renderParticleVector_, renderParticleVector_.imageVector_);
     runningTimeNs_ = rebuildRunningTimeNs_;
     rebuildRunningTimeNs_ = 0;
-    if (auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_)) {
+    if (auto property = property_->CastToPropertyOf<RSRenderParticleVector>(__func__)) {
         property->Set(renderParticleVector_);
     }
 }
