@@ -16,6 +16,7 @@
 #include "rs_profiler.h"
 
 #include <cstddef>
+#include <cerrno>
 #include <fstream>
 #include <filesystem>
 #include <numeric>
@@ -46,6 +47,8 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "render/rs_typeface_cache.h"
 #include "surface_capture_param.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_service_to_render_connection.h"
 #include "graphic_feature_param_manager.h"
 #include "parameters.h"
 
@@ -139,7 +142,17 @@ uint64_t ExtractTrace3DNumber(const std::string& str)
     if (colonPos == std::string::npos || colonPos + 1 >= str.length()) {
         return static_cast<uint64_t>(-1);
     }
-    return std::stoull(str.substr(colonPos + 1));
+    const char* start = str.c_str() + colonPos + 1;
+    if (*start == '-') {
+        return static_cast<uint64_t>(-1);
+    }
+    char* end = nullptr;
+    errno = 0;
+    uint64_t result = strtoull(start, &end, 10);
+    if (errno != 0 || end == start || *end != '\0') {
+        return static_cast<uint64_t>(-1);
+    }
+    return result;
 }
 
 Trace3DCoreParamValue CreateAndUpdateTraceParam(const std::vector<std::string>& args,
@@ -579,8 +592,9 @@ void RSProfiler::PurgeMockConnections()
 {
     const std::lock_guard<std::mutex> guard(connectionMutex_);
     // Make the connections destruction threaded due to its extreme cost
-    std::thread([connections = connections_]() {}).detach();
-    connections_.clear();
+    if (!connections_.empty()) {
+        std::thread([connections = std::move(connections_)]() {}).detach();
+    }
 }
 
 sptr<IRemoteObject> RSProfiler::GetMockConnection(pid_t pid)
@@ -1321,11 +1335,12 @@ void RSProfiler::PrintVsync(const ArgList& args)
     std::set<int64_t> vsyncSet;
     g_playbackFile.GetVsyncList(vsyncSet);
 
-    std::string response = "VSYNC";
+    std::ostringstream oss;
+    oss << "VSYNC";
     for (auto id : vsyncSet) {
-        response += std::to_string(id) + " ";
+        oss << " " << id;
     }
-    SendMessage("%s", response.c_str());
+    SendMessage("%s", oss.str().c_str());
 }
 
 void RSProfiler::PrintTime(const ArgList& args)
@@ -1370,9 +1385,19 @@ void RSProfiler::HiddenSpaceTurnOn()
         HiddenSpaceTurnOff();
     }
 
-    const auto root = GetRenderNode(Utils::PatchNodeId(0));
-    if (!root || !root->GetChildrenCount()) {
-        HRPE("HiddenSpaceTurnOn: Invalid mock root");
+    std::vector<RSRenderNode::SharedPtr> mockDisplays;
+    if (const auto mockRoot = GetRenderNode(Utils::PatchNodeId(0))) {
+        for (const auto& child : mockRoot->GetChildrenList()) {
+            const auto screen = child.lock();
+            const auto display = screen ? screen->GetFirstChild() : nullptr;
+            if (display && display->GetChildrenCount()) {
+                mockDisplays.push_back(display);
+            }
+        }
+    }
+
+    if (mockDisplays.empty()) {
+        HRPE("HiddenSpaceTurnOn: Mock logical displays not found");
         return;
     }
 
@@ -1382,19 +1407,13 @@ void RSProfiler::HiddenSpaceTurnOn()
         return;
     }
 
-    const std::vector<RSRenderNode::SharedPtr> empty;
-    const auto count = std::min(static_cast<uint32_t>(displays.size()), root->GetChildrenCount());
-    for (uint32_t i = 0; i < count; i++) {
-        const auto newScreen = std::next(root->GetChildrenList().begin(), i)->lock();
-        const auto newDisplay = newScreen ? newScreen->GetFirstChild() : nullptr;
-        if (newDisplay && newDisplay->GetChildrenCount()) {
-            const auto& oldDisplay = displays[i];
-            const auto oldChildren = oldDisplay->GetChildren();
-            displayChildren_[oldDisplay] = oldChildren ? *oldChildren : empty;
-            oldDisplay->ClearChildren();
-            for (const auto& node : newDisplay->GetChildrenList()) {
-                oldDisplay->AddChild(node.lock());
-            }
+    for (uint32_t i = 0; i < std::min(mockDisplays.size(), displays.size()); i++) {
+        const auto& display = displays[i];
+        const auto children = display->GetChildren();
+        displayChildren_[display] = children ? *children : std::vector<RSRenderNode::SharedPtr> {};
+        display->ClearChildren();
+        for (const auto& node : mockDisplays[i]->GetChildrenList()) {
+            display->AddChild(node.lock());
         }
     }
 
