@@ -31,6 +31,11 @@ public:
     explicit JsImageFilter(std::shared_ptr<ImageFilter> imageFilter = nullptr) : m_ImageFilter(imageFilter) {}
     ~JsImageFilter();
 
+    static constexpr napi_type_tag NAPI_TYPE_TAG = {
+        .lower = 0x43bced7e6850d12a,
+        .upper = 0x102733d6f3ba7524
+    };
+
     static napi_value Init(napi_env env, napi_value exportObj);
     static void Finalizer(napi_env env, void* data, void* hint);
     static napi_value Constructor(napi_env env, napi_callback_info info);
