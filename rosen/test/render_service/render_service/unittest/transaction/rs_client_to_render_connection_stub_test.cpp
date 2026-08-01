@@ -2334,6 +2334,33 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkForNodesTest00
 }
 
 /**
+ * @tc.name: ClearSurfaceWatermarkForNodesTest005
+ * @tc.desc: Test CLEAR_SURFACE_WATERMARK_FOR_NODES when nodeIdList size exceeds MAX_NODE_ID_LIST_SIZE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkForNodesTest005, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+
+    // MAX_NODE_ID_LIST_SIZE is 100000; an oversized list must be rejected to prevent DoS.
+    std::vector<NodeId> nodeIdList(100001, 10001);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    pid_t pid = getpid();
+    data.WriteInt32(pid);
+    std::string name = "testWatermark";
+    data.WriteString(name);
+    data.WriteUInt64Vector(nodeIdList);
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: ClearSurfaceWatermarkTest002
  * @tc.desc: Test CLEAR_SURFACE_WATERMARK with complete data
  * @tc.type: FUNC

@@ -47,7 +47,8 @@ RSDepthRenderNode::~RSDepthRenderNode()
 
 void RSDepthRenderNode::SetDepthSpaceType(DepthSpaceType depthSpaceType)
 {
-    RS_LOGD("RSDepthRenderNode::SetDepthSpaceType type=%{public}d", static_cast<int32_t>(depthSpaceType));
+    RS_LOGD_IF(DEBUG_NODE, "RSDepthRenderNode::SetDepthSpaceType type=%{public}d",
+        static_cast<int32_t>(depthSpaceType));
     depthSpaceType_ = depthSpaceType;
     RSSpatialEffectManager::Instance()->RegisterDepthSpace(shared_from_this());
 }

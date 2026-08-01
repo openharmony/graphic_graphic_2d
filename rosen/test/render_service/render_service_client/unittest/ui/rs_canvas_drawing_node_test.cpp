@@ -192,6 +192,66 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
     EXPECT_EQ(res, false);
 }
 
+/**
+ * @tc.name: Create_TextureExportNodeDisablesHybrid
+ * @tc.desc: Test that isTextureExportNode=true results in hybridEnabled_=false regardless of globalHybridEnabled_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, Create_TextureExportNodeDisablesHybrid, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr normalNode = RSCanvasDrawingNode::Create(true, false);
+    RSCanvasDrawingNode::SharedPtr textureExportNode = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(normalNode, nullptr);
+    ASSERT_NE(textureExportNode, nullptr);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    ASSERT_EQ(normalNode->hybridEnabled_, RSCanvasDrawingNode::globalHybridEnabled_);
+#else
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    ASSERT_FALSE(normalNode->hybridEnabled_);
+#endif
+}
+
+/**
+ * @tc.name: SetNodeState_TextureExportNode
+ * @tc.desc: Test SetNodeState returns false when isTextureExportNode disables hybrid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, SetNodeState_TextureExportNode, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr textureExportNode = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(textureExportNode, nullptr);
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    bool res = textureExportNode->SetNodeState(RSNodeState::ACTIVE);
+    ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ResetSurface_HybridEnabledPath
+ * @tc.desc: Test ResetSurface takes ResetSurfaceForClientRender path when hybridEnabled_ is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_HybridEnabledPath, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true, false);
+    ASSERT_NE(canvasNode, nullptr);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 10000;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 10000;
+    if (canvasNode->hybridEnabled_) {
+        canvasNode->ResetSurface(100, 100);
+        ASSERT_FALSE(canvasNode->sizeOutOfGpuLimit_);
+        canvasNode->ResetSurface(20000, 20000);
+        ASSERT_TRUE(canvasNode->sizeOutOfGpuLimit_);
+    }
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 0;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 0;
+#else
+    bool ret = canvasNode->ResetSurface(100, 100);
+    ASSERT_TRUE(ret);
+#endif
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: SetIsOnTheTreeTest

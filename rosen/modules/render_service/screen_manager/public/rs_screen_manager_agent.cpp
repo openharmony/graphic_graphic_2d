@@ -26,7 +26,7 @@ void RSScreenManagerAgentListener::OnScreenConnected(ScreenId id,
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenChangeCallback_) {
-        RS_LOGD("RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
         return;
     }
 
@@ -39,7 +39,7 @@ void RSScreenManagerAgentListener::OnScreenDisconnected(ScreenId id, ScreenChang
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenChangeCallback_) {
-        RS_LOGD("RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
         return;
     }
 
@@ -68,7 +68,8 @@ void RSScreenManagerAgentListener::OnScreenSwitchingNotify(bool status)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenSwitchingNotifyCallback_) {
-        RS_LOGD("RSScreenManagerAgentListener::%{public}s screenSwitchingNotifyCallback is nullptr.", __func__);
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManagerAgentListener::%{public}s screenSwitchingNotifyCallback is nullptr.",
+            __func__);
         return;
     }
 
@@ -111,7 +112,8 @@ void RSScreenManagerAgentListener::OnActiveScreenIdChanged(ScreenId activeScreen
 {
     std::lock_guard<std::mutex> lock(activeScreenIdCallbackMutex_);
     if (!activeScreenIdChangedCallback_) {
-        RS_LOGD("RSScreenManagerAgentListener::%{public}s activeScreenIdChangedCallback_ is nullptr.", __func__);
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManagerAgentListener::%{public}s activeScreenIdChangedCallback_ is nullptr.",
+            __func__);
         return;
     }
     RS_LOGI("RSScreenManagerAgentListener::%{public}s: activeScreenId:%{public}" PRIu64 ".", __func__, activeScreenId);

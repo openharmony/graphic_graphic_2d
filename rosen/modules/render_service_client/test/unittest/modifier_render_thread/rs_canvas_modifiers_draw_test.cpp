@@ -658,6 +658,10 @@ HWTEST_F(RSCanvasModifiersDrawTest, GetBitmap_Basic001, TestSize.Level1)
     Drawing::Bitmap bitmap;
     bool result = canvasModifiersDraw->GetBitmap(nodeId, bitmap);
     EXPECT_FALSE(result);
+    auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bitmap.SetFormat(bitmapFormat);
+    result = canvasModifiersDraw->GetBitmap(nodeId, bitmap);
+    EXPECT_FALSE(result);
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, GetPixelMap_Basic001, TestSize.Level1)
@@ -945,6 +949,23 @@ HWTEST_F(RSCanvasModifiersDrawTest, GetGpuContext_ReuseExisting001, TestSize.Lev
     canvasModifiersDraw->gpuContext_ = mockContext;
     auto result = canvasModifiersDraw->GetGpuContext();
     EXPECT_EQ(result, mockContext);
+}
+
+/**
+ * @tc.name: GetBitmap_AlphaTypeOpaque
+ * @tc.desc: Test GetBitmap preserves bitmap alphaType when it is not UNKNOWN
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasModifiersDrawableTest, GetBitmap_AlphaTypeOpaque, TestSize.Level1)
+{
+    RSCanvasModifiersDrawable drawable;
+    Drawing::Bitmap bitmap;
+    auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap.SetFormat(bitmapFormat);
+    const auto& format = bitmap.GetFormat();
+    ASSERT_NE(format.alphaType, Drawing::ALPHATYPE_UNKNOWN);
+    bool result = drawable.GetBitmap(bitmap, nullptr);
+    EXPECT_FALSE(result);
 }
 } // namespace Rosen
 } // namespace OHOS

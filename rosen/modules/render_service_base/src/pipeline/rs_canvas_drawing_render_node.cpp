@@ -282,7 +282,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
-        RS_LOGD("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
+        RS_LOGD_IF(DEBUG_NODE, "RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
@@ -522,6 +522,9 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
         SetNeedProcess(true);
     }
     RSRenderNode::ApplyModifiers();
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    bufferDirty_ = false;
+#endif
 }
 
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type)
@@ -849,7 +852,10 @@ void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buff
     if (buffer == nullptr && canvasParams->GetBuffer() == nullptr) {
         return;
     }
- 
+
+    bufferDirty_ = true;
+    MarkNonGeometryChanged();
+    SetContentDirty();
     if (!firstBufferAcquired_ && buffer != nullptr) {
         firstBufferAcquired_ = true;
         ClearOp();

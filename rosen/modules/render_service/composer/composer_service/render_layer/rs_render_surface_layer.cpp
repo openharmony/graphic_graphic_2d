@@ -42,14 +42,15 @@ static std::unordered_map<RSLayerCmdType, RSLayerCmdHandler> cmdHandlers_ = {
 RSRenderSurfaceLayer::RSRenderSurfaceLayer()
 {
     RS_TRACE_NAME_FMT("Constructing %s", __func__);
-    RS_LOGD("Constructing %{public}s", __func__);
+    RS_LOGD_IF(DEBUG_COMPOSER, "Constructing %{public}s", __func__);
 }
 
 RSRenderSurfaceLayer::~RSRenderSurfaceLayer()
 {
     RS_TRACE_NAME_FMT("%s id: %" PRIu64 ", name: %s, layer type: %d",
         __func__, rsLayerId_, surfaceName_.c_str(), layerType_);
-    RS_LOGD("Destructing %{public}s, id: %{public}" PRIu64 ", surface name: %{public}s, layer type: %{public}d",
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "Destructing %{public}s, id: %{public}" PRIu64 ", surface name: %{public}s, layer type: %{public}d",
         __func__, rsLayerId_, surfaceName_.c_str(), layerType_);
 }
 

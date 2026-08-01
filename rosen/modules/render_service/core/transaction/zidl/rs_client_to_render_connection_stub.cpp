@@ -1465,6 +1465,12 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (nodeIdList.size() > MAX_NODE_ID_LIST_SIZE) {
+                RS_LOGE(
+                    "RSClientToRenderConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES nodeIdList size exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
             break;
         }

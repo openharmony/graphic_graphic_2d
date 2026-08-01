@@ -1126,6 +1126,11 @@ public:
 
     void ReSortChildrenByZIndex();
 
+    virtual bool IsBufferDirty() const
+    {
+        return false;
+    }
+
 protected:
     void ResetDirtyStatus();
 

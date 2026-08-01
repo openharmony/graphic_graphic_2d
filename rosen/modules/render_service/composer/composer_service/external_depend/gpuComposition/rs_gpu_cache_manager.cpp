@@ -68,7 +68,7 @@ std::shared_ptr<GPUCacheManager> GPUCacheManager::Create(RSBaseRenderEngine& ren
 GPUCacheManager::GPUCacheManager(RSBaseRenderEngine& renderEngine)
     : renderEngine_(renderEngine)
 {
-    RS_LOGD("GPUCacheManager created");
+    RS_LOGD_IF(DEBUG_COMPOSER, "GPUCacheManager created");
 }
 
 GPUGuard GPUCacheManager::CreateGuard()
@@ -87,7 +87,7 @@ void GPUCacheManager::ScheduleBufferCleanup(const std::set<uint64_t>& bufferIds)
         pendingCleanupBuffers_.insert(bufferIds.begin(), bufferIds.end());
     }
 
-    RS_LOGD("GPUCacheManager::ScheduleBufferCleanup: scheduled %{public}zu buffers for cleanup",
+    RS_LOGD_IF(DEBUG_COMPOSER, "GPUCacheManager::ScheduleBufferCleanup: scheduled %{public}zu buffers for cleanup",
         bufferIds.size());
 
     if (activeDrawCount_.load() == 0) {
@@ -101,7 +101,8 @@ void GPUCacheManager::ScheduleBufferCleanup(uint64_t bufferId)
         std::lock_guard<std::mutex> lock(cleanupMutex_);
         pendingCleanupBuffers_.insert(bufferId);
     }
-    RS_LOGD("GPUCacheManager::ScheduleBufferCleanup: buffer id %{public}" PRIu64 " scheduled for cleanup", bufferId);
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "GPUCacheManager::ScheduleBufferCleanup: buffer id %{public}" PRIu64 " scheduled for cleanup", bufferId);
 
     // "Idle" here means there is no in-flight GPU draw scope guarded by GPUGuard (activeDrawCount_ == 0).
     // If idle, cleanup can run immediately; otherwise it is deferred until the last GPUGuard is destroyed.
@@ -175,7 +176,8 @@ void GPUCacheManager::CleanupPendingBuffers()
         bufferIds.swap(pendingCleanupBuffers_);
     }
 
-    RS_LOGD("GPUCacheManager::CleanupPendingBuffers: cleaning %{public}zu buffers", bufferIds.size());
+    RS_LOGD_IF(DEBUG_COMPOSER, "GPUCacheManager::CleanupPendingBuffers: cleaning %{public}zu buffers",
+        bufferIds.size());
 
     std::unordered_set<uint64_t> bufferIdSet(bufferIds.begin(), bufferIds.end());
     // Cleanup RenderEngine cache

@@ -159,7 +159,7 @@ public:
 
     const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const
     {
-        RS_LOGD("You'd better to call GetRenderEngine from RSUniRenderThread directly");
+        RS_LOGD_IF(DEBUG_PIPELINE, "You'd better to call GetRenderEngine from RSUniRenderThread directly");
 #ifdef RS_ENABLE_GPU
         return isUniRender_ ? std::move(RSUniRenderThread::Instance().GetRenderEngine()) : renderEngine_;
 #else

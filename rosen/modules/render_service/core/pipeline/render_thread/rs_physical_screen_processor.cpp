@@ -61,7 +61,7 @@ void RSPhysicalScreenProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     }
     auto layer = composerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
-        RS_LOGD("RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for"
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for"
             " node(id: %{public}" PRIu64 ")", node.GetId());
         return;
     }
@@ -87,7 +87,7 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
         return;
     }
 
-    RS_LOGD("RsDebug RSPhysicalScreenProcessor::Redraw flush frame buffer start");
+    RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSPhysicalScreenProcessor::Redraw flush frame buffer start");
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto renderFrame = renderEngine_->RequestFrame(surface, renderFrameConfig_, forceCPU);
     if (renderFrame == nullptr) {
@@ -110,13 +110,13 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
         }
         matrixInfo += std::to_string(matrix.Get(i));
     }
-    RS_LOGD("RsDebug RSPhysicalScreenProcessor::Redraw %{public}s: %{public}s",
+    RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSPhysicalScreenProcessor::Redraw %{public}s: %{public}s",
         (mirroredScreenInfo_.id != INVALID_SCREEN_ID) ? "mirrorAdaptiveMatrix" : "screenTransformMatrix",
         matrixInfo.c_str());
 
     renderEngine_->DrawLayers(*canvas, layers, forceCPU);
     renderFrame->Flush();
-    RS_LOGD("RsDebug RSPhysicalScreenProcessor::Redraw flush frame buffer end");
+    RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSPhysicalScreenProcessor::Redraw flush frame buffer end");
 }
 } // namespace Rosen
 } // namespace OHOS
