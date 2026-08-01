@@ -934,19 +934,17 @@ void RSRenderNode::AddCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
     // so this child will not remove from the old parent.
-    if (child == nullptr) {
+    if (child == nullptr || GetId() == child->GetId()) {
         return;
     }
-    if (GetId() == child->GetId()) {
-        ROSEN_LOGE("RSRenderNode::AddCrossParentChild cannot add self as child, id=%{public}" PRIu64, GetId());
-        return;
-    }
+    // The child node cannot be an ancestor of the current node
     {
         auto parent = parent_.lock();
+        auto childId = child->GetId();
         while (parent != nullptr) {
-            if (parent->GetId() == child->GetId()) {
+            if (parent->GetId() == childId) {
                 ROSEN_LOGE("RSRenderNode::AddCrossParentChild child is ancestor of current node, "
-                    "nodeId=%{public}" PRIu64 " childId=%{public}" PRIu64, GetId(), child->GetId());
+                    "nodeId=%{public}" PRIu64 " childId=%{public}" PRIu64, GetId(), childId);
                 return;
             }
             parent = parent->GetParent().lock();
