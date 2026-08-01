@@ -86,7 +86,8 @@ const uint8_t DO_SET_VIRTUAL_SCREEN_AUTO_ROTATION = 6;
 const uint8_t DO_GET_SCREEN_VCP_FEATURE = 7;
 const uint8_t DO_SET_SCREEN_VCP_FEATURE = 8;
 const uint8_t DO_SET_APS_CONFIG_PARAMS = 9;
-const uint8_t TARGET_SIZE = 10;
+const uint8_t DO_SEND_VIDEO_RATE_INFO = 10;
+const uint8_t TARGET_SIZE = 11;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -201,6 +202,22 @@ void DoSetOverlayDisplayMode()
     dataParcel.WriteInt32(mode);
     g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 #endif
+}
+
+void DoSendVideoRateInfo()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    uint32_t mapSize = GetData<uint32_t>();
+    std::string key = GetData<std::string>();
+    std::string value = GetData<std::string>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint32(mapSize);
+    dataParcel.WriteString(key);
+    dataParcel.WriteString(value);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 bool DoGetBehindWindowFilterEnabled()
@@ -618,6 +635,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_SCREEN_VCP_FEATURE:
             OHOS::Rosen::DoSetScreenVCPFeature();
+            break;
+        case OHOS::Rosen::DO_SEND_VIDEO_RATE_INFO:
+            OHOS::Rosen::DoSendVideoRateInfo();
             break;
         default:
             return -1;

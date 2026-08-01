@@ -3381,6 +3381,14 @@
     "connectionType": 0
   },
   {
+    "testCaseDesc": "SET_VIDEO_RATE_INFO_TEST_001",
+    "interfaceName": "SET_VIDEO_RATE_INFO",
+    "inputParams": "WriteUint32;WriteString;WriteString",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC",
+    "connectionType": 0
+  },
+  {
     "testCaseDesc": "GET_ROG_SCREEN_RESOLUTION_TEST_001",
     "interfaceName": "GET_ROG_SCREEN_RESOLUTION",
     "inputParams": "WriteUint64",
