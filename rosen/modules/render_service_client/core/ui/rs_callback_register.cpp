@@ -24,7 +24,12 @@ public:
     TypefaceAutoRegister()
     {
 #if defined(ARKUI_X_ENABLE) || defined(ROSEN_PREVIEW)
-        auto registerCB = [](std::shared_ptr<Drawing::Typeface> tf) { return 1; };
+        auto registerCB = [](std::shared_ptr<Drawing::Typeface> tf) {
+            if (tf != nullptr) {
+                Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+            }
+            return 1;
+        };
         auto destroyedCB = [](uint32_t id) {};
 #else
         auto registerCB = [](std::shared_ptr<Drawing::Typeface> tf) {

@@ -23,6 +23,12 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #endif
+
+#ifdef ROSEN_ARKUI_X
+#include <sys/mman.h>
+#include <sys/stat.h>
+#endif
+
 #include "static_factory.h"
 
 #include "impl_interface/typeface_impl.h"
@@ -42,7 +48,7 @@ namespace Drawing {
 static const int MAX_CHUNK_SIZE = 20000;
 MappedFile::MappedFile(const std::string& path)
 {
-#ifdef ENABLE_OHOS_ENHANCE
+#if defined(ENABLE_OHOS_ENHANCE) || defined(ROSEN_ARKUI_X)
     char realPath[PATH_MAX] = {0};
     if (realpath(path.c_str(), realPath) == nullptr) {
         LOGE("Invalid filePath, file path is %{public}s.", path.c_str());
@@ -76,7 +82,7 @@ MappedFile::MappedFile(const std::string& path)
 
 MappedFile::~MappedFile()
 {
-#ifdef ENABLE_OHOS_ENHANCE
+#if defined(ENABLE_OHOS_ENHANCE) || defined(ROSEN_ARKUI_X)
     if (data != nullptr && data != MAP_FAILED) {
         munmap(const_cast<void*>(data), size);
     }
