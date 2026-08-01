@@ -1036,7 +1036,7 @@ ani_object AniParagraph::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, a
                 TEXT_LOGE("Null aniParagraph");
                 return dynamicObj;
             }
-            return JsParagraph::CreateJsTypography(napiEnv, aniParagraph->typography_.get());
+            return JsParagraph::CreateJsTypography(napiEnv, aniParagraph->typography_);
         });
 }
 } // namespace OHOS::Text::ANI

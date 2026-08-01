@@ -6287,30 +6287,30 @@ void RSMainThread::AddSurfaceFpsOp(const SurfaceFpsOp& op)
     if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
         addSurfaceFpsOpMap_[op.surfaceNodeId] = op;
     } else if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
-        rmvSurfaceFpsOpMap_[op.surfaceNodeId] = op;
+        removeSurfaceFpsOpMap_[op.surfaceNodeId] = op;
     }
 }
 
 std::vector<SurfaceFpsOp> RSMainThread::GetSurfaceFpsOpList()
 {
     std::vector<SurfaceFpsOp> surfaceFpsOpList;
-    surfaceFpsOpList.reserve(addSurfaceFpsOpMap_.size() + rmvSurfaceFpsOpMap_.size());
+    surfaceFpsOpList.reserve(addSurfaceFpsOpMap_.size() + removeSurfaceFpsOpMap_.size());
     for (const auto& [_, op] : addSurfaceFpsOpMap_) {
         surfaceFpsOpList.push_back(op);
     }
-    for (const auto& [_, op] : rmvSurfaceFpsOpMap_) {
+    for (const auto& [_, op] : removeSurfaceFpsOpMap_) {
         surfaceFpsOpList.push_back(op);
     }
     return surfaceFpsOpList;
 }
 
-void RSMainThread::RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList)
+void RSMainThread::RemoveSurfaceFpsOp(const std::vector<SurfaceFpsOp>& removeList)
 {
-    for (const auto& op : rmvList) {
+    for (const auto& op : removeList) {
         if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
             addSurfaceFpsOpMap_.erase(op.surfaceNodeId);
         } else if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
-            rmvSurfaceFpsOpMap_.erase(op.surfaceNodeId);
+            removeSurfaceFpsOpMap_.erase(op.surfaceNodeId);
         }
     }
 }

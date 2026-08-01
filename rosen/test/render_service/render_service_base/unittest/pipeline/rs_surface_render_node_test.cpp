@@ -1421,9 +1421,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetIsNotifyUIBufferAvailableTest, TestSize.Lev
 HWTEST_F(RSSurfaceRenderNodeTest, IsSubTreeNeedPrepareTest, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->IsSubTreeNeedPrepare(false, false);
+    node->IsSubTreeNeedPrepare(false, false, false);
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    EXPECT_TRUE(node->IsSubTreeNeedPrepare(true, true));
+    EXPECT_TRUE(node->IsSubTreeNeedPrepare(true, false, true));
 }
 
 /**

@@ -196,7 +196,7 @@ public:
     void PrepareSelfNodeForApplyModifiers();
     void PrepareChildrenForApplyModifiers();
     // if subtree dirty or child filter need prepare
-    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false);
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool SetAccumulatedClipFlag(bool clipChange);
@@ -1126,7 +1126,6 @@ public:
 
     void ReSortChildrenByZIndex();
 
-    void AccumulateParentGeoDirty();
 protected:
     void ResetDirtyStatus();
 

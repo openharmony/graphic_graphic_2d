@@ -1801,7 +1801,7 @@ bool RSSystemProperties::GetUnmarshalParallelEnabled()
 {
     static bool unmarshalParallel =
         RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
-        std::atoi((system::GetParameter("persist.sys.graphic.unmarshalParallel.enabled", "1")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.unmarshalParallel.enabled", "0")).c_str()) != 0;
     return unmarshalParallel;
 }
 

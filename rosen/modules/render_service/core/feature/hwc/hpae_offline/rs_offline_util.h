@@ -43,7 +43,7 @@ private:
 };
 
 #if defined(ROSEN_OHOS)
-#define RS_OFFLINE_LOGD(fmt, ...) RS_LOGD_IF(DEBUG_PREVALIDATE, "hpae_offline: " fmt, ##__VA_ARGS__)
+#define RS_OFFLINE_LOGD(fmt, ...) RS_LOGD("hpae_offline: " fmt, ##__VA_ARGS__)
 #define RS_OFFLINE_LOGI(fmt, ...) RS_LOGI("hpae_offline: " fmt, ##__VA_ARGS__)
 #define RS_OFFLINE_LOGW(fmt, ...) RS_LOGW("hpae_offline: " fmt, ##__VA_ARGS__)
 #define RS_OFFLINE_LOGE(fmt, ...) RS_LOGE("hpae_offline: " fmt, ##__VA_ARGS__)

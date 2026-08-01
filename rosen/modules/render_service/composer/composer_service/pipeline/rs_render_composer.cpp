@@ -549,17 +549,17 @@ bool RSRenderComposer::IsDelayRequired(HgmCore& hgmCore, const PipelineParam& pi
     if (hgmCore.GetLtpoEnabled()) {
         if (AdaptiveModeStatus() == SupportASStatus::SUPPORT_AS) {
             RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers in Adaptive Mode");
-            RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
+            RS_OPTIONAL_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
             return false;
         }
         if (pipelineParam.hasGameScene && AdaptiveModeStatus() == SupportASStatus::GAME_SCENE_SKIP) {
             RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers skip delayTime Calculation");
-            RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
+            RS_OPTIONAL_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
             return false;
         }
         if (AdaptiveModeStatus() == SupportASStatus::SUPPORT_AS_LTPS) {
             RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers in Adaptive Mode For LTPS");
-            RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode For LTPS");
+            RS_OPTIONAL_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode For LTPS");
             return false;
         }
     } else {

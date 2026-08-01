@@ -146,11 +146,12 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    std::shared_ptr<Typography> typography(static_cast<Typography*>(nativePointer));
-    if (typography == nullptr) {
+    auto* sharedPtr = static_cast<std::shared_ptr<Typography>*>(nativePointer);
+    if (sharedPtr == nullptr || sharedPtr->get() == nullptr) {
         TEXT_LOGE("Null typography");
         return nullptr;
     }
+    std::shared_ptr<Typography> typography(*sharedPtr);
 
     JsParagraph* jsParagraph = new (std::nothrow) JsParagraph(typography);
     if (jsParagraph == nullptr) {
@@ -1007,10 +1008,15 @@ std::shared_ptr<Typography> JsParagraph::GetParagraph()
 
 napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography)
 {
-    return CreateJsTypography(env, typography.release());
+    return CreateJsTypography(env, std::shared_ptr<Typography>(typography.release()));
 }
 
 napi_value JsParagraph::CreateJsTypography(napi_env env, Typography* typography)
+{
+    return CreateJsTypography(env, std::shared_ptr<Typography>(typography));
+}
+
+napi_value JsParagraph::CreateJsTypography(napi_env env, std::shared_ptr<Typography> typography)
 {
     if (!CreateConstructor(env)) {
         TEXT_LOGE("Failed to create constructor");
@@ -1021,12 +1027,15 @@ napi_value JsParagraph::CreateJsTypography(napi_env env, Typography* typography)
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status == napi_ok) {
         napi_value argv = nullptr;
-        napi_create_external(
-            env, typography, [](napi_env env, void* finalizeData, void* finalizeHint) {}, nullptr, &argv);
-        status = napi_new_instance(env, constructor, ARGC_ONE, &argv, &result);
-        if (status == napi_ok) {
+        auto holder = std::make_unique<std::shared_ptr<Typography>>(typography);
+        status = napi_create_external(
+            env, holder.get(), [](napi_env env, void* data, void* finalizeHint) {}, nullptr, &argv);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to create external");
             return result;
-        } else {
+        }
+        status = napi_new_instance(env, constructor, ARGC_ONE, &argv, &result);
+        if (status != napi_ok) {
             TEXT_LOGE("Failed to new instance");
         }
     }
