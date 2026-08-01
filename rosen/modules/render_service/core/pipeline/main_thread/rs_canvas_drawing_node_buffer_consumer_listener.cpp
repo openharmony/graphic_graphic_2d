@@ -18,44 +18,32 @@
 #include "common/rs_optional_trace.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_base_surface_util.h"
-#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 RSCanvasDrawingNodeBufferConsumerListener::RSCanvasDrawingNodeBufferConsumerListener(
-    std::weak_ptr<RSContext> rsContext, NodeId nodeId)
-    : rsContext_(rsContext), nodeId_(nodeId)
+    std::weak_ptr<RSSurfaceHandler> surfaceHandler, NodeId nodeId)
+    : surfaceHandler_(surfaceHandler), nodeId_(nodeId)
 {}
 
 RSCanvasDrawingNodeBufferConsumerListener::~RSCanvasDrawingNodeBufferConsumerListener() {}
 
 void RSCanvasDrawingNodeBufferConsumerListener::OnBufferAvailable()
 {
-    auto rsContext = rsContext_.lock();
-    if (rsContext == nullptr) {
-        RS_LOGE("RSCanvasDrawingNodeBufferConsumerListener::OnBufferAvailable: null rsContext, nodeId=%{public}" PRIu64,
-            nodeId_);
-        return;
-    }
-
-    auto surfaceHandler = GetSurfaceHandler(rsContext);
+    auto surfaceHandler = surfaceHandler_.lock();
     if (surfaceHandler == nullptr) {
         RS_LOGE("RSCanvasDrawingNodeBufferConsumerListener::OnBufferAvailable: null surfaceHandler, nodeId=%{public}"
             PRIu64, nodeId_);
         return;
     }
-
     surfaceHandler->IncreaseAvailableBuffer();
     if (surfaceHandler->GetAvailableBufferCount() > 1) {
-        std::weak_ptr<RSSurfaceHandler> weakHandler = surfaceHandler;
-        RSMainThread::Instance()->PostTask([weakHandler, nodeId = nodeId_]() {
-            if (auto surfaceHandler = weakHandler.lock()) {
-                RSBaseSurfaceUtil::DropFirstFlushedBuffer(*surfaceHandler, nodeId);
-            }
+        RSMainThread::Instance()->PostTask([surfaceHandler, nodeId = nodeId_]() {
+            RSBaseSurfaceUtil::DropFirstFlushedBuffer(*surfaceHandler, nodeId);
         });
     }
-    rsContext->RequestVsync();
+    RSMainThread::Instance()->RequestNextVSync();
 }
 
 void RSCanvasDrawingNodeBufferConsumerListener::OnTunnelHandleChange() {}
@@ -74,30 +62,17 @@ void RSCanvasDrawingNodeBufferConsumerListener::OnGoBackground()
 
 void RSCanvasDrawingNodeBufferConsumerListener::CleanBuffers()
 {
-    auto rsContext = rsContext_.lock();
-    if (rsContext == nullptr) {
-        RS_LOGE("RSCanvasDrawingNodeBufferConsumerListener::CleanBuffers: null rsContext, nodeId=%{public}" PRIu64,
-            nodeId_);
-        return;
-    }
-
-    auto surfaceHandler = GetSurfaceHandler(rsContext);
+    auto surfaceHandler = surfaceHandler_.lock();
     if (surfaceHandler == nullptr) {
         RS_LOGE("RSCanvasDrawingNodeBufferConsumerListener::CleanBuffers: null surfaceHandler, nodeId=%{public}" PRIu64,
             nodeId_);
         return;
     }
-
-    std::weak_ptr<RSSurfaceHandler> weakHandler = surfaceHandler;
-    RSMainThread::Instance()->PostTask([weakHandler]() {
-        auto surfaceHandler = weakHandler.lock();
-        if (surfaceHandler == nullptr) {
-            return;
-        }
-        const auto& consumer = surfaceHandler->GetConsumer();
-        if (consumer == nullptr) {
-            return;
-        }
+    const auto& consumer = surfaceHandler->GetConsumer();
+    if (consumer == nullptr) {
+        return;
+    }
+    RSMainThread::Instance()->PostTask([surfaceHandler, consumer, nodeId = nodeId_]() {
         std::set<uint64_t> cacheSet;
         CollectBuffersForClean(cacheSet, surfaceHandler);
         surfaceHandler->EnqueueAndFlushGPUCacheCleanup(cacheSet);
@@ -121,25 +96,6 @@ void RSCanvasDrawingNodeBufferConsumerListener::CollectBuffersForClean(
                 "seqNum=%{public}" PRIu64 ", fd=%{public}d", bufferId, bufferHandle ? bufferHandle->fd : 0);
         }
     }
-}
-
-std::shared_ptr<RSSurfaceHandler> RSCanvasDrawingNodeBufferConsumerListener::GetSurfaceHandler(
-    std::shared_ptr<RSContext> rsContext)
-{
-    std::shared_ptr<RSSurfaceHandler> surfaceHandler = nullptr;
-    auto node = node_.lock();
-    if (node == nullptr) {
-        node = rsContext->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId_);
-    }
-    if (node != nullptr) {
-        node_ = node;
-        surfaceHandler = node->GetMutableSurfaceHandler();
-    } else {
-        RS_LOGE("RSCanvasDrawingNodeBufferConsumerListener::GetSurfaceHandler: null node, nodeId=%{public}" PRIu64,
-            nodeId_);
-        surfaceHandler = rsContext->GetMutableNodeMap().GetSurfaceHandler(nodeId_, false);
-    }
-    return surfaceHandler;
 }
 } // namespace Rosen
 } // namespace OHOS

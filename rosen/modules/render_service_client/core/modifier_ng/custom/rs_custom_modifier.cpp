@@ -140,8 +140,7 @@ void RSCustomModifier::UpdateToRender()
         return;
     }
 
-    bool hybridDraw = RenderInClient(drawCmdList, node);
-    if (hybridDraw) {
+    if (RenderInClient(drawCmdList, node)) {
         drawCmdList = nullptr;
     }
     auto property = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(it->second);
@@ -151,9 +150,7 @@ void RSCustomModifier::UpdateToRender()
         property->stagingValue_ = drawCmdList;
     }
     property->cmdListImages_ = RSCmdListImageCollector::CollectCmdListImage(drawCmdList);
-    if (!hybridDraw) {
-        UpdateProperty(node, drawCmdList, property->GetId());
-    }
+    UpdateProperty(node, drawCmdList, property->GetId());
 }
 
 void RSCustomModifier::UpdateProperty(

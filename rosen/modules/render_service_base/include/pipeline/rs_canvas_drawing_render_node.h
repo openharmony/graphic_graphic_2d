@@ -82,6 +82,8 @@ public:
     }
 
     bool IsNodeMemClearEnable() override;
+
+    static void InitClientRenderEnable(bool ccmEnabled);
  
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     const std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler() const
@@ -104,7 +106,12 @@ public:
     void OnDestoryTokenNode();
  
     bool IsBufferDraw();
- 
+
+    bool IsBufferDirty() const override
+    {
+        return bufferDirty_;
+    }
+
     static bool IsHybridEnabled();
 #endif // RS_MODIFIERS_DRAW_ENABLE
 
@@ -158,10 +165,13 @@ private:
 
     bool modifiersApplied_ = false;
 
+    static inline bool hybridEnabled_ = false;
+
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
     bool sizeOutOfGpuLimit_ = false;
     bool firstBufferAcquired_ = false;
+    bool bufferDirty_ = false;
 #endif
 
     friend class RSCanvasDrawingNodeCommandHelper;

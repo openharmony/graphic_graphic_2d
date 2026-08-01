@@ -181,8 +181,8 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
         result |= DrawableVecStatus::CLIP_TO_BOUNDS;
     }
 
-    if (HasPropertyDrawableInRange(
-        drawableVec, RSDrawableSlot::CONTENT_BEGIN, RSDrawableSlot::CONTENT_END)) {
+    if (HasPropertyDrawableInRange(drawableVec, RSDrawableSlot::CONTENT_BEGIN, RSDrawableSlot::CONTENT_END) ||
+        node.IsBufferDirty()) {
         nodeNotEmpty = true;
         result |= DrawableVecStatus::FRAME_NOT_EMPTY;
     }

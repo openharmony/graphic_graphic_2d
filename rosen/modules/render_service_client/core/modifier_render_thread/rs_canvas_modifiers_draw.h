@@ -67,7 +67,8 @@ public:
 
 private:
     void Reset();
-    void CreateProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface, const std::string& cacheDir);
+    void CreateProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface,
+        std::shared_ptr<Drawing::GPUContext> gpuContext, size_t& maxGpuResourceBytes);
     void ReleaseProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface);
     DestroySemaphoreInfo* ResetSurface(int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
     DestroySemaphoreInfo* UpdateContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer);
@@ -84,9 +85,9 @@ private:
     void CleanBuffer();
 
     bool GetPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* rect,
-        Drawing::DrawCmdListPtr drawCmdList, const std::string& cacheDir);
+        Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<Drawing::GPUContext> gpuContext);
 
-    bool GetBitmap(Drawing::Bitmap& bitmap, const std::string& cacheDir);
+    bool GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::GPUContext> gpuContext);
 
     std::shared_ptr<Drawing::Image> GetImage(
         const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<Drawing::GPUContext> gpuContext);
@@ -119,8 +120,10 @@ public:
 private:
     // Thread-related methods
     void StartThread();
-    void PostTask(const std::function<void()>&& task, const std::string& name = std::string(), int64_t delayTime = 0);
-    void PostSyncTask(const std::function<void()>&& task);
+    void WaitAllTasksFinish();
+    void Destroy();
+    void PostTask(const std::function<void()>& task, const std::string& name = std::string(), int64_t delayTime = 0);
+    void PostSyncTask(const std::function<void()>& task);
     void RemoveTask(const std::string& name);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
@@ -132,7 +135,11 @@ private:
     }
     // End of thread-related methods
 
+    std::shared_ptr<Drawing::GPUContext> GetGpuContext();
+
     void SetCacheDir(const std::string& cacheDir);
+
+    void QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     void OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
 
@@ -166,10 +173,17 @@ private:
     // Thread-related members
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-    bool threadStarted_ = false;
+    std::atomic<bool> threadStarted_ = false;
+    std::atomic<bool> threadDestroyed_ = false;
     // End of thread-related members
 
+    std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
+
     std::string cacheDir_;
+
+    static inline size_t maxGpuResourceBytes_ = 0;
+
+    bool needRestoreGpuCacheLimit_ = false;
 
     std::unordered_map<NodeId, RSCanvasModifiersDrawable> drawableMap_;
 
