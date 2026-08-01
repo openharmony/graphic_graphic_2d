@@ -182,10 +182,10 @@ void RSLogicalDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRender
 {
     if (auto oldContainer = std::exchange(windowContainer_, container)) {
         if (container) {
-            RS_LOGD("RSLogicalDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64
+            RS_LOGD_IF(DEBUG_NODE, "RSLogicalDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64
                 ", newContainer: %{public}" PRIu64, oldContainer->GetId(), container->GetId());
         } else {
-            RS_LOGD("RSLogicalDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64,
+            RS_LOGD_IF(DEBUG_NODE, "RSLogicalDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64,
                 oldContainer->GetId());
         }
     }

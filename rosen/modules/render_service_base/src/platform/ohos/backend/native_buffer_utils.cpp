@@ -695,7 +695,7 @@ void GetFenceFdFromSemaphore(VkSemaphore& semaphore, int32_t& syncFenceFd)
 
     auto err = vkContext.vkGetSemaphoreFdKHR(vkContext.GetDevice(), &getFdInfo, &syncFenceFd);
     if (VK_SUCCESS != err) {
-        RS_LOGD("FlushSurfaceWithFence: failed to get semaphore fd");
+        RS_LOGD_IF(DEBUG_IPC, "FlushSurfaceWithFence: failed to get semaphore fd");
         syncFenceFd = -1;
     }
 }
