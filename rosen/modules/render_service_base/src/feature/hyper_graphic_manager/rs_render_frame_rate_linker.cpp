@@ -122,8 +122,7 @@ uint32_t RSRenderFrameRateLinker::GetFrameRate() const
 
 void RSRenderFrameRateLinker::SetAnimatorExpectedFrameRate(int32_t animatorExpectedFrameRate)
 {
-    if (animatorExpectedFrameRate_ != animatorExpectedFrameRate) {
-        animatorExpectedFrameRate_ = animatorExpectedFrameRate;
+    if (animatorExpectedFrameRate_.exchange(animatorExpectedFrameRate) != animatorExpectedFrameRate) {
         Notify();
     }
 }
@@ -133,7 +132,7 @@ void RSRenderFrameRateLinker::Copy(const RSRenderFrameRateLinker&& other)
     id_ = other.id_;
     expectedRange_ = other.expectedRange_;
     frameRate_ = other.frameRate_;
-    animatorExpectedFrameRate_ = other.animatorExpectedFrameRate_;
+    animatorExpectedFrameRate_.store(other.animatorExpectedFrameRate_.load());
 }
 
 void RSRenderFrameRateLinker::Notify()
