@@ -483,6 +483,8 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncSwitchTest, Function | MediumTest| Lev
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     ASSERT_EQ(conn->SetUiDvsyncSwitch(true), VSYNC_ERROR_OK);
     ASSERT_EQ(conn->SetUiDvsyncSwitch(false), VSYNC_ERROR_OK);
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(true, FromWhom::INNER), VSYNC_ERROR_OK);
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(false, FromWhom::API), VSYNC_ERROR_OK);
 }
 
 /*
