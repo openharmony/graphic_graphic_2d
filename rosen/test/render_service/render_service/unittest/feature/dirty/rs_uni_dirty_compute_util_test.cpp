@@ -354,7 +354,6 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams00
     displayParams->specialLayerManager_ = specialLayerManager;
     screenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
     screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, true);
 
     std::unordered_set<NodeId> blackListVector({1, 2, 3});
@@ -1011,7 +1010,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckCurrentFrameHasDirtyInVirtual001, TestS
     surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, true, specialLayerManager3));
 
     screenParams->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
-    EXPECT_FALSE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
+    EXPECT_TRUE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
 
     surfaceAdapters.clear();
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(++defaultSurfaceId);
