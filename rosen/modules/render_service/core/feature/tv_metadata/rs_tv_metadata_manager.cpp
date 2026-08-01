@@ -301,13 +301,15 @@ int32_t RSTvMetadataManager::SendVideoRateInfo(const std::unordered_map<std::str
 {
     auto rateIt = videoRateInfo.find(VIDEO_RATE_KEY);
     uint16_t rate{0};
-    if (rateIt != videoRateInfo.end()) {
-        auto resultRate =
-            std::from_chars(rateIt->second.data(), rateIt->second.data() + rateIt->second.size(), rate);
-        if (resultRate.ec != std::errc()) {
-            return -1;
-        }
+    if (rateIt == videoRateInfo.end()) {
+        return -1;
     }
+    auto resultRate =
+        std::from_chars(rateIt->second.data(), rateIt->second.data() + rateIt->second.size(), rate);
+    if (resultRate.ec != std::errc()) {
+        return -1;
+    }
+    videoRate_ = rate;
     uint32_t decSpeed{0};
     auto speedIt = videoRateInfo.find(VIDEO_DECSPEED_KEY);
     if (speedIt != videoRateInfo.end()) {
@@ -317,9 +319,9 @@ int32_t RSTvMetadataManager::SendVideoRateInfo(const std::unordered_map<std::str
             decSpeed = 0;
         }
     }
-    videoRate_ = rate;
-    if (decSpeed > DECODE_SPEED_BASE) {
-        videoRate_ = 0; // 倍速播放时，设置帧率信息无效，设置为0，不生效策略
+
+    if (decSpeed > 0 && decSpeed != DECODE_SPEED_BASE) {
+        videoRate_ = 0;
     }
     RS_LOGI("SendVideoRateInfo rate:%{public}d, decSpeed:%{public}d", rate, decSpeed);
     return 0;
