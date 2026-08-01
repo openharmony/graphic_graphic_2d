@@ -864,6 +864,8 @@ ohos_unittest("RSSubThreadCacheTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "uifirst/rs_sub_thread_cache_test.cpp",
   ]
+  defines = []
+  defines += gpu_defines
   sanitize = {
     cfi = true
     cfi_cross_dso = true

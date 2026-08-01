@@ -239,7 +239,7 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow003, TestSize.Level1)
     std::shared_ptr<Drawing::GPUContext> gpuContext(drawingContext);
 
     sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBuffer(10, 10);
-    OHNativeWindowBuffer* nativeWindowBuffer = CreteNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
+    OHNativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
     auto backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer,
         surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
     DestroyNativeWindowBuffer(nativeWindowBuffer);
