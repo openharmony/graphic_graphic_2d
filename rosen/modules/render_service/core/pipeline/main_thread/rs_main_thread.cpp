@@ -551,7 +551,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSLayerSplitManager::GetInstance()->Reset();
         ClearNeedDropframePidList();
         if (renderThreadParams_) {
-            renderThreadParams_->ClearWhiteListRect();
+            renderThreadParams_->GetMutableScreenSpecialLayerParam().ClearWhiteListRect();
         }
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -2454,7 +2454,7 @@ void RSMainThread::AddWhiteListRect(const std::unordered_set<ScreenId>& screenId
     if (renderThreadParams_ == nullptr) {
         return;
     }
-    renderThreadParams_->AddWhiteListRect(screenIds, rect);
+    renderThreadParams_->GetMutableScreenSpecialLayerParam().AddWhiteListRect(screenIds, rect);
 }
 
 void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
@@ -3532,10 +3532,14 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
     OcclusionRectISet occlusionSurfaces;
     bool hasFilterCacheOcclusion = false;
     bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
-
+    bool hasAnimatedScenes = false;
+    {
+        std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
+        hasAnimatedScenes = !systemAnimatedScenesList_.empty();
+    }
     auto calculator = [this, &screenNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec,
-        &hasFilterCacheOcclusion, filterCacheOcclusionEnabled] (std::shared_ptr<RSSurfaceRenderNode>& curSurface,
-        bool needSetVisibleRegion) {
+        &hasFilterCacheOcclusion, filterCacheOcclusionEnabled, hasAnimatedScenes]
+        (std::shared_ptr<RSSurfaceRenderNode>& curSurface, bool needSetVisibleRegion) {
         if (!CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
             curSurface->SetVisibleRegionRecursive({}, curVisVec);
             return;
@@ -3547,7 +3551,7 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
             CalcSurfaceNodeVisibleRegion(screenNode, curSurface, accumulatedRegion, curRegion, totalRegion);
 
         curSurface->SetVisibleRegionRecursive(totalRegion, curVisVec, needSetVisibleRegion,
-            visibleLevel, !systemAnimatedScenesList_.empty());
+            visibleLevel, hasAnimatedScenes);
         curSurface->AccumulateOcclusionRegion(
             accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_, filterCacheOcclusionEnabled);
     };
@@ -3643,7 +3647,11 @@ void RSMainThread::CalcOcclusion()
             surface->CleanDirtyRegionUpdated();
         }
     }
-    bool needRefreshRates = systemAnimatedScenesList_.empty();
+    bool needRefreshRates = false;
+    {
+        std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
+        needRefreshRates = systemAnimatedScenesList_.empty();
+    }
     if (!winDirty && !needRefreshRates) {
         if (SurfaceOcclusionCallBackIfOnTreeStateChanged()) {
             SurfaceOcclusionCallback();
@@ -4412,9 +4420,12 @@ void RSMainThread::SurfaceOcclusionChangeCallback(VisibleData& dstCurVisVec)
 bool RSMainThread::SurfaceOcclusionCallBackIfOnTreeStateChanged()
 {
     std::vector<NodeId> registeredSurfaceOnTree;
-    for (auto it = savedAppWindowNode_.begin(); it != savedAppWindowNode_.end(); ++it) {
-        if (it->second.first->IsOnTheTree()) {
-            registeredSurfaceOnTree.push_back(it->first);
+    {
+        std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
+        for (auto it = savedAppWindowNode_.begin(); it != savedAppWindowNode_.end(); ++it) {
+            if (it->second.first != nullptr && it->second.first->IsOnTheTree()) {
+                registeredSurfaceOnTree.push_back(it->first);
+            }
         }
     }
     if (lastRegisteredSurfaceOnTree_ != registeredSurfaceOnTree) {
@@ -5137,9 +5148,6 @@ void RSMainThread::RenderFrameStart(uint64_t timestamp)
 
 bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] threeFingerScenesListSize[%u] "
-        "systemAnimatedScenesListSize_[%u] isRegularAnimation_[%d]", __func__, systemAnimatedScenes,
-        systemAnimatedScenes_, threeFingerScenesList_.size(), systemAnimatedScenesList_.size(), isRegularAnimation);
     if (systemAnimatedScenes < SystemAnimatedScenes::ENTER_MISSION_CENTER ||
             systemAnimatedScenes > SystemAnimatedScenes::OTHERS) {
         RS_LOGD("SetSystemAnimatedScenes Out of range.");
@@ -5147,6 +5155,8 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
     }
     {
         std::lock_guard<std::mutex> lock(systemAndRegularMutex_);
+        RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] isRegularAnimation_[%d]",
+            __func__, systemAnimatedScenes, systemAnimatedScenes_, isRegularAnimation);
         systemAnimatedScenes_ = systemAnimatedScenes;
         isRegularAnimation_ = isRegularAnimation;
     }

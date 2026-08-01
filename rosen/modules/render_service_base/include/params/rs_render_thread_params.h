@@ -532,24 +532,14 @@ public:
         return isSecurityExemption_;
     }
 
-    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect)
+    ScreenSpecialLayerParam& GetMutableScreenSpecialLayerParam()
     {
-        for (auto screenId : screenIds) {
-            whiteListRect_[screenId].push_back(rect);
-        }
+        return screenSpecialLayerParam_;
     }
 
-    std::vector<Drawing::Rect> GetWhiteListRectByScreenId(ScreenId screenId) const
+    const ScreenSpecialLayerParam& GetScreenSpecialLayerParam() const
     {
-        if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
-            return iter->second;
-        }
-        return {};
-    }
-
-    void ClearWhiteListRect()
-    {
-        whiteListRect_.clear();
+        return screenSpecialLayerParam_;
     }
 
     bool IsOverDrawEnabled() const
@@ -788,7 +778,7 @@ private:
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
-    std::map<ScreenId, std::vector<Drawing::Rect>> whiteListRect_;
+    ScreenSpecialLayerParam screenSpecialLayerParam_;
     bool isSecurityExemption_ = false;
     // use to mark security display
     bool isSecurityDisplay_ = false;

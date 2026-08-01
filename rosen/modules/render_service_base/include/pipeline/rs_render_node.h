@@ -1096,11 +1096,7 @@ public:
     // Enable HWCompose
     RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
     const RSHwcRecorder& GetConstHwcRecorder() const { return hwcRecorder_; }
-    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
 
-    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
-
-    void SyncWhiteListInfoToParent();
     bool IsForegroundFilterEnable();
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
