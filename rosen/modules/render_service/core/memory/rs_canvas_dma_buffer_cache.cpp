@@ -22,6 +22,7 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr int CACHED_SURFACE_BUFFER_LIMIT_PER_NODE = 3;
+constexpr int CACHED_SURFACE_BUFFER_LIMIT_PER_PID = 512;
 }
 
 RSCanvasDmaBufferCache& RSCanvasDmaBufferCache::GetInstance()
@@ -72,10 +73,26 @@ bool RSCanvasDmaBufferCache::AddPendingBuffer(
     }
 
     std::lock_guard<std::mutex> lock(pendingBufferMutex_);
-    auto it = pendingBufferMap_.find(nodeId);
+    pid_t pid = ExtractPid(nodeId);
+    auto pidIt = pendingBufferMap_.find(pid);
+    if (pidIt == pendingBufferMap_.end()) {
+        pendingBufferMap_[pid] = {};
+        pidIt = pendingBufferMap_.find(pid);
+    }
+    auto& nodeMap = pidIt->second;
+    size_t pidBufferCount = 0;
+    for (const auto& [id, cache] : nodeMap) {
+        pidBufferCount += cache.second.size();
+    }
+    if (pidBufferCount >= CACHED_SURFACE_BUFFER_LIMIT_PER_PID) {
+        RS_LOGW("RSCanvasDmaBufferCache::AddPendingBuffer pid=%{public}d buffer count %{public}zu exceeds limit",
+            pid, pidBufferCount);
+        return false;
+    }
+    auto it = nodeMap.find(nodeId);
     // Cache first buffer for the node
-    if (it == pendingBufferMap_.end()) {
-        pendingBufferMap_[nodeId] = { std::make_pair(0, BufferMap { { resetSurfaceIndex, buffer } }) };
+    if (it == nodeMap.end()) {
+        nodeMap[nodeId] = { std::make_pair(0, BufferMap { { resetSurfaceIndex, buffer } }) };
         return true;
     }
 
@@ -99,10 +116,17 @@ bool RSCanvasDmaBufferCache::AddPendingBuffer(
 sptr<SurfaceBuffer> RSCanvasDmaBufferCache::AcquirePendingBuffer(NodeId nodeId, uint32_t resetSurfaceIndex)
 {
     std::lock_guard<std::mutex> lock(pendingBufferMutex_);
-    auto it = pendingBufferMap_.find(nodeId);
+    pid_t pid = ExtractPid(nodeId);
+    auto pidIt = pendingBufferMap_.find(pid);
+    if (pidIt == pendingBufferMap_.end()) {
+        pendingBufferMap_[pid] = {};
+        pidIt = pendingBufferMap_.find(pid);
+    }
+    auto& nodeMap = pidIt->second;
+    auto it = nodeMap.find(nodeId);
     // Node has no cached buffers, add placeholder
-    if (it == pendingBufferMap_.end()) {
-        pendingBufferMap_[nodeId] = { std::make_pair(resetSurfaceIndex, BufferMap {}) };
+    if (it == nodeMap.end()) {
+        nodeMap[nodeId] = { std::make_pair(resetSurfaceIndex, BufferMap {}) };
         RS_LOGW("RSCanvasDmaBufferCache::AcquirePendingBuffer, no cache, nodeId=%{public}" PRIu64, nodeId);
         return nullptr;
     }
@@ -141,8 +165,13 @@ void RSCanvasDmaBufferCache::RemovePendingBuffer(BufferMap& nodeBufferMap, uint3
 void RSCanvasDmaBufferCache::RemovePendingBuffer(NodeId nodeId, uint32_t resetSurfaceIndex)
 {
     std::lock_guard<std::mutex> lock(pendingBufferMutex_);
-    auto it = pendingBufferMap_.find(nodeId);
-    if (it == pendingBufferMap_.end()) {
+    pid_t pid = ExtractPid(nodeId);
+    auto pidIt = pendingBufferMap_.find(pid);
+    if (pidIt == pendingBufferMap_.end()) {
+        return;
+    }
+    auto it = pidIt->second.find(nodeId);
+    if (it == pidIt->second.end()) {
         return;
     }
     RemovePendingBuffer(it->second.second, resetSurfaceIndex, nodeId);
@@ -151,24 +180,30 @@ void RSCanvasDmaBufferCache::RemovePendingBuffer(NodeId nodeId, uint32_t resetSu
 void RSCanvasDmaBufferCache::ClearPendingBufferByNodeId(NodeId nodeId)
 {
     std::lock_guard<std::mutex> lock(pendingBufferMutex_);
-    auto it = pendingBufferMap_.find(nodeId);
-    if (it != pendingBufferMap_.end()) {
+    pid_t pid = ExtractPid(nodeId);
+    auto pidIt = pendingBufferMap_.find(pid);
+    if (pidIt == pendingBufferMap_.end()) {
+        return;
+    }
+    auto it = pidIt->second.find(nodeId);
+    if (it != pidIt->second.end()) {
         it->second.second.clear();
-        pendingBufferMap_.erase(it);
+        pidIt->second.erase(it);
+    }
+    if (pidIt->second.empty()) {
+        pendingBufferMap_.erase(pidIt);
     }
 }
 
 void RSCanvasDmaBufferCache::ClearPendingBufferByPid(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(pendingBufferMutex_);
-    auto it = pendingBufferMap_.begin();
-    while (it != pendingBufferMap_.end()) {
-        if (ExtractPid(it->first) == pid) {
-            it->second.second.clear();
-            it = pendingBufferMap_.erase(it);
-        } else {
-            ++it;
+    auto pidIt = pendingBufferMap_.find(pid);
+    if (pidIt != pendingBufferMap_.end()) {
+        for (auto& [nodeId, cache] : pidIt->second) {
+            cache.second.clear();
         }
+        pendingBufferMap_.erase(pidIt);
     }
 }
 } // namespace OHOS::Rosen

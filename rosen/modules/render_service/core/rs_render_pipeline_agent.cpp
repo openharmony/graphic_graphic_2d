@@ -1021,7 +1021,7 @@ int32_t RSRenderPipelineAgent::SubmitCanvasPreAllocatedBuffer(
         return FEATURE_DISABLED;
     }
     auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
+    if (pipeline == nullptr) {
         return INVALID_ARGUMENTS;
     }
     if (ExtractPid(nodeId) != remotePid) {
@@ -1029,7 +1029,12 @@ int32_t RSRenderPipelineAgent::SubmitCanvasPreAllocatedBuffer(
             nodeId, remotePid);
         return INVALID_ARGUMENTS;
     }
-    auto task = [nodeId, buffer, resetSurfaceIndex]() {
+    auto& nodeMap = pipeline->GetMainThread()->GetContext().GetMutableNodeMap();
+    auto task = [nodeId, buffer, resetSurfaceIndex, &nodeMap]() {
+        const auto& node = nodeMap.GetRenderNode(nodeId);
+        if (node != nullptr && node->GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE) {
+            return INVALID_ARGUMENTS;
+        }
         bool success = RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(nodeId, buffer, resetSurfaceIndex);
         return success ? SUCCESS : INVALID_ARGUMENTS;
     };
@@ -1076,6 +1081,11 @@ ErrCode RSRenderPipelineAgent::GetBitmap(NodeId id, Drawing::Bitmap& bitmap, boo
         }
         auto grContext = renderThread->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
         auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+        if (drawableNode == nullptr) {
+            RS_LOGE("GetBitmap null drawable, NodeId: [%{public}" PRIu64 "]", id);
+            result.set_value(false);
+            return;
+        }
         auto getDrawableBitmapTask = [drawableNode, &bitmap, grContext, &result]() {
             bitmap = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)
                 ->GetBitmap(grContext);
@@ -1084,6 +1094,8 @@ ErrCode RSRenderPipelineAgent::GetBitmap(NodeId id, Drawing::Bitmap& bitmap, boo
         renderThread->PostTask(getDrawableBitmapTask);
     };
     pipeline->PostMainThreadTask(getBitmapTask);
+#else
+    result.set_value(false);
 #endif
     success = future.get();
     return ERR_OK;
