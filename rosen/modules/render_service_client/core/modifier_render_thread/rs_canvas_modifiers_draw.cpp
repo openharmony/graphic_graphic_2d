@@ -358,7 +358,12 @@ bool RSCanvasModifiersDrawable::GetPixelMap(std::shared_ptr<Media::PixelMap> pix
 
 bool RSCanvasModifiersDrawable::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
-    auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    auto alphaType = Drawing::ALPHATYPE_PREMUL;
+    const auto& format = bitmap.GetFormat();
+    if (format.alphaType != Drawing::ALPHATYPE_UNKNOWN) {
+        alphaType = format.alphaType;
+    }
+    auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, alphaType };
     auto image = GetImage(bitmapFormat, gpuContext);
     if (image == nullptr) {
         return false;
