@@ -937,6 +937,21 @@ void RSRenderNode::AddCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode
     if (child == nullptr) {
         return;
     }
+    if (GetId() == child->GetId()) {
+        ROSEN_LOGE("RSRenderNode::AddCrossParentChild cannot add self as child, id=%{public}" PRIu64, GetId());
+        return;
+    }
+    {
+        auto parent = parent_.lock();
+        while (parent != nullptr) {
+            if (parent->GetId() == child->GetId()) {
+                ROSEN_LOGE("RSRenderNode::AddCrossParentChild child is ancestor of current node, "
+                    "nodeId=%{public}" PRIu64 " childId=%{public}" PRIu64, GetId(), child->GetId());
+                return;
+            }
+            parent = parent->GetParent().lock();
+        }
+    }
     // Set parent-child relationship
     child->SetParent(weak_from_this());
     if (index < 0 || index >= static_cast<int32_t>(children_.size())) {
