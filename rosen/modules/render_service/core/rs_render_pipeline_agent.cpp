@@ -1021,7 +1021,7 @@ int32_t RSRenderPipelineAgent::SubmitCanvasPreAllocatedBuffer(
         return FEATURE_DISABLED;
     }
     auto pipeline = rsRenderPipeline_.lock();
-    if (pipeline == nullptr) {
+    if (!pipeline) {
         return INVALID_ARGUMENTS;
     }
     if (ExtractPid(nodeId) != remotePid) {
