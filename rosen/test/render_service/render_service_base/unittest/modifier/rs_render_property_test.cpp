@@ -1714,7 +1714,6 @@ HWTEST_F(RSRenderPropertyTest, CastToPropertyOfTypeMatch001, TestSize.Level1)
 
     auto mismatched = prop->CastToPropertyOf<Color>(__func__);
     EXPECT_EQ(mismatched, nullptr);
-    
 }
 
 /**
