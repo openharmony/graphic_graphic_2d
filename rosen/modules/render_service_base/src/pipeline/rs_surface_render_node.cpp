@@ -668,6 +668,16 @@ void RSSurfaceRenderNode::SetIsNotifyUIBufferAvailable(bool available)
     isNotifyUIBufferAvailable_.store(available);
 }
 
+bool RSSurfaceRenderNode::IsPendingUIBufferNotify() const
+{
+    return isPendingUIBufferNotify_;
+}
+
+void RSSurfaceRenderNode::SetPendingUIBufferNotify(bool pending)
+{
+    isPendingUIBufferNotify_ = pending;
+}
+
 void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
     bool isParentPrepareInReverseOrder)
 {
@@ -681,7 +691,7 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
 bool RSSurfaceRenderNode::IsUIBufferAvailable()
 {
     return ((IsAppWindow() || IsScbScreen() || IsUIExtension())
-        && !IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(*this));
+        && !IsNotifyUIBufferAvailable() && !IsPendingUIBufferNotify() && IsFirstFrameReadyToDraw(*this));
 }
 
 bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded)
