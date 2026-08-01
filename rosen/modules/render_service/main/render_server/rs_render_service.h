@@ -19,6 +19,7 @@
 #include <event_handler.h>
 #include <functional>
 #include <map>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -132,8 +133,13 @@ private:
     std::shared_ptr<RSRenderPipeline> renderPipeline_ = nullptr;
 
     mutable std::mutex mutex_;
-    std::map<sptr<IRemoteObject>,
-        std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>> connections_;
+    struct ConnectionEntry {
+        sptr<RSIClientToServiceConnection> serviceConn;
+        sptr<RSIClientToRenderConnection> renderConn;
+        pid_t remotePid = -1;
+    };
+    std::map<sptr<IRemoteObject>, ConnectionEntry> connections_;
+    std::unordered_map<pid_t, uint32_t> pidConnectionCounts_;
 
     sptr<RsGameFrameHandler> rsGameFrameHandler_ = nullptr;
 
