@@ -36,6 +36,7 @@ namespace Rosen {
 std::once_flag RSRenderServiceConnectHub::flag_;
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::instance_ = nullptr;
 OnConnectCallback RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
+std::mutex RSRenderServiceConnectHub::onConnectCallbackMutex_;
 constexpr int32_t TOKEN_STRONG_REF_COUNT = 1;
 constexpr int32_t WAIT_TIME_FOR_DEC_STRONG_REF = 50;
 
@@ -60,9 +61,33 @@ RSRenderServiceConnectHub::RSRenderServiceConnectHub()
 {
 }
 
+void RSRenderServiceConnectHub::SetOnConnectCallback(OnConnectCallback cb)
+{
+    {
+        std::lock_guard<std::mutex> lock(onConnectCallbackMutex_);
+        onConnectCallback_ = cb;
+    }
+    // if already connected, call the callback immediately
+    auto connHub = instance_;
+    if (connHub && connHub->renderConn_) {
+        OnConnectCallback callback;
+        {
+            std::lock_guard<std::mutex> lock(onConnectCallbackMutex_);
+            callback = onConnectCallback_;
+        }
+        if (callback) {
+            callback(connHub->renderConn_);
+        }
+    }
+}
+
 void RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode code, std::function<void()> cb)
 {
     auto instance = RSRenderServiceConnectHub::GetInstance();
+    if (instance == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::SetOnDiedCallback instance is nullptr");
+        return;
+    }
     std::lock_guard<std::mutex> lock(instance->onDiedCallbacksMutex_);
     instance->OnDiedCallbacks_[static_cast<int32_t>(code)] = cb;
     ROSEN_LOGI("RSRenderServiceConnectHub::SetOnDiedCallback, code:%{public}d", code);
@@ -74,6 +99,10 @@ void RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode code, 
         return;
     }
     auto instance = RSRenderServiceConnectHub::GetInstance();
+    if (instance == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::RemoveOnDiedCallback instance is nullptr");
+        return;
+    }
     std::lock_guard<std::mutex> lock(instance->onDiedCallbacksMutex_);
     instance->OnDiedCallbacks_.erase(static_cast<int32_t>(code));
     ROSEN_LOGI("RSRenderServiceConnectHub::RemoveOnDiedCallback, code:%{public}d", code);
@@ -152,6 +181,10 @@ uint64_t RSRenderServiceConnectHub::GetDefaultTokenMaskIdInner()
 uint64_t RSRenderServiceConnectHub::GetDefaultTokenMaskId()
 {
     auto connHub = RSRenderServiceConnectHub::GetInstance();
+    if (connHub == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::GetDefaultTokenMaskId connHub is nullptr");
+        return INVALID_TOKEN_MASK_ID;
+    }
     return connHub->GetDefaultTokenMaskIdInner();
 }
 
@@ -203,6 +236,10 @@ uint64_t RSRenderServiceConnectHub::GetRenderProcessTokenMaskId(sptr<IRemoteObje
         return INVALID_TOKEN_MASK_ID;
     }
     auto connHub = RSRenderServiceConnectHub::GetInstance();
+    if (connHub == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::%{public}s connHub is nullptr", __func__);
+        return INVALID_TOKEN_MASK_ID;
+    }
     bool needRefresh = AppExecFwk::AppImageObserverManager::GetInstance().IsBeforeImageCreationPoint();
 
     auto oldTokenMaskId = connHub->FindTokenMaskIdByRenderRemote(connectToRenderRemote);
@@ -300,8 +337,13 @@ bool RSRenderServiceConnectHub::Connect()
     conn_ = conn;
     renderConn_ = renderConn;
 
-    if (onConnectCallback_) {
-        onConnectCallback_(renderConn_);
+    OnConnectCallback callback;
+    {
+        std::lock_guard<std::mutex> lock(onConnectCallbackMutex_);
+        callback = onConnectCallback_;
+    }
+    if (callback) {
+        callback(renderConn_);
     }
 
     return true;
@@ -309,16 +351,19 @@ bool RSRenderServiceConnectHub::Connect()
 
 void RSRenderServiceConnectHub::ConnectDied()
 {
-    mutex_.lock();
-    renderService_ = nullptr;
-    if (conn_) {
-        conn_->RunOnRemoteDiedCallback();
+    sptr<RSIClientToServiceConnection> conn;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        renderService_ = nullptr;
+        conn = conn_;
+        conn_ = nullptr;
+        renderConn_ = nullptr;
+        deathRecipient_ = nullptr;
+        token_ = nullptr;
     }
-    conn_ = nullptr;
-    renderConn_ = nullptr;
-    deathRecipient_ = nullptr;
-    token_ = nullptr;
-    mutex_.unlock();
+    if (conn) {
+        conn->RunOnRemoteDiedCallback();
+    }
 }
 
 void RSRenderServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
@@ -372,8 +417,13 @@ void RSConnectRenderProcessDeathRecipient::OnRemoteDied(
         return;
     }
 
-    if (callback_) {
-        callback_();
+    std::function<void()> callback;
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        callback = callback_;
+    }
+    if (callback) {
+        callback();
     }
     rsConnHub->ConnectRenderProcessDied(tokenMaskId_);
 }

@@ -99,7 +99,7 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     if (clientToService == nullptr) {
         return false;
     }
-    bool enable;
+    bool enable = false;
     return clientToService->GetUniRenderEnabled(enable) == ERR_OK && enable;
 }
 

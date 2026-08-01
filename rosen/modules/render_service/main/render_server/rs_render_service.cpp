@@ -283,11 +283,11 @@ sptr<IRemoteObject> RSRenderService::RegisterRenderProcessConnection()
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::GetConnection(
     const sptr<RSIConnectionToken>& token)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (token == nullptr) {
-        RS_LOGE("RSRenderService::GetConnection token is nullptr");
+    if (!token) {
+        RS_LOGE("GetConnection failed: token is nullptr");
         return {nullptr, nullptr};
     }
+    std::unique_lock<std::mutex> lock(mutex_);
     auto tokenObj = token->AsObject();
     auto iter = connections_.find(tokenObj);
     if (iter == connections_.end()) {

@@ -35,9 +35,10 @@ public:
 
     DISALLOW_COPY_AND_MOVE(RSConnectRenderProcessDeathRecipient);
 
-    void OnRemoteDied(const wptr<IRemoteObject> &remote) final override;
+    void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
     void SetOnRenderProcessDiedCallback(std::function<void()> callback)
     {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
         callback_ = callback;
     }
 
@@ -45,6 +46,7 @@ private:
     wptr<RSRenderServiceConnectHub> rsConnHub_;
     std::function<void()> callback_;
     uint64_t tokenMaskId_;
+    std::mutex callbackMutex_;
 };
 
 struct RenderProcessInfo {
@@ -66,14 +68,7 @@ public:
     static sptr<RSIClientToRenderConnection> GetClientToRenderConnection(uint64_t tokenMaskId);
     static uint64_t GetDefaultTokenMaskId();
     static uint64_t GetRenderProcessTokenMaskId(sptr<IRemoteObject>& connectToRenderRemote);
-    static void SetOnConnectCallback(OnConnectCallback cb)
-    {
-        onConnectCallback_ = cb;
-        // if already connected, call the callback immediately
-        if (instance_ && instance_->renderConn_ && onConnectCallback_) {
-            onConnectCallback_(instance_->renderConn_);
-        }
-    }
+    static void SetOnConnectCallback(OnConnectCallback cb);
 
     static void SetOnDiedCallback(RSOnDiedCallbackCode code, std::function<void()> cb);
     static void RemoveOnDiedCallback(RSOnDiedCallbackCode code, bool isDestreuctionProcess);
@@ -111,7 +106,7 @@ private:
 
         DISALLOW_COPY_AND_MOVE(RenderServiceDeathRecipient);
 
-        void OnRemoteDied(const wptr<IRemoteObject> &remote) final override;
+        void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
 
     private:
         wptr<RSRenderServiceConnectHub> rsConnHub_;
@@ -136,6 +131,7 @@ private:
     static std::once_flag flag_;
     static sptr<RSRenderServiceConnectHub> instance_;
     static OnConnectCallback onConnectCallback_;
+    static std::mutex onConnectCallbackMutex_;
     std::mutex onDiedCallbacksMutex_;
     std::unordered_map<int32_t, std::function<void()>> OnDiedCallbacks_;
     friend class RSRenderPipelineClient;

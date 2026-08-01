@@ -278,7 +278,7 @@ void RSUIDirector::RebuildNodeTree()
         if (rsUIContext_) {
             rsUIContext_->SetRebuildState(RebuildState::Rebuilding);
             auto transaction = rsUIContext_->GetRSTransaction();
-            if (RSSystemProperties::GetRebuildSceneEnabled()) {
+            if (RSSystemProperties::GetRebuildSceneEnabled() && transaction != nullptr) {
                 transaction->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
             }
         }
