@@ -93,6 +93,7 @@ protected:
     void HandlePowerStatus(ScreenPowerStatus status);
     void SetAFBCEnabled(bool enabled);
     int64_t GetDelayTime() const;
+    void DumpVKImageInfo(std::string& dumpString);
 
 private:
     struct LayerCreatedCallbackContext {

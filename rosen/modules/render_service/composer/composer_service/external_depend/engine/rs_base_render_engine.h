@@ -301,6 +301,12 @@ public:
     {
         return imageManager_;
     }
+    void SetVKImageCacheMapSize(uint32_t cacheSize)
+    {
+        if (imageManager_ != nullptr) {
+            imageManager_->SetVKImageCacheMapSize(cacheSize);
+        }
+    }
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect>& inputShader, BufferDrawParam& params,

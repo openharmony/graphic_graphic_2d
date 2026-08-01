@@ -174,6 +174,9 @@ void RSUniRenderThread::InitGrContext()
         return;
     }
     uniRenderEngine_->Init();
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
+    uniRenderEngine_->SetVKImageCacheMapSize(90); // 90 : cache size
+#endif
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         Drawing::SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
