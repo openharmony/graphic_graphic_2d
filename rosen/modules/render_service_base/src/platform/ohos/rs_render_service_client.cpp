@@ -1771,15 +1771,6 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
     }
 }
 
-int32_t RSRenderServiceClient::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
-{
-    auto clientToService = RSConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
-    return clientToService->SendVideoRateInfo(videoRateInfo);
-}
-
 #ifndef ENABLE_RS_PROXY
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
@@ -2031,6 +2022,16 @@ int32_t RSRenderServiceClient::SetOverlayDisplayMode(int32_t mode)
     return clientToService->SetOverlayDisplayMode(mode);
 }
 #endif
+
+int32_t RSRenderServiceClient::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    int32_t ret = RENDER_SERVICE_NULL;
+    if (clientToService != nullptr) {
+        ret = clientToService->SendVideoRateInfo(videoRateInfo);
+    }
+    return ret;
+}
 
 void RSRenderServiceClient::NotifyPageName(const std::string& packageName,
     const std::string& pageName, bool isEnter)
