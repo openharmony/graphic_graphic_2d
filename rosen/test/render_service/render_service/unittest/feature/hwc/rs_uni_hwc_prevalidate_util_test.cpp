@@ -41,6 +41,10 @@ public:
 
 void RSUniHwcPrevalidateUtilTest::SetUpTestCase()
 {
+    auto& util = RSUniHwcPrevalidateUtil::GetInstance();
+    if (!util.IsPrevalidateEnable()) {
+        GTEST_SKIP() << "Skip all tests: prevalidate not enabled on this device";
+    }
     RSTestUtil::InitRenderNodeGC();
 }
 void RSUniHwcPrevalidateUtilTest::TearDownTestCase() {}
