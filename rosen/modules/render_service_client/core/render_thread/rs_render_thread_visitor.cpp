@@ -437,17 +437,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
     }
 
-#if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::IsUseVulkan()) {
-        auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        if (skContext == nullptr) {
-            ROSEN_LOGE("RSRenderThreadVisitor::ProcessRootRenderNode CreateDrawingContext is null");
-            return;
-        }
-        rsSurface->SetSkContext(skContext);
-    }
-#endif
-
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
     RS_TRACE_BEGIN(ptr->GetName() + " rsSurface->RequestFrame");
 #ifdef ROSEN_OHOS

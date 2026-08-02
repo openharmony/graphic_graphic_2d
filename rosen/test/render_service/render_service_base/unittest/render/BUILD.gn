@@ -271,6 +271,7 @@ ohos_unittest("RSColorfulShadowFilterTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
     "googletest:gmock",
     "googletest:gtest_main",
     "graphic_surface:surface",
@@ -278,6 +279,7 @@ ohos_unittest("RSColorfulShadowFilterTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "init:libbegetutil",
+    "opengles:libGLES",
     "skia:skia_canvaskit",
   ]
 
@@ -316,6 +318,7 @@ ohos_unittest("RSImageCacheTest") {
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/modules/platform/eventhandler",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/utils/log",
   ]
 
@@ -374,6 +377,7 @@ ohos_unittest("RSImageBaseTest") {
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/modules/platform/eventhandler",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/utils/log",
   ]
 

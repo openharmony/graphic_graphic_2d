@@ -104,6 +104,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, GetBitmap_Basic001, TestSize.Level1)
     Drawing::Bitmap bitmap;
     bool result = agent->GetBitmap(nodeId, bitmap);
     EXPECT_FALSE(result);
+    agent->canvasModifiersDraw_->drawableMap_[nodeId].renderContext_ = nullptr;
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, GetPixelMap_Basic001, TestSize.Level1)
@@ -114,6 +115,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, GetPixelMap_Basic001, TestSize.Level1)
     Drawing::Rect rect(0, 0, 100, 100);
     bool result = agent->GetPixelMap(nodeId, pixelMap, &rect, nullptr);
     EXPECT_FALSE(result);
+    agent->canvasModifiersDraw_->drawableMap_[nodeId].renderContext_ = nullptr;
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, UpdateCanvasContent_Basic001, TestSize.Level1)
@@ -122,6 +124,7 @@ HWTEST_F(RSCanvasModifiersDrawAgentTest, UpdateCanvasContent_Basic001, TestSize.
     NodeId nodeId = 12345;
     agent->UpdateCanvasContent(nodeId, nullptr);
     EXPECT_NE(agent->canvasModifiersDraw_, nullptr);
+    agent->canvasModifiersDraw_->drawableMap_[nodeId].renderContext_ = nullptr;
 }
 
 HWTEST_F(RSCanvasModifiersDrawAgentTest, SubmitAndCollectCanvasBuffers_Basic001, TestSize.Level1)

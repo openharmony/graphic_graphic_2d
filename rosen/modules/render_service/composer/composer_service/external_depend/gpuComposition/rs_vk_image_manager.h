@@ -47,7 +47,8 @@ using BufferInfoCache = struct {
 
 class VkImageResource {
 public:
-    static std::shared_ptr<VkImageResource> Create(sptr<OHOS::SurfaceBuffer> buffer);
+    static std::shared_ptr<VkImageResource> Create(sptr<OHOS::SurfaceBuffer> buffer,
+        std::shared_ptr<RsVulkanInterface> vkInterface);
 
     VkImageResource(NativeWindowBuffer* nativeWindowBuffer, Drawing::BackendTexture backendTexture,
         NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper)
@@ -98,6 +99,8 @@ public:
     RSVkImageManager() = default;
     ~RSVkImageManager() noexcept override = default;
 
+    void SetRenderContext(std::shared_ptr<RenderContext> renderContext) override { renderContext_ = renderContext; }
+
     void UnMapImageFromSurfaceBuffer(const std::unordered_set<uint64_t>& unmappedCache) override;
     void UnMapImageFromSurfaceBuffer(uint64_t seqNum) override;
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
@@ -120,6 +123,7 @@ private:
     bool WaitVKSemaphore(Drawing::Surface *drawingSurface, const sptr<SyncFence>& acquireFence);
     void UnMapImageOneByOne(pid_t threadIndex);
 
+    std::shared_ptr<RenderContext> renderContext_;
     std::unordered_map<uint64_t, std::shared_ptr<VkImageResource>> imageCacheSeqs_; // guarded by opMutex_
     std::queue<std::pair<uint64_t, pid_t>> oneByoneUnmapCacheSeqs_; // guarded by opMutex_
     uint32_t maxCacheSizeForReuse_ = 40; // 40 : cache size

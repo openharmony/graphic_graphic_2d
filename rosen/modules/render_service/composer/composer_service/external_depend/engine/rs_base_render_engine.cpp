@@ -108,6 +108,17 @@ static void ApplyYcbcrChannelSwapFilter(Drawing::Brush& paint)
     paint.SetFilter(filter);
 }
 #endif
+std::unique_ptr<RSPaintFilterCanvas> RSRenderFrame::GetCanvas()
+{
+    auto canvas = std::make_unique<RSPaintFilterCanvas>(surfaceFrame_->GetSurface().get());
+#ifdef RS_ENABLE_VK
+    auto rc = targetSurface_ ? targetSurface_->GetRenderContext() : nullptr;
+    if (rc) {
+        canvas->SetRenderEngineType(rc->GetType());
+    }
+#endif
+    return canvas;
+}
 
 std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
     const std::vector<RectI>& rects, const RectI& surfaceRect) const
@@ -181,21 +192,33 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 
 void RSBaseRenderEngine::Init(RenderEngineType type, int32_t tid)
 {
+    if (type >= RenderEngineType::MAX_INTERFACE_TYPE) {
+        ROSEN_LOGE("Invalid RenderEngineType %{public}d", static_cast<int>(type));
+        return;
+    }
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = RenderContext::Create();
-    renderContext_->Init();
-    renderContext_->SetRenderContextType(static_cast<uint8_t>(type));
+    // for composer thread
+    if (type == RenderEngineType::UNPROTECTED_REDRAW || type == RenderEngineType::PROTECTED_REDRAW) {
+        renderContext_->Init(RenderEngineType::UNPROTECTED_REDRAW);
+#ifdef IS_ENABLE_DRM
+        protectedRenderContext_ = RenderContext::Create();
+        protectedRenderContext_->Init(RenderEngineType::PROTECTED_REDRAW);
+#endif
+    } else if (type == RenderEngineType::BASIC_RENDER) {    // for uniRenderThread
+        renderContext_->Init(RenderEngineType::BASIC_RENDER);
+    }
+#ifdef IS_ENABLE_DRM
+    if (type == RenderEngineType::PROTECTED_REDRAW) {
+        isProtected_ = true;
+    }
+#endif
     if (RSUniRenderJudgement::IsUniRender()) {
         RS_LOGI("RSRenderEngine::RSRenderEngine set new cacheDir");
         renderContext_->SetUniRenderMode(true);
     }
+    skContext_ = renderContext_-> GetSharedDrGPUContext();
 #if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::IsUseVulkan()) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(tid);
-        renderContext_->SetUpGpuContext(skContext_);
-    } else {
-        renderContext_->SetUpGpuContext();
-    }
     if (renderContext_->GetDrGPUContext()) {
         renderContext_->GetDrGPUContext()->SetParam(
             "IsSmartCacheEnabled", SmartCacheParam::IsEnabled());
@@ -208,12 +231,12 @@ void RSBaseRenderEngine::Init(RenderEngineType type, int32_t tid)
         renderContext_->GetDrGPUContext()->SetParam(
             "SpirvCacheSize", SpirvCacheParam::GetSpirvCacheSize());
     }
-#else
-    renderContext_->SetUpGpuContext();
 #endif
+
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
-    imageManager_ = RSImageManager::Create(renderContext_);
+    auto renderContext = GetRenderContext();
+    imageManager_ = RSImageManager::Create(renderContext);
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     colorSpaceConverterDisplay_ = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
@@ -223,13 +246,12 @@ void RSBaseRenderEngine::Init(RenderEngineType type, int32_t tid)
 
 void RSBaseRenderEngine::ResetCurrentContext()
 {
-#ifdef RS_ENABLE_GPU
-    if (renderContext_ == nullptr) {
-        RS_LOGE("This render context is nullptr.");
-        return;
+    if (renderContext_ != nullptr) {
+        renderContext_->AbandonContext();
     }
-    renderContext_->AbandonContext();
-#endif
+    if (protectedRenderContext_ != nullptr) {
+        protectedRenderContext_->AbandonContext();
+    }
 }
 
 bool RSBaseRenderEngine::NeedForceCPU(const std::vector<RSLayerPtr>& layers)
@@ -262,16 +284,6 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
     const FrameContextConfig& frameContextConfig, int32_t tid)
 {
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(tid);
-        if (renderContext_ == nullptr) {
-            return nullptr;
-        }
-        renderContext_->SetUpGpuContext(skContext_);
-    }
-#endif
     if (rsSurface == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: surface is null!");
         return nullptr;
@@ -300,17 +312,16 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 
     // check if we can use GPU context
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL &&
-        renderContext_ != nullptr) {
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (isProtected_) {
+        if (protectedRenderContext_ != nullptr) {
+            rsSurface->SetRenderContext(protectedRenderContext_);
+        }
+    } else if (renderContext_ != nullptr) {
         rsSurface->SetRenderContext(renderContext_);
     }
 #endif
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan() && skContext_ != nullptr) {
-        std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetSkContext(skContext_);
-    }
-#endif
+
     auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC,
         frameContextConfig.isProtected);
     RS_OPTIONAL_TRACE_END();

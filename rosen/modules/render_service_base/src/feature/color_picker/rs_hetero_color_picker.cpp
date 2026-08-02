@@ -43,12 +43,13 @@ bool RegisterMhcUpdate(const std::function<void(Drawing::ColorQuad&)>& updateCol
     RSPaintFilterCanvas& canvas)
 {
     bool registerRes = RSMhcManager::Instance().RegisterFunc(
-        canvas.GetParallelThreadId(), [updateColor, imageSnapshot, backendTexture] {
+        canvas.GetParallelThreadId(),
+        [updateColor, imageSnapshot, backendTexture, engineType = canvas.GetRenderEngineType()] {
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
         Drawing::BitmapFormat info =
             Drawing::BitmapFormat { imageSnapshot->GetColorType(), imageSnapshot->GetAlphaType() };
         std::shared_ptr<Drawing::Image> colorImage = std::make_shared<Drawing::Image>();
-        std::shared_ptr<Drawing::GPUContext> gpuContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        auto gpuContext = RsVulkanContext::Get(engineType).CreateDrawingGPUContext();
         if (!gpuContext) {
             RS_LOGE("[HeteroColorPicker]:CreateDrawingContext failed");
             return;
@@ -75,7 +76,11 @@ bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)
     RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image>& image)
 {
 #ifdef MHC_ENABLE
+#ifdef RS_ENABLE_VK
+    if (!RSMhcManager::Instance().CanGetColor(canvas, canvas.GetRenderEngineType())) {
+#else
     if (!RSMhcManager::Instance().CanGetColor(canvas)) {
+#endif
         RS_LOGD("[HeteroColorPicker]:Mhc does not support get color");
         return false;
     }

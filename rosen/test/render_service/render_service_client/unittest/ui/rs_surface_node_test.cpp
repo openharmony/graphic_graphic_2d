@@ -20,6 +20,7 @@
 #include "common/rs_common_def.h"
 #include "modifier_ng/shadow_modifier/rs_bounds_shadow_modifier.h"
 #include "modifier_ng/shadow_modifier/rs_frame_shadow_modifier.h"
+#include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
@@ -2018,6 +2019,11 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction();
     }
+    if (RSRenderThread::Instance().renderContext_ != nullptr) {
+        RSRenderThread::Instance().renderContext_->drGPUContext_ = nullptr;
+    }
+    RSRenderThread::Instance().renderContext_ = nullptr;
+    surfaceNode->surfae_->renderContext_ = nullptr;
 }
 
 /**

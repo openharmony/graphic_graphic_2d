@@ -201,14 +201,6 @@ void RSRenderService::HgmInit()
 void RSRenderService::FeatureComponentInit()
 {
     RS_LOGI("%{public}s", __func__);
-    // vk init
-#ifdef RS_ENABLE_VK
-    if (Drawing::SystemProperties::IsUseVulkan()) {
-        RsVulkanContext::SetRecyclable(false);
-        RS_LOGD("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
-        RsVulkanContext::SetIsMultiProcess(renderModeConfig_->GetIsMultiProcessModeEnabled());
-    }
-#endif
 
     // touch screen init
 #ifdef TP_FEATURE_ENABLE

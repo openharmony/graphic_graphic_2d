@@ -53,39 +53,6 @@ int ColorTypeToGLFormat(Drawing::ColorType colorType)
 }
 
 #ifdef RS_ENABLE_VK
-void CreateVkSemaphore(VkSemaphore& semaphore, RsVulkanContext& vkContext,
-    NativeBufferUtils::NativeSurfaceInfo& nativeSurface)
-{
-    VkSemaphoreCreateInfo semaphoreInfo;
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    semaphoreInfo.pNext = nullptr;
-    semaphoreInfo.flags = 0;
-    auto& vkInterface = vkContext.GetRsVulkanInterface();
-    auto res = vkInterface.vkCreateSemaphore(vkInterface.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
-    if (res != VK_SUCCESS) {
-        LOGE("DrawingSurfaceUtils: CreateVkSemaphore vkCreateSemaphore failed %{public}d", res);
-        semaphore = VK_NULL_HANDLE;
-        nativeSurface.fence->Wait(-1);
-        return;
-    }
-
-    VkImportSemaphoreFdInfoKHR importSemaphoreFdInfo;
-    importSemaphoreFdInfo.sType = VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR;
-    importSemaphoreFdInfo.pNext = nullptr;
-    importSemaphoreFdInfo.semaphore = semaphore;
-    importSemaphoreFdInfo.flags = VK_SEMAPHORE_IMPORT_TEMPORARY_BIT;
-    importSemaphoreFdInfo.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
-    importSemaphoreFdInfo.fd = nativeSurface.fence->Dup();
-    res = vkInterface.vkImportSemaphoreFdKHR(vkInterface.GetDevice(), &importSemaphoreFdInfo);
-    if (res != VK_SUCCESS) {
-        LOGE("DrawingSurfaceUtils: CreateVkSemaphore vkImportSemaphoreFdKHR failed %{public}d", res);
-        vkInterface.vkDestroySemaphore(vkInterface.GetDevice(), semaphore, nullptr);
-        semaphore = VK_NULL_HANDLE;
-        close(importSemaphoreFdInfo.fd);
-        nativeSurface.fence->Wait(-1);
-    }
-}
-
 bool CheckBufferSizeAndImageSizeIsValid(NativeWindowBuffer* nativeWindowBuffer, const Drawing::ImageInfo& imageInfo)
 {
     OH_NativeBuffer* nativeBuffer = nullptr;
@@ -137,7 +104,14 @@ std::shared_ptr<Drawing::Surface> CreateVulkanWindowSurface(Drawing::GPUContext*
     nativeSurface->window = nativeWindow;
     NativeObjectReference(nativeWindowBuffer);
     nativeSurface->nativeWindowBuffer = nativeWindowBuffer;
+    auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
+    if (renderContext == nullptr) {
+        LOGE("CreateVulkanWindowSurface: renderContext is nullptr");
+        return nullptr;
+    }
+    auto vkInterface = RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface();
     std::shared_ptr<Drawing::Surface> surface = NativeBufferUtils::CreateFromNativeWindowBuffer(
+        vkInterface,
         gpuContext, imageInfo, *nativeSurface);
     if (!surface) {
         LOGE("CreateVulkanWindowSurface: create surface failed!");
@@ -155,9 +129,8 @@ std::shared_ptr<Drawing::Surface> CreateVulkanWindowSurface(Drawing::GPUContext*
         nativeSurface->fence = std::make_unique<SyncFence>(fenceFd);
         auto status = nativeSurface->fence->GetStatus();
         if (status != SIGNALED) {
-            auto& vkContext = RsVulkanContext::GetSingleton();
             VkSemaphore semaphore = VK_NULL_HANDLE;
-            CreateVkSemaphore(semaphore, vkContext, *nativeSurface);
+            NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore, *nativeSurface);
             if (semaphore != VK_NULL_HANDLE) {
                 surface->Wait(1, semaphore);
             }
@@ -185,8 +158,17 @@ bool FlushVulkanSurface(Drawing::Surface* surface)
         return true;
     }
 
-    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    VkSemaphore semaphore = vkContext.RequireSemaphore();
+    auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
+    if (renderContext == nullptr) {
+        LOGE("FlushVulkanSurface: renderContext is nullptr");
+        return false;
+    }
+    auto vkInterface = RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface();
+    if (vkInterface == nullptr) {
+        LOGE("FlushVulkanSurface: vkInterface is nullptr");
+        return false;
+    }
+    VkSemaphore semaphore = vkInterface->RequireSemaphore();
 
 #ifdef USE_M133_SKIA
     GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
@@ -195,7 +177,7 @@ bool FlushVulkanSurface(Drawing::Surface* surface)
     backendSemaphore.initVulkan(semaphore);
 #endif
 
-    auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
+    auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkInterface, semaphore, -1);
 
     Drawing::FlushInfo drawingFlushInfo;
     drawingFlushInfo.backendSurfaceAccess = true;
@@ -211,12 +193,12 @@ bool FlushVulkanSurface(Drawing::Surface* surface)
     }
     
     int fenceFd = -1;
-    auto queue = vkContext.GetQueue();
-    auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
+    auto queue = vkInterface->GetQueue();
+    auto err = vkInterface->QueueSignalReleaseImageOHOS(
         queue, 1, &semaphore, nativeSurface->image, &fenceFd);
     if (err != VK_SUCCESS) {
         if (err == VK_ERROR_DEVICE_LOST) {
-            vkContext.DestroyAllSemaphoreFence();
+            vkInterface->DestroyAllSemaphoreFence();
         }
         RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(callbackInfo);
         callbackInfo = nullptr;
@@ -253,12 +235,13 @@ std::shared_ptr<Drawing::Surface> DrawingSurfaceUtils::CreateFromWindow(Drawing:
             return nullptr;
         }
 
-        EGLSurface eglSurface = renderContext->CreateEGLSurface(reinterpret_cast<EGLNativeWindowType>(window));
+        EGLSurface eglSurface = std::static_pointer_cast<RenderContextGL>(renderContext)->CreateEGLSurface(
+            reinterpret_cast<EGLNativeWindowType>(window));
         if (eglSurface == EGL_NO_SURFACE) {
             LOGE("CreateFromWindow: create eglSurface failed, window is invalid.");
             return nullptr;
         }
-        renderContext->MakeCurrent(eglSurface);
+        std::static_pointer_cast<RenderContextGL>(renderContext)->MakeCurrent(eglSurface);
 
         Drawing::FrameBuffer bufferInfo;
         bufferInfo.width = imageInfo.GetWidth();
@@ -271,8 +254,8 @@ std::shared_ptr<Drawing::Surface> DrawingSurfaceUtils::CreateFromWindow(Drawing:
         std::shared_ptr<Drawing::Surface> surface = std::make_shared<Drawing::Surface>();
         if (!surface->Bind(bufferInfo)) {
             LOGE("CreateFromWindow: create surface failed.");
-            renderContext->DestroyEGLSurface(eglSurface);
-            renderContext->MakeCurrent(EGL_NO_SURFACE);
+            std::static_pointer_cast<RenderContextGL>(renderContext)->DestroyEGLSurface(eglSurface);
+            std::static_pointer_cast<RenderContextGL>(renderContext)->MakeCurrent(EGL_NO_SURFACE);
             return nullptr;
         }
 
@@ -311,7 +294,7 @@ bool DrawingSurfaceUtils::FlushSurface(Drawing::Surface* surface)
         
         EGLSurface eglSurface = (iter->second).second;
         if (eglSurface != EGL_NO_SURFACE) {
-            renderContext->SwapBuffers(eglSurface);
+            std::static_pointer_cast<RenderContextGL>(renderContext)->SwapBuffers(eglSurface);
         }
         return true;
     }
@@ -349,8 +332,8 @@ void DrawingSurfaceUtils::RemoveSurface(Drawing::Surface* surface)
         auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
         if (renderContext != nullptr) {
             EGLSurface eglSurface = (iter->second).second;
-            renderContext->DestroyEGLSurface(eglSurface);
-            renderContext->MakeCurrent(EGL_NO_SURFACE);
+            std::static_pointer_cast<RenderContextGL>(renderContext)->DestroyEGLSurface(eglSurface);
+            std::static_pointer_cast<RenderContextGL>(renderContext)->MakeCurrent(EGL_NO_SURFACE);
         } else {
             LOGD("RemoveSurface: get renderContext failed.");
         }

@@ -72,6 +72,7 @@ void RSRenderServiceTest::SetUpTestCase()
 void RSRenderServiceTest::TearDownTestCase()
 {
     if (RSSystemProperties::IsUseVulkan()) {
+        RSUniRenderThread::Instance().uniRenderEngine_->skContext_ = nullptr;
         RSUniRenderThread::Instance().uniRenderEngine_.reset();
     }
     screenManager_ = nullptr;

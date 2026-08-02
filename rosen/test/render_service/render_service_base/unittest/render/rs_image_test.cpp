@@ -46,6 +46,7 @@ public:
 void RSImageTest::SetUpTestCase() {}
 void RSImageTest::TearDownTestCase() {}
 void RSImageTest::SetUp() {}
+
 void RSImageTest::TearDown() {}
 
 static void GenRSMarshallingParcelHeader(Parcel& parcel)

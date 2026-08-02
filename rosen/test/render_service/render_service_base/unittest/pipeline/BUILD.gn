@@ -1243,6 +1243,11 @@ ohos_unittest("RSSurfaceHandlerTest") {
 ##############################  RSSurfaceRenderNodeTest  ##################################
 ohos_unittest("RSSurfaceRenderNodeTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
   }

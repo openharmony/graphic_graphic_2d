@@ -271,9 +271,6 @@ std::shared_ptr<RSSurfaceRenderNode> RSClientToServiceConnectionStubTest::surfac
 
 void RSClientToServiceConnectionStubTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_->MockHdiScreenConnected(rsScreen);
@@ -345,11 +342,44 @@ void RSClientToServiceConnectionStubTest::TearDownTestCase()
 
     renderService_.renderPipeline_->mainThread_->handler_ = nullptr;
     renderService_.renderPipeline_->mainThread_->receiver_ = nullptr;
+    if (renderService_.renderPipeline_->mainThread_->renderEngine_) {
+        auto* engine = renderService_.renderPipeline_->mainThread_->renderEngine_.get();
+        if (engine->renderContext_) {
+            engine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (engine->protectedRenderContext_) {
+            engine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        engine->skContext_ = nullptr;
+        engine->renderContext_ = nullptr;
+        engine->protectedRenderContext_ = nullptr;
+        engine->imageManager_ = nullptr;
+        engine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        engine->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderService_.renderPipeline_->mainThread_->renderEngine_ = nullptr;
 
     renderService_.renderPipeline_->uniRenderThread_->handler_ = nullptr;
     renderService_.renderPipeline_->uniRenderThread_->runner_ = nullptr;
-    renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+    if (renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_) {
+        auto* engine = renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_.get();
+        if (engine->renderContext_) {
+            engine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (engine->protectedRenderContext_) {
+            engine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        engine->skContext_ = nullptr;
+        engine->renderContext_ = nullptr;
+        engine->protectedRenderContext_ = nullptr;
+        engine->imageManager_ = nullptr;
+        engine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        engine->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderService_.renderPipeline_->uniRenderThread_ = nullptr;
     renderService_.renderPipeline_ = nullptr;

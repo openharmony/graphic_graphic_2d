@@ -78,15 +78,96 @@ public:
 
 void RSLogicalDisplayRenderNodeDrawableTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
+    // Clean up stale global state from previous test suites
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        mainThread.renderEngine_->skContext_ = nullptr;
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+
     auto& renderNodeGC = RSRenderNodeGC::Instance();
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
 }
 
-void RSLogicalDisplayRenderNodeDrawableTest::TearDownTestCase() {}
+void RSLogicalDisplayRenderNodeDrawableTest::TearDownTestCase()
+{
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        mainThread.renderEngine_->skContext_ = nullptr;
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    if (mainThread.context_) {
+        auto& root = mainThread.context_->globalRootRenderNode_;
+        if (root) {
+            auto* rootNode = static_cast<RSRenderNode*>(root.get());
+            if (rootNode && rootNode->renderDrawable_) {
+                rootNode->renderDrawable_ = nullptr;
+            }
+        }
+        root = nullptr;
+        mainThread.context_->nodeMap.renderNodeMap_.clear();
+        mainThread.context_->nodeMap.surfaceNodeMap_.clear();
+        mainThread.context_->nodeMap.residentSurfaceNodeMap_.clear();
+        mainThread.context_->nodeMap.protectiveSolidNodeMap_.clear();
+        mainThread.context_->nodeMap.screenNodeMap_.clear();
+        mainThread.context_->nodeMap.logicalDisplayNodeMap_.clear();
+        mainThread.context_->nodeMap.canvasDrawingNodeMap_.clear();
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+    auto& renderNodeGC = RSRenderNodeGC::Instance();
+    renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
+    renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
+}
 
 void RSLogicalDisplayRenderNodeDrawableTest::SetUp()
 {
@@ -196,8 +277,122 @@ void RSLogicalDisplayRenderNodeDrawableTest::SetUp()
 
 void RSLogicalDisplayRenderNodeDrawableTest::TearDown()
 {
+    auto cleanupScreenPropertySptrs = [](RSScreenRenderNodeDrawable* drawable) {
+        if (drawable == nullptr || drawable->renderParams_ == nullptr) {
+            return;
+        }
+        auto* screenParams = static_cast<RSScreenRenderParams*>(drawable->GetRenderParams().get());
+        if (screenParams == nullptr) {
+            return;
+        }
+        auto& props = screenParams->screenProperty_.screenProperties_;
+        for (auto& [key, sptrVal] : props) {
+            sptrVal.ForceSetRefPtr(nullptr);
+        }
+        props.clear();
+    };
+    cleanupScreenPropertySptrs(screenDrawable_);
+    cleanupScreenPropertySptrs(mirroredScreenDrawable_);
+
+    // Clean up sptrs in RSSurfaceHandler buffer entries
+    auto cleanupSurfaceHandlerSptrs = [](RSScreenRenderNodeDrawable* drawable) {
+        if (drawable == nullptr || drawable->surfaceHandler_ == nullptr) {
+            return;
+        }
+#ifndef ROSEN_CROSS_PLATFORM
+        drawable->surfaceHandler_->buffer_.buffer.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->buffer_.acquireFence.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->buffer_.releaseFence.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->buffer_.bufferDeleteCb_ = nullptr;
+        drawable->surfaceHandler_->preBuffer_.buffer.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->preBuffer_.acquireFence.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->preBuffer_.releaseFence.ForceSetRefPtr(nullptr);
+        drawable->surfaceHandler_->preBuffer_.bufferDeleteCb_ = nullptr;
+        drawable->surfaceHandler_->consumer_.ForceSetRefPtr(nullptr);
+#endif
+        drawable->surfaceHandler_->buffer_.bufferOwnerCount_ = nullptr;
+        drawable->surfaceHandler_->preBuffer_.bufferOwnerCount_ = nullptr;
+        drawable->surfaceHandler_->holdBuffer_ = nullptr;
+    };
+    cleanupSurfaceHandlerSptrs(screenDrawable_);
+    cleanupSurfaceHandlerSptrs(mirroredScreenDrawable_);
+
+    // Clean up sptrs in RSScreenRenderNodeDrawable
+    auto cleanupDrawableSptrs = [](RSScreenRenderNodeDrawable* drawable) {
+        if (drawable == nullptr) {
+            return;
+        }
+#ifndef ROSEN_CROSS_PLATFORM
+        drawable->consumerListener_.ForceSetRefPtr(nullptr);
+#endif
+    };
+    cleanupDrawableSptrs(screenDrawable_);
+    cleanupDrawableSptrs(mirroredScreenDrawable_);
+
+    auto cleanupNodeScreenPropertySptrs = [](RSScreenRenderNode* node) {
+        if (node == nullptr) {
+            return;
+        }
+        // Clean up stagingRenderParams_->screenProperty_.screenProperties_
+        if (node->stagingRenderParams_ != nullptr) {
+            auto* screenParams =
+                static_cast<RSScreenRenderParams*>(node->stagingRenderParams_.get());
+            if (screenParams != nullptr) {
+                auto& props = screenParams->screenProperty_.screenProperties_;
+                for (auto& [key, sptrVal] : props) {
+                    sptrVal.ForceSetRefPtr(nullptr);
+                }
+                props.clear();
+            }
+        }
+        // Clean up node's own screenProperty_.screenProperties_
+        auto& nodeProps = node->screenProperty_.screenProperties_;
+        for (auto& [key, sptrVal] : nodeProps) {
+            sptrVal.ForceSetRefPtr(nullptr);
+        }
+        nodeProps.clear();
+    };
+    cleanupNodeScreenPropertySptrs(screenNode_.get());
+    cleanupNodeScreenPropertySptrs(mirroredScreenNode_.get());
+
+    // Null out raw pointers before destroying shared_ptr nodes
+    displayDrawable_ = nullptr;
+    mirroredDisplayDrawable_ = nullptr;
+    screenDrawable_ = nullptr;
+    mirroredScreenDrawable_ = nullptr;
+
+    // Reset shared_ptr members
+    renderNode_.reset();
+    mirroredNode_.reset();
+    screenNode_.reset();
+    mirroredScreenNode_.reset();
+    drawingCanvas_.reset();
+    drawingFilterCanvas_.reset();
+    drawingCanvasForMirror_.reset();
+    drawingFilterCanvasForMirror_.reset();
+    drawingCanvasForScreen_.reset();
+    drawingCanvasForMirrorScreen_.reset();
+
+    // Clean up any RSRenderEngine left on RSUniRenderThread
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+
     // clear RSRenderThreadParams after each testcase
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ =
+        std::make_unique<RSRenderThreadParams>();
 }
 
 /**
@@ -699,6 +894,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest004, TestSize.Leve
     ASSERT_TRUE(displayDrawable_->ShouldPaint());
     ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
     ASSERT_NE(screenDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    buffer.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -875,6 +1071,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest011, TestSize.Leve
     EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
     auto surfaceConfigs = screenParams->GetScreenProperty().GetMultiSurfaceConfigs();
     EXPECT_EQ(surfaceConfigs.size(), 1u);
+    buffer.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -912,6 +1109,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest012, TestSize.Leve
     EXPECT_TRUE(displayDrawable_->ShouldPaint());
     EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    buffer.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -961,6 +1159,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest013, TestSize.Leve
     EXPECT_TRUE(displayDrawable_->ShouldPaint());
     EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    buffer.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -2734,14 +2933,89 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesTest001
     auto drawable = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
     displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
 
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
+    auto& rtThread1 = RSUniRenderThread::Instance();
+    if (rtThread1.uniRenderEngine_) {
+        rtThread1.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread1.uniRenderEngine_->renderContext_) {
+            rtThread1.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread1.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread1.uniRenderEngine_->protectedRenderContext_) {
+            rtThread1.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread1.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread1.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread1.uniRenderEngine_->gpuCacheManager_ = nullptr;
+    }
+    rtThread1.uniRenderEngine_ = nullptr;
+    rtThread1.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    rtThread1.uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
     displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
 
-    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::DALTONIZATION_TRITANOMALY_MODE;
+    rtThread1.uniRenderEngine_->colorFilterMode_ = ColorFilterMode::DALTONIZATION_TRITANOMALY_MODE;
     displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    if (rtThread1.uniRenderEngine_) {
+        rtThread1.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread1.uniRenderEngine_->renderContext_) {
+            rtThread1.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread1.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread1.uniRenderEngine_->protectedRenderContext_) {
+            rtThread1.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread1.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread1.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread1.uniRenderEngine_->gpuCacheManager_ = nullptr;
+    }
+    rtThread1.uniRenderEngine_ = nullptr;
+    // ForceSetRefPtr on sptrs to prevent DecStrongRef crash
+    if (screenDrawable && screenDrawable->surfaceHandler_) {
+#ifndef ROSEN_CROSS_PLATFORM
+        screenDrawable->surfaceHandler_->buffer_.buffer.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->buffer_.acquireFence.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->buffer_.releaseFence.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->buffer_.bufferDeleteCb_ = nullptr;
+        screenDrawable->surfaceHandler_->preBuffer_.buffer.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->preBuffer_.acquireFence.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->preBuffer_.releaseFence.ForceSetRefPtr(nullptr);
+        screenDrawable->surfaceHandler_->preBuffer_.bufferDeleteCb_ = nullptr;
+        screenDrawable->surfaceHandler_->consumer_.ForceSetRefPtr(nullptr);
+#endif
+        screenDrawable->surfaceHandler_->buffer_.bufferOwnerCount_ = nullptr;
+        screenDrawable->surfaceHandler_->preBuffer_.bufferOwnerCount_ = nullptr;
+        screenDrawable->surfaceHandler_->holdBuffer_ = nullptr;
+    }
+    // Clean up local RSSurfaceRenderNode surfaceHandler sptrs
+    auto cleanupSurfaceHandler = [](RSSurfaceRenderNode* node) {
+        if (node == nullptr || node->surfaceHandler_ == nullptr) {
+            return;
+        }
+#ifndef ROSEN_CROSS_PLATFORM
+        node->surfaceHandler_->buffer_.buffer.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->buffer_.acquireFence.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->buffer_.releaseFence.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->buffer_.bufferDeleteCb_ = nullptr;
+        node->surfaceHandler_->preBuffer_.buffer.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->preBuffer_.acquireFence.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->preBuffer_.releaseFence.ForceSetRefPtr(nullptr);
+        node->surfaceHandler_->preBuffer_.bufferDeleteCb_ = nullptr;
+        node->surfaceHandler_->consumer_.ForceSetRefPtr(nullptr);
+#endif
+        node->surfaceHandler_->buffer_.bufferOwnerCount_ = nullptr;
+        node->surfaceHandler_->preBuffer_.bufferOwnerCount_ = nullptr;
+        node->surfaceHandler_->holdBuffer_ = nullptr;
+    };
+    cleanupSurfaceHandler(rsSurfaceNode.get());
+    cleanupSurfaceHandler(surfaceNode.get());
+#ifndef ROSEN_CROSS_PLATFORM
+    rsSurfaceNode->callbackFromRT_.ForceSetRefPtr(nullptr);
+    rsSurfaceNode->callbackFromUI_.ForceSetRefPtr(nullptr);
+    rsSurfaceNode->clearBufferCallback_.ForceSetRefPtr(nullptr);
+    surfaceNode->callbackFromRT_.ForceSetRefPtr(nullptr);
+    surfaceNode->callbackFromUI_.ForceSetRefPtr(nullptr);
+    surfaceNode->clearBufferCallback_.ForceSetRefPtr(nullptr);
+#endif
 }
 
 /**
@@ -2765,11 +3039,34 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesTest002
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     ASSERT_NE(buffer, nullptr);
     ASSERT_NE(acquireFence, nullptr);
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
+    auto& rtThread2 = RSUniRenderThread::Instance();
+    if (rtThread2.uniRenderEngine_) {
+        if (rtThread2.uniRenderEngine_->renderContext_) {
+            rtThread2.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread2.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread2.uniRenderEngine_->protectedRenderContext_) {
+            rtThread2.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread2.uniRenderEngine_->protectedRenderContext_ = nullptr;
+    }
+    rtThread2.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    rtThread2.uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
     displayDrawable_->DrawHardwareEnabledNodes(canvas, *params, buffer, acquireFence);
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    if (rtThread2.uniRenderEngine_) {
+        if (rtThread2.uniRenderEngine_->renderContext_) {
+            rtThread2.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread2.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread2.uniRenderEngine_->protectedRenderContext_) {
+            rtThread2.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread2.uniRenderEngine_->protectedRenderContext_ = nullptr;
+    }
+    rtThread2.uniRenderEngine_ = nullptr;
+    buffer.ForceSetRefPtr(nullptr);
+    acquireFence.ForceSetRefPtr(nullptr);
 }
 
 /**

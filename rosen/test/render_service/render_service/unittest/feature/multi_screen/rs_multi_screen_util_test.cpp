@@ -24,6 +24,7 @@
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/multi_screen/rs_multi_screen_util.h"
 #include "graphic_feature_param_manager.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_processor_factory.h"
@@ -82,9 +83,6 @@ public:
 
 void RSMultiScreenUtilTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     auto& renderNodeGC = RSRenderNodeGC::Instance();
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
@@ -165,6 +163,33 @@ void RSMultiScreenUtilTest::SetUp()
 
 void RSMultiScreenUtilTest::TearDown()
 {
+    auto cleanupScreenPropertySptrs = [](RSScreenRenderParams* params) {
+        if (params == nullptr) {
+            return;
+        }
+        auto& props = params->screenProperty_.screenProperties_;
+        for (auto& [key, sptrVal] : props) {
+            sptrVal.ForceSetRefPtr(nullptr);
+        }
+        props.clear();
+    };
+    cleanupScreenPropertySptrs(screenParams_);
+    cleanupScreenPropertySptrs(mirrorSourceScreenParams_);
+    displayDrawable_ = nullptr;
+    mirrorSourceDisplayDrawable_ = nullptr;
+    screenDrawable_ = nullptr;
+    mirrorSourceScreenDrawable_ = nullptr;
+    displayParams_ = nullptr;
+    mirrorSourceDisplayParams_ = nullptr;
+    screenParams_ = nullptr;
+    mirrorSourceScreenParams_ = nullptr;
+    displayNode_.reset();
+    mirrorSourceDisplayNode_.reset();
+    screenNode_.reset();
+    mirrorSourceScreenNode_.reset();
+    canvas_.reset();
+    paintFilterCanvas_.reset();
+    virtualProcessor_.reset();
     // clear RSRenderThreadParams after each testcase
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
 }
@@ -1177,6 +1202,12 @@ HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorDisplayTest004, TestSize.Level1
     screenParams->SetHDRPresent(true);
     RSMultiScreenUtil::DrawVirtualMirrorDisplay(*displayDrawable_, *displayParams_, virtualProcessor_);
     EXPECT_FALSE(virtualProcessor_->GetDrawVirtualMirrorCopy());
+    instance.uniRenderEngine_->skContext_ = nullptr;
+    if (instance.uniRenderEngine_->renderContext_ != nullptr) {
+        instance.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+        instance.uniRenderEngine_->renderContext_ = nullptr;
+    }
+    instance.uniRenderEngine_ = nullptr;
 }
 
 /**

@@ -89,9 +89,6 @@ void RSRenderComposerClientRemoteMutilTest::SetUpTestCase()
     }
     if (pid_ == 0) {
         // render_service
-#ifdef RS_ENABLE_VK
-        RsVulkanContext::SetRecyclable(false);
-#endif
         InitNativeTokenInfo();
         uint32_t screenId = 10;
         std::shared_ptr<HdiOutput> output = std::make_shared<HdiOutput>(screenId);
@@ -163,9 +160,6 @@ void RSRenderComposerClientRemoteMutilTest::SetUpTestCase()
         exit(0);
     } else {
         // render_process
-#ifdef RS_ENABLE_VK
-        RsVulkanContext::SetRecyclable(false);
-#endif
         close(pipeFd_[0]);
         close(pipe1Fd_[1]);
         char buf[10];

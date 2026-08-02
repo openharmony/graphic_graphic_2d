@@ -44,9 +44,6 @@ public:
 
 void RsRenderComposerAgentTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     auto output = std::make_shared<HdiOutput>(0u);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();

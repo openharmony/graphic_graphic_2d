@@ -95,7 +95,7 @@ void RSHpaeBuffer::Init(const BufferRequestConfig& config, bool isHebc)
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && grContext_ != nullptr) {
         auto vulkanSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface_);
-        vulkanSurface->SetSkContext(grContext_);
+        vulkanSurface->SetRenderContext(uniRenderEngine->GetRenderContext());
         vulkanSurface->MarkAsHpaeSurface();
     }
 #endif

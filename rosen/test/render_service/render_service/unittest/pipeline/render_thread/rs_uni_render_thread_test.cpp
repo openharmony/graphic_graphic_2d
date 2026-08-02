@@ -49,9 +49,6 @@ public:
 
 void RSUniRenderThreadTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     uniRenderThread.runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");
     if (!uniRenderThread.runner_) {
         RS_LOGE("RSUniRenderThread Start runner null");
@@ -66,8 +63,29 @@ void RSUniRenderThreadTest::TearDownTestCase()
     auto& rsJankStats = RSJankStats::GetInstance();
     rsJankStats.isFlushEarlyZ_ = false;
     rsJankStats.ddgrEarlyZEnable_ = false;
-    uniRenderThread.uniRenderEngine_->renderContext_ = RenderContext::Create();
-    uniRenderThread.uniRenderEngine_->renderContext_->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    if (uniRenderThread.uniRenderEngine_) {
+        if (uniRenderThread.uniRenderEngine_->renderContext_) {
+            uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            uniRenderThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (uniRenderThread.uniRenderEngine_->protectedRenderContext_) {
+            uniRenderThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        uniRenderThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        uniRenderThread.uniRenderEngine_ = nullptr;
+    }
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
     sleep(25); // wait 25s ensure async task is executed.
 }
 
@@ -416,7 +434,7 @@ HWTEST_F(RSUniRenderThreadTest, PurgeCacheBetweenFrames001, TestSize.Level1)
 
     instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     instance.uniRenderEngine_->renderContext_ = RenderContext::Create();
-    instance.uniRenderEngine_->renderContext_->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    instance.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
     instance.PurgeCacheBetweenFrames();
     EXPECT_TRUE(instance.uniRenderEngine_);
 }
@@ -704,9 +722,16 @@ HWTEST_F(RSUniRenderThreadTest, PostClearMemoryTask001, TestSize.Level1)
     instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, true, true);
     EXPECT_TRUE(instance.exitedPidSet_.size());
 
-    instance.GetRenderEngine()->GetRenderContext()->SetDrGPUContext(nullptr);
+    if (instance.GetRenderEngine()->renderContext_) {
+        instance.GetRenderEngine()->renderContext_->drGPUContext_ = nullptr;
+        instance.GetRenderEngine()->renderContext_ = nullptr;
+    }
+    if (instance.GetRenderEngine()->protectedRenderContext_) {
+        instance.GetRenderEngine()->protectedRenderContext_->drGPUContext_ = nullptr;
+    }
+    instance.GetRenderEngine()->protectedRenderContext_ = nullptr;
     instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
-    ASSERT_EQ(instance.GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), nullptr);
+    ASSERT_EQ(instance.GetRenderEngine()->GetRenderContext(), nullptr);
 }
 
 /**
@@ -761,6 +786,8 @@ HWTEST_F(RSUniRenderThreadTest, PostReclaimMemoryTaskTest001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, FlushGpuMemoryInWaitQueueBetweenFramesTest, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.uniRenderEngine_->renderContext_ = RenderContext::Create();
+    instance.uniRenderEngine_->renderContext_->Init();
     instance.FlushGpuMemoryInWaitQueueBetweenFrames();
     ASSERT_NE(instance.uniRenderEngine_, nullptr);
     ASSERT_NE(instance.uniRenderEngine_->GetRenderContext(), nullptr);
@@ -775,6 +802,8 @@ HWTEST_F(RSUniRenderThreadTest, FlushGpuMemoryInWaitQueueBetweenFramesTest, Test
 HWTEST_F(RSUniRenderThreadTest, SuppressGpuCacheBelowCertainRatioBetweenFramesTest, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.uniRenderEngine_->renderContext_ = RenderContext::Create();
+    instance.uniRenderEngine_->renderContext_->Init();
     instance.SuppressGpuCacheBelowCertainRatioBetweenFrames();
     ASSERT_NE(instance.uniRenderEngine_, nullptr);
     ASSERT_NE(instance.uniRenderEngine_->GetRenderContext(), nullptr);

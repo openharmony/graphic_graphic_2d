@@ -21,8 +21,9 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
-#include "pipeline/main_thread/rs_main_thread.h"
 #endif
+#include "common/rs_background_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
@@ -51,11 +52,75 @@ void RSCanvasDrawingRenderNodeDrawableTest::SetUpTestCase()
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
-        RsVulkanContext::GetSingleton();
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     }
 #endif
 }
-void RSCanvasDrawingRenderNodeDrawableTest::TearDownTestCase() {}
+void RSCanvasDrawingRenderNodeDrawableTest::TearDownTestCase()
+{
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        mainThread.renderEngine_->ResetCurrentContext();
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+        mainThread.renderEngine_->skContext_ = nullptr;
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+#endif
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
+        mainThread.renderEngine_->imageManager_ = nullptr;
+#endif
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        mainThread.renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->ResetCurrentContext();
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+#endif
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+#endif
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        rtThread.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+    rtThread.handler_ = nullptr;
+    rtThread.runner_ = nullptr;
+    rtThread.acquireFence_.ForceSetRefPtr(nullptr);
+#ifdef RES_SCHED_ENABLE
+    rtThread.saStatusChangeListener_.ForceSetRefPtr(nullptr);
+#endif
+    mainThread.handler_ = nullptr;
+    auto& bgThread = RSBackgroundThread::Instance();
+    bgThread.handler_ = nullptr;
+    bgThread.runner_ = nullptr;
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    bgThread.renderContext_ = nullptr;
+    bgThread.gpuContext_ = nullptr;
+    bgThread.surfaceHolder_ = nullptr;
+#endif
+    const_cast<std::shared_ptr<RSInterpolator>&>(RSInterpolator::DEFAULT).reset();
+}
 void RSCanvasDrawingRenderNodeDrawableTest::SetUp() {}
 void RSCanvasDrawingRenderNodeDrawableTest::TearDown() {}
 
@@ -1088,6 +1153,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetNodeIdForMemTagTest, TestSize
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CheckBackendTextureTest, TestSize.Level1)
 {
+    auto& rtThread = RSUniRenderThread::Instance();
+    rtThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     bool ret = drawable->CheckBackendTexture(false, 100, 100, 1);

@@ -549,6 +549,13 @@ DetailEnhancerUtils& DetailEnhancerUtils::Instance()
     return instance;
 }
 
+DetailEnhancerUtils::DetailEnhancerUtils()
+{
+#ifdef RS_ENABLE_VK
+    gpuContext_ = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).CreateDrawingGPUContext();
+#endif
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth, int dstHeight,
     sptr<SurfaceBuffer>& dstSurfaceBuffer, const std::shared_ptr<Drawing::Image>& image)
@@ -563,7 +570,6 @@ std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth,
     }
     Drawing::ImageInfo imageInfoForRenderTarget(dstWidth, dstHeight, image->GetColorType(),
         image->GetAlphaType(), image->GetColorSpace());
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
     std::unique_ptr<NativeBufferUtils::NativeSurfaceInfo> nativeSurfaceInfo =
         std::make_unique<NativeBufferUtils::NativeSurfaceInfo>();
     if (nativeSurfaceInfo == nullptr) {
@@ -576,8 +582,9 @@ std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth,
         return nullptr;
     }
     nativeSurfaceInfo->nativeWindowBuffer = nativeWindowBuffer;
-    std::shared_ptr<Drawing::Surface> newSurface = NativeBufferUtils::CreateFromNativeWindowBufferImpl(context.get(),
-        imageInfoForRenderTarget, *nativeSurfaceInfo, image->GetColorSpace());
+    std::shared_ptr<Drawing::Surface> newSurface = NativeBufferUtils::CreateFromNativeWindowBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+        gpuContext_.get(), imageInfoForRenderTarget, *nativeSurfaceInfo, image->GetColorSpace());
     return newSurface;
 }
 
@@ -589,9 +596,7 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, GpuApiType is not support!");
         return nullptr;
     }
-    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> gpuContext(drawingContext);
-    if (!surfaceBuffer || !image || !gpuContext) {
+    if (!surfaceBuffer || !image || !gpuContext_) {
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, input is invalid!");
         return nullptr;
     }
@@ -601,6 +606,7 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
         return nullptr;
     }
     Drawing::BackendTexture backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
         nativeWindowBuffer, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
     DestroyNativeWindowBuffer(nativeWindowBuffer);
     if (!backendTexture.IsValid()) {
@@ -613,7 +619,8 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
         return nullptr;
     }
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
-        RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
     if (cleanUpHelper == nullptr || dmaImage == nullptr) {
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, cleanUpHelper is invalid!");
@@ -622,7 +629,7 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
     image->GetBackendTexture(false, &origin);
     Drawing::BitmapFormat bitmapFormat = {GetColorTypeWithVKFormat(vkTextureInfo->format), image->GetAlphaType()};
-    if (!dmaImage->BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(), origin,
+    if (!dmaImage->BuildFromTexture(*gpuContext_, backendTexture.GetTextureInfo(), origin,
         bitmapFormat, image->GetColorSpace(), NativeBufferUtils::DeleteVkImage, cleanUpHelper->Ref())) {
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer build image failed!");
         NativeBufferUtils::DeleteVkImage(cleanUpHelper);

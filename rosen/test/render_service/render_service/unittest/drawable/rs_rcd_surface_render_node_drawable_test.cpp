@@ -37,12 +37,7 @@ public:
     void TearDown() override;
 };
 
-void RSRcdSurfaceRenderNodeDrawableTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RSRcdSurfaceRenderNodeDrawableTest::SetUpTestCase() {}
 void RSRcdSurfaceRenderNodeDrawableTest::TearDownTestCase() {}
 void RSRcdSurfaceRenderNodeDrawableTest::SetUp() {}
 void RSRcdSurfaceRenderNodeDrawableTest::TearDown() {}

@@ -249,12 +249,6 @@ void RSRenderPipeline::InitEnvironment()
         Drawing::FontMgr::CreateDefaultFontMgr();
     });
     preLoadSysTTFThread.detach();
-
-#ifdef RS_ENABLE_VK
-if (Drawing::SystemProperties::IsUseVulkan()) {
-    RsVulkanContext::SetRecyclable(false);
-}
-#endif
 }
 
 void RSRenderPipeline::InitUniRenderConfig()
@@ -303,7 +297,7 @@ void RSRenderPipeline::InitUniRenderThread()
         },
         [](RSPaintFilterCanvas& canvas, const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
             BufferDrawParam& params) -> bool {
-            return RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params);
+            return RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params, true);
         },
         []() -> std::shared_ptr<RSSurfaceHandler> { return RSHeteroHDRManager::Instance().GetHDRSurfaceHandler(); });
 #endif

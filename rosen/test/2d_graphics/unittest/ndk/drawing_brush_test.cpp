@@ -46,12 +46,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingBrushTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingBrushTest::SetUpTestCase() {}
 void NativeDrawingBrushTest::TearDownTestCase() {}
 void NativeDrawingBrushTest::SetUp() {}
 void NativeDrawingBrushTest::TearDown() {}
