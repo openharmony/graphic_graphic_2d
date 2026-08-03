@@ -56,8 +56,8 @@ private:
     std::unordered_map<pid_t, sptr<RSICanvasSurfaceBufferCallback>> canvasSurfaceBufferCallbackMap_;
     mutable std::mutex canvasCallbackMutex_; // Protects canvasSurfaceBufferCallbackMap_
 
-    // Canvas pre-allocated buffer map: nodeId -> pair<currentResetSurfaceIndex, map(resetSurfaceIndex -> buffer)>
-    std::map<NodeId, std::pair<uint32_t, BufferMap>> pendingBufferMap_;
+    // Canvas pre-allocated buffer map: pid->(nodeId->pair<currentResetSurfaceIndex, map(resetSurfaceIndex->buffer)>)
+    std::map<pid_t, std::map<NodeId, std::pair<uint32_t, BufferMap>>> pendingBufferMap_;
     std::mutex pendingBufferMutex_; // Protects pendingBufferMap_
 };
 } // namespace Rosen
