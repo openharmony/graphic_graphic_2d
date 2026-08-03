@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_geometry.h"
 #include "draw/canvas.h"
+#include "iconsumer_surface.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_render_params.h"
@@ -817,10 +818,14 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, OnDestoryTokenNodeCleanCacheTest, TestSi
         return;
     }
     auto surfaceHandler = node->surfaceHandler_;
+    surfaceHandler->SetConsumer(IConsumerSurface::Create("TestConsumer"));
     node->OnDestoryTokenNode();
     ASSERT_EQ(node->surfaceHandler_, nullptr);
     auto registeredHandler = context->GetMutableNodeMap().GetSurfaceHandler(nodeId, false);
     ASSERT_EQ(registeredHandler, surfaceHandler);
+    auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_EQ(stagingParams->GetConsumerSurface(), nullptr);
+    ASSERT_TRUE(stagingParams->NeedSync());
 }
 
 /**
@@ -888,6 +893,85 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ApplyModifiersClearsBufferDirtyTest, Tes
     node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::BOUNDS), true);
     node->ApplyModifiers();
     ASSERT_FALSE(node->IsBufferDirty());
+}
+
+/**
+ * @tc.name: SetSurfaceHandlerConsumerSurfaceTest
+ * @tc.desc: Test SetSurfaceHandler sets consumerSurface on staging renderParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, SetSurfaceHandlerConsumerSurfaceTest, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 30;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    node->InitRenderParams();
+    // Set non-null surfaceHandler with consumer
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(nodeId);
+    auto consumerSurface = IConsumerSurface::Create("TestConsumer");
+    surfaceHandler->SetConsumer(consumerSurface);
+    node->SetSurfaceHandler(surfaceHandler);
+    auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_EQ(stagingParams->GetConsumerSurface(), consumerSurface);
+    // Set nullptr surfaceHandler
+    node->SetSurfaceHandler(nullptr);
+    ASSERT_EQ(stagingParams->GetConsumerSurface(), nullptr);
+}
+
+/**
+ * @tc.name: OnDestoryTokenNodeClearConsumerSurfaceTest
+ * @tc.desc: Test OnDestoryTokenNode clears consumerSurface on stagingParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, OnDestoryTokenNodeClearConsumerSurfaceTest, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 32;
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(nodeId);
+    surfaceHandler->SetConsumer(IConsumerSurface::Create("TestConsumer"));
+    context->GetMutableNodeMap().RegisterSurfaceHandler(nodeId, surfaceHandler);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    node->InitRenderParams();
+    if (node->surfaceHandler_ == nullptr) {
+        ASSERT_NE(node->stagingRenderParams_, nullptr);
+        return;
+    }
+    auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(stagingParams->GetConsumerSurface(), nullptr);
+    node->OnDestoryTokenNode();
+    ASSERT_EQ(node->surfaceHandler_, nullptr);
+    ASSERT_EQ(stagingParams->GetConsumerSurface(), nullptr);
+}
+
+/**
+ * @tc.name: OnSyncConsumerSurfaceTest
+ * @tc.desc: Test OnSync syncs consumerSurface from stagingParams to drawable renderParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, OnSyncConsumerSurfaceTest, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 33;
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(nodeId);
+    auto consumerSurface = IConsumerSurface::Create("TestConsumer");
+    surfaceHandler->SetConsumer(consumerSurface);
+    context->GetMutableNodeMap().RegisterSurfaceHandler(nodeId, surfaceHandler);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    node->InitRenderParams();
+    if (node->surfaceHandler_ == nullptr || node->renderDrawable_ == nullptr) {
+        ASSERT_NE(node->stagingRenderParams_, nullptr);
+        return;
+    }
+    auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(stagingParams->GetConsumerSurface(), nullptr);
+    auto drawableParams = static_cast<RSCanvasDrawingRenderParams*>(
+        node->renderDrawable_->GetRenderParams().get());
+    ASSERT_EQ(drawableParams->GetConsumerSurface(), nullptr);
+    stagingParams->OnSync(node->renderDrawable_->GetRenderParams());
+    ASSERT_EQ(drawableParams->GetConsumerSurface(), consumerSurface);
 }
 #endif
 } // namespace OHOS::Rosen
