@@ -101,7 +101,7 @@ private:
 
     // Functions
     void CheckHwcNodeFilterIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-        const std::vector<std::pair<std::shared_ptr<RSRenderNode>, RectI>>& filterNodes);
+        const std::vector<std::tuple<std::shared_ptr<RSRenderNode>, RectI, bool>>& filterNodes);
     bool IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
     void UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
         Drawing::Rect& childRectMapped);
