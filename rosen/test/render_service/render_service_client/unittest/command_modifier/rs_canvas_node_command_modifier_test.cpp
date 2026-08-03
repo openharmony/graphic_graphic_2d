@@ -207,7 +207,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, ClearRecordingTest002, TestSize.Level1
 HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest001, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
-    FinishRecordCmdParam param{0, std::make_shared<Drawing::DrawCmdList>()};
+    FinishRecordCmdParam param{0, std::make_shared<RSSimpleDrawCmdList>()};
     auto mod = std::make_shared<FinishRecordCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::FINISH_RECORD);
     ASSERT_TRUE(mod->GetParam().drawingCmdList_);
@@ -255,7 +255,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest003, TestSize.Level1)
 HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest004, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
-    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
     FinishRecordCmdParam param{1, drawCmdList};
     auto mod = std::make_shared<FinishRecordCmdModifier>(node, param);
 
@@ -277,7 +277,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest004, TestSize.Level1)
 HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest001, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
-    DrawOnNodeCmdParam param{0, std::make_shared<Drawing::DrawCmdList>()};
+    DrawOnNodeCmdParam param{0, std::make_shared<RSSimpleDrawCmdList>()};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::DRAW_ON_NODE);
     ASSERT_TRUE(mod->GetParam().drawingCmdList_);
@@ -341,7 +341,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest004, TestSize.Level1)
 HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest005, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
-    DrawOnNodeCmdParam param{1, std::make_shared<Drawing::DrawCmdList>()};
+    DrawOnNodeCmdParam param{1, std::make_shared<RSSimpleDrawCmdList>()};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
 
     bool ret = mod->SetParam(param);
@@ -480,7 +480,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, ClearRecordingTest004, TestSize.Level1
 HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest005, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
-    FinishRecordCmdParam param{0, std::make_shared<Drawing::DrawCmdList>()};
+    FinishRecordCmdParam param{0, std::make_shared<RSSimpleDrawCmdList>()};
     auto mod = std::make_shared<FinishRecordCmdModifier>(node, param);
     ASSERT_TRUE(mod);
     mod->UpdateToRender();
@@ -494,7 +494,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest005, TestSize.Level1)
 HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest006, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
-    DrawOnNodeCmdParam param{0, std::make_shared<Drawing::DrawCmdList>()};
+    DrawOnNodeCmdParam param{0, std::make_shared<RSSimpleDrawCmdList>()};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     ASSERT_TRUE(mod);
     mod->UpdateToRender();
@@ -508,7 +508,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest006, TestSize.Level1)
 HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest007, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
-    DrawOnNodeCmdParam param{0, std::make_shared<Drawing::DrawCmdList>()};
+    DrawOnNodeCmdParam param{0, std::make_shared<RSSimpleDrawCmdList>()};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     auto result = mod->UpdateToRenderWithResult();
     bool val = std::get<bool>(result);
@@ -527,8 +527,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest006, TestSize.Level1)
     opItems.push_back(std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 10, 10), Drawing::Paint()));
     auto simpleDrawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
  
-    FinishRecordCmdParam param{0, nullptr};
-    param.simpleDrawCmdList_ = simpleDrawCmdList;
+    FinishRecordCmdParam param{0, simpleDrawCmdList};
     auto mod = std::make_shared<FinishRecordCmdModifier>(node, param);
     ASSERT_TRUE(mod);
     mod->UpdateToRender();
@@ -561,8 +560,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest008, TestSize.Level1)
     opItems.push_back(std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 10, 10), Drawing::Paint()));
     auto simpleDrawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
  
-    DrawOnNodeCmdParam param{0, nullptr};
-    param.simpleDrawCmdList_ = simpleDrawCmdList;
+    DrawOnNodeCmdParam param{0, simpleDrawCmdList};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     ASSERT_TRUE(mod);
     mod->UpdateToRender();
@@ -577,7 +575,6 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest009, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
     DrawOnNodeCmdParam param{0, nullptr};
-    param.simpleDrawCmdList_ = nullptr;
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     ASSERT_TRUE(mod);
     mod->UpdateToRender();
@@ -595,8 +592,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest010, TestSize.Level1)
     opItems.push_back(std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 10, 10), Drawing::Paint()));
     auto simpleDrawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
  
-    DrawOnNodeCmdParam param{0, nullptr};
-    param.simpleDrawCmdList_ = simpleDrawCmdList;
+    DrawOnNodeCmdParam param{0, simpleDrawCmdList};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     auto result = mod->UpdateToRenderWithResult();
     bool val = std::get<bool>(result);
@@ -631,8 +627,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest008, TestSize.Level1)
     opItems.push_back(std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 10, 10), Drawing::Paint()));
     auto simpleDrawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
  
-    FinishRecordCmdParam param{0, nullptr};
-    param.simpleDrawCmdList_ = simpleDrawCmdList;
+    FinishRecordCmdParam param{0, simpleDrawCmdList};
     auto mod = std::make_shared<FinishRecordCmdModifier>(node, param);
     std::string out;
     mod->DumpParam(out);
@@ -651,8 +646,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest012, TestSize.Level1)
     opItems.push_back(std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 10, 10), Drawing::Paint()));
     auto simpleDrawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
  
-    DrawOnNodeCmdParam param{0, nullptr};
-    param.simpleDrawCmdList_ = simpleDrawCmdList;
+    DrawOnNodeCmdParam param{0, simpleDrawCmdList};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     std::string out;
     mod->DumpParam(out);

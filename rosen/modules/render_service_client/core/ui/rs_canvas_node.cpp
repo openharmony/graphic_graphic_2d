@@ -173,8 +173,9 @@ void RSCanvasNode::OnFinishRecording(Drawing::DrawCmdListPtr& drawCmdList, Modif
 {
     if (drawCmdList && !drawCmdList->IsEmpty()) { // CanvasDrawingNode should set drawCmdList nullptr.
         auto type = static_cast<uint16_t>(modifierType);
+        auto simpleDrawCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList);
         PushRSCmdModifierToQueue<FinishRecordCmdModifier>(FinishRecordCmdParam{
-            type, drawCmdList
+            type, simpleDrawCmdList
         });
         std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeUpdateRecording>(
             GetId(), drawCmdList, type);
@@ -202,8 +203,9 @@ void RSCanvasNode::DrawOnNode(ModifierNG::RSModifierType type, DrawFunc func)
         recording->GenerateCache();
     }
     auto modifierType = static_cast<uint16_t>(type);
+    auto simpleDrawCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(recording);
     PushRSCmdModifierToQueue<DrawOnNodeCmdModifier>(DrawOnNodeCmdParam{
-        modifierType, recording
+        modifierType, simpleDrawCmdList
     });
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, modifierType);
