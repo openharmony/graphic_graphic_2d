@@ -447,6 +447,10 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
         return false;
     }
 
+    if (!screenDrawable.IsFirstFrameFlushed()) {
+        return false;
+    }
+
     const auto& displayDrawables = params.GetDisplayDrawables();
     for (const auto& drawable : displayDrawables) {
         const auto& displayDrawable = static_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable*>(drawable.get());
