@@ -107,5 +107,56 @@ const Drawing::BackendTexture& RSRenderGroupCacheDrawable::GetCachedBackendTextu
     return cachedBackendTexture_;
 }
 #endif
+
+std::optional<RSRenderGroupCacheDrawable::ContinuousUpdateInfo> RSRenderGroupCacheDrawable::GetContinuousUpdateInfo(
+    NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(continuousUpdateTimeMapMutex_);
+    auto iter = continuousUpdateTimeMap_.find(nodeId);
+    if (iter != continuousUpdateTimeMap_.end()) {
+        return iter->second;
+    }
+    return std::nullopt;
+}
+
+void RSRenderGroupCacheDrawable::SetContinuousUpdateInfo(NodeId nodeId, int32_t count, uint64_t vsyncId)
+{
+    std::lock_guard<std::mutex> lock(continuousUpdateTimeMapMutex_);
+    continuousUpdateTimeMap_[nodeId] = {count, vsyncId};
+}
+
+void RSRenderGroupCacheDrawable::ClearContinuousUpdateCount(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(continuousUpdateTimeMapMutex_);
+    continuousUpdateTimeMap_.erase(nodeId);
+}
+
+void RSRenderGroupCacheDrawable::UpdateContinuousUpdateCount(NodeId nodeId, uint64_t vsyncId)
+{
+    std::lock_guard<std::mutex> lock(continuousUpdateTimeMapMutex_);
+    auto& info = continuousUpdateTimeMap_[nodeId];
+    // A node may be visited multiple times per vsync (e.g. layer cache + normal draw);
+    // only increment once per frame so count reflects consecutive VSYNC frames.
+    if (info.vsyncId != vsyncId) {
+        info.count++;
+        info.vsyncId = vsyncId;
+    }
+}
+
+int32_t RSRenderGroupCacheDrawable::GetOrClearContinuousUpdateCount(
+    NodeId nodeId, uint64_t currentVsyncId, bool needUpdateCache)
+{
+    std::lock_guard<std::mutex> lock(continuousUpdateTimeMapMutex_);
+    auto iter = continuousUpdateTimeMap_.find(nodeId);
+    if (iter == continuousUpdateTimeMap_.end()) {
+        return 0;
+    }
+    auto& info = iter->second;
+    if (info.vsyncId != currentVsyncId && !needUpdateCache) {
+        continuousUpdateTimeMap_.erase(iter);
+        return 0;
+    }
+    return info.count;
+}
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
