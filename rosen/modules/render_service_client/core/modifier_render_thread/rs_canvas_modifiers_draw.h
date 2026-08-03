@@ -185,6 +185,8 @@ private:
 
     bool needRestoreGpuCacheLimit_ = false;
 
+    int64_t lastUpdateCanvasContentTime_ = 0;
+
     std::unordered_map<NodeId, RSCanvasModifiersDrawable> drawableMap_;
 
     std::vector<DestroySemaphoreInfo*> canvasNewSemaphoreInfos_;
