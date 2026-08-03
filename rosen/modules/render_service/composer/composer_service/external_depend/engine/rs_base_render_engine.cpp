@@ -991,9 +991,9 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
         return true;
     }
     if (ROSEN_EQ(std::abs(translateY - std::floor(translateY)), HALF_PIXEL_OFFSET)) {
- 	    RS_LOGI("RSBaseRenderEngine::NeedBilinearInterpolation translateY=%{public}.2f", translateY);
- 	    return true;
- 	}
+        RS_LOGI("RSBaseRenderEngine::NeedBilinearInterpolation translateY=%{public}.2f", translateY);
+        return true;
+    }
     return false;
 }
 
