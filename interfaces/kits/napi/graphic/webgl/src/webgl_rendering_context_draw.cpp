@@ -728,6 +728,10 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexImage2D(
 
     size_t bufferLen = bufferData.GetBufferLength();
     size_t elemSize = bufferData.GetBufferDataSize();
+    if (elemSize == 0 || static_cast<size_t>(srcOffset) > SIZE_MAX / elemSize) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
+        return NVal::CreateNull(env).val_;
+    }
     size_t offsetBytes = static_cast<size_t>(srcOffset) * elemSize;
     if (offsetBytes > bufferLen) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
@@ -813,6 +817,10 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
         bufferData.DumpBuffer(bufferData.GetBufferDataType());
         size_t bufferLen = bufferData.GetBufferLength();
         size_t elemSize = bufferData.GetBufferDataSize();
+        if (elemSize == 0 || static_cast<size_t>(srcOffset) > SIZE_MAX / elemSize) {
+            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
+            return NVal::CreateNull(env).val_;
+        }
         size_t offsetBytes = static_cast<size_t>(srcOffset) * elemSize;
         if (offsetBytes > bufferLen) {
             SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
