@@ -3604,7 +3604,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState003, TestSize.Level1)
     EXPECT_FALSE(surfaceRenderNode.isRebuildingState_);
 }
 
-#ifdef RS_ENABLE_TV_SHUTTER_3D
 /**
  * @tc.name: GetVideoDimType_001
  * @tc.desc: Test GetVideoDimType returns default VIDEO_DIM_TYPE_2D
@@ -3618,6 +3617,5 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetVideoDimType_001, TestSize.Level1)
 
     EXPECT_EQ(surfaceNode->GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
 }
-#endif // RS_ENABLE_TV_SHUTTER_3D
 } // namespace Rosen
 } // namespace OHOS

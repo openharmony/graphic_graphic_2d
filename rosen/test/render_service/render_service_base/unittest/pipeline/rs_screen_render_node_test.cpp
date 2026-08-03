@@ -1489,7 +1489,6 @@ HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationFalseNotPropagateTest, TestSize
     ASSERT_FALSE(node->IsContainBootAnimation());
 }
 
-#ifdef RS_ENABLE_TV_SHUTTER_3D
 /**
  * @tc.name: SetVideoDimType_001
  * @tc.desc: Test SetVideoDimType with VIDEO_DIM_TYPE_2D
@@ -1591,5 +1590,4 @@ HWTEST_F(RSScreenRenderNodeTest, SetUIMode3D_003, TestSize.Level1)
     node->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
     EXPECT_EQ(node->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
 }
-#endif // RS_ENABLE_TV_SHUTTER_3D
 } // namespace OHOS::Rosen

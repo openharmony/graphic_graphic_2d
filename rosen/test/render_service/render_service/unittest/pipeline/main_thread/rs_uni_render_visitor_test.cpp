@@ -10779,7 +10779,6 @@ HWTEST_F(RSUniRenderVisitorTest, CollectVirtualScreenNodeId_AllConditionsTrue, T
     rsUniRenderVisitor->CollectVirtualScreenNodeId(*screenNode);
 }
 
-#ifdef RS_ENABLE_TV_SHUTTER_3D
 /**
  * @tc.name: InitScreenInfoUIMode3D_001
  * @tc.desc: Test InitScreenInfo sets default UIMode3D to MODE_2D
@@ -10794,15 +10793,16 @@ HWTEST_F(RSUniRenderVisitorTest, InitScreenInfoUIMode3D_001, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     rsContext->GetMutableNodeMap().Initialize(rsContext);
     NodeId screenNodeId = 10;
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->InitRenderParams();
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
 
-    auto params = static_cast<RSScreenRenderParams*>(rsUniRenderVisitor->curScreenNode_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    params->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
-    rsUniRenderVisitor->InitScreenInfoUIMode3D(*rsUniRenderVisitor->curScreenNode_);
-    EXPECT_EQ(rsUniRenderVisitor->curScreenNode_->screenInfo_.uiMode3D, UIMode3D::MODE_SHUTTER_3D);
+    screenNode->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+
+    rsUniRenderVisitor->InitScreenInfo(*screenNode);
+    EXPECT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_2D);
 }
-#endif // RS_ENABLE_TV_SHUTTER_3D
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

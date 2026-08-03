@@ -2329,7 +2329,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawVirtualExpand_PrepareForDrawFalse
     screenDrawable_->OnDrawVirtualExpand(renderEngine, tid);
 }
 
-#ifdef RS_ENABLE_TV_SHUTTER_3D
 /**
  * @tc.name: OnDrawTest_3DMode2D
  * @tc.desc: Test OnDraw with UIMode3D::MODE_2D
@@ -2377,5 +2376,4 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DModeGlassesFree, TestSize.
     screenDrawable_->OnDraw(canvas);
     EXPECT_EQ(RSMainThread::Instance().GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
 }
-#endif
 } // namespace OHOS::Rosen
