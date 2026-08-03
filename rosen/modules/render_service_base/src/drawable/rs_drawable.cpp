@@ -102,6 +102,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSForegroundFilterDrawable::OnGenerate,                          // FOREGROUND_FILTER
     RSOutlineDrawable::OnGenerate,                                   // OUTLINE,
     RSMaterialShaderDrawable::OnGenerate,                            // MATERIAL_SHADER,
+    nullptr,                                                         // SAVE_CLIP_TO_BOUNDS
 
     // BG properties in Bounds Clip
     nullptr,                                                         // BG_SAVE_BOUNDS,
@@ -244,6 +245,7 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 {
     // Erase existing save/clip/restore before re-generating
     constexpr static std::array boundsSlotsToErase = {
+        RSDrawableSlot::SAVE_CLIP_TO_BOUNDS,
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
         RSDrawableSlot::BG_RESTORE_BOUNDS,
@@ -258,10 +260,10 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 
     if (flags & DrawableVecStatus::CLIP_TO_BOUNDS) {
         // case 1: ClipToBounds set.
-        // add one clip, and reuse SAVE_ALL and RESTORE_ALL.
+        // add one clip, SAVE_CLIP_TO_BOUNDS and RESTORE_CLIP_TO_BOUNDS.
         assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS),
             RSClipToBoundsDrawable::OnGenerate(node));
-        SaveRestoreHelper(drawableVec, RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS,
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_CLIP_TO_BOUNDS, RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS,
             RSPaintFilterCanvas::kCanvas);
         return;
     }
