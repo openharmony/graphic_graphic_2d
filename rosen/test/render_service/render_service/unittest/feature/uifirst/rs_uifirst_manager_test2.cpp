@@ -46,8 +46,6 @@ public:
     static inline Occlusion::Region DEFAULT_VISIBLE_REGION = Occlusion::Rect(0, 0, 10, 10);
     static inline RectI VISIBLE_DIRTY_REGION = {0, 0, 10, 10};
     static inline RectI INVISIBLE_DIRTY_REGION = {20, 20, 10, 10};
-    static void SetOptScheduleEnabled(int enabled);
-    static int GetOptScheduleEnabled();
 };
 
 void RSUifirstManagerTest2::SetUpTestCase()
@@ -86,16 +84,6 @@ void RSUifirstManagerTest2::TearDownTestCase()
 
 void RSUifirstManagerTest2::SetUp() {}
 void RSUifirstManagerTest2::TearDown() {}
-
-int RSUifirstManagerTest2::GetOptScheduleEnabled()
-{
-    return RSSystemProperties::GetUIFirstOptScheduleEnabled();
-}
-
-void RSUifirstManagerTest2::SetOptScheduleEnabled(int enabled)
-{
-    system::SetParameter("rosen.ui.first.optSchedule.enabled", std::to_string(enabled));
-}
 
 /**
  * @tc.name: OnPurgePendingPostNodesInner
@@ -2477,24 +2465,6 @@ HWTEST_F(RSUifirstManagerTest2, LeashWindowContainMainWindow001, TestSize.Level1
 }
 
 /**
- * @tc.name: MarkPostNodesPriority001
- * @tc.desc: Test branch: GetUIFirstOptScheduleEnabled() returns false
- *           Property disabled, early return without processing
- * @tc.type: FUNC
- * @tc.require: issue23461
- */
-HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority001, TestSize.Level1)
-{
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(0);
-    uifirstManager_.sortedSubThreadNodeIds_.push_back(1);
-    uifirstManager_.MarkPostNodesPriority();
-    ASSERT_FALSE(uifirstManager_.sortedSubThreadNodeIds_.empty());
-    SetOptScheduleEnabled(originProp);
-    uifirstManager_.sortedSubThreadNodeIds_.clear();
-}
-
-/**
  * @tc.name: MarkPostNodesPriority002
  * @tc.desc: Test branch: drawable is null
  *           GetSurfaceDrawableByID returns null, continue to next iteration
@@ -2503,13 +2473,10 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority001, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority002, TestSize.Level1)
 {
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(INVALID_NODEID);
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_FALSE(uifirstManager_.sortedSubThreadNodeIds_.empty());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
@@ -2530,14 +2497,11 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority003, TestSize.Level1)
     auto& subCache = drawable->GetRsSubThreadCache();
     subCache.SetRenderCachePriority(NodePriorityType::SUB_HIGH_PRIORITY);
 
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(node->GetId());
     uifirstManager_.isFocusNodeFound_ = false;
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_TRUE(subCache.IsHighPostPriority());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
@@ -2557,14 +2521,11 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority004, TestSize.Level1)
     auto& subCache = drawable->GetRsSubThreadCache();
     subCache.SetRenderCachePriority(NodePriorityType::SUB_LOW_PRIORITY);
 
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(node->GetId());
     uifirstManager_.isFocusNodeFound_ = false;
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_TRUE(subCache.IsHighPostPriority());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
@@ -2577,8 +2538,6 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority004, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority005, TestSize.Level1)
 {
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.subthreadProcessingNode_.clear();
 
@@ -2603,7 +2562,6 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority005, TestSize.Level1)
     ASSERT_TRUE(firstSubCache.IsHighPostPriority());
     ASSERT_FALSE(lastSubCache.IsHighPostPriority());
 
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.subthreadProcessingNode_.clear();
 }
@@ -2626,15 +2584,12 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority006, TestSize.Level1)
     subCache.SetRenderCachePriority(NodePriorityType::SUB_LOW_PRIORITY);
     subCache.SetLastFrameUsedThreadIndex(2);
 
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(node->GetId());
     uifirstManager_.isFocusNodeFound_ = true;
     uifirstManager_.focusNodeThreadIndex_ = 2;
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_TRUE(subCache.IsHighPostPriority());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
@@ -2656,15 +2611,12 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority007, TestSize.Level1)
     subCache.SetRenderCachePriority(NodePriorityType::SUB_LOW_PRIORITY);
     subCache.SetLastFrameUsedThreadIndex(1);
 
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(node->GetId());
     uifirstManager_.isFocusNodeFound_ = true;
     uifirstManager_.focusNodeThreadIndex_ = 2;
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_FALSE(subCache.IsHighPostPriority());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
