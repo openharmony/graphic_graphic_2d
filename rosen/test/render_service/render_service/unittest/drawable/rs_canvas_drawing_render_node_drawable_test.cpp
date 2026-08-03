@@ -1128,21 +1128,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestS
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 /**
- * @tc.name: GetConsumerSurfaceTest
- * @tc.desc: Test GetConsumerSurface with different conditions
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetConsumerSurfaceTest, TestSize.Level1)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
-    auto consumerSurface = drawable->GetConsumerSurface();
-    ASSERT_EQ(consumerSurface, nullptr);
-}
- 
-/**
  * @tc.name: DrawCustomContentTest
  * @tc.desc: Test DrawCustomContent with different conditions
  * @tc.type: FUNC

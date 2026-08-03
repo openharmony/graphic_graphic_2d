@@ -39,6 +39,7 @@
 #endif
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -769,7 +770,8 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     params.buffer = buffer;
     params.acquireFence = nodeParams->GetAcquireFence();
     SetSrcRect(params, buffer);
-    auto consumer = drawable.GetConsumerSurface();
+    auto nodeCanvasParams = static_cast<RSCanvasDrawingRenderParams*>(nodeParams.get());
+    auto consumer = nodeCanvasParams->GetConsumerSurface();
     if (consumer == nullptr) {
         return params;
     }

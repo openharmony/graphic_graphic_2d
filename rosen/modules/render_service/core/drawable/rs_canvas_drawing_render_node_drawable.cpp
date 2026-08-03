@@ -202,31 +202,6 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<IConsumerSurface> RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface() const
-{
-    if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
-        return nullptr;
-    }
-
-    if (consumerSurface_ != nullptr) {
-        return consumerSurface_;
-    }
-    auto nodeSp = renderNode_.lock();
-    if (nodeSp == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null node, nodeId=%{public}" PRIu64, GetId());
-        return nullptr;
-    }
-    auto canvasDrawingNode = std::static_pointer_cast<const RSCanvasDrawingRenderNode>(nodeSp);
-    auto surfaceHandler = canvasDrawingNode->GetSurfaceHandler();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null surfaceHandler, nodeId=%{public}" PRIu64,
-            GetId());
-        return nullptr;
-    }
-    consumerSurface_ = surfaceHandler->GetConsumer();
-    return consumerSurface_;
-}
-
 void RSCanvasDrawingRenderNodeDrawable::DrawCustomContent(Drawing::Canvas& canvas)
 {
     if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
