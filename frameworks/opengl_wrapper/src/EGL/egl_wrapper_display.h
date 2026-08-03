@@ -126,7 +126,7 @@ private:
     void ClearObjects();
     EGLBoolean InternalMakeCurrent(EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx,
         bool isAfterHook = false, EglWrapperContext *curCtx = nullptr);
-    std::vector<EGLint> ExtractNonColorspaceInfoFromAttribs(const EGLint *attrbList);
+    std::vector<EGLint> ExtractNonColorspaceInfoFromAttribs(const EGLint *attribList);
 
 #if USE_IGRAPHICS_EXTENDS_HOOKS
     void ChooseHookTable(bool isAfterHook, const EglWrapperContext *ctx, const EglWrapperContext *curCtx,

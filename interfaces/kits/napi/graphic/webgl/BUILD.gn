@@ -22,7 +22,7 @@ config("render_config") {
 
 ohos_source_set("webgl_src") {
   branch_protector_ret = "pac_ret"
-  
+
   include_dirs = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/common",
@@ -31,7 +31,7 @@ ohos_source_set("webgl_src") {
   sources = [
     "common/napi/n_class.cpp",
     "common/napi/n_func_arg.cpp",
-    "common/napi/n_val.cpp"
+    "common/napi/n_val.cpp",
   ]
 
   external_deps = [
