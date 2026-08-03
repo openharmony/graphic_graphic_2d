@@ -23,6 +23,8 @@
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include "v2_2/cm_color_space.h"
+#include "v2_2/buffer_handle_meta_key_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -231,7 +233,10 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
             parameter.dynamicMetadata : std::vector<uint8_t>{}, hdrProperties.hdrBrightness, HdrStatus::HDR_PHOTO);
     }
 
-    if (!rsLuminance.IsHdrPictureOn() || dynamicRangeMode == DynamicRangeMode::STANDARD) {
+    if ((!rsLuminance.IsHdrPictureOn() &&
+         static_cast<uint32_t>(hdrMetadataType) != HDI::Display::Graphic::Common::V2_2::CM_IMAGE_HDR_CANVAS &&
+         static_cast<uint32_t>(hdrMetadataType) != HDI::Display::Graphic::Common::V2_2::CM_COMPONENT_EDR) ||
+        dynamicRangeMode == DynamicRangeMode::STANDARD) {
         scaler = 1.0f;
     }
 
