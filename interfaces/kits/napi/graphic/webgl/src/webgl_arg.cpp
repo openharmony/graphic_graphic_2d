@@ -717,8 +717,22 @@ GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, G
         return GL_INVALID_VALUE;
     }
     uint64_t depth = static_cast<uint64_t>(std::max(imageOption_.depth, 1));
-    uint64_t requiredBytes = depth * static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
-        formatMap->bytesPrePixel;
+    uint64_t height = static_cast<uint64_t>(imageOption_.height);
+    uint64_t width = static_cast<uint64_t>(imageOption_.width);
+    uint64_t bpp = static_cast<uint64_t>(formatMap->bytesPrePixel);
+    auto checkedMul = [](uint64_t a, uint64_t b, uint64_t& out) -> bool {
+        if (a != 0 && b > std::numeric_limits<uint64_t>::max() / a) {
+            return false;
+        }
+        out = a * b;
+        return true;
+    };
+    uint64_t requiredBytes = 0;
+    if (!checkedMul(depth, height, requiredBytes) ||
+        !checkedMul(requiredBytes, width, requiredBytes) ||
+        !checkedMul(requiredBytes, bpp, requiredBytes)) {
+        return GL_INVALID_VALUE;
+    }
     if (requiredBytes > bufLen - srcOffsetBytes) {
         return GL_INVALID_OPERATION;
     }
