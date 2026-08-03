@@ -45,12 +45,12 @@ void RSRenderServiceListener::OnBufferAvailable()
 {
     auto surfaceHandler = surfaceHandler_.lock();
     if (surfaceHandler == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnBufferAvailable surfaceHandler is nullptr");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSRenderServiceListener::OnBufferAvailable surfaceHandler is nullptr");
         return;
     }
     auto node = surfaceBufferInterface_.lock();
     if (node == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSRenderServiceListener::OnBufferAvailable node is nullptr");
         ConsumeBufferToKeepQueueRunning(surfaceHandler_);
         return;
     }
