@@ -66,7 +66,6 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("setMiterLimit", JsPen::SetMiterLimit),
     DECLARE_NAPI_FUNCTION("getMiterLimit", JsPen::GetMiterLimit),
     DECLARE_NAPI_FUNCTION("reset", JsPen::Reset),
-    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsPen::PenTransferDynamic),
 };
 
 napi_value JsPen::Init(napi_env env, napi_value exportObj)
@@ -798,47 +797,29 @@ napi_value JsPen::GetHexColor(napi_env env, napi_callback_info info)
 
 napi_value JsPen::CreateJsPenDynamic(napi_env env, const std::shared_ptr<Pen> pen)
 {
-    napi_value result = nullptr;
-    napi_value constructor = nullptr;
-    if (napi_get_reference_value(env, constructor_, &constructor) != napi_ok) {
-        ROSEN_LOGE("Failed to get the representation of constructor object");
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::CreateJsPenDynamic pen is nullptr");
         return nullptr;
     }
-    if (napi_new_instance(env, constructor, 0, nullptr, &result) != napi_ok || result == nullptr) {
-        ROSEN_LOGE("Failed to instantiate JavaScript pen instance");
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsPen::CreateJsPenDynamic napi_create_object failed");
         return nullptr;
     }
     JsPen* jsPen = new JsPen(pen);
-    napi_status status = napi_wrap(env, result, jsPen, JsPen::Destructor, nullptr, nullptr);
+    status = napi_wrap(env, objValue, jsPen, JsPen::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsPen;
-        ROSEN_LOGE("Failed to wrap native instance");
+        ROSEN_LOGE("JsPen::CreateJsPenDynamic failed to wrap native instance");
         return nullptr;
     }
-    return result;
-}
-
-napi_value JsPen::PenTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsPen::CreateJsPenDynamic failed to define properties");
         return nullptr;
     }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Pen> pen = *reinterpret_cast<std::shared_ptr<Pen>*>(addr);
-    if (pen == nullptr) {
-        return nullptr;
-    }
-    return CreateJsPenDynamic(env, pen);
+    return objValue;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

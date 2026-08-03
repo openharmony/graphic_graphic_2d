@@ -24,32 +24,30 @@ namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsRegion::constructor_ = nullptr;
 const std::string CLASS_NAME = "Region";
+static const napi_property_descriptor g_properties[] = {
+    DECLARE_NAPI_FUNCTION("getBoundaryPath", JsRegion::GetBoundaryPath),
+    DECLARE_NAPI_FUNCTION("getBounds", JsRegion::GetBounds),
+    DECLARE_NAPI_FUNCTION("isComplex", JsRegion::IsComplex),
+    DECLARE_NAPI_FUNCTION("isEmpty", JsRegion::IsEmpty),
+    DECLARE_NAPI_FUNCTION("isEqual", JsRegion::IsEqual),
+    DECLARE_NAPI_FUNCTION("isPointContained", JsRegion::IsPointContained),
+    DECLARE_NAPI_FUNCTION("isRegionContained", JsRegion::IsRegionContained),
+    DECLARE_NAPI_FUNCTION("offset", JsRegion::Offset),
+    DECLARE_NAPI_FUNCTION("op", JsRegion::Op),
+    DECLARE_NAPI_FUNCTION("quickReject", JsRegion::QuickReject),
+    DECLARE_NAPI_FUNCTION("quickRejectRegion", JsRegion::QuickRejectRegion),
+    DECLARE_NAPI_FUNCTION("setEmpty", JsRegion::SetEmpty),
+    DECLARE_NAPI_FUNCTION("setRect", JsRegion::SetRect),
+    DECLARE_NAPI_FUNCTION("setRegion", JsRegion::SetRegion),
+    DECLARE_NAPI_FUNCTION("setPath", JsRegion::SetPath),
+    DECLARE_NAPI_FUNCTION("isRect", JsRegion::IsRect),
+    DECLARE_NAPI_FUNCTION("quickContains", JsRegion::QuickContains),
+};
 napi_value JsRegion::Init(napi_env env, napi_value exportObj)
 {
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("getBoundaryPath", JsRegion::GetBoundaryPath),
-        DECLARE_NAPI_FUNCTION("getBounds", JsRegion::GetBounds),
-        DECLARE_NAPI_FUNCTION("isComplex", JsRegion::IsComplex),
-        DECLARE_NAPI_FUNCTION("isEmpty", JsRegion::IsEmpty),
-        DECLARE_NAPI_FUNCTION("isEqual", JsRegion::IsEqual),
-        DECLARE_NAPI_FUNCTION("isPointContained", JsRegion::IsPointContained),
-        DECLARE_NAPI_FUNCTION("isRegionContained", JsRegion::IsRegionContained),
-        DECLARE_NAPI_FUNCTION("offset", JsRegion::Offset),
-        DECLARE_NAPI_FUNCTION("op", JsRegion::Op),
-        DECLARE_NAPI_FUNCTION("quickReject", JsRegion::QuickReject),
-        DECLARE_NAPI_FUNCTION("quickRejectRegion", JsRegion::QuickRejectRegion),
-        DECLARE_NAPI_FUNCTION("setEmpty", JsRegion::SetEmpty),
-        DECLARE_NAPI_FUNCTION("setRect", JsRegion::SetRect),
-        DECLARE_NAPI_FUNCTION("setRegion", JsRegion::SetRegion),
-        DECLARE_NAPI_FUNCTION("setPath", JsRegion::SetPath),
-        DECLARE_NAPI_FUNCTION("isRect", JsRegion::IsRect),
-        DECLARE_NAPI_FUNCTION("quickContains", JsRegion::QuickContains),
-        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsRegion::RegionTransferDynamic),
-    };
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-                                           sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+                                           sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("JsRegion::Init Failed to define Region class");
         return nullptr;
@@ -532,47 +530,29 @@ napi_value JsRegion::OnQuickContains(napi_env env, napi_callback_info info)
 
 napi_value JsRegion::CreateJsRegionDynamic(napi_env env, const std::shared_ptr<Region> region)
 {
-    napi_value result = nullptr;
-    napi_value constructor = nullptr;
-    if (napi_get_reference_value(env, constructor_, &constructor) != napi_ok) {
-        ROSEN_LOGE("Failed to get the representation of constructor object");
+    if (region == nullptr) {
+        ROSEN_LOGE("JsRegion::CreateJsRegionDynamic region is nullptr");
         return nullptr;
     }
-    if (napi_new_instance(env, constructor, 0, nullptr, &result) != napi_ok || result == nullptr) {
-        ROSEN_LOGE("Failed to instantiate JavaScript region instance");
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsRegion::CreateJsRegionDynamic napi_create_object failed");
         return nullptr;
     }
     JsRegion* jsRegion = new JsRegion(region);
-    napi_status status = napi_wrap(env, result, jsRegion, JsRegion::Destructor, nullptr, nullptr);
+    status = napi_wrap(env, objValue, jsRegion, JsRegion::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsRegion;
-        ROSEN_LOGE("Failed to wrap native instance");
+        ROSEN_LOGE("JsRegion::CreateJsRegionDynamic failed to wrap native instance");
         return nullptr;
     }
-    return result;
-}
-
-napi_value JsRegion::RegionTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsRegion::CreateJsRegionDynamic failed to define properties");
         return nullptr;
     }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Region> region = *reinterpret_cast<std::shared_ptr<Region>*>(addr);
-    if (region == nullptr) {
-        return nullptr;
-    }
-    return CreateJsRegionDynamic(env, region);
+    return objValue;
 }
 
 Region* JsRegion::GetRegion()

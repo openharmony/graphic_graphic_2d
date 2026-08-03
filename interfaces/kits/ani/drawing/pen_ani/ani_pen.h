@@ -68,8 +68,7 @@ public:
 private:
     static ani_object PenTransferStatic(
         ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
-    static ani_long GetPenAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    std::shared_ptr<Pen>* GetPenPtrAddr();
+    static ani_object PenTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
     std::shared_ptr<Pen> pen_ = nullptr;
 };
 } // namespace Drawing

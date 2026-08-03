@@ -56,8 +56,7 @@ public:
 private:
     static ani_object BrushTransferStatic(
         ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
-    static ani_long GetBrushAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    std::shared_ptr<Brush>* GetBrushPtrAddr();
+    static ani_object BrushTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
     std::shared_ptr<Brush> brush_ = nullptr;
 };
 } // namespace Drawing

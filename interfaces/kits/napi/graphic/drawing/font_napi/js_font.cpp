@@ -31,7 +31,7 @@ thread_local napi_ref JsFont::constructor_ = nullptr;
 static std::mutex g_constructorInitMutex;
 const std::string CLASS_NAME = "Font";
 
-static napi_property_descriptor properties[] = {
+static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("enableSubpixel", JsFont::EnableSubpixel),
     DECLARE_NAPI_FUNCTION("enableEmbolden", JsFont::EnableEmbolden),
     DECLARE_NAPI_FUNCTION("enableLinearMetrics", JsFont::EnableLinearMetrics),
@@ -69,14 +69,13 @@ static napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("getTextPathWithFallback", JsFont::CreatePathForTextWithFallback),
     DECLARE_NAPI_FUNCTION("setThemeFontFollowed", JsFont::SetThemeFontFollowed),
     DECLARE_NAPI_FUNCTION("isThemeFontFollowed", JsFont::IsThemeFontFollowed),
-    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsFont::FontTransferDynamic),
 };
 
 bool JsFont::CreateConstructor(napi_env env)
 {
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-                                           sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+                                           sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("Failed to define Font class");
         return false;
@@ -1164,40 +1163,32 @@ napi_value JsFont::OnIsThemeFontFollowed(napi_env env, napi_callback_info info)
     return CreateJsValue(env, followed);
 }
 
-napi_value JsFont::FontTransferDynamic(napi_env env, napi_callback_info info)
+napi_value JsFont::CreateFontDynamic(napi_env env, std::shared_ptr<Font> font)
 {
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
-        return nullptr;
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Font> font = *reinterpret_cast<std::shared_ptr<Font>*>(addr);
     if (font == nullptr) {
+        ROSEN_LOGE("JsFont::CreateFontDynamic font is nullptr");
         return nullptr;
     }
-
-    napi_value jsThis = CreateFont(env, info);
-    if (jsThis == nullptr) {
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsFont::CreateFontDynamic napi_create_object failed");
         return nullptr;
     }
-   
     JsFont* jsFont = new JsFont(font);
-    napi_status status = napi_wrap_async_finalizer(env, jsThis, jsFont, JsFont::Destructor, nullptr, nullptr, 0);
+    status = napi_wrap(env, objValue, jsFont, JsFont::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsFont;
-        ROSEN_LOGE("Failed to wrap native instance, status: %{public}d", static_cast<int>(status));
+        ROSEN_LOGE("JsFont::CreateFontDynamic failed to wrap native instance, "
+                   "status: %{public}d", static_cast<int>(status));
         return nullptr;
     }
-    return jsThis;
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsFont::CreateFontDynamic failed to define properties");
+        return nullptr;
+    }
+    return objValue;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

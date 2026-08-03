@@ -14,6 +14,7 @@
  */
 
 #include "ani_sampling_options.h"
+#include "ani_drawing_transfer_util.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
@@ -46,7 +47,8 @@ ani_status AniSamplingOptions::AniInit(ani_env *env)
     std::array staticMethods = {
         ani_native_function { "samplingOptionsTransferStaticNative", nullptr,
             reinterpret_cast<void*>(SamplingOptionsTransferStatic) },
-        ani_native_function { "getSamplingOptionsAddr", nullptr, reinterpret_cast<void*>(GetSamplingOptionsAddr) },
+        ani_native_function { "samplingOptionsTransferDynamicNative", nullptr,
+            reinterpret_cast<void*>(SamplingOptionsTransferDynamic) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
@@ -92,47 +94,42 @@ void AniSamplingOptions::ConstructorWithFilterMode(ani_env* env, ani_object obj,
 ani_object AniSamplingOptions::SamplingOptionsTransferStatic(
     ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsSamplingOptions = reinterpret_cast<JsSamplingOptions*>(unwrapResult);
-    if (jsSamplingOptions->GetSamplingOptions() == nullptr) {
-        ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic jsSamplingOptions is null");
-        return CreateAniUndefined(env);
-    }
-
-    auto aniSamplingOptions = new AniSamplingOptions(jsSamplingOptions->GetSamplingOptions());
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().samplingOptions,
-        AniGlobalMethod::GetInstance().samplingOptionsCtorWithPtr, reinterpret_cast<ani_long>(aniSamplingOptions));
-    if (IsUndefined(env, aniObj)) {
-        ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic failed create aniSamplingOptions");
-        delete aniSamplingOptions;
-        return CreateAniUndefined(env);
-    }
-    return aniObj;
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsSamplingOptions = reinterpret_cast<JsSamplingOptions*>(unwrapResult);
+        if (jsSamplingOptions == nullptr || jsSamplingOptions->GetSamplingOptions() == nullptr) {
+            ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic jsSamplingOptions is null");
+            return CreateAniUndefined(env);
+        }
+        auto aniSamplingOptions = new AniSamplingOptions(jsSamplingOptions->GetSamplingOptions());
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().samplingOptions,
+            AniGlobalMethod::GetInstance().samplingOptionsCtorWithPtr,
+            reinterpret_cast<ani_long>(aniSamplingOptions));
+        if (IsUndefined(env, aniObj)) {
+            ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic failed create aniSamplingOptions");
+            delete aniSamplingOptions;
+            return CreateAniUndefined(env);
+        }
+        return aniObj;
+    });
 }
 
-ani_long AniSamplingOptions::GetSamplingOptionsAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniSamplingOptions::SamplingOptionsTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniSamplingOptions = GetNativeFromObj<AniSamplingOptions>(env, input,
-        AniGlobalField::GetInstance().samplingOptionsNativeObj);
-    if (aniSamplingOptions == nullptr || aniSamplingOptions->GetSamplingOptions() == nullptr) {
-        ROSEN_LOGE("AniSamplingOptions::GetSamplingOptionsAddr aniSamplingOptions is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().samplingOptions)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniSamplingOptions->GetSamplingOptionsPtrAddr());
-}
-
-std::shared_ptr<SamplingOptions>* AniSamplingOptions::GetSamplingOptionsPtrAddr()
-{
-    return &samplingOptions_;
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniSamplingOptions = GetNativeFromObj<AniSamplingOptions>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().samplingOptionsNativeObj);
+            if (aniSamplingOptions == nullptr || aniSamplingOptions->GetSamplingOptions() == nullptr) {
+                ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferDynamic null aniSamplingOptions");
+                return nullptr;
+            }
+            return JsSamplingOptions::CreateJsSamplingOptionsDynamic(napiEnv,
+                aniSamplingOptions->GetSamplingOptions());
+        });
 }
 
 AniSamplingOptions::~AniSamplingOptions()

@@ -81,7 +81,6 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("isInverseFillType", JsPath::IsInverseFillType),
     DECLARE_NAPI_FUNCTION("toggleInverseFillType", JsPath::ToggleInverseFillType),
     DECLARE_NAPI_FUNCTION("getLastPoint", JsPath::GetLastPoint),
-    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsPath::PathTransferDynamic),
 };
 
 napi_value JsPath::Init(napi_env env, napi_value exportObj)
@@ -1563,47 +1562,29 @@ napi_value JsPath::OnIsEqual(napi_env env, napi_callback_info info)
 
 napi_value JsPath::CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path> path)
 {
-    napi_value result = nullptr;
-    napi_value constructor = nullptr;
-    if (napi_get_reference_value(env, constructor_, &constructor) != napi_ok) {
-        ROSEN_LOGE("Failed to get the representation of constructor object");
+    if (path == nullptr) {
+        ROSEN_LOGE("JsPath::CreateJsPathDynamic path is nullptr");
         return nullptr;
     }
-    if (napi_new_instance(env, constructor, 0, nullptr, &result) != napi_ok || result == nullptr) {
-        ROSEN_LOGE("Failed to instantiate JavaScript brush instance");
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsPath::CreateJsPathDynamic napi_create_object failed");
         return nullptr;
     }
     JsPath* jsPath = new JsPath(path);
-    napi_status status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
+    status = napi_wrap(env, objValue, jsPath, JsPath::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsPath;
-        ROSEN_LOGE("Failed to wrap native instance");
+        ROSEN_LOGE("JsPath::CreateJsPathDynamic failed to wrap native instance");
         return nullptr;
     }
-    return result;
-}
-
-napi_value JsPath::PathTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsPath::CreateJsPathDynamic failed to define properties");
         return nullptr;
     }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Path> path = *reinterpret_cast<std::shared_ptr<Path>*>(addr);
-    if (path == nullptr) {
-        return nullptr;
-    }
-    return CreateJsPathDynamic(env, path);
+    return objValue;
 }
 
 napi_value JsPath::IsInverseFillType(napi_env env, napi_callback_info info)

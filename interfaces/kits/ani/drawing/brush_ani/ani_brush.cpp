@@ -14,6 +14,7 @@
  */
 
 #include "ani_brush.h"
+#include "ani_drawing_transfer_util.h"
 #include "color_filter_ani/ani_color_filter.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
@@ -77,7 +78,7 @@ ani_status AniBrush::AniInit(ani_env *env)
 
     std::array staticMethods = {
         ani_native_function { "brushTransferStaticNative", nullptr, reinterpret_cast<void*>(BrushTransferStatic) },
-        ani_native_function { "getBrushAddr", nullptr, reinterpret_cast<void*>(GetBrushAddr) },
+        ani_native_function { "brushTransferDynamicNative", nullptr, reinterpret_cast<void*>(BrushTransferDynamic) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
@@ -349,11 +350,6 @@ std::shared_ptr<Brush> AniBrush::GetBrush()
     return brush_;
 }
 
-std::shared_ptr<Brush>* AniBrush::GetBrushPtrAddr()
-{
-    return &brush_;
-}
-
 AniBrush::~AniBrush()
 {
     brush_ = nullptr;
@@ -523,40 +519,40 @@ void AniBrush::SetShaderEffect(ani_env* env, ani_object obj, ani_object shaderEf
 ani_object AniBrush::BrushTransferStatic(
     ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniBrush::BrushTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniBrush::BrushTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsBrush = reinterpret_cast<JsBrush*>(unwrapResult);
-    if (jsBrush->GetBrush() == nullptr) {
-        ROSEN_LOGE("AniBrush::BrushTransferStatic jsBrush is null");
-        return CreateAniUndefined(env);
-    }
-    auto aniBrush = new AniBrush(jsBrush->GetBrush());
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().brush,
-        AniGlobalMethod::GetInstance().brushCtorWithPtr, reinterpret_cast<ani_long>(aniBrush));
-    if (IsUndefined(env, aniObj)) {
-        ROSEN_LOGE("AniBrush::BrushTransferStatic failed create aniBrush");
-        delete aniBrush;
-        return CreateAniUndefined(env);
-    }
-    return aniObj;
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsBrush = reinterpret_cast<JsBrush*>(unwrapResult);
+        if (jsBrush == nullptr || jsBrush->GetBrush() == nullptr) {
+            ROSEN_LOGE("AniBrush::BrushTransferStatic jsBrush is null");
+            return CreateAniUndefined(env);
+        }
+        auto aniBrush = new AniBrush(jsBrush->GetBrush());
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().brush,
+            AniGlobalMethod::GetInstance().brushCtorWithPtr, reinterpret_cast<ani_long>(aniBrush));
+        if (IsUndefined(env, aniObj)) {
+            ROSEN_LOGE("AniBrush::BrushTransferStatic failed create aniBrush");
+            delete aniBrush;
+            return CreateAniUndefined(env);
+        }
+        return aniObj;
+    });
 }
 
-ani_long AniBrush::GetBrushAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniBrush::BrushTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniBrush = GetNativeFromObj<AniBrush>(env, input, AniGlobalField::GetInstance().brushNativeObj);
-    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
-        ROSEN_LOGE("AniBrush::GetBrushAddr aniBrush is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().brush)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniBrush->GetBrushPtrAddr());
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniBrush = GetNativeFromObj<AniBrush>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().brushNativeObj);
+            if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+                ROSEN_LOGE("AniBrush::BrushTransferDynamic null aniBrush");
+                return nullptr;
+            }
+            return JsBrush::CreateJsBrushDynamic(napiEnv, aniBrush->GetBrush());
+        });
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen
