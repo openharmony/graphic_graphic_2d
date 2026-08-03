@@ -40,7 +40,6 @@ group("unittest") {
     ":RSUiCaptureTaskParallelTest",
     ":RSUniHwcComputeUtilTest",
     ":RSUniUiCaptureTest",
-    ":RSTunnelLayerHelperTest",
     ":RSTunnelLayerManagerTest",
     ":RSTunnelRouteArbiterTest",
     ":RSTunnelRuntimeStateTest",
