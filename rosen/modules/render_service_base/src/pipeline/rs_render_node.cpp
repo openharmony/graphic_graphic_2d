@@ -20,6 +20,8 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <sstream>
+#include <thread>
 #include <utility>
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -311,7 +313,7 @@ static inline bool IsPurgeAble()
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : isTextureExportNode_(isTextureExportNode), id_(id), context_(context),
-    drawableVec_(std::make_unique<RSDrawable::Vec>())
+    drawableVec_(std::make_unique<RSDrawable::Vec>()), animationManager_(std::make_shared<RSAnimationManager>())
 {
     RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
 }
@@ -319,7 +321,7 @@ RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, b
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : isOnTheTree_(isOnTheTree), isTextureExportNode_(isTextureExportNode), id_(id), context_(context),
-    drawableVec_(std::make_unique<RSDrawable::Vec>())
+    drawableVec_(std::make_unique<RSDrawable::Vec>()), animationManager_(std::make_shared<RSAnimationManager>())
 {
     RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
 }
@@ -1764,6 +1766,13 @@ void RSRenderNode::FallbackAnimationsToRoot()
     if (!animationManager_ || animationManager_->animations_.empty()) {
         return;
     }
+    if (RSAnimationManager::mainThreadId_ != std::thread::id {}) {
+        if (auto currentTid = std::this_thread::get_id(); currentTid != RSAnimationManager::mainThreadId_) {
+            std::ostringstream oss;
+            oss << "mainThreadId=" << RSAnimationManager::mainThreadId_ << ", currentTid=" << currentTid;
+            ROSEN_LOGE("RSRenderNode::FallbackAnimationsToRoot, not on main thread, %{public}s", oss.str().c_str());
+        }
+    }
 
     auto context = GetContext().lock();
     if (!context) {
@@ -1846,10 +1855,6 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
     auto animateResult = animationManager_->Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
-    }
-    if (animationManager_->animations_.empty() && animationManager_->pendingCancelAnimation_.empty()) {
-        animationManager_.reset();
-        ROSEN_LOGD("%{public}s: animationManager reset", __func__);
     }
     return animateResult;
 }
@@ -4492,9 +4497,12 @@ void RSRenderNode::DestroyAnimationInRender()
     }
 }
 
-void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+bool RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    GetOrCreateAnimationManager()->AddAnimation(animation);
+    if (auto mgr = GetOrCreateAnimationManager()) {
+        return mgr->AddAnimation(animation);
+    }
+    return false;
 }
 
 RectI RSRenderNode::GetOldDirty() const
