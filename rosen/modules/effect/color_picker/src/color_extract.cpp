@@ -19,6 +19,7 @@
 #include <memory>
 #include "hilog/log.h"
 #include "effect_utils.h"
+#include "common/rs_common_def.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -336,7 +337,7 @@ float ColorExtract::NormalizeRgb(uint32_t val, const uint32_t& colorMax)
         return 0.0f;
     }
     float res = static_cast<float>(val) / colorMax;
-    if (res <= 0.03928) { // 0.03928 is used to normalize rgb;
+    if (ROSEN_LE(res, 0.03928f)) { // 0.03928 is used to normalize rgb;
         res /= 12.92; // 12.92 is used to normalize rgb;
     } else {
         res = pow((res + 0.055) / 1.055, 2.4); // 0.055, 1.055, 2.4 is used to normalize rgb;
