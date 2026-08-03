@@ -6119,6 +6119,10 @@ void RSProperties::UpdateFilter()
 
 bool RSProperties::DisableHWCForFilter() const
 {
+    // needFilter_ is a superset of the conditions below; if it is false, hwc does not need to be disabled.
+    if (!needFilter_) {
+        return false;
+    }
     // The difference compared to needFilter_ is no need to disable hwc when foregroundFilter is HDR_UI_BRIGHTNESS
     return GetBackgroundFilter() != nullptr || GetFilter() != nullptr || GetUseEffect() || IsLightUpEffectValid() ||
         IsDynamicLightUpValid() || GetGreyCoef().has_value() || GetLinearGradientBlurPara() != nullptr ||
