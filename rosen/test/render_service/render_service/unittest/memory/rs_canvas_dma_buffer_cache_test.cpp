@@ -352,5 +352,47 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, ClearPendingBufferByNodeIdKeepsPidWithOther
     ASSERT_EQ(bufferCache.pendingBufferMap_.count(pid), 1);
     ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId2), 1);
 }
+
+/**
+ * @tc.name: AcquirePendingBufferPidExistNodeNotExistTest
+ * @tc.desc: Test AcquirePendingBuffer when pid exists but nodeId does not (creates placeholder node)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDmaBufferCacheTest, AcquirePendingBufferPidExistNodeNotExistTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.pendingBufferMap_.clear();
+    constexpr pid_t pid = 401;
+    NodeId nodeId1 = static_cast<NodeId>(pid) << 32 | 1;
+    NodeId nodeId2 = static_cast<NodeId>(pid) << 32 | 2;
+    // Add buffer for nodeId1 so pid exists in map
+    sptr<SurfaceBuffer> buffer1 = SurfaceBuffer::Create();
+    bufferCache.AddPendingBuffer(nodeId1, buffer1, 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_.count(pid), 1);
+    // nodeId2 does not exist under this pid, Acquire should create placeholder and return nullptr
+    auto buffer2 = bufferCache.AcquirePendingBuffer(nodeId2, 1);
+    ASSERT_EQ(buffer2, nullptr);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId2), 1);
+}
+
+/**
+ * @tc.name: ClearPendingBufferByNodeIdNodeNotExistTest
+ * @tc.desc: Test ClearPendingBufferByNodeId when nodeId does not exist under existing pid (else branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDmaBufferCacheTest, ClearPendingBufferByNodeIdNodeNotExistTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.pendingBufferMap_.clear();
+    constexpr pid_t pid = 404;
+    NodeId nodeId1 = static_cast<NodeId>(pid) << 32 | 1;
+    NodeId nodeId2 = static_cast<NodeId>(pid) << 32 | 2;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    bufferCache.AddPendingBuffer(nodeId1, buffer, 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId1), 1);
+    // nodeId2 does not exist under this pid, ClearPendingBufferByNodeId enters else branch harmlessly
+    bufferCache.ClearPendingBufferByNodeId(nodeId2);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId1), 1);
+}
 } // namespace OHOS::Rosen
 #endif // ROSEN_OHOS && RS_ENABLE_VK
