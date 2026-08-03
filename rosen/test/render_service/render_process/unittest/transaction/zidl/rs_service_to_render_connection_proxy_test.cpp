@@ -3012,65 +3012,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyScreenRefresh_SendRequestFa
     EXPECT_EQ(ret, -1);
 }
 
-// ==================== SetGpuCrcDirtyEnabledPidList Tests ====================
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidList_Normal_Success
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList with normal
- * case
- * @tc.type: FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetGpuCrcDirtyEnabledPidList_Normal_Success, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
-
-    std::vector<int32_t> pidList = { 1001, 1002, 1003 };
-    ErrCode ret = mockProxy->SetGpuCrcDirtyEnabledPidList(pidList);
-    EXPECT_EQ(ret, ERR_OK);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidList_EmptyList
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList with empty list
-
- * * @tc.type: FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetGpuCrcDirtyEnabledPidList_EmptyList, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
-
-    std::vector<int32_t> pidList;
-    ErrCode ret = mockProxy->SetGpuCrcDirtyEnabledPidList(pidList);
-    EXPECT_EQ(ret, ERR_OK);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidList_SendRequestFail
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when
- * SendRequest fails
- * @tc.type: FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetGpuCrcDirtyEnabledPidList_SendRequestFail, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
-
-    std::vector<int32_t> pidList = { 1001, 1002 };
-    ErrCode ret = mockProxy->SetGpuCrcDirtyEnabledPidList(pidList);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-}
-
 // ==================== OnScreenBacklightChanged Tests ====================
 
 /**

@@ -389,7 +389,6 @@ public:
     static bool GetAIBarOptEnabled();
     static bool GetAIBarDirectCompositeFullEnabled();
     static bool GetRSMemoryInfoManagerParam();
-    static bool GetSelfDrawingDirtyRegionEnabled();
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
     static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();

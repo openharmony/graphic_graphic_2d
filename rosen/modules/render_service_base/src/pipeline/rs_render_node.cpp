@@ -33,7 +33,6 @@
 #include "common/rs_common_tools.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
@@ -2029,17 +2028,6 @@ void RSRenderNode::UpdateBufferDirtyRegion()
         // Use the matrix from buffer to relative coordinate and the absolute matrix
         // to calculate the buffer damageRegion's absolute rect
         auto rect = surfaceNode->GetRSSurfaceHandler()->GetDamageRegion();
-        bool isUseSelfDrawingDirtyRegion = buffer->GetSurfaceBufferWidth() == rect.w &&
-            buffer->GetSurfaceBufferHeight() == rect.h && rect.x == 0 && rect.y == 0;
-        if (isUseSelfDrawingDirtyRegion) {
-            Rect selfDrawingDirtyRect;
-            bool isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
-            if (isDirtyRectValid) {
-                rect = { selfDrawingDirtyRect.x, selfDrawingDirtyRect.y,
-                    selfDrawingDirtyRect.w, selfDrawingDirtyRect.h };
-                RS_OPTIONAL_TRACE_NAME_FMT("selfDrawingDirtyRect:[%d, %d, %d, %d]", rect.x, rect.y, rect.w, rect.h);
-            }
-        }
         auto matrix = surfaceNode->GetBufferRelMatrix();
         auto bufferDirtyRect = GetRenderProperties().GetBoundsGeometry()->MapRect(
             RectF(rect.x, rect.y, rect.w, rect.h), matrix).ConvertTo<float>();

@@ -1946,29 +1946,6 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenRefresh(ScreenId id)
     return err;
 }
 
-ErrCode RSServiceToRenderConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        RS_LOGE("SetGpuCrcDirtyEnabledPidList: WriteInterfaceToken failed.");
-        return ERR_INVALID_VALUE;
-    }
-    if (!data.WriteInt32Vector(pidList)) {
-        RS_LOGE("SetGpuCrcDirtyEnabledPidList: WriteInt32Vector err.");
-        return ERR_INVALID_VALUE;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        RS_LOGE("SetGpuCrcDirtyEnabledPidList: SendRequest failed, err is %{public}d.", err);
-        return ERR_INVALID_VALUE;
-    }
-    return ERR_OK;
-}
-
 void RSServiceToRenderConnectionProxy::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
     MessageParcel data;
