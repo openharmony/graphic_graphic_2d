@@ -935,6 +935,10 @@ void RSServiceToRenderConnectionProxy::SetVmaCacheStatus(bool flag)
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
+    if (Remote() == nullptr) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetVmaCacheStatus Remote is nullptr");
+        return;
+    }
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::SetVmaCacheStatus %d: Send Request err.", flag);
@@ -1647,6 +1651,10 @@ int32_t RSServiceToRenderConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCal
     }
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    if (Remote() == nullptr) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCallback Remote is nullptr");
+        return RS_CONNECTION_ERROR;
+    }
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("UnRegisterSelfDrawingNodeRectChangeCallback: Send request err.");
