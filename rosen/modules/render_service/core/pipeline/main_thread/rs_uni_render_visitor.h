@@ -21,6 +21,8 @@
 #include <mutex>
 #include <parameters.h>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "engine/rs_base_render_engine.h"
 #include "system/rs_system_parameters.h"
@@ -536,6 +538,23 @@ void ProcessGpuOfflineForTopLayer(
     std::vector<std::string> dfxTargetSurfaceNames_;
     std::vector<std::string> dfxUIFirstSurfaceNames_;
     std::vector<NodeId> uiBufferAvailableId_;
+
+    // Per-appWindow pending state: tracks AppWindows whose buffer is available but waiting for all siblings
+    // to also become available before notifying, so the app receives the first-frame callback only once
+    // all its AppWindows are ready.
+    struct PendingAvailableUiBufferEntry {
+        NodeId leashId = 0;             // LeashWindow NodeId for sibling grouping
+        uint64_t firstBufferTick = 0;   // tick when this AppWindow entered pending state
+        std::string name;               // AppWindow name cached at enqueue time
+    };
+    // Global tick counter for timeout calculation; increments each frame while map is non-empty
+    static inline uint64_t uiBufferNotifyDelayTick_ = 0;
+    // Key: AppWindow NodeId, Value: pending entry with leashId for sibling grouping
+    static inline std::unordered_map<NodeId, PendingAvailableUiBufferEntry> pendingAvailableUiBufferMap_;
+    void FlushPendingAvailableUiBuffer(NodeId leashId);
+    void CheckPendingUIBufferTimeout();
+    void DelayNotifyUIBufferAvailableIfNeed(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
+    bool AllSiblingsUIBufferAvailable(NodeId leashId) const;
 
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
     int32_t offsetX_ { 0 };
