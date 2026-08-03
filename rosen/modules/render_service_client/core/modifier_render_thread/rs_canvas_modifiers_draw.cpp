@@ -741,7 +741,7 @@ void RSCanvasModifiersDraw::DoCleanFreeBuffers(int64_t maxDuration)
     for (auto* drawable : freeDrawableList) {
         drawable->CleanBuffer();
     }
-    if (gpuContext_ != nullptr && lastUpdateCanvasContentTime_ - now > CLEAN_FREE_BUFFERS_DURATION) {
+    if (gpuContext_ != nullptr && now - lastUpdateCanvasContentTime_ > CLEAN_FREE_BUFFERS_DURATION) {
         gpuContext_->SetResourceCacheLimits(0, 0);
         needRestoreGpuCacheLimit_ = true;
     }
