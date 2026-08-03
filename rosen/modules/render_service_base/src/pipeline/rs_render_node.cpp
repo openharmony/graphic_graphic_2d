@@ -181,22 +181,22 @@ static inline std::function<void(DrawCmdIndex&, int)>& GetRsDrawableSlotToIndexV
 #endif
 
 // RAII guard that marks a node as "on the traversal path"
-class RSPrepareCycleGuard {
+class RSRenderNodeCycleGuard {
 public:
-    explicit RSPrepareCycleGuard(bool& flag)
+    explicit RSRenderNodeCycleGuard(bool& flag)
         : inTraversalPath_(flag), isTraversed_(inTraversalPath_)
     {
         inTraversalPath_ = true;
     }
-    ~RSPrepareCycleGuard()
+    ~RSRenderNodeCycleGuard()
     {
         if (!isTraversed_) {
             inTraversalPath_ = false;
         }
     }
     bool HasCycle() const { return isTraversed_; }
-    RSPrepareCycleGuard(const RSPrepareCycleGuard&) = delete;
-    RSPrepareCycleGuard& operator=(const RSPrepareCycleGuard&) = delete;
+    RSRenderNodeCycleGuard(const RSRenderNodeCycleGuard&) = delete;
+    RSRenderNodeCycleGuard& operator=(const RSRenderNodeCycleGuard&) = delete;
 
 private:
     bool& inTraversalPath_;
@@ -1693,7 +1693,7 @@ void RSRenderNode::PrepareChildrenForApplyModifiers()
 void RSRenderNode::PrepareSelfNodeForApplyModifiers()
 {
 #ifdef RS_ENABLE_GPU
-    RSPrepareCycleGuard guard(inTraversalPath_);
+    RSRenderNodeCycleGuard guard(inTraversalPath_);
     if (guard.HasCycle()) {
         ROSEN_LOGE("RSRenderNode::PrepareSelfNodeForApplyModifiers cycle detected, skip node[id:%{public}"
             PRIu64 "], and return", GetId());
