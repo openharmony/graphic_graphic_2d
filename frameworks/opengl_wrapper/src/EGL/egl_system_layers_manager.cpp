@@ -128,7 +128,7 @@ bool EglSystemLayersManager::GetJsonConfig(Json::Value &configData)
         return GetDefaultJsonConfig(configData);
     }
 
-    std::ifstream configFile(std::string(realPath), std::ifstream::in);
+    std::ifstream configFile(realPath, std::ifstream::in);
     if (!configFile.good()) {
         WLOGE("Failed to open system json config file");
         return GetDefaultJsonConfig(configData);

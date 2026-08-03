@@ -81,7 +81,7 @@ static constexpr const char *WIDE_COLOR_AND_HDR_EXTENSIONS =
 #define EGL_GL_COLORSPACE_BT2020_HLG_EXT  0x3540
 #endif /* EGL_EXT_gl_colorspace_bt2020_hlg */
 
-const std::unordered_map<EGLint, OH_NativeBuffer_ColorSpace> WIDE_COLORSPACE_EGL_TO_NATIVE = {
+const std::unordered_map<EGLint, OH_NativeBuffer_ColorSpace>  WIDE_COLORSPACE_EGL_TO_NATIVE = {
     {EGL_GL_COLORSPACE_DISPLAY_P3_LINEAR_EXT, OH_COLORSPACE_LINEAR_P3},
     {EGL_GL_COLORSPACE_DISPLAY_P3_EXT, OH_COLORSPACE_P3_FULL},
     {EGL_GL_COLORSPACE_DISPLAY_P3_PASSTHROUGH_EXT, OH_COLORSPACE_DISPLAY_P3_SRGB},
@@ -599,10 +599,10 @@ EGLSurface EglWrapperDisplay::CreateEglSurface(EGLConfig config,
         WLOGD("CreateEglSurface hasColorSpaceSupport_: %{public}d,"
             "hasWideColorAndHdrSupport_ %{public}d , requestWideColor %{public}d",
             hasColorSpaceSupport_, hasWideColorAndHdrSupport_, requestWideColor);
-        // 3 terms progressively has color-->has wide color-->request wide color
+        // 3 terms progressively: has color-->has wide color-->request wide color
         if (hasColorSpaceSupport_ && hasWideColorAndHdrSupport_ && requestWideColor) {
             OH_NativeWindow_SetColorSpace(nativeWindow, nativeColorSpace);
-            // important: do not add wide color attribs into eglCreateWindowSurface, not suported
+            // important: do not add wide color attribs into eglCreateWindowSurface, not supported
             std::vector<EGLint> attribVec = ExtractNonColorspaceInfoFromAttribs(attribList);
             surf = table->egl.eglCreateWindowSurface(disp_, config, window, attribVec.data());
         } else {

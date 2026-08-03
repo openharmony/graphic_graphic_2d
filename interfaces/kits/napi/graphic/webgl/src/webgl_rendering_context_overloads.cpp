@@ -181,7 +181,7 @@ napi_value WebGLRenderingContextOverloads::CompressedTexImage2D(napi_env env, na
             return NVal::CreateNull(env).val_;
         }
         int64_t offset = 0;
-        tie(succ, offset) = NVal(env, funcArg[NARG_POS::NINTH]).ToInt64();
+        tie(succ, offset) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToInt64();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
