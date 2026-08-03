@@ -294,6 +294,9 @@ std::string DrawNodeTypeToString(DrawNodeType nodeType)
         "DrawPropertyType",
         "GeometryPropertyType"
     };
+    if (nodeType >= end(typeMap) - begin(typeMap)) {
+        return "undefinedType";
+    }
     return typeMap[nodeType];
 }
 

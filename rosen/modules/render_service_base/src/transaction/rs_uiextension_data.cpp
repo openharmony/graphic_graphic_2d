@@ -14,10 +14,14 @@
  */
 
 #include "transaction/rs_uiextension_data.h"
+#include <memory>
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint32_t MAX_MAP_SIZE = 1024;
+constexpr uint32_t MAX_NODE_COUNT = 10240;
+
 bool RSUIExtensionData::MarshallingRectInfo(const SecRectInfo& rectInfo, Parcel& parcel)
 {
     // Write coordinates(4 int), scale(2 float), anchor position(2float).
@@ -33,7 +37,7 @@ bool RSUIExtensionData::MarshallingRectInfo(const SecRectInfo& rectInfo, Parcel&
     return marshallingSuccess;
 }
 
-void RSUIExtensionData::UnmarshallingRectInfo(SecRectInfo& rectInfo, Parcel& parcel)
+bool RSUIExtensionData::UnmarshallingRectInfo(SecRectInfo& rectInfo, Parcel& parcel)
 {
     // Read coordinates(4 int), scale(2 float), anchor position(2float).
     int32_t left{0};
@@ -42,17 +46,18 @@ void RSUIExtensionData::UnmarshallingRectInfo(SecRectInfo& rectInfo, Parcel& par
     int32_t height{0};
     if (!parcel.ReadInt32(left) || !parcel.ReadInt32(top) || !parcel.ReadInt32(width) || !parcel.ReadInt32(height)) {
         RS_LOGE("RSUIExtensionData::UnmarshallingRectInfo Read relativeCoords failed");
-        return;
+        return false;
     }
     rectInfo.relativeCoords.SetAll(left, top, width, height);
     if (!parcel.ReadFloat(rectInfo.scale[0]) || !parcel.ReadFloat(rectInfo.scale[1])) {
         RS_LOGE("RSUIExtensionData::UnmarshallingRectInfo Read scale failed");
-        return;
+        return false;
     }
     if (!parcel.ReadFloat(rectInfo.anchor[0]) || !parcel.ReadFloat(rectInfo.anchor[1])) {
         RS_LOGE("RSUIExtensionData::UnmarshallingRectInfo Read anchor failed");
-        return;
+        return false;
     }
+    return true;
 }
 
 
@@ -84,43 +89,37 @@ bool RSUIExtensionData::Marshalling(Parcel& parcel) const
 
 RSUIExtensionData* RSUIExtensionData::Unmarshalling(Parcel& parcel)
 {
-    auto uiExtensionData = new (std::nothrow) RSUIExtensionData();
-    if (!uiExtensionData) {
-        return nullptr;
-    }
+    auto uiExtensionData = std::make_unique<RSUIExtensionData>();
     uint32_t mapSize{0};
     if (!parcel.ReadUint32(mapSize)) {
         ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read mapSize failed");
-        delete uiExtensionData;
         return nullptr;
     }
-    if (mapSize > uiExtensionData->secData_.max_size()) {
+    if (mapSize > MAX_MAP_SIZE) {
         RS_LOGE("RSUIExtensionData Unmarshalling failed, map size overflow.");
-        delete uiExtensionData;
         return nullptr;
     }
     for (uint32_t hostIndex = 0; hostIndex < mapSize; ++hostIndex) {
         uint64_t hostNodeId{0};
         if (!parcel.ReadUint64(hostNodeId)) {
             ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read hostNodeId failed");
-            delete uiExtensionData;
             return nullptr;
         }
         uiExtensionData->secData_.insert(std::make_pair(hostNodeId, std::vector<SecSurfaceInfo>()));
         uint32_t uiExtensionNodesCount{0};
         if (!parcel.ReadUint32(uiExtensionNodesCount)) {
             ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read uiExtensionNodesCount failed");
-            delete uiExtensionData;
             return nullptr;
         }
-        if (uiExtensionNodesCount > uiExtensionData->secData_[hostNodeId].max_size()) {
+        if (uiExtensionNodesCount > MAX_NODE_COUNT) {
             RS_LOGE("RSUIExtensionData Unmarshalling failed, vector size overflow.");
-            delete uiExtensionData;
             return nullptr;
         }
         for (uint32_t uiExtensionIndex = 0; uiExtensionIndex < uiExtensionNodesCount; ++uiExtensionIndex) {
             SecSurfaceInfo secSurfaceInfo;
-            UnmarshallingRectInfo(secSurfaceInfo.uiExtensionRectInfo, parcel);
+            if (!UnmarshallingRectInfo(secSurfaceInfo.uiExtensionRectInfo, parcel)) {
+                return nullptr;
+            }
             int32_t tempHostPid{0};
             int32_t tempUiExtensionPid{0};
             uint64_t tempHostNodeId{0};
@@ -128,7 +127,6 @@ RSUIExtensionData* RSUIExtensionData::Unmarshalling(Parcel& parcel)
             if (!parcel.ReadInt32(tempHostPid) || !parcel.ReadInt32(tempUiExtensionPid) ||
                 !parcel.ReadUint64(tempHostNodeId) || !parcel.ReadUint64(tempUiExtensionNodeId)) {
                 ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read secSurfaceInfo failed");
-                delete uiExtensionData;
                 return nullptr;
             }
             secSurfaceInfo.hostPid = static_cast<pid_t>(tempHostPid);
@@ -139,23 +137,23 @@ RSUIExtensionData* RSUIExtensionData::Unmarshalling(Parcel& parcel)
             uint32_t upperNodesCount{0};
             if (!parcel.ReadUint32(upperNodesCount)) {
                 ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read upperNodesCount failed");
-                delete uiExtensionData;
                 return nullptr;
             }
-            if (upperNodesCount > secSurfaceInfo.upperNodes.max_size()) {
+            if (upperNodesCount > MAX_NODE_COUNT) {
                 RS_LOGE("RSUIExtensionData Unmarshalling failed, upperNodes size overflow.");
-                delete uiExtensionData;
                 return nullptr;
             }
             for (uint32_t upperNodesIndex = 0; upperNodesIndex < upperNodesCount; ++upperNodesIndex) {
                 SecRectInfo upperNodeInfo;
-                UnmarshallingRectInfo(upperNodeInfo, parcel);
+                if (!UnmarshallingRectInfo(upperNodeInfo, parcel)) {
+                    return nullptr;
+                }
                 secSurfaceInfo.upperNodes.emplace_back(upperNodeInfo);
             }
             uiExtensionData->secData_[hostNodeId].emplace_back(secSurfaceInfo);
         }
     }
-    return uiExtensionData;
+    return uiExtensionData.release();
 }
 } // namespace Rosen
 } // namespace OHOS
