@@ -273,12 +273,12 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionTest002, Function | S
 }
 
 /**
- * @tc.name: HandleAdaptiveVsyncConditionForLTPS001
- * @tc.desc: Test HandleAdaptiveVsyncCondition with SUPPORT_AS_LTPS adaptive status
+ * @tc.name: HandleAdaptiveVsyncConditionForLTPS
+ * @tc.desc: test HandleAdaptiveVsyncCondition with SUPPORT_AS_LTPS adaptive status
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForLTPS001, Function | SmallTest | Level1)
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForLTPS, Function | SmallTest | Level1)
 {
     sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
     HgmRenderContext hgmRenderContext(renderToServiceConnection);
@@ -294,7 +294,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForLTPS001, Function 
 
 /**
  * @tc.name: HandleAdaptiveVsyncConditionForLTPS002
- * @tc.desc: Test HandleAdaptiveVsyncCondition with SUPPORT_AS_LTPS and game node on tree
+ * @tc.desc: test HandleAdaptiveVsyncCondition with SUPPORT_AS_LTPS and game node on tree
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -339,18 +339,18 @@ HWTEST_F(HgmRenderContextTest, SetServiceToProcessInfoTest, TestSize.Level1)
     serviceToProcessInfo->ltpoEnabled = true;
     serviceToProcessInfo->isDelayMode = true;
     serviceToProcessInfo->pipelineOffsetPulseNum = 1;
-    serviceToProcessInfo->isAdaptive = true;
+    serviceToProcessInfo->isAdaptive = SupportASStatus::SUPPORT_AS;
     serviceToProcessInfo->gameNodeName = "gameNodeName";
     serviceToProcessInfo->isPowerIdle = true;
     hgmRenderContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
     EXPECT_EQ(refreshRate, 60);
-    EXPECT_EQ(hgmRenderContext.isAdaptive_, false);
+    EXPECT_EQ(hgmRenderContext.isAdaptive_.load(), SupportASStatus::NOT_SUPPORT);
     EXPECT_EQ(hgmRenderContext.ltpoEnabled_, false);
     EXPECT_EQ(hgmRenderContext.hgmRPEnergy_->isTouchIdle_, true);
 
     serviceToProcessInfo->hgmDataChangeTypes.set(HgmDataChangeType::ADAPTIVE_VSYNC);
     hgmRenderContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
-    EXPECT_EQ(hgmRenderContext.isAdaptive_, true);
+    EXPECT_EQ(hgmRenderContext.isAdaptive_.load(), SupportASStatus::SUPPORT_AS);
 
     serviceToProcessInfo->hgmDataChangeTypes.set(HgmDataChangeType::HGM_CONFIG_DATA);
     hgmRenderContext.SetServiceToProcessInfo(serviceToProcessInfo, refreshRate, relativeTime);
@@ -402,10 +402,10 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
                                     "<root>\n"
                                     "    <param name=\"ability_enable\" value=\"1\"/>\n"
                                     "</root>\n";
-    std::string testXmlPath1 = "/data/local/tmp/hgm_test_enabled.xml";
+    std::string testXmlPath1 = "/data/test/hgm_test_enabled.xml";
     ASSERT_TRUE(CreateTestXml(testXmlPath1, xmlContentEnabled)) << "Failed to create test XML file: "
         << testXmlPath1;
- 
+
     g_customTestXmlPath = testXmlPath1;
     HgmRenderContext hgmRenderContext1(renderToServiceConnection);
     EXPECT_EQ(hgmRenderContext1.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
@@ -413,16 +413,16 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
         "hgmAbilityEnabled_ should be true when ability_enable value='1'";
     g_customTestXmlPath.clear();
     std::remove(testXmlPath1.c_str());
- 
+
     // Test Case 2: ability_enable value="0" -> hgmAbilityEnabled_ should be false
     const char* xmlContentDisabled = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                                      "<root>\n"
                                      "    <param name=\"ability_enable\" value=\"0\"/>\n"
                                      "</root>\n";
-    std::string testXmlPath2 = "/data/local/tmp/hgm_test_disabled.xml";
+    std::string testXmlPath2 = "/data/test/hgm_test_disabled.xml";
     ASSERT_TRUE(CreateTestXml(testXmlPath2, xmlContentDisabled)) << "Failed to create test XML file: "
         << testXmlPath2;
- 
+
     g_customTestXmlPath = testXmlPath2;
     HgmRenderContext hgmRenderContext2(renderToServiceConnection);
     EXPECT_EQ(hgmRenderContext2.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
@@ -430,14 +430,14 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
         "hgmAbilityEnabled_ should be false when ability_enable value='0'";
     g_customTestXmlPath.clear();
     std::remove(testXmlPath2.c_str());
- 
+
     // Test Case 3: No ability_enable node -> hgmAbilityEnabled_ should be true (default)
     const char* xmlContentNoNode = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                                    "<root>\n"
                                    "</root>\n";
-    std::string testXmlPath3 = "/data/local/tmp/hgm_test_default.xml";
+    std::string testXmlPath3 = "/data/test/hgm_test_default.xml";
     ASSERT_TRUE(CreateTestXml(testXmlPath3, xmlContentNoNode)) << "Failed to create test XML file: " << testXmlPath3;
- 
+
     g_customTestXmlPath = testXmlPath3;
     HgmRenderContext hgmRenderContext3(renderToServiceConnection);
     EXPECT_EQ(hgmRenderContext3.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);

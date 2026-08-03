@@ -281,7 +281,7 @@ HWTEST_F(RSFrameRateVoteTest, SurfaceVideoVote003, Function | SmallTest | Level0
 
 /**
  * @tc.name: SurfaceVideoVote004
- * @tc.desc: test SurfaceVideoVote when ffrtQueue_ is nullptr but taskHandler is not nullptr
+ * @tc.desc: test SurfaceVideoVote when ffrtQueue_ is nullptr but taskHandler_ is not nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -811,7 +811,7 @@ HWTEST_F(RSFrameRateVoteTest, CheckAvailableBufferCount004, Function | SmallTest
 
 /**
  * @tc.name: CheckAvailableBufferCount005
- * @tc.desc: test CheckAvailableBufferCount when bufferCount > 1 then 0 then >1
+ * @tc.desc: test CheckAvailableBufferCount when bufferCount > 1 then 0 then > 1
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1113,9 +1113,6 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote007, Function | SmallTest | Leve
     RSFrameRateVote::isVideoApp_.store(true);
     instance->isVoted_ = true;
     instance->videoRateInfo_.clear();
-    instance->surfaceVideoRate_.clear();
-    instance->bufferCountIndex_ = 0;
-    instance->bufferCountHistory_.fill(0);
 
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
 
