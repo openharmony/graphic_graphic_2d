@@ -42,6 +42,7 @@
 #include "xcollie/watchdog.h"
 
 #include "animation/rs_animation_fraction.h"
+#include "animation/rs_animation_manager.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_message_processor.h"
@@ -798,6 +799,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         });
     });
     RSAnimationFraction::Init();
+    RSAnimationManager::Init();
     RS_LOGI("RSOverdrawController init");
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 

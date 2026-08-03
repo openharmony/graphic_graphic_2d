@@ -391,7 +391,7 @@ HWTEST_F(
     std::vector<AnimationId> animationIds = { animationIdToCancel };
 
     auto renderNode = std::make_shared<RSBaseRenderNode>(nodeId);
-    ASSERT_EQ(renderNode->GetAnimationManager(), nullptr);
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
 
     std::pair<std::pair<NodeId, PropertyId>,
         std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>
@@ -426,7 +426,7 @@ HWTEST_F(
     std::vector<AnimationId> animationIds = { animationIdToCancel };
 
     auto renderNode = std::make_shared<RSBaseRenderNode>(nodeId);
-    ASSERT_EQ(renderNode->GetAnimationManager(), nullptr);
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
 
     std::pair<std::pair<NodeId, PropertyId>,
         std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>
