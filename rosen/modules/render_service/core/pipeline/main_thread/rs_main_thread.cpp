@@ -293,6 +293,12 @@ const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 3, 10023 },
 };
 
+const ProtectiveSolidConfig PROTECTIVE_SOLID_CONFIGS[] = {
+    {{0, 0, 2232, 2128}, {0, 2128, 2232, 200}},   // LM
+    {{0, 1136, 2232, 2048}, {0, 936, 2232, 200}},  // RM
+    {{0, 0, 2232, 1136}, {0, 1136, 2232, 200}},   // N
+};
+
 static int64_t SystemTime()
 {
     timespec t = {};
@@ -958,6 +964,96 @@ void RSMainThread::OnScreenDisconnected(ScreenId screenId)
     DestroyScreenNode(screenId);
 }
 
+std::shared_ptr<RSProtectiveSolidRenderNode> RSMainThread::CreateProtectiveSolidRenderNode(ScreenId screenId)
+{
+    auto& nodeMap = context_->GetMutableNodeMap();
+    auto it = protectiveSolidNodeIdMap_.find(screenId);
+    if (it != protectiveSolidNodeIdMap_.end()) {
+        auto existingNode = nodeMap.GetRenderNode<RSProtectiveSolidRenderNode>(it->second);
+        if (existingNode) {
+            RS_TRACE_NAME_FMT("The ProtectiveSolidRenderNode has created, ScreenId[%" PRIu64 "], NodeId:%llu", screenId,
+                existingNode->GetId());
+            RS_LOGI("%{public}s, the ProtectiveSolidRenderNode has created, ScreenId[%{public}" PRIu64 "], "
+                "NodeId[%{public}" PRIu64 "]", __func__, screenId, existingNode->GetId());
+            return existingNode;
+        }
+    }
+    auto node =
+        std::make_shared<RSProtectiveSolidRenderNode>(GenerateUniqueNodeIdForRS(), context_->weak_from_this());
+    RS_TRACE_NAME_FMT("CreateProtectiveSolidRenderNode ScreenId[%" PRIu64"], NodeId:%llu", screenId, node->GetId());
+    RS_LOGI("%{public}s, ScreenId[%{public}" PRIu64 "], NodeId[%{public}" PRIu64 "]",
+        __func__, screenId, node->GetId());
+    nodeMap.RegisterRenderNode(node);
+    nodeMap.TraverseScreenNodes([screenId, node](const std::shared_ptr<RSScreenRenderNode>& screenNode) {
+        if (screenNode && screenNode->GetScreenId() == screenId) {
+            screenNode->AddChild(node, 0);
+        }
+    });
+    protectiveSolidNodeIdMap_[screenId] = node->GetId();
+    return node;
+}
+
+void RSMainThread::DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId)
+{
+    RS_TRACE_NAME_FMT("DestroyProtectiveSolidRenderNode ScreenId[%" PRIu64 "], NodeId:%llu", screenId, nodeId);
+    RS_LOGI("%{public}s, ScreenId[%{public}" PRIu64 "], NodeId[%{public}" PRIu64 "]", __func__, screenId, nodeId);
+    if (nodeId == INVALID_NODEID) {
+        return;
+    }
+    std::shared_ptr<RSProtectiveSolidRenderNode> protectiveSolidNode = nullptr;
+    std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+    auto& nodeMap = context_->GetMutableNodeMap();
+    nodeMap.TraverseProtectiveSolidNodes(
+        [nodeId, &protectiveSolidNode](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+            if (surfaceNode && surfaceNode->GetId() == nodeId) {
+                protectiveSolidNode = surfaceNode->ReinterpretCastTo<RSProtectiveSolidRenderNode>();
+            }
+        });
+    if (protectiveSolidNode == nullptr) {
+        return;
+    }
+    nodeMap.TraverseScreenNodes([screenId, &screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (node && node->GetScreenId() == screenId) {
+            screenNode = node;
+        }
+    });
+    if (screenNode == nullptr) {
+        return;
+    }
+    screenNode->RemoveChild(protectiveSolidNode);
+    nodeMap.UnregisterRenderNode(protectiveSolidNode->GetId());
+}
+
+void RSMainThread::HandleActiveRectOption(ScreenId id, const sptr<ScreenPropertyBase>& property)
+{
+    auto activeRectProperty = static_cast<ScreenProperty<activeRectValType>*>(property.GetRefPtr());
+    if (!activeRectProperty) {
+        return;
+    }
+    if (!RSSystemProperties::IsSpecialFoldDisplay() || id != 0) {
+        return;
+    }
+    auto activeRect = std::get<0>(activeRectProperty->Get());
+    auto cfg = std::find_if(std::begin(PROTECTIVE_SOLID_CONFIGS), std::end(PROTECTIVE_SOLID_CONFIGS),
+        [&activeRect](const auto& entry) { return entry.rect == activeRect; });
+    if (cfg != std::end(PROTECTIVE_SOLID_CONFIGS)) {
+        auto node = CreateProtectiveSolidRenderNode(id);
+        node->GetMutableRenderProperties().SetBounds(cfg->bounds);
+        auto bounds = node->GetRenderProperties().GetBounds();
+        RS_TRACE_NAME_FMT("HandleActiveRectOption bounds[%f, %f, %f, %f] nodeId[%llu]",
+            bounds.x_, bounds.y_, bounds.z_, bounds.w_, node->GetId());
+        RS_LOGI("HandleActiveRectOption bounds[%{public}f, %{public}f, %{public}f, %{public}f]"
+            " nodeId[%{public}" PRIu64 "]",
+            bounds.x_, bounds.y_, bounds.z_, bounds.w_, node->GetId());
+    } else {
+        auto it = protectiveSolidNodeIdMap_.find(id);
+        if (it != protectiveSolidNodeIdMap_.end()) {
+            DestroyProtectiveSolidRenderNode(id, it->second);
+            protectiveSolidNodeIdMap_.erase(it);
+        }
+    }
+}
+
 void RSMainThread::OnScreenPropertyChanged(
     ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
 {
@@ -969,6 +1065,9 @@ void RSMainThread::OnScreenPropertyChanged(
     HandlePowerStatusChanged(id, type, property);
     HandlePhysicalModeParamsChanged(id, type, property);
     UpdateScreenProperty(id, type, property);
+    if (type == ScreenPropertyType::ACTIVE_RECT_OPTION) {
+        HandleActiveRectOption(id, property);
+    }
 }
 
 void RSMainThread::ReleaseImageMem()
