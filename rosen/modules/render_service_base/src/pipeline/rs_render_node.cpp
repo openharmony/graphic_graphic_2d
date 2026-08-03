@@ -5657,6 +5657,14 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(const std::unordered_set<
         SetRenderGroupSubTreeDirty(false); // reset subtree dirty
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter::renderGroup subtree dirty, id:%" PRIu64, GetId());
     }
+    // a descendant's excluded-from-group membership changed this frame and propagated the signal up
+    // to this cache root: the cached surface content changed, so force a cache update. the cache root's
+    // own IsCurrentSubTreeForcePrepare already consumed its own-change before the descendant set this.
+    if (IsRenderGroupExcludedStateChanged()) {
+        SetDrawingCacheChanged(true);
+        SetRenderGroupExcludedStateChanged(false);
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter::child excluded state changed, id:%" PRIu64, GetId());
+    }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);

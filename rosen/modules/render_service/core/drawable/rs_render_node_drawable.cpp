@@ -361,16 +361,7 @@ bool RSRenderNodeDrawable::UpdateCurRenderGroupCacheRootFilterState(const RSRend
     if (!renderGroupCacheDrawable_) {
         renderGroupCacheDrawable_ = std::make_unique<RSRenderGroupCacheDrawable>();
     }
-    renderGroupCacheDrawable_->SetLastFrameCacheRootHasExcludedChild(params.HasChildExcludedFromNodeGroup());
     return params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
-}
-
-bool RSRenderNodeDrawable::IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const
-{
-    if (!renderGroupCacheDrawable_) {
-        return false;
-    }
-    return renderGroupCacheDrawable_->IsLastFrameCacheRootHasExcludedChild() != params.HasChildExcludedFromNodeGroup();
 }
 
 void RSRenderNodeDrawable::SetShouldClipHole(bool value)
@@ -1159,9 +1150,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
     }
     if (NeedInitCachedSurface(params.GetCacheSize())) {
         ClearCachedSurface();
-        return true;
-    }
-    if (IsCurRenderGroupCacheRootExcludedStateChanged(params)) {
         return true;
     }
     if (updateTimes == 0 || params.GetDrawingCacheChanged()) {
