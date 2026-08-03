@@ -799,7 +799,7 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
     imgArg.Dump("WebGL compressedTexSubImage2D");
     WebGLReadBufferArg bufferData(env);
     GLvoid* data = nullptr;
-    GLsizei length = 0;
+    size_t length = 0;
     if (!NVal(env, srcData).IsNull()) {
         bool succ = bufferData.GenBufferData(srcData, BUFFER_DATA_FLOAT_32) == napi_ok;
         if (!succ) {
@@ -817,14 +817,14 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
         size_t dataLength = (srcLengthOverride == 0) ? maxLength
             : std::min(static_cast<size_t>(srcLengthOverride), maxLength);
         data = reinterpret_cast<void*>(bufferData.GetBuffer() + offsetBytes);
-        length = static_cast<GLsizei>(dataLength);
+        length = dataLength;
     }
     bool succ = CheckCompressedTexSubImage2D(env, imgArg, length);
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
     glCompressedTexSubImage2D(imgArg.target, imgArg.level, imgArg.xOffset, imgArg.yOffset, imgArg.width, imgArg.height,
-        imgArg.format, length, data);
+        imgArg.format, static_cast<GLsizei>(length), data);
     LOGD("WebGL compressedTexSubImage2D result: %{public}u", GetError_());
     return NVal::CreateNull(env).val_;
 }
