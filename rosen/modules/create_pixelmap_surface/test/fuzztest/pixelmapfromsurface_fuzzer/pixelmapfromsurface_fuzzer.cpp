@@ -15,189 +15,219 @@
 
 #include "pixelmapfromsurface_fuzzer.h"
 
+#include <array>
+#include <limits>
+#include <memory>
+#include <mutex>
 #include <securec.h>
 
-#include "pixel_map_from_surface.h"
-#include "iconsumer_surface.h"
-#include "surface_utils.h"
-#include "transaction/rs_interfaces.h"
-#include "common/rs_background_thread.h"
 #include "core/pipeline/render_thread/rs_render_engine.h"
+#include "iconsumer_surface.h"
+#include "pixel_map_from_surface.h"
+
+#include "common/rs_background_thread.h"
 
 namespace OHOS {
-    using namespace Rosen;
-    class BufferConsumerTestListener : public ::OHOS::IBufferConsumerListener {
-    public:
-        void OnBufferAvailable() override
-        {
-        }
-    };
-    namespace {
-        const uint8_t* data_ = nullptr;
-        size_t size_ = 0;
-        size_t pos;
-    }
+namespace {
+using namespace Rosen;
 
-    /*
-    * describe: get data from outside untrusted data(data_) which size is according to sizeof(T)
-    * tips: only support basic type
-    */
+constexpr int32_t MAX_BUFFER_SIZE = 64;
+constexpr int32_t STRIDE_ALIGNMENT = 8;
+constexpr uint64_t BUFFER_USAGE = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
+
+class BufferConsumerTestListener : public IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override {}
+};
+
+class FuzzData {
+public:
+    FuzzData(const uint8_t* data, size_t size) : data_(data), size_(size) {}
+
     template<class T>
-    T GetData()
+    T Read()
     {
-        T object {};
-        size_t objectSize = sizeof(object);
-        if (data_ == nullptr || objectSize > size_ - pos) {
-            return object;
+        T value {};
+        if (data_ == nullptr || pos_ > size_ || sizeof(T) > size_ - pos_) {
+            return value;
         }
-        errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
-        if (ret != EOK) {
+        if (memcpy_s(&value, sizeof(T), data_ + pos_, sizeof(T)) != EOK) {
             return {};
         }
-        pos += objectSize;
-        return object;
+        pos_ += sizeof(T);
+        return value;
     }
 
-    bool DoSomethingInterestingWithMyAPI()
+    size_t Select(size_t limit)
     {
-        // get data
-        OHOS::Media::Rect rect = {
-            .left = GetData<uint32_t>(),
-            .top = GetData<uint32_t>(),
-            .width = GetData<uint32_t>(),
-            .height = GetData<uint32_t>(),
-        };
-
-        // test
-        auto cSurface = IConsumerSurface::Create();
-        OHOS::Rosen::CreatePixelMapFromSurface(cSurface, rect);
-
-        return true;
+        return limit == 0 ? 0 : Read<uint8_t>() % limit;
     }
 
-    void PrepareSurfaceBuffer(int32_t width, int32_t height, sptr<IConsumerSurface> &cSurface, sptr<Surface> &pSurface)
-    {
-        cSurface = IConsumerSurface::Create();
-        if (!cSurface) {
-            return;
-        }
-        sptr<IBufferConsumerListener> listener = new BufferConsumerTestListener();
-        cSurface->RegisterConsumerListener(listener);
-        sptr<IBufferProducer> producer = cSurface->GetProducer();
-        if (!producer) {
-            return;
-        }
-        pSurface = Surface::CreateSurfaceAsProducer(producer);
-        if (!pSurface) {
-            return;
-        }
+private:
+    const uint8_t* data_ = nullptr;
+    size_t size_ = 0;
+    size_t pos_ = 0;
+};
 
-        int releaseFence = -1;
-        sptr<SurfaceBuffer> buffer = nullptr;
-        BufferRequestConfig requestConfig = {
-            .width = width,
-            .height = height,
-            .strideAlignment = 0x8,
-            .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-            .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-            .timeout = 0,
-        };
-        BufferFlushConfig flushConfig = {
-            .damage = {
-                .w = width,
-                .h = height,
-            }
-        };
-        GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
-        if (ret != OHOS::GSERROR_OK) {
+struct SurfaceFixture {
+    sptr<IConsumerSurface> consumer;
+    sptr<Surface> producer;
+    sptr<SurfaceBuffer> buffer;
+    int32_t width = 0;
+    int32_t height = 0;
+};
+
+void EnsureGpuContext()
+{
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    static std::once_flag contextFlag;
+    static std::shared_ptr<RSRenderEngine> renderEngine;
+    std::call_once(contextFlag, []() {
+        renderEngine = std::make_shared<RSRenderEngine>();
+        renderEngine->Init();
+        const auto& context = renderEngine->GetRenderContext();
+        if (context == nullptr) {
             return;
         }
-        ret = pSurface->FlushBuffer(buffer, releaseFence, flushConfig);
-        if (ret != OHOS::GSERROR_OK) {
-            return;
-        }
-    }
-
-    bool DoSomethingInterestingWithMyAPI2()
-    {
-        int32_t width = 100;
-        int32_t height = 100;
-        sptr<IConsumerSurface> cSurface = nullptr;
-        sptr<Surface> pSurface = nullptr;
-        PrepareSurfaceBuffer(width, height, cSurface, pSurface);
-        if (!pSurface) {
-            return false;
-        }
-        SurfaceUtils::GetInstance()->Add(pSurface->GetUniqueId(), pSurface);
-        RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());
-
-        Rect rect1 = {
-            .x = GetData<uint32_t>(),
-            .y = GetData<uint32_t>(),
-            .w = GetData<uint32_t>(),
-            .h = GetData<uint32_t>(),
-        };
-        Rect rect2 = {
-            .x = GetData<uint32_t>() % width,
-            .y = GetData<uint32_t>() % height,
-            .w = GetData<uint32_t>() % width,
-            .h = GetData<uint32_t>() % height,
-        };
-        (void)rsInterfaces->CreatePixelMapFromSurfaceId(pSurface->GetUniqueId(), rect1);
-        (void)rsInterfaces->CreatePixelMapFromSurfaceId(pSurface->GetUniqueId(), rect2);
-        (void)rsInterfaces->CreatePixelMapFromSurfaceId(GetData<uint64_t>(), rect2);
-        cSurface = nullptr;
-        pSurface = nullptr;
-        return true;
-    }
-#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_VK)
-    bool DoSomethingInterestingWithMyAPI3()
-    {
-        int32_t width = 100;
-        int32_t height = 100;
-        sptr<IConsumerSurface> cSurface = nullptr;
-        sptr<Surface> pSurface = nullptr;
-        PrepareSurfaceBuffer(width, height, cSurface, pSurface);
-        if (!pSurface) {
-            return false;
-        }
-
-        OHOS::Media::Rect rect1 = {
-            .left = GetData<uint32_t>() % width,
-            .top = GetData<uint32_t>() % height,
-            .width = GetData<uint32_t>() % width,
-            .height = GetData<uint32_t>() % height,
-        };
-        OHOS::Media::Rect rect2 = {
-            .left = GetData<uint32_t>(),
-            .top = GetData<uint32_t>(),
-            .width = GetData<uint32_t>(),
-            .height = GetData<uint32_t>(),
-        };
-        (void)OHOS::Rosen::CreatePixelMapFromSurface(nullptr, rect1);
-        (void)OHOS::Rosen::CreatePixelMapFromSurface(pSurface, rect1);
-        (void)OHOS::Rosen::CreatePixelMapFromSurface(pSurface, rect2);
-        return true;
-    }
+        RSBackgroundThread::Instance().InitRenderContext(context);
+        RSBackgroundThread::Instance().PostSyncTask([]() {});
+    });
 #endif
 }
 
-/* Fuzzer entry point */
+bool PrepareSurfaceBuffer(FuzzData& fuzzData, SurfaceFixture& fixture)
+{
+    fixture.width = static_cast<int32_t>(fuzzData.Select(MAX_BUFFER_SIZE)) + 1;
+    fixture.height = static_cast<int32_t>(fuzzData.Select(MAX_BUFFER_SIZE)) + 1;
+    fixture.consumer = IConsumerSurface::Create();
+    if (fixture.consumer == nullptr) {
+        return false;
+    }
+    sptr<IBufferConsumerListener> listener = new BufferConsumerTestListener();
+    (void)fixture.consumer->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> bufferProducer = fixture.consumer->GetProducer();
+    if (bufferProducer == nullptr) {
+        return false;
+    }
+    fixture.producer = Surface::CreateSurfaceAsProducer(bufferProducer);
+    if (fixture.producer == nullptr) {
+        return false;
+    }
+    BufferRequestConfig requestConfig = {
+        .width = fixture.width,
+        .height = fixture.height,
+        .strideAlignment = STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE,
+        .timeout = 0,
+    };
+    int releaseFence = -1;
+    if (fixture.producer->RequestBuffer(fixture.buffer, releaseFence, requestConfig) != GSERROR_OK ||
+        fixture.buffer == nullptr) {
+        return false;
+    }
+    BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = fixture.width,
+            .h = fixture.height,
+        },
+    };
+    return fixture.producer->FlushBuffer(fixture.buffer, releaseFence, flushConfig) == GSERROR_OK;
+}
+
+Media::Rect MakeValidRect(FuzzData& fuzzData, int32_t width, int32_t height)
+{
+    int32_t rectWidth = static_cast<int32_t>(fuzzData.Select(width)) + 1;
+    int32_t rectHeight = static_cast<int32_t>(fuzzData.Select(height)) + 1;
+    int32_t left = static_cast<int32_t>(fuzzData.Select(width - rectWidth + 1));
+    int32_t top = static_cast<int32_t>(fuzzData.Select(height - rectHeight + 1));
+    return { left, top, rectWidth, rectHeight };
+}
+
+GraphicTransformType SelectTransform(FuzzData& fuzzData)
+{
+    constexpr std::array<GraphicTransformType, 12> TRANSFORMS = {
+        GraphicTransformType::GRAPHIC_ROTATE_NONE,
+        GraphicTransformType::GRAPHIC_ROTATE_90,
+        GraphicTransformType::GRAPHIC_ROTATE_180,
+        GraphicTransformType::GRAPHIC_ROTATE_270,
+        GraphicTransformType::GRAPHIC_FLIP_H,
+        GraphicTransformType::GRAPHIC_FLIP_V,
+        GraphicTransformType::GRAPHIC_FLIP_H_ROT90,
+        GraphicTransformType::GRAPHIC_FLIP_V_ROT90,
+        GraphicTransformType::GRAPHIC_FLIP_H_ROT180,
+        GraphicTransformType::GRAPHIC_FLIP_V_ROT180,
+        GraphicTransformType::GRAPHIC_FLIP_H_ROT270,
+        GraphicTransformType::GRAPHIC_FLIP_V_ROT270,
+    };
+    return TRANSFORMS[fuzzData.Select(TRANSFORMS.size())];
+}
+
+void FuzzValidation(FuzzData& fuzzData)
+{
+    const Media::Rect validRect = { 0, 0, 1, 1 };
+    const std::array<Media::Rect, 6> invalidRects = {
+        Media::Rect { -1, 0, 1, 1 },
+        Media::Rect { 0, -1, 1, 1 },
+        Media::Rect { 0, 0, 0, 1 },
+        Media::Rect { 0, 0, 1, 0 },
+        Media::Rect { std::numeric_limits<int32_t>::max(), 0, 1, 1 },
+        Media::Rect { 0, std::numeric_limits<int32_t>::max(), 1, 1 },
+    };
+    (void)CreatePixelMapFromSurface(nullptr, validRect, fuzzData.Select(2) != 0);
+    (void)CreatePixelMapFromSurfaceBuffer(nullptr, validRect);
+    sptr<SurfaceBuffer> emptyBuffer = SurfaceBuffer::Create().GetRefPtr();
+    const auto& invalidRect = invalidRects[fuzzData.Select(invalidRects.size())];
+    (void)CreatePixelMapFromSurfaceBuffer(emptyBuffer, invalidRect);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create();
+    if (consumer != nullptr && consumer->GetProducer() != nullptr) {
+        sptr<Surface> producer = Surface::CreateSurfaceAsProducer(consumer->GetProducer());
+        (void)CreatePixelMapFromSurface(producer, invalidRect, fuzzData.Select(2) != 0);
+        (void)CreatePixelMapFromSurface(producer, validRect, fuzzData.Select(2) != 0);
+    }
+}
+
+void FuzzBufferedSurface(FuzzData& fuzzData)
+{
+    EnsureGpuContext();
+    SurfaceFixture fixture;
+    if (!PrepareSurfaceBuffer(fuzzData, fixture)) {
+        return;
+    }
+    Media::Rect validRect = MakeValidRect(fuzzData, fixture.width, fixture.height);
+    Media::Rect outOfBounds = {
+        fixture.width - 1,
+        fixture.height - 1,
+        fixture.width,
+        fixture.height,
+    };
+    (void)CreatePixelMapFromSurfaceBuffer(fixture.buffer, outOfBounds);
+    switch (fuzzData.Select(3)) {
+        case 0:
+            (void)CreatePixelMapFromSurfaceBuffer(fixture.buffer, validRect);
+            break;
+        case 1:
+            (void)CreatePixelMapFromSurface(fixture.producer, validRect, false);
+            break;
+        default:
+            (void)fixture.producer->SetTransform(SelectTransform(fuzzData));
+            (void)CreatePixelMapFromSurface(fixture.producer, validRect, true);
+            break;
+    }
+}
+} // namespace
+} // namespace OHOS
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
         return 0;
     }
-    // initialize
-    OHOS::data_ = data;
-    OHOS::size_ = size;
-    OHOS::pos = 0;
-    /* Run your code on data */
-    OHOS::DoSomethingInterestingWithMyAPI();
-    OHOS::DoSomethingInterestingWithMyAPI2();
-#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_VK)
-    OHOS::DoSomethingInterestingWithMyAPI3();
-#endif
+    OHOS::FuzzData fuzzData(data, size);
+    if (fuzzData.Select(2) == 0) {
+        OHOS::FuzzValidation(fuzzData);
+    } else {
+        OHOS::FuzzBufferedSurface(fuzzData);
+    }
     return 0;
 }
-
