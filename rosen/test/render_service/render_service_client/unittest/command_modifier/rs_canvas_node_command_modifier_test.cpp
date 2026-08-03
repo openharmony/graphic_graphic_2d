@@ -210,7 +210,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest001, TestSize.Level1)
     FinishRecordCmdParam param{0, std::make_shared<RSSimpleDrawCmdList>()};
     auto mod = std::make_shared<FinishRecordCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::FINISH_RECORD);
-    ASSERT_TRUE(mod->GetParam().drawingCmdList_);
+    ASSERT_TRUE(mod->GetParam().simpleDrawCmdList_);
 
     std::string out;
     mod->DumpParam(out);
@@ -266,7 +266,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest004, TestSize.Level1)
     ret = mod->SetParam(param2);
     EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().modifierType_, 2);
-    EXPECT_FALSE(mod->GetParam().drawingCmdList_);
+    EXPECT_FALSE(mod->GetParam().simpleDrawCmdList_);
 }
 
 /**
@@ -280,7 +280,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest001, TestSize.Level1)
     DrawOnNodeCmdParam param{0, std::make_shared<RSSimpleDrawCmdList>()};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::DRAW_ON_NODE);
-    ASSERT_TRUE(mod->GetParam().drawingCmdList_);
+    ASSERT_TRUE(mod->GetParam().simpleDrawCmdList_);
 
     std::string out;
     mod->DumpParam(out);
@@ -517,7 +517,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest007, TestSize.Level1)
 
 /**
  * @tc.name: FinishRecordTest006
- * @tc.desc: Test UpdateToRender with simpleDrawCmdList_ only (drawingCmdList_ is null)
+ * @tc.desc: Test UpdateToRender with simpleDrawCmdList_ only
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest006, TestSize.Level1)
@@ -535,7 +535,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest006, TestSize.Level1)
  
 /**
  * @tc.name: FinishRecordTest007
- * @tc.desc: Test UpdateToRender with both drawingCmdList_ and simpleDrawCmdList_ as null
+ * @tc.desc: Test UpdateToRender with both simpleDrawCmdList_ and simpleDrawCmdList_ as null
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest007, TestSize.Level1)
@@ -550,7 +550,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest007, TestSize.Level1)
  
 /**
  * @tc.name: DrawOnNodeTest008
- * @tc.desc: Test UpdateToRender with simpleDrawCmdList_ only (drawingCmdList_ is null)
+ * @tc.desc: Test UpdateToRender with simpleDrawCmdList_ only (simpleDrawCmdList_ is null)
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest008, TestSize.Level1)
@@ -568,7 +568,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest008, TestSize.Level1)
  
 /**
  * @tc.name: DrawOnNodeTest009
- * @tc.desc: Test UpdateToRender with both drawingCmdList_ and simpleDrawCmdList_ as null
+ * @tc.desc: Test UpdateToRender with simpleDrawCmdList_ as null
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest009, TestSize.Level1)
@@ -582,7 +582,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest009, TestSize.Level1)
  
 /**
  * @tc.name: DrawOnNodeTest010
- * @tc.desc: Test UpdateToRenderWithResult with simpleDrawCmdList_ only (drawingCmdList_ is null)
+ * @tc.desc: Test UpdateToRenderWithResult with simpleDrawCmdList_ only
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest010, TestSize.Level1)
@@ -601,7 +601,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest010, TestSize.Level1)
  
 /**
  * @tc.name: DrawOnNodeTest011
- * @tc.desc: Test UpdateToRenderWithResult with both drawingCmdList_ and simpleDrawCmdList_ as null
+ * @tc.desc: Test UpdateToRenderWithResult with both simpleDrawCmdList_ as null
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest011, TestSize.Level1)
