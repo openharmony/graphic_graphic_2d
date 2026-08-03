@@ -55,8 +55,10 @@ inline RSDisplayNodeConfig GetRSDisplayNodeConfigFromData()
     DisplayMode displayMode = static_cast<DisplayMode>(displayModeVal);
     NodeId mirrorNodeId = GetData<uint64_t>();
     bool isSync = GetData<bool>();
+    uint32_t mirrorSourceRotation = GetData<uint32_t>();
+    float positionZ = GetData<float>();
 
-    RSDisplayNodeConfig config = { screenId, displayMode, mirrorNodeId, isSync };
+    RSDisplayNodeConfig config = { screenId, displayMode, mirrorNodeId, isSync, mirrorSourceRotation, positionZ };
     return config;
 }
 } // namespace

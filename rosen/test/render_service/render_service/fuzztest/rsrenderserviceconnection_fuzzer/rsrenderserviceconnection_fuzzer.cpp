@@ -733,6 +733,8 @@ bool DoCreateNode1()
     displayNodeConfig.displayMode = static_cast<DisplayMode>(GetData<uint8_t>());
     displayNodeConfig.mirrorNodeId = GetData<uint64_t>();
     displayNodeConfig.isSync = GetData<bool>();
+    displayNodeConfig.mirrorSourceRotation = GetData<uint32_t>();
+    displayNodeConfig.positionZ = GetData<float>();
     uint64_t nodeId = GetData<uint64_t>();
     bool success;
     rsToRenderConn_->CreateDisplayNode(displayNodeConfig, nodeId, success);

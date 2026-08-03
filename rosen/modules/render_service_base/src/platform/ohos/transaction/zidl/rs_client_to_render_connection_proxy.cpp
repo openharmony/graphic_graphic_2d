@@ -242,6 +242,11 @@ ErrCode RSClientToRenderConnectionProxy::CreateDisplayNode(const RSDisplayNodeCo
         success = false;
         return ERR_INVALID_VALUE;
     }
+    if (!data.WriteFloat(displayNodeConfig.positionZ)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteFloat Config.PositionZ err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
     int32_t err = SendRequest(code, data, reply, option);

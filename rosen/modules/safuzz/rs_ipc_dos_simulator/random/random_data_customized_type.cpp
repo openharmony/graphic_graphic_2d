@@ -359,6 +359,8 @@ RSDisplayNodeConfig RandomDataCustomizedType::GetRandomRSDisplayNodeConfig()
         .displayMode = static_cast<DisplayMode>(RandomDataBasicType::GetRandomUint8()),
         .mirrorNodeId = RandomDataBasicType::GetRandomUint64(),
         .isSync = RandomDataBasicType::GetRandomBool(),
+        .mirrorSourceRotation = RandomDataBasicType::GetRandomUint32(),
+        .positionZ = RandomDataBasicType::GetRandomFloat(),
     };
     return data;
 }
