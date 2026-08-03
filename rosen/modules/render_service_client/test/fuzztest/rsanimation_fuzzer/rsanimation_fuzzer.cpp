@@ -35,6 +35,7 @@
 #include "rs_transition.h"
 #include "rs_transition_effect.h"
 #include "modifier/rs_modifier_manager_map.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
@@ -137,7 +138,6 @@ public:
         float third = GetData<float>();
         float fraction = GetData<float>();
         bool isCustom = GetData<bool>();
-        bool isReverseCycle = GetData<bool>();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -152,9 +152,6 @@ public:
         secondCurve->GetTimingCurve();
         secondCurve->SetFinishCallback([]() {});
         secondCurve->SetFraction(fraction);
-        secondCurve->SetRebuildParam({fraction, isReverseCycle});
-        secondCurve->GetRebuildParam();
-        secondCurve->RebuildInRender();
         secondCurve->Start(nullptr);
         secondCurve->IsStarted();
         secondCurve->IsRunning();
@@ -173,7 +170,6 @@ public:
         float third = GetData<float>();
         float fraction = GetData<float>();
         bool isCustom = GetData<bool>();
-        bool isReverseCycle = GetData<bool>();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -186,9 +182,6 @@ public:
         keyframe->SetIsCustom(isCustom);
         keyframe->SetFinishCallback([]() {});
         keyframe->SetFraction(fraction);
-        keyframe->SetRebuildParam({fraction, isReverseCycle});
-        keyframe->GetRebuildParam();
-        keyframe->RebuildInRender();
         keyframe->Start(nullptr);
         keyframe->IsStarted();
         keyframe->IsRunning();
@@ -210,7 +203,6 @@ public:
         float beginFraction = GetData<float>();
         float endFraction = GetData<float>();
         bool pathNeedOrigin = GetData<bool>();
-        bool isReverseCycle = GetData<bool>();
         auto path = GetStringFromData(STR_LEN);
         auto rotationMode = RotationMode::ROTATE_NONE;
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
@@ -235,9 +227,6 @@ public:
         secondPathAnimation->GetTimingCurve();
         secondPathAnimation->SetFinishCallback([]() {});
         secondPathAnimation->SetFraction(fraction);
-        secondPathAnimation->SetRebuildParam({fraction, isReverseCycle});
-        secondPathAnimation->GetRebuildParam();
-        secondPathAnimation->RebuildInRender();
         secondPathAnimation->Start(nullptr);
         secondPathAnimation->IsStarted();
         secondPathAnimation->IsRunning();
@@ -276,7 +265,6 @@ public:
         float third = GetData<float>();
         float fraction = GetData<float>();
         bool isCustom = GetData<bool>();
-        bool isReverseCycle = GetData<bool>();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -291,9 +279,6 @@ public:
         secondSpringAnimation->GetTimingCurve();
         secondSpringAnimation->SetFinishCallback([]() {});
         secondSpringAnimation->SetFraction(fraction);
-        secondSpringAnimation->SetRebuildParam({fraction, isReverseCycle});
-        secondSpringAnimation->GetRebuildParam();
-        secondSpringAnimation->RebuildInRender();
         secondSpringAnimation->Start(nullptr);
         secondSpringAnimation->IsStarted();
         secondSpringAnimation->IsRunning();
@@ -427,14 +412,14 @@ public:
         repeatCallback->Execute();
     }
 
-    void RSInteractiveImplictAnimatorFuzzTest()
+    void RSInteractiveImplictAnimatorFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
     {
         auto position = GetData<RSInteractiveAnimationPosition>();
         auto fraction = GetData<float>();
         const RSAnimationTimingProtocol timingProtocol = {};
 
         auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
-            nullptr, timingProtocol, RSAnimationTimingCurve::DEFAULT);
+            rsUIContext, timingProtocol, RSAnimationTimingCurve::DEFAULT);
         interactiveAnimator->AddImplictAnimation([]() {});
         interactiveAnimator->AddAnimation([]() {});
         interactiveAnimator->StartAnimation();
@@ -454,8 +439,6 @@ public:
         float second = GetData<float>();
         float third = GetData<float>();
         float zeroThreshold = GetData<float>();
-        float fraction = GetData<float>();
-        bool isReverseCycle = GetData<bool>();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -468,18 +451,16 @@ public:
             rsUIContext, firstProperty, secondProperty, thirdProperty);
         secondAnimation->SetZeroThreshold(zeroThreshold);
         secondAnimation->IsSupportInteractiveAnimator();
-        secondAnimation->SetRebuildParam({fraction, isReverseCycle});
-        secondAnimation->GetRebuildParam();
-        secondAnimation->RebuildInRender();
     }
 
 
-    void RSAnimation1FuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSAnimation1FuzzTest(std::shared_ptr<RSUIDirector> rsUiDirector)
     {
         // get data
         auto isFirstStart = GetData<bool>();
         auto animationId = GetData<AnimationId>();
 
+        auto rsUIContext = rsUiDirector->GetRSUIContext();
         auto animation = std::make_shared<RSAnimationFuzzMock>(rsUIContext);
         std::function<void()> func = nullptr;
         animation->SetFinishCallback(func);
@@ -515,17 +496,17 @@ public:
         animation->UpdateParamToRenderAnimation(renderAnimation);
         animation->StartCustomAnimation(renderAnimation);
         animation->UpdateParamToRenderAnimation(renderAnimation);
-        auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector->SendMessages();
     }
 
-    void RSAnimation2FuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSAnimation2FuzzTest(std::shared_ptr<RSUIDirector> rsUiDirector)
     {
         // get data
         auto fraction = GetData<float>();
         auto pos = GetData<RSInteractiveAnimationPosition>();
 
         // do status error
+        auto rsUIContext = rsUiDirector->GetRSUIContext();
         auto animation1 = std::make_shared<RSAnimationFuzzMock>(rsUIContext);
         animation1->Start(nullptr);
         animation1->StartInner(nullptr);
@@ -570,11 +551,10 @@ public:
         animation3->Start(canvasNode);
         animation3->StartInner(canvasNode);
         animation3->InteractiveFinish(pos);
-        auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector->SendMessages();
     }
 
-    void RSAnimation3FuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    void RSAnimation3FuzzTest(std::shared_ptr<RSUIDirector> rsUiDirector)
     {
         // get data
         auto animationId = GetData<AnimationId>();
@@ -595,6 +575,7 @@ public:
         timingProtocol.SetAutoReverse(autoReverse);
 
         // have uianiamtion
+        auto rsUIContext = rsUiDirector->GetRSUIContext();
         auto animation1 = std::make_shared<RSAnimationFuzzMock>(rsUIContext);
         auto canvasNode = RSCanvasNode::Create();
         auto renderAnimation = std::make_shared<RSRenderAnimationFuzzMock>(animationId);
@@ -622,7 +603,6 @@ public:
         animation2->StartCustomAnimation(renderAnimation);
         animation2->InteractiveFinish(pos);
         animation2->InvertStagingValue(isGroupAnimator, timingProtocol);
-        auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector->SendMessages();
     }
 
@@ -635,8 +615,10 @@ public:
         g_data = data;
         g_size = size;
         g_pos = 0;
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+        auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+        sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+        std::shared_ptr<RSUIDirector> rsUiDirector = OHOS::Rosen::RSUIDirector::Create(connectToRender, rsUIContext);
         // get data
         RSModifierManagerMap::Instance()->GetModifierManager();
         RsAnimationTimingCurveFuzzTest();
@@ -650,11 +632,11 @@ public:
         RsImplicitAnimatorFuzzTest();
         RsImplicitAnimatorParamFuzzTest(rsUIContext);
         AnimationCallbackFuzzTest();
-        RSInteractiveImplictAnimatorFuzzTest();
+        RSInteractiveImplictAnimatorFuzzTest(rsUIContext);
         RSInterpolatingSpringAnimationFuzzTest(rsUIContext);
-        RSAnimation1FuzzTest(rsUIContext);
-        RSAnimation2FuzzTest(rsUIContext);
-        RSAnimation3FuzzTest(rsUIContext);
+        RSAnimation1FuzzTest(rsUiDirector);
+        RSAnimation2FuzzTest(rsUiDirector);
+        RSAnimation3FuzzTest(rsUiDirector);
         return true;
     }
 } // namespace OHOS

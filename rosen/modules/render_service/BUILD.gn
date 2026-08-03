@@ -175,6 +175,7 @@ ohos_shared_library("librender_service") {
     "core/feature/opinc/rs_layer_part_draw_cache_helper.cpp",
     "core/feature/render_group/rs_render_group_cache_drawable.cpp",
     "core/feature/pointer_window_manager/rs_pointer_window_manager.cpp",
+    "core/feature/protective_solid/rs_protective_solid_render_node.cpp",
     "core/feature/special_layer/rs_special_layer_utils.cpp",
     "core/feature/tunnel_layer/rs_tunnel_layer_helper.cpp",
     "core/feature/tunnel_layer/rs_tunnel_layer_manager.cpp",
@@ -434,6 +435,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/extend_feature_parser",
     "core/feature_cfg/xml_parser/performance_feature_parser",
     "core/round_corner_display",
+    "core/protective_solid",
     "core/transaction",
     "main",
     "main/render_process",
@@ -539,6 +541,10 @@ ohos_shared_library("librender_service") {
 
   if (graphic_2d_feature_tv_metadata_enable) {
     sources += [ "core/feature/tv_metadata/rs_tv_metadata_manager.cpp" ]
+  }
+
+  if (graphic_2d_feature_tv_shutter_3d_enable) {
+    sources += [ "core/feature/video_3d/rs_tv_shutter_3d_manager.cpp" ]
   }
 
   if (rosen_is_ohos) {

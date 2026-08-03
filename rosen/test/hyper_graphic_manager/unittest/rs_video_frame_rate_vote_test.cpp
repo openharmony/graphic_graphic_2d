@@ -213,7 +213,7 @@ HWTEST_F(RSVideoFrameRateVoteTest, ReSetLastRate001, Function | SmallTest | Leve
 
 /**
  * @tc.name: VoteVideoFrameRate002
- * @tc.desc: Test VoteVideoFrameRate with boundary values
+ * @tc.desc: test VoteVideoFrameRate with boundary values
  * @tc.type: FUNC
  * @tc.require:
  */

@@ -324,6 +324,12 @@ void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
+void RSSurfaceRenderParams::ClearPreBufferOnly()
+{
+    preBuffer_ = nullptr;
+    preBufferOwnerCount_ = nullptr;
+}
+
 sptr<SurfaceBuffer> RSSurfaceRenderParams::GetPreBuffer()
 {
     return preBuffer_;
@@ -728,6 +734,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->vcldInfo_ = vcldInfo_;
     targetSurfaceParams->vcldRoundRect_ = vcldRoundRect_;
     targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
+    targetSurfaceParams->compositionType_ = compositionType_;
     targetSurfaceParams->uifirstParams_.leashAllEnabled = uifirstParams_.leashAllEnabled;
     targetSurfaceParams->uifirstParams_.isPartialSynced = uifirstParams_.isPartialSynced;
     targetSurfaceParams->isWebProxyComposerNode_ = isWebProxyComposerNode_;
@@ -890,6 +897,20 @@ void RSSurfaceRenderParams::SetPartialSynced(bool isPartialSynced)
 bool RSSurfaceRenderParams::IsPartialSynced() const
 {
     return uifirstParams_.isPartialSynced;
+}
+
+void RSSurfaceRenderParams::SetCompositionType(CompositionType type)
+{
+    if (compositionType_ == type) {
+        return;
+    }
+    compositionType_ = type;
+    needSync_ = true;
+}
+
+CompositionType RSSurfaceRenderParams::GetCompositionType() const
+{
+    return compositionType_;
 }
 
 void RSSurfaceRenderParams::SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams)

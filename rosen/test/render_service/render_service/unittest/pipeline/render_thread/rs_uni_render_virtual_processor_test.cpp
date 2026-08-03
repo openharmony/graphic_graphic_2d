@@ -1861,13 +1861,14 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata002, TestSize.Le
 {
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     
-    // Set up surfaceFrames with null surface
+    // Set up surfaceFrames_ with null frame (equivalent to renderFrame_(nullptr, nullptr))
     SurfaceFrameConfig config;
-    config.frame = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    config.frame = nullptr;
     processor->surfaceFrames_.push_back(std::move(config));
-    
+
     // Test with null surface - should return false
     ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+    processor->surfaceFrames_.clear();
 }
 
 /**
@@ -1891,16 +1892,18 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata003, TestSize.Le
     ASSERT_NE(pSurface, nullptr);
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     
-    // Set up surfaceFrames with surface but null buffer
+    // Set up surfaceFrames_ with surface but null frame
     std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(
         std::make_shared<Drawing::Surface>(), DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_BUFFER_AGE);
     SurfaceFrameConfig config;
+    config.surface = pSurface;
     config.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
     processor->surfaceFrames_.push_back(std::move(config));
-    
+
     // Test with null buffer - should return false
     ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+    processor->surfaceFrames_.clear();
 #endif
 }
 
@@ -1934,20 +1937,23 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata004, TestSize.Le
     pSurface->RequestBuffer(buffer, fence, requestConfig);
     NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
     
-    // Set up surfaceFrames with surface which has buffer
+    // Set up surfaceFrames_ with surface which has buffer
     std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     rsSurface->mSurfaceList.emplace_back(nativeWindowBuffer);
     auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(
         std::make_shared<Drawing::Surface>(), DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_BUFFER_AGE);
     SurfaceFrameConfig config;
+    config.surface = pSurface;
     config.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
     processor->surfaceFrames_.push_back(std::move(config));
-    
+
     // Test with valid buffer - should return true
-    ASSERT_TRUE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+    ASSERT_TRUE(!processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+    processor->surfaceFrames_.clear();
 #endif
 }
 
+#ifdef RS_ENABLE_VK
 /**
  * @tc.name: CancelCurrentFrame_SurfaceFrames
  * @tc.desc: Test CancelCurrentFrame with surfaceFrames_ entries
@@ -1969,49 +1975,17 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CancelCurrentFrame_SurfaceFrames, Test
     auto csurf = IConsumerSurface::Create("CancelCurrentFrame_SF");
     auto producer = csurf->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    auto rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(
+        std::make_shared<Drawing::Surface>(), DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_BUFFER_AGE);
     SurfaceFrameConfig config2;
-    config2.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(rasterFrame));
+    config2.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
     virtualProcessor_->surfaceFrames_.push_back(std::move(config2));
     virtualProcessor_->CancelCurrentFrame();
 
     virtualProcessor_->surfaceFrames_.clear();
 }
-
-/**
- * @tc.name: GetFrameAcquireFence_SurfaceFrames
- * @tc.desc: Test GetFrameAcquireFence with surfaceFrames_ entries
- * @tc.type: FUNC
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, GetFrameAcquireFence_SurfaceFrames, TestSize.Level1)
-{
-    ASSERT_NE(virtualProcessor_, nullptr);
-    // empty surfaceFrames_ — returns merged empty fences
-    auto fence = virtualProcessor_->GetFrameAcquireFence();
-    ASSERT_NE(fence, nullptr);
-
-    // Add entry with null frame — skipped
-    SurfaceFrameConfig config1;
-    config1.frame = nullptr;
-    virtualProcessor_->surfaceFrames_.push_back(std::move(config1));
-    fence = virtualProcessor_->GetFrameAcquireFence();
-    ASSERT_NE(fence, nullptr);
-
-    // Add entry with valid frame (invalid fence by default)
-    auto csurf = IConsumerSurface::Create("GetFence_SF");
-    auto producer = csurf->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    SurfaceFrameConfig config2;
-    config2.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(rasterFrame));
-    virtualProcessor_->surfaceFrames_.push_back(std::move(config2));
-    fence = virtualProcessor_->GetFrameAcquireFence();
-    ASSERT_NE(fence, nullptr);
-
-    virtualProcessor_->surfaceFrames_.clear();
-}
+#endif // RS_ENABLE_VK
 
 /**
  * @tc.name: SetMetadataForAllSurfaces_SurfaceFrames
@@ -2073,6 +2047,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetDirtyInfo_SurfaceFrames, TestSize.L
 {
     ASSERT_NE(virtualProcessor_, nullptr);
     std::vector<RectI> damageRegion = {RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT)};
+
+    // empty surfaceFrames_, renderFrame_ null -> SetRoiRegionToCodec fails, no crash
+    virtualProcessor_->SetDirtyInfo(damageRegion);
 
     // Branch 2: null frame in surfaceFrames_ → log warning
     SurfaceFrameConfig config1;

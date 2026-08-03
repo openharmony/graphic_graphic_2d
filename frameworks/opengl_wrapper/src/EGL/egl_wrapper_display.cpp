@@ -65,14 +65,14 @@ static constexpr const char *EXTENSION_VALUE =
     "EGL_EXT_protected_surface "
 ;
 static constexpr const char *WIDE_COLOR_AND_HDR_EXTENSIONS =
-   // wide color support
-   "EGL_EXT_gl_colorspace_display_p3_linear "
-   "EGL_EXT_gl_colorspace_display_p3 "
-   "EGL_EXT_gl_colorspace_display_p3_passthrough "
-   // hdr color space support
-   "EGL_EXT_gl_colorspace_bt2020_linear "
-   "EGL_EXT_gl_colorspace_bt2020_hlg "
-   "EGL_EXT_gl_colorspace_bt2020_pq "
+    // wide color support
+    "EGL_EXT_gl_colorspace_display_p3_linear "
+    "EGL_EXT_gl_colorspace_display_p3 "
+    "EGL_EXT_gl_colorspace_display_p3_passthrough "
+    // hdr color space support
+    "EGL_EXT_gl_colorspace_bt2020_linear "
+    "EGL_EXT_gl_colorspace_bt2020_hlg "
+    "EGL_EXT_gl_colorspace_bt2020_pq "
 ;
 
 // Todo: remove after EGL api upgrade
@@ -81,28 +81,17 @@ static constexpr const char *WIDE_COLOR_AND_HDR_EXTENSIONS =
 #define EGL_GL_COLORSPACE_BT2020_HLG_EXT  0x3540
 #endif /* EGL_EXT_gl_colorspace_bt2020_hlg */
 
-static OH_NativeBuffer_ColorSpace TranslateEglColorSpaceToNative(EGLint colorspace)
-{
-    switch (colorspace) {
-        case EGL_GL_COLORSPACE_DISPLAY_P3_LINEAR_EXT:
-            return OH_COLORSPACE_LINEAR_P3;
-        case EGL_GL_COLORSPACE_DISPLAY_P3_EXT:
-            return OH_COLORSPACE_P3_FULL;
-        case EGL_GL_COLORSPACE_DISPLAY_P3_PASSTHROUGH_EXT:
-            return OH_COLORSPACE_DISPLAY_P3_SRGB;
-        case EGL_GL_COLORSPACE_BT2020_LINEAR_EXT:
-            return OH_COLORSPACE_LINEAR_BT2020;
-        case EGL_GL_COLORSPACE_BT2020_PQ_EXT:
-            return OH_COLORSPACE_BT2020_PQ_FULL;
-        case EGL_GL_COLORSPACE_BT2020_HLG_EXT:
-            return OH_COLORSPACE_BT2020_HLG_FULL;
-        default:
-            return OH_COLORSPACE_SRGB_FULL;
-    }
-}
+const std::unordered_map<EGLint, OH_NativeBuffer_ColorSpace>  WIDE_COLORSPACE_EGL_TO_NATIVE = {
+    {EGL_GL_COLORSPACE_DISPLAY_P3_LINEAR_EXT, OH_COLORSPACE_LINEAR_P3},
+    {EGL_GL_COLORSPACE_DISPLAY_P3_EXT, OH_COLORSPACE_P3_FULL},
+    {EGL_GL_COLORSPACE_DISPLAY_P3_PASSTHROUGH_EXT, OH_COLORSPACE_DISPLAY_P3_SRGB},
+    {EGL_GL_COLORSPACE_BT2020_LINEAR_EXT, OH_COLORSPACE_LINEAR_BT2020},
+    {EGL_GL_COLORSPACE_BT2020_PQ_EXT, OH_COLORSPACE_BT2020_PQ_FULL},
+    {EGL_GL_COLORSPACE_BT2020_HLG_EXT, OH_COLORSPACE_BT2020_HLG_FULL},
+};
 
 // LCOV_EXCL_START
-static std::vector<EGLint> ExtractNonColorspaceInfoFromAttribs(const EGLint *attribList)
+std::vector<EGLint> EglWrapperDisplay::ExtractNonColorspaceInfoFromAttribs(const EGLint *attribList)
 {
     std::vector<EGLint> attribVec {};
     for (const EGLint* attr = attribList; attr && attr[0] != EGL_NONE; attr += 2) {
@@ -115,8 +104,8 @@ static std::vector<EGLint> ExtractNonColorspaceInfoFromAttribs(const EGLint *att
     attribVec.push_back(EGL_NONE); // end
     return attribVec;
 }
+
 // LCOV_EXCL_STOP
-    
 static constexpr const char *SWAP_BUFFER_EXTENSIONS =
     "EGL_KHR_swap_buffers_with_damage "
 ;
@@ -156,8 +145,7 @@ void EglWrapperDisplay::UpdateQueryValue(EGLint *major, EGLint *minor)
     hasWideColorAndHdrSupport_ = true;
 #endif
     if (hasColorSpaceSupport_ && hasWideColorAndHdrSupport_) {
-        extensionValue_ = extensionValue_ +
-            std::string(EXTENSION_VALUE) + std::string(WIDE_COLOR_AND_HDR_EXTENSIONS);
+        extensionValue_ = extensionValue_ + std::string(WIDE_COLOR_AND_HDR_EXTENSIONS);
     }
 }
 
@@ -222,6 +210,8 @@ EGLBoolean EglWrapperDisplay::Terminate()
     if (table->isLoad) {
         if (table->egl.eglTerminate) {
             BlobCache::Get()->Terminate();
+            //Clear Context when egl is terminated
+            ThreadPrivateDataCtl::SetContext(nullptr);
             ClearObjects();
             return table->egl.eglTerminate(disp_);
         }
@@ -470,8 +460,8 @@ EGLDisplay EglWrapperDisplay::GetEglDisplayExt(EGLenum platform,
 
 bool EglWrapperDisplay::ValidateEglContext(EGLContext ctx)
 {
-    WLOGD("");
-    return false;
+    EglWrapperContext *ctxPtr = EglWrapperContext::GetWrapperContext(ctx);
+    return wrapperDisp_.CheckObject(ctxPtr);
 }
 
 bool EglWrapperDisplay::ValidateEglSurface(EGLSurface surf)
@@ -553,6 +543,9 @@ EGLBoolean EglWrapperDisplay::DestroyEglContext(EGLContext context)
         ret = table->egl.eglDestroyContext(disp_, ctx);
         if (ret == EGL_TRUE) {
             ctxPtr->Destroy();
+            if (ThreadPrivateDataCtl::GetContext() == context) {
+                ThreadPrivateDataCtl::SetContext(nullptr);
+            }
         } else {
             WLOGE("eglDestroyContext error.");
         }
@@ -582,8 +575,9 @@ EGLSurface EglWrapperDisplay::CreateEglSurface(EGLConfig config,
         return EGL_NO_SURFACE;
     }
 
-    // select correct colorspace and dataspace based on user's attribute list.
+    // select correct colorspace and dataspace based on user's attribute list
     EGLint colorSpace = EGL_UNKNOWN;
+    OH_NativeBuffer_ColorSpace nativeColorSpace = OH_COLORSPACE_SRGB_FULL;
     EGLSurface surf = EGL_NO_SURFACE;
     bool requestWideColor = false;
     auto nativeWindow = static_cast<OHNativeWindow*>(window);
@@ -592,20 +586,23 @@ EGLSurface EglWrapperDisplay::CreateEglSurface(EGLConfig config,
             (attr[1] == EGL_GL_COLORSPACE_LINEAR_KHR || attr[1] == EGL_GL_COLORSPACE_SRGB_KHR)) {
             colorSpace = static_cast<EGLint>(attr[1]);
         }
-        if (attr[0] == EGL_GL_COLORSPACE_KHR && attr[1] != EGL_GL_COLORSPACE_LINEAR_KHR) {
+        auto iter = WIDE_COLORSPACE_EGL_TO_NATIVE.find(attr[1]);
+        if (attr[0] == EGL_GL_COLORSPACE_KHR && iter != WIDE_COLORSPACE_EGL_TO_NATIVE.end()) {
             requestWideColor = true;
-            colorSpace = attr[1];
-            WLOGI("attrib colorspace: %{public}d", colorSpace);
+            nativeColorSpace = iter->second;
+            WLOGD("attrib nativeColorSpace: %{public}d", nativeColorSpace);
         }
     }
 
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad && table->egl.eglCreateWindowSurface) {
-        WLOGI("CreateEglSurface hasColorSpaceSupport_: %{public}d,"
+        WLOGD("CreateEglSurface hasColorSpaceSupport_: %{public}d,"
             "hasWideColorAndHdrSupport_ %{public}d , requestWideColor %{public}d",
             hasColorSpaceSupport_, hasWideColorAndHdrSupport_, requestWideColor);
+        // 3 terms progressively: has color-->has wide color-->request wide color
         if (hasColorSpaceSupport_ && hasWideColorAndHdrSupport_ && requestWideColor) {
-            OH_NativeWindow_SetColorSpace(nativeWindow, TranslateEglColorSpaceToNative(colorSpace));
+            OH_NativeWindow_SetColorSpace(nativeWindow, nativeColorSpace);
+            // important: do not add wide color attribs into eglCreateWindowSurface, not supported
             std::vector<EGLint> attribVec = ExtractNonColorspaceInfoFromAttribs(attribList);
             surf = table->egl.eglCreateWindowSurface(disp_, config, window, attribVec.data());
         } else {
@@ -641,6 +638,7 @@ EGLBoolean EglWrapperDisplay::DestroyEglSurface(EGLSurface surf)
     if (table->isLoad && table->egl.eglDestroySurface) {
         ret = table->egl.eglDestroySurface(disp_, sur);
         if (ret == EGL_TRUE) {
+            EglWrapperSurface::Disconnect(reinterpret_cast<OHNativeWindow*>(surfPtr->GetNativeWindow()));
             surfPtr->Destroy();
         } else {
             WLOGE("eglDestroySurface error.");

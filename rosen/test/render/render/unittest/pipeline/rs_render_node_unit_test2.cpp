@@ -806,28 +806,6 @@ HWTEST_F(RSRenderNodeUnitTest2, HasHpaeBackgroundFilter, TestSize.Level1)
     ASSERT_TRUE(renderNode->HasHpaeBackgroundFilter());
 }
 /*
- * @tc.name: UpdateVirtualScreenWhiteListInfo
- * @tc.desc: Test function UpdateVirtualScreenWhiteListInfo
- * @tc.type: FUNC
- * @tc.require: issueICF7P6
- */
-HWTEST_F(RSRenderNodeUnitTest2, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(1);
-    ASSERT_NE(node, nullptr);
-    std::shared_ptr<RSRenderNode> parent = nullptr;
-    node->SetParent(parent);
-    ASSERT_EQ(node->parent_.lock(), nullptr);
-    node->UpdateVirtualScreenWhiteListInfo();
-    parent = std::make_shared<RSRenderNode>(id + 1);
-    node->SetParent(parent);
-    ASSERT_NE(node->parent_.lock(), nullptr);
-    ScreenId screenId = 1;
-    node->hasVirtualScreenWhiteList_[screenId] = false;
-    node->UpdateVirtualScreenWhiteListInfo();
-}
-
-/*
  * @tc.name: GetNeedUseCmdlistDrawRegion001
  * @tc.desc: Test function GetNeedUseCmdlistDrawRegion when application to which the node belongs is not targetScene
  * @tc.type: FUNC

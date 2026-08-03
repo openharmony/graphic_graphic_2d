@@ -34,6 +34,7 @@
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_offline_processor.h"
 #include "feature/hwc/hpae_offline/rs_offline_util.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
@@ -45,6 +46,7 @@
 #include "platform/common/rs_log.h"
 #include "rs_render_composer_manager.h"
 #include "rs_surface_layer.h"
+#include "rs_surface_solid_filled_color_layer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -309,7 +311,7 @@ void RSUniRenderProcessor::CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRend
     }
     GraphicSolidColorLayerProperty solidColorLayerProperty;
     if (layer->GetZorder() > 0) {
-        solidColorLayerProperty.zOrder = layer->GetZorder() - 1;
+        solidColorLayerProperty.zOrder = static_cast<int32_t>(layer->GetZorder()) - 1;
     }
     solidColorLayerProperty.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     auto layerRect = layer->GetLayerSize();
@@ -378,7 +380,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     if (offlineResult) {
         SetDeviceOfflineOriginalInfo(layer, params);
     }
-    params.SetPreBuffer(nullptr, nullptr);
+    params.ClearPreBufferOnly();
     layer->SetZorder(layerInfo.zOrder);
     layer->SetRotationFixed(params.GetFixRotationByUser());
     RSRenderThreadParams::TunnelLayerSnapshot tunnelLayerSnapshot;
@@ -627,6 +629,90 @@ void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
             node.GetId());
         return;
     }
+    layers_.emplace_back(layer);
+}
+
+void RSUniRenderProcessor::CreateProtectiveSolidLayer(RSProtectiveSolidRenderNode& node, RSSurfaceRenderParams& params)
+{
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateProtectiveSolidLayer composerClient is nullptr");
+        return;
+    }
+    NodeId nodeId = node.GetId();
+    RSLayerPtr layer = RSSurfaceSolidFilledColorLayer::Create(nodeId, composerClient_->GetComposerContext());
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateProtectiveSolidLayer failed to create layer");
+        return;
+    }
+    node.SetRSLayer(screenInfo_.id, layer);
+    auto& layerInfo = params.GetLayerInfo();
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateProtectiveSolidLayer nodeId[%" PRIu64 "] dstRect[%d %d %d %d] "
+        "srcRect[%d %d %d %d] boundRect[%d %d %d %d] alpha[%.2f] zOrder[%d]",
+        nodeId, layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
+        layerInfo.boundRect.x, layerInfo.boundRect.y, layerInfo.boundRect.w, layerInfo.boundRect.h,
+        layerInfo.alpha, layerInfo.zOrder);
+    layer->SetNodeId(nodeId);
+    layer->SetRSLayerId(nodeId);
+    layer->SetSurfaceName(node.GetName());
+    layer->SetZorder(layerInfo.zOrder);
+    GraphicLayerAlpha layerAlpha = {0};
+    layerAlpha.enGlobalAlpha = true;
+    layerAlpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
+    layer->SetAlpha(layerAlpha);
+    layer->SetLayerSize(layerInfo.dstRect);
+    layer->SetCropRect(layerInfo.srcRect);
+    std::vector<GraphicIRect> visibleRegions;
+    visibleRegions.emplace_back(layerInfo.dstRect);
+    layer->SetVisibleRegions(visibleRegions);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+    layer->SetBuffer(nullptr, nullptr);
+    layer->SetIsNeedComposition(true);
+    layers_.emplace_back(layer);
+}
+
+void RSUniRenderProcessor::CreateProtectiveSolidLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& drawable)
+{
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateProtectiveSolidLayerForRenderThread composerClient is nullptr");
+        return;
+    }
+    auto& paramsSp = drawable.GetRenderParams();
+    if (!paramsSp) {
+        RS_LOGE("RSUniRenderProcessor::CreateProtectiveSolidLayerForRenderThread params is nullptr");
+        return;
+    }
+    auto& params = *(static_cast<RSSurfaceRenderParams*>(paramsSp.get()));
+    NodeId nodeId = drawable.GetId();
+    RSLayerPtr layer = RSSurfaceSolidFilledColorLayer::Create(nodeId, composerClient_->GetComposerContext());
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateProtectiveSolidLayerForRenderThread failed to create layer");
+        return;
+    }
+    drawable.SetRSLayer(screenInfo_.id, layer);
+    auto& layerInfo = params.GetLayerInfo();
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateProtectiveSolidLayerForRenderThread nodeId[%" PRIu64 "] dstRect[%d %d %d %d] "
+        "srcRect[%d %d %d %d] boundRect[%d %d %d %d] alpha[%.2f] zOrder[%d]",
+        nodeId, layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
+        layerInfo.boundRect.x, layerInfo.boundRect.y, layerInfo.boundRect.w, layerInfo.boundRect.h,
+        layerInfo.alpha, layerInfo.zOrder);
+    layer->SetNodeId(nodeId);
+    layer->SetRSLayerId(nodeId);
+    layer->SetSurfaceName(drawable.GetName());
+    layer->SetZorder(layerInfo.zOrder);
+    GraphicLayerAlpha layerAlpha = {0};
+    layerAlpha.enGlobalAlpha = true;
+    layerAlpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
+    layer->SetAlpha(layerAlpha);
+    layer->SetLayerSize(layerInfo.dstRect);
+    layer->SetCropRect(layerInfo.srcRect);
+    std::vector<GraphicIRect> visibleRegions;
+    visibleRegions.emplace_back(layerInfo.dstRect);
+    layer->SetVisibleRegions(visibleRegions);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+    layer->SetBuffer(nullptr, nullptr);
+    layer->SetIsNeedComposition(true);
     layers_.emplace_back(layer);
 }
 

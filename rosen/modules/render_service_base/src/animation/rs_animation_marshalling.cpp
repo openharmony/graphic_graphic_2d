@@ -392,7 +392,7 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, RSRenderPropertyBase Fail");
         return false;
     }
-   
+
     if (startValue_ && startValue_->IsDrawCmdListProperty()) {
         startValue_ = startValue_->CreateSimpleProperty();
     }
@@ -507,7 +507,7 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling interpolator failed");
             return false;
         }
-        
+
         if (tupValue1 && tupValue1->IsDrawCmdListProperty()) {
             tupValue1 = tupValue1->CreateSimpleProperty();
         }
@@ -535,7 +535,7 @@ bool RSRenderKeyframeAnimation::ParseDurationKeyframesParam(Parcel& parcel, int 
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseDurationParam, Unmarshalling interpolator failed");
             return false;
         }
-        
+
         if (tupValue1 && tupValue1->IsDrawCmdListProperty()) {
             tupValue1 = tupValue1->CreateSimpleProperty();
         }

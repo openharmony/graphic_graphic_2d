@@ -32,6 +32,40 @@ namespace Rosen {
 namespace Drawing {
 #define TEST_MEM_SIZE 10
 #define TEST_INVALIED_ID 9999
+
+// Mock subclasses for testing FlushImageCache dispatch
+class MockExtendImageObject : public ExtendImageObject {
+public:
+    void Playback(Canvas& canvas, const Rect& rect,
+        const SamplingOptions& sampling, bool isBackground = false) override {}
+    void FlushImageCache() override { flushCalled = true; }
+    bool flushCalled = false;
+};
+
+class MockExtendImageBaseObj : public ExtendImageBaseObj {
+public:
+    void Playback(Canvas& canvas, const Rect& rect, const SamplingOptions& sampling,
+        SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override {}
+    void FlushImageCache() override { flushCalled = true; }
+    bool flushCalled = false;
+};
+
+class MockExtendImageNineObject : public ExtendImageNineObject {
+public:
+    void Playback(Canvas& canvas, const RectI& center, const Rect& dst,
+        FilterMode filterMode = FilterMode::NEAREST) override {}
+    void FlushImageCache() override { flushCalled = true; }
+    bool flushCalled = false;
+};
+
+class MockExtendImageLatticeObject : public ExtendImageLatticeObject {
+public:
+    void Playback(Canvas& canvas, const Lattice& lattice, const Rect& dst,
+        FilterMode filterMode = FilterMode::NEAREST) override {}
+    void FlushImageCache() override { flushCalled = true; }
+    bool flushCalled = false;
+};
+
 class DrawCmdListTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -596,6 +630,52 @@ HWTEST_F(DrawCmdListTest, PlaybackToDrawCmdList003, TestSize.Level1)
     srcDrawCmdList->PlaybackToDrawCmdList(dstDrawCmdList);
     EXPECT_EQ(srcDrawCmdList->drawingObjectVec_.size(), 1);
     EXPECT_EQ(dstDrawCmdList->drawingObjectVec_.size(), 2);
+}
+
+/**
+ * @tc.name: FlushImageCacheTest001
+ * @tc.desc: Test FlushImageCache with empty vectors and nullptr entries does not crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, FlushImageCacheTest001, TestSize.Level1)
+{
+    auto cmdList = std::make_shared<CmdList>();
+    ASSERT_NE(cmdList, nullptr);
+    // All image vectors are empty, should not crash
+    cmdList->FlushImageCache();
+
+    auto drawCmdList = std::make_shared<DrawCmdList>();
+    ASSERT_NE(drawCmdList, nullptr);
+    // Push nullptr entries into image vectors, should skip without crash
+    drawCmdList->imageObjectVec_.push_back(nullptr);
+    drawCmdList->imageBaseObjVec_.push_back(nullptr);
+    drawCmdList->imageNineObjectVec_.push_back(nullptr);
+    drawCmdList->imageLatticeObjectVec_.push_back(nullptr);
+    drawCmdList->FlushImageCache();
+}
+
+/**
+ * @tc.name: FlushImageCacheTest002
+ * @tc.desc: Test FlushImageCache dispatches to non-null objects in all four vectors.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, FlushImageCacheTest002, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<DrawCmdList>();
+    ASSERT_NE(drawCmdList, nullptr);
+    auto mockObj = std::make_shared<MockExtendImageObject>();
+    auto mockBaseObj = std::make_shared<MockExtendImageBaseObj>();
+    auto mockNineObj = std::make_shared<MockExtendImageNineObject>();
+    auto mockLatticeObj = std::make_shared<MockExtendImageLatticeObject>();
+    drawCmdList->imageObjectVec_.push_back(mockObj);
+    drawCmdList->imageBaseObjVec_.push_back(mockBaseObj);
+    drawCmdList->imageNineObjectVec_.push_back(mockNineObj);
+    drawCmdList->imageLatticeObjectVec_.push_back(mockLatticeObj);
+    drawCmdList->FlushImageCache();
+    EXPECT_TRUE(mockObj->flushCalled);
+    EXPECT_TRUE(mockBaseObj->flushCalled);
+    EXPECT_TRUE(mockNineObj->flushCalled);
+    EXPECT_TRUE(mockLatticeObj->flushCalled);
 }
 } // namespace Drawing
 } // namespace Rosen

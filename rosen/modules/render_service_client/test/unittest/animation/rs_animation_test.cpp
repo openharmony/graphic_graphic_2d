@@ -68,6 +68,7 @@ void RSAnimationTest::SetUp()
 {
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
     rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     canvasNode->SetBounds(ANIMATION_START_BOUNDS);
     canvasNode->SetFrame(ANIMATION_START_BOUNDS);
@@ -521,13 +522,11 @@ HWTEST_F(RSAnimationTest, IsSupportInteractiveAnimator001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest IsSupportInteractiveAnimator001 start";
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto newRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    auto newCanvasNode = RSCanvasNode::Create(false, false, newRsUIContext);
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(newRsUIContext, protocol, RSAnimationTimingCurve::EASE,
+    auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
         [&newCanvasNode, &effect]() {
         newCanvasNode->NotifyTransition(effect, true);
     });
@@ -549,13 +548,11 @@ HWTEST_F(RSAnimationTest, Pause, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest Pause start";
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto newRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    auto newCanvasNode = RSCanvasNode::Create(false, false, newRsUIContext);
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(newRsUIContext, protocol, RSAnimationTimingCurve::EASE,
+    auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
         [&newCanvasNode, &effect]() {
         newCanvasNode->NotifyTransition(effect, true);
     });
@@ -580,13 +577,11 @@ HWTEST_F(RSAnimationTest, InteractiveSetFraction, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveSetFraction start";
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto newRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    auto newCanvasNode = RSCanvasNode::Create(false, false, newRsUIContext);
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(newRsUIContext, protocol, RSAnimationTimingCurve::EASE,
+    auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
         [&newCanvasNode, &effect]() {
         newCanvasNode->NotifyTransition(effect, true);
     });
@@ -615,13 +610,11 @@ HWTEST_F(RSAnimationTest, AnimationStatus003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus003 start";
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto newRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    auto newCanvasNode = RSCanvasNode::Create(false, false, newRsUIContext);
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(newRsUIContext, protocol, RSAnimationTimingCurve::EASE,
+    auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
         [&newCanvasNode, &effect]() {
         newCanvasNode->NotifyTransition(effect, true);
     });
@@ -649,13 +642,11 @@ HWTEST_F(RSAnimationTest, InteractiveFinish, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveFinish start";
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto newRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    auto newCanvasNode = RSCanvasNode::Create(false, false, newRsUIContext);
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(newRsUIContext, protocol, RSAnimationTimingCurve::EASE,
+    auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
         [&newCanvasNode, &effect]() {
         newCanvasNode->NotifyTransition(effect, true);
     });
@@ -685,13 +676,11 @@ HWTEST_F(RSAnimationTest, AnimationGetId003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetId003 start";
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto newRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    auto newCanvasNode = RSCanvasNode::Create(false, false, newRsUIContext);
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(newRsUIContext, protocol, RSAnimationTimingCurve::EASE,
+    auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
         [&newCanvasNode, &effect]() {
         newCanvasNode->NotifyTransition(effect, true);
     });
@@ -714,15 +703,13 @@ HWTEST_F(RSAnimationTest, AnimationSetFinishCallback003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSetFinishCallback003 start";
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto newRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    auto newCanvasNode = RSCanvasNode::Create(false, false, newRsUIContext);
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
     RSAnimationTimingProtocol protocol;
     std::string testString;
     auto lambda = [&testString]() { testString = SUCCESS_STRING; };
-    auto animations = RSNode::Animate(newRsUIContext, protocol, RSAnimationTimingCurve::EASE,
+    auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
         [&newCanvasNode, &effect]() {
         newCanvasNode->NotifyTransition(effect, true);
     }, lambda);
@@ -745,13 +732,11 @@ HWTEST_F(RSAnimationTest, AnimationGetTarget003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetTarget003 start";
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto newRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    auto newCanvasNode = RSCanvasNode::Create(false, false, newRsUIContext);
+    auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(newRsUIContext, protocol, RSAnimationTimingCurve::EASE,
+    auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
         [&newCanvasNode, &effect]() {
         newCanvasNode->NotifyTransition(effect, true);
     });

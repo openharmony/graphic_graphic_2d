@@ -4150,26 +4150,6 @@ HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
 }
 
 /*
- * @tc.name: SyncWhiteListInfoToParent
- * @tc.desc: Test function SyncWhiteListInfoToParent
- * @tc.type: FUNC
- * @tc.require: issueICF7P6
- */
-HWTEST_F(RSRenderNodeTest, SyncWhiteListInfoToParent, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(1);
-    ASSERT_NE(node, nullptr);
-    std::shared_ptr<RSRenderNode> parent = nullptr;
-    node->SetParent(parent);
-    ASSERT_EQ(node->parent_.lock(), nullptr);
-    node->SyncWhiteListInfoToParent();
-
-    parent = std::make_shared<RSRenderNode>(id + 1);
-    node->SetParent(parent);
-    ASSERT_NE(node->parent_.lock(), nullptr);
-}
-
-/*
  * @tc.name: GetNeedUseCmdlistDrawRegion001
  * @tc.desc: Test function GetNeedUseCmdlistDrawRegion when application to which the node belongs is not targetScene
  * @tc.type: FUNC
@@ -4821,6 +4801,40 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams003, TestSize.L
 
     ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleFilter());
     ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
+}
+
+/**
+ * @tc.name: SetChildHasVisibleFlagsWithoutStagingParams
+ * @tc.desc: Verify child visible setters safely handle null staging render params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithoutStagingParams, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    node->stagingRenderParams_ = nullptr;
+
+    node->SetChildHasVisibleFilter(true);
+    node->SetChildHasVisibleEffect(true);
+
+    EXPECT_TRUE(node->childHasVisibleFilter_);
+    EXPECT_TRUE(node->childHasVisibleEffect_);
+}
+
+/**
+ * @tc.name: SetChildHasVisibleFlagsWithStagingParams
+ * @tc.desc: Verify child visible setters update non-null staging render params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithStagingParams, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+
+    node->SetChildHasVisibleFilter(true);
+    node->SetChildHasVisibleEffect(true);
+
+    EXPECT_TRUE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    EXPECT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
 }
 
 /**

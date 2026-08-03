@@ -395,8 +395,13 @@ ani_object AniColorPicker::CreateColorPickerNormal(ani_env* env, ani_object para
 
     static const char *className = ANI_CLASS_COLOR_PICKER.c_str();
     const char *methodSig = "l:";
-    return AniEffectKitUtils::CreateAniObject(
-        env, className, methodSig, reinterpret_cast<ani_long>(colorPicker.release()));
+    ani_object result = AniEffectKitUtils::CreateAniObject(
+        env, className, methodSig, reinterpret_cast<ani_long>(colorPicker.get()));
+    ani_boolean resultIsUndefined = ANI_TRUE;
+    if (env->Reference_IsUndefined(result, &resultIsUndefined) == ANI_OK && !resultIsUndefined) {
+        colorPicker.release();
+    }
+    return result;
 }
 
 ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object para, ani_object region)
@@ -420,6 +425,10 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
             ani_ref doubleValueRef{};
             ani_status status = env->Object_CallMethodByName_Ref(region, "$_get", "i:Y",
                 &doubleValueRef, (ani_int)i);
+            if (status != ANI_OK || doubleValueRef == nullptr) {
+                EFFECT_LOG_E("[CreateColorPicker] region Object_CallMethodByName_Ref failed at i=%d", i);
+                return AniEffectKitUtils::CreateAniUndefined(env);
+            }
             ani_double doubleValue;
             status = env->Object_CallMethodByName_Double(static_cast<ani_object>(doubleValueRef),
                 "toDouble", ":d", &doubleValue);
@@ -498,8 +507,13 @@ ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_pt
     static const char* className = ANI_CLASS_COLOR_PICKER.c_str();
     // ets constructor function, parameter type and return value type
     const char* methodSig = "l:";
-    return AniEffectKitUtils::CreateAniObject(
-        env, className, methodSig, reinterpret_cast<ani_long>(aniColorPicker.release()));
+    ani_object result = AniEffectKitUtils::CreateAniObject(
+        env, className, methodSig, reinterpret_cast<ani_long>(aniColorPicker.get()));
+    ani_boolean resultIsUndefined = ANI_TRUE;
+    if (env->Reference_IsUndefined(result, &resultIsUndefined) == ANI_OK && !resultIsUndefined) {
+        aniColorPicker.release();
+    }
+    return result;
 }
 
 ani_object AniColorPicker::KitTransferStaticColorPicker(ani_env* env, ani_class cls, ani_object obj)
@@ -534,6 +548,11 @@ ani_object AniColorPicker::kitTransferDynamicColorPicker(ani_env* env, ani_class
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     napi_value napiColorPicker = ColorPickerNapi::CreateColorPickerFromPtr(napiEnv, aniColorPicker->nativeColorPicker_);
+    if (napiColorPicker == nullptr) {
+        EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker napiColorPicker is nullptr");
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
     hybridgref ref {};
     if (!hybridgref_create_from_napi(napiEnv, napiColorPicker, &ref)) {
         EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker create hybridgref failed");

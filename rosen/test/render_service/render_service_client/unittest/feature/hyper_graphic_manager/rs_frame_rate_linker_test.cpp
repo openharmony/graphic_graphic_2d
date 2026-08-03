@@ -17,6 +17,8 @@
 
 #include "feature/hyper_graphic_manager/rs_frame_rate_linker.h"
 #include "animation/rs_transition.h"
+#include "transaction/rs_interfaces.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -59,8 +61,8 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange001, TestSize.Level1)
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initialRange = {30, 144, 60};
     FrameRateRange newRange = {60, 144, 120};
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    std::shared_ptr<RSUIContext> rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    sptr<IRemoteObject> connectToRender;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
     frameRateLinker->UpdateFrameRateRange(initialRange, -1);
     frameRateLinker->UpdateFrameRateRange({30, 144, 60}, -1);
     frameRateLinker->UpdateFrameRateRange(newRange, -1, rsUIContext);

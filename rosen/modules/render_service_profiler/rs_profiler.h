@@ -22,6 +22,10 @@
 #include "common/rs_macros.h"
 #include "transaction/rs_hrp_service.h"
 
+namespace trace3d::api {
+    class DebugScope;
+}
+
 #ifdef RS_PROFILER_ENABLED
 
 #include <map>
@@ -37,10 +41,6 @@
 #include "rs_profiler_utils.h"
 
 struct TRACE3D_CORE_API_TABLE;
-
-namespace trace3d::api {
-    class DebugScope;
-}
 
 RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 
@@ -92,6 +92,7 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) RSProfiler::ProcessAddChild(parent, child, index)
 #define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) \
     RSProfiler::IfNeedToSkipDuringReplay(parcel, skipBytes)
+#define RS_PROFILER_HRP_SERVICE_ENABLED() RSProfiler::IsHrpServiceEnabled()
 #define RS_PROFILER_IS_FIRST_FRAME_PARCEL(parcel) RSProfiler::IsFirstFrameParcel(parcel)
 #define RS_PROFILER_KILL_PID(pid) RSProfiler::JobMarshallingKillPid(pid)
 #define RS_PROFILER_KILL_PID_END() RSProfiler::JobMarshallingKillPidEnd()
@@ -166,6 +167,7 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) drawCmdListNeedSync = true
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) false
 #define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) false
+#define RS_PROFILER_HRP_SERVICE_ENABLED() false
 #define RS_PROFILER_IS_FIRST_FRAME_PARCEL(parcel) false
 #define RS_PROFILER_KILL_PID(pid)
 #define RS_PROFILER_KILL_PID_END()
@@ -557,6 +559,12 @@ public:
     RSB_EXPORT static int64_t AnimeSetStartTime(AnimationId id, int64_t nanoTime);
     RSB_EXPORT static void ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex);
 
+    RSB_EXPORT static RetCodeHrpService HrpServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, uint32_t flags, int& outFd);
+    RSB_EXPORT static RetCodeHrpService HrpServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
+    RSB_EXPORT static bool IsSecureScreen();
+
     RSB_EXPORT static void MarshallingTouch(NodeId nodeId);
 
     RSB_EXPORT static void SendMessageBase(const std::string& msg);
@@ -573,11 +581,6 @@ public:
     RSB_EXPORT static void AddAnimationNodeMetrics(RSRenderNodeType type, int32_t size);
     RSB_EXPORT static void AddAnimationStart(AnimationId id, int64_t timestamp_ns);
     RSB_EXPORT static void AddAnimationFinish(AnimationId id, int64_t timestamp_ns);
-
-    RSB_EXPORT static RetCodeHrpService HrpServiceOpenFile(const HrpServiceDirInfo& dirInfo,
-        const std::string& fileName, int32_t flags, int& outFd);
-    RSB_EXPORT static RetCodeHrpService HrpServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
-        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
 
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
@@ -605,6 +608,8 @@ public:
     RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
     RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes);
+    RSB_EXPORT static bool IsHrpServiceEnabled();
+    RSB_EXPORT static void SetHrpServiceEnabled(bool enabled);
     RSB_EXPORT static void JobMarshallingKillPid(pid_t pid);
     RSB_EXPORT static void JobMarshallingKillPidEnd();
     RSB_EXPORT static bool IsFirstFrameParcel(const Parcel& parcel);
@@ -678,7 +683,6 @@ private:
     RSB_EXPORT static void SetMode(Mode mode);
     RSB_EXPORT static void SetSubMode(SubMode mode);
     RSB_EXPORT static bool IsEnabled();
-    RSB_EXPORT static bool IsHrpServiceEnabled();
 
     RSB_EXPORT static uint32_t GetCommandCount();
     RSB_EXPORT static uint32_t GetCommandExecuteCount();
@@ -700,7 +704,6 @@ private:
     RSB_EXPORT static void TimePauseClear();
     RSB_EXPORT static uint64_t TimePauseGet();
 
-    RSB_EXPORT static bool IsSecureScreen();
     RSB_EXPORT static bool IsPowerOffScreen();
 
     RSB_EXPORT static std::shared_ptr<RSScreenRenderNode> GetScreenNode(const RSContext& context);
@@ -723,8 +726,8 @@ private:
         bool skipDrawCmdMoifiers = false, bool isBetaRecording = false);
     RSB_EXPORT static void MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
         bool skipDrawCmdModifiers, bool isBetaRecording);
-    RSB_EXPORT static bool MarshalDrawCmdModifiers(const ModifierNG::RSRenderModifier& modifier, std::stringstream& data,
-        bool skipDrawCmdModifiers, bool isBetaRecording);
+    RSB_EXPORT static bool MarshalDrawCmdModifiers(const ModifierNG::RSRenderModifier& modifier,
+        std::stringstream& data, bool skipDrawCmdModifiers, bool isBetaRecording);
 
     RSB_EXPORT static std::string UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);
@@ -969,7 +972,6 @@ private:
     RSB_EXPORT static std::unordered_map<AnimationId, int64_t> animationsTimes_;
 
     friend class TestTreeBuilder;
-    friend class RSClientToServiceConnection;
 
     using LogicalDisplayChildren =
         std::unordered_map<std::shared_ptr<RSLogicalDisplayRenderNode>, std::vector<RSRenderNode::SharedPtr>>;

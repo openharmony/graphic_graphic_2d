@@ -20,6 +20,8 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <sstream>
+#include <thread>
 #include <utility>
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -136,6 +138,8 @@ static void InitRsDrawableSlotToIndexVec()
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.shadowIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::MATERIAL_SHADER)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.materialShaderIndex_ = index;};
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::SAVE_CLIP_TO_BOUNDS)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.saveClipToBoundsIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::BG_SAVE_BOUNDS)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.bgSaveBoundsIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] =
@@ -204,6 +208,7 @@ bool RSRenderNode::IsPureBackgroundColor(bool isOpincSplit) const
 
     static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
         RSDrawableSlot::SAVE_ALL,
+        RSDrawableSlot::SAVE_CLIP_TO_BOUNDS,
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
         RSDrawableSlot::BACKGROUND_COLOR,
@@ -311,7 +316,7 @@ static inline bool IsPurgeAble()
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : isTextureExportNode_(isTextureExportNode), id_(id), context_(context),
-    drawableVec_(std::make_unique<RSDrawable::Vec>())
+    drawableVec_(std::make_unique<RSDrawable::Vec>()), animationManager_(std::make_shared<RSAnimationManager>())
 {
     RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
 }
@@ -319,7 +324,7 @@ RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, b
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : isOnTheTree_(isOnTheTree), isTextureExportNode_(isTextureExportNode), id_(id), context_(context),
-    drawableVec_(std::make_unique<RSDrawable::Vec>())
+    drawableVec_(std::make_unique<RSDrawable::Vec>()), animationManager_(std::make_shared<RSAnimationManager>())
 {
     RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
 }
@@ -1412,6 +1417,10 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
             out += "WINDOW_KEYFRAME_NODE";
             break;
         }
+        case RSRenderNodeType::PROTECTIVE_SOLID_NODE: {
+            out += "PROTECTIVE_SOLID_NODE";
+            break;
+        }
         default: {
             out += "UNKNOWN_NODE";
             break;
@@ -1760,6 +1769,13 @@ void RSRenderNode::FallbackAnimationsToRoot()
     if (!animationManager_ || animationManager_->animations_.empty()) {
         return;
     }
+    if (RSAnimationManager::mainThreadId_ != std::thread::id {}) {
+        if (auto currentTid = std::this_thread::get_id(); currentTid != RSAnimationManager::mainThreadId_) {
+            std::ostringstream oss;
+            oss << "mainThreadId=" << RSAnimationManager::mainThreadId_ << ", currentTid=" << currentTid;
+            ROSEN_LOGE("RSRenderNode::FallbackAnimationsToRoot, not on main thread, %{public}s", oss.str().c_str());
+        }
+    }
 
     auto context = GetContext().lock();
     if (!context) {
@@ -1842,10 +1858,6 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
     auto animateResult = animationManager_->Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
-    }
-    if (animationManager_->animations_.empty() && animationManager_->pendingCancelAnimation_.empty()) {
-        animationManager_.reset();
-        ROSEN_LOGD("%{public}s: animationManager reset", __func__);
     }
     return animateResult;
 }
@@ -3547,6 +3559,9 @@ void RSRenderNode::UpdateDisplayList()
 
     // Update index of MATERIAL_SHADER
     stagingDrawCmdIndex_.materialShaderIndex_ = AppendDrawFunc(RSDrawableSlot::MATERIAL_SHADER);
+
+    // Update index of SAVE_CLIP_TO_BOUNDS
+    stagingDrawCmdIndex_.saveClipToBoundsIndex_ = AppendDrawFunc(RSDrawableSlot::SAVE_CLIP_TO_BOUNDS);
     
     stagingDrawCmdIndex_.renderGroupBeginIndex_ = stagingDrawCmdList_.size();
     stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
@@ -3638,7 +3653,7 @@ void RSRenderNode::UpdateDisplayListExt()
     int8_t index = 0;
     // Track the last valid index at each slot range boundary for computing derived indexes.
     // Value is -1 if no drawable in that range; derived index = lastIdx + 1 (yields 0 when empty).
-    int8_t lastIdxUpToMaterialShader = -1;
+    int8_t lastIdxUpToSaveClipToBounds = -1;
     int8_t lastIdxUpToContentStyle = -1;
     int8_t lastIdxUpToChildren = -1;
     int8_t lastIdxUpToRestoreFrame = -1;
@@ -3652,8 +3667,8 @@ void RSRenderNode::UpdateDisplayListExt()
         if (func) {
             func(stagingDrawCmdIndex_, index);
         }
-        if (slot <= static_cast<int8_t>(RSDrawableSlot::MATERIAL_SHADER)) {
-            lastIdxUpToMaterialShader = index;
+        if (slot <= static_cast<int8_t>(RSDrawableSlot::SAVE_CLIP_TO_BOUNDS)) {
+            lastIdxUpToSaveClipToBounds = index;
         }
         if (slot <= static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)) {
             lastIdxUpToContentStyle = index;
@@ -3669,8 +3684,8 @@ void RSRenderNode::UpdateDisplayListExt()
         }
         index++;
     }
-    stagingDrawCmdIndex_.renderGroupBeginIndex_ = lastIdxUpToMaterialShader + 1;
-    stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = lastIdxUpToMaterialShader + 1;
+    stagingDrawCmdIndex_.renderGroupBeginIndex_ = lastIdxUpToSaveClipToBounds + 1;
+    stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = lastIdxUpToSaveClipToBounds + 1;
     stagingDrawCmdIndex_.backgroundEndIndex_ = stagingDrawCmdIndex_.contentIndex_ == -1
         ? lastIdxUpToContentStyle + 1 : stagingDrawCmdIndex_.contentIndex_;
     stagingDrawCmdIndex_.foregroundBeginIndex_ = lastIdxUpToChildren + 1;
@@ -4376,6 +4391,9 @@ void RSRenderNode::SetChildHasVisibleFilter(bool val)
 {
     childHasVisibleFilter_ = val;
 #ifdef RS_ENABLE_GPU
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
     stagingRenderParams_->SetChildHasVisibleFilter(val);
 #endif
 }
@@ -4383,6 +4401,9 @@ void RSRenderNode::SetChildHasVisibleEffect(bool val)
 {
     childHasVisibleEffect_ = val;
 #ifdef RS_ENABLE_GPU
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
     stagingRenderParams_->SetChildHasVisibleEffect(val);
 #endif
 }
@@ -4482,9 +4503,12 @@ void RSRenderNode::DestroyAnimationInRender()
     }
 }
 
-void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+bool RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    GetOrCreateAnimationManager()->AddAnimation(animation);
+    if (auto mgr = GetOrCreateAnimationManager()) {
+        return mgr->AddAnimation(animation);
+    }
+    return false;
 }
 
 RectI RSRenderNode::GetOldDirty() const
@@ -4647,31 +4671,6 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType() const
         }
     }
     return NodeGroupType::NONE;
-}
-
-void RSRenderNode::SyncWhiteListInfoToParent()
-{
-    if (auto nodeParent = GetParent().lock()) {
-        auto& parentParams = nodeParent->GetStagingRenderParams();
-        parentParams->AddScreensWithSubTreeWhitelist(
-            stagingRenderParams_->GetScreensWithSubTreeWhitelist());
-    }
-}
-
-void RSRenderNode::AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (stagingRenderParams_ == nullptr) {
-        return;
-    }
-    stagingRenderParams_->AddScreensWithSubTreeWhitelist(screenIds);
-}
-
-void RSRenderNode::SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (stagingRenderParams_ == nullptr) {
-        return;
-    }
-    stagingRenderParams_->SetScreensWithSubTreeWhitelist(screenIds);
 }
 
 void RSRenderNode::MarkNonGeometryChanged()
@@ -5646,19 +5645,6 @@ void RSRenderNode::NodePostPrepare(
     UpdateAbsDrawRect();
     ResetChangeState();
     SetHasUnobscuredUEC();
-    // only container nodes outside the surfaceNode need to mark whitelist info
-    if (curSurfaceNode == nullptr) {
-        SyncWhiteListInfoToParent();
-    }
-}
-
-RSDrawable::Vec& RSRenderNode::GetDrawableVec(const char* func) const
-{
-    if (UNLIKELY(!drawableVec_)) {
-        drawableVec_ = std::make_unique<RSDrawable::Vec>();
-        ROSEN_LOGD("drawableVec_ is nullptr, %{public}s", func);
-    }
-    return *drawableVec_;
 }
 
 void RSRenderNode::InitRenderDrawableAndDrawableVec()

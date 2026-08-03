@@ -53,6 +53,7 @@ public:
     virtual void Purge() {};
     virtual bool IsValid() {return false;};
     virtual void Dump(std::string& dump) {};
+    virtual void FlushImageCache() {};
     virtual NodeId GetNodeId() const
     {
         return 0;
@@ -68,6 +69,7 @@ public:
         SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) {};
     virtual void SetNodeId(NodeId id) {};
     virtual void Purge() {};
+    virtual void FlushImageCache() {};
 };
 
 class DRAWING_API ExtendImageNineObject {
@@ -79,6 +81,7 @@ public:
         FilterMode filterMode) {};
     virtual void SetNodeId(NodeId id) {};
     virtual void Purge() {};
+    virtual void FlushImageCache() {};
 };
 
 class DRAWING_API ExtendImageLatticeObject {
@@ -90,6 +93,7 @@ public:
         FilterMode filterMode) {};
     virtual void SetNodeId(NodeId id) {};
     virtual void Purge() {};
+    virtual void FlushImageCache() {};
 };
 
 class DRAWING_API ExtendDrawFuncObj {
@@ -330,6 +334,13 @@ public:
      * @brief  return DrawFuncObj index, negative is error.
      */
     uint32_t AddDrawFuncOjb(const std::shared_ptr<ExtendDrawFuncObj>& object);
+
+    /*
+     * @brief  Flush CPU cache for all PixelMaps referenced by image objects in this CmdList.
+     *         Used when DrawCmdList is consumed directly (without IPC Marshalling) on GPU,
+     *         to ensure CPU-written PixelMap data is visible to GPU.
+     */
+    void FlushImageCache();
 
     /*
      * @brief  get DrawFuncObj by index.

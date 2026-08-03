@@ -25,6 +25,7 @@
 #include "egl_wrapper_context.h"
 #include "egl_wrapper_display.h"
 #include "egl_wrapper_loader.h"
+#include "egl_wrapper_entry.h"
 #include "thread_private_data_ctl.h"
 #include "wrapper_log.h"
 #include "egl_blob_cache.h"
@@ -230,12 +231,13 @@ EGLDisplay EglGetCurrentDisplayImpl(void)
     ClearError();
     EGLContext ctx = ThreadPrivateDataCtl::GetContext();
     if (ctx) {
-        EglWrapperContext *ctxPtr = EglWrapperContext::GetWrapperContext(ctx);
-        if (ctxPtr == nullptr) {
+        if (!EglWrapperDisplay::ValidateEglContext(ctx)) {
             WLOGE("current is bad context.");
+            ThreadPrivateDataCtl::SetContext(nullptr);
             ThreadPrivateDataCtl::SetError(EGL_BAD_CONTEXT);
             return EGL_NO_DISPLAY;
         }
+        EglWrapperContext *ctxPtr = EglWrapperContext::GetWrapperContext(ctx);
         return ctxPtr->GetDisplay();
     }
     return EGL_NO_DISPLAY;
@@ -323,6 +325,10 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
 {
     ClearError();
     WLOGD("");
+    if (procname == nullptr) {
+        WLOGE("eglGetProcAddress procname is nullptr.");
+        return nullptr;
+    }
     if (gExtensionMap.find(procname) != gExtensionMap.end()) {
         return gExtensionMap.at(procname);
     }

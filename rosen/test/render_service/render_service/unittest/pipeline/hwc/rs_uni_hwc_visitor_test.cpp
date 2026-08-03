@@ -2730,8 +2730,9 @@ HWTEST_F(RSUniHwcVisitorTest, IsDisableHwcOnExpandScreen001, TestSize.Level2)
     rsUniRenderVisitor->curScreenNode_ = screenNode3;
     HWCParam::SetDisableHwcOnExpandScreen(false);
     EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
+    // screenId 5 is a primary screen, HWCNode should not be disabled by HWCParam anymore
     HWCParam::SetDisableHwcOnExpandScreen(true);
-    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
+    EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
 }
 
 /**
@@ -2925,40 +2926,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRect_005, Function | SmallTest | 
 }
 
 /**
- * @tc.name: UpdateHwcNodeMatrix_001
- * @tc.desc: Test UpdateHwcNodeMatrix Function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeMatrix_001, TestSize.Level2)
-{
-    NodeId nodeId = 1;
-    auto surfaceNode = std::make_shared<RSRenderNode>(nodeId);
-    surfaceNode->InitRenderParams();
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    Drawing::Matrix matrix;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeMatrix(surfaceNode, matrix);
-    Drawing::Matrix expectedMatrix;
-    EXPECT_EQ(matrix, expectedMatrix);
-}
-
-/**
- * @tc.name: UpdateHwcNodeMatrix_002
- * @tc.desc: Test UpdateHwcNodeMatrix Function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeMatrix_002, TestSize.Level2)
-{
-    auto surfaceNode = nullptr;
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    Drawing::Matrix matrix;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeMatrix(surfaceNode, matrix);
-    Drawing::Matrix expectedMatrix;
-    EXPECT_EQ(matrix, expectedMatrix);
-}
-
-/**
  * @tc.name: UpdateHwcNodeClipRectAndMatrix_001
  * @tc.desc: Test UpdateHwcNodeClipRectAndMatrix
  * @tc.type: FUNC
@@ -3006,14 +2973,296 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_001, Function | Sma
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
     rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
+    // Trigger the guard (visitor dirtyFlag_) so the top-down refresh runs and computes each
+    // ancestor's absMatrix_, which the function reads back as the chain transform (matrix output).
+    rsUniRenderVisitor->dirtyFlag_ = true;
     RectI clipRect;
     Drawing::Matrix matrix;
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(surfaceNode, *rootNode, clipRect, matrix);
+    // clipRect still comes from the bottom-up clip accumulation mapped by rootNode.absMatrix.
     RectI expectedClipRect = {50, 10, 20, 30};
-    Drawing::Matrix expectedMatrix;
-    expectedMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
     EXPECT_EQ(clipRect, expectedClipRect);
-    EXPECT_EQ(matrix, expectedMatrix);
+    // matrix output is now hwcNode's direct-parent (canvasNode2) absMatrix (the chain transform,
+    // including inter-node offset bridging) -- read it back for direct comparison.
+    EXPECT_EQ(matrix, canvasNode2->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeClipRectAndMatrix_002
+ * @tc.desc: Verify intermediate ancestor boundsGeo_ is refreshed top-down in a skipped subtree,
+ *           so that later up-traversal intersection/occlusion checks read correct GetAbsRect().
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_002, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
+    leashWindowNode->InitRenderParams();
+    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
+    rootNode->InitRenderParams();
+    // Two-level ancestor chain: rootNode -> canvasNode1 -> canvasNode2 -> surfaceNode.
+    // Their bounds positions act as translations (no trans_ set, so UpdateAbsMatrix2D uses x_, y_).
+    auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode1->InitRenderParams();
+    canvasNode1->renderProperties_.boundsGeo_->SetRect(10, 20, 100, 100); // translate(10, 20)
+    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode2->InitRenderParams();
+    canvasNode2->renderProperties_.boundsGeo_->SetRect(5, 5, 50, 50);     // translate(5, 5)
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    surfaceNode->InitRenderParams();
+    surfaceNode->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);
+    surfaceNode->renderProperties_.clipToBounds_ = true;
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->isHardwareEnabledNode_ = true;
+    leashWindowNode->AddChild(rootNode);
+    rootNode->AddChild(canvasNode1);
+    canvasNode1->AddChild(canvasNode2);
+    canvasNode2->AddChild(surfaceNode);
+    // Simulate the stale ancestor absMatrix that a real skipped subtree would carry in.
+    Drawing::Matrix staleMatrix;
+    staleMatrix.SetMatrix(1.f, 0.f, 999.f, 0.f, 1.f, 999.f, 0.f, 0.f, 1.f);
+    canvasNode1->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
+    canvasNode2->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
+    rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
+    // The ancestor refresh is gated on the visitor's dirtyFlag_ (accumGeoDirty). Set it so the
+    // guard triggers the refresh (models "parent chain moved").
+    rsUniRenderVisitor->dirtyFlag_ = true;
+    RectI clipRect;
+    Drawing::Matrix matrix;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(surfaceNode, *rootNode, clipRect, matrix);
+
+    // canvasNode1 refreshed from rootNode(identity): absMatrix = translate(10, 20).
+    Drawing::Matrix expectedAbsMatrix1;
+    expectedAbsMatrix1.SetMatrix(1.f, 0.f, 10.f, 0.f, 1.f, 20.f, 0.f, 0.f, 1.f);
+    EXPECT_EQ(canvasNode1->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedAbsMatrix1);
+    EXPECT_EQ(canvasNode1->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(10, 20, 100, 100));
+    // canvasNode2 refreshed from the already-refreshed canvasNode1: absMatrix = translate(10+5, 20+5).
+    Drawing::Matrix expectedAbsMatrix2;
+    expectedAbsMatrix2.SetMatrix(1.f, 0.f, 15.f, 0.f, 1.f, 25.f, 0.f, 0.f, 1.f);
+    EXPECT_EQ(canvasNode2->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedAbsMatrix2);
+    EXPECT_EQ(canvasNode2->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(15, 25, 50, 50));
+}
+
+/**
+ * @tc.name: UpdateHwcNodeClipRectAndMatrix_003
+ * @tc.desc: Verify the ancestor refresh is skipped (static-scene fast path) when the hwcNode's
+ *           absolute transform is unchanged since the previous frame.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_003, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
+    leashWindowNode->InitRenderParams();
+    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
+    rootNode->InitRenderParams();
+    auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode1->InitRenderParams();
+    canvasNode1->renderProperties_.boundsGeo_->SetRect(10, 20, 100, 100);
+    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode2->InitRenderParams();
+    canvasNode2->renderProperties_.boundsGeo_->SetRect(5, 5, 50, 50);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    surfaceNode->InitRenderParams();
+    surfaceNode->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);
+    surfaceNode->renderProperties_.clipToBounds_ = true;
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->isHardwareEnabledNode_ = true;
+    leashWindowNode->AddChild(rootNode);
+    rootNode->AddChild(canvasNode1);
+    canvasNode1->AddChild(canvasNode2);
+    canvasNode2->AddChild(surfaceNode);
+    // Stale ancestor geometry that must be left untouched when the refresh is skipped.
+    Drawing::Matrix staleMatrix;
+    staleMatrix.SetMatrix(1.f, 0.f, 999.f, 0.f, 1.f, 999.f, 0.f, 0.f, 1.f);
+    canvasNode1->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
+    canvasNode2->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
+    // dirtyFlag_ is left false (visitor clean), i.e. the subtree is static -> the guard must skip
+    // the ancestor refresh.
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
+    rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
+    RectI clipRect;
+    Drawing::Matrix matrix;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(surfaceNode, *rootNode, clipRect, matrix);
+
+    // Ancestor boundsGeo_ NOT refreshed: absMatrix stays at the stale value.
+    EXPECT_EQ(canvasNode1->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), staleMatrix);
+    EXPECT_EQ(canvasNode2->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), staleMatrix);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeClipRectAndMatrix_004
+ * @tc.desc: Verify a surface ancestor with GetGlobalPositionEnabled folds the prepared display
+ *           offset into its refreshed geometry, matching RSRenderNode::UpdateDrawRect case b.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_004, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
+    leashWindowNode->InitRenderParams();
+    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
+    rootNode->InitRenderParams();
+    // Intermediate surface ancestor with global position enabled (multi-display): the prepared
+    // display offset must be subtracted when refreshing its geometry.
+    auto surfaceAncestor = std::make_shared<RSSurfaceRenderNode>(++id);
+    surfaceAncestor->InitRenderParams();
+    surfaceAncestor->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);
+    surfaceAncestor->SetGlobalPositionEnabled(true);
+    surfaceAncestor->SetPreparedDisplayOffsetX(100);
+    surfaceAncestor->SetPreparedDisplayOffsetY(200);
+    auto hwcNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    hwcNode->InitRenderParams();
+    hwcNode->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);
+    hwcNode->renderProperties_.clipToBounds_ = true;
+    hwcNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    hwcNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    hwcNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    hwcNode->isHardwareEnabledNode_ = true;
+    leashWindowNode->AddChild(rootNode);
+    rootNode->AddChild(surfaceAncestor);
+    surfaceAncestor->AddChild(hwcNode);
+    // Seed a stale ancestor absMatrix.
+    Drawing::Matrix staleMatrix;
+    staleMatrix.SetMatrix(1.f, 0.f, 999.f, 0.f, 1.f, 999.f, 0.f, 0.f, 1.f);
+    surfaceAncestor->renderProperties_.boundsGeo_->SetAbsMatrix(staleMatrix);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
+    rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
+    // Set the visitor's dirtyFlag_ so the guard fires.
+    rsUniRenderVisitor->dirtyFlag_ = true;
+    RectI clipRect;
+    Drawing::Matrix matrix;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(hwcNode, *rootNode, clipRect, matrix);
+
+    // parent(identity) then PreTranslate(-offsetX, -offsetY) -> translate(-100, -200).
+    Drawing::Matrix expectedAbsMatrix;
+    expectedAbsMatrix.SetMatrix(1.f, 0.f, -100.f, 0.f, 1.f, -200.f, 0.f, 0.f, 1.f);
+    EXPECT_EQ(surfaceAncestor->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedAbsMatrix);
+    EXPECT_EQ(surfaceAncestor->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(-100, -200, 50, 50));
+}
+
+/**
+ * @tc.name: UpdateHwcNodeClipRectAndMatrix_005
+ * @tc.desc: Cover the ancestors.empty() branch: hwcNode hangs directly off rootNode (no
+ *           intermediate ancestor), so the chain transform equals rootNode.absMatrix.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_005, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
+    leashWindowNode->InitRenderParams();
+    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
+    rootNode->InitRenderParams();
+    // Give rootNode a non-trivial absMatrix so the branch result is observable (not identity==identity).
+    Drawing::Matrix rootAbsMatrix;
+    rootAbsMatrix.SetMatrix(1.f, 0.f, 100.f, 0.f, 1.f, 100.f, 0.f, 0.f, 1.f);
+    rootNode->renderProperties_.boundsGeo_->SetAbsMatrix(rootAbsMatrix);
+    // hwcNode is a DIRECT child of rootNode -> the ancestors vector collected inside
+    // UpdateHwcNodeClipRectAndMatrix is empty, exercising the ancestors.empty() branch.
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    surfaceNode->InitRenderParams();
+    surfaceNode->renderProperties_.boundsGeo_->SetRect(10, 20, 50, 50); // own matrix translate(10, 20)
+    surfaceNode->renderProperties_.clipToBounds_ = true;
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->isHardwareEnabledNode_ = true;
+    leashWindowNode->AddChild(rootNode);
+    rootNode->AddChild(surfaceNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
+    rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
+    rsUniRenderVisitor->dirtyFlag_ = true; // trigger guard -> refresh runs
+    RectI clipRect;
+    Drawing::Matrix matrix;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(surfaceNode, *rootNode, clipRect, matrix);
+
+    // ancestors.empty() branch: chain transform = rootNode.absMatrix directly (no parent.absMatrix_).
+    EXPECT_EQ(matrix, rootAbsMatrix);
+    Drawing::Matrix expectedHwcAbs;
+    expectedHwcAbs.SetMatrix(1.f, 0.f, 110.f, 0.f, 1.f, 120.f, 0.f, 0.f, 1.f);
+    EXPECT_EQ(surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedHwcAbs);
+    EXPECT_EQ(surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(110, 120, 50, 50));
+}
+
+/**
+ * @tc.name: RefreshAncestorGeometryInSkippedSubTree_001
+ * @tc.desc: Verify the helper is a no-op for empty/nullptr ancestors and a null hwcNode leaf.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, RefreshAncestorGeometryInSkippedSubTree_001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
+    rootNode->InitRenderParams();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    surfaceNode->InitRenderParams();
+    rootNode->AddChild(surfaceNode);
+    // surfaceNode is NOT passed as the hwcNode leaf (nullptr), so its boundsGeo_ must stay untouched.
+    Drawing::Matrix surfaceAbsMatrix;
+    surfaceAbsMatrix.SetMatrix(1.f, 0.f, 7.f, 0.f, 1.f, 8.f, 0.f, 0.f, 1.f);
+    surfaceNode->renderProperties_.boundsGeo_->SetAbsMatrix(surfaceAbsMatrix);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    std::vector<std::shared_ptr<RSRenderNode>> emptyAncestors;
+    rsUniRenderVisitor->hwcVisitor_->RefreshAncestorGeometryInSkippedSubTree(nullptr, *rootNode, emptyAncestors);
+    EXPECT_EQ(surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), surfaceAbsMatrix);
+
+    std::vector<std::shared_ptr<RSRenderNode>> ancestors;
+    ancestors.push_back(nullptr);
+    rsUniRenderVisitor->hwcVisitor_->RefreshAncestorGeometryInSkippedSubTree(nullptr, *rootNode, ancestors);
+    EXPECT_EQ(surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), surfaceAbsMatrix);
+}
+
+/**
+ * @tc.name: RefreshAncestorGeometryInSkippedSubTree_002
+ * @tc.desc: Verify the helper updates the hwcNode leaf's boundsGeo_ (offset = nullopt) as the last
+ *           top-down step, using the direct-parent absMatrix as the chain transform.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, RefreshAncestorGeometryInSkippedSubTree_002, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
+    rootNode->InitRenderParams();
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode->InitRenderParams();
+    canvasNode->renderProperties_.boundsGeo_->SetRect(10, 20, 100, 100); // translate(10, 20)
+    auto hwcNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    hwcNode->InitRenderParams();
+    hwcNode->renderProperties_.boundsGeo_->SetRect(0, 0, 50, 50);        // own matrix = identity
+    rootNode->AddChild(canvasNode);
+    canvasNode->AddChild(hwcNode);
+    std::vector<std::shared_ptr<RSRenderNode>> ancestors = {canvasNode};
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->hwcVisitor_->RefreshAncestorGeometryInSkippedSubTree(hwcNode, *rootNode, ancestors);
+
+    // canvasNode refreshed from rootNode(identity): absMatrix = translate(10, 20).
+    Drawing::Matrix expectedCanvasAbs;
+    expectedCanvasAbs.SetMatrix(1.f, 0.f, 10.f, 0.f, 1.f, 20.f, 0.f, 0.f, 1.f);
+    EXPECT_EQ(canvasNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedCanvasAbs);
+    // hwcNode leaf refreshed with offset=nullopt: absMatrix = parent.absMatrix (chain) * own matrix_.
+    EXPECT_EQ(hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix(), expectedCanvasAbs);
+    EXPECT_EQ(hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect(), RectI(10, 20, 50, 50));
 }
 
 /**

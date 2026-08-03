@@ -41,6 +41,7 @@ constexpr uint8_t PRIORITY_FOR_SMALLSCREEN = 1;
 constexpr uint8_t PRIORITY_FOR_VIDEO_EFFECT = 2;
 constexpr uint8_t RESERVED_INDEX_FOR_NODE_ID = 0;
 constexpr uint8_t RESERVED_INDEX_FOR_CACHE = 1;
+constexpr uint8_t RESERVED_INDEX_FOR_DIM = 2;
 constexpr uint16_t DECODE_SPEED_BASE = 100;
 constexpr const char* const VIDEO_RATE_KEY = "rate";
 constexpr const char* const VIDEO_DECSPEED_KEY = "decSpeed";
@@ -109,6 +110,7 @@ void RSTvMetadataManager::CopyTvMetadataToSurface(std::shared_ptr<RSSurfaceOhos>
     uiFrameCnt++;
     metadata->uiFrameCnt = uiFrameCnt;
     metadata->dpPixFmt = metadata_.dpPixFmt; // use new
+    metadata->reserved[RESERVED_INDEX_FOR_DIM] = videoDimType_ & 0x0f;
     if (MetadataHelper::SetVideoTVMetadata(buffer, *metadata) != GSERROR_OK) {
         RS_LOGE("SetVideoTVMetadata failed!");
     }
@@ -321,5 +323,10 @@ int32_t RSTvMetadataManager::SendVideoRateInfo(const std::unordered_map<std::str
     }
     RS_LOGI("SendVideoRateInfo rate:%{public}d, decSpeed:%{public}d", rate, decSpeed);
     return 0;
+}
+
+void RSTvMetadataManager::SetVideoDimType(uint32_t dimType)
+{
+    videoDimType_ = dimType;
 }
 } // namespace OHOS::Rosen

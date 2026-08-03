@@ -69,6 +69,18 @@ public:
     std::string GetOcclusionNodeInfoString();
 
 protected:
+    static constexpr int16_t HALF_INT16_MAX = INT16_MAX / 2;
+
+    static const RectF GetMaxValidRectF()
+    {
+        return RectF(-HALF_INT16_MAX, -HALF_INT16_MAX, INT16_MAX, INT16_MAX);
+    }
+
+    static const RectI GetMaxValidRectI()
+    {
+        return RectI(-HALF_INT16_MAX, -HALF_INT16_MAX, INT16_MAX, INT16_MAX);
+    }
+
     bool Contains3dTransformation(const RSProperties& renderProperties) const
     {
         return !ROSEN_EQ(renderProperties.GetTranslateZ(), 0.f) || !ROSEN_EQ(renderProperties.GetRotationX(), 0.f) ||
@@ -78,26 +90,17 @@ protected:
             !ROSEN_EQ(renderProperties.GetPerspZ(), 0.f) || !ROSEN_EQ(renderProperties.GetPerspW(), 1.f);
     }
 
-    int16_t SafeCast(float value) const
-    {
-        return static_cast<int16_t>(std::clamp(value, static_cast<float>(INT16_MIN), static_cast<float>(INT16_MAX)));
-    }
-
-    int16_t SafeCast(int value) const
-    {
-        return static_cast<int16_t>(std::clamp(value, INT16_MIN, INT16_MAX));
-    }
-
     RectI16 ComputeOuter(const RectF& drawRect) const
     {
         if (drawRect.IsEmpty()) {
             return RectI16();
         }
-        auto left = SafeCast(std::floor(drawRect.GetLeft()));
-        auto right = SafeCast(std::ceil(drawRect.GetRight()));
-        auto top = SafeCast(std::floor(drawRect.GetTop()));
-        auto bottom = SafeCast(std::ceil(drawRect.GetBottom()));
-        return (left >= right || top >= bottom) ? RectI16() : RectI16(left, top, right - left, bottom - top);
+        auto left = std::floor(drawRect.GetLeft());
+        auto right = std::ceil(drawRect.GetRight());
+        auto top = std::floor(drawRect.GetTop());
+        auto bottom = std::ceil(drawRect.GetBottom());
+        auto dstDrawRect = RectF(left, top, right - left, bottom - top);
+        return GetMaxValidRectF().IntersectRect(dstDrawRect).ConvertTo<int16_t>();
     }
 
     RectI16 ComputeOuter(const RectI& drawRect) const
@@ -105,11 +108,7 @@ protected:
         if (drawRect.IsEmpty()) {
             return RectI16();
         }
-        auto left = SafeCast(drawRect.GetLeft());
-        auto right = SafeCast(drawRect.GetRight());
-        auto top = SafeCast(drawRect.GetTop());
-        auto bottom = SafeCast(drawRect.GetBottom());
-        return (left >= right || top >= bottom) ? RectI16() : RectI16(left, top, right - left, bottom - top);
+        return GetMaxValidRectI().IntersectRect(drawRect).ConvertTo<int16_t>();
     }
 
     RectI16 ComputeInner(const RectF& drawRect, const Vector4f& cornerRadius) const
@@ -117,11 +116,12 @@ protected:
         if (drawRect.IsEmpty()) {
             return RectI16();
         }
-        auto left = SafeCast(std::ceil(drawRect.GetLeft()));
-        auto right = SafeCast(std::floor(drawRect.GetRight()));
-        auto top = SafeCast(std::ceil(drawRect.GetTop() + std::max(cornerRadius.x_, cornerRadius.y_)));
-        auto bottom = SafeCast(std::floor(drawRect.GetBottom() - std::max(cornerRadius.w_, cornerRadius.z_)));
-        return (left >= right || top >= bottom) ? RectI16() : RectI16(left, top, right - left, bottom - top);
+        auto left = std::ceil(drawRect.GetLeft());
+        auto right = std::floor(drawRect.GetRight());
+        auto top = std::ceil(drawRect.GetTop() + std::max(cornerRadius.x_, cornerRadius.y_));
+        auto bottom = std::floor(drawRect.GetBottom() - std::max(cornerRadius.w_, cornerRadius.z_));
+        auto dstDrawRect = RectF(left, top, right - left, bottom - top);
+        return GetMaxValidRectF().IntersectRect(dstDrawRect).ConvertTo<int16_t>();
     }
 
     RectI16 ComputeInner(const RRect& clipRRect) const

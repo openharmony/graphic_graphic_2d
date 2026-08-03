@@ -57,19 +57,19 @@ public:
     bool ProcessDelegateCompositeCommand(RSContext& context);
 
     bool RegisterReleaseListener(sptr<IConsumerSurface> cSurface);
-    void DumpInfo(std::string &dumpString);
+    void DumpInfo(std::string& dumpString);
 
     static void BufferDestructorCallback(uint64_t bufferId);
     bool PrepareBufferReleaseInfo(NodeId nodeId, uint64_t surfaceId,
         sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence, pid_t clientPid);
     bool ProcessBufferReleaseInfo(uint64_t bufferId);
-    void OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo> &infos, NodeId nodeId, uint64_t queueId);
-    void ProcessEachCommandQueue(std::queue<std::unique_ptr<RSCommand>> &cmdqueue, RSContext& context);
+    void OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo>& infos, NodeId nodeId, uint64_t queueId);
+    void ProcessEachCommandQueue(std::queue<std::unique_ptr<RSCommand>>& cmdqueue, RSContext& context);
 private:
     void AddBufferReleaseInfoInner(pid_t pid, OnCompletedRet& ret);
     void GetBufferReleaseInfo(std::map<pid_t, std::queue<OnCompletedRet>>& outmap);
-    void GetSurfaceTransactionCmdInfoLocked(std::map<uint64_t, std::queue<uint64_t>> &targetsListenerMap);
-    void DumpTotleInfo(std::string &dumpString);
+    void GetSurfaceTransactionCmdInfoLocked(std::map<uint64_t, std::queue<uint64_t>>& targetsListenerMap);
+    void DumpTotleInfo(std::string& dumpString);
     pid_t webProxyComposerTid_ = 0;
 
     std::mutex surfaceNodeBufferReleaseCallbackMapMutex_;

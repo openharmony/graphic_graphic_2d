@@ -294,6 +294,10 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
+    const DrawablesVec& GetProtectiveSolidDrawables() const
+    {
+        return protectiveSolidDrawables_;
+    }
     const auto& GetHardCursorDrawables() const
     {
         return hardCursorDrawableVec_;
@@ -528,24 +532,14 @@ public:
         return isSecurityExemption_;
     }
 
-    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect)
+    ScreenSpecialLayerParam& GetMutableScreenSpecialLayerParam()
     {
-        for (auto screenId : screenIds) {
-            whiteListRect_[screenId].push_back(rect);
-        }
+        return screenSpecialLayerParam_;
     }
 
-    std::vector<Drawing::Rect> GetWhiteListRectByScreenId(ScreenId screenId) const
+    const ScreenSpecialLayerParam& GetScreenSpecialLayerParam() const
     {
-        if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
-            return iter->second;
-        }
-        return {};
-    }
-
-    void ClearWhiteListRect()
-    {
-        whiteListRect_.clear();
+        return screenSpecialLayerParam_;
     }
 
     bool IsOverDrawEnabled() const
@@ -747,6 +741,7 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> canvasDrawingSelfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;
+    DrawablesVec protectiveSolidDrawables_;
     std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>> hardCursorDrawableVec_;
     uint32_t forceCommitReason_ = 0;
     bool hasMirrorDisplay_ = false;
@@ -783,7 +778,7 @@ private:
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
-    std::map<ScreenId, std::vector<Drawing::Rect>> whiteListRect_;
+    ScreenSpecialLayerParam screenSpecialLayerParam_;
     bool isSecurityExemption_ = false;
     // use to mark security display
     bool isSecurityDisplay_ = false;

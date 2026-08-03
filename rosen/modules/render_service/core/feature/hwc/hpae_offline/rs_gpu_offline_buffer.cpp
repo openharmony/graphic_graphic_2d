@@ -79,15 +79,14 @@ bool NativeWindowBufferInfo::Marshalling(Parcel &parcel) const
     return true;
 }
 
-NativeWindowBufferInfo *NativeWindowBufferInfo::Unmarshalling(Parcel &parcel, bool autoSeq)
+OHOS::sptr<NativeWindowBufferInfo> NativeWindowBufferInfo::Unmarshalling(Parcel &parcel, bool autoSeq)
 {
     MessageParcel* msgParcel = reinterpret_cast<MessageParcel*>(&parcel);
     if (msgParcel == nullptr) {
         return nullptr;
     }
-    NativeWindowBufferInfo *ret = new (std::nothrow) NativeWindowBufferInfo(autoSeq);
+    OHOS::sptr<NativeWindowBufferInfo> ret = new NativeWindowBufferInfo(autoSeq);
     if ((ret != nullptr) && (!ret->ReadFromParcel(*msgParcel))) {
-        delete ret;
         ret = nullptr;
     }
     return ret;
@@ -109,15 +108,15 @@ bool RSGPUOfflineBuffer::PreAllocBuffers(const BufferRequestConfig& config)
             return false;
         }
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSGPUOfflineBuffer::PreAllocBuffers");
-    GSError ret = pSurface_->PreAllocBuffers(config, 1); // single buffer
+    RS_OPTIONAL_TRACE_NAME_FMT("RSGPUOfflineBuffer::prealloc offline buffer.");
+    GSError ret = pSurface_->PreAllocBuffers(config, 1);  // single buffer
     if (ret != GSERROR_OK) {
         pSurface_->Connect();
         auto cleanRet = pSurface_->CleanCache(true);
-        RS_LOGW("RSGPUOfflineBuffer::PreAllocBuffers failed[%{public}d], cleanRet: %{public}d", ret, cleanRet);
+        RS_LOGW("RSGPUOfflineBuffer::prealloc buffer failed[%{public}d], ret: %{public}d", ret, cleanRet);
         return false;
     }
-    RS_LOGD("RSGPUOfflineBuffer::PreAllocBuffers success.");
+    RS_LOGD("RSGPUOfflineBuffer::prealloc buffer success.");
     return true;
 }
 
@@ -143,13 +142,14 @@ bool RSGPUOfflineBuffer::ConvertColorGamutToSpaceType(const GraphicColorGamut& c
     return true;
 }
 
+// reference to RSDisplayRenderNodeDrawable::RequestFrame
 std::unique_ptr<RSRenderFrame> RSGPUOfflineBuffer::RequestFrame(std::shared_ptr<RSBaseRenderEngine> renderEngine,
-    const BufferRequestConfig& config, bool isHebc)
+        const BufferRequestConfig& config, bool isHebc, SingleBufferMode switchType)
 {
-    RS_OPTIONAL_TRACE_NAME("RSGPUOfflineBuffer::RequestFrame");
+    RS_OPTIONAL_TRACE_NAME("RSGPUOfflineBuffer:RequestFrame");
     if (!surfaceCreated_) {
         sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler_);
-        RS_OPTIONAL_TRACE_NAME("RSGPUOfflineBuffer::CreateSurface");
+        RS_OPTIONAL_TRACE_NAME("create layer surface");
         if (!CreateSurface(listener)) {
             RS_LOGE("RSGPUOfflineBuffer::RequestFrame CreateSurface failed");
             return nullptr;
@@ -161,25 +161,27 @@ std::unique_ptr<RSRenderFrame> RSGPUOfflineBuffer::RequestFrame(std::shared_ptr<
     CM_ColorSpaceType colorSpace = CM_SRGB_FULL;
     if (ConvertColorGamutToSpaceType(config.colorGamut, colorSpace)) {
         if (pSurface_->SetUserData("ATTRKEY_COLORSPACE_INFO", std::to_string(colorSpace)) != GSERROR_OK) {
-            RS_LOGD("RSGPUOfflineBuffer::SetUserData failed");
+            RS_LOGD("RSGPUOfflineBuffer::set user data failed");
         }
     }
 #endif
     // clean cache when config changed, for single buffer
-    if (currentConfig_ != config) {
+    bool needFillSingleBuffer = false;
+    if (currentConfig_ != config || switchType != SingleBufferMode::SINGLE_BUFFER_MODE_NONE) {
         RS_LOGD("RSGPUOfflineBuffer::CleanCache when config changed");
+        RS_OPTIONAL_TRACE_NAME("RSGPUOfflineBuffer_CleanCache");
         CleanCache(true);
-        isFirstRequest_ = true;
+        needFillSingleBuffer = (switchType != SingleBufferMode::SINGLE_BUFFER_MODE_TO_MULTI);
     }
-    auto renderFrame = renderEngine->RequestFrame(
-        std::static_pointer_cast<RSSurfaceOhos>(rsSurface_), config, false, isHebc);
+    auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface_),
+        config, false, isHebc);
     if (!renderFrame) {
         RS_LOGE("RSGPUOfflineBuffer::RequestFrame renderEngine requestFrame is null");
         return nullptr;
     }
-    if (isFirstRequest_) {
+    if (needFillSingleBuffer) {
+        RS_OPTIONAL_TRACE_NAME("RSGPUOfflineBuffer_SwitchSingle");
         AttachSingleBuffer(renderFrame);
-        isFirstRequest_ = false;
     }
     currentConfig_ = config;
     return renderFrame;
@@ -190,19 +192,20 @@ bool RSGPUOfflineBuffer::AttachSingleBuffer(std::unique_ptr<RSRenderFrame>& rend
     auto info = NativeWindowBufferInfo(false);
     auto rsSurface = renderFrame->GetSurface();
     if (rsSurface == nullptr) {
-        RS_LOGD("RSGPUOfflineBuffer::AttachSingleBuffer rsSurface is null");
+        RS_LOGD("RSGPUOfflineBuffer::rsSurface is null.");
         return false;
     }
     auto dstBuffer = rsSurface->GetCurrentBuffer();
     if (dstBuffer == nullptr) {
-        RS_LOGD("RSGPUOfflineBuffer::AttachSingleBuffer dstbuffer is null");
+        RS_LOGD("RSGPUOfflineBuffer::dstBuffer is null.");
         return false;
     }
     uint64_t bufferQueueId = pSurface_->GetUniqueId();
     info.baseInfo.sfbuffer = dstBuffer;
     info.baseInfo.uiTimestamp = 0;
-    RS_LOGI("RSGPUOfflineBuffer::AttachSingleBuffer queueId=%llx",
-        static_cast<unsigned long long>(bufferQueueId));
+    RS_LOGI("client[0] %s %llx %x",
+        pSurface_->GetName().c_str(), static_cast<unsigned long long>(bufferQueueId),
+        info.baseInfo.sfbuffer->GetSeqNum());
     for (uint i = 0; i < bufferSize_ - 1; i++) {
         if (!CopyAndAttachBufferToQueue(info, pSurface_, bufferQueueId)) {
             return false;
@@ -218,7 +221,7 @@ bool RSGPUOfflineBuffer::CopyAndAttachBufferToQueue(NativeWindowBufferInfo& info
     bool addSuccess = false;
     MessageParcel msgParcel;
     info.Marshalling(msgParcel);
-    NativeWindowBufferInfo *tempInfo = NativeWindowBufferInfo::Unmarshalling(msgParcel, true);
+    OHOS::sptr<NativeWindowBufferInfo> tempInfo = NativeWindowBufferInfo::Unmarshalling(msgParcel, true);
     if (!tempInfo) {
         return false;
     }
@@ -234,15 +237,11 @@ bool RSGPUOfflineBuffer::CopyAndAttachBufferToQueue(NativeWindowBufferInfo& info
         if (producerSurface->CancelBuffer(sBuffer) != 0) {
             break;
         }
-        RS_LOGI("RSGPUOfflineBuffer::CopyAndAttachBufferToQueue %s %llx %x",
-            producerSurface->GetName().c_str(),
+        RS_LOGI("client[x] %s %llx %x", producerSurface->GetName().c_str(),
             (unsigned long long)bufferQueueId, sBuffer->GetSeqNum());
         addSuccess = true;
     } while (false);
-    if (tempInfo) {
-        delete tempInfo;
-    }
-    RS_LOGI("RSGPUOfflineBuffer::CopyAndAttachBufferToQueue succeeded!");
+    RS_LOGI("RSGPUOfflineBuffer::CopyAndAttachBufferToQueue successed!!!");
     return addSuccess;
 }
 
@@ -250,21 +249,20 @@ std::shared_ptr<RSSurfaceOhos> RSGPUOfflineBuffer::GetRSSurfaceOhos()
 {
     if (!surfaceCreated_) {
         sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler_);
-        RS_OPTIONAL_TRACE_NAME("RSGPUOfflineBuffer::CreateSurface");
+        RS_OPTIONAL_TRACE_NAME("RSGPUOfflineBuffer::create layer surface");
         if (!CreateSurface(listener)) {
-            RS_LOGE("RSGPUOfflineBuffer::GetRSSurfaceOhos CreateSurface failed");
+            RS_LOGE("RSGPUOfflineBuffer::RequestFrame CreateSurface failed");
             return nullptr;
         }
     }
-
     if (rsSurface_ == nullptr) {
-        RS_LOGE("RSGPUOfflineBuffer::GetRSSurfaceOhos surface is null");
+        RS_LOGE("RSGPUOfflineBuffer::RequestFrame: surface is null!");
         return nullptr;
     }
     return std::static_pointer_cast<RSSurfaceOhos>(rsSurface_);
 }
 
-// reference to RSGPUOfflineBuffer::CreateSurface
+// reference to RSScreenRenderNodeDrawable::CreateSurface
 bool RSGPUOfflineBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
 {
     auto consumer = surfaceHandler_->GetConsumer();
@@ -282,7 +280,6 @@ bool RSGPUOfflineBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
         RS_LOGE("RSGPUOfflineBuffer::CreateSurface RegisterConsumerListener fail");
         return false;
     }
-
     auto producer = consumer->GetProducer();
     pSurface_ = Surface::CreateSurfaceAsProducer(producer);
     if (!pSurface_) {
@@ -308,10 +305,10 @@ sptr<SurfaceBuffer> RSGPUOfflineBuffer::ConsumeAndGetBuffer()
 {
     if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler_) ||
         !surfaceHandler_->GetBuffer()) {
-            RS_LOGE("RSGPUOfflineBuffer::ConsumeAndGetBuffer failed. %{public}d",
-                !surfaceHandler_->GetBuffer());
-            return nullptr;
-        }
+        RS_LOGE("RSGPUOfflineBuffer::GetBuffer consume buffer failed. %{public}d",
+            !surfaceHandler_->GetBuffer());
+        return nullptr;
+    }
     if (surfaceHandler_->IsCurrentFrameBufferConsumed()) {
         auto offlinePreBufferCount = surfaceHandler_->GetPreBufferOwnerCount();
         if (offlinePreBufferCount) {
@@ -323,12 +320,12 @@ sptr<SurfaceBuffer> RSGPUOfflineBuffer::ConsumeAndGetBuffer()
 
 void RSGPUOfflineBuffer::CleanCache(bool cleanAll)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSGPUOfflineBuffer::CleanCache");
+    RS_OPTIONAL_TRACE_NAME_FMT("RSGPUOfflineBuffer::clean offline buffer cache.");
     if (pSurface_ != nullptr) {
         GSError ret = pSurface_->CleanCache(cleanAll);
         surfaceHandler_->CleanCache();
-        RS_LOGD("RSGPUOfflineBuffer::CleanCache, ret = %{public}d.", ret);
+        RS_LOGD("RSGPUOfflineBuffer::clean offline buffer cache, ret = %{public}d.", ret);
     }
 }
 
-} // namespace OHOS::Rosen
+} // OHOS::Rosen

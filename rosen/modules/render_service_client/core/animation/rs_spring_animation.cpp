@@ -89,7 +89,6 @@ void RSSpringAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderSprin
         ROSEN_LOGE("Failed to start spring animation, target is null!");
         return;
     }
-
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
     target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
     if (target->NeedForcedSendToRemote()) {

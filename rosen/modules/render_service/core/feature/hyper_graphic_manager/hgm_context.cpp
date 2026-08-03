@@ -77,7 +77,7 @@ void HgmContext::InitHgmUpdateCallback()
         });
     };
 
-    auto adaptiveVsyncUpdateCallbackTask = [this](bool isAdaptive, const std::string& gameNodeName) {
+    auto adaptiveVsyncUpdateCallbackTask = [this](int32_t isAdaptive, const std::string& gameNodeName) {
         renderServiceHandler_->PostTask([this, isAdaptive, gameNodeName] {
             hgmDataChangeTypes_.set(HgmDataChangeType::ADAPTIVE_VSYNC);
             isAdaptive_ = isAdaptive;
@@ -199,8 +199,8 @@ void HgmContext::AddScreenToHgm(const sptr<RSScreenProperty>& property)
             "[%{public}u * %{public}u]", screenId, property->GetWidth(), property->GetHeight(),
             capability.GetPhyWidth(), capability.GetPhyHeight());
         bool isSelfOwnedScreen = false;
-        if (hgmCore_.AddScreen(screenId, initModeId, screenSize,
-            isSelfOwnedScreen, scmFromHgm->GetScreenSupportedModes(screenId)) != EXEC_SUCCESS) {
+        if (hgmCore_.AddScreen(screenId, initModeId, screenSize, isSelfOwnedScreen,
+                               scmFromHgm->GetScreenSupportedModes(screenId)) != EXEC_SUCCESS) {
             HGM_LOGE("failed to add screen : %{public}" PRIu64, screenId);
             return;
         }

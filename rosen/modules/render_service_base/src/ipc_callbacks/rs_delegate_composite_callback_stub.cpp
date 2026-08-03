@@ -177,7 +177,7 @@ void SurfaceNodeBufferReleaseCallbackStub::UnRegisterReleaseBufferCallBack()
 #endif
 }
 
-GSError SurfaceNodeBufferReleaseCallbackStub::OnBufferComplete(std::queue<OnCompletedRet> &queue)
+GSError SurfaceNodeBufferReleaseCallbackStub::OnBufferComplete(std::queue<OnCompletedRet>& queue)
 {
 #ifndef ROSEN_CROSS_PLATFORM
     std::lock_guard<std::mutex> lock(mutex_);

@@ -418,7 +418,6 @@ GRAPHIC_TEST(KeyframeAnimationTest, ANIMATION_TEST, KeyframeAnimation_Matrix_Key
     const float spacingX = 350.0f;
     const float spacingY = 350.0f;
 
-
     for (int row = 0; row < 3; row++) {
         for (int col = 0; col < 3; col++) {
             auto animModifier = std::make_shared<AnimationCustomModifier>();

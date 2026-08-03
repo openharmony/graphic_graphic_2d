@@ -22,6 +22,7 @@
 #include "pipeline/mock/mock_matrix.h"
 #include "pipeline/rs_test_util.h"
 #include "system/rs_system_parameters.h"
+#include "syspara/parameters.h"
 
 #include "consumer_surface.h"
 #include "draw/color.h"
@@ -29,6 +30,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
+#include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
@@ -3710,9 +3712,8 @@ HWTEST_F(RSUniRenderVisitorTest, InitScreenInfo001, TestSize.Level1)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
 
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto allBlackList = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
-    auto allWhiteList = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    auto allBlackList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
+    auto allWhiteList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_WHITE_LIST);
     rsUniRenderVisitor->allBlackList_ = allBlackList;
     rsUniRenderVisitor->allWhiteList_ = allWhiteList;
     rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
@@ -3724,12 +3725,12 @@ HWTEST_F(RSUniRenderVisitorTest, InitScreenInfo001, TestSize.Level1)
     EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, true);
 
     rsUniRenderVisitor->allWhiteList_.emplace(nodeId);
-    rsUniRenderVisitor->allBlackList_ = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
+    rsUniRenderVisitor->allBlackList_ = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
     rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
     EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, true);
 
-    rsUniRenderVisitor->allBlackList_ = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
-    rsUniRenderVisitor->allWhiteList_ = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    rsUniRenderVisitor->allBlackList_ = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
+    rsUniRenderVisitor->allWhiteList_ = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_WHITE_LIST);
     rsUniRenderVisitor->allBlackList_.emplace(nodeId);
     rsUniRenderVisitor->allWhiteList_.emplace(nodeId);
     rsScreenRenderNode->InitRenderParams();
@@ -7824,6 +7825,43 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateTopLayersDirtyStatusTest, TestSize.Level2
 }
 
 /*
+ * @tc.name: ResetDisplayDirtyRegionSpecialFoldDisplay
+ * @tc.desc: Test ResetDisplayDirtyRegion expands dirty region for special-fold display (id 0)
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetDisplayDirtyRegionSpecialFoldDisplay, TestSize.Level2)
+{
+    // IsSpecialFoldDisplay() caches a static on first call; set the parameter before the first call.
+    std::string origFoldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(rsUniRenderVisitor->curScreenDirtyManager_, nullptr);
+    rsUniRenderVisitor->curScreenDirtyManager_->surfaceRect_ = RectI(50, 100, 1920, 800); // bottom 900
+    rsUniRenderVisitor->curScreenDirtyManager_->activeSurfaceRect_ = RectI();
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    // Set activeRect and screen height so the expansion ligic can compute the gradient strip region
+    auto activeRectProp = new ScreenProperty<activeRectValType>(
+        activeRectValType(RectI(50, 100, 1920, 800), RectI(), RectI()));
+    rsUniRenderVisitor->curScreenNode_->UpdateScreenProperty(
+        ScreenPropertyType::ACTIVE_RECT_OPTION, activeRectProp);
+    auto resolutionProp = new ScreenProperty<resolutionValType>(resolutionValType(1920, 900));
+    rsUniRenderVisitor->curScreenNode_->UpdateScreenProperty(
+        ScreenPropertyType::RENDER_RESOLUTION, resolutionProp);
+    rsUniRenderVisitor->zoomStateChange_ = true; // force the ret guard true
+    rsUniRenderVisitor->ResetDisplayDirtyRegion();
+    // EDGE_GRADIENT_WIDTH=200: expandedTop=max(0,100-200)=0; expandedBottom=min(900,900+200)=900
+    if (RSSystemProperties::IsSpecialFoldDisplay()) {
+        EXPECT_EQ(rsUniRenderVisitor->curScreenDirtyManager_->GetCurrentFrameDirtyRegion(),
+            RectI(50, 0, 1920, 900));
+    }
+    system::SetParameter("const.window.foldscreen.type", origFoldType);
+}
+
+/*
  * @tc.name: ResetDisplayDirtyRegion
  * @tc.desc: Test function ResetDisplayDirtyRegion
  * @tc.type: FUNC
@@ -7897,6 +7935,9 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId003, TestSize.Level2)
 
     constexpr uint64_t tunnelLayerId = 3002;
     RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), tunnelLayerId, TUNNEL_PROP_INVALID);
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->MarkTunnelLayerInfoReceived();
 
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
 
@@ -10276,6 +10317,140 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRenderContextForSkippedSubTree_With
     rsUniRenderVisitor->UpdateFilterRenderContextForSkippedSubTree(dirtyManager, *filterNode, *rootNode, filterRect);
 
     EXPECT_FALSE(filterNode->HasBlurFilter());
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode001
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with normal node
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(100, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode002
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with isParentPrepareInReverseOrder true
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(200, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, true));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode003
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with bounds set
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(300, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+    node->GetMutableRenderProperties().SetBounds(Vector4f(100, 200, 300, 400));
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode004
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with alpha set
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode004, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(400, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+    node->GetMutableRenderProperties().SetAlpha(0.5f);
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode005
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode with curScreenNode set
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode005, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    NodeId screenNodeId = 10;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(500, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+
+    EXPECT_NO_FATAL_FAILURE(rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false));
+}
+
+/**
+ * @tc.name: QuickPrepareProtectiveSolidRenderNode006
+ * @tc.desc: Test QuickPrepareProtectiveSolidRenderNode updates layer info correctly
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareProtectiveSolidRenderNode006, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsContext->GetMutableNodeMap().Initialize(rsContext);
+    auto node = std::make_shared<RSProtectiveSolidRenderNode>(600, rsContext);
+    ASSERT_NE(node, nullptr);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(node);
+    node->GetMutableRenderProperties().SetBounds(Vector4f(10, 20, 100, 200));
+    node->GetMutableRenderProperties().SetAlpha(0.8f);
+
+    rsUniRenderVisitor->QuickPrepareProtectiveSolidRenderNode(*node, false);
+
+    auto params = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    auto layerInfo = params->GetLayerInfo();
+    EXPECT_EQ(layerInfo.boundRect.x, 10);
+    EXPECT_EQ(layerInfo.boundRect.y, 20);
+    EXPECT_FLOAT_EQ(layerInfo.alpha, 0.8f);
 }
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER
