@@ -548,6 +548,26 @@ napi_value JsFont::OnIsForceAutoHinting(napi_env env, napi_callback_info info)
     return CreateJsValue(env, isForceAutoHinting);
 }
 
+std::unique_ptr<uint16_t[]> GetGlyphArrayFromJs(napi_env env, napi_value array, uint32_t count)
+{
+    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(count);
+    for (uint32_t i = 0; i < count; i++) {
+        napi_value tempglyph = nullptr;
+        napi_status status = napi_get_element(env, array, i, &tempglyph);
+        if (status != napi_ok) {
+            ROSEN_LOGE("Failed to get element of glyph array");
+            return nullptr;
+        }
+        uint32_t glyph = 0;
+        if (!ConvertFromJsValue(env, tempglyph, glyph)) {
+            ROSEN_LOGE("JsFont glyph array element is invalid");
+            return nullptr;
+        }
+        glyphPtr[i] = glyph;
+    }
+    return glyphPtr;
+}
+
 napi_value JsFont::OnGetWidths(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
@@ -563,18 +583,14 @@ napi_value JsFont::OnGetWidths(napi_env env, napi_callback_info info)
     if (fontSize == 0) {
         return nullptr;
     }
+    if (fontSize > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("JsFont::OnGetWidths size of glyph array exceeds the upper limit");
+        return nullptr;
+    }
 
-    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(fontSize);
-    for (uint32_t i = 0; i < fontSize; i++) {
-        napi_value tempglyph = nullptr;
-        napi_get_element(env, argv[ARGC_ZERO], i, &tempglyph);
-        uint32_t glyph_t = 0;
-        bool isColorOk = ConvertFromJsValue(env, tempglyph, glyph_t);
-        if (!isColorOk) {
-            ROSEN_LOGE("JsFont::OnGetWidths Argv[ARGC_ZERO] is invalid");
-            return nullptr;
-        }
-        glyphPtr[i] = glyph_t;
+    auto glyphPtr = GetGlyphArrayFromJs(env, argv[ARGC_ZERO], fontSize);
+    if (glyphPtr == nullptr) {
+        return nullptr;
     }
 
     std::unique_ptr<float[]> widthPtr = std::make_unique<float[]>(fontSize);
@@ -677,21 +693,13 @@ napi_value JsFont::OnGetBounds(napi_env env, napi_callback_info info)
         ROSEN_LOGE("Failed to get size of glyph array %u", glyphscnt);
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(glyphscnt);
-    for (uint32_t i = 0; i < glyphscnt; i++) {
-        napi_value tempglyph = nullptr;
-        status = napi_get_element(env, argv[ARGC_ZERO], i, &tempglyph);
-        if (status != napi_ok) {
-            ROSEN_LOGE("Failed to get element of glyph array");
-            return nullptr;
-        }
-        uint32_t glyph_t = 0;
-        bool ret = ConvertFromJsValue(env, tempglyph, glyph_t);
-        if (!ret) {
-            ROSEN_LOGE("JsFont::OnGetBounds Argv[ARGC_ZERO] is invalid");
-            return nullptr;
-        }
-        glyphPtr[i] = glyph_t;
+    if (glyphscnt > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("JsFont::OnGetBounds size of glyph array exceeds the upper limit");
+        return nullptr;
+    }
+    auto glyphPtr = GetGlyphArrayFromJs(env, argv[ARGC_ZERO], glyphscnt);
+    if (glyphPtr == nullptr) {
+        return nullptr;
     }
     std::unique_ptr<Rect[]> rectPtr = std::make_unique<Rect[]>(glyphscnt);
     std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
