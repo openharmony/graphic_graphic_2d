@@ -1133,6 +1133,12 @@ public:
     void ReSortChildrenByZIndex();
 
     void AccumulateParentGeoDirty();
+
+    virtual bool IsBufferDirty() const
+    {
+        return false;
+    }
+
 protected:
     void ResetDirtyStatus();
 

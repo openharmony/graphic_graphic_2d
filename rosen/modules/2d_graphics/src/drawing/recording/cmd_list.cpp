@@ -425,6 +425,42 @@ uint32_t CmdList::GetOpCnt() const
     return opCnt_;
 }
 
+void CmdList::FlushImageCache()
+{
+    {
+        std::lock_guard<std::mutex> lock(imageObjectMutex_);
+        for (auto& object : imageObjectVec_) {
+            if (object) {
+                object->FlushImageCache();
+            }
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+        for (auto& object : imageBaseObjVec_) {
+            if (object) {
+                object->FlushImageCache();
+            }
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+        for (auto& object : imageNineObjectVec_) {
+            if (object) {
+                object->FlushImageCache();
+            }
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+        for (auto& object : imageLatticeObjectVec_) {
+            if (object) {
+                object->FlushImageCache();
+            }
+        }
+    }
+}
+
 #ifdef ROSEN_OHOS
 uint32_t CmdList::AddSurfaceBufferEntry(const std::shared_ptr<SurfaceBufferEntry>& surfaceBufferEntry)
 {

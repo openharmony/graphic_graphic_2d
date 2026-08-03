@@ -32,13 +32,13 @@ RSModifiersDrawThread::~RSModifiersDrawThread() = default;
 
 void RSModifiersDrawThread::Start()
 {
-    if (started_) {
+    if (started_.load() || destroyed_.load()) {
         return;
     }
     runner_ = AppExecFwk::EventRunner::Create("ModifiersDraw");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
-    started_ = true;
+    started_.store(true);
     PostTask([] {
         OHOS::ConcurrentTask::IntervalReply reply;
         reply.tid = gettid();
@@ -54,12 +54,43 @@ void RSModifiersDrawThread::Start()
     RS_LOGI("%{public}s RSModifiersDrawThread started", __func__);
 }
 
-void RSModifiersDrawThread::PostTask(
-    const std::function<void()>&& task, const std::string& name, int64_t delayTime)
+void RSModifiersDrawThread::WaitAllTasksFinish()
 {
-    if (handler_ != nullptr) {
-        handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    PostSyncTask([]() { RS_TRACE_NAME_FMT("RSModifiersDrawThread::WaitAllTasksFinish"); });
+}
+
+void RSModifiersDrawThread::Destroy()
+{
+    destroyed_.store(true);
+    if (!started_.load()) {
+        return;
     }
+    started_.store(false);
+
+    if (handler_ != nullptr) {
+        handler_->RemoveAllEvents();
+        handler_ = nullptr;
+    }
+    if (runner_ != nullptr) {
+        runner_->Stop();
+        runner_ = nullptr;
+    }
+}
+
+void RSModifiersDrawThread::PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime)
+{
+    if (!started_.load() || handler_ == nullptr) {
+        return;
+    }
+    handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+}
+
+void RSModifiersDrawThread::PostSyncTask(const std::function<void()>& task)
+{
+    if (!started_.load() || handler_ == nullptr) {
+        return;
+    }
+    handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 void RSModifiersDrawThread::CommitTransaction(std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent,

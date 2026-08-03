@@ -535,6 +535,13 @@ void RSExtendImageObject::PurgeMipmapMem()
 }
 #endif
 
+void RSExtendImageObject::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
+    }
+}
+
 RSExtendImageObject::~RSExtendImageObject()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
@@ -622,6 +629,13 @@ void RSExtendImageBaseObj::Purge()
     }
 }
 
+void RSExtendImageBaseObj::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
+    }
+}
+
 bool RSExtendImageBaseObj::Marshalling(Parcel &parcel) const
 {
     bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
@@ -687,6 +701,13 @@ void RSExtendImageNineObject::Purge()
     }
 }
 
+void RSExtendImageNineObject::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
+    }
+}
+
 bool RSExtendImageNineObject::Marshalling(Parcel &parcel) const
 {
     bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
@@ -746,6 +767,13 @@ void RSExtendImageLatticeObject::Purge()
 {
     if (rsImage_) {
         rsImage_->Purge();
+    }
+}
+
+void RSExtendImageLatticeObject::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
     }
 }
 
