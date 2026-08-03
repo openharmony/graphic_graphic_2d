@@ -1262,6 +1262,14 @@ protected:
     PrimitiveDirtyBitmap stagingSelfPrimDirtyBitmap_;
     PrimitiveDirtyBitmap stagingInfectiousPrimDirtyBitmap_;
 #endif
+    inline RSDrawable::Vec& GetDrawableVec(const char* func) const
+    {
+        if (LIKELY(drawableVec_ != nullptr)) {
+            return *drawableVec_;
+        }
+        drawableVec_ = std::make_unique<RSDrawable::Vec>();
+        return *drawableVec_;
+    }
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
@@ -1481,7 +1489,6 @@ private:
 
     bool HasValidModifierInOpincSplit(int8_t slot) const;
 
-    RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();
     friend class DrawFuncOpItem;
     friend class RSContext;
