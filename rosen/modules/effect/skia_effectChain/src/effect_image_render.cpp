@@ -84,7 +84,7 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::MapColorByBrightness(const
 
 std::shared_ptr<EffectImageFilter> EffectImageFilter::GammaCorrection(float gamma)
 {
-    if (ROSEN_LNE(gamma, GAMMA_MIN_THRESHOLD)) {
+    if (gamma < GAMMA_MIN_THRESHOLD) {
         return nullptr;
     }
     return std::make_shared<OHOS::Rosen::EffectImageGammaCorrectionFilter>(gamma);
