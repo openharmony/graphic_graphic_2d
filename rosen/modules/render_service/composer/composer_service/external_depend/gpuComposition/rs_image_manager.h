@@ -50,6 +50,8 @@ public:
 
     // EGL specific functions
     virtual void ShrinkCachesIfNeeded(bool isForUniRedraw = false) { return; }
+    virtual void SetVKImageCacheMapSize(uint32_t cacheSize) { (void)cacheSize; };
+
 protected:
     RSImageManager() = default;
     mutable std::mutex opMutex_;

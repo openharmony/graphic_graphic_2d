@@ -1566,4 +1566,13 @@ void RSRenderComposer::SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback
     setTaskEndWithTimeCb_ = setTaskEndWithTimeCb;
     getRealTimeOffsetOfDvsyncCb_ = getRealTimeOffsetOfDvsyncCb;
 }
+
+void RSRenderComposer::DumpVKImageInfo(std::string& dumpString)
+{
+    if (uniRenderEngine_ == nullptr) {
+        RS_LOGW("%{public}s: uniRenderEngine is nullptr.", __func__);
+        return;
+    }
+    uniRenderEngine_->DumpVkImageInfo(dumpString);
+}
 }
