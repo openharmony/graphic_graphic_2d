@@ -73,7 +73,7 @@ declare_args() {
   graphic_2d_feature_hetero_hdr_enable = false
   graphic_2d_feature_mhc_enable = false
   graphic_2d_feature_enable_primitive = false
-  graphic_2d_feature_hve_blur_enable = true
+  graphic_2d_feature_hve_blur_enable = false
 }
 
 declare_args() {
@@ -99,8 +99,8 @@ if (graphic_2d_feature_product == "tablet") {
   enable_full_screen_recongnize = true
 }
 
-if (graphic_2d_feature_product == "pc") {
-  graphic_2d_feature_hve_blur_enable = false
+if (graphic_2d_feature_product == "phone") {
+  graphic_2d_feature_hve_blur_enable = true
 }
 
 gpu_defines = []
