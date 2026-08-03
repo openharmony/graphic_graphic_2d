@@ -656,6 +656,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
 
     auto token = dataParcel->ReadInterfaceToken();
     if (token != RSIClientToRenderConnection::GetDescriptor()) {
+        ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel interface token mismatch");
         return nullptr;
     }
 
