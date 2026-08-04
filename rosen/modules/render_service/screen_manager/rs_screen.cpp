@@ -340,7 +340,8 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     RS_LOGW_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
     const auto& targetModeInfo = supportedModes_[modeId];
-    RS_LOGD("%{public}s, ModeId:%{public}d->%{public}d, targetMode:[(%{public}u x %{public}u) %{public}u],"
+    RS_LOGD_IF(DEBUG_SCREEN,
+        "%{public}s, ModeId:%{public}d->%{public}d, targetMode:[(%{public}u x %{public}u) %{public}u],"
         "CurMode:[(%{public}u x %{public}u) %{public}u]", __func__, modeId, selectModeId, targetModeInfo.width,
         targetModeInfo.height, targetModeInfo.freshRate, property_.GetPhyWidth(), property_.GetPhyHeight(),
         property_.GetRefreshRate());
@@ -371,7 +372,7 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
         auto prop = property_.SetPhysicalModeParams(activeMode->width, activeMode->height, activeMode->freshRate);
         NotifyScreenPropertyChange(prop);
         WriteHisyseventEpsLcdInfo(activeMode.value());
-        RS_LOGD("%{public}s screenId:%{public}" PRIu64
+        RS_LOGD_IF(DEBUG_SCREEN, "%{public}s screenId:%{public}" PRIu64
             ", activeModeId: %{public}d, size:[%{public}u, %{public}u], RefreshRate:[%{public}u]",
             __func__, property_.GetId(), activeMode->id, activeMode->width, activeMode->height, activeMode->freshRate);
     }
@@ -427,7 +428,7 @@ uint32_t RSScreen::SetScreenActiveRect(const Rect& activeRect)
 bool RSScreen::CalculateMaskRectAndReviseRect(const Rect& activeRect, Rect& reviseRect, RectI& maskRect)
 {
 #ifdef ROSEN_EMULATOR
-    RS_LOGD("%{public}s emulator device do not revise rect", __func__);
+    RS_LOGD_IF(DEBUG_SCREEN, "%{public}s emulator device do not revise rect", __func__);
     return false;
 #endif
     if (!RSSystemProperties::IsSuperFoldDisplay()) {
@@ -458,7 +459,7 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
 
     if ((width == 0 || height == 0) ||
         (width == property_.GetWidth() && height == property_.GetHeight())) {
-        RS_LOGD("%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
+        RS_LOGD_IF(DEBUG_SCREEN, "%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
         return;
     }
 
@@ -486,7 +487,7 @@ int32_t RSScreen::GetRogResolution(uint32_t& width, uint32_t& height)
     if (isRogResolution_) {
         width = property_.GetWidth();
         height = property_.GetHeight();
-        RS_LOGD("%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
+        RS_LOGD_IF(DEBUG_SCREEN, "%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
         return StatusCode::SUCCESS;
     }
     return StatusCode::INVALID_ARGUMENTS;
@@ -937,7 +938,8 @@ void RSScreen::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
                         id, brightnessData.level, backlightLevel_.load(), brightnessData.brightnessPosition);
     }
 
-    RS_LOGD("%{public}s id: %{public}" PRIu64 ", level is %{public}u", __func__, id, brightnessData.level);
+    RS_LOGD_IF(DEBUG_SCREEN, "%{public}s id: %{public}" PRIu64 ", level is %{public}u",
+        __func__, id, brightnessData.level);
 
     if (onBackLightChange_) {
         onBackLightChange_(brightnessData);
@@ -1366,8 +1368,17 @@ int32_t RSScreen::GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) cons
 {
     ScreenColorGamut curGamut;
     int32_t result = GetScreenColorGamut(curGamut);
-    colorSpace = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(curGamut)];
-    return result;
+    if (result != StatusCode::SUCCESS) {
+        RS_LOGE("%{public}s failed, GetScreenColorGamut returned error", __func__);
+        return result;
+    }
+    auto iter = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(static_cast<GraphicColorGamut>(curGamut));
+    if (iter == RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
+        RS_LOGE("%{public}s failed, color gamut not found in map", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    colorSpace = iter->second;
+    return StatusCode::SUCCESS;
 }
 
 int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
@@ -1530,7 +1541,7 @@ int32_t RSScreen::GetDisplayIdentificationData(uint8_t& outPort, std::vector<uin
             __func__, property_.GetId(), ret);
         return HDI_ERROR;
     }
-    RS_LOGD("%{public}s:: EdidSize: %{public}zu", __func__, edidData.size());
+    RS_LOGD_IF(DEBUG_SCREEN, "%{public}s:: EdidSize: %{public}zu", __func__, edidData.size());
     return SUCCESS;
 }
 

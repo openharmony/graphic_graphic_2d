@@ -343,24 +343,24 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion02, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion03, TestSize.Level1)
 {
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_EQ(surfaceRenderNode->GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
-    surfaceRenderNode.SetAbilityBGAlpha(255);
-    surfaceRenderNode.SetGlobalAlpha(1.0f);
-    surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, rrect);
+    surfaceRenderNode->SetAbilityBGAlpha(255);
+    surfaceRenderNode->SetGlobalAlpha(1.0f);
+    surfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceRenderNode->SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
-        surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
+        surfaceRenderNode->GetWindowCornerRadius(), surfaceRenderNode->GetGlobalCornerRadius(), cornerRadius);
     Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
                                  static_cast<int>(std::ceil(cornerRadius.y_)),
                                  static_cast<int>(std::ceil(cornerRadius.z_)),
                                  static_cast<int>(std::ceil(cornerRadius.w_)));
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, true, dstCornerRadius);
 }
 
@@ -372,23 +372,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion03, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion04, TestSize.Level1)
 {
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_EQ(surfaceRenderNode->GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
-    surfaceRenderNode.SetAbilityBGAlpha(255);
-    surfaceRenderNode.SetGlobalAlpha(1.0f);
-    surfaceRenderNode.GetMutableRenderProperties().SetCornerRadius(Vector4f(15.0f));
+    surfaceRenderNode->SetAbilityBGAlpha(255);
+    surfaceRenderNode->SetGlobalAlpha(1.0f);
+    surfaceRenderNode->GetMutableRenderProperties().SetCornerRadius(Vector4f(15.0f));
     Vector4f cornerRadius;
     Vector4f::Max(
-        surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
+        surfaceRenderNode->GetWindowCornerRadius(), surfaceRenderNode->GetGlobalCornerRadius(), cornerRadius);
     Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
                                  static_cast<int>(std::ceil(cornerRadius.y_)),
                                  static_cast<int>(std::ceil(cornerRadius.z_)),
                                  static_cast<int>(std::ceil(cornerRadius.w_)));
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, true, dstCornerRadius);
 }
 
@@ -400,24 +400,24 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion04, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion05, TestSize.Level1)
 {
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_EQ(surfaceRenderNode->GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
-    surfaceRenderNode.SetAbilityBGAlpha(255);
-    surfaceRenderNode.SetGlobalAlpha(1.0f);
-    surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, rrect);
+    surfaceRenderNode->SetAbilityBGAlpha(255);
+    surfaceRenderNode->SetGlobalAlpha(1.0f);
+    surfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceRenderNode->SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
-        surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
+        surfaceRenderNode->GetWindowCornerRadius(), surfaceRenderNode->GetGlobalCornerRadius(), cornerRadius);
     Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
                                  static_cast<int>(std::ceil(cornerRadius.y_)),
                                  static_cast<int>(std::ceil(cornerRadius.z_)),
                                  static_cast<int>(std::ceil(cornerRadius.w_)));
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_90, false, dstCornerRadius);
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_90, true, dstCornerRadius);
 }
 
@@ -429,24 +429,24 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion05, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion06, TestSize.Level1)
 {
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_EQ(surfaceRenderNode->GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
-    surfaceRenderNode.SetAbilityBGAlpha(255);
-    surfaceRenderNode.SetGlobalAlpha(1.0f);
-    surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, rrect);
+    surfaceRenderNode->SetAbilityBGAlpha(255);
+    surfaceRenderNode->SetGlobalAlpha(1.0f);
+    surfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceRenderNode->SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
-        surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
+        surfaceRenderNode->GetWindowCornerRadius(), surfaceRenderNode->GetGlobalCornerRadius(), cornerRadius);
     Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
                                  static_cast<int>(std::ceil(cornerRadius.y_)),
                                  static_cast<int>(std::ceil(cornerRadius.z_)),
                                  static_cast<int>(std::ceil(cornerRadius.w_)));
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_180, false, dstCornerRadius);
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_180, true, dstCornerRadius);
 }
 
@@ -458,24 +458,24 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion06, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion07, TestSize.Level1)
 {
-    RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_EQ(surfaceRenderNode->GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
-    surfaceRenderNode.SetAbilityBGAlpha(255);
-    surfaceRenderNode.SetGlobalAlpha(1.0f);
-    surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, rrect);
+    surfaceRenderNode->SetAbilityBGAlpha(255);
+    surfaceRenderNode->SetGlobalAlpha(1.0f);
+    surfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceRenderNode->SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
-        surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
+        surfaceRenderNode->GetWindowCornerRadius(), surfaceRenderNode->GetGlobalCornerRadius(), cornerRadius);
     Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
                                  static_cast<int>(std::ceil(cornerRadius.y_)),
                                  static_cast<int>(std::ceil(cornerRadius.z_)),
                                  static_cast<int>(std::ceil(cornerRadius.w_)));
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_270, false, dstCornerRadius);
-    surfaceRenderNode.ResetSurfaceOpaqueRegion(
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_270, true, dstCornerRadius);
 }
 
@@ -1421,9 +1421,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetIsNotifyUIBufferAvailableTest, TestSize.Lev
 HWTEST_F(RSSurfaceRenderNodeTest, IsSubTreeNeedPrepareTest, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->IsSubTreeNeedPrepare(false, false);
+    node->IsSubTreeNeedPrepare(false, false, false);
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    EXPECT_TRUE(node->IsSubTreeNeedPrepare(true, true));
+    EXPECT_TRUE(node->IsSubTreeNeedPrepare(true, false, true));
 }
 
 /**
@@ -3553,6 +3553,55 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetHwcChildrenDisabledState_New_001, TestSize.
 
     surfaceNode->SetHwcChildrenDisabledState();
     EXPECT_TRUE(hwcChild->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: SetRebuildingState001
+ * @tc.desc: Test SetRebuildingState normal path: false->true sets params and member
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState001, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_NE(surfaceRenderNode.stagingRenderParams_, nullptr);
+    surfaceRenderNode.SetRebuildingState(true);
+    EXPECT_TRUE(surfaceRenderNode.isRebuildingState_);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
+    EXPECT_TRUE(surfaceParams->GetRebuildingState());
+}
+
+/**
+ * @tc.name: SetRebuildingState002
+ * @tc.desc: Test SetRebuildingState same-value early return has no side effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState002, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
+    surfaceParams->needSync_ = false;
+    surfaceRenderNode.SetRebuildingState(false); // same as default false -> early return
+    EXPECT_FALSE(surfaceRenderNode.isRebuildingState_);
+    EXPECT_FALSE(surfaceParams->needSync_);
+}
+
+/**
+ * @tc.name: SetRebuildingState003
+ * @tc.desc: Test SetRebuildingState with null stagingRenderParams_ returns early without crash
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState003, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = nullptr;
+    ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
+    surfaceRenderNode.SetRebuildingState(true);
+    EXPECT_FALSE(surfaceRenderNode.isRebuildingState_);
 }
 } // namespace Rosen
 } // namespace OHOS

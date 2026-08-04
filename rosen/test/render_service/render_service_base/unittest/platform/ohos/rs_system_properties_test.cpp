@@ -496,14 +496,35 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetParallelRenderingEnabled
- * @tc.desc: GetParallelRenderingEnabled Test
+ * @tc.name: GetParallelRenderingEnabledTest001
+ * @tc.desc: GetParallelRenderingEnabled out-of-range fallback branch; param "-1" < AUTO(0) -> AUTO.
  * @tc.type:FUNC
  * @tc.require: issueI9JZWC
  */
-HWTEST_F(RSSystemPropertiesTest, GetParallelRenderingEnabled, TestSize.Level1)
+HWTEST_F(RSSystemPropertiesTest, GetParallelRenderingEnabledTest001, TestSize.Level1)
 {
-    ASSERT_EQ(RSSystemProperties::GetParallelRenderingEnabled(), ParallelRenderingType::AUTO);
+    constexpr const char *key = "persist.rosen.parallelrender.enabled";
+    auto origin = system::GetParameter(key, "0");
+    system::SetParameter(key, "-1");
+    auto result = RSSystemProperties::GetParallelRenderingEnabled();
+    system::SetParameter(key, origin);
+    ASSERT_EQ(result, ParallelRenderingType::AUTO);
+}
+
+/**
+ * @tc.name: GetSplitTransactionCheckIntervalTest001
+ * @tc.desc: GetSplitTransactionCheckInterval out-of-range fallback branch; param "-1" < 0 -> 200u.
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSplitTransactionCheckIntervalTest001, TestSize.Level1)
+{
+    constexpr const char *key = "persist.sys.graphic.splitTransactionCheckInterval";
+    auto origin = system::GetParameter(key, "200");
+    system::SetParameter(key, "-1");
+    auto result = RSSystemProperties::GetSplitTransactionCheckInterval();
+    system::SetParameter(key, origin);
+    ASSERT_EQ(result, 200u);
 }
 
 /**
@@ -1229,6 +1250,18 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledTest, TestSize.Leve
         // Branch: cached path — second call returns same cached value
         EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), result);
     }
+}
+
+/**
+ * @tc.name: GetSplitTransactionMaxTotalTimeMs001
+ * @tc.desc: GetSplitTransactionMaxTotalTimeMs Test - returns a positive total time budget (default 100.0ms)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSplitTransactionMaxTotalTimeMs001, TestSize.Level1)
+{
+    auto value = RSSystemProperties::GetSplitTransactionMaxTotalTimeMs();
+    EXPECT_GT(value, 0.0f);
 }
 } // namespace Rosen
 } // namespace OHOS

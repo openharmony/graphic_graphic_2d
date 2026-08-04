@@ -15,11 +15,11 @@
 
 #ifndef UIEFFECT_WAVE_DISTURBANCE_MASK_PARA_H
 #define UIEFFECT_WAVE_DISTURBANCE_MASK_PARA_H
-#include "ui_effect/mask/include/mask_para.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
+#include "ui_effect/mask/include/mask_para.h"
 #include "ui_effect/utils.h"
- 
+
 namespace OHOS {
 namespace Rosen {
 // limits for wave disturbance mask animation progress parameters
@@ -34,6 +34,8 @@ constexpr std::pair<float, float> WAVE_DISTURBANCE_MASK_LENGTH_LIMITS { 0.0f, 80
 constexpr std::pair<float, float> WAVE_DISTURBANCE_MASK_WIDTH_LIMITS { 0.0f, 300.0f };
 // limits for wave disturbance mask height parameters
 constexpr std::pair<float, float> WAVE_DISTURBANCE_MASK_HEIGHT_LIMITS { 0.0f, 150.0f };
+// limits for wave disturbance height rate parameters
+constexpr std::pair<float, float> WAVE_DISTURBANCE_MASK_HEIGHT_RATE_LIMITS { 0.0f, 2.0f };
 
 class WaveDisturbanceMaskPara : public MaskPara {
 public:
@@ -42,55 +44,78 @@ public:
         type_ = MaskPara::Type::WAVE_DISTURBANCE_MASK;
     }
     ~WaveDisturbanceMaskPara() override = default;
- 
-    void SetProgress(float progress)
+
+    void SetProgress(const float progress)
     {
         progress_ = UIEffect::GetLimitedPara(progress, WAVE_DISTURBANCE_MASK_PROGRESS_LIMITS);
     }
- 
+
     const float& GetProgress() const
     {
         return progress_;
     }
- 
-    void SetClickPos(Vector2f& clickPos)
+
+    void SetClickPos(const Vector2f& clickPos)
     {
         clickPos_ = clickPos; // no invalid value
     }
- 
+
     const Vector2f& GetClickPos() const
     {
         return clickPos_;
     }
- 
-    void SetWaveRD(Vector2f& waveRD)
+
+    void SetWaveRD(const Vector2f& waveRD)
     {
         waveRD_[0] = UIEffect::GetLimitedPara(waveRD[0], WAVE_DISTURBANCE_MASK_RATIO_LIMITS);
         waveRD_[1] = UIEffect::GetLimitedPara(waveRD[1], WAVE_DISTURBANCE_MASK_DOWN_LIMITS);
     }
- 
+
     const Vector2f& GetWaveRD() const
     {
         return waveRD_;
     }
- 
-    void SetWaveLWH(Vector3f& waveLWH)
+
+    void SetWaveLWH(const Vector3f& waveLWH)
     {
         waveLWH_[0] = UIEffect::GetLimitedPara(waveLWH[0], WAVE_DISTURBANCE_MASK_LENGTH_LIMITS);
         waveLWH_[1] = UIEffect::GetLimitedPara(waveLWH[1], WAVE_DISTURBANCE_MASK_WIDTH_LIMITS);
         waveLWH_[2] = UIEffect::GetLimitedPara(waveLWH[2], WAVE_DISTURBANCE_MASK_HEIGHT_LIMITS); // 2: the third param
     }
- 
+
     const Vector3f& GetWaveLWH() const
     {
         return waveLWH_;
     }
- 
+
+    void SetWaveUp(const float waveUp)
+    {
+        waveUp_ = UIEffect::GetLimitedPara(waveUp, WAVE_DISTURBANCE_MASK_DOWN_LIMITS);
+    }
+
+    const float& GetWaveUp() const
+    {
+        return waveUp_;
+    }
+
+    void SetHeightRate(const float heightRate)
+    {
+        heightRate_ = UIEffect::GetLimitedPara(heightRate, WAVE_DISTURBANCE_MASK_HEIGHT_RATE_LIMITS);
+    }
+
+    const float& GetHeightRate() const
+    {
+        return heightRate_;
+    }
+
 private:
-    float progress_ = 0.5;
+    float progress_ = 0.0f;
     Vector2f clickPos_ = { 0.0f, 0.0f };
     Vector2f waveRD_ = { 1.0f, 0.0f };
     Vector3f waveLWH_ = { 100.0f, 0.0f, 0.0f };
+
+    float waveUp_ = 0.2f;
+    float heightRate_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

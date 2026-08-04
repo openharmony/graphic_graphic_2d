@@ -111,7 +111,8 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, AddPendingBufferTest, TestSize.Level1)
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     bufferCache.pendingBufferMap_.clear();
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
-    NodeId nodeId = 1;
+    pid_t pid = 1;
+    NodeId nodeId = static_cast<NodeId>(pid) << 32 | 1;
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     bufferCache.AddPendingBuffer(nodeId, buffer, 1);
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 1);
@@ -131,7 +132,8 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, AcquirePendingBufferTest, TestSize.Level1)
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     bufferCache.pendingBufferMap_.clear();
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
-    NodeId nodeId = 1;
+    pid_t pid = 1;
+    NodeId nodeId = static_cast<NodeId>(pid) << 32 | 1;
     auto buffer = bufferCache.AcquirePendingBuffer(nodeId, 1);
     ASSERT_EQ(buffer, nullptr);
     buffer = bufferCache.AcquirePendingBuffer(nodeId, 1);
@@ -157,7 +159,8 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, RemovePendingBufferTest, TestSize.Level1)
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     bufferCache.pendingBufferMap_.clear();
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
-    NodeId nodeId = 1;
+    pid_t pid = 1;
+    NodeId nodeId = static_cast<NodeId>(pid) << 32 | 1;
     bufferCache.RemovePendingBuffer(nodeId, 1);
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
     bufferCache.AcquirePendingBuffer(nodeId, 1);
@@ -182,14 +185,15 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, ClearPendingBufferByNodeIdTest, TestSize.Le
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     bufferCache.pendingBufferMap_.clear();
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
-    NodeId nodeId = 1;
+    pid_t pid = 1;
+    NodeId nodeId = static_cast<NodeId>(pid) << 32 | 1;
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     bufferCache.AddPendingBuffer(nodeId, buffer, 1);
-    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid][nodeId].second.size(), 1);
     bufferCache.ClearPendingBufferByNodeId(nodeId);
-    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 0);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId), 0);
     bufferCache.ClearPendingBufferByNodeId(0);
-    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 0);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId), 0);
 }
 
 /**
@@ -223,7 +227,8 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, AddPendingBufferBranchesTest, TestSize.Leve
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     bufferCache.pendingBufferMap_.clear();
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 0);
-    NodeId nodeId = 1;
+    pid_t pid = 1;
+    NodeId nodeId = static_cast<NodeId>(pid) << 32 | 1;
     // Test Case 1: buffer == nullptr && resetSurfaceIndex == 0
     sptr<SurfaceBuffer> nullBuffer = nullptr;
     bool result1 = bufferCache.AddPendingBuffer(nodeId, nullBuffer, 0);
@@ -234,7 +239,7 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, AddPendingBufferBranchesTest, TestSize.Leve
     bool result2 = bufferCache.AddPendingBuffer(nodeId, nullBuffer, 1);
     ASSERT_TRUE(result2);
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 1);
-    ASSERT_NE(bufferCache.pendingBufferMap_[nodeId].second.size(), 0);
+    ASSERT_NE(bufferCache.pendingBufferMap_[pid][nodeId].second.size(), 0);
     // Test Case 3: buffer != nullptr && resetSurfaceIndex == 0
     bufferCache.pendingBufferMap_.clear();
     sptr<SurfaceBuffer> validBuffer = SurfaceBuffer::Create();
@@ -242,15 +247,15 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, AddPendingBufferBranchesTest, TestSize.Leve
     bool result3 = bufferCache.AddPendingBuffer(nodeId, validBuffer, 0);
     ASSERT_TRUE(result3);
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 1);
-    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid][nodeId].second.size(), 1);
     // Test Case 4: buffer != nullptr && resetSurfaceIndex > 0
     bufferCache.pendingBufferMap_.clear();
     bool result4 = bufferCache.AddPendingBuffer(nodeId, validBuffer, 2);
     ASSERT_TRUE(result4);
     ASSERT_EQ(bufferCache.pendingBufferMap_.size(), 1);
-    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 1);
-    ASSERT_NE(bufferCache.pendingBufferMap_[nodeId].second.find(2),
-              bufferCache.pendingBufferMap_[nodeId].second.end());
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid][nodeId].second.size(), 1);
+    ASSERT_NE(bufferCache.pendingBufferMap_[pid][nodeId].second.find(2),
+              bufferCache.pendingBufferMap_[pid][nodeId].second.end());
 }
 
 /**
@@ -262,23 +267,132 @@ HWTEST_F(RSCanvasDmaBufferCacheTest, AddPendingBufferWithExistingNodeTest, TestS
 {
     auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
     bufferCache.pendingBufferMap_.clear();
-    NodeId nodeId = 1;
+    pid_t pid = 1;
+    NodeId nodeId = static_cast<NodeId>(pid) << 32 | 1;
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     // Add initial buffer
     bufferCache.AddPendingBuffer(nodeId, buffer, 1);
-    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid][nodeId].second.size(), 1);
     // Add buffer with higher resetSurfaceIndex (should be added)
     bool result1 = bufferCache.AddPendingBuffer(nodeId, buffer, 2);
     ASSERT_TRUE(result1);
-    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 2);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid][nodeId].second.size(), 2);
     // Add buffer with same resetSurfaceIndex (should not be added again)
     bool result2 = bufferCache.AddPendingBuffer(nodeId, buffer, 2);
     ASSERT_FALSE(result2);
-    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 2);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid][nodeId].second.size(), 2);
     // Add buffer with lower resetSurfaceIndex (should be ignored)
     bool result3 = bufferCache.AddPendingBuffer(nodeId, buffer, 1);
     ASSERT_FALSE(result3);
-    ASSERT_EQ(bufferCache.pendingBufferMap_[nodeId].second.size(), 2);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid][nodeId].second.size(), 2);
+}
+
+/**
+ * @tc.name: AddPendingBufferPerPidLimitTest
+ * @tc.desc: Test AddPendingBuffer per-pid buffer count limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDmaBufferCacheTest, AddPendingBufferPerPidLimitTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.pendingBufferMap_.clear();
+    constexpr pid_t pid = 100;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    // Fill buffers until per-pid limit (512) is reached; each node holds up to 3 buffers
+    for (int i = 0; i < 200; i++) {
+        NodeId nodeId = static_cast<NodeId>(pid) << 32 | static_cast<NodeId>(i);
+        bufferCache.AddPendingBuffer(nodeId, buffer, 1);
+        bufferCache.AddPendingBuffer(nodeId, buffer, 2);
+        bufferCache.AddPendingBuffer(nodeId, buffer, 3);
+    }
+    // After filling, adding any more buffers under this pid should fail
+    NodeId extraNodeId = static_cast<NodeId>(pid) << 32 | 9999;
+    bool result = bufferCache.AddPendingBuffer(extraNodeId, buffer, 1);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: ClearPendingBufferByNodeIdRemovesEmptyPidTest
+ * @tc.desc: Test ClearPendingBufferByNodeId removes empty pid entry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDmaBufferCacheTest, ClearPendingBufferByNodeIdRemovesEmptyPidTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.pendingBufferMap_.clear();
+    constexpr pid_t pid = 200;
+    NodeId nodeId = static_cast<NodeId>(pid) << 32 | 1;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    bufferCache.AddPendingBuffer(nodeId, buffer, 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_.count(pid), 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId), 1);
+    // Clear the only node under this pid, pid entry should also be removed
+    bufferCache.ClearPendingBufferByNodeId(nodeId);
+    ASSERT_EQ(bufferCache.pendingBufferMap_.count(pid), 0);
+}
+
+/**
+ * @tc.name: ClearPendingBufferByNodeIdKeepsPidWithOtherNodesTest
+ * @tc.desc: Test ClearPendingBufferByNodeId keeps pid entry when other nodes remain
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDmaBufferCacheTest, ClearPendingBufferByNodeIdKeepsPidWithOtherNodesTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.pendingBufferMap_.clear();
+    constexpr pid_t pid = 300;
+    NodeId nodeId1 = static_cast<NodeId>(pid) << 32 | 1;
+    NodeId nodeId2 = static_cast<NodeId>(pid) << 32 | 2;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    bufferCache.AddPendingBuffer(nodeId1, buffer, 1);
+    bufferCache.AddPendingBuffer(nodeId2, buffer, 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].size(), 2);
+    // Clear one node, pid entry should remain with the other node
+    bufferCache.ClearPendingBufferByNodeId(nodeId1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_.count(pid), 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId2), 1);
+}
+
+/**
+ * @tc.name: AcquirePendingBufferPidExistNodeNotExistTest
+ * @tc.desc: Test AcquirePendingBuffer when pid exists but nodeId does not (creates placeholder node)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDmaBufferCacheTest, AcquirePendingBufferPidExistNodeNotExistTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.pendingBufferMap_.clear();
+    constexpr pid_t pid = 401;
+    NodeId nodeId1 = static_cast<NodeId>(pid) << 32 | 1;
+    NodeId nodeId2 = static_cast<NodeId>(pid) << 32 | 2;
+    // Add buffer for nodeId1 so pid exists in map
+    sptr<SurfaceBuffer> buffer1 = SurfaceBuffer::Create();
+    bufferCache.AddPendingBuffer(nodeId1, buffer1, 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_.count(pid), 1);
+    // nodeId2 does not exist under this pid, Acquire should create placeholder and return nullptr
+    auto buffer2 = bufferCache.AcquirePendingBuffer(nodeId2, 1);
+    ASSERT_EQ(buffer2, nullptr);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId2), 1);
+}
+
+/**
+ * @tc.name: ClearPendingBufferByNodeIdNodeNotExistTest
+ * @tc.desc: Test ClearPendingBufferByNodeId when nodeId does not exist under existing pid (else branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDmaBufferCacheTest, ClearPendingBufferByNodeIdNodeNotExistTest, TestSize.Level1)
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.pendingBufferMap_.clear();
+    constexpr pid_t pid = 404;
+    NodeId nodeId1 = static_cast<NodeId>(pid) << 32 | 1;
+    NodeId nodeId2 = static_cast<NodeId>(pid) << 32 | 2;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    bufferCache.AddPendingBuffer(nodeId1, buffer, 1);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId1), 1);
+    // nodeId2 does not exist under this pid, ClearPendingBufferByNodeId enters else branch harmlessly
+    bufferCache.ClearPendingBufferByNodeId(nodeId2);
+    ASSERT_EQ(bufferCache.pendingBufferMap_[pid].count(nodeId1), 1);
 }
 } // namespace OHOS::Rosen
 #endif // ROSEN_OHOS && RS_ENABLE_VK

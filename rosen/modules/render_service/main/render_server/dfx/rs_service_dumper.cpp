@@ -175,9 +175,20 @@ void RSServiceDumper::RegisterMemFuncs(std::shared_ptr<RSServiceDumpManager> rsD
         ScheduleTask([this, &dumpString]() { DumpAllNodesMemSize(dumpString); });
     };
 
+    RSDumpFunc dumpVKImageInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                    std::string &dumpString) -> void {
+        ScheduleTask([this, &dumpString]() {
+            dumpString.append("\n");
+            dumpString.append("----------RSRenderComposer-DumpVkIMageInfo-Begin---------\n");
+            rsRenderComposerManager_->DumpVKImageInfo(dumpString);
+            dumpString.append("----------RSRenderComposer-DumpVkIMageInfo-End---------\n");
+        });
+    };
+
     std::vector<RSDumpHander> handers = {
         { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_TAG },
         { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
+        { RSDumpID::MEM_INFO, dumpVKImageInfoFunc },
     };
 
     rsDumpManager->Register(handers);

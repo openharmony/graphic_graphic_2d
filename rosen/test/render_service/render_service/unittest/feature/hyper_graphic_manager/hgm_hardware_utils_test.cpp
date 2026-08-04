@@ -82,9 +82,9 @@ HWTEST_F(HgmHardwareUtilsTest, ExecuteSwitchRefreshRateTest, TestSize.Level1)
     hgmCore.SetScreenRefreshRateImme(1);
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);
 
-    hgmHardwareUtils->setRateRetryMap_[SCREEN_ID] = std::make_pair(true, 1);
+    hgmHardwareUtils->setRateRetryParam_.needRetrySetRate = true;
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);
-    hgmHardwareUtils->setRateRetryMap_[SCREEN_ID] = std::make_pair(false, 0);
+    hgmHardwareUtils->setRateRetryParam_.needRetrySetRate = false;
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);
     hgmCore.GetFrameRateMgr()->curScreenId_.store(hgmCore.GetFrameRateMgr()->GetLastCurScreenId());
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);

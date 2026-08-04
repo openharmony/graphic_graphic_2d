@@ -278,7 +278,7 @@ void RSUIDirector::RebuildNodeTree()
         if (rsUIContext_) {
             rsUIContext_->SetRebuildState(RebuildState::Rebuilding);
             auto transaction = rsUIContext_->GetRSTransaction();
-            if (RSSystemProperties::GetRebuildSceneEnabled()) {
+            if (RSSystemProperties::GetRebuildSceneEnabled() && transaction != nullptr) {
                 transaction->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
             }
         }
@@ -425,8 +425,8 @@ void RSUIDirector::GoStop()
         currentUIDirectorState_ == RSUIDirectorLifecycleState::RESUME) {
         if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::GetBackgroundRebuildEnabled()) {
             ExecuteGoStop();
-            AddUIDirectorCommand<RSUIDirectorGoStop>();
         }
+        AddUIDirectorCommand<RSUIDirectorGoStop>(); // always sync STOP state to render service
     }
     currentUIDirectorState_ = RSUIDirectorLifecycleState::STOP;
 }

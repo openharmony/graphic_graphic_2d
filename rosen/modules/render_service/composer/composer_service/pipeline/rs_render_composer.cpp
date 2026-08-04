@@ -104,7 +104,7 @@ void NotifyLayerStateChangedToRender(const sptr<IRSComposerToRenderConnection>& 
     uint64_t nodeId, bool success, uint64_t tunnelLayerGeneration)
 {
     if (composerToRenderConnection == nullptr) {
-        RS_LOGD("%{public}s composerToRenderConnection is nullptr", __func__);
+        RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s composerToRenderConnection is nullptr", __func__);
         return;
     }
     LayerStateChange state = success ? LayerStateChange::AVAILABLE : LayerStateChange::UNAVAILABLE;
@@ -212,7 +212,8 @@ void RSRenderComposer::ClearRedrawGPUCompositionCache(const std::unordered_set<u
 {
     std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
     if (auto engine = uniRenderEngine.lock()) {
-        RS_LOGD("%{public}s, bufferId size %{public}d", __func__, static_cast<int32_t>(bufferIds.size()));
+        RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s, bufferId size %{public}d",
+            __func__, static_cast<int32_t>(bufferIds.size()));
         engine->ClearCacheSet(bufferIds);
     }
 }
@@ -378,7 +379,7 @@ int64_t RSRenderComposer::UpdateDelayTime(HgmCore& hgmCore,
         delayTime = delayTime +
             std::round((lastCommitTime_ - currCommitTime) * 1.0f / NS_MS_UNIT_CONVERSION) +
             COMMIT_DELTA_TIME;
-        RS_LOGD("CommitAndReleaseLayers vsyncId: %{public}" PRIu64 ", " \
+        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers vsyncId: %{public}" PRIu64 ", " \
             "update delayTime: %{public}" PRId64 ", currCommitTime: %{public}" PRId64 ", " \
             "lastCommitTime: %{public}" PRId64, pipelineParam.vsyncId, delayTime, currCommitTime, lastCommitTime_);
         RS_TRACE_NAME_FMT("update delayTime: %" PRId64 ", currCommitTime: %" PRId64 ", lastCommitTime: %" PRId64 "",
@@ -441,7 +442,7 @@ void RSRenderComposer::RecordTimestamp(uint64_t vsyncId)
 void RSRenderComposer::ChangeLayersForActiveRectOutside(std::vector<std::shared_ptr<RSLayer>>& layers)
 {
 #ifdef ROSEN_EMULATOR
-    RS_LOGD("emulator device do not need add layer");
+    RS_LOGD_IF(DEBUG_COMPOSER, "emulator device do not need add layer");
     return;
 #endif
     if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0) {
@@ -540,25 +541,25 @@ std::string RSRenderComposer::GetSurfaceNameInLayersForTrace(const std::vector<s
 bool RSRenderComposer::IsDelayRequired(HgmCore& hgmCore, const PipelineParam& pipelineParam)
 {
     if (pipelineParam.isForceRefresh) {
-        RS_LOGD("CommitAndReleaseLayers in Force Refresh");
+        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers in Force Refresh");
         RS_TRACE_NAME("CommitAndReleaseLayers in Force Refresh");
         return false;
     }
 
     if (hgmCore.GetLtpoEnabled()) {
         if (AdaptiveModeStatus() == SupportASStatus::SUPPORT_AS) {
-            RS_LOGD("CommitAndReleaseLayers in Adaptive Mode");
-            RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
+            RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers in Adaptive Mode");
+            RS_OPTIONAL_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
             return false;
         }
         if (pipelineParam.hasGameScene && AdaptiveModeStatus() == SupportASStatus::GAME_SCENE_SKIP) {
-            RS_LOGD("CommitAndReleaseLayers skip delayTime Calculation");
-            RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
+            RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers skip delayTime Calculation");
+            RS_OPTIONAL_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
             return false;
         }
         if (AdaptiveModeStatus() == SupportASStatus::SUPPORT_AS_LTPS) {
-            RS_LOGD("CommitAndReleaseLayers in Adaptive Mode For LTPS");
-            RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode For LTPS");
+            RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers in Adaptive Mode For LTPS");
+            RS_OPTIONAL_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode For LTPS");
             return false;
         }
     } else {
@@ -566,7 +567,7 @@ bool RSRenderComposer::IsDelayRequired(HgmCore& hgmCore, const PipelineParam& pi
             return false;
         }
         if (pipelineParam.hasGameScene) {
-            RS_LOGD("CommitAndReleaseLayers in Game Scene");
+            RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers in Game Scene");
             RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene");
             return false;
         }
@@ -655,7 +656,8 @@ int32_t RSRenderComposer::AdaptiveModeStatus()
     // if in game adaptive vsync mode and do direct composition, send layer immediately
     if (auto frameRateMgr = hgmCore.GetFrameRateMgr()) {
         int32_t adaptiveStatus = frameRateMgr->AdaptiveStatus();
-        RS_LOGD("CommitAndReleaseLayers send layer adaptiveStatus: %{public}" PRId32, adaptiveStatus);
+        RS_LOGD_IF(DEBUG_COMPOSER,
+            "CommitAndReleaseLayers send layer adaptiveStatus: %{public}" PRId32, adaptiveStatus);
         return adaptiveStatus;
     }
     return SupportASStatus::NOT_SUPPORT;
@@ -718,10 +720,12 @@ GraphicColorGamut RSRenderComposer::ComputeTargetColorGamut(const sptr<SurfaceBu
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-        RS_LOGD("PreAllocateProtectedBuffer Get color space failed");
+        RS_LOGD_IF(DEBUG_COMPOSER, "PreAllocateProtectedBuffer Get color space failed");
+        return GRAPHIC_COLOR_GAMUT_INVALID;
     }
     if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
-        RS_LOGD("PreAllocateProtectedBuffer fail, primaries is %{public}d", colorSpaceInfo.primaries);
+        RS_LOGD_IF(DEBUG_COMPOSER, "PreAllocateProtectedBuffer fail, primaries is %{public}d",
+            colorSpaceInfo.primaries);
         colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     }
 #endif
@@ -737,7 +741,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const sptr<Surface
     if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 || bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
         bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
         pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-        RS_LOGD("PreAllocateProtectedBuffer pixelformat is set to 1010102 for 10bit buffer");
+        RS_LOGD_IF(DEBUG_COMPOSER, "PreAllocateProtectedBuffer pixelformat is set to 1010102 for 10bit buffer");
     }
 #endif
     return pixelFormat;
@@ -757,7 +761,7 @@ void RSRenderComposer::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t ti
 bool RSRenderComposer::IsDropDirtyFrame(const std::vector<std::shared_ptr<RSLayer>>& layers)
 {
 #ifdef ROSEN_EMULATOR
-    RS_LOGD("emulator device do not need drop dirty frame");
+    RS_LOGD_IF(DEBUG_COMPOSER, "emulator device do not need drop dirty frame");
     return false;
 #endif
     if (!RSSystemProperties::IsSuperFoldDisplay()) {
@@ -846,7 +850,7 @@ GSError RSRenderComposer::ClearFrameBuffersInner(bool isNeedResetContext)
 GSError RSRenderComposer::ClearFrameBuffers(bool isNeedResetContext)
 {
     if (hdiOutput_ == nullptr || hdiOutput_->GetBufferCacheSize() <= 0) {
-        RS_LOGD("%{public}s buffer cache size less 0", __func__);
+        RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s buffer cache size less 0", __func__);
         return COMPOSITOR_ERROR_NULLPTR;
     }
     return ClearFrameBuffersInner(isNeedResetContext);
@@ -866,7 +870,7 @@ std::shared_ptr<RSSurfaceOhos> RSRenderComposer::CreateFrameBufferSurfaceOhos(co
         rsSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
     }
 #endif
-    RS_LOGD("Redraw: CreateFrameBufferSurfaceOhos.");
+    RS_LOGD_IF(DEBUG_COMPOSER, "Redraw: CreateFrameBufferSurfaceOhos.");
     return rsSurface;
 }
 
@@ -936,14 +940,14 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     }
 #endif
 
-    RS_LOGD("RsDebug Redraw flush frame buffer start");
+    RS_LOGD_IF(DEBUG_COMPOSER, "RsDebug Redraw flush frame buffer start");
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     GetDisplayClientTargetProperty(pixelFormat, colorGamut, layers);
-    RS_LOGD("Redraw computed target color gamut: %{public}d,"
+    RS_LOGD_IF(DEBUG_COMPOSER, "Redraw computed target color gamut: %{public}d,"
         "pixel format: %{public}d, frame width: %{public}u, frame height: %{public}u",
         colorGamut, pixelFormat, composerScreenInfo_.phyWidth, composerScreenInfo_.phyHeight);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo_,
@@ -954,7 +958,7 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     CM_ColorSpaceType colorSpace = CM_SRGB_FULL;
     if (ConvertColorGamutToSpaceType(colorGamut, colorSpace)) {
         if (surface->SetUserData("ATTRKEY_COLORSPACE_INFO", std::to_string(colorSpace)) != GSERROR_OK) {
-            RS_LOGD("Redraw set user data failed");
+            RS_LOGD_IF(DEBUG_COMPOSER, "Redraw set user data failed");
         }
     }
 #else
@@ -1006,7 +1010,7 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     RSTvMetadataUtil::CopyFromLayersToSurface(layers, rsSurface);
 #endif
     renderFrame->Flush();
-    RS_LOGD("RsDebug Redraw flush frame buffer end");
+    RS_LOGD_IF(DEBUG_COMPOSER, "RsDebug Redraw flush frame buffer end");
 }
 
 #ifdef RES_SCHED_ENABLE
@@ -1052,12 +1056,12 @@ GraphicColorGamut RSRenderComposer::ComputeTargetColorGamut(const std::vector<st
 
         CM_ColorSpaceInfo colorSpaceInfo;
         if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-            RS_LOGD("%{public}s Get color space failed", __func__);
+            RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s Get color space failed", __func__);
             continue;
         }
 
         if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
-            RS_LOGD("%{public}s fail, primaries is %{public}d", __func__, colorSpaceInfo.primaries);
+            RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s fail, primaries is %{public}d", __func__, colorSpaceInfo.primaries);
             colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
             break;
         }
@@ -1073,18 +1077,18 @@ bool RSRenderComposer::IsAllRedraw(const std::vector<std::shared_ptr<RSLayer>>& 
             continue;
         }
         if (layer->IsScreenRCDLayer()) {
-            RS_LOGD("%{public}s skip RCD layer", __func__);
+            RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s skip RCD layer", __func__);
             continue;
         }
         // skip hard cursor
         if (layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
-            RS_LOGD("%{public}s skip cursor", __func__);
+            RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s skip cursor", __func__);
             continue;
         }
         if (layer->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
             layer->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
             layer->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
-            RS_LOGD("%{public}s not all layers are redraw", __func__);
+            RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s not all layers are redraw", __func__);
             return false;
         }
     }
@@ -1116,7 +1120,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const std::vector<
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
             if (!allRedraw && RSBaseHdrUtil::GetRGBA1010108Enabled()) {
                 pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010108;
-                RS_LOGD("%{public}s pixelformat is set to GRAPHIC_PIXEL_FMT_RGBA_1010108", __func__);
+                RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s pixelformat is set to GRAPHIC_PIXEL_FMT_RGBA_1010108", __func__);
             }
             break;
         }
@@ -1124,7 +1128,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const std::vector<
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-            RS_LOGD("%{public}s pixelformat is set to 1010102 for 10bit buffer", __func__);
+            RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s pixelformat is set to 1010102 for 10bit buffer", __func__);
         }
     }
 
@@ -1162,17 +1166,19 @@ bool RSRenderComposer::GetDisplayClientTargetProperty(GraphicPixelFormat& pixelF
     int32_t dataspaceInt = 0;
     if (hdiOutput_ != nullptr) {
         int32_t ret = hdiOutput_->GetDisplayClientTargetProperty(pixelFormatInt, dataspaceInt);
-        if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        if (ret == GRAPHIC_DISPLAY_SUCCESS && pixelFormatInt >= GRAPHIC_PIXEL_FMT_CLUT8 &&
+            pixelFormatInt < GRAPHIC_PIXEL_FMT_BUTT) {
             // Direct cast from int32_t to GraphicPixelFormat
             pixelFormat = static_cast<GraphicPixelFormat>(pixelFormatInt);
             return true;
         } else {
-            RS_LOGD("GetDisplayClientTargetProperty failed, ret: %{public}d, fallback to computed values", ret);
+            RS_LOGD_IF(DEBUG_COMPOSER,
+                "GetDisplayClientTargetProperty failed, ret: %{public}d, fallback to computed values", ret);
             pixelFormat = ComputeTargetPixelFormat(layers);
             return false;
         }
     } else {
-        RS_LOGD("output returned nullptr, fallback to computed values");
+        RS_LOGD_IF(DEBUG_COMPOSER, "output returned nullptr, fallback to computed values");
         pixelFormat = ComputeTargetPixelFormat(layers);
         return false;
     }
@@ -1192,7 +1198,12 @@ void RSRenderComposer::ContextRegisterPostTask()
         uniRenderEngine_->GetRenderContext()->ChangeProtectedState(false);
         context = uniRenderEngine_->GetRenderContext()->GetSharedDrGPUContext();
         if (context) {
-            context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+            auto weakThis = weak_from_this();
+            context->RegisterPostFunc([weakThis](const std::function<void()>& task) {
+                if (auto sp = weakThis.lock()) {
+                    sp->PostTask(task);
+                }
+            });
         }
     }
 #endif
@@ -1331,7 +1342,7 @@ void RSRenderComposer::OnHwcDead()
 void RSRenderComposer::DestroyComposerLayer(std::shared_ptr<RSLayerParcel> rsLayerParcel)
 {
     RS_TRACE_NAME_FMT("%s screenId: %" PRIu64, __func__, screenId_);
-    RS_LOGD("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
+    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
     auto rsLayerId = rsLayerParcel->GetRSLayerId();
     auto rsLayer = rsRenderComposerContext_ == nullptr ?
         nullptr : rsRenderComposerContext_->GetRSRenderLayer(rsLayerId);
@@ -1402,7 +1413,7 @@ void RSRenderComposer::UpdateForSurfaceFps(const PipelineParam& pipelineParam)
             pipelineParam.SurfaceFpsOpList[i].uniqueId);
         if (pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType ==
             static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
-            RS_LOGD(
+            RS_LOGD_IF(DEBUG_COMPOSER,
                 "update for surfaceFps add op id: %{public}" PRIu64 ", name: %{public}s, uniqueId: %{public}" PRIu64,
                 pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
                 pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(),
@@ -1411,7 +1422,7 @@ void RSRenderComposer::UpdateForSurfaceFps(const PipelineParam& pipelineParam)
                 pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(), pipelineParam.SurfaceFpsOpList[i].uniqueId);
         } else if (pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType ==
             static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
-            RS_LOGD(
+            RS_LOGD_IF(DEBUG_COMPOSER,
                 "update for surfaceFps remove op id: %{public}" PRIu64 ", name: %{public}s uniqueId: %{public}" PRIu64,
                 pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
                 pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(),
@@ -1554,5 +1565,14 @@ void RSRenderComposer::SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback
     setHardwareTaskNumCb_ = setHardwareTaskNumCb;
     setTaskEndWithTimeCb_ = setTaskEndWithTimeCb;
     getRealTimeOffsetOfDvsyncCb_ = getRealTimeOffsetOfDvsyncCb;
+}
+
+void RSRenderComposer::DumpVKImageInfo(std::string& dumpString)
+{
+    if (uniRenderEngine_ == nullptr) {
+        RS_LOGW("%{public}s: uniRenderEngine is nullptr.", __func__);
+        return;
+    }
+    uniRenderEngine_->DumpVkImageInfo(dumpString);
 }
 }

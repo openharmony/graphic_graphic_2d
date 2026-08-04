@@ -377,6 +377,24 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurface, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetSurfaceNullStagingRenderParams
+ * @tc.desc: Test ResetSurface when stagingRenderParams_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceNullStagingRenderParams, TestSize.Level1)
+{
+    NodeId nodeId = 10;
+    std::weak_ptr<RSContext> context;
+    int width = 100;
+    int height = 100;
+    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    rsCanvasDrawingRenderNode->stagingRenderParams_ = nullptr;
+    // Should not crash when stagingRenderParams_ is nullptr
+    rsCanvasDrawingRenderNode->ResetSurface(width, height, 1);
+    ASSERT_EQ(rsCanvasDrawingRenderNode->surface_, nullptr);
+}
+
+/**
  * @tc.name: ResetSurfaceWithTextureTest
  * @tc.desc: Test ResetSurfaceWithTexture
  * @tc.type: FUNC
@@ -800,4 +818,95 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, InitClientRenderEnableTest, TestSize.Lev
     EXPECT_EQ(
         RSCanvasDrawingRenderNode::IsHybridEnabled(), RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM());
 }
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: OnDestoryTokenNodeCleanCacheTest
+ * @tc.desc: Test OnDestoryTokenNode registers SurfaceHandler and resets it
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, OnDestoryTokenNodeCleanCacheTest, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 20;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    if (node->surfaceHandler_ == nullptr) {
+        ASSERT_EQ(context->GetMutableNodeMap().GetSurfaceHandler(nodeId, false), nullptr);
+        return;
+    }
+    auto surfaceHandler = node->surfaceHandler_;
+    node->OnDestoryTokenNode();
+    ASSERT_EQ(node->surfaceHandler_, nullptr);
+    auto registeredHandler = context->GetMutableNodeMap().GetSurfaceHandler(nodeId, false);
+    ASSERT_EQ(registeredHandler, surfaceHandler);
+}
+
+/**
+ * @tc.name: OnDestoryTokenNodeNullSurfaceHandlerTest
+ * @tc.desc: Test OnDestoryTokenNode with null surfaceHandler returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, OnDestoryTokenNodeNullSurfaceHandlerTest, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    NodeId nodeId = 21;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    node->surfaceHandler_ = nullptr;
+    node->OnDestoryTokenNode();
+    ASSERT_EQ(node->surfaceHandler_, nullptr);
+    auto registeredHandler = context->GetMutableNodeMap().GetSurfaceHandler(nodeId, false);
+    ASSERT_EQ(registeredHandler, nullptr);
+}
+
+/**
+ * @tc.name: IsBufferDirtyTest
+ * @tc.desc: Test IsBufferDirty returns bufferDirty_ value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, IsBufferDirtyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(22);
+    ASSERT_FALSE(node->IsBufferDirty());
+    node->bufferDirty_ = true;
+    ASSERT_TRUE(node->IsBufferDirty());
+    node->bufferDirty_ = false;
+    ASSERT_FALSE(node->IsBufferDirty());
+    auto baseNode = std::make_shared<RSRenderNode>(100);
+    ASSERT_FALSE(baseNode->IsBufferDirty());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoSetsBufferDirtyTest
+ * @tc.desc: Test UpdateBufferInfo sets bufferDirty_ to true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoSetsBufferDirtyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(23);
+    node->InitRenderParams();
+    ASSERT_FALSE(node->IsBufferDirty());
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> ownerCount = nullptr;
+    Rect damageRect;
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    node->UpdateBufferInfo(buffer, ownerCount, damageRect, fence, nullptr, ownerCount);
+    ASSERT_TRUE(node->IsBufferDirty());
+}
+
+/**
+ * @tc.name: ApplyModifiersClearsBufferDirtyTest
+ * @tc.desc: Test ApplyModifiers resets bufferDirty_ to false after execution
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ApplyModifiersClearsBufferDirtyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(24);
+    node->InitRenderParams();
+    node->bufferDirty_ = true;
+    node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::BOUNDS), true);
+    node->ApplyModifiers();
+    ASSERT_FALSE(node->IsBufferDirty());
+}
+#endif
 } // namespace OHOS::Rosen

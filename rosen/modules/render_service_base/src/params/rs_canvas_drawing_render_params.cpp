@@ -21,12 +21,12 @@ RSCanvasDrawingRenderParams::RSCanvasDrawingRenderParams(NodeId id) : RSRenderPa
 
 void RSCanvasDrawingRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
-    RSRenderParams::OnSync(target);
     auto targetParams = static_cast<RSCanvasDrawingRenderParams*>(target.get());
     if (targetParams == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderParams::OnSync targetParams is nullptr");
         return;
     }
+    RSRenderParams::OnSync(target);
  
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     targetParams->bufferDraw_ = bufferDraw_;

@@ -685,7 +685,7 @@ public:
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
         bool isParentPrepareInReverseOrder = false) override;
     // keep specified nodetype preparation
-    virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -899,6 +899,7 @@ public:
     {
         return hdrPhotoNum_ > 0;
     }
+    void SetRebuildingState(bool isRebuildingState);
 
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
@@ -1146,6 +1147,8 @@ public:
     void NotifyUIBufferAvailable();
     bool IsNotifyUIBufferAvailable() const;
     void SetIsNotifyUIBufferAvailable(bool available);
+    bool IsPendingUIBufferNotify() const;
+    void SetPendingUIBufferNotify(bool pending);
 
     // UI Thread would not be notified when SurfaceNode created by Video/Camera in RenderService has available buffer.
     // And RenderThread does not call mainFunc_ if nothing in UI thread is changed
@@ -2217,6 +2220,7 @@ private:
     bool UIExtensionUnobscured_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
+    bool isPendingUIBufferNotify_ = false;
     std::atomic_bool isBufferAvailable_ = false;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
@@ -2261,6 +2265,7 @@ private:
     std::atomic<uint32_t> ancoFlags_ = 0;
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    bool isRebuildingState_ = false;
     SurfaceId surfaceId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     struct GamutCollector

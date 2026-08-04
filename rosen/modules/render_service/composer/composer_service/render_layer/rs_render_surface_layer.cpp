@@ -42,14 +42,15 @@ static std::unordered_map<RSLayerCmdType, RSLayerCmdHandler> cmdHandlers_ = {
 RSRenderSurfaceLayer::RSRenderSurfaceLayer()
 {
     RS_TRACE_NAME_FMT("Constructing %s", __func__);
-    RS_LOGD("Constructing %{public}s", __func__);
+    RS_LOGD_IF(DEBUG_COMPOSER, "Constructing %{public}s", __func__);
 }
 
 RSRenderSurfaceLayer::~RSRenderSurfaceLayer()
 {
     RS_TRACE_NAME_FMT("%s id: %" PRIu64 ", name: %s, layer type: %d",
         __func__, rsLayerId_, surfaceName_.c_str(), layerType_);
-    RS_LOGD("Destructing %{public}s, id: %{public}" PRIu64 ", surface name: %{public}s, layer type: %{public}d",
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "Destructing %{public}s, id: %{public}" PRIu64 ", surface name: %{public}s, layer type: %{public}d",
         __func__, rsLayerId_, surfaceName_.c_str(), layerType_);
 }
 
@@ -165,14 +166,14 @@ const GraphicIRect& RSRenderSurfaceLayer::GetCropRect() const
 
 void RSRenderSurfaceLayer::SetDelegateModeCropRect(const GraphicIRect& crop)
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateModeCropRect in:layerId=%" PRIu64 ", %d %d %d %d",
         rsLayerId_, crop.x, crop.y, crop.w, crop.h);
     delegateModeCropRect_ = crop;
 }
 
 GraphicIRect RSRenderSurfaceLayer::GetDelegateModeCropRect()
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateModeCropRect in:layerId=%" PRIu64 ", %d %d %d %d",
         rsLayerId_, delegateModeCropRect_.x, delegateModeCropRect_.y, delegateModeCropRect_.w, delegateModeCropRect_.h);
     return delegateModeCropRect_;
 }
@@ -583,7 +584,6 @@ sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetBuffer() const
 {
     auto sbuffer = sbuffer_.promote();
     if (sbuffer == nullptr) {
-        RS_LOGE("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return sbuffer;
@@ -666,17 +666,17 @@ void RSRenderSurfaceLayer::SetUseDeviceOffline(bool useOffline)
     }
     useDeviceOffline_ = useOffline;
 }
- 
+
 bool RSRenderSurfaceLayer::GetUseDeviceOffline() const
 {
     return useDeviceOffline_;
 }
- 
+
 void RSRenderSurfaceLayer::SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo)
 {
     hpaeOriginalInfo_ = hpaeOriginalInfo;
 }
- 
+
 const HpaeOriginalInfo& RSRenderSurfaceLayer::GetHpaeOriginalInfo() const
 {
     return hpaeOriginalInfo_;
@@ -707,6 +707,7 @@ void RSRenderSurfaceLayer::SetVcldInfo(const RSVcldParam& vcldInfo)
 {
     vcldInfo_ = vcldInfo;
 }
+
 const RSVcldParam& RSRenderSurfaceLayer::GetVcldInfo() const
 {
     return vcldInfo_;

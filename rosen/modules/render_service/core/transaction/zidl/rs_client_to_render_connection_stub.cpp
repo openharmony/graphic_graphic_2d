@@ -14,6 +14,7 @@
  */
 
 #include "rs_client_to_render_connection_stub.h"
+#include <cmath>
 #include <memory>
 #include "ivsync_connection.h"
 #ifdef RES_SCHED_ENABLE
@@ -62,6 +63,7 @@ const uint32_t MAX_VOTER_SIZE = 100;
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 constexpr size_t MAX_NODE_ID_LIST_SIZE = 100000;
+constexpr size_t MAX_CAPTURE_BLACK_LIST_SIZE = 1024;
 
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
@@ -507,10 +509,17 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             uint64_t screenId{0};
             uint8_t displayMode{0};
             uint32_t mirrorSourceRotation{static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)};
+            float positionZ{0.0f};
             if (!data.ReadUint64(mirrorId) ||
                 !data.ReadUint64(screenId) ||
                 !data.ReadUint8(displayMode) ||
-                !data.ReadUint32(mirrorSourceRotation)) {
+                !data.ReadUint32(mirrorSourceRotation) ||
+                !data.ReadFloat(positionZ)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!std::isfinite(positionZ)) {
+                RS_LOGE("CREATE_DISPLAY_NODE invalid positionZ: not finite");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -520,6 +529,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .mirrorNodeId = mirrorId,
                 .isSync = true,
                 .mirrorSourceRotation = mirrorSourceRotation,
+                .positionZ = positionZ,
             };
             bool success = false;
             if (CreateDisplayNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
@@ -1464,6 +1474,12 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (nodeIdList.size() > MAX_NODE_ID_LIST_SIZE) {
+                RS_LOGE(
+                    "RSClientToRenderConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES nodeIdList size exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
             break;
         }
@@ -1996,6 +2012,10 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         !data.ReadBool(captureConfig.isSyncRender) ||
         !data.ReadBool(captureConfig.windowSync)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
+        return false;
+    }
+    if (captureConfig.blackList.size() > MAX_CAPTURE_BLACK_LIST_SIZE) {
+        RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig blackList size exceeds limit!");
         return false;
     }
     if (captureType >= static_cast<uint8_t>(SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT)) {

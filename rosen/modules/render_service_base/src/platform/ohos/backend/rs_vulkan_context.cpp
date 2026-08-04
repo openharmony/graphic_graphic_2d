@@ -860,12 +860,13 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
     if (interfaceType == VulkanInterfaceType::UNPROTECTED_REDRAW ||
         interfaceType == VulkanInterfaceType::PROTECTED_REDRAW) {
         std::lock_guard<std::mutex> lock(vkInterface.hGraphicsQueueMutex_);
-        RS_LOGD("%{public}s hardware queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
+        RS_LOGD_IF(DEBUG_IPC, "%{public}s hardware queue, interfaceType: %{public}d",
+            __func__, static_cast<int>(interfaceType));
         RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue, interfaceType: %d", __func__, static_cast<int>(interfaceType));
         return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
     } else if (interfaceType == VulkanInterfaceType::BASIC_RENDER) {
         std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
-        RS_LOGD("%{public}s queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
+        RS_LOGD_IF(DEBUG_IPC, "%{public}s queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
         RS_OPTIONAL_TRACE_NAME_FMT("%s queue, interfaceType: %d", __func__, static_cast<int>(interfaceType));
         VkResult ret = vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
 #ifdef HETERO_HDR_ENABLE
@@ -885,13 +886,14 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(VkQueue
     if (interfaceType == VulkanInterfaceType::UNPROTECTED_REDRAW ||
         interfaceType == VulkanInterfaceType::PROTECTED_REDRAW) {
         std::lock_guard<std::mutex> lock(vkInterface.hGraphicsQueueMutex_);
-        RS_LOGD("%{public}s hardware queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
+        RS_LOGD_IF(DEBUG_IPC, "%{public}s hardware queue, interfaceType: %{public}d",
+            __func__, static_cast<int>(interfaceType));
         RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue, interfaceType: %d", __func__, static_cast<int>(interfaceType));
         return vkInterface.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount,
             pWaitSemaphores, image, pNativeFenceFd);
     } else if (interfaceType == VulkanInterfaceType::BASIC_RENDER) {
         std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
-        RS_LOGD("%{public}s queue", __func__);
+        RS_LOGD_IF(DEBUG_IPC, "%{public}s queue", __func__);
         RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
         return vkInterface.vkQueueSignalReleaseImageOHOS(queue,
             waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);

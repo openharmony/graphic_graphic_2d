@@ -95,6 +95,7 @@ public:
     }
     void SetCacheDir(const std::string& filePath)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         cacheDir_ = filePath;
     }
     // If disabled partial render, rt forces to render whole frame

@@ -15,6 +15,7 @@
 #include "context/webgl_rendering_context_base_impl.h"
 
 #include <cstdint>
+#include <limits>
 #include "context/webgl_rendering_context_base.h"
 #include "context/webgl2_rendering_context_base.h"
 #include "napi/n_class.h"
@@ -727,6 +728,10 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexImage2D(
 
     size_t bufferLen = bufferData.GetBufferLength();
     size_t elemSize = bufferData.GetBufferDataSize();
+    if (elemSize == 0 || static_cast<size_t>(srcOffset) > SIZE_MAX / elemSize) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
+        return NVal::CreateNull(env).val_;
+    }
     size_t offsetBytes = static_cast<size_t>(srcOffset) * elemSize;
     if (offsetBytes > bufferLen) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
@@ -739,6 +744,10 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexImage2D(
     GLenum result = CheckCompressedTexImage2D(env, imgArg, length);
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR_WITH_LOG(result, "CheckCompressedTexImage2D failed");
+        return NVal::CreateNull(env).val_;
+    }
+    if (length > static_cast<size_t>(std::numeric_limits<GLsizei>::max())) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressedTexImage2D length too large");
         return NVal::CreateNull(env).val_;
     }
     GLvoid* data = reinterpret_cast<GLvoid*>(bufferData.GetBuffer() + offsetBytes);
@@ -799,7 +808,7 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
     imgArg.Dump("WebGL compressedTexSubImage2D");
     WebGLReadBufferArg bufferData(env);
     GLvoid* data = nullptr;
-    GLsizei length = 0;
+    size_t length = 0;
     if (!NVal(env, srcData).IsNull()) {
         bool succ = bufferData.GenBufferData(srcData, BUFFER_DATA_FLOAT_32) == napi_ok;
         if (!succ) {
@@ -808,6 +817,10 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
         bufferData.DumpBuffer(bufferData.GetBufferDataType());
         size_t bufferLen = bufferData.GetBufferLength();
         size_t elemSize = bufferData.GetBufferDataSize();
+        if (elemSize == 0 || static_cast<size_t>(srcOffset) > SIZE_MAX / elemSize) {
+            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
+            return NVal::CreateNull(env).val_;
+        }
         size_t offsetBytes = static_cast<size_t>(srcOffset) * elemSize;
         if (offsetBytes > bufferLen) {
             SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
@@ -817,14 +830,18 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
         size_t dataLength = (srcLengthOverride == 0) ? maxLength
             : std::min(static_cast<size_t>(srcLengthOverride), maxLength);
         data = reinterpret_cast<void*>(bufferData.GetBuffer() + offsetBytes);
-        length = static_cast<GLsizei>(dataLength);
+        length = dataLength;
     }
     bool succ = CheckCompressedTexSubImage2D(env, imgArg, length);
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
+    if (length > static_cast<size_t>(std::numeric_limits<GLsizei>::max())) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressedTexSubImage2D length too large");
+        return NVal::CreateNull(env).val_;
+    }
     glCompressedTexSubImage2D(imgArg.target, imgArg.level, imgArg.xOffset, imgArg.yOffset, imgArg.width, imgArg.height,
-        imgArg.format, length, data);
+        imgArg.format, static_cast<GLsizei>(length), data);
     LOGD("WebGL compressedTexSubImage2D result: %{public}u", GetError_());
     return NVal::CreateNull(env).val_;
 }

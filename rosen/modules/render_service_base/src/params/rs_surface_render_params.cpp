@@ -242,6 +242,21 @@ bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
     return isLastFrameHardwareEnabled_;
 }
 
+// Marks whether the surface is mid-rebuild; the drawable skips drawing it while true. Syncs to render params.
+void RSSurfaceRenderParams::SetRebuildingState(bool isRebuildingState)
+{
+    if (isRebuildingState_ == isRebuildingState) {
+        return;
+    }
+    isRebuildingState_ = isRebuildingState;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetRebuildingState() const
+{
+    return isRebuildingState_;
+}
+
 void RSSurfaceRenderParams::SetFixRotationByUser(bool flag)
 {
     if (isFixRotationByUser_ == flag) {
@@ -322,6 +337,12 @@ void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
     }
     needSync_ = true;
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+}
+
+void RSSurfaceRenderParams::ClearPreBufferOnly()
+{
+    preBuffer_ = nullptr;
+    preBufferOwnerCount_ = nullptr;
 }
 
 sptr<SurfaceBuffer> RSSurfaceRenderParams::GetPreBuffer()
@@ -652,6 +673,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->stencilVal_ = stencilVal_;
     targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
+    targetSurfaceParams->isRebuildingState_ = isRebuildingState_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
     targetSurfaceParams->uifirstParams_.cacheType = uifirstParams_.cacheType;
     targetSurfaceParams->uifirstParams_.parentEnabled = uifirstParams_.parentEnabled;

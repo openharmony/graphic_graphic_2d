@@ -402,7 +402,7 @@ struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerProperty
     RSRenderLayerCmdProperty() = default;
     explicit RSRenderLayerCmdProperty(const HpaeOriginalInfo& value) : stagingValue_(value) {}
     ~RSRenderLayerCmdProperty() override = default;
- 
+
     void Set(const HpaeOriginalInfo& value) { stagingValue_ = value; }
 
     HpaeOriginalInfo Get() const { return stagingValue_; }
@@ -452,12 +452,12 @@ struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerProperty
         }
         return true;
     }
- 
+
     bool OnMarshalling(OHOS::MessageParcel& parcel, const HpaeOriginalInfo& value)
     {
         return Marshalling(parcel, value);
     }
- 
+
     bool OnUnmarshalling(OHOS::MessageParcel& parcel, std::shared_ptr<RSRenderLayerCmdProperty<HpaeOriginalInfo>>& val)
     {
         HpaeOriginalInfo value;
@@ -467,7 +467,7 @@ struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerProperty
         val = std::make_shared<RSRenderLayerCmdProperty<HpaeOriginalInfo>>(value);
         return true;
     }
- 
+
     bool UnmarshallingValue(OHOS::MessageParcel& parcel, HpaeOriginalInfo& value)
     {
         // originalBuffer
@@ -496,7 +496,7 @@ struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerProperty
         value.originalCropRect = *(reinterpret_cast<const GraphicIRect*>(cropRectBuff));
         return true;
     }
- 
+
     bool UnmarshallingSurfaceBuffer(OHOS::MessageParcel& parcel, sptr<SurfaceBuffer>& buffer)
     {
         bool hasBuffer = false;
@@ -515,7 +515,7 @@ struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerProperty
         }
         return true;
     }
- 
+
     bool UnmarshallingSyncFence(OHOS::MessageParcel& parcel, sptr<SyncFence>& fence)
     {
         bool hasFence = false;

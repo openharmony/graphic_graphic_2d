@@ -282,7 +282,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
-        RS_LOGD("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
+        RS_LOGD_IF(DEBUG_NODE, "RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
@@ -522,6 +522,9 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
         SetNeedProcess(true);
     }
     RSRenderNode::ApplyModifiers();
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    bufferDirty_ = false;
+#endif
 }
 
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type)
@@ -714,11 +717,13 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
 #endif
 
     auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
+    if (stagingRenderParams != nullptr) {
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
-    stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
+        stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
+        stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
 #endif
-    stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
+        stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
+    }
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     if (surfaceHandler_ != nullptr) {
         static uint32_t maxGpuSupportedWidth = 0;
@@ -728,7 +733,9 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
             []() { RenderContext::Create()->QueryMaxGpuBufferSize(maxGpuSupportedWidth, maxGpuSupportedHeight); });
         sizeOutOfGpuLimit_ = width > static_cast<int>(maxGpuSupportedWidth) ||
             height > static_cast<int>(maxGpuSupportedHeight) || width <= 0 || height <= 0;
-        stagingRenderParams->SetBufferDraw(IsBufferDraw());
+        if (stagingRenderParams != nullptr) {
+            stagingRenderParams->SetBufferDraw(IsBufferDraw());
+        }
         if (sizeOutOfGpuLimit_) {
             firstBufferAcquired_ = false;
             UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);
@@ -849,7 +856,10 @@ void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buff
     if (buffer == nullptr && canvasParams->GetBuffer() == nullptr) {
         return;
     }
- 
+
+    bufferDirty_ = true;
+    MarkNonGeometryChanged();
+    SetContentDirty();
     if (!firstBufferAcquired_ && buffer != nullptr) {
         firstBufferAcquired_ = true;
         ClearOp();

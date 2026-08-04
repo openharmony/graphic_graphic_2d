@@ -6442,7 +6442,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_ReadMapFiled, Te
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    // 不写入MapSize
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);
@@ -6468,7 +6467,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_ReadMapSize0, Te
  
 /**
  * @tc.name: SendVideoRateInfo_ReadMapSizeExceedMax
- * @tc.desc: Test SendVideoRateInfo stub when map size > MAX_VIDEO_INFO_SIZE(32).
+ * @tc.desc: Test SendVideoRateInfo stub when map size > maxVideoInfoSize(32).
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -6478,7 +6477,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_ReadMapSizeExcee
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data.WriteUint32(33); // 33表示map的大小，大于MAX_VIDEO_INFO_SIZE(32)
+    const uint32_t maxVideoInfoSize = 32; // video rate info max map size is 32
+    data.WriteUint32(maxVideoInfoSize + 1); // +1表示大于maxVideoInfoSize(32)
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);

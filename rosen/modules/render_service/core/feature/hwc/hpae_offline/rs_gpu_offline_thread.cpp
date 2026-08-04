@@ -25,7 +25,7 @@ namespace Rosen {
 
 RSGPUOfflineThread::RSGPUOfflineThread()
 {
-    RS_LOGD("RSGPUOfflineThread::Constructed");
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineThread::Constructed");
 }
 
 RSGPUOfflineThread::~RSGPUOfflineThread()
@@ -35,12 +35,12 @@ RSGPUOfflineThread::~RSGPUOfflineThread()
             Stop();
         });
     }
-    RS_LOGD("RSGPUOfflineThread::Destructed");
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineThread::Destructed");
 }
 
 bool RSGPUOfflineThread::Start()
 {
-    RS_LOGD("RSGPUOfflineThread::Start");
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineThread::Start");
     runner_ = AppExecFwk::EventRunner::Create("RSGPUOfflineThread");
     if (!runner_) {
         RS_LOGE("RSGPUOfflineThread::Start runner null");
@@ -61,13 +61,13 @@ bool RSGPUOfflineThread::Start()
         return false;
     }
     isInitialized_ = true;
-    RS_LOGD("RSGPUOfflineThread::Started successfully");
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineThread::Started successfully");
     return true;
 }
 
 void RSGPUOfflineThread::Stop()
 {
-    RS_LOGD("RSGPUOfflineThread::Stop");
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineThread::Stop");
     isInitialized_ = false;
     if (renderEngine_) {
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
@@ -85,14 +85,14 @@ void RSGPUOfflineThread::Stop()
 
 void RSGPUOfflineThread::InitRenderEngine()
 {
-    RS_LOGD("RSGPUOfflineThread::InitRenderEngine");
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineThread::InitRenderEngine");
     renderEngine_ = std::make_shared<RSRenderEngine>();
     if (renderEngine_ == nullptr) {
         RS_LOGE("RSGPUOfflineThread::RenderEngine_ is null");
         return;
     }
     renderEngine_->Init();
-    RS_LOGD("RSGPUOfflineThread::RenderEngine_ init done");
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineThread::RenderEngine_ init done");
 }
 
 bool RSGPUOfflineThread::PostTask(const std::function<void()>& task, const std::string& name)

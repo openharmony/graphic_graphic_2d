@@ -3942,27 +3942,63 @@ HWTEST_F(RSRenderNodeTest2, ReSortChildrenByZIndex001, TestSize.Level1)
     EXPECT_FALSE(node.isFullChildrenListValid_);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
- * @tc.name: UpdateDrawingCacheInfoAfterChildren_ExcludedStateChanged001
- * @tc.desc: a descendant's excluded state changed must force drawing cache changed on the cache root.
+ * @tc.name: PrepareSelfNodeForApplyModifiers001
+ * @tc.desc: test PrepareSelfNodeForApplyModifiers on a node without cycle, flag is reset after call
  * @tc.type: FUNC
- * @tc.require: issueIAEDYI
+ * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest2, UpdateDrawingCacheInfoAfterChildren_ExcludedStateChanged001, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers001, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
-    ASSERT_NE(node, nullptr);
-    node->InitRenderParams();
-    EXPECT_FALSE(node->GetDrawingCacheChanged());
-
-    // simulate the signal a descendant propagated up to this cache root via renderGroupCacheRoots_
-    node->SetRenderGroupExcludedStateChanged(true);
-    EXPECT_TRUE(node->IsRenderGroupExcludedStateChanged());
-
-    node->UpdateDrawingCacheInfoAfterChildren();
-    // the cache root must refresh, and the one-shot flag must be consumed
-    EXPECT_TRUE(node->GetDrawingCacheChanged());
-    EXPECT_FALSE(node->IsRenderGroupExcludedStateChanged());
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->SetGlobalAlpha(1.0f); // lazy-init stagingRenderParams_ to avoid null deref in SetAlpha
+    EXPECT_FALSE(node->inTraversalPath_);
+    node->PrepareSelfNodeForApplyModifiers();
+    EXPECT_FALSE(node->inTraversalPath_); // RAII guard must reset the flag on exit
 }
+
+/**
+ * @tc.name: PrepareSelfNodeForApplyModifiers002
+ * @tc.desc: test PrepareSelfNodeForApplyModifiers detects cycle and avoids stack overflow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers002, TestSize.Level1)
+{
+    auto nodeA = std::make_shared<RSRenderNode>(id, context);
+    auto nodeB = std::make_shared<RSRenderNode>(id + 1, context);
+    nodeA->SetGlobalAlpha(1.0f);
+    nodeB->SetGlobalAlpha(1.0f);
+    // build a detached 2-node cycle A<->B (AddChild reparents, so it is not reachable from root,
+    // but a NodeId-based entry like UI capture can still hit it)
+    nodeA->AddChild(nodeB);
+    nodeB->AddChild(nodeA);
+    EXPECT_FALSE(nodeA->inTraversalPath_);
+    EXPECT_FALSE(nodeB->inTraversalPath_);
+    // must not stack-overflow: re-entry of A is detected and skipped; outer guards reset both flags
+    nodeA->PrepareSelfNodeForApplyModifiers();
+    EXPECT_FALSE(nodeA->inTraversalPath_);
+    EXPECT_FALSE(nodeB->inTraversalPath_);
+}
+
+/**
+ * @tc.name: PrepareSelfNodeForApplyModifiers003
+ * @tc.desc: test re-entry guard does not reset the flag it did not set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->SetGlobalAlpha(1.0f);
+    // simulate that the node is already on the recursion stack (cycle re-entry)
+    node->inTraversalPath_ = true;
+    node->PrepareSelfNodeForApplyModifiers(); // must return early without running body or resetting flag
+    // the re-entry guard is not the setter, so it must leave the flag untouched
+    EXPECT_TRUE(node->inTraversalPath_);
+    node->inTraversalPath_ = false; // cleanup
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

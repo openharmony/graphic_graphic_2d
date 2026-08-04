@@ -126,6 +126,7 @@ private:
     void ClearObjects();
     EGLBoolean InternalMakeCurrent(EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx,
         bool isAfterHook = false, EglWrapperContext *curCtx = nullptr);
+    std::vector<EGLint> ExtractNonColorspaceInfoFromAttribs(const EGLint *attrbList);
 
 #if USE_IGRAPHICS_EXTENDS_HOOKS
     void ChooseHookTable(bool isAfterHook, const EglWrapperContext *ctx, const EglWrapperContext *curCtx,
@@ -136,7 +137,7 @@ private:
     static EglWrapperDisplay wrapperDisp_;
     EGLDisplay  disp_;
     std::mutex  lockMutex_;
-    std::recursive_mutex refLockMutex_;
+    std::recursive_mutex  refLockMutex_;
     std::unordered_set<EglWrapperObject *> objects_;
     uint32_t refCnt_;
     std::string versionValue_ {};

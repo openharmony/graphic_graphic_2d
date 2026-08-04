@@ -312,6 +312,7 @@ public:
 
     static float GetSplitTransactionMaxProcessTimeMs();
     static size_t GetSplitTransactionCheckInterval();
+    static float GetSplitTransactionMaxTotalTimeMs();
 
     static bool GetSecurityPermissionCheckEnabled();
     static bool GetEffectMergeEnabled();
@@ -426,7 +427,7 @@ private:
     static inline bool isCanvasDrawingNodeClientRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static std::atomic_bool cacheEnabledForRotation_ = false;
-    static inline bool forceHpsBlurDisabled_ = false;
+    static inline std::atomic<bool> forceHpsBlurDisabled_{false};
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool animationTestEnable_ = false;
     static inline bool isBehindWindowFilterEnabled_ = true;

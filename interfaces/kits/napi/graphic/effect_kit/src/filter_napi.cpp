@@ -33,6 +33,7 @@ namespace {
     constexpr uint32_t NUM_2 = 2;
     constexpr uint32_t NUM_3 = 3;
     constexpr uint32_t NUM_4 = 4;
+    constexpr uint32_t FRACTION_STOPS_NUM_LIMIT = 12; // fraction stops limit num 12
     const std::map<std::string, OHOS::Rosen::Drawing::TileMode> STRING_TO_JS_MAP = {
         { "CLAMP", OHOS::Rosen::Drawing::TileMode::CLAMP },
         { "REPEAT", OHOS::Rosen::Drawing::TileMode::REPEAT },
@@ -343,7 +344,7 @@ napi_value FilterNapi::GetPixelMap(napi_env env, napi_callback_info info)
         }
     }
     FilterNapi* thisFilter = nullptr;
-    status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi GetPixelMap CreatPixelMap fail"));
     auto renderRet = thisFilter->Render(forceCPU);
@@ -416,7 +417,8 @@ napi_value FilterNapi::GetPixelMapAsyncCommon(napi_env env, napi_callback_info i
     std::unique_ptr<FilterAsyncContext> ctx = std::make_unique<FilterAsyncContext>();
     EFFECT_JS_ARGS(env, info, status, argc, argv, ctx->this_);
     BuildMsgOnError(env, ctx, status == napi_ok, "FilterNapi GetPixelMapAsync parsing input fail");
-    NAPI_CALL(env, napi_unwrap(env, ctx->this_, reinterpret_cast<void**>(&(ctx->filterNapi))));
+    NAPI_CALL(env, napi_unwrap_s(env, ctx->this_, &FilterNapi::NAPI_TYPE_TAG,
+        reinterpret_cast<void**>(&(ctx->filterNapi))));
     BuildMsgOnError(env, ctx, (ctx->filterNapi != nullptr), "FilterNapi GetPixelMapAsync filter is nullptr");
     if (argc >= NUM_1) {
         if (EffectKitNapiUtils::GetInstance().GetType(env, argv[0]) == napi_boolean) {
@@ -508,7 +510,7 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
     }
 
     FilterNapi* thisFilter = nullptr;
-    status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Blur napi_unwrap fail"));
 
@@ -596,8 +598,13 @@ static uint32_t ParseFractionStops(
         EFFECT_LOG_E("FilterNapi EllipticalGradientBlur parsing fractionStops array length fail");
         return ERR_INVALID_PARAM;
     }
+    uint32_t loopLimit = std::min(arrayLength, FRACTION_STOPS_NUM_LIMIT);
+    if (arrayLength > FRACTION_STOPS_NUM_LIMIT) {
+        EFFECT_LOG_E("FilterNapi EllipticalGradientBlur fractionStops length %{public}u exceeds limit %{public}u,"
+            " truncated", arrayLength, FRACTION_STOPS_NUM_LIMIT);
+    }
 
-    for (uint32_t i = 0; i < arrayLength; ++i) {
+    for (uint32_t i = 0; i < loopLimit; ++i) {
         napi_value element;
         if (napi_get_element(env, param, i, &element) != napi_ok) {
             EFFECT_LOG_E("FilterNapi EllipticalGradientBlur parsing fractionStops element fail");
@@ -670,7 +677,7 @@ napi_value FilterNapi::EllipticalGradientBlur(napi_env env, napi_callback_info i
     }
 
     FilterNapi *thisFilter = nullptr;
-    status = napi_unwrap(env, _this, reinterpret_cast<void **>(&thisFilter));
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void **>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr,
                             nullptr, EFFECT_LOG_E("FilterNapi EllipticalGradientBlur napi_unwrap fail"));
 
@@ -714,7 +721,7 @@ napi_value FilterNapi::Brightness(napi_env env, napi_callback_info info)
     }
 
     FilterNapi* thisFilter = nullptr;
-    status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Brightness napi_unwrap fail"));
     auto brightness = EffectImageFilter::Brightness(fBright);
@@ -735,7 +742,7 @@ napi_value FilterNapi::Grayscale(napi_env env, napi_callback_info info)
     EFFECT_JS_NO_ARGS(env, info, status, _this);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, EFFECT_LOG_E("FilterNapi Grayscale parsing input fail"));
     FilterNapi* thisFilter = nullptr;
-    status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Grayscale napi_unwrap fail"));
     auto grayscale = EffectImageFilter::Grayscale();
@@ -756,7 +763,7 @@ napi_value FilterNapi::Invert(napi_env env, napi_callback_info info)
     EFFECT_JS_NO_ARGS(env, info, status, _this);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, EFFECT_LOG_E("FilterNapi Invert parsing input fail"));
     FilterNapi* thisFilter = nullptr;
-    status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Invert napi_unwrap fail"));
     auto invert = EffectImageFilter::Invert();
@@ -822,7 +829,7 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
     EFFECT_NAPI_CHECK_RET_D(res == SUCCESS, nullptr, EFFECT_LOG_E("FilterNapi SetColorMatrix Color matrix mismatch"));
 
     FilterNapi* thisFilter = nullptr;
-    status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi SetColorMatrix napi_unwrap fail"));
     auto applyColorMatrix = EffectImageFilter::ApplyColorMatrix(colorMatrix);

@@ -1933,9 +1933,14 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t pixel{0};
-            if (!data.ReadInt32(pixel)) {
+            uint32_t pixel{0};
+            if (!data.ReadUint32(pixel)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_PIXEL_FORMAT read pixelFormat failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (pixel >= GRAPHIC_PIXEL_FMT_BUTT) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_PIXEL_FORMAT pixelFormat is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2212,6 +2217,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (!unmarshallingRes) {
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE Unmarshalling failed!");
                 ret = ERR_INVALID_DATA;
+                ::close(sharedTypeface.fd_);
                 break;
             }
             // safe check
@@ -3202,7 +3208,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (mapSize <= 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
+            if (mapSize == 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
                 ret = ERR_INVALID_DATA;
                 break;
             }

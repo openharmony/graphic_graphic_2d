@@ -35,7 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 #ifdef RS_ENABLE_TV_PQ_METADATA
-static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
 static constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 }
@@ -935,6 +935,10 @@ void RSServiceToRenderConnectionProxy::SetVmaCacheStatus(bool flag)
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
+    if (Remote() == nullptr) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetVmaCacheStatus Remote is nullptr");
+        return;
+    }
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::SetVmaCacheStatus %d: Send Request err.", flag);
@@ -1122,7 +1126,7 @@ ErrCode RSServiceToRenderConnectionProxy::SendVideoRateInfo(
     const std::unordered_map<std::string, std::string>& videoRateInfo)
 {
     auto mapSize = videoRateInfo.size();
-    if (mapSize <= 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
+    if (mapSize == 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
         ROSEN_LOGE("SendVideoRateInfo: map size err.");
         return ERR_INVALID_VALUE;
     }
@@ -1647,6 +1651,10 @@ int32_t RSServiceToRenderConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCal
     }
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    if (Remote() == nullptr) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCallback Remote is nullptr");
+        return RS_CONNECTION_ERROR;
+    }
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("UnRegisterSelfDrawingNodeRectChangeCallback: Send request err.");

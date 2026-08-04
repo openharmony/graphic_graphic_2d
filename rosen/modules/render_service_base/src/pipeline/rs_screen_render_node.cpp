@@ -69,6 +69,9 @@ void RSScreenRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
     if (!visitor) {
         return;
     }
+    // Set geometry properties before ApplyModifiers, so that valid geometry properties can be used in ApplyModifier
+    auto screenInfo = screenProperty_.GetScreenInfo();
+    SetScreenInfo(screenInfo);
     ApplyModifiers();
     visitor->QuickPrepareScreenRenderNode(*this, isParentPrepareInReverseOrder);
 }
@@ -789,7 +792,7 @@ void RSScreenRenderNode::SetLogicalCameraRotationCorrection(ScreenRotation logic
         return;
     }
     screenParams->SetLogicalCameraRotationCorrection(logicalCorrection);
-    RS_LOGD("RSScreenRenderNode::SetLogicalCameraRotationCorrection: Node: %{public}" PRIu64
+    RS_LOGD_IF(DEBUG_NODE, "RSScreenRenderNode::SetLogicalCameraRotationCorrection: Node: %{public}" PRIu64
             ", appRotationCorrection: %{public}u", GetId(), logicalCorrection);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();

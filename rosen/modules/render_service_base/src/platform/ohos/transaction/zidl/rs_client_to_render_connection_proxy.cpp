@@ -242,6 +242,11 @@ ErrCode RSClientToRenderConnectionProxy::CreateDisplayNode(const RSDisplayNodeCo
         success = false;
         return ERR_INVALID_VALUE;
     }
+    if (!data.WriteFloat(displayNodeConfig.positionZ)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteFloat Config.PositionZ err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
     int32_t err = SendRequest(code, data, reply, option);
@@ -554,7 +559,7 @@ ErrCode RSClientToRenderConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<
         return READ_PARCEL_ERR;
     }
     if (!result || !RSMarshallingHelper::Unmarshalling(reply, pixelmap)) {
-        RS_LOGD("RSClientToRenderConnectionProxy::GetPixelmap: GetPixelmap failed");
+        RS_LOGD_IF(DEBUG_IPC, "RSClientToRenderConnectionProxy::GetPixelmap: GetPixelmap failed");
         success = false;
         return ERR_INVALID_VALUE;
     }
@@ -1326,7 +1331,7 @@ void RSClientToRenderConnectionProxy::RegisterTransactionDataCallback(uint64_t t
     }
     uint32_t code = static_cast<uint32_t>(
         RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    RS_LOGD("RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: timeStamp: %{public}"
+    RS_LOGD_IF(DEBUG_IPC, "RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: timeStamp: %{public}"
         PRIu64 " token: %{public}" PRIu64, timeStamp, token);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

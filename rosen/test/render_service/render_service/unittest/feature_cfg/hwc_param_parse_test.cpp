@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
+#include "hwc_param.h"
 #include "hwc_param_parse.h"
 
 using namespace testing;
@@ -42,6 +43,12 @@ const xmlChar OVERLAPPED_SURFACE_BUNDLE_APP_KEY[] = "com.example.app";
 const xmlChar OVERLAPPED_SURFACE_BUNDLE_APP_VALUE[] = "1";
 
 const xmlChar ATTRIBUTE_OTHERS[] = "Others";
+
+const xmlChar SOURCE_TUNING_FOR_HMS_APP[] = "SourceTuningForHmsApp";
+const xmlChar SOURCE_TUNING_FOR_YUV420[] = "SourceTuningForYuv420";
+const xmlChar HMS_APP_BUNDLE_KEY[] = "com.hms.test.app";
+const xmlChar HMS_APP_BUNDLE_VALUE[] = "1";
+const xmlChar HMS_APP_BUNDLE_VALUE_DISABLED[] = "0";
 
 xmlAttribute CreateXmlAttribute(const xmlChar* key, const xmlChar* value, xmlAttributePtr next)
 {
@@ -252,6 +259,148 @@ HWTEST_F(HwcParamParseTest, TestParseHwcInternal005, TestSize.Level1)
     HWCParamParse hwcParamParse;
     int32_t ret = hwcParamParse.ParseHwcInternal(featureParam, node);
     EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: TestParseFeatureMultiParamForApp002
+ * @tc.desc: Verify ParseFeatureMultiParamForApp parses SourceTuningForHmsApp config
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamParseTest, TestParseFeatureMultiParamForApp002, TestSize.Level1)
+{
+    xmlNode childNode;
+    childNode.xmlChildrenNode = nullptr;
+    childNode.name = NODE_NAME_SINGLE_PARAM;
+    childNode.type = XML_ELEMENT_NODE;
+
+    xmlAttribute childAttrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, HMS_APP_BUNDLE_VALUE, nullptr);
+    xmlAttribute childAttrName = CreateXmlAttribute(ATTRIBUTE_NAME, HMS_APP_BUNDLE_KEY, &childAttrVal);
+    childNode.properties = reinterpret_cast<xmlAttrPtr>(&childAttrName);
+
+    xmlNode node;
+    node.xmlChildrenNode = &childNode;
+    node.name = NODE_NAME_SINGLE_PARAM;
+    node.type = XML_ELEMENT_NODE;
+
+    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_VALUE, SOURCE_TUNING_FOR_HMS_APP, nullptr);
+    node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
+
+    HWCParamParse hwcParamParse;
+    hwcParamParse.hwcParam_ = std::make_shared<HWCParam>();
+
+    std::string name = "SourceTuningForHmsApp";
+    int32_t ret = hwcParamParse.ParseFeatureMultiParamForApp(node, name);
+    EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
+
+    auto& map = HWCParam::GetSourceTuningForHmsApp();
+    auto it = map.find(std::string(reinterpret_cast<const char*>(HMS_APP_BUNDLE_KEY)));
+    EXPECT_NE(it, map.end());
+    EXPECT_EQ(it->second, "1");
+}
+
+/**
+ * @tc.name: TestParseFeatureMultiParamForApp003
+ * @tc.desc: Verify ParseFeatureMultiParamForApp parses SourceTuningForHmsApp with disabled value
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamParseTest, TestParseFeatureMultiParamForApp003, TestSize.Level1)
+{
+    xmlNode childNode;
+    childNode.xmlChildrenNode = nullptr;
+    childNode.name = NODE_NAME_SINGLE_PARAM;
+    childNode.type = XML_ELEMENT_NODE;
+
+    xmlAttribute childAttrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, HMS_APP_BUNDLE_VALUE_DISABLED, nullptr);
+    xmlAttribute childAttrName = CreateXmlAttribute(ATTRIBUTE_NAME, HMS_APP_BUNDLE_KEY, &childAttrVal);
+    childNode.properties = reinterpret_cast<xmlAttrPtr>(&childAttrName);
+
+    xmlNode node;
+    node.xmlChildrenNode = &childNode;
+    node.name = NODE_NAME_SINGLE_PARAM;
+    node.type = XML_ELEMENT_NODE;
+
+    HWCParamParse hwcParamParse;
+    hwcParamParse.hwcParam_ = std::make_shared<HWCParam>();
+
+    std::string name = "SourceTuningForHmsApp";
+    int32_t ret = hwcParamParse.ParseFeatureMultiParamForApp(node, name);
+    EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
+
+    auto& map = HWCParam::GetSourceTuningForHmsApp();
+    auto it = map.find(std::string(reinterpret_cast<const char*>(HMS_APP_BUNDLE_KEY)));
+    EXPECT_NE(it, map.end());
+    EXPECT_EQ(it->second, "0");
+}
+
+/**
+ * @tc.name: TestParseFeatureMultiParamForApp004
+ * @tc.desc: Verify ParseFeatureMultiParamForApp parses SourceTuningForYuv420 config
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamParseTest, TestParseFeatureMultiParamForApp004, TestSize.Level1)
+{
+    xmlNode childNode;
+    childNode.xmlChildrenNode = nullptr;
+    childNode.name = NODE_NAME_SINGLE_PARAM;
+    childNode.type = XML_ELEMENT_NODE;
+
+    xmlAttribute childAttrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, HMS_APP_BUNDLE_VALUE, nullptr);
+    xmlAttribute childAttrName = CreateXmlAttribute(ATTRIBUTE_NAME, HMS_APP_BUNDLE_KEY, &childAttrVal);
+    childNode.properties = reinterpret_cast<xmlAttrPtr>(&childAttrName);
+
+    xmlNode node;
+    node.xmlChildrenNode = &childNode;
+    node.name = NODE_NAME_SINGLE_PARAM;
+    node.type = XML_ELEMENT_NODE;
+
+    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_VALUE, SOURCE_TUNING_FOR_YUV420, nullptr);
+    node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
+
+    HWCParamParse hwcParamParse;
+    hwcParamParse.hwcParam_ = std::make_shared<HWCParam>();
+
+    std::string name = "SourceTuningForYuv420";
+    int32_t ret = hwcParamParse.ParseFeatureMultiParamForApp(node, name);
+    EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
+
+    auto& map = HWCParam::GetSourceTuningForAppMap();
+    auto it = map.find(std::string(reinterpret_cast<const char*>(HMS_APP_BUNDLE_KEY)));
+    EXPECT_NE(it, map.end());
+    EXPECT_EQ(it->second, "1");
+}
+
+/**
+ * @tc.name: TestParseFeatureMultiParamForApp005
+ * @tc.desc: Verify ParseFeatureMultiParamForApp rejects non-numeric value for HMS app
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamParseTest, TestParseFeatureMultiParamForApp005, TestSize.Level1)
+{
+    xmlNode childNode;
+    childNode.xmlChildrenNode = nullptr;
+    childNode.name = NODE_NAME_SINGLE_PARAM;
+    childNode.type = XML_ELEMENT_NODE;
+
+    xmlChar nonNumericValue[] = "notanumber";
+    xmlAttribute childAttrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, nonNumericValue, nullptr);
+    xmlAttribute childAttrName = CreateXmlAttribute(ATTRIBUTE_NAME, HMS_APP_BUNDLE_KEY, &childAttrVal);
+    childNode.properties = reinterpret_cast<xmlAttrPtr>(&childAttrName);
+
+    xmlNode node;
+    node.xmlChildrenNode = &childNode;
+    node.name = NODE_NAME_SINGLE_PARAM;
+    node.type = XML_ELEMENT_NODE;
+
+    HWCParamParse hwcParamParse;
+    hwcParamParse.hwcParam_ = std::make_shared<HWCParam>();
+
+    std::string name = "SourceTuningForHmsApp";
+    int32_t ret = hwcParamParse.ParseFeatureMultiParamForApp(node, name);
+    EXPECT_EQ(ret, PARSE_ERROR);
 }
 }
 }

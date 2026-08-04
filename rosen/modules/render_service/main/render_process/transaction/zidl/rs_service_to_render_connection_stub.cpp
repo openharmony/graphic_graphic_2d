@@ -34,11 +34,12 @@ namespace {
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_LIST_SIZE = 50;
 #ifdef RS_ENABLE_TV_PQ_METADATA
-static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
 constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 constexpr size_t PIDLIST_SIZE_MAX = 128;
 constexpr size_t HWC_EVENT_DATA_SIZE_MAX = 100;
+constexpr uint32_t ACVIDEO_VECTOR_MAX_LENGTH = 8;
 } // namespace
 
 static void TypefaceXcollieCallback(void* arg)
@@ -266,6 +267,13 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (uniqueIdList.size() > ACVIDEO_VECTOR_MAX_LENGTH || surfaceNameList.size() > ACVIDEO_VECTOR_MAX_LENGTH) {
+                RS_LOGE("RSServiceToRenderStub::AVCODEC_VIDEO_START vector size exceeds max, "
+                    "uniqueIdList:%{public}zu, surfaceNameList:%{public}zu, max:%{public}u.",
+                    uniqueIdList.size(), surfaceNameList.size(), ACVIDEO_VECTOR_MAX_LENGTH);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t result = AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSServiceToRenderStub::AVCODEC_VIDEO_START Write status failed!");
@@ -280,6 +288,13 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             if (!data.ReadUInt64Vector(&uniqueIdList) || !data.ReadStringVector(&surfaceNameList) ||
                 !data.ReadUint32(fps)) {
                 RS_LOGE("RSServiceToRenderStub::AVCODEC_VIDEO_STOP : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (uniqueIdList.size() > ACVIDEO_VECTOR_MAX_LENGTH || surfaceNameList.size() > ACVIDEO_VECTOR_MAX_LENGTH) {
+                RS_LOGE("RSServiceToRenderStub::AVCODEC_VIDEO_STOP vector size exceeds max, "
+                    "uniqueIdList:%{public}zu, surfaceNameList:%{public}zu, max:%{public}u.",
+                    uniqueIdList.size(), surfaceNameList.size(), ACVIDEO_VECTOR_MAX_LENGTH);
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -570,7 +585,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (mapSize <= 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
+            if (mapSize == 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -913,15 +928,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                            "size number is too large.");
                 break;
             }
+            bool shouldBreak = false;
             for (uint32_t i = 0; i < size; ++i) {
                 pid_t pid;
                 if (!data.ReadInt32(pid)) {
                     ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
                                "pid failed");
                     ret = ERR_INVALID_REPLY;
+                    shouldBreak = true;
                     break;
                 }
                 constraint.pids.insert(pid);
+            }
+            if (shouldBreak) {
+                break;
             }
             if (!data.ReadInt32(constraint.range.lowLimit.width) || !data.ReadInt32(constraint.range.lowLimit.height) ||
                 !data.ReadInt32(constraint.range.highLimit.width) ||

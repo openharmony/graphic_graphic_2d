@@ -355,6 +355,38 @@ HWTEST_F(RSTunnelRuntimeStateTest, RuntimeStoreNonCreatingQueries001, TestSize.L
 }
 
 /**
+ * @tc.name: TryGetHoldsOwnershipAcrossErase
+ * @tc.desc: test TryGet returns a shared_ptr that keeps the runtime state alive after Erase
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTunnelRuntimeStateTest, TryGetHoldsOwnershipAcrossErase, TestSize.Level1)
+{
+    RSTunnelRuntimeStore::Erase(TEST_NODE_ID);
+    EXPECT_EQ(RSTunnelRuntimeStore::TryGet(TEST_NODE_ID), nullptr);
+
+    auto& runtime = RSTunnelRuntimeStore::GetOrCreate(TEST_NODE_ID);
+    runtime.SetLayerInfo(TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_PROPERTY);
+    auto runtimePtr = RSTunnelRuntimeStore::TryGet(TEST_NODE_ID);
+    ASSERT_NE(runtimePtr, nullptr);
+    EXPECT_EQ(runtimePtr->GetTunnelState(), RSTunnelRuntimeState::TunnelState::BUILDING);
+
+    // Erase drops the store entry, but the shared_ptr returned by TryGet keeps the
+    // object alive. A raw pointer would dangle here (use-after-free).
+    RSTunnelRuntimeStore::Erase(TEST_NODE_ID);
+    EXPECT_EQ(RSTunnelRuntimeStore::TryGet(TEST_NODE_ID), nullptr);
+    ASSERT_NE(runtimePtr, nullptr);
+    uint64_t outTunnelLayerId = 0;
+    uint32_t outProperty = TUNNEL_PROP_INVALID;
+    runtimePtr->GetLayerInfo(outTunnelLayerId, outProperty);
+    EXPECT_EQ(outTunnelLayerId, TEST_TUNNEL_LAYER_ID);
+    EXPECT_EQ(outProperty, TEST_TUNNEL_PROPERTY);
+
+    runtimePtr.reset();
+    EXPECT_EQ(runtimePtr, nullptr);
+}
+
+/**
  * @tc.name: InstanceGetLayerInfoMatchesStore001
  * @tc.desc: test instance GetLayerInfo returns same values as SetLayerInfo
  * @tc.type: FUNC

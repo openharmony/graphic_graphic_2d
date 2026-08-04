@@ -505,7 +505,7 @@ bool WebGLImageSource::BuildPixelMapFromSource(
         return false;
     }
     errorCode = imageSource->GetImageInfo(imageInfo);
-    LOGD("WebGl ImageSource  [%{public}d %{public}d] pixelFormat %{public}u colorSpace %{public}u"
+    LOGD("WebGl ImageSource  [%{public}u %{public}u] pixelFormat %{public}u colorSpace %{public}u"
         " alphaType  %{public}u", imageInfo.size.width, imageInfo.size.height, imageInfo.pixelFormat,
         imageInfo.colorSpace, imageInfo.alphaType);
     imageOption_.width = imageInfo.size.width;
@@ -717,8 +717,22 @@ GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, G
         return GL_INVALID_VALUE;
     }
     uint64_t depth = static_cast<uint64_t>(std::max(imageOption_.depth, 1));
-    uint64_t requiredBytes = depth * static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
-        formatMap->bytesPrePixel;
+    uint64_t height = static_cast<uint64_t>(imageOption_.height);
+    uint64_t width = static_cast<uint64_t>(imageOption_.width);
+    uint64_t bpp = static_cast<uint64_t>(formatMap->bytesPrePixel);
+    auto checkedMul = [](uint64_t a, uint64_t b, uint64_t& out) -> bool {
+        if (a != 0 && b > std::numeric_limits<uint64_t>::max() / a) {
+            return false;
+        }
+        out = a * b;
+        return true;
+    };
+    uint64_t requiredBytes = 0;
+    if (!checkedMul(depth, height, requiredBytes) ||
+        !checkedMul(requiredBytes, width, requiredBytes) ||
+        !checkedMul(requiredBytes, bpp, requiredBytes)) {
+        return GL_INVALID_VALUE;
+    }
     if (requiredBytes > bufLen - srcOffsetBytes) {
         return GL_INVALID_OPERATION;
     }
@@ -870,7 +884,7 @@ GLvoid* WebGLImageSource::GetImageSourceData() const
         return readBuffer_ == nullptr ? nullptr : reinterpret_cast<GLvoid*>(readBuffer_->GetBuffer() + srcOffset_);
     }
 
-    LOGD("WebGl ImageSource [%{public}d %{public}d] byteCount %{public}d pixelBytes %{public}d rowBytes %{public}d "
+    LOGD("WebGl ImageSource [%{public}u %{public}u] byteCount %{public}u pixelBytes %{public}u rowBytes %{public}u "
         " flipY %{public}u premultiplyAlpha %{public}u", pixelMap_->GetWidth(), pixelMap_->GetHeight(),
         pixelMap_->GetByteCount(), pixelMap_->GetPixelBytes(), pixelMap_->GetRowBytes(),
         unpackFlipY_, unpackPremultiplyAlpha_);
@@ -1007,13 +1021,13 @@ void TexStorageArg::Dump(const std::string& info) const
 void TexSubImage2DArg::Dump(const std::string& info) const
 {
     TexImageArg::Dump(info);
-    LOGD("xOffset %{public}d yOffset %{public}d", xOffset, yOffset);
+    LOGD("xOffset %{public}u yOffset %{public}u", xOffset, yOffset);
 }
 
 void TexSubImage3DArg::Dump(const std::string& info) const
 {
     TexImageArg::Dump(info);
-    LOGD("xOffset %{public}d yOffset %{public}d zOffset %{public}d", xOffset, yOffset, zOffset);
+    LOGD("xOffset %{public}u yOffset %{public}u zOffset %{public}u", xOffset, yOffset, zOffset);
 }
 
 void PixelsArg::Dump(const std::string& info) const
@@ -1024,8 +1038,8 @@ void PixelsArg::Dump(const std::string& info) const
 
 void VertexAttribArg::Dump(const std::string &info) const
 {
-    LOGD("%{public}s vertexAttrib index %{public}u %{public}d type %{public}u %{public}u "
-        "stride [%{public}d %{public}u]",
+    LOGD("%{public}s vertexAttrib index %{public}u %{public}d type %{public}u %{public}d "
+        "stride [%{public}u %{public}u]",
         info.c_str(), index, size, type, normalized, stride, static_cast<unsigned int>(offset));
 }
 

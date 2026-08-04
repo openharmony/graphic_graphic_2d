@@ -118,7 +118,7 @@ RSLogManager::RSLogManager()
         unsigned long value = 0;
         std::string subFlag = flag.substr(INPUT_FLAG_MIN_LENGTH);
         if (!ConvertToLongUint(subFlag, value, NUMERICAL_BASE)) {
-            RS_LOGD("RSLogManager %{public}s ConvertToLongUint failed", subFlag.c_str());
+            RS_LOGD_IF(DEBUG_IPC, "RSLogManager %{public}s ConvertToLongUint failed", subFlag.c_str());
         }
         logFlag_ = static_cast<uint32_t>(value);
         RS_LOGI("RSLogManager init log flag: 0x%{public}X(%{public}u)", logFlag_, logFlag_);
@@ -141,7 +141,7 @@ bool RSLogManager::SetRSLogFlag(std::string& flag)
         unsigned long value = 0;
         std::string subFlag = flag.substr(INPUT_FLAG_MIN_LENGTH);
         if (!ConvertToLongUint(subFlag, value, NUMERICAL_BASE)) {
-            RS_LOGD("RSLogManager %{public}s ConvertToLongUint failed", subFlag.c_str());
+            RS_LOGD_IF(DEBUG_IPC, "RSLogManager %{public}s ConvertToLongUint failed", subFlag.c_str());
         }
         logFlag_ = static_cast<uint32_t>(value);
         RS_LOGI("RSLogManager set log flag: 0x%{public}X(%{public}u)", logFlag_, logFlag_);

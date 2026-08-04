@@ -4191,7 +4191,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualDisplayInfo002, TestSize.Level2)
     // 11 non-zero node id
     auto rsDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(11, config, rsContext->weak_from_this());
     rsDisplayRenderNode->InitRenderParams();
-    rsDisplayRenderNode->SetIsMirrorDisplay(true);
+    rsDisplayRenderNode->SetDisplayMode(DisplayMode::MIRROR);
     ASSERT_EQ(rsDisplayRenderNode->GetMirrorSource().lock(), nullptr);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -4228,7 +4228,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualDisplayInfo003, TestSize.Level2)
     auto rsDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(
         id, displayConfig, rsContext->weak_from_this());
     rsDisplayRenderNode->InitRenderParams();
-    rsDisplayRenderNode->SetIsMirrorDisplay(true);
+    rsDisplayRenderNode->SetDisplayMode(DisplayMode::MIRROR);
 
     displayConfig.screenId = mirrorId;
     auto mirrorNode = std::make_shared<RSLogicalDisplayRenderNode>(
@@ -7711,24 +7711,249 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClea
     EXPECT_FALSE(dirtyManager.GetFilterCollector().GetFilterDirtyRegionInfoList(false).empty());
 }
 
-/*
- * @tc.name: TryNotifyUIBufferAvailable
- * @tc.desc: Test RSUniRenderVisitorTest.TryNotifyUIBufferAvailable test
+/**
+ * @tc.name: DelayNotifyUIBufferAvailableIfNeedTest001
+ * @tc.desc: Cover branch: IsPendingUIBufferNotify=true, entry exists, all siblings ready, flush.
  * @tc.type: FUNC
- * @tc.require: issuesIBSNHZ
  */
-HWTEST_F(RSUniRenderVisitorTest, TryNotifyUIBufferAvailable, TestSize.Level1)
+HWTEST_F(RSUniRenderVisitorTest, DelayNotifyUIBufferAvailableIfNeedTest001, TestSize.Level1)
 {
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->TryNotifyUIBufferAvailable();
-    rsUniRenderVisitor->uiBufferAvailableId_.emplace_back(1);
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    constexpr NodeId app1 = 99001;
+    constexpr NodeId app2 = 99002;
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1000);
-    nodeMap.RegisterRenderNode(surfaceNode);
-    ASSERT_NE(nodeMap.GetRenderNode<RSSurfaceRenderNode>(1000), nullptr);
-    rsUniRenderVisitor->TryNotifyUIBufferAvailable();
-    EXPECT_TRUE(surfaceNode->isNotifyUIBufferAvailable_);
+    RSSurfaceRenderNodeConfig cfg1 = { .id = app1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(cfg1);
+    nodeMap.RegisterRenderNode(node1);
+    nodeMap.hasDestoryRebuildAppWindowMap_[app1] = 1;
+    nodeMap.hasDestoryRebuildAppWindowMap_[app2] = 1;
+    // First call: app1 enqueues (siblings not ready)
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    EXPECT_TRUE(node1->IsPendingUIBufferNotify());
+    // Remove sibling from map so AllSiblingsUIBufferAvailable returns true
+    nodeMap.hasDestoryRebuildAppWindowMap_.erase(app2);
+    // Second call: IsPending=true, all siblings ready, flush
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    EXPECT_FALSE(node1->IsPendingUIBufferNotify());
+    nodeMap.hasDestoryRebuildAppWindowMap_.clear();
+}
+
+/**
+ * @tc.name: DelayNotifyUIBufferAvailableIfNeedTest002
+ * @tc.desc: Cover branch: IsPendingUIBufferNotify=true, siblings not ready, no flush.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, DelayNotifyUIBufferAvailableIfNeedTest002, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    constexpr NodeId app1 = 99003;
+    constexpr NodeId app2 = 99004;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    RSSurfaceRenderNodeConfig cfg = { .id = app1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(cfg);
+    nodeMap.RegisterRenderNode(node1);
+    nodeMap.hasDestoryRebuildAppWindowMap_[app1] = 1;
+    nodeMap.hasDestoryRebuildAppWindowMap_[app2] = 1;
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    EXPECT_TRUE(node1->IsPendingUIBufferNotify());
+    // Sibling still pending, second call keeps IsPending
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    EXPECT_TRUE(node1->IsPendingUIBufferNotify());
+    nodeMap.hasDestoryRebuildAppWindowMap_.clear();
+}
+
+/**
+ * @tc.name: DelayNotifyUIBufferAvailableIfNeedTest003
+ * @tc.desc: Cover branch: IsPendingUIBufferNotify=true but entry missing, no crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, DelayNotifyUIBufferAvailableIfNeedTest003, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    RSSurfaceRenderNodeConfig cfg = { .id = 99005, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(cfg);
+    appNode->SetPendingUIBufferNotify(true);
+    visitor->DelayNotifyUIBufferAvailableIfNeed(appNode);
+    // Entry missing in map, should not crash, stays pending
+    EXPECT_TRUE(appNode->IsPendingUIBufferNotify());
+}
+
+/**
+ * @tc.name: DelayNotifyUIBufferAvailableIfNeedTest004
+ * @tc.desc: Cover branch: HasPendingUIBufferEntry false, notify immediately.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, DelayNotifyUIBufferAvailableIfNeedTest004, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    RSSurfaceRenderNodeConfig cfg = { .id = 99006, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(cfg);
+    visitor->DelayNotifyUIBufferAvailableIfNeed(appNode);
+    EXPECT_FALSE(appNode->IsPendingUIBufferNotify());
+}
+
+/**
+ * @tc.name: DelayNotifyUIBufferAvailableIfNeedTest005
+ * @tc.desc: Cover branch: HasPendingUIBufferEntry true, all siblings ready, enqueue then flush.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, DelayNotifyUIBufferAvailableIfNeedTest005, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    constexpr NodeId nodeId = 99007;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    RSSurfaceRenderNodeConfig cfg = { .id = nodeId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(cfg);
+    nodeMap.RegisterRenderNode(appNode);
+    nodeMap.hasDestoryRebuildAppWindowMap_[nodeId] = 1;
+    visitor->DelayNotifyUIBufferAvailableIfNeed(appNode);
+    // Only one app under leash, all siblings ready, flushed immediately
+    EXPECT_FALSE(appNode->IsPendingUIBufferNotify());
+    nodeMap.hasDestoryRebuildAppWindowMap_.clear();
+}
+
+/**
+ * @tc.name: DelayNotifyUIBufferAvailableIfNeedTest006
+ * @tc.desc: Cover branch: HasPendingUIBufferEntry true, siblings not ready, enqueue.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, DelayNotifyUIBufferAvailableIfNeedTest006, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    constexpr NodeId app1 = 99008;
+    constexpr NodeId app2 = 99009;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.hasDestoryRebuildAppWindowMap_[app1] = 1;
+    nodeMap.hasDestoryRebuildAppWindowMap_[app2] = 1;
+    RSSurfaceRenderNodeConfig cfg = { .id = app1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(cfg);
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    EXPECT_TRUE(node1->IsPendingUIBufferNotify());
+    nodeMap.hasDestoryRebuildAppWindowMap_.clear();
+}
+
+/**
+ * @tc.name: AllSiblingsUIBufferAvailableTest001
+ * @tc.desc: Cover branch: no remaining entries under leashId, returns true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, AllSiblingsUIBufferAvailableTest001, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_TRUE(visitor->AllSiblingsUIBufferAvailable(999));
+}
+
+/**
+ * @tc.name: AllSiblingsUIBufferAvailableTest002
+ * @tc.desc: Cover branch: remaining entries under leashId, returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, AllSiblingsUIBufferAvailableTest002, TestSize.Level1)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.hasDestoryRebuildAppWindowMap_[99010] = 1;
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_FALSE(visitor->AllSiblingsUIBufferAvailable(1));
+    nodeMap.hasDestoryRebuildAppWindowMap_.clear();
+}
+
+/**
+ * @tc.name: FlushPendingAvailableUiBufferTest001
+ * @tc.desc: Cover branch: two apps under same leash, both flushed when all ready.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, FlushPendingAvailableUiBufferTest001, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    constexpr NodeId app1 = 99011;
+    constexpr NodeId app2 = 99012;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    RSSurfaceRenderNodeConfig cfg1 = { .id = app1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(cfg1);
+    nodeMap.RegisterRenderNode(node1);
+    RSSurfaceRenderNodeConfig cfg2 = { .id = app2, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(cfg2);
+    nodeMap.RegisterRenderNode(node2);
+    nodeMap.hasDestoryRebuildAppWindowMap_[app1] = 1;
+    nodeMap.hasDestoryRebuildAppWindowMap_[app2] = 1;
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    EXPECT_TRUE(node1->IsPendingUIBufferNotify());
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node2);
+    // Both enqueued, all siblings ready, both flushed
+    EXPECT_FALSE(node1->IsPendingUIBufferNotify());
+    EXPECT_FALSE(node2->IsPendingUIBufferNotify());
+}
+
+/**
+ * @tc.name: FlushPendingAvailableUiBufferTest002
+ * @tc.desc: Cover branch: surfaceNode not found in nodeMap, no crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, FlushPendingAvailableUiBufferTest002, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    constexpr NodeId app1 = 99013;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    // Enqueue app1 without registering in nodeMap
+    nodeMap.hasDestoryRebuildAppWindowMap_[app1] = 1;
+    RSSurfaceRenderNodeConfig cfg = { .id = app1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(cfg);
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    EXPECT_TRUE(node1->IsPendingUIBufferNotify());
+    // Remove from hasDestoryRebuildAppWindowMap_ so AllSiblings returns true
+    nodeMap.hasDestoryRebuildAppWindowMap_.erase(app1);
+    // Flush with node not in nodeMap: no crash, flag stays true (can't clear on absent node)
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    EXPECT_TRUE(node1->IsPendingUIBufferNotify());
+}
+
+/**
+ * @tc.name: CheckPendingUIBufferTimeoutTest001
+ * @tc.desc: Cover branch: timeout not reached, entry kept.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckPendingUIBufferTimeoutTest001, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    constexpr NodeId app1 = 99014;
+    constexpr NodeId app2 = 99015;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.hasDestoryRebuildAppWindowMap_[app1] = 1;
+    nodeMap.hasDestoryRebuildAppWindowMap_[app2] = 1;
+    RSSurfaceRenderNodeConfig cfg = { .id = app1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(cfg);
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    // Not timed out yet, still pending
+    EXPECT_TRUE(node1->IsPendingUIBufferNotify());
+    nodeMap.hasDestoryRebuildAppWindowMap_.clear();
+}
+
+/**
+ * @tc.name: CheckPendingUIBufferTimeoutTest002
+ * @tc.desc: Cover branch: timeout reached, flush entries.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckPendingUIBufferTimeoutTest002, TestSize.Level1)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    constexpr NodeId app1 = 99016;
+    constexpr NodeId app2 = 99017;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    RSSurfaceRenderNodeConfig cfg1 = { .id = app1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(cfg1);
+    nodeMap.RegisterRenderNode(node1);
+    nodeMap.hasDestoryRebuildAppWindowMap_[app1] = 1;
+    nodeMap.hasDestoryRebuildAppWindowMap_[app2] = 1;
+    visitor->DelayNotifyUIBufferAvailableIfNeed(node1);
+    EXPECT_TRUE(node1->IsPendingUIBufferNotify());
+    // Simulate timeout by calling TryNotify repeatedly to advance tick
+    for (int i = 0; i < 50; i++) {
+        visitor->uiBufferAvailableId_.clear();
+        visitor->TryNotifyUIBufferAvailable();
+    }
+    // After timeout, node should be flushed and no longer pending
+    EXPECT_FALSE(node1->IsPendingUIBufferNotify());
+    nodeMap.hasDestoryRebuildAppWindowMap_.clear();
 }
 
 /*
