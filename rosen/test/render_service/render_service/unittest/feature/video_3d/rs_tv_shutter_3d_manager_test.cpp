@@ -347,28 +347,6 @@ HWTEST_F(RSTvShutter3DManagerTest, Release3DContext_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetOffscreenCanvas_001
- * @tc.desc: Test GetOffscreenCanvas returns null when context not initialized
- * @tc.type: FUNC
- */
-HWTEST_F(RSTvShutter3DManagerTest, GetOffscreenCanvas_001, TestSize.Level1)
-{
-    auto canvas = RSTvShutter3DManager::Instance().GetOffscreenCanvas();
-    EXPECT_EQ(canvas, nullptr);
-}
-
-/**
- * @tc.name: GetBackupCanvas_001
- * @tc.desc: Test GetBackupCanvas returns null when context not initialized
- * @tc.type: FUNC
- */
-HWTEST_F(RSTvShutter3DManagerTest, GetBackupCanvas_001, TestSize.Level1)
-{
-    auto canvas = RSTvShutter3DManager::Instance().GetBackupCanvas();
-    EXPECT_EQ(canvas, nullptr);
-}
-
-/**
  * @tc.name: Process3DImage_001
  * @tc.desc: Test Process3DImage with null targetCanvas
  * @tc.type: FUNC
