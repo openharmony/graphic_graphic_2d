@@ -179,6 +179,10 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         RS_LOGE("%{public}s uniRenderThread_ is nullptr, return", __func__);
         return;
     }
+    if (!composerToRenderConn) {
+        RS_LOGE("%{public}s composerToRenderConn is nullptr, return", __func__);
+        return;
+    }
     std::shared_ptr<RSComposerClient> composerClient = nullptr;
     if (!rsScreenProperty->IsVirtual()) {
         composerToRenderConn->RegisterReleaseLayerBuffersCB(
