@@ -131,6 +131,9 @@ std::shared_ptr<RSSurfaceRenderNode> RSTunnelLayerManager::GetSurfaceNode(NodeId
 void RSTunnelLayerManager::UpdateTunnelLayerState(
     NodeId nodeId, const std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
 {
+    if (surfaceHandler == nullptr) {
+        return;
+    }
     if (HandleLppTunnelLayerId(surfaceHandler, nodeId)) {
         return;
     }
@@ -178,21 +181,6 @@ bool RSTunnelLayerManager::HandleLppTunnelLayerId(
         TUNNEL_DEBUG_PREFIX, __func__, newTunnelLayerId);
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s lpp surfaceid=%" PRIu64, __func__, newTunnelLayerId);
     return true;
-}
-
-void RSTunnelLayerManager::ResetTunnelLayerState(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
-{
-    uint64_t tunnelLayerId = 0;
-    uint32_t tunnelLayerProperty = TUNNEL_PROP_INVALID;
-    RSTunnelRuntimeStore::GetLayerInfoOrDefault(surfaceNode->GetId(), tunnelLayerId, tunnelLayerProperty);
-    if (tunnelLayerId != 0) {
-        auto tunnelLayerGeneration = RSTunnelRuntimeStore::GetTunnelLayerGeneration(surfaceNode->GetId());
-        ProcessLayerStateChanged(surfaceHandler, surfaceNode->GetId(), LayerStateChange::UNAVAILABLE,
-            tunnelLayerGeneration, surfaceHandler->GetConsumer());
-        return;
-    }
-    RSTunnelLayerHelper::ResetTunnelState(surfaceNode);
 }
 
 void RSTunnelLayerManager::HandleNewTunnelLayerId(
