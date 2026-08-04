@@ -30,6 +30,9 @@ void RSCanvasDrawingRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& 
  
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     targetParams->bufferDraw_ = bufferDraw_;
+    if (consumerSurface_ != nullptr) {
+        targetParams->consumerSurface_ = consumerSurface_;
+    }
     if (dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY)) {
         targetParams->buffer_ = buffer_;
         targetParams->preBuffer_ = preBuffer_;
@@ -164,6 +167,16 @@ std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSCanvasDrawingRenderParams:
 std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSCanvasDrawingRenderParams::GetPreBufferOwnerCount() const
 {
     return preBufferOwnerCount_;
+}
+
+void RSCanvasDrawingRenderParams::SetConsumerSurface(sptr<IConsumerSurface> consumerSurface)
+{
+    consumerSurface_ = std::move(consumerSurface);
+}
+
+sptr<IConsumerSurface> RSCanvasDrawingRenderParams::GetConsumerSurface() const
+{
+    return consumerSurface_;
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE
 } // namespace OHOS::Rosen
