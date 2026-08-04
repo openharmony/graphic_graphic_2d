@@ -58,5 +58,29 @@ bool RSEffectUtils::IsOffscreenForFilterCache(RSRenderNode& node)
     return (node.GetType() == RSRenderNodeType::CANVAS_NODE || node.GetType() == RSRenderNodeType::UNION_NODE) && (
         node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE || node.IsForegroundFilterEnable());
 }
+
+bool RSEffectUtils::ShouldSkipFilterNodeCheckInOccludedSubTree(
+    const std::shared_ptr<RSSurfaceRenderNode>& curSurfaceNode, const RSRenderNode& rootNode,
+    RSDirtyRegionManager& dirtyManager)
+{
+    return curSurfaceNode &&
+           !curSurfaceNode->IsTransparent() &&
+           dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty();
+}
+
+void RSEffectUtils::UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode& node,
+    RSDirtyRegionManager& dirtyManager)
+{
+    if (node.GetRenderProperties().GetMaterialFilter()) {
+        node.UpdateFilterCacheWithBelowDirty(
+            Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()), RSDrawableSlot::MATERIAL_FILTER);
+        node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::MATERIAL_FILTER);
+    }
+    if (node.GetRenderProperties().GetBackgroundFilter()) {
+        node.UpdateFilterCacheWithBelowDirty(
+            Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
+        node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
