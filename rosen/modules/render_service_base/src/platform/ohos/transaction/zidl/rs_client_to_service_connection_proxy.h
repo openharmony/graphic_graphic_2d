@@ -18,6 +18,7 @@
 
 #include <iremote_proxy.h>
 #include <memory>
+#include <mutex>
 #include <platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h>
 #include <platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code.h>
 #ifndef ENABLE_RS_PROXY
@@ -33,7 +34,7 @@ public:
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     ErrCode GetUniRenderEnabled(bool& enable) override;
-    ErrCode GetBackgroundRebuildEnabled(bool& enable) override;
+    ErrCode GetBackgroundRebuildEnabled(uint8_t& enable) override;
 
     virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
                                           const std::string& name,
@@ -301,8 +302,6 @@ public:
 
     void RunOnRemoteDiedCallback() override;
 
-    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) override;
-
 #ifndef ENABLE_RS_PROXY
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
@@ -396,6 +395,7 @@ private:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
+    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) override;
 
     void RegisterRemoteRefreshCallback() override {};
 
@@ -405,6 +405,7 @@ private:
     std::atomic<uint32_t> transactionDataIndex_ = 0;
 #endif
     OnRemoteDiedCallback OnRemoteDiedCallback_;
+    std::mutex onRemoteDiedCallbackMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

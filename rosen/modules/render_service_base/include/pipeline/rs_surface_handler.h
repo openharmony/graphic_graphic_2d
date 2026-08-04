@@ -74,16 +74,6 @@ public:
             DecRef();
         }
 
-        // Clear the release callback so a manually-released buffer (e.g. tunnel commit failure path that
-        // already called RSBufferManager::ReleaseBufferById) does not trigger a second release from DecRef
-        // or ~BufferOwnerCount. The caller MUST guarantee no other thread can reach this BufferOwnerCount
-        // concurrently: in the tunnel failure path, ReleaseBufferById has erased the entry from
-        // pendingReleaseBuffers_, so the weak_ptr stored there is expired and no DecRef can race in.
-        void ClearReleaseCallback()
-        {
-            bufferReleaseCb_ = nullptr;
-        }
-
         void InsertUniOnDrawSet(uint64_t layerId, uint64_t bufferId);
         void SetUniBufferOwner(uint64_t bufferId, uint64_t screenId);
         bool CheckLastUniBufferOwner(uint64_t bufferId, uint64_t screenId);

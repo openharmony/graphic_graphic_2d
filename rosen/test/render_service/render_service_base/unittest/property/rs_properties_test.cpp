@@ -2279,6 +2279,21 @@ HWTEST_F(RSPropertiesTest, NeedHwcFilter001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DisableHWCForFilter001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, DisableHWCForFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.DisableHWCForFilter());
+
+    properties.GetEffect().useEffect_ = true;
+    properties.UpdateFilter();
+    EXPECT_TRUE(properties.DisableHWCForFilter());
+}
+
+/**
  * @tc.name: NeedBlurFuzed001
  * @tc.desc: test results of NeedBlurFuzed
  * @tc.type:FUNC
@@ -4948,21 +4963,6 @@ HWTEST_F(RSPropertiesTest, SetPixelStretchPercentNullopt001, TestSize.Level1)
     std::optional<Vector4f> nulloptPercent = std::nullopt;
     properties.SetPixelStretchPercent(nulloptPercent);
     EXPECT_TRUE(properties.GetPixelStretchPercent().IsZero());
-}
-
-/**
- * @tc.name: ParentGeoDirty001
- * @tc.desc: test IsParentGeoDirty and SetParentGeoDirty
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertiesTest, ParentGeoDirty001, TestSize.Level1)
-{
-    RSProperties properties;
-    EXPECT_FALSE(properties.IsParentGeoDirty());
-    properties.SetParentGeoDirty(true);
-    EXPECT_TRUE(properties.IsParentGeoDirty());
-    properties.SetParentGeoDirty(false);
-    EXPECT_FALSE(properties.IsParentGeoDirty());
 }
 } // namespace Rosen
 } // namespace OHOS

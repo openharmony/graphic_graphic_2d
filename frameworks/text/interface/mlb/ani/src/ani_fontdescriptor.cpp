@@ -373,7 +373,7 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         variationInstancesRef,
         CreateAniStringArray(env, fontDesc->languages),
         CreateAniStringArray(env, fontDesc->fontFeatures));
-    return ANI_OK;
+    return AniTextUtils::IsUndefined(env, aniObj) ? ANI_ERROR : ANI_OK;
 }
 
 ani_object CreateFontDescriptorArray(ani_env* env, const std::vector<FontDescSharedPtr>& fontDescripters)

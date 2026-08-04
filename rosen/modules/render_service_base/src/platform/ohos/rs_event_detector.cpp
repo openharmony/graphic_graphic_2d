@@ -34,7 +34,8 @@ std::shared_ptr<RSBaseEventDetector> RSBaseEventDetector::CreateRSTimeOutDetecto
 RSTimeOutDetector::RSTimeOutDetector(int timeOutThresholdMs,
     std::string detectorStringId) :RSBaseEventDetector(detectorStringId)
 {
-    RS_LOGD("RSTimeOutDetector ::RSTimeOutDetector timeOutThresholdMs is %{public}d ", timeOutThresholdMs);
+    RS_LOGD_IF(DEBUG_IPC, "RSTimeOutDetector ::RSTimeOutDetector timeOutThresholdMs is %{public}d ",
+        timeOutThresholdMs);
     timeOutThresholdMs_ = timeOutThresholdMs;
     paramList_["timeOutThresholdMs"] = std::to_string(timeOutThresholdMs_);
 }
@@ -42,12 +43,12 @@ RSTimeOutDetector::RSTimeOutDetector(int timeOutThresholdMs,
 void RSTimeOutDetector::SetParam(const std::string& key, const std::string& value)
 {
     if (paramList_.count(key) == 0) {
-        RS_LOGD("RSTimeOutDetector :: SetParam Invalid Key ");
+        RS_LOGD_IF(DEBUG_IPC, "RSTimeOutDetector :: SetParam Invalid Key ");
         return;
     }
     int valueInt = atoi(value.c_str());
     if (valueInt <= 0 || valueInt > 1000000) { // 1000000Ms->1000s
-        RS_LOGD("RSTimeOutDetector :: SetParam Invalid Value ");
+        RS_LOGD_IF(DEBUG_IPC, "RSTimeOutDetector :: SetParam Invalid Value ");
         return;
     }
     timeOutThresholdMs_ = valueInt;

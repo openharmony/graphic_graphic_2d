@@ -15,9 +15,18 @@
 
 #include "animation/rs_cubic_bezier_interpolator.h"
 
+#include <cmath>
+
+#include "platform/common/rs_log.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr float DEFAULT_BEZIER_CTL_X1 = 0.42f;
+constexpr float DEFAULT_BEZIER_CTL_Y1 = 0.0f;
+constexpr float DEFAULT_BEZIER_CTL_X2 = 0.58f;
+constexpr float DEFAULT_BEZIER_CTL_Y2 = 1.0f;
+
 inline float GetCubicBezierValue(const float time, const float ctl1, const float ctl2)
 {
     if (time < 0.0f) {
@@ -35,7 +44,15 @@ inline float GetCubicBezierValue(const float time, const float ctl1, const float
 
 RSCubicBezierInterpolator::RSCubicBezierInterpolator(float ctlX1, float ctlY1, float ctlX2, float ctlY2)
     : controlX1_(ctlX1), controlY1_(ctlY1), controlX2_(ctlX2), controlY2_(ctlY2)
-{}
+{
+    if (!std::isfinite(ctlX1) || !std::isfinite(ctlY1) || !std::isfinite(ctlX2) || !std::isfinite(ctlY2)) {
+        ROSEN_LOGE("RSCubicBezierInterpolator, invalid bezier parameters, using defaults");
+        controlX1_ = DEFAULT_BEZIER_CTL_X1;
+        controlY1_ = DEFAULT_BEZIER_CTL_Y1;
+        controlX2_ = DEFAULT_BEZIER_CTL_X2;
+        controlY2_ = DEFAULT_BEZIER_CTL_Y2;
+    }
+}
 
 RSCubicBezierInterpolator::RSCubicBezierInterpolator(uint64_t id, float ctlX1, float ctlY1, float ctlX2, float ctlY2)
     : RSInterpolator(id), controlX1_(ctlX1), controlY1_(ctlY1), controlX2_(ctlX2), controlY2_(ctlY2)

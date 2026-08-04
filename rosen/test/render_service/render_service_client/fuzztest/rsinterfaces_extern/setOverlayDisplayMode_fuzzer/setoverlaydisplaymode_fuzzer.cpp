@@ -26,17 +26,29 @@ namespace Rosen {
 RSInterfaces* g_rsInterfaces = nullptr;
 
 namespace {
-const uint8_t TARGET_SIZE = 1;
-
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
 const uint8_t DO_SET_OVERLAY_DISPLAY_MODE = 0;
+const uint8_t DO_SEND_VIDEO_RATE_INFO = 1;
+const uint8_t TARGET_SIZE = 1;
 
 void DoSetOverlayDisplayMode(FuzzedDataProvider& fdp)
 {
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t mode = fdp.ConsumeIntegral<int32_t>();
     g_rsInterfaces->SetOverlayDisplayMode(mode);
-}
 #endif
+}
+
+void DoSendVideoRateInfo(FuzzedDataProvider& fdp)
+{
+    std::unordered_map<std::string, std::string> videoRateInfo;
+    uint8_t mapSize = fdp.ConsumeIntegral<uint8_t>() % 16;
+    for (uint8_t i = 0; i < mapSize; i++) {
+        std::string key = fdp.ConsumeRandomLengthString(64);
+        std::string value = fdp.ConsumeRandomLengthString(128);
+        videoRateInfo[key] = value;
+    }
+    g_rsInterfaces->SendVideoRateInfo(videoRateInfo);
+}
 
 } // anonymous namespace
 } // namespace Rosen
@@ -61,17 +73,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
     switch (tarPos) {
         case OHOS::Rosen::DO_SET_OVERLAY_DISPLAY_MODE:
             OHOS::Rosen::DoSetOverlayDisplayMode(fdp);
             break;
+        case OHOS::Rosen::DO_SEND_VIDEO_RATE_INFO:
+            OHOS::Rosen::DoSendVideoRateInfo(fdp);
+            break;
         default:
             return -1;
     }
-#else
-    // Suppress unused variable warning when feature is disabled
-    (void)tarPos;
-#endif
     return 0;
 }

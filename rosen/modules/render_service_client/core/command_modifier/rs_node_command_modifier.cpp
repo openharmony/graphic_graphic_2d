@@ -80,7 +80,7 @@ void MarkNodeSingleFrameComposerCmdModifier::UpdateToRender()
     auto node = GetNode();
     if (!node) return;
     std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeSingleFrameComposer>(
-        node->GetId(), param_.isNodeSingleFrameComposer_, param_.realPid_);
+        node->GetId(), param_.isNodeSingleFrameComposer_);
     AddCommand(command, node->IsRenderServiceNode());
 }
 
@@ -213,8 +213,7 @@ void ExcludeNodeGroupCmdModifier::DumpParam(std::string& out) const
 
 void MarkNodeSingleFrameComposerCmdModifier::DumpParam(std::string& out) const
 {
-    out += "{isNodeSingleFrameComposer:" + std::string(param_.isNodeSingleFrameComposer_ ? "true" : "false") +
-           ", realPid:" + std::to_string(param_.realPid_) + "}";
+    out += "{isNodeSingleFrameComposer:" + std::string(param_.isNodeSingleFrameComposer_ ? "true" : "false") + "}";
 }
 
 void IsRepaintBoundaryCmdModifier::DumpParam(std::string& out) const

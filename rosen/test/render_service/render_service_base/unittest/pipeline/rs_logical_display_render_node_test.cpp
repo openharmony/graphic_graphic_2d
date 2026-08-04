@@ -348,43 +348,43 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, SetMirrorSourceTest, TestSize.Level1)
 
     constexpr NodeId newNodeId = 2;
     auto rsDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(newNodeId, config);
-    renderNode->isMirrorDisplay_ = true;
+    renderNode->SetDisplayMode(DisplayMode::MIRROR);
     renderNode->SetMirrorSource(nullptr);
     renderNode->SetMirrorSource(rsDisplayRenderNode);
 
-    renderNode->isMirrorDisplay_ = false;
+    renderNode->SetDisplayMode(DisplayMode::EXPAND);
     renderNode->SetMirrorSource(nullptr);
     renderNode->SetMirrorSource(rsDisplayRenderNode);
     EXPECT_NE(renderNode->mirrorSource_.lock(), nullptr);
 }
 
 /**
- * @tc.name: IsMirrorDisplayChangedTest
- * @tc.desc: test results of IsMirrorDisplayChanged
+ * @tc.name: SetDisplayModeTest
+ * @tc.desc: test results of SetDisplayMode
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSLogicalDisplayRenderNodeTest, IsMirrorDisplayChangedTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetDisplayModeTest, TestSize.Level1)
 {
     constexpr NodeId nodeId = 1;
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
-    EXPECT_FALSE(renderNode->IsMirrorDisplayChanged());
+    renderNode->SetDisplayMode(DisplayMode::MIRROR);
+    EXPECT_EQ(renderNode->GetDisplayMode(), DisplayMode::MIRROR);
 }
 
 /**
- * @tc.name: ResetMirrorDisplayChangedFlagTest
- * @tc.desc: test results of ResetMirrorDisplayChangedFlag
+ * @tc.name: GetDisplayModeTest
+ * @tc.desc: test results of GetDisplayMode
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSLogicalDisplayRenderNodeTest, ResetMirrorDisplayChangedFlagTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetDisplayModeTest, TestSize.Level1)
 {
     constexpr NodeId nodeId = 1;
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
-    renderNode->ResetMirrorDisplayChangedFlag();
-    EXPECT_FALSE(renderNode->isMirrorDisplayChanged_);
+    EXPECT_EQ(renderNode->GetDisplayMode(), DisplayMode::INVALID);
 }
 
 /**
@@ -494,17 +494,17 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, SetHasSecLayerInVisibleRectTest, TestSi
 }
 
 /**
- * @tc.name: GetCompositeTypeTest
- * @tc.desc: test results of GetCompositeType
+ * @tc.name: GetDisplayModeDefaultTest
+ * @tc.desc: test results of GetDisplayMode default value
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSLogicalDisplayRenderNodeTest, GetCompositeTypeTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetDisplayModeDefaultTest, TestSize.Level1)
 {
     constexpr NodeId nodeId = 1;
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
-    EXPECT_EQ(renderNode->GetCompositeType(), CompositeType::HARDWARE_COMPOSITE);
+    EXPECT_EQ(renderNode->GetDisplayMode(), DisplayMode::INVALID);
 }
 
 /**
@@ -547,7 +547,9 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdateDimensionsTest, TestSize.Level1)
     renderNode->UpdateRotation();
     renderNode->UpdateRotation();
     renderNode->UpdateFixedSize();
-    EXPECT_EQ(renderNode->GetCompositeType(), CompositeType::HARDWARE_COMPOSITE);
+    // Composite type is now managed by RSScreenRenderNode, not RSLogicalDisplayRenderNode
+    // Test display mode instead
+    EXPECT_EQ(renderNode->GetDisplayMode(), DisplayMode::INVALID);
 }
 
 /**

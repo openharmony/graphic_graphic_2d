@@ -24,6 +24,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/mock/mock_meta_data_helper.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
  #include "pipeline/rs_logical_display_render_node.h"
@@ -1720,6 +1721,8 @@ HWTEST_F(RSUniRenderUtilTest, AdjustZOrderAndDrawSurfaceNode, TestSize.Level1)
     paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     auto rscanvas = static_cast<Drawing::Canvas*>(&paintFilterCanvas);
     std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    auto virtualScreenParallelManager = std::make_shared<RSVirtualScreenParallelManager>();
+    params->SetVirtualScreenParallelManager(virtualScreenParallelManager);
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
     ASSERT_TRUE(drawables.empty());
 

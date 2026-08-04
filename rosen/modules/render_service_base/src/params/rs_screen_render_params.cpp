@@ -277,6 +277,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->brightnessRatio_ = brightnessRatio_;
     targetScreenParams->videoDimType_ = videoDimType_;
     targetScreenParams->uiMode3D_ = uiMode3D_;
+    targetScreenParams->hasGlassFree3DLayer_ = hasGlassFree3DLayer_;
     targetScreenParams->isFixVirtualBuffer10Bit_ = isFixVirtualBuffer10Bit_;
     targetScreenParams->existHWCNode_ = existHWCNode_;
     targetScreenParams->screenHDRStatus_ = screenHDRStatus_;
@@ -400,6 +401,20 @@ void RSScreenRenderParams::SetUIMode3D(UIMode3D uiMode3D)
 UIMode3D RSScreenRenderParams::GetUIMode3D() const
 {
     return uiMode3D_;
+}
+
+void RSScreenRenderParams::SetHasGlassFree3DLayer(bool hasGlassFree3DLayer)
+{
+    if (hasGlassFree3DLayer_ == hasGlassFree3DLayer) {
+        return;
+    }
+    hasGlassFree3DLayer_ = hasGlassFree3DLayer;
+    needSync_ = true;
+}
+
+bool RSScreenRenderParams::GetHasGlassFree3DLayer() const
+{
+    return hasGlassFree3DLayer_;
 }
 
 void RSScreenRenderParams::SetHasMirroredScreenChanged(bool hasMirroredScreenChanged)

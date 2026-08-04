@@ -288,10 +288,11 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest004, TestSize.Level1)
     ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
     ASSERT_NE(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
     ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
-    ASSERT_NE(displayDrawable_->GetScreenParams(*displayDrawable_->GetRenderParams()).second, nullptr);
-    renderParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    auto screenParams = displayDrawable_->GetScreenParams(*displayDrawable_->GetRenderParams()).second;
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
     displayDrawable_->OnDraw(*drawingFilterCanvas_);
-    ASSERT_EQ(renderParams->GetCompositeType(), CompositeType::UNI_RENDER_COMPOSITE);
+    ASSERT_EQ(screenParams->GetCompositeType(), CompositeType::UNI_RENDER_COMPOSITE);
 }
 
 /**
@@ -321,11 +322,12 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest005, TestSize.Level1)
     ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
     ASSERT_NE(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
     ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
-    ASSERT_NE(displayDrawable_->GetScreenParams(*displayDrawable_->GetRenderParams()).second, nullptr);
+    auto screenParams = displayDrawable_->GetScreenParams(*displayDrawable_->GetRenderParams()).second;
+    ASSERT_NE(screenParams, nullptr);
     ASSERT_EQ(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
-    renderParams->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    screenParams->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE;
     displayDrawable_->OnDraw(*drawingFilterCanvas_);
-    ASSERT_EQ(renderParams->GetCompositeType(), CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
+    ASSERT_EQ(screenParams->GetCompositeType(), CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE);
 }
 
 /**
@@ -1806,7 +1808,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CheckDirtyRefreshTest005, TestS
 
 /**
  * @tc.name: CheckDirtyRefreshTest006
- * @tc.desc: Test CheckDirtyRefresh when uniParam is not nullptr and type is UNI_RENDER_MIRROR_COMPOSITE
+ * @tc.desc: Test CheckDirtyRefresh when uniParam is not nullptr and type is UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
@@ -1819,7 +1821,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CheckDirtyRefreshTest006, TestS
     RSUniRenderThread::Instance().Sync(std::move(uniParams1));
 
     // when enableVisibleRect_ is false and hasSecSurface is false
-    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, false);
+    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, false);
     // when enableVisibleRect_ is false and hasSecSurface is true
     auto mirroredRenderParams =
         static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get());
@@ -1827,14 +1829,14 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CheckDirtyRefreshTest006, TestS
     RSSpecialLayerManager slManager;
     slManager.Set(SpecialLayerType::HAS_SECURITY, true);
     mirroredRenderParams->specialLayerManager_ = slManager;
-    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, false);
+    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, false);
     EXPECT_TRUE(mirroredRenderParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY));
 
     // when GetSecExemption is true
     auto uniParams2 = std::make_unique<RSRenderThreadParams>();
     uniParams2->SetSecExemption(true);
     RSUniRenderThread::Instance().Sync(std::move(uniParams2));
-    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, false);
+    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, false);
 }
 
 /**
@@ -1850,9 +1852,9 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CheckDirtyRefreshTest007, TestS
 
     displayDrawable_->enableVisibleRect_ = true;
     // when hasSecLayerInVisibleRect is false
-    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, false);
+    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, false);
     // when hasSecLayerInVisibleRect is true
-    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, true);
+    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, true);
 }
 
 /**
@@ -1871,12 +1873,12 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CheckDirtyRefreshTest008, TestS
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     // when GetVirtualScreenMuteStatus is false
     renderParams->virtualScreenMuteStatus_ = true;
-    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, false);
+    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, false);
     // when GetVirtualScreenMuteStatus is true, reset uniParams
     auto uniParams2 = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(uniParams2));
     renderParams->virtualScreenMuteStatus_ = false;
-    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, false);
+    displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, false);
 }
 
 /**

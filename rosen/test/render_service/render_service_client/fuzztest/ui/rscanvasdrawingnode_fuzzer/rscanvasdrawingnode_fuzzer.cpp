@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024~2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,16 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "pipeline/rs_canvas_render_node.h"
 
+namespace {
+void FlushCommands()
+{
+    auto proxy = OHOS::Rosen::RSTransactionProxy::GetInstance();
+    if (proxy != nullptr) {
+        proxy->FlushImplicitTransaction();
+    }
+}
+}
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -44,7 +54,8 @@ void DoRSCanvasDrawingNode(FuzzedDataProvider& fdp)
 {
     bool isRenderServiceNode = fdp.ConsumeBool();
     bool isTextureExportNode = fdp.ConsumeBool();
-    RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
+    auto node = RSCanvasDrawingNode::Create(isRenderServiceNode, isTextureExportNode);
+    FlushCommands();
 }
 
 void DoCreate(FuzzedDataProvider& fdp)
@@ -52,13 +63,14 @@ void DoCreate(FuzzedDataProvider& fdp)
     bool isRenderServiceNode = fdp.ConsumeBool();
     bool isTextureExportNode = fdp.ConsumeBool();
     RSCanvasDrawingNode::SharedPtr node = RSCanvasDrawingNode::Create(isRenderServiceNode, isTextureExportNode);
+    FlushCommands();
 }
 
 void DoGetBitmap(FuzzedDataProvider& fdp)
 {
     bool isRenderServiceNode = fdp.ConsumeBool();
     bool isTextureExportNode = fdp.ConsumeBool();
-    RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
+    auto node = RSCanvasDrawingNode::Create(isRenderServiceNode, isTextureExportNode);
     Drawing::Bitmap bitmap;
     int w = fdp.ConsumeIntegral<int>();
     int h = fdp.ConsumeIntegral<int>();
@@ -68,14 +80,15 @@ void DoGetBitmap(FuzzedDataProvider& fdp)
     float fRight = fdp.ConsumeFloatingPoint<float>();
     float fBottom = fdp.ConsumeFloatingPoint<float>();
     Drawing::Rect rect { fLeft, fTop, fRight, fBottom };
-    canvasDrawingNode.GetBitmap(bitmap, list, &rect);
+    node->GetBitmap(bitmap, list, &rect);
+    FlushCommands();
 }
 
 void DoGetPixelmap(FuzzedDataProvider& fdp)
 {
     bool isRenderServiceNode = fdp.ConsumeBool();
     bool isTextureExportNode = fdp.ConsumeBool();
-    RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
+    auto node = RSCanvasDrawingNode::Create(isRenderServiceNode, isTextureExportNode);
     auto pixelmap = std::make_shared<Media::PixelMap>();
     int w = fdp.ConsumeIntegral<int>();
     int h = fdp.ConsumeIntegral<int>();
@@ -85,25 +98,28 @@ void DoGetPixelmap(FuzzedDataProvider& fdp)
     float fRight = fdp.ConsumeFloatingPoint<float>();
     float fBottom = fdp.ConsumeFloatingPoint<float>();
     Drawing::Rect rect { fLeft, fTop, fRight, fBottom };
-    canvasDrawingNode.GetPixelmap(pixelmap, list, &rect);
+    node->GetPixelmap(pixelmap, list, &rect);
+    FlushCommands();
 }
 
 void DoResetSurface(FuzzedDataProvider& fdp)
 {
     bool isRenderServiceNode = fdp.ConsumeBool();
     bool isTextureExportNode = fdp.ConsumeBool();
-    RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
+    auto node = RSCanvasDrawingNode::Create(isRenderServiceNode, isTextureExportNode);
     int w = fdp.ConsumeIntegral<int>();
     int h = fdp.ConsumeIntegral<int>();
-    canvasDrawingNode.ResetSurface(w, h);
+    node->ResetSurface(w, h);
+    FlushCommands();
 }
 
 void DoCreateTextureExportNodeInRT(FuzzedDataProvider& fdp)
 {
     bool isRenderServiceNode = fdp.ConsumeBool();
     bool isTextureExportNode = fdp.ConsumeBool();
-    RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
-    canvasDrawingNode.CreateRenderNodeForTextureExportSwitch();
+    auto node = RSCanvasDrawingNode::Create(isRenderServiceNode, isTextureExportNode);
+    node->CreateRenderNodeForTextureExportSwitch();
+    FlushCommands();
 }
 
 } // namespace Rosen

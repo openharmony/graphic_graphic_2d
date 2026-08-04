@@ -934,25 +934,6 @@ HWTEST_F(RSRenderParamsTest, GetLayerInfo_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetScreensWithSubTreeWhitelist
- * @tc.desc: Test SetScreensWithSubTreeWhitelist
- * @tc.type: FUNC
- * @tc.require:#issueICF7P6
- */
-HWTEST_F(RSRenderParamsTest, SetScreensWithSubTreeWhitelist, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
-    std::unordered_set<ScreenId> info = {};
-    renderParams->SetScreensWithSubTreeWhitelist(info);
-    ASSERT_EQ(renderParams->GetScreensWithSubTreeWhitelist(), info);
-    ScreenId screenId = 1;
-    info.insert(screenId);
-    renderParams->SetScreensWithSubTreeWhitelist(info);
-    ASSERT_EQ(renderParams->GetScreensWithSubTreeWhitelist(), info);
-}
-
-/**
  * @tc.name: SetLayerPartRenderEnabledTest
  * @tc.desc: Test SetLayerPartRenderEnabled
  * @tc.type: FUNC

@@ -54,6 +54,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "SpirvCacheConfig",
     "BufferReclaimConfig",
     "BehindWindowFilterConfig",
+    "VirtualScreenParallelConfig",
     "BackgroundRebuildConfig",
 };
 
@@ -88,6 +89,7 @@ enum FeatureModule {
     SPIRV_CACHE,
     BUFFER_RECLAIM,
     BEHIND_WINDOW_FILTER,
+    VIRTUAL_SCREEN_PARALLEL,
     BACKGROUND_REBUILD,
     // Do not change it.
     ENUM_LENGTH,

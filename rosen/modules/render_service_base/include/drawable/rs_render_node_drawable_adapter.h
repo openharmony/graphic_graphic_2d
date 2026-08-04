@@ -77,6 +77,7 @@ struct DrawCmdIndex {
     int8_t shadowIndex_                = -1;
     int8_t renderGroupBeginIndex_      = -1;
     int8_t foregroundFilterBeginIndex_ = -1;
+    int8_t saveClipToBoundsIndex_      = -1;
     int8_t bgSaveBoundsIndex_          = -1;
     int8_t clipToBoundsIndex_          = -1;
     int8_t backgroundColorIndex_       = -1;

@@ -22,11 +22,22 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr float INTERPOLATOR_DEFAULT_RESPONSE = 0.55f;
+constexpr float INTERPOLATOR_DEFAULT_DAMPING_RATIO = 0.825f;
+}
 
 RSSpringInterpolator::RSSpringInterpolator(float response, float dampingRatio, float initialVelocity)
     // initialOffset: 1, minimumAmplitude: 0.0001
     : RSSpringModel<float>(response, dampingRatio, -1, initialVelocity, 0.0001)
 {
+    if (!std::isfinite(response) || !std::isfinite(dampingRatio) || !std::isfinite(initialVelocity)) {
+        ROSEN_LOGE("RSSpringInterpolator, invalid spring parameters, using defaults");
+        response_ = INTERPOLATOR_DEFAULT_RESPONSE;
+        dampingRatio_ = INTERPOLATOR_DEFAULT_DAMPING_RATIO;
+        initialVelocity_ = 0.0f;
+        CalculateSpringParameters();
+    }
     estimatedDuration_ = EstimateDuration();
 }
 

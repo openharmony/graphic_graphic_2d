@@ -67,7 +67,8 @@
         "graphic_2d_feature_enable_memory_info_manager",
         "graphic_2d_feature_enable_drm",
         "graphic_2d_feature_enable_mediacommon",
-        "graphic_2d_feature_enable_image_detail_enhancer"
+        "graphic_2d_feature_enable_image_detail_enhancer",
+        "graphic_2d_feature_enable_swap_ycbcr_channel"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -161,7 +162,6 @@
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv2",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLv4",
-            "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json",
             "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/native_display_soloist:libnative_display_soloist",

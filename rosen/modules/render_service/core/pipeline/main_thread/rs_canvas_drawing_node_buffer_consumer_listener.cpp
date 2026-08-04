@@ -92,7 +92,8 @@ void RSCanvasDrawingNodeBufferConsumerListener::CollectBuffersForClean(
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "RSCanvasDrawingNodeBufferConsumerListener::CollectBuffersForClean insert buffer, seqNum=%" PRIu64
                 ", fd=%d", bufferId, bufferHandle ? bufferHandle->fd : 0);
-            RS_LOGD("RSCanvasDrawingNodeBufferConsumerListener::CollectBuffersForClean insert buffer, "
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RSCanvasDrawingNodeBufferConsumerListener::CollectBuffersForClean insert buffer, "
                 "seqNum=%{public}" PRIu64 ", fd=%{public}d", bufferId, bufferHandle ? bufferHandle->fd : 0);
         }
     }

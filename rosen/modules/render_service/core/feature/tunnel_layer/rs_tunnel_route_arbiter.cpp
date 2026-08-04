@@ -327,7 +327,7 @@ RSTunnelRouteArbiter::MainThreadOutcome RSTunnelRouteArbiter::ArbitrateAndClaim(
     if (node == nullptr) {
         return MainThreadOutcome::NOT_TUNNEL_ACTIVE;
     }
-    auto* tunnelRuntimePtr = RSTunnelRuntimeStore::TryGet(node->GetId());
+    auto tunnelRuntimePtr = RSTunnelRuntimeStore::TryGet(node->GetId());
     if (tunnelRuntimePtr == nullptr ||
         tunnelRuntimePtr->GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
         return MainThreadOutcome::NOT_TUNNEL_ACTIVE;

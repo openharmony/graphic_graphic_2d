@@ -351,7 +351,6 @@ private:
     std::atomic<int> noUifirstNodeFrameCount_ = 0;
     NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
     NodeId negativeScreenNodeId_ = INVALID_NODEID; // negativeScreen surfaceNode ID
-    RSMainThread* mainThread_ = nullptr;
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;

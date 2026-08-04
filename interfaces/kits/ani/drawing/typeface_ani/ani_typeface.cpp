@@ -143,7 +143,7 @@ ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string an
         return CreateAniUndefined(env);
     }
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         ROSEN_LOGE("AniTypeface::MakeFromFile MakeRegister Typeface failed!");
         return CreateAniUndefined(env);
     }
@@ -188,7 +188,7 @@ ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, 
         return CreateAniUndefined(env);
     }
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface)) {
         ROSEN_LOGE("AniTypeface::MakeFromFileWithArguments MakeRegister Typeface failed!");
         return CreateAniUndefined(env);
     }
@@ -238,7 +238,7 @@ ani_object AniTypeface::MakeFromRawFile(ani_env* env, ani_object obj, ani_object
         return CreateAniUndefined(env);
     }
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         ROSEN_LOGE("AniTypeface::MakeFromRawFile MakeRegister Typeface failed!");
         return CreateAniUndefined(env);
     }
@@ -290,7 +290,7 @@ ani_object AniTypeface::MakeFromRawFileWithArguments(ani_env* env, ani_object ob
     }
 
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         ROSEN_LOGE("AniTypeface::makeFromRawFileWithArguments MakeRegister Typeface failed.");
         return CreateAniUndefined(env);
     }
@@ -342,7 +342,7 @@ ani_object AniTypeface::MakeFromCurrent(ani_env* env, ani_object obj, ani_object
     rawTypeface->SetSize(typeface->GetSize());
     rawTypeface->SetHash(typeface->GetHash());
     if (rawTypeface->IsCustomTypeface() && Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
         ROSEN_LOGE("AniTypeface::MakeFromCurrent MakeRegister Typeface failed.");
         return CreateAniUndefined(env);
     }

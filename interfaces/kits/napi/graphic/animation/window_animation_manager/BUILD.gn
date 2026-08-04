@@ -45,6 +45,7 @@ ohos_shared_library("windowanimationmanager_napi") {
     "input:libmmi-client",
     "ipc:ipc_core",
     "napi:ace_napi",
+    "node:node_header_notice",
     "samgr:samgr_proxy",
     "window_manager:libwm",
     "window_manager:libwmutil",

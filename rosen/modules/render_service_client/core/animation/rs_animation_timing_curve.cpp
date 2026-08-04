@@ -15,6 +15,8 @@
 
 #include "animation/rs_animation_timing_curve.h"
 
+#include <cmath>
+
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_interpolator.h"
 #include "animation/rs_spring_interpolator.h"
@@ -61,15 +63,16 @@ RSAnimationTimingCurve::RSAnimationTimingCurve(const std::function<float(float)>
     : customCurveFunc_(customCurveFunc)
 {}
 
-RSAnimationTimingCurve::RSAnimationTimingCurve(
-    float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio)
-    : type_(CurveType::SPRING), springParams_ { { response, dampingRatio, blendDuration, 0.0f, minimumAmplitudeRatio } }
+RSAnimationTimingCurve::RSAnimationTimingCurve(float response, float dampingRatio, float blendDuration,
+    float minimumAmplitudeRatio, std::optional<SpringParams::ConvergeParams> convergeParams)
+    : type_(CurveType::SPRING),
+      springParams_ { { response, dampingRatio, blendDuration, 0.0f, minimumAmplitudeRatio, convergeParams } }
 {}
 
-RSAnimationTimingCurve::RSAnimationTimingCurve(
-    float response, float dampingRatio, float initialVelocity, CurveType curveType, float minimumAmplitudeRatio)
-    : type_(curveType),
-      springParams_ { { response, dampingRatio, DEFAULT_BLEND_DURATION, initialVelocity, minimumAmplitudeRatio } }
+RSAnimationTimingCurve::RSAnimationTimingCurve(float response, float dampingRatio, float initialVelocity,
+    CurveType curveType, float minimumAmplitudeRatio, std::optional<SpringParams::ConvergeParams> convergeParams)
+    : type_(curveType), springParams_ { { response, dampingRatio, DEFAULT_BLEND_DURATION, initialVelocity,
+                            minimumAmplitudeRatio, convergeParams } }
 {}
 
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateCustomCurve(const std::function<float(float)>& customCurveFunc)
@@ -85,7 +88,7 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateCubicCurve(float ctrlX1, fl
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
     float velocity, float mass, float stiffness, float damping)
 {
-    if (stiffness <= 0.0f || mass * stiffness <= 0.0f) {
+    if (ROSEN_LE(stiffness, 0.0f, 0.0f) || ROSEN_LE(mass * stiffness, 0.0f, 0.0f)) {
         ROSEN_LOGE("RSAnimationTimingCurve::CreateSpringCurve, invalid parameters.");
         return { std::make_shared<RSSpringInterpolator>(DEFAULT_RESPONSE, DEFAULT_DAMPING_RATIO, velocity) };
     }
@@ -94,17 +97,23 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
     return { std::make_shared<RSSpringInterpolator>(response, dampingRatio, velocity) };
 }
 
-RSAnimationTimingCurve RSAnimationTimingCurve::CreateInterpolatingSpring(
-    float mass, float stiffness, float damping, float velocity, float minimumAmplitudeRatio)
+RSAnimationTimingCurve RSAnimationTimingCurve::CreateInterpolatingSpring(float mass, float stiffness, float damping,
+    float velocity, float minimumAmplitudeRatio, std::optional<SpringParams::ConvergeParams> convergeParams)
 {
-    if (stiffness <= 0.0f || mass * stiffness <= 0.0f) {
+    if (!std::isfinite(mass) || !std::isfinite(stiffness) || !std::isfinite(damping) ||
+        !std::isfinite(velocity) || !std::isfinite(minimumAmplitudeRatio)) {
+        ROSEN_LOGE("RSAnimationTimingCurve::CreateInterpolatingSpring, invalid parameters.");
+        return { DEFAULT_RESPONSE, DEFAULT_DAMPING_RATIO, 0.0f, CurveType::INTERPOLATING_SPRING,
+            DEFAULT_AMPLITUDE_RATIO, convergeParams };
+    }
+    if (ROSEN_LE(stiffness, 0.0f, 0.0f) || ROSEN_LE(mass * stiffness, 0.0f, 0.0f)) {
         ROSEN_LOGE("RSAnimationTimingCurve::CreateInterpolatingSpring, invalid parameters.");
         return { DEFAULT_RESPONSE, DEFAULT_DAMPING_RATIO, velocity, CurveType::INTERPOLATING_SPRING,
-            minimumAmplitudeRatio };
+            minimumAmplitudeRatio, convergeParams };
     }
     float response = 2 * PI * sqrt(mass / stiffness);
     float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
-    return { response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING, minimumAmplitudeRatio };
+    return { response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING, minimumAmplitudeRatio, convergeParams };
 }
 
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateStepsCurve(int32_t steps, StepsCurvePosition position)
@@ -112,10 +121,16 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateStepsCurve(int32_t steps, S
     return { std::make_shared<RSStepsInterpolator>(steps, position) };
 }
 
-RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpring(
-    float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio)
+RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpring(float response, float dampingRatio, float blendDuration,
+    float minimumAmplitudeRatio, std::optional<SpringParams::ConvergeParams> convergeParams)
 {
-    return { response, dampingRatio, blendDuration, minimumAmplitudeRatio };
+    if (!std::isfinite(response) || !std::isfinite(dampingRatio) || !std::isfinite(blendDuration) ||
+        !std::isfinite(minimumAmplitudeRatio)) {
+        ROSEN_LOGE("RSAnimationTimingCurve::CreateSpring, invalid parameters.");
+        return { DEFAULT_RESPONSE, DEFAULT_DAMPING_RATIO, DEFAULT_BLEND_DURATION, DEFAULT_AMPLITUDE_RATIO_SPRING,
+            convergeParams };
+    }
+    return { response, dampingRatio, blendDuration, minimumAmplitudeRatio, convergeParams };
 }
 
 std::shared_ptr<RSInterpolator> RSAnimationTimingCurve::GetInterpolator(int duration) const

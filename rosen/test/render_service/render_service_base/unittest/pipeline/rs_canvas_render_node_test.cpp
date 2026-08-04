@@ -966,4 +966,17 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap008, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 
+/**
+ * @tc.name: RSCanvasRenderNodeSizeTest
+ * @tc.desc: test sizeof RSCanvasRenderNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, RSCanvasRenderNodeSizeTest, TestSize.Level0)
+{
+    size_t nodesize = sizeof(RSCanvasRenderNode);
+    size_t UPPER_LIMIT = 1984;
+    ASSERT_LE(nodesize, UPPER_LIMIT);
+}
+
 } // namespace OHOS::Rosen

@@ -109,6 +109,7 @@ public :
     static std::unordered_set<ScreenId> QueryEnableScreen(
         SpecialLayerType type, std::pair<NodeId, LeashPersistentId> id);
     static bool ExistEnableScreen(SpecialLayerType type);
+    static std::unordered_set<NodeId> QueryNodeIdsByType(SpecialLayerType type);
 
     static void SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList);
     static const std::unordered_set<NodeId>& GetGlobalBlackList();
@@ -122,6 +123,18 @@ private :
     static std::unordered_set<NodeId> globalBlackList_;
     // key: mirrorScreenId, value: sourceScreenId
     static std::unordered_map<ScreenId, ScreenId> screenMirrorSourceMap_;
+};
+
+class RSB_EXPORT ScreenSpecialLayerParam {
+public:
+    void SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList);
+    const std::unordered_set<NodeId>& GetGlobalBlackList() const;
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect);
+    std::vector<Drawing::Rect> GetWhiteListRectByScreenId(ScreenId screenId) const;
+    void ClearWhiteListRect();
+private:
+    std::unordered_set<NodeId> globalBlackList_;
+    std::map<ScreenId, std::vector<Drawing::Rect>> whiteListRect_;
 };
 
 class AutoSpecialLayerStateRecover {

@@ -389,7 +389,7 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
     auto iter = renderNodeMap_.find(pid);
     if (iter != renderNodeMap_.end()) {
         auto& subMap = iter->second;
-        EraseIf(subMap, [token](const auto& pair) -> bool {
+        EraseIf(subMap, [token, this](const auto& pair) -> bool {
             if (!pair.second || pair.second->GetUIContextToken() != token) {
                 return false;
             }
@@ -408,19 +408,16 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
             pair.second->ReleaseNodeInRender();
 
             auto surfaceNode = pair.second->template ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode && surfaceNode->IsAppWindow()) {
-                surfaceNode->SetHasDestoryRebuild(true);
-            }
-            if (surfaceNode && !surfaceNode->IsSelfDrawingType()) {
-                return false;
-            }
-            if (surfaceNode && !surfaceNode->GetIsTextureExportNode()) {
+            if (surfaceNode && (!surfaceNode->IsSelfDrawingType() || surfaceNode->GetIsTextureExportNode())) {
                 return false;
             }
             if (pair.second->GetType() == RSRenderNodeType::ROOT_NODE) {
-                auto parent = pair.second->GetParent().lock();
-                if (parent) {
-                    parent->RemoveChildFromFulllist(pair.first);
+                auto appWindow =
+                    RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(pair.second->GetParent().lock());
+                if (appWindow && appWindow->IsAppWindow()) {
+                    appWindow->RemoveChildFromFulllist(pair.first);
+                    appWindow->SetHasDestoryRebuild(true);
+                    AddPendingUIBufferEntry(appWindow);
                 }
             }
             return true;
@@ -770,5 +767,43 @@ void RSRenderNodeMap::RemoveSurfaceHandlerInfo(NodeId nodeId)
     surfaceHandlerInfoMap_.erase(nodeId);
 }
 #endif // ROSEN_CROSS_PLATFORM
+
+void RSRenderNodeMap::AddPendingUIBufferEntry(const std::shared_ptr<RSSurfaceRenderNode>& appWindow)
+{
+    auto leashParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(appWindow->GetParent().lock());
+    if (leashParent && leashParent->IsLeashWindow()) {
+        hasDestoryRebuildAppWindowMap_[appWindow->GetId()] = leashParent->GetId();
+    }
+}
+
+bool RSRenderNodeMap::HasPendingUIBufferEntry(NodeId appWindowId) const
+{
+    return hasDestoryRebuildAppWindowMap_.find(appWindowId) != hasDestoryRebuildAppWindowMap_.end();
+}
+
+void RSRenderNodeMap::RemovePendingUIBufferEntry(NodeId appWindowId)
+{
+    hasDestoryRebuildAppWindowMap_.erase(appWindowId);
+}
+
+NodeId RSRenderNodeMap::GetPendingUIBufferLeashId(NodeId appWindowId) const
+{
+    auto it = hasDestoryRebuildAppWindowMap_.find(appWindowId);
+    if (it == hasDestoryRebuildAppWindowMap_.end()) {
+        return INVALID_NODEID;
+    }
+    return it->second;
+}
+
+std::vector<NodeId> RSRenderNodeMap::GetPendingUIBufferAppWindowsByLeashId(NodeId leashId) const
+{
+    std::vector<NodeId> result;
+    for (const auto& [appWindowId, storedLeashId] : hasDestoryRebuildAppWindowMap_) {
+        if (storedLeashId == leashId) {
+            result.push_back(appWindowId);
+        }
+    }
+    return result;
+}
 } // namespace Rosen
 } // namespace OHOS

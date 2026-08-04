@@ -17,6 +17,7 @@
 #include "animation/rs_render_path_animation.h"
 
 #include "animation/rs_value_estimator.h"
+#include "modifier/rs_render_property.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "render/rs_path.h"
 using namespace testing;
@@ -507,5 +508,109 @@ HWTEST_F(RSRenderPathAnimationTest, UpdateVector4fPathValueTest, Level1)
     rsRenderPathAnimation.SetPathNeedAddOrigin(true);
     rsRenderPathAnimation.UpdateVector4fPathValue(value, position);
     EXPECT_EQ(rsRenderPathAnimation.needAddOrigin_, true);
+}
+
+/**
+ * @tc.name: OnAnimate_Vector4fNotNeedPathValueEstimatorNull
+ * @tc.desc: Verify OnAnimate with VECTOR4F, !isNeedPath_, valueEstimator_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate_Vector4fNotNeedPathValueEstimatorNull, Level1)
+{
+    auto originPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto endPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f));
+    auto animationPath = RSPath::CreateRSPath("L350 0 L150 100");
+    RSRenderPathAnimation animation(
+        ANIMATION_ID, PROPERTY_ID, originPosition, startPosition, endPosition, 0.f, animationPath);
+    animation.isNeedPath_ = false;
+    animation.valueEstimator_ = nullptr;
+    animation.OnAnimate(0.5f);
+    EXPECT_EQ(animation.valueEstimator_, nullptr);
+}
+
+/**
+ * @tc.name: OnAnimate_Vector4fNotNeedPathInterpolatorNull
+ * @tc.desc: Verify OnAnimate with VECTOR4F, !isNeedPath_, interpolator_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate_Vector4fNotNeedPathInterpolatorNull, Level1)
+{
+    auto originPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto endPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f));
+    auto animProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(50.f));
+    auto animationPath = RSPath::CreateRSPath("L350 0 L150 100");
+    RSRenderPathAnimation animation(
+        ANIMATION_ID, PROPERTY_ID, originPosition, startPosition, endPosition, 0.f, animationPath);
+    animation.isNeedPath_ = false;
+    animation.valueEstimator_ = animProperty->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
+    animation.interpolator_ = nullptr;
+    animation.OnAnimate(0.5f);
+    EXPECT_EQ(animation.interpolator_, nullptr);
+}
+
+/**
+ * @tc.name: OnAnimate_Vector4fNotNeedPathBothValid
+ * @tc.desc: Verify OnAnimate with VECTOR4F, !isNeedPath_, both estimator and interpolator valid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate_Vector4fNotNeedPathBothValid, Level1)
+{
+    auto originPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto endPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f));
+    auto animProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(50.f));
+    auto animationPath = RSPath::CreateRSPath("L350 0 L150 100");
+    RSRenderPathAnimation animation(
+        ANIMATION_ID, PROPERTY_ID, originPosition, startPosition, endPosition, 0.f, animationPath);
+    animation.isNeedPath_ = false;
+    animation.valueEstimator_ = animProperty->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
+    animation.interpolator_ = RSInterpolator::DEFAULT;
+    animation.property_ = animProperty;
+    animation.OnAnimate(0.5f);
+    EXPECT_NE(animation.valueEstimator_, nullptr);
+    EXPECT_NE(animation.interpolator_, nullptr);
+}
+
+/**
+ * @tc.name: OnAnimate_Vector4fNeedPathValueEstimatorNull
+ * @tc.desc: Verify OnAnimate with VECTOR4F, isNeedPath_, valueEstimator_ is nullptr
+ *           so static_pointer_cast returns nullptr hitting line 151
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate_Vector4fNeedPathValueEstimatorNull, Level1)
+{
+    auto originPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto endPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f));
+    auto animationPath = RSPath::CreateRSPath("L350 0 L150 100");
+    RSRenderPathAnimation animation(
+        ANIMATION_ID, PROPERTY_ID, originPosition, startPosition, endPosition, 0.f, animationPath);
+    animation.isNeedPath_ = true;
+    animation.valueEstimator_ = nullptr;
+    animation.OnAnimate(0.5f);
+    EXPECT_EQ(animation.valueEstimator_, nullptr);
+}
+
+/**
+ * @tc.name: OnAnimate_Vector4fNeedPathWrongEstimatorType
+ * @tc.desc: Verify OnAnimate with VECTOR4F, isNeedPath_, valueEstimator_ is not
+ *           RSCurveValueEstimator<Vector4f> so static_pointer_cast returns nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate_Vector4fNeedPathWrongEstimatorType, Level1)
+{
+    auto originPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto endPosition = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f));
+    auto animationPath = RSPath::CreateRSPath("L350 0 L150 100");
+    RSRenderPathAnimation animation(
+        ANIMATION_ID, PROPERTY_ID, originPosition, startPosition, endPosition, 0.f, animationPath);
+    animation.isNeedPath_ = true;
+    auto floatProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.f);
+    animation.valueEstimator_ = floatProperty->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
+    animation.OnAnimate(0.5f);
+    EXPECT_NE(animation.valueEstimator_, nullptr);
 }
 } // namespace OHOS::Rosen

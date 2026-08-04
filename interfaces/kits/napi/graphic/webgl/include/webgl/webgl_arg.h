@@ -553,7 +553,7 @@ private:
 
 class WebGLWriteBufferArg : public WebGLCommBuffer {
 public:
-    const static int32_t MAX_ALLOC_BUFFER_SIZE = 1024 * 1024;
+    const static size_t MAX_ALLOC_BUFFER_SIZE = 1024 * 1024;
     explicit WebGLWriteBufferArg(napi_env env) : WebGLCommBuffer(env) {}
     ~WebGLWriteBufferArg()
     {
@@ -564,7 +564,7 @@ public:
 
     uint8_t* AllocBuffer(size_t size)
     {
-        if (size > static_cast<size_t>(MAX_ALLOC_BUFFER_SIZE)) {
+        if (size > MAX_ALLOC_BUFFER_SIZE) {
             return nullptr;
         }
         if (data_ != nullptr) {
@@ -650,6 +650,7 @@ private:
     void DecodeDataForRGBA_USHORT_5551(const WebGLFormatMap* formatMap, uint8_t* array);
     void DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatMap, uint8_t* array);
     bool DecodeImageData(const WebGLFormatMap* formatMap, const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset);
+    bool CheckImageDataSize(const WebGLFormatMap* formatMap, size_t maxSize, uint64_t& pixels) const;
     GLenum CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, GLuint srcOffset);
     GLenum CheckPixelMapBytes();
 
@@ -657,12 +658,13 @@ private:
     std::tuple<bool, T> GetObjectIntField(napi_value resultObject, const std::string& name);
     bool HandleImageSourceData(napi_value resultData, napi_valuetype valueType);
     bool BuildPixelMapFromSource(std::unique_ptr<OHOS::Media::ImageSource>& imageSource, uint32_t errorCode);
+    bool GetSrcOffsetBytes(const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset, size_t& srcOffsetBytes) const;
 
     int webGLVersion_ { 0 };
     napi_env env_ { nullptr };
     bool unpackFlipY_ { false };
     bool unpackPremultiplyAlpha_ { false };
-    GLuint srcOffset_ { 0 };
+    size_t srcOffset_ { 0 };
     WebGLImageOption imageOption_ {};
     std::vector<uint32_t> imageData_ {};
     std::unique_ptr<OHOS::Media::PixelMap> pixelMap_ { nullptr };

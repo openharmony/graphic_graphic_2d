@@ -22,6 +22,7 @@
 #include "rs_render_surface_rcd_layer.h"
 #include "rs_render_surface_solid_filled_color_layer.h"
 #include "surface_buffer_impl.h"
+#include "surface_tunnel_handle.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -200,6 +201,33 @@ HWTEST_F(HdiLayerTest, SetLayerTunnelHandle001, Function | MediumTest| Level3)
 
     HdiLayerTest::rsLayer_->SetTunnelHandle(new SurfaceTunnelHandle());
     HdiLayerTest::hdiLayer_->UpdateRSLayer(HdiLayerTest::rsLayer_);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetLayerTunnelHandle(), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetLayerTunnelHandle002
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetLayerTunnelHandle with a SurfaceTunnelHandle whose
+ *                     GetHandle() returns a valid (non-null) GraphicExtDataHandle
+ *                  2. verify the else branch is taken (both OR conditions false)
+ */
+HWTEST_F(HdiLayerTest, SetLayerTunnelHandle002, Function | MediumTest| Level3)
+{
+    HdiLayerTest::rsLayer_->SetTunnelHandleChange(true);
+
+    GraphicExtDataHandle *rawHandle = AllocExtDataHandle(0);
+    ASSERT_NE(rawHandle, nullptr);
+    sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle();
+    ASSERT_EQ(tunnelHandle->SetHandle(rawHandle), GSERROR_OK);
+    FreeExtDataHandle(rawHandle);
+    ASSERT_NE(tunnelHandle->GetHandle(), nullptr);
+
+    HdiLayerTest::rsLayer_->SetTunnelHandle(tunnelHandle);
+    HdiLayerTest::hdiLayer_->UpdateRSLayer(HdiLayerTest::rsLayer_);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, testing::NotNull()))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->SetLayerTunnelHandle(), GRAPHIC_DISPLAY_SUCCESS);
 }
 
@@ -1504,6 +1532,110 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKeyFailure_ReturnsError, F
         .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
     auto ret = hdiLayer_->SetPerFrameParameters();
     ASSERT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: SetPerFrameLayerGlassFree3DTest
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. prevRSLayer_ is nullptr
+ *                  2. call SetPerFrameLayerGlassFree3D
+ *                  3. verify device is called and returns success
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameLayerGlassFree3DTest, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    hdiLayer_->rsLayer_ = curRSLayer;
+    hdiLayer_->prevRSLayer_ = nullptr;
+    auto ret = hdiLayer_->InitDevice();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameterSmq(_, _, _, _))
+        .WillRepeatedly(testing::Return(0));
+    ret = hdiLayer_->SetPerFrameLayerGlassFree3D();
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * Function: SetPerFrameLayerGlassFree3D_PrevSameValue_EarlyReturn
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. prevRSLayer_ is not nullptr and has same GlassFree3D value
+ *                  2. call SetPerFrameLayerGlassFree3D
+ *                  3. verify early return with success (no device call needed)
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameLayerGlassFree3D_PrevSameValue_EarlyReturn, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto prevRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    prevRSLayer->SetGlassFree3D(true);
+    hdiLayer_->prevRSLayer_ = prevRSLayer;
+
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    curRSLayer->SetGlassFree3D(true);
+    hdiLayer_->rsLayer_ = curRSLayer;
+    auto ret = hdiLayer_->InitDevice();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+
+    ret = hdiLayer_->SetPerFrameLayerGlassFree3D();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetPerFrameLayerGlassFree3D_PrevDiffValue_DeviceCalled
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. prevRSLayer_ is not nullptr and has different GlassFree3D value
+ *                  2. call SetPerFrameLayerGlassFree3D
+ *                  3. verify device call is made
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameLayerGlassFree3D_PrevDiffValue_DeviceCalled, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto prevRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    prevRSLayer->SetGlassFree3D(false);
+    hdiLayer_->prevRSLayer_ = prevRSLayer;
+
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    curRSLayer->SetGlassFree3D(true);
+    hdiLayer_->rsLayer_ = curRSLayer;
+    auto ret = hdiLayer_->InitDevice();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameterSmq(_, _, _, _))
+        .WillOnce(testing::Return(0));
+    ret = hdiLayer_->SetPerFrameLayerGlassFree3D();
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * Function: SetPerFrameParameters_GlassFree3DKey_Success
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Set paramKey_ with GlassFree3D key
+ *                  2. call SetPerFrameParameters
+ *                  3. verify success
+ *                   Cover branch: key == GENERIC_METADATA_KEY_GLASS_FREE_3D (line 884 true)
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameParameters_GlassFree3DKey_Success, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    paramKey_.clear();
+    paramKey_.push_back("GlassFree3D");
+
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    curRSLayer->SetGlassFree3D(true);
+    hdiLayer_->rsLayer_ = curRSLayer;
+    hdiLayer_->prevRSLayer_ = nullptr;
+
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameterSmq(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    auto ret = hdiLayer_->SetPerFrameParameters();
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /**

@@ -1451,6 +1451,7 @@ RosenError HdiOutput::RegLayerCreated(OnLayerCreatedFunc func, void* data)
         return ROSEN_ERROR_INVALID_ARGUMENTS;
     }
 
+    std::lock_guard<std::mutex> lock(callBackMutex_);
     onLayerCreatedCb_ = func;
     onLayerCreatedCbData_ = data;
     return ROSEN_ERROR_OK;
@@ -1458,6 +1459,7 @@ RosenError HdiOutput::RegLayerCreated(OnLayerCreatedFunc func, void* data)
 
 void HdiOutput::ClearLayerCreatedCallback()
 {
+    std::lock_guard<std::mutex> lock(callBackMutex_);
     onLayerCreatedCb_ = nullptr;
     onLayerCreatedCbData_ = nullptr;
 }
@@ -1470,10 +1472,17 @@ void HdiOutput::OnLayerCreated(uint64_t nodeId, bool success, uint64_t tunnelLay
     HLOGD("%{public}s screenId:%{public}" PRIu32 ", nodeId:%{public}" PRIu64
         ", success:%{public}d, generation:%{public}" PRIu64,
         __func__, screenId_, nodeId, static_cast<int32_t>(success), tunnelLayerGeneration);
-    if (onLayerCreatedCb_ == nullptr) {
-        return;
+    OnLayerCreatedFunc cb;
+    void* cbData;
+    {
+        std::lock_guard<std::mutex> lock(callBackMutex_);
+        cb = onLayerCreatedCb_;
+        cbData = onLayerCreatedCbData_;
+        if (cb == nullptr) {
+            return;
+        }
     }
-    onLayerCreatedCb_(nodeId, success, tunnelLayerGeneration, onLayerCreatedCbData_);
+    cb(nodeId, success, tunnelLayerGeneration, cbData);
 }
 
 bool HdiOutput::IsTunnelLayerRequestedLocked(const std::shared_ptr<RSLayer>& rsLayer) const
@@ -1659,6 +1668,7 @@ void HdiOutput::SetScreenLinearMatrix(const std::vector<float>& matrix)
 
 int32_t HdiOutput::GetDisplayClientTargetProperty(int32_t& pixelFormat, int32_t& dataspace)
 {
+    CHECK_DEVICE_NULL(device_);
     int32_t ret = device_->GetDisplayClientTargetProperty(screenId_, pixelFormat, dataspace);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGD("Call hdi GetDisplayClientTargetProperty failed, ret is %{public}d", ret);
@@ -1668,6 +1678,7 @@ int32_t HdiOutput::GetDisplayClientTargetProperty(int32_t& pixelFormat, int32_t&
 
 int32_t HdiOutput::GetLayerSolidFilledColor(uint64_t layerId, uint32_t& solidFilledColor)
 {
+    CHECK_DEVICE_NULL(device_);
     auto iter = solidRSLayerIdMap_.find(layerId);
     if (iter != solidRSLayerIdMap_.end()) {
         int32_t ret = device_->GetLayerSolidFilledColor(screenId_, iter->second->GetLayerId(), solidFilledColor);

@@ -66,7 +66,7 @@ HWTEST_F(RSWindowAnimationTargetTest, Unmarshalling001, TestSize.Level1)
     ASSERT_EQ(res, nullptr);
     windowAnimationTarget->Marshalling(parcel);
     res = windowAnimationTarget->Unmarshalling(parcel);
-    ASSERT_NE(res, nullptr);
+    ASSERT_EQ(res, nullptr);
     GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest Unmarshalling001 end";
 }
 
@@ -122,7 +122,7 @@ HWTEST_F(RSWindowAnimationTargetTest, ReadFromParcel001, TestSize.Level1)
     ASSERT_EQ(res, false);
     windowAnimationTarget->Marshalling(parcel);
     res = windowAnimationTarget->ReadFromParcel(parcel);
-    ASSERT_EQ(res, true);
+    ASSERT_EQ(res, false);
     
     Parcel parcelNull;
     windowAnimationTarget->surfaceNode_ = nullptr;

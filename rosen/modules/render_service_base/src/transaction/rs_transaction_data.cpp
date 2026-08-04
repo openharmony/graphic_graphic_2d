@@ -207,7 +207,8 @@ void RSTransactionData::ProcessBySingleFrameComposer(RSContext& context)
     for (auto& [nodeId, followType, command] : payload_) {
         if (command != nullptr &&
             command->GetType() == RSCommandType::CANVAS_NODE &&
-            command->GetSubType() == RSCanvasNodeCommandType::CANVAS_NODE_UPDATE_RECORDING) {
+            command->GetSubType() == RSCanvasNodeCommandType::CANVAS_NODE_UPDATE_RECORDING &&
+            command->IsCallingPidValid()) {
             command->Process(context);
         }
     }

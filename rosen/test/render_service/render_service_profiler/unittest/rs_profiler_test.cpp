@@ -445,7 +445,7 @@ HWTEST_F(RSProfilerTest, UnmarshalNodeModifiersTest, testing::ext::TestSize.Leve
     data.write(reinterpret_cast<const char*>(&instanceRootNodeId), sizeof(instanceRootNodeId));
     data.write(reinterpret_cast<const char*>(&firstLevelNodeId), sizeof(firstLevelNodeId));
     data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
-    auto ret = RSProfiler::UnmarshalNodeModifiers(node, data, 0, node.GetType());
+    auto ret = RSProfiler::UnmarshalNodeModifiers(node, data, 0);
     EXPECT_EQ(ret, "");
 }
 

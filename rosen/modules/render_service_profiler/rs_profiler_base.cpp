@@ -59,9 +59,6 @@ std::atomic_bool RSProfiler::recordAbortRequested_ = false;
 std::atomic_uint32_t RSProfiler::mode_ = static_cast<uint32_t>(Mode::NONE);
 RSProfiler::LogicalDisplayChildren RSProfiler::displayChildren_;
 static thread_local uint32_t g_subMode = static_cast<uint32_t>(SubMode::NONE);
-static std::vector<pid_t> g_pids;
-static pid_t g_pid = 0;
-static NodeId g_parentNode = 0;
 static std::atomic<uint32_t> g_commandCount = 0;        // UNMARSHALLING RSCOMMAND COUNT
 static std::atomic<uint32_t> g_commandExecuteCount = 0; // EXECUTE RSCOMMAND COUNT
 
@@ -77,8 +74,8 @@ static std::map<uint32_t, std::vector<uint32_t>> g_parcelNumber2Offset;
 static uint64_t g_pauseAfterTime = 0;
 static int64_t g_pauseCumulativeTime = 0;
 static int64_t g_transactionTimeCorrection = 0;
-static int64_t g_replayStartTimeNano = 0.0;
-static double g_replaySpeed = 1.0f;
+static std::atomic<int64_t> g_replayStartTimeNano = 0;
+static double g_replaySpeed = 1.0;
 
 static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
 
@@ -88,16 +85,16 @@ bool RSProfiler::testing_ = false;
 std::vector<std::shared_ptr<RSRenderNode>> RSProfiler::testTree_ = std::vector<std::shared_ptr<RSRenderNode>>();
 bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::hrpServiceEnabled_ = RSSystemProperties::GetProfilerEnabled();
-bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
+std::atomic<bool> RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
 std::atomic<int8_t> RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
 std::atomic_bool RSProfiler::renderNodeKeepDrawCmdList_ = false;
 std::unordered_map<AnimationId, int64_t> RSProfiler::animationsTimes_;
 
-static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
+static std::atomic<TextureRecordType> g_textureRecordType = TextureRecordType::LZ4;
 
 static std::shared_ptr<ProfilerMarshallingJob> g_marshallingJob;
-static bool g_marshalFirstFrameThread = false;
+static std::atomic<bool> g_marshalFirstFrameThread = false;
 
 static std::atomic<uint64_t> g_counterParseTransactionDataStart = 0;
 static std::atomic<uint64_t> g_counterParseTransactionDataEnd = 0;
@@ -280,7 +277,8 @@ void RSProfiler::LogShaderCall(const std::string& shaderType, const std::shared_
         GetCustomMetrics().AddInt(RSPROFILER_METRIC_WATER_RIPPLE_BLUR_SHADER_CALLS, 1);
     }
     GetCustomMetrics().AddInt(RSPROFILER_METRIC_BLUR_SHADER_CALLS, 1);
-    GetCustomMetrics().AddFloat(RSPROFILER_METRIC_BLUR_AREA_SHADER_CALLS, srcImage->GetWidth() * srcImage->GetHeight());
+    GetCustomMetrics().AddFloat(RSPROFILER_METRIC_BLUR_AREA_SHADER_CALLS,
+        srcImage ? srcImage->GetWidth() * srcImage->GetHeight() : 0);
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -408,28 +406,6 @@ void RSProfiler::SetSubMode(SubMode subMode)
 SubMode RSProfiler::GetSubMode()
 {
     return static_cast<SubMode>(g_subMode);
-}
-
-void RSProfiler::SetSubstitutingPid(const std::vector<pid_t>& pids, pid_t pid, NodeId parent)
-{
-    g_pids = pids;
-    g_pid = pid;
-    g_parentNode = parent;
-}
-
-NodeId RSProfiler::GetParentNode()
-{
-    return g_parentNode;
-}
-
-const std::vector<pid_t>& RSProfiler::GetPids()
-{
-    return g_pids;
-}
-
-pid_t RSProfiler::GetSubstitutingPid()
-{
-    return g_pid;
 }
 
 uint64_t RSProfiler::PatchTime(uint64_t time)
@@ -609,44 +585,6 @@ void RSProfiler::FilterMockNode(RSContext& context)
     }
 }
 
-void RSProfiler::GetSurfacesTrees(
-    const RSContext& context, std::map<std::string, std::tuple<NodeId, std::string>>& list)
-{
-    constexpr uint32_t treeDumpDepth = 2;
-
-    list.clear();
-
-    const RSRenderNodeMap& map = const_cast<RSContext&>(context).GetMutableNodeMap();
-    for (const auto& [_, subMap] : map.renderNodeMap_) {
-        for (const auto& [_, node] : subMap) {
-            if (node->GetType() == RSRenderNodeType::SURFACE_NODE) {
-                std::string tree;
-                node->DumpTree(treeDumpDepth, tree);
-                const auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-                list.insert({ surfaceNode->GetName(), { surfaceNode->GetId(), tree } });
-            }
-        }
-    }
-}
-
-void RSProfiler::GetSurfacesTrees(const RSContext& context, pid_t pid, std::map<NodeId, std::string>& list)
-{
-    constexpr uint32_t treeDumpDepth = 2;
-
-    list.clear();
-
-    const RSRenderNodeMap& map = const_cast<RSContext&>(context).GetMutableNodeMap();
-    for (const auto& [_, subMap] : map.renderNodeMap_) {
-        for (const auto& [_, node] : subMap) {
-            if (node->GetId() == Utils::GetRootNodeId(pid)) {
-                std::string tree;
-                node->DumpTree(treeDumpDepth, tree);
-                list.insert({ node->GetId(), tree });
-            }
-        }
-    }
-}
-
 size_t RSProfiler::GetRenderNodeCount(const RSContext& context)
 {
     return const_cast<RSContext&>(context).GetMutableNodeMap().GetSize();
@@ -711,8 +649,13 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data,
     g_marshallingJob = job;
 }
 
-void RSProfiler::MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
+void RSProfiler::MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion, uint32_t depth)
 {
+    constexpr uint32_t maxDepth = 1024u;
+    if (depth >= maxDepth) {
+        return;
+    }
+
     const NodeId nodeId = node.GetId();
     data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
 
@@ -720,10 +663,10 @@ void RSProfiler::MarshalTree(const RSRenderNode& node, std::stringstream& data, 
     data.write(reinterpret_cast<const char*>(&count), sizeof(count));
 
     for (const auto& child : node.children_) {
-        if (auto node = child.lock().get()) {
-            const NodeId nodeId = node->GetId();
-            data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
-            MarshalTree(*node, data, fileVersion);
+        if (const auto childShared = child.lock()) {
+            const NodeId id = childShared->GetId();
+            data.write(reinterpret_cast<const char*>(&id), sizeof(id));
+            MarshalTree(*childShared, data, fileVersion, depth + 1u);
         }
     }
 }
@@ -844,8 +787,10 @@ bool RSProfiler::MarshalDrawCmdModifiers(const ModifierNG::RSRenderModifier& mod
         return false;
     }
 
-    for (auto& drawOp : simpleCmdList->GetDrawOpItems()) {
-        cmdList->AddDrawOp(std::move(drawOp));
+    for (const auto& drawOp : simpleCmdList->GetDrawOpItems()) {
+        if (auto copy = drawOp) {
+            cmdList->AddDrawOp(std::move(copy));
+        }
     }
     cmdList->SetNoImageMarshallingFlag(isBetaRecording);
     cmdList->ProfilerMarshallingDrawOps(cmdList.get());
@@ -981,22 +926,25 @@ static std::string CreateRenderSurfaceNode(RSContext& context,
 
 std::string RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion)
 {
-    std::string errReason;
-
+    constexpr uint32_t maxCount = 1'000'000u;
     uint32_t count = 0;
-    data.read(reinterpret_cast<char*>(&count), sizeof(count));
+    if (!data.read(reinterpret_cast<char*>(&count), sizeof(count)) || (count > maxCount)) {
+        return "UnmarshalNodes: Node count out of range";
+    }
     for (uint32_t i = 0; i < count; i++) {
-        errReason = UnmarshalNode(context, data, fileVersion);
-        if (errReason.size()) {
-            return errReason;
+        auto error = UnmarshalNode(context, data, fileVersion);
+        if (!error.empty()) {
+            return error;
         }
     }
 
-    data.read(reinterpret_cast<char*>(&count), sizeof(count));
+    if (!data.read(reinterpret_cast<char*>(&count), sizeof(count)) || (count > maxCount)) {
+        return "UnmarshalNodes: Tree node count out of range";
+    }
     for (uint32_t i = 0; i < count; i++) {
-        errReason = UnmarshalTree(context, data, fileVersion);
-        if (errReason.size()) {
-            return errReason;
+        auto error = UnmarshalTree(context, data, fileVersion);
+        if (!error.empty()) {
+            return error;
         }
     }
 
@@ -1063,11 +1011,10 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     }
     
-    return UnmarshalNode(context, data, nodeId, fileVersion, nodeType);
+    return UnmarshalNode(context, data, nodeId, fileVersion);
 }
 
-std::string RSProfiler::UnmarshalNode(
-    RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion, RSRenderNodeType nodeType)
+std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion)
 {
     float positionZ = 0.0f;
     data.read(reinterpret_cast<char*>(&positionZ), sizeof(positionZ));
@@ -1095,7 +1042,7 @@ std::string RSProfiler::UnmarshalNode(
 #ifdef SUBTREE_PARALLEL_ENABLE
         node->MarkRepaintBoundary(isRepaintBoundary);
 #endif
-        return UnmarshalNodeModifiers(*node, data, fileVersion, nodeType);
+        return UnmarshalNodeModifiers(*node, data, fileVersion);
     }
     return "";
 }
@@ -1171,34 +1118,41 @@ static void SetupCanvasDrawingRenderNode(RSRenderNode& node)
 }
 
 std::string RSProfiler::UnmarshalNodeModifiers(
-    RSRenderNode& node, std::stringstream& data, uint32_t fileVersion, RSRenderNodeType nodeType)
+    RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
 {
-    bool disableModifiers =
-        (nodeType == RSRenderNodeType::LOGICAL_DISPLAY_NODE || nodeType == RSRenderNodeType::SCREEN_NODE);
-
-    data.read(reinterpret_cast<char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
+    if (!data.read(reinterpret_cast<char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_))) {
+        return "UnmarshalNodeModifiers: Cannot read instance root node id";
+    }
     node.instanceRootNodeId_ = Utils::PatchNodeId(node.instanceRootNodeId_);
 
-    data.read(reinterpret_cast<char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_));
+    if (!data.read(reinterpret_cast<char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_))) {
+        return "UnmarshalNodeModifiers: Cannot read first level node id";
+    }
     node.firstLevelNodeId_ = Utils::PatchNodeId(node.firstLevelNodeId_);
 
-    int32_t modifierCount = 0;
-    data.read(reinterpret_cast<char*>(&modifierCount), sizeof(modifierCount));
-    for (int32_t i = 0; i < modifierCount; i++) {
-        std::string errModifierCode = "";
-        auto ptr = UnmarshalRenderModifier(data, errModifierCode);
-        if (!ptr) {
-            RSProfiler::SendMessageBase("LOADERROR: Modifier format changed [" + errModifierCode + "]");
-            continue;
+    constexpr int32_t maxCount = 10000u;
+    int32_t count = 0;
+    if (!data.read(reinterpret_cast<char*>(&count), sizeof(count)) || (count < 0) || (count > maxCount)) {
+        return "UnmarshalNodeModifiers: Modifier count out of range";
+    }
+
+    const bool discard =
+        (node.GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) || (node.GetType() == RSRenderNodeType::SCREEN_NODE);
+
+    for (int32_t i = 0; i < count; i++) {
+        std::string error;
+        const auto modifier = UnmarshalRenderModifier(data, error);
+        if (modifier && !discard) {
+            modifier->ConvertDrawCmdListToSimple();
+            node.AddModifier(modifier);
         }
-        if (!disableModifiers) {
-            ptr->ConvertDrawCmdListToSimple();
-            node.AddModifier(ptr);
+        if (!modifier) {
+            SendMessageBase("UnmarshalNodeModifiers: Modifier format changed: " + error);
         }
     }
 
     if (data.eof()) {
-        return "UnmarshalNodeModifiers failed, file is damaged";
+        return "UnmarshalNodeModifiers: File damaged";
     }
 
     SetupCanvasDrawingRenderNode(node);
@@ -1206,28 +1160,41 @@ std::string RSProfiler::UnmarshalNodeModifiers(
     return "";
 }
 
-std::string RSProfiler::UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion)
+std::string RSProfiler::UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion, uint32_t depth)
 {
-    const auto& map = context.GetMutableNodeMap();
+    constexpr uint32_t maxDepth = 1024u;
+    if (depth >= maxDepth) {
+        return "UnmarshalTree: Max depth exceeded";
+    }
 
     NodeId nodeId = 0;
-    data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId));
+    if (!data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId))) {
+        return "UnmarshalTree: Cannot read node id";
+    }
     nodeId = Utils::PatchNodeId(nodeId);
 
-    uint32_t count = 0;
-    data.read(reinterpret_cast<char*>(&count), sizeof(count));
+    constexpr uint32_t maxCount = 1'000'000u;
+    uint32_t count = 0u;
+    if (!data.read(reinterpret_cast<char*>(&count), sizeof(count)) || (count > maxCount)) {
+        return "UnmarshalTree: Node count out of range";
+    }
 
-    auto node = map.GetRenderNode(nodeId);
+    const auto node = context.GetNodeMap().GetRenderNode(nodeId);
     if (!node) {
-        return "Error nodeId was not found";
+        return "UnmarshalTree: Invalid node: " + std::to_string(nodeId);
     }
     for (uint32_t i = 0; i < count; i++) {
         NodeId nodeId = 0;
-        data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId));
-        if (node) {
-            node->AddChild(map.GetRenderNode(Utils::PatchNodeId(nodeId)), i);
+        if (!data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId))) {
+            return "UnmarshalTree: Cannot read child node id";
         }
-        UnmarshalTree(context, data, fileVersion);
+        if (node) {
+            node->AddChild(context.GetNodeMap().GetRenderNode(Utils::PatchNodeId(nodeId)), static_cast<int32_t>(i));
+        }
+        auto error = UnmarshalTree(context, data, fileVersion, depth + 1);
+        if (!error.empty()) {
+            return error;
+        }
     }
     return "";
 }
@@ -1302,6 +1269,9 @@ void RSProfiler::FilterAnimationForPlayback(std::shared_ptr<RSAnimationManager> 
     EraseIf(manager->animations_, [](const auto& pair) -> bool {
         if (!Utils::IsNodeIdPatched(pair.first)) {
             return false;
+        }
+        if (!pair.second) {
+            return true;
         }
         pair.second->Finish();
         pair.second->Detach();
@@ -1557,8 +1527,20 @@ static void CacheAshmemData(uint64_t id, const uint8_t* data, size_t size)
 
 static const uint8_t* GetCachedAshmemData(uint64_t id, size_t size)
 {
-    const auto ashmem = RSProfiler::IsReadMode() ? ImageCache::Get(id) : nullptr;
-    return ashmem && (ashmem->data.size() == size) ? ashmem->data.data() : nullptr;
+    if (!RSProfiler::IsReadMode()) {
+        return nullptr;
+    }
+    // ImageCache::Get returns a raw pointer into the cache map; another thread
+    // mutating the cache (Reset/Deserialize) would invalidate it. Snapshot the
+    // data under the cache's lock and keep it alive via a thread-local buffer
+    // so the caller can use the returned pointer without races.
+    thread_local std::vector<uint8_t> ashmem;
+    auto copy = ImageCache::Copy(id);
+    if (copy.data.size() != size) {
+        return nullptr;
+    }
+    ashmem = std::move(copy.data);
+    return ashmem.data();
 }
 
 void RSProfiler::WriteParcelData(Parcel& parcel)
@@ -1649,7 +1631,8 @@ void CacheSharedTypeface(uint64_t id, const Drawing::SharedTypeface& typeface)
         return;
     }
 
-    if (const auto data = ::mmap(nullptr, typeface.size_, PROT_READ, MAP_SHARED, typeface.fd_, 0)) {
+    const auto data = ::mmap(nullptr, typeface.size_, PROT_READ, MAP_SHARED, typeface.fd_, 0);
+    if (data && (data != MAP_FAILED)) { // NOLINT
         CacheAshmemData(id, reinterpret_cast<const uint8_t*>(data), typeface.size_);
         ::munmap(data, typeface.size_);
     } else {
@@ -1659,7 +1642,8 @@ void CacheSharedTypeface(uint64_t id, const Drawing::SharedTypeface& typeface)
 
 bool FetchSharedTypeface(uint64_t id, Drawing::SharedTypeface& typeface)
 {
-    if (!RSProfiler::IsReadMode() || (typeface.size_ <= 0)) {
+    constexpr int64_t maxSize = 100 * 1024 * 1024u;
+    if (!RSProfiler::IsReadMode() || (typeface.size_ <= 0u) || (typeface.size_ > maxSize)) {
         return false;
     }
 
@@ -1682,7 +1666,8 @@ bool FetchSharedTypeface(uint64_t id, Drawing::SharedTypeface& typeface)
         return false;
     }
 
-    if (const auto data = ::mmap(nullptr, typeface.size_, PROT_WRITE, MAP_SHARED, file, 0)) {
+    const auto data = ::mmap(nullptr, typeface.size_, PROT_WRITE, MAP_SHARED, file, 0);
+    if (data && (data != MAP_FAILED)) { // NOLINT
         if (::memcpy_s(data, typeface.size_, cached, typeface.size_) == EOK) {
             ::munmap(data, typeface.size_);
             typeface.fd_ = file;
@@ -1850,7 +1835,7 @@ bool RSProfiler::IsRecordAbortRequested()
 bool RSProfiler::BaseSetPlaybackSpeed(double speed)
 {
     float invSpeed = 1.0f;
-    if (speed <= .0f) {
+    if (speed <= .0f || std::isnan(speed)) {
         return false;
     } else {
         invSpeed /= speed > 0.0f ? speed : 1.0f;
@@ -1877,10 +1862,15 @@ double RSProfiler::BaseGetPlaybackSpeed()
     return g_replaySpeed;
 }
 
-void RSProfiler::MarshalSubTreeLo(RSContext& context, std::stringstream& data,
-    const RSRenderNode& node, uint32_t fileVersion)
+void RSProfiler::MarshalSubTreeLo(
+    RSContext& context, std::stringstream& data, const RSRenderNode& node, uint32_t fileVersion, uint32_t depth)
 {
-    NodeId nodeId = node.GetId();
+    constexpr uint32_t maxDepth = 1024u;
+    if (depth >= maxDepth) {
+        return;
+    }
+
+    const NodeId nodeId = node.GetId();
     data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
 
     MarshalNode(node, data, fileVersion);
@@ -1888,39 +1878,49 @@ void RSProfiler::MarshalSubTreeLo(RSContext& context, std::stringstream& data,
     const uint32_t count = node.children_.size();
     data.write(reinterpret_cast<const char*>(&count), sizeof(count));
     for (const auto& child : node.children_) {
-        if (auto childNode = child.lock().get()) {
-            MarshalSubTreeLo(context, data, *childNode, fileVersion);
+        if (const auto childShared = child.lock()) {
+            MarshalSubTreeLo(context, data, *childShared, fileVersion, depth + 1u);
         }
     }
 }
 
-std::string RSProfiler::UnmarshalSubTreeLo(RSContext& context, std::stringstream& data,
-    RSRenderNode& attachNode, uint32_t fileVersion)
+std::string RSProfiler::UnmarshalSubTreeLo(
+    RSContext& context, std::stringstream& data, RSRenderNode& attachNode, uint32_t fileVersion, uint32_t depth)
 {
-    NodeId nodeId;
-    data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId));
-
-    std::string errorReason = UnmarshalNode(context, data, fileVersion);
-    if (errorReason.size()) {
-        return errorReason;
+    constexpr uint32_t maxDepth = 1024u;
+    if (depth >= maxDepth) {
+        return "UnmarshalSubTreeLo: Max depth exceeded";
     }
 
-    auto node = context.GetMutableNodeMap().GetRenderNode(Utils::PatchNodeId(nodeId));
+    NodeId id = 0;
+    if (!data.read(reinterpret_cast<char*>(&id), sizeof(id))) {
+        return "UnmarshalSubTreeLo: Cannot read node id";
+    }
+
+    auto error = UnmarshalNode(context, data, fileVersion);
+    if (!error.empty()) {
+        return error;
+    }
+
+    const auto node = context.GetMutableNodeMap().GetRenderNode(Utils::PatchNodeId(id));
     if (!node) {
-        return "Failed to create node";
+        return "UnmarshalSubTreeLo: Invalid node id: " + std::to_string(id);
     }
 
     attachNode.AddChild(node);
 
-    uint32_t childCount;
-    data.read(reinterpret_cast<char*>(&childCount), sizeof(childCount));
-    for (uint32_t i = 0; i < childCount; i++) {
-        errorReason = UnmarshalSubTreeLo(context, data, *node, fileVersion);
-        if (errorReason.size()) {
-            return errorReason;
+    constexpr uint32_t maxCount = 1'000'000u;
+    uint32_t count = 0u;
+    if (!data.read(reinterpret_cast<char*>(&count), sizeof(count)) || count > maxCount) {
+        return "UnmarshalSubTreeLo: Node count out of range";
+    }
+    for (uint32_t i = 0; i < count; i++) {
+        error = UnmarshalSubTreeLo(context, data, *node, fileVersion, depth + 1u);
+        if (!error.empty()) {
+            return error;
         }
     }
-    return errorReason;
+    return error;
 }
 
 TextureRecordType RSProfiler::GetTextureRecordType()

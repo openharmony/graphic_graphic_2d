@@ -52,9 +52,6 @@ public:
 void RSUifirstManagerTest::SetUpTestCase()
 {
     mainThread_ = RSMainThread::Instance();
-    if (mainThread_) {
-        uifirstManager_.mainThread_ = mainThread_;
-    }
     RSTestUtil::InitRenderNodeGC();
 }
 
@@ -175,13 +172,6 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirty001, TestSize.Level1)
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(surfaceDrawable, nullptr);
 
-    uifirstManager_.mainThread_ = nullptr;
-    uifirstManager_.MergeOldDirty(surfaceNode->GetId());
-    if (surfaceDrawable->GetSyncDirtyManager()) {
-        ASSERT_TRUE(surfaceDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
-    }
-
-    uifirstManager_.mainThread_ = mainThread_;
     uifirstManager_.MergeOldDirty(surfaceNode->GetId());
     if (surfaceDrawable->GetSyncDirtyManager()) {
         ASSERT_TRUE(surfaceDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
@@ -219,7 +209,6 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirty002, TestSize.Level1)
     childNode->oldDirty_= RSUifirstManagerTest::DEFAULT_RECT;
     surfaceNode->AddChild(childNode);
     surfaceNode->GenerateFullChildrenList();
-    uifirstManager_.mainThread_ = mainThread_;
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode);
     uifirstManager_.MergeOldDirty(surfaceNode->GetId());
     if (childDrawable->GetSyncDirtyManager()) {
@@ -240,10 +229,7 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate001, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
-    uifirstManager_.mainThread_ = nullptr;
-    EXPECT_FALSE(uifirstManager_.mainThread_);
     uifirstManager_.RenderGroupUpdate(surfaceDrawable);
-    uifirstManager_.mainThread_ = mainThread_;
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode);
     uifirstManager_.RenderGroupUpdate(surfaceDrawable);
     mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode->GetId());
@@ -383,10 +369,6 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNode001, TestSize.Level1)
 {
     NodeId id = 1;
     uifirstManager_.capturedNodes_.push_back(id);
-    uifirstManager_.mainThread_ = nullptr;
-    uifirstManager_.ProcessDoneNode();
-    EXPECT_FALSE(uifirstManager_.capturedNodes_.empty());
-    uifirstManager_.mainThread_ = mainThread_;
     uifirstManager_.ProcessDoneNode();
     EXPECT_TRUE(uifirstManager_.capturedNodes_.empty());
 
@@ -1248,13 +1230,6 @@ HWTEST_F(RSUifirstManagerTest, PostSubTaskAndPostReleaseCacheSurfaceSubTask001, 
 HWTEST_F(RSUifirstManagerTest, UpdateSkipSyncNode001, TestSize.Level1)
 {
     uifirstManager_.UpdateSkipSyncNode();
-    EXPECT_TRUE(uifirstManager_.mainThread_);
-
-    uifirstManager_.mainThread_ = nullptr;
-    uifirstManager_.UpdateSkipSyncNode();
-    EXPECT_FALSE(uifirstManager_.mainThread_);
-    uifirstManager_.mainThread_ = mainThread_;
-    EXPECT_TRUE(uifirstManager_.mainThread_);
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     auto adapter = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
@@ -1810,10 +1785,8 @@ static inline int64_t GetCurSysTime()
 HWTEST_F(RSUifirstManagerTest, PrepareCurrentFrameEvent001, TestSize.Level1)
 {
     int64_t curSysTime = GetCurSysTime();
-    uifirstManager_.mainThread_ = nullptr;
     uifirstManager_.globalFrameEvent_.clear();
     uifirstManager_.PrepareCurrentFrameEvent();
-    EXPECT_TRUE(uifirstManager_.mainThread_);
     EXPECT_TRUE(uifirstManager_.globalFrameEvent_.empty());
 
     uifirstManager_.entryViewNodeId_ = 1;

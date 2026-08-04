@@ -24,6 +24,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "common/rs_common_def.h"
 #include "dfx/rs_service_dump_manager.h"
 #include "engine/rs_base_render_engine.h"
 #ifdef RS_CAR_FEATURES
@@ -283,18 +284,18 @@ sptr<IRemoteObject> RSRenderService::RegisterRenderProcessConnection()
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::GetConnection(
     const sptr<RSIConnectionToken>& token)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (token == nullptr) {
-        RS_LOGE("RSRenderService::GetConnection token is nullptr");
+    if (!token) {
+        RS_LOGE("GetConnection failed: token is nullptr");
         return {nullptr, nullptr};
     }
+    std::unique_lock<std::mutex> lock(mutex_);
     auto tokenObj = token->AsObject();
     auto iter = connections_.find(tokenObj);
     if (iter == connections_.end()) {
         RS_LOGE("GetConnection: connections_ cannot find token");
         return {nullptr, nullptr};
     }
-    return iter->second;
+    return {iter->second.serviceConn, iter->second.renderConn};
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(
@@ -308,6 +309,19 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
     auto tokenObj = token->AsObject();
+    // Reject brand-new connections beyond the per-pid cap so a single caller cannot
+    // exhaust RenderService connections and memory. Reusing an existing token (reconnect)
+    // is allowed and does not count as a new connection.
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (connections_.find(tokenObj) == connections_.end() &&
+            pidConnectionCounts_[remotePid] >= MAX_CONNECTION_COUNT_PER_PID) {
+            RS_LOGE("CreateConnection rejected: connection count for pid[%{public}d] reaches limit %{public}u",
+                remotePid, MAX_CONNECTION_COUNT_PER_PID);
+            return std::make_pair(nullptr, nullptr);
+        }
+    }
+
     sptr<RSScreenManagerAgent> screenManagerAgent = new RSScreenManagerAgent(screenManager_);
     sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*this);
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
@@ -326,14 +340,24 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
         newConn->RegisterRemoteRefreshCallback();
         newRenderConn->RegisterRemoteRefreshCallback();
     }
-    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
+    ConnectionEntry tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.
     auto it = connections_.find(tokenObj);
-    if (it != connections_.end()) {
+    bool isReplacement = (it != connections_.end());
+    if (isReplacement) {
         tmp = it->second;
+    } else if (pidConnectionCounts_[remotePid] >= MAX_CONNECTION_COUNT_PER_PID) {
+        // Re-check under lock: a concurrent request may have hit the cap meanwhile.
+        RS_LOGE("CreateConnection rejected: connection count for pid[%{public}d] reaches limit %{public}u",
+            remotePid, MAX_CONNECTION_COUNT_PER_PID);
+        lock.unlock();
+        return std::make_pair(nullptr, nullptr);
     }
-    connections_[tokenObj] = {newConn, newRenderConn};
+    connections_[tokenObj] = {newConn, newRenderConn, remotePid};
+    if (!isReplacement) {
+        pidConnectionCounts_[remotePid]++;
+    }
     lock.unlock();
     return std::make_pair(newConn, newRenderConn);
 }
@@ -354,7 +378,19 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
         return false;
     }
 
+    pid_t remotePid = iter->second.remotePid;
     connections_.erase(iter);
+    if (remotePid > 0) {
+        auto countIter = pidConnectionCounts_.find(remotePid);
+        if (countIter != pidConnectionCounts_.end()) {
+            if (countIter->second > 0) {
+                countIter->second--;
+            }
+            if (countIter->second == 0) {
+                pidConnectionCounts_.erase(countIter);
+            }
+        }
+    }
     lock.unlock();
 
     return true;

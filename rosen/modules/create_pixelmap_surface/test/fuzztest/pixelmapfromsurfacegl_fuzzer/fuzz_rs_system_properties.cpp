@@ -183,11 +183,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
-{
-    return {};
-}
-
 ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 {
     return {};
@@ -300,7 +295,7 @@ bool RSSystemProperties::GetKawaseEnabled()
 
 void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 {
-    forceHpsBlurDisabled_ = flag;
+    forceHpsBlurDisabled_.store(flag);
 }
 
 bool RSSystemProperties::GetHpsBlurEnabled()

@@ -120,8 +120,6 @@ private:
     void RecordTimestampForAS(int64_t timestamp);
 
     HgmCore& hgmCore_ = HgmCore::Instance();
-    // key: ScreenId, value: <needRetrySetRate, retryCount>
-    std::unordered_map<ScreenId, std::pair<bool, int32_t>> setRateRetryMap_;
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RefreshRateParam refreshRateParam_;
     SetRateRetryParam setRateRetryParam_;

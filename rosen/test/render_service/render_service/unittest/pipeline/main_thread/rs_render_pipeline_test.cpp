@@ -615,7 +615,7 @@ HWTEST_F(RSRenderPipelineTest, OnScreenConnected_CallbackExecuted, TestSize.Leve
     RSMainThread::Instance()->PostSyncTask([]() {});
     EXPECT_EQ(pipeline->mainThread_->GetSurfaceFpsOpList().size(), 0u);
 
-    client->SetRmvSurfaceFpsOpCallback(nullptr);
+    client->SetRemoveSurfaceFpsOpCallback(nullptr);
     layer->SetTunnelHandleChange(true);
     client->CommitLayers(composerInfo);
     RSMainThread::Instance()->PostSyncTask([]() {});

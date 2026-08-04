@@ -84,6 +84,10 @@ RSCubicBezierInterpolator* RSCubicBezierInterpolator::Unmarshalling(Parcel& parc
         ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator parameter failed");
         return nullptr;
     }
+    if (!std::isfinite(x1) || !std::isfinite(y1) || !std::isfinite(x2) || !std::isfinite(y2)) {
+        ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator, invalid bezier parameters");
+        return nullptr;
+    }
     return new RSCubicBezierInterpolator(id, x1, y1, x2, y2);
 }
 
@@ -274,7 +278,7 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }
-    if (ROSEN_LE(speed, 0.0f) || std::isinf(speed) || std::isnan(speed)) {
+    if (ROSEN_LE(speed, 0.0f) || !std::isfinite(speed)) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, invalid speed:%{public}f", speed);
         return false;
     }
@@ -366,7 +370,8 @@ bool RSRenderInterpolatingSpringAnimation::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, normalizedInitialVelocity_) &&
             RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Marshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Marshalling(parcel, convergeParams_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::Marshalling, invalid parametter failed");
         return false;
     }
@@ -399,6 +404,11 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
+    if (!startValue_ || !endValue_) {
+        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, startValue or endValue is null");
+        return false;
+    }
+
     if (startValue_ && startValue_->IsDrawCmdListProperty()) {
         startValue_ = startValue_->CreateSimpleProperty();
     }
@@ -407,16 +417,43 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
         endValue_ = endValue_->CreateSimpleProperty();
     }
 
+    if (!UnmarshallingSpringParams(parcel)) {
+        return false;
+    }
+
+    if (!ValidateSpringParams()) {
+        return false;
+    }
+
+    return true;
+}
+
+bool RSRenderInterpolatingSpringAnimation::UnmarshallingSpringParams(Parcel& parcel)
+{
     if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
             RSMarshallingHelper::Unmarshalling(parcel, dampingRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, normalizedInitialVelocity_) &&
             RSMarshallingHelper::Unmarshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, convergeParams_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, MarshallingHelper Fail");
         return false;
     }
+    return true;
+}
 
+bool RSRenderInterpolatingSpringAnimation::ValidateSpringParams() const
+{
+    if (!std::isfinite(zeroThreshold_) || zeroThreshold_ < 0.0f || !std::isfinite(response_) ||
+        !std::isfinite(dampingRatio_) || !std::isfinite(normalizedInitialVelocity_) ||
+        !std::isfinite(minimumAmplitudeRatio_)) {
+        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, invalid parameters "
+            "zeroThreshold:%{public}f response:%{public}f dampingRatio:%{public}f "
+            "velocity:%{public}f amplitude:%{public}f",
+            zeroThreshold_, response_, dampingRatio_, normalizedInitialVelocity_, minimumAmplitudeRatio_);
+        return false;
+    }
     return true;
 }
 #endif
@@ -681,7 +718,8 @@ bool RSRenderSpringAnimation::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, blendDuration_) &&
             RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Marshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Marshalling(parcel, convergeParams_))) {
         ROSEN_LOGE("RSRenderSpringAnimation::Marshalling, MarshallingHelper failed");
         return false;
     }
@@ -719,6 +757,11 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
+    if (!startValue_ || !endValue_) {
+        ROSEN_LOGE("RSRenderSpringAnimation::ParseParam, startValue or endValue is null");
+        return false;
+    }
+
     auto haveInitialVelocity = false;
     if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
             RSMarshallingHelper::Unmarshalling(parcel, dampingRatio_) &&
@@ -726,13 +769,30 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
             RSMarshallingHelper::Unmarshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
             RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, convergeParams_) &&
             RSMarshallingHelper::Unmarshalling(parcel, haveInitialVelocity))) {
         ROSEN_LOGE("RSRenderSpringAnimation::ParseParam, MarshallingHelper Fail");
         return false;
     }
 
+    if (!ValidateSpringParams()) {
+        return false;
+    }
+
     if (haveInitialVelocity) {
         return RSMarshallingHelper::Unmarshalling(parcel, initialVelocity_);
+    }
+    return true;
+}
+
+bool RSRenderSpringAnimation::ValidateSpringParams() const
+{
+    if (!std::isfinite(zeroThreshold_) || zeroThreshold_ < 0.0f || !std::isfinite(response_) ||
+        !std::isfinite(dampingRatio_) || !std::isfinite(minimumAmplitudeRatio_)) {
+        ROSEN_LOGE("RSRenderSpringAnimation::ParseParam, invalid parameters "
+            "zeroThreshold:%{public}f response:%{public}f dampingRatio:%{public}f amplitude:%{public}f",
+            zeroThreshold_, response_, dampingRatio_, minimumAmplitudeRatio_);
+        return false;
     }
     return true;
 }
@@ -927,6 +987,10 @@ RSSpringInterpolator* RSSpringInterpolator::Unmarshalling(Parcel& parcel)
         ROSEN_LOGE("RSSpringInterpolator::Unmarshalling, SpringInterpolator failed");
         return nullptr;
     }
+    if (!std::isfinite(response) || !std::isfinite(dampingRatio) || !std::isfinite(initialVelocity)) {
+        ROSEN_LOGE("RSSpringInterpolator::Unmarshalling, invalid spring parameters");
+        return nullptr;
+    }
     auto ret = new RSSpringInterpolator(id, response, dampingRatio, initialVelocity);
     return ret;
 }
@@ -990,7 +1054,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSAnimationTimingProtoco
         return false;
     }
 
-    if (ROSEN_LE(speed, 0.0f) || std::isinf(speed) || std::isnan(speed)) {
+    if (ROSEN_LE(speed, 0.0f) || !std::isfinite(speed)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling, RSAnimationTimingProtocol invalid speed:%{public}f", speed);
         return false;
     }

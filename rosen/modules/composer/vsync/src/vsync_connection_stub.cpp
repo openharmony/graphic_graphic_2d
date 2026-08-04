@@ -95,7 +95,17 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH Read dvsyncOn failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
             }
-            int32_t ret = SetUiDvsyncSwitch(dvsyncOn);
+            uint8_t fromWhomValue{0};
+            if (!data.ReadUint8(fromWhomValue)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH Read fromWhom failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
+            if (fromWhomValue > static_cast<uint8_t>(FromWhom::API)) {
+                VLOGE("Invalid fromWhom value: %{public}u, must be 0 or 1", fromWhomValue);
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
+            FromWhom fromWhom = static_cast<FromWhom>(fromWhomValue);
+            int32_t ret = SetUiDvsyncSwitch(dvsyncOn, fromWhom);
             if (!reply.WriteInt32(ret)) {
                 VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH Write ret failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;

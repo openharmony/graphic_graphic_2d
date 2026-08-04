@@ -43,6 +43,7 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override {}
+    void OnDrawVirtualExpand(std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid);
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
@@ -154,6 +155,17 @@ public:
     {
         firstBufferRotation_ = bufferRotation;
     }
+
+    bool IsFirstFrameFlushed() const
+    {
+        return firstFrameFlushed_;
+    }
+
+    void SetFirstFrameFlushed(bool flushed)
+    {
+        firstFrameFlushed_ = flushed;
+    }
+
     void CheckAndUpdateFilterCacheOcclusionFast();
 
 private:
@@ -178,6 +190,10 @@ private:
     void CheckHpaeBlurRun(bool isHdrOn);
 
     bool CheckScreenFreezeSkip(RSScreenRenderParams& params);
+
+    bool PrepareForDraw(std::shared_ptr<RSProcessor>& processor, RSScreenRenderParams*& params,
+        bool isVirtualExpandSkip, ScreenId& paramScreenId,
+        std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr);
 
     // hpae offline
     void CheckAndPostAsyncProcessOfflineTask();
@@ -223,6 +239,9 @@ private:
     bool filterCacheOcclusionUpdated_ = false;
 
     bool accumulateDirtyInSkipFrame_ = false;
+    uint64_t curDisplayScreenId_ = 0;
+
+    bool firstFrameFlushed_ = false;
 
 #ifdef USE_PRIMITIVE
     std::vector<RectI> lastDamageRegionrects_;

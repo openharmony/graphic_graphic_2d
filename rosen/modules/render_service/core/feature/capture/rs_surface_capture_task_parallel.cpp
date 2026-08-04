@@ -285,6 +285,10 @@ bool RSSurfaceCaptureTaskParallel::Run(
     RSUniRenderThread::BufferManagerGuard bufferGuard;
     if (surfaceNodeDrawable_) {
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
+        if (UNLIKELY(curNodeParams == nullptr)) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel::Run: curNodeParams is nullptr!");
+            return false;
+        }
         RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
             curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
         CaptureParam surfaceCapParam(true, true, false, true, captureParam.isSystemCalling,

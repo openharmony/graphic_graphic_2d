@@ -123,6 +123,10 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode
         ROSEN_LOGW("RSRenderInterface::TakeSurfaceCaptureForUIWithConfig rsnode is nullpter return");
         return false;
     }
+    if (callback == nullptr) {
+        ROSEN_LOGW("RSRenderInterface::TakeSurfaceCaptureForUIWithConfig callback == nullptr!");
+        return false;
+    }
     if (node->GetNodeState() == RSNodeState::INACTIVE) {
         node->RebuildTree();
 #ifdef RS_MODIFIERS_DRAW_ENABLE
@@ -162,6 +166,10 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
     const Drawing::Rect& specifiedAreaRect)
 {
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni callback == nullptr!");
+        return false;
+    }
     std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, specifiedAreaRect, this]() -> void {
         ROSEN_LOGD(
             "RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni callback->OnOffscreenRender nodeId:"
@@ -171,7 +179,9 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
             std::make_shared<RSDividedUICapture>(id, scaleX, scaleY, specifiedAreaRect);
         std::shared_ptr<Media::PixelMap> pixelmap = rsDividedUICapture->TakeLocalCapture();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        callback->OnSurfaceCapture(pixelmap);
+        if (callback) {
+            callback->OnSurfaceCapture(pixelmap);
+        }
     };
     RSRenderThread::Instance().PostTask(offscreenRenderTask);
     return true;
@@ -303,6 +313,10 @@ bool RSRenderInterface::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> 
 {
     if (renderPipelineClient_ == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::GetPixelmap: renderPipelineClient_ is nullptr");
+        return false;
+    }
+    if (rect == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetPixelmap: rect is nullptr");
         return false;
     }
     return renderPipelineClient_->GetPixelmap(id, pixelmap, rect, drawCmdList);

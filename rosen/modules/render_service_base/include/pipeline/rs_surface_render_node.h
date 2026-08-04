@@ -685,7 +685,7 @@ public:
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
         bool isParentPrepareInReverseOrder = false) override;
     // keep specified nodetype preparation
-    virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -747,7 +747,6 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer);
-    void UpdateVirtualScreenWhiteListInfo(const std::unordered_set<ScreenId>& screenIds);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const
@@ -900,6 +899,7 @@ public:
     {
         return hdrPhotoNum_ > 0;
     }
+    void SetRebuildingState(bool isRebuildingState);
 
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
@@ -1147,6 +1147,8 @@ public:
     void NotifyUIBufferAvailable();
     bool IsNotifyUIBufferAvailable() const;
     void SetIsNotifyUIBufferAvailable(bool available);
+    bool IsPendingUIBufferNotify() const;
+    void SetPendingUIBufferNotify(bool pending);
 
     // UI Thread would not be notified when SurfaceNode created by Video/Camera in RenderService has available buffer.
     // And RenderThread does not call mainFunc_ if nothing in UI thread is changed
@@ -1545,7 +1547,9 @@ public:
         return isForeground_;
     }
     bool GetNodeIsSingleFrameComposer() const override;
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) override;
+
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
+
     std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const override
     {
         if (!singleFrameComposer_) {
@@ -1994,6 +1998,9 @@ public:
     void SetCompositionType(CompositionType type);
     CompositionType GetCompositionType() const;
 
+    void SetIsOnInternalScreen(bool isOnInternalScreen);
+    bool GetIsOnInternalScreen() const;
+
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
 
@@ -2213,6 +2220,7 @@ private:
     bool UIExtensionUnobscured_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
+    bool isPendingUIBufferNotify_ = false;
     std::atomic_bool isBufferAvailable_ = false;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
@@ -2249,7 +2257,6 @@ private:
     float hdrBrightnessFactor_ = 1.0f; // no discount by default
     float hdrDimmingFactor_ = 1.0f; // no discount by default
     float localZOrder_ = 0.0f;
-    uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     uint32_t wideColorGamutWindowCount_ = 0;
@@ -2258,6 +2265,7 @@ private:
     std::atomic<uint32_t> ancoFlags_ = 0;
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    bool isRebuildingState_ = false;
     SurfaceId surfaceId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     struct GamutCollector

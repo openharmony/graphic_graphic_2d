@@ -25,6 +25,7 @@
 #include "connection/rs_render_to_composer_connection.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer_backend/hdi_output.h"
+#include "params/rs_render_params.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -34,6 +35,7 @@
 #include "rs_surface_layer.h"
 #include "screen_manager/rs_screen_property.h"
 #include "transaction/rs_layer_transaction_data.h"
+#include "params/rs_render_params.h"
 
 using namespace testing::ext;
 

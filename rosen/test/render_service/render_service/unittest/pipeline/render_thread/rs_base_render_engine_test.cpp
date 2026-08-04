@@ -735,6 +735,31 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation, TestSize.Level1)
     ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
 }
 
+/**
+ * @tc.name: NeedBilinearInterpolation002
+ * @tc.desc: Test NeedBilinearInterpolation when matrix has half pixel translate Y offset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation002, TestSize.Level1)
+{
+    BufferDrawParam params;
+    params.useBilinearInterpolation = true;
+    params.srcRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    params.dstRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    Drawing::Matrix matrix;
+    matrix.Reset();
+    ASSERT_FALSE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_Y, 0.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_Y, 1.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_Y, 2.0f);
+    ASSERT_FALSE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_Y, -0.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: ColorSpaceConvertorTest001

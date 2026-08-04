@@ -226,7 +226,8 @@ public:
 };
 RSInterfaces* RSUiCaptureTaskParallelTest::rsInterfaces_ = nullptr;
 std::shared_ptr<RenderContext> RSUiCaptureTaskParallelTest::renderContext_ = nullptr;
-RSDisplayNodeConfig RSUiCaptureTaskParallelTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
+RSDisplayNodeConfig RSUiCaptureTaskParallelTest::mirrorConfig_ = { INVALID_SCREEN_ID, DisplayMode::MIRROR,
+    INVALID_SCREEN_ID };
 std::shared_ptr<RSDisplayNode> RSUiCaptureTaskParallelTest::displayNode_ = nullptr;
 
 #ifdef RS_ENABLE_UNI_RENDER

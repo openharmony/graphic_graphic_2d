@@ -355,8 +355,8 @@ private:
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
     uint64_t frameCount_ = 0;
     bool isSubThreadSkip_ = false;
-    int32_t isSurfaceSkipCount_ = 0;
-    int32_t isSurfaceSkipPriority_ = 0;
+    std::atomic<int32_t> isSurfaceSkipCount_ = 0;
+    std::atomic<int32_t> isSurfaceSkipPriority_ = 0;
     bool isHighPostPriority_ = false;
     // hdr
     bool hasHdrPresent_ = false;

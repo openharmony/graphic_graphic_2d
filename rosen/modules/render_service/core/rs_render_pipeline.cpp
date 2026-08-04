@@ -196,9 +196,9 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
             });
         composerClient->RegisterOnReleaseLayerBuffersCB(std::bind(&RSUniRenderThread::OnReleaseLayerBuffers,
             uniRenderThread_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        composerClient->SetRmvSurfaceFpsOpCallback([](const std::vector<SurfaceFpsOp>& rmvList) {
-            RSMainThread::Instance()->PostTask([rmvList]() {
-                RSMainThread::Instance()->RmvSurfaceFpsOp(rmvList);
+        composerClient->SetRemoveSurfaceFpsOpCallback([](const std::vector<SurfaceFpsOp>& removeList) {
+            RSMainThread::Instance()->PostTask([removeList]() {
+                RSMainThread::Instance()->RemoveSurfaceFpsOp(removeList);
             });
         });
         if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {

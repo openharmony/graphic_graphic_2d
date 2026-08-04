@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <functional>
+#include <memory>
 #include <mutex>
 
 #include "command/rs_animation_command.h"
@@ -54,7 +55,7 @@ private:
     const SoloistIdType id_;
 };
 
-class RSC_EXPORT RSDisplaySoloist {
+class RSC_EXPORT RSDisplaySoloist : public std::enable_shared_from_this<RSDisplaySoloist> {
 public:
     RSDisplaySoloist() = default;
     RSDisplaySoloist(SoloistIdType instanceId);
@@ -69,7 +70,6 @@ public:
     void SetSubFrameRateLinkerEnable(bool enabled);
     void TriggerCallback();
     void SetCallback(DisplaySoloistOnFrameCallback cb, void* params);
-    static void OnVsync(TimestampType timestamp, void* client);
     void VsyncCallbackInner(TimestampType timestamp);
 
     enum ActiveStatus subStatus_ = ActiveStatus::INACTIVE;
@@ -93,10 +93,6 @@ private:
 
     std::shared_ptr<AppExecFwk::EventHandler> subVsyncHandler_ = nullptr;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> subReceiver_ = nullptr;
-    VSyncReceiver::FrameCallback subFrameCallback_{
-        .userData_ = this,
-        .callback_ = OnVsync,
-    };
 #ifdef RS_ENABLE_GPU
     bool hasInitVsyncReceiver_ = false;
 #endif

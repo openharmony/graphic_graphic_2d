@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,6 @@
  */
 #ifndef UIEFFECT_EFFECT_LIQUID_MATERIAL_EFFECT_PARAM_H
 #define UIEFFECT_EFFECT_LIQUID_MATERIAL_EFFECT_PARAM_H
-#include <iostream>
 
 #include "visual_effect_para.h"
 #include "ui_effect/utils.h"
@@ -143,7 +142,7 @@ public:
     {
         enable_ = enable;
     }
- 
+
     const bool& GetEnable() const
     {
         return enable_;
@@ -253,4 +252,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif
+#endif

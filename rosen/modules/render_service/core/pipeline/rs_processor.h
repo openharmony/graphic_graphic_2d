@@ -64,7 +64,7 @@ public:
     virtual void CreateProtectiveSolidLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
 
     virtual bool InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-        std::shared_ptr<RSBaseRenderEngine> renderEngine);
+        std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid = 0);
     virtual bool UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
     virtual void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) {}

@@ -54,7 +54,7 @@ bool DoNodeCommand(FuzzedDataProvider& fdp)
     RSNodeCommandHelper::MarkNodeGroup(context, nodeId, isNodeGroup, isForced, includeProperty);
     RSNodeCommandHelper::ExcludedFromNodeGroup(context, nodeId, isExcluded);
     RSNodeCommandHelper::MarkRepaintBoundary(context, nodeId, isRepaintBoundary);
-    RSNodeCommandHelper::MarkNodeSingleFrameComposer(context, nodeId, false, pid);
+    RSNodeCommandHelper::MarkNodeSingleFrameComposer(context, nodeId, false);
     RSNodeCommandHelper::MarkSuggestOpincNode(context, nodeId, false, false);
     RSNodeCommandHelper::MarkLayerPartRender(context, nodeId, false);
     RSNodeCommandHelper::MarkUifirstNode(context, nodeId, isUifirstNode);

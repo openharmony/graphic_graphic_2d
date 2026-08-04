@@ -15,6 +15,8 @@
 
 #include "animation/rs_spring_animation.h"
 
+#include <cmath>
+
 #include "animation/rs_animation_common.h"
 #include "animation/rs_render_spring_animation.h"
 #include "command/rs_animation_command.h"
@@ -62,7 +64,7 @@ const RSAnimationTimingCurve& RSSpringAnimation::GetTimingCurve() const
 void RSSpringAnimation::SetZeroThreshold(const float zeroThreshold)
 {
     constexpr float ZERO = 0.0f;
-    if (zeroThreshold < ZERO) {
+    if (zeroThreshold < ZERO || !std::isfinite(zeroThreshold)) {
         ROSEN_LOGE("RSSpringAnimation::SetZeroThreshold: invalid threshold.");
         return;
     }
@@ -157,8 +159,13 @@ std::shared_ptr<RSRenderSpringAnimation> RSSpringAnimation::CreateRenderAnimatio
     SetDuration(SPRING_DURATION_PLACEHOLDER);
     UpdateParamToRenderAnimation(animation);
     if (const auto& springParams = timingCurve_.springParams_) {
+        std::optional<ConvergeParams> convergeParams;
+        if (springParams->convergeParams_.has_value()) {
+            convergeParams = ConvergeParams { springParams->convergeParams_->convergeResponseFactor_,
+                springParams->convergeParams_->convergeProgressThreshold_ };
+        }
         animation->SetSpringParameters(springParams->response_, springParams->dampingRatio_,
-            springParams->blendDuration_, springParams->minimumAmplitudeRatio_);
+            springParams->blendDuration_, springParams->minimumAmplitudeRatio_, convergeParams);
     }
     animation->SetAdditive(GetAdditive());
     if (GetIsLogicallyFinishCallback()) {

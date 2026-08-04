@@ -76,7 +76,7 @@ private:
     RSFrameStabilityManager& operator=(const RSFrameStabilityManager&&) = delete;
 
     void HandleStabilityTimeout(uint64_t targetId);
-    void TriggerCallback(uint64_t targetId, bool isStable);
+    void TriggerCallback(uint64_t targetId, bool isStable, sptr<RSIFrameStabilityCallback> callback);
     float CalculateRegionPercentage(const Occlusion::Region& region, float screenArea);
     void RecordDirtyToCollector(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float screenArea);
     void RecordDirtyToDetector(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float screenArea);

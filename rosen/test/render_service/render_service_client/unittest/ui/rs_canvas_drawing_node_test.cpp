@@ -154,6 +154,23 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetBitmapInvalidBitmapTest
+ * @tc.desc: Test GetBitmap returns false when bitmap is not valid in non-renderservice path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapInvalidBitmapTest, TestSize.Level1)
+{
+    auto drawingNode = std::make_shared<RSCanvasDrawingNode>(false);
+    Drawing::Bitmap bitmap;
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
+    Drawing::Rect rect;
+    // When node is not a render service node and bitmap from render thread is invalid,
+    // GetBitmap should return false (not true as the old bug would have done)
+    bool res = drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
+    ASSERT_FALSE(res);
+}
+
+/**
  * @tc.name: GetPixelmapTest
  * @tc.desc: test results of GetPixelmap
  * @tc.type: FUNC
@@ -190,6 +207,66 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
     pixelmap = std::make_shared<Media::PixelMap>();
     res = drawingNode1->GetPixelmap(pixelmap, drawCmdList, &rect);
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: Create_TextureExportNodeDisablesHybrid
+ * @tc.desc: Test that isTextureExportNode=true results in hybridEnabled_=false regardless of globalHybridEnabled_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, Create_TextureExportNodeDisablesHybrid, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr normalNode = RSCanvasDrawingNode::Create(true, false);
+    RSCanvasDrawingNode::SharedPtr textureExportNode = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(normalNode, nullptr);
+    ASSERT_NE(textureExportNode, nullptr);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    ASSERT_EQ(normalNode->hybridEnabled_, RSCanvasDrawingNode::globalHybridEnabled_);
+#else
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    ASSERT_FALSE(normalNode->hybridEnabled_);
+#endif
+}
+
+/**
+ * @tc.name: SetNodeState_TextureExportNode
+ * @tc.desc: Test SetNodeState returns false when isTextureExportNode disables hybrid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, SetNodeState_TextureExportNode, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr textureExportNode = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(textureExportNode, nullptr);
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    bool res = textureExportNode->SetNodeState(RSNodeState::ACTIVE);
+    ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ResetSurface_HybridEnabledPath
+ * @tc.desc: Test ResetSurface takes ResetSurfaceForClientRender path when hybridEnabled_ is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_HybridEnabledPath, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true, false);
+    ASSERT_NE(canvasNode, nullptr);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 10000;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 10000;
+    if (canvasNode->hybridEnabled_) {
+        canvasNode->ResetSurface(100, 100);
+        ASSERT_FALSE(canvasNode->sizeOutOfGpuLimit_);
+        canvasNode->ResetSurface(20000, 20000);
+        ASSERT_TRUE(canvasNode->sizeOutOfGpuLimit_);
+    }
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 0;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 0;
+#else
+    bool ret = canvasNode->ResetSurface(100, 100);
+    ASSERT_TRUE(ret);
+#endif
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

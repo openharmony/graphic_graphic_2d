@@ -41,6 +41,18 @@ typedef enum {
     */
     VSYNC_MODE_INVALID
 } VSyncMode;
+
+/*
+ * Enum class for identifying the caller type of DVSync switch.
+ */
+enum class FromWhom : uint8_t {
+    /* INNER: Internal system call */
+    INNER = 0,
+    /* API: External API call */
+    API = 1,
+};
+
+constexpr FromWhom DEFAULT_FROMWHOM = FromWhom::INNER;
 } // OHOS
 
 #endif // VSYNC_TYPE_H

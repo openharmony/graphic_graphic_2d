@@ -1582,7 +1582,7 @@ void TestCreateNodeDisplayConfig(InterfaceClientFrameTest &testFrame)
 
     RSDisplayNodeConfig displayNodeConfig;
     displayNodeConfig.screenId = 0;
-    displayNodeConfig.isMirrored = false;
+    displayNodeConfig.displayMode = DisplayMode::EXPAND;
     displayNodeConfig.mirrorNodeId = 0;
     displayNodeConfig.isSync = false;
     displayNodeConfig.mirrorSourceRotation = 4;
@@ -1594,7 +1594,7 @@ void TestCreateNodeDisplayConfig(InterfaceClientFrameTest &testFrame)
     // Test with different configs
     RSDisplayNodeConfig config2;
     config2.screenId = 1;
-    config2.isMirrored = true;
+    config2.displayMode = DisplayMode::MIRROR;
     config2.mirrorNodeId = 2;
     config2.isSync = true;
     config2.mirrorSourceRotation = 0;

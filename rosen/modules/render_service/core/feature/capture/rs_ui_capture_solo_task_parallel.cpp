@@ -71,7 +71,7 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSUiCaptureSolo
     instanceRootNode->CollectAllChildren(instanceRootNode, nodeIdVec);
     for (auto nodeId : nodeIdVec) {
         if (ExtractPid(nodeId) != rootPid) {
-            RS_LOGW("RSUiCaptureSoloTaskParallel::CaptureSoloNode discarded. nodeId:[%{public}" PRIu64
+            RS_LOGE("RSUiCaptureSoloTaskParallel::CaptureSoloNode discarded. nodeId:[%{public}" PRIu64
                 "] due to process mismatch, nodePid:[%{public}d], rootPid:[%{public}d]",
                 nodeId, ExtractPid(nodeId), rootPid);
             continue;
@@ -135,17 +135,24 @@ bool RSUiCaptureSoloTaskParallel::CreateResources()
         return false;
     }
 #ifdef RS_ENABLE_VK
-    float nodeBoundsWidth = node->GetRenderProperties().GetBoundsWidth();
-    float nodeBoundsHeight = node->GetRenderProperties().GetBoundsHeight();
-    int32_t width = ceil(nodeBoundsWidth * captureConfig_.scaleX);
-    int32_t height = ceil(nodeBoundsHeight * captureConfig_.scaleY);
-    if (width > 0 && static_cast<int32_t>(OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) / width < height) {
-        RS_LOGE("RSUiCaptureSoloTaskParallel::CreateResources: image is too large,"
-            " width:%{public}d, height::%{public}d", width, height);
-        return false;
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    bool isQuerySuccess = RSMainThread::Instance()->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    if (isQuerySuccess) {
+        float nodeBoundsWidth = node->GetRenderProperties().GetBoundsWidth();
+        float nodeBoundsHeight = node->GetRenderProperties().GetBoundsHeight();
+        RS_LOGD("RSUiCaptureSoloTaskParallel::CreateResources:nodeBoundsWidth:%{public}f,nodeBoundsHeight:%{public}f,"
+            " maxWidth: %{public}u, maxHeight: %{public}u", nodeBoundsWidth, nodeBoundsHeight, maxWidth, maxHeight);
+        int32_t width = ceil(nodeBoundsWidth * captureConfig_.scaleX);
+        int32_t height = ceil(nodeBoundsHeight * captureConfig_.scaleY);
+        if (width <= 0 || height <= 0 || width >= maxWidth || height >= maxHeight) {
+            RS_LOGE("RSUiCaptureSoloTaskParallel::CreateResources: image is too large, width:%{public}d, "
+                "height:%{public}d, maxWidth: %{public}u, maxHeight: %{public}u", width, height, maxWidth, maxHeight);
+            return false;
+        }
+    } else {
+        RS_LOGW("RSUiCaptureSoloTaskParallel::CreateResources: GetMaxGpuBufferSize failed");
     }
-    RS_LOGD("RSUiCaptureSoloTaskParallel::CreateResources: Origin nodeBoundsWidth is [%{public}f,]"
-        " Origin nodeBoundsHeight is [%{public}f]", nodeBoundsWidth, nodeBoundsHeight);
 #endif
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         nodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(

@@ -1797,4 +1797,57 @@ HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeTest003, TestSize.Level1)
     EXPECT_EQ(lazyNode->GetNodeState(), RSNodeState::LAZY_LOAD);
 }
 #endif
+/**
+ * @tc.name: RebuildNodeTreeTest001
+ * @tc.desc: Branch A - rootNode_ expired, RebuildNodeTree skips, rebuildState unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, RebuildNodeTreeTest001, TestSize.Level1)
+{
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->rootNode_.reset();
+    ASSERT_EQ(director->rootNode_.lock(), nullptr);
+    auto ctx = director->GetRSUIContext();
+    ASSERT_NE(ctx, nullptr);
+    ctx->SetRebuildState(RebuildState::Rebuilding);
+    director->RebuildNodeTree();
+    EXPECT_EQ(ctx->GetRebuildState(), RebuildState::Rebuilding);
+}
+
+/**
+ * @tc.name: RebuildNodeTreeTest002
+ * @tc.desc: Branch B - rootNode alive, rsUIContext_ null, RebuildTree called without SetRebuildState
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, RebuildNodeTreeTest002, TestSize.Level1)
+{
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    auto rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    rootNode->nodeState_ = RSNodeState::INACTIVE;
+    director->rsUIContext_ = nullptr;
+    director->RebuildNodeTree();
+    EXPECT_EQ(rootNode->GetNodeState(), RSNodeState::ACTIVE);
+}
+
+/**
+ * @tc.name: RebuildNodeTreeTest003
+ * @tc.desc: Branch C - rootNode alive, rsUIContext_ non-null, SetRebuildState Rebuilding then Normal
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, RebuildNodeTreeTest003, TestSize.Level1)
+{
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    auto rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    auto ctx = director->GetRSUIContext();
+    ASSERT_NE(ctx, nullptr);
+    ctx->SetRebuildState(RebuildState::Rebuilding);
+    director->RebuildNodeTree();
+    EXPECT_EQ(ctx->GetRebuildState(), RebuildState::Normal);
+}
+
 } // namespace OHOS::Rosen

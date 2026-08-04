@@ -664,6 +664,8 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
         AddAnimationInner(animation);
     }
 
+    RebuildTree();
+
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
         animation->Pause();
@@ -2410,10 +2412,10 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         }
         auto backgroundColorEffectPara = std::static_pointer_cast<BackgroundColorEffectPara>(visualEffectPara);
         auto blender = backgroundColorEffectPara->GetBlender();
-        auto brightnessBlender = std::static_pointer_cast<BrightnessBlender>(blender);
-        if (brightnessBlender == nullptr) {
+        if (blender == nullptr || blender->GetBlenderType() != Blender::BRIGHTNESS_BLENDER) {
             continue;
         }
+        auto brightnessBlender = std::static_pointer_cast<BrightnessBlender>(blender);
         if (brightnessBlender->GetHdr() && ROSEN_GNE(brightnessBlender->GetFraction(), 0.0f)) {
             hasHdrBrightnessBlender = true;
         }
@@ -4185,6 +4187,7 @@ void RSNode::MoveChild(SharedPtr child, int index)
 
 void RSNode::RemoveChild(SharedPtr child)
 {
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     if (child == nullptr || child->parent_.lock().get() != this) {
         ROSEN_LOGI("RSNode::RemoveChild, child is nullptr");
         return;
@@ -4256,6 +4259,10 @@ void RSNode::RemoveCrossParentChild(SharedPtr child, SharedPtr newParent)
     // set the newParentId to rebuild the parent-child relationship.
     if (child == nullptr) {
         ROSEN_LOGI("RSNode::RemoveCrossScreenChild, child is nullptr");
+        return;
+    }
+    if (newParent == nullptr) {
+        ROSEN_LOGE("RSNode::RemoveCrossScreenChild, newParent is nullptr");
         return;
     }
     if (!this->IsInstanceOf<RSDisplayNode>()) {
@@ -4376,6 +4383,7 @@ void RSNode::RemoveFromTree()
 
 void RSNode::ClearChildren()
 {
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     RS_OPTIONAL_TRACE_NAME_FMT("RSNode::ClearChildren id:%" PRIu64 "", GetId());
     for (auto child : children_) {
         auto childPtr = child.lock();
@@ -4712,11 +4720,11 @@ std::string RSCmdModifierTypeToString(RSCmdModifierType type)
 void RSNode::DumpRSCmdModifiers(std::string& out) const
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    if (rsCmdModifiers_.empty()) {
+    if (rsCmdModifiers_.empty() && rsCmdModifierQueue_.empty()) {
         out += "RSCmdModifiers: [empty]";
         return;
     }
- 
+
     out += "RSCmdModifiers: [";
     bool first = true;
     for (const auto& [type, modifier] : rsCmdModifiers_) {
@@ -4727,6 +4735,18 @@ void RSNode::DumpRSCmdModifiers(std::string& out) const
             out += ", ";
         }
         out += "type=" + RSCmdModifierTypeToString(type);
+        out += ", param=";
+        modifier->DumpParam(out);
+        first = false;
+    }
+    for (const auto& modifier : rsCmdModifierQueue_) {
+        if (!modifier) {
+            continue;
+        }
+        if (!first) {
+            out += ", ";
+        }
+        out += "type=" + RSCmdModifierTypeToString(modifier->GetType());
         out += ", param=";
         modifier->DumpParam(out);
         first = false;
@@ -4816,12 +4836,15 @@ std::string RSNode::DumpNode(int depth) const
     ss << " lazyLoad[" << std::to_string(lazyLoad_) << "]";
     ss << " nodeState[" << DumpNodeState() << "]";
 
-    if (!animations_.empty()) {
-        ss << " animation:" << std::to_string(animations_.size());
-    }
-    for (const auto& [animationId, animation] : animations_) {
-        if (animation) {
-            ss << " animationInfo:" << animation->DumpAnimation();
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        if (!animations_.empty()) {
+            ss << " animation:" << std::to_string(animations_.size());
+        }
+        for (const auto& [animationId, animation] : animations_) {
+            if (animation) {
+                ss << " animationInfo:" << animation->DumpAnimation();
+            }
         }
     }
     auto rsUIContextPtr = rsUIContext_;

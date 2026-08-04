@@ -40,7 +40,7 @@ protected:
 private:
     inline static bool isCanvasDrawingNodeDMAMemEnabled_ = true;
     inline static bool isRsRenderNodeGCMemReleaseEnabled_ = true;
-    inline static bool isCanvasDrawingNodeBufferEnabled_ = true;
+    inline static bool isCanvasDrawingNodeBufferEnabled_ = false;
     inline static std::shared_ptr<std::map<std::string, std::string>> canvasBufferBlacklist_ = nullptr;
 
     friend class NodeMemReleaseParamParse;

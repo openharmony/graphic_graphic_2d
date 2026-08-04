@@ -362,7 +362,7 @@ bool VSyncConnection::NeedTriggeredVsyncLocked(const int64_t& currentTime)
     return isNeedTriggered;
 }
 
-VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch)
+VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom)
 {
     sptr<VSyncDistributor> distributor;
     {
@@ -379,7 +379,7 @@ VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch)
             return VSYNC_ERROR_NULLPTR;
         }
     }
-    return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this);
+    return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this, fromWhom);
 }
 
 VsyncError VSyncConnection::SetNativeDVSyncSwitch(bool dvsyncSwitch)
@@ -1242,9 +1242,10 @@ void VSyncDistributor::SetFrameIsRender(bool isRender)
     DVSyncLibManager::Instance().MarkRSRendering(isRender);
 }
 
-VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection)
+VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection,
+    FromWhom fromWhom)
 {
-    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, false);
+    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, false, fromWhom);
     return VSYNC_ERROR_OK;
 }
 
@@ -1258,7 +1259,7 @@ VsyncError VSyncDistributor::SetUiDvsyncConfig(int32_t bufferCount, bool composi
 
 VsyncError VSyncDistributor::SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection)
 {
-    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, true);
+    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, true, FromWhom::INNER);
     return VSYNC_ERROR_OK;
 }
 

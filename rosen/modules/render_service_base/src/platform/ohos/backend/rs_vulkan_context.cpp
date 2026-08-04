@@ -99,11 +99,23 @@ void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isPro
     acquiredMandatoryProcAddresses_ = OpenLibraryHandle() && SetupLoaderProcAddresses();
 
     interfaceType_ = vulkanInterfaceType;
-    CreateInstance();
-    SelectPhysicalDevice(isProtected);
-    CreateDevice(isProtected, isHtsEnable);
+    if (!CreateInstance()) {
+        ROSEN_LOGE("Failed to create Vulkan instance");
+        return;
+    }
+    if (!SelectPhysicalDevice(isProtected)) {
+        ROSEN_LOGE("Failed to select physical device");
+        return;
+    }
+    if (!CreateDevice(isProtected, isHtsEnable)) {
+        ROSEN_LOGE("Failed to create Vulkan device");
+        return;
+    }
     std::unique_lock<std::mutex> lock(vkMutex_);
-    CreateSkiaBackendContext(&backendContext_, isProtected);
+    if (!CreateSkiaBackendContext(&backendContext_, isProtected)) {
+        ROSEN_LOGE("Failed to create Skia backend context");
+        return;
+    }
 }
 
 RsVulkanInterface::~RsVulkanInterface()
@@ -208,6 +220,11 @@ bool RsVulkanInterface::SelectPhysicalDevice(bool isProtected)
     uint32_t deviceCount = 0;
     if (vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr) != VK_SUCCESS) {
         ROSEN_LOGE("vkEnumeratePhysicalDevices failed");
+        return false;
+    }
+
+    if (deviceCount == 0) {
+        ROSEN_LOGE("No physical devices found");
         return false;
     }
 
@@ -502,7 +519,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::DoCreateDrawingContext(s
     return drawingContext;
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir)
+std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir, int32_t tid)
 {
     auto drawingContext = DoCreateDrawingContext(cacheDir);
     int maxResources = 0;
@@ -515,7 +532,11 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std
     } else {
         drawingContext->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
-    RsVulkanContext::SaveNewDrawingContext(gettid(), drawingContext);
+    int32_t realTid = gettid();
+    if (tid != 0) {
+        realTid = tid;
+    }
+    RsVulkanContext::SaveNewDrawingContext(realTid, drawingContext);
     return drawingContext;
 }
 
@@ -839,12 +860,13 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
     if (interfaceType == VulkanInterfaceType::UNPROTECTED_REDRAW ||
         interfaceType == VulkanInterfaceType::PROTECTED_REDRAW) {
         std::lock_guard<std::mutex> lock(vkInterface.hGraphicsQueueMutex_);
-        RS_LOGD("%{public}s hardware queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
+        RS_LOGD_IF(DEBUG_IPC, "%{public}s hardware queue, interfaceType: %{public}d",
+            __func__, static_cast<int>(interfaceType));
         RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue, interfaceType: %d", __func__, static_cast<int>(interfaceType));
         return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
     } else if (interfaceType == VulkanInterfaceType::BASIC_RENDER) {
         std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
-        RS_LOGD("%{public}s queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
+        RS_LOGD_IF(DEBUG_IPC, "%{public}s queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
         RS_OPTIONAL_TRACE_NAME_FMT("%s queue, interfaceType: %d", __func__, static_cast<int>(interfaceType));
         VkResult ret = vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
 #ifdef HETERO_HDR_ENABLE
@@ -864,13 +886,14 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(VkQueue
     if (interfaceType == VulkanInterfaceType::UNPROTECTED_REDRAW ||
         interfaceType == VulkanInterfaceType::PROTECTED_REDRAW) {
         std::lock_guard<std::mutex> lock(vkInterface.hGraphicsQueueMutex_);
-        RS_LOGD("%{public}s hardware queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
+        RS_LOGD_IF(DEBUG_IPC, "%{public}s hardware queue, interfaceType: %{public}d",
+            __func__, static_cast<int>(interfaceType));
         RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue, interfaceType: %d", __func__, static_cast<int>(interfaceType));
         return vkInterface.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount,
             pWaitSemaphores, image, pNativeFenceFd);
     } else if (interfaceType == VulkanInterfaceType::BASIC_RENDER) {
         std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
-        RS_LOGD("%{public}s queue", __func__);
+        RS_LOGD_IF(DEBUG_IPC, "%{public}s queue", __func__);
         RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
         return vkInterface.vkQueueSignalReleaseImageOHOS(queue,
             waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
@@ -879,9 +902,14 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(VkQueue
     return VK_ERROR_UNKNOWN;
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext()
+std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext(int32_t tid)
 {
     static thread_local int tidForRecyclable = gettid();
+    if (tid != 0) {
+        tidForRecyclable = tid;
+    } else {
+        tidForRecyclable = gettid();
+    }
     {
         std::lock_guard<std::mutex> lock(drawingContextMutex_);
         switch (vulkanInterfaceType_) {
@@ -903,7 +931,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext()
             }
         }
     }
-    return GetRsVulkanInterface().CreateDrawingContext();
+    return GetRsVulkanInterface().CreateDrawingContext("", tid);
 }
 
 std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext(const std::string& cacheDir)

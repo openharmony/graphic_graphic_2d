@@ -16,6 +16,7 @@
 #include "effect_filter.h"
 
 #include "filter/filter.h"
+#include "common/rs_common_def.h"
 #include "ge_linear_gradient_shader_mask.h"
 #include "ge_radial_gradient_shader_mask.h"
 
@@ -290,7 +291,8 @@ EffectErrorCode OH_Filter_WaterDropletTransition(OH_Filter* filter,
     geWaterDropletParams->noiseStrengthX = waterDropletParams->noiseStrengthX;
     geWaterDropletParams->noiseStrengthY = waterDropletParams->noiseStrengthY;
 
-    geWaterDropletParams->progress = geWaterDropletParams->progress < 0.0f ? 0.0f : geWaterDropletParams->progress;
+    geWaterDropletParams->progress =
+        ROSEN_LNE(geWaterDropletParams->progress, 0.0f) ? 0.0f : geWaterDropletParams->progress;
     geWaterDropletParams->radius = std::clamp(geWaterDropletParams->radius, 0.0f, WATER_DROPLET_RADIUS_MAX);
     geWaterDropletParams->position.x_ = std::clamp(geWaterDropletParams->position.x_,
         -WATER_DROPLET_RADIUS_MAX, WATER_DROPLET_RADIUS_MAX);

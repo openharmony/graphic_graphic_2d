@@ -243,11 +243,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
-{
-    return {};
-}
-
 ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 {
     return {};
@@ -380,7 +375,7 @@ bool RSSystemProperties::GetKawaseEnabled()
 
 void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 {
-    forceHpsBlurDisabled_ = flag;
+    forceHpsBlurDisabled_.store(flag);
 }
 
 bool RSSystemProperties::GetHpsBlurEnabled()
@@ -757,6 +752,11 @@ bool RSSystemProperties::GetDebugFmtTraceEnabled()
     return GetDebugTraceEnabled();
 }
 
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    return false;
+}
+
 void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
 {
 }
@@ -891,6 +891,11 @@ bool RSSystemProperties::GetXcomponentEdrEnabled()
 }
 
 bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
 {
     return false;
 }

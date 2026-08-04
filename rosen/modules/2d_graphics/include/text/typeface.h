@@ -59,7 +59,7 @@ struct DRAWING_API MappedFile {
 const uint8_t NO_REGISTER = 0;
 const uint8_t REGISTERING = 1;
 const uint8_t REGISTERED = 2;
-using TypefaceRegisterCallback = std::function<int32_t(std::shared_ptr<Typeface>)>;
+using TypefaceRegisterCallback = std::function<bool(std::shared_ptr<Typeface>)>;
 using GetByUniqueIdCallback = std::function<std::shared_ptr<Typeface>(uint64_t)>;
 struct SharedTypeface;
 class DRAWING_API Typeface {

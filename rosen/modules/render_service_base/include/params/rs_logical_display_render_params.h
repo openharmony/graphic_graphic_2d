@@ -159,7 +159,7 @@ private:
     ScreenRotation mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     bool isRotationChanged_ = false;
 
-    bool isMirrorDisplay_ = false;
+    DisplayMode displayMode_ = DisplayMode::INVALID;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;
     bool virtualScreenMuteStatus_ = false;
     bool isSecurityDisplay_ = false;

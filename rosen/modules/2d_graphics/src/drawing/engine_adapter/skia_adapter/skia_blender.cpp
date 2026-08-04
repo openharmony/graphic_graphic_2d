@@ -59,7 +59,10 @@ std::shared_ptr<Data> SkiaBlender::Serialize() const
     writer.writeFlattenable(blender_.get());
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
+    if (!data->BuildUninitialized(length)) {
+        LOGD("SkiaBlender::Serialize, BuildUninitialized failed.");
+        return nullptr;
+    }
     writer.writeToMemory(data->WritableData());
     return data;
 }

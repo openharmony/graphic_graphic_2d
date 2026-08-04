@@ -69,7 +69,8 @@ std::vector<std::string> gDrawingDisableFlagStr = {
     "disableMaskFilter",
     "disableShader",
     "disableBlender",
-    "disablePathEffect"
+    "disablePathEffect",
+    "disableParticle"
 };
 
 void DrawingConfig::UpdateDrawingProperties()

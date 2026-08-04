@@ -72,10 +72,11 @@ void Archive::Serialize(std::string& value)
     Serialize(size);
 
     if (IsReading()) {
-        value.resize(size);
+        static const auto MAX_SIZE = std::string().max_size();
+        value.resize(size < MAX_SIZE ? size : 0);
     }
 
-    Serialize(value.data(), size);
+    Serialize(value.data(), value.size());
 }
 
 void Archive::Serialize(void* data, size_t size)

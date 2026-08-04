@@ -62,6 +62,7 @@ ohos_unittest("feature_cfg_test") {
     "ui_capture_param_test.cpp",
     "uifirst_param_parse_test.cpp",
     "uifirst_param_test.cpp",
+    "virtual_screen_parallel_param_parse_test.cpp",
     "vrate_param_parse_test.cpp",
     "vrate_param_test.cpp",
     "video_metadata_param_parse_test.cpp",

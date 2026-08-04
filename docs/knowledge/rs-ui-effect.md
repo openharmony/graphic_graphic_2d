@@ -12,7 +12,7 @@
 - UseEffect（BehindWindow 等）与 DynamicLightUp / Binarization / DynamicDim
 - VisualEffect 与 Blender
 
-> Effect 模块（effect_common / color_picker / skia_effectChain / effect_ndk / egl）的
+> Effect 模块（effect_common / color_picker / skia_effectChain / effect_ndk）的
 > 架构、接口和类型定义见 [effect-common-ndk.md](effect-common-ndk.md)。
 > ColorPicker 独立线程模型见 [rs-color-picker-thread.md](rs-color-picker-thread.md)。
 

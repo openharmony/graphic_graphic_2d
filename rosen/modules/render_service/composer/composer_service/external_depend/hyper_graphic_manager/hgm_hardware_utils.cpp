@@ -53,11 +53,6 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(ScreenId screenId)
     ScreenId lastCurScreenId = frameRateMgr->GetLastCurScreenId();
     bool shouldSetRefreshRate = (refreshRate != hgmCore_.GetScreenCurrentRefreshRate(screenId) ||
                                  lastCurScreenId != curScreenId);
-    bool needRetrySetRate = false;
-    auto retryIter = setRateRetryMap_.find(screenId);
-    if (retryIter != setRateRetryMap_.end()) {
-        needRetrySetRate = retryIter->second.first;
-    }
     if (shouldSetRefreshRate || setRateRetryParam_.needRetrySetRate) {
         HGM_LOGD("screenId %{public}" PRIu64 " refreshRate %{public}u needRetrySetRate %{public}d",
             screenId, refreshRate, setRateRetryParam_.needRetrySetRate);
@@ -106,7 +101,6 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
     if (modeMap == nullptr) {
         return;
     }
-
     RS_TRACE_NAME_FMT("%s: setting active mode. rate: %u",
         __func__, hgmCore_.GetScreenCurrentRefreshRate(hgmCore_.GetActiveScreenId()));
     for (const auto [screenId, modeId] : *modeMap) {

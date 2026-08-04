@@ -237,7 +237,10 @@ std::shared_ptr<Data> SkiaImageFilter::Serialize() const
     writer.writeFlattenable(filter_.get());
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
+    if (!data->BuildUninitialized(length)) {
+        LOGD("SkiaImageFilter::Serialize, BuildUninitialized failed.");
+        return nullptr;
+    }
     writer.writeToMemory(data->WritableData());
     return data;
 }

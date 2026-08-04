@@ -176,6 +176,56 @@ HWTEST_F(SkiaTextBlobTest, GetIntercepts001, TestSize.Level1)
     retIntercepts = skiaBlobImpl->GetIntercepts(bounds, intervals, &paint);
     ASSERT_TRUE(retIntercepts != 0);
 }
+
+/**
+ * @tc.name: DeserializeWithNullData
+ * @tc.desc: Test Deserialize with null data pointer
+ * @tc.type: FUNC
+ * @tc.require: DTS2026071706869
+ */
+HWTEST_F(SkiaTextBlobTest, DeserializeWithNullData, TestSize.Level1)
+{
+    auto result = SkiaTextBlob::Deserialize(nullptr, 0, nullptr);
+    EXPECT_TRUE(result == nullptr);
+}
+
+/**
+ * @tc.name: DeserializeWithNullDataAndNonZeroSize
+ * @tc.desc: Test Deserialize with null data pointer but non-zero size
+ * @tc.type: FUNC
+ * @tc.require: DTS2026071706869
+ */
+HWTEST_F(SkiaTextBlobTest, DeserializeWithNullDataAndNonZeroSize, TestSize.Level1)
+{
+    auto result = SkiaTextBlob::Deserialize(nullptr, 100, nullptr);
+    EXPECT_TRUE(result == nullptr);
+}
+
+/**
+ * @tc.name: DeserializeWithValidData
+ * @tc.desc: Test Deserialize with valid serialized data round-trip
+ * @tc.type: FUNC
+ * @tc.require: DTS2026071706869
+ */
+HWTEST_F(SkiaTextBlobTest, DeserializeWithValidData, TestSize.Level1)
+{
+    const char* str = "test";
+    Font font;
+    font.SetSize(20);
+    auto textBlob = SkiaTextBlob::MakeFromText(str, strlen(str), font, TextEncoding::UTF8);
+    ASSERT_TRUE(textBlob != nullptr);
+
+    auto skiaBlobImpl = textBlob->GetImpl<SkiaTextBlob>();
+    ASSERT_TRUE(skiaBlobImpl != nullptr);
+    std::shared_ptr<Data> data = skiaBlobImpl->Serialize(nullptr);
+    ASSERT_TRUE(data != nullptr);
+    ASSERT_TRUE(data->GetData() != nullptr);
+    ASSERT_TRUE(data->GetSize() > 0);
+
+    auto result = SkiaTextBlob::Deserialize(data->GetData(), data->GetSize(), nullptr);
+    EXPECT_TRUE(result != nullptr);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

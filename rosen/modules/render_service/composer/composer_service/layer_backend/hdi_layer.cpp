@@ -35,6 +35,7 @@ static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
+const std::string GENERIC_METADATA_KEY_GLASS_FREE_3D = "GlassFree3D";
 const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 const std::string GENERIC_METADATA_KEY_VCLD_PARAM = "VcldParam";
@@ -325,6 +326,7 @@ int32_t HdiLayer::SetLayerBuffer()
         layerBuffer.handle = currBuffer_->GetBufferHandle();
         if (layerBuffer.handle == nullptr) {
             HLOGE("Get buffer handle failed.");
+            return GRAPHIC_DISPLAY_NULL_PTR;
         }
     }
 
@@ -512,7 +514,7 @@ int32_t HdiLayer::SetLayerTunnelHandle()
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    if (rsLayer_->GetTunnelHandle() == nullptr) {
+    if (rsLayer_->GetTunnelHandle() == nullptr || rsLayer_->GetTunnelHandle()->GetHandle() == nullptr) {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, nullptr);
     } else {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, rsLayer_->GetTunnelHandle()->GetHandle());
@@ -886,6 +888,9 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX) {
             ret = SetPerFrameLayerLinearMatrix();
             CheckRet(ret, "SetLayerLinearMatrix");
+        } else if (key == GENERIC_METADATA_KEY_GLASS_FREE_3D) {
+            ret = SetPerFrameLayerGlassFree3D();
+            CheckRet(ret, "SetPerFrameLayerGlassFree3D");
         } else if (key == GENERIC_METADATA_KEY_SOURCE_CROP_TUNING) {
             ret = SetPerFrameLayerSourceTuning();
             CheckRet(ret, "SetLayerSourceTuning");
@@ -961,6 +966,19 @@ int32_t HdiLayer::SetPerFrameLayerLinearMatrix()
     }
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX, valueBlob);
+}
+
+int32_t HdiLayer::SetPerFrameLayerGlassFree3D()
+{
+    if (prevRSLayer_ != nullptr) {
+        if (rsLayer_->GetGlassFree3D() == prevRSLayer_->GetGlassFree3D()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+    std::vector<int8_t> valueBlob(sizeof(bool));
+    *reinterpret_cast<bool*>(valueBlob.data()) = rsLayer_->GetGlassFree3D();
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_GLASS_FREE_3D, valueBlob);
 }
 
 int32_t HdiLayer::SetPerFrameLayerSourceTuning()

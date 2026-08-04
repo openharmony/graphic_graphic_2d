@@ -70,7 +70,7 @@ OH_Drawing_TextLine* OH_Drawing_LineTypographyCreateLine(OH_Drawing_LineTypograp
     }
     LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypograph);
     size_t limitSize = innerlineTypography->GetUnicodeSize();
-    if (startIndex >= limitSize || count + startIndex > limitSize) {
+    if (startIndex >= limitSize || count > limitSize - startIndex) {
         TEXT_LOGE("Invalid param");
         return nullptr;
     }

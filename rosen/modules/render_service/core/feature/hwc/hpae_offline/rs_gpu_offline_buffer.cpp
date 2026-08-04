@@ -116,7 +116,7 @@ bool RSGPUOfflineBuffer::PreAllocBuffers(const BufferRequestConfig& config)
         RS_LOGW("RSGPUOfflineBuffer::PreAllocBuffers failed[%{public}d], cleanRet: %{public}d", ret, cleanRet);
         return false;
     }
-    RS_LOGD("RSGPUOfflineBuffer::PreAllocBuffers success.");
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineBuffer::PreAllocBuffers success.");
     return true;
 }
 
@@ -160,14 +160,14 @@ std::unique_ptr<RSRenderFrame> RSGPUOfflineBuffer::RequestFrame(std::shared_ptr<
     CM_ColorSpaceType colorSpace = CM_SRGB_FULL;
     if (ConvertColorGamutToSpaceType(config.colorGamut, colorSpace)) {
         if (pSurface_->SetUserData("ATTRKEY_COLORSPACE_INFO", std::to_string(colorSpace)) != GSERROR_OK) {
-            RS_LOGD("RSGPUOfflineBuffer::SetUserData failed");
+            RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineBuffer::SetUserData failed");
         }
     }
 #endif
     // clean cache when config changed, for single buffer
     bool needFillSingleBuffer = false;
     if (currentConfig_ != config || switchType != SingleBufferMode::SINGLE_BUFFER_MODE_NONE) {
-        RS_LOGD("RSGPUOfflineBuffer::CleanCache when config changed");
+        RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineBuffer::CleanCache when config changed");
         RS_OPTIONAL_TRACE_NAME("RSGPUOfflineBuffer_ClearCache");
         CleanCache(true);
         needFillSingleBuffer = (switchType != SingleBufferMode::SINGLE_BUFFER_MODE_TO_MULTI);
@@ -191,12 +191,12 @@ bool RSGPUOfflineBuffer::AttachSingleBuffer(std::unique_ptr<RSRenderFrame>& rend
     auto info = NativeWindowBufferInfo(false);
     auto rsSurface = renderFrame->GetSurface();
     if (rsSurface == nullptr) {
-        RS_LOGD("RSGPUOfflineBuffer::AttachSingleBuffer rsSurface is null");
+        RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineBuffer::AttachSingleBuffer rsSurface is null");
         return false;
     }
     auto dstBuffer = rsSurface->GetCurrentBuffer();
     if (dstBuffer == nullptr) {
-        RS_LOGD("RSGPUOfflineBuffer::AttachSingleBuffer dstbuffer is null");
+        RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineBuffer::AttachSingleBuffer dstbuffer is null");
         return false;
     }
     uint64_t bufferQueueId = pSurface_->GetUniqueId();
@@ -325,7 +325,7 @@ void RSGPUOfflineBuffer::CleanCache(bool cleanAll)
     if (pSurface_ != nullptr) {
         GSError ret = pSurface_->CleanCache(cleanAll);
         surfaceHandler_->CleanCache();
-        RS_LOGD("RSGPUOfflineBuffer::CleanCache, ret = %{public}d.", ret);
+        RS_LOGD_IF(DEBUG_PREVALIDATE, "RSGPUOfflineBuffer::CleanCache, ret = %{public}d.", ret);
     }
 }
 

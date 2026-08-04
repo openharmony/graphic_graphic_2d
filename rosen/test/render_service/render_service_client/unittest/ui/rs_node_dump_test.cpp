@@ -386,4 +386,110 @@ HWTEST_F(RSNodeDumpTest, DumpRSCmdModifiersAllNullModifiers, TestSize.Level1)
     EXPECT_EQ(out.find("type="), std::string::npos);
 }
 
+/**
+ * @tc.name: DumpNodeWithNullAnimation
+ * @tc.desc: Test DumpNode skips null animation entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeDumpTest, DumpNodeWithNullAnimation, TestSize.Level1)
+{
+    auto node = TestableRSNode::Create();
+    ASSERT_NE(node, nullptr);
+    node->animations_.emplace(1, nullptr);
+    std::string dump = node->DumpNode(0);
+    EXPECT_NE(dump.find("animation:1"), std::string::npos);
+    EXPECT_EQ(dump.find("animationInfo:"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpRSCmdModifiersQueueOnly
+ * @tc.desc: Test DumpRSCmdModifiers with only rsCmdModifierQueue_ populated
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeDumpTest, DumpRSCmdModifiersQueueOnly, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_NE(canvasNode, nullptr);
+    auto modifier = std::make_shared<ClearRecordingCmdModifier>(
+        canvasNode, ClearRecordingCmdParam{100, 200});
+    canvasNode->rsCmdModifierQueue_.push_back(modifier);
+    std::string out;
+    canvasNode->DumpRSCmdModifiers(out);
+    EXPECT_NE(out.find("RSCmdModifiers: ["), std::string::npos);
+    EXPECT_NE(out.find("type=CLEAR_RECORDING"), std::string::npos);
+    EXPECT_NE(out.find("param="), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpRSCmdModifiersBothMapsAndQueue
+ * @tc.desc: Test DumpRSCmdModifiers with both rsCmdModifiers_ and rsCmdModifierQueue_ populated
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeDumpTest, DumpRSCmdModifiersBothMapsAndQueue, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_NE(canvasNode, nullptr);
+    auto mapModifier = std::make_shared<HdrPresentCmdModifier>(
+        canvasNode, HdrPresentCmdParam{true});
+    canvasNode->rsCmdModifiers_.emplace(RSCmdModifierType::HDR_PRESENT, mapModifier);
+    auto queueModifier = std::make_shared<ClearRecordingCmdModifier>(
+        canvasNode, ClearRecordingCmdParam{100, 200});
+    canvasNode->rsCmdModifierQueue_.push_back(queueModifier);
+    std::string out;
+    canvasNode->DumpRSCmdModifiers(out);
+    EXPECT_NE(out.find("RSCmdModifiers: ["), std::string::npos);
+    EXPECT_NE(out.find("type=HDR_PRESENT"), std::string::npos);
+    EXPECT_NE(out.find("type=CLEAR_RECORDING"), std::string::npos);
+    EXPECT_NE(out.find(", "), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpRSCmdModifiersQueueWithNull
+ * @tc.desc: Test DumpRSCmdModifiers skips null modifiers in rsCmdModifierQueue_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeDumpTest, DumpRSCmdModifiersQueueWithNull, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_NE(canvasNode, nullptr);
+    auto modifier = std::make_shared<ClearRecordingCmdModifier>(
+        canvasNode, ClearRecordingCmdParam{100, 200});
+    canvasNode->rsCmdModifierQueue_.push_back(nullptr);
+    canvasNode->rsCmdModifierQueue_.push_back(modifier);
+    std::string out;
+    canvasNode->DumpRSCmdModifiers(out);
+    EXPECT_NE(out.find("type=CLEAR_RECORDING"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpRSCmdModifiersQueueAllNull
+ * @tc.desc: Test DumpRSCmdModifiers when rsCmdModifierQueue_ has only null entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeDumpTest, DumpRSCmdModifiersQueueAllNull, TestSize.Level1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->rsCmdModifierQueue_.push_back(nullptr);
+    canvasNode->rsCmdModifierQueue_.push_back(nullptr);
+    std::string out;
+    canvasNode->DumpRSCmdModifiers(out);
+    EXPECT_NE(out.find("RSCmdModifiers: ["), std::string::npos);
+    EXPECT_EQ(out.find("type="), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpRSCmdModifiersBothEmpty
+ * @tc.desc: Test DumpRSCmdModifiers when both rsCmdModifiers_ and rsCmdModifierQueue_ are empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeDumpTest, DumpRSCmdModifiersBothEmpty, TestSize.Level1)
+{
+    auto node = TestableRSNode::Create();
+    ASSERT_NE(node, nullptr);
+    std::string out;
+    node->DumpRSCmdModifiers(out);
+    EXPECT_EQ(out, "RSCmdModifiers: [empty]");
+}
+
 } // namespace OHOS::Rosen

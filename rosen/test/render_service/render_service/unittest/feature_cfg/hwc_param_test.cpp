@@ -234,5 +234,105 @@ HWTEST_F(HwcParamTest, IsSplitScreenSourceTuning001, Function | SmallTest | Leve
     HWCParam::SetSplitScreenSourceTuning(false);
     ASSERT_FALSE(HWCParam::IsSplitScreenSourceTuning());
 }
+
+/**
+ * @tc.name: SetSourceTuningForHmsApp001
+ * @tc.desc: Verify the SetSourceTuningForHmsApp function stores a single app entry
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, SetSourceTuningForHmsApp001, Function | SmallTest | Level1)
+{
+    std::string appName = "HmsTestApp";
+    std::string val = "1";
+    HWCParam::SetSourceTuningForHmsApp(appName, val);
+    auto it = HWCParam::GetSourceTuningForHmsApp().find(appName);
+    EXPECT_NE(it, HWCParam::GetSourceTuningForHmsApp().end());
+    EXPECT_EQ(it->second, val);
+}
+
+/**
+ * @tc.name: SetSourceTuningForHmsApp002
+ * @tc.desc: Verify the SetSourceTuningForHmsApp function overwrites an existing entry
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, SetSourceTuningForHmsApp002, Function | SmallTest | Level1)
+{
+    std::string appName = "HmsTestApp";
+    std::string initialVal = "0";
+    HWCParam::SetSourceTuningForHmsApp(appName, initialVal);
+    std::string newVal = "1";
+    HWCParam::SetSourceTuningForHmsApp(appName, newVal);
+    auto it = HWCParam::GetSourceTuningForHmsApp().find(appName);
+    EXPECT_NE(it, HWCParam::GetSourceTuningForHmsApp().end());
+    EXPECT_EQ(it->second, newVal);
+}
+
+/**
+ * @tc.name: GetSourceTuningForHmsApp001
+ * @tc.desc: Verify the GetSourceTuningForHmsApp function returns reference to map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, GetSourceTuningForHmsApp001, Function | SmallTest | Level1)
+{
+    std::string appName = "HmsTestApp";
+    std::string val = "1";
+    HWCParam::SetSourceTuningForHmsApp(appName, val);
+
+    auto& map = HWCParam::GetSourceTuningForHmsApp();
+    EXPECT_NE(map.find(appName), map.end());
+    EXPECT_EQ(map.at(appName), val);
+}
+
+/**
+ * @tc.name: GetSourceTuningForHmsApp002
+ * @tc.desc: Verify GetSourceTuningForHmsApp with multiple entries
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, GetSourceTuningForHmsApp002, Function | SmallTest | Level1)
+{
+    std::string appName1 = "HmsTestApp1";
+    std::string val1 = "1";
+    std::string appName2 = "HmsTestApp2";
+    std::string val2 = "0";
+
+    HWCParam::SetSourceTuningForHmsApp(appName1, val1);
+    HWCParam::SetSourceTuningForHmsApp(appName2, val2);
+
+    auto& map = HWCParam::GetSourceTuningForHmsApp();
+    EXPECT_EQ(map.at(appName1), val1);
+    EXPECT_EQ(map.at(appName2), val2);
+}
+
+/**
+ * @tc.name: GetSourceTuningForHmsApp003
+ * @tc.desc: Verify GetSourceTuningForHmsApp returns empty map initially
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, GetSourceTuningForHmsApp003, Function | SmallTest | Level1)
+{
+    auto& map = HWCParam::GetSourceTuningForHmsApp();
+    EXPECT_TRUE(map.empty() == false);
+}
+
+/**
+ * @tc.name: SetSourceTuningForHmsApp003
+ * @tc.desc: Verify SetSourceTuningForHmsApp accepts value 0 to disable enhancement
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, SetSourceTuningForHmsApp003, Function | SmallTest | Level1)
+{
+    std::string appName = "HmsDisabledApp";
+    std::string val = "0";
+    HWCParam::SetSourceTuningForHmsApp(appName, val);
+    auto it = HWCParam::GetSourceTuningForHmsApp().find(appName);
+    EXPECT_NE(it, HWCParam::GetSourceTuningForHmsApp().end());
+    EXPECT_EQ(it->second, val);
+}
 } // namespace Rosen
 } // namespace OHOS

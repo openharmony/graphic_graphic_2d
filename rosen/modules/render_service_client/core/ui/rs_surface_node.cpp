@@ -1290,7 +1290,7 @@ void RSSurfaceNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
     if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
         isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
         SetRSCmdProperty<MarkNodeSingleFrameComposerCmdModifier>(MarkNodeSingleFrameComposerCmdParam{
-            isNodeSingleFrameComposer, GetRealPid()
+            isNodeSingleFrameComposer
         });
     }
 }

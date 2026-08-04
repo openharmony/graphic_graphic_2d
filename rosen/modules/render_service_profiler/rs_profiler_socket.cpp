@@ -213,12 +213,18 @@ bool Socket::Send(const void* data, size_t size)
     SetSendTimeout(client_, timeout);
 
     const char* bytes = reinterpret_cast<const char*>(data);
-    size_t sent = 0;
-    while (sent < size) {
+    for (size_t tries = 0u, sent = 0u; sent < size;) {
+        // wait for 1ms in worst case to have socket ready for sending
         if (PollSend(1) == 0) {
-            // wait for 1ms in worst case to have socket ready for sending
+            constexpr auto maxTries = 1000u;
+            if (++tries > maxTries) {
+                SOCKET_ERROR("Send timeout exceeded");
+                Shutdown();
+                return false;
+            }
             continue;
         }
+        tries = 0u;
         const ssize_t sentBytes = send(client_, bytes, size - sent, 0);
         if ((sentBytes == -1) && (errno != EINTR)) {
             SOCKET_ERROR("Invoke shutdown");

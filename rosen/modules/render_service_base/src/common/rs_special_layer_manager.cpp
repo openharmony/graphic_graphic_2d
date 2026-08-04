@@ -372,16 +372,6 @@ bool ScreenSpecialLayerInfo::ExistEnableScreen(SpecialLayerType type)
     return screenSpecialLayerInfoByNode_.find(type) != screenSpecialLayerInfoByNode_.end();
 }
 
-void ScreenSpecialLayerInfo::SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList)
-{
-    globalBlackList_ = globalBlackList;
-}
-
-const std::unordered_set<NodeId>& ScreenSpecialLayerInfo::GetGlobalBlackList()
-{
-    return globalBlackList_;
-}
-
 void ScreenSpecialLayerInfo::UpdateScreenMirrorSourceMap(ScreenId mirrorScreenId, ScreenId sourceScreenId)
 {
     screenMirrorSourceMap_[mirrorScreenId] = sourceScreenId;
@@ -399,6 +389,60 @@ ScreenId ScreenSpecialLayerInfo::GetMirrorSourceScreenId(ScreenId mirrorScreenId
 void ScreenSpecialLayerInfo::ClearScreenMirrorSourceMap()
 {
     screenMirrorSourceMap_.clear();
+}
+
+std::unordered_set<NodeId> ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType type)
+{
+    std::unordered_set<NodeId> nodeIds;
+    auto typeIter = screenSpecialLayerInfoByNode_.find(type);
+    if (typeIter == screenSpecialLayerInfoByNode_.end()) {
+        return nodeIds;
+    }
+    const auto& typeInfo = typeIter->second;
+    for (const auto& [nodeId, _] : typeInfo) {
+        nodeIds.insert(nodeId);
+    }
+    return nodeIds;
+}
+
+void ScreenSpecialLayerInfo::SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList)
+{
+    globalBlackList_ = globalBlackList;
+}
+
+const std::unordered_set<NodeId>& ScreenSpecialLayerInfo::GetGlobalBlackList()
+{
+    return globalBlackList_;
+}
+
+void ScreenSpecialLayerParam::SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList)
+{
+    globalBlackList_ = globalBlackList;
+}
+
+const std::unordered_set<NodeId>& ScreenSpecialLayerParam::GetGlobalBlackList() const
+{
+    return globalBlackList_;
+}
+
+void ScreenSpecialLayerParam::AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect)
+{
+    for (auto screenId : screenIds) {
+        whiteListRect_[screenId].push_back(rect);
+    }
+}
+
+std::vector<Drawing::Rect> ScreenSpecialLayerParam::GetWhiteListRectByScreenId(ScreenId screenId) const
+{
+    if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
+        return iter->second;
+    }
+    return {};
+}
+
+void ScreenSpecialLayerParam::ClearWhiteListRect()
+{
+    whiteListRect_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

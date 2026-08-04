@@ -217,10 +217,10 @@ public:
                 auto isMirrorDisplay = targetDisplayNode->IsMirrorDisplay() ? "is mirror" : "not mirror";
                 cout << "Get display mode result: "<< isMirrorDisplay << endl;
             } else if (testType == 0) {
-                bool isMirrored = param == 1 ? true : false;
-                RSDisplayNodeConfig config = {0, isMirrored, sourceDisplayNode->GetId()};
-                cout << "Set display mode "<< isMirrored << " , source node id " << config.mirrorNodeId << endl;
-                targetDisplayNode->SetDisplayNodeMirrorConfig(config);
+                DisplayMode displayMode = param == 1 ? DisplayMode::MIRROR : DisplayMode::EXPAND;
+                RSDisplayNodeConfig config = {0, displayMode, sourceDisplayNode->GetId()};
+                cout << "Set display mode "<< param << " , source node id " << config.mirrorNodeId << endl;
+                targetDisplayNode->SetDisplayNodeConfig(config);
             }
 
             if (transactionProxy != nullptr) {

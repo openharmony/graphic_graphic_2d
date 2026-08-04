@@ -453,5 +453,22 @@ void RSRenderComposerAgent::SetVsyncManagerCallbacks(const SetHardwareTaskNumCal
         }
     );
 }
+
+void RSRenderComposerAgent::DumpVKImageInfo(std::string& dumpString)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->ScheduleTask(
+        [weakThis, &dumpString]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->DumpVKImageInfo(dumpString);
+        }
+    ).wait();
+}
 } // namespace Rosen
 } // namespace OHOS

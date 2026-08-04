@@ -32,7 +32,7 @@ namespace Rosen {
 enum OfflineContextType : uint32_t {
     INVALID = 0,
     SCALE,
-    AI2020
+    AI2020,
 };
 
 struct OfflineProcessInputInfo {
@@ -90,7 +90,7 @@ public:
     explicit RSHpaeOfflineContext(OfflineContextType type);
     ~RSHpaeOfflineContext();
 
-    bool isSkipDraw();
+    bool IsSkipDraw();
 
     OfflineContextType contextType = OfflineContextType::INVALID;
     NodeId nodeId = 0;

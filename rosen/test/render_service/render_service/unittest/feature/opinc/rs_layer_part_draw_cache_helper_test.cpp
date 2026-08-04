@@ -17,7 +17,7 @@
 
 #include "drawable/rs_render_node_drawable.h"
 #include "feature/opinc/rs_layer_part_draw_cache_helper.h"
-#include "params/rs_canvas_drawing_render_params.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 
 using namespace testing;
@@ -53,9 +53,9 @@ const RectI PARTIAL_DIRTY_RECT = {
 
 class RSLayerPartDrawCacheHelperTest : public testing::Test {
 public:
-    static std::shared_ptr<RSCanvasDrawingRenderParams> CreateRenderParams(bool enabled)
+    static std::shared_ptr<RSRenderParams> CreateRenderParams(bool enabled)
     {
-        auto params = std::make_shared<RSCanvasDrawingRenderParams>(GenerateUniqueNodeIdForRS());
+        auto params = std::make_shared<RSRenderParams>(GenerateUniqueNodeIdForRS());
         params->SetLayerPartRenderEnabled(enabled);
         params->SetLayerPartRenderCurrentFrameDirtyRegion(DEFAULT_DIRTY_RECT);
         params->SetAbsDrawRect(DEFAULT_DIRTY_RECT);
@@ -66,8 +66,10 @@ public:
     static std::shared_ptr<DrawableV2::RSRenderNodeDrawable> CreateDrawable()
     {
         auto renderNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
-        return std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+        auto* rawPtr = static_cast<DrawableV2::RSRenderNodeDrawable*>(
+            DrawableV2::RSRenderNodeDrawable::OnGenerate(renderNode));
+        return std::shared_ptr<DrawableV2::RSRenderNodeDrawable>(
+            rawPtr, [](DrawableV2::RSRenderNodeDrawable* p) { delete p; });
     }
 };
 

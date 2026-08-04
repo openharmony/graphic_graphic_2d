@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <atomic>
- #include "egl_blob_cache.h"
+#include "egl_blob_cache.h"
 #include "wrapper_log.h"
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -147,12 +147,14 @@ void BlobCache::Init(EglWrapperDisplay* display)
 void BlobCache::SetBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
                             EGLsizeiANDROID valueSize)
 {
-    BlobCache::Get()->SetBlobLock(key, keySize, value, valueSize);
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
+    BlobCache::Get()->SetBlob(key, keySize, value, valueSize);
 }
 EGLsizeiANDROID BlobCache::GetBlobFunc(const void *key, EGLsizeiANDROID keySize, void *value,
                                        EGLsizeiANDROID valueSize)
 {
-    return BlobCache::Get()->GetBlobLock(key, keySize, value, valueSize);
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
+    return BlobCache::Get()->GetBlob(key, keySize, value, valueSize);
 }
 
 void BlobCache::SetBlobLock(const void* key, EGLsizeiANDROID keySize, const void* value,
@@ -441,7 +443,7 @@ void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
     }
     size_t headsize = sizeof(CacheHeader);
     size_t byteoffset = CACHE_HEAD;
-    while (byteoffset < filesize - CACHE_HEAD) {
+    while (byteoffset + headsize <= filesize) {
         const CacheHeader* eheader = reinterpret_cast<CacheHeader*>(&buf[byteoffset]);
         size_t keysize = eheader->keySize;
         size_t valuesize = eheader->valueSize;
@@ -496,7 +498,7 @@ uint32_t BlobCache::CrcGen(const uint8_t *buf, size_t len)
 bool BlobCache::ValidFile(uint8_t *buf, size_t len)
 {
     if (len < CACHE_HEAD) {
-        WLOGE("Buffer too short for cache header");
+        WLOGE("Buffer length is %{public}zu, too short for cache header", len);
         return false;
     }
     

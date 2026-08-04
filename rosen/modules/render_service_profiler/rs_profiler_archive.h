@@ -101,7 +101,8 @@ protected:
         Serialize(size);
 
         if (IsReading()) {
-            vector.resize(size);
+            static const auto MAX_SIZE = std::vector<T>().max_size();
+            vector.resize(size < MAX_SIZE ? size : 0);
         }
     }
 

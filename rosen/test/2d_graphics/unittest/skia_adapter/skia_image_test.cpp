@@ -14,14 +14,18 @@
  */
 
 #include <cstddef>
+#include <cstring>
 
 #include "gtest/gtest.h"
+#include <securec.h>
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_gpu_context.h"
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_surface.h"
 
 #include "draw/surface.h"
+#include "effect/color_space.h"
+#include "image/bitmap.h"
 #include "image/image.h"
 
 using namespace testing;
@@ -553,6 +557,98 @@ HWTEST_F(SkiaImageTest, MakeFromRaster, TestSize.Level1)
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
     std::shared_ptr<Image> image = skiaImage->MakeFromRaster(pixmap, nullptr, nullptr);
     ASSERT_TRUE(image == nullptr);
+}
+
+/**
+ * @tc.name: DeserializeWithNullData
+ * @tc.desc: Test Deserialize with null data
+ * @tc.type: FUNC
+ * @tc.require: DTS2026071706869
+ */
+HWTEST_F(SkiaImageTest, DeserializeWithNullData, TestSize.Level1)
+{
+    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
+    bool ret = skiaImage->Deserialize(nullptr);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: DeserializePixmapSizeExceedsAvailable
+ * @tc.desc: Test Deserialize with pixmapSize exceeding available data in pixmap path
+ * @tc.type: FUNC
+ * @tc.require: DTS2026071706869
+ */
+HWTEST_F(SkiaImageTest, DeserializePixmapSizeExceedsAvailable, TestSize.Level1)
+{
+    // Build a valid image, serialize it, then tamper pixmapSize in the pixmap path (type=false)
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
+    bitmap.Build(2, 2, bitmapFormat);
+    auto image = bitmap.MakeImage();
+    ASSERT_TRUE(image != nullptr);
+
+    auto skiaImage = image->GetImpl<SkiaImage>();
+    ASSERT_TRUE(skiaImage != nullptr);
+    std::shared_ptr<Data> validData = skiaImage->Serialize();
+    ASSERT_TRUE(validData != nullptr);
+
+    // Tamper: overwrite pixmapSize (after the bool type field) with a huge value
+    // Layout: [type:bool(4bytes aligned)] [pixmapSize:4] [pixmap data...] ...
+    size_t dataSize = validData->GetSize();
+    std::shared_ptr<Data> tamperedData = std::make_shared<Data>();
+    tamperedData->BuildUninitialized(dataSize);
+    auto* bytes = static_cast<uint8_t*>(tamperedData->WritableData());
+    memcpy_s(bytes, dataSize, validData->GetData(), dataSize);
+
+    // Set type = false (0) to enter the pixmap path
+    uint32_t typeFalse = 0;
+    memcpy_s(bytes, sizeof(uint32_t), &typeFalse, sizeof(uint32_t));
+
+    // Set pixmapSize to a value larger than available buffer
+    uint32_t hugePixmapSize = static_cast<uint32_t>(dataSize) + 1000;
+    memcpy_s(bytes + sizeof(uint32_t), sizeof(uint32_t), &hugePixmapSize, sizeof(uint32_t));
+
+    std::shared_ptr<SkiaImage> newImage = std::make_shared<SkiaImage>();
+    bool ret = newImage->Deserialize(tamperedData);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: DeserializePixmapSizeZero
+ * @tc.desc: Test Deserialize with pixmapSize equal to zero in pixmap path
+ * @tc.type: FUNC
+ * @tc.require: DTS2026071706869
+ */
+HWTEST_F(SkiaImageTest, DeserializePixmapSizeZero, TestSize.Level1)
+{
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
+    bitmap.Build(2, 2, bitmapFormat);
+    auto image = bitmap.MakeImage();
+    ASSERT_TRUE(image != nullptr);
+
+    auto skiaImage = image->GetImpl<SkiaImage>();
+    ASSERT_TRUE(skiaImage != nullptr);
+    std::shared_ptr<Data> validData = skiaImage->Serialize();
+    ASSERT_TRUE(validData != nullptr);
+
+    size_t dataSize = validData->GetSize();
+    std::shared_ptr<Data> tamperedData = std::make_shared<Data>();
+    tamperedData->BuildUninitialized(dataSize);
+    auto* bytes = static_cast<uint8_t*>(tamperedData->WritableData());
+    memcpy_s(bytes, dataSize, validData->GetData(), dataSize);
+
+    // Set type = false (0)
+    uint32_t typeFalse = 0;
+    memcpy_s(bytes, sizeof(uint32_t), &typeFalse, sizeof(uint32_t));
+
+    // Set pixmapSize = 0
+    uint32_t zeroPixmapSize = 0;
+    memcpy_s(bytes + sizeof(uint32_t), sizeof(uint32_t), &zeroPixmapSize, sizeof(uint32_t));
+
+    std::shared_ptr<SkiaImage> newImage = std::make_shared<SkiaImage>();
+    bool ret = newImage->Deserialize(tamperedData);
+    EXPECT_FALSE(ret);
 }
 
 } // namespace Drawing

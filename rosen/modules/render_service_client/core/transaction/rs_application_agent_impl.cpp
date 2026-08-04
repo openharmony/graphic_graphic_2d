@@ -58,6 +58,7 @@ RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
 void RSApplicationAgentImpl::Destroy()
 {
 #ifdef OHOS_PLATFORM
+    std::lock_guard<std::mutex> lock(mutex_);
     if (gRSApplicationAgentImplInstance) {
         gRSApplicationAgentImplInstance->SetDestreuctionProcess(true);
         gRSApplicationAgentImplInstance = nullptr;
@@ -72,11 +73,10 @@ void RSApplicationAgentImpl::SetDestreuctionProcess(bool isDestreuctionProcess)
 
 void RSApplicationAgentImpl::RegisterRSApplicationAgent(std::shared_ptr<RSUIContext> rsUIContext)
 {
-    static bool isRegistered = false;
-    if (isRegistered) {
+    static std::atomic<bool> isRegistered {false};
+    if (isRegistered.exchange(true)) {
         return;
     }
-    isRegistered = true;
 #ifdef ROSEN_OHOS
      if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSApplicationAgentImpl::RegisterRSApplicationAgent rsUIContext return");

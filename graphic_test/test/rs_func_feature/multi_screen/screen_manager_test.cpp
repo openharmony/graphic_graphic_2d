@@ -305,7 +305,7 @@ static std::vector<ScreenCtx> CreateVirtualScreens(const std::string& name, uint
             return screens;
         }
 
-        RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+        RSDisplayNodeConfig displayNodeConfig = { screenId, DisplayMode::EXPAND, 0, true };
         auto displayNode = RSDisplayNode::Create(displayNodeConfig,
         RSGraphicTestDirector::Instance().GetRSUIContext());
         if (displayNode == nullptr) {
@@ -394,7 +394,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, CreateVirtualScreenTes
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
     LOGI("CreateVirtualScreenTest001: virtualScreenId=%{public}" PRIu64, virtualScreenId);
 
-    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
     LOGI("CreateVirtualScreenTest001: nodeId=%{public}" PRIu64, displayNode->GetId());
@@ -428,7 +428,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, CreateVirtualScreenTes
         "CreateVirtualScreenTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -461,7 +461,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, CreateVirtualScreenTes
         "CreateVirtualScreenTest003", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -494,7 +494,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenPowerStatusTe
 {
     ScreenPowerStatus originalState = RSInterfaces::GetInstance().GetScreenPowerStatus(0);
 
-    RSDisplayNodeConfig displayNodeConfig = { 0, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { 0, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -534,7 +534,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenPowerStatusTe
         return;
     }
 
-    RSDisplayNodeConfig displayNodeConfig = { 0, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { 0, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -577,7 +577,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenActiveModeTes
         return;
     }
 
-    RSDisplayNodeConfig displayNodeConfig = { 0, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { 0, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -614,7 +614,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetScreenActiveModeTes
         return;
     }
 
-    RSDisplayNodeConfig displayNodeConfig = { 0, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { 0, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -655,7 +655,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenResolu
         "SetVirtualScreenResolutionTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -688,7 +688,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenResolu
         "SetVirtualScreenResolutionTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -721,7 +721,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, SetVirtualScreenResolu
         "SetVirtualScreenResolutionTest003", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -814,7 +814,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, VirtualScreenCaptureTe
         "VirtualScreenCaptureTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 
@@ -848,7 +848,7 @@ GRAPHIC_N_TEST(RSScreenManagerTest, CONTENT_DISPLAY_TEST, VirtualScreenCaptureTe
         "VirtualScreenCaptureTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, false, 0, true };
+    RSDisplayNodeConfig displayNodeConfig = { virtualScreenId, DisplayMode::EXPAND, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
 

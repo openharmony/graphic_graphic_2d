@@ -25,6 +25,7 @@
 #include "egl_wrapper_context.h"
 #include "egl_wrapper_display.h"
 #include "egl_wrapper_loader.h"
+#include "egl_wrapper_entry.h"
 #include "thread_private_data_ctl.h"
 #include "wrapper_log.h"
 #include "egl_blob_cache.h"

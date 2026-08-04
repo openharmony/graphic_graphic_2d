@@ -102,12 +102,14 @@ bool RSImageDetailEnhancerThread::RegisterCallback(const std::function<void(uint
         RS_LOGE("RSImageDetailEnhancerThread RegisterCallback failed, callback is invalid!");
         return false;
     }
+    std::lock_guard<std::mutex> lock(callbackMutex_);
     callback_ = callback;
     return true;
 }
 
 void RSImageDetailEnhancerThread::MarkScaledImageDirty(uint64_t nodeId)
 {
+    std::lock_guard<std::mutex> lock(callbackMutex_);
     if (callback_ == nullptr) {
         RS_LOGE("RSImageDetailEnhancerThread MarkScaledImageDirty failed!");
         return;
@@ -123,7 +125,8 @@ bool RSImageDetailEnhancerThread::IsSizeSupported(int srcWidth, int srcHeight, i
     }
 
     // Limit upscale target to 1080P
-    if (srcWidth < dstWidth && srcHeight < dstHeight && srcWidth * srcHeight > MAX_SCALEUP_SIZE) {
+    if (srcWidth < dstWidth && srcHeight < dstHeight &&
+        static_cast<long long>(srcWidth) * srcHeight > MAX_SCALEUP_SIZE) {
         return false;
     }
 
@@ -288,7 +291,7 @@ void RSImageDetailEnhancerThread::ExecuteTaskAsync(const Drawing::Rect& dst,
     int srcWidth = image->GetWidth();
     int srcHeight = image->GetHeight();
     float scaleRatio = static_cast<float>(dstWidth) / static_cast<float>(srcWidth);
-    if (scaleRatio > slrParams_.rangeParams.back().rangeMax) {
+    if (!slrParams_.rangeParams.empty() && scaleRatio > slrParams_.rangeParams.back().rangeMax) {
         dstImage = ScaleByAAE(dstSurfaceBuffer, image);
     }
     if (dstImage == nullptr) {
@@ -563,11 +566,11 @@ std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth,
     auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
     std::unique_ptr<NativeBufferUtils::NativeSurfaceInfo> nativeSurfaceInfo =
         std::make_unique<NativeBufferUtils::NativeSurfaceInfo>();
-    OHNativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&dstSurfaceBuffer);
     if (nativeSurfaceInfo == nullptr) {
         RS_LOGE("DetailEnhancerUtils InitSurface failed, nativeSurfaceInfo is invalid!");
         return nullptr;
     }
+    OHNativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&dstSurfaceBuffer);
     if (nativeWindowBuffer == nullptr) {
         RS_LOGE("DetailEnhancerUtils InitSurface failed, nativeWindowBuffer is invalid!");
         return nullptr;
@@ -683,7 +686,11 @@ sptr<SurfaceBuffer> DetailEnhancerUtils::CreateSurfaceBuffer(const std::shared_p
         .timeout = 0,
         .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
     };
-    surfaceBuffer->Alloc(bufConfig);
+    GSError allocRect = surfaceBuffer->Alloc(bufConfig);
+    if (allocRect != GSERROR_OK) {
+        RS_LOGE("DetailEnhancerUtils dst buffer alloc failed");
+        return nullptr;
+    }
 #ifndef ROSEN_CROSS_PLATFORM
     auto srcSurfaceBuffer = static_cast<SurfaceBuffer*>(pixelMap->GetFd());
     if (srcSurfaceBuffer == nullptr) {
@@ -725,8 +732,8 @@ float DetailEnhancerUtils::GetImageSize(const std::shared_ptr<Drawing::Image>& i
     if (image == nullptr) {
         return 0.0f;
     }
-    return static_cast<float>(image->GetWidth() * image->GetHeight()
-        * CHANNELS_CNT / MEMUNIT_RATE / MEMUNIT_RATE);
+    return static_cast<float>(image->GetWidth()) * image->GetHeight()
+        * CHANNELS_CNT / MEMUNIT_RATE / MEMUNIT_RATE;
 }
 
 long long DetailEnhancerUtils::GetCurTime() const

@@ -15,6 +15,7 @@
 
 #include "effect_image_render.h"
 #include "effect_utils.h"
+#include "common/rs_common_def.h"
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
@@ -37,7 +38,7 @@ static Vector4f GetLimitedPara(const Vector4f& para, float minThreshold)
 
 std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, Drawing::TileMode tileMode)
 {
-    if (radius < RADIUS_THRESHOLD) {
+    if (ROSEN_LNE(radius, RADIUS_THRESHOLD)) {
         return nullptr;
     }
 
@@ -46,7 +47,7 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, Drawing
 
 std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, float angle, Drawing::TileMode tileMode)
 {
-    if (radius < RADIUS_THRESHOLD) {
+    if (ROSEN_LNE(radius, RADIUS_THRESHOLD)) {
         return nullptr;
     }
 
@@ -56,7 +57,7 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, float a
 std::shared_ptr<EffectImageFilter> EffectImageFilter::Scale(float scaleX, float scaleY,
     Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
 {
-    if (scaleX <= 0 || scaleY <= 0) {
+    if (ROSEN_LE(scaleX, 0.0f) || ROSEN_LE(scaleY, 0.0f)) {
         return nullptr;
     }
     return std::make_shared<EffectImageScaleFilter>(scaleX, scaleY, filterMode, mipmapMode);
@@ -99,7 +100,7 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::EllipticalGradientBlur(flo
 
 std::shared_ptr<EffectImageFilter> EffectImageFilter::Brightness(float degree)
 {
-    if (degree < BRIGHTNESS_MIN_THRESHOLD || degree > BRIGHTNESS_MAX_THRESHOLD) {
+    if (ROSEN_LNE(degree, BRIGHTNESS_MIN_THRESHOLD) || ROSEN_GNE(degree, BRIGHTNESS_MAX_THRESHOLD)) {
         return nullptr;
     }
 

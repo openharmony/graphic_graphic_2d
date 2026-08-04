@@ -103,7 +103,8 @@ public:
     std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override;
 
     GraphicColorGamut GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams);
-    void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+        const std::shared_ptr<RSVirtualScreenParallelManager>& virtualScreenParallelManager);
 
     void SetUIExtensionNeedToDraw(bool needToDraw) override
     {
@@ -180,7 +181,8 @@ private:
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
 
     void DrawSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas,
-        const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
+        const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params,
+        const std::shared_ptr<RSVirtualScreenParallelManager>& virtualScreenParallelManager);
 
     // Draw cloneNode
     bool DrawCloneNode(RSPaintFilterCanvas& canvas, RSRenderThreadParams& uniParam,
@@ -202,7 +204,8 @@ private:
     bool DrawCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
     void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-    void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+        const std::shared_ptr<RSVirtualScreenParallelManager>& virtualScreenParallelManager);
 
     int GetMaxRenderSizeForRotationOffscreen(int& offscreenWidth, int& offscreenHeight);
     void ApplyCanvasScalingIfDownscaleEnabled();

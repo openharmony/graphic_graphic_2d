@@ -432,35 +432,35 @@ bool RSInterfaces::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginN
     return false;
 }
 
-int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
+bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
 {
     if (tf == nullptr) {
-        return INVALID_FD;
+        return false;
     }
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        int32_t result = INVALID_FD;
+        bool success = false;
         if (tf->GetFd() == INVALID_FD) {
             RS_LOGI("RSInterfaces: Register typeface without share memory, name: %{public}s hash: %{public}u",
                 tf->GetFamilyName().c_str(), tf->GetHash());
-            result = renderServiceClient_->RegisterTypeface(tf);
+            success = renderServiceClient_->RegisterTypeface(tf);
         } else {
             RS_LOGI("RSInterfaces: Register typeface with share memory, name: %{public}s hash: %{public}u",
                 tf->GetFamilyName().c_str(), tf->GetHash());
-            result = renderServiceClient_->RegisterTypeface(tf, tf->GetIndex());
+            success = (renderServiceClient_->RegisterTypeface(tf, tf->GetIndex()) != INVALID_FD);
         }
-        if (result != INVALID_FD) {
+        if (success) {
             Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
         } else {
             RS_LOGE("RSInterfaces: Failed to register typeface, name: %{public}s hash: %{public}u",
                 tf->GetFamilyName().c_str(), tf->GetHash());
         }
-        return result;
+        return success;
     }
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
         tf->GetFamilyName().c_str(), tf->GetUniqueID());
     Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
-    return tf->GetFd();
+    return true;
 }
 
 bool RSInterfaces::UnRegisterTypeface(uint32_t uniqueId)

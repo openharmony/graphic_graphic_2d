@@ -69,7 +69,7 @@ void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerCo
         context->AddRSRenderLayer(layerId, rsLayer);
     }
     if (!rsLayer->IsScreenRCDLayer()) {
-        // Rcdlayer initialized as RSRenderSurfaceLayer must be convert to RSRenderSurfaceRCDLayer vis pixelmap property
+        // Rcdlayer initialized as RSRenderSurfaceLayer must be convert to RSRenderSurfaceRCDLayer via pixelmap property
         auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
         rcdLayer->CopyLayerInfo(rsLayer);
         rcdLayer->UpdateRSLayerCmd(command);

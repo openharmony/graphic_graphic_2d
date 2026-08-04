@@ -1237,6 +1237,41 @@ HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnored_WithClipToFrame_AndDrawRect
 }
 
 /*
+ * @tc.name: IsSubTreeShouldIgnored_WithSharedTransitionParam
+ * @tc.desc: Test IsSubTreeShouldIgnored when GetSharedTransitionParam is not null
+ * @tc.type: FUNC
+ * @tc.require: issue25374
+ */
+HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnored_WithSharedTransitionParam, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSRenderNode>(firstNodeId);
+    std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(secondNodeId);
+    auto param = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
+    renderNode->SetSharedTransitionParam(param);
+    RSProperties renderProperties;
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties));
+}
+
+/*
+ * @tc.name: IsSubTreeShouldIgnored_WithSuggestOpincNode
+ * @tc.desc: Test IsSubTreeShouldIgnored when node is a suggested opinc node
+ * @tc.type: FUNC
+ * @tc.require: issue25374
+ */
+HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnored_WithSuggestOpincNode, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
+    renderNode->MarkSuggestOpincNode(true, false);
+    RSProperties renderProperties;
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties));
+}
+
+/*
  * @tc.name: CalculateDrawRect_WithEmptyBounds
  * @tc.desc: Test CalculateDrawRect when bounds width and height are non-positive
  * @tc.type: FUNC
@@ -1582,7 +1617,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_FilterRectCollectedWhenIgnor
     renderNode->GetFilterRegionInfo().filterRegion_ = RectI(5, 5, 50, 50);
 
     renderNode->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
-
+    renderNode->isTextureExportNode_ = true;
     childNode->CollectNodeProperties(*renderNode);
 
     EXPECT_TRUE(childNode->isSubTreeIgnored_);

@@ -49,6 +49,8 @@ namespace {
 constexpr const size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 constexpr const int WAIT_HANDLER_TIME = 1; // 1S
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
+constexpr const int INVALID_PIDLIST_SIZE = 129;
+constexpr const int INVALID_EVENT_DATA_SIZE = 101;
 
 class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
 public:
@@ -280,6 +282,82 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList002, T
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     std::vector<int32_t> pidList;
     data.WriteInt32Vector(pidList);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetGpuCrcDirtyEnabledPidList003
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of pidList exceeds the maximum value
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
+    data.WriteInt32Vector(pidList);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: HandleHwcEvent001
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of eventData exceeds the maximum value
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, HandleHwcEvent001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
+    std::vector<int32_t> eventData(INVALID_EVENT_DATA_SIZE, 0);
+    uint32_t deviceId{0};
+    uint32_t eventId{0};
+
+    data.WriteUint32(deviceId);
+    data.WriteUint32(eventId);
+    data.WriteInt32Vector(eventData);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: HandleHwcEvent002
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of pidList is valid
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, HandleHwcEvent002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
+    std::vector<int32_t> eventData;
+    uint32_t deviceId{0};
+    uint32_t eventId{0};
+
+    data.WriteInt32Vector(eventData);
+    data.WriteUint32(deviceId);
+    data.WriteUint32(eventId);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_NONE);
 }
@@ -1045,6 +1123,58 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart003, TestSize.Lev
 }
 
 /**
+ * @tc.name: AvcodecVideoStart004
+ * @tc.desc: Test AvcodecVideoStart when uniqueIdList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    std::vector<uint64_t> uniqueIdList(9, 1000);
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 60;
+    uint64_t reportTime = 1000;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    data.WriteUint64(reportTime);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStart005
+ * @tc.desc: Test AvcodecVideoStart when surfaceNameList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    std::vector<uint64_t> uniqueIdList = {1000};
+    std::vector<std::string> surfaceNameList(9, "surface");
+    uint32_t fps = 60;
+    uint64_t reportTime = 1000;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    data.WriteUint64(reportTime);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: AvcodecVideoStop001
  * @tc.desc: Test AvcodecVideoStop when reading data fails
  * @tc.type: FUNC
@@ -1109,6 +1239,54 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop003, TestSize.Leve
     data.WriteUint32(fps);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop004
+ * @tc.desc: Test AvcodecVideoStop when uniqueIdList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    std::vector<uint64_t> uniqueIdList(9, 1000);
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 60;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop005
+ * @tc.desc: Test AvcodecVideoStop when surfaceNameList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    std::vector<uint64_t> uniqueIdList = {1000};
+    std::vector<std::string> surfaceNameList(9, "surface");
+    uint32_t fps = 60;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**

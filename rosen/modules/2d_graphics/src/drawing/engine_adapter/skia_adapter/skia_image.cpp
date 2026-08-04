@@ -694,7 +694,10 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
         writer.writeImage(skiaImage_.get());
         size_t length = writer.bytesWritten();
         std::shared_ptr<Data> data = std::make_shared<Data>();
-        data->BuildUninitialized(length);
+        if (!data->BuildUninitialized(length)) {
+            LOGD("SkiaImage::Serialize, BuildUninitialized failed.");
+            return nullptr;
+        }
         writer.writeToMemory(data->WritableData());
         return data;
     } else {
@@ -734,7 +737,10 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
         }
         size_t length = writer.bytesWritten();
         std::shared_ptr<Data> data = std::make_shared<Data>();
-        data->BuildUninitialized(length);
+        if (!data->BuildUninitialized(length)) {
+            LOGD("SkiaImage::Serialize, BuildUninitialized failed.");
+            return nullptr;
+        }
         writer.writeToMemory(data->WritableData());
         return data;
     }
@@ -755,6 +761,9 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
         return skiaImage_ != nullptr;
     } else {
         size_t pixmapSize = reader.readUInt();
+        if (pixmapSize == 0 || pixmapSize > reader.available()) {
+            return false;
+        }
         SkAutoMalloc pixBuffer(pixmapSize);
         if (!reader.readByteArray(pixBuffer.get(), pixmapSize)) {
             return false;
@@ -772,6 +781,9 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
         if (size == 0) {
             colorSpace = nullptr;
         } else {
+            if (size > reader.available()) {
+                return false;
+            }
             SkAutoMalloc colorBuffer(size);
             if (!reader.readByteArray(colorBuffer.get(), size)) {
                 return false;

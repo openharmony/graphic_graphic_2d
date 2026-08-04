@@ -17,6 +17,7 @@
 #include "hilog/log.h"
 #include "effect_errors.h"
 #include "effect_utils.h"
+#include "common/rs_common_def.h"
 #include "color.h"
 #include "pixel_map.h"
 #include "include/core/SkBitmap.h"
@@ -842,10 +843,10 @@ HSV ColorPicker::RGB2HSV(uint32_t rgb) const
         s = delta / maxComponent;
     }
 
-    if (maxComponent == minComponent) {
+    if (ROSEN_EQ(maxComponent, minComponent)) {
         h = 0.0;
     } else {
-        if (delta == 0) {
+        if (ROSEN_EQ(delta, 0.0)) {
             return hsv;
         }
         if (IsEquals(r, maxComponent) && g >= b) {

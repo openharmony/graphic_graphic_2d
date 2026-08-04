@@ -341,7 +341,7 @@ napi_value JsPen::SetImageFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsImageFilter* jsImageFilter = nullptr;
-    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsImageFilter);
+    GET_UNWRAP_PARAM_S_OR_NULL(ARGC_ZERO, jsImageFilter, &JsImageFilter::NAPI_TYPE_TAG);
 
     Filter filter = pen->GetFilter();
     filter.SetImageFilter(jsImageFilter != nullptr ? jsImageFilter->GetImageFilter() : nullptr);

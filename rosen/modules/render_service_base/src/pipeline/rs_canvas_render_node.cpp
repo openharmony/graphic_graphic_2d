@@ -388,7 +388,7 @@ void RSCanvasRenderNode::OnSetPixelmap(const std::shared_ptr<Media::PixelMap>& p
     float scaler = RSColorSpaceConvert::GetDefaultHDRScaler();
     auto& rsLuminance = RSLuminanceControl::Get();
     if (staticMetadataVec.size() != sizeof(HdrStaticMetadata)) {
-        RS_LOGD("bhdr staticMetadataVec size is invalid");
+        RS_LOGD_IF(DEBUG_NODE, "bhdr staticMetadataVec size is invalid");
         scaler = GetHDRBrightness() * (scaler - 1.0f) + 1.0f;
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(staticMetadataVec.data());

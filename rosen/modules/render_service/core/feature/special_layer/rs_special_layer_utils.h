@@ -48,9 +48,8 @@ public:
     static bool NeedProcessSecLayerInDisplay(bool enableVisibleRect, RSScreenRenderParams& mirrorScreenParam,
         RSLogicalDisplayRenderParams& mirrorParam, RSLogicalDisplayRenderParams& sourceParam);
     static bool HasMirrorDisplay(const RSRenderNodeMap& nodeMap);
-    static std::unordered_set<uint64_t> GetAllBlackList(const RSRenderNodeMap& nodeMap);
-    static std::unordered_set<uint64_t> GetAllWhiteList(const RSRenderNodeMap& nodeMap);
-    static std::unordered_set<NodeId> GetMergeBlackList(const RSScreenProperty& screenProperty);
+    static std::unordered_set<NodeId> GetMergeBlackListInMainThread(const RSScreenProperty& screenProperty);
+    static std::unordered_set<NodeId> GetMergeBlackListInRenderThread(const RSScreenProperty& screenProperty);
     static void UpdateInfoWithGlobalBlackList(const RSRenderNodeMap& nodeMap);
     static void UpdateScreenSpecialLayer(const RSScreenProperty& screenProperty);
     static void UpdateScreenSpecialLayer(const RSScreenProperty& screenProperty, ScreenPropertyType type);

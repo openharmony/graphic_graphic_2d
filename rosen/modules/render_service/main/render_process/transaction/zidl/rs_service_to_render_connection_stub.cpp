@@ -34,9 +34,12 @@ namespace {
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_LIST_SIZE = 50;
 #ifdef RS_ENABLE_TV_PQ_METADATA
-static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
 constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
+constexpr size_t PIDLIST_SIZE_MAX = 128;
+constexpr size_t HWC_EVENT_DATA_SIZE_MAX = 100;
+constexpr uint32_t ACVIDEO_VECTOR_MAX_LENGTH = 8;
 } // namespace
 
 static void TypefaceXcollieCallback(void* arg)
@@ -84,8 +87,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
             if (hasComposerConn) {
-                if (auto remoteObj1 = data.ReadRemoteObject()) {
-                    renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                auto remoteObj1 = data.ReadRemoteObject();
+                if (!remoteObj1) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER renderToComposerConn "
+                            "remote object is null",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+                renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                if (!renderToComposerConn) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER renderToComposerConn iface_cast failed",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
             }
             bool hasComposerToRenderConn = false;
@@ -96,8 +111,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
             if (hasComposerToRenderConn) {
-                if (auto remoteObj2 = data.ReadRemoteObject()) {
-                    composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                auto remoteObj2 = data.ReadRemoteObject();
+                if (!remoteObj2) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER composerToRenderConn "
+                            "remote object is null",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+                composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                if (!composerToRenderConn) {
+                    RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER composerToRenderConn iface_cast failed",
+                        __func__);
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
             }
             auto replyMessage =
@@ -240,6 +267,13 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (uniqueIdList.size() > ACVIDEO_VECTOR_MAX_LENGTH || surfaceNameList.size() > ACVIDEO_VECTOR_MAX_LENGTH) {
+                RS_LOGE("RSServiceToRenderStub::AVCODEC_VIDEO_START vector size exceeds max, "
+                    "uniqueIdList:%{public}zu, surfaceNameList:%{public}zu, max:%{public}u.",
+                    uniqueIdList.size(), surfaceNameList.size(), ACVIDEO_VECTOR_MAX_LENGTH);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t result = AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSServiceToRenderStub::AVCODEC_VIDEO_START Write status failed!");
@@ -254,6 +288,13 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             if (!data.ReadUInt64Vector(&uniqueIdList) || !data.ReadStringVector(&surfaceNameList) ||
                 !data.ReadUint32(fps)) {
                 RS_LOGE("RSServiceToRenderStub::AVCODEC_VIDEO_STOP : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (uniqueIdList.size() > ACVIDEO_VECTOR_MAX_LENGTH || surfaceNameList.size() > ACVIDEO_VECTOR_MAX_LENGTH) {
+                RS_LOGE("RSServiceToRenderStub::AVCODEC_VIDEO_STOP vector size exceeds max, "
+                    "uniqueIdList:%{public}zu, surfaceNameList:%{public}zu, max:%{public}u.",
+                    uniqueIdList.size(), surfaceNameList.size(), ACVIDEO_VECTOR_MAX_LENGTH);
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -544,7 +585,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (mapSize <= 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
+            if (mapSize == 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -887,15 +928,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                            "size number is too large.");
                 break;
             }
+            bool shouldBreak = false;
             for (uint32_t i = 0; i < size; ++i) {
                 pid_t pid;
                 if (!data.ReadInt32(pid)) {
                     ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
                                "pid failed");
                     ret = ERR_INVALID_REPLY;
+                    shouldBreak = true;
                     break;
                 }
                 constraint.pids.insert(pid);
+            }
+            if (shouldBreak) {
+                break;
             }
             if (!data.ReadInt32(constraint.range.lowLimit.width) || !data.ReadInt32(constraint.range.lowLimit.height) ||
                 !data.ReadInt32(constraint.range.highLimit.width) ||
@@ -989,6 +1035,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (eventData.size() > HWC_EVENT_DATA_SIZE_MAX) {
+                RS_LOGE("HandleHwcEvent: eventData size %{public}zu exceeds max %{public}zu.",
+                    eventData.size(), HWC_EVENT_DATA_SIZE_MAX);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             HandleHwcEvent(deviceId, eventId, eventData);
             break;
         }
@@ -996,6 +1048,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             std::vector<int32_t> pidList;
             if (!data.ReadInt32Vector(&pidList)) {
                 RS_LOGE("SetGpuCrcDirtyEnabledPidList: read pidList err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (pidList.size() > PIDLIST_SIZE_MAX) {
+                RS_LOGE("SetGpuCrcDirtyEnabledPidList: pidList size %{public}zu exceeds max %{public}zu.",
+                    pidList.size(), PIDLIST_SIZE_MAX);
                 ret = ERR_INVALID_DATA;
                 break;
             }

@@ -38,7 +38,7 @@ std::shared_ptr<RSLayer> RSSurfaceRCDLayer::Create(RSLayerId rsLayerId,
     }
     std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
     if (layer != nullptr && layer->IsScreenRCDLayer()) {
-        RS_LOGD("%{public}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
+        RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
         layer->SetRSLayerId(rsLayerId);
         return layer;
     }

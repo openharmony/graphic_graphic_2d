@@ -140,8 +140,7 @@ RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
         return RegisterError::SUCCESS;
     }
 
-    int32_t fd = Drawing::Typeface::GetTypefaceRegisterCallBack()(ta.GetTypeface());
-    if (fd == -1) {
+    if (!Drawing::Typeface::GetTypefaceRegisterCallBack()(ta.GetTypeface())) {
         TEXT_LOGE("Failed to register typeface %{public}s", ta.GetAlias().c_str());
         return RegisterError::REGISTER_FAILED;
     }

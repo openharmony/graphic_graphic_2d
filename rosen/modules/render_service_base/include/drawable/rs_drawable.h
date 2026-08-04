@@ -62,6 +62,7 @@ enum class RSDrawableSlot : int8_t {
     FOREGROUND_FILTER,
     OUTLINE,
     MATERIAL_SHADER,
+    SAVE_CLIP_TO_BOUNDS,
 
     // BG properties in Bounds Clip
     BG_SAVE_BOUNDS,

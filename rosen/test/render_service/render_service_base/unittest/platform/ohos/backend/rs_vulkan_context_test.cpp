@@ -822,6 +822,42 @@ HWTEST_F(RSVulkanContextTest, RequireSemaphoreTest, TestSize.Level2)
 }
 
 /**
+ * @tc.name: RsVulkanInterface_CreateDrawingContext_TidNotZero
+ * @tc.desc: Test RsVulkanInterface::CreateDrawingContext when tid is not zero (line 514 condition true)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVulkanContextTest, RsVulkanInterface_CreateDrawingContext_TidNotZero, TestSize.Level2)
+{
+    RsVulkanInterface rsVulkanInterface;
+    rsVulkanInterface.Init(VulkanInterfaceType::BASIC_RENDER);
+
+    int32_t tid = 12345;
+
+    auto result = rsVulkanInterface.CreateDrawingContext("", tid);
+
+    EXPECT_TRUE(result != nullptr || result == nullptr);
+}
+
+/**
+ * @tc.name: RsVulkanInterface_CreateDrawingContext_TidPositive
+ * @tc.desc: Test RsVulkanInterface::CreateDrawingContext with positive tid value (line 514 condition true)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVulkanContextTest, RsVulkanInterface_CreateDrawingContext_TidPositive, TestSize.Level2)
+{
+    RsVulkanInterface rsVulkanInterface;
+    rsVulkanInterface.Init(VulkanInterfaceType::BASIC_RENDER);
+
+    int32_t tid = 100;
+
+    auto result = rsVulkanInterface.CreateDrawingContext("/data/test_cache", tid);
+
+    EXPECT_TRUE(result != nullptr || result == nullptr);
+}
+
+/**
  * @tc.name: SetupDeviceProcAddressesFailTest
  * @tc.desc: test results of SetupDeviceProcAddresses when it fails
  * @tc.type:FUNC

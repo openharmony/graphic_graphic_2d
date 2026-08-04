@@ -51,7 +51,9 @@ static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemp
 const uint32_t MAX_VOTER_SIZE = 100;
 constexpr uint32_t MAX_SURFACE_REGION_CONFIG_COUNT = 16;
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
-static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+constexpr uint32_t MAX_XCOMPONENT_ID_LEN = 256;
+constexpr uint32_t MAX_PAGE_NAME_LEN = 256;
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "client_to_service";
@@ -401,8 +403,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BACKGROUND_REBUILD_ENABLED): {
-            bool enable;
-            if (GetBackgroundRebuildEnabled(enable) != ERR_OK || !reply.WriteBool(enable)) {
+            uint8_t enable = 0;
+            if (GetBackgroundRebuildEnabled(enable) != ERR_OK || !reply.WriteUint8(enable)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_BACKGROUND_REBUILD_ENABLED read enable failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -1679,6 +1681,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (scaleMode >= static_cast<uint32_t>(ScreenScaleMode::INVALID_MODE)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE scaleMode is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool result = SetVirtualMirrorScreenScaleMode(id, static_cast<ScreenScaleMode>(scaleMode));
             if (!reply.WriteBool(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE Write parcel failed!");
@@ -1926,9 +1933,14 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t pixel{0};
-            if (!data.ReadInt32(pixel)) {
+            uint32_t pixel{0};
+            if (!data.ReadUint32(pixel)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_PIXEL_FORMAT read pixelFormat failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (pixel >= GRAPHIC_PIXEL_FMT_BUTT) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_PIXEL_FORMAT pixelFormat is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2205,6 +2217,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (!unmarshallingRes) {
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE Unmarshalling failed!");
                 ret = ERR_INVALID_DATA;
+                ::close(sharedTypeface.fd_);
                 break;
             }
             // safe check
@@ -2711,6 +2724,10 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (id.size() > MAX_XCOMPONENT_ID_LEN) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
             break;
         }
@@ -3083,6 +3100,10 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (packageName.size() > MAX_PAGE_NAME_LEN || pageName.size() > MAX_PAGE_NAME_LEN) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             NotifyPageName(packageName, pageName, isEnter);
             break;
         }
@@ -3187,7 +3208,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (mapSize <= 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
+            if (mapSize == 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
                 ret = ERR_INVALID_DATA;
                 break;
             }

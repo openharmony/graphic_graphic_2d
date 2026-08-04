@@ -164,6 +164,7 @@ void MemorySnapshot::FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshot
 
 size_t MemorySnapshot::GetTotalMemory()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return totalCpuMemory_ + totalGpuMemory_;
 }
 

@@ -236,8 +236,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
 
     auto existingBuffer = surfaceHandler->GetBuffer();
     if (existingBuffer != nullptr && existingBuffer->GetSize() != pendingBuffer.buffer->GetSize()) {
-        RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());
-        pendingBuffer.bufferOwnerCount_->ClearReleaseCallback();
+        pendingBuffer.bufferOwnerCount_->OnBufferReleased();
         return false;
     }
 
@@ -248,8 +247,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     if (!canCommit || consumer == nullptr || composerClientManager == nullptr) {
         tunnelRuntime.SetLayerInfo(0, TUNNEL_PROP_INVALID);
         tunnelRuntime.SetBuilding();
-        RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());
-        pendingBuffer.bufferOwnerCount_->ClearReleaseCallback();
+        pendingBuffer.bufferOwnerCount_->OnBufferReleased();
         return false;
     }
 
@@ -263,8 +261,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     if (!CommitBuffer(commitInfo, composerClientManager, releaseFence)) {
         tunnelRuntime.SetLayerInfo(0, TUNNEL_PROP_INVALID);
         tunnelRuntime.SetBuilding();
-        RSUniRenderThread::Instance().ReleaseBufferById(pendingBuffer.buffer->GetBufferId());
-        pendingBuffer.bufferOwnerCount_->ClearReleaseCallback();
+        pendingBuffer.bufferOwnerCount_->OnBufferReleased();
         return false;
     }
 
@@ -445,8 +442,8 @@ RSTunnelLayerHelper::ListenerHandleResult RSTunnelLayerHelper::HandleListenerBuf
     }
     auto claimedFrom = RSTunnelRuntimeState::Phase::TUNNEL_IDLE;
     if (!tunnelRuntime.TryClaimByListener(claimedFrom)) {
-        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, nodeId=%" PRIu64 ", reason=phase,"
-            "phase=%s, pending=%d, claimedFrom:%d",
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, nodeId=%" PRIu64 ", reason=phase, phase=%s, "
+            "pending=%d, claimedFrom:%d",
             __func__, node->GetId(), ToPhaseName(tunnelRuntime.GetPhase()),
             tunnelRuntime.IsPendingParam(), claimedFrom);
         RS_LOGD("TUNNEL_DEBUG %{public}s rejected, nodeId:%{public}" PRIu64

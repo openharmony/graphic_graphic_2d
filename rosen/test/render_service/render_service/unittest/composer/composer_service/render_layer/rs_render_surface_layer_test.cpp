@@ -1508,3 +1508,40 @@ HWTEST(RSRenderSurfaceLayerTest, Dump_AllProperties_OutputContainsAllFields, Tes
     EXPECT_NE(result.find("surfaceName = full_dump_test"), std::string::npos);
     EXPECT_NE(result.find("ancoSrcRect = [10, 20, 30, 40]"), std::string::npos);
 }
+
+/**
+ * Function: UpdateRSLayerCmd_GlassFree3D_Applied
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create layer and GlassFree3D command
+ *                  2. call UpdateRSLayerCmd
+ *                  3. expect GetGlassFree3D equals set value
+ */
+HWTEST(RSRenderSurfaceLayerTest, UpdateRSLayerCmd_GlassFree3D_Applied, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+    auto cmd = std::make_shared<RSRenderLayerGlassFree3DCmd>(prop);
+    layer->UpdateRSLayerCmd(cmd);
+    EXPECT_TRUE(layer->GetGlassFree3D());
+}
+
+/**
+ * Function: SetGlassFree3D_GetGlassFree3D
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create layer
+ *                  2. call SetGlassFree3D
+ *                  3. expect GetGlassFree3D equals set value
+ */
+HWTEST(RSRenderSurfaceLayerTest, SetGlassFree3D_GetGlassFree3D, TestSize.Level1)
+{
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    EXPECT_FALSE(layer->GetGlassFree3D());
+    layer->SetGlassFree3D(true);
+    EXPECT_TRUE(layer->GetGlassFree3D());
+    layer->SetGlassFree3D(false);
+    EXPECT_FALSE(layer->GetGlassFree3D());
+}

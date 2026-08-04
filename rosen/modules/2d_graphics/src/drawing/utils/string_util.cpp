@@ -26,12 +26,13 @@ bool IsUtf8(const char* text, int len)
     int n;
     int i = 0;
     while (i < len) {
-        uint32_t c = text[i];
+        uint32_t c = static_cast<uint8_t>(text[i]);
         if (c <= 0x7F) { // 0x00 and 0x7F is the range of utf-8
             n = 0;
         } else if ((c & 0xE0) == 0xC0) { // 0xE0 and 0xC0 is the range of utf-8
             n = 1;
-        } else if (c == 0xED && i < (len - 1) && (text[i + 1] & 0xA0) == 0xA0) { // 0xA0 and 0xED is the range of utf-8
+        } else if (c == 0xED && i < (len - 1) &&
+            (static_cast<uint8_t>(text[i + 1]) & 0xA0) == 0xA0) { // 0xA0 and 0xED is the range of utf-8
             return false;
         } else if ((c & 0xF0) == 0xE0) { // 0xE0 and 0xF0 is the range of utf-8
             n = 2;                       // 2 means the size of range

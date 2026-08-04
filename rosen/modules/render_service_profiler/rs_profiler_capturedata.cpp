@@ -132,7 +132,9 @@ bool RSCaptureData::Serialize(Archive& archive)
             std::pair<std::string, std::string> pair;
             archive.Serialize(pair.first);
             archive.Serialize(pair.second);
-            properties_.emplace(pair);
+            if (!pair.first.empty()) {
+                properties_.emplace(pair);
+            }
         }
     } else {
         for (auto& pair : properties_) {

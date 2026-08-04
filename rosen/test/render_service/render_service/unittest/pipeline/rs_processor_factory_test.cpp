@@ -138,13 +138,13 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor_UNI_RENDER_VIRTUAL, TestSize.Le
     std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
     RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
 #ifdef RS_ENABLE_GPU
-    auto pm = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
-    auto pe = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_EXPAND_COMPOSITE, 0);
+    auto pm = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, 0);
+    auto pe = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE, 0);
     EXPECT_NE(pm, nullptr);
     EXPECT_NE(pe, nullptr);
 #else
-    auto pm = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
-    auto pe = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_EXPAND_COMPOSITE, 0);
+    auto pm = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE, 0);
+    auto pe = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE, 0);
     EXPECT_EQ(pm, nullptr);
     EXPECT_EQ(pe, nullptr);
 #endif

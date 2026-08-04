@@ -47,6 +47,7 @@ public:
         const SetHardwareTaskNumCallback& setHardwareTaskNumCb,
         const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
         const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb);
+    void DumpVKImageInfo(std::string& dumpString);
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap_;

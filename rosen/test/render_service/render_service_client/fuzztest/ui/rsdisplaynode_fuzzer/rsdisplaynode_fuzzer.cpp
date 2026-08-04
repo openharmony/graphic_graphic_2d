@@ -51,11 +51,14 @@ T GetData()
 inline RSDisplayNodeConfig GetRSDisplayNodeConfigFromData()
 {
     uint64_t screenId = GetData<uint64_t>();
-    bool isMirrored = GetData<bool>();
+    uint8_t displayModeVal = GetData<uint8_t>();
+    DisplayMode displayMode = static_cast<DisplayMode>(displayModeVal);
     NodeId mirrorNodeId = GetData<uint64_t>();
     bool isSync = GetData<bool>();
+    uint32_t mirrorSourceRotation = GetData<uint32_t>();
+    float positionZ = GetData<float>();
 
-    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId, isSync };
+    RSDisplayNodeConfig config = { screenId, displayMode, mirrorNodeId, isSync, mirrorSourceRotation, positionZ };
     return config;
 }
 } // namespace
@@ -107,7 +110,7 @@ bool DoUnmarshalling()
     Parcel parcel;
     parcel.WriteUint64(GetData<uint64_t>());
     parcel.WriteUint64(GetData<uint64_t>());
-    parcel.WriteBool(GetData<bool>());
+    parcel.WriteUint8(GetData<uint8_t>());
     displayNode->Unmarshalling(parcel);
     return true;
 }
@@ -151,7 +154,7 @@ bool DoSetScreenRotation()
     return true;
 }
 
-bool DoSetDisplayNodeMirrorConfig()
+bool DoSetDisplayMode()
 {
     // test
     RSDisplayNodeConfig config = GetRSDisplayNodeConfigFromData();
@@ -160,7 +163,7 @@ bool DoSetDisplayNodeMirrorConfig()
         return false;
     }
     RSDisplayNodeConfig config2 = GetRSDisplayNodeConfigFromData();
-    displayNode->SetDisplayNodeMirrorConfig(config2);
+    displayNode->SetDisplayNodeConfig(config2);
     return true;
 }
 
@@ -221,7 +224,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScreenId();
     OHOS::Rosen::DoSetSecurityDisplay();
     OHOS::Rosen::DoSetScreenRotation();
-    OHOS::Rosen::DoSetDisplayNodeMirrorConfig();
+    OHOS::Rosen::DoSetDisplayMode();
     OHOS::Rosen::DoSetBootAnimation();
     OHOS::Rosen::DoCreateNode();
     OHOS::Rosen::DoSetVirtualScreenMuteStatus();

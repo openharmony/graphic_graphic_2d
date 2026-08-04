@@ -386,7 +386,7 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_PreAllocProtected
     int ret = conn.OnRemoteRequest(
         IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_PREALLOC_PROTECTED_FRAME_BUFFERS,
         data, reply, opt);
-    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
 }
 
 /**

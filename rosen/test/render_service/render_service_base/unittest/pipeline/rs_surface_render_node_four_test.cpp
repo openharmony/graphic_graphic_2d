@@ -778,5 +778,41 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, CopyModifierValue004, TestSize.Level1)
     EXPECT_EQ(copiedValue.z_, 0.f);
     EXPECT_EQ(copiedValue.w_, 0.f);
 }
+
+/**
+ * @tc.name: PendingUIBufferNotifyTest001
+ * @tc.desc: Cover branch: default false, set to true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, IsPendingUIBufferNotifyTest001, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig cfg = { .id = 1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node = std::make_shared<RSSurfaceRenderNode>(cfg);
+    EXPECT_FALSE(node->IsPendingUIBufferNotify());
+    node->SetPendingUIBufferNotify(true);
+    EXPECT_TRUE(node->IsPendingUIBufferNotify());
+}
+
+/**
+ * @tc.name: IsUIBufferAvailableTest001
+ * @tc.desc: Cover branch: pending/already notified/non-app type all return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, IsUIBufferAvailableTest001, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig cfg = { .id = 1, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto node = std::make_shared<RSSurfaceRenderNode>(cfg);
+    node->isNotifyUIBufferAvailable_ = false;
+    node->isPendingUIBufferNotify_ = true;
+    EXPECT_FALSE(node->IsUIBufferAvailable());
+    node->isPendingUIBufferNotify_ = false;
+    node->isNotifyUIBufferAvailable_ = true;
+    EXPECT_FALSE(node->IsUIBufferAvailable());
+    RSSurfaceRenderNodeConfig defCfg = { .id = 2, .nodeType = RSSurfaceNodeType::DEFAULT };
+    auto defNode = std::make_shared<RSSurfaceRenderNode>(defCfg);
+    defNode->isNotifyUIBufferAvailable_ = false;
+    defNode->isPendingUIBufferNotify_ = false;
+    EXPECT_FALSE(defNode->IsUIBufferAvailable());
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -296,22 +296,19 @@ HWTEST_F(RSNodeCommandModifierTest, ExcludeNodeGroupTest002, TestSize.Level1)
 HWTEST_F(RSNodeCommandModifierTest, MarkNodeSingleFrameComposerTest001, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
-    MarkNodeSingleFrameComposerCmdParam param{true, 1234};
+    MarkNodeSingleFrameComposerCmdParam param{true};
     auto mod = std::make_shared<MarkNodeSingleFrameComposerCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::MARK_NODE_SINGLE_FRAME_COMPOSER);
     EXPECT_TRUE(mod->GetParam().isNodeSingleFrameComposer_);
-    EXPECT_EQ(mod->GetParam().realPid_, 1234);
 
-    MarkNodeSingleFrameComposerCmdParam param2{false, 5678};
+    MarkNodeSingleFrameComposerCmdParam param2{false};
     bool ret = mod->SetParam(param2);
     EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isNodeSingleFrameComposer_);
-    EXPECT_EQ(mod->GetParam().realPid_, 5678);
 
     std::string out;
     mod->DumpParam(out);
     EXPECT_NE(out.find("isNodeSingleFrameComposer"), std::string::npos);
-    EXPECT_NE(out.find("5678"), std::string::npos);
 }
 
 /**
@@ -323,7 +320,7 @@ HWTEST_F(RSNodeCommandModifierTest, MarkNodeSingleFrameComposerTest002, TestSize
 {
     std::weak_ptr<RSNode> weakNode;
     { auto n = RSCanvasNode::Create(); weakNode = n; }
-    MarkNodeSingleFrameComposerCmdParam param{true, 0};
+    MarkNodeSingleFrameComposerCmdParam param{true};
     auto mod = std::make_shared<MarkNodeSingleFrameComposerCmdModifier>(weakNode, param);
     ASSERT_TRUE(mod);
     mod->UpdateToRender();
@@ -776,7 +773,7 @@ HWTEST_F(RSNodeCommandModifierTest, ExcludeNodeGroupTest003, TestSize.Level1)
 HWTEST_F(RSNodeCommandModifierTest, MarkNodeSingleFrameComposerTest003, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
-    MarkNodeSingleFrameComposerCmdParam param{true, 1234};
+    MarkNodeSingleFrameComposerCmdParam param{true};
     auto mod = std::make_shared<MarkNodeSingleFrameComposerCmdModifier>(node, param);
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);

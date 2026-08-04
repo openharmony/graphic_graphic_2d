@@ -98,7 +98,9 @@ void AnimationCommandHelper::CreateAnimation(
         return;
     }
     RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
-    node->AddAnimation(animation);
+    if (!node->AddAnimation(animation)) {
+        return;
+    }
     if (auto property = node->GetProperty(animation->GetPropertyId())) {
         animation->AttachRenderProperty(property);
     }
@@ -131,7 +133,9 @@ void AnimationCommandHelper::RebuildAnimation(RSContext& context, NodeId targetI
         animation->AttachRenderProperty(property);
         animation->Rebuild(fraction, currentTime, isReverseCycle);
     }
-    node->AddAnimation(animation);
+    if (!node->AddAnimation(animation)) {
+        return;
+    }
     animation->Attach(node.get());
     context.RegisterAnimatingRenderNode(node);
 }

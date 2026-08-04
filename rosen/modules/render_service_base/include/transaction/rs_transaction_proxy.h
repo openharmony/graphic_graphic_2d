@@ -62,6 +62,7 @@ public:
     void CloseSyncTransaction();
     void SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         flushEmptyCallback_ = flushEmptyCallback;
     }
 
@@ -81,6 +82,7 @@ public:
 
     void SetRSRenderPipelineClient(std::shared_ptr<RSRenderPipelineClient> rsRenderPipelineClient)
     {
+        std::scoped_lock lock(mutex_, mutexForRT_);
         renderPipelineClient_ = rsRenderPipelineClient;
     }
 

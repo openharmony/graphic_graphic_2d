@@ -2101,6 +2101,49 @@ HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCD_WithZOrderTest001, 
     EXPECT_EQ(info.zOrder, 100);
 }
 
+/**
+ * @tc.name: BuildComposeInfo_GlassFree3D
+ * @tc.desc: Test BuildComposeInfo propagates glassFree3D from screen params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo_GlassFree3D, TestSize.Level2)
+{
+    auto context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 0, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(screenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+    auto buffer = new SurfaceBufferImpl(0);
+    buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
+    buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
+    ScreenInfo info {};
+    info.width = DEFAULT_CANVAS_WIDTH;
+    info.height = DEFAULT_CANVAS_HEIGHT;
+    info.phyWidth = DEFAULT_CANVAS_WIDTH;
+    info.phyHeight = DEFAULT_CANVAS_HEIGHT;
+    info.colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
+    info.state = ScreenState::UNKNOWN;
+    info.rotation = ScreenRotation::ROTATION_0;
+    composerAdapter_->Init(info, nullptr);
+
+    // Set hasGlassFree3DLayer on screen params
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->SetHasGlassFree3DLayer(true);
+
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+    EXPECT_TRUE(composeInfo.glassFree3D);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
+
 // ==================== CreateLayer Additional Tests ====================
 
 /**

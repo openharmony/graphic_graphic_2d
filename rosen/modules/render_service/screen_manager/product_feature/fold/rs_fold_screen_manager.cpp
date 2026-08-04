@@ -201,7 +201,8 @@ void RSFoldScreenManager::HandlePostureData(const SensorEvent* const event)
     PostureData* postureData = reinterpret_cast<PostureData*>(event[SENSOR_EVENT_FIRST_DATA].data);
     float angle = postureData->angle;
     float abAngle = postureData->abAngle;
-    RS_LOGD("%{public}s angle value in PostureData is: %{public}f. abAngle:%{public}f", __func__, angle, abAngle);
+    RS_LOGD_IF(DEBUG_SCREEN, "%{public}s angle value in PostureData is: %{public}f. abAngle:%{public}f",
+        __func__, angle, abAngle);
     mainHandler_->PostTask([this, angle, abAngle]() { HandleSensorData(angle, abAngle); },
         AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }

@@ -166,4 +166,127 @@ HWTEST_F(RSScreenPropertyTest, IsMainScreenTest003, TestSize.Level1)
     bool isMainScreen = property.IsMainScreen();
     ASSERT_FALSE(isMainScreen);
 }
+
+/**
+ * @tc.name: UnmarshallingDataTest001
+ * @tc.desc: Test UnmarshallingData when ReadUint32(size) fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, UnmarshallingDataTest001, TestSize.Level1)
+{
+    RSScreenProperty property;
+    MessageParcel parcel;
+    parcel.writable_ = false;
+    parcel.data_ = nullptr;
+    bool ret = property.UnmarshallingData(parcel);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UnmarshallingDataTest002
+ * @tc.desc: Test UnmarshallingData when size exceeds SCREEN_PROPERTY_TYPE_SIZE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, UnmarshallingDataTest002, TestSize.Level1)
+{
+    RSScreenProperty property;
+    MessageParcel parcel;
+    constexpr uint32_t invalidSize = static_cast<uint32_t>(ScreenPropertyType::SCREEN_PROPERTY_TYPE_SIZE) + 1;
+    parcel.WriteUint32(invalidSize);
+    bool ret = property.UnmarshallingData(parcel);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UnmarshallingDataTest003
+ * @tc.desc: Test UnmarshallingData when ReadUint32(type) fails inside loop
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, UnmarshallingDataTest003, TestSize.Level1)
+{
+    RSScreenProperty property;
+    MessageParcel parcel;
+    // Write size=1 so the loop enters, but provide no type data after it
+    // ReadUint32(size) succeeds (F1), size=1 valid (F2), enter loop (T3),
+    // then ReadUint32(type) fails because no data remains (T4)
+    parcel.WriteUint32(1);
+    bool ret = property.UnmarshallingData(parcel);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UnmarshallingDataTest004
+ * @tc.desc: Test UnmarshallingData when type >= SCREEN_PROPERTY_TYPE_SIZE inside loop
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, UnmarshallingDataTest004, TestSize.Level1)
+{
+    RSScreenProperty property;
+    MessageParcel parcel;
+    constexpr uint32_t invalidType = static_cast<uint32_t>(ScreenPropertyType::SCREEN_PROPERTY_TYPE_SIZE);
+    parcel.WriteUint32(1);
+    parcel.WriteUint32(invalidType);
+    bool ret = property.UnmarshallingData(parcel);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UnmarshallingDataTest005
+ * @tc.desc: Test UnmarshallingData when ScreenPropertyBase::Unmarshalling fails inside loop
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, UnmarshallingDataTest005, TestSize.Level1)
+{
+    RSScreenProperty property;
+    MessageParcel parcel;
+    // Write size=1 and a valid type, but omit the property value data
+    // so ScreenProperty<T>::Unmarshalling returns nullptr
+    parcel.WriteUint32(1);
+    parcel.WriteUint32(static_cast<uint32_t>(ScreenPropertyType::ID));
+    // No ScreenId value written - inner unmarshalling will fail
+    bool ret = property.UnmarshallingData(parcel);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UnmarshallingDataTest006
+ * @tc.desc: Test UnmarshallingData with size=0 (empty properties, loop not entered)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, UnmarshallingDataTest006, TestSize.Level1)
+{
+    RSScreenProperty property;
+    MessageParcel parcel;
+    parcel.WriteUint32(0);
+    bool ret = property.UnmarshallingData(parcel);
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: UnmarshallingDataTest007
+ * @tc.desc: Test UnmarshallingData round-trip with single valid property
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, UnmarshallingDataTest007, TestSize.Level1)
+{
+    RSScreenProperty srcProperty;
+    using T = PropertyTypeMapper<ScreenPropertyType::ID>::value_type;
+    auto prop = sptr<ScreenProperty<T>>::MakeSptr(T(INVALID_SCREEN_ID));
+    srcProperty.Set(ScreenPropertyType::ID, prop);
+
+    MessageParcel parcel;
+    ASSERT_TRUE(srcProperty.Marshalling(parcel));
+
+    RSScreenProperty dstProperty;
+    ASSERT_TRUE(dstProperty.UnmarshallingData(parcel));
+    EXPECT_EQ(dstProperty.GetScreenId(), INVALID_SCREEN_ID);
+}
+
 }

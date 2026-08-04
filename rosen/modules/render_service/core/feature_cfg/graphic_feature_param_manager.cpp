@@ -93,6 +93,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<BufferReclaimParam>(); }},
     {FEATURE_CONFIGS[BEHIND_WINDOW_FILTER], [] { return std::make_unique<BehindWindowFilterParamParse>(); },
         [] { return std::make_unique<BehindWindowFilterParam>(); }},
+    {FEATURE_CONFIGS[VIRTUAL_SCREEN_PARALLEL], [] { return std::make_unique<VirtualScreenParallelParamParse>(); },
+        [] { return std::make_unique<VirtualScreenParallelParam>(); }},
     {FEATURE_CONFIGS[BACKGROUND_REBUILD], [] { return std::make_unique<BackgroundRebuildParamParse>(); },
         [] { return std::make_unique<BackgroundRebuildParam>(); }},
 };

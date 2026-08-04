@@ -94,6 +94,11 @@ inline std::vector<float> operator/(const std::vector<float> &first, float scale
     return result;
 }
 
+struct ConvergeParams {
+    float convergeResponseFactor_ { 0.0f };
+    float convergeProgressThreshold_ { 0.0f };
+};
+
 // RSAnimatableType should have following operators: + - *float ==
 template<typename RSAnimatableType>
 class RSB_EXPORT RSSpringModel {

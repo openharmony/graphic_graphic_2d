@@ -266,12 +266,13 @@ void DVSyncLibManager::MarkRSRendering(bool isRender)
     markRSRenderingFunc_(isRender);
 }
 
-void DVSyncLibManager::SetAppDVSyncSwitch(const sptr<VSyncConnection>& connection, bool start, bool isNative)
+void DVSyncLibManager::SetAppDVSyncSwitch(const sptr<VSyncConnection>& connection, bool start, bool isNative,
+    FromWhom fromWhom)
 {
     if (setAppDVSyncSwitchFunc_ == nullptr) {
         return;
     }
-    setAppDVSyncSwitchFunc_(connection, start, isNative);
+    setAppDVSyncSwitchFunc_(connection, start, isNative, fromWhom);
 }
 
 void DVSyncLibManager::SetUiDVSyncConfig(int32_t bufferCount, bool compositeSceneEnable, bool nativeDelayEnable,

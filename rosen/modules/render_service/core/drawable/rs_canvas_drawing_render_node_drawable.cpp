@@ -257,7 +257,6 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCustomContent(Drawing::Canvas& canva
     }
     auto rsCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     auto bufferDrawParam = RSUniRenderUtil::CreateBufferDrawParam(*this, false, rsCanvas->GetParallelThreadId());
-    RSAutoCanvasRestore arc(rsCanvas);
     RSUniRenderThread::Instance().GetRenderEngine()->DrawCanvasDrawingNodeWithParams(*rsCanvas, bufferDrawParam);
     if (bufferOwnerCount != nullptr) {
         bufferOwnerCount->DecRef();

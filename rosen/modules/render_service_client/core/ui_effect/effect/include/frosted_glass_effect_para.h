@@ -104,7 +104,7 @@ public:
 
     void SetBgAlpha(float bgAlpha)
     {
-        bgAlpha_ = bgAlpha;
+        bgAlpha_ = std::clamp(bgAlpha, 0.0f, 1.0f);
     }
 
     float GetBgAlpha() const
@@ -316,6 +316,7 @@ public:
     {
         return enableSDFCache_;
     }
+
 private:
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
@@ -325,7 +326,7 @@ private:
     Vector3f bgKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f bgPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f bgNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
-    float bgAlpha_ = 1.0f; // the alpha of brackground color
+    float bgAlpha_ = 1.0f; // the alpha of background color
     // Refraction parameters
     Vector3f refractParams_ = Vector3f(0.0f, 0.0f, 0.0f);
     // Inner shadow parameters

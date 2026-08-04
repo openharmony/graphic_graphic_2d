@@ -87,7 +87,7 @@ void RSWindowAnimationStubTest::SetUpTestCase()
     windowAnimationTarget_->bundleName_ = "";
     windowAnimationTarget_->abilityName_ = "";
     windowAnimationTarget_->windowBounds_ = RRect();
-    windowAnimationTarget_->surfaceNode_ = animationSurfaceNode;
+    windowAnimationTarget_->surfaceNode_ = nullptr;
     windowAnimationTarget_->windowId_ = 0;
     windowAnimationTarget_->displayId_ = 0;
     windowAnimationTarget_->missionId_ = 0;

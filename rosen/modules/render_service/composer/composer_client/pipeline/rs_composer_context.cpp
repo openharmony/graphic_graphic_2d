@@ -190,7 +190,7 @@ void RSComposerContext::NotifyLayerStateChanged(
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (onLayerStateChangedCB_ == nullptr) {
-        RS_LOGD("%{public}s onLayerStateChangedCB_ is nullptr, nodeId:%{public}" PRIu64,
+        RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s onLayerStateChangedCB_ is nullptr, nodeId:%{public}" PRIu64,
             __func__, nodeId);
         return;
     }

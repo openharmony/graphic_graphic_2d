@@ -30,8 +30,8 @@ public:
 
     void DumpAnimationInfo(std::string& out) const override;
 
-    void SetSpringParameters(
-        float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio = 0.00025f);
+    void SetSpringParameters(float response, float dampingRatio, float normalizedInitialVelocity,
+        float minimumAmplitudeRatio = 0.00025f, std::optional<ConvergeParams> convergeParams = std::nullopt);
     void SetZeroThreshold(float zeroThreshold);
 
     ~RSRenderInterpolatingSpringAnimation() override = default;
@@ -53,7 +53,9 @@ protected:
 private:
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
+    bool UnmarshallingSpringParams(Parcel& parcel);
 #endif
+    bool ValidateSpringParams() const;
     RSRenderInterpolatingSpringAnimation() = default;
     std::shared_ptr<RSRenderPropertyBase> CalculateVelocity(float time) const;
     bool GetNeedLogicallyFinishCallback() const;
@@ -67,6 +69,8 @@ private:
 
     // used to determine whether the animation is near finish
     float zeroThreshold_ = 0.0f;
+
+    std::optional<ConvergeParams> convergeParams_ { std::nullopt };
 
     friend class RSInterpolatingSpringAnimation;
 };

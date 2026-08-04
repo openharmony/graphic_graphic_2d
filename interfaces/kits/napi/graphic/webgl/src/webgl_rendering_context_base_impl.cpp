@@ -69,7 +69,7 @@ void WebGLRenderingContextBaseImpl::Init()
     colorMask_[3] = false; // 3: a
 
     LOGD("WebGL Init maxTextureImageUnits %{public}d, maxTextureSize %{public}d, maxCubeMapTextureSize %{public}d, "
-        "maxRenderBufferSize %{public}d, maxVertexAttribs %{public}u", maxTextureImageUnits_,
+        "maxRenderBufferSize %{public}d, maxVertexAttribs %{public}d", maxTextureImageUnits_,
         maxTextureSize_, maxCubeMapTextureSize_, maxRenderBufferSize_, maxVertexAttribs_);
 }
 
@@ -447,6 +447,10 @@ napi_value WebGLRenderingContextBaseImpl::ShaderSource(napi_env env, napi_value 
     uint32_t shaderId = webGlShader->GetShaderId();
     if (!WebGLArg::CheckString(source)) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "checkString failed.");
+        return NVal::CreateNull(env).val_;
+    }
+    if (source.size() > static_cast<size_t>(std::numeric_limits<GLint>::max())) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "shader source too long");
         return NVal::CreateNull(env).val_;
     }
     GLint length = static_cast<GLint>(source.size());
@@ -915,7 +919,7 @@ napi_value WebGLRenderingContextBaseImpl::FrameBufferTexture2D(
     } else {
         glFramebufferTexture2D(target, attachment, textureTarget, static_cast<GLuint>(textureId), level);
     }
-    LOGD("WebGL framebufferTexture2D texture %{public}d result %{public}u", textureId, GetError_());
+    LOGD("WebGL framebufferTexture2D texture %{public}u result %{public}u", textureId, GetError_());
     return NVal::CreateNull(env).val_;
 }
 
@@ -1388,13 +1392,15 @@ napi_value WebGLRenderingContextBaseImpl::VertexAttribPointer(napi_env env, cons
         return NVal::CreateNull(env).val_;
     }
     VertexAttribInfo* info = GetVertexAttribInfo(vertexInfo.index);
-    if (info != nullptr) {
-        info->glType = vertexInfo.type;
-        info->size = vertexInfo.size;
-        info->stride = vertexInfo.stride;
-        info->offset = vertexInfo.offset;
-        info->bufferId = boundBufferIds_[BoundBufferType::ARRAY_BUFFER];
+    if (info == nullptr) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "vertexAttribPointer invalid index");
+        return NVal::CreateNull(env).val_;
     }
+    info->glType = vertexInfo.type;
+    info->size = vertexInfo.size;
+    info->stride = vertexInfo.stride;
+    info->offset = vertexInfo.offset;
+    info->bufferId = boundBufferIds_[BoundBufferType::ARRAY_BUFFER];
     glVertexAttribPointer(vertexInfo.index, vertexInfo.size, vertexInfo.type, vertexInfo.normalized,
         vertexInfo.stride, reinterpret_cast<GLvoid*>(vertexInfo.offset));
     LOGD("WebGL vertexAttribPointer index %{public}u result %{public}u", vertexInfo.index, GetError_());
@@ -2139,7 +2145,7 @@ napi_value WebGLRenderingContextBaseImpl::VertexAttribfv(napi_env env, GLuint in
     bufferData.DumpBuffer(bufferData.GetBufferDataType());
     if (bufferData.GetBufferDataType() != BUFFER_DATA_FLOAT_32) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
-            "WebGL :vertexAttribfv invalid buffer data type = %{public}u",
+            "WebGL :vertexAttribfv invalid buffer data type = %{public}d",
             static_cast<uint32_t>(bufferData.GetBufferDataType()));
         return NVal::CreateNull(env).val_;
     }
@@ -2846,12 +2852,28 @@ GLenum WebGLRenderingContextBaseImpl::CheckReadPixelsArg(napi_env env, const Pix
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
 
-    // Step 3: requiredBytes = height * rowBytes
+    // Step 3: account for PACK_ALIGNMENT row stride
+    // Each row is padded to a multiple of packAlignment; only the last row is unpadded
+    uint64_t packAlign = static_cast<uint64_t>(packAlignment_);
+    if (packAlign == 0) {
+        packAlign = 1;
+    }
+    uint64_t rowStride = (rowBytes + packAlign - 1) / packAlign * packAlign;
+
+    // Step 4: requiredBytes = rowStride * (height - 1) + rowBytes
     uint64_t height64 = static_cast<uint64_t>(arg.height);
-    uint64_t requiredBytes = height64 * rowBytes;
-    if (rowBytes > 0 && requiredBytes / rowBytes != height64) {
-        LOGE("WebGL readPixels overflow in requiredBytes calculation");
-        return WebGLRenderingContextBase::INVALID_VALUE;
+    uint64_t requiredBytes = 0;
+    if (height64 > 0) {
+        if (rowStride > 0 && height64 - 1 > UINT64_MAX / rowStride) {
+            LOGE("WebGL readPixels overflow in requiredBytes calculation");
+            return WebGLRenderingContextBase::INVALID_VALUE;
+        }
+        requiredBytes = rowStride * (height64 - 1);
+        if (requiredBytes > UINT64_MAX - rowBytes) {
+            LOGE("WebGL readPixels overflow in final requiredBytes addition");
+            return WebGLRenderingContextBase::INVALID_VALUE;
+        }
+        requiredBytes += rowBytes;
     }
 
     // Validate remaining capacity is sufficient for required bytes

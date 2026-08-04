@@ -18,8 +18,8 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include <mutex>
 #include <set>
-#include "surface_buffer.h"
 #include "common/rs_common_def.h"
+#include "surface_buffer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,7 +38,7 @@ public:
     bool CheckSameProcessUICaptureNode(NodeId nodeId);
 
 private:
-    static void BufferDestructorCallBack(uint64_t bufferId);
+    static void BufferDestructorCallback(uint64_t bufferId);
     mutable std::mutex mutex_;
     std::set<uint64_t> bufferReclaimNumsSet_;
     std::mutex uiCaptureNodeMapMutex_;

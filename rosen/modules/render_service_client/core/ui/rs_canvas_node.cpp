@@ -110,12 +110,13 @@ ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
         recording->SetIsNeedUnmarshalOnDestruct(!IsRenderServiceNode());
     }
     if (!recordingUpdated_) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasNode::BeginRecording !recordingUpdated_ id:%llu", GetId());
         return recordingCanvas_;
     }
     recordingUpdated_ = false;
-    SetRSCmdProperty<ClearRecordingCmdModifier>(ClearRecordingCmdParam{
-        width, height
-    });
+    PopFrontRSCmdModifierQueue();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeClearRecording>(GetId());
+    AddCommand(command, IsRenderServiceNode());
     return recordingCanvas_;
 }
 
@@ -170,9 +171,15 @@ void RSCanvasNode::FinishRecording()
 
 void RSCanvasNode::OnFinishRecording(Drawing::DrawCmdListPtr& drawCmdList, ModifierNG::RSModifierType modifierType)
 {
-    SetRSCmdProperty<FinishRecordCmdModifier>(FinishRecordCmdParam{
-        static_cast<uint16_t>(modifierType), drawCmdList
-    });
+    if (drawCmdList && !drawCmdList->IsEmpty()) { // CanvasDrawingNode should set drawCmdList nullptr.
+        auto type = static_cast<uint16_t>(modifierType);
+        PushRSCmdModifierToQueue<FinishRecordCmdModifier>(FinishRecordCmdParam{
+            type, drawCmdList
+        });
+        std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeUpdateRecording>(
+            GetId(), drawCmdList, type);
+        AddCommand(command, IsRenderServiceNode());
+    }
 }
 
 void RSCanvasNode::DrawOnNode(ModifierNG::RSModifierType type, DrawFunc func)
@@ -195,10 +202,12 @@ void RSCanvasNode::DrawOnNode(ModifierNG::RSModifierType type, DrawFunc func)
         recording->GenerateCache();
     }
     auto modifierType = static_cast<uint16_t>(type);
-    auto result = SetRSCmdPropertyWithResult<DrawOnNodeCmdModifier>(DrawOnNodeCmdParam{
+    PushRSCmdModifierToQueue<DrawOnNodeCmdModifier>(DrawOnNodeCmdParam{
         modifierType, recording
     });
-    if (std::holds_alternative<bool>(result) && std::get<bool>(result)) {
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, modifierType);
+    if (AddCommand(command, IsRenderServiceNode())) {
         recordingUpdated_ = true;
         cmdListImages_ = RSCmdListImageCollector::CollectCmdListImage(recording);
     }

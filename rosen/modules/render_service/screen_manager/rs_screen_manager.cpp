@@ -277,26 +277,26 @@ void RSScreenManager::UpdateFoldScreenConnectStatusLocked(ScreenId screenId, boo
 
 void RSScreenManager::SetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId, ScreenId screenId, bool enabled)
 {
+    auto screen = GetScreen(screenId);
+    if (screen == nullptr) {
+        RS_LOGE("SetScreenVsyncEnableById:%{public}d failed, screen %{public}" PRIu64 " not found", enabled, screenId);
+        return;
+    }
     if (vsyncEnabledScreenId != INVALID_SCREEN_ID) {
-        if (vsyncEnabledScreenId == screenId && screens_.find(screenId) != screens_.end()) {
-            screens_[screenId]->SetScreenVsyncEnabled(true);
+        if (vsyncEnabledScreenId == screenId) {
+            screen->SetScreenVsyncEnabled(true);
         }
     } else {
-        auto screen = GetScreen(screenId);
-        if (screen == nullptr) {
-            RS_LOGE("SetScreenVsyncEnableById:%{public}d failed, screen %{public}" PRIu64 " not found",
-                enabled, screenId);
-            return;
-        }
         screen->SetScreenVsyncEnabled(enabled);
     }
 }
 
 uint64_t RSScreenManager::GetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId)
 {
-    auto iter = std::find_if(screens_.cbegin(), screens_.cend(), [](const auto& node) {
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
+    auto iter = std::find_if(screens_.cbegin(), screens_.cend(), [&vsyncEnabledScreenId](const auto& node) {
         const auto& screen = node.second;
-        return screen && !screen->IsVirtual();
+        return screen && !screen->IsVirtual() && node.first != vsyncEnabledScreenId;
     });
     if (iter != screens_.end()) {
         vsyncEnabledScreenId = iter->first;
@@ -1174,7 +1174,7 @@ void RSScreenManager::SetScreenBacklight(const RsScreenBrightnessData& brightnes
 
     std::lock_guard<std::shared_mutex> lock(backLightAndCorrectionMutex_);
     if (screenBacklight_[brightnessData.screenId] == brightnessData.level) {
-        RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64
+        RS_LOGD_IF(DEBUG_SCREEN, "%{public}s: repeat backlight screenId: %{public}" PRIu64
             ", newLevel: %{public}u, brightnessPosition: %{public}.4f",
             __func__, brightnessData.screenId, brightnessData.level, brightnessData.brightnessPosition);
         return;

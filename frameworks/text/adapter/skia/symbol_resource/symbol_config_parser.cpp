@@ -405,17 +405,21 @@ void SymbolConfigParser::ParseAnimationTypes(const cJSON* root, std::vector<RSAn
         }
         const std::string animationTypeStr = item->valuestring;
         RSAnimationType animationType;
-        ParseAnimationType(animationTypeStr, animationType);
+        if (!ParseAnimationType(animationTypeStr, animationType)) {
+            continue;
+        }
         animationTypes.push_back(animationType);
     }
 }
 
-void SymbolConfigParser::ParseAnimationType(const std::string& animationTypeStr, RSAnimationType& animationType)
+bool SymbolConfigParser::ParseAnimationType(const std::string& animationTypeStr, RSAnimationType& animationType)
 {
     auto iter = ANIMATIONS_TYPES.find(animationTypeStr);
     if (iter != ANIMATIONS_TYPES.end()) {
         animationType = iter->second;
+        return true;
     }
+    return false;
 }
 
 void SymbolConfigParser::ParseGroupSettings(const cJSON* root, std::vector<RSGroupSetting>& groupSettings)
@@ -521,7 +525,9 @@ bool SymbolConfigParser::ParseSymbolAnimations(const cJSON* root,
             continue;
         }
         const std::string animationType = animationTypeItem->valuestring;
-        ParseAnimationType(animationType, animationInfo.animationType);
+        if (!ParseAnimationType(animationType, animationInfo.animationType)) {
+            continue;
+        }
 
         if (!cJSON_IsArray(animationParametersItem)) {
             continue;

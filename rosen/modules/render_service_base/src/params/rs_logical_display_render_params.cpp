@@ -38,7 +38,7 @@ void RSLogicalDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>&
     targetLogicalDisplayRenderParam->nodeRotation_ = nodeRotation_;
     targetLogicalDisplayRenderParam->compositeType_ = compositeType_;
     targetLogicalDisplayRenderParam->isRotationChanged_ = isRotationChanged_;
-    targetLogicalDisplayRenderParam->isMirrorDisplay_ = isMirrorDisplay_;
+    targetLogicalDisplayRenderParam->displayMode_ = displayMode_;
     targetLogicalDisplayRenderParam->mirrorSourceDrawable_ = mirrorSourceDrawable_;
     targetLogicalDisplayRenderParam->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
     targetLogicalDisplayRenderParam->isSecurityDisplay_ = isSecurityDisplay_;
@@ -141,7 +141,7 @@ bool RSLogicalDisplayRenderParams::IsRotationChanged() const
 
 bool RSLogicalDisplayRenderParams::IsMirrorDisplay() const
 {
-    return isMirrorDisplay_;
+    return displayMode_ == DisplayMode::MIRROR;
 }
 
 DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSLogicalDisplayRenderParams::GetMirrorSourceDrawable()

@@ -22,6 +22,7 @@
 #include "include/core/SkBitmap.h"
 #include "include/core/SkImageInfo.h"
 #include "skia_adapter/skia_bitmap.h"
+#include <securec.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -473,6 +474,71 @@ HWTEST_F(SkiaBitmapTest, Deserialize, TestSize.Level1)
     bool ret = skiaBitmap.Deserialize(data);
     ASSERT_TRUE(ret);
 }
+
+/**
+ * @tc.name: DeserializePixmapSizeExceedsAvailable
+ * @tc.desc: Test Deserialize with pixmapSize exceeding available data
+ * @tc.type: FUNC
+ * @tc.require: DTS2026071706869
+ */
+HWTEST_F(SkiaBitmapTest, DeserializePixmapSizeExceedsAvailable, TestSize.Level1)
+{
+    // Construct a Data with a very large pixmapSize that exceeds the remaining buffer
+    // Format: [pixmapSize: uint32] [pixmap data...] [rb] [width] [height] [colorType] [alphaType] [csSize] [cs data...]
+    // We write a pixmapSize that is larger than the actual remaining bytes
+    SkiaBitmap skiaBitmap;
+
+    // First, get valid serialized data to understand the format
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL};
+    skiaBitmap.Build(2, 2, bitmapFormat, 0);
+    std::shared_ptr<Data> validData = skiaBitmap.Serialize();
+    ASSERT_TRUE(validData != nullptr);
+
+    // Tamper with the data: set pixmapSize to a value larger than available buffer
+    size_t dataSize = validData->GetSize();
+    std::shared_ptr<Data> tamperedData = std::make_shared<Data>();
+    tamperedData->BuildUninitialized(dataSize);
+    auto* bytes = static_cast<uint8_t*>(tamperedData->WritableData());
+    memcpy_s(bytes, dataSize, validData->GetData(), dataSize);
+
+    // Overwrite pixmapSize (first 4 bytes) with a value larger than the buffer
+    uint32_t hugePixmapSize = static_cast<uint32_t>(dataSize) + 1000;
+    memcpy_s(bytes, sizeof(uint32_t), &hugePixmapSize, sizeof(uint32_t));
+
+    SkiaBitmap newBitmap;
+    bool ret = newBitmap.Deserialize(tamperedData);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: DeserializePixmapSizeZero
+ * @tc.desc: Test Deserialize with pixmapSize equal to zero
+ * @tc.type: FUNC
+ * @tc.require: DTS2026071706869
+ */
+HWTEST_F(SkiaBitmapTest, DeserializePixmapSizeZero, TestSize.Level1)
+{
+    SkiaBitmap skiaBitmap;
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL};
+    skiaBitmap.Build(2, 2, bitmapFormat, 0);
+    std::shared_ptr<Data> validData = skiaBitmap.Serialize();
+    ASSERT_TRUE(validData != nullptr);
+
+    // Tamper: set pixmapSize to 0
+    size_t dataSize = validData->GetSize();
+    std::shared_ptr<Data> tamperedData = std::make_shared<Data>();
+    tamperedData->BuildUninitialized(dataSize);
+    auto* bytes = static_cast<uint8_t*>(tamperedData->WritableData());
+    memcpy_s(bytes, dataSize, validData->GetData(), dataSize);
+
+    uint32_t zeroPixmapSize = 0;
+    memcpy_s(bytes, sizeof(uint32_t), &zeroPixmapSize, sizeof(uint32_t));
+
+    SkiaBitmap newBitmap;
+    bool ret = newBitmap.Deserialize(tamperedData);
+    EXPECT_FALSE(ret);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

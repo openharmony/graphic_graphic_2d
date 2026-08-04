@@ -651,15 +651,6 @@ void RSRenderParams::SetGlobalAlpha(float alpha)
     needSync_ = true;
 }
 
-void RSRenderParams::SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-{
-    if (screensWithSubTreeWhitelist_ == screenIds) {
-        return;
-    }
-    screensWithSubTreeWhitelist_ = screenIds;
-    needSync_ = true;
-}
-
 bool RSRenderParams::IsRepaintBoundary() const
 {
     return isRepaintBoundary_;
@@ -746,7 +737,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     // used for DFX
     targetPtr->isOnTheTree_ = isOnTheTree_;
 
-    targetPtr->screensWithSubTreeWhitelist_ = screensWithSubTreeWhitelist_;
     needSync_ = false;
 }
 

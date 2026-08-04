@@ -77,7 +77,7 @@ enum HrpServiceFileFlag : uint32_t {
 struct TimeValue {
     uint64_t sec{0}, nsec{0};
     bool IsZero() const { return sec == 0 && nsec == 0; }
-    bool operator == (const TimeValue &other) const { return !(sec == other.sec && nsec == other.nsec); }
+    bool operator == (const TimeValue &other) const { return sec == other.sec && nsec == other.nsec; }
     bool operator>(const TimeValue& other) const
     {
         return sec > other.sec || (sec == other.sec && nsec > other.nsec);

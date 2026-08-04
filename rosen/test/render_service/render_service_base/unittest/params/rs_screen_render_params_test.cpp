@@ -175,6 +175,26 @@ HWTEST_F(RSScreenRenderParamsTest, Fingerprint001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHasGlassFree3DLayer
+ * @tc.desc: test SetHasGlassFree3DLayer and GetHasGlassFree3DLayer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetHasGlassFree3DLayer, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    EXPECT_FALSE(params.GetHasGlassFree3DLayer());
+
+    params.SetHasGlassFree3DLayer(params.GetHasGlassFree3DLayer());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetHasGlassFree3DLayer(true);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_TRUE(params.GetHasGlassFree3DLayer());
+}
+
+/**
  * @tc.name: ResetVirtualExpandAccumulatedParams
  * @tc.desc: test ResetVirtualExpandAccumulatedParams can set target params to false
  * @tc.type: FUNC

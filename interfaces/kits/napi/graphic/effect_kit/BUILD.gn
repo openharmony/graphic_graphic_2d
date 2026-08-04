@@ -110,9 +110,6 @@ if (is_arkui_x) {
   ohos_shared_library("effectkit") {
     branch_protector_ret = "pac_ret"
 
-    include_dirs =
-        [ "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include" ]
-
     configs = [ ":graphic_napi_effect_kit_config" ]
 
     sources = [

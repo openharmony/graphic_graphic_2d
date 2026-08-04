@@ -196,8 +196,307 @@ HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Unmarshalling004
+ * @tc.desc: Verify Unmarshalling returns null when response_ is NaN
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = NAN;
+    anim->dampingRatio_ = 1.0f;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = 0.001f;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = 0.0f;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling005
+ * @tc.desc: Verify Unmarshalling returns null when zeroThreshold_ is Inf
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling005, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = 1.0f;
+    anim->dampingRatio_ = 1.0f;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = 0.001f;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = INFINITY;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling006
+ * @tc.desc: Verify Unmarshalling returns null when startValue_ is INVALID type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling006, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteUint64(ANIMATION_ID);
+    parcel.WriteInt32(1000);
+    parcel.WriteInt32(0);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteInt32(1);
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(0);
+    parcel.WriteUint64(PROPERTY_ID);
+    parcel.WriteBool(false);
+    uint8_t floatType = static_cast<uint8_t>(RSPropertyType::FLOAT);
+    parcel.WriteUnpadBuffer(&floatType, sizeof(uint8_t));
+    bool animatable = true;
+    parcel.WriteUnpadBuffer(&animatable, sizeof(bool));
+    parcel.WriteUint64(PROPERTY_ID);
+    parcel.WriteFloat(0.0f);
+    uint32_t unit = 0;
+    parcel.WriteUnpadBuffer(&unit, sizeof(uint32_t));
+    uint8_t invalidType = static_cast<uint8_t>(RSPropertyType::INVALID);
+    parcel.WriteUnpadBuffer(&invalidType, sizeof(uint8_t));
+    parcel.WriteUnpadBuffer(&invalidType, sizeof(uint8_t));
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling007
+ * @tc.desc: Verify Unmarshalling returns null when endValue_ is INVALID but startValue_ valid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling007, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteUint64(ANIMATION_ID);
+    parcel.WriteInt32(1000);
+    parcel.WriteInt32(0);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteInt32(1);
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(0);
+    parcel.WriteUint64(PROPERTY_ID);
+    parcel.WriteBool(false);
+    uint8_t floatType = static_cast<uint8_t>(RSPropertyType::FLOAT);
+    parcel.WriteUnpadBuffer(&floatType, sizeof(uint8_t));
+    bool animatable = true;
+    parcel.WriteUnpadBuffer(&animatable, sizeof(bool));
+    parcel.WriteUint64(PROPERTY_ID);
+    parcel.WriteFloat(0.0f);
+    uint32_t unit = 0;
+    parcel.WriteUnpadBuffer(&unit, sizeof(uint32_t));
+    parcel.WriteUnpadBuffer(&floatType, sizeof(uint8_t));
+    parcel.WriteUnpadBuffer(&animatable, sizeof(bool));
+    parcel.WriteUint64(PROPERTY_ID);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteUnpadBuffer(&unit, sizeof(uint32_t));
+    uint8_t invalidType = static_cast<uint8_t>(RSPropertyType::INVALID);
+    parcel.WriteUnpadBuffer(&invalidType, sizeof(uint8_t));
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling008
+ * @tc.desc: Verify Unmarshalling returns null when zeroThreshold_ is negative
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling008, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = 1.0f;
+    anim->dampingRatio_ = 1.0f;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = 0.001f;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = -1.0f;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling009
+ * @tc.desc: Verify Unmarshalling returns null when dampingRatio_ is NaN
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling009, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = 1.0f;
+    anim->dampingRatio_ = NAN;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = 0.001f;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = 0.0f;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling010
+ * @tc.desc: Verify Unmarshalling returns null when minimumAmplitudeRatio_ is Inf
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling010, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = 1.0f;
+    anim->dampingRatio_ = 1.0f;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = INFINITY;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = 0.0f;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling011
+ * @tc.desc: Verify Unmarshalling returns null when response_ is Inf
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling011, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = INFINITY;
+    anim->dampingRatio_ = 1.0f;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = 0.001f;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = 0.0f;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling012
+ * @tc.desc: Verify Unmarshalling returns null when dampingRatio_ is Inf
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling012, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = 1.0f;
+    anim->dampingRatio_ = INFINITY;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = 0.001f;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = 0.0f;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling013
+ * @tc.desc: Verify Unmarshalling returns null when minimumAmplitudeRatio_ is NaN
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling013, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = 1.0f;
+    anim->dampingRatio_ = 1.0f;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = NAN;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = 0.0f;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
  * @tc.name: Attach001
- * @tc.desc: Verify the Attach
  * @tc.type:FUNC
  */
 HWTEST_F(RSRenderSpringAnimationTest, Attach001, TestSize.Level1)
@@ -299,6 +598,71 @@ HWTEST_F(RSRenderSpringAnimationTest, SetZeroThreshold001, TestSize.Level1)
     renderSpringAnimation->SetZeroThreshold(zeroThreshold);
     EXPECT_TRUE(zeroThreshold);
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest SetZeroThreshold001 end";
+}
+
+/**
+ * @tc.name: SetZeroThreshold002
+ * @tc.desc: Verify SetZeroThreshold rejects NaN and Inf
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, SetZeroThreshold002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    renderSpringAnimation->SetZeroThreshold(NAN);
+    EXPECT_FALSE(renderSpringAnimation->needLogicallyFinishCallback_);
+
+    renderSpringAnimation->needLogicallyFinishCallback_ = false;
+    renderSpringAnimation->SetZeroThreshold(INFINITY);
+    EXPECT_FALSE(renderSpringAnimation->needLogicallyFinishCallback_);
+
+    renderSpringAnimation->needLogicallyFinishCallback_ = false;
+    renderSpringAnimation->SetZeroThreshold(-1.0f);
+    EXPECT_FALSE(renderSpringAnimation->needLogicallyFinishCallback_);
+}
+
+/**
+ * @tc.name: SetSpringParameters002
+ * @tc.desc: Verify SetSpringParameters rejects NaN and Inf
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, SetSpringParameters002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    anim->SetSpringParameters(NAN, 1.0f, 1.0f);
+    EXPECT_EQ(anim->response_, 0.0f);
+
+    anim->SetSpringParameters(INFINITY, 1.0f, 1.0f);
+    EXPECT_EQ(anim->response_, 0.0f);
+
+    anim->SetSpringParameters(1.0f, NAN, 1.0f);
+    EXPECT_EQ(anim->response_, 0.0f);
+
+    anim->SetSpringParameters(1.0f, INFINITY, 1.0f);
+    EXPECT_EQ(anim->response_, 0.0f);
+
+    anim->SetSpringParameters(1.0f, 1.0f, NAN);
+    EXPECT_EQ(anim->response_, 0.0f);
+
+    anim->SetSpringParameters(1.0f, 1.0f, INFINITY);
+    EXPECT_EQ(anim->response_, 0.0f);
+
+    anim->RSRenderSpringAnimation::SetSpringParameters(1.0f, 1.0f, 1.0f, NAN);
+    EXPECT_EQ(anim->response_, 0.0f);
+
+    anim->RSRenderSpringAnimation::SetSpringParameters(1.0f, 1.0f, 1.0f, INFINITY);
+    EXPECT_EQ(anim->response_, 0.0f);
 }
 
 /**
@@ -1228,6 +1592,61 @@ HWTEST_F(RSRenderSpringAnimationTest, OnAnimateVelocityNotNull001, TestSize.Leve
     renderSpringAnimation->OnAnimate(0.5f);
     EXPECT_FALSE(renderSpringAnimation->needLogicallyFinishCallback_);
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimateVelocityNotNull001 end";
+}
+
+/**
+ * @tc.name: Unmarshalling014
+ * @tc.desc: Verify Unmarshalling returns null when zeroThreshold_ is NaN
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling014, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = 1.0f;
+    anim->dampingRatio_ = 1.0f;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = 0.001f;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = NAN;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling015
+ * @tc.desc: Verify Unmarshalling returns valid animation with haveInitialVelocity=false
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling015, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, PROPERTY_ID);
+
+    auto anim = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    anim->response_ = 0.55f;
+    anim->dampingRatio_ = 0.825f;
+    anim->blendDuration_ = 1000;
+    anim->minimumAmplitudeRatio_ = 0.001f;
+    anim->needLogicallyFinishCallback_ = false;
+    anim->zeroThreshold_ = 0.0f;
+    anim->initialVelocity_ = nullptr;
+
+    Parcel parcel;
+    anim->Marshalling(parcel);
+
+    auto* result = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_NE(result, nullptr);
 }
 
 } // namespace Rosen

@@ -33,10 +33,9 @@ std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(CompositeType t
 #ifdef RS_ENABLE_GPU
         case CompositeType::UNI_RENDER_COMPOSITE:
             return std::make_shared<RSUniRenderProcessor>(screenId);
-#endif
-        case CompositeType::UNI_RENDER_MIRROR_COMPOSITE:
-        case CompositeType::UNI_RENDER_EXPAND_COMPOSITE:
-#ifdef RS_ENABLE_GPU
+        case CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE:
+        case CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE:
+        case CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE:
             return std::make_shared<RSUniRenderVirtualProcessor>();
 #endif
         default:

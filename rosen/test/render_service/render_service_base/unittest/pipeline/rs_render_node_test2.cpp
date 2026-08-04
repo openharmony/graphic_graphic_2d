@@ -280,49 +280,6 @@ HWTEST_F(RSRenderNodeTest2, GetStagingRenderParams, TestSize.Level1)
 }
 
 /**
- * @tc.name: CollectAndUpdateRenderFitRect
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, CollectAndUpdateRenderFitRect, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    node.CollectAndUpdateRenderFitRect();
-    ASSERT_TRUE(true);
-
-    node.GetMutableRenderProperties().SetFrameGravity(Gravity::CENTER);
-    node.CollectAndUpdateRenderFitRect();
-    ASSERT_TRUE(true);
-
-    std::shared_ptr<RectF> rect = std::make_shared<RectF>();
-    rect->SetAll(0, 0, 1000, 1000);
-    node.GetMutableRenderProperties().SetDrawRegion(rect);
-    node.CollectAndUpdateRenderFitRect();
-    ASSERT_TRUE(true);
-
-    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
-    node.modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(modifier);
-
-    auto modifierCmdList =
-        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
-    auto ptr = std::make_shared<Drawing::DrawCmdList>(1000, 1000);
-    PropertyId id = 1;
-    auto propertyCmdList = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(ptr, id);
-    modifierCmdList->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, propertyCmdList);
-    node.modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(modifierCmdList);
-
-    auto modifierAlpha = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
-    auto propertyAlpha = std::make_shared<RSRenderProperty<float>>();
-    modifierAlpha->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
-    node.modifiersNG_[ModifierNG::RSModifierType::ALPHA].emplace_back(modifierAlpha);
-    node.CollectAndUpdateRenderFitRect();
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: CollectAndUpdateLocalShadowRect
  * @tc.desc: test
  * @tc.type: FUNC
@@ -3984,5 +3941,64 @@ HWTEST_F(RSRenderNodeTest2, ReSortChildrenByZIndex001, TestSize.Level1)
     node.ReSortChildrenByZIndex();
     EXPECT_FALSE(node.isFullChildrenListValid_);
 }
+
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: PrepareSelfNodeForApplyModifiers001
+ * @tc.desc: test PrepareSelfNodeForApplyModifiers on a node without cycle, flag is reset after call
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->SetGlobalAlpha(1.0f); // lazy-init stagingRenderParams_ to avoid null deref in SetAlpha
+    EXPECT_FALSE(node->inTraversalPath_);
+    node->PrepareSelfNodeForApplyModifiers();
+    EXPECT_FALSE(node->inTraversalPath_); // RAII guard must reset the flag on exit
+}
+
+/**
+ * @tc.name: PrepareSelfNodeForApplyModifiers002
+ * @tc.desc: test PrepareSelfNodeForApplyModifiers detects cycle and avoids stack overflow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers002, TestSize.Level1)
+{
+    auto nodeA = std::make_shared<RSRenderNode>(id, context);
+    auto nodeB = std::make_shared<RSRenderNode>(id + 1, context);
+    nodeA->SetGlobalAlpha(1.0f);
+    nodeB->SetGlobalAlpha(1.0f);
+    // build a detached 2-node cycle A<->B (AddChild reparents, so it is not reachable from root,
+    // but a NodeId-based entry like UI capture can still hit it)
+    nodeA->AddChild(nodeB);
+    nodeB->AddChild(nodeA);
+    EXPECT_FALSE(nodeA->inTraversalPath_);
+    EXPECT_FALSE(nodeB->inTraversalPath_);
+    // must not stack-overflow: re-entry of A is detected and skipped; outer guards reset both flags
+    nodeA->PrepareSelfNodeForApplyModifiers();
+    EXPECT_FALSE(nodeA->inTraversalPath_);
+    EXPECT_FALSE(nodeB->inTraversalPath_);
+}
+
+/**
+ * @tc.name: PrepareSelfNodeForApplyModifiers003
+ * @tc.desc: test re-entry guard does not reset the flag it did not set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->SetGlobalAlpha(1.0f);
+    // simulate that the node is already on the recursion stack (cycle re-entry)
+    node->inTraversalPath_ = true;
+    node->PrepareSelfNodeForApplyModifiers(); // must return early without running body or resetting flag
+    // the re-entry guard is not the setter, so it must leave the flag untouched
+    EXPECT_TRUE(node->inTraversalPath_);
+    node->inTraversalPath_ = false; // cleanup
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

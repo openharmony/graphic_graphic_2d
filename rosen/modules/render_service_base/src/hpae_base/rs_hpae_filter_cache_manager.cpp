@@ -15,10 +15,6 @@
 
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
 
-#if defined(ASYNC_BUILD_TASK) && defined(ROSEN_OHOS)
-#include "ffrt_inner.h"
-#endif
-
 #include "ge_render.h"
 #include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
 #include "hpae_base/rs_hpae_fusion_operator.h"
@@ -290,12 +286,6 @@ int RSHpaeFilterCacheManager::ProcessHianimationBlur(const std::shared_ptr<RSDra
         blurItem.hpaeTask_.taskId, radius);
     RSHpaeFfrtPatternManager::Instance().SetUpdatedFlag();
     RSHpaeScheduler::GetInstance().CacheHpaeItem(blurItem); // cache and notify after flush
-#if defined(ASYNC_BUILD_TASK) && defined(ROSEN_OHOS)
-    {
-        std::unique_lock<std::mutex> lock(blurOutMutex_);
-        hpaeBlurOutputQueue_.pop_back(); // remove previous empty item
-    }
-#endif
     SetBlurOutput(blurItem);
 
     return 0;
@@ -330,25 +320,9 @@ int RSHpaeFilterCacheManager::ProcessHpaeBlur(const Drawing::RectI& clipBounds,
     }
 
     int result = -1;
-#if defined(ASYNC_BUILD_TASK) && defined(ROSEN_OHOS)
-    if (!drawUsingGpu_) {
-        SetBlurOutput(blurItem); // empty item to motivate the hpaeBlurOutputQueue_.remember to pop it
-        RSHpaeScheduler::GetInstance().SetToWaitBuildTask();
-        void *hianimationTask = ffrt::submit_h([=]() {
-            RS_OPTIONAL_TRACE_NAME("Async BuildTask");
-            if (this->ProcessHianimationBlur(filter, radius) != 0) {
-                std::unique_lock<std::mutex> lock(blurOutMutex_);
-                hpaeBlurOutputQueue_.pop_back(); // remove previous empty item
-            }
-            RSHpaeScheduler::GetInstance().NotifyBuildTaskDone();
-        }, {}, {}, ffrt::task_attr().qos(5));
-        result = 0;
-    }
-#else
     if (!drawUsingGpu_) {
         result = ProcessHianimationBlur(filter, radius);
     }
-#endif
 
     if (result != 0) {
         // using GPU for exception

@@ -270,7 +270,9 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
 
 int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
-    return false;
+    maxWidth = 0;
+    maxHeight = 0;
+    return RS_CONNECTION_ERROR;
 }
 
 int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(

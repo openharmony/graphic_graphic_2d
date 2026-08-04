@@ -644,6 +644,27 @@ HWTEST_F(HdiLayerInfoTest, SetLayerMaskInfo002, Function | MediumTest | Level1)
     HdiLayerInfo::LayerMask Get = HdiLayerInfoTest::hdiLayerInfo_->GetLayerMaskInfo();
     ASSERT_EQ(layerMask, Get);
 }
+
+/*
+* Function: SetGlassFree3D and GetGlassFree3D
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetGlassFree3D with default
+*                  2. call SetGlassFree3D
+*                  3. call GetGlassFree3D and check ret
+*/
+HWTEST_F(HdiLayerInfoTest, GlassFree3D001, Function | MediumTest | Level1)
+{
+    bool defaultVal = HdiLayerInfoTest::hdiLayerInfo_->GetGlassFree3D();
+    ASSERT_EQ(defaultVal, false);
+
+    HdiLayerInfoTest::hdiLayerInfo_->SetGlassFree3D(true);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetGlassFree3D(), true);
+
+    HdiLayerInfoTest::hdiLayerInfo_->SetGlassFree3D(false);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetGlassFree3D(), false);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

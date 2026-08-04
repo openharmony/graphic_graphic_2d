@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "rs_profiler_utils.h"
+#include <climits>
 
 using namespace testing;
 using namespace testing::ext;
@@ -144,5 +145,6 @@ HWTEST_F(RSProfilerUtilsTest, UtilsGetCurrentProcessNameTest, testing::ext::Test
     EXPECT_EQ(process, Utils::GetProcessName(Utils::GetPid()));
     EXPECT_EQ(Utils::GetFileName(process), "RSProfilerUtilsTest");
 }
+
 
 } // namespace OHOS::Rosen

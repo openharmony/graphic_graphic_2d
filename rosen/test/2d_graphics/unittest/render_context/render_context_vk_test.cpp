@@ -59,6 +59,28 @@ HWTEST_F(RenderContextVKTest, CleanAllShaderCache, TestSize.Level1)
     auto result = renderContext->CleanAllShaderCache();
     EXPECT_EQ(result, "");
 }
+
+/**
+ * @tc.name: CleanAllShaderCacheWithMemoryHandler
+ * @tc.desc: Verify the CleanAllShaderCache when memoryHandler is not null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, CleanAllShaderCacheWithMemoryHandler, TestSize.Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    EXPECT_NE(renderContext, nullptr);
+    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto memoryHandler = vkContext.GetMemoryHandler();
+    if (!memoryHandler) {
+        GTEST_LOG_(INFO) << "memoryHandler is null, skip test";
+        return;
+    }
+    auto result = renderContext->CleanAllShaderCache();
+    EXPECT_FALSE(result.empty() || !result.empty());
 }
  
 /**
@@ -84,6 +106,29 @@ HWTEST_F(RenderContextVKTest, GetShaderCacheSize, TestSize.Level1)
     vkContext->vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)].memHandle_ = nullptr;
     auto result = renderContext->GetShaderCacheSize();
     EXPECT_EQ(result, "");
+}
+
+/**
+ * @tc.name: GetShaderCacheSizeWithMemoryHandler
+ * @tc.desc: Verify the GetShaderCacheSize when memoryHandler is not null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, GetShaderCacheSizeWithMemoryHandler, TestSize.Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    EXPECT_NE(renderContext, nullptr);
+    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto memoryHandler = vkContext.GetMemoryHandler();
+    if (!memoryHandler) {
+        GTEST_LOG_(INFO) << "memoryHandler is null, skip test";
+        return;
+    }
+    auto result = renderContext->GetShaderCacheSize();
+    EXPECT_FALSE(result.empty() || !result.empty());
 }
 
 /**

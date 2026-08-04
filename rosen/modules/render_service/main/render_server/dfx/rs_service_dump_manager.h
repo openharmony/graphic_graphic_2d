@@ -33,6 +33,7 @@ const std::list<std::u16string> serviceDumpList = {
     u"fpsClear",
     u"fpsCount",
     u"clearFpsCount",
+    u"dumpMem",
     u"hitchs",
     u"gles",
     u"rsLogFlag",

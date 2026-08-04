@@ -273,21 +273,21 @@ HWTEST_F(RSDisplayNodeTest, OnBoundsSizeChanged, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDisplayNodeMirrorConfig
- * @tc.desc: test results of SetDisplayNodeMirrorConfig
+ * @tc.name: SetDisplayMode
+ * @tc.desc: test results of SetDisplayMode
  * @tc.type: FUNC
  * @tc.require: issueI9KDPI
  */
-HWTEST_F(RSDisplayNodeTest, SetDisplayNodeMirrorConfig, TestSize.Level1)
+HWTEST_F(RSDisplayNodeTest, SetDisplayMode, TestSize.Level1)
 {
     RSDisplayNodeConfig displayNodeConfig;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(displayNodeConfig);
-    displayNode->SetDisplayNodeMirrorConfig(displayNodeConfig);
+    displayNode->SetDisplayNodeConfig(displayNodeConfig);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
-    displayNode->SetDisplayNodeMirrorConfig(displayNodeConfig);
+    displayNode->SetDisplayNodeConfig(displayNodeConfig);
     ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 }

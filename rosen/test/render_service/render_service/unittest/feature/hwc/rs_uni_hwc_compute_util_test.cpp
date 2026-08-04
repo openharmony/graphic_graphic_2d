@@ -1603,6 +1603,102 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeByScalingMode_003, Function | Sma
 }
 
 /**
+ * @tc.name: UpdateHwcNodeByScalingMode_004
+ * @tc.desc: Test UpdateHwcNodeByScalingMode when surfaceHandler is nullptr, should return early.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeByScalingMode_004, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.surfaceHandler_ = nullptr;
+    RectI expectedDstRect = {0, 0, 1080, 1920};
+    RectI expectedSrcRect = {0, 0, 1080, 1920};
+    node1.SetDstRect(expectedDstRect);
+    node1.SetSrcRect(expectedSrcRect);
+
+    Drawing::Matrix totalMatrix;
+    totalMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix gravityMatrix;
+    gravityMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix scalingModeMatrix;
+    scalingModeMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+
+    RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(node1, totalMatrix, gravityMatrix, scalingModeMatrix);
+
+    EXPECT_TRUE(node1.GetDstRect() == expectedDstRect);
+    EXPECT_TRUE(node1.GetSrcRect() == expectedSrcRect);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeByScalingMode_005
+ * @tc.desc: Test UpdateHwcNodeByScalingMode when buffer is nullptr, should return early.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeByScalingMode_005, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    // leave buffer_.buffer as nullptr by default
+    RectI expectedDstRect = {0, 0, 1080, 1920};
+    RectI expectedSrcRect = {0, 0, 1080, 1920};
+    node1.SetDstRect(expectedDstRect);
+    node1.SetSrcRect(expectedSrcRect);
+
+    Drawing::Matrix totalMatrix;
+    totalMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix gravityMatrix;
+    gravityMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix scalingModeMatrix;
+    scalingModeMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+
+    RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(node1, totalMatrix, gravityMatrix, scalingModeMatrix);
+
+    EXPECT_TRUE(node1.GetDstRect() == expectedDstRect);
+    EXPECT_TRUE(node1.GetSrcRect() == expectedSrcRect);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeByScalingMode_006
+ * @tc.desc: Test UpdateHwcNodeByScalingMode when buffer is not nullptr, should proceed and update rects.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeByScalingMode_006, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1920);
+    node1.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    node1.renderProperties_.SetBoundsWidth(1080);
+    node1.renderProperties_.SetBoundsHeight(1920);
+    node1.renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+    node1.isFixRotationByUser_ = false;
+    // Sentinel rects to verify the buffer-not-null branch is actually taken (rects get recomputed).
+    node1.SetDstRect({0, 0, 1, 1});
+    node1.SetSrcRect({0, 0, 1, 1});
+
+    Drawing::Matrix totalMatrix;
+    totalMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix gravityMatrix;
+    gravityMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix scalingModeMatrix;
+    scalingModeMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+
+    RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(node1, totalMatrix, gravityMatrix, scalingModeMatrix);
+
+    // Function did not return early: dstRect/srcRect were recomputed from the buffer, no longer {0,0,1,1}.
+    EXPECT_NE(node1.GetDstRect(), RectI(0, 0, 1, 1));
+    EXPECT_NE(node1.GetSrcRect(), RectI(0, 0, 1, 1));
+}
+
+/**
  * @tc.name: UpdateHwcNodeVcldInfo_VcldDisabled
  * @tc.desc: Test UpdateHwcNodeVcldInfo when Vcld is disabled
  * @tc.type: FUNC

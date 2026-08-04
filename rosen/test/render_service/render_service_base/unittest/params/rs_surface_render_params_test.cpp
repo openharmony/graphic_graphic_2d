@@ -536,6 +536,42 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsOnInternalScreenTest
+ * @tc.desc: Test SetIsOnInternalScreen and GetIsOnInternalScreen
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsOnInternalScreenTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_TRUE(params.GetIsOnInternalScreen());
+
+    params.SetIsOnInternalScreen(params.GetIsOnInternalScreen());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetIsOnInternalScreen(false);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_FALSE(params.GetIsOnInternalScreen());
+}
+
+/**
+ * @tc.name: SetGlassFree3DTest
+ * @tc.desc: Test SetGlassFree3D and GetGlassFree3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetGlassFree3DTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_FALSE(params.GetGlassFree3D());
+
+    params.SetGlassFree3D(params.GetGlassFree3D());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetGlassFree3D(true);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_TRUE(params.GetGlassFree3D());
+}
+
+/**
  * @tc.name: IsRelated
  * @tc.desc: Test function IsRelated
  * @tc.type: FUNC
@@ -688,5 +724,41 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetNeedClearRelatedCacheTest, TestSize.Level
     EXPECT_EQ(params.IsNeedClearRelatedCache(), false);
     params.SetNeedClearRelatedCache(true);
     EXPECT_EQ(params.IsNeedClearRelatedCache(), true);
+}
+
+/**
+ * @tc.name: SetRebuildingState001
+ * @tc.desc: Test SetRebuildingState/GetRebuildingState and needSync, including same-value early return
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetRebuildingState001, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_FALSE(params.GetRebuildingState());
+    params.SetRebuildingState(true);
+    EXPECT_TRUE(params.GetRebuildingState());
+    EXPECT_TRUE(params.needSync_);
+    params.SetRebuildingState(true); // same value -> early return
+    params.SetRebuildingState(false);
+    EXPECT_FALSE(params.GetRebuildingState());
+}
+
+/**
+ * @tc.name: SetRebuildingStateOnSync001
+ * @tc.desc: Test OnSync deep-copies isRebuildingState_ from staging to target
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetRebuildingStateOnSync001, TestSize.Level1)
+{
+    RSSurfaceRenderParams source(DEFAULT_NODEID);
+    source.SetRebuildingState(true);
+    ASSERT_TRUE(source.isRebuildingState_);
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSSurfaceRenderParams>(DEFAULT_NODEID);
+    ASSERT_NE(target, nullptr);
+    EXPECT_FALSE(static_cast<RSSurfaceRenderParams*>(target.get())->isRebuildingState_);
+    source.OnSync(target);
+    EXPECT_TRUE(static_cast<RSSurfaceRenderParams*>(target.get())->isRebuildingState_);
 }
 } // namespace OHOS::Rosen

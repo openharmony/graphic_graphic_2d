@@ -113,7 +113,7 @@ public:
 #endif
 #ifndef ENABLE_RS_PROXY
     bool GetUniRenderEnabled();
-    bool GetBackgroundRebuildEnabled();
+    uint8_t GetBackgroundRebuildEnabled();
 
     sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
 
@@ -383,8 +383,6 @@ public:
 #endif
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
-    int32_t SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
-
 #ifndef ENABLE_RS_PROXY
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
  
@@ -411,6 +409,7 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
+    int32_t SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
 

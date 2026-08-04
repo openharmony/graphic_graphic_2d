@@ -38,11 +38,11 @@ void TestRemoveCallback(uint32_t uniqueId)
     g_removeCallbackLastId = uniqueId;
 }
 
-int32_t TestRegisterCallback(std::shared_ptr<RSTypeface> typeface)
+bool TestRegisterCallback(std::shared_ptr<RSTypeface> typeface)
 {
     g_registerCallbackCount++;
     g_registerCallbackLastFace = typeface;
-    return 0;
+    return true;
 }
 
 class VariationFontCacheTest : public testing::Test {

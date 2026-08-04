@@ -32,7 +32,10 @@ std::shared_ptr<Data> SkiaHelper::FlattenableSerialize(const SkFlattenable* flat
     writer.writeFlattenable(flattenable);
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
+    if (!data->BuildUninitialized(length)) {
+        LOGD("SkiaHelper::Serialize, BuildUninitialized failed.");
+        return nullptr;
+    }
     writer.writeToMemory(data->WritableData());
     return data;
 }

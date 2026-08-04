@@ -76,7 +76,7 @@ public:
 
     virtual ErrCode GetUniRenderEnabled(bool& enable) = 0;
 
-    virtual ErrCode GetBackgroundRebuildEnabled(bool& enable) = 0;
+    virtual ErrCode GetBackgroundRebuildEnabled(uint8_t& enable) = 0;
 
     virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
                                           const std::string& name,
@@ -356,8 +356,6 @@ public:
 
     virtual void RunOnRemoteDiedCallback() = 0;
 
-    virtual ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) = 0;
-
 #ifndef ENABLE_RS_PROXY
     virtual void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) = 0;
 
@@ -438,6 +436,9 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
+
+    virtual ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) = 0;
+
     virtual void RemoveToken() = 0;
 
     virtual void RegisterRemoteRefreshCallback() = 0;

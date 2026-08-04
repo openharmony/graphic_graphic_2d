@@ -23,11 +23,45 @@
 #include "platform/common/rs_log.h"
 #include "surface_buffer_impl.h"
 #include "graphic_common.h"
+#include "v2_2/cm_color_space.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+namespace {
+BufferRequestConfig CreateDefaultBufferRequestConfig()
+{
+    return BufferRequestConfig {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+}
+ 
+sptr<SurfaceBuffer> CreateSurfaceBufferWithHdrMetadata(uint32_t hdrMetadataType)
+{
+    BufferRequestConfig requestConfig = CreateDefaultBufferRequestConfig();
+    sptr<SurfaceBuffer> surfaceBuffer = new SurfaceBufferImpl(0);
+    if (surfaceBuffer->Alloc(requestConfig) != GSERROR_OK) {
+        return nullptr;
+    }
+    HDIV::CM_ColorSpaceInfo colorSpaceInfo = {};
+    if (MetadataHelper::SetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) != GSERROR_OK) {
+        return nullptr;
+    }
+    std::vector<uint8_t> metadataType;
+    metadataType.resize(sizeof(hdrMetadataType));
+    memcpy_s(metadataType.data(), metadataType.size(), &hdrMetadataType, sizeof(hdrMetadataType));
+    surfaceBuffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
+    return surfaceBuffer;
+}
+} // namespace
 
 class RSColorspaceConvertTest : public testing::Test {
 public:
@@ -359,6 +393,106 @@ HWTEST_F(RSColorspaceConvertTest, SetColorSpaceConverterDisplayParameter002, Tes
     bool ret = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(nullptr, parameter,
         targetColorSpace, screenId, dynamicRangeMode);
     ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: SetColorSpaceConverterDisplayParameter003
+ * @tc.desc: test hdrMetadataType == CM_IMAGE_HDR_CANVAS, IsHdrPictureOn is false, dynamicRangeMode is HIGH
+ * @tc.type:FUNC
+ * @tc.require: IAJ26A
+ */
+HWTEST_F(RSColorspaceConvertTest, SetColorSpaceConverterDisplayParameter003, TestSize.Level1)
+{
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = DynamicRangeMode::HIGH;
+ 
+    sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBufferWithHdrMetadata(
+        HDI::Display::Graphic::Common::V2_2::CM_IMAGE_HDR_CANVAS);
+    ASSERT_TRUE(surfaceBuffer != nullptr);
+ 
+    VPEParameter parameter;
+    RSPaintFilterCanvas::HDRProperties hdrProperties;
+    hdrProperties.isEDRSurface = true;
+ 
+    bool result = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(surfaceBuffer, parameter,
+        targetColorSpace, screenId, dynamicRangeMode, hdrProperties);
+    ASSERT_TRUE(result);
+}
+ 
+/**
+ * @tc.name: SetColorSpaceConverterDisplayParameter004
+ * @tc.desc: test hdrMetadataType == CM_COMPONENT_EDR, IsHdrPictureOn is false, dynamicRangeMode is HIGH
+ * @tc.type:FUNC
+ * @tc.require: IAJ26A
+ */
+HWTEST_F(RSColorspaceConvertTest, SetColorSpaceConverterDisplayParameter004, TestSize.Level1)
+{
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = DynamicRangeMode::HIGH;
+ 
+    sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBufferWithHdrMetadata(
+        HDI::Display::Graphic::Common::V2_2::CM_COMPONENT_EDR);
+    ASSERT_TRUE(surfaceBuffer != nullptr);
+ 
+    VPEParameter parameter;
+    RSPaintFilterCanvas::HDRProperties hdrProperties;
+    hdrProperties.isEDRSurface = true;
+ 
+    bool result = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(surfaceBuffer, parameter,
+        targetColorSpace, screenId, dynamicRangeMode, hdrProperties);
+    ASSERT_TRUE(result);
+}
+ 
+/**
+ * @tc.name: SetColorSpaceConverterDisplayParameter005
+ * @tc.desc: test hdrMetadataType == CM_METADATA_NONE, IsHdrPictureOn is false, dynamicRangeMode is HIGH
+ * @tc.type:FUNC
+ * @tc.require: IAJ26A
+ */
+HWTEST_F(RSColorspaceConvertTest, SetColorSpaceConverterDisplayParameter005, TestSize.Level1)
+{
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = DynamicRangeMode::HIGH;
+ 
+    sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBufferWithHdrMetadata(
+        HDI::Display::Graphic::Common::V2_2::CM_METADATA_NONE);
+    ASSERT_TRUE(surfaceBuffer != nullptr);
+ 
+    VPEParameter parameter;
+    RSPaintFilterCanvas::HDRProperties hdrProperties;
+    hdrProperties.isEDRSurface = true;
+ 
+    bool result = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(surfaceBuffer, parameter,
+        targetColorSpace, screenId, dynamicRangeMode, hdrProperties);
+    ASSERT_TRUE(result);
+}
+ 
+/**
+ * @tc.name: SetColorSpaceConverterDisplayParameter006
+ * @tc.desc: test dynamicRangeMode == STANDARD, IsHdrPictureOn is false
+ * @tc.type:FUNC
+ * @tc.require: IAJ26A
+ */
+HWTEST_F(RSColorspaceConvertTest, SetColorSpaceConverterDisplayParameter006, TestSize.Level1)
+{
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = DynamicRangeMode::STANDARD;
+ 
+    sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBufferWithHdrMetadata(
+        HDI::Display::Graphic::Common::V2_2::CM_IMAGE_HDR_CANVAS);
+    ASSERT_TRUE(surfaceBuffer != nullptr);
+ 
+    VPEParameter parameter;
+    RSPaintFilterCanvas::HDRProperties hdrProperties;
+    hdrProperties.isEDRSurface = true;
+ 
+    bool result = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(surfaceBuffer, parameter,
+        targetColorSpace, screenId, dynamicRangeMode, hdrProperties);
+    ASSERT_TRUE(result);
 }
 
 /**

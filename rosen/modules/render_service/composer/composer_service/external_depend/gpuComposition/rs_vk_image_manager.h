@@ -107,6 +107,8 @@ public:
         const std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& params) override;
 
     void DumpVkImageInfo(std::string &dumpString) override;
+    void SetVKImageCacheMapSize(uint32_t cacheSize) override;
+
 private:
     std::shared_ptr<VkImageResource> MapVkImageFromSurfaceBuffer(
         sptr<OHOS::SurfaceBuffer> buffer, const sptr<SyncFence>& acquireFence,
@@ -120,6 +122,7 @@ private:
 
     std::unordered_map<uint64_t, std::shared_ptr<VkImageResource>> imageCacheSeqs_; // guarded by opMutex_
     std::queue<std::pair<uint64_t, pid_t>> oneByoneUnmapCacheSeqs_; // guarded by opMutex_
+    uint32_t maxCacheSizeForReuse_ = 40; // 40 : cache size
 };
 
 } // namespace Rosen

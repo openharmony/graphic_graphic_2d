@@ -1890,6 +1890,30 @@ HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBufferTest, TestSize
     ret = agent->SubmitCanvasPreAllocatedBuffer(1, 1, nullptr, 1);
     EXPECT_NE(ret, 0);
 }
+
+/**
+ * @tc.name: SubmitCanvasPreAllocatedBuffer_NodeTypeCheck
+ * @tc.desc: Verify SubmitCanvasPreAllocatedBuffer rejects non-CANVAS_DRAWING_NODE type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBuffer_NodeTypeCheck, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(mainThread_, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
+    // Register a non-CANVAS_DRAWING_NODE (SURFACE_NODE) in the node map
+    pid_t pid = 1;
+    NodeId surfaceNodeId = static_cast<NodeId>(pid) << 32 | 100;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    auto ret = agent->SubmitCanvasPreAllocatedBuffer(pid, surfaceNodeId, buffer, 1);
+    ASSERT_EQ(ret, INVALID_ARGUMENTS);
+    mainThread_->GetContext().GetMutableNodeMap().UnregisterRenderNode(surfaceNodeId);
+}
 #endif
 
 /**
@@ -1924,5 +1948,24 @@ HWTEST_F(RSRenderPipelineAgentTest, NotifyWindowModeTypeEvent002, TestSize.Level
  
     uint8_t windowModeType = 0;
     agent->NotifyWindowModeTypeEvent(windowModeType);
+}
+
+/**
+ * @tc.name: OnGlobalBlacklistChangedWithValidPipeline
+ * @tc.desc: Test OnGlobalBlacklistChanged with valid pipeline and ScreenSpecialLayerParam
+ * @tc.type: FUNC
+ * @tc.require: issue25079
+ */
+HWTEST_F(RSRenderPipelineAgentTest, OnGlobalBlacklistChangedWithValidPipeline, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    if (mainThread_->renderThreadParams_ == nullptr) {
+        mainThread_->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+
+    agent->OnGlobalBlacklistChanged({});
+    ASSERT_EQ(ScreenSpecialLayerInfo::GetGlobalBlackList().size(), 0);
 }
 } // namespace OHOS::Rosen

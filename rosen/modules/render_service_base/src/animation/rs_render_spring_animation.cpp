@@ -15,7 +15,8 @@
 
 #include "animation/rs_render_spring_animation.h"
 
-#include "animation/rs_animation_trace_utils.h"
+#include <cmath>
+
 #include "animation/rs_animation_trace_utils.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
@@ -54,19 +55,25 @@ void RSRenderSpringAnimation::DumpAnimationInfo(std::string& out) const
     out.append(", EndValue: ").append(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_));
 }
 
-void RSRenderSpringAnimation::SetSpringParameters(
-    float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio)
+void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, float blendDuration,
+    float minimumAmplitudeRatio, std::optional<ConvergeParams> convergeParams)
 {
+    if (!std::isfinite(response) || !std::isfinite(dampingRatio) || !std::isfinite(blendDuration) ||
+        !std::isfinite(minimumAmplitudeRatio)) {
+        ROSEN_LOGE("RSRenderSpringAnimation::SetSpringParameters: invalid spring parameters.");
+        return;
+    }
     response_ = response;
     dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     blendDuration_ = blendDuration * SECOND_TO_NANOSECOND; // convert to ns
     minimumAmplitudeRatio_ = minimumAmplitudeRatio;
+    convergeParams_ = convergeParams;
 }
 
 void RSRenderSpringAnimation::SetZeroThreshold(float zeroThreshold)
 {
     constexpr float ZERO = 0.0f;
-    if (zeroThreshold < ZERO) {
+    if (zeroThreshold < ZERO || !std::isfinite(zeroThreshold)) {
         ROSEN_LOGE("RSRenderSpringAnimation::SetZeroThreshold: invalid threshold value.");
         needLogicallyFinishCallback_ = false;
         return;

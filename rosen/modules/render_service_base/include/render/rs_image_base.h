@@ -90,6 +90,7 @@ public:
     */
     void Purge();
     void DePurge();
+    void FlushCache();
 
 protected:
     void ConvertPixelMapToDrawingImage();

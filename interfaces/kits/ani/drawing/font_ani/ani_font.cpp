@@ -484,6 +484,23 @@ void AniFont::SetForceAutoHinting(ani_env* env, ani_object obj, ani_boolean isFo
     aniFont->GetFont()->SetForceAutoHinting(forceAutoHinting);
 }
 
+std::unique_ptr<uint16_t[]> GetGlyphArrayFromAni(ani_env* env, ani_array glyphs, uint32_t count)
+{
+    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(count);
+    for (uint32_t i = 0; i < count; i++) {
+        ani_int glyph;
+        ani_ref glyphRef;
+        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
+            ANI_OK != env->Object_CallMethod_Int(
+                static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
+            ROSEN_LOGE("AniFont Incorrect parameter glyph type.");
+            return nullptr;
+        }
+        glyphPtr[i] = glyph;
+    }
+    return glyphPtr;
+}
+
 ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_array glyphs)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
@@ -498,17 +515,13 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_array glyphs)
         return CreateAniUndefined(env);
     }
     uint32_t fontSize = static_cast<uint32_t>(aniLength);
-    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(fontSize);
-    for (uint32_t i = 0; i < fontSize; i++) {
-        ani_int glyph;
-        ani_ref glyphRef;
-        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
-            ANI_OK != env->Object_CallMethod_Int(
-                static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
-            ROSEN_LOGE("AniFont::GetWidths Incorrect parameter glyph type.");
-            return CreateAniUndefined(env);
-        }
-        glyphPtr[i] = glyph;
+    if (fontSize > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("AniFont::GetWidths size of glyph array exceeds the upper limit");
+        return CreateAniUndefined(env);
+    }
+    auto glyphPtr = GetGlyphArrayFromAni(env, glyphs, fontSize);
+    if (glyphPtr == nullptr) {
+        return CreateAniUndefined(env);
     }
 
     std::shared_ptr<Font> font = aniFont->GetFont();
@@ -810,17 +823,13 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_array glyphs)
     }
     
     uint32_t glyphscnt = static_cast<uint32_t>(aniLength);
-    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(glyphscnt);
-    for (uint32_t i = 0; i < glyphscnt; i++) {
-        ani_int glyph;
-        ani_ref glyphRef;
-        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
-            ANI_OK != env->Object_CallMethod_Int(
-                static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
-            ROSEN_LOGE("AniFont::GetBounds Incorrect parameter glyph type.");
-            return CreateAniUndefined(env);
-        }
-        glyphPtr[i] = glyph;
+    if (glyphscnt > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("AniFont::GetBounds size of glyph array exceeds the upper limit");
+        return CreateAniUndefined(env);
+    }
+    auto glyphPtr = GetGlyphArrayFromAni(env, glyphs, glyphscnt);
+    if (glyphPtr == nullptr) {
+        return CreateAniUndefined(env);
     }
 
     std::shared_ptr<Font> font = aniFont->GetFont();

@@ -25,10 +25,10 @@ public:
     RsDelegateCompositeParams(std::string name, NodeId nodeId);
 
     void SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW);
-    Vector4f GetDelegateDstRect();
+    const Vector4f& GetDelegateDstRect();
 
     void SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW);
-    Vector4f GetDelegateSrcRect();
+    const Vector4f& GetDelegateSrcRect();
 
     void SetDelegateMode(bool isSetDelegateMode);
     bool GetDelegateMode();

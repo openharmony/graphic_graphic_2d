@@ -130,7 +130,10 @@ std::shared_ptr<Data> SkiaVertices::Serialize() const
     skiaVertices_->priv().encode(writer);
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
+    if (!data->BuildUninitialized(length)) {
+        LOGD("SkiaVertices::Serialize, BuildUninitialized failed.");
+        return nullptr;
+    }
     writer.writeToMemory(data->WritableData());
     return data;
 }
