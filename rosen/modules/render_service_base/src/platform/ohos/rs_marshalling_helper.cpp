@@ -3432,6 +3432,11 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel memcpy_s failed");
         return false;
     }
+    // seal the memfd so that the receiver can safely map it read-only
+    if (!ashmemAllocator->Seal()) {
+        ROSEN_LOGE("RSMarshallingHelper::WriteToParcel Seal failed");
+        return false;
+    }
     return true;
 }
 
@@ -3493,8 +3498,12 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
         return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
     };
     int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
-    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
-    return ashmemAllocator != nullptr;
+    // validate seals and size without mapping: some platforms forbid mapping a sealed memfd
+    bool valid = AshmemAllocator::ValidateSealedMemfd(fd, size);
+    if (fd >= 0) {
+        ::close(fd);
+    }
+    return valid;
 }
 
 const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, bool& isMalloc)
@@ -3504,13 +3513,23 @@ const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, boo
         return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
     };
     int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
-    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
-    if (!ashmemAllocator) {
-        ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem CreateAshmemAllocator fail");
+    if (!AshmemAllocator::ValidateSealedMemfd(fd, size)) {
+        ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem invalid memfd");
+        if (fd >= 0) {
+            ::close(fd);
+        }
+        return nullptr;
+    }
+    void* data = AshmemAllocator::CopyFromMemfd(fd, size);
+    if (fd >= 0) {
+        ::close(fd);
+    }
+    if (data == nullptr) {
+        ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem CopyFromMemfd fail");
         return nullptr;
     }
     isMalloc = true;
-    return ashmemAllocator->CopyFromAshmem(size);
+    return data;
 }
 
 void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid)
@@ -3706,40 +3725,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SurfaceRegionConfig& val
     return true;
 }
 #endif
-
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sptr<IRemoteObject>& val)
-{
-    if (val != nullptr) {
-        if (!parcel.WriteBool(true)) {
-            return false;
-        }
-        if (!parcel.WriteRemoteObject(val)) {
-            return false;
-        }
-    } else {
-        if (!parcel.WriteBool(false)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<IRemoteObject>& val)
-{
-    val = nullptr;
-    bool hasObject{false};
-    if (!parcel.ReadBool(hasObject)) {
-        return false;
-    }
-    if (hasObject) {
-        auto remoteObject = static_cast<MessageParcel*>(&parcel)->ReadRemoteObject();
-        if (remoteObject == nullptr) {
-            return false;
-        }
-        val = remoteObject;
-    }
-    return true;
-}
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSSurfaceRenderNodeConfig& val)
 {
