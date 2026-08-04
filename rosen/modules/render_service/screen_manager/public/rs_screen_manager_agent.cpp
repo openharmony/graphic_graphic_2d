@@ -791,7 +791,7 @@ bool RSScreenManagerAgent::SetVirtualScreenStatus(ScreenId id, VirtualScreenStat
 {
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
-        return StatusCode::SCREEN_NOT_FOUND;
+        return false;
     }
     return screenManager_->SetVirtualScreenStatus(id, screenStatus);
 }

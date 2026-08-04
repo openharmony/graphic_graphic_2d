@@ -509,6 +509,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     }
 
     std::vector<SurfaceRegionConfig> surfaceConfigs;
+    std::lock_guard<std::mutex> lock(virtualScreenSurfaceMutex_);
     if (surface != nullptr) {
         auto usedSurfaceIds = CollectVirtualScreenSurfaceIds();
         if (!usedSurfaceIds.insert(surface->GetUniqueId()).second) {
@@ -796,6 +797,7 @@ int32_t RSScreenManager::AddVirtualScreenSurface(
         return INVALID_ARGUMENTS;
     }
 
+    std::lock_guard<std::mutex> lock(virtualScreenSurfaceMutex_);
     std::unordered_set<uint64_t> usedSurfaceIds = CollectVirtualScreenSurfaceIds();
     for (const auto& config : validConfigs) {
         if (!usedSurfaceIds.insert(config.surface->GetUniqueId()).second) {
@@ -859,6 +861,7 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
         return INVALID_ARGUMENTS;
     }
 
+    std::lock_guard<std::mutex> lock(virtualScreenSurfaceMutex_);
     uint64_t surfaceId = surface->GetUniqueId();
     auto usedSurfaceIds = CollectVirtualScreenSurfaceIds(id);
     if (!usedSurfaceIds.insert(surfaceId).second) {
@@ -956,24 +959,25 @@ int32_t RSScreenManager::SetDualScreenState(ScreenId id, DualScreenStatus status
 
 int32_t RSScreenManager::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
 {
-    auto screen = GetScreen(screenId);
-    if (screen == nullptr) {
+    // Reset other screens before setting the main screen to ensure the main screen is unique.
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
+    auto it = screens_.find(screenId);
+    if (it == screens_.end() || it->second == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, screenId);
         return SCREEN_NOT_FOUND;
     }
-
-    // Reset other screens before setting the main screen to ensure the main screen is unique.
     if (isMainScreen) {
-        std::lock_guard<std::mutex> lock(screenMapMutex_);
-        for (const auto& [id, screen] : screens_) {
-            if (screen && id != screenId) {
-                screen->SetAsMainScreen(false);
+        for (const auto& [id, other] : screens_) {
+            if (other) {
+                other->SetAsMainScreen(id == screenId);
             }
         }
+    } else {
+        it->second->SetAsMainScreen(false);
     }
 
     RS_LOGI("%{public}s: screenId[%{public}" PRIu64 "] isMainScreen[%{public}d]", __func__, screenId, isMainScreen);
-    return screen->SetAsMainScreen(isMainScreen);
+    return SUCCESS;
 }
 
 ScreenId RSScreenManager::GetMainScreenId()
