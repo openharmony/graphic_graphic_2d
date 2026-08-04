@@ -3603,5 +3603,19 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState003, TestSize.Level1)
     surfaceRenderNode.SetRebuildingState(true);
     EXPECT_FALSE(surfaceRenderNode.isRebuildingState_);
 }
+
+/**
+ * @tc.name: GetVideoDimType_001
+ * @tc.desc: Test GetVideoDimType returns default VIDEO_DIM_TYPE_2D
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetVideoDimType_001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    EXPECT_EQ(surfaceNode->GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
+}
 } // namespace Rosen
 } // namespace OHOS
