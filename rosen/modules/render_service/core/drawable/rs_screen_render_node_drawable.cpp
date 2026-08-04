@@ -814,12 +814,12 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    if (uniParam->IsDirtyAlignEnabled() && !RSUniDirtyComputeUtil::IsDamageRegionGpuTileInited()) {
+    if (!RSUniDirtyComputeUtil::IsDamageRegionGpuTileInited()) {
         auto renderAreaGranularity = drSurface->GetRenderAreaGranularity();
         RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(
             static_cast<int>(renderAreaGranularity.width),
             static_cast<int>(renderAreaGranularity.height)));
-        RS_LOGI("gpu tile: (%d, %d)",
+        RS_LOGI("gpu tile: (%{public}d, %{public}d)",
             RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first,
             RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
     }
