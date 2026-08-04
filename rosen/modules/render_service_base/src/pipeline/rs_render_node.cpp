@@ -4600,8 +4600,9 @@ void RSRenderNode::SetStaticCached(bool isStaticCached, bool isMarkedByUI)
     isStaticCached_ = isStaticCached;
     // ensure defrost subtree would be updated
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetRSFreezeFlag(isStaticCached, isMarkedByUI);
-    SetDirty();
+    if (stagingRenderParams_->SetRSFreezeFlag(isStaticCached, isMarkedByUI)) {
+        SetDirty();
+    }
 #else
     isStaticCached = false;
 #endif

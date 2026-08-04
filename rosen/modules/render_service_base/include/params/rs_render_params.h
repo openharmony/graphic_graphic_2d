@@ -325,7 +325,7 @@ public:
     bool NeedClearRenderGroupCache() const;
     void SetRenderGroupIncludeProperty(bool includeProperty);
     bool IsRenderGroupIncludeProperty() const;
-    void SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI = false);
+    bool SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI = false);
     bool GetRSFreezeFlag() const;
     RSRenderGroupCache::RSFreezeFlag GetRSFreezeFlagType() const;
     bool IsFreezedByUser() const;
