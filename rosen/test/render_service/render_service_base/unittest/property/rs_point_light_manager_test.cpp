@@ -54,6 +54,236 @@ HWTEST_F(RSPointLightManagerTest, Instance001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FindInstance001
+ * @tc.desc: FindInstance returns nullptr when absent, manager pointer when present
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, FindInstance001, TestSize.Level1)
+{
+    EXPECT_EQ(RSPointLightManager::FindInstance(0), nullptr);
+    auto& instance = RSPointLightManager::Instance(0);
+    EXPECT_EQ(RSPointLightManager::FindInstance(0), instance.get());
+    RSPointLightManager::ReleaseInstance(0);
+    EXPECT_EQ(RSPointLightManager::FindInstance(0), nullptr);
+}
+
+/**
+ * @tc.name: UpdateLightResourcesOnTreeChangedTest
+ * @tc.desc: entering/leaving tree registers/unregisters light resources and clears stale pairings
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, UpdateLightResourcesOnTreeChangedTest, TestSize.Level1)
+{
+    constexpr NodeId ldid = 1;
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffect().lightSourcePtr_->intensity_ = 1.0f;
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    properties.GetEffect().illuminatedPtr_->AddLightSourcesAndPos(2, RSLightSource(), Vector4f());
+    EXPECT_FALSE(properties.GetEffect().illuminatedPtr_->GetLightSourcesAndPosMap().empty());
+
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, ldid);
+    auto& instance = RSPointLightManager::Instance(ldid);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+    EXPECT_FALSE(instance->dirtyLightSourceList_.empty());
+    EXPECT_FALSE(instance->dirtyIlluminatedList_.empty());
+
+    node->SetIsOnTheTree(false);
+    EXPECT_TRUE(properties.GetEffect().illuminatedPtr_->GetLightSourcesAndPosMap().empty());
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 0u);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 0u);
+}
+
+/**
+ * @tc.name: UpdateLightResourcesNullNodeTest
+ * @tc.desc: null node early-exits without crash
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, UpdateLightResourcesNullNodeTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(1);
+    instance->lightSourceNodeMap_.clear();
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyLightSourceList_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    RSPointLightManager::UpdateLightResourcesOnTreeChanged(nullptr, INVALID_NODEID, 1, true);
+    EXPECT_EQ(instance->lightSourceNodeMap_.size(), 0u);
+    EXPECT_EQ(instance->illuminatedNodeMap_.size(), 0u);
+    EXPECT_TRUE(instance->dirtyLightSourceList_.empty());
+    EXPECT_TRUE(instance->dirtyIlluminatedList_.empty());
+}
+
+/**
+ * @tc.name: UpdateLightResourcesEarlyExitTest
+ * @tc.desc: node without light source / illuminated early-exits, no registration
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, UpdateLightResourcesEarlyExitTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& instance = RSPointLightManager::Instance(1);
+    instance->lightSourceNodeMap_.clear();
+    instance->illuminatedNodeMap_.clear();
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, 1);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 0u);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 0u);
+}
+
+/**
+ * @tc.name: LeaveTreeLightSourceOnlyTest
+ * @tc.desc: leaving tree with only light source unregisters it, no illuminated to clear
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, LeaveTreeLightSourceOnlyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffect().lightSourcePtr_->intensity_ = 1.0f;
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, 1);
+    auto& instance = RSPointLightManager::Instance(1);
+    ASSERT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+    node->SetIsOnTheTree(false);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 0u);
+    EXPECT_FALSE(instance->dirtyLightSourceList_.empty());
+}
+
+/**
+ * @tc.name: LeaveTreeIlluminatedOnlyTest
+ * @tc.desc: leaving tree with only illuminated clears pairings and unregisters
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, LeaveTreeIlluminatedOnlyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    properties.GetEffect().illuminatedPtr_->AddLightSourcesAndPos(2, RSLightSource(), Vector4f());
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, 1);
+    node->SetIsOnTheTree(false);
+    EXPECT_TRUE(properties.GetEffect().illuminatedPtr_->GetLightSourcesAndPosMap().empty());
+    auto& instance = RSPointLightManager::Instance(1);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 0u);
+}
+
+/**
+ * @tc.name: LeaveTreeOldMgrReleasedTest
+ * @tc.desc: leaving tree when old manager already released skips unregister, still clears pairings
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, LeaveTreeOldMgrReleasedTest, TestSize.Level1)
+{
+    constexpr NodeId ldid = 5;
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    properties.GetEffect().illuminatedPtr_->AddLightSourcesAndPos(2, RSLightSource(), Vector4f());
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, ldid);
+    RSPointLightManager::ReleaseInstance(ldid);
+    node->SetIsOnTheTree(false);
+    EXPECT_TRUE(properties.GetEffect().illuminatedPtr_->GetLightSourcesAndPosMap().empty());
+    EXPECT_EQ(RSPointLightManager::FindInstance(ldid), nullptr);
+}
+
+/**
+ * @tc.name: EnterTreeLightSourceOnlyTest
+ * @tc.desc: entering tree with only light source registers light source, no illuminated
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, EnterTreeLightSourceOnlyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffect().lightSourcePtr_->intensity_ = 1.0f;
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, 1);
+    auto& instance = RSPointLightManager::Instance(1);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 0u);
+}
+
+/**
+ * @tc.name: EnterTreeIlluminatedOnlyTest
+ * @tc.desc: entering tree with only illuminated registers illuminated, no light source
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, EnterTreeIlluminatedOnlyTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, 1);
+    auto& instance = RSPointLightManager::Instance(1);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 0u);
+}
+
+/**
+ * @tc.name: EnterTreeInvalidLdidTest
+ * @tc.desc: entering tree with invalid new ldid does not register
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, EnterTreeInvalidLdidTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffect().lightSourcePtr_->intensity_ = 1.0f;
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, 1);
+    auto& instance = RSPointLightManager::Instance(1);
+    ASSERT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+    node->isOnTheTree_ = false;
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, INVALID_NODEID);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: NoTriggerSameLdidTest
+ * @tc.desc: same logicalDisplayNodeId does not trigger UpdateLightResourcesOnTreeChanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, NoTriggerSameLdidTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffect().lightSourcePtr_->intensity_ = 1.0f;
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, 1);
+    auto& instance = RSPointLightManager::Instance(1);
+    ASSERT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+    instance->dirtyLightSourceList_.clear();
+    node->isOnTheTree_ = false;
+    node->SetIsOnTheTree(true, 0, 0, 0, 0, 1);
+    EXPECT_TRUE(instance->dirtyLightSourceList_.empty());
+}
+
+/**
  * @tc.name: Instance002
  * @tc.desc: test Instance with different display node IDs
  * @tc.type:FUNC

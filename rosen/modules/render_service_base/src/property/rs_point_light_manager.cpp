@@ -45,6 +45,67 @@ const std::unique_ptr<RSPointLightManager>& RSPointLightManager::Instance(NodeId
     return itNew->second;
 }
 
+RSPointLightManager* RSPointLightManager::FindInstance(NodeId logicalDisplayNodeId)
+{
+    auto it = g_managersLUT.find(logicalDisplayNodeId);
+    return it != g_managersLUT.end() ? it->second.get() : nullptr;
+}
+
+void RSPointLightManager::UpdateLightResourcesOnTreeChanged(const std::shared_ptr<RSRenderNode>& node,
+    NodeId oldLogicalDisplayNodeId, NodeId newLogicalDisplayNodeId, bool isOnTree)
+{
+    if (!node) {
+        return;
+    }
+    auto& properties = node->GetMutableRenderProperties();
+    auto lightSource = properties.GetLightSource();
+    auto illuminated = properties.GetIlluminated();
+    bool hasLightSource = lightSource && lightSource->IsLightSourceValid();
+    bool hasIlluminated = illuminated && illuminated->IsIlluminatedValid();
+    if (!hasLightSource && !hasIlluminated) {
+        return;
+    }
+    RS_LOGI("UpdateLightResourcesOnTreeChanged node:%{public}" PRIu64 " oldLdid:%{public}" PRIu64
+        " newLdid:%{public}" PRIu64 " onTree:%{public}d hasLight:%{public}d hasIllum:%{public}d",
+        node->GetId(), oldLogicalDisplayNodeId, newLogicalDisplayNodeId, isOnTree, hasLightSource, hasIlluminated);
+    if (!isOnTree) {
+        // Leaving the tree: clear stale pairings carried on the node, then unregister from the old
+        // logical display manager so it stops re-pairing and drops stale entries.
+        if (illuminated) {
+            illuminated->ClearLightSourcesAndPosMap();
+        }
+        auto* oldMgr = FindInstance(oldLogicalDisplayNodeId);
+        if (oldMgr != nullptr) {
+            RS_LOGI("UpdateLightResourcesOnTreeChanged unregister node:%{public}" PRIu64
+                " from old manager ldid:%{public}" PRIu64, node->GetId(), oldLogicalDisplayNodeId);
+            if (hasLightSource) {
+                oldMgr->UnRegisterLightSource(node);
+                oldMgr->AddDirtyLightSource(std::weak_ptr<RSRenderNode>(node));
+            }
+            if (hasIlluminated) {
+                oldMgr->UnRegisterIlluminated(node);
+                oldMgr->AddDirtyIlluminated(std::weak_ptr<RSRenderNode>(node));
+            }
+        }
+        node->SetDirty();
+    } else if (newLogicalDisplayNodeId != INVALID_NODEID) {
+        // Entering the tree: register to the new logical display manager and mark dirty so the
+        // manager re-pairs this node against current light sources / illuminated nodes.
+        auto& lightMgr = Instance(newLogicalDisplayNodeId);
+        RS_LOGI("UpdateLightResourcesOnTreeChanged register node:%{public}" PRIu64
+            " to new manager ldid:%{public}" PRIu64, node->GetId(), newLogicalDisplayNodeId);
+        if (hasLightSource) {
+            lightMgr->RegisterLightSource(node);
+            lightMgr->AddDirtyLightSource(std::weak_ptr<RSRenderNode>(node));
+        }
+        if (hasIlluminated) {
+            lightMgr->RegisterIlluminated(node);
+            lightMgr->AddDirtyIlluminated(std::weak_ptr<RSRenderNode>(node));
+        }
+        node->SetDirty();
+    }
+}
+
 void RSPointLightManager::ReleaseInstance(NodeId logicalDisplayNodeId)
 {
     auto it = g_managersLUT.find(logicalDisplayNodeId);
