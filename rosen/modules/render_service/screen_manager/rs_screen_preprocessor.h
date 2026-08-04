@@ -30,11 +30,12 @@ struct ScreenHotPlugEvent {
     std::shared_ptr<HdiOutput> output;
     bool connected = false;
 };
+
 class RSScreenPreprocessor {
 public:
     RSScreenPreprocessor(RSScreenManager& screenManager, RSScreenCallbackManager& callbackMgr,
         std::shared_ptr<AppExecFwk::EventHandler> handler, bool isFoldScreen);
-    ~RSScreenPreprocessor() {};
+    ~RSScreenPreprocessor() {}
 
     static void OnHotPlug(std::shared_ptr<HdiOutput>& output, bool connected, void* data);
     static void OnRefresh(ScreenId id, void* data);
