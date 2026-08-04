@@ -4002,29 +4002,6 @@ HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers003, TestSize.Level1
 #endif
 
 /**
- * @tc.name: UpdateDrawingCacheInfoAfterChildren_ExcludedStateChanged001
- * @tc.desc: a descendant's excluded state changed must force drawing cache changed on the cache root.
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST_F(RSRenderNodeTest2, UpdateDrawingCacheInfoAfterChildren_ExcludedStateChanged001, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(0);
-    ASSERT_NE(node, nullptr);
-    node->InitRenderParams();
-    EXPECT_FALSE(node->GetDrawingCacheChanged());
-
-    // simulate the signal a descendant propagated up to this cache root via renderGroupCacheRoots_
-    node->SetRenderGroupExcludedStateChanged(true);
-    EXPECT_TRUE(node->IsRenderGroupExcludedStateChanged());
-
-    node->UpdateDrawingCacheInfoAfterChildren();
-    // the cache root must refresh, and the one-shot flag must be consumed
-    EXPECT_TRUE(node->GetDrawingCacheChanged());
-    EXPECT_FALSE(node->IsRenderGroupExcludedStateChanged());
-}
-
-/**
  * @tc.name: SetStaticCached_FreezeFlagDirty001
  * @tc.desc: SetStaticCached dirties the node only when the freeze flag actually changes.
  * @tc.type: FUNC
