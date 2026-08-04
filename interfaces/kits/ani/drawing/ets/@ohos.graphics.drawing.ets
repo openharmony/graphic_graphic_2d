@@ -474,11 +474,10 @@ namespace drawing {
     native constructorNative(filterMode: FilterMode): void;
 
     static samplingOptionsTransferStatic(input: Any): Object {
-      let samplingOptions: SamplingOptions = new SamplingOptions();
-      return SamplingOptions.samplingOptionsTransferStaticNative(samplingOptions, ESValue.wrap(input));
+      return SamplingOptions.samplingOptionsTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native samplingOptionsTransferStaticNative(samplingOptions: SamplingOptions, input: ESValue): Object;
+    private static native samplingOptionsTransferStaticNative(input: ESValue): Object;
 
     static samplingOptionsTransferDynamic(input: Object): Any {
       if (!(input instanceof SamplingOptions)) {
@@ -1558,11 +1557,10 @@ namespace drawing {
     native constructorNative(pen: Pen): void;
 
     static penTransferStatic(input: Any): Object {
-      let pen: Pen = new Pen();
-      return Pen.penTransferStaticNative(pen, ESValue.wrap(input));
+      return Pen.penTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native penTransferStaticNative(pen: Pen, input: ESValue): Object;
+    private static native penTransferStaticNative(input: ESValue): Object;
 
     static penTransferDynamic(input: Object): Any {
       if (!(input instanceof Pen)) {
@@ -1931,11 +1929,10 @@ namespace drawing {
     native constructorNative(brush: Brush): void;
 
     static brushTransferStatic(input: Any): Object {
-      let brush: Brush = new Brush();
-      return Brush.brushTransferStaticNative(brush, ESValue.wrap(input));
+      return Brush.brushTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native brushTransferStaticNative(brush: Brush, input: ESValue): Object;
+    private static native brushTransferStaticNative(input: ESValue): Object;
 
     static brushTransferDynamic(input: Object): Any {
       if (!(input instanceof Brush)) {
@@ -2380,11 +2377,10 @@ namespace drawing {
     native constructorNative(): void;
 
     static fontTransferStatic(input: Any): Object {
-      let font: Font = new Font();
-      return Font.fontTransferStaticNative(font, ESValue.wrap(input));
+      return Font.fontTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native fontTransferStaticNative(font: Font, input: ESValue): Object;
+    private static native fontTransferStaticNative(input: ESValue): Object;
 
     static fontTransferDynamic(input: Object): Any {
       if (!(input instanceof Font)) {
@@ -3214,11 +3210,10 @@ namespace drawing {
     native constructorNative(matrix: Matrix): void;
 
     static matrixTransferStatic(input: Any): Object {
-      let matrix: Matrix = new Matrix();
-      return Matrix.matrixTransferStaticNative(matrix, ESValue.wrap(input));
+      return Matrix.matrixTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native matrixTransferStaticNative(matrix: Matrix, input: ESValue): Object;
+    private static native matrixTransferStaticNative(input: ESValue): Object;
 
     static matrixTransferDynamic(input: Object): Any {
       if (!(input instanceof Matrix)) {
@@ -4224,11 +4219,10 @@ namespace drawing {
     native constructorNative(path: Path): void;
 
     static pathTransferStatic(input: Any): Object {
-      let path: Path = new Path();
-      return Path.pathTransferStaticNative(path, ESValue.wrap(input));
+      return Path.pathTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native pathTransferStaticNative(output: Path, input: ESValue): Object;
+    private static native pathTransferStaticNative(input: ESValue): Object;
 
     static pathTransferDynamic(input: Object): Any {
       if (!(input instanceof Path)) {
@@ -5406,11 +5400,10 @@ namespace drawing {
     native constructorNative(left: int, top: int, right: int, bottom: int): void;
 
     static regionTransferStatic(input: Any): Object {
-      let region: Region = new Region();
-      return Region.regionTransferStaticNative(region, ESValue.wrap(input));
+      return Region.regionTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native regionTransferStaticNative(region: Region, input: ESValue): Object;
+    private static native regionTransferStaticNative(input: ESValue): Object;
 
     static regionTransferDynamic(input: Object): Any {
       if (!(input instanceof Region)) {

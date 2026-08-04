@@ -679,7 +679,7 @@ void AniMatrix::SetSinCos(ani_env* env, ani_object obj, ani_double sinValue, ani
 }
 
 ani_object AniMatrix::MatrixTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
     return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
         auto jsMatrix = reinterpret_cast<JsMatrix*>(unwrapResult);

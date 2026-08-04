@@ -407,7 +407,7 @@ void AniRegion::Offset(ani_env* env, ani_object obj, ani_int dx, ani_int dy)
 }
 
 ani_object AniRegion::RegionTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
     return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
         auto jsRegion = reinterpret_cast<JsRegion*>(unwrapResult);

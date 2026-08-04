@@ -92,7 +92,7 @@ void AniSamplingOptions::ConstructorWithFilterMode(ani_env* env, ani_object obj,
 }
 
 ani_object AniSamplingOptions::SamplingOptionsTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
     return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
         auto jsSamplingOptions = reinterpret_cast<JsSamplingOptions*>(unwrapResult);

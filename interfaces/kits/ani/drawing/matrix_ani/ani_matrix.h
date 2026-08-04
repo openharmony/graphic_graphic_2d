@@ -70,7 +70,7 @@ public:
 
 private:
     static ani_object MatrixTransferStatic(
-        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
     static ani_object MatrixTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
     void OnSetMatrix(ani_env* env, ani_object obj, ani_object matrixArryaObj);
     std::shared_ptr<Matrix> matrix_ = nullptr;

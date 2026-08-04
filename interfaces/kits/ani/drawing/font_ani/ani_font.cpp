@@ -927,7 +927,7 @@ ani_boolean AniFont::IsThemeFontFollowed(ani_env* env, ani_object obj)
 
 
 ani_object AniFont::FontTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
     return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
         auto jsFont = reinterpret_cast<JsFont*>(unwrapResult);

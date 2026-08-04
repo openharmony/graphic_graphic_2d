@@ -1044,7 +1044,7 @@ ani_boolean AniPath::IsEmpty(ani_env* env, ani_object obj)
 }
 
 ani_object AniPath::PathTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
     return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
         auto jsPath = reinterpret_cast<JsPath*>(unwrapResult);

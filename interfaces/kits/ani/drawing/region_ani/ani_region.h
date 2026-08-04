@@ -57,7 +57,7 @@ public:
 
 private:
     static ani_object RegionTransferStatic(
-        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
     static ani_object RegionTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
     std::shared_ptr<Region> region_ = nullptr;
 };
