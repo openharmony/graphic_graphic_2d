@@ -4722,6 +4722,11 @@ bool RSUniRenderVisitor::IsCurrentSubTreeForcePrepare(RSRenderNode& node)
     // planning: merge with RSUniRenderVisitor::ForcePrepareSubTree()
     if (node.IsRenderGroupExcludedStateChanged()) {
         node.SetRenderGroupExcludedStateChanged(false);
+        // excluded membership changed this frame: directly mark the enclosing cache root(s) so their
+        // cached surface refreshes (SetDrawingCacheChanged flows staging -> render thread).
+        for (auto& [_, nodePtr] : renderGroupCacheRoots_) {
+            nodePtr->SetDrawingCacheChanged(true);
+        }
         // if node's excluded state changed this frame, force prepare its whole subtree to disable sub rendergroup
         return true;
     }
