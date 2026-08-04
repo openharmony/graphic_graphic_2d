@@ -185,9 +185,9 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_node_showing_command.cpp",
     "src/command/rs_proxy_node_command.cpp",
     "src/command/rs_root_node_command.cpp",
+    "src/command/rs_spatial_effect_command.cpp",
     "src/command/rs_surface_node_command.cpp",
     "src/command/rs_ui_director_command.cpp",
-    "src/command/rs_spatial_effect_command.cpp",
     "src/command/rs_union_node_command.cpp",
     "src/command/rs_delegate_composite_command.cpp",
 

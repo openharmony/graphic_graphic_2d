@@ -43,6 +43,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_depth_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
 #include "params/rs_render_thread_params.h"
@@ -4482,7 +4483,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo001
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with not parent node.
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with not parent node.
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
  */
@@ -4498,7 +4499,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo001, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo002
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, need filter
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, need filter
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
  */
@@ -4526,7 +4527,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo002, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfoOverloadEquivalence
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo 3-arg overload: a pre-locked
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo 3-arg overload: a pre-locked
  *           parent produces identical parent-flag results as the 2-arg form.
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
@@ -4555,7 +4556,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfoOverloadEquivalence, TestSize.
 
 /**
  * @tc.name: CollectEffectInfo003
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, useEffect
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, useEffect
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
  */
@@ -4579,7 +4580,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo004
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, oldDirtyInSurface is not empty
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, oldDirtyInSurface is not empty
  * @tc.type: FUNC
  * @tc.require: issueICTQF4
  */
@@ -4617,7 +4618,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo004, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo005
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, hasHarmonium
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, hasHarmonium
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
  */
@@ -4655,7 +4656,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo005, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo006
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, hasHDRContent
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, hasHDRContent
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
  */
@@ -4686,7 +4687,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo006, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo007
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, hasVisibleIlluminated
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, hasVisibleIlluminated
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
  */
@@ -4727,7 +4728,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo007, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo008
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, SetHasChildExcludedFromNodeGroup
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, SetHasChildExcludedFromNodeGroup
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
  */
@@ -4764,7 +4765,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo008, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo009
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, ChildHasProtectedNode
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, ChildHasProtectedNode
  * @tc.type: FUNC
  * @tc.require: issue21180
  */
@@ -4789,7 +4790,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo009, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo010
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, SetChildHasTranslate
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, SetChildHasTranslate
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
  */
@@ -4919,6 +4920,63 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildrenBlacklistTes
     rsUniRenderVisitor->UpdateDrawingCacheInfoAfterChildren(*surfaceNode);
     EXPECT_TRUE(cacheRoot->GetStagingRenderParams()->NodeGroupHasChildInBlacklist());
 }
+
+/**
+ * @tc.name: CollectEffectInfo012
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, current node HasSpatialEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo012, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+    EXPECT_FALSE(parent->ChildHasSpatialEffect());
+
+    auto& props = node->GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, 1.0f);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, 1.0f);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, 1.0f);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, 1.0f);
+    props.SetSpatialEffectPara(spatialEffectPara);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
+    EXPECT_TRUE(parent->ChildHasSpatialEffect());
+}
+
+/**
+ * @tc.name: CollectEffectInfo013
+ * @tc.desc: Test RSUniRenderVisitorTest.CollectEffectInfo with parent node, current node's children HasSpatialEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo013, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+    EXPECT_FALSE(parent->ChildHasSpatialEffect());
+
+    node->SetChildHasSpatialEffect(true);
+    rsUniRenderVisitor->CollectEffectInfo(*node, RSUniHwcComputeUtil::IsBlendNeedFilter(*node));
+    EXPECT_TRUE(parent->ChildHasSpatialEffect());
+}
+
 
 /**
  * @tc.name: SetRenderGroupSubTreeDirtyIfNeedTest
@@ -5818,6 +5876,78 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareEffectRenderNode003, TestSize.Level
     rsUniRenderVisitor->QuickPrepareEffectRenderNode(*node);
 
     ASSERT_TRUE(node->LastFrameSubTreeSkipped());
+}
+
+/**
+ * @tc.name: QuickPrepareDepthRenderNode001
+ * @tc.desc: Test QuickPrepareDepthRenderNode001, dirtyManager = nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJSIS
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDepthRenderNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = nullptr;
+    NodeId id = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSDepthRenderNode>(id, rsContext->weak_from_this());
+    node->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareDepthRenderNode(*node);
+}
+
+/**
+ * @tc.name: QuickPrepareDepthRenderNode002
+ * @tc.desc: Test QuickPrepareDepthRenderNode002, dirtyManager != nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJSIS
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDepthRenderNode002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = nullptr;
+    NodeId id1 = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSDepthRenderNode>(id1, rsContext->weak_from_this());
+    node->InitRenderParams();
+    NodeId id2 = 0;
+    RSDisplayNodeConfig config;
+    auto curScreenNode = std::make_shared<RSLogicalDisplayRenderNode>(id2, config, rsContext->weak_from_this());
+    curScreenNode->InitRenderParams();
+
+    auto screenId = CreateVirtualScreen();
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    curScreenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
+    rsUniRenderVisitor->QuickPrepareDepthRenderNode(*node);
+}
+
+/**
+ * @tc.name: QuickPrepareDepthRenderNode003
+ * @tc.desc: Test QuickPrepareDepthRenderNode003, dirtyManager != nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDepthRenderNode003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSDepthRenderNode>(id, rsContext->weak_from_this());
+    node->InitRenderParams();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
+    EXPECT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
+
+    rsUniRenderVisitor->filterInGlobal_ = false;
+    rsUniRenderVisitor->QuickPrepareDepthRenderNode(*node);
+
+    rsUniRenderVisitor->curSurfaceNode_->needCollectHwcNode_ = true;
+    EXPECT_EQ(rsUniRenderVisitor->curSurfaceNode_->GetNeedCollectHwcNode(), true);
+    rsUniRenderVisitor->QuickPrepareDepthRenderNode(*node);
 }
 
 /**
@@ -8499,7 +8629,7 @@ HWTEST_F(RSUniRenderVisitorTest, PostPrepare001, TestSize.Level1)
 
 /*
  * @tc.name: PostPrepare002
- * @tc.desc: Test RSUnitRenderRenderVisitorTest.PostPrepare002
+ * @tc.desc: Test RSUniRenderVisitorTest.PostPrepare002
  * @tc.type: FUNC
  * @tc.require: issueIAG8BF
  */

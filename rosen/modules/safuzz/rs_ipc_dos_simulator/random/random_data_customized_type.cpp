@@ -795,5 +795,12 @@ DrawNodeType RandomDataCustomizedType::GetRandomDrawNodeType()
     int randomIndex = RandomEngine::GetRandomIndex(DRAW_NODE_TYPE_MAX);
     return static_cast<DrawNodeType>(randomIndex);
 }
+
+DepthSpaceType RandomDataCustomizedType::GetRandomDepthSpaceType()
+{
+    static constexpr int DEPTH_SPACE_TYPE_INDEX_MAX = 1;
+    int randomIndex = RandomEngine::GetRandomIndex(DEPTH_SPACE_TYPE_INDEX_MAX);
+    return static_cast<DepthSpaceType>(randomIndex);
+}
 } // namespace Rosen
 } // namespace OHOS

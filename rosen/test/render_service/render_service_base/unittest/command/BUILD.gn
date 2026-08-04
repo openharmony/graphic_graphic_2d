@@ -106,6 +106,7 @@ ohos_unittest("RSNodeCommandTest1") {
     "rs_canvas_drawing_node_command_test.cpp",
     "rs_canvas_node_command_test.cpp",
     "rs_command_factory_test.cpp",
+    "rs_depth_node_command_test.cpp",
     "rs_display_node_command_test.cpp",
     "rs_effect_node_command_test.cpp",
     "rs_frame_rate_linker_command_test.cpp",
@@ -114,6 +115,7 @@ ohos_unittest("RSNodeCommandTest1") {
     "rs_node_showing_command_test.cpp",
     "rs_proxy_node_command_test.cpp",
     "rs_root_node_command_test.cpp",
+    "rs_spatial_effect_command_test.cpp",
     "rs_surface_node_command_test.cpp",
   ]
 
