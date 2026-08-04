@@ -743,7 +743,12 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     SetNewOnTree(flag && !isOnTheTree_);
     isOnTheTree_ = flag;
     screenNodeId_ = screenNodeId;
+    NodeId oldLogicalDisplayNodeId = logicalDisplayNodeId_;
     logicalDisplayNodeId_ = logicalDisplayNodeId;
+    if (oldLogicalDisplayNodeId != logicalDisplayNodeId) {
+        RSPointLightManager::UpdateLightResourcesOnTreeChanged(
+            shared_from_this(), oldLogicalDisplayNodeId, logicalDisplayNodeId, flag);
+    }
     if (isOnTheTree_) {
         instanceRootNodeId_ = instanceRootNodeId;
         firstLevelNodeId_ = firstLevelNodeId;
