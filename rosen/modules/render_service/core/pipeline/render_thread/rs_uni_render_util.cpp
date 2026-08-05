@@ -95,7 +95,7 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 {
 #ifdef SOC_PERF_ENABLE
     OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
-    RS_LOGD("RSProcessor::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSProcessor::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
 #endif
 }
 }
@@ -464,7 +464,8 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
                 params.srcRect.GetLeft() + params.srcRect.GetWidth(),
                 params.srcRect.GetTop() + halfdh + newHeight);
     }
-    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleFit dstRect [%{public}f %{public}f %{public}f %{public}f]",
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug RSUniRenderUtil::SrcRectScaleFit dstRect [%{public}f %{public}f %{public}f %{public}f]",
         params.dstRect.GetLeft(), params.dstRect.GetTop(), params.dstRect.GetWidth(), params.dstRect.GetHeight());
 }
 
@@ -513,7 +514,8 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
                 params.srcRect.GetLeft() + params.srcRect.GetWidth(),
                 params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
     }
-    RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleDown srcRect [%{public}f %{public}f %{public}f %{public}f]",
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug RSUniRenderUtil::SrcRectScaleDown srcRect [%{public}f %{public}f %{public}f %{public}f]",
         params.srcRect.GetLeft(), params.srcRect.GetTop(), params.srcRect.GetWidth(), params.srcRect.GetHeight());
 }
 
@@ -523,7 +525,7 @@ void RSUniRenderUtil::SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuff
     params.hasCropMetadata = buffer->GetCropMetadata(crop);
 
     if (UNLIKELY(params.hasCropMetadata)) {
-        RS_LOGD("buffer has crop metadata, "
+        RS_LOGD_IF(DEBUG_PIPELINE, "buffer has crop metadata, "
             "left = %{public}d, right = %{public}d, width = %{public}d, height = %{public}d",
             crop.x, crop.y, crop.w, crop.h);
         params.srcRect = Drawing::Rect(crop.x, crop.y, crop.x + crop.w, crop.y + crop.h);
@@ -862,7 +864,8 @@ void RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed(GraphicTransfor
     Drawing::Matrix gravityMatrix;
     if (!RSPropertiesPainter::GetGravityMatrix(gravity, localBounds,
         params.srcRect.GetWidth(), params.srcRect.GetHeight(), gravityMatrix)) {
-        RS_LOGD("RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed did not obtain gravity matrix.");
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed did not obtain gravity matrix.");
     }
     params.matrix.PreConcat(gravityMatrix);
 }
@@ -1112,10 +1115,10 @@ void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& r
     float alpha, const std::string& extraInfo)
 {
     if (rect.width_ <= 0 || rect.height_ <= 0) {
-        RS_LOGD("DrawRectForDfx rect is invalid.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "DrawRectForDfx rect is invalid.");
         return;
     }
-    RS_LOGD("DrawRectForDfx current rect = %{public}s", rect.ToString().c_str());
+    RS_LOGD_IF(DEBUG_PIPELINE, "DrawRectForDfx current rect = %{public}s", rect.ToString().c_str());
     auto dstRect = Drawing::Rect(rect.left_, rect.top_,
         rect.left_ + rect.width_, rect.top_ + rect.height_);
 
@@ -1156,7 +1159,8 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         return;
     }
     RS_TRACE_NAME_FMT("Render surface flush and submit");
-    RS_LOGD("RSUniRenderUtil::optimized flush and submit GpuApiType:%{public}d", RSSystemProperties::GetGpuApiType());
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderUtil::optimized flush and submit GpuApiType:%{public}d",
+        RSSystemProperties::GetGpuApiType());
 #ifdef RS_ENABLE_VK
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && optFenceWait) {
@@ -1390,7 +1394,7 @@ bool RSUniRenderUtil::FrameAwareTraceBoost(size_t layerNum)
         if (ft.RenderFrameTraceIsOpen()) {
             ft.RenderFrameTraceClose();
             PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, false);
-            RS_LOGD("RsDebug RSUniRenderUtil::Perf: FrameTrace 0");
+            RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSUniRenderUtil::Perf: FrameTrace 0");
         }
         return false;
     }
@@ -1404,7 +1408,7 @@ bool RSUniRenderUtil::FrameAwareTraceBoost(size_t layerNum)
             return false;
         }
         PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, true);
-        RS_LOGD("RsDebug RSProcessor::Perf: FrameTrace 1");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSProcessor::Perf: FrameTrace 1");
         lastRequestPerfTime = currentTime;
     }
     return true;
@@ -1416,22 +1420,22 @@ void RSUniRenderUtil::RequestPerf(uint32_t layerLevel, bool onOffTag)
     switch (layerLevel) {
         case PERF_LEVEL_0: {
             // do nothing
-            RS_LOGD("RsDebug RSProcessor::perf do nothing");
+            RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSProcessor::perf do nothing");
             break;
         }
         case PERF_LEVEL_1: {
             PerfRequest(PERF_LEVEL_1_REQUESTED_CODE, onOffTag);
-            RS_LOGD("RsDebug RSProcessor::Perf: level1 %{public}d", onOffTag);
+            RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSProcessor::Perf: level1 %{public}d", onOffTag);
             break;
         }
         case PERF_LEVEL_2: {
             PerfRequest(PERF_LEVEL_2_REQUESTED_CODE, onOffTag);
-            RS_LOGD("RsDebug RSProcessor::Perf: level2 %{public}d", onOffTag);
+            RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSProcessor::Perf: level2 %{public}d", onOffTag);
             break;
         }
         default: {
             PerfRequest(PERF_LEVEL_3_REQUESTED_CODE, onOffTag);
-            RS_LOGD("RsDebug RSProcessor::Perf: level3 %{public}d", onOffTag);
+            RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSProcessor::Perf: level3 %{public}d", onOffTag);
             break;
         }
     }
@@ -1742,30 +1746,30 @@ bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
 {
     if (!RSSystemProperties::GetVirtualSelfDrawOptEnabled() ||
         !screenParams.GetLayerSkipContext().screenLayerInvalid_) {
-        RS_LOGD(" %{public}s disabled or screenLayer is invalid", __func__);
+        RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s disabled or screenLayer is invalid", __func__);
         return false;
     }
     const auto& targetSurfaceNodeIds = screenParams.GetLayerSkipContext().relevantSurfaceNodeIds_;
     // only handle a single self drawing node
     if (targetSurfaceNodeIds.size() != 1) {
-        RS_LOGD(" %{public}s more than one full-screen self drawing node exists", __func__);
+        RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s more than one full-screen self drawing node exists", __func__);
         return false;
     }
     auto surfaceId = targetSurfaceNodeIds[0];
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(surfaceId);
     if (drawable == nullptr || drawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
-        RS_LOGD(" %{public}s drawable is invalid", __func__);
+        RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s drawable is invalid", __func__);
         return false;
     }
     auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
     if (UNLIKELY(targetSurfaceParams == nullptr)) {
-        RS_LOGD(" %{public}s surface Param is nullptr", __func__);
+        RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s surface Param is nullptr", __func__);
         return false;
     }
     // Disable when node is not opaque
     if (targetSurfaceParams->GetBackgroundColor().GetAlpha() != UINT8_MAX) {
-        RS_LOGD(" %{public}s targetSurfaceParam is not opaque", __func__);
+        RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s targetSurfaceParam is not opaque", __func__);
         return false;
     }
     const auto& hardwareDrawables =
@@ -1784,7 +1788,7 @@ bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
         }
         // The non-fullscreen hardwareNode has a higher z-order than the relevantSurfaceNode.
         if (hardwareParams->GetLayerInfo().zOrder > targetSurfaceParams->GetLayerInfo().zOrder) {
-            RS_LOGD(" %{public}s relevantSurface isn't topLayer", __func__);
+            RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s relevantSurface isn't topLayer", __func__);
             return false;
         }
     }
@@ -1802,7 +1806,7 @@ bool RSUniRenderUtil::DrawSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
     if (UNLIKELY(surfaceParams == nullptr)) {
-        RS_LOGD(" %{public}s surface Param is nullptr", __func__);
+        RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s surface Param is nullptr", __func__);
         return false;
     }
 
@@ -1816,7 +1820,7 @@ bool RSUniRenderUtil::DrawSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
     }
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (UNLIKELY(renderEngine == nullptr)) {
-        RS_LOGD(" %{public}s name:%{public}s nodeId:[%{public}" PRIu64 "],  renderEngine is nullptr",
+        RS_LOGD_IF(DEBUG_PIPELINE, " %{public}s name:%{public}s nodeId:[%{public}" PRIu64 "],  renderEngine is nullptr",
             __func__, surfaceParams->GetName().c_str(), surfaceParams->GetId());
         return false;
     }
@@ -1860,7 +1864,8 @@ BufferDrawParam RSUniRenderUtil::ProcessCanvasBySurfaceNode(
     auto bgColor = surfaceParams.GetBackgroundColor();
     if (surfaceParams.GetHardwareEnabled() && surfaceParams.GetIsHwcEnabledBySolidLayer()) {
         bgColor = surfaceParams.GetSolidLayerColor();
-        RS_LOGD("solidLayer enabled, %{public}s, name:%{public}s nodeId:[%{public}" PRIu64 "], brush set color: "
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "solidLayer enabled, %{public}s, name:%{public}s nodeId:[%{public}" PRIu64 "], brush set color: "
             "%{public}08x", __func__, surfaceParams.GetName().c_str(), surfaceParams.GetId(), bgColor.AsArgbInt());
     }
     Drawing::Brush brush;

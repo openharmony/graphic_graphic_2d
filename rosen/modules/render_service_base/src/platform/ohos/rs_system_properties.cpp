@@ -127,7 +127,7 @@ int RSSystemProperties::GetRecordingEnabled()
 void RSSystemProperties::SetRecordingDisenabled()
 {
     system::SetParameter("debug.graphic.recording.enabled", "0");
-    RS_LOGD("RSSystemProperties::SetRecordingDisenabled");
+    RS_LOGD_IF(DEBUG_IPC, "RSSystemProperties::SetRecordingDisenabled");
 }
 
 bool RSSystemProperties::GetProfilerEnabled()

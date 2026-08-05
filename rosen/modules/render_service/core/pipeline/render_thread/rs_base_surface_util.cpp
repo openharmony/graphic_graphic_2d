@@ -71,7 +71,8 @@ GSError RSBaseSurfaceUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, ui
                 surfaceHandler.GetNodeId(), ret);
         }
         surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
-        RS_LOGD("RsDebug RSBaseSurfaceUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug RSBaseSurfaceUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
             surfaceHandler.GetNodeId());
     }
 
@@ -113,7 +114,7 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
     bool acqiureWithPTSEnable =
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
     if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
-        RS_LOGD("RsDebug RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
             "), set drop frame level=%{public}d", surfaceHandler.GetNodeId(), dropFrameConfig.level);
     }
 
@@ -122,7 +123,7 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
     uint64_t acquireTimeStamp = presentWhen;
     if (!presentWhenValid || !acqiureWithPTSEnable) {
         acquireTimeStamp = CONSUME_DIRECTLY;
-        RS_LOGD("RSBaseSurfaceUtil::ConsumeAndUpdateBuffer ignore presentWhen "\
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseSurfaceUtil::ConsumeAndUpdateBuffer ignore presentWhen "\
             "[acqiureWithPTSEnable:%{public}d, presentWhenValid:%{public}d]", acqiureWithPTSEnable, presentWhenValid);
     }
 

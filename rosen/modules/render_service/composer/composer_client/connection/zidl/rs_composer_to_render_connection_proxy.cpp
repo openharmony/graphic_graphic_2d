@@ -112,7 +112,7 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
         RS_LOGE("%{public}s read replyMessage error", __func__);
         return -1;
     }
-    RS_LOGD("%{public}s reply received successfully", __func__);
+    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s reply received successfully", __func__);
 
     return replyMessage;
 }
