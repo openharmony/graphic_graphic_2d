@@ -103,8 +103,7 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
     // The node is considered opaque if its background color is fully opaque,
     // and it does not use brightness or color blend modes.
     isBgOpaque_ = static_cast<uint8_t>(renderProperties.GetBackgroundColor().GetAlpha()) == UINT8_MAX &&
-        !renderProperties.IsBgBrightnessValid() && !renderProperties.IsFgBrightnessValid() &&
-        renderProperties.IsColorBlendModeNone();
+        !renderProperties.IsBgBrightnessValid();
     rootOcclusionNode_ = parentShared->rootOcclusionNode_;
     localScale_ = renderProperties.GetScale();
     localAlpha_ = renderProperties.GetAlpha();
@@ -113,6 +112,7 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
     clipRRect_ = renderProperties.GetClipToRRect() ?
         std::make_unique<RRect>(renderProperties.GetClipRRect()) : nullptr;
     cornerRadius_ = renderProperties.GetCornerRadius();
+    isBlendOpaque_ = parentShared->isBlendOpaque_ && IsBlendOpaque(renderProperties);
     CalculateDrawRect(node, renderProperties);
 }
 
@@ -274,6 +274,9 @@ void OcclusionNode::UpdateSubTreeProp()
     isValidInCurrentFrame_ = true;
     auto parentShared = parentOcNode_.lock();
     isSubTreeIgnored_ |= (parentShared == nullptr) || parentShared->isSubTreeIgnored_;
+    if (parentShared != nullptr) {
+        isBlendOpaque_ &= parentShared->isBlendOpaque_;
+    }
     if (parentShared && !isSubTreeIgnored_) {
         CalculateNodeAllBounds();
     }
@@ -444,6 +447,7 @@ std::string OcclusionNode::GetOcclusionNodeInfoString()
         << " filterRect:" << filterRect_.ToString()
         << " bgOpaque:" << isBgOpaque_
         << " alpha:" << localAlpha_ * accumulatedAlpha_
+        << " isBlendOpaque:" << isBlendOpaque_
         << " isNeedClip:" << isNeedClip_
         << " hasChildrenOutOfRect:" << hasChildrenOutOfRect_
         << " outOfRoot:" << isOutOfRootRect_
