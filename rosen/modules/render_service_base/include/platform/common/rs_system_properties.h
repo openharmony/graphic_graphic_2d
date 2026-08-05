@@ -283,7 +283,6 @@ public:
     static bool GetHpaeOfflineEnabled();
     static bool GetXcomponentEdrEnabled();
     static bool GetUIFirstDebugEnabled();
-    static bool GetUIFirstOptScheduleEnabled();
     static bool GetUIFirstBehindWindowEnabled();
     static bool GetUIFirstDirtyEnabled();
     static bool GetUIFirstDirtyDebugEnabled();
