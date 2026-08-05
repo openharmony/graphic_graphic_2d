@@ -71,7 +71,14 @@ napi_value WebGL2RenderingContextImpl::CreateQuery(napi_env env)
     uint32_t queryId = 0;
     glGenQueries(1, &queryId);
     webGlQuery->SetQuery(queryId);
-    AddObject<WebGLQuery>(env, queryId, objQuery);
+    if (queryId == 0 || !AddObject<WebGLQuery>(env, queryId, objQuery)) {
+        if (queryId != 0) {
+            glDeleteQueries(1, &queryId);
+            webGlQuery->SetQuery(0);
+        }
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     LOGD("WebGL2 createQuery queryId = %{public}u", queryId);
     return objQuery;
 }
@@ -226,7 +233,14 @@ napi_value WebGL2RenderingContextImpl::CreateSampler(napi_env env)
     glGenSamplers(1, &samplerId);
     webGlSampler->SetSampler(samplerId);
     LOGD("WebGL2 createSampler samplerId = %{public}u", samplerId);
-    AddObject<WebGLSampler>(env, samplerId, objSampler);
+    if (samplerId == 0 || !AddObject<WebGLSampler>(env, samplerId, objSampler)) {
+        if (samplerId != 0) {
+            glDeleteSamplers(1, &samplerId);
+            webGlSampler->SetSampler(0);
+        }
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     return objSampler;
 }
 
@@ -237,6 +251,10 @@ napi_value WebGL2RenderingContextImpl::DeleteSampler(napi_env env, napi_value sa
         return NVal::CreateNull(env).val_;
     }
     GLuint samplerId = sampler->GetSampler();
+    if (samplerId == 0 || GetObjectInstance<WebGLSampler>(env, samplerId) != sampler) {
+        SET_ERROR(WebGLRenderingContextBase::INVALID_OPERATION);
+        return NVal::CreateNull(env).val_;
+    }
     LOGD("WebGL2 deleteSampler samplerId = %{public}u", samplerId);
     // delete
     glBindSampler(sampler->GetSampleUnit(), 0);
@@ -245,6 +263,7 @@ napi_value WebGL2RenderingContextImpl::DeleteSampler(napi_env env, napi_value sa
     glDeleteSamplers(1, &samplerId);
     sampler->SetSampleUnit(0);
     DeleteObject<WebGLSampler>(env, samplerId);
+    sampler->SetSampler(0);
     return NVal::CreateNull(env).val_;
 }
 
@@ -291,6 +310,10 @@ napi_value WebGL2RenderingContextImpl::SamplerParameter(
         return NVal::CreateNull(env).val_;
     }
     GLuint samplerId = sampler->GetSampler();
+    if (samplerId == 0 || GetObjectInstance<WebGLSampler>(env, samplerId) != sampler) {
+        SET_ERROR(WebGLRenderingContextBase::INVALID_OPERATION);
+        return NVal::CreateNull(env).val_;
+    }
     switch (pName) {
         case GL_TEXTURE_COMPARE_FUNC:
         case GL_TEXTURE_COMPARE_MODE:
@@ -324,6 +347,10 @@ napi_value WebGL2RenderingContextImpl::GetSamplerParameter(napi_env env, napi_va
         return NVal::CreateNull(env).val_;
     }
     GLuint samplerId = sampler->GetSampler();
+    if (samplerId == 0 || GetObjectInstance<WebGLSampler>(env, samplerId) != sampler) {
+        SET_ERROR(WebGLRenderingContextBase::INVALID_OPERATION);
+        return NVal::CreateNull(env).val_;
+    }
     switch (pName) {
         case GL_TEXTURE_COMPARE_FUNC:
         case GL_TEXTURE_COMPARE_MODE:
@@ -364,7 +391,15 @@ napi_value WebGL2RenderingContextImpl::CreateVertexArray(napi_env env)
 
     webGLVertexArrayObject->SetVertexArrays(vertexArraysId);
     LOGD("WebGL2 createVertexArray vertexArraysId = %{public}u", vertexArraysId);
-    AddObject<WebGLVertexArrayObject>(env, vertexArraysId, objVertexArrayObject);
+    if (vertexArraysId == 0 ||
+        !AddObject<WebGLVertexArrayObject>(env, vertexArraysId, objVertexArrayObject)) {
+        if (vertexArraysId != 0) {
+            glDeleteVertexArrays(1, &vertexArraysId);
+            webGLVertexArrayObject->SetVertexArrays(WebGLVertexArrayObject::DEFAULT_VERTEX_ARRAY_OBJECT);
+        }
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     return objVertexArrayObject;
 }
 
@@ -423,6 +458,10 @@ napi_value WebGL2RenderingContextImpl::FenceSync(napi_env env, GLenum condition,
         return NVal::CreateNull(env).val_;
     }
     GLsync returnValue = glFenceSync(condition, flags);
+    if (returnValue == nullptr) {
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     webGlSync->SetSync(reinterpret_cast<int64_t>(returnValue));
     LOGD("WebGL2 fenceSync result %{public}u condition %{public}u flags %{public}u",
         GetError_(), condition, flags);
@@ -448,7 +487,16 @@ napi_value WebGL2RenderingContextImpl::DeleteSync(napi_env env, napi_value syncO
         return NVal::CreateNull(env).val_;
     }
     int64_t syncId = webGlSync->GetSync();
+    if (syncId == 0) {
+        return NVal::CreateNull(env).val_;
+    }
     glDeleteSync(reinterpret_cast<GLsync>(syncId));
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        SET_ERROR(error);
+        return NVal::CreateNull(env).val_;
+    }
+    webGlSync->SetSync(0);
     LOGD("WebGL2 deleteSync syncId %{public}" PRIi64, syncId);
     return NVal::CreateNull(env).val_;
 }
@@ -523,7 +571,12 @@ napi_value WebGL2RenderingContextImpl::CreateTransformFeedback(napi_env env)
     glGenTransformFeedbacks(1, &transformFeedbackId);
     webGlTransformFeedback->SetTransformFeedback(transformFeedbackId);
     LOGD("WebGL2 createTransformFeedback transformFeedbackId %{public}u", transformFeedbackId);
-    AddObject<WebGLTransformFeedback>(env, transformFeedbackId, objTransformFeedback);
+    if (!AddObject<WebGLTransformFeedback>(env, transformFeedbackId, objTransformFeedback)) {
+        glDeleteTransformFeedbacks(1, &transformFeedbackId);
+        webGlTransformFeedback->SetTransformFeedback(WebGLTransformFeedback::DEFAULT_TRANSFORM_FEEDBACK);
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     return objTransformFeedback;
 }
 
@@ -535,13 +588,18 @@ napi_value WebGL2RenderingContextImpl::DeleteTransformFeedback(napi_env env, nap
         return NVal::CreateNull(env).val_;
     }
     transformFeedbackId = webGlTransformFeedback->GetTransformFeedback();
-    DeleteObject<WebGLTransformFeedback>(env, transformFeedbackId);
     glDeleteTransformFeedbacks(1, &transformFeedbackId);
-    LOGD("WebGL2 deleteTransformFeedback transformFeedbackId %{public}u", transformFeedbackId);
-    if (boundTransformFeedback_ != transformFeedbackId) {
-        LOGE("WebGL2 bindTransformFeedback bound %{public}u", boundTransformFeedback_);
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        SET_ERROR(error);
+        return NVal::CreateNull(env).val_;
     }
-    boundTransformFeedback_ = 0;
+    DeleteObject<WebGLTransformFeedback>(env, transformFeedbackId);
+    LOGD("WebGL2 deleteTransformFeedback transformFeedbackId %{public}u", transformFeedbackId);
+    if (boundTransformFeedback_ == transformFeedbackId) {
+        boundTransformFeedback_ = WebGLTransformFeedback::DEFAULT_TRANSFORM_FEEDBACK;
+    }
+    webGlTransformFeedback->SetTransformFeedback(WebGLTransformFeedback::DEFAULT_TRANSFORM_FEEDBACK);
     return NVal::CreateNull(env).val_;
 }
 
@@ -958,8 +1016,9 @@ napi_value WebGL2RenderingContextImpl::CompressedTexImage3D(
     napi_env env, const TexImageArg& imgArg, GLsizei imageSize, GLintptr offset)
 {
     imgArg.Dump("WebGL2 compressedTexImage3D");
-    if (boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER] == 0) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
+    GLenum rangeError = CheckPixelUnpackBufferRange(env, offset, imageSize);
+    if (rangeError != WebGLRenderingContextBase::NO_ERROR) {
+        SET_ERROR_WITH_LOG(rangeError, "compressedTexImage3D PBO range is invalid");
         return NVal::CreateNull(env).val_;
     }
     WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
@@ -1023,8 +1082,9 @@ napi_value WebGL2RenderingContextImpl::CompressedTexSubImage3D(
     napi_env env, const TexSubImage3DArg& imgArg, GLsizei imageSize, GLintptr offset)
 {
     imgArg.Dump("WebGL2 compressedTexSubImage3D");
-    if (boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER] == 0) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no PIXEL_UNPACK_BUFFER bound");
+    GLenum rangeError = CheckPixelUnpackBufferRange(env, offset, imageSize);
+    if (rangeError != WebGLRenderingContextBase::NO_ERROR) {
+        SET_ERROR_WITH_LOG(rangeError, "compressedTexSubImage3D PBO range is invalid");
         return NVal::CreateNull(env).val_;
     }
     WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
@@ -1476,26 +1536,36 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
         dstSize = static_cast<GLsizeiptr>(ext.length * elementSize);
     }
 
-   // offset is validated to be non-negative, safe to convert to uint64_t
-        uint64_t offset64 = static_cast<uint64_t>(offset);
-        if (offset64 + static_cast<uint64_t>(dstSize) > static_cast<uint64_t>(writeBuffer->GetBufferSize())) {
-            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "check buffer size failed");
-            return NVal::CreateNull(env).val_;
-        }
+    uint64_t offset64 = static_cast<uint64_t>(offset);
+    uint64_t sourceBufferSize = static_cast<uint64_t>(writeBuffer->GetBufferSize());
+    if (offset64 > sourceBufferSize || static_cast<uint64_t>(dstSize) > sourceBufferSize - offset64) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "check buffer size failed");
+        return NVal::CreateNull(env).val_;
+    }
 
-    GLuint dstOffset = static_cast<GLuint>(dstOffsetBytes);
-    LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{private}p",
-         static_cast<unsigned int>(dstSize), writeBuffer->bufferData_);
+    LOGD("WebGL2 getBufferSubData dstSize %{public}u", static_cast<unsigned int>(dstSize));
 
     // Calculate remaining capacity in bytes for memcpy_s destsz to prevent heap OOB write
     size_t remainingCapacity = byteLength - dstOffsetBytes;
 
-    void *mapBuffer = glMapBufferRange(target, static_cast<GLintptr>(offset), dstSize, GL_MAP_READ_BIT);
-    if (mapBuffer == nullptr ||
-        memcpy_s(bufferData.GetBuffer() + dstOffset, remainingCapacity, mapBuffer, dstSize) != 0) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "mapBuffer is nullptr");
+    if (dstSize == 0) {
+        return NVal::CreateNull(env).val_;
     }
-    glUnmapBuffer(target);
+    void* mapBuffer = glMapBufferRange(target, static_cast<GLintptr>(offset), dstSize, GL_MAP_READ_BIT);
+    if (mapBuffer == nullptr) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "glMapBufferRange failed");
+        return NVal::CreateNull(env).val_;
+    }
+    if (memcpy_s(bufferData.GetBuffer() + dstOffsetBytes, remainingCapacity, mapBuffer,
+        static_cast<size_t>(dstSize)) != EOK) {
+        (void)glUnmapBuffer(target);
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "copy mapped buffer failed");
+        return NVal::CreateNull(env).val_;
+    }
+    if (glUnmapBuffer(target) != GL_TRUE) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "glUnmapBuffer failed");
+        return NVal::CreateNull(env).val_;
+    }
     LOGD("WebGL2 getBufferSubData target %{public}u result %{public}u ", target, GetError_());
     return NVal::CreateNull(env).val_;
 }
@@ -1829,10 +1899,19 @@ napi_value WebGL2RenderingContextImpl::TransformFeedbackVaryings(
         SET_ERROR(WebGLRenderingContextBase::INVALID_ENUM);
         return NVal::CreateNull(env).val_;
     }
+    GLint maxVaryings = 0;
+    GLenum maxVaryingsPname = bufferMode == GL_SEPARATE_ATTRIBS ? GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS :
+        GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS;
+    glGetIntegerv(maxVaryingsPname, &maxVaryings);
+    if (maxVaryings < 0) {
+        SET_ERROR(WebGLRenderingContextBase::INVALID_OPERATION);
+        return NVal::CreateNull(env).val_;
+    }
     std::vector<char*> list = {};
-    bool succ = WebGLArg::GetStringList(env, data, list);
+    bool succ = WebGLArg::GetStringList(env, data, static_cast<uint32_t>(maxVaryings), list);
     if (!succ) {
         WebGLArg::FreeStringList(list);
+        SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
     glTransformFeedbackVaryings(programId, static_cast<GLsizei>(list.size()), list.data(), bufferMode);
@@ -1851,18 +1930,13 @@ napi_value WebGL2RenderingContextImpl::GetUniformIndices(napi_env env, napi_valu
     programId = webGLProgram->GetProgramId();
 
     std::vector<char*> list = {};
-    bool succ = WebGLArg::GetStringList(env, data, list);
+    bool succ = WebGLArg::GetStringList(env, data, static_cast<uint32_t>(MAX_UNIFORM_COUNT), list);
     if (!succ) {
-        WebGLArg::FreeStringList(list);
-        return NVal::CreateNull(env).val_;
-    }
-    LOGD("WebGL2 getUniformIndices uniformCount %{public}zu", list.size());
-
-    if (list.size() > MAX_UNIFORM_COUNT) {
         WebGLArg::FreeStringList(list);
         SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
+    LOGD("WebGL2 getUniformIndices uniformCount %{public}zu", list.size());
 
     WebGLWriteBufferArg writeBuffer(env);
     napi_value result = NVal::CreateNull(env).val_;

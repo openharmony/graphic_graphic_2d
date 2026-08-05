@@ -15,6 +15,8 @@
 
 #include "context/webgl_rendering_context_base.h"
 
+#include <new>
+
 #include "context/webgl2_rendering_context_base.h"
 #include "context/webgl_context_attributes.h"
 #include "context/webgl_rendering_context.h"
@@ -42,6 +44,10 @@ extern "C" {
 namespace OHOS {
 namespace Rosen {
 using namespace std;
+namespace {
+constexpr GLint MAX_INFO_LOG_LENGTH = 1024 * 1024;
+}
+
 static WebGLRenderingContext* GetWebGLRenderingContextBase(napi_env env, napi_value thisVar)
 {
     return static_cast<WebGLRenderingContext*>(Util::GetContextObject(env, thisVar));
@@ -197,9 +203,9 @@ napi_value WebGLRenderingContextBase::BindAttribLocation(napi_env env, napi_call
     }
 
     bool succ = false;
-    int64_t index = 0;
-    tie(succ, index) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt64();
-    if (!succ || index < 0) {
+    GLuint index = 0;
+    tie(succ, index) = NVal(env, funcArg[NARG_POS::SECOND]).ToGLuint();
+    if (!succ) {
         context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
@@ -212,7 +218,7 @@ napi_value WebGLRenderingContextBase::BindAttribLocation(napi_env env, napi_call
     }
     std::string str(name.get(), nameLen);
     return context->GetWebGLRenderingContextImpl().BindAttribLocation(
-        env, funcArg[NARG_POS::FIRST], static_cast<GLuint>(index), str);
+        env, funcArg[NARG_POS::FIRST], index, str);
 }
 
 napi_value WebGLRenderingContextBase::BindBuffer(napi_env env, napi_callback_info info)
@@ -1060,15 +1066,14 @@ napi_value WebGLRenderingContextBase::DrawArrays(napi_env env, napi_callback_inf
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t first = 0;
-    tie(succ, first) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt64();
+    GLint first = 0;
+    tie(succ, first) = NVal(env, funcArg[NARG_POS::SECOND]).ToGLint();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
     GLsizei count = 0;
     tie(succ, count) = NVal(env, funcArg[NARG_POS::THIRD]).ToGLsizei();
-    return !succ ? nullptr : context->GetWebGLRenderingContextImpl().DrawArrays(
-        env, mode, static_cast<GLint>(first), count);
+    return !succ ? nullptr : context->GetWebGLRenderingContextImpl().DrawArrays(env, mode, first, count);
 }
 
 napi_value WebGLRenderingContextBase::DrawElements(napi_env env, napi_callback_info info)
@@ -1083,8 +1088,8 @@ napi_value WebGLRenderingContextBase::DrawElements(napi_env env, napi_callback_i
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t count = 0;
-    tie(succ, count) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt64();
+    GLsizei count = 0;
+    tie(succ, count) = NVal(env, funcArg[NARG_POS::SECOND]).ToGLsizei();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
@@ -1093,15 +1098,14 @@ napi_value WebGLRenderingContextBase::DrawElements(napi_env env, napi_callback_i
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t offset = 0;
-    tie(succ, offset) = NVal(env, funcArg[NARG_POS::FOURTH]).ToInt64();
+    GLintptr offset = 0;
+    tie(succ, offset) = NVal(env, funcArg[NARG_POS::FOURTH]).ToGLintptr();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
     WebGLRenderingContext* context = GetWebGLRenderingContextBase(env, funcArg.GetThisVar());
     return (context == nullptr) ? NVal::CreateNull(env).val_ :
-        context->GetWebGLRenderingContextImpl().DrawElements(
-        env, mode, static_cast<GLsizei>(count), type, static_cast<GLintptr>(offset));
+        context->GetWebGLRenderingContextImpl().DrawElements(env, mode, count, type, offset);
 }
 
 napi_value WebGLRenderingContextBase::Enable(napi_env env, napi_callback_info info)
@@ -1242,15 +1246,15 @@ napi_value WebGLRenderingContextBase::FramebufferTexture2D(napi_env env, napi_ca
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t level = 0;
-    tie(succ, level) = NVal(env, funcArg[NARG_POS::FIFTH]).ToInt64();
+    GLint level = 0;
+    tie(succ, level) = NVal(env, funcArg[NARG_POS::FIFTH]).ToGLint();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
     WebGLRenderingContext* context = GetWebGLRenderingContextBase(env, funcArg.GetThisVar());
     return (context == nullptr) ? NVal::CreateNull(env).val_ :
         context->GetWebGLRenderingContextImpl().FrameBufferTexture2D(
-        env, target, attachment, textarget, funcArg[NARG_POS::FOURTH], static_cast<GLint>(level));
+        env, target, attachment, textarget, funcArg[NARG_POS::FOURTH], level);
 }
 
 napi_value WebGLRenderingContextBase::GetUniformLocation(napi_env env, napi_callback_info info)
@@ -1466,34 +1470,33 @@ napi_value WebGLRenderingContextBase::Scissor(napi_env env, napi_callback_info i
         return NVal::CreateNull(env).val_;
     }
     bool succ = false;
-    int32_t x = 0;
-    tie(succ, x) = NVal(env, funcArg[NARG_POS::FIRST]).ToInt32();
+    GLint x = 0;
+    tie(succ, x) = NVal(env, funcArg[NARG_POS::FIRST]).ToGLint();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int32_t y = 0;
-    tie(succ, y) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt32();
+    GLint y = 0;
+    tie(succ, y) = NVal(env, funcArg[NARG_POS::SECOND]).ToGLint();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t width = 0;
-    tie(succ, width) = NVal(env, funcArg[NARG_POS::THIRD]).ToInt64();
+    GLsizei width = 0;
+    tie(succ, width) = NVal(env, funcArg[NARG_POS::THIRD]).ToGLsizei();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t height = 0;
-    tie(succ, height) = NVal(env, funcArg[NARG_POS::FOURTH]).ToInt64();
+    GLsizei height = 0;
+    tie(succ, height) = NVal(env, funcArg[NARG_POS::FOURTH]).ToGLsizei();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    LOGD("WebGL scissor x %{public}d y %{public}d width %{public}" PRIi64 " height %{public}d" PRIi64,
-        x, y, width, static_cast<int>(height));
+    LOGD("WebGL scissor x %{public}d y %{public}d width %{public}d height %{public}d", x, y, width, height);
 
     if (width < 0 || height < 0) {
         context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
-    glScissor(static_cast<GLint>(x), static_cast<GLint>(y), static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+    glScissor(x, y, width, height);
     return NVal::CreateNull(env).val_;
 }
 
@@ -2104,33 +2107,32 @@ napi_value WebGLRenderingContextBase::Viewport(napi_env env, napi_callback_info 
     }
 
     bool succ = false;
-    int32_t x = 0;
-    tie(succ, x) = NVal(env, funcArg[NARG_POS::FIRST]).ToInt32();
+    GLint x = 0;
+    tie(succ, x) = NVal(env, funcArg[NARG_POS::FIRST]).ToGLint();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int32_t y = 0;
-    tie(succ, y) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt32();
+    GLint y = 0;
+    tie(succ, y) = NVal(env, funcArg[NARG_POS::SECOND]).ToGLint();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t width = 0;
-    tie(succ, width) = NVal(env, funcArg[NARG_POS::THIRD]).ToInt64();
+    GLsizei width = 0;
+    tie(succ, width) = NVal(env, funcArg[NARG_POS::THIRD]).ToGLsizei();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t height = 0;
-    tie(succ, height) = NVal(env, funcArg[NARG_POS::FOURTH]).ToInt64();
+    GLsizei height = 0;
+    tie(succ, height) = NVal(env, funcArg[NARG_POS::FOURTH]).ToGLsizei();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    LOGD("webgl viewport x %{public}d y %{public}d width %{public}" PRIi64 " height %{public}" PRIi64,
-        x, y, width, height);
+    LOGD("webgl viewport x %{public}d y %{public}d width %{public}d height %{public}d", x, y, width, height);
     if (width < 0 || height < 0) {
         context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
-    glViewport(static_cast<GLint>(x), static_cast<GLint>(y), static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+    glViewport(x, y, width, height);
     return NVal::CreateNull(env).val_;
 }
 
@@ -2767,11 +2769,11 @@ napi_value WebGLRenderingContextBase::GetShaderInfoLog(napi_env env, napi_callba
     GLuint shaderId = webGlShader->GetShaderId();
     GLint length = 0;
     glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &length);
-    if (length <= 0) {
+    if (length <= 0 || length > MAX_INFO_LOG_LENGTH) {
         return NVal::CreateUTF8String(env, "").val_;
     }
     GLsizei size = 0;
-    std::unique_ptr<char[]> buf = std::make_unique<char[]>(length + 1);
+    std::unique_ptr<char[]> buf(new (std::nothrow) char[static_cast<size_t>(length) + 1] {});
     if (buf == nullptr) {
         return NVal::CreateUTF8String(env, "").val_;
     }
@@ -2800,10 +2802,10 @@ napi_value WebGLRenderingContextBase::GetProgramInfoLog(napi_env env, napi_callb
     GLint length = 0;
     GLsizei size = 0;
     glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &length);
-    if (length <= 0) {
+    if (length <= 0 || length > MAX_INFO_LOG_LENGTH) {
         return NVal::CreateUTF8String(env, "").val_;
     }
-    std::unique_ptr<char[]> buf = std::make_unique<char[]>(length + 1);
+    std::unique_ptr<char[]> buf(new (std::nothrow) char[static_cast<size_t>(length) + 1] {});
     if (buf == nullptr) {
         return NVal::CreateUTF8String(env, "").val_;
     }

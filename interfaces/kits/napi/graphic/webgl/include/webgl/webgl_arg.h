@@ -455,7 +455,7 @@ public:
     WebGLArg(napi_env env, napi_value thisVar) : env_(env) {}
     virtual ~WebGLArg() {}
 
-    static bool GetStringList(napi_env env, napi_value array, std::vector<char *>& list);
+    static bool GetStringList(napi_env env, napi_value array, uint32_t maxCount, std::vector<char *>& list);
     static void FreeStringList(std::vector<char *>& list);
     static std::tuple<GLenum, GLintptr> ToGLintptr(napi_env env, napi_value data);
     static uint32_t GetWebGLDataSize(GLenum type);
@@ -499,7 +499,12 @@ class WebGLCommBuffer {
 public:
     const static int32_t MAX_DUMP = 12;
     WebGLCommBuffer(napi_env env) : env_(env) {}
-    ~WebGLCommBuffer() {}
+    ~WebGLCommBuffer()
+    {
+        if (!buffer_.empty()) {
+            (void)memset_s(buffer_.data(), buffer_.size(), 0, buffer_.size());
+        }
+    }
 
     size_t GetBufferDataSize() const;
     void DumpBuffer(BufferDataType destDataType) const;

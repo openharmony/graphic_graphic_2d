@@ -14,6 +14,7 @@
  */
 #include "context/webgl_rendering_context_base_impl.h"
 
+#include <array>
 #include <cstdint>
 #include <limits>
 #include "context/webgl_rendering_context_base.h"
@@ -46,6 +47,29 @@ bool CheckedMultiply(size_t a, size_t b, size_t& result)
     }
     result = a * b;
     return true;
+}
+
+constexpr size_t ZERO_BUFFER_CHUNK_SIZE = 64 * 1024;
+constexpr GLsizeiptr MAX_WEBGL_BUFFER_DATA_SIZE = static_cast<GLsizeiptr>(1024) * 1024 * 1024;
+const std::array<uint8_t, ZERO_BUFFER_CHUNK_SIZE> ZERO_BUFFER_DATA {};
+
+GLenum ClearBufferData(GLenum target, GLsizeiptr size, GLenum usage)
+{
+    GLsizeiptr offset = 0;
+    while (offset < size) {
+        const GLsizeiptr remaining = size - offset;
+        const GLsizeiptr chunkSize = std::min(
+            remaining, static_cast<GLsizeiptr>(ZERO_BUFFER_DATA.size()));
+        glBufferSubData(target, offset, chunkSize, ZERO_BUFFER_DATA.data());
+        GLenum error = glGetError();
+        if (error != GL_NO_ERROR) {
+            glBufferData(target, 0, nullptr, usage);
+            (void)glGetError();
+            return error;
+        }
+        offset += chunkSize;
+    }
+    return GL_NO_ERROR;
 }
 
 bool ComputeBlockBytes(size_t width, size_t height, const CompressedBlockFormat& fmt, size_t& out)
@@ -108,6 +132,29 @@ bool ComputeCompressedBytesRequired(const TexImageArg& imgArg, size_t& out, GLen
     }
 }
 } // namespace
+
+GLenum WebGLRenderingContextBaseImpl::CheckPixelUnpackBufferRange(
+    napi_env env, GLintptr offset, GLsizeiptr size)
+{
+    if (offset < 0 || size < 0) {
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
+    GLuint bufferId = boundBufferIds_[BoundBufferType::PIXEL_UNPACK_BUFFER];
+    if (bufferId == 0) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    WebGLBuffer* buffer = GetObjectInstance<WebGLBuffer>(env, bufferId);
+    if (buffer == nullptr) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    uint64_t bufferSize = static_cast<uint64_t>(buffer->GetBufferSize());
+    uint64_t offsetBytes = static_cast<uint64_t>(offset);
+    uint64_t requiredBytes = static_cast<uint64_t>(size);
+    if (offsetBytes > bufferSize || requiredBytes > bufferSize - offsetBytes) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    return WebGLRenderingContextBase::NO_ERROR;
+}
 void WebGLRenderingContextBaseImpl::TexImage2D_(
     const TexImageArg& imgArg, WebGLTexture* texture, const void* pixels, bool changeUnpackAlignment)
 {
@@ -455,8 +502,13 @@ napi_value WebGLRenderingContextBaseImpl::ReadPixels(
         return NVal::CreateNull(env).val_;
     }
 
-    glReadPixels(arg.x, arg.y, arg.width, arg.height, arg.format, arg.type,
-        static_cast<void*>(bufferData.GetBuffer() + dstOffsetBytes));
+    uint8_t* destination = bufferData.GetBuffer();
+    if (destination == nullptr && bufferBytes > 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "readPixels destination is nullptr");
+        return NVal::CreateNull(env).val_;
+    }
+    void* destinationStart = (destination == nullptr) ? nullptr : destination + dstOffsetBytes;
+    glReadPixels(arg.x, arg.y, arg.width, arg.height, arg.format, arg.type, destinationStart);
     bufferData.DumpBuffer(bufferData.GetBufferDataType());
     LOGD("WebGL readPixels dstOffsetBytes %{public}llu result %{public}u",
         static_cast<unsigned long long>(dstOffsetBytes), GetError_());
@@ -467,8 +519,8 @@ napi_value WebGLRenderingContextBaseImpl::BufferData_(
     napi_env env, GLenum target, GLsizeiptr size, GLenum usage, const uint8_t* bufferData)
 {
     LOGD("WebGL bufferData target %{public}u, usage %{public}u", target, usage);
-    if (size < 0) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "size is negative");
+    if (size < 0 || size > MAX_WEBGL_BUFFER_DATA_SIZE) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "size is outside the supported range");
         return NVal::CreateNull(env).val_;
     }
     uint32_t index = 0;
@@ -491,13 +543,21 @@ napi_value WebGLRenderingContextBaseImpl::BufferData_(
             "webGLBuffer->GetTarget %{public}u target %{public}u", webGLBuffer->GetTarget(), target);
         return NVal::CreateNull(env).val_;
     }
-    webGLBuffer->SetBuffer(size, nullptr);
-    if (bufferData != nullptr) {
-        webGLBuffer->SetBuffer(size, bufferData);
-        glBufferData(target, size, bufferData, usage);
-    } else {
-        glBufferData(target, size, nullptr, usage);
+    glBufferData(target, size, bufferData, usage);
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        SET_ERROR_WITH_LOG(error, "glBufferData failed");
+        return NVal::CreateNull(env).val_;
     }
+    if (bufferData == nullptr && size > 0) {
+        error = ClearBufferData(target, size, usage);
+        if (error != GL_NO_ERROR) {
+            webGLBuffer->SetBuffer(0, nullptr);
+            SET_ERROR_WITH_LOG(error, "bufferData zero initialization failed");
+            return NVal::CreateNull(env).val_;
+        }
+    }
+    webGLBuffer->SetBuffer(size, bufferData);
     webGLBuffer->SetTarget(target);
     return NVal::CreateNull(env).val_;
 }
@@ -531,18 +591,29 @@ napi_value WebGLRenderingContextBaseImpl::BufferData(
         return NVal::CreateNull(env).val_;
     }
     size_t maxLength = bufferLen - static_cast<size_t>(offsetBytes);
-    GLsizeiptr length;
+    uint64_t selectedLength = 0;
     if (ext.length == 0) {
-        length = static_cast<GLsizeiptr>(maxLength);
+        selectedLength = static_cast<uint64_t>(maxLength);
     } else {
         uint64_t lengthBytes = static_cast<uint64_t>(ext.length) * elemSize;
         if (lengthBytes > maxLength) {
             SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "length out of bounds");
             return NVal::CreateNull(env).val_;
         }
-        length = static_cast<GLsizeiptr>(lengthBytes);
+        selectedLength = lengthBytes;
     }
-    BufferData_(env, target, length, usage, bufferData.GetBuffer() + static_cast<size_t>(offsetBytes));
+    if (selectedLength > static_cast<uint64_t>(MAX_WEBGL_BUFFER_DATA_SIZE)) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer data exceeds the supported limit");
+        return NVal::CreateNull(env).val_;
+    }
+    GLsizeiptr length = static_cast<GLsizeiptr>(selectedLength);
+    const uint8_t* source = bufferData.GetBuffer();
+    if (length > 0 && source == nullptr) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer data is nullptr");
+        return NVal::CreateNull(env).val_;
+    }
+    const uint8_t* sourceStart = (length == 0) ? nullptr : source + static_cast<size_t>(offsetBytes);
+    BufferData_(env, target, length, usage, sourceStart);
     LOGD("WebGL bufferData buffer usage %{public}u size %{public}zu target %{public}u, result %{public}u ",
         usage, bufferData.GetBufferLength(), target, GetError_());
     return NVal::CreateNull(env).val_;
@@ -551,7 +622,12 @@ napi_value WebGLRenderingContextBaseImpl::BufferData(
 napi_value WebGLRenderingContextBaseImpl::BufferSubData(
     napi_env env, GLenum target, GLintptr offset, napi_value buffer, const BufferExt& ext)
 {
-    WebGLBuffer* webGLBuffer = GetObjectInstance<WebGLBuffer>(env, boundBufferIds_[BoundBufferType::ARRAY_BUFFER]);
+    uint32_t index = 0;
+    if (!CheckBufferTarget(env, target, index)) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "bufferSubData invalid target");
+        return NVal::CreateNull(env).val_;
+    }
+    WebGLBuffer* webGLBuffer = GetObjectInstance<WebGLBuffer>(env, boundBufferIds_[index]);
     if (webGLBuffer == nullptr || webGLBuffer->GetBufferSize() == 0) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "bufferSubData Can not find bound buffer");
         return NVal::CreateNull(env).val_;
@@ -568,8 +644,10 @@ napi_value WebGLRenderingContextBaseImpl::BufferSubData(
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "WebGL bufferSubData negative offset");
         return NVal::CreateNull(env).val_;
     }
-    uint64_t endBytes = static_cast<uint64_t>(offset) + static_cast<uint64_t>(bufferData.GetBufferLength());
-    if (endBytes > static_cast<uint64_t>(webGLBuffer->GetBufferSize())) {
+    const uint64_t offsetBytes = static_cast<uint64_t>(offset);
+    const uint64_t bufferSize = static_cast<uint64_t>(webGLBuffer->GetBufferSize());
+    const uint64_t dataSize = static_cast<uint64_t>(bufferData.GetBufferLength());
+    if (offsetBytes > bufferSize || dataSize > bufferSize - offsetBytes) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
             "WebGL bufferSubData invalid buffer size %{public}zu offset %{public}zu ",
             bufferData.GetBufferLength(), webGLBuffer->GetBufferSize());
@@ -750,7 +828,12 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexImage2D(
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressedTexImage2D length too large");
         return NVal::CreateNull(env).val_;
     }
-    GLvoid* data = reinterpret_cast<GLvoid*>(bufferData.GetBuffer() + offsetBytes);
+    uint8_t* source = bufferData.GetBuffer();
+    if (source == nullptr && length > 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressed texture source is nullptr");
+        return NVal::CreateNull(env).val_;
+    }
+    GLvoid* data = (source == nullptr) ? nullptr : static_cast<GLvoid*>(source + offsetBytes);
     glCompressedTexImage2D(imgArg.target, imgArg.level, imgArg.internalFormat, imgArg.width, imgArg.height,
         imgArg.border, static_cast<GLsizei>(length), data);
 
@@ -829,8 +912,13 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
         size_t maxLength = bufferLen - offsetBytes;
         size_t dataLength = (srcLengthOverride == 0) ? maxLength
             : std::min(static_cast<size_t>(srcLengthOverride), maxLength);
-        data = reinterpret_cast<void*>(bufferData.GetBuffer() + offsetBytes);
         length = dataLength;
+        uint8_t* source = bufferData.GetBuffer();
+        if (source == nullptr && length > 0) {
+            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressed texture source is nullptr");
+            return NVal::CreateNull(env).val_;
+        }
+        data = (source == nullptr) ? nullptr : static_cast<void*>(source + offsetBytes);
     }
     bool succ = CheckCompressedTexSubImage2D(env, imgArg, length);
     if (!succ) {
@@ -1002,12 +1090,10 @@ GLenum WebGLRenderingContextBaseImpl::CheckTexSubImage2D(
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
 
-    // Before checking if it is in the range, check if overflow happens first.
-    if (imgArg.xOffset + imgArg.width < 0 || imgArg.yOffset + imgArg.height < 0) {
-        return WebGLRenderingContextBase::INVALID_VALUE;
-    }
-    if ((imgArg.xOffset + imgArg.width) > texture->GetWidth(imgArg.target, imgArg.level) ||
-        (imgArg.yOffset + imgArg.height) > texture->GetHeight(imgArg.target, imgArg.level)) {
+    if (!WebGLTexture::CheckTextureSize(
+            imgArg.xOffset, imgArg.width, texture->GetWidth(imgArg.target, imgArg.level)) ||
+        !WebGLTexture::CheckTextureSize(
+            imgArg.yOffset, imgArg.height, texture->GetHeight(imgArg.target, imgArg.level))) {
         LOGE("WebGL invalid CheckTexSubImage2D GetWidth %{public}d, GetHeight %{public}d",
             texture->GetWidth(imgArg.target, imgArg.level), texture->GetHeight(imgArg.target, imgArg.level));
         return WebGLRenderingContextBase::INVALID_VALUE;

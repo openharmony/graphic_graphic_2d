@@ -328,6 +328,7 @@ protected:
     GLenum GetBoundFrameBufferColorFormat(napi_env env);
     GLenum CheckReadBufferAndGetInfo(napi_env env, GLuint* frameBufferId, GLenum* format, GLenum* type);
     GLenum CheckReadPixelsArg(napi_env env, const PixelsArg& arg, uint64_t bufferSize, uint64_t dstOffset);
+    GLenum CheckPixelUnpackBufferRange(napi_env env, GLintptr offset, GLsizeiptr size);
     GLenum CheckCompressedTexSubDimensions(const TexSubImage2DArg& imgArg, WebGLTexture* texture);
     
     template<class T>
@@ -335,7 +336,8 @@ protected:
 
     bool GetReadBufferFormatAndType(napi_env env, const WebGLFramebuffer* frameBuffer, GLenum* format, GLenum* type);
     const UniformTypeMap* GetUniformTypeMap(GLenum type);
-    GLenum GetUniformType(napi_env env, GLuint programId, GLint locationId);
+    GLenum GetUniformType(GLuint programId, GLint locationId);
+    bool CheckUniformLocationProgram(const WebGLUniformLocation* uniformLocation);
 
     template <class T>
     napi_value GetObjectParameter(napi_env env, GLenum pname);
@@ -360,6 +362,8 @@ protected:
     GLint maxRenderBufferSize_ = 0;
     uint32_t activeTextureIndex_ = 0;
     std::vector<uint32_t> boundTexture_[BoundTextureType::TEXTURE_MAX] = {};
+    std::vector<GLenum> texImageSupportInternalFormats_ {};
+    bool texImageSupportInternalFormatsInitialized_ { false };
 
     // for buffer 0: ARRAY_BUFFER 1:ELEMENT_ARRAY_BUFFER
     GLuint boundBufferIds_[BoundBufferType::BUFFER_MAX] = { 0 };

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <algorithm>
+#include <new>
 
 #include "context/webgl2_rendering_context_base.h"
 #include "context/webgl_rendering_context_base.h"
@@ -24,6 +25,10 @@
 namespace OHOS {
 namespace Rosen {
 namespace Impl {
+namespace {
+constexpr GLint MAX_COMPRESSED_TEXTURE_FORMAT_COUNT = 4096;
+}
+
 static void AddSupportElement(std::vector<GLenum>& supports, GLenum ele)
 {
     if (std::find(supports.begin(), supports.end(), ele) == supports.end()) {
@@ -58,66 +63,52 @@ const std::vector<GLenum>& WebGLRenderingContextBaseImpl::GetBoolParaName()
 
 const std::vector<GLenum>& WebGLRenderingContextBaseImpl::GetExtentionAstcTexImageInternal()
 {
-    static std::vector<GLenum> extentionAstcSupportInternalFormats {};
-    static bool initd = false;
-    if (!initd) {
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_4x4_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_5x4_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_5x5_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_6x5_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_6x6_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_8x5_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_8x6_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_8x8_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_10x5_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_10x6_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_10x10_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_12x10_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_RGBA_ASTC_12x12_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR);
-        AddSupportElement(extentionAstcSupportInternalFormats, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR);
-        initd = true;
+    static const std::vector<GLenum> extentionAstcSupportInternalFormats {
+        GL_COMPRESSED_RGBA_ASTC_4x4_KHR, GL_COMPRESSED_RGBA_ASTC_5x4_KHR,
+        GL_COMPRESSED_RGBA_ASTC_5x5_KHR, GL_COMPRESSED_RGBA_ASTC_6x5_KHR,
+        GL_COMPRESSED_RGBA_ASTC_6x6_KHR, GL_COMPRESSED_RGBA_ASTC_8x5_KHR,
+        GL_COMPRESSED_RGBA_ASTC_8x6_KHR, GL_COMPRESSED_RGBA_ASTC_8x8_KHR,
+        GL_COMPRESSED_RGBA_ASTC_10x5_KHR, GL_COMPRESSED_RGBA_ASTC_10x6_KHR,
+        GL_COMPRESSED_RGBA_ASTC_10x10_KHR, GL_COMPRESSED_RGBA_ASTC_12x10_KHR,
+        GL_COMPRESSED_RGBA_ASTC_12x12_KHR, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR
     };
     return extentionAstcSupportInternalFormats;
 }
 
 const std::vector<GLenum>& WebGLRenderingContextBaseImpl::GetTexImageInternalFormat()
 {
-    static std::vector<GLenum> texImageSupportInternalFormats {};
-    static bool initd = false;
-    if (!initd) {
+    if (!texImageSupportInternalFormatsInitialized_) {
         GLint count = 0;
         glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &count);
-        std::unique_ptr<uint32_t[]> params = std::make_unique<uint32_t[]>(count);
-        if (params == nullptr) {
-            return texImageSupportInternalFormats;
+        if (count < 0 || count > MAX_COMPRESSED_TEXTURE_FORMAT_COUNT) {
+            return texImageSupportInternalFormats_;
         }
-        glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, reinterpret_cast<GLint*>(params.get()));
+        std::unique_ptr<GLint[]> params(new (std::nothrow) GLint[static_cast<size_t>(count)]);
+        if (count > 0 && params == nullptr) {
+            return texImageSupportInternalFormats_;
+        }
+        if (count > 0) {
+            glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, params.get());
+        }
         for (GLint i = 0; i < count; i++) {
-            uint32_t data = *(params.get() + i);
-            AddSupportElement(texImageSupportInternalFormats, data);
+            AddSupportElement(texImageSupportInternalFormats_, static_cast<GLenum>(params[static_cast<size_t>(i)]));
         }
 #ifdef SUPPORT_COMPRESSED_RGB_S3TC
         // When using the WEBGL_compressed_texture_s3tc extension:
-        AddSupportElement(texImageSupportInternalFormats, GL_COMPRESSED_RGB_S3TC_DXT1_EXT);
-        AddSupportElement(texImageSupportInternalFormats, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT);
-        AddSupportElement(texImageSupportInternalFormats, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT);
-        AddSupportElement(texImageSupportInternalFormats, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT);
+        AddSupportElement(texImageSupportInternalFormats_, GL_COMPRESSED_RGB_S3TC_DXT1_EXT);
+        AddSupportElement(texImageSupportInternalFormats_, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT);
+        AddSupportElement(texImageSupportInternalFormats_, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT);
+        AddSupportElement(texImageSupportInternalFormats_, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT);
 #endif
-        initd = true;
+        texImageSupportInternalFormatsInitialized_ = true;
     }
-    return texImageSupportInternalFormats;
+    return texImageSupportInternalFormats_;
 }
 } // namespace Impl
 } // namespace Rosen

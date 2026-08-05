@@ -113,7 +113,14 @@ napi_value WebGLRenderingContextBaseImpl::CreateTextureObject(napi_env env)
     glGenTextures(1, &textureId);
     webGlTexture->SetTexture(textureId);
     LOGD("WebGL createTexture textureId %{public}u", textureId);
-    AddObject<WebGLTexture>(env, textureId, objTexture);
+    if (textureId == 0 || !AddObject<WebGLTexture>(env, textureId, objTexture)) {
+        if (textureId != 0) {
+            glDeleteTextures(1, &textureId);
+            webGlTexture->SetTexture(WebGLTexture::DEFAULT_TEXTURE);
+        }
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     return objTexture;
 }
 
@@ -299,8 +306,18 @@ napi_value WebGLRenderingContextBaseImpl::CreateBuffer(napi_env env)
     uint32_t bufferId = 0;
     glGenBuffers(1, &bufferId);
     webGlBuffer->SetBufferId(bufferId);
+    if (bufferId == 0) {
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     bool ret = AddObject<WebGLBuffer>(env, bufferId, objBuffer);
     LOGD("WebGL createBuffer bufferId %{public}u %{public}d", bufferId, ret);
+    if (!ret) {
+        glDeleteBuffers(1, &bufferId);
+        webGlBuffer->SetBufferId(WebGLBuffer::DEFAULT_BUFFER);
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     return objBuffer;
 }
 
@@ -314,7 +331,14 @@ napi_value WebGLRenderingContextBaseImpl::CreateFrameBuffer(napi_env env)
     uint32_t framebufferId = 0;
     glGenFramebuffers(1, &framebufferId);
     webGlFramebuffer->SetFramebuffer(framebufferId);
-    (void)AddObject<WebGLFramebuffer>(env, framebufferId, objFramebuffer);
+    if (framebufferId == 0 || !AddObject<WebGLFramebuffer>(env, framebufferId, objFramebuffer)) {
+        if (framebufferId != 0) {
+            glDeleteFramebuffers(1, &framebufferId);
+            webGlFramebuffer->SetFramebuffer(WebGLFramebuffer::DEFAULT_FRAME_BUFFER);
+        }
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     LOGD("WebGL createFramebuffer framebufferId %{public}u", framebufferId);
     return objFramebuffer;
 }
@@ -333,7 +357,12 @@ napi_value WebGLRenderingContextBaseImpl::CreateProgram(napi_env env)
     }
     webGlProgram->SetProgramId(programId);
 
-    (void)AddObject<WebGLProgram>(env, programId, objProgram);
+    if (!AddObject<WebGLProgram>(env, programId, objProgram)) {
+        glDeleteProgram(programId);
+        webGlProgram->SetProgramId(WebGLProgram::DEFAULT_PROGRAM_ID);
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     LOGD("WebGL createProgram programId %{public}u result %{public}u", programId, GetError_());
     return objProgram;
 }
@@ -348,7 +377,14 @@ napi_value WebGLRenderingContextBaseImpl::CreateRenderBuffer(napi_env env)
     GLuint renderbufferId = 0;
     glGenRenderbuffers(1, &renderbufferId);
     webGlRenderbuffer->SetRenderbuffer(renderbufferId);
-    (void)AddObject<WebGLRenderbuffer>(env, renderbufferId, objRenderbuffer);
+    if (renderbufferId == 0 || !AddObject<WebGLRenderbuffer>(env, renderbufferId, objRenderbuffer)) {
+        if (renderbufferId != 0) {
+            glDeleteRenderbuffers(1, &renderbufferId);
+            webGlRenderbuffer->SetRenderbuffer(WebGLRenderbuffer::DEFAULT_RENDER_BUFFER);
+        }
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     LOGD("WebGL createRenderbuffer renderbufferId %{public}u result %{private}p", renderbufferId, objRenderbuffer);
     return objRenderbuffer;
 }
@@ -371,7 +407,12 @@ napi_value WebGLRenderingContextBaseImpl::CreateShader(napi_env env, GLenum type
         LOGE("WebGL create shader failed. type %{public}x", type);
         return NVal::CreateNull(env).val_;
     }
-    (void)AddObject<WebGLShader>(env, shaderId, objShader);
+    if (!AddObject<WebGLShader>(env, shaderId, objShader)) {
+        glDeleteShader(shaderId);
+        webGlShader->SetShaderId(WebGLShader::DEFAULT_SHADER_ID);
+        SET_ERROR(WebGLRenderingContextBase::OUT_OF_MEMORY);
+        return NVal::CreateNull(env).val_;
+    }
     webGlShader->SetShaderType(type);
     return objShader;
 }
@@ -1008,19 +1049,14 @@ napi_value WebGLRenderingContextBaseImpl::GetUniformLocation(napi_env env, napi_
     if (locationId == -1) {
         return NVal::CreateNull(env).val_;
     }
-    // check if exit
-    WebGLUniformLocation* webGLUniformLocation = GetObjectInstance<WebGLUniformLocation>(env, locationId);
-    napi_value objUniformLocation = GetNapiValue<WebGLUniformLocation>(env, locationId);
-    if (webGLUniformLocation == nullptr) { // create new
-        objUniformLocation = WebGLUniformLocation::CreateObjectInstance(env, &webGLUniformLocation).val_;
-        if (webGLUniformLocation == nullptr) {
-            return NVal::CreateNull(env).val_;
-        }
-        webGLUniformLocation->SetUniformLocationId(locationId);
-        AddObject<WebGLUniformLocation>(env, locationId, objUniformLocation);
-    } else {
-        webGLUniformLocation->SetUniformLocationName(name);
+    WebGLUniformLocation* webGLUniformLocation = nullptr;
+    napi_value objUniformLocation = WebGLUniformLocation::CreateObjectInstance(env, &webGLUniformLocation).val_;
+    if (webGLUniformLocation == nullptr) {
+        return NVal::CreateNull(env).val_;
     }
+    webGLUniformLocation->SetUniformLocationId(locationId);
+    webGLUniformLocation->SetProgramId(programId);
+    webGLUniformLocation->SetUniformLocationName(name);
     return objUniformLocation;
 }
 
@@ -1552,12 +1588,25 @@ napi_value WebGLRenderingContextBaseImpl::GetError(napi_env env)
     return NVal::CreateInt64(env, static_cast<int64_t>(err)).val_;
 }
 
+bool WebGLRenderingContextBaseImpl::CheckUniformLocationProgram(const WebGLUniformLocation* uniformLocation)
+{
+    if (uniformLocation->GetProgramId() == currentProgramId_) {
+        return true;
+    }
+    SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION,
+        "uniform location does not belong to the current program.");
+    return false;
+}
+
 napi_value WebGLRenderingContextBaseImpl::UniformF(
     napi_env env, napi_value locationObj, uint32_t count, const GLfloat* data)
 {
     WebGLUniformLocation* webGLUniformLocation = WebGLUniformLocation::GetObjectInstance(env, locationObj);
     if (webGLUniformLocation == nullptr) {
         LOGE("WebGL uniform_f can not find uniform");
+        return NVal::CreateNull(env).val_;
+    }
+    if (!CheckUniformLocationProgram(webGLUniformLocation)) {
         return NVal::CreateNull(env).val_;
     }
     GLint location = webGLUniformLocation->GetUniformLocationId();
@@ -1592,6 +1641,9 @@ napi_value WebGLRenderingContextBaseImpl::UniformI(
         LOGE("WebGL uniform_i can not find uniform");
         return NVal::CreateNull(env).val_;
     }
+    if (!CheckUniformLocationProgram(webGLUniformLocation)) {
+        return NVal::CreateNull(env).val_;
+    }
     GLint location = webGLUniformLocation->GetUniformLocationId();
     // 0,1,2,3 index for data
     LOGD("WebGL uniform location %{public}d [%{public}d %{public}d %{public}d %{public}d]",
@@ -1621,6 +1673,9 @@ napi_value WebGLRenderingContextBaseImpl::UniformUi(
     WebGLUniformLocation* webGLUniformLocation = WebGLUniformLocation::GetObjectInstance(env, locationObj);
     if (webGLUniformLocation == nullptr) {
         LOGE("WebGL uniform_ui can not find uniform");
+        return NVal::CreateNull(env).val_;
+    }
+    if (!CheckUniformLocationProgram(webGLUniformLocation)) {
         return NVal::CreateNull(env).val_;
     }
     GLint location = webGLUniformLocation->GetUniformLocationId();
@@ -1683,6 +1738,9 @@ napi_value WebGLRenderingContextBaseImpl::UniformFv(
         LOGE("WebGL uniform_fv can not find uniform");
         return NVal::CreateNull(env).val_;
     }
+    if (!CheckUniformLocationProgram(webGLUniformLocation)) {
+        return NVal::CreateNull(env).val_;
+    }
     GLint location = webGLUniformLocation->GetUniformLocationId();
 
     WebGLReadBufferArg readData(env);
@@ -1733,6 +1791,9 @@ napi_value WebGLRenderingContextBaseImpl::UniformIv(
         LOGE("WebGL UniformIv can not find uniform");
         return NVal::CreateNull(env).val_;
     }
+    if (!CheckUniformLocationProgram(webGLUniformLocation)) {
+        return NVal::CreateNull(env).val_;
+    }
     GLint location = webGLUniformLocation->GetUniformLocationId();
 
     WebGLReadBufferArg readData(env);
@@ -1780,6 +1841,9 @@ napi_value WebGLRenderingContextBaseImpl::UniformUiv(
     WebGLUniformLocation* webGLUniformLocation = WebGLUniformLocation::GetObjectInstance(env, locationObj);
     if (webGLUniformLocation == nullptr) {
         LOGE("WebGL uniform_uiv can not find uniform");
+        return NVal::CreateNull(env).val_;
+    }
+    if (!CheckUniformLocationProgram(webGLUniformLocation)) {
         return NVal::CreateNull(env).val_;
     }
     GLint location = webGLUniformLocation->GetUniformLocationId();
@@ -1865,6 +1929,9 @@ napi_value WebGLRenderingContextBaseImpl::UniformMatrixFv(
     WebGLUniformLocation* webGLUniformLocation = WebGLUniformLocation::GetObjectInstance(env, locationObj);
     if (webGLUniformLocation == nullptr) {
         LOGE("WebGL uniformMatrix_fv can not find uniform");
+        return NVal::CreateNull(env).val_;
+    }
+    if (!CheckUniformLocationProgram(webGLUniformLocation)) {
         return NVal::CreateNull(env).val_;
     }
     GLint location = webGLUniformLocation->GetUniformLocationId();
@@ -2210,7 +2277,7 @@ napi_value WebGLRenderingContextBaseImpl::VertexAttribf(napi_env env, GLuint ind
     return NVal::CreateNull(env).val_;
 }
 
-GLenum WebGLRenderingContextBaseImpl::GetUniformType(napi_env env, GLuint programId, GLint locationId)
+GLenum WebGLRenderingContextBaseImpl::GetUniformType(GLuint programId, GLint locationId)
 {
     GLint maxNameLength = -1;
     glGetProgramiv(programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxNameLength);
@@ -2221,22 +2288,36 @@ GLenum WebGLRenderingContextBaseImpl::GetUniformType(napi_env env, GLuint progra
     GLint activeUniforms = 0;
     glGetProgramiv(programId, GL_ACTIVE_UNIFORMS, &activeUniforms);
     LOGD("WebGL getUniform maxNameLength %{public}d activeUniforms %{public}d", maxNameLength, activeUniforms);
-    if (locationId >= activeUniforms) {
-        return 0;
-    }
-    GLenum type = 0;
     std::vector<GLchar> name(maxNameLength + 1);
     name[maxNameLength] = '\0';
     for (int32_t i = 0; i < activeUniforms; i++) {
         GLsizei nameLength = 0;
-        GLint size = -1;
+        GLint size = 0;
+        GLenum type = 0;
         glGetActiveUniform(programId, i, maxNameLength, &nameLength, &size, &type, name.data());
         LOGD("WebGL getUniform index %{public}d type 0x%{public}x name %{public}s ", i, type, name.data());
-        if (locationId == i) {
-            break;
+        if (glGetUniformLocation(programId, name.data()) == locationId) {
+            return type;
+        }
+        if (size <= 1) {
+            continue;
+        }
+        std::string elementName(name.data(), nameLength);
+        const size_t arrayIndex = elementName.find("[0]");
+        for (GLint element = 1; element < size; element++) {
+            std::string indexedName = elementName;
+            const std::string index = "[" + std::to_string(element) + "]";
+            if (arrayIndex == std::string::npos) {
+                indexedName += index;
+            } else {
+                indexedName.replace(arrayIndex, sizeof("[0]") - 1, index);
+            }
+            if (glGetUniformLocation(programId, indexedName.c_str()) == locationId) {
+                return type;
+            }
         }
     }
-    return type;
+    return 0;
 }
 
 napi_value WebGLRenderingContextBaseImpl::GetUniform(napi_env env, napi_value programObj, napi_value uniformObj)
@@ -2249,8 +2330,13 @@ napi_value WebGLRenderingContextBaseImpl::GetUniform(napi_env env, napi_value pr
         return NVal::CreateNull(env).val_;
     }
     GLuint programId = webGLProgram->GetProgramId();
+    if (webGLUniformLocation->GetProgramId() != programId) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION,
+            "uniform location does not belong to the program.");
+        return NVal::CreateNull(env).val_;
+    }
     GLint locationId = webGLUniformLocation->GetUniformLocationId();
-    const UniformTypeMap* typeMap = GetUniformTypeMap(GetUniformType(env, programId, locationId));
+    const UniformTypeMap* typeMap = GetUniformTypeMap(GetUniformType(programId, locationId));
     if (typeMap == nullptr) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "typeMap is nullptr.");
         return NVal::CreateNull(env).val_;

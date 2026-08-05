@@ -15,6 +15,8 @@
 
 #include "context/webgl_rendering_context_basic_base.h"
 
+#include <limits>
+
 #include "context/webgl2_rendering_context.h"
 #include "context/webgl_rendering_context.h"
 #include "napi/n_class.h"
@@ -62,6 +64,16 @@ void WebGLRenderingContextBasicBase::SetBitMapPtr(char* bitMapPtr, int bitMapWid
 {
     LOGD("WebGLRenderingContextBasicBase::SetBitMapPtr. %{private}p", this);
     LOGD("WebGLRenderingContextBasicBase SetBitMapPtr [%{public}d %{public}d]", bitMapWidth, bitMapHeight);
+    constexpr size_t RGBA_BYTES_PER_PIXEL = 4;
+    if (bitMapPtr == nullptr || bitMapWidth <= 0 || bitMapHeight <= 0 ||
+        static_cast<size_t>(bitMapWidth) > std::numeric_limits<size_t>::max() / RGBA_BYTES_PER_PIXEL /
+        static_cast<size_t>(bitMapHeight)) {
+        bitMapPtr_ = nullptr;
+        bitMapWidth_ = 0;
+        bitMapHeight_ = 0;
+        LOGE("WebGLRenderingContextBasicBase invalid bitmap parameters");
+        return;
+    }
     bitMapPtr_ = bitMapPtr;
     bitMapWidth_ = bitMapWidth;
     bitMapHeight_ = bitMapHeight;
@@ -88,7 +100,7 @@ void WebGLRenderingContextBasicBase::Update()
         LOGD("eglSwapBuffers");
         EGLDisplay eglDisplay = EglManager::GetInstance().GetEGLDisplay();
         eglSwapBuffers(eglDisplay, eglSurface_);
-    } else {
+    } else if (bitMapPtr_ != nullptr && bitMapWidth_ > 0 && bitMapHeight_ > 0) {
         LOGD("glReadPixels packAlignment %{public}d", packAlignment_);
         glPixelStorei(GL_PACK_ALIGNMENT, 4); // 4 alignment
         glReadPixels(0, 0, bitMapWidth_, bitMapHeight_, GL_RGBA, GL_UNSIGNED_BYTE, bitMapPtr_);
@@ -195,7 +207,7 @@ napi_value WebGLRenderingContextBasicBase::GetContextInstance(napi_env env,
         if (status != napi_ok) {
             return NVal::CreateNull(env).val_;
         }
-        status = napi_create_reference(env, instanceValue, 1, &contextRef_);
+        status = napi_create_reference(env, instanceValue, 0, &contextRef_);
         if (status != napi_ok) {
             return NVal::CreateNull(env).val_;
         }
