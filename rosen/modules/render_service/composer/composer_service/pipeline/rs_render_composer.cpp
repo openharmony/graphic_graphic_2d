@@ -327,7 +327,9 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     if (composerToRenderConnection_ != nullptr) {
         composerToRenderConnection_->ReleaseLayerBuffers(releaseLayerInfo);
     }
-    unExecuteTaskNum_--;
+    if (unExecuteTaskNum_.load() > 0) {
+        unExecuteTaskNum_--;
+    }
 
     if (setTaskEndWithTimeCb_ != nullptr) {
         setTaskEndWithTimeCb_(SystemTime() - lastActualTime_);
@@ -1552,5 +1554,14 @@ void RSRenderComposer::SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback
     setHardwareTaskNumCb_ = setHardwareTaskNumCb;
     setTaskEndWithTimeCb_ = setTaskEndWithTimeCb;
     getRealTimeOffsetOfDvsyncCb_ = getRealTimeOffsetOfDvsyncCb;
+}
+
+void RSRenderComposer::DumpVKImageInfo(std::string& dumpString)
+{
+    if (uniRenderEngine_ == nullptr) {
+        RS_LOGW("%{public}s: uniRenderEngine is nullptr.", __func__);
+        return;
+    }
+    uniRenderEngine_->DumpVkImageInfo(dumpString);
 }
 }

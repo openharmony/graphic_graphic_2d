@@ -21,7 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t COMPOSER_THREAD_TASK_NUM = 2;
+constexpr int32_t COMPOSER_THREAD_TASK_NUM = 2;
 constexpr uint32_t WAIT_FOR_COMPOSER_THREAD_TASK_TIMEOUT = 3000;
 };
 
@@ -162,7 +162,7 @@ void RSComposerClient::SetScreenLinearMatrix(const std::vector<float>& matrix)
     rsComposerContext_->SetScreenLinearMatrix(matrix);
 }
 
-uint32_t RSComposerClient::GetUnExecuteTaskNum() const
+int32_t RSComposerClient::GetUnExecuteTaskNum() const
 {
     return unExecuteTaskNum_.load();
 }
@@ -170,15 +170,19 @@ uint32_t RSComposerClient::GetUnExecuteTaskNum() const
 void RSComposerClient::IncUnExecuteTaskNum()
 {
     acquiredBufferCount_.fetch_add(1);
-    RS_TRACE_NAME_FMT("Inc Acq BufferCount %d", acquiredBufferCount_.load());
     unExecuteTaskNum_.fetch_add(1);
+    RS_TRACE_NAME_FMT("Inc Acq BufferCount %d unExecuteTaskNum %d",
+        acquiredBufferCount_.load(), unExecuteTaskNum_.load());
 }
 
 void RSComposerClient::SubUnExecuteTaskNum()
 {
-    acquiredBufferCount_.fetch_sub(1);
-    RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
-    unExecuteTaskNum_.fetch_sub(1);
+    RS_TRACE_NAME_FMT("Dec Acq BufferCount %d unExecuteTaskNum %d",
+        acquiredBufferCount_.load(), unExecuteTaskNum_.load());
+    if (unExecuteTaskNum_.load() > 0 && acquiredBufferCount_.load() > 0) {
+        acquiredBufferCount_.fetch_sub(1);
+        unExecuteTaskNum_.fetch_sub(1);
+    }
 }
 
 bool RSComposerClient::WaitComposerThreadTaskExecute(std::unique_lock<std::mutex>& lock)

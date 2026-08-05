@@ -51,7 +51,6 @@ void WaitAcquireFence(const sptr<SyncFence>& acquireFence)
 }
 
 constexpr size_t MAX_CACHE_SIZE = 16;
-constexpr size_t MAX_CACHE_SIZE_FOR_REUSE = 40;
 static const bool ENABLE_VKIMAGE_DFX = system::GetBoolParameter("persist.graphic.enable_vkimage_dfx", false);
 static const bool ENABLE_SEMAPHORE =
     system::GetBoolParameter("persist.sys.graphic.rs_vkimgmgr_enable_semaphore", true);
@@ -431,6 +430,11 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::GetIntersectImage(Drawing::Rec
         return nullptr;
     }
     return cutDownImage;
+}
+
+void RSVkImageManager::SetVKImageCacheMapSize(uint32_t cacheSize)
+{
+    maxCacheSizeForReuse_ = cacheSize;
 }
 } // namespace Rosen
 } // namespace OHOS
