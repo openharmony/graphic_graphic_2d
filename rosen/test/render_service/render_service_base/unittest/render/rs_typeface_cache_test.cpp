@@ -911,7 +911,7 @@ HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypeface_GeneralMemoryAccumulation001,
 /**
  * @tc.name: CacheDrawingTypeface_GeneralMemoryOverLimit001
  * @tc.desc: Verify CacheDrawingTypeface returns early without caching when generalTypefaceTotalCpuMemory_
- *          exceeds MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT
+ *          exceeds GENERAL_TYPEFACE_MEMORY_LIMIT
  * @tc.type:FUNC
  */
 HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypeface_GeneralMemoryOverLimit001, TestSize.Level1)
@@ -921,7 +921,7 @@ HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypeface_GeneralMemoryOverLimit001, Te
     RSTypefaceCache::Instance().typefaceBaseHashMap_.clear();
     RSTypefaceCache::Instance().typefaceHashQueue_.clear();
     // pre-set counter at the limit so the upcoming addition triggers the over-limit early return
-    RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_ = MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT;
+    RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_ = RSTypefaceCache::GENERAL_TYPEFACE_MEMORY_LIMIT;
 
     auto typeface = Drawing::Typeface::MakeDefault();
     ASSERT_NE(typeface, nullptr);
@@ -936,9 +936,9 @@ HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypeface_GeneralMemoryOverLimit001, Te
     EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);
     EXPECT_EQ(RSTypefaceCache::Instance().typefaceHashCode_.find(uniqueId),
         RSTypefaceCache::Instance().typefaceHashCode_.end());
-    // the size addition happens before the limit check
+    // counter NOT incremented because check-before-add rejects the typeface
     EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_,
-        MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT + typefaceSize);
+        RSTypefaceCache::GENERAL_TYPEFACE_MEMORY_LIMIT);
 
     // cleanup
     RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_ = 0;
@@ -973,6 +973,40 @@ HWTEST_F(RSTypefaceCacheTest, RemoveHashMap_FdTypefaceNoMemoryDecrement001, Test
     EXPECT_NE(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);
 
     // removal should NOT decrement counter for FD typefaces (would underflow without the guard)
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueId);
+    EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, 0u);
+    EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);
+}
+
+/**
+ * @tc.name: RemoveHashMap_UnderflowGuard001
+ * @tc.desc: Verify generalTypefaceTotalCpuMemory_ clamps to 0 instead of underflowing when
+ *          the stored typeface size exceeds the counter
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, RemoveHashMap_UnderflowGuard001, TestSize.Level1)
+{
+    RSTypefaceCache::Instance().typefaceHashCode_.clear();
+    RSTypefaceCache::Instance().typefaceHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceBaseHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceHashQueue_.clear();
+    RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_ = 0;
+
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_EQ(typeface->GetFd(), -1);
+    size_t typefaceSize = typeface->GetSize();
+    EXPECT_NE(typefaceSize, 0u);
+
+    uint64_t uniqueId = 1;
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+    EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, typefaceSize);
+
+    // artificially lower counter below typeface size to simulate drift (e.g. size asymmetry)
+    RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_ = 1;
+    EXPECT_LT(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, typefaceSize);
+
+    // removal must clamp to 0, not wrap to a huge value
     RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueId);
     EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, 0u);
     EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);

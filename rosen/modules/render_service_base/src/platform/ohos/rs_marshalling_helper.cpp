@@ -599,6 +599,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
 
     uint32_t coordsCount = 0;
     success &= Unmarshalling(parcel, coordsCount);
+    // Max coords count per SharedTypeface, based on practical font glyph coordinate limits
     constexpr uint32_t MAX_COORDS_COUNT = 128;
     if (coordsCount > MAX_COORDS_COUNT) {
         ROSEN_LOGD("RSMarshallingHelper::Unmarshalling coords count %{public}u exceeds max limit %{public}u",

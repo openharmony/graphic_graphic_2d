@@ -30,10 +30,11 @@ namespace OHOS {
 namespace Rosen {
 using TypefaceTuple = std::tuple<std::shared_ptr<Drawing::Typeface>, uint32_t>;
 
-// Threshold for hilog in rs men.
-constexpr uint32_t MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT = 1300 * 1024 * 1024;
 class RSB_EXPORT RSTypefaceCache {
 public:
+    // Maximum total CPU memory for non-FD (general) typefaces before caching is rejected.
+    // Limit: 1300 MiB, based on typical render service memory budget.
+    static constexpr uint32_t GENERAL_TYPEFACE_MEMORY_LIMIT = 1300 * 1024 * 1024;
     static RSTypefaceCache& Instance();
     static pid_t GetTypefacePid(uint64_t globalUniqueId);
     static uint32_t GetTypefaceId(uint64_t globalUniqueId);
