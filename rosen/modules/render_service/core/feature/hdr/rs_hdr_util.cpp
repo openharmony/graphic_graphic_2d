@@ -275,6 +275,29 @@ void RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceN
     }
 }
 
+void RSHdrUtil::UpdateBrightnessFactor(RSLogicalDisplayRenderNode& displayNode)
+{
+    auto context = displayNode.GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSHdrUtil::UpdateBrightnessFactor Invalid context");
+        return;
+    }
+    const auto& hdrNodeMap = displayNode.GetHDRNodeMap();
+    float displayFactor = displayNode.GetRenderProperties().GetHDRBrightnessFactor();
+    for (const auto& [nodeId, _] : hdrNodeMap) {
+        auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
+        if (!canvasNode) {
+            RS_LOGD("RSHdrUtil::UpdateBrightnessFactor canvasNode is not on the tree");
+            continue;
+        }
+        if (ROSEN_EQ(canvasNode->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), displayFactor)) {
+            continue;
+        }
+        canvasNode->SetContentDirty();
+        canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(displayFactor);
+    }
+}
+
 void RSHdrUtil::UpdatePixelFormatAfterHwcCalc(RSScreenRenderNode& node)
 {
     const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
