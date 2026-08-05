@@ -131,10 +131,6 @@ bool RSVpeManager::SetVpeVideoParameter(std::shared_ptr<VpeVideo> vpeVideo,
 sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface>& RSSurface,
     const RSSurfaceRenderNodeConfig& config)
 {
-    if (!VpeVideo::IsSurfaceSupported(type, RSSurface)) {
-        RS_LOGE("surface type is not support");
-        return RSSurface;
-    }
     std::shared_ptr<VpeVideo> vpeVideo = GetVpeVideo(type, config);
     if (vpeVideo == nullptr) {
         RS_LOGE("GetVpeVideo failed");
@@ -205,12 +201,13 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
     sptr<Surface> vpeSurface = surface;
     std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER,
         VIDEO_TYPE_AI3D_ENHANCER };
+    uint32_t supportType = 0;
     for (auto& type : supportTypes) {
-        if (VpeVideo::IsSupported(type, parameter)) {
-            vpeSurface = GetVpeVideoSurface(type, vpeSurface, config);
+        if (VpeVideo::IsSupported(type, parameter) && VpeVideo::IsSurfaceSupported(type, surface)) {
+            supportType |= type;
         }
     }
-    return vpeSurface;
+    return supportType == 0 ? surface : GetVpeVideoSurface(supportType, surface, config);
 }
 } // namespace Rosen
 } // namespace OHOS
