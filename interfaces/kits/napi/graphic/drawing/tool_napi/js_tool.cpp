@@ -19,6 +19,7 @@
 #endif
 
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "js_tool.h"
 
 
@@ -92,7 +93,7 @@ napi_value JsTool::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    status = napi_wrap(env, jsThis, jsTool, JsTool::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsTool, JsTool::Destructor, nullptr, &TOOL_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsTool;
         ROSEN_LOGE("JsTool::Constructor Failed to wrap native instance");
