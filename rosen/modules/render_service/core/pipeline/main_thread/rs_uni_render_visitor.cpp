@@ -59,6 +59,7 @@
 #include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_depth_render_node.h"
+#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -4038,17 +4039,22 @@ void RSUniRenderVisitor::UpdateVisibleEffectChildrenStatus(const RSRenderNode& r
 void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
     const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager)
 {
+    if (RSEffectUtils::ShouldSkipFilterNodeCheckInOccludedSubTree(curSurfaceNode_, rootNode, dirtyManager)) {
+        return;
+    }
+
     auto rotationStatus = GetRotationStatus();
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     // calculate visibleEffectChild oldDirtyInSurface for effectNode
-    for (auto& child : rootNode.GetVisibleEffectChild()) {
-        auto& visibleEffectNode = nodeMap.GetRenderNode<RSRenderNode>(child);
-        if (visibleEffectNode == nullptr) {
-            continue;
+    if (dirtyFlag_) {
+        for (auto& child : rootNode.GetVisibleEffectChild()) {
+            auto& visibleEffectNode = nodeMap.GetRenderNode<RSRenderNode>(child);
+            if (visibleEffectNode) {
+                RectI filterRect;
+                visibleEffectNode->UpdateFilterRegionInSkippedSubTree(
+                    dirtyManager, rootNode, filterRect, prepareClipRect_, prepareFilterClipRect_);
+            }
         }
-        RectI filterRect;
-        visibleEffectNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect,
-            prepareClipRect_, prepareFilterClipRect_);
     }
 
     for (auto& child : rootNode.GetVisibleFilterChild()) {
@@ -4061,24 +4067,26 @@ void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
 
         // Check if HWC should be disabled for ColorPicker node
         HandleColorPickerHwcDisable(*filterNode);
-        // Skip nodes that only have ColorPickerDrawable without any real filter
-        if (filterNode->IsColorPickerOnlyNode()) {
+        // Skip nodes that has no blur filter
+        if (!filterNode->HasBlurFilter()) {
             continue;
         }
 
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache node[" PRIu64 "]",
+            filterNode->GetId());
         auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode);
-        if (effectNode == nullptr) {
-            continue;
+        if (effectNode != nullptr) {
+            effectNode->UpdateChildHasVisibleEffectWithoutEmptyRect();
         }
-        effectNode->CheckBlurFilterCacheNeedForceClearOrSave(
+        filterNode->CheckBlurFilterCacheNeedForceClearOrSave(
             rotationStatus.rotationChanged, rotationStatus.rotationStatusChanged);
-        effectNode->UpdateChildHasVisibleEffectWithoutEmptyRect();
-        effectNode->MarkClearFilterCacheIfEffectChildrenChanged();
-        RectI filterRect;
-        effectNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect,
-            prepareClipRect_, prepareFilterClipRect_);
-        effectNode->FilterRectMergeDirtyRectInSkippedSubtree(dirtyManager, filterRect);
-        CollectFilterInfoAndUpdateDirty(*effectNode, dirtyManager);
+        filterNode->MarkClearFilterCacheIfEffectChildrenChanged();
+        RSEffectUtils::UpdateFilterCacheWithBelowDirtyAndPendingPurge(*filterNode, dirtyManager);
+        if (dirtyFlag_) {
+            RectI filterRect;
+            UpdateFilterRenderContextForSkippedSubTree(dirtyManager, *filterNode, rootNode, filterRect);
+        }
+        CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager);
     }
 }
 
