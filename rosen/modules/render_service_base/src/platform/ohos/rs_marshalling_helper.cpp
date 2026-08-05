@@ -953,7 +953,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Matrix& val
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
 {
     uint32_t size = parcel.ReadUint32();
-    if (size < sizeof(Drawing::scalar) * Drawing::Matrix::MATRIX_SIZE) {
+    if (size < sizeof(Drawing::scalar) * Drawing::Matrix::MATRIX_SIZE ||
+        size > sizeof(Drawing::scalar) * Drawing::ColorMatrix::MATRIX_SIZE) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing::Matrix failed size %{public}u", size);
         return false;
     }
