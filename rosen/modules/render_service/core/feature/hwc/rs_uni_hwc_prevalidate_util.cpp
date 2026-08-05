@@ -280,6 +280,9 @@ bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
     }
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
     auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    if (!surfaceHandler) {
+        return false;
+    }
     auto buffer = surfaceHandler->GetBuffer();
     if (!buffer || !surfaceHandler->GetConsumer()) {
         return false;

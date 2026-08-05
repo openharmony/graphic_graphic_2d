@@ -3334,7 +3334,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                     tempRefreshRects.emplace_back(surfaceNode->GetDstRect());
                     RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
                         surfaceNode->GetInstanceRootNodeId(), tempRefreshRects,
-                        screenNode->GetScreenProperty().GetWidth() * screenNode->GetScreenProperty().GetHeight());
+                        surfaceNode->GetAbsDrawRect().GetWidth() * surfaceNode->GetAbsDrawRect().GetHeight());
                 }
                 tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler);
                 if (!isCurrentFrameBufferConsumed && params->GetPreBuffer() != nullptr) {

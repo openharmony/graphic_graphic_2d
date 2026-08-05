@@ -206,7 +206,7 @@ RSScreenRenderNodeDrawable::~RSScreenRenderNodeDrawable()
     }
     RSUniRenderThread::Instance().UnRegisterCond(curScreenId);
     RSPointerWindowManager::Instance().RemoveCommitResult(GetId());
-    RSFrameStabilityManager::GetInstance().CleanResourcesByScreenId(curScreenId);
+    RSFrameStabilityManager::GetInstance().CleanResourcesByNodeId(curScreenId);
 }
 
 RSRenderNodeDrawable::Ptr RSScreenRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -392,10 +392,11 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
             std::vector<RectI> tempRefreshRects;
             auto rect = surfaceParams->GetLayerInfo().dstRect;
             RectI dstRect = { rect.x, rect.y, rect.w, rect.h };
+            RectI absDrawRect = surfaceParams->GetAbsDrawRect();
             tempRefreshRects.emplace_back(dstRect);
             RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
                 surfaceParams->GetInstanceRootNodeId(), tempRefreshRects,
-                params.GetScreenProperty().GetWidth() * params.GetScreenProperty().GetHeight());
+                absDrawRect.GetWidth() * absDrawRect.GetHeight());
             // hpae offline
             if (surfaceParams->GetLayerInfo().useDeviceOffline &&
                 ProcessOfflineSurfaceDrawable(processor, surfaceDrawable, false)) {
