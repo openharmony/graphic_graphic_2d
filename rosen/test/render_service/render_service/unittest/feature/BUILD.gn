@@ -466,7 +466,10 @@ ohos_unittest("RSDrmUtilTest") {
 ## Build RSHdrUtilTest
 ohos_unittest("RSHdrUtilTest") {
   module_out_path = module_output_path
-  sources = [ "hdr/rs_hdr_util_test.cpp" ]
+  sources = [
+    "hdr/rs_hdr_util_test.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
