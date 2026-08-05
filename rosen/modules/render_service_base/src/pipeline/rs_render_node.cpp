@@ -65,7 +65,6 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_ui_render_director.h"
 #include "pipeline/rs_union_render_node.h"
 #include "pipeline/sk_resource_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
@@ -4689,20 +4688,6 @@ void RSRenderNode::ResetGeoUpdateDelay()
 bool RSRenderNode::GetGeoUpdateDelay() const
 {
     return geoUpdateDelay_;
-}
-
-bool RSRenderNode::IsUIRenderDirectorStopped() const
-{
-    auto context = context_.lock();
-    if (context == nullptr) {
-        return false;
-    }
-    std::shared_ptr<RSUIRenderDirector> director =
-        context->GetUIRenderDirector(ExtractPid(GetId()), GetUIContextToken());
-    if (director == nullptr) {
-        return false;
-    }
-    return director->GetCurrentState() == RSUIDirectorLifecycleState::STOP;
 }
 
 void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent)
