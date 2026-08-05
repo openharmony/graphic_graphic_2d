@@ -826,12 +826,12 @@ void RSBaseRenderUtil::SetNeedClient(bool flag)
 bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
 {
     if (RSSystemProperties::IsForceClient()) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient: client composition is force enabled.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseRenderUtil::IsNeedClient: client composition is force enabled.");
         return true;
     }
 
     if (enableClient) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client");
         return true;
     }
 
@@ -846,22 +846,24 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
     }
 
     if (property.GetBackgroundFilter() || property.GetFilter()) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need filter");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need filter");
         return true;
     }
 
     if (!property.GetCornerRadius().IsZero()) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need round corner");
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need round corner");
         return true;
     }
     if (property.IsShadowValid()) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need shadow");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need shadow");
         return true;
     }
     if (node.IsInstanceOf<RSSurfaceRenderNode>() &&
         (property.GetRotation() != 0 || property.GetRotationX() != 0 || property.GetRotationY() != 0 ||
         property.GetQuaternion() != Quaternion())) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need RSSurfaceRenderNode rotation");
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need RSSurfaceRenderNode rotation");
         return true;
     }
     return false;
@@ -921,7 +923,8 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
     if (preBuffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(preBuffer, surfaceHandler.GetPreBufferReleaseFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
             return false;
         }
@@ -1118,7 +1121,7 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 
     if (!RSPropertiesPainter::GetGravityMatrix(gravity,
         RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix)) {
-        RS_LOGD("RSBaseRenderUtil::DealWithNodeGravity did not obtain gravity matrix.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderUtil::DealWithNodeGravity did not obtain gravity matrix.");
     }
 
     return gravityMatrix;
@@ -1152,7 +1155,8 @@ void RSBaseRenderUtil::GetRotationLockParam(RSSurfaceRenderNode& node,
 
     totalRotationCorrectionDegree = (screenDegree + logicalDegree + appDegree) % ROUND_ANGLE;
 
-    RS_LOGD("RSBaseRenderUtil::GetRotationLockParam NodeId:%" PRIu64 ", screenCorrectionDegree:%{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RSBaseRenderUtil::GetRotationLockParam NodeId:%" PRIu64 ", screenCorrectionDegree:%{public}d"
         ", logicalCorrectionDegree:%{public}d, appCorrectionDegree:%{public}d, totalCorrectionDegree:%{public}d",
         node.GetId(), screenDegree, logicalDegree, appDegree, totalRotationCorrectionDegree);
 
@@ -1299,7 +1303,7 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
             return;
         }
     }
-    RS_LOGD("RSBaseRenderUtil::FlipMatrix %{public}d", transform);
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderUtil::FlipMatrix %{public}d", transform);
     Drawing::Matrix flip;
     camera3D.ApplyToMatrix(flip);
     const float half = 0.5f;
@@ -1340,7 +1344,7 @@ bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::ve
     } else if (buffer->GetFormat() == Detail::STUB_PIXEL_FMT_RGBA_16161616) {
         bitmapCreated = CreateNewColorGamutBitmap(buffer, newBuffer, bitmap, srcGamut, dstGamut, metaDatas);
     } else if (srcGamut != dstGamut) {
-        RS_LOGD("RSBaseRenderUtil::ConvertBufferToBitmap: need to convert color gamut.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderUtil::ConvertBufferToBitmap: need to convert color gamut.");
         bitmapCreated = CreateNewColorGamutBitmap(buffer, newBuffer, bitmap, srcGamut, dstGamut);
     } else {
         bitmapCreated = CreateBitmap(buffer, bitmap);

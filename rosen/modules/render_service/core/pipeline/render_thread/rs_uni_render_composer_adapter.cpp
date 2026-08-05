@@ -102,7 +102,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSScreenRen
     auto surfaceHandler = screenDrawable.GetMutableRSSurfaceHandlerOnDraw();
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
     if (!surfaceHandler || !params) {
-        RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo surfaceHandler or params is nullptr");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderComposerAdapter::BuildCInfo surfaceHandler or params is nullptr");
         return info;
     }
     const auto& buffer = surfaceHandler->GetBuffer(); // we guarantee the buffer is valid.
@@ -347,7 +347,7 @@ void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const RSLayerPtr& layer,
         return;
     }
     if (surface->QueryMetaDataType(buffer->GetSeqNum(), type) != GSERROR_OK) {
-        RS_LOGD("RSUniRenderComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
         return;
     }
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::SetMDataInfoToLayer type is %{public}d", type);
@@ -449,7 +449,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
         info.srcRect = { 0, 0, 0, 0 };
     }
 
-    RS_LOGD("RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%{public}" PRIu64 ","\
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%{public}" PRIu64 ","\
             "srcRect [%{public}d %{public}d %{public}d %{public}d]",
             node.GetId(), info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h);
 }
@@ -521,7 +522,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(
         info.srcRect = { 0, 0, 0, 0 };
     }
 
-    RS_LOGD("RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%{public}" PRIu64 ","\
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%{public}" PRIu64 ","\
             "srcRect [%{public}d %{public}d %{public}d %{public}d]",
             surfaceDrawable.GetId(), info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h);
 }
@@ -589,7 +591,8 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
     GraphicIRect newSrcRect = {left, top, width, height};
 
     // log and apply new dstRect and srcRect
-    RS_LOGD("RsDebug DealWithNodeGravity: name[%{public}s], gravity[%{public}d], oldDstRect[%{public}d %{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug DealWithNodeGravity: name[%{public}s], gravity[%{public}d], oldDstRect[%{public}d %{public}d"
         " %{public}d %{public}d], newDstRect[%{public}d %{public}d %{public}d %{public}d], oldSrcRect[%{public}d"
         " %{public}d %{public}d %{public}d], newSrcRect[%{public}d %{public}d %{public}d %{public}d].",
         node.GetName().c_str(), static_cast<int>(frameGravity),
@@ -661,7 +664,8 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(
     GraphicIRect newSrcRect = {left, top, width, height};
 
     // log and apply new dstRect and srcRect
-    RS_LOGD("RsDebug DealWithNodeGravity: name[%{public}s], gravity[%{public}d], oldDstRect[%{public}d %{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug DealWithNodeGravity: name[%{public}s], gravity[%{public}d], oldDstRect[%{public}d %{public}d"
         " %{public}d %{public}d], newDstRect[%{public}d %{public}d %{public}d %{public}d], oldSrcRect[%{public}d"
         " %{public}d %{public}d %{public}d], newSrcRect[%{public}d %{public}d %{public}d %{public}d].",
         surfaceDrawable.GetName().c_str(), static_cast<int>(frameGravity),
@@ -718,7 +722,7 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& no
             break;
         }
     }
-    RS_LOGD("BuildComposeInfo: srcRect transformed info NodeId:%{public}" PRIu64 ", XYWH:%{public}d,"
+    RS_LOGD_IF(DEBUG_PIPELINE, "BuildComposeInfo: srcRect transformed info NodeId:%{public}" PRIu64 ", XYWH:%{public}d,"
         "%{public}d,%{public}d,%{public}d", node.GetId(),
         srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
     return srcRect;
@@ -772,7 +776,7 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(DrawableV2::RSSurfaceRe
             break;
         }
     }
-    RS_LOGD("BuildComposeInfo: srcRect transformed info NodeId:%{public}" PRIu64 ", XYWH:%{public}d,"
+    RS_LOGD_IF(DEBUG_PIPELINE, "BuildComposeInfo: srcRect transformed info NodeId:%{public}" PRIu64 ", XYWH:%{public}d,"
         "%{public}d,%{public}d,%{public}d", surfaceDrawable.GetId(),
         srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
     return srcRect;
@@ -782,12 +786,13 @@ bool RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNod
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
     if (!surfaceHandler) {
-        RS_LOGD("RSUniRenderComposerAdapter::CheckBeforeCreateLayer false, surfaceHandler is nullptr");
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RSUniRenderComposerAdapter::CheckBeforeCreateLayer false, surfaceHandler is nullptr");
         return false;
     }
     const auto& buffer = surfaceHandler->GetBuffer();
     if (buffer == nullptr) {
-        RS_LOGD("RsDebug RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer:"\
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer:"\
             " node(%{public}" PRIu64 ") has no available buffer.", node.GetId());
         return false;
     }
@@ -795,7 +800,7 @@ bool RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNod
     const auto& srcRect = node.GetSrcRect();
     // check if the node's srcRect and dstRect are valid.
     if (srcRect.width_ <= 0 || srcRect.height_ <= 0 || dstRect.width_ <= 0 || dstRect.height_ <= 0) {
-        RS_LOGD("RSUniRenderComposerAdapter::CheckBeforeCreateLayer false, data check lt 0");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderComposerAdapter::CheckBeforeCreateLayer false, data check lt 0");
         return false;
     }
 
@@ -812,7 +817,7 @@ bool RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer(
     }
     const auto& buffer = params->GetBuffer();
     if (buffer == nullptr) {
-        RS_LOGD("RsDebug RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer:"\
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer:"\
             " node(%{public}" PRIu64 ") has no available buffer.", surfaceDrawable.GetId());
         return false;
     }
@@ -839,7 +844,7 @@ void RSUniRenderComposerAdapter::LayerCrop(const RSLayerPtr& layer) const
         static_cast<int32_t>(screenInfo_.phyHeight));
     RectI resDstRect = dstRectI.IntersectRect(screenRectI);
     if (resDstRect == dstRectI) {
-        RS_LOGD("RSUniRenderComposerAdapter::LayerCP fail, resDstRect eq dstRectI");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderComposerAdapter::LayerCP fail, resDstRect eq dstRectI");
         return;
     }
     dstRect = {resDstRect.left_, resDstRect.top_, resDstRect.width_, resDstRect.height_};
@@ -856,7 +861,8 @@ void RSUniRenderComposerAdapter::LayerCrop(const RSLayerPtr& layer) const
     dirtyRegions.emplace_back(srcRect);
     layer->SetDirtyRegions(dirtyRegions);
     layer->SetCropRect(srcRect);
-    RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerCrop layer has been cropped dst[%{public}d %{public}d %{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug RSUniRenderComposerAdapter::LayerCrop layer has been cropped dst[%{public}d %{public}d %{public}d"
         " %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
         dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
 }
@@ -923,8 +929,8 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const RSLayerPtr& layer, RSSurfa
     dirtyRegions.emplace_back(srcRect);
     layer->SetDirtyRegions(dirtyRegions);
     layer->SetCropRect(srcRect);
-    RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerScaleDown layer has been scaledown dst[%{public}d %{public}d"
-        " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
+    RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSUniRenderComposerAdapter::LayerScaleDown layer has been scaledown "
+        "dst[%{public}d %{public}d %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
         dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
 }
 
@@ -992,7 +998,8 @@ void RSUniRenderComposerAdapter::LayerScaleDown(
     dirtyRegions.emplace_back(srcRect);
     layer->SetDirtyRegions(dirtyRegions);
     layer->SetCropRect(srcRect);
-    RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerScaleDown layer has been scaledown dst[%{public}d %{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug RSUniRenderComposerAdapter::LayerScaleDown layer has been scaledown dst[%{public}d %{public}d"
         " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
         dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
 }
@@ -1042,7 +1049,8 @@ void RSUniRenderComposerAdapter::LayerScaleFit(const RSLayerPtr& layer) const
     dstRect.h = static_cast<int32_t>(newHeight);
     dstRect.w = static_cast<int32_t>(newWidth);
     layer->SetLayerSize(dstRect);
-    RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerScaleFit layer has been scalefit dst[%{public}d %{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug RSUniRenderComposerAdapter::LayerScaleFit layer has been scalefit dst[%{public}d %{public}d"
         " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
         dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
 }
@@ -1078,8 +1086,8 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
         RS_LOGE("RSUniRenderComposerAdapter::CreateLY fail, surfaceHandler is nullptr");
         return nullptr;
     }
-    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer screenDrawableNode id:%{public}" PRIu64 " available "
-        "buffer:%{public}d", screenDrawable.GetId(), surfaceHandler->GetAvailableBufferCount());
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderComposerAdapter::CreateLayer screenDrawableNode id:%{public}" PRIu64
+        " available buffer:%{public}d", screenDrawable.GetId(), surfaceHandler->GetAvailableBufferCount());
     if (!screenDrawable.IsSurfaceCreated()) {
         sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
         if (!screenDrawable.CreateSurface(listener)) {
@@ -1140,7 +1148,8 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         RS_LOGE("RSUniRenderComposerAdapter::CreateLY fail, screenDrawable's surfaceCreated is nullptr");
         return nullptr;
     }
-    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " available buffer:%{public}d",
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " available buffer:%{public}d",
         node.GetId(), surfaceHandler->GetAvailableBufferCount());
     if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
@@ -1155,7 +1164,8 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayNode zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());
     if (info.buffer) {
-        RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " dst [%{public}d %{public}d"
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " dst [%{public}d %{public}d"
             " %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d] surfaceBuffer"
             " [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d, bufferFormat:%d",
             node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w,
@@ -1193,7 +1203,8 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)
 
     ComposeInfo info = BuildComposeInfo(node);
     if (info.buffer) {
-        RS_LOGD("RSUniRenderComposerAdapter::ProcessRcdSurface rcdSurfaceNode id:%{public}" PRIu64 " DstRect"
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RSUniRenderComposerAdapter::ProcessRcdSurface rcdSurfaceNode id:%{public}" PRIu64 " DstRect"
             " [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d %{public}d %{public}d]"
             " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z-Order:%{public}d,"
             " blendType = %{public}d",
@@ -1283,32 +1294,38 @@ static void SetLayerSize(const RSLayerPtr& layer, const ScreenInfo& screenInfo)
     // screenRotation: anti-clockwise, surfaceTransform: anti-clockwise, layerTransform: clockwise
     switch (screenRotation) {
         case ScreenRotation::ROTATION_90: {
-            RS_LOGD("RsDebug ScreenRotation 90,Before Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 90,Before Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
                 rect.x, rect.y, rect.w, rect.h);
             layer->SetLayerSize(GraphicIRect {rect.y, screenHeight - rect.x - rect.w, rect.h, rect.w});
-            RS_LOGD("RsDebug ScreenRotation 90, After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 90, After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             break;
         }
         case ScreenRotation::ROTATION_180: {
-            RS_LOGD("RsDebug ScreenRotation 180, Before Rotate layer size [%{public}d %{public}d %{public}d"
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 180, Before Rotate layer size [%{public}d %{public}d %{public}d"
                 " %{public}d]", rect.x, rect.y, rect.w, rect.h);
             layer->SetLayerSize(
                 GraphicIRect {screenWidth - rect.x - rect.w, screenHeight - rect.y - rect.h, rect.w, rect.h});
-            RS_LOGD("RsDebug ScreenRotation 180,After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 180,After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             break;
         }
         case ScreenRotation::ROTATION_270: {
-            RS_LOGD("RsDebug ScreenRotation 270, Before Rotate layer size [%{public}d %{public}d %{public}d"
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 270, Before Rotate layer size [%{public}d %{public}d %{public}d"
                 " %{public}d]", rect.x, rect.y, rect.w, rect.h);
             layer->SetLayerSize(GraphicIRect {screenWidth - rect.y - rect.h, rect.x, rect.h, rect.w});
-            RS_LOGD("RsDebug ScreenRotation 270,After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug ScreenRotation 270,After Rotate layer size [%{public}d %{public}d %{public}d %{public}d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             break;
         }
         default:  {
-            RS_LOGD("RsDebug ScreenRotation is default");
+            RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug ScreenRotation is default");
             break;
         }
     }

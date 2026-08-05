@@ -1925,7 +1925,7 @@ public:
     ~TransactionDataCallbackDirector() noexcept override = default;
     void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
-        RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
+        RS_LOGD_IF(DEBUG_IPC, "OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
             PRIu64 " token: %{public}" PRIu64, timeStamp, token);
         client_->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     }

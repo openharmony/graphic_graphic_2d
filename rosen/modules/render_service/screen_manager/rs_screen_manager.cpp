@@ -1162,7 +1162,7 @@ void RSScreenManager::SetScreenBacklight(const RsScreenBrightnessData& brightnes
 
     std::lock_guard<std::shared_mutex> lock(backLightAndCorrectionMutex_);
     if (screenBacklight_[brightnessData.screenId] == brightnessData.level) {
-        RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64
+        RS_LOGD_IF(DEBUG_SCREEN, "%{public}s: repeat backlight screenId: %{public}" PRIu64
             ", newLevel: %{public}u, brightnessPosition: %{public}.4f",
             __func__, brightnessData.screenId, brightnessData.level, brightnessData.brightnessPosition);
         return;

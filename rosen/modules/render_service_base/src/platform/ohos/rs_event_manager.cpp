@@ -32,13 +32,13 @@ void RSEventManager::Clear()
     std::map<std::string, RSEventState> tempStateList;
     eventDetectorList_.swap(tempDetectorList);
     eventStateList_.swap(tempStateList);
-    RS_LOGD("RSEventManager::Clear finish");
+    RS_LOGD_IF(DEBUG_IPC, "RSEventManager::Clear finish");
 }
 
 void RSEventManager::DumpDetectorParam(std::shared_ptr<RSBaseEventDetector> detectorPtr, std::string& dumpString)
 {
     if (detectorPtr == nullptr) {
-        RS_LOGD("RSEventManager::DumpDetectorParam detectorPtr nullptr");
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::DumpDetectorParam detectorPtr nullptr");
         return;
     }
     const auto& paramList = detectorPtr->GetParamList();
@@ -52,11 +52,11 @@ void RSEventManager::DumpDetectorParam(std::shared_ptr<RSBaseEventDetector> dete
 void RSEventManager::DumpEventIntervalMs(std::shared_ptr<RSBaseEventDetector> detectorPtr, std::string& dumpString)
 {
     if (detectorPtr == nullptr) {
-        RS_LOGD("RSEventManager::DumpEventIntervalMs detectorPtr nullptr");
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::DumpEventIntervalMs detectorPtr nullptr");
         return;
     }
     if (eventStateList_.count(detectorPtr->GetStringId()) == 0) {
-        RS_LOGD("RSEventManager::DumpEventIntervalMs detector:%s is not in list",
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::DumpEventIntervalMs detector:%s is not in list",
             detectorPtr->GetStringId().c_str());
         return;
     }
@@ -71,7 +71,7 @@ void RSEventManager::DumpAllEventParam(std::string& dumpString)
     for (auto& item : eventDetectorList_) {
         auto detectorPtr = item.second.lock();
         if (detectorPtr == nullptr) {
-            RS_LOGD("RSEventManager::DumpAllEventParam failed: nullptr");
+            RS_LOGD_IF(DEBUG_IPC, "RSEventManager::DumpAllEventParam failed: nullptr");
             continue;
         }
         DumpDetectorParam(detectorPtr, dumpString);
@@ -82,14 +82,14 @@ void RSEventManager::DumpAllEventParam(std::string& dumpString)
 void RSEventManager::UpdateDetectorParam(std::shared_ptr<RSBaseEventDetector> detectorPtr)
 {
     if (detectorPtr == nullptr) {
-        RS_LOGD("RSEventManager::UpdateDetectorParam detectorPtr nullptr");
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::UpdateDetectorParam detectorPtr nullptr");
         return;
     }
     const auto& paramList = detectorPtr->GetParamList();
     for (const auto& item : paramList) {
         std::string paraName = "rosen.RsDFXEvent." + detectorPtr->GetStringId() +
             "." + item.first;
-        RS_LOGD("RSEventManager::UpdateDetectorParam paraName: %{public}s", paraName.c_str());
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::UpdateDetectorParam paraName: %{public}s", paraName.c_str());
         detectorPtr->SetParam(item.first, RSSystemProperties::GetRSEventProperty(paraName));
     }
 }
@@ -97,25 +97,26 @@ void RSEventManager::UpdateDetectorParam(std::shared_ptr<RSBaseEventDetector> de
 void RSEventManager::UpdateEventIntervalMs(std::shared_ptr<RSBaseEventDetector> detectorPtr)
 {
     if (detectorPtr == nullptr) {
-        RS_LOGD("RSEventManager::UpdateEventIntervalMs detectorPtr nullptr");
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::UpdateEventIntervalMs detectorPtr nullptr");
         return;
     }
     if (eventStateList_.count(detectorPtr->GetStringId()) == 0) {
-        RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%s is not in list",
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::UpdateEventIntervalMs detector:%s is not in list",
             detectorPtr->GetStringId().c_str());
         return;
     }
     std::string paraName = "rosen.RsDFXEvent." + detectorPtr->GetStringId() +
         ".eventIntervalMs";
-    RS_LOGD("RSEventManager::UpdateEventIntervalMs paraName: %{public}s", paraName.c_str());
+    RS_LOGD_IF(DEBUG_IPC, "RSEventManager::UpdateEventIntervalMs paraName: %{public}s", paraName.c_str());
     int valueInt = atoi(RSSystemProperties::GetRSEventProperty(paraName).c_str());
     if (valueInt <= 0 || valueInt > 1000000) { // 1000000 ms ->1000s
-        RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%{public}s Invalid Value:%{public}d",
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::UpdateEventIntervalMs detector:%{public}s Invalid Value:%{public}d",
             detectorPtr->GetStringId().c_str(), valueInt);
         return;
     }
     eventStateList_[detectorPtr->GetStringId()].eventIntervalMs = valueInt;
-    RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%{public}s eventIntervalMs:%{public}d success",
+    RS_LOGD_IF(DEBUG_IPC,
+        "RSEventManager::UpdateEventIntervalMs detector:%{public}s eventIntervalMs:%{public}d success",
         detectorPtr->GetStringId().c_str(), valueInt);
 }
 
@@ -130,7 +131,7 @@ void RSEventManager::UpdateParam()
     for (auto& item : eventDetectorList_) {
         auto detectorPtr = item.second.lock();
         if (detectorPtr == nullptr) {
-            RS_LOGD("RSEventManager::UpdateParam failed: nullptr");
+            RS_LOGD_IF(DEBUG_IPC, "RSEventManager::UpdateParam failed: nullptr");
             continue;
         }
         UpdateDetectorParam(detectorPtr);
@@ -141,14 +142,14 @@ void RSEventManager::UpdateParam()
 void RSEventManager::AddEvent(const std::shared_ptr<RSBaseEventDetector>& detectorPtr, int eventIntervalMs)
 {
     if (detectorPtr == nullptr || eventIntervalMs <= 0) {
-        RS_LOGD("RSEventManager::AddEvent detectorPtr nullptr");
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::AddEvent detectorPtr nullptr");
         return;
     }
     std::weak_ptr<RSBaseEventDetector> detectorWeakPtr(detectorPtr);
     {
         std::unique_lock<std::mutex> listLock(listMutex_);
         if (eventDetectorList_.count(detectorPtr->GetStringId()) != 0) {
-            RS_LOGD("RSEventManager::AddEvent %{public}s failed ", detectorPtr->GetStringId().c_str());
+            RS_LOGD_IF(DEBUG_IPC, "RSEventManager::AddEvent %{public}s failed ", detectorPtr->GetStringId().c_str());
             return;
         }
         detectorPtr->AddEventReportCallback([this](const RSSysEventMsg& eventMsg) {
@@ -160,7 +161,7 @@ void RSEventManager::AddEvent(const std::shared_ptr<RSBaseEventDetector>& detect
             0
         };
         eventStateList_[detectorPtr->GetStringId()] = state;
-        RS_LOGD("RSEventManager::AddEvent %{public}s success ", detectorPtr->GetStringId().c_str());
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::AddEvent %{public}s success ", detectorPtr->GetStringId().c_str());
     }
 }
 
@@ -168,19 +169,19 @@ void RSEventManager::RemoveEvent(std::string stringId)
 {
     std::unique_lock<std::mutex> listLock(listMutex_);
     if (eventDetectorList_.count(stringId) != 0) {
-        RS_LOGD("RSEventManager::RemoveEvent %{public}s failed ", stringId.c_str());
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::RemoveEvent %{public}s failed ", stringId.c_str());
         return;
     }
     eventDetectorList_.erase(stringId);
     eventStateList_.erase(stringId);
-    RS_LOGD("RSEventManager::RemoveEvent %{public}s success ", stringId.c_str());
+    RS_LOGD_IF(DEBUG_IPC, "RSEventManager::RemoveEvent %{public}s success ", stringId.c_str());
 }
 
 void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
 {
     std::unique_lock<std::mutex> listLock(listMutex_);
     if (eventStateList_.count(eventMsg.stringId) == 0) {
-        RS_LOGD("RSEventManager::EventReport %{public}s failed ", eventMsg.stringId.c_str());
+        RS_LOGD_IF(DEBUG_IPC, "RSEventManager::EventReport %{public}s failed ", eventMsg.stringId.c_str());
         return;
     }
     RSEventState& state = eventStateList_[eventMsg.stringId];
@@ -206,7 +207,7 @@ void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
                     "MSG", eventMsg.msg);
             }
             state.prevEventTimeStampMs = currentTimeMs;
-            RS_LOGD("RSEventManager::EventReport %{public}s success ", eventMsg.stringId.c_str());
+            RS_LOGD_IF(DEBUG_IPC, "RSEventManager::EventReport %{public}s success ", eventMsg.stringId.c_str());
     }
 }
 }
