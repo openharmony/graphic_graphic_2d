@@ -790,6 +790,8 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
         "isSubTreeDirty[%d] isSubTreeAllDirty[%d]", __func__, node.GetScreenId(), node.GetId(),
         static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
         node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
+    // reset top leash window, to find top leash window for each screen
+    RSUifirstManager::Instance().SetTopLeashWindowId(INVALID_NODEID);
     if (!InitScreenInfo(node)) {
         return;
     }
@@ -1307,6 +1309,13 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     // The value of appWindowZOrder_ decreases from 0 to negative
     if (node.IsAppWindow()) {
         node.SetAppWindowZOrder(appWindowZOrder_--);
+    }
+
+    // find the first leashwindow, which is the top leashwindow
+    if (RSUifirstManager::Instance().IsNotFindTopLeashWindow() && node.IsLeashWindow()) {
+        RSUifirstManager::Instance().SetTopLeashWindowId(node.GetId());
+        RS_OPTIONAL_TRACE_NAME_FMT("SetTopLeashWindowId:[%" PRIu64 "], name:[%s]",
+        node.GetId(), node.GetName().c_str());
     }
 
     // collect rotation lock correction degree for xcomponent lock node

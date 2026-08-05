@@ -1922,13 +1922,18 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
-    bool focus = RSUifirstManager::Instance().IsFocusedNode(node);
+    // when system do animation assigh focus window not on top to subthread
+    bool focus = RSUifirstManager::Instance().IsFocusedNode(node) &&
+    !(RSUifirstManager::Instance().IsInSystemWindowAnimate() &&
+    !RSUifirstManager::Instance().IsTopLeashWindow(node.GetId()));
     // open app with modal window animation, close uifirst
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
     bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
     if (optFocus && (node.GetHasSharedTransitionNode() || !animation || modalAnimation)) {
-        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
-            surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
+        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d"
+            "IsInSystemWindowAnimate: %d IsTopLeashWindow: %d", surfaceName.c_str(), focus, optFocus, animation,
+            node.GetUIFirstSwitch(), RSUifirstManager::Instance().IsInSystemWindowAnimate(),
+            RSUifirstManager::Instance().IsTopLeashWindow(node.GetId()));
         return false;
     }
     // disable uifirst when leash window has no app window at recent task scene or split screen scene
