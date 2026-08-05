@@ -51,13 +51,14 @@ void RSRenderInterpolatingSpringAnimation::DumpAnimationInfo(std::string& out) c
     out.append(", EndValue: ").append(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_));
 }
 
-void RSRenderInterpolatingSpringAnimation::SetSpringParameters(
-    float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio)
+void RSRenderInterpolatingSpringAnimation::SetSpringParameters(float response, float dampingRatio,
+    float normalizedInitialVelocity, float minimumAmplitudeRatio, std::optional<ConvergeParams> convergeParams)
 {
     response_ = response;
     dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     normalizedInitialVelocity_ = normalizedInitialVelocity;
     minimumAmplitudeRatio_ = minimumAmplitudeRatio;
+    convergeParams_ = convergeParams;
 }
 
 void RSRenderInterpolatingSpringAnimation::SetZeroThreshold(float zeroThreshold)

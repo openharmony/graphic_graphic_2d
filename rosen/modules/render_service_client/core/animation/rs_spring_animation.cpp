@@ -143,8 +143,13 @@ std::shared_ptr<RSRenderSpringAnimation> RSSpringAnimation::CreateRenderAnimatio
     SetDuration(SPRING_DURATION_PLACEHOLDER);
     UpdateParamToRenderAnimation(animation);
     if (const auto& springParams = timingCurve_.springParams_) {
+        std::optional<ConvergeParams> convergeParams;
+        if (springParams->convergeParams_.has_value()) {
+            convergeParams = ConvergeParams { springParams->convergeParams_->convergeResponseFactor_,
+                springParams->convergeParams_->convergeProgressThreshold_ };
+        }
         animation->SetSpringParameters(springParams->response_, springParams->dampingRatio_,
-            springParams->blendDuration_, springParams->minimumAmplitudeRatio_);
+            springParams->blendDuration_, springParams->minimumAmplitudeRatio_, convergeParams);
     }
     animation->SetAdditive(GetAdditive());
     if (GetIsLogicallyFinishCallback()) {
