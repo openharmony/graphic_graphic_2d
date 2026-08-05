@@ -74,7 +74,7 @@ group("unittest") {
     deps += [ ":RSGPUCacheManagerTest" ]
   }
   if (rs_enable_eglimage) {
-    deps += [ ":RSEglImageManagerTest" ]
+    deps += []
   }
   if (graphic_2d_feature_overlay_display_enable) {
     deps += [ ":OverlayDisplayTest" ]

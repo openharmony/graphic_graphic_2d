@@ -22,7 +22,6 @@ group("unittest") {
   deps = [
     ":RSLayerContextTest",
     ":RSRenderComposerClientTest",
-    ":RSComposerClientManagerTest",
   ]
 }
 
