@@ -235,7 +235,6 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("quickRejectPath", JsCanvas::QuickRejectPath),
     DECLARE_NAPI_FUNCTION("quickRejectRect", JsCanvas::QuickRejectRect),
     DECLARE_NAPI_FUNCTION("isOpaque", JsCanvas::IsOpaque),
-    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsCanvas::CanvasTransferDynamic),
     DECLARE_NAPI_FUNCTION("drawGlyphs", JsCanvas::DrawGlyphs),
 };
 
@@ -348,6 +347,37 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
     napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
     return result;
 }
+
+#if defined(ROSEN_OHOS)
+napi_value JsCanvas::CreateJsCanvasDynamic(
+    napi_env env, Canvas* canvas, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    if (canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::CreateJsCanvasDynamic canvas is nullptr");
+        return nullptr;
+    }
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsCanvas::CreateJsCanvasDynamic napi_create_object failed");
+        return nullptr;
+    }
+    JsCanvas* jsCanvas = new JsCanvas(canvas);
+    jsCanvas->mPixelMap_ = pixelMap;
+    status = napi_wrap_s(env, objValue, jsCanvas, JsCanvas::Destructor, nullptr, &JsCanvas::NAPI_TYPE_TAG, nullptr);
+    if (status != napi_ok) {
+        delete jsCanvas;
+        ROSEN_LOGE("JsCanvas::CreateJsCanvasDynamic failed to wrap native instance");
+        return nullptr;
+    }
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsCanvas::CreateJsCanvasDynamic failed to define properties");
+        return nullptr;
+    }
+    return objValue;
+}
+#endif
 
 void JsCanvas::Destructor(napi_env env, void *nativeObject, void *finalize)
 {
@@ -2784,56 +2814,6 @@ napi_value JsCanvas::OnResetClip(napi_env env, napi_callback_info info)
     }
     m_canvas->ResetClip();
     return nullptr;
-}
-
-napi_value JsCanvas::CanvasTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 3;
-    napi_value argv[ARGC_THREE] = {nullptr};
-    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc != ARGC_THREE) {
-        return nullptr;
-    }
-    int64_t canvasAddr = 0;
-    if (napi_get_value_int64(env, argv[ARGC_ZERO], &canvasAddr) != napi_ok) {
-        return nullptr;
-    }
-    Canvas* canvas = reinterpret_cast<Canvas*>(canvasAddr);
-    if (canvas == nullptr) {
-        return nullptr;
-    }
-    bool owned = false;
-    if (napi_get_value_bool(env, argv[ARGC_TWO], &owned) != napi_ok) {
-        return nullptr;
-    }
-#ifdef ROSEN_OHOS
-    int64_t pixelMapAddr = 0;
-    if (napi_get_value_int64(env, argv[ARGC_ONE], &pixelMapAddr) != napi_ok) {
-        return nullptr;
-    }
-    std::shared_ptr<Media::PixelMap> pixelMap = *reinterpret_cast<std::shared_ptr<Media::PixelMap>*>(pixelMapAddr);
-    if (pixelMap == nullptr) {
-        return nullptr;
-    }
-#endif
-    JsCanvas* jsCanvas = new JsCanvas(canvas, owned);
-#ifdef ROSEN_OHOS
-    jsCanvas->mPixelMap_ = pixelMap;
-#endif
-    napi_value result = nullptr;
-    napi_create_object(env, &result);
-    if (result == nullptr) {
-        delete jsCanvas;
-        ROSEN_LOGE("JsCanvas::CanvasTransferDynamic Create canvas object failed!");
-        return nullptr;
-    }
-    napi_status status = napi_wrap(env, result, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
-    if (status != napi_ok) {
-        delete jsCanvas;
-        ROSEN_LOGE("JsCanvas::CanvasTransferDynamic Failed to wrap native instance");
-        return nullptr;
-    }
-    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
-    return result;
 }
 
 napi_value JsCanvas::IsOpaque(napi_env env, napi_callback_info info)

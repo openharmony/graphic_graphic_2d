@@ -33,32 +33,30 @@ namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsBrush::constructor_ = nullptr;
 const std::string CLASS_NAME = "Brush";
+static const napi_property_descriptor g_properties[] = {
+    DECLARE_NAPI_FUNCTION("setColor", JsBrush::SetColor),
+    DECLARE_NAPI_FUNCTION("getColor", JsBrush::GetColor),
+    DECLARE_NAPI_FUNCTION("setColor4f", JsBrush::SetColor4f),
+    DECLARE_NAPI_FUNCTION("getColor4f", JsBrush::GetColor4f),
+    DECLARE_NAPI_FUNCTION("getHexColor", JsBrush::GetHexColor),
+    DECLARE_NAPI_FUNCTION("setAntiAlias", JsBrush::SetAntiAlias),
+    DECLARE_NAPI_FUNCTION("isAntiAlias", JsBrush::IsAntiAlias),
+    DECLARE_NAPI_FUNCTION("setAlpha", JsBrush::SetAlpha),
+    DECLARE_NAPI_FUNCTION("getAlpha", JsBrush::GetAlpha),
+    DECLARE_NAPI_FUNCTION("setColorFilter", JsBrush::SetColorFilter),
+    DECLARE_NAPI_FUNCTION("getColorFilter", JsBrush::GetColorFilter),
+    DECLARE_NAPI_FUNCTION("setImageFilter", JsBrush::SetImageFilter),
+    DECLARE_NAPI_FUNCTION("setMaskFilter", JsBrush::SetMaskFilter),
+    DECLARE_NAPI_FUNCTION("setBlendMode", JsBrush::SetBlendMode),
+    DECLARE_NAPI_FUNCTION("setShadowLayer", JsBrush::SetShadowLayer),
+    DECLARE_NAPI_FUNCTION("setShaderEffect", JsBrush::SetShaderEffect),
+    DECLARE_NAPI_FUNCTION("reset", JsBrush::Reset),
+};
 napi_value JsBrush::Init(napi_env env, napi_value exportObj)
 {
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("setColor", SetColor),
-        DECLARE_NAPI_FUNCTION("getColor", GetColor),
-        DECLARE_NAPI_FUNCTION("setColor4f", SetColor4f),
-        DECLARE_NAPI_FUNCTION("getColor4f", GetColor4f),
-        DECLARE_NAPI_FUNCTION("getHexColor", GetHexColor),
-        DECLARE_NAPI_FUNCTION("setAntiAlias", SetAntiAlias),
-        DECLARE_NAPI_FUNCTION("isAntiAlias", IsAntiAlias),
-        DECLARE_NAPI_FUNCTION("setAlpha", SetAlpha),
-        DECLARE_NAPI_FUNCTION("getAlpha", GetAlpha),
-        DECLARE_NAPI_FUNCTION("setColorFilter", SetColorFilter),
-        DECLARE_NAPI_FUNCTION("getColorFilter", GetColorFilter),
-        DECLARE_NAPI_FUNCTION("setImageFilter", SetImageFilter),
-        DECLARE_NAPI_FUNCTION("setMaskFilter", SetMaskFilter),
-        DECLARE_NAPI_FUNCTION("setBlendMode", SetBlendMode),
-        DECLARE_NAPI_FUNCTION("setShadowLayer", SetShadowLayer),
-        DECLARE_NAPI_FUNCTION("setShaderEffect", SetShaderEffect),
-        DECLARE_NAPI_FUNCTION("reset", Reset),
-        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", BrushTransferDynamic),
-    };
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-                                           sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+                                           sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("JsBrush::Init Failed to define Brush class");
         return nullptr;
@@ -521,47 +519,29 @@ napi_value JsBrush::Reset(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::CreateJsBrushDynamic(napi_env env, const std::shared_ptr<Brush> brush)
 {
-    napi_value result = nullptr;
-    napi_value constructor = nullptr;
-    if (napi_get_reference_value(env, constructor_, &constructor) != napi_ok) {
-        ROSEN_LOGE("Failed to get the representation of constructor object");
+    if (brush == nullptr) {
+        ROSEN_LOGE("JsBrush::CreateJsBrushDynamic brush is nullptr");
         return nullptr;
     }
-    if (napi_new_instance(env, constructor, 0, nullptr, &result) != napi_ok || result == nullptr) {
-        ROSEN_LOGE("Failed to instantiate JavaScript brush instance");
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsBrush::CreateJsBrushDynamic napi_create_object failed");
         return nullptr;
     }
     JsBrush* jsBrush = new JsBrush(brush);
-    napi_status status = napi_wrap(env, result, jsBrush, JsBrush::Destructor, nullptr, nullptr);
+    status = napi_wrap(env, objValue, jsBrush, JsBrush::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsBrush;
-        ROSEN_LOGE("Failed to wrap native instance");
+        ROSEN_LOGE("JsBrush::CreateJsBrushDynamic failed to wrap native instance");
         return nullptr;
     }
-    return result;
-}
-
-napi_value JsBrush::BrushTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsBrush::CreateJsBrushDynamic failed to define properties");
         return nullptr;
     }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Brush> brush = *reinterpret_cast<std::shared_ptr<Brush>*>(addr);
-    if (brush == nullptr) {
-        return nullptr;
-    }
-    return CreateJsBrushDynamic(env, brush);
+    return objValue;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen
