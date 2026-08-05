@@ -195,6 +195,32 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnDrawRebuildingSkip
+ * @tc.desc: Test OnDraw sets REBUILDING_SKIP and returns early when surface is mid-rebuild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawRebuildingSkip, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    surfaceParams->SetRebuildingState(true);
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    EXPECT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::REBUILDING_SKIP);
+
+    surfaceParams->SetRebuildingState(false);
+}
+
+/**
  * @tc.name: OnCapture001
  * @tc.desc: Test OnCapture
  * @tc.type: FUNC
