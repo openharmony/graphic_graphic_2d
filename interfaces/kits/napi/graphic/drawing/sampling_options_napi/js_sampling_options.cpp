@@ -15,6 +15,7 @@
 
 #include "js_sampling_options.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "native_value.h"
 
 namespace OHOS::Rosen {
@@ -71,8 +72,8 @@ napi_value JsSamplingOptions::Constructor(napi_env env, napi_callback_info info)
         jsSamplingOptions = new JsSamplingOptions(samplingOptions);
     }
 
-    status = napi_wrap(env, jsThis, jsSamplingOptions,
-                       JsSamplingOptions::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsSamplingOptions,
+        JsSamplingOptions::Destructor, nullptr, &SAMPLING_OPTIONS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsSamplingOptions;
         ROSEN_LOGE("JsSamplingOptions::Constructor failed to wrap native instance");
