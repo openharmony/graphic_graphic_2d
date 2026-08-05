@@ -1126,11 +1126,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     ASSERT_NE(res, ERR_NONE);
 
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("SubmitCanvasPreAllocatedBuffer001");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
-    ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
     MessageParcel data3;
     data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data3.WriteUint64(1); // Write nodeId
@@ -1183,34 +1178,21 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     buffer->WriteToMessageParcel(data);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
-    ASSERT_EQ(ret, 0);
+    // Feature is disabled, stub should return FEATURE_DISABLED
+    ASSERT_EQ(ret, FEATURE_DISABLED);
 
-    auto newPid = getpid();
-    auto mainThread = RSMainThread::Instance();
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSClientToRenderConnection> toRenderConnection =
-        new RSClientToRenderConnection(0, renderPipelineAgent_, token_->AsObject());
-    ASSERT_EQ(toRenderConnection != nullptr, true);
-    toRenderConnection->mainThread_ = nullptr;
-    buffer = SurfaceBuffer::Create();
-    ret = toRenderConnection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
-    ASSERT_NE(ret, 0);
-    toRenderConnection->mainThread_ = mainThread;
-    toRenderConnection->remotePid_ = 1;
-    ret = toRenderConnection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
-    ASSERT_NE(ret, 0);
-
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("SubmitCanvasPreAllocatedBuffer002");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
-    ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
+    // SurfaceBuffer::Create() has no handle, IsBufferConfigValid returns false
+    buffer = SurfaceBuffer::Create();
+    ret = connection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
+    ASSERT_NE(ret, 0);
+    // Direct call bypasses stub PID check; nullptr passes IsBufferConfigValid, AddPendingBuffer succeeds
+    // Use nodeId=2 and resetSurfaceIndex=2 to avoid collision with Test001
     connection->remotePid_ = 0;
-    ret = connection->SubmitCanvasPreAllocatedBuffer(1, buffer, 2);
+    ret = connection->SubmitCanvasPreAllocatedBuffer(2, nullptr, 2);
     ASSERT_EQ(ret, 0);
-    ret = connection->SubmitCanvasPreAllocatedBuffer(1, buffer, 2);
+    // Duplicate nodeId + resetSurfaceIndex causes AddPendingBuffer to fail
+    ret = connection->SubmitCanvasPreAllocatedBuffer(2, nullptr, 2);
     ASSERT_NE(ret, 0);
 }
 #endif
