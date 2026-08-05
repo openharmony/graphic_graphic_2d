@@ -433,6 +433,12 @@ void RSSurfaceRenderNode::CollectSelfDrawingChild(
     }
 }
 
+void RSSurfaceRenderNode::SetIsTextureExportNode(bool isTextureExportNode)
+{
+    RSRenderNode::SetIsTextureExportNode(isTextureExportNode);
+    isUIRenderDirectorStopped_ = !isTextureExportNode;
+}
+
 void RSSurfaceRenderNode::ClearChildrenCache()
 {
     for (auto& child : *GetChildren()) {
@@ -519,10 +525,17 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
             if (IS_SCB_WINDOW_TYPE(surfaceWindowType_)) {
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
+            if (IsSelfDrawingType() && !GetIsTextureExportNode()) {
+                isUIRenderDirectorStopped_ = true;
+            }
         }
         uifirstState_.needSync = true;
     } else if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         FindScreenId();
+    } else if (IsOnTheTree()) {
+        if (IsSelfDrawingType() && !GetIsTextureExportNode()) {
+            isUIRenderDirectorStopped_ = false;
+        }
     }
 #endif
     if (IsAbilityComponent()) {

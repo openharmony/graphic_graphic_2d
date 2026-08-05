@@ -898,8 +898,11 @@ public:
     void UpdateFilterRectInfo();
     std::shared_ptr<RSFilter> GetRSFilterWithSlot(RSDrawableSlot slot) const;
 
-    void SetIsTextureExportNode(bool isTextureExportNode)
+    virtual void SetIsTextureExportNode(bool isTextureExportNode)
     {
+        if (isTextureExportNode_ == isTextureExportNode) {
+            return;
+        }
         isTextureExportNode_ = isTextureExportNode;
     }
 
