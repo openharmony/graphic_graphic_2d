@@ -3557,6 +3557,11 @@ void RSMarshallingHelper::SetCallingPid(pid_t callingPid)
     g_callingPid = callingPid;
 }
 
+pid_t RSMarshallingHelper::GetCallingPid()
+{
+    return g_callingPid;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     if (val == nullptr) {

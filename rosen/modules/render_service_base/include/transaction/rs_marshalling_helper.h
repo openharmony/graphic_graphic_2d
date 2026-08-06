@@ -566,6 +566,7 @@ public:
     static bool CheckReadPosition(Parcel& parcel);
 
     static void SetCallingPid(pid_t callingPid);
+    static pid_t GetCallingPid();
 
     static bool MarshallingTransactionVer(Parcel& parcel);
     static bool UnmarshallingTransactionVer(Parcel& parcel);
