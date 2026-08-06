@@ -957,6 +957,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
             Drawing::Bitmap layerBitmap;
             rcdRenderNode.SetHardwareResourceToBuffer(layerBitmap);
             rcdRenderNode.PrepareHardwareResourceBuffer(nullptr, layerBitmap);
+            rs_rcd::RoundCornerLayer layer;
             rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer), layerBitmap);
         }
         width = 0;
