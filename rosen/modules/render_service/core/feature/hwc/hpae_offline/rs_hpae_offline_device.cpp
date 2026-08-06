@@ -194,7 +194,7 @@ bool RSHpaeOfflineDevice::IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRender
     }
     if (surfaceNode == nullptr) {
         RS_OFFLINE_LOGW("surface node is null.");
-        return false;  
+        return false;
     }
     if (!loadSuccess_) {
         RS_OFFLINE_LOGW("hpae so is not loaded.");
