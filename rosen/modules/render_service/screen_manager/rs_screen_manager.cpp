@@ -531,6 +531,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 
 int32_t RSScreenManager::AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
 {
+    std::lock_guard<std::mutex> lock(specialLayerListMutex_);
     auto virtualScreen = GetScreen(id);
     if (virtualScreen == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
@@ -600,6 +601,7 @@ int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::v
 
 int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
+    std::lock_guard<std::mutex> lock(specialLayerListMutex_);
     if (id == INVALID_SCREEN_ID) {
         return AddGlobalBlackList(blackList);
     }

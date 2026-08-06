@@ -253,6 +253,7 @@ private:
     std::unordered_map<ScreenId, ScreenRotation> screenCorrection_;
 
     std::mutex globalBlackListMutex_;
+    std::mutex specialLayerListMutex_;
     std::unordered_set<NodeId> globalBlackList_ = {};
 
     std::atomic<uint64_t> frameId_ = 0;

@@ -82,6 +82,7 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
         RS_LOGE("PrepareLogicalDisplayRenderNode curScreenNode is nullptr");
         return;
     }
+    isSecurityDisplay_ = node.GetSecurityDisplay();
     const auto& screenProperty = curScreenNode_->GetScreenProperty();
     int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
     int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
