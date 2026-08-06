@@ -38,6 +38,8 @@ public:
     MOCK_METHOD(float, GetSdrDisplayNits, (ScreenId screenId), (override));
     MOCK_METHOD(float, GetDisplayNits, (ScreenId screenId), (override));
     MOCK_METHOD(double, GetNonlinearRatio, (ScreenId screenId, uint32_t mode), (override));
+    MOCK_METHOD(float, CalAIHDRScaler, (const RSSurfaceRenderNode& surfaceNode, const float& ratio,
+        HdrStatus hdrStatus), (override));
     MOCK_METHOD(float, CalScaler, (const float& maxContentLightLevel, const std::vector<uint8_t>& dynamicMetadata,
         const float& ratio, HdrStatus hdrStatus), (override));
     MOCK_METHOD(float, GetSurfaceNodeMaxScaler, (RSSurfaceRenderNode& surfaceNode, ScreenId screenId,
@@ -57,7 +59,7 @@ public:
     MOCK_METHOD(void, HandleGamutSpecialRender, (std::vector<ScreenColorGamut>& modes), (override));
     MOCK_METHOD(double, GetConfigScaler, (ScreenId screenId, HdrStatus type), (override, const));
     MOCK_METHOD(void, SetDualScreenStatus, (ScreenId screenId, DualScreenStatus dualScreenStatus), (override));
-    MOCK_METHOD(float, HdrDimmingProcess, (ScreenId screenId, RSSurfaceRenderNode& surfaceNode), (override));
+    MOCK_METHOD(float, HdrDimmingProcess, (ScreenId screenId, const RSSurfaceRenderNode& surfaceNode), (override));
     MOCK_METHOD(void, HdrDimmingPostProcess, (ScreenId screenId), (override));
     MOCK_METHOD(int32_t, UpdateMetadataBasedOnScaler, (const sptr<SurfaceBuffer>& input, float scaler,
         HdrStatus hdrStatus), (override));
