@@ -49,6 +49,14 @@ config("local_drawing_config") {
 }
 
 ohos_shared_library("drawing_napi") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
   sources = [ "drawing_module.cpp" ]
 
   configs = [
@@ -134,6 +142,7 @@ if (is_arkui_x) {
   }
 } else {
   ohos_shared_library("drawing_napi_impl") {
+    branch_protector_ret = "pac_ret"
     sources = [
       "brush_napi/js_brush.cpp",
       "canvas_napi/js_canvas.cpp",
@@ -180,6 +189,10 @@ if (is_arkui_x) {
         defines += [ "HISTOGRAM_MANAGEMENT_ENABLE=1" ]
       }
       sanitize = {
+        cfi = true
+        cfi_cross_dso = true
+        cfi_vcall_icall_only = true
+        debug = false
         boundary_sanitize = true
         integer_overflow = true
         ubsan = true

@@ -32,12 +32,23 @@ size_t GetByteLength(const void* text, size_t byteLength, TextEncoding encoding)
     switch (encoding) {
         case TextEncoding::GLYPH_ID:
             return byteLength;
-        case TextEncoding::UTF8:
-            return std::char_traits<char>::length(static_cast<const char*>(text))  * sizeof(char);
-        case TextEncoding::UTF16:
-            return std::char_traits<char16_t>::length(static_cast<const char16_t*>(text)) * sizeof(char16_t);
-        case TextEncoding::UTF32:
-            return std::char_traits<char32_t>::length(static_cast<const char32_t*>(text)) * sizeof(char32_t);
+        case TextEncoding::UTF8: {
+            const char* str = static_cast<const char*>(text);
+            const char* end = std::char_traits<char>::find(str, byteLength, '\0');
+            return end ? static_cast<size_t>(end - str) : byteLength;
+        }
+        case TextEncoding::UTF16: {
+            size_t unitCount = byteLength / UTF16_UNIT_SIZE;
+            const char16_t* str = static_cast<const char16_t*>(text);
+            const char16_t* end = std::char_traits<char16_t>::find(str, unitCount, char16_t(0));
+            return end ? static_cast<size_t>(end - str) * UTF16_UNIT_SIZE : byteLength;
+        }
+        case TextEncoding::UTF32: {
+            size_t unitCount = byteLength / UTF32_UNIT_SIZE;
+            const char32_t* str = static_cast<const char32_t*>(text);
+            const char32_t* end = std::char_traits<char32_t>::find(str, unitCount, char32_t(0));
+            return end ? static_cast<size_t>(end - str) * UTF32_UNIT_SIZE : byteLength;
+        }
         default:
             return 0;
     }

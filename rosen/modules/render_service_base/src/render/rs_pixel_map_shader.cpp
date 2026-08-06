@@ -37,11 +37,33 @@ bool RSPixelMapShader::Marshalling(Parcel& parcel)
 
 bool RSPixelMapShader::Unmarshalling(Parcel& parcel)
 {
-    return RSMarshallingHelper::Unmarshalling(parcel, pixelMap_) &&
-           RSMarshallingHelper::Unmarshalling(parcel, tileX_) &&
-           RSMarshallingHelper::Unmarshalling(parcel, tileY_) &&
-           RSMarshallingHelper::Unmarshalling(parcel, sampling_) &&
-           RSMarshallingHelper::Unmarshalling(parcel, matrix_);
+    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelMap_)) {
+        return false;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, tileX_)) {
+        return false;
+    }
+    if (tileX_ < Drawing::TileMode::CLAMP || tileX_ > Drawing::TileMode::DECAL) {
+        return false;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, tileY_)) {
+        return false;
+    }
+    if (tileY_ < Drawing::TileMode::CLAMP || tileY_ > Drawing::TileMode::DECAL) {
+        return false;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, sampling_)) {
+        return false;
+    }
+    if (sampling_.GetFilterMode() < Drawing::FilterMode::NEAREST ||
+        sampling_.GetFilterMode() > Drawing::FilterMode::LINEAR) {
+        return false;
+    }
+    if (sampling_.GetMipmapMode() < Drawing::MipmapMode::NONE ||
+        sampling_.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
+        return false;
+    }
+    return RSMarshallingHelper::Unmarshalling(parcel, matrix_);
 }
 #endif
 

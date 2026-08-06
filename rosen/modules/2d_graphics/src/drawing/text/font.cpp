@@ -15,6 +15,9 @@
 
 #include "text/font.h"
 
+#include <cmath>
+#include <limits>
+
 #include "modules/skunicode/include/SkUnicode.h"
 
 #include "impl_factory.h"
@@ -185,14 +188,21 @@ uint16_t Font::UnicharToGlyph(int32_t uni) const
 void ValidateAndCopyFontFeaturesToHbFeatures(const Drawing::DrawingFontFeatures& fontFeatures,
     SkFeaturesArray& hbFeatures)
 {
+    constexpr uint32_t MIN_FEATURE_VALUE = 0;
     for (const auto& featureMap : fontFeatures) {
         for (const auto& [key, value] : featureMap) {
             if (key.size() != 4) { // 4 OpenType font feature name is fixed to be 4 chars.
                 LOGW("Invalid feature name. font feature name has to be 4 chars");
                 continue;
             }
+            if (std::isnan(value) || std::isinf(value) || value < MIN_FEATURE_VALUE ||
+                value > static_cast<double>(std::numeric_limits<uint32_t>::max())) {
+                LOGW("Invalid feature value. font feature value out of uint32 range");
+                continue;
+            }
             SkFourByteTag tag = SkSetFourByteTag(key[0], key[1], key[2], key[3]);
-            hbFeatures.push_back({(hb_tag_t)tag, (uint32_t)value, HB_FEATURE_GLOBAL_START, HB_FEATURE_GLOBAL_END});
+            hbFeatures.push_back({(hb_tag_t)tag, static_cast<uint32_t>(value),
+                HB_FEATURE_GLOBAL_START, HB_FEATURE_GLOBAL_END});
         }
     }
 }

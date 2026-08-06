@@ -439,6 +439,9 @@ void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point
     }
     auto builder = TextBlobBuilder();
     auto buffer = builder.AllocRunPos(*font, count);
+    if (buffer.glyphs == nullptr || buffer.pos == nullptr) {
+        return;
+    }
     int pointSize = 2; // x, y occupies 2 unit
     for (int i = 0; i < count; i++) {
         buffer.glyphs[i] = glyphs[i];
