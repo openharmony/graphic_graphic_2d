@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <algorithm>
-#include <new>
+#include <memory>
 
 #include "context/webgl2_rendering_context_base.h"
 #include "context/webgl_rendering_context_base.h"
@@ -89,7 +89,7 @@ const std::vector<GLenum>& WebGLRenderingContextBaseImpl::GetTexImageInternalFor
         if (count < 0 || count > MAX_COMPRESSED_TEXTURE_FORMAT_COUNT) {
             return texImageSupportInternalFormats_;
         }
-        std::unique_ptr<GLint[]> params(new (std::nothrow) GLint[static_cast<size_t>(count)]);
+        auto params = std::make_unique<GLint[]>(static_cast<size_t>(count));
         if (count > 0 && params == nullptr) {
             return texImageSupportInternalFormats_;
         }

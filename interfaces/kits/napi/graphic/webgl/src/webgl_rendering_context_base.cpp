@@ -15,7 +15,7 @@
 
 #include "context/webgl_rendering_context_base.h"
 
-#include <new>
+#include <memory>
 
 #include "context/webgl2_rendering_context_base.h"
 #include "context/webgl_context_attributes.h"
@@ -2773,7 +2773,7 @@ napi_value WebGLRenderingContextBase::GetShaderInfoLog(napi_env env, napi_callba
         return NVal::CreateUTF8String(env, "").val_;
     }
     GLsizei size = 0;
-    std::unique_ptr<char[]> buf(new (std::nothrow) char[static_cast<size_t>(length) + 1] {});
+    auto buf = std::make_unique<char[]>(static_cast<size_t>(length) + 1);
     if (buf == nullptr) {
         return NVal::CreateUTF8String(env, "").val_;
     }
@@ -2805,7 +2805,7 @@ napi_value WebGLRenderingContextBase::GetProgramInfoLog(napi_env env, napi_callb
     if (length <= 0 || length > MAX_INFO_LOG_LENGTH) {
         return NVal::CreateUTF8String(env, "").val_;
     }
-    std::unique_ptr<char[]> buf(new (std::nothrow) char[static_cast<size_t>(length) + 1] {});
+    auto buf = std::make_unique<char[]>(static_cast<size_t>(length) + 1);
     if (buf == nullptr) {
         return NVal::CreateUTF8String(env, "").val_;
     }
