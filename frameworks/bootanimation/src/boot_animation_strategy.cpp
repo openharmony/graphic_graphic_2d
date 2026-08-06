@@ -97,7 +97,7 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
     LOGI("BootAnimationStrategy::%{public}s set screen change callback start.", __func__);
     auto cv = std::make_shared<std::condition_variable>();
     std::weak_ptr<BootAnimationStrategy> weakThis = shared_from_this();
-    int32_t ret = Rosen::RSInterfaces::GetInstance().SetScreenChangeCallback(
+    Rosen::RSInterfaces::GetInstance().SetScreenChangeCallback(
         [cv, weakThis](Rosen::ScreenId rsScreenId, Rosen::ScreenEvent screenEvent,
             Rosen::ScreenChangeReason reason, sptr<IRemoteObject> connectToRender) {
             auto sharedThis = weakThis.lock();
@@ -108,11 +108,6 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
             sharedThis->OnScreenChanged(rsScreenId, screenEvent, reason, connectToRender);
             cv->notify_all();
         });
-    if (ret != 0) {
-        LOGE("BootAnimationStrategy::%{public}s SetScreenChangeCallback failed: %{public}d", __func__, ret);
-        noScreen_ = true;
-        return;
-    }
     {
         std::unique_lock<std::mutex> lock(connectToRenderMapMtx_);
         constexpr uint32_t WAIT_FOR_CONNECT_TO_RENDER_S = 10;
@@ -196,36 +191,5 @@ Rosen::ScreenId BootAnimationStrategy::GetActiveScreenId()
 {
     std::unique_lock<std::mutex> lock(activeScreenIdMtx_);
     return activeScreenId_;
-}
-
-sptr<IRemoteObject> BootAnimationStrategy::GetConnectToRender(Rosen::ScreenId screenId)
-{
-    std::lock_guard<std::mutex> lock(connectToRenderMapMtx_);
-    auto iter = connectToRenderMap_.find(screenId);
-    if (iter == connectToRenderMap_.end()) {
-        return nullptr;
-    }
-    return iter->second;
-}
-
-Rosen::ScreenId BootAnimationStrategy::GetFirstScreenId()
-{
-    std::lock_guard<std::mutex> lock(connectToRenderMapMtx_);
-    if (connectToRenderMap_.empty()) {
-        return Rosen::INVALID_SCREEN_ID;
-    }
-    return connectToRenderMap_.begin()->first;
-}
-
-bool BootAnimationStrategy::HasScreenId(Rosen::ScreenId screenId)
-{
-    std::lock_guard<std::mutex> lock(connectToRenderMapMtx_);
-    return connectToRenderMap_.find(screenId) != connectToRenderMap_.end();
-}
-
-bool BootAnimationStrategy::HasScreen()
-{
-    std::lock_guard<std::mutex> lock(connectToRenderMapMtx_);
-    return !noScreen_.load() && !connectToRenderMap_.empty();
 }
 } // namespace OHOS

@@ -341,8 +341,8 @@ bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStru
         return false;
     }
     int readLen = UNZ_OK;
-    unsigned long totalLen = 0;
-    unsigned long size = fileSize;
+    int totalLen = 0;
+    int size = static_cast<int>(fileSize);
     char readBuffer[READ_SIZE] = {0};
     std::shared_ptr<ImageStruct> imageStruct = std::make_shared<ImageStruct>();
     imageStruct->memPtr.SetBufferSize(fileSize);
@@ -359,13 +359,9 @@ bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStru
             LOGE("ReadImageFile memPtr is null");
             return false;
         }
-        if (totalLen + static_cast<unsigned long>(readLen) > size) {
-            LOGE("ReadImageFile data exceeds declared size");
-            return false;
-        }
         if (memcpy_s(imageStruct->memPtr.memBuffer + totalLen, size - totalLen, \
             readBuffer, readLen) == EOK) {
-            totalLen += static_cast<unsigned long>(readLen);
+            totalLen += readLen;
         } else {
             LOGE("memcpy_s failed.");
             return false;
@@ -373,11 +369,11 @@ bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStru
     } while (readLen > 0);
 
     if (totalLen > 0) {
-        LOGD("fileName: %{public}s, fileSize: %{public}lu, totalLen: %{public}lu", fileName.c_str(), size, totalLen);
+        LOGD("fileName: %{public}s, fileSize: %{public}d, totalLen: %{public}d", fileName.c_str(), size, totalLen);
         if (strstr(fileName.c_str(), BOOT_PIC_CONFIG_FILE.c_str()) != nullptr) {
-            ParseImageConfig(imageStruct->memPtr.memBuffer, static_cast<int>(totalLen), frameConfig);
+            ParseImageConfig(imageStruct->memPtr.memBuffer, totalLen, frameConfig);
         } else {
-            CheckImageData(fileName, imageStruct, static_cast<int32_t>(totalLen), imgVec);
+            CheckImageData(fileName, imageStruct, totalLen, imgVec);
         }
     }
     return true;
@@ -510,7 +506,7 @@ int32_t StringToInt32(const std::string& str)
         LOGE("invalid str: %{public}s", str.c_str());
         return 0;
     }
-    if (str[0] == '-' && str.length() > 1 && std::all_of(str.begin() + 1, str.end(), isdigit)) {
+    if (str[0] == '-' && std::all_of(str.begin() + 1, str.end(), isdigit)) {
         return static_cast<int32_t>(std::stoi(str));
     }
     if (!std::all_of(str.begin(), str.end(), isdigit)) {
