@@ -684,7 +684,7 @@ bool RSSurfaceRenderNode::IsUIBufferAvailable()
         && !IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(*this));
 }
 
-bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
+bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded)
 {
     // force preparation case for occlusion
     if (IsLeashWindow()) {
@@ -705,7 +705,7 @@ bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOcclu
         }
     }
 
-    return RSRenderNode::IsSubTreeNeedPrepare(filterInGlobal, isOccluded);
+    return RSRenderNode::IsSubTreeNeedPrepare(filterInGlobal, isAccumGeoDirty, isOccluded);
 }
 
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)

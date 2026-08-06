@@ -2992,16 +2992,6 @@ bool RSProperties::IsGeoDirty() const
     return geoDirty_;
 }
 
-bool RSProperties::IsParentGeoDirty() const
-{
-    return parentGeoDirty_;
-}
-
-void RSProperties::SetParentGeoDirty(bool parentGeoDirty)
-{
-    parentGeoDirty_ = parentGeoDirty;
-}
-
 bool RSProperties::IsCurGeoDirty() const
 {
     return curGeoDirty_;

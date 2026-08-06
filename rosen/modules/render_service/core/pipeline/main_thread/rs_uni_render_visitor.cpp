@@ -811,7 +811,6 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     }
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
-    node.AccumulateParentGeoDirty();
 
     node.ClearAllHwcNodeAndFilterNode();
     node.ResetChildHwcNodes();
@@ -924,7 +923,6 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     bool hasAccumulatedClip = hasAccumulatedClip_;
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
-    node.AccumulateParentGeoDirty();
     node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
     node.UpdateRotation();
     UpdateFixedSize(node);
@@ -1208,11 +1206,10 @@ void RSUniRenderVisitor::QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bo
     bool hasAccumulatedClip = hasAccumulatedClip_;
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
-    node.AccumulateParentGeoDirty();
     node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
     // 1. Recursively traverse child nodes
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
-    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
+    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) || ForcePrepareSubTree();
     node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
@@ -1350,7 +1347,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
         *curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix);
-    node.AccumulateParentGeoDirty();
     auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     if (!geoPtr) {
         RSOpincManager::OpincSetInAppStateEnd(node, unchangeMarkInApp_);
@@ -1387,7 +1383,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     InitializeOcclusionHandler(node);
     bool preIsSkipDraw = isSkipDrawInVirtualScreen_;
     isSkipDrawInVirtualScreen_ = isSkipDrawInVirtualScreen_ || CheckIfSkipDrawInVirtualScreen(node);
-    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node)) ||
+    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_, IsSubTreeOccluded(node)) ||
         ForcePrepareSubTree();
     prepareFilterClipRect_ = prepareClipRect_;
     node.ClearAllHwcNodeAndFilterNode();
@@ -1520,7 +1516,6 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bo
     }
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
-    node.AccumulateParentGeoDirty();
 
     // update prepare clip before children
     hwcVisitor_->UpdatePrepareClip(node);
@@ -1537,7 +1532,7 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bo
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isOpincSubTreeDirty = RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
-    bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
+    bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) ||
         ForcePrepareSubTree() || isOpincSubTreeDirty;
     node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
@@ -1989,11 +1984,10 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node, 
     bool hasAccumulatedClip = hasAccumulatedClip_;
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
-    node.AccumulateParentGeoDirty();
     node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
     // 1. Recursively traverse child nodes
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
-    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
+    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) || ForcePrepareSubTree();
     node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
@@ -2178,7 +2172,6 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, 
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
 
-    node.AccumulateParentGeoDirty();
     // update prepare clip before children
     hwcVisitor_->UpdatePrepareClip(node);
     node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
@@ -2194,7 +2187,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, 
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isOpincSubTreeDirty = RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
-    bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
+    bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) ||
         ForcePrepareSubTree() || isOpincSubTreeDirty;
     node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
@@ -2260,7 +2253,6 @@ void RSUniRenderVisitor::QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRe
 
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
         *dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
-    node.AccumulateParentGeoDirty();
     node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
     PostPrepare(node, isParentPrepareInReverseOrder, true);
     node.CollectLinkedNodeInfo();
@@ -4168,7 +4160,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     }
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
         *curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
-    node.AccumulateParentGeoDirty();
     if (nodeParent == curSurfaceNode_) {
         const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
         const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
@@ -4189,7 +4180,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     // [Attention] Only used in PC window resize scene
     RSWindowKeyFrameRenderNode::ResetLinkedWindowKeyFrameInfo(node);
 
-    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
+    bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, dirtyFlag_) || ForcePrepareSubTree();
     node.ClearAllHwcNodeAndFilterNode();
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
