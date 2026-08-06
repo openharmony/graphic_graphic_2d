@@ -82,7 +82,7 @@
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
-#include "display_engine/rs_display_engine_control.h"
+#include "display_engine/transaction/zidl/rs_display_engine_control_stub.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
@@ -519,7 +519,8 @@ sptr<IRemoteObject> RSClientToServiceConnection::GetConnectToRenderToken(ScreenI
 
 sptr<IRemoteObject> RSClientToServiceConnection::GetDisplayEngineControl()
 {
-    return RSDisplayEngineControl::GetInstance().AsObject();
+    static sptr<RSDisplayEngineControlStub> stub = sptr<RSDisplayEngineControlStub>::MakeSptr();
+ 	return stub->AsObject();
 }
 
 ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
