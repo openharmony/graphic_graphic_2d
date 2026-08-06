@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSDisplayEngineControl : public RSDisplayEngineControlStub {
+class RSB_EXPORT RSDisplayEngineControl {
 public:
     RSDisplayEngineControl(const RSDisplayEngineControl&) = delete;
     RSDisplayEngineControl& operator=(const RSDisplayEngineControl&) = delete;
@@ -34,9 +34,9 @@ public:
 
     static RSDisplayEngineControl& GetInstance();
 
-    int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values) override;
-    int32_t RegisterDEStatusChangeCallback(const sptr<RSIDEStatusChangeCallback>& callback) override;
-    int32_t UnregisterDEStatusChangeCallback() override;
+    int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values);
+    int32_t RegisterDEStatusChangeCallback(const sptr<RSIDEStatusChangeCallback>& callback);
+    int32_t UnregisterDEStatusChangeCallback();
     int32_t NotifyDEStatusChangeDone(const uint32_t sceneKey, const std::vector<uint8_t>& result);
 
 private:
