@@ -38,7 +38,7 @@ namespace {
     const NodeId TOP_RCD_NODE_ID = 1;
     const NodeId BOTTOM_RCD_NODE_ID = 2;
 
-    static NodeId GenerateRoundCornerDisplayID(NodeId screenID, uint32_t rcdTypeId)
+    NodeId GenerateRoundCornerDisplayID(NodeId screenID, uint32_t rcdTypeId)
     {
 #ifdef USE_M133_SKIA
         const auto hashFunc = SkChecksum::Hash32;
