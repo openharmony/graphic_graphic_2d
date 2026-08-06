@@ -1119,11 +1119,6 @@ napi_value WebGL2RenderingContextImpl::CompressedTexImage3D(
     napi_env env, const TexImageArg& imgArg, napi_value dataObj, GLuint srcOffset, GLuint srcLengthOverride)
 {
     imgArg.Dump("WebGL2 compressedTexImage3D");
-    if ((imgArg.target != GL_TEXTURE_3D && imgArg.target != GL_TEXTURE_2D_ARRAY) || imgArg.border != 0 ||
-        CheckTextureLevel(imgArg.target, imgArg.level) != WebGLRenderingContextBase::NO_ERROR) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressedTexImage3D arguments are invalid");
-        return NVal::CreateNull(env).val_;
-    }
     WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
     if (texture == nullptr) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "texture is nullptr");
@@ -1162,7 +1157,9 @@ napi_value WebGL2RenderingContextImpl::CompressedTexImage3D(
             return NVal::CreateNull(env).val_;
         }
         GLenum result = CheckCompressedTexData(imgArg, dataLength);
-        if (result != WebGLRenderingContextBase::NO_ERROR) {
+        // Let GL report unsupported formats so the established WebGL error precedence is preserved.
+        if (result != WebGLRenderingContextBase::NO_ERROR &&
+            result != WebGLRenderingContextBase::INVALID_ENUM) {
             SET_ERROR_WITH_LOG(result, "compressedTexImage3D data size is invalid");
             return NVal::CreateNull(env).val_;
         }
@@ -1234,12 +1231,6 @@ napi_value WebGL2RenderingContextImpl::CompressedTexSubImage3D(
     napi_env env, const TexSubImage3DArg& imgArg, napi_value dataObj, GLuint srcOffset, GLuint srcLengthOverride)
 {
     imgArg.Dump("WebGL2 compressedTexSubImage3D");
-    if ((imgArg.target != GL_TEXTURE_3D && imgArg.target != GL_TEXTURE_2D_ARRAY) ||
-        CheckTextureLevel(imgArg.target, imgArg.level) != WebGLRenderingContextBase::NO_ERROR) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM,
-            "compressedTexSubImage3D target or level is invalid");
-        return NVal::CreateNull(env).val_;
-    }
     WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
     if (texture == nullptr) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "texture is nullptr");
@@ -1288,7 +1279,9 @@ napi_value WebGL2RenderingContextImpl::CompressedTexSubImage3D(
             return NVal::CreateNull(env).val_;
         }
         GLenum result = CheckCompressedTexData(imgArg, dataLength);
-        if (result != WebGLRenderingContextBase::NO_ERROR) {
+        // Let GL report unsupported formats so the established WebGL error precedence is preserved.
+        if (result != WebGLRenderingContextBase::NO_ERROR &&
+            result != WebGLRenderingContextBase::INVALID_ENUM) {
             SET_ERROR_WITH_LOG(result, "compressedTexSubImage3D data size is invalid");
             return NVal::CreateNull(env).val_;
         }

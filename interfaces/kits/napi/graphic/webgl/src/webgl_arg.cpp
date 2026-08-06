@@ -307,16 +307,14 @@ napi_status WebGLReadBufferArg::GenBufferData(napi_value data, BufferDataType de
         LOGD("WebGL WebGLReadBufferArg TypedArray");
         bufferType_ = BUFFER_TYPED_ARRAY;
         napi_typedarray_type arrayType;
-        size_t elementCount = 0;
         status = napi_get_typedarray_info(
-            env_, data, &arrayType, &elementCount, reinterpret_cast<void**>(&data_), &arrayBuffer, &byteOffset);
+            env_, data, &arrayType, &dataLen_, reinterpret_cast<void**>(&data_), &arrayBuffer, &byteOffset);
         type_ = (BufferDataType)arrayType;
         size_t elementSize = GetBufferDataSize();
-        if (status != napi_ok || elementSize == 0 ||
-            elementCount > std::numeric_limits<size_t>::max() / elementSize) {
+        // OpenHarmony N-API returns the TypedArray byte length here, as covered by ace_napi_test.
+        if (status != napi_ok || elementSize == 0 || dataLen_ % elementSize != 0) {
             return napi_invalid_arg;
         }
-        dataLen_ = elementCount * elementSize;
     } else if (array) {
         LOGD("WebGL WebGLReadBufferArg array ");
         bufferType_ = BUFFER_ARRAY;
