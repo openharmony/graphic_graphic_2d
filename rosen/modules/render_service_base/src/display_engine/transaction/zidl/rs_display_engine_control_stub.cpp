@@ -17,6 +17,7 @@
 
 #include <message_parcel.h>
 
+#include "display_engine/rs_display_engine_control.h"
 #include "display_engine/rs_luminance_control.h"
 #include "platform/common/rs_log.h"
 
@@ -69,6 +70,22 @@ int RSDisplayEngineControlStub::OnRemoteRequest(
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
+}
+
+int32_t RSDisplayEngineControlStub::NotifyDEStatusChange(const uint32_t sceneKey,
+ 	const std::vector<uint8_t>& values)
+{
+ 	return RSDisplayEngineControl::GetInstance().NotifyDEStatusChange(sceneKey, values);
+}
+ 	 
+int32_t RSDisplayEngineControlStub::RegisterDEStatusChangeCallback(const sptr<RSIDEStatusChangeCallback>& callback)
+{
+ 	return RSDisplayEngineControl::GetInstance().RegisterDEStatusChangeCallback(callback);
+}
+ 	 
+int32_t RSDisplayEngineControlStub::UnregisterDEStatusChangeCallback()
+{
+ 	return RSDisplayEngineControl::GetInstance().UnregisterDEStatusChangeCallback();
 }
 } // namespace Rosen
 } // namespace OHOS
