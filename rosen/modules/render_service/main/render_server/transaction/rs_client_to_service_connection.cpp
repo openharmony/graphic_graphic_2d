@@ -520,7 +520,7 @@ sptr<IRemoteObject> RSClientToServiceConnection::GetConnectToRenderToken(ScreenI
 sptr<IRemoteObject> RSClientToServiceConnection::GetDisplayEngineControl()
 {
     static sptr<RSDisplayEngineControlStub> stub = sptr<RSDisplayEngineControlStub>::MakeSptr();
- 	return stub->AsObject();
+    return stub->AsObject();
 }
 
 ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
