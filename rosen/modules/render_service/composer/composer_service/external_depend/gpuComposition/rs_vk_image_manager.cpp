@@ -230,7 +230,7 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
     }
 
     RS_LOGD("RSVkImageManager::NewImageCacheFromBuffer %{public}" PRIu64, bufferInfoCache.bufferId);
-    if (imageCacheSeqSize < MAX_CACHE_SIZE_FOR_REUSE) {
+    if (imageCacheSeqSize < maxCacheSizeForReuse_) {
         imageCacheSeqs_.emplace(bufferInfoCache.bufferId, imageCache);
     }
 
