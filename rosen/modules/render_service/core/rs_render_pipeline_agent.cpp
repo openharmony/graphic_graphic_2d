@@ -27,7 +27,6 @@
 #include "rs_layer_transaction_data.h"
 #include "screen_manager/screen_types.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #ifdef RS_ENABLE_GPU
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
@@ -88,7 +87,6 @@ namespace {
 constexpr int SLEEP_TIME_US = 1000;
 const std::string REGISTER_NODE = "RegisterNode";
 constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
-constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 constexpr uint32_t PIDLIST_SIZE_MAX = 128;
 constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
@@ -1362,12 +1360,6 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
     auto defaultUsage = surface->GetDefaultUsage();
     auto nodeId = node->GetId();
-    bool isUseSelfDrawBufferUsage = RSSystemProperties::GetSelfDrawingDirtyRegionEnabled() &&
-                                    RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(nodeId) &&
-                                    config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    if (isUseSelfDrawBufferUsage) {
-        defaultUsage |= BUFFER_USAGE_AUXILLARY_BUFFER0;
-    }
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
     if (auto renderEngine = pipeline->GetUniRenderThread()->GetRenderEngine()) {
@@ -2343,17 +2335,6 @@ ErrCode RSRenderPipelineAgent::GetShowRefreshRateEnabled(bool& enable)
         return ERR_INVALID_VALUE;
     }
     enable = RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled();
-    return ERR_OK;
-}
-
-ErrCode RSRenderPipelineAgent::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [pidList]() -> void { RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList(pidList); };
-    pipeline->PostMainThreadTask(task);
     return ERR_OK;
 }
 

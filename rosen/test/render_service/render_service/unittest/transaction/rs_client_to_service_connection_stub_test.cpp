@@ -2873,110 +2873,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenCorrectionTest004, TestSi
 }
 
 /**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest001
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data.WriteInt32(-1);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest002
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList;
-    data.WriteInt32Vector(pidList);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest003
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when pidlist is invalid
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
-    data.WriteInt32Vector(pidList);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest004
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when mainThread_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest004, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList;
-    data.WriteInt32Vector(pidList);
-    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest005
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when pidlist is invalid and mainThread_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest005, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
-    data.WriteInt32Vector(pidList);
-    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
  * @tc.name: SetOptimizeCanvasDirtyPidListTest001
  * @tc.desc: Test SetOptimizeCanvasDirtyPidList when data is invalid
  * @tc.type: FUNC
@@ -5443,9 +5339,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level
     connection->SetVmaCacheStatus(false);
     connection->SetCurtainScreenUsingStatus(false);
     connection->renderProcessManagerAgent_ = nullptr;
-    // test SetGpuCrcDirtyEnabledPidList and
-    std::vector<int32_t> pidList = {};
-    connection->SetGpuCrcDirtyEnabledPidList(pidList);
     // test RegisterUIExtensionCallback
     connection->RegisterUIExtensionCallback(0, nullptr);
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;

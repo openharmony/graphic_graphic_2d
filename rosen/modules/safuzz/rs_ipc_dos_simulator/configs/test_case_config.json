@@ -3261,14 +3261,6 @@
     "connectionType": 1
   },
   {
-    "testCaseDesc": "SET_GPU_CRC_DIRTY_ENABLED_PIDLIST_TEST_001",
-    "interfaceName": "SET_GPU_CRC_DIRTY_ENABLED_PIDLIST",
-    "inputParams": "WriteInt32Vector",
-    "writeInterfaceToken": true,
-    "messageOption": "TF_ASYNC",
-    "connectionType": 1
-  },
-  {
     "testCaseDesc": "SET_VIRTUAL_SCREEN_TYPE_BLACKLIST_TEST_001",
     "interfaceName": "SET_VIRTUAL_SCREEN_TYPE_BLACKLIST",
     "inputParams": "WriteUint64;WriteUInt8Vector;WriteInt32",
