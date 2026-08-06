@@ -755,8 +755,8 @@ void RSClientToServiceConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::CLEAR_SURFACE_WATERMARK_FOR_NODES");
-    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), &name, pid,
-        &nodeIdList, isSystemCalling]() -> void {
+    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), name, pid,
+        nodeIdList, isSystemCalling]() -> void {
         sptr<RSClientToServiceConnection> connection = weakThis.promote();
         if (connection == nullptr || connection->mainThread_ == nullptr) {
             return;
@@ -774,7 +774,7 @@ void RSClientToServiceConnection::ClearSurfaceWatermark(pid_t pid, const std::st
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::CLEAR_SURFACE_WATERMARK");
-    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), &name, pid, isSystemCalling]() -> void {
+    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), name, pid, isSystemCalling]() -> void {
         sptr<RSClientToServiceConnection> connection = weakThis.promote();
         if (connection == nullptr || connection->mainThread_ == nullptr) {
             return;
