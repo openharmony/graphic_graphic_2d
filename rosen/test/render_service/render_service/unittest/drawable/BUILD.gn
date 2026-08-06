@@ -22,6 +22,7 @@ group("unittest") {
   deps = [
     ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
+    ":RSDepthRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
     ":RSEffectRenderNodeDrawableTest",
     ":RSLogicalDisplayRenderNodeDrawableTest",
@@ -69,6 +70,27 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSDepthRenderNodeDrawableTest
+ohos_unittest("RSDepthRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_depth_render_node.cpp",
+    "rs_depth_render_node_drawable_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

@@ -32,6 +32,7 @@
 #include "pipeline/rs_draw_cmd_list.h"
 #include "render/rs_image.h"
 #include "render/rs_path.h"
+#include "property/rs_spatial_effect_def.h"
 #include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
@@ -190,7 +191,7 @@ static void TestCompatibleMarshallingObsolete(T value, bool isNewViersion)
 /**
  * @tc.name: SkDataSerialization001
  * @tc.desc: test results of serialization and deserialization of empty SkData
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization001, Function | MediumTest | Level2)
@@ -201,7 +202,7 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization001, Function | MediumTest | Leve
 /**
  * @tc.name: SkDataSerialization002
  * @tc.desc: test results of serialization and deserialization of SkData with small size
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization002, Function | MediumTest | Level2)
@@ -212,7 +213,7 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization002, Function | MediumTest | Leve
 /**
  * @tc.name: SkDataSerialization003
  * @tc.desc: test results of serialization and deserialization of SkData using Ashmem
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization003, Function | MediumTest | Level2)
@@ -223,7 +224,7 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization003, Function | MediumTest | Leve
 /**
  * @tc.name: SkDataSerialization004
  * @tc.desc: test results of serialization and deserialization of empty SkData
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI5Q60U
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization004, Function | MediumTest | Level2)
@@ -234,7 +235,7 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization004, Function | MediumTest | Leve
 /**
  * @tc.name: SkDataSerialization005
  * @tc.desc: test results of serialization and deserialization of SkData with small size
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI5Q60U
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization005, Function | MediumTest | Level2)
@@ -245,7 +246,7 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization005, Function | MediumTest | Leve
 /**
  * @tc.name: SkDataSerialization006
  * @tc.desc: test results of serialization and deserialization of SkData using Ashmem
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI5Q60U
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization006, Function | MediumTest | Level2)
@@ -256,14 +257,14 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization006, Function | MediumTest | Leve
 /**
  * @tc.name: SkTextBlobSerialization001
  * @tc.desc: test results of serialization and deserialization of SkTextBlob
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 
 /**
  * @tc.name: SkPaintSerialization001
  * @tc.desc: test results of serialization and deserialization of SkPaint
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, SkPaintSerialization001, Function | MediumTest | Level2)
@@ -294,7 +295,7 @@ HWTEST_F(RSMarshallingTest, SkPaintSerialization001, Function | MediumTest | Lev
 /**
  * @tc.name: SkImageSerialization001
  * @tc.desc: test results of serialization and deserialization of SkImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, SkImageSerialization001, Function | MediumTest | Level2)
@@ -321,7 +322,7 @@ HWTEST_F(RSMarshallingTest, SkImageSerialization001, Function | MediumTest | Lev
 /**
  * @tc.name: RSImageSerialization001
  * @tc.desc: test results of serialization and deserialization of RSImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, RSImageSerialization001, Function | MediumTest | Level2)
@@ -351,28 +352,28 @@ HWTEST_F(RSMarshallingTest, RSImageSerialization001, Function | MediumTest | Lev
 /**
  * @tc.name: RSImageSerialization002
  * @tc.desc: test results of serialization and deserialization of RSImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI5Q60U
  */
 
 /**
  * @tc.name: SkPictureSerialization001
  * @tc.desc: test results of serialization and deserialization of SkPicture
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 
 /**
  * @tc.name: SkVerticesSerialization001
  * @tc.desc: test results of serialization and deserialization of SkVertices
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 
 /**
  * @tc.name: SkRegionSerialization001
  * @tc.desc: test results of serialization and deserialization of SkRegion
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, SkRegionSerialization001, Function | MediumTest | Level2)
@@ -404,7 +405,7 @@ HWTEST_F(RSMarshallingTest, SkRegionSerialization001, Function | MediumTest | Le
 /**
  * @tc.name: SkPathSerialization001
  * @tc.desc: test results of serialization and deserialization of SkPath
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, SkPathSerialization001, Function | MediumTest | Level2)
@@ -430,7 +431,7 @@ HWTEST_F(RSMarshallingTest, SkPathSerialization001, Function | MediumTest | Leve
 /**
  * @tc.name: RSPathSerialization001
  * @tc.desc: test results of serialization and deserialization of RSPath
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, RSPathSerialization001, Function | MediumTest | Level2)
@@ -458,28 +459,28 @@ HWTEST_F(RSMarshallingTest, RSPathSerialization001, Function | MediumTest | Leve
 /**
  * @tc.name: SkImageFilterSerialization001
  * @tc.desc: test results of serialization and deserialization of SkImageFilter
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 
 /**
  * @tc.name: SkShaderSerialization001
  * @tc.desc: test results of serialization and deserialization of SkShader
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 
 /**
  * @tc.name: DrawCmdListSerialization001
  * @tc.desc: test results of serialization and deserialization of DrawCmdList
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 
 /**
  * @tc.name: SkipSkImage001
  * @tc.desc: test results of serialization and deserialization of SkPath
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, SkipSkImage001, Function | MediumTest | Level2)
@@ -492,7 +493,7 @@ HWTEST_F(RSMarshallingTest, SkipSkImage001, Function | MediumTest | Level2)
 /**
  * @tc.name: ParcelVersion
  * @tc.desc:
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueIC9VTO
  */
 HWTEST_F(RSMarshallingTest, ParcelVersion, Function | MediumTest | Level2)
@@ -506,7 +507,7 @@ HWTEST_F(RSMarshallingTest, ParcelVersion, Function | MediumTest | Level2)
 /**
  * @tc.name: CompatibleMarshalling
  * @tc.desc:
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueIC9VTO
  */
 HWTEST_F(RSMarshallingTest, CompatibleMarshalling, Function | MediumTest | Level2)
@@ -593,7 +594,7 @@ HWTEST_F(RSMarshallingTest, CompatibleMarshallingWithParamVersion001, Function |
 /**
  * @tc.name: CompatibleMarshallingObsolete
  * @tc.desc:
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueIC9VTO
  */
 HWTEST_F(RSMarshallingTest, CompatibleMarshallingObsolete, Function | MediumTest | Level2)
@@ -630,6 +631,84 @@ HWTEST_F(RSMarshallingTest, CompatibleMarshallingObsolete, Function | MediumTest
 
     TestCompatibleMarshallingObsolete(565.76, true);
     TestCompatibleMarshallingObsolete(656.76, false);
+}
+
+/**
+ * @tc.name: DepthCameraParaMarshalling001
+ * @tc.desc: test results of DepthCameraPara marshalling and unmarshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingTest, DepthCameraParaMarshalling001, TestSize.Level1)
+{
+    DepthCameraPara para;
+    para.position = Vector3f(1.0f, 2.0f, 3.0f);
+    para.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    para.yFov = 60.0f;
+    para.zNear = 0.1f;
+    para.zFar = 100.0f;
+
+    MessageParcel parcel;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, para));
+
+    DepthCameraPara unmarshalPara;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalPara));
+    EXPECT_TRUE(unmarshalPara == para);
+}
+
+/**
+ * @tc.name: DepthCameraParaMarshalling002
+ * @tc.desc: test results of DepthCameraPara marshalling with default values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingTest, DepthCameraParaMarshalling002, TestSize.Level1)
+{
+    DepthCameraPara para;
+    MessageParcel parcel;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, para));
+
+    DepthCameraPara unmarshalPara;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalPara));
+    EXPECT_TRUE(unmarshalPara == para);
+}
+
+/**
+ * @tc.name: DepthLightParaMarshalling001
+ * @tc.desc: test results of DepthLightPara marshalling and unmarshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingTest, DepthLightParaMarshalling001, TestSize.Level1)
+{
+    DepthLightPara para;
+    para.direction = Vector3f(0.0f, -1.0f, 0.0f);
+    para.color = Vector3f(1.0f, 1.0f, 1.0f);
+    para.intensity = 0.8f;
+
+    MessageParcel parcel;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, para));
+
+    DepthLightPara unmarshalPara;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalPara));
+    EXPECT_TRUE(unmarshalPara == para);
+}
+
+/**
+ * @tc.name: DepthLightParaMarshalling002
+ * @tc.desc: test results of DepthLightPara marshalling with default values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingTest, DepthLightParaMarshalling002, TestSize.Level1)
+{
+    DepthLightPara para;
+    MessageParcel parcel;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, para));
+
+    DepthLightPara unmarshalPara;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalPara));
+    EXPECT_TRUE(unmarshalPara == para);
 }
 
 } // namespace OHOS::Rosen

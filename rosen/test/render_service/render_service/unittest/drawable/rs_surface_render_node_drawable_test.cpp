@@ -3258,6 +3258,27 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw_HasDRMInVirtualScreen, TestSize
 }
 
 /**
+ * @tc.name: DepthResourceSkip001
+ * @tc.desc: Test OnDraw & OnCapture with is depth resource
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DepthResourceSkip001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: is depth resource true
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isDepthSrc_ = true;
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnCapture(*canvas_));
+}
+
+/**
  * @tc.name: Destructor_SelfDrawingType
  * @tc.desc: Test destructor with self drawing type to cover PostTask branch
  * @tc.type: FUNC

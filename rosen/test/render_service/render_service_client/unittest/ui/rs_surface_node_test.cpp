@@ -1646,6 +1646,20 @@ HWTEST_F(RSSurfaceNodeTest, SetHDRBrightnessWithType_OtherType, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsDepthResource
+ * @tc.desc: Test SetIsDepthResource
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetIsDepthResource, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->SetIsDepthResource(false));
+    EXPECT_NO_FATAL_FAILURE(surfaceNode->SetIsDepthResource(true));
+}
+
+/**
  * @tc.name: SetAbilityBGAlpha Test
  * @tc.desc: SetAbilityBGAlpha
  * @tc.type: FUNC

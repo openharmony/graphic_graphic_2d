@@ -33,6 +33,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "property/rs_spatial_effect_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2926,6 +2927,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRelatedTest, TestSize.Level1)
     node->SetRelated(true);
     ASSERT_TRUE(node->addedToPendingSyncList_);
     ASSERT_TRUE(node->IsRelated());
+}
+
+/**
+ * @tc.name: SetIsDepthResource
+ * @tc.desc: Test IsDepthResource to surface node
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsDepthResource, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SetIsDepthResource(true);
+    EXPECT_FALSE(RSSpatialEffectManager::Instance()->depthResourceNodeMap_.empty());
+    node->SetIsDepthResource(false);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthResourceNodeMap_.empty());
+}
+
+/**
+ * @tc.name: SetIsDepthBackground
+ * @tc.desc: Test IsDepthBackground to surface node
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsDepthBackground, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SetIsDepthBackground(true);
+    EXPECT_FALSE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
+    node->SetIsDepthBackground(false);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
 }
 
 /**
