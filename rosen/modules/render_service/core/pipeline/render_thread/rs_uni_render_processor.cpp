@@ -115,10 +115,14 @@ void RSUniRenderProcessor::PostProcess()
     if (uniBufferOwnerCount) {
         for (auto layerPtr : layers_) {
             auto layer = layerPtr.lock();
-            if (layer == nullptr || layer == uniLayer_ || layer->GetBuffer() == nullptr) {
+            if (layer == nullptr || layer == uniLayer_) {
                 continue;
             }
-            uniBufferOwnerCount->InsertUniOnDrawSet(layer->GetRSLayerId(), layer->GetBuffer()->GetBufferId());
+            auto buffer = layer->GetBuffer();
+            if (buffer == nullptr) {
+                continue;
+            }
+            uniBufferOwnerCount->InsertUniOnDrawSet(layer->GetRSLayerId(), buffer->GetBufferId());
             auto bufferOwnerCount = layer->GetBufferOwnerCount();
             if (bufferOwnerCount == nullptr) {
                 continue;
@@ -542,6 +546,10 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNo
         taskId, HPAE_OFFLINE_TIMEOUT, *processOfflineResult);
     if (waitSuccess && processOfflineResult->taskSuccess) {
         auto params = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+        if (params == nullptr) {
+            RS_LOGE("RSUniRenderProcessor::ProcessOfflineLayer params is nullptr");
+            return false;
+        }
         CreateLayer(*node, *params, processOfflineResult);
         return true;
     } else {
@@ -578,6 +586,10 @@ void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
     }
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
     auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    if (!surfaceHandler) {
+        RS_LOGE("RSUniRenderProcessor::ProcessScreenSurface surfaceHandler is nullptr");
+        return;
+    }
     RSUniRenderThread::Instance().SetAcquireFence(surfaceHandler->GetAcquireFence());
 }
 

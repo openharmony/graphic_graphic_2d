@@ -640,6 +640,10 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
+    if (colorSpaceConverterDisplay_ == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor colorSpaceConverterDisplay_ is nullptr");
+        return;
+    }
     auto convRet = colorSpaceConverterDisplay_->Process(inputShader, outputShader, parameter);
     if (convRet != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
         RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor colorSpaceConverterDisplay failed with %{public}u.", convRet);
@@ -931,14 +935,15 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();
     auto srcHeight = params.srcRect.GetHeight();
+    if (ROSEN_EQ(srcWidth, 0.0f) || ROSEN_EQ(srcHeight, 0.0f)) {
+        RS_LOGE("RSBaseRenderEngine::DrawImage image srcRect or srcHeight params invalid.");
+        return;
+    }
     auto sx = params.dstRect.GetWidth() / srcWidth;
     auto sy = params.dstRect.GetHeight() / srcHeight;
     auto tx = params.dstRect.GetLeft() - params.srcRect.GetLeft() * sx;
     auto ty = params.dstRect.GetTop() - params.srcRect.GetTop() * sy;
 
-    if (ROSEN_EQ(srcWidth, 0.0f) || ROSEN_EQ(srcHeight, 0.0f)) {
-        RS_LOGE("RSBaseRenderEngine::DrawImage image srcRect params invalid.");
-    }
     matrix.SetScaleTranslate(sx, sy, tx, ty);
 
     RS_LOGD_IF(DEBUG_COMPOSER, "- Image shader transformation: "
