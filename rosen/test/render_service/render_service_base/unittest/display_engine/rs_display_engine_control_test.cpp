@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "display_engine/rs_display_engine_control.h"
-#include "display_engine/ipc_callbacks/rs_ide_status_change_callback_stub.h"
+#include "display_engine/ipc_callbacks/rs_de_status_change_callback_stub.h"
 
 using namespace testing;
 using namespace testing::ext;
