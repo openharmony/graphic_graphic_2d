@@ -149,16 +149,24 @@ HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON2, Level1)
  */
 HWTEST(RSProfilerBaseTest, ReceiveSendMessageBase, Level1)
 {
-    std::string msg;
+    std::string message;
     do {
-        msg = RSProfiler::ReceiveMessageBase();
-    } while (msg.length());
+        message = RSProfiler::ReceiveMessageBase();
+    } while (message.length());
 
-    std::string checkValue = "TEST_MESSGAE";
-    RSProfiler::SendMessageBase(checkValue);
-    msg = RSProfiler::ReceiveMessageBase();
+    const std::string plainText = "MESSAGE";
+    RSProfiler::SendMessageBase("%s", plainText.c_str());
+    message = RSProfiler::ReceiveMessageBase();
+    EXPECT_EQ(message, plainText);
 
-    EXPECT_EQ((msg == checkValue), true);
+    const std::string formatText = "test%stest%dtest";
+    RSProfiler::SendMessageBase("User input: %s", formatText.c_str());
+    message = RSProfiler::ReceiveMessageBase();
+    EXPECT_EQ(message, "User input: test%stest%dtest");
+
+    RSProfiler::SendMessageBase("Hello %s %d", "world", 42);
+    message = RSProfiler::ReceiveMessageBase();
+    EXPECT_EQ(message, "Hello world 42");
 }
 
 /*
