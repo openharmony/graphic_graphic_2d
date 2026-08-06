@@ -20,7 +20,7 @@
 
 #include "display_engine/ipc_callbacks/rs_de_status_change_callback_stub.h"
 #include "display_engine/ipc_callbacks/rs_ide_status_change_callback.h"
-#include "display_engine/rs_display_engine_control.h"
+#include "display_engine/transaction/zidl/rs_display_engine_control_stub.h"
 #include "display_engine/transaction/rs_idisplay_engine_control_ipc_interface_code.h"
 #include "display_engine/transaction/zidl/rs_idisplay_engine_control.h"
 
@@ -45,7 +45,7 @@ void RSDisplayEngineControlStubTest::TearDown() {}
  */
 HWTEST_F(RSDisplayEngineControlStubTest, OnRemoteRequestInvalidInterfaceToken, testing::ext::TestSize.Level1)
 {
-    RSDisplayEngineControl stub;
+    RSDisplayEngineControlStub stub;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -62,7 +62,7 @@ HWTEST_F(RSDisplayEngineControlStubTest, OnRemoteRequestInvalidInterfaceToken, t
  */
 HWTEST_F(RSDisplayEngineControlStubTest, NotifyDEStatusChangeSuccess, testing::ext::TestSize.Level1)
 {
-    RSDisplayEngineControl stub;
+    RSDisplayEngineControlStub stub;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -83,7 +83,7 @@ HWTEST_F(RSDisplayEngineControlStubTest, NotifyDEStatusChangeSuccess, testing::e
  */
 HWTEST_F(RSDisplayEngineControlStubTest, RegisterDEStatusChangeCallbackNullptr, testing::ext::TestSize.Level1)
 {
-    RSDisplayEngineControl stub;
+    RSDisplayEngineControlStub stub;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -101,12 +101,12 @@ HWTEST_F(RSDisplayEngineControlStubTest, RegisterDEStatusChangeCallbackNullptr, 
  */
 HWTEST_F(RSDisplayEngineControlStubTest, RegisterDEStatusChangeCallbackInvalidStub, testing::ext::TestSize.Level1)
 {
-    RSDisplayEngineControl stub;
+    RSDisplayEngineControlStub stub;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIDisplayEngineControl::GetDescriptor());
-    sptr<IRemoteObject> callbackObj = new RSDisplayEngineControl();
+    sptr<IRemoteObject> callbackObj = new RSDisplayEngineControlStub();
     data.WriteRemoteObject(callbackObj);
     uint32_t code = static_cast<uint32_t>(RSIDisplayEngineControlInterfaceCode::REGISTER_DE_STATUS_CHANGE_CALLBACK);
     int res = stub.OnRemoteRequest(code, data, reply, option);
@@ -121,7 +121,7 @@ HWTEST_F(RSDisplayEngineControlStubTest, RegisterDEStatusChangeCallbackInvalidSt
  */
 HWTEST_F(RSDisplayEngineControlStubTest, RegisterDEStatusChangeCallbackSuccess, testing::ext::TestSize.Level1)
 {
-    RSDisplayEngineControl stub;
+    RSDisplayEngineControlStub stub;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -140,7 +140,7 @@ HWTEST_F(RSDisplayEngineControlStubTest, RegisterDEStatusChangeCallbackSuccess, 
  */
 HWTEST_F(RSDisplayEngineControlStubTest, UnregisterDEStatusChangeCallbackSuccess, testing::ext::TestSize.Level1)
 {
-    RSDisplayEngineControl stub;
+    RSDisplayEngineControlStub stub;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -157,7 +157,7 @@ HWTEST_F(RSDisplayEngineControlStubTest, UnregisterDEStatusChangeCallbackSuccess
  */
 HWTEST_F(RSDisplayEngineControlStubTest, OnRemoteRequestDefaultCase, testing::ext::TestSize.Level1)
 {
-    RSDisplayEngineControl stub;
+    RSDisplayEngineControlStub stub;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
