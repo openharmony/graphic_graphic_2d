@@ -60,7 +60,6 @@ void RSRenderServiceConnectHub::Destroy()
 RSRenderServiceConnectHub::RSRenderServiceConnectHub()
 {
 }
-
 void RSRenderServiceConnectHub::SetOnConnectCallback(OnConnectCallback cb)
 {
     {
@@ -77,49 +76,6 @@ void RSRenderServiceConnectHub::SetOnConnectCallback(OnConnectCallback cb)
         }
         if (callback) {
             callback(connHub->renderConn_);
-        }
-    }
-}
-
-void RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode code, std::function<void()> cb)
-{
-    auto instance = RSRenderServiceConnectHub::GetInstance();
-    if (instance == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnectHub::SetOnDiedCallback instance is nullptr");
-        return;
-    }
-    std::lock_guard<std::mutex> lock(instance->onDiedCallbacksMutex_);
-    instance->OnDiedCallbacks_[static_cast<int32_t>(code)] = cb;
-    ROSEN_LOGI("RSRenderServiceConnectHub::SetOnDiedCallback, code:%{public}d", code);
-}
-
-void RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode code, bool isDestreuctionProcess)
-{
-    if (isDestreuctionProcess) {
-        return;
-    }
-    auto instance = RSRenderServiceConnectHub::GetInstance();
-    if (instance == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnectHub::RemoveOnDiedCallback instance is nullptr");
-        return;
-    }
-    std::lock_guard<std::mutex> lock(instance->onDiedCallbacksMutex_);
-    instance->OnDiedCallbacks_.erase(static_cast<int32_t>(code));
-    ROSEN_LOGI("RSRenderServiceConnectHub::RemoveOnDiedCallback, code:%{public}d", code);
-}
-
-void RSRenderServiceConnectHub::ExecuteAndClearDiedCallbacks()
-{
-    std::unordered_map<int32_t, std::function<void()>> callbacks;
-    {
-        std::lock_guard<std::mutex> lock(onDiedCallbacksMutex_);
-        callbacks = std::move(OnDiedCallbacks_);
-    }
-    for (auto& [code, cb] : callbacks) {
-        if (cb) {
-            cb();
-        } else {
-            ROSEN_LOGW("ExecuteAndClearDiedCallbacks callback is null, code:%{public}d", code);
         }
     }
 }
@@ -143,11 +99,10 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
     }
     ROSEN_LOGI("RSRenderServiceConnectHub::RefCount: token_:%{public}d, conn_:%{public}d, renderConn_:%{public}d",
         token_->GetSptrRefCount(), conn_->GetSptrRefCount(), renderConn_->GetSptrRefCount());
-    ExecuteAndClearDiedCallbacks();
+    CleanConnectRenderProcess();
     while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
         token_->DecStrongRef(this);
     }
-    CleanConnectRenderProcess();
     renderService_->RemoveConnection(token_);
     token_ = nullptr;
     conn_ = nullptr;
@@ -215,6 +170,17 @@ sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::GetClientToRenderCo
     }
     ROSEN_LOGI("RSRenderServiceConnectHub::GetClientToRenderConnection Trigger Guarantee mechanism");
     return GetRenderService().second;
+}
+
+std::map<uint64_t, RenderProcessInfo> RSRenderServiceConnectHub::GetAllClientToRenderConnections()
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    if (connHub == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::GetAllClientToRenderConnections connHub is nullptr");
+        return {};
+    }
+    std::lock_guard<std::mutex> lock(connHub->renderPipelineClientMutex_);
+    return connHub->connRenderProcesses_;
 }
 
 uint64_t RSRenderServiceConnectHub::FindTokenMaskIdByRenderRemote(sptr<IRemoteObject>& connectToRenderRemote)

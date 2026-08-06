@@ -177,11 +177,6 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
     if (toDelete) {
         auto token = iface_cast<RSIConnectionToken>(GetToken());
         renderPipelineAgent_->RemoveConnection(remotePid_, token);
-
-        auto appToken = renderPipelineAgent_->UnRegisterApplicationAgent(remotePid_);
-        if (appToken && appToken->AsObject() && applicationDeathRecipient_) {
-            appToken->AsObject()->RemoveDeathRecipient(applicationDeathRecipient_);
-        }
     }
 }
 
@@ -331,6 +326,22 @@ ErrCode RSClientToRenderConnection::RegisterApplicationAgent(uint32_t pid, sptr<
     renderPipelineAgent_->RegisterApplicationAgent(pid, app);
 
     app->AsObject()->AddDeathRecipient(applicationDeathRecipient_);
+    return ERR_OK;
+}
+
+ErrCode RSClientToRenderConnection::UnRegisterApplicationAgent()
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    auto pid = GetCallingPid();
+    RS_LOGI("RSClientToRenderConnection::UnRegisterApplicationAgent pid=[%{public}d]", pid);
+    // The agent is keyed on the client process pid on the server side, so resolve it by the calling pid.
+    sptr<IApplicationAgent> app =
+        renderPipelineAgent_->UnRegisterApplicationAgent(static_cast<uint32_t>(pid));
+    if (app != nullptr && app->AsObject() != nullptr && applicationDeathRecipient_ != nullptr) {
+        app->AsObject()->RemoveDeathRecipient(applicationDeathRecipient_);
+    }
     return ERR_OK;
 }
 // LCOV_EXCL_STOP

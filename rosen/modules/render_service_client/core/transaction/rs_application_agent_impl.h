@@ -23,6 +23,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <atomic>
 
 #ifdef ROSEN_OHOS
 #include "ipc_callbacks/rs_application_agent_stub.h"
@@ -45,12 +46,16 @@ public:
      * @brief register application agent to renderService
      */
     void RegisterRSApplicationAgent(std::shared_ptr<RSUIContext> rsUIContext);
+    /**
+     * @brief Unregisters the agent from every render connection (synchronous IPC) and releases the
+     * stub while the client library is still loaded, instead of relying on a cross-so destructor
+     * callback. Idempotent: once the singleton is cleared subsequent calls are no-ops. Relies on the
+     * caller ensuring there is a single active consumer (see RSUIDirector teardown).
+     */
+    static void Release();
 
     RSApplicationAgentImpl() = default;
     virtual ~RSApplicationAgentImpl();
-    static void Destroy();
-    void SetDestreuctionProcess(bool isDestreuctionProcess);
-    bool isDestreuctionProcess_ = false;
 private:
     RSApplicationAgentImpl(const RSApplicationAgentImpl&) = delete;
     RSApplicationAgentImpl(const RSApplicationAgentImpl&&) = delete;
@@ -65,7 +70,26 @@ private:
     void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
 #endif
 
+    static void UnregisterFromAllConnections();
+
     static inline std::mutex mutex_;
+    std::atomic<bool> isRegistered_ {false};
+};
+
+/**
+ * @brief Owns the application agent teardown. Constructed on first use (from RSUIDirector::Init) and
+ * destroyed at static teardown, where it calls RSApplicationAgentImpl::Release(). Since
+ * librender_service_client unloads before librender_service_base (dependency order), the render
+ * connection is still usable when Release() issues the synchronous unregister IPC, so the agent stub
+ * is unregistered and released while its code is still mapped.
+ */
+class RSApplicationAgentLifecycleOwner {
+public:
+    static RSApplicationAgentLifecycleOwner& Instance();
+    RSApplicationAgentLifecycleOwner() = default;
+    // Ensures the application agent singleton exists and is registered. Called from RSUIDirector::Init.
+    void EnsureRegistered(std::shared_ptr<RSUIContext> rsUIContext);
+    ~RSApplicationAgentLifecycleOwner();
 };
 }
 }
