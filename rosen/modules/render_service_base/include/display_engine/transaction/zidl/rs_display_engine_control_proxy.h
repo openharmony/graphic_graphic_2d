@@ -18,8 +18,8 @@
 
 #include <iremote_proxy.h>
 
-#include <display_engine/transaction/rs_idisplay_engine_control_ipc_interface_code.h>
-#include <display_engine/transaction/zidl/rs_idisplay_engine_control.h>
+#include "display_engine/transaction/rs_idisplay_engine_control_ipc_interface_code.h"
+#include "display_engine/transaction/zidl/rs_idisplay_engine_control.h"
 
 namespace OHOS {
 namespace Rosen {
