@@ -3874,6 +3874,32 @@ ErrCode RSClientToServiceConnectionProxy::SetUifirstScale(float scaleFactor)
     return ERR_OK;
 }
 
+sptr<IRemoteObject> RSClientToServiceConnectionProxy::GetDisplayEngineControl()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetDisplayEngineControl GetDescriptor err.");
+        return nullptr;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetDisplayEngineControl: Send Request err.");
+        return nullptr;
+    }
+    sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
+    if (rObj == nullptr) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetDisplayEngineControl: obj is nullptr");
+        return nullptr;
+    }
+    return rObj;
+}
+
 void RSClientToServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
     if (watermarkImg == nullptr) {

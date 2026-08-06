@@ -211,6 +211,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsRssCalling(codeEnumTypeName_ + "::SET_UIFIRST_SCALE");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DISPLAY_ENGINE_CONTROL): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DISPLAY_ENGINE_CONTROL");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_GAMUT_MAP): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT_MAP");
             break;

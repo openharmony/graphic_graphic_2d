@@ -63,6 +63,8 @@ public:
     MOCK_METHOD(void, HdrDimmingPostProcess, (ScreenId screenId), (override));
     MOCK_METHOD(int32_t, UpdateMetadataBasedOnScaler, (const sptr<SurfaceBuffer>& input,
         const RSSurfaceRenderNode& surfaceNode, float scaler, HdrStatus hdrStatus), (override));
+    MOCK_METHOD(int32_t, NotifyDEStatusChange, (const uint32_t sceneKey, const std::vector<uint8_t>& values),
+        (override));
 
     bool IsHardwareHdrDisabled(bool checkBrightnessRatio, ScreenId screenId) override;
     bool SetHdrStatus(ScreenId screenId, HdrStatus curDisplayHdrStatus) override;

@@ -205,6 +205,9 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_SCREEN_VCP_FEATURE = 0x014003,
     SET_SCREEN_VCP_FEATURE = 0x014004,
 
+    // DisplayEngine control
+    GET_DISPLAY_ENGINE_CONTROL = 0x016000,
+
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

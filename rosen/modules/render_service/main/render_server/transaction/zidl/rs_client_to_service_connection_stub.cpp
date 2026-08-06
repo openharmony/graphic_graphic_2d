@@ -228,6 +228,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UIFIRST_SCALE),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -2385,6 +2386,14 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::SetUifirstScale SetUifirstScale failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL): {
+            auto displayEngineControl = GetDisplayEngineControl();
+            if (!reply.WriteRemoteObject(displayEngineControl)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_DISPLAY_ENGINE_CONTROL write status fialed");
+                ret = ERR_INVALID_DATA;
             }
             break;
         }

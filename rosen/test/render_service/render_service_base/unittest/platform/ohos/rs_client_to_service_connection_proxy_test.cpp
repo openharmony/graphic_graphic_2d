@@ -2359,5 +2359,22 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetApsConfigParams_Success, TestS
     ErrCode ret = mockProxy->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
     EXPECT_EQ(ret, ERR_OK);
 }
+
+/**
+ * @tc.name: GetDisplayEngineControl_Success
+ * @tc.desc: Test GetDisplayEngineControl with successful response
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetDisplayEngineControl_Success, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL);
+    EXPECT_CALL(*remoteObject, SendRequest(code, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockProxy->GetDisplayEngineControl();
+    EXPECT_EQ(ret, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

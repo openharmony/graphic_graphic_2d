@@ -82,6 +82,7 @@
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
+#include "display_engine/rs_display_engine_control.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
@@ -514,6 +515,11 @@ sptr<IRemoteObject> RSClientToServiceConnection::GetConnectToRenderToken(ScreenI
         return nullptr;
     }
     return renderServiceAgent_->GetConnectToRenderToken(screenId);
+}
+
+sptr<IRemoteObject> RSClientToServiceConnection::GetDisplayEngineControl()
+{
+    return RSDisplayEngineControl::GetInstance().AsObject();
 }
 
 ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
