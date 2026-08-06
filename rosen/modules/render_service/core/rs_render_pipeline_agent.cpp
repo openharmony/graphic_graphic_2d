@@ -2006,13 +2006,17 @@ int32_t RSRenderPipelineAgent::RegisterUIExtensionCallback(pid_t pid, uint64_t u
 bool RSRenderPipelineAgent::RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface)
 {
     auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
+    if (pipeline == nullptr) {
         return false;
     }
     RS_LOGI("RSRenderPipeline::RegisterTypeface, pid[%{public}d], familyname:%{public}s, uniqueid:%{public}u",
         RSTypefaceCache::GetTypefacePid(globalUniqueId), typeface->GetFamilyName().c_str(),
         RSTypefaceCache::GetTypefaceId(globalUniqueId));
-    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+    if (!RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface)) {
+        RS_LOGE("RSRenderPipeline::RegisterTypeface rejected by cache cap, uniqueid:%{public}u",
+            RSTypefaceCache::GetTypefaceId(globalUniqueId));
+        return false;
+    }
     return true;
 }
 
@@ -2047,7 +2051,11 @@ bool RSRenderPipelineAgent::RegisterTypeface(Drawing::SharedTypeface& sharedType
         return false;
     }
     RS_LOGI("RSRenderPipelineAgent::RegisterTypeface(new): %{public}s", sharedTypeface.ToString().c_str());
-    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
+    if (!RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf)) {
+        RS_LOGE("RSRenderPipelineAgent::RegisterTypeface rejected by cache cap, %{public}s",
+            sharedTypeface.ToString().c_str());
+        return false;
+    }
     return true;
 }
 
