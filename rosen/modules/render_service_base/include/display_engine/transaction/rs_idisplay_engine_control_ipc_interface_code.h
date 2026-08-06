@@ -16,11 +16,11 @@
 #ifndef RENDER_SERVICE_BASE_DISPLAY_ENGINE_TRANSACTION_RS_IDISPLAY_ENGINE_CONTROL_IPC_INTERFACE_CODE_H
 #define RENDER_SERVICE_BASE_DISPLAY_ENGINE_TRANSACTION_RS_IDISPLAY_ENGINE_CONTROL_IPC_INTERFACE_CODE_H
 
-#include "ipc_security/rs_ipc_interface_code_underlying_type.h"
+#include <cstdint>
 
 namespace OHOS {
 namespace Rosen {
-enum class RSIDisplayEngineControlInterfaceCode : CodeUnderlyingType {
+enum class RSIDisplayEngineControlInterfaceCode : uint32_t {
     NOTIFY_DE_STATUS_CHANGE = 0,
     REGISTER_DE_STATUS_CHANGE_CALLBACK = 1,
     UNREGISTER_DE_STATUS_CHANGE_CALLBACK = 2,
