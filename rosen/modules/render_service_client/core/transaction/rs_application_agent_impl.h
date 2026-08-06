@@ -53,7 +53,7 @@ public:
      * caller ensuring there is a single active consumer (see RSUIDirector teardown).
      */
     static void Release();
-
+    std::atomic<bool> isRegistered_ {false};
     RSApplicationAgentImpl() = default;
     virtual ~RSApplicationAgentImpl();
 private:
@@ -73,7 +73,6 @@ private:
     static void UnregisterFromAllConnections();
 
     static inline std::mutex mutex_;
-    std::atomic<bool> isRegistered_ {false};
 };
 
 /**
