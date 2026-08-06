@@ -135,7 +135,7 @@ private:
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
     CommitTransactionCallback commitTransactionCallback_ = nullptr;
-    std::atomic<uint32_t> transactionDataIndex_ = 0;
+    uint32_t transactionDataIndex_ = 0;
     TaskRunner taskRunner_ = TaskRunner();
 
     friend class RSUIDirector;
