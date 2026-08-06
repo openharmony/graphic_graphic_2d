@@ -22,6 +22,7 @@
 #include "pipeline/mock/mock_matrix.h"
 #include "pipeline/rs_test_util.h"
 #include "system/rs_system_parameters.h"
+#include "syspara/parameters.h"
 
 #include "consumer_surface.h"
 #include "draw/color.h"
@@ -3711,9 +3712,8 @@ HWTEST_F(RSUniRenderVisitorTest, InitScreenInfo001, TestSize.Level1)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
 
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto allBlackList = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
-    auto allWhiteList = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    auto allBlackList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
+    auto allWhiteList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_WHITE_LIST);
     rsUniRenderVisitor->allBlackList_ = allBlackList;
     rsUniRenderVisitor->allWhiteList_ = allWhiteList;
     rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
@@ -3725,12 +3725,12 @@ HWTEST_F(RSUniRenderVisitorTest, InitScreenInfo001, TestSize.Level1)
     EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, true);
 
     rsUniRenderVisitor->allWhiteList_.emplace(nodeId);
-    rsUniRenderVisitor->allBlackList_ = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
+    rsUniRenderVisitor->allBlackList_ = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
     rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
     EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, true);
 
-    rsUniRenderVisitor->allBlackList_ = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
-    rsUniRenderVisitor->allWhiteList_ = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    rsUniRenderVisitor->allBlackList_ = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
+    rsUniRenderVisitor->allWhiteList_ = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_WHITE_LIST);
     rsUniRenderVisitor->allBlackList_.emplace(nodeId);
     rsUniRenderVisitor->allWhiteList_.emplace(nodeId);
     rsScreenRenderNode->InitRenderParams();
@@ -7825,6 +7825,43 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateTopLayersDirtyStatusTest, TestSize.Level2
 }
 
 /*
+ * @tc.name: ResetDisplayDirtyRegionSpecialFoldDisplay
+ * @tc.desc: Test ResetDisplayDirtyRegion expands dirty region for special-fold display (id 0)
+ * @tc.type: FUNC
+ * @tc.require: issue24619
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetDisplayDirtyRegionSpecialFoldDisplay, TestSize.Level2)
+{
+    // IsSpecialFoldDisplay() caches a static on first call; set the parameter before the first call.
+    std::string origFoldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(rsUniRenderVisitor->curScreenDirtyManager_, nullptr);
+    rsUniRenderVisitor->curScreenDirtyManager_->surfaceRect_ = RectI(50, 100, 1920, 800); // bottom 900
+    rsUniRenderVisitor->curScreenDirtyManager_->activeSurfaceRect_ = RectI();
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    // Set activeRect and screen height so the expansion ligic can compute the gradient strip region
+    auto activeRectProp = new ScreenProperty<activeRectValType>(
+        activeRectValType(RectI(50, 100, 1920, 800), RectI(), RectI()));
+    rsUniRenderVisitor->curScreenNode_->UpdateScreenProperty(
+        ScreenPropertyType::ACTIVE_RECT_OPTION, activeRectProp);
+    auto resolutionProp = new ScreenProperty<resolutionValType>(resolutionValType(1920, 900));
+    rsUniRenderVisitor->curScreenNode_->UpdateScreenProperty(
+        ScreenPropertyType::RENDER_RESOLUTION, resolutionProp);
+    rsUniRenderVisitor->zoomStateChange_ = true; // force the ret guard true
+    rsUniRenderVisitor->ResetDisplayDirtyRegion();
+    // EDGE_GRADIENT_WIDTH=200: expandedTop=max(0,100-200)=0; expandedBottom=min(900,900+200)=900
+    if (RSSystemProperties::IsSpecialFoldDisplay()) {
+        EXPECT_EQ(rsUniRenderVisitor->curScreenDirtyManager_->GetCurrentFrameDirtyRegion(),
+            RectI(50, 0, 1920, 900));
+    }
+    system::SetParameter("const.window.foldscreen.type", origFoldType);
+}
+
+/*
  * @tc.name: ResetDisplayDirtyRegion
  * @tc.desc: Test function ResetDisplayDirtyRegion
  * @tc.type: FUNC
@@ -7898,6 +7935,9 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId003, TestSize.Level2)
 
     constexpr uint64_t tunnelLayerId = 3002;
     RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), tunnelLayerId, TUNNEL_PROP_INVALID);
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->MarkTunnelLayerInfoReceived();
 
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
 

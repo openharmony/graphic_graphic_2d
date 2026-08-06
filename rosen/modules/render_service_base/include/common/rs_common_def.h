@@ -64,6 +64,7 @@ constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
 constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;
 constexpr int32_t UI_PiPLINE_NUM_UNDEFINED = -1;
+constexpr int32_t EDGE_GRADIENT_STRIP_WIDTH = 200;
 
 template<typename T>
 inline constexpr bool ROSEN_EQ(const T& x, const T& y)
@@ -578,6 +579,19 @@ enum class RSUIFirstSwitch {
     FORCE_ENABLE_LIMIT = 4, // force open uifirst, but for limited
     FORCE_DISABLE_NONFOCUS = 5, // force close uifirst when only in nonfocus window
     FORCE_DISABLE_CARD = 6, // force close uifirst on card
+};
+
+enum class UIMode3D : uint32_t {
+    MODE_2D = 0,              // 2D display mode
+    MODE_SHUTTER_3D = 1,      // Shutter 3D display mode
+    MODE_GLASSESFREE_3D = 2,    // Glasses-free 3D display mode
+    MODE_TYPE_BUTT,
+};
+
+enum class CompositionType : uint32_t {
+    COMPOSITION_DEFAULT = 0,
+    COMPOSITION_3D_SHUTTER = 1,
+    COMPOSITION_3D_GLASS_FREE = 2,
 };
 
 enum class SelfDrawingNodeType : uint8_t {

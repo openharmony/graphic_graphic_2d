@@ -64,7 +64,7 @@ public:
     const std::shared_ptr<PolicyConfigData>& GetPolicyConfigData() const { return mPolicyConfigData_; }
     std::shared_ptr<PolicyConfigVisitor> GetPolicyConfigVisitor() const { return mPolicyConfigVisitor_; }
 
-    // called by RenderService
+    // called by RSRenderService
     uint32_t GetPendingScreenRefreshRate() const { return pendingScreenRefreshRate_.load(); }
     uint64_t GetPendingConstraintRelativeTime() const { return pendingConstraintRelativeTime_.load(); }
     uint64_t GetCurrentTimestamp() const { return timestamp_.load(); }

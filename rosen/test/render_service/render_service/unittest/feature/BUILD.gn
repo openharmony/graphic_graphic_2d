@@ -40,7 +40,6 @@ group("unittest") {
     ":RSUiCaptureTaskParallelTest",
     ":RSUniHwcComputeUtilTest",
     ":RSUniUiCaptureTest",
-    ":RSTunnelLayerHelperTest",
     ":RSTunnelLayerManagerTest",
     ":RSTunnelRouteArbiterTest",
     ":RSTunnelRuntimeStateTest",
@@ -75,13 +74,16 @@ group("unittest") {
     deps += [ ":RSGPUCacheManagerTest" ]
   }
   if (rs_enable_eglimage) {
-    deps += [ ":RSEglImageManagerTest" ]
+    deps += []
   }
   if (graphic_2d_feature_overlay_display_enable) {
     deps += [ ":OverlayDisplayTest" ]
   }
   if (graphic_2d_feature_tv_metadata_enable) {
     deps += [ ":TvMetadataTest" ]
+  }
+  if (graphic_2d_feature_tv_shutter_3d_enable) {
+    deps += [ ":RSTvShutter3DManagerTest" ]
   }
   if (graphic_2d_feature_enable_chipset_vsync) {
     deps += [ ":RSChipsetVsyncTest" ]
@@ -464,7 +466,10 @@ ohos_unittest("RSDrmUtilTest") {
 ## Build RSHdrUtilTest
 ohos_unittest("RSHdrUtilTest") {
   module_out_path = module_output_path
-  sources = [ "hdr/rs_hdr_util_test.cpp" ]
+  sources = [
+    "hdr/rs_hdr_util_test.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -499,12 +504,14 @@ ohos_unittest("RSHdrUtilTest") {
 ## Build RSLayerCacheManagerTest
 ohos_unittest("RSLayerCacheManagerTest") {
   module_out_path = module_output_path
-  sources = [ "layer/rs_layer_cache_manager_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "layer/rs_layer_cache_manager_test.cpp"
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
-    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
@@ -515,6 +522,8 @@ ohos_unittest("RSLayerCacheManagerTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -860,6 +869,8 @@ ohos_unittest("RSSubThreadCacheTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "uifirst/rs_sub_thread_cache_test.cpp",
   ]
+  defines = []
+  defines += gpu_defines
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -1717,6 +1728,26 @@ ohos_unittest("RSUniHwcEventManagerTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+}
+
+## Build RSTvShutter3DManagerTest
+ohos_unittest("RSTvShutter3DManagerTest") {
+  module_out_path = module_output_path
+  sources = []
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(graphic_2d_feature_tv_shutter_3d_enable) && graphic_2d_feature_tv_shutter_3d_enable) {
+    sources += [ "video_3d/rs_tv_shutter_3d_manager_test.cpp" ]
+    defines += [ "RS_ENABLE_TV_SHUTTER_3D" ]
   }
 }
 

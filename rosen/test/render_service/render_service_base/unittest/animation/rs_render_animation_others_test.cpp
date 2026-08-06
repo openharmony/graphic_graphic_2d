@@ -15,12 +15,13 @@
 
 #include "gtest/gtest.h"
 
+#include <thread>
+
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interactive_implict_animator.h"
 #include "animation/rs_render_interactive_implict_animator_map.h"
 #include "modifier/rs_render_property.h"
-#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
@@ -34,8 +35,8 @@ namespace Rosen {
 // Mock class for RSRenderAnimation to test protected methods
 class RSRenderAnimationMock : public RSRenderAnimation {
 public:
-    static constexpr uint64_t ANIMATION_ID = 12345;
-    RSRenderAnimationMock() : RSRenderAnimationMock(ANIMATION_ID) {}
+    static constexpr uint64_t animationId = 12345;
+    RSRenderAnimationMock() : RSRenderAnimationMock(animationId) {}
     explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
     ~RSRenderAnimationMock() override = default;
     void RebuildPropertyValue(float fraction) override {}
@@ -374,7 +375,7 @@ HWTEST_F(RSRenderAnimationOthersTest, DestroyAnimationInRender001, TestSize.Leve
     GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest DestroyAnimationInRender001 start";
     RSRenderNode node(1);
     node.DestroyAnimationInRender();
-    EXPECT_TRUE(node.GetAnimationManager() == nullptr);
+    EXPECT_NE(node.GetAnimationManager(), nullptr);
     GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest DestroyAnimationInRender001 end";
 }
 
@@ -386,7 +387,7 @@ HWTEST_F(RSRenderAnimationOthersTest, DestroyAnimationInRender001, TestSize.Leve
 HWTEST_F(RSRenderAnimationOthersTest, DestroyAnimationInRender002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest DestroyAnimationInRender002 start";
-    auto node = std::make_shared<RSCanvasRenderNode>(1);
+    auto node = std::make_shared<RSRenderNode>(1);
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
@@ -416,13 +417,187 @@ HWTEST_F(RSRenderAnimationOthersTest, HasAnimation001, TestSize.Level1)
  */
 HWTEST_F(RSRenderAnimationOthersTest, HasAnimation002, TestSize.Level1)
 {
-    auto node = std::make_shared<RSCanvasRenderNode>(1);
+    auto node = std::make_shared<RSRenderNode>(1);
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
     node->AddAnimation(animation);
     EXPECT_TRUE(node->HasAnimation());
+}
+
+/**
+ * @tc.name: GetOrCreateAnimationManager001
+ * @tc.desc: Verify GetOrCreateAnimationManager creates AnimationManager when none exists
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderAnimationOthersTest, GetOrCreateAnimationManager001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node->GetAnimationManager(), nullptr);
+    auto manager = node->GetOrCreateAnimationManager();
+    ASSERT_NE(manager, nullptr);
+    EXPECT_EQ(node->GetAnimationManager(), manager);
+}
+
+/**
+ * @tc.name: GetOrCreateAnimationManager002
+ * @tc.desc: Verify GetOrCreateAnimationManager returns existing AnimationManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderAnimationOthersTest, GetOrCreateAnimationManager002, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(1, context);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    auto existingManager = node->GetAnimationManager();
+    ASSERT_NE(existingManager, nullptr);
+    auto manager = node->GetOrCreateAnimationManager();
+    EXPECT_EQ(manager, existingManager);
+}
+
+/**
+ * @tc.name: RSRenderNode_Animate_ResetManagerBothEmpty_001
+ * @tc.desc: Verify AnimationManager is reset when both animations_ and
+ *           pendingCancelAnimation_ are empty after Animate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderAnimationOthersTest,
+    RSRenderNode_Animate_ResetManagerBothEmpty_001, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(1, context);
+    auto manager = node->GetOrCreateAnimationManager();
+    ASSERT_NE(manager, nullptr);
+    EXPECT_TRUE(manager->animations_.empty());
+    EXPECT_TRUE(manager->pendingCancelAnimation_.empty());
+
+    node->SetIsOnTheTree(true);
+    int64_t minLeftDelayTime = 0;
+    int64_t nextFrameTime = 0;
+    node->Animate(0, minLeftDelayTime, nextFrameTime);
+
+    EXPECT_NE(node->GetAnimationManager(), nullptr);
+}
+
+/**
+ * @tc.name: RSRenderNode_Animate_PendingCancelPreventsReset_002
+ * @tc.desc: Verify AnimationManager is NOT reset when pendingCancelAnimation_
+ *           is non-empty after Animate, even if animations_ is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderAnimationOthersTest,
+    RSRenderNode_Animate_PendingCancelPreventsReset_002, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(1, context);
+    auto manager = node->GetOrCreateAnimationManager();
+    ASSERT_NE(manager, nullptr);
+
+    manager->AttemptCancelAnimationByAnimationId({99999});
+    EXPECT_TRUE(manager->animations_.empty());
+    EXPECT_FALSE(manager->pendingCancelAnimation_.empty());
+
+    node->SetIsOnTheTree(true);
+    int64_t minLeftDelayTime = 0;
+    int64_t nextFrameTime = 0;
+    node->Animate(0, minLeftDelayTime, nextFrameTime);
+
+    EXPECT_NE(node->GetAnimationManager(), nullptr);
+}
+
+/**
+ * @tc.name: RSRenderNode_Animate_ActiveAnimationPreventsReset_003
+ * @tc.desc: Verify AnimationManager is NOT reset when animations_ is
+ *           non-empty after Animate (short-circuit on first condition)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderAnimationOthersTest,
+    RSRenderNode_Animate_ActiveAnimationPreventsReset_003, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(1, context);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+
+    auto manager = node->GetAnimationManager();
+    ASSERT_NE(manager, nullptr);
+    EXPECT_FALSE(manager->animations_.empty());
+
+    node->SetIsOnTheTree(true);
+    int64_t minLeftDelayTime = 0;
+    int64_t nextFrameTime = 0;
+    node->Animate(0, minLeftDelayTime, nextFrameTime);
+
+    EXPECT_NE(node->GetAnimationManager(), nullptr);
+}
+
+/**
+ * @tc.name: FallbackAnimationsToRoot009
+ * @tc.desc: Verify FallbackAnimationsToRoot logs error when creationTid differs from current tid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot009, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot009 start";
+    auto context = std::make_shared<RSContext>();
+    auto& nodeMap = context->GetMutableNodeMap();
+    auto fallbackNode = nodeMap.GetAnimationFallbackNode();
+    ASSERT_NE(fallbackNode, nullptr);
+
+    RSRenderNode node(1, context);
+    auto animation = std::make_shared<RSRenderAnimationMock>();
+    node.AddAnimation(animation);
+    ASSERT_NE(node.GetAnimationManager(), nullptr);
+
+    RSAnimationManager::mainThreadId_ = std::thread::id();
+    node.FallbackAnimationsToRoot();
+
+    GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot009 end";
+}
+
+/**
+ * @tc.name: AddAnimation001
+ * @tc.desc: Verify AddAnimation returns true on success and false on duplicate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationOthersTest, AddAnimation001, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(1, context);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    EXPECT_TRUE(node->AddAnimation(animation));
+    ASSERT_NE(node->GetAnimationManager(), nullptr);
+    EXPECT_EQ(node->GetAnimationManager()->GetAnimationsSize(), 1u);
+    EXPECT_FALSE(node->AddAnimation(animation));
+    EXPECT_EQ(node->GetAnimationManager()->GetAnimationsSize(), 1u);
+}
+
+/**
+ * @tc.name: AddAnimation002
+ * @tc.desc: Verify AddAnimation returns false when animation is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationOthersTest, AddAnimation002, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(1, context);
+    EXPECT_FALSE(node->AddAnimation(nullptr));
 }
 
 } // namespace Rosen

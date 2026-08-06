@@ -20,9 +20,10 @@
 #include "transaction/rs_render_service_client.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "render/rs_pixel_map_util.h"
+
 #include "rs_round_corner_display_manager.h"
-#include "rs_render_surface_rcd_layer.h"
 #include "v2_3/buffer_handle_meta_key_type.h"
+#include "rs_render_surface_rcd_layer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -159,7 +160,6 @@ BufferRequestConfig RSRcdSurfaceRenderNode::GetHardenBufferRequestConfig() const
 bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo)
 {
     RS_LOGD("RCD: Start PrepareHardwareResourceBuffer");
-
     if (layerInfo == nullptr) {
         RS_LOGE("RCD: layerInfo is nullptr");
         return false;
@@ -209,6 +209,10 @@ RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBi
     opts.size.height = src.GetHeight();
     opts.allocatorType = Media::AllocatorType::DMA_ALLOC;
     RSRcdSurfaceRenderNode::PixelMapPtr pixelMap = Media::PixelMap::Create(opts);
+    if (pixelMap == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap create pixelMap error");
+        return nullptr;
+    }
     auto size = pixelMap->GetRowBytes() * pixelMap->GetHeight();
     errno_t ret = memcpy_s(reinterpret_cast<void*>(pixelMap->GetWritablePixels()), size,
         reinterpret_cast<void*>(src.GetPixels()), size);

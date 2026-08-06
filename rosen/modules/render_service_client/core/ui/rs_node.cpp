@@ -146,7 +146,7 @@
 #ifdef __gnu_linux__
 #include <sys/syscall.h>
 #include <sys/types.h>
-#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#define gettid []()->int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
 #endif
 
 #undef LOG_TAG
@@ -651,6 +651,8 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
     }
 
     AddAnimationInner(animation);
+
+    RebuildTree();
 
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {

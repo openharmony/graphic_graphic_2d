@@ -880,13 +880,11 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenPowerStatus, TestSize.Le
     ScreenId id = 1;
     proxy->GetScreenCapability(id);
     EXPECT_EQ(proxy->GetScreenData(id).powerStatus_, INVALID_POWER_STATUS);
-    int32_t level = -1;
+    int32_t level;
     proxy->GetScreenBacklight(id, level);
-    EXPECT_EQ(level, -1);
-    uint32_t status = ScreenPowerStatus::POWER_STATUS_ON;
+    uint32_t status;
     proxy->GetScreenPowerStatus(id, status);
-    ASSERT_EQ(proxy->GetScreenPowerStatus(id, status), ERR_INVALID_VALUE);
-    proxy->GetScreenPowerStatus(0, status);
+    ASSERT_EQ(status, ScreenPowerStatus::INVALID_POWER_STATUS);
 }
 #endif
 
@@ -1336,22 +1334,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Le
     proxy->NotifyHgmConfigEvent(eventName, state);
     ASSERT_TRUE(proxy);
 }
-
-#ifdef RS_ENABLE_UNI_RENDER
-/**
- * @tc.name: NotifyLightFactorStatus Test
- * @tc.desc: NotifyLightFactorStatus Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, ReportGameStateData, TestSize.Level1)
-{
-    GameStateData info;
-    proxy->ReportGameStateData(info);
-    proxy->NotifyLightFactorStatus(1);
-    ASSERT_EQ(proxy->transactionDataIndex_, 5);
-}
-#endif
 
 /**
  * @tc.name: NotifyXComponentExpectedFrameRate Test

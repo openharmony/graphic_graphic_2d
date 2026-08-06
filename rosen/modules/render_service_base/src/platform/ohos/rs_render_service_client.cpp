@@ -1820,6 +1820,15 @@ void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
     clientToService->SetVmaCacheStatus(flag);
 }
 
+bool RSRenderServiceClient::SetUIMode3D(UIMode3D mode)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return false;
+    }
+    return clientToService->SetUIMode3D(mode) == ERR_OK;
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config,
     TpFeatureConfigType tpFeatureConfigType)
@@ -1916,7 +1925,7 @@ public:
     ~TransactionDataCallbackDirector() noexcept override = default;
     void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
-        RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
+        RS_LOGD_IF(DEBUG_IPC, "OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
             PRIu64 " token: %{public}" PRIu64, timeStamp, token);
         client_->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     }

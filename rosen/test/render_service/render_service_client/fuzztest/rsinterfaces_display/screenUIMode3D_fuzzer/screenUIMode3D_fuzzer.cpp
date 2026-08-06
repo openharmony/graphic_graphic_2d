@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "screenUIMode3D_fuzzer.h"
+
+#include <fuzzer/FuzzedDataProvider.h>
+
+#include "transaction/rs_interfaces.h"
+
+namespace OHOS {
+namespace Rosen {
+
+RSInterfaces* g_rsInterfaces = nullptr;
+
+namespace {
+const uint8_t DO_SET_UI_MODE_3D = 0;
+const uint8_t TARGET_SIZE = 1;
+
+void DoSetUIMode3D(FuzzedDataProvider& fdp)
+{
+    UIMode3D mode = static_cast<UIMode3D>(fdp.ConsumeIntegral<uint32_t>());
+    g_rsInterfaces->SetUIMode3D(mode);
+}
+
+} // namespace
+
+} // namespace Rosen
+} // namespace OHOS
+
+extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
+{
+    OHOS::Rosen::g_rsInterfaces = &OHOS::Rosen::RSInterfaces::GetInstance();
+    return 0;
+}
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+{
+    if (OHOS::Rosen::g_rsInterfaces == nullptr || data == nullptr) {
+        return -1;
+    }
+
+    FuzzedDataProvider fdp(data, size);
+    uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_SET_UI_MODE_3D:
+            OHOS::Rosen::DoSetUIMode3D(fdp);
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}

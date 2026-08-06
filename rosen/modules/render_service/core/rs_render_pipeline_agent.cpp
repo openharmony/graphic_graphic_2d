@@ -1493,6 +1493,7 @@ void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& p
     if (!pipeline) {
         return;
     }
+    pipeline->GetMainThread()->NotifyPackageEvent(packageList);
     pipeline->PostMainThreadTask([renderPipeline = pipeline, packageList] {
         renderPipeline->GetMainThread()->CheckPackageInConfigList(packageList);
         renderPipeline->imageEnhanceManager_->CheckPackageInConfigList(packageList);
@@ -1881,6 +1882,19 @@ void RSRenderPipelineAgent::SetVmaCacheStatus(bool flag)
 #ifdef RS_ENABLE_GPU
     pipeline->GetUniRenderThread()->SetVmaCacheStatus(flag);
 #endif
+}
+
+ErrCode RSRenderPipelineAgent::SetUIMode3D(UIMode3D mode)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = pipeline, mode]() {
+        renderPipeline->GetMainThread()->SetUIMode3D(mode);
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
 }
 
 void RSRenderPipelineAgent::SetBehindWindowFilterEnabled(bool enabled)
@@ -2558,15 +2572,6 @@ sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeI
             remotePid);
         return nullptr;
     }
-    auto bundleName = GetBundleName(remotePid);
-    if (!NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled()) {
-        RS_LOGE("CreateCanvasDrawingNodeSurface: ccm disabled, nodeId=%{public}" PRIu64, nodeId);
-        return nullptr;
-    }
-    if (!bundleName.empty() && !NodeMemReleaseParam::IsCanvasBufferEnabled(bundleName)) {
-        RS_LOGE("CreateCanvasDrawingNodeSurface: bundleName ccm blacklist, nodeId=%{public}" PRIu64, nodeId);
-        return nullptr;
-    }
  
     sptr<Surface> producerPurface = nullptr;
     auto task = [&producerPurface, nodeId, mainThread = rsRenderPipeline->GetMainThread()]() -> void {
@@ -2591,9 +2596,8 @@ sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeI
             RS_LOGE("CreateCanvasDrawingNodeSurface: null producerPurface, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
- 
-        sptr<IBufferConsumerListener> listener =
-            new RSCanvasDrawingNodeBufferConsumerListener(mainThread->GetWeakContext(), nodeId);
+
+        sptr<IBufferConsumerListener> listener = new RSCanvasDrawingNodeBufferConsumerListener(surfaceHandler, nodeId);
         consumerSurface->RegisterConsumerListener(listener);
         auto& nodeMap = rsContext->GetMutableNodeMap();
         auto canvasDrawingNode = nodeMap.GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);

@@ -747,7 +747,6 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer);
-    void UpdateVirtualScreenWhiteListInfo(const std::unordered_set<ScreenId>& screenIds);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const
@@ -831,6 +830,10 @@ public:
     {
         uifirstState_.forceUpdate = b;
     }
+
+    bool IsFullScreen() const;
+
+    VideoDimType GetVideoDimType() const;
 
     RSUIFirstSwitch GetUIFirstSwitch() const
     {
@@ -1986,6 +1989,10 @@ public:
         return topLayerZOrder_;
     }
 
+    void ResetCompositionType();
+    void SetCompositionType(CompositionType type);
+    CompositionType GetCompositionType() const;
+
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
 
@@ -2241,7 +2248,6 @@ private:
     float hdrBrightnessFactor_ = 1.0f; // no discount by default
     float hdrDimmingFactor_ = 1.0f; // no discount by default
     float localZOrder_ = 0.0f;
-    uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     uint32_t wideColorGamutWindowCount_ = 0;

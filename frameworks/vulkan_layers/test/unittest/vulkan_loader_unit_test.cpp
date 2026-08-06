@@ -945,6 +945,31 @@ HWTEST_F(VulkanLoaderUnitTest, fpCreateSwapchainKHR_Fail_Test, TestSize.Level1)
 }
 
 /**
+ * @tc.name: test fpCreateSwapchainKHR with FORCE_LINER flag
+ * @tc.desc: test fpCreateSwapchainKHR with VK_SWAPCHAIN_CREATE_FORCE_LINEAR_BIT_OHOS flag set,
+ *           which should set BUFFER_USAGE_CPU_READ in grallocUsage
+ * @tc.type: FUNC
+ * @tc.require: issueI6SKRO
+ */
+HWTEST_F(VulkanLoaderUnitTest, fpCreateSwapchainKHR_ForceLinear_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpCreateSwapchainKHR, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(surface_, VK_NULL_HANDLE);
+        constexpr VkSwapchainCreateFlagsKHR FORCE_LINEAR_FLAG = 0x00000400;
+        VkSwapchainCreateInfoKHR swapchainCI = GetSwapchainCreateInfo(
+            VK_FORMAT_R8G8B8A8_UNORM, surfaceFormat_.colorSpace);
+        swapchainCI.flags = FORCE_LINEAR_FLAG;
+        VkSwapchainKHR swapChain = VK_NULL_HANDLE;
+        VkResult err = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChain);
+        EXPECT_EQ(err, VK_SUCCESS);
+        EXPECT_NE(swapChain, VK_NULL_HANDLE);
+        fpDestroySwapchainKHR(device_, swapChain, nullptr);
+    }
+}
+
+/**
  * @tc.name: test vkCreateDebugUtilsMessengerEXT
  * @tc.desc: test vkCreateDebugUtilsMessengerEXT
  * @tc.type: FUNC

@@ -23,12 +23,12 @@
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_core.h"
 #include "hpae_base/rs_hpae_hianimation.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render_server/rs_render_service.h"
 #include "rs_render_composer_manager.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "screen_manager/rs_screen.h"
 #include "screen_manager/screen_types.h"
 
 using namespace testing;
@@ -42,7 +42,6 @@ auto& hgmCore = HgmCore::Instance();
 auto frameRateMgr = hgmCore.GetFrameRateMgr();
 // used for ProcessHgmFrameRateTest to prevent crash
 std::shared_ptr<HgmContext> hgmContextForProcess = nullptr;
-sptr<RSScreenManager> screenManagerForProcess = nullptr;
 auto renderService = sptr<RSRenderService>::MakeSptr();
 }
 
@@ -57,9 +56,6 @@ public:
 void HgmContextTest::SetUpTestCase()
 {
     auto rsVSyncDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
-    screenManagerForProcess = sptr<RSScreenManager>::MakeSptr();
-    hgmCore.SetScreenManager(screenManagerForProcess.GetRefPtr());
-    screenManagerForProcess->MockHdiScreenConnected(std::make_shared<RSScreen>(1));
     hgmContextForProcess = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, rsVSyncDistributor);
 }
 
@@ -128,13 +124,13 @@ HWTEST_F(HgmContextTest, InitHgmTaskHandleThreadTest001, TestSize.Level1)
         auto orgGameNodeName = hgmContext->gameNodeName_;
 
         hgmContext->hgmDataChangeTypes_.reset();
-        hgmContext->isAdaptive_ = false;
+        hgmContext->isAdaptive_ = SupportASStatus::NOT_SUPPORT;
         hgmContext->gameNodeName_ = "";
 
-        frameRateMgr->adaptiveVsyncUpdateCallback_(true, "testGameNode");
+        frameRateMgr->adaptiveVsyncUpdateCallback_(SupportASStatus::SUPPORT_AS, "testGameNode");
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
         EXPECT_TRUE(hgmContext->hgmDataChangeTypes_.test(HgmDataChangeType::ADAPTIVE_VSYNC));
-        EXPECT_TRUE(hgmContext->isAdaptive_);
+        EXPECT_EQ(hgmContext->isAdaptive_, SupportASStatus::SUPPORT_AS);
         EXPECT_EQ(hgmContext->gameNodeName_, "testGameNode");
 
         hgmContext->hgmDataChangeTypes_ = orgHgmDataChangeTypes;
@@ -272,7 +268,7 @@ HWTEST_F(HgmContextTest, SetServiceToProcessInfoTest002, TestSize.Level1)
     ASSERT_EQ(hgmCore.GetPendingConstraintRelativeTime(), 1);
 
     hgmContext->hgmDataChangeTypes_.set(HgmDataChangeType::ADAPTIVE_VSYNC);
-    hgmContext->isAdaptive_ = true;
+    hgmContext->isAdaptive_ = SupportASStatus::SUPPORT_AS;
     hgmContext->gameNodeName_ = "testGameNode";
 
     auto serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
@@ -282,7 +278,7 @@ HWTEST_F(HgmContextTest, SetServiceToProcessInfoTest002, TestSize.Level1)
     EXPECT_EQ(serviceToProcessInfo->pendingConstraintRelativeTime, 1);
 
     EXPECT_TRUE(serviceToProcessInfo->hgmDataChangeTypes.test(HgmDataChangeType::ADAPTIVE_VSYNC));
-    EXPECT_TRUE(serviceToProcessInfo->isAdaptive);
+    EXPECT_EQ(serviceToProcessInfo->isAdaptive, SupportASStatus::SUPPORT_AS);
     EXPECT_EQ(serviceToProcessInfo->gameNodeName, "testGameNode");
 
     hgmCore.SetPendingScreenRefreshRate(orgPendingScreenRefreshRate);
@@ -348,7 +344,7 @@ HWTEST_F(HgmContextTest, SetServiceToProcessInfoTest004, TestSize.Level1)
     ASSERT_EQ(hgmCore.GetPendingConstraintRelativeTime(), 1);
 
     hgmContext->hgmDataChangeTypes_.set(HgmDataChangeType::ADAPTIVE_VSYNC);
-    hgmContext->isAdaptive_ = true;
+    hgmContext->isAdaptive_ = SupportASStatus::SUPPORT_AS;
     hgmContext->gameNodeName_ = "testGameNode";
 
     hgmContext->hgmDataChangeTypes_.set(HgmDataChangeType::HGM_CONFIG_DATA);
@@ -363,7 +359,7 @@ HWTEST_F(HgmContextTest, SetServiceToProcessInfoTest004, TestSize.Level1)
     EXPECT_EQ(serviceToProcessInfo->pendingConstraintRelativeTime, 1);
 
     EXPECT_TRUE(serviceToProcessInfo->hgmDataChangeTypes.test(HgmDataChangeType::ADAPTIVE_VSYNC));
-    EXPECT_TRUE(serviceToProcessInfo->isAdaptive);
+    EXPECT_EQ(serviceToProcessInfo->isAdaptive, SupportASStatus::SUPPORT_AS);
     EXPECT_EQ(serviceToProcessInfo->gameNodeName, "testGameNode");
 
     EXPECT_TRUE(serviceToProcessInfo->hgmDataChangeTypes.test(HgmDataChangeType::HGM_CONFIG_DATA));
@@ -564,6 +560,29 @@ HWTEST_F(HgmContextTest, AddScreenToHgmTest001, TestSize.Level1)
         ASSERT_FALSE(hgmCore.screenList_.empty());
         EXPECT_EQ(hgmCore.screenList_.back()->GetId(), id);
 
+        ScreenId tempId = 1;
+        hgmContext->GetScreenCurrentRefreshRate(id);
+        hgmContext->GetActiveScreenId(tempId);
+        hgmContext->RemoveScreenFromHgm(id);
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        EXPECT_TRUE(hgmCore.screenList_.empty());
+
+        ScreenId id2 = 0;
+        tempId = 0;
+        if (hgmCore.GetScreen(id2) == nullptr) {
+            auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
+            screenProperty->Set<ScreenPropertyType::ID>(id2);
+            hgmContext->AddScreenToHgm(screenProperty);
+            hgmContext->GetScreenCurrentRefreshRate(id2);
+            hgmContext->GetActiveScreenId(tempId);
+            hgmContext->RemoveScreenFromHgm(id2);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+            EXPECT_TRUE(hgmCore.screenList_.empty());
+        } else {
+            hgmContext->GetScreenCurrentRefreshRate(id2);
+            hgmContext->GetActiveScreenId(tempId);
+        }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
@@ -579,6 +598,9 @@ HWTEST_F(HgmContextTest, AddScreenToHgmTest001, TestSize.Level1)
 HWTEST_F(HgmContextTest, RemoveScreenFromHgmTest001, TestSize.Level1)
 {
     if (frameRateMgr) {
+        auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+        ASSERT_NE(hgmContext, nullptr);
+
         hgmCore.screenIds_.clear();
         hgmCore.screenList_.clear();
         ASSERT_TRUE(hgmCore.screenIds_.empty());
@@ -587,18 +609,39 @@ HWTEST_F(HgmContextTest, RemoveScreenFromHgmTest001, TestSize.Level1)
         ScreenId id = 1;
         auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
         screenProperty->Set<ScreenPropertyType::ID>(id);
-        hgmContextForProcess->AddScreenToHgm(screenProperty);
+        hgmContext->AddScreenToHgm(screenProperty);
 
         ASSERT_FALSE(hgmCore.screenIds_.empty());
         EXPECT_EQ(hgmCore.screenIds_.back(), id);
         ASSERT_FALSE(hgmCore.screenList_.empty());
         EXPECT_EQ(hgmCore.screenList_.back()->GetId(), id);
 
-        hgmContextForProcess->RemoveScreenFromHgm(id);
+        hgmContext->RemoveScreenFromHgm(id);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
         EXPECT_TRUE(hgmCore.screenIds_.empty());
         EXPECT_TRUE(hgmCore.screenList_.empty());
+    } else {
+        EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
+    }
+}
+
+/**
+ * @tc.name: CleanAllWhenServiceConnectionDieTest001
+ * @tc.desc: test CleanAllWhenServiceConnectionDie
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, CleanAllWhenServiceConnectionDieTest001, TestSize.Level1)
+{
+    if (frameRateMgr) {
+        auto runner_ = AppExecFwk::EventRunner::Create(false);
+        auto handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+        auto hgmContext = std::make_shared<HgmContext>(handler_, frameRateMgr, nullptr, nullptr, nullptr);
+        ASSERT_NE(hgmContext, nullptr);
+
+        hgmContext->CleanAllWhenServiceConnectionDie(0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -746,6 +789,34 @@ HWTEST_F(HgmContextTest, NotifyXComponentExpectedFrameRateTest001, TestSize.Leve
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
 }
 
+/**
+ * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest001
+ * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback when dstpid is 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest001, TestSize.Level1)
+{
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+    EXPECT_EQ(
+        hgmContext->RegisterFrameRateLinkerExpectedFpsUpdateCallback(0, 0, nullptr), StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest002
+ * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback when dstpid is not 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest002, TestSize.Level1)
+{
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+    EXPECT_EQ(hgmContext->RegisterFrameRateLinkerExpectedFpsUpdateCallback(0, 1, nullptr), StatusCode::SUCCESS);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+}
 
 /**
  * @tc.name: GetRSFrameRateLinkerTest001
@@ -861,44 +932,19 @@ HWTEST_F(HgmContextTest, NotifyDynamicModeEventTest001, TestSize.Level1)
 
 /**
  * @tc.name: NotifyRefreshRateEventTest001
- * @tc.desc: test NotifyRefreshRateEvent when eventName is VOTER_SCENE_BLUR
+ * @tc.desc: test NotifyRefreshRateEvent
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest001, TestSize.Level1)
 {
-    pid_t pid = 0;
-    EventInfo eventInfo;
-    eventInfo.eventName = "VOTER_SCENE_BLUR";
-    hgmContextForProcess->NotifyRefreshRateEvent(pid, eventInfo);
-}
-
-/**
- * @tc.name: NotifyRefreshRateEventTest002
- * @tc.desc: test NotifyRefreshRateEvent when eventName is VOTER_SCENE_GPU
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest002, TestSize.Level1)
-{
-    pid_t pid = 0;
-    EventInfo eventInfo;
-    eventInfo.eventName = "VOTER_SCENE_GPU";
-    hgmContextForProcess->NotifyRefreshRateEvent(pid, eventInfo);
-}
-
-/**
- * @tc.name: NotifyRefreshRateEventTest003
- * @tc.desc: test NotifyRefreshRateEvent when eventName is not VOTER_SCENE_BLUR or VOTER_SCENE_GPU
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest003, TestSize.Level1)
-{
     if (frameRateMgr) {
+        auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+        ASSERT_NE(hgmContext, nullptr);
+
         pid_t pid = 0;
         EventInfo eventInfo;
-        hgmContextForProcess->NotifyRefreshRateEvent(pid, eventInfo);
+        hgmContext->NotifyRefreshRateEvent(pid, eventInfo);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     } else {
@@ -915,9 +961,12 @@ HWTEST_F(HgmContextTest, NotifyRefreshRateEventTest003, TestSize.Level1)
 HWTEST_F(HgmContextTest, NotifyLightFactorStatusTest001, TestSize.Level1)
 {
     if (frameRateMgr) {
+        auto hgmContext = std::make_shared<HgmContext>(nullptr, frameRateMgr, nullptr, nullptr, nullptr);
+        ASSERT_NE(hgmContext, nullptr);
+
         pid_t pid = 0;
         int32_t lightFactorStatus = 0;
-        EXPECT_EQ(hgmContextForProcess->NotifyLightFactorStatus(pid, lightFactorStatus), ERR_OK);
+        EXPECT_EQ(hgmContext->NotifyLightFactorStatus(pid, lightFactorStatus), ERR_OK);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     } else {

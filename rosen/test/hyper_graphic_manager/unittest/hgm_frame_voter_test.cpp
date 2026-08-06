@@ -197,7 +197,7 @@ HWTEST_F(HgmFrameVoterTest, TestDeliverVote, Function | SmallTest | Level0)
     hgmFrameVoter.DeliverVote({ "VOTER_LTPO", OLED_60_HZ, OLED_90_HZ, 3 }, true);
     EXPECT_EQ(hgmFrameVoter.voteRecord_["VOTER_LTPO"].first.back().max, OLED_90_HZ);
 
-    std::string voterName;
+    std::string voterName = "";
     hgmFrameVoter.SetChangeRangeCallback([&](const std::string& voter) {
         voterName = voter;
     });

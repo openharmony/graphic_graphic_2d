@@ -99,6 +99,7 @@ public:
     void Purge() override;
     bool IsValid() override;
     void Dump(std::string& dump) override;
+    void FlushImageCache() override;
 protected:
     std::shared_ptr<RSImage> rsImage_ = nullptr;
     Drawing::Rect src_;
@@ -141,6 +142,7 @@ public:
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
     void Purge() override;
+    void FlushImageCache() override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_ = nullptr;
     Drawing::Rect src_;
@@ -162,6 +164,7 @@ public:
     static RSExtendImageNineObject *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
     void Purge() override;
+    void FlushImageCache() override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_ = nullptr;
 };
@@ -181,6 +184,7 @@ public:
     static RSExtendImageLatticeObject *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
     void Purge() override;
+    void FlushImageCache() override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_ = nullptr;
 };

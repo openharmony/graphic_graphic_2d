@@ -391,18 +391,14 @@ bool RSRenderNodeDrawable::SkipDrawByWhiteList(Drawing::Canvas& canvas)
         return false;
     }
 
-    // 2. if node is in the white list, don't filter the node
+    // 2. white list is empty, or white list root ids is not empty, draw normally
     if (IsWhiteListNode()) {
         return false;
     }
-    
-    // 3. if node's child is in the white list, only draw children
+
     const auto& params = GetRenderParams();
     if (params != nullptr) {
-        const auto& screenIds = params->GetScreensWithSubTreeWhitelist();
-        if (screenIds.find(curDisplayScreenId_) != screenIds.end()) {
-            DrawChildren(canvas, params->GetFrameRect());
-        }
+        DrawChildren(canvas, params->GetFrameRect());
     }
     return true;
 }

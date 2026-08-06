@@ -19,9 +19,7 @@ module_out_path = "graphic_2d/graphic_2d/render_service/composer/composer_servic
 group("unittest") {
   testonly = true
   deps = [
-    ":hdibackend_unit_test",
     ":hdilayer_unit_test",
-    ":hdioutput_unit_test",
   ]
 }
 

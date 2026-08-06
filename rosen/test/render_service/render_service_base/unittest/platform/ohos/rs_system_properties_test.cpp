@@ -1231,7 +1231,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledTest, TestSize.Leve
     auto deviceType = system::GetParameter("const.product.devicetype", "phone");
     bool isPhone = deviceType == "phone";
     bool useVulkan = RSSystemProperties::IsUseVulkan();
-    auto value = system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
+    auto value = system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
     EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), value && useVulkan && isPhone);
 }
 } // namespace Rosen

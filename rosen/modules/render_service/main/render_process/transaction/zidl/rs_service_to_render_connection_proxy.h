@@ -126,6 +126,7 @@ public:
 
     // Others
     ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) override;
+    ErrCode SetUIMode3D(UIMode3D mode) override;
     ErrCode RepaintEverything() override;
     void ForceRefreshOneFrameWithNextVSync() override;
     ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) override;

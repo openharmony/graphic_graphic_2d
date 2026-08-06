@@ -51,13 +51,14 @@ void RSRenderInterpolatingSpringAnimation::DumpAnimationInfo(std::string& out) c
     out.append(", EndValue: ").append(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_));
 }
 
-void RSRenderInterpolatingSpringAnimation::SetSpringParameters(
-    float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio)
+void RSRenderInterpolatingSpringAnimation::SetSpringParameters(float response, float dampingRatio,
+    float normalizedInitialVelocity, float minimumAmplitudeRatio, std::optional<ConvergeParams> convergeParams)
 {
     response_ = response;
     dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     normalizedInitialVelocity_ = normalizedInitialVelocity;
     minimumAmplitudeRatio_ = minimumAmplitudeRatio;
+    convergeParams_ = convergeParams;
 }
 
 void RSRenderInterpolatingSpringAnimation::SetZeroThreshold(float zeroThreshold)
@@ -152,10 +153,10 @@ void RSRenderInterpolatingSpringAnimation::RebuildPropertyValue(float fraction)
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::RebuildPropertyValue failed: valueEstimator is nullptr");
         return;
     }
-    float displacement = 1.f;
-    if (!ROSEN_EQ(fraction, 1.f)) {
+    float displacement = 1.0f;
+    if (!ROSEN_EQ(fraction, 1.0f)) {
         auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
-        displacement = 1.f + CalculateDisplacement(mappedTime);
+        displacement = 1.0f + CalculateDisplacement(mappedTime);
     }
     valueEstimator_->RebuildValue(displacement);
 }

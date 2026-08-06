@@ -360,7 +360,8 @@ bool RSRenderInterpolatingSpringAnimation::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, normalizedInitialVelocity_) &&
             RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Marshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Marshalling(parcel, convergeParams_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::Marshalling, invalid parametter failed");
         return false;
     }
@@ -392,7 +393,7 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, RSRenderPropertyBase Fail");
         return false;
     }
-   
+
     if (startValue_ && startValue_->IsDrawCmdListProperty()) {
         startValue_ = startValue_->CreateSimpleProperty();
     }
@@ -406,7 +407,8 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
             RSMarshallingHelper::Unmarshalling(parcel, normalizedInitialVelocity_) &&
             RSMarshallingHelper::Unmarshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, convergeParams_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, MarshallingHelper Fail");
         return false;
     }
@@ -507,7 +509,7 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling interpolator failed");
             return false;
         }
-        
+
         if (tupValue1 && tupValue1->IsDrawCmdListProperty()) {
             tupValue1 = tupValue1->CreateSimpleProperty();
         }
@@ -535,7 +537,7 @@ bool RSRenderKeyframeAnimation::ParseDurationKeyframesParam(Parcel& parcel, int 
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseDurationParam, Unmarshalling interpolator failed");
             return false;
         }
-        
+
         if (tupValue1 && tupValue1->IsDrawCmdListProperty()) {
             tupValue1 = tupValue1->CreateSimpleProperty();
         }
@@ -669,7 +671,8 @@ bool RSRenderSpringAnimation::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, blendDuration_) &&
             RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Marshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Marshalling(parcel, convergeParams_))) {
         ROSEN_LOGE("RSRenderSpringAnimation::Marshalling, MarshallingHelper failed");
         return false;
     }
@@ -714,6 +717,7 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
             RSMarshallingHelper::Unmarshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
             RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, convergeParams_) &&
             RSMarshallingHelper::Unmarshalling(parcel, haveInitialVelocity))) {
         ROSEN_LOGE("RSRenderSpringAnimation::ParseParam, MarshallingHelper Fail");
         return false;

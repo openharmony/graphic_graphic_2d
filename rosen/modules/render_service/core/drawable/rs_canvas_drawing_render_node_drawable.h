@@ -77,10 +77,6 @@ public:
         return RSRenderNodeDrawableType::CANVAS_DRAWING_NODE_DRAWABLE;
     }
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    sptr<IConsumerSurface> GetConsumerSurface() const;
-#endif
-
 protected:
     void DumpSubDrawableTree(std::string& out) const override;
 

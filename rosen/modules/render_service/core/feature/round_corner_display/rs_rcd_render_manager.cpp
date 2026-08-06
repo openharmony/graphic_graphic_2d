@@ -34,22 +34,22 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    const NodeId PID_T = static_cast<NodeId>(GetRealPid());
-    const NodeId TOP_RCD_NODE_ID = 1;
-    const NodeId BOTTOM_RCD_NODE_ID = 2;
+const NodeId PID_T = static_cast<NodeId>(GetRealPid());
+constexpr NodeId TOP_RCD_NODE_ID = 1;
+constexpr NodeId BOTTOM_RCD_NODE_ID = 2;
 
-    NodeId GenerateRoundCornerDisplayID(NodeId screenID, uint32_t rcdTypeId)
-    {
+NodeId GenerateRoundCornerDisplayID(NodeId screenID, uint32_t rcdTypeId)
+{
 #ifdef USE_M133_SKIA
-        const auto hashFunc = SkChecksum::Hash32;
+    const auto hashFunc = SkChecksum::Hash32;
 #else
-        const auto hashFunc = SkOpts::hash;
+    const auto hashFunc = SkOpts::hash;
 #endif
-        uint32_t hashOut = rcdTypeId;
-        hashOut = hashFunc(&screenID, sizeof(screenID), hashOut);
-        NodeId idOut = ((PID_T << 32) | static_cast<NodeId>(hashOut));
-        return idOut;
-    }
+    uint32_t hashOut = rcdTypeId;
+    hashOut = hashFunc(&screenID, sizeof(screenID), hashOut);
+    NodeId idOut = ((PID_T << 32) | static_cast<NodeId>(hashOut));
+    return idOut;
+}
 }
 
 static std::unique_ptr<RSRcdRenderManager> g_rcdRenderManagerInstance =
@@ -81,8 +81,8 @@ void RSRcdRenderManager::InitInstance()
             msgBus.RegisterTopic<NodeId, bool>(
                 TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
                 &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
-            isRcdServiceRegister_ = true;
             RS_LOGI("RSRcdRenderManager::InitInstance Registed rcd renderservice end.");
+            isRcdServiceRegister_ = true;
             return;
         }
         RS_LOGI("RSRcdRenderManager::InitInstance Registed rcd renderservice already.");

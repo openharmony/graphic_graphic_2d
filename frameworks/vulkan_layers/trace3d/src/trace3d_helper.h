@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,6 +30,9 @@
 #include <securec.h>
 #include <parameters.h>
 #include <hilog/log.h>
+
+#define LIKELY(exp) (__builtin_expect((exp) != 0, true))
+#define UNLIKELY(exp) (__builtin_expect((exp) != 0, false))
 
 #define LOADER_TAG "TRACE3D_LOADER"
 
