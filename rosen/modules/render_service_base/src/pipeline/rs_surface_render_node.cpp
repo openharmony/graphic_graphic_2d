@@ -3983,7 +3983,6 @@ void RSSurfaceRenderNode::ResetSurfaceNodeStates()
     isRotating_ = false;
     specialLayerChanged_ = false;
     ResetIsBufferFlushed();
-{
 }
 
 void RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
