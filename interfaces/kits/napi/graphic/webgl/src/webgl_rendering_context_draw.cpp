@@ -28,13 +28,6 @@ namespace Rosen {
 namespace Impl {
 using namespace std;
 namespace {
-enum class AttribRequirement : uint8_t {
-    NONE,
-    FLOAT,
-    SIGNED_INTEGER,
-    UNSIGNED_INTEGER,
-};
-
 constexpr size_t MAX_ATTRIBUTE_NAME_LENGTH = 1025;
 
 bool CheckedAdd(size_t a, size_t b, size_t& result)
@@ -44,24 +37,6 @@ bool CheckedAdd(size_t a, size_t b, size_t& result)
     }
     result = a + b;
     return true;
-}
-
-AttribRequirement GetAttribRequirement(GLenum type)
-{
-    switch (type) {
-        case GL_INT:
-        case GL_INT_VEC2:
-        case GL_INT_VEC3:
-        case GL_INT_VEC4:
-            return AttribRequirement::SIGNED_INTEGER;
-        case GL_UNSIGNED_INT:
-        case GL_UNSIGNED_INT_VEC2:
-        case GL_UNSIGNED_INT_VEC3:
-        case GL_UNSIGNED_INT_VEC4:
-            return AttribRequirement::UNSIGNED_INTEGER;
-        default:
-            return AttribRequirement::FLOAT;
-    }
 }
 
 size_t GetAttribLocationCount(GLenum type, GLint arraySize)
@@ -289,6 +264,96 @@ bool ComputeCompressedBytesRequired(const TexImageArg& imgArg, size_t& out, GLen
     size_t depth = is3D ? static_cast<size_t>(imgArg.depth) : 1;
     return CheckedMultiply(sliceBytes, depth, out);
 }
+
+struct PixelUnpackLayout {
+    size_t width;
+    size_t height;
+    size_t depth;
+    size_t rowStride;
+    size_t imageStride;
+    size_t bytesPerPixel;
+    size_t skipPixels;
+    size_t skipRows;
+    size_t skipImages;
+};
+
+struct PixelUnpackState {
+    GLint rowLength;
+    GLint imageHeight;
+    GLint skipPixels;
+    GLint skipRows;
+    GLint skipImages;
+    GLint alignment;
+};
+
+GLenum BuildPixelUnpackLayout(const TexImageArg& imgArg, uint32_t componentCount,
+    const PixelUnpackState& state, PixelUnpackLayout& layout)
+{
+    layout.width = static_cast<size_t>(imgArg.width);
+    layout.height = static_cast<size_t>(imgArg.height);
+    bool is3D = imgArg.target == GL_TEXTURE_3D || imgArg.target == GL_TEXTURE_2D_ARRAY;
+    layout.depth = is3D ? static_cast<size_t>(imgArg.depth) : 1;
+    size_t rowLength = state.rowLength == 0 ? layout.width : static_cast<size_t>(state.rowLength);
+    size_t imageHeight = state.imageHeight == 0 ? layout.height : static_cast<size_t>(state.imageHeight);
+    layout.skipPixels = static_cast<size_t>(state.skipPixels);
+    layout.skipRows = static_cast<size_t>(state.skipRows);
+    layout.skipImages = is3D ? static_cast<size_t>(state.skipImages) : 0;
+    size_t end = 0;
+    if (!CheckedAdd(layout.skipPixels, layout.width, end) || end > rowLength ||
+        !CheckedAdd(layout.skipRows, layout.height, end) || end > imageHeight) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    if (!GetPixelBytes(imgArg.type, componentCount, layout.bytesPerPixel)) {
+        return WebGLRenderingContextBase::INVALID_ENUM;
+    }
+    size_t rowBytes = 0;
+    size_t alignment = static_cast<size_t>(state.alignment);
+    if (!CheckedMultiply(rowLength, layout.bytesPerPixel, rowBytes) ||
+        !CheckedAdd(rowBytes, alignment - 1, layout.rowStride)) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    layout.rowStride = layout.rowStride / alignment * alignment;
+    if (!CheckedMultiply(layout.rowStride, imageHeight, layout.imageStride)) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    return WebGLRenderingContextBase::NO_ERROR;
+}
+
+bool ComputePixelUnpackSkipBytes(const PixelUnpackLayout& layout, size_t& required)
+{
+    size_t part = 0;
+    return CheckedMultiply(layout.skipImages, layout.imageStride, required) &&
+        CheckedMultiply(layout.skipRows, layout.rowStride, part) && CheckedAdd(required, part, required) &&
+        CheckedMultiply(layout.skipPixels, layout.bytesPerPixel, part) && CheckedAdd(required, part, required);
+}
+
+bool AddPixelUnpackDataBytes(const PixelUnpackLayout& layout, size_t& required)
+{
+    if (layout.width == 0 || layout.height == 0 || layout.depth == 0) {
+        return true;
+    }
+    size_t part = 0;
+    return CheckedMultiply(layout.depth - 1, layout.imageStride, part) && CheckedAdd(required, part, required) &&
+        CheckedMultiply(layout.height - 1, layout.rowStride, part) && CheckedAdd(required, part, required) &&
+        CheckedMultiply(layout.width, layout.bytesPerPixel, part) && CheckedAdd(required, part, required);
+}
+
+bool ComputeVertexAttribRequiredEnd(
+    const VertexAttribInfo& info, uint64_t maxVertex, GLsizei instanceCount, size_t& requiredEnd)
+{
+    size_t componentSize = WebGLArg::GetWebGLDataSize(info.glType);
+    size_t attributeSize = 0;
+    if (!CheckedMultiply(static_cast<size_t>(info.size), componentSize, attributeSize)) {
+        return false;
+    }
+    size_t element = info.divisor == 0 ? static_cast<size_t>(maxVertex) :
+        static_cast<size_t>(instanceCount - 1) / static_cast<size_t>(info.divisor);
+    size_t stride = info.stride == 0 ? attributeSize : static_cast<size_t>(info.stride);
+    size_t elementOffset = 0;
+    return CheckedMultiply(element, stride, elementOffset) &&
+        CheckedAdd(static_cast<size_t>(info.offset), elementOffset, requiredEnd) &&
+        CheckedAdd(requiredEnd, attributeSize, requiredEnd);
+}
 } // namespace
 
 GLenum WebGLRenderingContextBaseImpl::CheckPixelUnpackBufferRange(
@@ -327,51 +392,16 @@ GLenum WebGLRenderingContextBaseImpl::CheckPixelUnpackData(
     if (unpackFlipY_ || unpackPremultiplyAlpha_) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
-    size_t width = static_cast<size_t>(imgArg.width);
-    size_t height = static_cast<size_t>(imgArg.height);
-    bool is3D = imgArg.target == GL_TEXTURE_3D || imgArg.target == GL_TEXTURE_2D_ARRAY;
-    size_t depth = is3D ? static_cast<size_t>(imgArg.depth) : 1;
-    size_t rowLength = unpackRowLength_ == 0 ? width : static_cast<size_t>(unpackRowLength_);
-    size_t imageHeight = unpackImageHeight_ == 0 ? height : static_cast<size_t>(unpackImageHeight_);
-    size_t skipPixels = static_cast<size_t>(unpackSkipPixels_);
-    size_t skipRows = static_cast<size_t>(unpackSkipRows_);
-    size_t skipImages = is3D ? static_cast<size_t>(unpackSkipImages_) : 0;
-    size_t end = 0;
-    if (!CheckedAdd(skipPixels, width, end) || end > rowLength ||
-        !CheckedAdd(skipRows, height, end) || end > imageHeight) {
-        return WebGLRenderingContextBase::INVALID_OPERATION;
-    }
-    size_t bytesPerPixel = 0;
-    if (!GetPixelBytes(imgArg.type, GetFormatComponentCount(imgArg.format), bytesPerPixel)) {
-        return WebGLRenderingContextBase::INVALID_ENUM;
-    }
-    size_t rowBytes = 0;
-    size_t rowStride = 0;
-    size_t imageStride = 0;
-    size_t alignment = static_cast<size_t>(unpackAlignment_);
-    if (!CheckedMultiply(rowLength, bytesPerPixel, rowBytes) ||
-        !CheckedAdd(rowBytes, alignment - 1, rowStride)) {
-        return WebGLRenderingContextBase::INVALID_OPERATION;
-    }
-    rowStride = rowStride / alignment * alignment;
-    if (!CheckedMultiply(rowStride, imageHeight, imageStride)) {
-        return WebGLRenderingContextBase::INVALID_OPERATION;
+    PixelUnpackState state { unpackRowLength_, unpackImageHeight_, unpackSkipPixels_, unpackSkipRows_,
+        unpackSkipImages_, unpackAlignment_ };
+    PixelUnpackLayout layout {};
+    GLenum result = BuildPixelUnpackLayout(imgArg, GetFormatComponentCount(imgArg.format), state, layout);
+    if (result != WebGLRenderingContextBase::NO_ERROR) {
+        return result;
     }
     size_t required = 0;
-    size_t part = 0;
-    if (!CheckedMultiply(skipImages, imageStride, required) ||
-        !CheckedMultiply(skipRows, rowStride, part) || !CheckedAdd(required, part, required) ||
-        !CheckedMultiply(skipPixels, bytesPerPixel, part) || !CheckedAdd(required, part, required)) {
-        return WebGLRenderingContextBase::INVALID_OPERATION;
-    }
-    if (width > 0 && height > 0 && depth > 0) {
-        if (!CheckedMultiply(depth - 1, imageStride, part) || !CheckedAdd(required, part, required) ||
-            !CheckedMultiply(height - 1, rowStride, part) || !CheckedAdd(required, part, required) ||
-            !CheckedMultiply(width, bytesPerPixel, part) || !CheckedAdd(required, part, required)) {
-            return WebGLRenderingContextBase::INVALID_OPERATION;
-        }
-    }
-    if (required > static_cast<size_t>(std::numeric_limits<GLsizeiptr>::max())) {
+    if (!ComputePixelUnpackSkipBytes(layout, required) || !AddPixelUnpackDataBytes(layout, required) ||
+        required > static_cast<size_t>(std::numeric_limits<GLsizeiptr>::max())) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
     return CheckPixelUnpackBufferRange(env, offset, static_cast<GLsizeiptr>(required));
@@ -904,6 +934,7 @@ napi_value WebGLRenderingContextBaseImpl::BufferSubData(
     return NVal::CreateNull(env).val_;
 }
 
+// CC-OFFNXT(huge_cyclomatic_complexity,G.FUN.01-CPP) WebGL pname dispatch maps directly to specification states.
 napi_value WebGLRenderingContextBaseImpl::PixelStorei(napi_env env, GLenum pname, GLint param)
 {
     switch (pname) {
@@ -1582,13 +1613,44 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawState(napi_env env)
     return WebGLRenderingContextBase::NO_ERROR;
 }
 
-GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribBuffers(
-    napi_env env, uint64_t maxVertex, bool hasVertices, GLsizei instanceCount)
+WebGLRenderingContextBaseImpl::AttribRequirement WebGLRenderingContextBaseImpl::GetAttribRequirement(GLenum type)
+{
+    switch (type) {
+        case GL_INT:
+        case GL_INT_VEC2:
+        case GL_INT_VEC3:
+        case GL_INT_VEC4:
+            return AttribRequirement::SIGNED_INTEGER;
+        case GL_UNSIGNED_INT:
+        case GL_UNSIGNED_INT_VEC2:
+        case GL_UNSIGNED_INT_VEC3:
+        case GL_UNSIGNED_INT_VEC4:
+            return AttribRequirement::UNSIGNED_INTEGER;
+        default:
+            return AttribRequirement::FLOAT;
+    }
+}
+
+bool WebGLRenderingContextBaseImpl::CheckVertexAttribType(
+    const VertexAttribInfo& info, AttribRequirement requirement)
+{
+    bool typeMatches = requirement == AttribRequirement::FLOAT ? !info.integer : info.integer;
+    if (requirement == AttribRequirement::SIGNED_INTEGER) {
+        return typeMatches && IsSignedIntegerAttribType(info.glType);
+    }
+    if (requirement == AttribRequirement::UNSIGNED_INTEGER) {
+        return typeMatches && IsUnsignedIntegerAttribType(info.glType);
+    }
+    return typeMatches;
+}
+
+GLenum WebGLRenderingContextBaseImpl::BuildActiveAttribRequirements(
+    std::vector<AttribRequirement>& requirements)
 {
     if (arrayVertexAttribs_.size() < maxVertexAttribs_) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
-    std::vector<AttribRequirement> requirements(maxVertexAttribs_, AttribRequirement::NONE);
+    requirements.assign(maxVertexAttribs_, AttribRequirement::NONE);
     GLint activeCount = 0;
     GLint maxNameLength = 0;
     glGetProgramiv(currentProgramId_, GL_ACTIVE_ATTRIBUTES, &activeCount);
@@ -1616,53 +1678,66 @@ GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribBuffers(
         }
         std::fill_n(requirements.begin() + location, locationCount, GetAttribRequirement(type));
     }
+    return WebGLRenderingContextBase::NO_ERROR;
+}
 
+GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribBufferRange(napi_env env, size_t index,
+    AttribRequirement requirement, uint64_t maxVertex, bool hasVertices, GLsizei instanceCount)
+{
+    const VertexAttribInfo& info = arrayVertexAttribs_[index];
+    if (!info.enabled) {
+        if ((requirement == AttribRequirement::SIGNED_INTEGER && info.type != BUFFER_DATA_INT_32) ||
+            (requirement == AttribRequirement::UNSIGNED_INTEGER && info.type != BUFFER_DATA_UINT_32)) {
+            return WebGLRenderingContextBase::INVALID_OPERATION;
+        }
+        return WebGLRenderingContextBase::NO_ERROR;
+    }
+    if (!CheckVertexAttribType(info, requirement) || info.bufferId == 0 || info.size <= 0 || info.glType == 0 ||
+        info.offset < 0) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    if (!hasVertices || (info.divisor != 0 && instanceCount == 0)) {
+        return WebGLRenderingContextBase::NO_ERROR;
+    }
+    WebGLBuffer* buffer = GetObjectInstance<WebGLBuffer>(env, info.bufferId);
+    if (buffer == nullptr) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    size_t requiredEnd = 0;
+    if (!ComputeVertexAttribRequiredEnd(info, maxVertex, instanceCount, requiredEnd) ||
+        requiredEnd > buffer->GetBufferSize()) {
+        LOGE("WebGL draw vertex attribute %{public}zu exceeds buffer", index);
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    return WebGLRenderingContextBase::NO_ERROR;
+}
+
+GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribBufferRanges(napi_env env,
+    const std::vector<AttribRequirement>& requirements, uint64_t maxVertex, bool hasVertices,
+    GLsizei instanceCount)
+{
     for (size_t index = 0; index < requirements.size(); ++index) {
         if (requirements[index] == AttribRequirement::NONE) {
             continue;
         }
-        const VertexAttribInfo& info = arrayVertexAttribs_[index];
-        if (!info.enabled) {
-            if ((requirements[index] == AttribRequirement::SIGNED_INTEGER && info.type != BUFFER_DATA_INT_32) ||
-                (requirements[index] == AttribRequirement::UNSIGNED_INTEGER && info.type != BUFFER_DATA_UINT_32)) {
-                return WebGLRenderingContextBase::INVALID_OPERATION;
-            }
-            continue;
-        }
-        bool typeMatches = requirements[index] == AttribRequirement::FLOAT ? !info.integer : info.integer;
-        if (requirements[index] == AttribRequirement::SIGNED_INTEGER) {
-            typeMatches = typeMatches && IsSignedIntegerAttribType(info.glType);
-        } else if (requirements[index] == AttribRequirement::UNSIGNED_INTEGER) {
-            typeMatches = typeMatches && IsUnsignedIntegerAttribType(info.glType);
-        }
-        if (!typeMatches || info.bufferId == 0 || info.size <= 0 || info.glType == 0 || info.offset < 0) {
-            return WebGLRenderingContextBase::INVALID_OPERATION;
-        }
-        if (!hasVertices || (info.divisor != 0 && instanceCount == 0)) {
-            continue;
-        }
-        WebGLBuffer* buffer = GetObjectInstance<WebGLBuffer>(env, info.bufferId);
-        if (buffer == nullptr) {
-            return WebGLRenderingContextBase::INVALID_OPERATION;
-        }
-        size_t componentSize = WebGLArg::GetWebGLDataSize(info.glType);
-        size_t attributeSize = 0;
-        if (!CheckedMultiply(static_cast<size_t>(info.size), componentSize, attributeSize)) {
-            return WebGLRenderingContextBase::INVALID_OPERATION;
-        }
-        size_t element = info.divisor == 0 ? static_cast<size_t>(maxVertex) :
-            static_cast<size_t>(instanceCount - 1) / static_cast<size_t>(info.divisor);
-        size_t stride = info.stride == 0 ? attributeSize : static_cast<size_t>(info.stride);
-        size_t elementOffset = 0;
-        size_t requiredEnd = 0;
-        if (!CheckedMultiply(element, stride, elementOffset) ||
-            !CheckedAdd(static_cast<size_t>(info.offset), elementOffset, requiredEnd) ||
-            !CheckedAdd(requiredEnd, attributeSize, requiredEnd) || requiredEnd > buffer->GetBufferSize()) {
-            LOGE("WebGL draw vertex attribute %{public}zu exceeds buffer", index);
-            return WebGLRenderingContextBase::INVALID_OPERATION;
+        GLenum result = CheckVertexAttribBufferRange(
+            env, index, requirements[index], maxVertex, hasVertices, instanceCount);
+        if (result != WebGLRenderingContextBase::NO_ERROR) {
+            return result;
         }
     }
     return WebGLRenderingContextBase::NO_ERROR;
+}
+
+GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribBuffers(
+    napi_env env, uint64_t maxVertex, bool hasVertices, GLsizei instanceCount)
+{
+    std::vector<AttribRequirement> requirements;
+    GLenum result = BuildActiveAttribRequirements(requirements);
+    if (result != WebGLRenderingContextBase::NO_ERROR) {
+        return result;
+    }
+    return CheckVertexAttribBufferRanges(env, requirements, maxVertex, hasVertices, instanceCount);
 }
 
 GLenum WebGLRenderingContextBaseImpl::CheckDrawArrays(
@@ -1698,25 +1773,25 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawArrays(
     return CheckFrameBufferBoundComplete(env);
 }
 
-GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
-    napi_env env, GLenum mode, GLsizei count, GLenum type, int64_t offset, GLsizei instanceCount)
+GLenum WebGLRenderingContextBaseImpl::CheckDrawElementsArgs(napi_env env, const DrawElementArg& arg,
+    GLsizei instanceCount, uint32_t& indexSize, WebGLBuffer*& indexBuffer)
 {
-    if (!CheckDrawMode(env, mode)) {
+    if (!CheckDrawMode(env, arg.mode)) {
         return WebGLRenderingContextBase::INVALID_ENUM;
     }
     if (!CheckStencil(env)) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
 
-    uint32_t size = 1;
-    switch (type) {
+    indexSize = 1;
+    switch (arg.type) {
         case WebGLRenderingContextBase::UNSIGNED_BYTE:
             break;
         case WebGLRenderingContextBase::UNSIGNED_SHORT:
-            size = sizeof(short);
+            indexSize = sizeof(short);
             break;
         case WebGLRenderingContextBase::UNSIGNED_INT: {
-            size = sizeof(int);
+            indexSize = sizeof(int);
             if (IsHighWebGL()) {
                 break;
             }
@@ -1725,23 +1800,22 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
         default:
             return WebGLRenderingContextBase::INVALID_ENUM;
     }
-    if (count < 0 || offset < 0 || instanceCount < 0) {
+    if (arg.count < 0 || arg.offset < 0 || instanceCount < 0) {
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
-    if ((offset % static_cast<int64_t>(size)) != 0) {
+    if ((arg.offset % static_cast<int64_t>(indexSize)) != 0) {
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
-    WebGLBuffer* webGLBuffer =
-        GetObjectInstance<WebGLBuffer>(env, boundBufferIds_[BoundBufferType::ELEMENT_ARRAY_BUFFER]);
-    if (webGLBuffer == nullptr || webGLBuffer->GetBufferSize() == 0) {
+    indexBuffer = GetObjectInstance<WebGLBuffer>(env, boundBufferIds_[BoundBufferType::ELEMENT_ARRAY_BUFFER]);
+    if (indexBuffer == nullptr || indexBuffer->GetBufferSize() == 0) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
 
     // check count
-    uint64_t requiredBytes = static_cast<uint64_t>(size) * static_cast<uint64_t>(count);
-    uint64_t bufferSize = static_cast<uint64_t>(webGLBuffer->GetBufferSize());
-    if (requiredBytes > bufferSize || static_cast<uint64_t>(offset) > bufferSize - requiredBytes) {
-        LOGE("WebGL drawElements Insufficient buffer size %{public}d", count);
+    uint64_t requiredBytes = static_cast<uint64_t>(indexSize) * static_cast<uint64_t>(arg.count);
+    uint64_t bufferSize = static_cast<uint64_t>(indexBuffer->GetBufferSize());
+    if (requiredBytes > bufferSize || static_cast<uint64_t>(arg.offset) > bufferSize - requiredBytes) {
+        LOGE("WebGL drawElements Insufficient buffer size %{public}d", arg.count);
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
 
@@ -1749,21 +1823,25 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
         LOGE("WebGL drawArrays no valid shader program in use");
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
-    bool hasVertices = count > 0 && instanceCount > 0;
-    bool hasReferencedVertex = false;
-    uint64_t maxVertex = 0;
-    const uint8_t* indexData = webGLBuffer->GetIndexData();
-    if (count > 0 && indexData == nullptr) {
+    return WebGLRenderingContextBase::NO_ERROR;
+}
+
+GLenum WebGLRenderingContextBaseImpl::GetMaxReferencedVertex(const WebGLBuffer* indexBuffer,
+    const DrawElementArg& arg, uint32_t indexSize, uint64_t& maxVertex, bool& hasReferencedVertex)
+{
+    const uint8_t* indexData = indexBuffer->GetIndexData();
+    if (arg.count > 0 && indexData == nullptr) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
-    uint64_t restartIndex = type == WebGLRenderingContextBase::UNSIGNED_BYTE ? UINT8_MAX :
-        (type == WebGLRenderingContextBase::UNSIGNED_SHORT ? UINT16_MAX : UINT32_MAX);
-    for (GLsizei index = 0; index < count; ++index) {
+    uint64_t restartIndex = arg.type == WebGLRenderingContextBase::UNSIGNED_BYTE ? UINT8_MAX :
+        (arg.type == WebGLRenderingContextBase::UNSIGNED_SHORT ? UINT16_MAX : UINT32_MAX);
+    for (GLsizei index = 0; index < arg.count; ++index) {
         uint64_t value = 0;
-        const uint8_t* source = indexData + static_cast<size_t>(offset) + static_cast<size_t>(index) * size;
-        if (size == sizeof(uint8_t)) {
+        const uint8_t* source =
+            indexData + static_cast<size_t>(arg.offset) + static_cast<size_t>(index) * indexSize;
+        if (indexSize == sizeof(uint8_t)) {
             value = *source;
-        } else if (size == sizeof(uint16_t)) {
+        } else if (indexSize == sizeof(uint16_t)) {
             uint16_t item = 0;
             if (memcpy_s(&item, sizeof(item), source, sizeof(item)) != EOK) {
                 return WebGLRenderingContextBase::INVALID_OPERATION;
@@ -1782,6 +1860,26 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
         hasReferencedVertex = true;
         maxVertex = std::max(maxVertex, value);
     }
+    return WebGLRenderingContextBase::NO_ERROR;
+}
+
+GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
+    napi_env env, GLenum mode, GLsizei count, GLenum type, int64_t offset, GLsizei instanceCount)
+{
+    uint32_t indexSize = 0;
+    WebGLBuffer* indexBuffer = nullptr;
+    DrawElementArg arg { mode, count, type, offset };
+    GLenum result = CheckDrawElementsArgs(env, arg, instanceCount, indexSize, indexBuffer);
+    if (result != WebGLRenderingContextBase::NO_ERROR) {
+        return result;
+    }
+    bool hasVertices = count > 0 && instanceCount > 0;
+    bool hasReferencedVertex = false;
+    uint64_t maxVertex = 0;
+    result = GetMaxReferencedVertex(indexBuffer, arg, indexSize, maxVertex, hasReferencedVertex);
+    if (result != WebGLRenderingContextBase::NO_ERROR) {
+        return result;
+    }
     if (IsHighWebGL() && count > 0) {
         GLint64 maxElementIndex = 0;
         glGetInteger64v(GL_MAX_ELEMENT_INDEX, &maxElementIndex);
@@ -1790,7 +1888,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
         }
     }
     hasVertices = hasVertices && hasReferencedVertex;
-    GLenum result = CheckVertexAttribBuffers(env, maxVertex, hasVertices, instanceCount);
+    result = CheckVertexAttribBuffers(env, maxVertex, hasVertices, instanceCount);
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         return result;
     }

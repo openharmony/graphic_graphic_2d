@@ -41,9 +41,43 @@ constexpr size_t ATTRIB_I4_COMPONENT_COUNT = 4;
 constexpr GLint SINGLE_SLICE_DEPTH = 1;
 constexpr GLint MAX_TRACKED_GL_STATE_COUNT = 65536;
 constexpr GLint MAX_GL_NAME_LENGTH = 1024 * 1024;
+constexpr size_t MAX_UNIFORM_COUNT = 65536;
+
+bool IsActiveUniformPname(GLenum pname)
+{
+    switch (pname) {
+        case GL_UNIFORM_TYPE:
+        case GL_UNIFORM_SIZE:
+        case GL_UNIFORM_BLOCK_INDEX:
+        case GL_UNIFORM_OFFSET:
+        case GL_UNIFORM_ARRAY_STRIDE:
+        case GL_UNIFORM_MATRIX_STRIDE:
+        case GL_UNIFORM_IS_ROW_MAJOR:
+            return true;
+        default:
+            return false;
+    }
+}
+
+napi_value CreateActiveUniformResult(napi_env env, GLenum pname, WebGLWriteBufferArg& writeBuffer)
+{
+    switch (pname) {
+        case GL_UNIFORM_TYPE:
+        case GL_UNIFORM_SIZE:
+            return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_BIGUINT_64);
+        case GL_UNIFORM_BLOCK_INDEX:
+        case GL_UNIFORM_OFFSET:
+        case GL_UNIFORM_ARRAY_STRIDE:
+        case GL_UNIFORM_MATRIX_STRIDE:
+            return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_INT_32);
+        case GL_UNIFORM_IS_ROW_MAJOR:
+            return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_BOOLEAN);
+        default:
+            return NVal::CreateNull(env).val_;
+    }
+}
 } // namespace
 using namespace std;
-constexpr size_t MAX_UNIFORM_COUNT = 65536;
 void WebGL2RenderingContextImpl::Init()
 {
     WebGLRenderingContextBaseImpl::Init();
@@ -1179,6 +1213,76 @@ napi_value WebGL2RenderingContextImpl::CompressedTexImage3D(
     return NVal::CreateNull(env).val_;
 }
 
+bool WebGL2RenderingContextImpl::CheckCompressedTexSubImageRange(
+    napi_env env, const TexSubImage3DArg& imgArg)
+{
+    WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
+    if (texture == nullptr) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "texture is nullptr");
+        return false;
+    }
+    if (imgArg.format != texture->GetInternalFormat(imgArg.target, imgArg.level)) {
+        SET_ERROR(WebGLRenderingContextBase::INVALID_OPERATION);
+        return false;
+    }
+    if (!WebGLTexture::CheckTextureSize(imgArg.xOffset, imgArg.width,
+        texture->GetWidth(imgArg.target, imgArg.level)) ||
+        !WebGLTexture::CheckTextureSize(imgArg.yOffset, imgArg.height,
+        texture->GetHeight(imgArg.target, imgArg.level)) ||
+        !WebGLTexture::CheckTextureSize(imgArg.zOffset, imgArg.depth,
+        texture->GetDepth(imgArg.target, imgArg.level))) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressedTexSubImage3D exceeds texture");
+        return false;
+    }
+    return true;
+}
+
+bool WebGL2RenderingContextImpl::GetCompressedTexSubImageData(napi_env env, const TexSubImage3DArg& imgArg,
+    napi_value dataObj, const BufferExt& sourceRange, WebGLReadBufferArg& readData, GLvoid*& data, GLsizei& length)
+{
+    if (NVal(env, dataObj).IsNull()) {
+        return true;
+    }
+    napi_status status = readData.GenBufferData(dataObj, BUFFER_DATA_FLOAT_32);
+    if (status != napi_ok) {
+        SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
+        return false;
+    }
+    readData.DumpBuffer(readData.GetBufferDataType());
+    size_t elementSize = readData.GetBufferDataSize();
+    size_t elementCount = elementSize == 0 ? 0 : readData.GetBufferLength() / elementSize;
+    if (elementSize == 0 || sourceRange.offset > elementCount) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
+        return false;
+    }
+    size_t availableElements = elementCount - sourceRange.offset;
+    size_t selectedElements = sourceRange.length == 0 ? availableElements : sourceRange.length;
+    if (selectedElements > availableElements || selectedElements > SIZE_MAX / elementSize) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "source length out of bounds");
+        return false;
+    }
+    size_t dataLength = selectedElements * elementSize;
+    if (dataLength > static_cast<size_t>(INT32_MAX)) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "source length out of bounds");
+        return false;
+    }
+    GLenum result = CheckCompressedTexData(imgArg, dataLength);
+    // Let GL report unsupported formats so the established WebGL error precedence is preserved.
+    if (result != WebGLRenderingContextBase::NO_ERROR && result != WebGLRenderingContextBase::INVALID_ENUM) {
+        SET_ERROR_WITH_LOG(result, "compressedTexSubImage3D data size is invalid");
+        return false;
+    }
+    uint8_t* source = readData.GetBuffer();
+    if (source == nullptr && dataLength > 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressed texture source is nullptr");
+        return false;
+    }
+    size_t offsetBytes = static_cast<size_t>(sourceRange.offset) * elementSize;
+    data = source == nullptr ? nullptr : reinterpret_cast<void*>(source + offsetBytes);
+    length = static_cast<GLsizei>(dataLength);
+    return true;
+}
+
 napi_value WebGL2RenderingContextImpl::CompressedTexSubImage3D(
     napi_env env, const TexSubImage3DArg& imgArg, GLsizei imageSize, GLintptr offset)
 {
@@ -1203,22 +1307,7 @@ napi_value WebGL2RenderingContextImpl::CompressedTexSubImage3D(
         SET_ERROR_WITH_LOG(result, "compressedTexSubImage3D PBO range is invalid");
         return NVal::CreateNull(env).val_;
     }
-    WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
-    if (texture == nullptr) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "texture is nullptr");
-        return NVal::CreateNull(env).val_;
-    }
-    if (imgArg.format != texture->GetInternalFormat(imgArg.target, imgArg.level)) {
-        SET_ERROR(WebGLRenderingContextBase::INVALID_OPERATION);
-        return NVal::CreateNull(env).val_;
-    }
-    if (!WebGLTexture::CheckTextureSize(imgArg.xOffset, imgArg.width,
-        texture->GetWidth(imgArg.target, imgArg.level)) ||
-        !WebGLTexture::CheckTextureSize(imgArg.yOffset, imgArg.height,
-        texture->GetHeight(imgArg.target, imgArg.level)) ||
-        !WebGLTexture::CheckTextureSize(imgArg.zOffset, imgArg.depth,
-        texture->GetDepth(imgArg.target, imgArg.level))) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressedTexSubImage3D exceeds texture");
+    if (!CheckCompressedTexSubImageRange(env, imgArg)) {
         return NVal::CreateNull(env).val_;
     }
     glCompressedTexSubImage3D(imgArg.target, imgArg.level, imgArg.xOffset, imgArg.yOffset, imgArg.zOffset, imgArg.width,
@@ -1231,67 +1320,18 @@ napi_value WebGL2RenderingContextImpl::CompressedTexSubImage3D(
     napi_env env, const TexSubImage3DArg& imgArg, napi_value dataObj, GLuint srcOffset, GLuint srcLengthOverride)
 {
     imgArg.Dump("WebGL2 compressedTexSubImage3D");
-    WebGLTexture* texture = GetBoundTexture(env, imgArg.target, true);
-    if (texture == nullptr) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "texture is nullptr");
-        return NVal::CreateNull(env).val_;
-    }
-    if (imgArg.format != texture->GetInternalFormat(imgArg.target, imgArg.level)) {
-        SET_ERROR(WebGLRenderingContextBase::INVALID_OPERATION);
-        return NVal::CreateNull(env).val_;
-    }
-    if (!WebGLTexture::CheckTextureSize(imgArg.xOffset, imgArg.width,
-        texture->GetWidth(imgArg.target, imgArg.level)) ||
-        !WebGLTexture::CheckTextureSize(imgArg.yOffset, imgArg.height,
-        texture->GetHeight(imgArg.target, imgArg.level)) ||
-        !WebGLTexture::CheckTextureSize(imgArg.zOffset, imgArg.depth,
-        texture->GetDepth(imgArg.target, imgArg.level))) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressedTexSubImage3D exceeds texture");
+    if (!CheckCompressedTexSubImageRange(env, imgArg)) {
         return NVal::CreateNull(env).val_;
     }
 
     WebGLReadBufferArg readData(env);
     GLvoid* data = nullptr;
     GLsizei length = 0;
-    if (!NVal(env, dataObj).IsNull()) {
-        napi_status status = readData.GenBufferData(dataObj, BUFFER_DATA_FLOAT_32);
-        if (status != napi_ok) {
-            SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
-            return NVal::CreateNull(env).val_;
-        }
-        readData.DumpBuffer(readData.GetBufferDataType());
-        size_t elementSize = readData.GetBufferDataSize();
-        size_t elementCount = elementSize == 0 ? 0 : readData.GetBufferLength() / elementSize;
-        if (elementSize == 0 || srcOffset > elementCount) {
-            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcOffset out of bounds");
-            return NVal::CreateNull(env).val_;
-        }
-        size_t availableElements = elementCount - srcOffset;
-        size_t selectedElements = srcLengthOverride == 0 ? availableElements : srcLengthOverride;
-        if (selectedElements > availableElements || selectedElements > SIZE_MAX / elementSize) {
-            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "source length out of bounds");
-            return NVal::CreateNull(env).val_;
-        }
-        size_t dataLength = selectedElements * elementSize;
-        size_t offsetBytes = static_cast<size_t>(srcOffset) * elementSize;
-        if (dataLength > static_cast<size_t>(INT32_MAX)) {
-            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "source length out of bounds");
-            return NVal::CreateNull(env).val_;
-        }
-        GLenum result = CheckCompressedTexData(imgArg, dataLength);
-        // Let GL report unsupported formats so the established WebGL error precedence is preserved.
-        if (result != WebGLRenderingContextBase::NO_ERROR &&
-            result != WebGLRenderingContextBase::INVALID_ENUM) {
-            SET_ERROR_WITH_LOG(result, "compressedTexSubImage3D data size is invalid");
-            return NVal::CreateNull(env).val_;
-        }
-        uint8_t* source = readData.GetBuffer();
-        if (source == nullptr && dataLength > 0) {
-            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "compressed texture source is nullptr");
-            return NVal::CreateNull(env).val_;
-        }
-        data = source == nullptr ? nullptr : reinterpret_cast<void*>(source + offsetBytes);
-        length = static_cast<GLsizei>(dataLength);
+    BufferExt sourceRange;
+    sourceRange.offset = srcOffset;
+    sourceRange.length = srcLengthOverride;
+    if (!GetCompressedTexSubImageData(env, imgArg, dataObj, sourceRange, readData, data, length)) {
+        return NVal::CreateNull(env).val_;
     }
 
     glCompressedTexSubImage3D(imgArg.target, imgArg.level, imgArg.xOffset, imgArg.yOffset, imgArg.zOffset, imgArg.width,
@@ -1934,9 +1974,7 @@ napi_value WebGL2RenderingContextImpl::BindBufferRange(
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "CheckBufferTargetCompatibility failed");
         return NVal::CreateNull(env).val_;
     }
-    if (offset < 0 || size <= 0 || (webGlBuffer != nullptr &&
-        (static_cast<uint64_t>(offset) > webGlBuffer->GetBufferSize() ||
-        static_cast<uint64_t>(size) > webGlBuffer->GetBufferSize() - static_cast<uint64_t>(offset)))) {
+    if (offset < 0 || size <= 0) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer range is invalid");
         return NVal::CreateNull(env).val_;
     }
@@ -2176,22 +2214,9 @@ napi_value WebGL2RenderingContextImpl::GetActiveUniforms(
         SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
-    if (pname == GL_UNIFORM_NAME_LENGTH) {
+    if (!IsActiveUniformPname(pname)) {
         SET_ERROR(WebGLRenderingContextBase::INVALID_ENUM);
         return NVal::CreateNull(env).val_;
-    }
-    switch (pname) {
-        case GL_UNIFORM_TYPE:
-        case GL_UNIFORM_SIZE:
-        case GL_UNIFORM_BLOCK_INDEX:
-        case GL_UNIFORM_OFFSET:
-        case GL_UNIFORM_ARRAY_STRIDE:
-        case GL_UNIFORM_MATRIX_STRIDE:
-        case GL_UNIFORM_IS_ROW_MAJOR:
-            break;
-        default:
-            SET_ERROR(WebGLRenderingContextBase::INVALID_ENUM);
-            return NVal::CreateNull(env).val_;
     }
 
     programId = webGLProgram->GetProgramId();
@@ -2227,21 +2252,32 @@ napi_value WebGL2RenderingContextImpl::GetActiveUniforms(
     }
     glGetActiveUniformsiv(
         programId, size, reinterpret_cast<GLuint*>(bufferData.GetBuffer()), pname, reinterpret_cast<GLint*>(params));
-    switch (pname) {
-        case GL_UNIFORM_TYPE:
-        case GL_UNIFORM_SIZE:
-            return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_BIGUINT_64);
-        case GL_UNIFORM_BLOCK_INDEX:
-        case GL_UNIFORM_OFFSET:
-        case GL_UNIFORM_ARRAY_STRIDE:
-        case GL_UNIFORM_MATRIX_STRIDE:
-            return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_INT_32);
-        case GL_UNIFORM_IS_ROW_MAJOR:
-            return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_BOOLEAN);
-        default:
-            break;
+    return CreateActiveUniformResult(env, pname, writeBuffer);
+}
+
+napi_value WebGL2RenderingContextImpl::GetActiveUniformBlockIndices(
+    napi_env env, GLuint programId, GLuint uniformBlockIndex)
+{
+    WebGLWriteBufferArg writeBuffer(env);
+    GLint uniformCount = 1;
+    glGetActiveUniformBlockiv(
+        programId, uniformBlockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &uniformCount);
+    LOGD("WebGL2 getActiveUniformBlockParameter uniformCount %{public}d", uniformCount);
+    if (uniformCount < 0 || static_cast<size_t>(uniformCount) > MAX_UNIFORM_COUNT) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "invalid active uniform count");
+        return NVal::CreateNull(env).val_;
     }
-    return NVal::CreateNull(env).val_;
+    if (uniformCount == 0) {
+        return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_UINT_32);
+    }
+    size_t byteLength = static_cast<size_t>(uniformCount) * sizeof(GLint);
+    GLint* params = reinterpret_cast<GLint*>(writeBuffer.AllocBuffer(byteLength));
+    if (params == nullptr) {
+        return NVal::CreateNull(env).val_;
+    }
+    glGetActiveUniformBlockiv(
+        programId, uniformBlockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, params);
+    return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_UINT_32);
 }
 
 napi_value WebGL2RenderingContextImpl::GetActiveUniformBlockParameter(
@@ -2276,26 +2312,8 @@ napi_value WebGL2RenderingContextImpl::GetActiveUniformBlockParameter(
             glGetActiveUniformBlockiv(programId, uniformBlockIndex, pname, &params);
             return NVal::CreateBool(env, params != GL_FALSE).val_;
         }
-        case GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES: {
-            WebGLWriteBufferArg writeBuffer(env);
-            GLint uniformCount = 1;
-            glGetActiveUniformBlockiv(programId, uniformBlockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &uniformCount);
-            LOGD("WebGL2 getActiveUniformBlockParameter uniformCount %{public}d", uniformCount);
-            if (uniformCount < 0 || static_cast<size_t>(uniformCount) > MAX_UNIFORM_COUNT) {
-                SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "invalid active uniform count");
-                return NVal::CreateNull(env).val_;
-            }
-            if (uniformCount == 0) {
-                return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_UINT_32);
-            }
-            size_t byteLength = static_cast<size_t>(uniformCount) * sizeof(GLint);
-            GLint* params = reinterpret_cast<GLint*>(writeBuffer.AllocBuffer(byteLength));
-            if (params == nullptr) {
-                return NVal::CreateNull(env).val_;
-            }
-            glGetActiveUniformBlockiv(programId, uniformBlockIndex, pname, params);
-            return writeBuffer.ToNormalArray(BUFFER_DATA_INT_32, BUFFER_DATA_UINT_32);
-        }
+        case GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES:
+            return GetActiveUniformBlockIndices(env, programId, uniformBlockIndex);
         default:
             SET_ERROR(WebGLRenderingContextBase::INVALID_ENUM);
             return NVal::CreateNull(env).val_;

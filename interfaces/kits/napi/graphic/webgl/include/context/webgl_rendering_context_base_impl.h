@@ -274,6 +274,13 @@ public:
     WebGLRenderbuffer* GetValidRenderBuffer(napi_env env, napi_value object);
     bool CheckGLenum(GLenum type, const std::vector<GLenum>& glSupport, const std::vector<GLenum>& g2Support);
 protected:
+    enum class AttribRequirement : uint8_t {
+        NONE,
+        FLOAT,
+        SIGNED_INTEGER,
+        UNSIGNED_INTEGER,
+    };
+
     VertexAttribInfo* GetVertexAttribInfo(GLint index);
     // private interface
     WebGLTexture* GetBoundTexture(napi_env env, GLenum target, bool cubeMapExt);
@@ -304,7 +311,14 @@ protected:
     uint32_t GetFormatComponentCount(GLenum format);
     bool CheckReadBufferMode(GLenum mode);
     virtual GLenum CheckDrawState(napi_env env);
+    static AttribRequirement GetAttribRequirement(GLenum type);
+    static bool CheckVertexAttribType(const VertexAttribInfo& info, AttribRequirement requirement);
     GLenum CheckVertexAttribBuffers(napi_env env, uint64_t maxVertex, bool hasVertices, GLsizei instanceCount);
+    GLenum BuildActiveAttribRequirements(std::vector<AttribRequirement>& requirements);
+    GLenum CheckVertexAttribBufferRanges(napi_env env, const std::vector<AttribRequirement>& requirements,
+        uint64_t maxVertex, bool hasVertices, GLsizei instanceCount);
+    GLenum CheckVertexAttribBufferRange(napi_env env, size_t index, AttribRequirement requirement,
+        uint64_t maxVertex, bool hasVertices, GLsizei instanceCount);
     bool CheckTexImageInternalFormat(napi_env env, int32_t func, GLenum internalFormat);
     bool CheckTexInternalFormatColorBufferCombination(GLenum texInternalFormat, GLenum colorBufferFormat);
     bool CheckStencil(napi_env env);
@@ -324,6 +338,10 @@ protected:
     GLenum CheckCompressedTexData(const TexImageArg& imgArg, size_t dataLen);
     GLenum CheckDrawElements(
         napi_env env, GLenum mode, GLsizei count, GLenum type, int64_t offset, GLsizei instanceCount = 1);
+    GLenum CheckDrawElementsArgs(napi_env env, const DrawElementArg& arg, GLsizei instanceCount,
+        uint32_t& indexSize, WebGLBuffer*& indexBuffer);
+    GLenum GetMaxReferencedVertex(const WebGLBuffer* indexBuffer, const DrawElementArg& arg, uint32_t indexSize,
+        uint64_t& maxVertex, bool& hasReferencedVertex);
     GLenum CheckDrawArrays(napi_env env, GLenum mode, GLint first, GLsizei count, GLsizei instanceCount = 1);
     GLenum CheckVertexAttribPointer(napi_env env, const VertexAttribArg& vertexInfo);
     GLenum CheckCopyTexSubImage(napi_env env, const CopyTexSubImageArg& imgArg);

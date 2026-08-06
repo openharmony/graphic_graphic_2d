@@ -1248,6 +1248,7 @@ napi_value WebGLRenderingContextBaseImpl::GetBoolVectorParameter(
     return writeBuffer.ToNormalArray(BUFFER_DATA_BOOLEAN, dstDataType);
 }
 
+// CC-OFFNXT(huge_cyclomatic_complexity,G.FUN.01-CPP) WebGL pname dispatch preserves result type mappings.
 napi_value WebGLRenderingContextBaseImpl::GetParameter(napi_env env, GLenum pname)
 {
     LOGD("WebGL getParameter pname %{public}u", pname);

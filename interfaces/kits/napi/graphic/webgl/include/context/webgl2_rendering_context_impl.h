@@ -162,6 +162,10 @@ private:
     GLenum CheckTexStorage(napi_env env, const TexStorageArg& arg);
     GLenum CheckClearBuffer(napi_env env, GLenum buffer, const WebGLReadBufferArg& bufferData);
     GLenum CheckDrawState(napi_env env) override;
+    bool CheckCompressedTexSubImageRange(napi_env env, const TexSubImage3DArg& imgArg);
+    bool GetCompressedTexSubImageData(napi_env env, const TexSubImage3DArg& imgArg, napi_value dataObj,
+        const BufferExt& sourceRange, WebGLReadBufferArg& readData, GLvoid*& data, GLsizei& length);
+    napi_value GetActiveUniformBlockIndices(napi_env env, GLuint programId, GLuint uniformBlockIndex);
 
     bool CheckGetFrameBufferAttachmentParameter(
         napi_env env, GLenum target, GLenum attachment, const WebGLFramebuffer* frameBuffer);
