@@ -1984,7 +1984,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode003, TestSize.Level1)
     ASSERT_NE(screenDrawable, nullptr);
     std::unique_ptr<RSScreenRenderParams> screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
 
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     NodeId surfaceId = 3;
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
@@ -1998,7 +1998,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode003, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     std::vector<NodeId> relevantSurfaceNodeIds = { surfaceId };
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = relevantSurfaceNodeIds;
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = relevantSurfaceNodeIds;
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, true);
 }
@@ -2027,7 +2027,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode004, TestSize.Level1)
     RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(screenDrawable, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2047,7 +2047,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode004, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, true);
 }
@@ -2341,7 +2341,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode005, TestSize.Level1)
     RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(screenDrawable, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2361,7 +2361,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode005, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, true);
 }
@@ -2391,7 +2391,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode006, TestSize.Level1)
     RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(screenDrawable, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2417,7 +2417,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode006, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, true);
 }
@@ -2449,7 +2449,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode007, TestSize.Level1)
     RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(screenDrawable, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2479,7 +2479,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode007, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, false);
 }
@@ -2511,7 +2511,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode008, TestSize.Level1)
     RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(screenDrawable, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2540,7 +2540,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode008, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, true);
 }
@@ -2571,7 +2571,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode009, TestSize.Level1)
     RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(screenDrawable, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2600,7 +2600,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode009, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, true);
 }
@@ -2629,7 +2629,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode010, TestSize.Level1)
     RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(screenDrawable, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2646,7 +2646,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode010, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, false);
 }
@@ -2678,7 +2678,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode011, TestSize.Level1)
     RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(screenDrawable, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2710,7 +2710,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode011, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, true);
 }
@@ -2739,7 +2739,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode012, TestSize.Level1)
     RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(screenDrawable, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
-    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+    screenParams->layerSkipContext_.virtualScreenLayerInvalid_ = true;
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2752,7 +2752,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode012, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    screenParams->layerSkipContext_.virtualRelevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, false);
 }
