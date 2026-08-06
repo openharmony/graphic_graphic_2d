@@ -728,7 +728,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGW("The GetPixelmap pixelmap is null nodeId:%{public}" PRIu64, id);
                 break;
             }
-            if (pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+            auto allocatorType = pixelmap->GetAllocatorType();
+            if (pixelmap->GetPixelFormat() != Media::PixelFormat::RGBA_8888 ||
+                (allocatorType != Media::AllocatorType::DMA_ALLOC &&
+                    allocatorType != Media::AllocatorType::SHARE_MEM_ALLOC)) {
+                break;
+            }
+            if (allocatorType == Media::AllocatorType::DMA_ALLOC) {
                 auto surfaceBuffer = static_cast<SurfaceBuffer*>(pixelmap->GetFd());
                 if (surfaceBuffer == nullptr ||
                     pixelmap->GetPixelFormat() != OHOS::Media::PixelFormat::RGBA_8888 ||
