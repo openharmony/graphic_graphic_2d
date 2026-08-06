@@ -32,6 +32,16 @@
 #include "transaction/rs_ashmem_helper.h"
 #include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 
+#ifndef F_ADD_SEALS
+#define F_ADD_SEALS 1033
+#endif
+#ifndef F_SEAL_SHRINK
+#define F_SEAL_SHRINK 0x0002
+#endif
+#ifndef F_SEAL_GROW
+#define F_SEAL_GROW 0x0004
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -134,6 +144,59 @@ HWTEST_F(RSAshmemHelperTest, ValidateSealedMemfdTest, TestSize.Level1)
     EXPECT_TRUE(AshmemAllocator::ValidateSealedMemfd(fd, size));
     // declared size larger than the memfd is rejected
     EXPECT_FALSE(AshmemAllocator::ValidateSealedMemfd(fd, size + 1));
+}
+
+/**
+ * @tc.name: ValidateSealedMemfdPartialSealsTest
+ * @tc.desc: Verify ValidateSealedMemfd rejects a memfd with only partial seals
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ValidateSealedMemfdPartialSealsTest, TestSize.Level1)
+{
+    size_t size = 64;
+    auto writer = AshmemAllocator::CreateAshmemAllocator(size, PROT_READ | PROT_WRITE);
+    ASSERT_NE(writer, nullptr);
+    int fd = writer->GetFd();
+    ASSERT_GT(fd, 0);
+    // only the size seals, without F_SEAL_SEAL | F_SEAL_WRITE: not fully sealed
+    ASSERT_NE(::fcntl(fd, F_ADD_SEALS, F_SEAL_SHRINK | F_SEAL_GROW), -1);
+    EXPECT_FALSE(AshmemAllocator::ValidateSealedMemfd(fd, size));
+}
+
+/**
+ * @tc.name: ValidateSealedMemfdNonMemfdTest
+ * @tc.desc: Verify ValidateSealedMemfd rejects an fd that is not a memfd at all
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ValidateSealedMemfdNonMemfdTest, TestSize.Level1)
+{
+    int devNullFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(devNullFd, 0);
+    // F_GET_SEALS fails on non-memfd fds: rejected even with a zero size requirement
+    EXPECT_FALSE(AshmemAllocator::ValidateSealedMemfd(devNullFd, 0));
+    ::close(devNullFd);
+}
+
+/**
+ * @tc.name: ValidateSealedMemfdSizeBoundaryTest
+ * @tc.desc: Verify ValidateSealedMemfd accepts declared sizes not exceeding the sealed memfd size
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ValidateSealedMemfdSizeBoundaryTest, TestSize.Level1)
+{
+    size_t size = 64;
+    auto writer = AshmemAllocator::CreateAshmemAllocator(size, PROT_READ | PROT_WRITE);
+    ASSERT_NE(writer, nullptr);
+    ASSERT_TRUE(writer->Seal());
+    int fd = writer->GetFd();
+    ASSERT_GT(fd, 0);
+    // declared size smaller than the sealed memfd is accepted
+    EXPECT_TRUE(AshmemAllocator::ValidateSealedMemfd(fd, size - 1));
+    // zero declared size is accepted
+    EXPECT_TRUE(AshmemAllocator::ValidateSealedMemfd(fd, 0));
 }
 
 /**
@@ -573,6 +636,56 @@ HWTEST_F(RSAshmemHelperTest, DestructorClosesFdsTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DestructorSkipsNonPositiveFdsTest
+ * @tc.desc: Verify ~AshmemFdWorker never closes fd 0 or negative fds even with shouldCloseFd = true
+ * @tc.type: FUNC
+ * @tc.require: issue#IBESIQ
+ */
+HWTEST_F(RSAshmemHelperTest, DestructorSkipsNonPositiveFdsTest, TestSize.Level1)
+{
+    {
+        auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(0);
+        ashmemFdWorker->InsertFdWithOffset(0, 1, true);
+        ashmemFdWorker->InsertFdWithOffset(-1, 2, true);
+    }
+    // stdin must survive: the destructor only closes fds greater than 0
+    EXPECT_GE(fcntl(0, F_GETFD), 0);
+}
+
+/**
+ * @tc.name: DestructorClearsContainerOnlyWhenUpdatedTest
+ * @tc.desc: Verify ~AshmemFdWorker clears the fd container only after PushFdsToContainer
+ * @tc.type: FUNC
+ * @tc.require: issue#IBESIQ
+ */
+HWTEST_F(RSAshmemHelperTest, DestructorClearsContainerOnlyWhenUpdatedTest, TestSize.Level1)
+{
+    AshmemFdContainer::SetIsUnmarshalThread(true);
+    AshmemFdContainer::Instance().Clear();
+
+    int ownedFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(ownedFd, 0);
+    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(0);
+    ashmemFdWorker->InsertFdWithOffset(ownedFd, 0, true);
+    ashmemFdWorker->PushFdsToContainer();
+    ASSERT_EQ(static_cast<int>(AshmemFdContainer::Instance().fds_.size()), 1);
+    ashmemFdWorker.reset();
+    // the pushed worker closes its fd and clears the container on destruction
+    EXPECT_EQ(fcntl(ownedFd, F_GETFD), -1);
+    EXPECT_TRUE(AshmemFdContainer::Instance().fds_.empty());
+
+    // a worker that never pushed leaves the container untouched on destruction
+    std::unordered_map<binder_size_t, int> fds = { {8, 16} };
+    AshmemFdContainer::Instance().Merge(fds);
+    {
+        AshmemFdWorker idleWorker(0);
+    }
+    EXPECT_EQ(static_cast<int>(AshmemFdContainer::Instance().fds_.size()), 1);
+    AshmemFdContainer::Instance().Clear();
+    AshmemFdContainer::SetIsUnmarshalThread(false);
+}
+
+/**
  * @tc.name: SealTest
  * @tc.desc: Verify function Seal
  * @tc.type:FUNC
@@ -882,6 +995,113 @@ HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelReadIntFailNoFdWorker, TestSiz
 
     auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
     EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: ParseFromAshmemParcelDuplicateOffsetClosesFd
+ * @tc.desc: Verify the collected fd is closed by ~AshmemFdWorker when collection fails midway
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelDuplicateOffsetClosesFd, TestSize.Level1)
+{
+    RSAshmemHelper rsAshmemHelper;
+
+    // sender content: valid token + normal-parcel marker + one fd object
+    auto dataParcel = std::make_shared<MessageParcel>();
+    dataParcel->WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel->WriteInt32(0); // 0: indicate normal parcel
+    size_t fdOffset = dataParcel->GetWritePosition();
+    int payloadFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(payloadFd, 0);
+    ASSERT_TRUE(dataParcel->WriteFileDescriptor(payloadFd));
+    ::close(payloadFd);
+    uint32_t dataSize = static_cast<uint32_t>(dataParcel->GetDataSize());
+
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
+    ASSERT_NE(ashmemAllocator, nullptr);
+    ASSERT_TRUE(ashmemAllocator->WriteToAshmem(reinterpret_cast<void*>(dataParcel->GetData()), dataSize));
+
+    MessageParcel ashmemParcel;
+    ashmemParcel.WriteUint32(dataSize);
+    ashmemParcel.WriteFileDescriptor(ashmemAllocator->GetFd());
+    // two entries with the SAME offset: the second one must fail the duplicate check
+    constexpr int32_t offsetSize = 2;
+    ashmemParcel.WriteInt32(offsetSize);
+    binder_size_t offsets[offsetSize] = { fdOffset, fdOffset };
+    ashmemParcel.WriteBuffer(offsets, sizeof(offsets));
+    int firstFd = open("/dev/null", O_RDONLY);
+    int secondFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(firstFd, 0);
+    ASSERT_GE(secondFd, 0);
+    ashmemParcel.WriteFileDescriptor(firstFd);
+    ashmemParcel.WriteFileDescriptor(secondFd);
+    ::close(firstFd);
+    ::close(secondFd);
+
+    ASSERT_TRUE(ashmemAllocator->Seal());
+
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+    auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
+    EXPECT_EQ(result, nullptr);
+    // collection failed on the duplicate offset, but the first fd was already collected
+    ASSERT_NE(ashmemFdWorker, nullptr);
+    ASSERT_EQ(static_cast<int>(ashmemFdWorker->fdsToBeClosed_.size()), 1);
+    int collectedFd = *ashmemFdWorker->fdsToBeClosed_.begin();
+    // destroying the worker closes the collected fd without any explicit opt-in
+    ashmemFdWorker.reset();
+    EXPECT_EQ(fcntl(collectedFd, F_GETFD), -1);
+}
+
+/**
+ * @tc.name: ParseFromAshmemParcelTokenMismatchClosesFd
+ * @tc.desc: Verify the collected fd is closed by ~AshmemFdWorker when the interface token mismatches
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelTokenMismatchClosesFd, TestSize.Level1)
+{
+    RSAshmemHelper rsAshmemHelper;
+
+    // sender content with a WRONG interface token + one fd object
+    auto dataParcel = std::make_shared<MessageParcel>();
+    dataParcel->WriteInterfaceToken(u"wrong.token");
+    size_t fdOffset = dataParcel->GetWritePosition();
+    int payloadFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(payloadFd, 0);
+    ASSERT_TRUE(dataParcel->WriteFileDescriptor(payloadFd));
+    ::close(payloadFd);
+    uint32_t dataSize = static_cast<uint32_t>(dataParcel->GetDataSize());
+
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
+    ASSERT_NE(ashmemAllocator, nullptr);
+    ASSERT_TRUE(ashmemAllocator->WriteToAshmem(reinterpret_cast<void*>(dataParcel->GetData()), dataSize));
+
+    MessageParcel ashmemParcel;
+    ashmemParcel.WriteUint32(dataSize);
+    ashmemParcel.WriteFileDescriptor(ashmemAllocator->GetFd());
+    constexpr int32_t offsetSize = 1;
+    ashmemParcel.WriteInt32(offsetSize);
+    binder_size_t offsets[offsetSize] = { fdOffset };
+    ashmemParcel.WriteBuffer(offsets, sizeof(offsets));
+    int collectedPayloadFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(collectedPayloadFd, 0);
+    ashmemParcel.WriteFileDescriptor(collectedPayloadFd);
+    ::close(collectedPayloadFd);
+
+    ASSERT_TRUE(ashmemAllocator->Seal());
+
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+    auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
+    EXPECT_EQ(result, nullptr);
+    // the fd was collected before the token check failed; the worker closes it on destruction
+    ASSERT_NE(ashmemFdWorker, nullptr);
+    ASSERT_EQ(static_cast<int>(ashmemFdWorker->fdsToBeClosed_.size()), 1);
+    int collectedFd = *ashmemFdWorker->fdsToBeClosed_.begin();
+    ashmemFdWorker.reset();
+    EXPECT_EQ(fcntl(collectedFd, F_GETFD), -1);
 }
 #endif
 } // namespace Rosen
