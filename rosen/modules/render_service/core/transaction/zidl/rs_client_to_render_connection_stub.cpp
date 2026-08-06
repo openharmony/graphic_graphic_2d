@@ -378,9 +378,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             if (!RSMarshallingHelper::CompatibleUnmarshalling(
                 *parsedParcel, waitUnmarshalling, false, RSPARCELVER_ADD_NONEED)) {
                 RS_LOGE("RSClientToRenderConnectionStub::COMMIT_TRANSACTION read parcel failed");
-                if (ashmemFdWorker) {
-                    ashmemFdWorker->EnableManualCloseFds();
-                }
                 return ERR_INVALID_DATA;
             }
             if (isUniRender) {
@@ -398,7 +395,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 if (ashmemFdWorker) {
                     // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
                     parsedParcel->FlushBuffer();
-                    ashmemFdWorker->EnableManualCloseFds();
                     ashmemFdWorker.reset();
                     AshmemFdContainer::SetIsUnmarshalThread(false);
                 }

@@ -146,6 +146,14 @@ bool AshmemAllocator::ValidateSealedMemfd(int fd, size_t size)
         ROSEN_LOGE("AshmemAllocator::ValidateSealedMemfd: fd < 0");
         return false;
     }
+    // check the seals before the size: F_SEAL_SHRINK | F_SEAL_GROW freeze the memfd size for
+    // every holder, so the size check below cannot be raced once the seals are verified
+    int seals = ::fcntl(fd, F_GET_SEALS);
+    if (seals < 0 || (seals & REQUIRED_MEMFD_SEALS) != REQUIRED_MEMFD_SEALS) {
+        ROSEN_LOGE("AshmemAllocator::ValidateSealedMemfd: memfd is not fully sealed, seals:%{public}d",
+            seals);
+        return false;
+    }
     // lseek(SEEK_END) is used instead of fstat to query the size: it does not require
     // getattr permission on the fd and works for both memfd and ashmem
     off_t fileSize = ::lseek(fd, 0, SEEK_END);
@@ -153,12 +161,6 @@ bool AshmemAllocator::ValidateSealedMemfd(int fd, size_t size)
         ROSEN_LOGE("AshmemAllocator::ValidateSealedMemfd: invalid memfd size, fd:%{public}d, "
             "fileSize:%{public}" PRId64 ", size:%{public}zu, errno:%{public}d",
             fd, static_cast<int64_t>(fileSize), size, errno);
-        return false;
-    }
-    int seals = ::fcntl(fd, F_GET_SEALS);
-    if (seals < 0 || (seals & REQUIRED_MEMFD_SEALS) != REQUIRED_MEMFD_SEALS) {
-        ROSEN_LOGE("AshmemAllocator::ValidateSealedMemfd: memfd is not fully sealed, seals:%{public}d",
-            seals);
         return false;
     }
     return true;
@@ -397,11 +399,11 @@ AshmemFdWorker::AshmemFdWorker(const pid_t callingPid) : callingPid_(callingPid)
 
 AshmemFdWorker::~AshmemFdWorker()
 {
-    if (needManualCloseFds_) {
-        for (const int fd : fdsToBeClosed_) {
-            if (fd > 0) {
-                ::close(fd);
-            }
+    // the worker exclusively owns the fds dup'd from the ashmem parcel (ReadSafeFd hands out
+    // its own dups), so they are always closed here regardless of how far parsing got
+    for (const int fd : fdsToBeClosed_) {
+        if (fd > 0) {
+            ::close(fd);
         }
     }
     if (!isFdContainerUpdated_) {
@@ -438,11 +440,6 @@ void AshmemFdWorker::PushFdsToContainer()
         static_cast<int>(callingPid_));
     AshmemFdContainer::Instance().Merge(fds_);
     isFdContainerUpdated_ = true;
-}
-
-void AshmemFdWorker::EnableManualCloseFds()
-{
-    needManualCloseFds_ = true;
 }
 
 bool RSAshmemHelper::CopySupportedObjectsToParcel(
@@ -653,24 +650,17 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
         if (!CollectSupportedFdsFromAshmemParcel(*dataParcel, ashmemParcel,
                 reinterpret_cast<const binder_size_t*>(offsets), offsetSize, *ashmemFdWorker)) {
             ROSEN_LOGE("ParseFromAshmemParcel: CollectSupportedFdsFromAshmemParcel failed");
-            ashmemFdWorker->EnableManualCloseFds();
             return nullptr;
         }
     }
 
     auto token = dataParcel->ReadInterfaceToken();
     if (token != RSIClientToRenderConnection::GetDescriptor()) {
-        if (ashmemFdWorker) {
-            ashmemFdWorker->EnableManualCloseFds();
-        }
         return nullptr;
     }
 
     if (dataParcel->ReadInt32() != 0) { // identify normal parcel
         ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel failed");
-        if (ashmemFdWorker) {
-            ashmemFdWorker->EnableManualCloseFds();
-        }
         return nullptr;
     }
 

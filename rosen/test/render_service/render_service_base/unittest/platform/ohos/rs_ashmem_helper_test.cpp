@@ -491,18 +491,24 @@ HWTEST_F(RSAshmemHelperTest, InsertFdWithOffsetTest, TestSize.Level1)
     AshmemFdContainer::SetIsUnmarshalThread(true);
     AshmemFdContainer::Instance().Clear();
 
+    // use owned fds: ~AshmemFdWorker always closes fds inserted with shouldCloseFd = true
+    int firstFd = open("/dev/null", O_RDONLY);
+    int secondFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(firstFd, 0);
+    ASSERT_GE(secondFd, 0);
+
     pid_t callingPid = 0;
     auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(callingPid);
     ASSERT_TRUE(ashmemFdWorker);
     ashmemFdWorker->isFdContainerUpdated_ = true;
-    ashmemFdWorker->InsertFdWithOffset(1, 2, false);
-    ashmemFdWorker->InsertFdWithOffset(3, 4, true);
+    ashmemFdWorker->InsertFdWithOffset(firstFd, 2, false);
+    ashmemFdWorker->InsertFdWithOffset(secondFd, 4, true);
     EXPECT_EQ(static_cast<int>(ashmemFdWorker->fds_.size()), 0);
     ashmemFdWorker->isFdContainerUpdated_ = false;
-    ashmemFdWorker->InsertFdWithOffset(1, 2, true);
-    ashmemFdWorker->InsertFdWithOffset(1, 2, false);
-    ashmemFdWorker->InsertFdWithOffset(3, 4, true);
-    ashmemFdWorker->InsertFdWithOffset(3, 4, false);
+    ashmemFdWorker->InsertFdWithOffset(firstFd, 2, true);
+    ashmemFdWorker->InsertFdWithOffset(firstFd, 2, false);
+    ashmemFdWorker->InsertFdWithOffset(secondFd, 4, true);
+    ashmemFdWorker->InsertFdWithOffset(secondFd, 4, false);
     EXPECT_EQ(static_cast<int>(ashmemFdWorker->fds_.size()), 2);
 }
 
@@ -517,11 +523,15 @@ HWTEST_F(RSAshmemHelperTest, PushFdsToContainerTest, TestSize.Level1)
     AshmemFdContainer::SetIsUnmarshalThread(true);
     AshmemFdContainer::Instance().Clear();
 
+    // use an owned fd: ~AshmemFdWorker always closes fds inserted with shouldCloseFd = true
+    int ownedFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(ownedFd, 0);
+
     pid_t callingPid = 0;
     auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(callingPid);
     ASSERT_TRUE(ashmemFdWorker);
     ashmemFdWorker->isFdContainerUpdated_ = false;
-    ashmemFdWorker->InsertFdWithOffset(1, 2, true);
+    ashmemFdWorker->InsertFdWithOffset(ownedFd, 2, true);
     ashmemFdWorker->InsertFdWithOffset(3, 4, false);
     EXPECT_EQ(static_cast<int>(ashmemFdWorker->fds_.size()), 2);
     ashmemFdWorker->isFdContainerUpdated_ = true;
@@ -534,24 +544,32 @@ HWTEST_F(RSAshmemHelperTest, PushFdsToContainerTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: EnableManualCloseFdsTest
- * @tc.desc: Verify function EnableManualCloseFds
+ * @tc.name: DestructorClosesFdsTest
+ * @tc.desc: Verify ~AshmemFdWorker always closes the fds collected with shouldCloseFd = true
  * @tc.type: FUNC
  * @tc.require: issue#IBESIQ
  */
-HWTEST_F(RSAshmemHelperTest, EnableManualCloseFdsTest, TestSize.Level1)
+HWTEST_F(RSAshmemHelperTest, DestructorClosesFdsTest, TestSize.Level1)
 {
     AshmemFdContainer::SetIsUnmarshalThread(true);
     AshmemFdContainer::Instance().Clear();
 
-    pid_t callingPid = 0;
-    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(callingPid);
-    ASSERT_TRUE(ashmemFdWorker);
-    ashmemFdWorker->InsertFdWithOffset(-1, 1, true);
-    ashmemFdWorker->InsertFdWithOffset(INT_MAX, 2, true);
-    EXPECT_EQ(static_cast<int>(ashmemFdWorker->fds_.size()), 2);
-    ashmemFdWorker->EnableManualCloseFds();
-    EXPECT_TRUE(ashmemFdWorker->needManualCloseFds_);
+    int tmpFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(tmpFd, 0);
+    int ownedFd = dup(tmpFd);
+    int keptFd = dup(tmpFd);
+    ::close(tmpFd);
+    ASSERT_GE(ownedFd, 0);
+    ASSERT_GE(keptFd, 0);
+    {
+        auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(0);
+        ashmemFdWorker->InsertFdWithOffset(ownedFd, 1, true);
+        ashmemFdWorker->InsertFdWithOffset(keptFd, 2, false);
+    }
+    // the fd marked shouldCloseFd is closed by the destructor; the other one is left untouched
+    EXPECT_EQ(fcntl(ownedFd, F_GETFD), -1);
+    EXPECT_GE(fcntl(keptFd, F_GETFD), 0);
+    ::close(keptFd);
 }
 
 /**
@@ -659,7 +677,6 @@ HWTEST_F(RSAshmemHelperTest, CreateAndParseAshmemParcelTest, TestSize.Level1)
     int safeFd = AshmemFdContainer::Instance().ReadSafeFd(*parsedParcel, nullptr);
     EXPECT_GE(safeFd, 0);
     ::close(safeFd);
-    ashmemFdWorker->EnableManualCloseFds();
     AshmemFdContainer::SetIsUnmarshalThread(false);
 }
 
@@ -766,7 +783,8 @@ HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelOffsetsOverflowRejectedWithFdW
 
     auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
     EXPECT_EQ(result, nullptr);
-    EXPECT_FALSE(ashmemFdWorker->needManualCloseFds_);
+    // the caller-provided fdWorker is left untouched
+    EXPECT_TRUE(ashmemFdWorker->fds_.empty());
 }
 
 /**
@@ -832,7 +850,6 @@ HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelReadIntFailWithFdWorker, TestS
 
     auto result = rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit);
     EXPECT_EQ(result, nullptr);
-    EXPECT_TRUE(ashmemFdWorker->needManualCloseFds_);
 }
 
 /**

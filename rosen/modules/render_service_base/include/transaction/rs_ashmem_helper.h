@@ -89,7 +89,6 @@ public:
 
     void InsertFdWithOffset(int fd, binder_size_t offset, bool shouldCloseFd);
     void PushFdsToContainer();
-    void EnableManualCloseFds();
 
 private:
     DISALLOW_COPY_AND_MOVE(AshmemFdWorker);
@@ -99,7 +98,6 @@ private:
     std::unordered_map<binder_size_t, int> fds_;
     std::unordered_set<int> fdsToBeClosed_;
     bool isFdContainerUpdated_ = false;
-    bool needManualCloseFds_ = false;
 };
 
 // Note: ashmem parcels only carry pure data and file descriptors (BINDER_TYPE_FD).

@@ -65,7 +65,8 @@ App → RSCommand → RSTransactionData → COMMIT_TRANSACTION → unmarshalling
 - 接收侧**禁止** `InjectOffsets`、禁止写共享内存；未走安全函数的读取只能得到
   -1/nullptr（fail-closed）。
 - 非 uniRender 的立即反序列化分支同样需要先 `SetIsUnmarshalThread(true)` +
-  `PushFdsToContainer()`，结束后 `EnableManualCloseFds` 并还原线程状态。
+  `PushFdsToContainer()`，结束后 reset worker 并还原线程状态；收集的 fd 一律由
+  `~AshmemFdWorker` 关闭（dup 自 ashmem parcel，worker 独占所有权，无需再手动开启）。
 - `CopyParcelIfNeed`（uniRender 大 parcel 拷贝）只对 `BINDER_TYPE_FD` 做 dup，
   dup 出的 fd 由拷贝 parcel 析构时 `~MessageParcel(ClearFileDescriptor)` 关闭；
   失败路径将仍指向原 parcel 的 fd payload 置 0，避免跨 parcel 双重关闭。

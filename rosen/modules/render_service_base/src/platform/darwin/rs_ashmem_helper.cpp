@@ -129,7 +129,6 @@ AshmemFdWorker::AshmemFdWorker(const pid_t callingPid) : callingPid_(callingPid)
 AshmemFdWorker::~AshmemFdWorker()
 {
     isFdContainerUpdated_ = false;
-    needManualCloseFds_ = false;
     fds_.clear();
     fdsToBeClosed_.clear();
 }
@@ -141,10 +140,6 @@ void AshmemFdWorker::InsertFdWithOffset(int fd, binder_size_t offset, bool shoul
 void AshmemFdWorker::PushFdsToContainer()
 {
     (void)callingPid_;
-}
-
-void AshmemFdWorker::EnableManualCloseFds()
-{
 }
 
 bool RSAshmemHelper::CopySupportedObjectsToParcel(
