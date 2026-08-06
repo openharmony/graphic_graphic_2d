@@ -129,7 +129,7 @@ std::string Utils::GetProcessName(pid_t pid)
 {
     std::string name;
     LoadContent("/proc/" + std::to_string(pid) + "/cmdline", name);
-    return name;
+    return std::string(name.data(), std::strlen(name.data()));
 }
 #endif
 
@@ -455,7 +455,6 @@ void Utils::LoadContent(const std::string& path, std::string& content)
         copy(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), std::back_inserter(content));
         Replace("\r", content);
         Replace("\n", content);
-        content = std::string(content.data(), std::strlen(content.data()));
     }
 }
 

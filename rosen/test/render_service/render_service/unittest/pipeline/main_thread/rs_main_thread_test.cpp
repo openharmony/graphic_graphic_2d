@@ -2911,6 +2911,52 @@ HWTEST_F(RSMainThreadTest, SurfaceOcclusionCallback005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SurfaceOcclusionCallBackIfOnTreeStateChanged001
+ * @tc.desc: Verify SurfaceOcclusionCallBackIfOnTreeStateChanged detects on-tree state change
+ * @tc.type: FUNC
+ * @tc.require: issueI24779
+ */
+HWTEST_F(RSMainThreadTest, SurfaceOcclusionCallBackIfOnTreeStateChanged001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    // reset to avoid cross-test state leakage
+    mainThread->savedAppWindowNode_.clear();
+    mainThread->lastRegisteredSurfaceOnTree_.clear();
+
+    // prepare savedAppWindowNode_: two nodes both on tree
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node1, nullptr);
+    node1->SetIsOnTheTree(true);
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node2, nullptr);
+    node2->SetIsOnTheTree(true);
+    mainThread->savedAppWindowNode_[1] = std::make_pair(node1, node1);
+    mainThread->savedAppWindowNode_[2] = std::make_pair(node2, node2);
+
+    // first call: lastRegisteredSurfaceOnTree_ was empty, now {1, 2} -> changed
+    bool result = mainThread->SurfaceOcclusionCallBackIfOnTreeStateChanged();
+    EXPECT_TRUE(result);
+
+    // second call: same on-tree state -> not changed
+    result = mainThread->SurfaceOcclusionCallBackIfOnTreeStateChanged();
+    EXPECT_FALSE(result);
+
+    // toggle node2 off the tree: registered set changes to {1} -> changed
+    node2->SetIsOnTheTree(false);
+    result = mainThread->SurfaceOcclusionCallBackIfOnTreeStateChanged();
+    EXPECT_TRUE(result);
+
+    // cleanup
+    mainThread->savedAppWindowNode_.clear();
+    mainThread->lastRegisteredSurfaceOnTree_.clear();
+}
+
+/**
  * @tc.name: CheckSurfaceOcclusionNeedProcess
  * @tc.desc: CheckSurfaceOcclusionNeedProcess Test while node out of appWindow
  * @tc.type: FUNC
@@ -6817,7 +6863,7 @@ HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 
     SurfaceFpsOp addOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
     SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 2, "test_surface2", 200};
@@ -6847,21 +6893,21 @@ HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
     EXPECT_TRUE(foundAdd);
     EXPECT_TRUE(foundRemove);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 }
 
 /**
- * @tc.name: RmvSurfaceFpsOpTest
- * @tc.desc: Test Func RmvSurfaceFpsOp with removal
+ * @tc.name: RemoveSurfaceFpsOpTest
+ * @tc.desc: Test Func RemoveSurfaceFpsOp with removal
  * @tc.type: FUNC
  * @tc.require: issue22921
  */
-HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, RemoveSurfaceFpsOpTest, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 
     SurfaceFpsOp addOp1 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
     SurfaceFpsOp addOp2 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 2, "test_surface2", 200};
@@ -6872,10 +6918,10 @@ HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
     mainThread->AddSurfaceFpsOp(removeOp);
     mainThread->AddSurfaceFpsOp(otherOp);
 
-    std::vector<SurfaceFpsOp> rmvList;
-    rmvList.push_back(addOp1);
+    std::vector<SurfaceFpsOp> removeList;
+    removeList.push_back(addOp1);
 
-    mainThread->RmvSurfaceFpsOp(rmvList);
+    mainThread->RemoveSurfaceFpsOp(removeList);
     auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
     EXPECT_EQ(surfaceFpsOpList.size(), 2u);
 
@@ -6895,10 +6941,10 @@ HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
     EXPECT_TRUE(foundAdd2);
     EXPECT_TRUE(foundRemove);
 
-    rmvList.push_back(addOp2);
-    rmvList.push_back(removeOp);
-    rmvList.push_back(otherOp);
-    mainThread->RmvSurfaceFpsOp(rmvList);
+    removeList.push_back(addOp2);
+    removeList.push_back(removeOp);
+    removeList.push_back(otherOp);
+    mainThread->RemoveSurfaceFpsOp(removeList);
     surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
     EXPECT_EQ(surfaceFpsOpList.size(), 0u);
 }
@@ -6947,7 +6993,178 @@ HWTEST_F(RSMainThreadTest, InitCreatePipelineTimeCallbackTest001, TestSize.Level
 
     GTEST_LOG_(INFO) << "RSMainThreadTest InitCreatePipelineTimeCallbackTest001 end";
 }
- 
+
+
+/**
+ * @tc.name: HandleActiveRectOptionTest001
+ * @tc.desc: Test HandleActiveRectOption with null property (activeRectProperty is nullptr)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, HandleActiveRectOptionTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ScreenId screenId = 0;
+    sptr<ScreenPropertyBase> property = nullptr;
+    mainThread->HandleActiveRectOption(screenId, property);
+}
+
+/**
+ * @tc.name: HandleActiveRectOptionTest002
+ * @tc.desc: Test HandleActiveRectOption with non-zero screenId should early return
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, HandleActiveRectOptionTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ScreenId screenId = 1;
+    auto rect = activeRectValType(RectI(0, 0, 2232, 2128), RectI(), RectI());
+    sptr<ScreenPropertyBase> property = sptr<ScreenProperty<activeRectValType>>::MakeSptr(rect);
+    mainThread->HandleActiveRectOption(screenId, property);
+}
+
+/**
+ * @tc.name: HandleActiveRectOptionTest003
+ * @tc.desc: Test HandleActiveRectOption on primary screen with default fold type (not special fold)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, HandleActiveRectOptionTest003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::string origType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
+    ScreenId screenId = 0;
+    auto rect = activeRectValType(RectI(0, 0, 2232, 2128), RectI(), RectI());
+    sptr<ScreenPropertyBase> property = sptr<ScreenProperty<activeRectValType>>::MakeSptr(rect);
+    mainThread->HandleActiveRectOption(screenId, property);
+    system::SetParameter("const.window.foldscreen.type", origType);
+}
+
+/**
+ * @tc.name: CreateProtectiveSolidRenderNodeTest001
+ * @tc.desc: Test CreateProtectiveSolidRenderNode with valid screenId and registered screen node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, CreateProtectiveSolidRenderNodeTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    ScreenId screenId = 0;
+    NodeId displayId = static_cast<NodeId>(0x09000002);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, rsContext);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
+
+    auto node = mainThread->CreateProtectiveSolidRenderNode(screenId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(mainThread->protectiveSolidNodeIdMap_.count(screenId), 1);
+    EXPECT_EQ(mainThread->protectiveSolidNodeIdMap_[screenId], node->GetId());
+
+    mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
+    mainThread->protectiveSolidNodeIdMap_.clear();
+}
+
+/**
+ * @tc.name: CreateProtectiveSolidRenderNodeTest002
+ * @tc.desc: Test CreateProtectiveSolidRenderNode returns existing node on second call
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, CreateProtectiveSolidRenderNodeTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    ScreenId screenId = 0;
+    NodeId displayId = static_cast<NodeId>(0x09000003);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, rsContext);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
+
+    auto node1 = mainThread->CreateProtectiveSolidRenderNode(screenId);
+    ASSERT_NE(node1, nullptr);
+    auto node2 = mainThread->CreateProtectiveSolidRenderNode(screenId);
+    EXPECT_EQ(node1, node2);
+
+    mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
+    mainThread->protectiveSolidNodeIdMap_.clear();
+}
+
+/**
+ * @tc.name: CreateProtectiveSolidRenderNodeTest003
+ * @tc.desc: Test CreateProtectiveSolidRenderNode with no matching screen node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, CreateProtectiveSolidRenderNodeTest003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    ScreenId screenId = 999;
+
+    auto node = mainThread->CreateProtectiveSolidRenderNode(screenId);
+    EXPECT_NE(node, nullptr);
+    EXPECT_EQ(mainThread->protectiveSolidNodeIdMap_.count(screenId), 1);
+
+    mainThread->protectiveSolidNodeIdMap_.clear();
+}
+
+/**
+ * @tc.name: DestroyProtectiveSolidRenderNodeTest001
+ * @tc.desc: Test DestroyProtectiveSolidRenderNode with INVALID_NODEID early return
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, DestroyProtectiveSolidRenderNodeTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->DestroyProtectiveSolidRenderNode(0, INVALID_NODEID);
+}
+
+/**
+ * @tc.name: DestroyProtectiveSolidRenderNodeTest002
+ * @tc.desc: Test DestroyProtectiveSolidRenderNode with valid nodeId but node not in map
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, DestroyProtectiveSolidRenderNodeTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->DestroyProtectiveSolidRenderNode(0, static_cast<NodeId>(0x12345678));
+}
+
+/**
+ * @tc.name: DestroyProtectiveSolidRenderNodeTest003
+ * @tc.desc: Test DestroyProtectiveSolidRenderNode full lifecycle (create then destroy)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, DestroyProtectiveSolidRenderNodeTest003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    ScreenId screenId = 0;
+    NodeId displayId = static_cast<NodeId>(0x09000004);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, rsContext);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
+
+    auto node = mainThread->CreateProtectiveSolidRenderNode(screenId);
+    ASSERT_NE(node, nullptr);
+    NodeId nodeId = node->GetId();
+
+    mainThread->DestroyProtectiveSolidRenderNode(screenId, nodeId);
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    EXPECT_EQ(nodeMap.GetRenderNode<RSProtectiveSolidRenderNode>(nodeId), nullptr);
+
+    mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
+    mainThread->protectiveSolidNodeIdMap_.clear();
+}
+
 /**
  * @tc.name: SetWindowModeType001
  * @tc.desc: Test SetWindowModeType when IsSplitScreenSourceTuning is true

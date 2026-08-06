@@ -110,9 +110,8 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
         // Extract pid from the composite key
         pid_t entryPid = static_cast<pid_t>(it->first >> 32);
         if (entryPid == pid) {
-            RS_LOGD("RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback: "
-                    "Removing %{public}zu buffers for pid=%{public}d",
-                    it->second.size(), pid);
+            RS_LOGD_IF(DEBUG_NODE, "RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback: "
+                "Removing %{public}zu buffers for pid=%{public}d", it->second.size(), pid);
             it = surfaceBufferInfoMap_.erase(it);
         } else {
             ++it;
@@ -373,7 +372,8 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId
 void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurfaceBufferInfo& info)
 {
     if (info.surfaceBuffer_ == nullptr) {
-        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: surfaceBuffer is nullptr, skipping");
+        RS_LOGD_IF(DEBUG_NODE,
+            "RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: surfaceBuffer is nullptr, skipping");
         return;
     }
 
@@ -401,7 +401,7 @@ void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurface
     bufferList.push_front(entry);
 
     while (bufferList.size() > MAX_BUFFERS_PER_PROCESS) {
-        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
+        RS_LOGD_IF(DEBUG_NODE, "RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
                 "Removing oldest buffer, current count=%{public}zu", bufferList.size());
         bufferList.pop_back();
     }
@@ -414,7 +414,7 @@ void RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo(pid_t pid, uint6
     uint64_t key = (static_cast<uint64_t>(pid) << 32) | uid;
     auto it = surfaceBufferInfoMap_.find(key);
     if (it != surfaceBufferInfoMap_.end()) {
-        RS_LOGD("RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo:"
+        RS_LOGD_IF(DEBUG_NODE, "RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo:"
                 "Removed %{public}zu buffers for pid=%{public}d, uid=%{public}" PRIu64,
                 it->second.size(), pid, uid);
         surfaceBufferInfoMap_.erase(it);

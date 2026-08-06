@@ -143,6 +143,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+
     void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect);
 
     void SetForceRsDVsync(const std::string& sceneId);
@@ -159,7 +160,7 @@ public:
 
     const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const
     {
-        RS_LOGD("You'd better to call GetRenderEngine from RSUniRenderThread directly");
+        RS_LOGD_IF(DEBUG_PIPELINE, "You'd better to call GetRenderEngine from RSUniRenderThread directly");
 #ifdef RS_ENABLE_GPU
         return isUniRender_ ? std::move(RSUniRenderThread::Instance().GetRenderEngine()) : renderEngine_;
 #else
@@ -508,7 +509,7 @@ public:
     // for surface fps op
     void AddSurfaceFpsOp(const SurfaceFpsOp& op);
     std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
-    void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
+    void RemoveSurfaceFpsOp(const std::vector<SurfaceFpsOp>& removeList);
 
     // for rebuild transaction
     bool IsRebuildTransactionInProgress() const;
@@ -534,11 +535,14 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
+    std::shared_ptr<RSProtectiveSolidRenderNode> CreateProtectiveSolidRenderNode(ScreenId screenId);
+    void DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void HandlePhysicalModeParamsChanged(
         ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void HandleActiveRectOption(ScreenId id, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
@@ -926,11 +930,14 @@ private:
 
     // for surface fps op
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
-    std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
+    std::unordered_map<NodeId, SurfaceFpsOp> removeSurfaceFpsOpMap_;
 
     // for rebuild transaction
     std::deque<std::unique_ptr<RSTransactionData>> pendingSplitTransactions_;
     pid_t pendingSplitPid_ = -1;
+
+    // for protectiveSolidNode
+    std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

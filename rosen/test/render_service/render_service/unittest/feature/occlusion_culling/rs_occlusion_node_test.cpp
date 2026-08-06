@@ -1522,48 +1522,6 @@ HWTEST_F(RSOcclusionNodeTest, ComputeInner_WithRRect, TestSize.Level1)
 }
 
 /*
- * @tc.name: SafeCast_WithNormalValue
- * @tc.desc: Test SafeCast with normal float value
- * @tc.type: FUNC
- * @tc.require: issueI22842
- */
-HWTEST_F(RSOcclusionNodeTest, SafeCast_WithNormalValue, TestSize.Level1)
-{
-    std::shared_ptr<OcclusionNode> rootNode =
-        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::ROOT_NODE);
-    int16_t result = rootNode->SafeCast(100.5f);
-    EXPECT_EQ(result, 100);
-}
-
-/*
- * @tc.name: SafeCast_WithClampToMax
- * @tc.desc: Test SafeCast with value exceeding INT16_MAX
- * @tc.type: FUNC
- * @tc.require: issueI22842
- */
-HWTEST_F(RSOcclusionNodeTest, SafeCast_WithClampToMax, TestSize.Level1)
-{
-    std::shared_ptr<OcclusionNode> rootNode =
-        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::ROOT_NODE);
-    int16_t result = rootNode->SafeCast(40000.0f);
-    EXPECT_EQ(result, INT16_MAX);
-}
-
-/*
- * @tc.name: SafeCast_WithClampToMin
- * @tc.desc: Test SafeCast with value below INT16_MIN
- * @tc.type: FUNC
- * @tc.require: issueI22842
- */
-HWTEST_F(RSOcclusionNodeTest, SafeCast_WithClampToMin, TestSize.Level1)
-{
-    std::shared_ptr<OcclusionNode> rootNode =
-        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::ROOT_NODE);
-    int16_t result = rootNode->SafeCast(-40000.0f);
-    EXPECT_EQ(result, INT16_MIN);
-}
-
-/*
  * @tc.name: TransformByCenterScalingAndTranslation_WithNormalValues
  * @tc.desc: Test TransformByCenterScalingAndTranslation with normal values
  * @tc.type: FUNC

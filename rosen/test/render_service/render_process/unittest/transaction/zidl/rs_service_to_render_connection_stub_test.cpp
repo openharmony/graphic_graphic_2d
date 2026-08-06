@@ -1373,7 +1373,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, ShowWatermark001, TestSize.Level1)
     ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 
 /**

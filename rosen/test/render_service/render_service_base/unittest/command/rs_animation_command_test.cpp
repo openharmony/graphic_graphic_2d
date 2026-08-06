@@ -16,7 +16,9 @@
 #include "gtest/gtest.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interactive_implict_animator.h"
+#include "animation/rs_render_particle_animation.h"
 #include "include/command/rs_animation_command.h"
+#include "pipeline/rs_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -407,6 +409,98 @@ HWTEST_F(RSAnimationCommandTest, SetAnimationDestroyInRenderProcessor001, TestSi
     AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(TestDestroyInRenderProcessor);
     AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(nullptr);
     GTEST_LOG_(INFO) << "RSAnimationCommandTest SetAnimationDestroyInRenderProcessor001 end";
+}
+
+/**
+ * @tc.name: CreateAnimation001
+ * @tc.desc: Verify CreateAnimation early returns when AddAnimation fails (duplicate)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateAnimation001 start";
+    auto context = std::make_shared<RSContext>();
+    NodeId targetId = 1;
+    auto node = std::make_shared<RSRenderNode>(targetId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, 0, property, property1, property2);
+    AnimationCommandHelper::CreateAnimation(*context, targetId, animation);
+    ASSERT_TRUE(node->GetAnimationManager() != nullptr);
+    EXPECT_EQ(node->GetAnimationManager()->GetAnimationsSize(), 1u);
+    EXPECT_TRUE(animation->target_ != nullptr);
+    AnimationCommandHelper::CreateAnimation(*context, targetId, animation);
+    EXPECT_EQ(node->GetAnimationManager()->GetAnimationsSize(), 1u);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateAnimation001 end";
+}
+
+/**
+ * @tc.name: CreateAnimation002
+ * @tc.desc: Verify CreateAnimation with null animation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateAnimation002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateAnimation002 start";
+    auto context = std::make_shared<RSContext>();
+    NodeId targetId = 1;
+    AnimationCommandHelper::CreateAnimation(*context, targetId, nullptr);
+    auto node = context->GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    EXPECT_TRUE(node == nullptr || node->GetAnimationManager() == nullptr ||
+        node->GetAnimationManager()->GetAnimationsSize() == 0u);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateAnimation002 end";
+}
+
+/**
+ * @tc.name: RebuildAnimation003
+ * @tc.desc: Verify RebuildAnimation early returns when AddAnimation fails (duplicate)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, RebuildAnimation003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation003 start";
+    auto context = std::make_shared<RSContext>();
+    NodeId targetId = 1;
+    auto node = std::make_shared<RSRenderNode>(targetId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, 0, property, property1, property2);
+    AnimationCommandHelper::CreateAnimation(*context, targetId, animation);
+    ASSERT_TRUE(node->GetAnimationManager() != nullptr);
+    EXPECT_EQ(node->GetAnimationManager()->GetAnimationsSize(), 1u);
+    AnimationCommandHelper::RebuildAnimation(*context, targetId, animation, 0.5f, false);
+    EXPECT_EQ(node->GetAnimationManager()->GetAnimationsSize(), 1u);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation003 end";
+}
+
+/**
+ * @tc.name: RebuildAnimation004
+ * @tc.desc: Verify RebuildAnimation succeeds when AddAnimation returns true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, RebuildAnimation004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation004 start";
+    auto context = std::make_shared<RSContext>();
+    NodeId targetId = 1;
+    auto node = std::make_shared<RSRenderNode>(targetId, context);
+    context->GetMutableNodeMap().RegisterRenderNode(node);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, 0, property, property1, property2);
+    AnimationCommandHelper::RebuildAnimation(*context, targetId, animation, 0.5f, false);
+    ASSERT_TRUE(node->GetAnimationManager() != nullptr);
+    EXPECT_EQ(node->GetAnimationManager()->GetAnimationsSize(), 1u);
+    EXPECT_TRUE(animation->target_ != nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation004 end";
 }
 
 } // namespace OHOS::Rosen

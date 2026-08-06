@@ -121,7 +121,7 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 {
 #ifdef SOC_PERF_ENABLE
     OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
-    RS_LOGD("RSUniRenderThread::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderThread::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
 #endif
 }
 };
@@ -540,7 +540,7 @@ std::vector<SurfaceFpsOp> RSUniRenderThread::GetSurfaceFpsOpList() const
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()
 {
-    RS_LOGD("%{public}s", __func__);
+    RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
@@ -888,7 +888,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (UNLIKELY(!grContext)) {
             return;
         }
-        RS_LOGD("Clear memory cache %{public}d", moment);
+        RS_LOGD_IF(DEBUG_PIPELINE, "Clear memory cache %{public}d", moment);
         RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
         SKResourceManager::Instance().ReleaseResource();
@@ -968,7 +968,7 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
         }
         grContext->ReclaimResources();
 
-        RS_LOGD("Clear memory cache %{public}d", moment);
+        RS_LOGD_IF(DEBUG_PIPELINE, "Clear memory cache %{public}d", moment);
         RS_TRACE_NAME_FMT("Reclaim Memory, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
         // Ensure user don't enable the parameter. When we have an interrupt mechanism, remove it.
@@ -1188,7 +1188,7 @@ uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
 {
     uint32_t refreshRate = GetDefaultScreenRefreshRate();
     if (refreshRate == 0) {
-        RS_LOGE("RSUniRenderThread::GetDynamicRefreshRate refreshRate is invalid");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderThread::GetDynamicRefreshRate refreshRate is invalid");
         return STANDARD_REFRESH_RATE;
     }
     return refreshRate;
@@ -1202,7 +1202,7 @@ void RSUniRenderThread::SetAcquireFence(sptr<SyncFence> acquireFence)
 void RSUniRenderThread::SetVmaCacheStatus(bool flag)
 {
     static constexpr int MAX_VMA_CACHE_COUNT = 600;
-    RS_LOGD("RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
     if (!vmaOptimizeFlag_) {
         return;
     }

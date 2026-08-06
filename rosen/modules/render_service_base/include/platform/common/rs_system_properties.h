@@ -283,7 +283,6 @@ public:
     static bool GetHpaeOfflineEnabled();
     static bool GetXcomponentEdrEnabled();
     static bool GetUIFirstDebugEnabled();
-    static bool GetUIFirstOptScheduleEnabled();
     static bool GetUIFirstBehindWindowEnabled();
     static bool GetUIFirstDirtyEnabled();
     static bool GetUIFirstDirtyDebugEnabled();
@@ -307,6 +306,7 @@ public:
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSurfaceNodeWatermarkEnabled();
     static bool IsSuperFoldDisplay();
+    static bool IsSpecialFoldDisplay();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
     static bool GetSingleFrameComposerEnabled();

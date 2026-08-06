@@ -192,6 +192,66 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
     EXPECT_EQ(res, false);
 }
 
+/**
+ * @tc.name: Create_TextureExportNodeDisablesHybrid
+ * @tc.desc: Test that isTextureExportNode=true results in hybridEnabled_=false regardless of globalHybridEnabled_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, Create_TextureExportNodeDisablesHybrid, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr normalNode = RSCanvasDrawingNode::Create(true, false);
+    RSCanvasDrawingNode::SharedPtr textureExportNode = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(normalNode, nullptr);
+    ASSERT_NE(textureExportNode, nullptr);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    ASSERT_EQ(normalNode->hybridEnabled_, RSCanvasDrawingNode::globalHybridEnabled_);
+#else
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    ASSERT_FALSE(normalNode->hybridEnabled_);
+#endif
+}
+
+/**
+ * @tc.name: SetNodeState_TextureExportNode
+ * @tc.desc: Test SetNodeState returns false when isTextureExportNode disables hybrid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, SetNodeState_TextureExportNode, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr textureExportNode = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(textureExportNode, nullptr);
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    bool res = textureExportNode->SetNodeState(RSNodeState::ACTIVE);
+    ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ResetSurface_HybridEnabledPath
+ * @tc.desc: Test ResetSurface takes ResetSurfaceForClientRender path when hybridEnabled_ is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_HybridEnabledPath, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true, false);
+    ASSERT_NE(canvasNode, nullptr);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 10000;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 10000;
+    if (canvasNode->hybridEnabled_) {
+        canvasNode->ResetSurface(100, 100);
+        ASSERT_FALSE(canvasNode->sizeOutOfGpuLimit_);
+        canvasNode->ResetSurface(20000, 20000);
+        ASSERT_TRUE(canvasNode->sizeOutOfGpuLimit_);
+    }
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 0;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 0;
+#else
+    bool ret = canvasNode->ResetSurface(100, 100);
+    ASSERT_TRUE(ret);
+#endif
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: SetIsOnTheTreeTest
@@ -365,6 +425,49 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRenderTest, TestSize.Leve
     int height = 100;
     auto ret = canvasNode->ResetSurface(width, height);
     EXPECT_TRUE(ret);
+}
+#endif
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: ResetSurfaceForClientRender_MaxGpuSizeTest
+ * @tc.desc: Test ResetSurfaceForClientRender with sizeOutOfGpuLimit when exceeding max GPU buffer size
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRender_MaxGpuSizeTest, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(canvasNode, nullptr);
+    // Set max GPU size large enough so that 100x100 is within limit
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 10000;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 10000;
+    int width = 100;
+    int height = 100;
+    canvasNode->ResetSurfaceForClientRender(width, height);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, false);
+    // Test exceeding max GPU size
+    canvasNode->ResetSurfaceForClientRender(20000, 20000);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
+    // Reset to default
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 0;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 0;
+}
+
+/**
+ * @tc.name: ResetSurfaceForClientRender_InvalidSizeTest
+ * @tc.desc: Test ResetSurfaceForClientRender with invalid sizes (width<=0 or height<=0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRender_InvalidSizeTest, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->ResetSurfaceForClientRender(0, 100);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
+    canvasNode->ResetSurfaceForClientRender(100, 0);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
+    canvasNode->ResetSurfaceForClientRender(-1, 100);
+    EXPECT_EQ(canvasNode->sizeOutOfGpuLimit_, true);
 }
 #endif
 } // namespace OHOS::Rosen

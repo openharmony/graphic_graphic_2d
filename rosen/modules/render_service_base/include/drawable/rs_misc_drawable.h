@@ -43,6 +43,11 @@ public:
     bool OnUpdate(const RSRenderNode& content) override;
     void OnSync() override;
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
+    void clearDrawableVec()
+    {
+        childrenDrawableVec_.clear();
+        stagingChildrenDrawableVec_.clear();
+    }
 
 private:
     bool needSync_ = false;

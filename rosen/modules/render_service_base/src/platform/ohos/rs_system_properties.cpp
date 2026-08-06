@@ -127,7 +127,7 @@ int RSSystemProperties::GetRecordingEnabled()
 void RSSystemProperties::SetRecordingDisenabled()
 {
     system::SetParameter("debug.graphic.recording.enabled", "0");
-    RS_LOGD("RSSystemProperties::SetRecordingDisenabled");
+    RS_LOGD_IF(DEBUG_IPC, "RSSystemProperties::SetRecordingDisenabled");
 }
 
 bool RSSystemProperties::GetProfilerEnabled()
@@ -1019,14 +1019,6 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
     return debugEnable;
 }
 
-bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.optSchedule.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
 bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
@@ -1211,6 +1203,13 @@ bool RSSystemProperties::IsSuperFoldDisplay()
     static const std::string foldScreenType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
     static const bool IsSuperFoldDisplay = foldScreenType.size() > 0 ? foldScreenType[0] == '6' : false;
     return IsSuperFoldDisplay;
+}
+
+bool RSSystemProperties::IsSpecialFoldDisplay()
+{
+    static const std::string foldScreenType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    static const bool IsSpecialFoldDisplay = foldScreenType.size() > 0 ? foldScreenType[0] == '8' : false;
+    return IsSpecialFoldDisplay;
 }
 
 bool RSSystemProperties::GetSyncTransactionEnabled()
@@ -1642,7 +1641,7 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
     static bool canvasEnabled =
         Drawing::SystemProperties::IsUseVulkan() &&
         system::GetParameter("const.product.devicetype", "phone") == "phone" &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
     return canvasEnabled;
 }
 

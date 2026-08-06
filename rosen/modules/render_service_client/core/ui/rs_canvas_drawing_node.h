@@ -221,10 +221,16 @@ private:
 #endif
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+    static inline uint32_t maxGpuSupportedWidth_ = 0;
+    static inline uint32_t maxGpuSupportedHeight_ = 0;
+    static inline bool globalHybridEnabled_ = false;
+
     bool skipContentModifierDraw_ = false;
  
     bool sizeOutOfGpuLimit_ = false;
 #endif
+
+    bool hybridEnabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <dirent.h> // opendir
 #include <fcntl.h>
 #include <sys/stat.h> // mkdir
@@ -23,14 +24,19 @@
 
 namespace OHOS::Rosen {
 
-static RetCodeHrpService ValidateOpenFlags(int32_t flags)
+static RetCodeHrpService ValidateOpenFlags(uint32_t flags)
 {
-    constexpr int32_t allowedFlags = O_RDONLY | O_WRONLY | O_RDWR | O_CREAT;
+    constexpr uint32_t allowedFlags = static_cast<uint32_t>(O_ACCMODE) |
+                                      static_cast<uint32_t>(O_CREAT);
     if (flags & ~allowedFlags) {
         return RET_HRP_SERVICE_ERR_INVALID_PARAM;
     }
-    int accessMode = flags & (O_RDONLY | O_WRONLY | O_RDWR);
-    if (accessMode != O_RDONLY && accessMode != O_WRONLY && accessMode != O_RDWR) {
+
+    uint32_t accessMode = flags & static_cast<uint32_t>(O_ACCMODE);
+
+    if (accessMode != static_cast<uint32_t>(O_RDONLY) &&
+        accessMode != static_cast<uint32_t>(O_WRONLY) &&
+        accessMode != static_cast<uint32_t>(O_RDWR)) {
         return RET_HRP_SERVICE_ERR_INVALID_PARAM;
     }
     return RET_HRP_SERVICE_SUCCESS;
@@ -71,9 +77,9 @@ static RetCodeHrpService CreateSubDirs(std::string& path,
 }
 
 RetCodeHrpService RSProfiler::HrpServiceOpenFile(const HrpServiceDirInfo& dirInfo,
-    const std::string& fileName, int32_t flags, int& outFd)
+    const std::string& fileName, uint32_t flags, int& outFd)
 {
-    if (!IsHrpServiceEnabled() && !RSSystemProperties::GetProfilerEnabled()) {
+    if (!IsHrpServiceEnabled()) {
         return RET_HRP_SERVICE_ERR_UNSUPPORTED;
     }
     std::string path = HrpServiceGetDirFull(dirInfo.baseDirType);
@@ -95,7 +101,9 @@ RetCodeHrpService RSProfiler::HrpServiceOpenFile(const HrpServiceDirInfo& dirInf
 
     std::string fullFileName = path + "/" + fileName;
     constexpr int filePermission = 0660;
-    int retFd = open(fullFileName.c_str(), flags, filePermission);
+ 
+    int retFd = open(fullFileName.c_str(), static_cast<int>(flags), filePermission);
+ 
     if (retFd < 0) {
         return errno == EACCES ? RET_HRP_SERVICE_ERR_STUB_OPEN_FILE_ACCESS_DENIED : RET_HRP_SERVICE_ERR_STUB_OPEN_FILE;
     }
@@ -115,7 +123,7 @@ static RetCodeHrpService GetFileInfo(const char* name, HrpServiceFileInfo& outIn
     outInfo.name = name;
     outInfo.isDir = IsDir(st);
     if (!outInfo.isDir) {
-        outInfo.size = st.st_size;
+        outInfo.size = static_cast<uint32_t>(st.st_size);
     }
     struct timespec accessTime = st.st_atim;
     struct timespec modifyTime = st.st_mtim;
@@ -164,7 +172,7 @@ static RetCodeHrpService GetFilesFromDir(const std::string& path,
 RetCodeHrpService RSProfiler::HrpServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
     uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles)
 {
-    if (!IsHrpServiceEnabled() && !RSSystemProperties::GetProfilerEnabled()) {
+    if (!IsHrpServiceEnabled()) {
         return RET_HRP_SERVICE_ERR_UNSUPPORTED;
     }
     std::string path = HrpServiceGetDirFull(dirInfo.baseDirType);

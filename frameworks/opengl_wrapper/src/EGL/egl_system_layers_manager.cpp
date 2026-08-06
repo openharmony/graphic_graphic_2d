@@ -128,7 +128,7 @@ bool EglSystemLayersManager::GetJsonConfig(Json::Value &configData)
         return GetDefaultJsonConfig(configData);
     }
 
-    std::ifstream configFile(std::string(realPath), std::ifstream::in);
+    std::ifstream configFile(realPath, std::ifstream::in);
     if (!configFile.good()) {
         WLOGE("Failed to open system json config file");
         return GetDefaultJsonConfig(configData);
@@ -160,7 +160,7 @@ std::vector<std::string> EglSystemLayersManager::GetStringVectorFromJson(const J
         if (i.isString()) {
             stringVector.push_back(i.asString());
         } else {
-            WLOGD("%{private}s is not a string", i.asString().c_str());
+            WLOGD("json item is not a string, type %{public}d", static_cast<int>(i.type()));
         }
     }
 

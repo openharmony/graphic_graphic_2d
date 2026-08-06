@@ -202,27 +202,6 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<IConsumerSurface> RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface() const
-{
-    if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
-        return nullptr;
-    }
-
-    auto nodeSp = renderNode_.lock();
-    if (nodeSp == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null node, nodeId=%{public}" PRIu64, GetId());
-        return nullptr;
-    }
-    auto canvasDrawingNode = std::static_pointer_cast<const RSCanvasDrawingRenderNode>(nodeSp);
-    auto surfaceHandler = canvasDrawingNode->GetSurfaceHandler();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null surfaceHandler, nodeId=%{public}" PRIu64,
-            GetId());
-        return nullptr;
-    }
-    return surfaceHandler->GetConsumer();
-}
-
 void RSCanvasDrawingRenderNodeDrawable::DrawCustomContent(Drawing::Canvas& canvas)
 {
     if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
@@ -247,12 +226,16 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCustomContent(Drawing::Canvas& canva
     if (renderParams_->GetBuffer() == nullptr) {
         return;
     }
+    auto bufferOwnerCount = renderParams_->GetBufferOwnerCount();
+    if (bufferOwnerCount != nullptr) {
+        bufferOwnerCount->AddRef();
+    }
     auto rsCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     auto bufferDrawParam = RSUniRenderUtil::CreateBufferDrawParam(*this, false, rsCanvas->GetParallelThreadId());
-    RSAutoCanvasRestore arc(rsCanvas);
-    auto& uniRenderThread = RSUniRenderThread::Instance();
-    uniRenderThread.GetRenderEngine()->DrawCanvasDrawingNodeWithParams(*rsCanvas, bufferDrawParam);
-    uniRenderThread.OnDrawBuffer(GetConsumerSurface(), bufferDrawParam.buffer, renderParams_->GetBufferOwnerCount());
+    RSUniRenderThread::Instance().GetRenderEngine()->DrawCanvasDrawingNodeWithParams(*rsCanvas, bufferDrawParam);
+    if (bufferOwnerCount != nullptr) {
+        bufferOwnerCount->DecRef();
+    }
 }
 
 void RSCanvasDrawingRenderNodeDrawable::DrawCustomContentForCapture(Drawing::Canvas& canvas, const Drawing::Rect& rect)

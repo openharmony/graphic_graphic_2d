@@ -174,15 +174,6 @@ bool RSSpecialLayerManager::FindWithScreen(ScreenId screenId, uint32_t type) con
     return HasType(screenSpecialLayer_.at(screenId), type);
 }
 
-uint32_t RSSpecialLayerManager::GetWithScreen(ScreenId screenId) const
-{
-    auto iter = screenSpecialLayer_.find(screenId);
-    if (iter == screenSpecialLayer_.end()) {
-        return SpecialLayerType::NONE;
-    }
-    return iter->second;
-}
-
 void RSSpecialLayerManager::AddIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id)
 {
     uint32_t isType = type & IS_GENERAL_SPECIAL;
@@ -196,6 +187,15 @@ void RSSpecialLayerManager::AddIdsWithScreen(ScreenId screenId, uint32_t type, N
         isType >>= 1;
         currentType <<= 1;
     }
+}
+
+uint32_t RSSpecialLayerManager::GetWithScreen(ScreenId screenId) const
+{
+    auto iter = screenSpecialLayer_.find(screenId);
+    if (iter == screenSpecialLayer_.end()) {
+        return SpecialLayerType::NONE;
+    }
+    return iter->second;
 }
 
 void RSSpecialLayerManager::RemoveIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id)
@@ -272,6 +272,7 @@ void RSSpecialLayerManager::MergeChildren(const RSSpecialLayerManager& childSlm)
 void RSSpecialLayerManager::Clear()
 {
     specialLayerIds_.clear();
+    screenSpecialLayer_.clear();
     screenSpecialLayerIds_.clear();
     hasSlInVisibleRect_.clear();
 }
@@ -372,16 +373,6 @@ bool ScreenSpecialLayerInfo::ExistEnableScreen(SpecialLayerType type)
     return screenSpecialLayerInfoByNode_.find(type) != screenSpecialLayerInfoByNode_.end();
 }
 
-void ScreenSpecialLayerInfo::SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList)
-{
-    globalBlackList_ = globalBlackList;
-}
-
-const std::unordered_set<NodeId>& ScreenSpecialLayerInfo::GetGlobalBlackList()
-{
-    return globalBlackList_;
-}
-
 void ScreenSpecialLayerInfo::UpdateScreenMirrorSourceMap(ScreenId mirrorScreenId, ScreenId sourceScreenId)
 {
     screenMirrorSourceMap_[mirrorScreenId] = sourceScreenId;
@@ -399,6 +390,60 @@ ScreenId ScreenSpecialLayerInfo::GetMirrorSourceScreenId(ScreenId mirrorScreenId
 void ScreenSpecialLayerInfo::ClearScreenMirrorSourceMap()
 {
     screenMirrorSourceMap_.clear();
+}
+
+std::unordered_set<NodeId> ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType type)
+{
+    std::unordered_set<NodeId> nodeIds;
+    auto typeIter = screenSpecialLayerInfoByNode_.find(type);
+    if (typeIter == screenSpecialLayerInfoByNode_.end()) {
+        return nodeIds;
+    }
+    const auto& typeInfo = typeIter->second;
+    for (const auto& [nodeId, _] : typeInfo) {
+        nodeIds.insert(nodeId);
+    }
+    return nodeIds;
+}
+
+void ScreenSpecialLayerInfo::SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList)
+{
+    globalBlackList_ = globalBlackList;
+}
+
+const std::unordered_set<NodeId>& ScreenSpecialLayerInfo::GetGlobalBlackList()
+{
+    return globalBlackList_;
+}
+
+void ScreenSpecialLayerParam::SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList)
+{
+    globalBlackList_ = globalBlackList;
+}
+
+const std::unordered_set<NodeId>& ScreenSpecialLayerParam::GetGlobalBlackList() const
+{
+    return globalBlackList_;
+}
+
+void ScreenSpecialLayerParam::AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect)
+{
+    for (auto screenId : screenIds) {
+        whiteListRect_[screenId].push_back(rect);
+    }
+}
+
+std::vector<Drawing::Rect> ScreenSpecialLayerParam::GetWhiteListRectByScreenId(ScreenId screenId) const
+{
+    if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
+        return iter->second;
+    }
+    return {};
+}
+
+void ScreenSpecialLayerParam::ClearWhiteListRect()
+{
+    whiteListRect_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

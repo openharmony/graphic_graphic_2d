@@ -554,7 +554,7 @@ ErrCode RSClientToRenderConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<
         return READ_PARCEL_ERR;
     }
     if (!result || !RSMarshallingHelper::Unmarshalling(reply, pixelmap)) {
-        RS_LOGD("RSClientToRenderConnectionProxy::GetPixelmap: GetPixelmap failed");
+        RS_LOGD_IF(DEBUG_IPC, "RSClientToRenderConnectionProxy::GetPixelmap: GetPixelmap failed");
         success = false;
         return ERR_INVALID_VALUE;
     }
@@ -1326,7 +1326,7 @@ void RSClientToRenderConnectionProxy::RegisterTransactionDataCallback(uint64_t t
     }
     uint32_t code = static_cast<uint32_t>(
         RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    RS_LOGD("RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: timeStamp: %{public}"
+    RS_LOGD_IF(DEBUG_IPC, "RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: timeStamp: %{public}"
         PRIu64 " token: %{public}" PRIu64, timeStamp, token);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1391,7 +1391,7 @@ void RSClientToRenderConnectionProxy::RegisterCanvasCallback(sptr<RSICanvasSurfa
     MessageParcel reply;
     MessageOption option;
 
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(callback != nullptr ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterCanvasCallback: WriteInterfaceToken GetDescriptor err.");
         return;
@@ -1971,8 +1971,8 @@ sptr<Surface> RSClientToRenderConnectionProxy::CreateCanvasDrawingNodeSurface(No
         ROSEN_LOGE("CreateCanvasDrawingNodeSurface: WriteUint64 nodeId err.");
         return nullptr;
     }
- 
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE);
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("CreateCanvasDrawingNodeSurface: Send Request err.");
@@ -2004,8 +2004,9 @@ void RSClientToRenderConnectionProxy::ReleaseCanvasDrawingNodeSurface(NodeId nod
         ROSEN_LOGE("ReleaseCanvasDrawingNodeSurface: WriteUint64 nodeId err.");
         return nullptr;
     }
- 
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE);
+
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::RELEASE_CANVAS_DRAWING_NODE_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("ReleaseCanvasDrawingNodeSurface: Send Request err.");

@@ -246,7 +246,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
 
 bool RSRenderServiceConnectHub::Connect()
 {
-    RS_LOGD("RSRenderServiceConnectHub::Connect");
+    RS_LOGD_IF(DEBUG_IPC, "RSRenderServiceConnectHub::Connect");
     int tryCnt = 0;
     sptr<RSIRenderService> renderService = nullptr;
     do {
