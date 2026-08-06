@@ -868,5 +868,114 @@ HWTEST_F(RSTypefaceCacheTest, SharedTypefaceToStringTest003, TestSize.Level1)
     EXPECT_TRUE(result.find("SharedTypeface {") != std::string::npos);
     EXPECT_TRUE(result.find("hasFontArgs:") != std::string::npos);
 }
+
+/**
+ * @tc.name: CacheDrawingTypeface_GeneralMemoryAccumulation001
+ * @tc.desc: Verify generalTypefaceTotalCpuMemory_ accumulates when caching non-FD typefaces
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypeface_GeneralMemoryAccumulation001, TestSize.Level1)
+{
+    RSTypefaceCache::Instance().typefaceHashCode_.clear();
+    RSTypefaceCache::Instance().typefaceHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceBaseHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceHashQueue_.clear();
+    RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_ = 0;
+
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    // MakeDefault() produces a non-FD typeface, exercising the else branch
+    EXPECT_EQ(typeface->GetFd(), -1);
+    size_t typefaceSize = typeface->GetSize();
+    EXPECT_NE(typefaceSize, 0u);
+
+    uint64_t uniqueId1 = 1;
+    uint64_t uniqueId2 = 2;
+    // first cache: counter accumulates by one typeface size
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId1, typeface);
+    EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, typefaceSize);
+    EXPECT_NE(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId1), nullptr);
+
+    // second cache of same typeface: counter still accumulates in the else branch
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId2, typeface);
+    EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, typefaceSize * 2);
+    EXPECT_NE(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId2), nullptr);
+
+    // removal should decrement the counter for non-FD typefaces
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueId1);
+    EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, typefaceSize);
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueId2);
+    EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, 0u);
+}
+
+/**
+ * @tc.name: CacheDrawingTypeface_GeneralMemoryOverLimit001
+ * @tc.desc: Verify CacheDrawingTypeface returns early without caching when generalTypefaceTotalCpuMemory_
+ *          exceeds MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypeface_GeneralMemoryOverLimit001, TestSize.Level1)
+{
+    RSTypefaceCache::Instance().typefaceHashCode_.clear();
+    RSTypefaceCache::Instance().typefaceHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceBaseHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceHashQueue_.clear();
+    // pre-set counter at the limit so the upcoming addition triggers the over-limit early return
+    RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_ = MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT;
+
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_EQ(typeface->GetFd(), -1);
+    size_t typefaceSize = typeface->GetSize();
+    EXPECT_NE(typefaceSize, 0u);
+
+    uint64_t uniqueId = 1;
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+
+    // typeface should NOT be cached because the early return was triggered
+    EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);
+    EXPECT_EQ(RSTypefaceCache::Instance().typefaceHashCode_.find(uniqueId),
+        RSTypefaceCache::Instance().typefaceHashCode_.end());
+    // the size addition happens before the limit check
+    EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_,
+        MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT + typefaceSize);
+
+    // cleanup
+    RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_ = 0;
+}
+
+/**
+ * @tc.name: RemoveHashMap_FdTypefaceNoMemoryDecrement001
+ * @tc.desc: Verify generalTypefaceTotalCpuMemory_ is NOT decremented when removing FD typefaces
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, RemoveHashMap_FdTypefaceNoMemoryDecrement001, TestSize.Level1)
+{
+    RSTypefaceCache::Instance().typefaceHashCode_.clear();
+    RSTypefaceCache::Instance().typefaceHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceBaseHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceHashQueue_.clear();
+    RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_ = 0;
+
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    // FD typeface: GetFd() != -1, counter should NOT be touched on cache or remove
+    EXPECT_NE(typeface->GetFd(), -1);
+
+    pid_t pid = getpid();
+    uint64_t uniqueId = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetUniqueID());
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+    // counter not incremented for FD typefaces
+    EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, 0u);
+    EXPECT_NE(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);
+
+    // removal should NOT decrement counter for FD typefaces (would underflow without the guard)
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueId);
+    EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, 0u);
+    EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS
