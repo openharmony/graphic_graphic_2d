@@ -1070,7 +1070,9 @@ napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_i
     status = napi_get_undefined(env, &undefinedValue);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && undefinedValue != nullptr, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors get undefined fail"));
-    napi_create_array_with_length(env, std::max(1u, static_cast<uint32_t>(colors.size())), &arrayValue);
+    status = napi_create_array_with_length(env, std::max(1u, static_cast<uint32_t>(colors.size())), &arrayValue);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && arrayValue != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors create array fail"));
     for (uint32_t i = 0; i < std::max(1u, static_cast<uint32_t>(colors.size())); ++i) {
         napi_value colorValue = undefinedValue;
         if (i < colors.size()) {

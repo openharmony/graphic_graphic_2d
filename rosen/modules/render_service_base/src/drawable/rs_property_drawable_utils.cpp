@@ -303,6 +303,10 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(
         return nullptr;
     }
     auto canvas = offscreenSurface->GetCanvas();
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage failed to get offscreen canvas");
+        return nullptr;
+    }
     effectBuilder->SetChild("imageInput",
         Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
             Drawing::SamplingOptions { Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE }, matrix));
@@ -1320,6 +1324,10 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
 void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
     const float& offsetY, const float& radius, const bool& isFilled, Color spotColor, bool disableSDFBlur)
 {
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawShadowMaskFilter canvas is null");
+        return;
+    }
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::DrawShadowMaskFilter, Radius: %f, ShadowOffsetX: "
         "%f, ShadowOffsetY: %f, bounds: %s",
@@ -1459,6 +1467,10 @@ void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, 
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
     const std::string& shapeTag)
 {
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM canvas is null");
+        return;
+    }
     if (rect == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM rect is null");
         return;

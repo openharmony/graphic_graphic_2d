@@ -607,6 +607,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMTest, testing::ext
     bool isDark = true;
     Drawing::Rect rect(0, 0, 0, 0);
 
+    rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(nullptr, &rect, isDark, nullptr, "Tag1", "Tag2");
     rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, nullptr, isDark, nullptr, "Tag1", "Tag2");
     rsPropertyDrawableUtils->DrawColorUsingSDFWithDRM(&canvas, &rect, isDark, nullptr, "Tag1", "Tag2");
     EXPECT_TRUE(isDark);
@@ -711,6 +712,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     Drawing::Canvas canvasTest;
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
+    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(
+        nullptr, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false);
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, false,
         Color(255, 255, 255, 255), false);
     ASSERT_TRUE(true);
