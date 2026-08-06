@@ -142,6 +142,7 @@ public:
 
 private:
     static inline BrokerDelegator<RSServiceToRenderConnectionProxy> delegator_;
+    int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
     void WriteAppInfo(MessageParcel& data, MessageParcel& reply, MessageOption& option, AppInfo info);
 };
