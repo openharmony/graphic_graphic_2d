@@ -199,7 +199,6 @@ protected:
     void TraverseSubTreeAndDrawFilterWithClip(
         Drawing::Canvas& canvas, const RSRenderParams& params, bool includeProperty = false);
     bool UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params);
-    bool IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const;
     bool SkipDrawByWhiteList(Drawing::Canvas& canvas);
     void SetShouldClipHole(bool value) override;
     bool ShouldClipHole() const override;

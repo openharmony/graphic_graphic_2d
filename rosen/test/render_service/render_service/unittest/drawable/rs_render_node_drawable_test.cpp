@@ -691,13 +691,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest002, TestSize.Level
     auto result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
     EXPECT_FALSE(result);
 
-    drawable->UpdateCurRenderGroupCacheRootFilterState(params);
-    params.SetHasChildExcludedFromNodeGroup(true);
-    EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
-    result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
-    EXPECT_FALSE(result);
-    params.SetHasChildExcludedFromNodeGroup(false);
-
     params.SetRSFreezeFlag(true, true);
     updateTimes = 0;
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
@@ -963,30 +956,25 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCurRenderGroupCacheRootFilterStateTest,
     RSRenderParams params(RSRenderNodeDrawableTest::id);
 
     ASSERT_EQ(drawable->renderGroupCacheDrawable_, nullptr);
-    EXPECT_FALSE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
     auto rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
     ASSERT_NE(drawable->renderGroupCacheDrawable_, nullptr);
     EXPECT_FALSE(rst);
 
     params.SetChildHasVisibleFilter(true);
-    EXPECT_FALSE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
     rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
     EXPECT_TRUE(rst);
 
     params.SetChildHasVisibleFilter(false);
     params.SetChildHasVisibleEffect(true);
-    EXPECT_FALSE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
     rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
     EXPECT_TRUE(rst);
 
     params.SetChildHasVisibleEffect(false);
     params.SetHasChildExcludedFromNodeGroup(true);
-    EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
     rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
     EXPECT_TRUE(rst);
 
     params.SetHasChildExcludedFromNodeGroup(false);
-    EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
     rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
     EXPECT_FALSE(rst);
 }
