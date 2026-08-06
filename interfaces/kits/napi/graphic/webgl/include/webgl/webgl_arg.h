@@ -88,7 +88,7 @@ struct WebGLImageOption {
     GLsizei height;
     GLsizei depth;
 
-    WebGLImageOption() : format(0), type(0), width(0), height(0) {}
+    WebGLImageOption() : format(0), type(0), width(0), height(0), depth(1) {}
     WebGLImageOption(GLenum format, GLenum type, GLsizei width, GLsizei height)
     {
         this->format = format;
@@ -400,8 +400,9 @@ struct VertexAttribDesc {
 };
 
 struct VertexAttribInfo {
-    BufferDataType type;
+    BufferDataType type { BUFFER_DATA_FLOAT_32 };
     bool enabled { false };
+    bool integer { false };
     GLuint bufferId { 0 };
     GLenum glType { 0 };
     GLint size { 0 };

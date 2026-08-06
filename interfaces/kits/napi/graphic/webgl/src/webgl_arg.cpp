@@ -307,9 +307,16 @@ napi_status WebGLReadBufferArg::GenBufferData(napi_value data, BufferDataType de
         LOGD("WebGL WebGLReadBufferArg TypedArray");
         bufferType_ = BUFFER_TYPED_ARRAY;
         napi_typedarray_type arrayType;
+        size_t elementCount = 0;
         status = napi_get_typedarray_info(
-            env_, data, &arrayType, &dataLen_, reinterpret_cast<void**>(&data_), &arrayBuffer, &byteOffset);
+            env_, data, &arrayType, &elementCount, reinterpret_cast<void**>(&data_), &arrayBuffer, &byteOffset);
         type_ = (BufferDataType)arrayType;
+        size_t elementSize = GetBufferDataSize();
+        if (status != napi_ok || elementSize == 0 ||
+            elementCount > std::numeric_limits<size_t>::max() / elementSize) {
+            return napi_invalid_arg;
+        }
+        dataLen_ = elementCount * elementSize;
     } else if (array) {
         LOGD("WebGL WebGLReadBufferArg array ");
         bufferType_ = BUFFER_ARRAY;
@@ -735,6 +742,9 @@ bool WebGLImageSource::GetSrcOffsetBytes(
 
 GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, GLuint srcOffset)
 {
+    if (imageOption_.width < 0 || imageOption_.height < 0 || imageOption_.depth < 0) {
+        return GL_INVALID_VALUE;
+    }
     size_t bufLen = readBuffer_->GetBufferLength();
     size_t srcOffsetBytes = 0;
     if (!GetSrcOffsetBytes(readBuffer_.get(), srcOffset, srcOffsetBytes)) {
@@ -769,6 +779,10 @@ GLenum WebGLImageSource::CheckPixelMapBytes()
     if (pixelMap_ == nullptr) {
         return GL_NO_ERROR;
     }
+    if (imageOption_.width < 0 || imageOption_.height < 0 || imageOption_.depth < 0) {
+        LOGE("WebGl ImageSource invalid image dimensions");
+        return GL_INVALID_VALUE;
+    }
     uint32_t componentCount = 0;
     switch (imageOption_.format) {
         case GL_RGBA:
@@ -799,9 +813,25 @@ GLenum WebGLImageSource::CheckPixelMapBytes()
     uint64_t bytesPerPixel = static_cast<uint64_t>(componentCount) *
         WebGLArg::GetWebGLDataSize(imageOption_.type);
     uint64_t depth = (imageOption_.depth > 0) ? static_cast<uint64_t>(imageOption_.depth) : 1;
-    uint64_t need = static_cast<uint64_t>(imageOption_.width) * imageOption_.height * depth * bytesPerPixel;
-    if (need > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
-        LOGE("WebGl ImageSource pixelMap too small need %{public}" PRIu64, need);
+    uint64_t width = static_cast<uint64_t>(imageOption_.width);
+    uint64_t height = static_cast<uint64_t>(imageOption_.height);
+    if (width != 0 && height > std::numeric_limits<uint64_t>::max() / width) {
+        LOGE("WebGl ImageSource image size overflow");
+        return GL_INVALID_VALUE;
+    }
+    uint64_t requiredBytes = width * height;
+    if (requiredBytes != 0 && depth > std::numeric_limits<uint64_t>::max() / requiredBytes) {
+        LOGE("WebGl ImageSource image depth overflow");
+        return GL_INVALID_VALUE;
+    }
+    requiredBytes *= depth;
+    if (requiredBytes != 0 && bytesPerPixel > std::numeric_limits<uint64_t>::max() / requiredBytes) {
+        LOGE("WebGl ImageSource image byte size overflow");
+        return GL_INVALID_VALUE;
+    }
+    requiredBytes *= bytesPerPixel;
+    if (requiredBytes > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
+        LOGE("WebGl ImageSource pixelMap too small requiredBytes %{public}" PRIu64, requiredBytes);
         return GL_INVALID_OPERATION;
     }
     return GL_NO_ERROR;
@@ -908,7 +938,10 @@ WebGLReadBufferArg *WebGLImageSource::GetWebGLReadBuffer() const
 GLvoid* WebGLImageSource::GetImageSourceData() const
 {
     if (pixelMap_ == nullptr) {
-        return readBuffer_ == nullptr ? nullptr : reinterpret_cast<GLvoid*>(readBuffer_->GetBuffer() + srcOffset_);
+        if (readBuffer_ == nullptr || readBuffer_->GetBuffer() == nullptr) {
+            return nullptr;
+        }
+        return reinterpret_cast<GLvoid*>(readBuffer_->GetBuffer() + srcOffset_);
     }
 
     LOGD("WebGl ImageSource [%{public}u %{public}u] byteCount %{public}u pixelBytes %{public}u rowBytes %{public}u "

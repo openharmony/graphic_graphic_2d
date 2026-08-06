@@ -1322,7 +1322,7 @@ napi_value WebGLRenderingContextBase::ShaderSource(napi_env env, napi_callback_i
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    LOGD("WebGL shaderSource source %{public}zu, %{public}s", size, source.get());
+    LOGD("WebGL shaderSource length %{public}zu", size);
     std::string str(source.get(), size);
     return context->GetWebGLRenderingContextImpl().ShaderSource(env, funcArg[NARG_POS::FIRST], str);
 }
