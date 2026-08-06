@@ -184,18 +184,16 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     transactionData->token_ = token_;
     transactionData->tid_ = tid;
     if (commitTransactionCallback_ != nullptr) {
-        uint32_t index = transactionDataIndex_.load(std::memory_order_relaxed);
-        commitTransactionCallback_(renderPipelineClient_, std::move(transactionData), index);
-        transactionDataIndex_.store(index, std::memory_order_relaxed);
+        commitTransactionCallback_(renderPipelineClient_, std::move(transactionData), transactionDataIndex_);
         return;
     }
     renderPipelineClient_->CommitTransaction(transactionData);
-    transactionDataIndex_.store(transactionData->GetIndex(), std::memory_order_relaxed);
+    __atomic_store_n(&transactionDataIndex_, transactionData->GetIndex(), __ATOMIC_RELAXED);
 }
 
 uint32_t RSTransactionHandler::GetTransactionDataIndex() const
 {
-    return transactionDataIndex_.load(std::memory_order_relaxed);
+    return __atomic_load_n(&transactionDataIndex_, __ATOMIC_RELAXED);
 }
 
 void RSTransactionHandler::SetRSTransactionDataScene(RSTransactionDataScenes scene)

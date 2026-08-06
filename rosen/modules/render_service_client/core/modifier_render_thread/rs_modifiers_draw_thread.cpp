@@ -101,7 +101,7 @@ void RSModifiersDrawThread::CommitTransaction(std::shared_ptr<RSCanvasModifiersD
     canvasModifiersDrawAgent->SwapTransactionConfigList(transactionConfigList);
     modifiersDraw_->ConvertTransaction(transactionData, transactionConfigList);
     renderPiplineClient->CommitTransaction(transactionData);
-    transactionDataIndex = transactionData->GetIndex();
+    __atomic_store_n(&transactionDataIndex, transactionData->GetIndex(), __ATOMIC_RELAXED);
 }
 } // namespace Rosen
 } // namespace OHOS
