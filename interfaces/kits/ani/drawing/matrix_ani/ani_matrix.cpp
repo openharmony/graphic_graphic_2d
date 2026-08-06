@@ -14,6 +14,7 @@
  */
 
 #include "ani_matrix.h"
+#include "ani_drawing_transfer_util.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
@@ -81,7 +82,7 @@ ani_status AniMatrix::AniInit(ani_env *env)
 
     std::array staticMethods = {
         ani_native_function { "matrixTransferStaticNative", nullptr, reinterpret_cast<void*>(MatrixTransferStatic) },
-        ani_native_function { "getMatrixAddr", nullptr, reinterpret_cast<void*>(GetMatrixAddr) },
+        ani_native_function { "matrixTransferDynamicNative", nullptr, reinterpret_cast<void*>(MatrixTransferDynamic) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
@@ -678,48 +679,42 @@ void AniMatrix::SetSinCos(ani_env* env, ani_object obj, ani_double sinValue, ani
 }
 
 ani_object AniMatrix::MatrixTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniMatrix::MatrixTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniMatrix::MatrixTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsMatrix = reinterpret_cast<JsMatrix*>(unwrapResult);
-    if (jsMatrix->GetMatrix() == nullptr) {
-        ROSEN_LOGE("AniMatrix::MatrixTransferStatic jsMatrix is null");
-        return CreateAniUndefined(env);
-    }
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsMatrix = reinterpret_cast<JsMatrix*>(unwrapResult);
+        if (jsMatrix == nullptr || jsMatrix->GetMatrix() == nullptr) {
+            ROSEN_LOGE("AniMatrix::MatrixTransferStatic jsMatrix is null");
+            return CreateAniUndefined(env);
+        }
 
-    auto aniMatrix = new AniMatrix(jsMatrix->GetMatrix());
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().matrix,
-        AniGlobalMethod::GetInstance().matrixCtorWithPtr, reinterpret_cast<ani_long>(aniMatrix));
-    if (IsUndefined(env, aniObj)) {
-        ROSEN_LOGE("AniMatrix::MatrixTransferStatic failed create aniMatrix");
-        delete aniMatrix;
-        return CreateAniUndefined(env);
-    }
-    return aniObj;
+        auto aniMatrix = new AniMatrix(jsMatrix->GetMatrix());
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().matrix,
+            AniGlobalMethod::GetInstance().matrixCtorWithPtr, reinterpret_cast<ani_long>(aniMatrix));
+        if (IsUndefined(env, aniObj)) {
+            delete aniMatrix;
+            ROSEN_LOGE("AniMatrix::MatrixTransferStatic failed cause aniObj is undefined");
+        }
+        return aniObj;
+    });
 }
 
-ani_long AniMatrix::GetMatrixAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniMatrix::MatrixTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, input, AniGlobalField::GetInstance().matrixNativeObj);
-    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
-        ROSEN_LOGE("AniMatrix::GetMatrixAddr aniMatrix is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().matrix)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniMatrix->GetMatrixPtrAddr());
-}
-
-std::shared_ptr<Matrix>* AniMatrix::GetMatrixPtrAddr()
-{
-    return &matrix_;
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniMatrix = GetNativeFromObj<AniMatrix>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().matrixNativeObj);
+            if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
+                ROSEN_LOGE("AniMatrix::MatrixTransferDynamic null aniMatrix");
+                return nullptr;
+            }
+            return JsMatrix::CreateJsMatrix(napiEnv, aniMatrix->GetMatrix());
+        });
 }
 
 std::shared_ptr<Matrix> AniMatrix::GetMatrix()

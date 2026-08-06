@@ -491,11 +491,16 @@ ohos_shared_library("librender_service") {
 
   public_deps = []
 
-  # car features
-  if (defined(graphic_2d_car_features_configs.car_features_root)) {
-    defines += [ "RS_CAR_FEATURES" ]
-    sources += graphic_2d_car_features_configs.librender_service_ext_car_features_sources
-    include_dirs += graphic_2d_car_features_configs.librender_service_ext_car_features_includes
+  # multi display features
+  if (graphic_2d_feature_multi_display_features_enable) {
+    defines += [ "RS_MULTI_DISPLAY_FEATURES" ]
+    sources += [
+      "main/render_server/server_config/rs_multi_display_feature_param_parse.cpp",
+      "main/render_server/server_config/rs_multi_display_feature_param.cpp",
+    ]
+    include_dirs += [
+      "main/render_server/server_config",
+    ]
   }
 
   if (graphic_2d_feature_subtree_parallel_enable && defined(graphic_2d_subtree_configs.subtree_root)) {

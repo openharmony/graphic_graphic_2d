@@ -169,12 +169,9 @@ private:
     static bool CheckDrawVerticesParams(ani_env* env, ani_int& vertexCount, ani_int& indexCount);
     static void GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t colorOffset,
         DrawPixelMapMeshArgs& args, AniCanvas* aniCanvas);
-    std::shared_ptr<Media::PixelMap>* GetPixelMapPtrAddr();
 #endif
     static ani_object CanvasTransferStatic(ani_env*  env, [[maybe_unused]]ani_object obj, ani_object input);
-    static ani_long GetCanvasAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    static ani_long GetPixelMapAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    static ani_boolean GetCanvasOwned(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    static ani_object CanvasTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
 
     Canvas* m_canvas = nullptr;
     bool owned_ = false;

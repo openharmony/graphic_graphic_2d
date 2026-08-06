@@ -130,5 +130,41 @@ HWTEST_F(RSEffectUtilsTest, AccumulateFilterRenderContext003, TestSize.Level1)
     EXPECT_TRUE(result);
     EXPECT_EQ(filterContext.offscreenNodeId, canvasParent->GetId());
 }
+
+/**
+ * @tc.name: UpdateFilterCacheWithBelowDirtyAndPendingPurge001
+ * @tc.desc: test UpdateFilterCacheWithBelowDirtyAndPendingPurge with MaterialFilter
+ * @tc.type: FUNC
+ * @tc.require: issue25152
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateFilterCacheWithBelowDirtyAndPendingPurge001, TestSize.Level2)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    node->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+
+    RSDirtyRegionManager dirtyManager;
+    dirtyManager.MergeDirtyRect(RectI(0, 0, 100, 100));
+
+    RSEffectUtils::UpdateFilterCacheWithBelowDirtyAndPendingPurge(*node, dirtyManager);
+    EXPECT_FALSE(dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: UpdateFilterCacheWithBelowDirtyAndPendingPurge002
+ * @tc.desc: test UpdateFilterCacheWithBelowDirtyAndPendingPurge with BackgroundFilter
+ * @tc.type: FUNC
+ * @tc.require: issue25152
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateFilterCacheWithBelowDirtyAndPendingPurge002, TestSize.Level2)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    node->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+
+    RSDirtyRegionManager dirtyManager;
+    dirtyManager.MergeDirtyRect(RectI(0, 0, 100, 100));
+
+    RSEffectUtils::UpdateFilterCacheWithBelowDirtyAndPendingPurge(*node, dirtyManager);
+    EXPECT_FALSE(dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty());
+}
 } // namespace Rosen
 } // namespace OHOS

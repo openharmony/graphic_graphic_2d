@@ -752,6 +752,13 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    bool isRebuildingState = surfaceParams->GetRebuildingState();
+    if (isRebuildingState) {
+        SetDrawSkipType(DrawSkipType::REBUILDING_SKIP);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw isRebuildingState");
+        return;
+    }
+
     if (layerSplitterProcessor_) {
         layerSplitterProcessor_->RequestFrame(*surfaceParams);
     }

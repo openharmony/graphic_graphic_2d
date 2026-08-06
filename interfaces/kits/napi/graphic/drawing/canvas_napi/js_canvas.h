@@ -56,6 +56,10 @@ public:
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
 
     DRAWING_API static napi_value CreateJsCanvas(napi_env env, Canvas* canvas);
+#if defined(ROSEN_OHOS)
+    DRAWING_API static napi_value CreateJsCanvasDynamic(
+        napi_env env, Canvas* canvas, std::shared_ptr<Media::PixelMap> pixelMap);
+#endif
 
     static napi_value AttachBrush(napi_env env, napi_callback_info info);
     static napi_value AttachPen(napi_env env, napi_callback_info info);
@@ -112,7 +116,6 @@ public:
     static napi_value GetLocalClipBounds(napi_env env, napi_callback_info info);
     static napi_value QuickRejectPath(napi_env env, napi_callback_info info);
     static napi_value QuickRejectRect(napi_env env, napi_callback_info info);
-    static napi_value CanvasTransferDynamic(napi_env env, napi_callback_info info);
     static napi_value IsOpaque(napi_env env, napi_callback_info info);
 
     Canvas* GetCanvas();

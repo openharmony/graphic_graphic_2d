@@ -27,6 +27,7 @@
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "buffer_utils.h"
+#include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #endif
 
 #include "command/rs_command_factory.h"
@@ -1359,9 +1360,18 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER): {
+            if (!NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
+                return FEATURE_DISABLED;
+            }
             NodeId nodeId = INVALID_NODEID;
             if (!data.ReadUint64(nodeId)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Illegal pid, "
+                    "nodeId=%{public}" PRIu64 ", pid=%{public}d", nodeId, callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
             }

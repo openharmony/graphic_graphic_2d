@@ -38,7 +38,6 @@ napi_value JsTypeface::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("makeFromFileWithArguments", JsTypeface::MakeFromFileWithArguments),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromRawFile", JsTypeface::MakeFromRawFile),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromRawFileWithArguments", JsTypeface::MakeFromRawFileWithArguments),
-        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsTypeface::TypefaceTransferDynamic),
     };
 
     napi_value constructor = nullptr;
@@ -436,29 +435,6 @@ napi_value JsTypeface::MakeFromRawFileWithArguments(napi_env env, napi_callback_
 #else
     return nullptr;
 #endif
-}
-
-napi_value JsTypeface::TypefaceTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
-        return nullptr;
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Typeface> typeface = *reinterpret_cast<std::shared_ptr<Typeface>*>(addr);
-    if (typeface == nullptr) {
-        return nullptr;
-    }
-    return CreateJsTypeface(env, typeface);
 }
 
 napi_value JsTypeface::IsBold(napi_env env, napi_callback_info info)

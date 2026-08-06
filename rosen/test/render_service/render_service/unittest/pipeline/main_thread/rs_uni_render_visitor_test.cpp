@@ -7712,6 +7712,190 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClea
 }
 
 /**
+ * @tc.name: CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_ShouldSkip001
+ * @tc.desc: Test ShouldSkipFilterNodeCheckInOccludedSubTree returns true when conditions met
+ * @tc.type: FUNC
+ * @tc.require: issue25152
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_ShouldSkip001,
+    TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto curSurfaceNode = std::make_shared<RSSurfaceRenderNode>(1000, rsContext->weak_from_this());
+    curSurfaceNode->InitRenderParams();
+    curSurfaceNode->SetAbilityBGAlpha(255);
+    curSurfaceNode->SetGlobalAlpha(1.0f);
+    EXPECT_FALSE(curSurfaceNode->IsTransparent());
+
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    rsRootRenderNode->InitRenderParams();
+
+    RSDirtyRegionManager dirtyManager;
+
+    rsUniRenderVisitor->curSurfaceNode_ = curSurfaceNode;
+    rsUniRenderVisitor->CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    EXPECT_TRUE(dirtyManager.GetFilterCollector().GetFilterDirtyRegionInfoList(false).empty());
+}
+
+/**
+ * @tc.name: CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_ParentTreeDirty001
+ * @tc.desc: Test rootNode.IsParentTreeDirty() true branch at line 4047 and 4078
+ * @tc.type: FUNC
+ * @tc.require: issue25152
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_ParentTreeDirty001,
+    TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->dirtyFlag_ = true;
+
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    rsRootRenderNode->InitRenderParams();
+    rsRootRenderNode->SetDirty();
+
+    auto effectNode = std::make_shared<RSEffectRenderNode>(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
+    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+    rsRootRenderNode->UpdateVisibleEffectChild(*effectNode);
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(2);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode);
+    canvasNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(2);
+    EXPECT_TRUE(rsRootRenderNode->IsParentTreeDirty());
+}
+
+/**
+ * @tc.name: CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_VisibleEffectChild001
+ * @tc.desc: Test visibleEffectNode not null branch at line 4050
+ * @tc.type: FUNC
+ * @tc.require: issue25152
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_VisibleEffectChild001,
+    TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->dirtyFlag_ = true;
+
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    rsRootRenderNode->InitRenderParams();
+    rsRootRenderNode->SetDirty();
+
+    auto visibleEffectChild = std::make_shared<RSEffectRenderNode>(100);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(visibleEffectChild);
+    visibleEffectChild->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->visibleEffectChild_.insert(100);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(100);
+    EXPECT_TRUE(rsRootRenderNode->IsParentTreeDirty());
+}
+
+/**
+ * @tc.name: CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_VisibleEffectChildNull001
+ * @tc.desc: Test visibleEffectNode null branch at line 4050
+ * @tc.type: FUNC
+ * @tc.require: issue25152
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_VisibleEffectChildNull001,
+    TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->dirtyFlag_ = true;
+
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    rsRootRenderNode->InitRenderParams();
+    rsRootRenderNode->SetDirty();
+
+    rsRootRenderNode->visibleEffectChild_.insert(200);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    EXPECT_TRUE(rsRootRenderNode->IsParentTreeDirty());
+}
+
+/**
+ * @tc.name: CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_NoBlurFilter001
+ * @tc.desc: Test skipping nodes without blur filter at line 4063
+ * @tc.type: FUNC
+ * @tc.require: issue25152
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_NoBlurFilter001,
+    TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    rsRootRenderNode->InitRenderParams();
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode);
+    canvasNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+    EXPECT_TRUE(dirtyManager.GetFilterCollector().GetFilterDirtyRegionInfoList(false).empty());
+}
+
+/**
+ * @tc.name: CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_EffectNodeNotNull001
+ * @tc.desc: Test effectNode != nullptr branch at line 4070
+ * @tc.type: FUNC
+ * @tc.require: issue25152
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache_EffectNodeNotNull001,
+    TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->dirtyFlag_ = true;
+
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    rsRootRenderNode->InitRenderParams();
+    rsRootRenderNode->SetDirty();
+
+    auto effectNode = std::make_shared<RSEffectRenderNode>(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
+    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+    EXPECT_TRUE(rsRootRenderNode->IsParentTreeDirty());
+}
+
+/*
  * @tc.name: DelayNotifyUIBufferAvailableIfNeedTest001
  * @tc.desc: Cover branch: IsPendingUIBufferNotify=true, entry exists, all siblings ready, flush.
  * @tc.type: FUNC

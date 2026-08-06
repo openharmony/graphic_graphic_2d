@@ -25,7 +25,6 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("setCorner", JsRoundRect::SetCorner),
     DECLARE_NAPI_FUNCTION("getCorner", JsRoundRect::GetCorner),
     DECLARE_NAPI_FUNCTION("offset", JsRoundRect::Offset),
-    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsRoundRect::RoundRectTransferDynamic),
 };
 
 napi_value JsRoundRect::Init(napi_env env, napi_value exportObj)
@@ -173,43 +172,29 @@ napi_value JsRoundRect ::OnOffset(napi_env env, napi_callback_info info)
 
 napi_value JsRoundRect::CreateJsRoundRectDynamic(napi_env env, const std::shared_ptr<RoundRect> roundRect)
 {
-    napi_value result = nullptr;
-    napi_create_object(env, &result);
-    if (result == nullptr) {
-        ROSEN_LOGE("JsRoundRect::CreateJsRoundRectDynamic Create roundRect object failed!");
+    if (roundRect == nullptr) {
+        ROSEN_LOGE("JsRoundRect::CreateJsRoundRectDynamic roundRect is nullptr");
+        return nullptr;
+    }
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsRoundRect::CreateJsRoundRectDynamic napi_create_object failed");
         return nullptr;
     }
     JsRoundRect* jsRoundRect = new JsRoundRect(roundRect);
-    napi_status status = napi_wrap(env, result, jsRoundRect, JsRoundRect::Destructor, nullptr, nullptr);
+    status = napi_wrap(env, objValue, jsRoundRect, JsRoundRect::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsRoundRect;
+        ROSEN_LOGE("JsRoundRect::CreateJsRoundRectDynamic failed to wrap native instance");
         return nullptr;
     }
-    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
-    return result;
-}
-
-napi_value JsRoundRect::RoundRectTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsRoundRect::CreateJsRoundRectDynamic failed to define properties");
         return nullptr;
     }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<RoundRect> roundRect = *reinterpret_cast<std::shared_ptr<RoundRect>*>(addr);
-    if (roundRect == nullptr) {
-        return nullptr;
-    }
-    return CreateJsRoundRectDynamic(env, roundRect);
+    return objValue;
 }
 
 const RoundRect& JsRoundRect::GetRoundRect()
