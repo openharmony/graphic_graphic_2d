@@ -21,12 +21,21 @@ namespace Rosen {
 void LayerSkipContext::SyncFrom(const RSDynamicLayerSkipController& srcController)
 {
     screenLayerInvalid_ = srcController.screenLayerInvalid_;
+    virtualScreenLayerInvalid_ = srcController.virtualScreenLayerInvalid_;
     relevantSurfaceNodeIds_.clear();
+    virtualRelevantSurfaceNodeIds_.clear();
     std::for_each(
         srcController.targetSelfDrawingSurface_.begin(), srcController.targetSelfDrawingSurface_.end(),
         [this](const auto& surface) {
             if (auto surfacePtr = surface.lock()) {
                 relevantSurfaceNodeIds_.push_back(surfacePtr->GetId());
+            }
+        });
+    std::for_each(
+        srcController.virtualTargetSelfDrawingSurface_.begin(), srcController.virtualTargetSelfDrawingSurface_.end(),
+        [this](const auto& surface) {
+            if (auto surfacePtr = surface.lock()) {
+                virtualRelevantSurfaceNodeIds_.push_back(surfacePtr->GetId());
             }
         });
 }
@@ -35,6 +44,8 @@ void LayerSkipContext::Reset()
 {
     screenLayerInvalid_ = false;
     relevantSurfaceNodeIds_.clear();
+    virtualScreenLayerInvalid_ = false;
+    virtualRelevantSurfaceNodeIds_.clear();
 }
 
 bool RSDynamicLayerSkipController::IsScreenLayerInvalid() const
@@ -53,6 +64,11 @@ void RSDynamicLayerSkipController::Init(const RectI& screenRect, bool globalDisa
     visitedRenderNodeCount_ = 0;
     lastFrameHasFullScreenSurface_ = hasFullScreenSurface_;
     hasFullScreenSurface_ = false;
+
+    virtualScreenLayerInvalid_ = false;
+    virtualGlobalOccluderDetected_ = false;
+    virtualOccluderInstanceRootNodeId_ = INVALID_NODEID;
+    virtualTargetSelfDrawingSurface_.clear();
 }
 
 void RSDynamicLayerSkipController::CheckNodeDrawProperty(RSRenderNode& node)
@@ -116,23 +132,32 @@ void RSDynamicLayerSkipController::VisitRenderNodeInner(std::shared_ptr<RSRender
                 false : GetBit(*child, LayerDrawContent::SUBTREE) || GetBit(*child, LayerDrawContent::SELF));
         });
     }
-    if (!globalOccluderDetected_) {
+    if (!globalOccluderDetected_ || !virtualGlobalOccluderDetected_) {
         // for canvas node above surface node, check its prop without considering its subtree.
         // for surface node and other nodes below it, check its prop and also its subtree.
         bool occluderDetected =
         (!needTraverse && GetBit(*node, LayerDrawContent::SELF)) ||
         (needTraverse && (GetBit(*node, LayerDrawContent::SELF) || GetBit(*node, LayerDrawContent::SUBTREE)));
-        if (occluderDetected) {
+        if (occluderDetected && !globalOccluderDetected_) {
             globalOccluderDetected_ = true;
             occluderInstanceRootNodeId_ = node->GetInstanceRootNodeId();
             RS_TRACE_NAME_FMT("%s node[%" PRIu64 "] is detected as global occluder", __func__, node->GetId());
+        }
+        std::shared_ptr<RSSurfaceRenderNode> surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+        bool virtualOccluderDetected = needTraverse &&
+            (occluderDetected && (surfaceNode && !surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP)));
+        if (virtualOccluderDetected && !virtualGlobalOccluderDetected_) {
+            virtualGlobalOccluderDetected_ = true;
+            virtualOccluderInstanceRootNodeId_ = node->GetInstanceRootNodeId();
+            RS_TRACE_NAME_FMT("%s node[%" PRIu64 "] is detected as global occluder in virtual",
+                __func__, node->GetId());
         }
     }
 }
 
 void RSDynamicLayerSkipController::VisitRenderNode(std::shared_ptr<RSSurfaceRenderNode> surfaceNode, RSRenderNode& node)
 {
-    if (!lastFrameHasFullScreenSurface_ || globalOccluderDetected_) {
+    if (!lastFrameHasFullScreenSurface_ || (globalOccluderDetected_ && virtualGlobalOccluderDetected_)) {
         return;
     }
     if (surfaceNode && surfaceNode->GetSkipDraw()) {
@@ -212,11 +237,10 @@ void RSDynamicLayerSkipController::DetectScreenLayerValidity(RSSurfaceRenderNode
     // functions to detect whether a self-drawing node makes screen layer invalid or not.
     // 1. skip if node is not app-window / no-child self-drawing surface / no global occluder already detected
     bool hasFullScreenSelfDrawingSurface = HasFullScreenSelfDrawingSurface(rootNode);
-    bool shouldProceedDetection = !globalDisabled_ &&
-                                  rootNode.IsAppWindow() &&
-                                  hasFullScreenSelfDrawingSurface &&
-                                  (!globalOccluderDetected_ || occluderInstanceRootNodeId_ == rootNode.GetId()) &&
-                                  targetSelfDrawingSurface_.empty() && lastFrameHasFullScreenSurface_;
+    bool shouldProceedDetection = !globalDisabled_ && rootNode.IsAppWindow() && hasFullScreenSelfDrawingSurface &&
+        (!globalOccluderDetected_ || occluderInstanceRootNodeId_ == rootNode.GetId() ||
+        !virtualGlobalOccluderDetected_ || virtualOccluderInstanceRootNodeId_ == rootNode.GetId()) &&
+        targetSelfDrawingSurface_.empty() && lastFrameHasFullScreenSurface_;
     if (!shouldProceedDetection) {
         RS_OPTIONAL_TRACE_NAME_FMT("%s skip detect node:[%s], isApp[%d] hasFullSurface[%d] occluderDetected[%d]"
             " fullscreen mode[%d]", __func__, rootNode.GetName().c_str(), rootNode.IsAppWindow(),
@@ -232,13 +256,19 @@ void RSDynamicLayerSkipController::DetectScreenLayerValidity(RSSurfaceRenderNode
     // The scenario is considered valid only if the fllowing creteria are all met:
     // 1. The self-drawing area covers the full screen (determined by bounds and area).
     // 2. The hardware enable status of these self-drawing nodes will be re-checked later.
-    bool isValidTargetApp = targetSelfDrawingArea.GetBound() == Occlusion::Rect(screenRect_) &&
+    virtualTargetSelfDrawingSurface_ = targetSelfDrawingSurface_;
+    bool isTargetRegionFullyCover = targetSelfDrawingArea.GetBound() == Occlusion::Rect(screenRect_) &&
         targetSelfDrawingArea.Area() ==
         static_cast<int64_t>(screenRect_.GetWidth()) * static_cast<int64_t>(screenRect_.GetHeight());
+    bool isValidTargetApp = isTargetRegionFullyCover && occluderInstanceRootNodeId_ == rootNode.GetId();
+    bool isVirtualValidTargetApp = isTargetRegionFullyCover && virtualOccluderInstanceRootNodeId_ == rootNode.GetId();
     RS_TRACE_NAME_FMT("Target App: %s, targetSelfDrawingArea: %s, screenRect: %s", rootNode.GetName().c_str(),
         targetSelfDrawingArea.GetRegionInfo().c_str(), screenRect_.ToString().c_str());
     if (!isValidTargetApp) {
         targetSelfDrawingSurface_.clear();
+    }
+    if (!isVirtualValidTargetApp) {
+        virtualTargetSelfDrawingSurface_.clear();
     }
 }
 
@@ -246,35 +276,40 @@ void RSDynamicLayerSkipController::VerifyScreenLayerValidity(float screenNodeGlo
 {
     screenLayerInvalid_ = false;
     // functions to finally decide whether screen layer is invalid or not (based on hardware enable status).
-    if (globalDisabled_ || targetSelfDrawingSurface_.empty()) {
+    if (globalDisabled_ || (targetSelfDrawingSurface_.empty() && virtualTargetSelfDrawingSurface_.empty())) {
         RS_TRACE_NAME_FMT("%s skip verifying, visited node cnt:%d", __func__, visitedRenderNodeCount_);
         return;
     }
     // find any condition that needs screen layer.
     // 1. any layer that is hardware disabled.
     // 2. any layer that is above screen layer and transparent.
-    screenLayerInvalid_ = !std::any_of(
-        targetSelfDrawingSurface_.begin(), targetSelfDrawingSurface_.end(),
-        [screenNodeGlobalZOrder](const auto& surfaceWeakPtr) {
-            auto surfacePtr = surfaceWeakPtr.lock();
-            auto surfaceHandler = surfacePtr ? surfacePtr->GetRSSurfaceHandler() : nullptr;
-            if (UNLIKELY(surfacePtr == nullptr || surfaceHandler == nullptr)) {
-                return true;
-            }
-            if (surfacePtr->IsHardwareForcedDisabled()) {
-                RS_OPTIONAL_TRACE_NAME_FMT(
-                    "%s SurfaceNode[%" PRIu64 "]" " is hardware disabled.", __func__, surfacePtr->GetId());
-                return true;
-            }
-            if (surfaceHandler->GetGlobalZOrder() > screenNodeGlobalZOrder) {
-                RS_OPTIONAL_TRACE_NAME_FMT("%s SurfaceNode[%" PRIu64 "] above screen layer, alpha status:[%d, %d, %d]",
-                    __func__, surfacePtr->GetId(), surfacePtr->IsNodeHasBackgroundColorAlpha(),
-                    !surfacePtr->GetSurfaceBufferOpaque(), ROSEN_NE(surfacePtr->GetGlobalAlpha(), 1.f));
-                return surfacePtr->IsNodeHasBackgroundColorAlpha() ||
-                    !surfacePtr->GetSurfaceBufferOpaque() || ROSEN_NE(surfacePtr->GetGlobalAlpha(), 1.f);
-            }
-            return false;
-        });
+    auto checkSurfaceInvalid = [screenNodeGlobalZOrder](const auto& surfaceWeakPtr) {
+        auto surfacePtr = surfaceWeakPtr.lock();
+        if (UNLIKELY(surfacePtr == nullptr)) {
+            return true;
+        }
+        auto surfaceHandler = surfacePtr->GetRSSurfaceHandler();
+        if (UNLIKELY(surfaceHandler == nullptr)) {
+            return true;
+        }
+        if (surfacePtr->IsHardwareForcedDisabled()) {
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "%s SurfaceNode[%" PRIu64 "]" " is hardware disabled.", __func__, surfacePtr->GetId());
+            return true;
+        }
+        if (surfaceHandler->GetGlobalZOrder() > screenNodeGlobalZOrder) {
+            RS_OPTIONAL_TRACE_NAME_FMT("%s SurfaceNode[%" PRIu64 "] above screen layer, alpha status:[%d, %d, %d]",
+                __func__, surfacePtr->GetId(), surfacePtr->IsNodeHasBackgroundColorAlpha(),
+                !surfacePtr->GetSurfaceBufferOpaque(), ROSEN_NE(surfacePtr->GetGlobalAlpha(), 1.f));
+            return surfacePtr->IsNodeHasBackgroundColorAlpha() ||
+                !surfacePtr->GetSurfaceBufferOpaque() || ROSEN_NE(surfacePtr->GetGlobalAlpha(), 1.f);
+        }
+        return false;
+    };
+    screenLayerInvalid_ = !targetSelfDrawingSurface_.empty() && !std::any_of(
+        targetSelfDrawingSurface_.begin(), targetSelfDrawingSurface_.end(), checkSurfaceInvalid);
+    virtualScreenLayerInvalid_ = !virtualTargetSelfDrawingSurface_.empty() && !std::any_of(
+        virtualTargetSelfDrawingSurface_.begin(), virtualTargetSelfDrawingSurface_.end(), checkSurfaceInvalid);
     RS_TRACE_NAME_FMT("%s visitRenderNode %d, fullScreenSelfDrawingSurface size [%zu], screenLayerInvalid[%d]",
         __func__, visitedRenderNodeCount_, targetSelfDrawingSurface_.size(), screenLayerInvalid_);
 }
