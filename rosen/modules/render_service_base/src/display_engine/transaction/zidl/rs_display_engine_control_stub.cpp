@@ -73,19 +73,19 @@ int RSDisplayEngineControlStub::OnRemoteRequest(
 }
 
 int32_t RSDisplayEngineControlStub::NotifyDEStatusChange(const uint32_t sceneKey,
- 	const std::vector<uint8_t>& values)
+    const std::vector<uint8_t>& values)
 {
- 	return RSDisplayEngineControl::GetInstance().NotifyDEStatusChange(sceneKey, values);
+    return RSDisplayEngineControl::GetInstance().NotifyDEStatusChange(sceneKey, values);
 }
  	 
 int32_t RSDisplayEngineControlStub::RegisterDEStatusChangeCallback(const sptr<RSIDEStatusChangeCallback>& callback)
 {
- 	return RSDisplayEngineControl::GetInstance().RegisterDEStatusChangeCallback(callback);
+    return RSDisplayEngineControl::GetInstance().RegisterDEStatusChangeCallback(callback);
 }
  	 
 int32_t RSDisplayEngineControlStub::UnregisterDEStatusChangeCallback()
 {
- 	return RSDisplayEngineControl::GetInstance().UnregisterDEStatusChangeCallback();
+    return RSDisplayEngineControl::GetInstance().UnregisterDEStatusChangeCallback();
 }
 } // namespace Rosen
 } // namespace OHOS
