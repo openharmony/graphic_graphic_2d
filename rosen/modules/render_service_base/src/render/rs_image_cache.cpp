@@ -19,6 +19,7 @@
 #include "rs_trace.h"
 #include "pixel_map.h"
 #include "params/rs_render_params.h"
+#include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,9 +31,24 @@ RSImageCache& RSImageCache::Instance()
     return gRSImageCacheInstance;
 }
 
+bool RSImageCache::IsCacheAccessAllowed(uint64_t uniqueId, pid_t callingPid)
+{
+    if (callingPid != 0 && ExtractPid(uniqueId) != callingPid) {
+        RS_LOGE("RSImageCache::IsCacheAccessAllowed denied, callingPid=%{public}d, uniqueId=%{public}" PRIu64
+            "uniqueId pid=%{public}d", static_cast<int>(callingPid), uniqueId,
+            static_cast<int>(ExtractPid(uniqueId)));
+        return false;
+    }
+    return true;
+}
+
 void RSImageCache::CacheDrawingImage(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img)
 {
     if (img && uniqueId > 0) {
+        pid_t callingPid = RSMarshallingHelper::GetCallingPid();
+        if (!IsCacheAccessAllowed(uniqueId, callingPid)) {
+            return;
+        }
         std::lock_guard<std::mutex> lock(mutex_);
         drawingImageCache_.emplace(uniqueId, std::make_pair(img, 0));
     }
@@ -40,6 +56,10 @@ void RSImageCache::CacheDrawingImage(uint64_t uniqueId, std::shared_ptr<Drawing:
 
 std::shared_ptr<Drawing::Image> RSImageCache::GetDrawingImageCache(uint64_t uniqueId) const
 {
+    pid_t callingPid = RSMarshallingHelper::GetCallingPid();
+    if (!IsCacheAccessAllowed(uniqueId, callingPid)) {
+        return nullptr;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = drawingImageCache_.find(uniqueId);
     if (it != drawingImageCache_.end()) {
@@ -77,6 +97,10 @@ void RSImageCache::ReleaseDrawingImageCache(uint64_t uniqueId)
 void RSImageCache::CachePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (pixelMap && uniqueId > 0) {
+        pid_t callingPid = RSMarshallingHelper::GetCallingPid();
+        if (!IsCacheAccessAllowed(uniqueId, callingPid)) {
+            return;
+        }
         {
             std::lock_guard<std::mutex> lock(mutex_);
             pixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
@@ -94,6 +118,10 @@ void RSImageCache::CachePixelMap(uint64_t uniqueId, std::shared_ptr<Media::Pixel
 
 std::shared_ptr<Media::PixelMap> RSImageCache::GetPixelMapCache(uint64_t uniqueId) const
 {
+    pid_t callingPid = RSMarshallingHelper::GetCallingPid();
+    if (!IsCacheAccessAllowed(uniqueId, callingPid)) {
+        return nullptr;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = pixelMapCache_.find(uniqueId);
     if (it != pixelMapCache_.end()) {
@@ -196,6 +224,10 @@ bool RSImageCache::CheckRefCntAndReleaseImageCache(uint64_t uniqueId, std::share
 void RSImageCache::CacheEditablePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (pixelMap && uniqueId > 0) {
+        pid_t callingPid = RSMarshallingHelper::GetCallingPid();
+        if (!IsCacheAccessAllowed(uniqueId, callingPid)) {
+            return;
+        }
         std::lock_guard<std::mutex> lock(editablePixelMapCacheMutex_);
         editablePixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
     }
@@ -203,6 +235,10 @@ void RSImageCache::CacheEditablePixelMap(uint64_t uniqueId, std::shared_ptr<Medi
 
 std::shared_ptr<Media::PixelMap> RSImageCache::GetEditablePixelMapCache(uint64_t uniqueId) const
 {
+    pid_t callingPid = RSMarshallingHelper::GetCallingPid();
+    if (!IsCacheAccessAllowed(uniqueId, callingPid)) {
+        return nullptr;
+    }
     std::lock_guard<std::mutex> lock(editablePixelMapCacheMutex_);
     auto it = editablePixelMapCache_.find(uniqueId);
     if (it != editablePixelMapCache_.end()) {
