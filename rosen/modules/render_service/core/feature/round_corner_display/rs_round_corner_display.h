@@ -147,12 +147,6 @@ private:
         {"orientation", false}
     };
 
-    // notch resources
-    std::shared_ptr<Drawing::Image> imgTopPortrait_ = nullptr;
-    std::shared_ptr<Drawing::Image> imgTopLadsOrit_ = nullptr;
-    std::shared_ptr<Drawing::Image> imgTopHidden_ = nullptr;
-    std::shared_ptr<Drawing::Image> imgBottomPortrait_ = nullptr;
-
     // notch resources for harden
     Drawing::Bitmap bitmapTopPortrait_;
     Drawing::Bitmap bitmapTopLadsOrit_;
@@ -183,8 +177,8 @@ private:
     bool resourceChanged = false;
 
     // the resource to be drawn
-    std::shared_ptr<Drawing::Image> curTop_ = nullptr;
-    std::shared_ptr<Drawing::Image> curBottom_ = nullptr;
+    Drawing::Bitmap curBitmapTop_;
+    Drawing::Bitmap curBitmapBottom_;
 
     std::shared_mutex resourceMut_;
 
@@ -201,6 +195,7 @@ private:
     static bool LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img);
 
     static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap);
+    static bool ConvertRgba8888ToAlpha8(const Drawing::Bitmap &srcBitmap, Drawing::Bitmap &dstBitmap);
     bool SetHardwareLayerSize();
 
     // load all images according to the resolution

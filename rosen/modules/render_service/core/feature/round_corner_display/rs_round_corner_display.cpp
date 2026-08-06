@@ -102,9 +102,60 @@ bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Dra
         RS_LOGE("[%{public}s] No image found \n", __func__);
         return false;
     }
-    if (!image->AsLegacyBitmap(bitmap)) {
+    Drawing::Bitmap srcBitmap;
+    if (!image->AsLegacyBitmap(srcBitmap)) {
         RS_LOGE("[%{public}s] Create bitmap from drImage failed \n", __func__);
         return false;
+    }
+    // If the image color type is RGBA_8888, convert it to Alpha8 to reduce memory and
+    // match the hardware layer mask format. If conversion fails, fall back to using
+    // the original RGBA_8888 bitmap directly, which is still acceptable for downstream
+    // hardware resource processing.
+    if (srcBitmap.GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_8888) {
+        if (!ConvertRgba8888ToAlpha8(srcBitmap, bitmap)) {
+            RS_LOGW("[%{public}s] Convert RGBA8888 to Alpha8 failed, fallback to RGBA_8888 \n", __func__);
+            bitmap = srcBitmap;
+        }
+    } else {
+        bitmap = srcBitmap;
+    }
+    return true;
+}
+
+bool RoundCornerDisplay::ConvertRgba8888ToAlpha8(const Drawing::Bitmap &srcBitmap, Drawing::Bitmap &dstBitmap)
+{
+    RS_TRACE_NAME("RoundCornerDisplay::ConvertRgba8888ToAlpha8");
+    if (!srcBitmap.IsValid()) {
+        RS_LOGE("[%{public}s] srcBitmap is invalid \n", __func__);
+        return false;
+    }
+    if (srcBitmap.GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_8888) {
+        RS_LOGE("[%{public}s] srcBitmap color type is not RGBA_8888 \n", __func__);
+        return false;
+    }
+    int32_t width = srcBitmap.GetWidth();
+    int32_t height = srcBitmap.GetHeight();
+    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    if (!dstBitmap.Build(width, height, format)) {
+        RS_LOGE("[%{public}s] Build Alpha8 bitmap failed \n", __func__);
+        return false;
+    }
+    const uint8_t *srcPixels = static_cast<const uint8_t *>(srcBitmap.GetPixels());
+    uint8_t *dstPixels = static_cast<uint8_t *>(dstBitmap.GetPixels());
+    if (srcPixels == nullptr || dstPixels == nullptr) {
+        RS_LOGE("[%{public}s] Get pixels failed \n", __func__);
+        return false;
+    }
+    int32_t srcRowBytes = srcBitmap.GetRowBytes();
+    int32_t dstRowBytes = dstBitmap.GetRowBytes();
+    // RGBA_8888: 4 bytes per pixel, the alpha channel is the 4th byte (index 3).
+    for (int32_t y = 0; y < height; y++) {
+        const uint8_t *srcRow = srcPixels + y * srcRowBytes;
+        uint8_t *dstRow = dstPixels + y * dstRowBytes;
+        for (int32_t x = 0; x < width; x++) {
+            // Extract alpha from the RGBA_8888 pixel (R, G, B, A layout).
+            dstRow[x] = srcRow[x * 4 + 3];
+        }
     }
     return true;
 }
@@ -137,20 +188,46 @@ bool RoundCornerDisplay::GetTopSurfaceSource()
         RS_LOGE("[%{public}s] PORTRAIT layerUp do not configured \n", __func__);
         return false;
     }
-    LoadImg(portrait->layerUp.fileName.c_str(), imgTopPortrait_);
-    LoadImg(portrait->layerHide.fileName.c_str(), imgTopHidden_);
+    std::shared_ptr<Drawing::Image> imgTopPortrait = nullptr;
+    std::shared_ptr<Drawing::Image> imgTopHidden = nullptr;
+    LoadImg(portrait->layerUp.fileName.c_str(), imgTopPortrait);
+    // Reuse the decoded image when the resource config is identical to avoid
+    // repeated LoadImg and DecodeBitmap.
+    if (portrait->layerHide.IsResourceEqual(portrait->layerUp)) {
+        imgTopHidden = imgTopPortrait;
+    } else {
+        LoadImg(portrait->layerHide.fileName.c_str(), imgTopHidden);
+    }
 
     auto landscape = rog_->GetLandscape(std::string(rs_rcd::NODE_LANDSCAPE));
     if (landscape == std::nullopt) {
         RS_LOGE("[%{public}s] LANDSACPE layerUp do not configured \n", __func__);
         return false;
     }
-    LoadImg(landscape->layerUp.fileName.c_str(), imgTopLadsOrit_);
+    std::shared_ptr<Drawing::Image> imgTopLadsOrit = nullptr;
+    if (landscape->layerUp.IsResourceEqual(portrait->layerUp)) {
+        imgTopLadsOrit = imgTopPortrait;
+    } else if (landscape->layerUp.IsResourceEqual(portrait->layerHide)) {
+        imgTopLadsOrit = imgTopHidden;
+    } else {
+        LoadImg(landscape->layerUp.fileName.c_str(), imgTopLadsOrit);
+    }
 
     if (supportHardware_) {
-        DecodeBitmap(imgTopPortrait_, bitmapTopPortrait_);
-        DecodeBitmap(imgTopLadsOrit_, bitmapTopLadsOrit_);
-        DecodeBitmap(imgTopHidden_, bitmapTopHidden_);
+        DecodeBitmap(imgTopPortrait, bitmapTopPortrait_);
+        // Reuse the bitmap when the source image is shared to avoid repeated decoding.
+        if (imgTopLadsOrit == imgTopPortrait) {
+            bitmapTopLadsOrit_ = bitmapTopPortrait_;
+        } else {
+            DecodeBitmap(imgTopLadsOrit, bitmapTopLadsOrit_);
+        }
+        if (imgTopHidden == imgTopPortrait) {
+            bitmapTopHidden_ = bitmapTopPortrait_;
+        } else if (imgTopHidden == imgTopLadsOrit) {
+            bitmapTopHidden_ = bitmapTopLadsOrit_;
+        } else {
+            DecodeBitmap(imgTopHidden, bitmapTopHidden_);
+        }
     }
     return true;
 }
@@ -167,9 +244,10 @@ bool RoundCornerDisplay::GetBottomSurfaceSource()
         RS_LOGE("[%{public}s] PORTRAIT layerDown do not configured \n", __func__);
         return false;
     }
-    LoadImg(portrait->layerDown.fileName.c_str(), imgBottomPortrait_);
+    std::shared_ptr<Drawing::Image> imgBottomPortrait = nullptr;
+    LoadImg(portrait->layerDown.fileName.c_str(), imgBottomPortrait);
     if (supportHardware_) {
-        DecodeBitmap(imgBottomPortrait_, bitmapBottomPortrait_);
+        DecodeBitmap(imgBottomPortrait, bitmapBottomPortrait_);
     }
     return true;
 }
@@ -181,9 +259,9 @@ bool RoundCornerDisplay::HandleTopRcdDirty(RectI& dirtyRect)
         static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP)) {
         return false;
     }
-    if (curTop_ != nullptr) {
+    if (curBitmapTop_.IsValid()) {
         dirtyRect = dirtyRect.JoinRect(RectI(displayRect_.GetLeft(), displayRect_.GetTop(),
-            curTop_->GetWidth(), curTop_->GetHeight()));
+            curBitmapTop_.GetWidth(), curBitmapTop_.GetHeight()));
     }
     if (!hardInfo_.resourceChanged) {
         rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
@@ -199,10 +277,10 @@ bool RoundCornerDisplay::HandleBottomRcdDirty(RectI& dirtyRect)
         static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_BOTTOM)) {
         return false;
     }
-    if (curBottom_ != nullptr) {
+    if (curBitmapBottom_.IsValid()) {
         dirtyRect = dirtyRect.JoinRect(
-            RectI(displayRect_.GetLeft(), displayRect_.GetHeight() - curBottom_->GetHeight() + displayRect_.GetTop(),
-            curBottom_->GetWidth(), curBottom_->GetHeight()));
+            RectI(displayRect_.GetLeft(), displayRect_.GetHeight() - curBitmapBottom_.GetHeight() + displayRect_.GetTop(),
+            curBitmapBottom_.GetWidth(), curBitmapBottom_.GetHeight()));
     }
     if (!hardInfo_.resourceChanged) {
         rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
@@ -376,22 +454,22 @@ void RoundCornerDisplay::RcdChooseRSResource()
 {
     switch (showResourceType_) {
         case TOP_PORTRAIT:
-            curTop_ = imgTopPortrait_;
-            RS_LOGD_IF(DEBUG_PIPELINE, "prepare imgTopPortrait_ resource \n");
+            curBitmapTop_ = bitmapTopPortrait_;
+            RS_LOGD_IF(DEBUG_PIPELINE, "prepare bitmapTopPortrait_ resource \n");
             break;
         case TOP_HIDDEN:
-            curTop_ = imgTopHidden_;
-            RS_LOGD_IF(DEBUG_PIPELINE, "prepare imgTopHidden_ resource \n");
+            curBitmapTop_ = bitmapTopHidden_;
+            RS_LOGD_IF(DEBUG_PIPELINE, "prepare bitmapTopHidden_ resource \n");
             break;
         case TOP_LADS_ORIT:
-            curTop_ = imgTopLadsOrit_;
-            RS_LOGD_IF(DEBUG_PIPELINE, "prepare imgTopLadsOrit_ resource \n");
+            curBitmapTop_ = bitmapTopLadsOrit_;
+            RS_LOGD_IF(DEBUG_PIPELINE, "prepare bitmapTopLadsOrit_ resource \n");
             break;
         default:
             RS_LOGE("[%{public}s] No showResourceType found with type %{public}d \n", __func__, showResourceType_);
             break;
     }
-    curBottom_ = imgBottomPortrait_;
+    curBitmapBottom_ = bitmapBottomPortrait_;
 }
 
 void RoundCornerDisplay::RcdChooseHardwareResource()

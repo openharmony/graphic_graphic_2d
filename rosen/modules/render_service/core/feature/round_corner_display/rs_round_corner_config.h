@@ -101,6 +101,7 @@ struct RoundCornerLayer {
     int cldHeight = 0;
     Drawing::Bitmap* curBitmap = nullptr;
     bool ReadXmlNode(const xmlNodePtr& ptr, const std::vector<std::string>& attrArray);
+    bool IsResourceEqual(const RoundCornerLayer& other) const;
 };
 
 struct RoundCornerHardware {

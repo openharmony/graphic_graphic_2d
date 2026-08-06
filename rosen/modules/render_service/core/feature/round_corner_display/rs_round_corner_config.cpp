@@ -147,6 +147,17 @@ bool RoundCornerLayer::ReadXmlNode(const xmlNodePtr& ptr, const std::vector<std:
     return true;
 }
 
+bool RoundCornerLayer::IsResourceEqual(const RoundCornerLayer& other) const
+{
+    return fileName == other.fileName &&
+        offsetX == other.offsetX &&
+        offsetY == other.offsetY &&
+        binFileName == other.binFileName &&
+        bufferSize == other.bufferSize &&
+        cldWidth == other.cldWidth &&
+        cldHeight == other.cldHeight;
+}
+
 bool RogPortrait::ReadXmlNode(const xmlNodePtr& portraitNodePtr)
 {
     if (portraitNodePtr == nullptr) {

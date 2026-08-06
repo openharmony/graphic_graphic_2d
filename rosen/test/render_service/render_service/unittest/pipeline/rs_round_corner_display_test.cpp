@@ -450,7 +450,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
     }
 
     // SetHardwareResourceToBuffer - LayerBitmap is not valid
-    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
+    Drawing::Bitmap layerBitmap1;
+    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer(layerBitmap1) == false);
 
     // SetHardwareResourceToBuffer - buffer is nullptr
     // to create layerInfo
@@ -458,13 +459,14 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
     bitMap->Build(896, 1848,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
     rs_rcd::RoundCornerLayer layerTmp{"top.png", 0, 0, "top.bin", 8112, 2028, 1, bitMap.get()};
-    topSurfaceNode->PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layerTmp));
-    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
+    Drawing::Bitmap layerBitmap2;
+    topSurfaceNode->PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layerTmp), layerBitmap2);
+    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer(layerBitmap2) == false);
 
     // SetHardwareResourceToBuffer - copy layerBitmap to buffer failed
     sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
     topSurfaceNode->buffer_.buffer = surfaceBufferImpl;
-    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
+    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer(layerBitmap2) == false);
 
     // SetHardwareResourceToBuffer - copy hardware resource to buffer failed
     BufferRequestConfig requestConfig = {
@@ -477,7 +479,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
     };
     surfaceBufferImpl->Alloc(requestConfig, nullptr);
-    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
+    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer(layerBitmap2) == false);
     surfaceBufferImpl->handle_ = nullptr;
     surfaceBufferImpl->FreeBufferHandleLocked();
 }
@@ -521,7 +523,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
     visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer, true);
     visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
 
-    ASSERT_EQ(true, visitor->ConsumeAndUpdateBuffer(*topSurfaceNode));
+    Drawing::Bitmap layerBitmap;
+    ASSERT_EQ(true, visitor->ConsumeAndUpdateBuffer(*topSurfaceNode, layerBitmap));
 }
 
 template<typename T1, typename T2, typename T3>
@@ -928,10 +931,13 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
         rcdRenderNode.SetRcdBufferSize(0);
         rcdRenderNode.SetRcdBufferHeight(0);
         rcdRenderNode.SetRcdBufferWidth(0);
-        rcdRenderNode.SetHardwareResourceToBuffer();
-        rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
-        rs_rcd::RoundCornerLayer layer;
-        rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer));
+        {
+            Drawing::Bitmap layerBitmap;
+            rcdRenderNode.SetHardwareResourceToBuffer(layerBitmap);
+            rcdRenderNode.PrepareHardwareResourceBuffer(nullptr, layerBitmap);
+            rs_rcd::RoundCornerLayer layer;
+            rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer), layerBitmap);
+        }
         uint32_t size = 10;
         rcdRenderNode.SetRcdBufferSize(size);
         auto bufferSize = rcdRenderNode.GetRcdBufferSize();
@@ -947,9 +953,12 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
         auto bufferWidth = rcdRenderNode.GetRcdBufferWidth();
         EXPECT_EQ(bufferWidth, width);
         rcdRenderNode.GetHardenBufferRequestConfig();
-        rcdRenderNode.SetHardwareResourceToBuffer();
-        rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
-        rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer));
+        {
+            Drawing::Bitmap layerBitmap;
+            rcdRenderNode.SetHardwareResourceToBuffer(layerBitmap);
+            rcdRenderNode.PrepareHardwareResourceBuffer(nullptr, layerBitmap);
+            rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer), layerBitmap);
+        }
         width = 0;
         rcdRenderNode.SetRcdBufferWidth(width);
         rcdRenderNode.GetHardenBufferRequestConfig();
@@ -1068,7 +1077,9 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRoundCornerDisplayChooseRS, TestSize.Level1
         ShowTopResourceType type = static_cast<ShowTopResourceType>(i);
         rcdInstance.showResourceType_ = type;
         rcdInstance.RcdChooseRSResource();
-        EXPECT_TRUE(rcdInstance.curBottom_ == rcdInstance.imgBottomPortrait_);
+        // imgBottomPortrait_ is removed, curBitmapBottom_ is now a Bitmap loaded locally
+        // in RcdChooseRSResource. Without rog_ configured, curBitmapBottom_ stays invalid.
+        EXPECT_FALSE(rcdInstance.curBitmapBottom_.IsValid());
     }
 }
 
@@ -1402,8 +1413,12 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRoundCornerDirtyRegion, TestSize.Level1)
     EXPECT_TRUE(flag && dirtyRect.IsEmpty());
 
     // Handle rcd dirty rect with image resource
-    rcdInstance.rcdMap_[id]->curTop_ = std::make_shared<Drawing::Image>();
-    rcdInstance.rcdMap_[id]->curBottom_ = std::make_shared<Drawing::Image>();
+    {
+        Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888,
+            Drawing::AlphaType::ALPHATYPE_PREMUL };
+        rcdInstance.rcdMap_[id]->curBitmapTop_.Build(1, 1, format);
+        rcdInstance.rcdMap_[id]->curBitmapBottom_.Build(1, 1, format);
+    }
     flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
     flag &= rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::BOTTOM);
     EXPECT_TRUE(flag && dirtyRect.IsEmpty());
@@ -2118,7 +2133,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest001, TestSize.Level
     topSurfaceNode->CreateSurface(listener);
 
     topSurfaceNode->SetAvailableBufferCount(3);
-    bool result = visitor->ConsumeAndUpdateBuffer(*topSurfaceNode);
+    Drawing::Bitmap layerBitmap;
+    bool result = visitor->ConsumeAndUpdateBuffer(*topSurfaceNode, layerBitmap);
     EXPECT_EQ(true, result);
 }
 
@@ -2836,7 +2852,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode_ResourceNotChange
     sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNode);
     surfaceNode->CreateSurface(listener);
     surfaceNode->SetAvailableBufferCount(1);
-    ASSERT_NE(visitor->ConsumeAndUpdateBuffer(*surfaceNode), true);
+    Drawing::Bitmap layerBitmap;
+    ASSERT_NE(visitor->ConsumeAndUpdateBuffer(*surfaceNode, layerBitmap), true);
     ASSERT_EQ(surfaceNode->GetBuffer(), nullptr);
 
     rs_rcd::RoundCornerHardware hardInfo{};
