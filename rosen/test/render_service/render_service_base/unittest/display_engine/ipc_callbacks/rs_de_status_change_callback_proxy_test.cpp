@@ -14,7 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "display_engine/ipc_callbacks/rs_ide_status_change_callback_proxy.h"
+#include "display_engine/ipc_callbacks/rs_de_status_change_callback_proxy.h"
 #include "mock_iremote_object.h"
 
 using namespace testing;
