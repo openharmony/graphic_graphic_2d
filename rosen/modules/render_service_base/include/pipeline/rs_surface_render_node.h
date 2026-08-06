@@ -2464,6 +2464,8 @@ private:
     // Used for delegateComposite
     std::shared_ptr<RsDelegateCompositeParams> delegateCompositeParams_ = nullptr;
 
+    bool isBufferFlushed_ = false;
+
     // UIExtension record, <UIExtension, hostAPP>
     inline static RS_HIDDEN std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
     friend class SurfaceNodeCommandHelper;
