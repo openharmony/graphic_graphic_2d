@@ -38,7 +38,7 @@ const NodeId PID_T = static_cast<NodeId>(GetRealPid());
 constexpr NodeId TOP_RCD_NODE_ID = 1;
 constexpr NodeId BOTTOM_RCD_NODE_ID = 2;
 
-static NodeId GenerateRoundCornerDisplayID(NodeId screenID, uint32_t rcdTypeId)
+NodeId GenerateRoundCornerDisplayID(NodeId screenID, uint32_t rcdTypeId)
 {
 #ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
