@@ -35,7 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 #ifdef RS_ENABLE_TV_PQ_METADATA
-static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
 static constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 }
@@ -1122,7 +1122,7 @@ ErrCode RSServiceToRenderConnectionProxy::SendVideoRateInfo(
     const std::unordered_map<std::string, std::string>& videoRateInfo)
 {
     auto mapSize = videoRateInfo.size();
-    if (mapSize <= 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
+    if (mapSize == 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
         ROSEN_LOGE("SendVideoRateInfo: map size err.");
         return ERR_INVALID_VALUE;
     }
