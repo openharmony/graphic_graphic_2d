@@ -67,8 +67,8 @@ public:
     MOCK_METHOD(void, SetDualScreenStatus, (ScreenId screenId, DualScreenStatus dualScreenStatus), (override));
     MOCK_METHOD(float, HdrDimmingProcess, (ScreenId screenId, const RSSurfaceRenderNode& surfaceNode), (override));
     MOCK_METHOD(void, HdrDimmingPostProcess, (ScreenId screenId), (override));
-    MOCK_METHOD(int32_t, UpdateMetadataBasedOnScaler, (const sptr<SurfaceBuffer>& input,
-        const RSSurfaceRenderNode& surfaceNode, float scaler, HdrStatus hdrStatus), (override));
+    MOCK_METHOD(int32_t, UpdateMetadataBasedOnScaler, (const sptr<SurfaceBuffer>& input, float scaler,
+        HdrStatus hdrStatus), (override));
 
     float CalScaler(const float& maxContentLightLevel,
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) override;
@@ -136,7 +136,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetDualScreenStatus(screenId, dualScreenStatus);
     luminCtrl.HdrDimmingProcess(screenId, surfaceNode);
     luminCtrl.HdrDimmingPostProcess(screenId);
-    luminCtrl.UpdateMetadataBasedOnScaler(input, surfaceNode, scaler, hdrStatus);
+    luminCtrl.UpdateMetadataBasedOnScaler(input, scaler, hdrStatus);
 
     auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
@@ -156,7 +156,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetDualScreenStatus(screenId, dualScreenStatus);
     luminCtrl.HdrDimmingProcess(screenId, surfaceNode);
     luminCtrl.HdrDimmingPostProcess(screenId);
-    luminCtrl.UpdateMetadataBasedOnScaler(input, surfaceNode, scaler, hdrStatus);
+    luminCtrl.UpdateMetadataBasedOnScaler(input, scaler, hdrStatus);
 
     ASSERT_NE((&luminCtrl), nullptr);
 }
