@@ -1333,7 +1333,6 @@ void RSRenderComposer::OnHwcDead()
     if (hdiOutput_) {
         hdiOutput_->ResetDevice();
     }
-    hdiOutput_ = nullptr;
 }
 
 void RSRenderComposer::DestroyComposerLayer(std::shared_ptr<RSLayerParcel> rsLayerParcel)
