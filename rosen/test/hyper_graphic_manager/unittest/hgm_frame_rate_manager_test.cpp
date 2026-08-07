@@ -1515,6 +1515,31 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPageUrlVote, Function | SmallTest | Level0)
 }
 
 /**
+ * @tc.name: TestUpdateSoftVSync
+ * @tc.desc: Verify the result of UpdateSoftVSync function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestUpdateSoftVSync, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    mgr.multiAppStrategy_.disableSafeVote_ = true;
+    mgr.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
+    auto linker = std::make_shared<RSRenderFrameRateLinker>();
+    FrameRateLinkerMap appFrameRateLinkers;
+    appFrameRateLinkers[((NodeId)1000) << 32] = linker;
+    mgr.appFrameRateLinkers_ = appFrameRateLinkers;
+    mgr.UpdateSoftVSync(false);
+    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->UpdateNativeVSyncTimePoint();
+    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->expectedRange_.type_ = NATIVE_VSYNC_FRAME_RATE_TYPE;
+    mgr.UpdateSoftVSync(false);
+    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->nativeVSyncTimePoint_.store(
+        std::chrono::steady_clock::now() - MORETHAN_NATIVEVSYNCFALLBACKINTERVAL);
+    mgr.UpdateSoftVSync(false);
+    EXPECT_EQ(mgr.idleDetector_.aceAnimatorIdleState_, true);
+}
+
+/**
  * @tc.name: TestCheckNeedUpdateAppOffset
  * @tc.desc: Verify the result of CheckNeedUpdateAppOffset
  * @tc.type: FUNC
@@ -1832,31 +1857,6 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest |
     mgr.CheckRefreshRateChange(false, true, 120, true);
     mgr.CheckRefreshRateChange(false, true, 120, false);
     EXPECT_EQ(mgr.isNeedUpdateAppOffset_, false);
-}
-
-/**
- * @tc.name: TestUpdateSoftVSync
- * @tc.desc: Verify the result of UpdateSoftVSync function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, TestUpdateSoftVSync, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    mgr.multiAppStrategy_.disableSafeVote_ = true;
-    mgr.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
-    auto linker = std::make_shared<RSRenderFrameRateLinker>();
-    FrameRateLinkerMap appFrameRateLinkers;
-    appFrameRateLinkers[((NodeId)1000) << 32] = linker;
-    mgr.appFrameRateLinkers_ = appFrameRateLinkers;
-    mgr.UpdateSoftVSync(false);
-    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->UpdateNativeVSyncTimePoint();
-    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->expectedRange_.type_ = NATIVE_VSYNC_FRAME_RATE_TYPE;
-    mgr.UpdateSoftVSync(false);
-    mgr.appFrameRateLinkers_[((NodeId)1000) << 32]->nativeVSyncTimePoint_.store(
-        std::chrono::steady_clock::now() - MORETHAN_NATIVEVSYNCFALLBACKINTERVAL);
-    mgr.UpdateSoftVSync(false);
-    EXPECT_EQ(mgr.idleDetector_.aceAnimatorIdleState_, true);
 }
 
 /**
