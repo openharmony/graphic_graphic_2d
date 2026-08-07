@@ -2184,7 +2184,7 @@ HWTEST_F(RSTransactionHandlerTest, GetTransactionDataIndex001, TestSize.Level1)
     constexpr uint32_t expectedIndex = 42;
     transaction->SetCommitTransactionCallback(
         [&expectedIndex](std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&,
-            uint32_t& index) { index = expectedIndex; });
+            std::atomic<uint32_t>& index) { index.store(expectedIndex, std::memory_order_relaxed); });
     NodeId nodeId = 1;
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
