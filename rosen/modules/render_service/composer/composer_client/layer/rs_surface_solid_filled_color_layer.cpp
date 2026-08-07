@@ -38,7 +38,7 @@ std::shared_ptr<RSLayer> RSSurfaceSolidFilledColorLayer::Create(RSLayerId rsLaye
     }
     std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
     if (layer != nullptr && layer->IsSolidFilledColorLayer()) {
-        RS_TRACE_NAME_FMT("%s use exist layer, id: %" PRIu64 ", name: %s, isGradientColor: %d",
+        RS_TRACE_NAME_FMT("%s use exist layer, id: %" PRIu64 ", name: %s, isSolidFilledColor: %d",
             __func__, rsLayerId, layer->GetSurfaceName().c_str(), static_cast<int>(layer->IsSolidFilledColorLayer()));
         RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
         layer->SetRSLayerId(rsLayerId);

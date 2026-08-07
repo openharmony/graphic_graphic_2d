@@ -20,8 +20,7 @@
 #define LOG_TAG "RSRenderSurfaceSolidFilledColorLayer"
 namespace OHOS {
 namespace Rosen {
-
-using RSSolidFilledColorLayerCmdHandler = std::function<void(std::shared_ptr<RSRenderSurfaceSolidFilledColorLayer>,
+using RSSolidFilledColorCmdHandler = std::function<void(std::shared_ptr<RSRenderSurfaceSolidFilledColorLayer>,
     const std::shared_ptr<Rosen::RSRenderLayerPropertyBase>&)>;
 #define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE)                                                            \
     {                                                                                                            \
@@ -35,7 +34,7 @@ using RSSolidFilledColorLayerCmdHandler = std::function<void(std::shared_ptr<RSR
         },                                                                                                       \
     },
 
-static std::unordered_map<RSLayerCmdType, RSSolidFilledColorLayerCmdHandler> cmdHandlers_ = {
+static std::unordered_map<RSLayerCmdType, RSSolidFilledColorCmdHandler> cmdHandlers_ = {
 #include "rs_layer_cmd_def.in"
 };
 #undef DECLARE_RSLAYER_CMD

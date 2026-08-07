@@ -28,6 +28,7 @@
 #ifdef RS_ENABLE_EGLIMAGE
 #include "gpuComposition/rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
+#include "feature/hdr/rs_hdr_util.h"
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
@@ -547,12 +548,12 @@ bool RSRenderComposer::IsDelayRequired(HgmCore& hgmCore, const PipelineParam& pi
     if (hgmCore.GetLtpoEnabled()) {
         if (AdaptiveModeStatus() == SupportASStatus::SUPPORT_AS) {
             RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers in Adaptive Mode");
-            RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
+            RS_OPTIONAL_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
             return false;
         }
         if (pipelineParam.hasGameScene && AdaptiveModeStatus() == SupportASStatus::GAME_SCENE_SKIP) {
             RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers skip delayTime Calculation");
-            RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
+            RS_OPTIONAL_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
             return false;
         }
     } else {
@@ -583,7 +584,7 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
     uint64_t dvsyncOffset = 0;
     int64_t compositionTime = period;
     int64_t delayTime = 0;
-    int64_t preTime = 0;
+    int64_t preTime = 0; // DVSyncRSPretime
 
     if (getRealTimeOffsetOfDvsyncCb_ != nullptr) {
         dvsyncOffset = getRealTimeOffsetOfDvsyncCb_(pipelineParam.frameTimestamp, preTime);
@@ -613,7 +614,6 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         frameOffset = periodNum * idealPeriod + vsyncOffset + static_cast<int64_t>(dvsyncOffset)
             - static_cast<int64_t>(pipelineParam.fastComposeTimeStampDiff);
     }
-    // we use (pipelineParam.frameTimestamp - preTime) to get this frame real vsync timestamp
     expectCommitTime = pipelineParam.frameTimestamp - preTime + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
     if (pipelineParam.dvsyncNeedSkipRsCommitDelay) {

@@ -1400,7 +1400,7 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_AllKeys_Success, Function | MediumT
  * CaseDescription: 1. Set paramKey_ with "SolidFill"
  *                  2. call SetPerFrameParameters
  *                  3. verify SetPerFrameLayerSolidFillParam is called
- *                   Cover branch: key == GENERIC_METADATA_KEY_SOLIC_FILL (line 889 true)
+ *                   Cover branch: key == GENERIC_METADATA_KEY_SOLID_FILL (line 889 true)
  */
 HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKey_CallsSolidFillParam, Function | MediumTest| Level1)
 {
@@ -1433,7 +1433,7 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKey_CallsSolidFillParam, F
  * CaseDescription: 1. Set paramKey_ without "SolidFill"
  *                  2. call SetPerFrameParameters
  *                  3. verify SetPerFrameLayerSolidFillParam is not called
- *                   Cover branch: key != GENERIC_METADATA_KEY_SOLIC_FILL (line 889 false)
+ *                   Cover branch: key != GENERIC_METADATA_KEY_SOLID_FILL (line 889 false)
  */
 HWTEST_F(HdiLayerTest, SetPerFrameParameters_NoSolidFillKey_NotCalled, Function | MediumTest| Level1)
 {
@@ -1462,7 +1462,7 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_NoSolidFillKey_NotCalled, Function 
  * CaseDescription: 1. Set paramKey_ with multiple keys including "SolidFill"
  *                  2. call SetPerFrameParameters
  *                  3. verify all keys are processed
- *                   Cover branch: key == GENERIC_METADATA_KEY_SOLIC_FILL (line 889 true)
+ *                   Cover branch: key == GENERIC_METADATA_KEY_SOLID_FILL (line 889 true)
  */
 HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKeyWithOtherKeys_AllProcessed, Function | MediumTest| Level1)
 {
@@ -1496,7 +1496,7 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKeyWithOtherKeys_AllProces
  * CaseDescription: 1. Set paramKey_ with "SolidFill"
  *                  2. mock SetLayerPerFrameParameterSmq to return error
  *                  3. verify error is returned
- *                   Cover branch: key == GENERIC_METADATA_KEY_SOLIC_FILL (line 889 true)
+ *                   Cover branch: key == GENERIC_METADATA_KEY_SOLID_FILL (line 889 true)
  */
 HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKeyFailure_ReturnsError, Function | MediumTest| Level1)
 {
