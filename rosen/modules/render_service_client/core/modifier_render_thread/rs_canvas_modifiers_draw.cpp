@@ -429,6 +429,7 @@ void RSCanvasModifiersDraw::WaitAllTasksFinish()
     if (!threadStarted_.load()) {
         return;
     }
+    RemoveTask(CLEAN_FREE_BUFFERS_TASK_NAME);
     PostSyncTask([canvasModifiersDraw = shared_from_this()]() {
         RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish");
         if (canvasModifiersDraw->gpuContext_ != nullptr) {

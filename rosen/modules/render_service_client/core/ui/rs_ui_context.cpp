@@ -353,7 +353,7 @@ CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
     modifiersDrawThread_->Start();
     std::weak_ptr<RSUIContext> weakContext = shared_from_this();
     return [weakContext](std::shared_ptr<RSRenderPipelineClient>& renderPiplineClient,
-        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
+        std::unique_ptr<RSTransactionData>&& rsTransactionData, std::atomic<uint32_t>& transactionDataIndex) {
         if (renderPiplineClient == nullptr) {
             RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null renderPiplineClient.");
             return;
