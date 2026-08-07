@@ -65,6 +65,12 @@ std::shared_ptr<Rosen::ColorPickerCommon> ColorPickerCommon::CreateColorPicker(
         return nullptr;
     }
 
+    if (region.size() < REGION_SIZE) {
+        EFFECT_LOG_E("[ColorPickerCommon]region size is less than REGION_SIZE.");
+        errorCode = ERR_EFFECT_INVALID_VALUE;
+        return nullptr;
+    }
+
     double coordinatesBuffer[REGION_SIZE];
     for (uint32_t i = 0; i < REGION_SIZE; i++) {
         coordinatesBuffer[i] = std::clamp<double>(region[i], 0.0, 1.0);

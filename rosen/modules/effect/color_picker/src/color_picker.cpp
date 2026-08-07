@@ -309,6 +309,9 @@ uint32_t ColorPicker::CalcGrayVariance() const
         grayVariance += pow(static_cast<long long int>(RGB2GRAY(featureColors_[i].first)) - averageGray, 2) *
                         featureColors_[i].second;
     }
+    if (colorValLen_ == 0) {
+        return 0;
+    }
     grayVariance /= colorValLen_;
     return static_cast<uint32_t>(grayVariance);
 }
@@ -332,6 +335,9 @@ double ColorPicker::CalcContrastRatioWithWhite() const
         // 0.05 is used to calculate contrast ratio.
         lightColorDegree += (((1 + 0.05) / (CalcRelaticeLuminance(featureColors_[i].first) + 0.05))
                             * featureColors_[i].second);
+    }
+    if (colorValLen_ == 0) {
+        return 0.0;
     }
     lightColorDegree /= colorValLen_;
     return lightColorDegree;
