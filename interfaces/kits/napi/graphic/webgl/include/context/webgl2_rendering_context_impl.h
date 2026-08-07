@@ -175,6 +175,7 @@ private:
     bool CheckQueryTarget(napi_env env, GLenum target, uint32_t& index);
     bool CheckStorageInternalFormat(napi_env env, GLenum internalFormat);
     bool CheckTransformFeedbackBuffer(GLenum target, WebGLBuffer* buffer);
+    bool CheckTransformFeedbackBindings(napi_env env);
     bool CheckClearBufferOffsetValid(int64_t srcOffset, size_t requiredSize, size_t bufferByteLen);
     void SaveBoundVertexArrayState();
     void RestoreVertexArrayState(GLuint vertexArrayId);
@@ -188,7 +189,7 @@ private:
     std::map<GLuint, VertexArrayState> vertexArrayStates_ {};
 
     // TRANSFORM_FEEDBACK_BUFFER
-    std::map<GLint, GLuint> boundIndexedTransformFeedbackBuffers_ {};
+    std::map<GLint, IndexedBufferBinding> boundIndexedTransformFeedbackBuffers_ {};
     GLuint maxBoundTransformFeedbackBufferIndex_ { 0 };
     // UNIFORM_BUFFER
     std::map<GLint, IndexedBufferBinding> boundIndexedUniformBuffers_ {};

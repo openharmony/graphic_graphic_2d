@@ -1177,7 +1177,7 @@ napi_value WebGL2RenderingContextBase::VertexAttribIPointer(napi_env env, napi_c
         return NVal::CreateNull(env).val_;
     }
     GLenum result;
-    tie(result, vertexInfo.offset) = WebGLArg::ToGLintptr(env, funcArg[NARG_POS::FOURTH]);
+    tie(result, vertexInfo.offset) = WebGLArg::ToGLintptr(env, funcArg[NARG_POS::FIFTH]);
     if (result) {
         context->GetWebGL2RenderingContextImpl().SetError(result);
         return NVal::CreateNull(env).val_;

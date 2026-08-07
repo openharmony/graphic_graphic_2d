@@ -503,7 +503,8 @@ napi_value WebGL2RenderingContextImpl::IsVertexArray(napi_env env, napi_value ob
 napi_value WebGL2RenderingContextImpl::BindVertexArray(napi_env env, napi_value object)
 {
     GLuint vertexArrayId = WebGLVertexArrayObject::DEFAULT_VERTEX_ARRAY_OBJECT;
-    if (!NVal(env, object).TypeIs(napi_null)) {
+    NVal value(env, object);
+    if (!value.TypeIs(napi_null) && !value.TypeIs(napi_undefined)) {
         WebGLVertexArrayObject* webGLVertexArrayObject =
             WebGLObject::GetObjectInstance<WebGLVertexArrayObject>(env, object);
         if (webGLVertexArrayObject == nullptr ||
@@ -748,6 +749,11 @@ napi_value WebGL2RenderingContextImpl::BeginTransformFeedback(napi_env env, GLen
     }
     if (GetTransformFeedbackVaryingType(currentProgramId_, boundTransformFeedback_) <= 0) {
         SET_ERROR(WebGLRenderingContextBase::INVALID_OPERATION);
+        return NVal::CreateNull(env).val_;
+    }
+    if (!CheckTransformFeedbackBindings(env)) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION,
+            "transform feedback buffer binding is invalid");
         return NVal::CreateNull(env).val_;
     }
     glBeginTransformFeedback(primitiveMode);
@@ -1417,7 +1423,9 @@ napi_value WebGL2RenderingContextImpl::GetIndexedParameter(napi_env env, GLenum 
             if (index >= maxBoundTransformFeedbackBufferIndex_) {
                 return NVal::CreateNull(env).val_;
             }
-            return GetObject<WebGLBuffer>(env, boundIndexedTransformFeedbackBuffers_[index]);
+            auto iter = boundIndexedTransformFeedbackBuffers_.find(index);
+            return GetObject<WebGLBuffer>(env, iter == boundIndexedTransformFeedbackBuffers_.end()
+                ? WebGLBuffer::DEFAULT_BUFFER : iter->second.bufferId);
         }
         case GL_UNIFORM_BUFFER_BINDING: {
             if (index >= maxBoundUniformBufferIndex_) {
@@ -2465,10 +2473,33 @@ bool WebGL2RenderingContextImpl::CheckTransformFeedbackBuffer(GLenum target, Web
         if (boundBufferIds_[BoundBufferType::TRANSFORM_FEEDBACK_BUFFER] == buffer->GetBufferId()) {
             return false;
         }
-        for (size_t i = 0; i < boundIndexedTransformFeedbackBuffers_.size(); ++i) {
-            if (boundIndexedTransformFeedbackBuffers_[i] == buffer->GetBufferId()) {
+        for (const auto& item : boundIndexedTransformFeedbackBuffers_) {
+            if (item.second.bufferId == buffer->GetBufferId()) {
                 return false;
             }
+        }
+    }
+    return true;
+}
+
+bool WebGL2RenderingContextImpl::CheckTransformFeedbackBindings(napi_env env)
+{
+    for (const auto& item : boundIndexedTransformFeedbackBuffers_) {
+        const IndexedBufferBinding& binding = item.second;
+        if (binding.bufferId == WebGLBuffer::DEFAULT_BUFFER) {
+            continue;
+        }
+        WebGLBuffer* buffer = GetObjectInstance<WebGLBuffer>(env, binding.bufferId);
+        if (buffer == nullptr) {
+            return false;
+        }
+        if (!binding.isRange) {
+            continue;
+        }
+        uint64_t bufferSize = static_cast<uint64_t>(buffer->GetBufferSize());
+        if (binding.offset < 0 || binding.size <= 0 || static_cast<uint64_t>(binding.offset) > bufferSize ||
+            static_cast<uint64_t>(binding.size) > bufferSize - static_cast<uint64_t>(binding.offset)) {
+            return false;
         }
     }
     return true;
@@ -2556,7 +2587,7 @@ bool WebGL2RenderingContextImpl::UpdateBaseTargetBoundBuffer(
             LOGE("Out of bound indexed transform feedback buffer %{public}u", index);
             return false;
         }
-        boundIndexedTransformFeedbackBuffers_[index] = bufferId;
+        boundIndexedTransformFeedbackBuffers_[index] = binding;
         boundBufferIds_[BoundBufferType::TRANSFORM_FEEDBACK_BUFFER] = bufferId;
         if (!bufferId) { // for delete
             boundIndexedTransformFeedbackBuffers_.erase(index);
