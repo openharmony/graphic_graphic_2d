@@ -27,14 +27,14 @@ namespace Drawing {
 ani_status AniThrowError(ani_env* env, const std::string& message)
 {
     ani_class errCls;
-    const char* className = "std.core.Error";
+    const char* className = "escompat.Error";
     if (ANI_OK != env->FindClass(className, &errCls)) {
         ROSEN_LOGE("Not found %{public}s", className);
         return ANI_ERROR;
     }
 
     ani_method errCtor;
-    if (ANI_OK != env->Class_FindMethod(errCls, "<ctor>", "C{std.core.String}C{std.core.ErrorOptions}:", &errCtor)) {
+    if (ANI_OK != env->Class_FindMethod(errCls, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:", &errCtor)) {
         ROSEN_LOGE("get errCtor Failed %{public}s", className);
         return ANI_ERROR;
     }
@@ -122,12 +122,6 @@ Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType)
 
 struct PixelMapReleaseContext {
     explicit PixelMapReleaseContext(std::shared_ptr<Media::PixelMap> pixelMap) : pixelMap_(pixelMap) {}
-
-    ~PixelMapReleaseContext()
-    {
-        pixelMap_ = nullptr;
-    }
-
 private:
     std::shared_ptr<Media::PixelMap> pixelMap_;
 };
@@ -309,7 +303,7 @@ ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message,
         return status;
     }
     ani_method aniCtor;
-    status = env->Class_FindMethod(aniClass, "<ctor>", "C{std.core.String}C{std.core.ErrorOptions}:", &aniCtor);
+    status = env->Class_FindMethod(aniClass, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:", &aniCtor);
     if (status != ANI_OK) {
         ROSEN_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(status));
         return status;
@@ -394,8 +388,13 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
         return false;
     }
     if (isInt) {
+        ani_method intGet = AniGlobalMethod::GetInstance().intGet;
+        if (intGet == nullptr) {
+            ROSEN_LOGE("GetColorQuadFromParam failed by intGet is null");
+            return false;
+        }
         ani_int aniColor;
-        if (ANI_OK != env->Object_CallMethod_Int(obj, AniGlobalMethod::GetInstance().intGet, &aniColor)) {
+        if (ANI_OK != env->Object_CallMethod_Int(obj, intGet, &aniColor)) {
             ROSEN_LOGE("GetColorQuadFromParam failed by int value");
             return false;
         }

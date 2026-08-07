@@ -1421,6 +1421,11 @@ int32_t RSRenderPipelineAgent::RegisterOcclusionChangeCallback(pid_t pid, sptr<R
 int32_t RSRenderPipelineAgent::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {
+    if (partitionPoints.size() > MAX_PARTITION_POINTS) {
+        RS_LOGE("RegisterSurfaceOcclusionChangeCallback invalid partitionPoints size: %{public}zu",
+            partitionPoints.size());
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         return StatusCode::INVALID_ARGUMENTS;
@@ -1493,6 +1498,7 @@ void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& p
     if (!pipeline) {
         return;
     }
+    pipeline->GetMainThread()->NotifyPackageEvent(packageList);
     pipeline->PostMainThreadTask([renderPipeline = pipeline, packageList] {
         renderPipeline->GetMainThread()->CheckPackageInConfigList(packageList);
         renderPipeline->imageEnhanceManager_->CheckPackageInConfigList(packageList);
@@ -1883,6 +1889,19 @@ void RSRenderPipelineAgent::SetVmaCacheStatus(bool flag)
 #endif
 }
 
+ErrCode RSRenderPipelineAgent::SetUIMode3D(UIMode3D mode)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = pipeline, mode]() {
+        renderPipeline->GetMainThread()->SetUIMode3D(mode);
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
 void RSRenderPipelineAgent::SetBehindWindowFilterEnabled(bool enabled)
 {
     auto pipeline = rsRenderPipeline_.lock();
@@ -2019,7 +2038,15 @@ bool RSRenderPipelineAgent::UnRegisterTypeface(uint64_t globalUniqueId)
     uint32_t uniqueId = typeface->GetUniqueID();
     // Free cpu cache, this only valid in skia path. When deprecating skia, this can be removed.
     auto task = [uniqueId]() {
-        auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        if (!renderEngine) {
+            return;
+        }
+        auto renderContext = renderEngine->GetRenderContext();
+        if (!renderContext) {
+            return;
+        }
+        auto context = renderContext->GetDrGPUContext();
         if (context) {
             context->FreeCpuCache(uniqueId);
             context->PurgeUnlockAndSafeCacheGpuResources();
@@ -2558,15 +2585,6 @@ sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeI
             remotePid);
         return nullptr;
     }
-    auto bundleName = GetBundleName(remotePid);
-    if (!NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled()) {
-        RS_LOGE("CreateCanvasDrawingNodeSurface: ccm disabled, nodeId=%{public}" PRIu64, nodeId);
-        return nullptr;
-    }
-    if (!bundleName.empty() && !NodeMemReleaseParam::IsCanvasBufferEnabled(bundleName)) {
-        RS_LOGE("CreateCanvasDrawingNodeSurface: bundleName ccm blacklist, nodeId=%{public}" PRIu64, nodeId);
-        return nullptr;
-    }
  
     sptr<Surface> producerPurface = nullptr;
     auto task = [&producerPurface, nodeId, mainThread = rsRenderPipeline->GetMainThread()]() -> void {
@@ -2591,9 +2609,8 @@ sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeI
             RS_LOGE("CreateCanvasDrawingNodeSurface: null producerPurface, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
- 
-        sptr<IBufferConsumerListener> listener =
-            new RSCanvasDrawingNodeBufferConsumerListener(mainThread->GetWeakContext(), nodeId);
+
+        sptr<IBufferConsumerListener> listener = new RSCanvasDrawingNodeBufferConsumerListener(surfaceHandler, nodeId);
         consumerSurface->RegisterConsumerListener(listener);
         auto& nodeMap = rsContext->GetMutableNodeMap();
         auto canvasDrawingNode = nodeMap.GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);

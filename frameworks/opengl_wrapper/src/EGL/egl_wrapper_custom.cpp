@@ -29,7 +29,7 @@ EGLBoolean OHGraphicsQueryGLImpl(void)
     return supportOpengl ? EGL_TRUE : EGL_FALSE;
 }
 
-__eglMustCastToProperFunctionPointerType EglGetProcAddressCustomImpl(const char *procname)
+__eglMustCastToProperFunctionPointerType EglGetProcAddressCustomImpl(const char* procname)
 {
     void* func = nullptr;
     if (OHOS::gGetProcAddress && OHOS::gGetProcAddress != &EglGetProcAddressCustomImpl) {
@@ -40,8 +40,7 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressCustomImpl(const char 
         return __eglMustCastToProperFunctionPointerType(func);
     }
 
-    auto it = OHOS::gCustomMap.find(procname);
-    if (it != OHOS::gCustomMap.end()) {
+    if (auto it = OHOS::gCustomMap.find(procname); it != OHOS::gCustomMap.end()) {
         return __eglMustCastToProperFunctionPointerType(it->second);
     }
     WLOGD("EglGetProcAddressCustomImpl did not find an entry for %{public}s", procname);
@@ -55,6 +54,11 @@ PFNEGLGETPROCADDRESSPROC OHOS::gGetProcAddress = &EglGetProcAddressCustomImpl;
 EGLBoolean EglSetEngineNameImpl(EGLDisplay dpy, const char* name)
 {
     ThreadPrivateDataCtl::ClearError();
+    if (name == nullptr) {
+        WLOGE("eglSetEngineName name is nullptr.");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
+        return EGL_FALSE;
+    }
     EglWrapperDisplay *display = EglWrapperDisplay::GetWrapperDisplay(dpy);
     if (!display) {
         WLOGE("display is bad");

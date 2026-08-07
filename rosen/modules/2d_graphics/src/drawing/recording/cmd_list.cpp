@@ -58,11 +58,13 @@ size_t CmdList::AddCmdListData(const CmdListData& data)
 
 const void* CmdList::GetCmdListData(size_t offset, size_t size) const
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return opAllocator_.OffsetToAddr(offset, size);
 }
 
 CmdListData CmdList::GetData() const
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return std::make_pair(opAllocator_.GetData(), opAllocator_.GetSize());
 }
 
@@ -423,6 +425,42 @@ uint32_t CmdList::SetupImageLatticeObject(const std::vector<std::shared_ptr<Exte
 uint32_t CmdList::GetOpCnt() const
 {
     return opCnt_;
+}
+
+void CmdList::FlushImageCache()
+{
+    {
+        std::lock_guard<std::mutex> lock(imageObjectMutex_);
+        for (auto& object : imageObjectVec_) {
+            if (object) {
+                object->FlushImageCache();
+            }
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+        for (auto& object : imageBaseObjVec_) {
+            if (object) {
+                object->FlushImageCache();
+            }
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+        for (auto& object : imageNineObjectVec_) {
+            if (object) {
+                object->FlushImageCache();
+            }
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+        for (auto& object : imageLatticeObjectVec_) {
+            if (object) {
+                object->FlushImageCache();
+            }
+        }
+    }
 }
 
 #ifdef ROSEN_OHOS

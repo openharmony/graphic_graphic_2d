@@ -1805,4 +1805,23 @@ HWTEST_F(RSRenderPipelineAgentTest, NotifyWindowModeTypeEvent002, TestSize.Level
     uint8_t windowModeType = 0;
     agent->NotifyWindowModeTypeEvent(windowModeType);
 }
+
+/**
+ * @tc.name: OnGlobalBlacklistChangedWithValidPipeline
+ * @tc.desc: Test OnGlobalBlacklistChanged with valid pipeline and ScreenSpecialLayerParam
+ * @tc.type: FUNC
+ * @tc.require: issue25079
+ */
+HWTEST_F(RSRenderPipelineAgentTest, OnGlobalBlacklistChangedWithValidPipeline, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    if (mainThread_->renderThreadParams_ == nullptr) {
+        mainThread_->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+
+    agent->OnGlobalBlacklistChanged({});
+    ASSERT_EQ(ScreenSpecialLayerInfo::GetGlobalBlackList().size(), 0);
+}
 } // namespace OHOS::Rosen

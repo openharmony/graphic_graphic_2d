@@ -668,7 +668,7 @@ Drawing::BackendTexture SetBackendTexture(RsVulkanInterface& vkContext, VkDevice
     return backendTexture;
 }
 
-void CreateVkSemaphore(VkSemaphore& semaphore)
+VkResult CreateVkSemaphore(VkSemaphore& semaphore)
 {
     auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
@@ -680,7 +680,7 @@ void CreateVkSemaphore(VkSemaphore& semaphore)
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = &exportSemaphoreCreateInfo;
     semaphoreInfo.flags = 0;
-    vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+    return vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
 }
 
 void GetFenceFdFromSemaphore(VkSemaphore& semaphore, int32_t& syncFenceFd)
@@ -695,7 +695,7 @@ void GetFenceFdFromSemaphore(VkSemaphore& semaphore, int32_t& syncFenceFd)
 
     auto err = vkContext.vkGetSemaphoreFdKHR(vkContext.GetDevice(), &getFdInfo, &syncFenceFd);
     if (VK_SUCCESS != err) {
-        RS_LOGD("FlushSurfaceWithFence: failed to get semaphore fd");
+        RS_LOGD_IF(DEBUG_IPC, "FlushSurfaceWithFence: failed to get semaphore fd");
         syncFenceFd = -1;
     }
 }

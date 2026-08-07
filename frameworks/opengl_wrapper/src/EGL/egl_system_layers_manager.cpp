@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "directory_ex.h"
 #include "json/json.h"
 #include "config_policy_utils.h"
 #include "wrapper_log.h"
@@ -121,7 +122,13 @@ bool EglSystemLayersManager::GetJsonConfig(Json::Value &configData)
         return GetDefaultJsonConfig(configData);
     }
 
-    std::ifstream configFile(std::string(pathBuf), std::ifstream::in);
+    std::string realPath;
+    if (!PathToRealPath(std::string(path), realPath)) {
+        WLOGE("Failed to check system config path");
+        return GetDefaultJsonConfig(configData);
+    }
+
+    std::ifstream configFile(realPath, std::ifstream::in);
     if (!configFile.good()) {
         WLOGE("Failed to open system json config file");
         return GetDefaultJsonConfig(configData);
@@ -153,7 +160,7 @@ std::vector<std::string> EglSystemLayersManager::GetStringVectorFromJson(const J
         if (i.isString()) {
             stringVector.push_back(i.asString());
         } else {
-            WLOGD("%{private}s is not a string", i.asString().c_str());
+            WLOGD("json item is not a string, type %{public}d", static_cast<int>(i.type()));
         }
     }
 

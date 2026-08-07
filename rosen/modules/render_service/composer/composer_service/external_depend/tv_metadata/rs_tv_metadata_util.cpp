@@ -26,6 +26,7 @@ using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 namespace OHOS::Rosen {
 namespace {
 constexpr uint8_t SCALER_MODE_GPU = 3;
+constexpr uint8_t RESERVED_INDEX_FOR_DIM = 2;
 }
 
 void RSTvMetadataUtil::CombineMetadata(TvPQMetadata& dstMetadata, const TvPQMetadata& srcMetadata)
@@ -47,6 +48,8 @@ void RSTvMetadataUtil::CombineMetadata(TvPQMetadata& dstMetadata, const TvPQMeta
     srcMetadata.hdr != 0 ? dstMetadata.hdr = srcMetadata.hdr : 0;
     srcMetadata.hdrLuminance != 0 ? dstMetadata.hdrLuminance = srcMetadata.hdrLuminance : 0;
     srcMetadata.hdrRatio != 0 ? dstMetadata.hdrRatio = srcMetadata.hdrRatio : 0;
+    srcMetadata.reserved[RESERVED_INDEX_FOR_DIM] != 0 ?
+        dstMetadata.reserved[RESERVED_INDEX_FOR_DIM] = srcMetadata.reserved[RESERVED_INDEX_FOR_DIM] : 0;
 }
 
 void RSTvMetadataUtil::CopyFromLayersToSurface(const std::vector<RSLayerPtr>& layers,
@@ -107,6 +110,7 @@ void RSTvMetadataUtil::CombineMetadataForAllLayers(const std::vector<RSLayerPtr>
     // update ui info
     tvSelfDrawMetadata.uiFrameCnt = tvUniRenderMetadata.uiFrameCnt;
     tvSelfDrawMetadata.dpPixFmt = tvUniRenderMetadata.dpPixFmt;
+    tvSelfDrawMetadata.reserved[RESERVED_INDEX_FOR_DIM] = tvUniRenderMetadata.reserved[RESERVED_INDEX_FOR_DIM];
     static_cast<void>(MetadataHelper::SetVideoTVMetadata(tvSelfDrawBuffer, tvSelfDrawMetadata));
 }
 } // namespace OHOS::Rosen

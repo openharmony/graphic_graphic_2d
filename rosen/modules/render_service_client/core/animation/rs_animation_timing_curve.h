@@ -40,11 +40,17 @@ constexpr float DEFAULT_BLEND_DURATION = 0.0f;
 } // namespace
 
 struct SpringParams {
+    struct ConvergeParams {
+        float convergeResponseFactor_ { 0.0f };
+        float convergeProgressThreshold_ { 0.0f };
+    };
+
     float response_ { 0.0f };
     float dampingRatio_ { 0.0f };
     float blendDuration_ { 0.0f };
     float initialVelocity_ { 0.0f };
     float minimumAmplitudeRatio_ { DEFAULT_AMPLITUDE_RATIO };
+    std::optional<ConvergeParams> convergeParams_ { std::nullopt };
 };
 
 class RSC_EXPORT RSAnimationTimingCurve final {
@@ -68,12 +74,14 @@ public:
     // Create interpolating spring, which duration is determined by the spring model. Multiple animations on the same
     // property will run simultaneously and act additively.
     static RSAnimationTimingCurve CreateInterpolatingSpring(float mass, float stiffness, float damping, float velocity,
-        float minimumAmplitudeRatio = DEFAULT_AMPLITUDE_RATIO);
+        float minimumAmplitudeRatio = DEFAULT_AMPLITUDE_RATIO,
+        std::optional<SpringParams::ConvergeParams> convergeParams = std::nullopt);
     // Create physical spring, which duration is determined by the spring model. When mixed with other physical spring
     // animations on the same property, each animation will be replaced by their successor, preserving velocity from one
     // animation to the next.
     static RSAnimationTimingCurve CreateSpring(float response, float dampingRatio, float blendDuration = 0.0f,
-        float minimumAmplitudeRatio = DEFAULT_AMPLITUDE_RATIO_SPRING);
+        float minimumAmplitudeRatio = DEFAULT_AMPLITUDE_RATIO_SPRING,
+        std::optional<SpringParams::ConvergeParams> convergeParams = std::nullopt);
 
     RSAnimationTimingCurve();
     RSAnimationTimingCurve(const RSAnimationTimingCurve& timingCurve) = default;
@@ -86,9 +94,10 @@ public:
 private:
     RSAnimationTimingCurve(const std::shared_ptr<RSInterpolator>& interpolator);
     RSAnimationTimingCurve(const std::function<float(float)>& customCurveFunc);
-    RSAnimationTimingCurve(float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio);
-    RSAnimationTimingCurve(
-        float response, float dampingRatio, float initialVelocity, CurveType curveType, float minimumAmplitudeRatio);
+    RSAnimationTimingCurve(float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio,
+        std::optional<SpringParams::ConvergeParams> convergeParams = std::nullopt);
+    RSAnimationTimingCurve(float response, float dampingRatio, float initialVelocity, CurveType curveType,
+        float minimumAmplitudeRatio, std::optional<SpringParams::ConvergeParams> convergeParams = std::nullopt);
 
     std::optional<SpringParams> springParams_;
     std::shared_ptr<RSInterpolator> GetInterpolator(int duration) const;

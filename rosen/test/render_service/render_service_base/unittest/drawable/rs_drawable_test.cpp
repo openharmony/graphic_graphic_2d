@@ -303,4 +303,47 @@ HWTEST_F(RSDrawableTest, CanFusePixelStretchTest002, TestSize.Level1)
     drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_STYLE)] = drawable3;
     ASSERT_FALSE(RSDrawable::CanFusePixelStretch(drawableVec));
 }
+
+class BufferDirtyTestNode : public RSRenderNode {
+public:
+    explicit BufferDirtyTestNode(NodeId id) : RSRenderNode(id) {}
+    bool IsBufferDirty() const override
+    {
+        return bufferDirty_;
+    }
+    bool bufferDirty_ = false;
+};
+
+/**
+ * @tc.name: CalculateDrawableVecStatus_BufferDirty
+ * @tc.desc: Test CalculateDrawableVecStatus sets FRAME_NOT_EMPTY when IsBufferDirty is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawableTest, CalculateDrawableVecStatus_BufferDirty, TestSize.Level1)
+{
+    NodeId id = 1;
+    BufferDirtyTestNode node(id);
+    RSDrawable::Vec drawableVec;
+    uint8_t drawableVecStatus = 0;
+    node.bufferDirty_ = true;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_TRUE(drawableVecStatus & DrawableVecStatus::FRAME_NOT_EMPTY);
+    ASSERT_TRUE(drawableVecStatus & DrawableVecStatus::NODE_NOT_EMPTY);
+}
+
+/**
+ * @tc.name: CalculateDrawableVecStatus_BufferNotDirty
+ * @tc.desc: Test CalculateDrawableVecStatus does not set FRAME_NOT_EMPTY when no content and buffer not dirty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawableTest, CalculateDrawableVecStatus_BufferNotDirty, TestSize.Level1)
+{
+    NodeId id = 1;
+    BufferDirtyTestNode node(id);
+    RSDrawable::Vec drawableVec;
+    uint8_t drawableVecStatus = 0;
+    node.bufferDirty_ = false;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_FALSE(drawableVecStatus & DrawableVecStatus::FRAME_NOT_EMPTY);
+}
 } // namespace OHOS::Rosen

@@ -20,6 +20,7 @@
 #include <cstring>
 #include <cstddef>
 #include <fstream>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -294,10 +295,13 @@ FontFileType::FontFileFormat DetectFormatWithFileCount(HBBlob& blob, int& fileCo
         fileCount = INVALID_FONT_FILE_NUM;
         return FontFileType::FontFileFormat::UNKNOWN;
     }
-    fileCount = static_cast<int>(hb_face_count(blob.get()));
-    if (fileCount == INVALID_FONT_FILE_NUM) { // never become negative
+    unsigned int faceCount = hb_face_count(blob.get());
+    if (faceCount == INVALID_FONT_FILE_NUM ||
+        faceCount > static_cast<unsigned int>(std::numeric_limits<int>::max())) {
+        fileCount = INVALID_FONT_FILE_NUM;
         return FontFileType::FontFileFormat::UNKNOWN;
     }
+    fileCount = static_cast<int>(faceCount);
     HBFace face;
     face.reset(hb_face_create(blob.get(), 0));
     FontFileType::FontFileFormat firstFaceType = DetectFormat(face);

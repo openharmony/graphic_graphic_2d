@@ -345,7 +345,8 @@ void RSBufferManager::OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::w
             bufferOwnerCount->OnBufferReleased();
             decedSet.insert(bufferId);
         } else {
-            RS_LOGD("OnReleaseLayerBuffers: bufferId %{public}" PRIu64 " has no ownerCount", bufferId);
+            RS_LOGD_IF(DEBUG_PIPELINE, "OnReleaseLayerBuffers: bufferId %{public}" PRIu64 " has no ownerCount",
+                bufferId);
         }
     }
 
@@ -380,7 +381,7 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
 
             auto bufferOwnerCount = layer->PopBufferOwnerCountById(bufferId);
             if (bufferOwnerCount == nullptr) {
-                RS_LOGD("RSBufferManager::ReleaseUniOnDrawBuffers not buffer: %{public}" PRIu64
+                RS_LOGD_IF(DEBUG_PIPELINE, "RSBufferManager::ReleaseUniOnDrawBuffers not buffer: %{public}" PRIu64
                     " in layer:%{public}" PRIu64, bufferId, layerId);
                 continue;
             }
@@ -411,7 +412,7 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     auto buffer = info.buffer_.promote();
     if (consumer == nullptr || buffer == nullptr) {
         pendingReleaseBuffers_.erase(iter);
-        RS_LOGD("RSBufferManager::ReleaseBufferById consumer or buffer is null");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBufferManager::ReleaseBufferById consumer or buffer is null");
         return;
     }
 
@@ -420,7 +421,7 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
         buffer->GetBufferId(), mergedFence ? mergedFence->Get() : -1, buffer->GetSeqNum());
     auto ret = consumer->ReleaseBuffer(buffer, mergedFence);
     if (ret != OHOS::SURFACE_ERROR_OK) {
-        RS_LOGD("RSBufferManager::ReleaseBufferById ReleaseBuffer failed(bufferId:%{public}" PRIu64
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBufferManager::ReleaseBufferById ReleaseBuffer failed(bufferId:%{public}" PRIu64
             ", ret:%{public}d)", bufferId, ret);
 #ifndef ROSEN_CROSS_PLATFORM
         RsDelegateCompositeCallbackManager::GetInstance().AddBufferReleaseInfo(buffer, mergedFence, consumer);

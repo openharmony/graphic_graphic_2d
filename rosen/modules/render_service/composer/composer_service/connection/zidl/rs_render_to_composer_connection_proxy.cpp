@@ -110,7 +110,7 @@ RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::s
             return static_cast<RSComposerError>(serverRet);
         }
     }
-    RS_LOGI("%{public}s success.", __func__);
+    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s success.", __func__);
     return COMPOSITOR_ERROR_OK;
 }
 
@@ -341,6 +341,7 @@ void RSRenderToComposerConnectionProxy::MarkTunnelSurfaceInvalid(uint64_t surfac
     }
     if (!parcel.WriteUint64(surfaceId)) {
         RS_LOGE("%{public}s WriteUint64 failed", __func__);
+        return;
     }
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_MARK_TUNNEL_SURFACE_INVALID, parcel, reply, option);
 }

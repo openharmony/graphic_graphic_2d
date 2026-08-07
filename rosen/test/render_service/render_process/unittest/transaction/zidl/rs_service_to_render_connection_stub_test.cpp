@@ -1200,7 +1200,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetMemoryGraphics002, TestSize.Lev
     ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 
 /**

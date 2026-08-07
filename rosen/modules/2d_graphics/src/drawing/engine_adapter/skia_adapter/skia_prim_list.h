@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-class DRAWING_API SkiaPrimList : public PrimListImpl {
+class SkiaPrimList : public PrimListImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 

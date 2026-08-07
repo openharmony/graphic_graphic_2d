@@ -234,14 +234,15 @@ HWTEST_F(PropertiesTest, OnApplyModifiersTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateFilterTest
+ * @tc.name: UpdateFilterTest001
  * @tc.desc: test results of UpdateFilter
  * @tc.type: FUNC
  * @tc.require: issueI9W24N
  */
-HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
+HWTEST_F(PropertiesTest, UpdateFilterTest001, TestSize.Level1)
 {
     RSProperties properties;
+    std::shared_ptr<RSFilter> filter;
     properties.GetEffect().shadow_ = std::make_optional<RSShadow>();
     properties.GetEffect().shadow_->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
     properties.UpdateFilter();
@@ -254,12 +255,14 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
     properties.SetSpherize(1.0f);
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
     properties.SetSpherize(0.0f);
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
     properties.GetEffect().isAttractionValid_ = true;
@@ -269,17 +272,31 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.GetEffect().isAttractionValid_ = false;
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
     properties.GetEffect().shadow_->imageMask_ = false;
     properties.UpdateFilter();
     EXPECT_TRUE(!properties.foregroundFilter_);
+}
 
+/**
+ * @tc.name: UpdateFilterTest002
+ * @tc.desc: test results of UpdateFilter
+ * @tc.type: FUNC
+ * @tc.require: issue25344
+ */
+HWTEST_F(PropertiesTest, UpdateFilterTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSFilter> filter;
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
     properties.GetEffect().motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
+    properties.GetEffect().motionBlurPara_ = nullptr;
     uint32_t flyMode = 0;
     RSFlyOutPara rs_fly_out_param = {
         flyMode
@@ -296,7 +313,7 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     EXPECT_TRUE(properties.foregroundFilter_);
 
     properties.SetDistortionK(0.7f);
-    properties.GetEffect().shadow_->imageMask_ = true;
+    properties.GetEffect().shadow_->imageMask_ = false;
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
 }
@@ -696,54 +713,6 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor002, TestSize.Level1)
     float newFactor = 0.5f;
     properties.SetHDRBrightnessFactor(newFactor);
     EXPECT_EQ(properties.GetHDRBrightnessFactor(), newFactor);
-}
-
-/**
- * @tc.name: SetHDRBrightnessFactor003
- * @tc.desc: test results of SetHDRBrightnessFactor
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
-{
-    RSProperties properties;
-    float initialFactor = 1.0f;
-
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
-    properties.backref_ = node;
-    properties.SetHDRBrightnessFactor(initialFactor);
-
-    NodeId displayNodeId = 5;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
-
-    NodeId screenRenderNodeId = 2;
-    ScreenId screenId = 0;
-    auto context = std::make_shared<RSContext>();
-    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
-
-    properties.backref_ = displayNode;
-    displayNode->IncreaseHDRNode(screenRenderNodeId);
-    EXPECT_NE(displayNode->hdrNodeMap_.find(screenRenderNodeId), displayNode->hdrNodeMap_.end());
-    properties.SetHDRBrightnessFactor(0.5f);
-
-    NodeId nodeId1 = 0;
-    auto node1 = std::make_shared<RSRenderNode>(nodeId1);
-    pid_t pid1 = ExtractPid(nodeId1);
-    context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
-    displayNode->IncreaseHDRNode(nodeId1);
-    properties.SetHDRBrightnessFactor(0.6f);
-
-    pid_t pid = ExtractPid(screenRenderNodeId);
-    context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = screenRenderNode;
-    properties.SetHDRBrightnessFactor(0.8f);
-
-    ScreenId displayNodeId2 = 6;
-    auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
-    properties.backref_ = displayNode2;
-    displayNode->IncreaseHDRNode(3);
-    EXPECT_NE(displayNode->hdrNodeMap_.find(3), displayNode->hdrNodeMap_.end());
-    properties.SetHDRBrightnessFactor(0.9f);
 }
 
 /**

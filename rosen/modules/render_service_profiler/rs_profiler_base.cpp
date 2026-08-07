@@ -38,7 +38,6 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_canvas_drawing_node_command.h"
 #include "command/rs_canvas_node_command.h"
-#include "command/rs_depth_node_command.h"
 #include "command/rs_effect_node_command.h"
 #include "command/rs_proxy_node_command.h"
 #include "command/rs_root_node_command.h"
@@ -51,8 +50,6 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
-
-#include "ge_shader_filter.h"
 
 namespace OHOS::Rosen {
 std::atomic_bool RSProfiler::recordAbortRequested_ = false;
@@ -114,7 +111,12 @@ bool RSProfiler::IsEnabled()
 
 bool RSProfiler::IsHrpServiceEnabled()
 {
-    return hrpServiceEnabled_;
+    return hrpServiceEnabled_ || RSSystemProperties::GetProfilerEnabled();
+}
+
+void RSProfiler::SetHrpServiceEnabled(bool enabled)
+{
+    hrpServiceEnabled_ = enabled;
 }
 
 bool RSProfiler::IsBetaRecordEnabled()
@@ -1053,8 +1055,6 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
         EffectNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     } else if (nodeType == RSRenderNodeType::ROOT_NODE) {
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
-    } else if (nodeType == RSRenderNodeType::DEPTH_NODE) {
-        RSDepthNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     } else if (nodeType == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         RSCanvasDrawingNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     } else if (nodeType == RSRenderNodeType::WINDOW_KEYFRAME_NODE) {
@@ -1442,7 +1442,6 @@ uint32_t RSProfiler::PerfTreeFlatten(const std::shared_ptr<RSRenderNode> node,
     constexpr uint32_t depthToAnalyze = 10;
     uint32_t drawCmdListCount = CalcNodeCmdListCount(*node);
     if (node->GetSortedChildren()) {
-        uint32_t valuableChildrenCount = 0;
         for (auto& child : *node->GetSortedChildren()) {
             if (child && child->GetType() != RSRenderNodeType::EFFECT_NODE && depth < depthToAnalyze) {
                 nodeSet.emplace_back(child->id_, depth + 1);
@@ -1451,7 +1450,6 @@ uint32_t RSProfiler::PerfTreeFlatten(const std::shared_ptr<RSRenderNode> node,
         for (auto& child : *node->GetSortedChildren()) {
             if (child) {
                 drawCmdListCount += PerfTreeFlatten(child, nodeSet, mapNode2Count, depth + 1);
-                valuableChildrenCount++;
             }
         }
     }

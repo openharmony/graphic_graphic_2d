@@ -19,6 +19,7 @@
 
 #include "common/rs_common_tools.h"
 #include "drawable/rs_color_picker_drawable.h"
+#include "drawable/rs_coverage_ng_shader_drawable.h"
 #include "drawable/rs_material_shader_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_overlay_ng_shader_drawable.h"
@@ -55,7 +56,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::PIXEL_STRETCH,                RSDrawableSlot::PIXEL_STRETCH },
     { ModifierNG::RSModifierType::USE_EFFECT,                   RSDrawableSlot::USE_EFFECT },
     { ModifierNG::RSModifierType::BLENDER,                      RSDrawableSlot::BLENDER },
-    { ModifierNG::RSModifierType::OVERLAY_NG_SHADER,            RSDrawableSlot::OVERLAY_NG_SHADER },
+    { ModifierNG::RSModifierType::COVERAGE_NG_SHADER,           RSDrawableSlot::COVERAGE_NG_SHADER },
     { ModifierNG::RSModifierType::PARTICLE_EFFECT,              RSDrawableSlot::PARTICLE_EFFECT },
     { ModifierNG::RSModifierType::COMPOSITING_FILTER,           RSDrawableSlot::COMPOSITING_FILTER },
     { ModifierNG::RSModifierType::BACKGROUND_FILTER,            RSDrawableSlot::BACKGROUND_FILTER },
@@ -74,6 +75,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::MATERIAL_FILTER,              RSDrawableSlot::MATERIAL_FILTER },
     { ModifierNG::RSModifierType::SPATIAL_EFFECT,               RSDrawableSlot::SPATIAL_EFFECT },
     { ModifierNG::RSModifierType::MATERIAL_SHADER,              RSDrawableSlot::MATERIAL_SHADER },
+    { ModifierNG::RSModifierType::OVERLAY_NG_SHADER,            RSDrawableSlot::OVERLAY_NG_SHADER },
     { ModifierNG::RSModifierType::CHILDREN,                     RSDrawableSlot::CHILDREN },
 };
 
@@ -100,6 +102,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSForegroundFilterDrawable::OnGenerate,                          // FOREGROUND_FILTER
     RSOutlineDrawable::OnGenerate,                                   // OUTLINE,
     RSMaterialShaderDrawable::OnGenerate,                            // MATERIAL_SHADER,
+    nullptr,                                                         // SAVE_CLIP_TO_BOUNDS
 
     // BG properties in Bounds Clip
     nullptr,                                                         // BG_SAVE_BOUNDS,
@@ -139,7 +142,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                                         // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
-    RSOverlayNGShaderDrawable::OnGenerate,                           // OVERLAY_NG_SHADER,
+    RSCoverageNGShaderDrawable::OnGenerate,                          // COVERAGE_NG_SHADER,
     RSBorderDrawable::OnGenerate,                                    // BORDER,
     ModifierGenerator<ModifierNG::RSModifierType::OVERLAY_STYLE>,    // OVERLAY,
     RSParticleDrawable::OnGenerate,                                  // PARTICLE_EFFECT,
@@ -147,6 +150,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
 
     // Restore state
     nullptr,                                                         // RESTORE_CLIP_TO_BOUNDS
+    RSOverlayNGShaderDrawable::OnGenerate,                           // OVERLAY_NG_SHADER,
     RSEndBlenderDrawable::OnGenerate,                                // RESTORE_BLENDER,
     RSForegroundFilterRestoreDrawable::OnGenerate,                   // RESTORE_FOREGROUND_FILTER
     nullptr,                                                         // RESTORE_ALL,
@@ -178,8 +182,8 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
         result |= DrawableVecStatus::CLIP_TO_BOUNDS;
     }
 
-    if (HasPropertyDrawableInRange(
-        drawableVec, RSDrawableSlot::CONTENT_BEGIN, RSDrawableSlot::CONTENT_END)) {
+    if (HasPropertyDrawableInRange(drawableVec, RSDrawableSlot::CONTENT_BEGIN, RSDrawableSlot::CONTENT_END) ||
+        node.IsBufferDirty()) {
         nodeNotEmpty = true;
         result |= DrawableVecStatus::FRAME_NOT_EMPTY;
     }
@@ -199,7 +203,9 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
         HasPropertyDrawableInRange(
             drawableVec, RSDrawableSlot::TRANSITION_PROPERTIES_BEGIN, RSDrawableSlot::TRANSITION_PROPERTIES_END) ||
         HasPropertyDrawableInRange(
-            drawableVec, RSDrawableSlot::EXTRA_PROPERTIES_BEGIN, RSDrawableSlot::EXTRA_PROPERTIES_END);
+            drawableVec, RSDrawableSlot::EXTRA_PROPERTIES_BEGIN, RSDrawableSlot::EXTRA_PROPERTIES_END) ||
+        HasPropertyDrawableInRange(
+            drawableVec, RSDrawableSlot::OVERLAY_PROPERTIES_BEGIN, RSDrawableSlot::OVERLAY_PROPERTIES_END);
     if (nodeNotEmpty) {
         // Set NODE_NOT_EMPTY flag if any drawable (include frame/bg/fg/transition/extra) is set
         result |= DrawableVecStatus::NODE_NOT_EMPTY;
@@ -239,6 +245,7 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 {
     // Erase existing save/clip/restore before re-generating
     constexpr static std::array boundsSlotsToErase = {
+        RSDrawableSlot::SAVE_CLIP_TO_BOUNDS,
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
         RSDrawableSlot::BG_RESTORE_BOUNDS,
@@ -253,10 +260,10 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 
     if (flags & DrawableVecStatus::CLIP_TO_BOUNDS) {
         // case 1: ClipToBounds set.
-        // add one clip, and reuse SAVE_ALL and RESTORE_ALL.
+        // add one clip, SAVE_CLIP_TO_BOUNDS and RESTORE_CLIP_TO_BOUNDS.
         assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS),
             RSClipToBoundsDrawable::OnGenerate(node));
-        SaveRestoreHelper(drawableVec, RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS,
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::SAVE_CLIP_TO_BOUNDS, RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS,
             RSPaintFilterCanvas::kCanvas);
         return;
     }
@@ -362,9 +369,10 @@ constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::FRAME_OFFSET,
     RSDrawableSlot::FG_CLIP_TO_BOUNDS,
     RSDrawableSlot::FOREGROUND_COLOR,
-    RSDrawableSlot::OVERLAY_NG_SHADER,
+    RSDrawableSlot::COVERAGE_NG_SHADER,
     RSDrawableSlot::BORDER,
     RSDrawableSlot::PIXEL_STRETCH,
+    RSDrawableSlot::OVERLAY_NG_SHADER,
     RSDrawableSlot::RESTORE_FOREGROUND_FILTER,
 };
 constexpr std::array frameDirtyTypes = {

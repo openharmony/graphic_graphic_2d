@@ -15,6 +15,9 @@
 
 #include "gtest/gtest.h"
 #include "animation/rs_render_keyframe_animation.h"
+#include "modifier/rs_render_property.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
+#include "recording/draw_cmd_list.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -26,12 +29,29 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    // Helper function to test Marshalling/Unmarshalling with property verification
+    static void VerifyMarshallingUnmarshalling(const RSRenderKeyframeAnimation& animation, AnimationId expectedId,
+        PropertyId expectedPropId);
 };
 
 void RSRenderKeyframeAnimationTest::SetUpTestCase() {}
 void RSRenderKeyframeAnimationTest::TearDownTestCase() {}
 void RSRenderKeyframeAnimationTest::SetUp() {}
 void RSRenderKeyframeAnimationTest::TearDown() {}
+
+void RSRenderKeyframeAnimationTest::VerifyMarshallingUnmarshalling(const RSRenderKeyframeAnimation& animation,
+    AnimationId expectedId, PropertyId expectedPropId)
+{
+    Parcel parcel;
+    bool res = animation.Marshalling(parcel);
+    ASSERT_NE(res, false);
+    auto unmarshalledAnimation = animation.Unmarshalling(parcel);
+    ASSERT_NE(unmarshalledAnimation, nullptr);
+    EXPECT_EQ(unmarshalledAnimation->GetAnimationId(), expectedId);
+    EXPECT_EQ(unmarshalledAnimation->GetPropertyId(), expectedPropId);
+    delete unmarshalledAnimation;
+}
 
 /**
  * @tc.name: DumpAnimationTypeTest
@@ -201,4 +221,20 @@ HWTEST_F(RSRenderKeyframeAnimationTest, OnAnimateTest, Level1)
     float fraction = 0.0f;
     rsRenderKeyframeAnimation.OnAnimate(fraction);
 }
+
+class MockKeyFrameCmdListProperty : public RSRenderAnimatableProperty<float> {
+public:
+    explicit MockKeyFrameCmdListProperty(const float& value, const PropertyId& id)
+        : RSRenderAnimatableProperty<float>(value, id)
+    {}
+    ~MockKeyFrameCmdListProperty() = default;
+
+    RSPropertyType typeTest_ = RSPropertyType::DRAW_CMD_LIST;
+
+protected:
+    RSPropertyType GetPropertyType() const override
+    {
+        return typeTest_;
+    }
+};
 }

@@ -26,8 +26,10 @@ namespace OHOS {
 namespace Rosen {
 
 enum class DepthSpaceType : int16_t {
+    DEPTH_SPACE_TYPE_MIN = 0,
     INSTANCE = 0,
-    GLOBAL = 1
+    GLOBAL = 1,
+    DEPTH_SPACE_TYPE_MAX = 1,
 };
 
 enum class SpatialEffectMode : int16_t {

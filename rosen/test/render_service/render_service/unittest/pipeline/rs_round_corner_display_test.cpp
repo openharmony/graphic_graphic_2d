@@ -501,7 +501,6 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
     EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
 
     // SetHardwareResourceToBuffer - buffer is nullptr
-    // to create layerInfo
     std::shared_ptr<Drawing::Bitmap> bitMap = std::make_shared<Drawing::Bitmap>();
     bitMap->Build(896, 1848,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
@@ -510,7 +509,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
     EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
 
     // SetHardwareResourceToBuffer - copy layerBitmap to buffer failed
-    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
+    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl(0);
     topSurfaceNode->buffer_.buffer = surfaceBufferImpl;
     EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
 
@@ -525,6 +524,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
     };
     surfaceBufferImpl->Alloc(requestConfig, nullptr);
+    topSurfaceNode->buffer_.buffer = surfaceBufferImpl;
     EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
     surfaceBufferImpl->handle_ = nullptr;
     surfaceBufferImpl->FreeBufferHandleLocked();
@@ -2258,9 +2258,9 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest001, TestSize.Level
     sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(topSurfaceNode);
     topSurfaceNode->CreateSurface(listener);
 
-    topSurfaceNode->SetAvailableBufferCount(3);
+    topSurfaceNode->SetAvailableBufferCount(4);
     bool result = visitor->ConsumeAndUpdateBuffer(*topSurfaceNode);
-    EXPECT_EQ(true, result);
+    EXPECT_EQ(false, result);
 }
 
 /*

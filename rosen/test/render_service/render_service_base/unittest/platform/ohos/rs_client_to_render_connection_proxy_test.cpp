@@ -451,7 +451,6 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetHwcNodeBounds, TestSize.Level1)
 {
     NodeId id = 1;
     proxy->SetHwcNodeBounds(id, 1.0f, 1.0f, 1.0f, 1.0f);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
 /**

@@ -1974,6 +1974,551 @@ HWTEST_F(DrawCmdTest, DrawGlyphs000, TestSize.Level1)
     opItem1.Marshalling(*drawCmdList);
     opItem1.Unmarshalling(*drawCmdList, &handle);
 }
+
+// Security validation tests for enum boundaries in Unmarshalling methods
+namespace {
+constexpr int kInvalidEnumValue = -1;
+constexpr int kPointModeAboveMax = 3;
+constexpr int kShadowFlagsAboveMax = 4;
+constexpr int kBlendModeAboveMax = 29;
+constexpr int kFilterModeAboveMax = 2;
+constexpr int kMipmapModeAboveMax = 3;
+}
+
+/**
+ * @tc.name: DrawPointsUnmarshalling001
+ * @tc.desc: Test DrawPointsOpItem::Unmarshalling with invalid PointMode below range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawPointsUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    std::pair<size_t, size_t> pts;
+
+    DrawPointsOpItem::ConstructorHandle handle{
+        static_cast<PointMode>(kInvalidEnumValue), pts, paintHandle};
+    auto result = DrawPointsOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawPointsUnmarshalling002
+ * @tc.desc: Test DrawPointsOpItem::Unmarshalling with invalid PointMode above range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawPointsUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    std::pair<size_t, size_t> pts;
+
+    DrawPointsOpItem::ConstructorHandle handle{
+        static_cast<PointMode>(kPointModeAboveMax), pts, paintHandle};
+    auto result = DrawPointsOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowStyleUnmarshalling001
+ * @tc.desc: Test DrawShadowStyleOpItem::Unmarshalling with invalid ShadowFlags below range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawShadowStyleUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    OpDataHandle pathHandle;
+    Point3 planeParams;
+    Point3 devLightPos;
+    Color ambientColor;
+    Color spotColor;
+
+    DrawShadowStyleOpItem::ConstructorHandle handle{pathHandle, planeParams, devLightPos,
+        10, ambientColor, spotColor,
+        static_cast<ShadowFlags>(kInvalidEnumValue), false};
+    auto result = DrawShadowStyleOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowStyleUnmarshalling002
+ * @tc.desc: Test DrawShadowStyleOpItem::Unmarshalling with invalid ShadowFlags above range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawShadowStyleUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    OpDataHandle pathHandle;
+    Point3 planeParams;
+    Point3 devLightPos;
+    Color ambientColor;
+    Color spotColor;
+
+    DrawShadowStyleOpItem::ConstructorHandle handle{pathHandle, planeParams, devLightPos,
+        10, ambientColor, spotColor,
+        static_cast<ShadowFlags>(kShadowFlagsAboveMax), false};
+    auto result = DrawShadowStyleOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowUnmarshalling001
+ * @tc.desc: Test DrawShadowOpItem::Unmarshalling with invalid ShadowFlags below range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawShadowUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    OpDataHandle pathHandle;
+    Point3 planeParams;
+    Point3 devLightPos;
+    Color ambientColor;
+    Color spotColor;
+
+    DrawShadowOpItem::ConstructorHandle handle{pathHandle, planeParams, devLightPos,
+        10, ambientColor, spotColor, static_cast<ShadowFlags>(kInvalidEnumValue)};
+    auto result = DrawShadowOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowUnmarshalling002
+ * @tc.desc: Test DrawShadowOpItem::Unmarshalling with invalid ShadowFlags above range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawShadowUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    OpDataHandle pathHandle;
+    Point3 planeParams;
+    Point3 devLightPos;
+    Color ambientColor;
+    Color spotColor;
+
+    DrawShadowOpItem::ConstructorHandle handle{pathHandle, planeParams, devLightPos,
+        10, ambientColor, spotColor, static_cast<ShadowFlags>(kShadowFlagsAboveMax)};
+    auto result = DrawShadowOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawVerticesUnmarshalling001
+ * @tc.desc: Test DrawVerticesOpItem::Unmarshalling with invalid BlendMode below range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawVerticesUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle verticesHandle;
+
+    DrawVerticesOpItem::ConstructorHandle handle{
+        verticesHandle, static_cast<BlendMode>(kInvalidEnumValue), paintHandle};
+    auto result = DrawVerticesOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawVerticesUnmarshalling002
+ * @tc.desc: Test DrawVerticesOpItem::Unmarshalling with invalid BlendMode above range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawVerticesUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle verticesHandle;
+
+    DrawVerticesOpItem::ConstructorHandle handle{
+        verticesHandle, static_cast<BlendMode>(kBlendModeAboveMax), paintHandle};
+    auto result = DrawVerticesOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawColorUnmarshalling001
+ * @tc.desc: Test DrawColorOpItem::Unmarshalling with invalid BlendMode below range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawColorUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    ColorQuad colorQuad{0};
+
+    DrawColorOpItem::ConstructorHandle handle{
+        colorQuad, static_cast<BlendMode>(kInvalidEnumValue)};
+    auto result = DrawColorOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawColorUnmarshalling002
+ * @tc.desc: Test DrawColorOpItem::Unmarshalling with invalid BlendMode above range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawColorUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    ColorQuad colorQuad{0};
+
+    DrawColorOpItem::ConstructorHandle handle{
+        colorQuad, static_cast<BlendMode>(kBlendModeAboveMax)};
+    auto result = DrawColorOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawUIColorUnmarshalling001
+ * @tc.desc: Test DrawUIColorOpItem::Unmarshalling with invalid BlendMode below range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawUIColorUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 1.0f);
+
+    DrawUIColorOpItem::ConstructorHandle handle{
+        color, static_cast<BlendMode>(kInvalidEnumValue)};
+    auto result = DrawUIColorOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawUIColorUnmarshalling002
+ * @tc.desc: Test DrawUIColorOpItem::Unmarshalling with invalid BlendMode above range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawUIColorUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 1.0f);
+
+    DrawUIColorOpItem::ConstructorHandle handle{
+        color, static_cast<BlendMode>(kBlendModeAboveMax)};
+    auto result = DrawUIColorOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageNineUnmarshalling001
+ * @tc.desc: Test DrawImageNineOpItem::Unmarshalling with invalid FilterMode below range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageNineUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    OpDataHandle imageHandle;
+    RectI center;
+    Rect dst;
+    BrushHandle brushHandle;
+    bool hasBrush = false;
+
+    DrawImageNineOpItem::ConstructorHandle handle{
+        imageHandle, center, dst, static_cast<FilterMode>(kInvalidEnumValue), brushHandle, hasBrush};
+    auto result = DrawImageNineOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageNineUnmarshalling002
+ * @tc.desc: Test DrawImageNineOpItem::Unmarshalling with invalid FilterMode above range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageNineUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    OpDataHandle imageHandle;
+    RectI center;
+    Rect dst;
+    BrushHandle brushHandle;
+    bool hasBrush = false;
+
+    DrawImageNineOpItem::ConstructorHandle handle{
+        imageHandle, center, dst, static_cast<FilterMode>(kFilterModeAboveMax), brushHandle, hasBrush};
+    auto result = DrawImageNineOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageLatticeUnmarshalling003
+ * @tc.desc: Test DrawImageLatticeOpItem::Unmarshalling with invalid FilterMode below range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageLatticeUnmarshalling003, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle imageHandle;
+
+    Lattice lattice;
+    lattice.fXCount = 2;
+    lattice.fYCount = 2;
+    lattice.fXDivs = {10, 20};
+    lattice.fYDivs = {10, 20};
+    lattice.fRectTypes = std::vector<Lattice::RectType>(9, Lattice::RectType::DEFAULT);
+    lattice.fColors = std::vector<Color>(9);
+    auto latticeHandle = CmdListHelper::AddLatticeToCmdList(*drawCmdList, lattice);
+
+    DrawImageLatticeOpItem::ConstructorHandle handle{
+        imageHandle, latticeHandle, Rect(), static_cast<FilterMode>(kInvalidEnumValue), paintHandle};
+    auto result = DrawImageLatticeOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageLatticeUnmarshalling004
+ * @tc.desc: Test DrawImageLatticeOpItem::Unmarshalling with invalid FilterMode above range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageLatticeUnmarshalling004, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle imageHandle;
+
+    Lattice lattice;
+    lattice.fXCount = 2;
+    lattice.fYCount = 2;
+    lattice.fXDivs = {10, 20};
+    lattice.fYDivs = {10, 20};
+    lattice.fRectTypes = std::vector<Lattice::RectType>(9, Lattice::RectType::DEFAULT);
+    lattice.fColors = std::vector<Color>(9);
+    auto latticeHandle = CmdListHelper::AddLatticeToCmdList(*drawCmdList, lattice);
+
+    DrawImageLatticeOpItem::ConstructorHandle handle{
+        imageHandle, latticeHandle, Rect(), static_cast<FilterMode>(kFilterModeAboveMax), paintHandle};
+    auto result = DrawImageLatticeOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawAtlasUnmarshalling003
+ * @tc.desc: Test DrawAtlasOpItem::Unmarshalling with invalid BlendMode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawAtlasUnmarshalling003, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle atlasHandle;
+
+    std::vector<RSXform> xformData;
+    auto xformHandle = CmdListHelper::AddVectorToCmdList<RSXform>(*drawCmdList, xformData);
+    std::vector<Rect> texData;
+    auto texHandle = CmdListHelper::AddVectorToCmdList<Rect>(*drawCmdList, texData);
+    std::vector<ColorQuad> colorsData;
+    auto colorsHandle = CmdListHelper::AddVectorToCmdList<ColorQuad>(*drawCmdList, colorsData);
+
+    DrawAtlasOpItem::ConstructorHandle handle{atlasHandle, xformHandle, texHandle,
+        colorsHandle, static_cast<BlendMode>(kInvalidEnumValue), SamplingOptions(), false, Rect(), paintHandle};
+    auto result = DrawAtlasOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawAtlasUnmarshalling004
+ * @tc.desc: Test DrawAtlasOpItem::Unmarshalling with invalid BlendMode above range.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawAtlasUnmarshalling004, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle atlasHandle;
+
+    std::vector<RSXform> xformData;
+    auto xformHandle = CmdListHelper::AddVectorToCmdList<RSXform>(*drawCmdList, xformData);
+    std::vector<Rect> texData;
+    auto texHandle = CmdListHelper::AddVectorToCmdList<Rect>(*drawCmdList, texData);
+    std::vector<ColorQuad> colorsData;
+    auto colorsHandle = CmdListHelper::AddVectorToCmdList<ColorQuad>(*drawCmdList, colorsData);
+
+    DrawAtlasOpItem::ConstructorHandle handle{atlasHandle, xformHandle, texHandle,
+        colorsHandle, static_cast<BlendMode>(kBlendModeAboveMax),
+        SamplingOptions(), false, Rect(), paintHandle};
+    auto result = DrawAtlasOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawAtlasUnmarshalling006
+ * @tc.desc: Test DrawAtlasOpItem::Unmarshalling with invalid MipmapMode in SamplingOptions.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawAtlasUnmarshalling006, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle atlasHandle;
+
+    std::vector<RSXform> xformData;
+    auto xformHandle = CmdListHelper::AddVectorToCmdList<RSXform>(*drawCmdList, xformData);
+    std::vector<Rect> texData;
+    auto texHandle = CmdListHelper::AddVectorToCmdList<Rect>(*drawCmdList, texData);
+    std::vector<ColorQuad> colorsData;
+    auto colorsHandle = CmdListHelper::AddVectorToCmdList<ColorQuad>(*drawCmdList, colorsData);
+
+    SamplingOptions invalidSampling{
+        FilterMode::NEAREST, static_cast<MipmapMode>(kMipmapModeAboveMax)};
+    DrawAtlasOpItem::ConstructorHandle handle{atlasHandle, xformHandle, texHandle,
+        colorsHandle, BlendMode::SRC_OVER, invalidSampling, false, Rect(), paintHandle};
+    auto result = DrawAtlasOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawAtlasUnmarshalling007
+ * @tc.desc: Test DrawAtlasOpItem::Unmarshalling with all valid enum values.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawAtlasUnmarshalling007, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle atlasHandle;
+
+    std::vector<RSXform> xformData = {RSXform()};
+    auto xformHandle = CmdListHelper::AddVectorToCmdList<RSXform>(*drawCmdList, xformData);
+    std::vector<Rect> texData = {Rect()};
+    auto texHandle = CmdListHelper::AddVectorToCmdList<Rect>(*drawCmdList, texData);
+    std::vector<ColorQuad> colorsData = {0};
+    auto colorsHandle = CmdListHelper::AddVectorToCmdList<ColorQuad>(*drawCmdList, colorsData);
+
+    SamplingOptions validSampling{FilterMode::LINEAR, MipmapMode::LINEAR};
+    DrawAtlasOpItem::ConstructorHandle handle{atlasHandle, xformHandle, texHandle,
+        colorsHandle, BlendMode::SRC_OVER, validSampling, false, Rect(), paintHandle};
+    auto result = DrawAtlasOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageUnmarshalling001
+ * @tc.desc: Test DrawImageOpItem::Unmarshalling with invalid FilterMode in SamplingOptions.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle imageHandle;
+
+    SamplingOptions invalidSampling{
+        static_cast<FilterMode>(kFilterModeAboveMax), MipmapMode::NONE};
+    DrawImageOpItem::ConstructorHandle handle{
+        imageHandle, 0, 0, invalidSampling, paintHandle};
+    auto result = DrawImageOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageUnmarshalling002
+ * @tc.desc: Test DrawImageOpItem::Unmarshalling with invalid MipmapMode in SamplingOptions.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle imageHandle;
+
+    SamplingOptions invalidSampling{
+        FilterMode::NEAREST, static_cast<MipmapMode>(kMipmapModeAboveMax)};
+    DrawImageOpItem::ConstructorHandle handle{
+        imageHandle, 0, 0, invalidSampling, paintHandle};
+    auto result = DrawImageOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageRectUnmarshalling001
+ * @tc.desc: Test DrawImageRectOpItem::Unmarshalling with invalid FilterMode in sampling.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageRectUnmarshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle imageHandle;
+    Rect src;
+    Rect dst;
+
+    SamplingOptions invalidSampling{
+        static_cast<FilterMode>(kFilterModeAboveMax), MipmapMode::NONE};
+    DrawImageRectOpItem::ConstructorHandle handle{imageHandle, src, dst,
+        invalidSampling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, paintHandle};
+    auto result = DrawImageRectOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageRectUnmarshalling002
+ * @tc.desc: Test DrawImageRectOpItem::Unmarshalling with invalid MipmapMode in sampling.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawImageRectUnmarshalling002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    OpDataHandle imageHandle;
+    Rect src;
+    Rect dst;
+
+    SamplingOptions invalidSampling{
+        FilterMode::NEAREST, static_cast<MipmapMode>(kMipmapModeAboveMax)};
+    DrawImageRectOpItem::ConstructorHandle handle{imageHandle, src, dst,
+        invalidSampling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, paintHandle};
+    auto result = DrawImageRectOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

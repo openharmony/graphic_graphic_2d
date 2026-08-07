@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 
+#include <thread>
+
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_particle_animation.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -32,10 +34,10 @@ public:
     void SetUp() override;
     void TearDown() override;
 
-    static constexpr uint64_t ANIMATION_ID = 12345;
-    static constexpr uint64_t ANIMATION_ID_2 = 123456;
-    static constexpr uint64_t PROPERTY_ID = 54321;
-    static constexpr uint64_t PROPERTY_ID_2 = 54322;
+    static constexpr uint64_t animationId = 12345;
+    static constexpr uint64_t animationId2 = 123456;
+    static constexpr uint64_t propertyId = 54321;
+    static constexpr uint64_t propertyId2 = 54322;
     const Vector2f PATH_ANIMATION_DEFAULT_VALUE = Vector2f(0.f, 0.f);
     const Vector2f PATH_ANIMATION_START_VALUE = Vector2f(0.f, 0.f);
     const Vector2f PATH_ANIMATION_END_VALUE = Vector2f(500.f, 500.f);
@@ -60,10 +62,10 @@ HWTEST_F(RSAnimationManagerTest, AddAnimation001, TestSize.Level1)
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
-    EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == renderCurveAnimation);
+    EXPECT_TRUE(animationManager.GetAnimation(animationId) == renderCurveAnimation);
     animationManager.AddAnimation(renderCurveAnimation);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation001 end";
 }
@@ -81,12 +83,12 @@ HWTEST_F(RSAnimationManagerTest, RemoveAnimation001, TestSize.Level1)
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
-    EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == renderCurveAnimation);
-    animationManager.RemoveAnimation(ANIMATION_ID);
-    EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == nullptr);
+    EXPECT_TRUE(animationManager.GetAnimation(animationId) == renderCurveAnimation);
+    animationManager.RemoveAnimation(animationId);
+    EXPECT_TRUE(animationManager.GetAnimation(animationId) == nullptr);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RemoveAnimation001 end";
 }
 
@@ -99,8 +101,8 @@ HWTEST_F(RSAnimationManagerTest, RemoveAnimation002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RemoveAnimation001 start";
     RSAnimationManager animationManager;
-    animationManager.RemoveAnimation(ANIMATION_ID);
-    EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == nullptr);
+    animationManager.RemoveAnimation(animationId);
+    EXPECT_TRUE(animationManager.GetAnimation(animationId) == nullptr);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RemoveAnimation001 end";
 }
 
@@ -117,11 +119,11 @@ HWTEST_F(RSAnimationManagerTest, FilterAnimationByPid001, TestSize.Level1)
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
-    animationManager.FilterAnimationByPid(ANIMATION_ID_2);
-    EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == renderCurveAnimation);
+    animationManager.FilterAnimationByPid(animationId2);
+    EXPECT_TRUE(animationManager.GetAnimation(animationId) == renderCurveAnimation);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest FilterAnimationByPid001 end";
 }
 
@@ -138,11 +140,11 @@ HWTEST_F(RSAnimationManagerTest, RegisterSpringAnimation001, TestSize.Level1)
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
-    animationManager.RegisterSpringAnimation(PROPERTY_ID, ANIMATION_ID);
-    auto animation = animationManager.QuerySpringAnimation(PROPERTY_ID);
+    animationManager.RegisterSpringAnimation(propertyId, animationId);
+    auto animation = animationManager.QuerySpringAnimation(propertyId);
     EXPECT_TRUE(animation == renderCurveAnimation);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterSpringAnimation001 end";
 }
@@ -156,8 +158,8 @@ HWTEST_F(RSAnimationManagerTest, UnRegisterSpringAnimation001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationManagerTest UnRegisterSpringAnimation001 start";
     RSAnimationManager animationManager;
-    animationManager.UnregisterSpringAnimation(PROPERTY_ID, ANIMATION_ID);
-    auto animation = animationManager.QuerySpringAnimation(PROPERTY_ID);
+    animationManager.UnregisterSpringAnimation(propertyId, animationId);
+    auto animation = animationManager.QuerySpringAnimation(propertyId);
     EXPECT_TRUE(animation == nullptr);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest UnRegisterSpringAnimation001 end";
 }
@@ -175,12 +177,12 @@ HWTEST_F(RSAnimationManagerTest, UnRegisterSpringAnimation002, TestSize.Level1)
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
-    animationManager.RegisterSpringAnimation(PROPERTY_ID, ANIMATION_ID);
-    animationManager.UnregisterSpringAnimation(PROPERTY_ID, ANIMATION_ID);
-    auto animation = animationManager.QuerySpringAnimation(PROPERTY_ID);
+    animationManager.RegisterSpringAnimation(propertyId, animationId);
+    animationManager.UnregisterSpringAnimation(propertyId, animationId);
+    auto animation = animationManager.QuerySpringAnimation(propertyId);
     EXPECT_TRUE(animation == nullptr);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest UnRegisterSpringAnimation002 end";
 }
@@ -194,14 +196,14 @@ HWTEST_F(RSAnimationManagerTest, Animate001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationManagerTest Animate001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID);
+        propertyId);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID);
+        propertyId);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID);
+        propertyId);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     
     bool hasRunningAnimation;
     bool needRequestNextVsync;
@@ -237,14 +239,14 @@ HWTEST_F(RSAnimationManagerTest, Animate002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationManagerTest Animate002 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID);
+        propertyId);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID);
+        propertyId);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID);
+        propertyId);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     
     bool hasRunningAnimation;
     bool needRequestNextVsync;
@@ -290,11 +292,11 @@ HWTEST_F(RSAnimationManagerTest, RegisterPathAnimation001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterPathAnimation001 start";
     RSAnimationManager animationManager;
-    animationManager.RegisterPathAnimation(PROPERTY_ID, ANIMATION_ID);
-    auto animation = animationManager.QueryPathAnimation(PROPERTY_ID);
+    animationManager.RegisterPathAnimation(propertyId, animationId);
+    auto animation = animationManager.QueryPathAnimation(propertyId);
     EXPECT_TRUE(animation == nullptr);
-    animationManager.UnregisterPathAnimation(PROPERTY_ID, ANIMATION_ID);
-    animation = animationManager.QueryPathAnimation(PROPERTY_ID);
+    animationManager.UnregisterPathAnimation(propertyId, animationId);
+    animation = animationManager.QueryPathAnimation(propertyId);
     EXPECT_TRUE(animation == nullptr);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterPathAnimation001 end";
 }
@@ -308,10 +310,10 @@ HWTEST_F(RSAnimationManagerTest, RegisterParticleAnimation001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterParticleAnimation001 start";
     RSAnimationManager animationManager;
-    animationManager.RegisterParticleAnimation(PROPERTY_ID, ANIMATION_ID);
+    animationManager.RegisterParticleAnimation(propertyId, animationId);
     auto animations = animationManager.GetParticleAnimations();
     EXPECT_TRUE(animations.size() != 0);
-    animationManager.UnregisterParticleAnimation(PROPERTY_ID, ANIMATION_ID);
+    animationManager.UnregisterParticleAnimation(propertyId, animationId);
     animations = animationManager.GetParticleAnimations();
     EXPECT_TRUE(animations.size() == 0);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterParticleAnimation001 end";
@@ -333,12 +335,12 @@ HWTEST_F(RSAnimationManagerTest, GetAnimationsSize001, TestSize.Level1)
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     animationManager.AddAnimation(renderCurveAnimation);
     result = animationManager.GetAnimationsSize();
     EXPECT_TRUE(result == 1);
 
-    animationManager.RemoveAnimation(ANIMATION_ID);
+    animationManager.RemoveAnimation(animationId);
     result = animationManager.GetAnimationsSize();
     EXPECT_TRUE(result == 0);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest GetAnimationsSize001 end";
@@ -360,12 +362,12 @@ HWTEST_F(RSAnimationManagerTest, GetAnimationPid001, TestSize.Level1)
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     animationManager.AddAnimation(renderCurveAnimation);
     result = animationManager.GetAnimationPid();
     EXPECT_TRUE(result == 0);
 
-    animationManager.RemoveAnimation(ANIMATION_ID);
+    animationManager.RemoveAnimation(animationId);
     result = animationManager.GetAnimationPid();
     EXPECT_TRUE(result == 0);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest GetAnimationPid001 end";
@@ -415,7 +417,7 @@ HWTEST_F(RSAnimationManagerTest, DestroyInRender002, TestSize.Level1)
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     renderCurveAnimation->SetRepeatCount(1);
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
@@ -451,7 +453,7 @@ HWTEST_F(RSAnimationManagerTest, DestroyInRender004, TestSize.Level1)
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     renderCurveAnimation->SetRepeatCount(-1);
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
@@ -472,13 +474,13 @@ HWTEST_F(RSAnimationManagerTest, DestroyInRender005, TestSize.Level1)
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+        animationId, propertyId, property, property1, property2);
     renderCurveAnimation->SetRepeatCount(-1);
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
     auto context = std::make_shared<RSContext>();
     animationManager.DestroyInRender(0, context->weak_from_this());
-    EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == nullptr);
+    EXPECT_TRUE(animationManager.GetAnimation(animationId) == nullptr);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender005 end";
 }
 
@@ -494,7 +496,7 @@ HWTEST_F(RSAnimationManagerTest, AnimateMarksParticleStartTimeOnBackground001, T
     GTEST_LOG_(INFO) << "RSAnimationManagerTest AnimateMarksParticleStartTimeOnBackground001 start";
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
     auto particleAnimation =
-        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, particlesRenderParams);
     ASSERT_TRUE(particleAnimation != nullptr);
     particleAnimation->SetRepeatCount(-1);
 
@@ -524,9 +526,9 @@ HWTEST_F(RSAnimationManagerTest, DestroyInRenderRebuildsInfiniteParticle001, Tes
     GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRenderRebuildsInfiniteParticle001 start";
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
     auto particleAnimation =
-        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, particlesRenderParams);
     ASSERT_TRUE(particleAnimation != nullptr);
-    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(animationId);
     particleAnimation->Attach(renderNode.get());
     particleAnimation->SetRepeatCount(-1);
 
@@ -535,8 +537,108 @@ HWTEST_F(RSAnimationManagerTest, DestroyInRenderRebuildsInfiniteParticle001, Tes
 
     auto context = std::make_shared<RSContext>();
     animationManager.DestroyInRender(0, context->weak_from_this());
-    EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == nullptr);
+    EXPECT_TRUE(animationManager.GetAnimation(animationId) == nullptr);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRenderRebuildsInfiniteParticle001 end";
+}
+
+/**
+ * @tc.name: AddAnimation002
+ * @tc.desc: Verify AddAnimation returns false when animation is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, AddAnimation002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation002 start";
+    RSAnimationManager animationManager;
+    auto result = animationManager.AddAnimation(nullptr);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(animationManager.GetAnimationsSize(), 0u);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation002 end";
+}
+
+/**
+ * @tc.name: AddAnimation003
+ * @tc.desc: Verify AddAnimation returns false when animation already exists
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, AddAnimation003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation003 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        animationId, propertyId, property, property1, property2);
+    RSAnimationManager animationManager;
+    auto result = animationManager.AddAnimation(renderCurveAnimation);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(animationManager.GetAnimationsSize(), 1u);
+    result = animationManager.AddAnimation(renderCurveAnimation);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(animationManager.GetAnimationsSize(), 1u);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation003 end";
+}
+
+/**
+ * @tc.name: AddAnimation004
+ * @tc.desc: Verify AddAnimation returns false when animation is in pendingCancel list
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, AddAnimation004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation004 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        animationId, propertyId, property, property1, property2);
+    RSAnimationManager animationManager;
+    std::vector<AnimationId> cancelIds = {animationId};
+    animationManager.AttemptCancelAnimationByAnimationId(cancelIds);
+    auto result = animationManager.AddAnimation(renderCurveAnimation);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(animationManager.GetAnimationsSize(), 0u);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation004 end";
+}
+
+/**
+ * @tc.name: AddAnimation005
+ * @tc.desc: Verify AddAnimation returns true on success
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, AddAnimation005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation005 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        animationId, propertyId, property, property1, property2);
+    RSAnimationManager animationManager;
+    auto result = animationManager.AddAnimation(renderCurveAnimation);
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(animationManager.GetAnimation(animationId) == renderCurveAnimation);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest AddAnimation005 end";
+}
+
+/**
+ * @tc.name: DestructorOnCreationThread001
+ * @tc.desc: Verify mainThreadId_ is set at construction and destructor checks thread mismatch
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, DestructorOnCreationThread001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestructorOnCreationThread001 start";
+    {
+        RSAnimationManager::Init();
+        RSAnimationManager animationManager;
+        EXPECT_EQ(RSAnimationManager::mainThreadId_, std::this_thread::get_id());
+    }
+    {
+        RSAnimationManager animationManager;
+        RSAnimationManager::mainThreadId_= std::thread::id();
+    }
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestructorOnCreationThread001 end";
 }
 
 } // namespace Rosen

@@ -49,7 +49,7 @@ struct HgmServiceToProcessInfo : public RefBase {
     int32_t pipelineOffsetPulseNum = 0;
     std::shared_ptr<RPHgmConfigData> rpHgmConfigData = nullptr;
 
-    bool isAdaptive = false;
+    int32_t isAdaptive = 0;
     std::string gameNodeName;
 
     bool isPowerIdle = false;

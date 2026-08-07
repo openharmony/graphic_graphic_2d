@@ -444,6 +444,24 @@ HWTEST_F(VSyncManagerAgentTest, AddAppVsyncConnection, Function | MediumTest| Le
 }
 
 /*
+* Function: DvsyncNeedSkipRsCommitDelay
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test DvsyncNeedSkipRsCommitDelay
+ */
+HWTEST_F(VSyncManagerAgentTest, DvsyncNeedSkipRsCommitDelay, Function | MediumTest| Level0)
+{
+    auto rsDistributor = vsyncManagerAgent_->rsVsyncDistributor_;
+    bool res = vsyncManagerAgent_->DvsyncNeedSkipRsCommitDelay();
+    ASSERT_FALSE(res);
+    vsyncManagerAgent_->rsVsyncDistributor_ = nullptr;
+    res = vsyncManagerAgent_->DvsyncNeedSkipRsCommitDelay();
+    vsyncManagerAgent_->rsVsyncDistributor_ = rsDistributor;
+    ASSERT_FALSE(res);
+}
+
+/*
 * Function: VsyncRSDistributorHandleTouchEvent
 * Type: Function
 * Rank: Important(2)

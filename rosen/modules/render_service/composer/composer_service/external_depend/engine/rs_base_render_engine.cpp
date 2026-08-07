@@ -69,6 +69,48 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+constexpr float HALF_PIXEL_OFFSET = 0.5f;
+
+#ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
+static bool NeedYcbcrChannelSwap(const BufferDrawParam& params)
+{
+    if (params.useCPU || params.buffer == nullptr) {
+        return false;
+    }
+    if (!RSSystemProperties::IsUseVulkan()) {
+        return false;
+    }
+    auto format = params.buffer->GetFormat();
+    return format == GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
+}
+
+static void ApplyYcbcrChannelSwapFilter(Drawing::Brush& paint)
+{
+    RS_LOGD("ApplyYcbcrChannelSwapFilter: applying R↔B swap color filter for Vulkan YCbCr buffer");
+    static constexpr float rbSwapMatrix[Drawing::ColorFilter::MATRIX_SIZE] = {
+        0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f, 0.0f
+    };
+    static auto rbSwapFilter = Drawing::ColorFilter::CreateFloatColorFilter(rbSwapMatrix);
+    if (rbSwapFilter == nullptr) {
+        RS_LOGE("ApplyYcbcrChannelSwapFilter: failed to create R↔B swap color filter");
+        return;
+    }
+    Drawing::Filter filter = paint.GetFilter();
+    auto existingFilter = filter.GetColorFilter();
+    if (existingFilter) {
+        auto composed = Drawing::ColorFilter::CreateComposeColorFilter(*existingFilter, *rbSwapFilter);
+        filter.SetColorFilter(composed);
+        RS_LOGD("ApplyYcbcrChannelSwapFilter: composed with existing filter");
+    } else {
+        filter.SetColorFilter(rbSwapFilter);
+        RS_LOGD("ApplyYcbcrChannelSwapFilter: set as standalone filter (no existing filter)");
+    }
+    paint.SetFilter(filter);
+}
+#endif
 
 std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
     const std::vector<RectI>& rects, const RectI& surfaceRect) const
@@ -243,7 +285,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     rsSurface->SetColorSpace(config.colorGamut);
     rsSurface->SetSurfacePixelFormat(config.format);
     if (frameContextConfig.isVirtual) {
-        RS_LOGD("RSBaseRenderEngine::RequestFrame: Virtual Screen Set Timeout to 0.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::RequestFrame: Virtual Screen Set Timeout to 0.");
         rsSurface->SetTimeOut(frameContextConfig.timeOut);
     }
     auto bufferUsage = config.usage;
@@ -504,7 +546,7 @@ bool RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo(const std::shared_p
         Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020))) {
         colorSpaceType = CM_DISPLAY_BT2020_SRGB;
     } else {
-        RS_LOGD("RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo color space not supported");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo color space not supported");
         return false;
     }
 
@@ -526,7 +568,8 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
     GSError ret = MetadataHelper::GetHDRMetadataType(params.buffer, hdrMetadataType);
     if (ret != GSERROR_OK) {
-        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetHDRMetadataType failed with %{public}u.", ret);
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::ColorSpaceConvertor GetHDRMetadataType failed with %{public}u.",
+            ret);
     }
 
     parameter.inputColorSpace.metadataType = hdrMetadataType;
@@ -547,12 +590,13 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     // color temperature
     parameter.layerLinearMatrix = params.layerLinearMatrix;
 
-    RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inPrimaries = %{public}u, inMetadataType = %{public}u, "
-            "outPrimaries = %{public}u, outMetadataType = %{public}u, "
-            "tmoNits = %{public}.2f, currentDisplayNits = %{public}.2f, sdrNits = %{public}.2f",
-            parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
-            parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
-            parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits);
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RSBaseRenderEngine::ColorSpaceConvertor parameter inPrimaries = %{public}u, inMetadataType = %{public}u, "
+        "outPrimaries = %{public}u, outMetadataType = %{public}u, "
+        "tmoNits = %{public}.2f, currentDisplayNits = %{public}.2f, sdrNits = %{public}.2f",
+        parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
+        parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
+        parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits);
 
     return true;
 }
@@ -741,6 +785,12 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
+#ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
+    if (NeedYcbcrChannelSwap(params)) {
+        ApplyYcbcrChannelSwapFilter(params.paint);
+    }
+#endif
+
     Drawing::SamplingOptions samplingOptions;
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = Drawing::SamplingOptions();
@@ -786,7 +836,18 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         luminanceMatrix.SetScale(params.brightnessRatio, params.brightnessRatio, params.brightnessRatio, 1.0f);
         auto luminanceColorFilter =
             std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX, luminanceMatrix);
+#ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
+        auto existingFilter = filter.GetColorFilter();
+        if (existingFilter) {
+            auto composed = Drawing::ColorFilter::CreateComposeColorFilter(*existingFilter, *luminanceColorFilter);
+            filter.SetColorFilter(composed);
+            RS_LOGD("DrawImage: composed luminance with existing color filter");
+        } else {
+            filter.SetColorFilter(luminanceColorFilter);
+        }
+#else
         filter.SetColorFilter(luminanceColorFilter);
+#endif
         params.paint.SetFilter(filter);
     }
 
@@ -796,7 +857,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     bool isEDRSurface = static_cast<int32_t>(hdrMetadataType) ==
         static_cast<int32_t>(HDI::Display::Graphic::Common::V2_2::CM_COMPONENT_EDR);
     if (videoInfo.retGetColorSpaceInfo_ != GSERROR_OK && !isEDRSurface) {
-        RS_LOGD("RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.",
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.",
             videoInfo.retGetColorSpaceInfo_);
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
@@ -807,21 +868,21 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Input color space: primaries=%{public}d, transfunc=%{public}d",
         inClrInfo.primaries, inClrInfo.transfunc);
     if (!ConvertDrawingColorSpaceToSpaceInfo(videoInfo.drawingColorSpace_, outClrInfo)) {
-        RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
 
     if (params.colorFollow) {
         // force input and output color spaces to be consistent to avoid color space conversion
-        RS_LOGD("RSBaseRenderEngine::DrawImage force to avoid color space conversion");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::DrawImage force to avoid color space conversion");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
 
     if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc == outClrInfo.transfunc &&
         !params.hasMetadata && !isEDRSurface) {
-        RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal with no metadata.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::DrawImage primaries and transfunc equal with no metadata.");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
@@ -916,6 +977,7 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
     auto scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
     auto skewX = matrix.Get(Drawing::Matrix::SKEW_X);
     auto skewY = matrix.Get(Drawing::Matrix::SKEW_Y);
+    auto translateY = matrix.Get(Drawing::Matrix::TRANS_Y);
     if (ROSEN_EQ(skewX, 0.0f) && ROSEN_EQ(skewY, 0.0f)) {
         if (!ROSEN_EQ(std::abs(scaleX), 1.0f) || !ROSEN_EQ(std::abs(scaleY), 1.0f)) {
             // has scale
@@ -928,6 +990,10 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
         }
     } else {
         // skew and/or non 90 degrees rotation
+        return true;
+    }
+    if (ROSEN_EQ(std::abs(translateY - std::floor(translateY)), HALF_PIXEL_OFFSET)) {
+        RS_LOGI("RSBaseRenderEngine::NeedBilinearInterpolation translateY=%{public}.2f", translateY);
         return true;
     }
     return false;

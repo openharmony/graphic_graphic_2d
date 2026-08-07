@@ -16,7 +16,6 @@
 #ifndef RS_CORE_FEATURE_HWC_OFFLINE_DEVICE_H
 #define RS_CORE_FEATURE_HWC_OFFLINE_DEVICE_H
 
-#include <chrono>
 #include <memory>
 #include <string>
 #include "drawable/rs_surface_render_node_drawable.h"
@@ -39,8 +38,7 @@ public:
     virtual bool PostProcessOfflineTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
         offlineTaskId taskId) = 0;
 
-    virtual bool PostProcessOfflineTask(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        offlineTaskId taskId) = 0;
+    virtual bool PostProcessOfflineTask(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, offlineTaskId taskId) = 0;
 
     virtual bool WaitForProcessOfflineResult(offlineTaskId taskId, std::chrono::milliseconds timeout,
         ProcessOfflineResult& processOfflineResult) = 0;
@@ -48,7 +46,7 @@ public:
     virtual void CheckAndPostClearOfflineResourceTask(const std::vector<uint64_t>& offlineNodeIds) = 0;
 
     virtual bool CanDeleteDevice() = 0;
-    
+
 protected:
     RSOfflineDevice() = default;
 };

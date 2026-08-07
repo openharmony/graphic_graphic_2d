@@ -90,7 +90,6 @@ group("systemtest") {
   testonly = true
 
   deps = [
-    ":hdibackend_sys_test",
     ":hdilayer_sys_test",
     ":hdioutput_sys_test",
   ]

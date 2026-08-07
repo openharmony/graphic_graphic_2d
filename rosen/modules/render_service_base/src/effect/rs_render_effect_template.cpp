@@ -193,6 +193,10 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
     if (!value) {
         return;
     }
+    RSShapeRecursionGuard guard;
+    if (guard.ExceedsLimit()) {
+        return;
+    }
 
     uint32_t shapeHash = value->CalculateHash();
     hash = hashFunc_(&shapeHash, sizeof(shapeHash), hash);

@@ -48,12 +48,12 @@ public:
     ResType SetPixelFormat(GraphicPixelFormat pixelFormat);
     ResType SetScreenHDRFormat(ScreenHDRFormat hdrFormat);
     ResType SetVisibleRectOption(bool enableVisibleRect, const Rect& mainScreenRect, bool supportRotation);
-    ResType SetWhiteList(const std::unordered_set<NodeId>& whiteList);
-    ResType AddWhiteList(const std::vector<NodeId>& whiteList);
-    ResType RemoveWhiteList(const std::vector<NodeId>& whiteList);
-    ResType SetBlackList(const std::unordered_set<NodeId>& blackList);
-    ResType AddBlackList(const std::vector<NodeId>& blackList);
-    ResType RemoveBlackList(const std::vector<NodeId>& blackList);
+    ResType SetWhiteList(const std::unordered_set<uint64_t>& whiteList);
+    ResType AddWhiteList(const std::vector<uint64_t>& whiteList);
+    ResType RemoveWhiteList(const std::vector<uint64_t>& whiteList);
+    ResType SetBlackList(const std::unordered_set<uint64_t>& blackList);
+    ResType AddBlackList(const std::vector<uint64_t>& blackList);
+    ResType RemoveBlackList(const std::vector<uint64_t>& blackList);
     ResType SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList);
     ResType SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList);
     ResType SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask);
@@ -69,10 +69,10 @@ public:
     ResType SetDisablePowerOffRenderControl(bool disable);
     ResType SetScreenSwitchStatus(bool status);
     ResType SetFrameGravity(int32_t gravity);
+    ResType SetAsMainScreen(bool isMainScreen);
     ResType SetMultiSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
     ResType AddSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
     ResType RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceIds);
-    ResType SetAsMainScreen(bool isMainScreen);
     ResType SetIsRogResolution(bool isRogResolution);
     ResType SetHdiRogEnable(bool isHdiRogEnable);
 

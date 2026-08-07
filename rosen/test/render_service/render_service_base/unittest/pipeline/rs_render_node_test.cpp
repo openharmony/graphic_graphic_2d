@@ -22,6 +22,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
+#include "drawable/rs_coverage_ng_shader_drawable.h"
 #include "drawable/rs_overlay_ng_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
@@ -1758,11 +1759,34 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest2, TestSize.Level1)
 
 /**
  * @tc.name: UpdatePointLightDirtySlotTest3
- * @tc.desc: Test UpdatePointLightDirtySlot with OVERLAY_NG_SHADER drawable set
+ * @tc.desc: Test UpdatePointLightDirtySlot with COVERAGE_NG_SHADER drawable set
  * @tc.type: FUNC
  * @tc.require: issueI9T3XY
  */
 HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest3, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    context = sContext;
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COVERAGE_NG_SHADER)] = coverageDrawable;
+    EXPECT_TRUE(node->dirtySlots_.empty());
+    auto coverageShader = std::make_shared<RSNGRenderAIBarRectHalo>();
+    node->GetMutableRenderProperties().SetCoverageNGShader(coverageShader);
+    node->UpdatePointLightDirtySlot();
+    EXPECT_FALSE(node->dirtySlots_.empty());
+    EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::COVERAGE_NG_SHADER) > 0);
+}
+
+/**
+ * @tc.name: UpdateOverlayNGShaderDirtySlotTest1
+ * @tc.desc: test results of UpdateOverlayNGShaderDirtySlot
+ * @tc.type: FUNC
+ * @tc.require: issueI9SCBR
+ */
+HWTEST_F(RSRenderNodeTest, UpdateOverlayNGShaderDirtySlotTest1, TestSize.Level1)
 {
     auto sContext = std::make_shared<RSContext>();
     context = sContext;
@@ -1774,7 +1798,7 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest3, TestSize.Level1)
     EXPECT_TRUE(node->dirtySlots_.empty());
     auto overlayShader = std::make_shared<RSNGRenderAIBarRectHalo>();
     node->GetMutableRenderProperties().SetOverlayNGShader(overlayShader);
-    node->UpdatePointLightDirtySlot();
+    node->UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::OVERLAY_NG_SHADER);
     EXPECT_FALSE(node->dirtySlots_.empty());
     EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::OVERLAY_NG_SHADER) > 0);
 }
@@ -2159,10 +2183,10 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest001, TestSize.Level1)
     system::SetParameter("persist.sys.graphic.SubTreePrepareCheckType.type", "0");
     auto checkType = RSSystemProperties::GetSubTreePrepareCheckType();
     EXPECT_EQ(checkType, SubTreePrepareCheckType::DISABLED);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, true));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, true));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, true));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, false));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, true));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, false));
 
     // restore SubTreePrepareCheckType to default
     system::SetParameter("persist.sys.graphic.SubTreePrepareCheckType.type", "2");
@@ -2186,47 +2210,47 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest002, TestSize.Level1)
     auto checkType = RSSystemProperties::GetSubTreePrepareCheckType();
     EXPECT_EQ(checkType, SubTreePrepareCheckType::DISABLE_SUBTREE_DIRTY_CHECK);
     parent->shouldPaint_ = false;
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, true));
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, false));
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, true));
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, false));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, false, true));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, false, false));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, false, true));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, false, false));
 
     parent->shouldPaint_ = true;
     bool isOccluded = false;
     parent->SetFirstLevelCrossNode(true);
     parent->SetTreeStateChangeDirty(true);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->SetFirstLevelCrossNode(false);
     parent->SetTreeStateChangeDirty(true);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->SetFirstLevelCrossNode(true);
     parent->SetTreeStateChangeDirty(false);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->SetFirstLevelCrossNode(false);
     parent->SetTreeStateChangeDirty(false);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
 
     isOccluded = true;
     parent->SetFirstLevelCrossNode(true);
     parent->SetTreeStateChangeDirty(true);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->SetFirstLevelCrossNode(true);
     parent->SetTreeStateChangeDirty(false);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->SetFirstLevelCrossNode(false);
     parent->SetTreeStateChangeDirty(true);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->SetFirstLevelCrossNode(false);
     parent->SetTreeStateChangeDirty(false);
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
 
     // restore SubTreePrepareCheckType to default
     system::SetParameter("persist.sys.graphic.SubTreePrepareCheckType.type", "2");
@@ -2254,45 +2278,45 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest003, TestSize.Level1)
     bool isOccluded = false;
 
     parent->SetSubTreeDirty(true);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     parent->SetSubTreeDirty(false);
 
     parent->SetChildHasVisibleFilter(false);
     parent->childHasSharedTransition_ = false;
     parent->isAccumulatedClipFlagChanged_ = false;
     parent->SetSubSurfaceCnt(0); // false
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
     parent->SetSubSurfaceCnt(0); // false
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = false;
     parent->SetSubSurfaceCnt(1); // true
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
     parent->SetSubSurfaceCnt(1); // true
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
 
     parent->childHasSharedTransition_ = true;
     parent->isAccumulatedClipFlagChanged_ = false;
     parent->SetSubSurfaceCnt(0); // false
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
     parent->SetSubSurfaceCnt(0); // false
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = false;
     parent->SetSubSurfaceCnt(1); // true
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
     parent->SetSubSurfaceCnt(1); // true
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
 }
 
 /**
@@ -2318,19 +2342,57 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest004, TestSize.Level1)
     parent->childHasSharedTransition_ = false;
 
     parent->SetRenderGroupExcludedStateChanged(true);
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(filterInGlobal, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(filterInGlobal, false, isOccluded));
     EXPECT_FALSE(parent->IsRenderGroupExcludedStateChanged());
 
     parent->SetChildHasVisibleFilter(false);
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(filterInGlobal, isOccluded));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(filterInGlobal, false, isOccluded));
     filterInGlobal = true;
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(filterInGlobal, isOccluded));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(filterInGlobal, false, isOccluded));
 
     parent->SetChildHasVisibleFilter(true);
     filterInGlobal = false;
-    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(filterInGlobal, isOccluded));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(filterInGlobal, false, isOccluded));
     filterInGlobal = true;
-    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(filterInGlobal, isOccluded));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(filterInGlobal, false, isOccluded));
+}
+
+/**
+ * @tc.name: IsSubTreeNeedPrepareTest005
+ * @tc.desc: IsSubTreeNeedPrepare test for childHasSpatialEffect_ with isAccumGeoDirty
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest005, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(parent, nullptr);
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    ASSERT_NE(stagingRenderParams, nullptr);
+    parent->stagingRenderParams_ = std::move(stagingRenderParams);
+
+    auto checkType = RSSystemProperties::GetSubTreePrepareCheckType();
+    EXPECT_EQ(checkType, SubTreePrepareCheckType::ENABLED);
+    parent->shouldPaint_ = true;
+    parent->SetSubTreeDirty(false);
+    parent->childHasSharedTransition_ = false;
+    parent->isAccumulatedClipFlagChanged_ = false;
+    parent->SetSubSurfaceCnt(0);
+    parent->SetChildHasVisibleFilter(false);
+
+    // childHasSpatialEffect_ = true + isAccumGeoDirty = true → prepare
+    parent->childHasSpatialEffect_ = true;
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, true, false));
+    EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, true, false));
+
+    // childHasSpatialEffect_ = true + isAccumGeoDirty = false → skip
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, false, false));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, false, false));
+
+    // childHasSpatialEffect_ = false + isAccumGeoDirty = true → skip (no spatial effect)
+    parent->childHasSpatialEffect_ = false;
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, true, false));
+    EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, true, false));
 }
 
 /**
@@ -4126,26 +4188,6 @@ HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
 }
 
 /*
- * @tc.name: SyncWhiteListInfoToParent
- * @tc.desc: Test function SyncWhiteListInfoToParent
- * @tc.type: FUNC
- * @tc.require: issueICF7P6
- */
-HWTEST_F(RSRenderNodeTest, SyncWhiteListInfoToParent, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(1);
-    ASSERT_NE(node, nullptr);
-    std::shared_ptr<RSRenderNode> parent = nullptr;
-    node->SetParent(parent);
-    ASSERT_EQ(node->parent_.lock(), nullptr);
-    node->SyncWhiteListInfoToParent();
-
-    parent = std::make_shared<RSRenderNode>(id + 1);
-    node->SetParent(parent);
-    ASSERT_NE(node->parent_.lock(), nullptr);
-}
-
-/*
  * @tc.name: GetNeedUseCmdlistDrawRegion001
  * @tc.desc: Test function GetNeedUseCmdlistDrawRegion when application to which the node belongs is not targetScene
  * @tc.type: FUNC
@@ -4800,6 +4842,40 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams003, TestSize.L
 }
 
 /**
+ * @tc.name: SetChildHasVisibleFlagsWithoutStagingParams
+ * @tc.desc: Verify child visible setters safely handle null staging render params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithoutStagingParams, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    node->stagingRenderParams_ = nullptr;
+
+    node->SetChildHasVisibleFilter(true);
+    node->SetChildHasVisibleEffect(true);
+
+    EXPECT_TRUE(node->childHasVisibleFilter_);
+    EXPECT_TRUE(node->childHasVisibleEffect_);
+}
+
+/**
+ * @tc.name: SetChildHasVisibleFlagsWithStagingParams
+ * @tc.desc: Verify child visible setters update non-null staging render params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithStagingParams, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+
+    node->SetChildHasVisibleFilter(true);
+    node->SetChildHasVisibleEffect(true);
+
+    EXPECT_TRUE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    EXPECT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
+}
+
+/**
  * @tc.name: MarkAccessibilityConfigChangedTest
  * @tc.desc: Verify MarkAccessibilityConfigChanged inserts/removes node from static set
  * @tc.type: FUNC
@@ -5051,96 +5127,6 @@ HWTEST_F(RSRenderNodeTest, SetGlobalAlphaTriggersOnAlphaChangedTest, TestSize.Le
 
     node->SetGlobalAlpha(1.0f);
     ASSERT_FLOAT_EQ(node->GetGlobalAlpha(), 1.0f);
-}
-
-/**
- * @tc.name: AccumulateParentGeoDirty001
- * @tc.desc: test AccumulateParentGeoDirty with no parent
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, AccumulateParentGeoDirty001, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(id, context);
-    node->GetMutableRenderProperties().SetParentGeoDirty(false);
-    node->AccumulateParentGeoDirty();
-    EXPECT_FALSE(node->GetRenderProperties().IsParentGeoDirty());
-}
-
-/**
- * @tc.name: AccumulateParentGeoDirty002
- * @tc.desc: test AccumulateParentGeoDirty when parent geoDirty_ is true
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, AccumulateParentGeoDirty002, TestSize.Level1)
-{
-    auto parent = std::make_shared<RSRenderNode>(id + 1, context);
-    auto child = std::make_shared<RSRenderNode>(id + 2, context);
-    child->SetParent(parent);
-    parent->GetMutableRenderProperties().curGeoDirty_ = true;
-    parent->GetMutableRenderProperties().SetParentGeoDirty(false);
-    child->AccumulateParentGeoDirty();
-    EXPECT_TRUE(child->GetRenderProperties().IsParentGeoDirty());
-}
-
-/**
- * @tc.name: AccumulateParentGeoDirty003
- * @tc.desc: test AccumulateParentGeoDirty when parent parentGeoDirty_ is true
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, AccumulateParentGeoDirty003, TestSize.Level1)
-{
-    auto parent = std::make_shared<RSRenderNode>(id + 1, context);
-    auto child = std::make_shared<RSRenderNode>(id + 2, context);
-    child->SetParent(parent);
-    parent->GetMutableRenderProperties().curGeoDirty_ = false;
-    parent->GetMutableRenderProperties().SetParentGeoDirty(true);
-    child->AccumulateParentGeoDirty();
-    EXPECT_TRUE(child->GetRenderProperties().IsParentGeoDirty());
-}
-
-/**
- * @tc.name: AccumulateParentGeoDirty004
- * @tc.desc: test AccumulateParentGeoDirty when parent has no dirty flags
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, AccumulateParentGeoDirty004, TestSize.Level1)
-{
-    auto parent = std::make_shared<RSRenderNode>(id + 1, context);
-    auto child = std::make_shared<RSRenderNode>(id + 2, context);
-    child->SetParent(parent);
-    parent->GetMutableRenderProperties().curGeoDirty_ = false;
-    parent->GetMutableRenderProperties().SetParentGeoDirty(false);
-    child->AccumulateParentGeoDirty();
-    EXPECT_FALSE(child->GetRenderProperties().IsParentGeoDirty());
-}
-
-/**
- * @tc.name: AccumulateParentGeoDirty005
- * @tc.desc: test AccumulateParentGeoDirty chain propagation from grandparent
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, AccumulateParentGeoDirty005, TestSize.Level1)
-{
-    auto grandparent = std::make_shared<RSRenderNode>(id + 1, context);
-    auto parent = std::make_shared<RSRenderNode>(id + 2, context);
-    auto child = std::make_shared<RSRenderNode>(id + 3, context);
-    parent->SetParent(grandparent);
-    child->SetParent(parent);
-
-    grandparent->GetMutableRenderProperties().curGeoDirty_ = true;
-    grandparent->GetMutableRenderProperties().SetParentGeoDirty(false);
-
-    parent->AccumulateParentGeoDirty();
-    EXPECT_TRUE(parent->GetRenderProperties().IsParentGeoDirty());
-
-    parent->GetMutableRenderProperties().curGeoDirty_ = false;
-    child->AccumulateParentGeoDirty();
-    EXPECT_TRUE(child->GetRenderProperties().IsParentGeoDirty());
 }
 
 /**

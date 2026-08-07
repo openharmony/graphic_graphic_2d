@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifdef RS_TRACE3D_LAYER_ENABLED
 #include <trace3d/api_platform/trace3d_api_platform.h>
 #include "trace3d_helper.h"
 
@@ -44,6 +45,10 @@ size_t GetFileSize(const char *fileName)
 
 void *DlopenSharedLibrary(const char *libFullName)
 {
+    if (UNLIKELY(libFullName == nullptr)) {
+        TRACE3D_LOGE("%s: DlopenSharedLibrary: libFullName is null!\n", __FUNCTION__);
+        return nullptr;
+    }
     void *handle = nullptr;
     handle = dlopen(libFullName, RTLD_LAZY);
     return handle;
@@ -111,3 +116,4 @@ void* CaptureInit()
 }
 
 } // namespace trace3d
+#endif //RS_TRACE3D_LAYER_ENABLED

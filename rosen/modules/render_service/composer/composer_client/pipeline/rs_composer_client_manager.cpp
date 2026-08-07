@@ -128,7 +128,7 @@ int32_t RSComposerClientManager::CommitTunnelLayerBySurfaceId(
                 commitInfo.buffer, commitInfo.acquireFence, releaseFence);
         }
     }
-    RS_LOGD("%{public}s can not find composer client, nodeId:%{public}" PRIu64, __func__,
+    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s can not find composer client, nodeId:%{public}" PRIu64, __func__,
         commitInfo.nodeId);
     return GRAPHIC_DISPLAY_FAILURE;
 }
@@ -211,7 +211,7 @@ int32_t RSComposerClientManager::GetMinAccumulatedBufferCount()
     int32_t minAccumulatedBufferCount = MAX_ACCUMULATED_BUFFER_COUNT;
     for (auto& [screenId, client] : clientMap) {
         int32_t curAccumulatedBufferCount = client->GetAccumulatedBufferCount();
-        RS_LOGD("%{public}s screenId: %{public}" PRIu64 ", count: %{public}d",
+        RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s screenId: %{public}" PRIu64 ", count: %{public}d",
             __func__, screenId, curAccumulatedBufferCount);
         minAccumulatedBufferCount = std::min(minAccumulatedBufferCount, curAccumulatedBufferCount);
     }

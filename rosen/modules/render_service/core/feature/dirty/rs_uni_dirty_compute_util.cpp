@@ -39,7 +39,6 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_effect_render_node.h"
-#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -196,8 +195,16 @@ void RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(Occlusion::Region& d
     RSFilterDirtyCollector::SetValidCachePartialRender(!screenParams->GetZoomed() && !screenParams->HasMirrorScreen());
     auto& surfaceDrawables = screenParams->GetAllMainAndLeashSurfaceDrawables();
     // Iteratively process filters recorded in screen manager and surface manager, until convergence.
+    auto screenDirtyManager = screenDrawable.GetSyncDirtyManager();
+    Occlusion::Region surfaceRect = screenDirtyManager ?
+        Occlusion::Region(Occlusion::Rect(screenDirtyManager->GetSurfaceRect())) : Occlusion::Region();
     bool elementChanged = false;
     do {
+        if (!surfaceRect.IsEmpty()) {
+            if (surfaceRect.And(damageRegion).Area() == surfaceRect.Area()) {
+                break;
+            }
+        }
         elementChanged = false;
         elementChanged |= DealWithFilterDirtyForScreen(damageRegion, drawRegion, screenDrawable, matrix);
         elementChanged |= DealWithFilterDirtyForSurface(damageRegion, drawRegion, surfaceDrawables, matrix);
@@ -267,21 +274,21 @@ bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damag
 {
     auto& collector = dirtyManager.GetFilterCollector();
     auto addDirtyInIntersect = [&] (FilterDirtyRegionInfo& info) {
-        // case - 0. If this filter satisfied certain partial render conditions, skip it.
-        if (FilterCachePartialRenderEnabled(info)) {
-            RS_TRACE_NAME_FMT("Filter [%" PRIu64 "], partial render enabled, skip dirty expanding.", info.id_);
-            return false;
-        }
-        // case - 1. If this filter is already counted in damage region, skip it.
+        // case - 0. If this filter is already counted in damage region, skip it.
         if (info.addToDirty_) {
             return false;
         }
-        // case - 2. If this filter is not intersected with drawRegion, skip it.
+        // case - 1. If this filter is not intersected with drawRegion, skip it.
         Occlusion::Region intersectRegion = matrix.has_value() ?
             RSObjAbsGeometry::MapRegion(info.intersectRegion_, matrix.value()) : info.intersectRegion_;
         intersectRegion = visibleRegion.has_value() ?
             intersectRegion.And(visibleRegion.value()) : intersectRegion;
         if (drawRegion.And(intersectRegion).IsEmpty()) {
+            return false;
+        }
+        // case - 2. If this filter satisfied certain partial render conditions, skip it.
+        if (FilterCachePartialRenderEnabled(info)) {
+            RS_OPTIONAL_TRACE_FMT("Filter [%" PRIu64 "], partial render enabled, skip dirty expanding.", info.id_);
             return false;
         }
         // case - 3. Add this filter into both damage region (for GPU) and draw region (for RS).
@@ -347,7 +354,8 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
         .intersectRegion_ = filterRegion,
         .filterDirty_ = filterRegion,
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
-        .isBackgroundFilterClean_ = RSEffectUtils::HasBackgroundDependentFilter(filterProperties) &&
+        .isBackgroundFilterClean_ =
+            (filterProperties.GetBackgroundFilter() || filterProperties.GetNeedDrawBehindWindow()) &&
             !filterNode.IsBackgroundInAppOrNodeSelfDirty(),
         .forceDisablePartialRender_ = filterNode.IsPixelStretchValid() ||
             filterNode.GetRenderProperties().NeedDisabledPartialRender()
@@ -404,7 +412,7 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
 
     // update accumulated special layer status changed
-    auto currentBlackList = RSSpecialLayerUtils::GetMergeBlackList(params.GetScreenProperty());
+    auto currentBlackList = RSSpecialLayerUtils::GetMergeBlackListInRenderThread(params.GetScreenProperty());
     if (currentBlackList != params.GetLastBlackList()) {
         params.SetLastBlackList(currentBlackList);
         params.SetAccumulatedSpecialLayerStatusChanged(true);
@@ -436,6 +444,10 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
 {
     // Regardless of whether the current frame is skipped, the state needs to be accumulated
     if (!RSSystemProperties::GetVirtualExpandScreenSkipEnabled()) {
+        return false;
+    }
+
+    if (!screenDrawable.IsFirstFrameFlushed()) {
         return false;
     }
 
@@ -485,7 +497,7 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
     }
     const auto& displayDrawables = mirrorScreenParams->GetDisplayDrawables();
     auto& curAllSurfaceDrawables = mainScreenParams->GetAllMainAndLeashSurfaceDrawables();
-    auto curBlackList = RSSpecialLayerUtils::GetMergeBlackList(mirrorScreenParams->GetScreenProperty());
+    auto curBlackList = RSSpecialLayerUtils::GetMergeBlackListInRenderThread(mirrorScreenParams->GetScreenProperty());
     auto curTypeBlackList = mirrorScreenParams->GetScreenProperty().GetTypeBlackList();
     for (const auto& drawable : displayDrawables) {
         if (drawable == nullptr) {
@@ -496,8 +508,7 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
             continue;
         }
         ScreenId screenId = displayParams->GetScreenId();
-        const std::map<RSSurfaceNodeType, RectI>& typeHwcRectList =
-            screenDirtyManager->GetTypeHwcDirtyRegion();
+        const std::map<RSSurfaceNodeType, RectI>& typeHwcRectList = screenDirtyManager->GetTypeHwcDirtyRegion();
         for (auto& typeHwcRect : typeHwcRectList) {
             NodeType nodeType = static_cast<NodeType>(typeHwcRect.first);
             if (curTypeBlackList.find(nodeType) == curTypeBlackList.end() &&

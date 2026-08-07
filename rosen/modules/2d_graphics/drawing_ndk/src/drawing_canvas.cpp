@@ -882,7 +882,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(const OH_Drawing_Canvas* cCanva
     const Point* glyphPositions = reinterpret_cast<const Point*>(positions);
     std::vector<uint16_t> safeGlyphs;
     safeGlyphs.reserve(glyphIdCount);
-    for (size_t i = 0; i < glyphIdCount; ++i) {
+    for (int i = 0; i < glyphIdCount; ++i) {
         safeGlyphs.push_back(static_cast<uint16_t>(glyphIds[i]));
     }
     Drawing::Point origin = Drawing::Point(0, 0);

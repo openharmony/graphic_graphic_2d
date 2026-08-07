@@ -1407,15 +1407,9 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList001, TestSize.Level1)
     // sync curDisplayScreenId_
     screenDrawable->OnDraw(canvas);
 
-    std::unordered_set<ScreenId> info;
-    info.insert(screenId);
-    drawable->renderParams_->SetScreensWithSubTreeWhitelist(info);
+    // whitelist not empty but no white list root id: all nodes only draw children
     RSUniRenderThread::SetCaptureParam(params);
     ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
-
-    info.clear();
-    info.insert(screenId + 1);
-    drawable->renderParams_->SetScreensWithSubTreeWhitelist(info);
     ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
 }
 

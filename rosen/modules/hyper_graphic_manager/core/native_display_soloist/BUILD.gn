@@ -32,9 +32,8 @@ config("native_display_soloist_config") {
 }
 
 ohos_shared_library("libnative_display_soloist") {
-  if (rs_enable_gpu) {
-    sources = [ "native_display_soloist.cpp" ]
-  }
+  branch_protector_ret = "pac_ret"
+  sources = [ "native_display_soloist.cpp" ]
 
   include_dirs = [
     "$graphic_2d_root/utils/log",

@@ -16,6 +16,7 @@
 
 #include "cj_color_picker.h"
 #include "cj_filter.h"
+#include "effect/color_matrix.h"
 #include "effect_errors.h"
 #include "effect_utils.h"
 #include "media_errors.h"
@@ -94,6 +95,20 @@ void FfiEffectKitGrayscale(int64_t id)
 
 void FfiEffectKitSetColorMatrix(int64_t id, CArrFloat cjColorMatrix, uint32_t* errorCode)
 {
+    if (errorCode == nullptr) {
+        EFFECT_LOG_E("[CJFilter] errorCode is nullptr");
+        return;
+    }
+    if (cjColorMatrix.head == nullptr) {
+        EFFECT_LOG_E("[CJFilter] color matrix head is nullptr");
+        *errorCode = Rosen::ERR_INVALID_PARAM;
+        return;
+    }
+    if (cjColorMatrix.size > Drawing::ColorMatrix::MATRIX_SIZE) {
+        EFFECT_LOG_E("[CJFilter] color matrix size exceeds limit");
+        *errorCode = Rosen::ERR_INVALID_PARAM;
+        return;
+    }
     std::vector<float> naColor;
     for (int i = 0; i < cjColorMatrix.size; i++) {
         naColor.push_back(cjColorMatrix.head[i]);

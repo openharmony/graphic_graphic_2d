@@ -54,7 +54,6 @@
 #include "impl_interface/sharing_serial_context_impl.h"
 #include "impl_interface/surface_impl.h"
 #include "impl_interface/text_blob_builder_impl.h"
-#include "impl_interface/trace_memory_dump_impl.h"
 #include "impl_interface/memory_stream_impl.h"
 #include "impl_interface/prim_list_impl.h"
 

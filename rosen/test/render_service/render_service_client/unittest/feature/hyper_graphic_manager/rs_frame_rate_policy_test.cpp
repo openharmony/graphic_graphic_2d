@@ -114,7 +114,7 @@ HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallback_002, TestSize.Level1)
 {
     auto instance = RSFrameRatePolicy::GetInstance();
     std::shared_ptr<RSHgmConfigData> configData = std::make_shared<RSHgmConfigData>();
- 
+
     // Branch 1: both animType and animName are empty
     instance->animAttributes_.clear();
     AnimDynamicItem item1;
@@ -122,7 +122,7 @@ HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallback_002, TestSize.Level1)
     instance->HgmConfigChangeCallback(configData);
     // When both are empty, callback returns early, animAttributes_ should be empty
     EXPECT_TRUE(instance->animAttributes_.empty());
- 
+
     // Branch 2: animType is empty, animName is not empty
     instance->animAttributes_.clear();
     configData = std::make_shared<RSHgmConfigData>();
@@ -132,7 +132,7 @@ HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallback_002, TestSize.Level1)
     instance->HgmConfigChangeCallback(configData);
     // When animType is empty, callback returns early
     EXPECT_TRUE(instance->animAttributes_.empty());
- 
+
     // Branch 3: animType is not empty, animName is empty
     instance->animAttributes_.clear();
     configData = std::make_shared<RSHgmConfigData>();
@@ -142,7 +142,7 @@ HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallback_002, TestSize.Level1)
     instance->HgmConfigChangeCallback(configData);
     // When animName is empty, callback returns early
     EXPECT_TRUE(instance->animAttributes_.empty());
- 
+
     // Branch 4: both animType and animName are not empty
     instance->animAttributes_.clear();
     configData = std::make_shared<RSHgmConfigData>();

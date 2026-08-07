@@ -2992,16 +2992,6 @@ bool RSProperties::IsGeoDirty() const
     return geoDirty_;
 }
 
-bool RSProperties::IsParentGeoDirty() const
-{
-    return parentGeoDirty_;
-}
-
-void RSProperties::SetParentGeoDirty(bool parentGeoDirty)
-{
-    parentGeoDirty_ = parentGeoDirty;
-}
-
 bool RSProperties::IsCurGeoDirty() const
 {
     return curGeoDirty_;
@@ -3334,26 +3324,6 @@ void RSProperties::SetHDRBrightnessFactor(float factor)
         return;
     }
     hdrBrightnessFactor_ = factor;
-    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(backref_.lock());
-    if (displayNode == nullptr) {
-        ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid displayNode");
-        return;
-    }
-    auto context = displayNode->GetContext().lock();
-    if (!context) {
-        ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
-        return;
-    }
-    const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
-    for (const auto& [nodeId, _] : hdrNodeMap) {
-        auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
-        if (!canvasNode) {
-            RS_LOGD("RSHdrUtil::SetHDRBrightnessFactor canvasNode is not on the tree");
-            continue;
-        }
-        canvasNode->SetContentDirty();
-        canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(factor);
-    }
 }
 
 void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)
@@ -5001,9 +4971,9 @@ void RSProperties::SetBloom(float bloomIntensity)
     contentDirty_ = true;
 }
 
-void RSProperties::SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader)
+void RSProperties::SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& coverageShader)
 {
-    GetEffect().olRenderShader_ = overlayShader;
+    GetEffect().coRenderShader_ = coverageShader;
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
@@ -5030,6 +5000,22 @@ Vector4f RSProperties::GetLightPosition() const
 int RSProperties::GetIlluminatedType() const
 {
     return GetIlluminated() ? static_cast<int>(GetIlluminated()->GetIlluminatedType()) : 0;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetCoverageNGShader() const
+{
+    if (effect_) {
+        return effect_->coRenderShader_;
+    }
+    return nullptr;
+}
+
+void RSProperties::SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader)
+{
+    GetEffect().olRenderShader_ = overlayShader;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
 }
 
 std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetOverlayNGShader() const
@@ -6103,6 +6089,10 @@ void RSProperties::UpdateFilter()
 
 bool RSProperties::DisableHWCForFilter() const
 {
+    // needFilter_ is a superset of the conditions below; if it is false, hwc does not need to be disabled.
+    if (!needFilter_) {
+        return false;
+    }
     // The difference compared to needFilter_ is no need to disable hwc when foregroundFilter is HDR_UI_BRIGHTNESS
     return GetBackgroundFilter() != nullptr || GetFilter() != nullptr || GetUseEffect() || IsLightUpEffectValid() ||
         IsDynamicLightUpValid() || GetGreyCoef().has_value() || GetLinearGradientBlurPara() != nullptr ||

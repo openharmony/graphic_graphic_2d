@@ -234,7 +234,7 @@ bool RSFile::ReadAnimationStartTime()
 {
     if (versionId_ >= RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED) {
         uint32_t startTimesSize = 0u;
-        if (!Utils::FileRead(&startTimesSize, sizeof(startTimesSize), 1, file_) && startTimesSize > chunkSizeMax) {
+        if (!Utils::FileRead(&startTimesSize, sizeof(startTimesSize), 1, file_) || startTimesSize > chunkSizeMax) {
             return false;
         }
         headerAnimeStartTimes_.resize(startTimesSize);
@@ -249,7 +249,7 @@ bool RSFile::ReadAnimationStartTime()
 bool RSFile::ReadLayersOffset()
 {
     uint32_t recordSize = 0u;
-    if (!Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_) && recordSize > chunkSizeMax) {
+    if (!Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_) || recordSize > chunkSizeMax) {
         return false;
     }
     layerData_.resize(recordSize);
@@ -913,6 +913,12 @@ void RSFile::GetVsyncList(std::set<int64_t>& vsyncList) const
 
 void RSFile::GetStartAndEndTime(std::pair<double, double>& startAndEndTime) const
 {
+    if (mapVsyncId2Time_.empty()) {
+        startAndEndTime.first = 0.0;
+        startAndEndTime.second = 0.0;
+        return;
+    }
+ 
     startAndEndTime.first = mapVsyncId2Time_.begin()->second;
     startAndEndTime.second = mapVsyncId2Time_.rbegin()->second;
 }

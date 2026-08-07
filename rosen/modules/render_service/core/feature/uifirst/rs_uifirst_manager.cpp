@@ -1243,8 +1243,7 @@ void RSUifirstManager::SetNodePriority(std::list<NodeId>& result, PendingPostNod
                 focusNodeThreadIndex_ = rsSubThreadCache.GetLastFrameUsedThreadIndex();
             }
         }
-        if (RSSystemProperties::GetUIFirstOptScheduleEnabled() &&
-            rsSubThreadCache.GetSurfaceSkipCount() >= UIFIRST_TASKSKIP_PRIO_THRESHOLD) {
+        if (rsSubThreadCache.GetSurfaceSkipCount() >= UIFIRST_TASKSKIP_PRIO_THRESHOLD) {
             postOrder += rsSubThreadCache.GetSurfaceSkipPriority();
         }
         rsSubThreadCache.SetUifirstPostOrder(postOrder);
@@ -1293,9 +1292,6 @@ void RSUifirstManager::SortSubThreadNodesPriority()
 
 void RSUifirstManager::MarkPostNodesPriority()
 {
-    if (!RSSystemProperties::GetUIFirstOptScheduleEnabled()) {
-        return;
-    }
     int postTaskCount = 0;
     for (auto& id : sortedSubThreadNodeIds_) {
         auto drawable = GetSurfaceDrawableByID(id);

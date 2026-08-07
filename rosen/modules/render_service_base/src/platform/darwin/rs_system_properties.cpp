@@ -278,6 +278,11 @@ bool RSSystemProperties::GetSLRScaleEnabled()
     return false;
 }
 
+bool RSSystemProperties::DvsyncSkipRsCommitDelayEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     return {};
@@ -351,11 +356,6 @@ bool RSSystemProperties::GetDebugTraceEnabled()
 int RSSystemProperties::GetDebugTraceLevel()
 {
     return 0;
-}
-
-bool RSSystemProperties::FindNodeInTargetList(std::string node)
-{
-    return false;
 }
 
 bool RSSystemProperties::IsFoldScreenFlag()

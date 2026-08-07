@@ -115,7 +115,8 @@ static constexpr std::array descriptorCheckList = {
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::RELEASE_CANVAS_DRAWING_NODE_SURFACE),
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE),
@@ -1605,30 +1606,32 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             break;
         }
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE): {
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_CANVAS_DRAWING_NODE_SURFACE): {
             NodeId nodeId = INVALID_NODEID;
             if (!data.ReadUint64(nodeId)) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE Read nodeId failed!");
+                RS_LOGE("RSClientToRenderConnectionStub::CREATE_CANVAS_DRAWING_NODE_SURFACE Read nodeId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             sptr<Surface> surface = CreateCanvasDrawingNodeSurface(nodeId);
             if (surface == nullptr) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE CreateCanvasDrawingNodeSurface failed!");
+                RS_LOGE("RSClientToRenderConnectionStub::CREATE_CANVAS_DRAWING_NODE_SURFACE "
+                        "CreateCanvasDrawingNodeSurface failed!");
                 ret = ERR_NULL_OBJECT;
                 break;
             }
             auto producer = surface->GetProducer();
             if (!reply.WriteRemoteObject(producer->AsObject())) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_CANVAS_SURFACE read RemoteObject failed!");
+                RS_LOGE(
+                    "RSClientToServiceConnectionStub::CREATE_CANVAS_DRAWING_NODE_SURFACE read RemoteObject failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
         }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE): {
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::RELEASE_CANVAS_DRAWING_NODE_SURFACE): {
             NodeId nodeId = INVALID_NODEID;
             if (!data.ReadUint64(nodeId)) {
-                RS_LOGE("RSClientToRenderConnectionStub::REMOVE_CANVAS_SURFACE Read nodeId failed!");
+                RS_LOGE("RSClientToRenderConnectionStub::RELEASE_CANVAS_DRAWING_NODE_SURFACE Read nodeId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -1674,6 +1677,18 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
+            if (!IsValidFrameStabilityTargetType(typeValue)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION invalid target.type: %{public}u", typeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!IsValidFrameStabilityConfig(config)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION invalid config, "
+                    "stableDuration=%{public}u, changePercent=%{public}f",
+                    config.stableDuration, config.changePercent);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t repCode = RegisterFrameStabilityDetection(target, config, callback);
             if (repCode != 0) {
                 RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
@@ -1696,6 +1711,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             target.type = static_cast<FrameStabilityTargetType>(typeValue);
+            if (!IsValidFrameStabilityTargetType(typeValue)) {
+                RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION invalid target.type: %{public}u", typeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t repCode = UnregisterFrameStabilityDetection(target);
             if (repCode != 0) {
                 RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
@@ -1730,6 +1750,18 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (!IsValidFrameStabilityTargetType(typeValue)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION invalid target.type: %{public}u", typeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!IsValidFrameStabilityConfig(config)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION invalid config, "
+                    "stableDuration=%{public}u, changePercent=%{public}f",
+                    config.stableDuration, config.changePercent);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t repCode = StartFrameStabilityCollection(target, config);
             if (repCode != 0) {
                 RS_LOGE("START_FRAME_STABILITY_COLLECTION failed, repCode: %{public}d", repCode);
@@ -1752,6 +1784,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             target.type = static_cast<FrameStabilityTargetType>(typeValue);
+            if (!IsValidFrameStabilityTargetType(typeValue)) {
+                RS_LOGE("GET_FRAME_STABILITY_RESULT invalid target.type: %{public}u", typeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool result;
             int32_t repCode = GetFrameStabilityResult(target, result);
             if (repCode != 0) {
@@ -1786,7 +1823,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             oldTarget.type = static_cast<FrameStabilityTargetType>(oldTypeValue);
-
+            if (!IsValidFrameStabilityTargetType(oldTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION invalid oldTarget.type: %{public}u", oldTypeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             FrameStabilityTarget newTarget;
             if (!data.ReadUint64(newTarget.id)) {
                 RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read newId failed!");
@@ -1800,6 +1841,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             newTarget.type = static_cast<FrameStabilityTargetType>(newTypeValue);
+            if (!IsValidFrameStabilityTargetType(newTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION invalid newTarget.type: %{public}u", newTypeValue);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t repCode = UpdateFrameStabilityDetection(oldTarget, newTarget);
             if (repCode != 0) {
                 RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Write repCode failed!");

@@ -472,6 +472,7 @@ public:
     sptr<SurfaceBuffer> GetBuffer() const override;
     void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount) override;
+    void ClearPreBufferOnly();
     sptr<SurfaceBuffer> GetPreBuffer() override;
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;
@@ -894,6 +895,9 @@ public:
     void SetIsParticipateInOcclusion(bool isParticipateInOcclusion);
     bool GetIsParticipateInOcclusion() const;
 
+    void SetCompositionType(CompositionType type);
+    CompositionType GetCompositionType() const;
+
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 
     void SetSplitLayerTag(bool splitLayerTag)
@@ -1018,6 +1022,7 @@ private:
 
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
+    CompositionType compositionType_ = CompositionType::COMPOSITION_DEFAULT;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

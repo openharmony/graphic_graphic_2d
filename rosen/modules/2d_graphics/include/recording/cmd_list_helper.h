@@ -250,6 +250,7 @@ public:
 
     static LatticeHandle AddLatticeToCmdList(CmdList& cmdList, const Lattice& lattice);
     static Lattice GetLatticeFromCmdList(const CmdList& cmdList, const LatticeHandle& latticeHandle);
+    static bool ValidateLattice(const Lattice& lattice);
 
     static SymbolOpHandle AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol);
     static DrawingHMSymbolData GetSymbolFromCmdList(const CmdList& cmdList, const SymbolOpHandle& symbolHandle);

@@ -213,7 +213,7 @@ size_t RSInteractiveImplictAnimator::AddAnimation(std::function<void()> callback
 {
     RS_TRACE_FUNC();
     if (state_ != RSInteractiveAnimationState::INACTIVE && state_ != RSInteractiveAnimationState::ACTIVE) {
-        ROSEN_LOGE("RSInteractiveImplictAnimator::AddAnimation failed, state_ is error");
+        ROSEN_LOGE("AddAnimation failed, state_ is error");
         return 0;
     }
     auto rsUIContext = rsUIContext_.lock();

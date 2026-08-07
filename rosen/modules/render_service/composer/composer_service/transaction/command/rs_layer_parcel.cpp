@@ -16,6 +16,7 @@
 #include <refbase.h>
 #include "rs_layer_parcel.h"
 #include "rs_render_composer_context.h"
+#include "rs_render_surface_solid_filled_color_layer.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
 #include "rs_surface_layer_parcel.h"
@@ -68,11 +69,33 @@ void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerCo
         context->AddRSRenderLayer(layerId, rsLayer);
     }
     if (!rsLayer->IsScreenRCDLayer()) {
-        // Rcdlayer initialized as RSRenderSurfaceLayer must be convert to RSRenderSurfaceRCDLayer vis pixelmap property
+        // Rcdlayer initialized as RSRenderSurfaceLayer must be convert to RSRenderSurfaceRCDLayer via pixelmap property
         auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
         rcdLayer->CopyLayerInfo(rsLayer);
         rcdLayer->UpdateRSLayerCmd(command);
         context->AddRSRenderLayer(layerId, rcdLayer);
+        return;
+    }
+    rsLayer->UpdateRSLayerCmd(command);
+}
+
+void RSLayerParcelHelper::UpdateRSSolidFilledColorLayerCmd(std::shared_ptr<RSRenderComposerContext> context,
+    RSLayerId layerId, const std::shared_ptr<RSRenderLayerCmd>& command)
+{
+    if (context == nullptr) {
+        ROSEN_LOGE("%{public}s context is nullptr", __func__);
+        return;
+    }
+    auto rsLayer = context->GetRSRenderLayer(layerId);
+    if (rsLayer == nullptr) {
+        rsLayer = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+        context->AddRSRenderLayer(layerId, rsLayer);
+    }
+    if (!rsLayer->IsSolidFilledColorLayer()) {
+        auto solidFilledColorLayer = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+        solidFilledColorLayer->CopyLayerInfo(rsLayer);
+        solidFilledColorLayer->UpdateRSLayerCmd(command);
+        context->AddRSRenderLayer(layerId, solidFilledColorLayer);
         return;
     }
     rsLayer->UpdateRSLayerCmd(command);

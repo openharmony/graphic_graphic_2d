@@ -13,10 +13,8 @@
  * limitations under the License.
  */
 #include "feature/single_frame_composer/rs_single_frame_composer.h"
-
-#include "rs_trace.h"
-
 #include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {

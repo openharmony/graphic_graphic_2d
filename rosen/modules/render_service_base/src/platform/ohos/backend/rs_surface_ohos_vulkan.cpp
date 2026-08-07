@@ -73,6 +73,9 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
         fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
     }
+#if defined(ROSEN_OHOS) && defined(RS_GRAPHIC_MEDIACOMMON_ENABLE)
+    taskHandleMap_.clear();
+#endif
 }
 
 void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected)
@@ -183,18 +186,25 @@ void RSSurfaceOhosVulkan::MarkAsHpaeSurface()
     mIsHpaeSurface = true;
 }
 
-void RSSurfaceOhosVulkan::PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC)
+void RSSurfaceOhosVulkan::ClearHpaeBuffer()
 {
-    {
-        std::lock_guard<std::mutex> lock(hpaeSurfaceBufferListMutex_);
-        for (auto& bufferPair : hpaeSurfaceBufferList_) {
-            if (bufferPair.first != nullptr) {
-                ROSEN_LOGI("Cancel previous buffer");
-                NativeWindowCancelBuffer(mNativeWindow, bufferPair.first);
+    std::lock_guard<std::mutex> lock(hpaeSurfaceBufferListMutex_);
+    for (auto& bufferPair : hpaeSurfaceBufferList_) {
+        if (bufferPair.first != nullptr) {
+            ROSEN_LOGI("Cancel previous buffer");
+            NativeWindowCancelBuffer(mNativeWindow, bufferPair.first);
+            if (bufferPair.second != -1) {
+                close(bufferPair.second);
+                bufferPair.second = -1;
             }
         }
-        hpaeSurfaceBufferList_.clear();
     }
+    hpaeSurfaceBufferList_.clear();
+}
+
+void RSSurfaceOhosVulkan::PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC)
+{
+    ClearHpaeBuffer();
 
     if (mNativeWindow == nullptr) {
         mNativeWindow = CreateNativeWindowFromSurface(&producer_);
@@ -207,11 +217,7 @@ void RSSurfaceOhosVulkan::PreAllocateHpaeBuffer(int32_t width, int32_t height, i
         if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC, false) !=
             OHOS::GSERROR_OK) {
             ROSEN_LOGW("PreAllocateHpaeBuffer failed.");
-            std::lock_guard<std::mutex> lock(hpaeSurfaceBufferListMutex_);
-            for (auto& bufferPair : hpaeSurfaceBufferList_) {
-                NativeWindowCancelBuffer(mNativeWindow, bufferPair.first);
-            }
-            hpaeSurfaceBufferList_.clear();
+            ClearHpaeBuffer();
             break;
         }
         std::lock_guard<std::mutex> lock(hpaeSurfaceBufferListMutex_);
@@ -365,7 +371,11 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
     semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS;
     semaphoreExtTypeCreateInfoHUAWEI.eventId = eventId[0];
     semaphoreInfo.pNext = &semaphoreExtTypeCreateInfoHUAWEI;
-    vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &semaWaitFfts);
+    if (vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &semaWaitFfts) != VK_SUCCESS) {
+        HPAE_LOGE("create wait semaphore failed");
+        semaWaitFfts = VK_NULL_HANDLE;
+        return -1;
+    }
 
     semaNotifyFfts = RSHpaeFfrtPatternManager::Instance().GetSemaphoreMap(eventId[1]);
     if (semaNotifyFfts == nullptr) {
@@ -373,7 +383,11 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
         semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS;
         semaphoreExtTypeCreateInfoHUAWEI.eventId = eventId[1];
         semaphoreInfo.pNext = &semaphoreExtTypeCreateInfoHUAWEI;
-        vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &innerNotifySemaphore);
+        if (vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &innerNotifySemaphore) != VK_SUCCESS) {
+            HPAE_LOGE("create notify semaphore failed");
+            innerNotifySemaphore = VK_NULL_HANDLE;
+            return -1;
+        }
 
         VkSemaphore* vkInnerNotifySem = new VkSemaphore(innerNotifySemaphore);
         auto sharedNotifySem = std::shared_ptr<VkSemaphore>(vkInnerNotifySem, [vkDevice](VkSemaphore* semaphore) {

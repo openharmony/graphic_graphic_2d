@@ -75,6 +75,7 @@ struct PipelineParam {
     bool isForceRefresh = false;
     bool hasGameScene = false;
     bool hasLppVideo = false;
+    bool dvsyncNeedSkipRsCommitDelay = false;
 
     uint32_t SurfaceFpsOpNum = 0;
     std::vector<SurfaceFpsOp> SurfaceFpsOpList;
@@ -542,16 +543,6 @@ public:
         hasUnobscuredUEC_ = flag;
     }
 
-    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
-    const std::unordered_set<ScreenId>& GetScreensWithSubTreeWhitelist() const
-    {
-        return screensWithSubTreeWhitelist_;
-    }
-
-    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-    {
-        screensWithSubTreeWhitelist_.insert(screenIds.begin(), screenIds.end());
-    }
     // [Attention] Only used in PC window resize scene now
     void SetWindowKeyFrameNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetWindowKeyFrameNodeDrawable();
@@ -630,8 +621,6 @@ private:
 
     // used for Layer
     std::shared_ptr<LayerParams> layerParams_ = nullptr;
-
-    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

@@ -819,7 +819,7 @@ public:
             RS_LOGE("TransactionDataCallbackDirector::OnAfterProcess: client has been destroyed");
             return;
         }
-        RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
+        RS_LOGD_IF(DEBUG_IPC, "OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
             PRIu64 " token: %{public}" PRIu64, timeStamp, token);
         client->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     }
@@ -853,7 +853,7 @@ bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uin
             transactionDataCbDirector_ = new TransactionDataCallbackDirector(weak_from_this());
         }
     }
-    RS_LOGD("RSRenderPipelineClient::RegisterTransactionDataCallback, timeStamp: %{public}"
+    RS_LOGD_IF(DEBUG_IPC, "RSRenderPipelineClient::RegisterTransactionDataCallback, timeStamp: %{public}"
         PRIu64 " token: %{public}" PRIu64, timeStamp, token);
     clientToRenderConnection->RegisterTransactionDataCallback(token, timeStamp, transactionDataCbDirector_);
     return true;
@@ -871,7 +871,7 @@ void RSRenderPipelineClient::TriggerTransactionDataCallbackAndErase(uint64_t tok
         }
     }
     if (callback) {
-        RS_LOGD("TriggerTransactionDataCallbackAndErase: invoke callback, timeStamp: %{public}"
+        RS_LOGD_IF(DEBUG_IPC, "TriggerTransactionDataCallbackAndErase: invoke callback, timeStamp: %{public}"
             PRIu64 " token: %{public}" PRIu64, timeStamp, token);
         std::invoke(callback);
     }
@@ -1019,7 +1019,7 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
         ROSEN_LOGE("RSRenderPipelineClient::SetLogicalCameraRotationCorrection clientToRenderConnection_ is nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    RS_LOGD("RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}"
+    RS_LOGD_IF(DEBUG_IPC, "RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}"
         PRIu64 ", logicalCorrection: %{public}u", id, logicalCorrection);
     return clientToRenderConnection->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
@@ -1104,15 +1104,6 @@ int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
         ROSEN_LOGE("RegisterFrameStabilityDetection clientToRenderConnection == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
-        ROSEN_LOGE("RegisterFrameStabilityDetection invalid stableDuration: %{public}u", config.stableDuration);
-        return INVALID_ARGUMENTS;
-    }
-    if (ROSEN_LNE(config.changePercent, MIN_CHANGE_PERCENT) ||
-        ROSEN_GNE(config.changePercent, MAX_CHANGE_PERCENT)) {
-        ROSEN_LOGE("RegisterFrameStabilityDetection invalid changePercent: %{public}f", config.changePercent);
-        return INVALID_ARGUMENTS;
-    }
     sptr<CustomFrameStabilityCallback> cb = new CustomFrameStabilityCallback(callback);
     return clientToRenderConnection->RegisterFrameStabilityDetection(target, config, cb);
 }
@@ -1135,15 +1126,6 @@ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
     if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::StartFrameStabilityCollection clientToRenderConnection == nullptr!");
         return RENDER_SERVICE_NULL;
-    }
-    if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
-        ROSEN_LOGE("StartFrameStabilityCollection invalid stableDuration: %{public}u", config.stableDuration);
-        return INVALID_ARGUMENTS;
-    }
-    if (ROSEN_LNE(config.changePercent, MIN_CHANGE_PERCENT) ||
-        ROSEN_GNE(config.changePercent, MAX_CHANGE_PERCENT)) {
-        ROSEN_LOGE("StartFrameStabilityCollection invalid changePercent: %{public}f", config.changePercent);
-        return INVALID_ARGUMENTS;
     }
     return clientToRenderConnection->StartFrameStabilityCollection(target, config);
 }

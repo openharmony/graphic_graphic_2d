@@ -17,9 +17,7 @@
 #define RS_SCREEN
 
 #include <memory>
-#include <mutex>
 #include <optional>
-#include <shared_mutex>
 #include <unordered_set>
 
 #include <hdi_display_type.h>
@@ -76,6 +74,7 @@ public:
     uint32_t PhyHeight() const;
 
     void DisplayDump(int32_t screenIndex, std::string& dumpString);
+
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval);
     void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate);
     void SetScreenVsyncEnabled(bool enabled) const;
@@ -130,9 +129,11 @@ public:
     int32_t GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const;
 
     uint32_t SetScreenActiveRect(const Rect& activeRect);
+    RectI GetActiveRect() const;
+    RectI GetMaskRect() const;
+    RectI GetReviseRect() const;
 
     // virtual screen
-
     // Multi-surface virtual screen (for mirror/extend mode with multiple surfaces)
     using MultiSurfaceConfigs = std::vector<SurfaceRegionConfig>;
     void SetMultiSurfaceConfigs(const MultiSurfaceConfigs& configs);
@@ -149,7 +150,6 @@ public:
     bool GetVirtualScreenAutoRotation() const;
 
     bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode);
-    ScreenScaleMode GetScaleMode() const;
 
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus);
 
@@ -230,6 +230,7 @@ private:
     std::vector<ScreenHDRFormat> supportedVirtualHDRFormats_ = {
         NOT_SUPPORT_HDR };
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
+    mutable std::mutex supportedPhysicalHDRFormatsMutex_;
     std::atomic<bool> specialHDRFormatsInit_ = false;
 
     static std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP;

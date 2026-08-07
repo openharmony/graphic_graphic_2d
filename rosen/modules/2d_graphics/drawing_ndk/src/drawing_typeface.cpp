@@ -129,10 +129,7 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFile(const char* path, int ind
     if (typeface == nullptr) {
         return nullptr;
     }
-    std::string pathStr(path);
-    // system font is not sent to RenderService to optimize performance.
-    if (pathStr.substr(0, G_SYSTEM_FONT_DIR.length()) != G_SYSTEM_FONT_DIR &&
-        Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
         bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface);
         if (!ret) {
             LOGE("OH_Drawing_TypefaceCreateFromFile: register typeface failed.");

@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -569,31 +570,6 @@ HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeAppWindowNotSelfDrawing, TestSize.
 }
 
 /**
- * @tc.name: DestroyTokenNodeSelfDrawingSurface
- * @tc.desc: Cover branches: self-drawing surface node is erased from renderNodeMap and surfaceNodeMap.
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeSelfDrawingSurface, TestSize.Level1)
-{
-    RSRenderNodeMap rsRenderNodeMap;
-    constexpr pid_t pid = 1;
-    constexpr uint64_t token = 1;
-    constexpr NodeId nodeId = (static_cast<NodeId>(pid) << 32) | 1;
-    constexpr NodeId parentId = (static_cast<NodeId>(pid) << 32) | 2;
-
-    RSSurfaceRenderNodeConfig config = { .id = nodeId, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
-    surfaceNode->SetUIContextToken(token);
-    rsRenderNodeMap.RegisterRenderNode(surfaceNode);
-
-    auto parent = std::make_shared<RSRenderNode>(parentId);
-    parent->AddChild(surfaceNode);
-
-    rsRenderNodeMap.DestroyTokenNode(pid, token);
-    EXPECT_EQ(rsRenderNodeMap.GetRenderNode(nodeId), nullptr);
-}
-
-/**
  * @tc.name: DestroyTokenNodeRootNodeWithParent
  * @tc.desc: Cover branch: root node with parent triggers RemoveChildFromFulllist.
  * @tc.type: FUNC
@@ -799,57 +775,6 @@ HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeRootNodeWithoutParent, TestSize.Le
 }
 
 /**
- * @tc.name: DestroyTokenNodeSurfaceNodeMapBranches
- * @tc.desc: Cover every condition in surfaceNodeMap EraseIf of DestroyTokenNode.
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeSurfaceNodeMapBranches, TestSize.Level1)
-{
-    RSRenderNodeMap rsRenderNodeMap;
-    constexpr pid_t pid = 1;
-    constexpr uint64_t token = 1;
-    constexpr uint64_t otherToken = 2;
-    constexpr NodeId selfDrawId = (static_cast<NodeId>(pid) << 32) | 1;
-    constexpr NodeId appWindowId = (static_cast<NodeId>(pid) << 32) | 2;
-    constexpr NodeId wrongTokenId = (static_cast<NodeId>(pid) << 32) | 3;
-    constexpr NodeId nullId = (static_cast<NodeId>(pid) << 32) | 4;
-    constexpr NodeId otherPidId = (static_cast<NodeId>(2) << 32) | 1;
-
-    RSSurfaceRenderNodeConfig selfDrawConfig = {
-        .id = selfDrawId, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
-    auto selfDrawNode = std::make_shared<RSSurfaceRenderNode>(selfDrawConfig);
-    selfDrawNode->SetUIContextToken(token);
-    rsRenderNodeMap.RegisterRenderNode(selfDrawNode);
-
-    RSSurfaceRenderNodeConfig appConfig = {
-        .id = appWindowId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
-    auto appNode = std::make_shared<RSSurfaceRenderNode>(appConfig);
-    appNode->SetUIContextToken(token);
-    rsRenderNodeMap.RegisterRenderNode(appNode);
-
-    RSSurfaceRenderNodeConfig wrongTokenConfig = {
-        .id = wrongTokenId, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
-    auto wrongTokenNode = std::make_shared<RSSurfaceRenderNode>(wrongTokenConfig);
-    wrongTokenNode->SetUIContextToken(otherToken);
-    rsRenderNodeMap.RegisterRenderNode(wrongTokenNode);
-
-    RSSurfaceRenderNodeConfig otherPidConfig = {
-        .id = otherPidId, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
-    auto otherPidNode = std::make_shared<RSSurfaceRenderNode>(otherPidConfig);
-    otherPidNode->SetUIContextToken(token);
-    rsRenderNodeMap.RegisterRenderNode(otherPidNode);
-
-    rsRenderNodeMap.surfaceNodeMap_[nullId] = nullptr;
-
-    rsRenderNodeMap.DestroyTokenNode(pid, token);
-    EXPECT_EQ(rsRenderNodeMap.GetRenderNode(selfDrawId), nullptr);
-    EXPECT_NE(rsRenderNodeMap.GetRenderNode(appWindowId), nullptr);
-    EXPECT_NE(rsRenderNodeMap.GetRenderNode(wrongTokenId), nullptr);
-    EXPECT_NE(rsRenderNodeMap.GetRenderNode(otherPidId), nullptr);
-    EXPECT_NE(rsRenderNodeMap.surfaceNodeMap_.find(nullId), rsRenderNodeMap.surfaceNodeMap_.end());
-}
-
-/**
  * @tc.name: DestroyTokenNodeResidentSurfaceNodeMapKeep
  * @tc.desc: Cover residentSurfaceNodeMap branches: erase matching, keep mismatched/null.
  * @tc.type: FUNC
@@ -942,6 +867,114 @@ HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeSelfDrawingNodeInProcessBranches, 
               rsRenderNodeMap.selfDrawingNodeInProcess_[pid].end());
     EXPECT_NE(rsRenderNodeMap.selfDrawingNodeInProcess_[pid].find(mismatchId),
               rsRenderNodeMap.selfDrawingNodeInProcess_[pid].end());
+}
+
+/**
+ * @tc.name: GetProtectiveSolidNodeMapSize001
+ * @tc.desc: Test GetProtectiveSolidNodeMapSize with empty map
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, GetProtectiveSolidNodeMapSize001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    EXPECT_EQ(rsRenderNodeMap.GetProtectiveSolidNodeMapSize(), 0);
+}
+
+/**
+ * @tc.name: GetProtectiveSolidNodeMapSize002
+ * @tc.desc: Test GetProtectiveSolidNodeMapSize with nodes in map
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, GetProtectiveSolidNodeMapSize002, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    auto rsContext = std::make_shared<RSContext>();
+    
+    NodeId id1 = 100;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(id1);
+    rsRenderNodeMap.protectiveSolidNodeMap_[id1] = node1;
+    EXPECT_EQ(rsRenderNodeMap.GetProtectiveSolidNodeMapSize(), 1);
+    
+    NodeId id2 = 200;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(id2);
+    rsRenderNodeMap.protectiveSolidNodeMap_[id2] = node2;
+    EXPECT_EQ(rsRenderNodeMap.GetProtectiveSolidNodeMapSize(), 2);
+}
+
+/**
+ * @tc.name: TraverseProtectiveSolidNodes001
+ * @tc.desc: Test TraverseProtectiveSolidNodes with empty map
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, TraverseProtectiveSolidNodes001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    int count = 0;
+    rsRenderNodeMap.TraverseProtectiveSolidNodes([&count](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        count++;
+    });
+    EXPECT_EQ(count, 0);
+}
+
+/**
+ * @tc.name: TraverseProtectiveSolidNodes002
+ * @tc.desc: Test TraverseProtectiveSolidNodes with nodes in map
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, TraverseProtectiveSolidNodes002, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    
+    NodeId id1 = 100;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(id1);
+    NodeId id2 = 200;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(id2);
+    NodeId id3 = 300;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(id3);
+    
+    rsRenderNodeMap.protectiveSolidNodeMap_[id1] = node1;
+    rsRenderNodeMap.protectiveSolidNodeMap_[id2] = node2;
+    rsRenderNodeMap.protectiveSolidNodeMap_[id3] = node3;
+    
+    int count = 0;
+    std::vector<NodeId> visitedIds;
+    rsRenderNodeMap.TraverseProtectiveSolidNodes([&count, &visitedIds](const std::shared_ptr<RSSurfaceRenderNode>& node)
+    {
+        count++;
+        visitedIds.push_back(node->GetId());
+    });
+    EXPECT_EQ(count, 3);
+    EXPECT_EQ(visitedIds.size(), 3);
+}
+
+/**
+ * @tc.name: TraverseProtectiveSolidNodes003
+ * @tc.desc: Test TraverseProtectiveSolidNodes with null nodes
+ * @tc.type: FUNC
+ * @tc.require: issueI9NBLA
+ */
+HWTEST_F(RSRenderNodeMapTest, TraverseProtectiveSolidNodes003, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    
+    NodeId id1 = 100;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(id1);
+    NodeId id2 = 200;
+    
+    rsRenderNodeMap.protectiveSolidNodeMap_[id1] = node1;
+    rsRenderNodeMap.protectiveSolidNodeMap_[id2] = nullptr;
+    
+    int count = 0;
+    rsRenderNodeMap.TraverseProtectiveSolidNodes([&count](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        if (node != nullptr) {
+            count++;
+        }
+    });
+    EXPECT_EQ(count, 1);
 }
 
 } // namespace OHOS::Rosen

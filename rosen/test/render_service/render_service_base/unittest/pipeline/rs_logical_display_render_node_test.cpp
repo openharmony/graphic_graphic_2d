@@ -574,8 +574,8 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationWithNullManager001, T
     RSRootRenderNode::ModifierNGContainer modifiers { modifier };
     displayNode->modifiersNG_.emplace(ModifierNG::RSModifierType::HDR_BRIGHTNESS, modifiers);
 
-    // animationManager_ is null since no animations were added
-    EXPECT_EQ(displayNode->GetAnimationManager(), nullptr);
+    // animationManager_ is not null since it is created in constructor
+    EXPECT_NE(displayNode->GetAnimationManager(), nullptr);
     EXPECT_FALSE(displayNode->IsOnlyHDRAnimation());
 }
 

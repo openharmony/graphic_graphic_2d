@@ -43,18 +43,21 @@ static WebGLRenderingContext* GetWebGLRenderingContextBase(napi_env env, napi_va
     return static_cast<WebGLRenderingContext*>(Util::GetContextObject(env, thisVar));
 }
 
+constexpr GLint SINGLE_SLICE_DEPTH = 1;
+
 static int64_t GetOffset(napi_env env, napi_value data, WebGLRenderingContext* context)
 {
-    if (!NVal(env, data).IsNull()) {
-        int64_t srcOffset = 0;
-        bool succ = false;
-        tie(succ, srcOffset) = NVal(env, data).ToInt64();
-        if (!succ || srcOffset < 0) {
-            context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
-            return -1;
-        }
+    if (NVal(env, data).IsNull()) {
+        return 0;
     }
-    return 0;
+    int64_t srcOffset = 0;
+    bool succ = false;
+    tie(succ, srcOffset) = NVal(env, data).ToInt64();
+    if (!succ || srcOffset < 0 || srcOffset > static_cast<int64_t>(std::numeric_limits<GLuint>::max())) {
+        context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
+        return -1;
+    }
+    return srcOffset;
 }
 
 napi_value WebGLRenderingContextOverloads::BufferData(napi_env env, napi_callback_info info)
@@ -172,6 +175,11 @@ napi_value WebGLRenderingContextOverloads::CompressedTexImage2D(napi_env env, na
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
+        if (imageSize < 0 || imageSize > static_cast<int64_t>(std::numeric_limits<GLsizei>::max())) {
+            LOGE("WebGL imageSize out of range");
+            context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
+            return NVal::CreateNull(env).val_;
+        }
         int64_t offset = 0;
         tie(succ, offset) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToInt64();
         if (!succ) {
@@ -243,6 +251,11 @@ napi_value WebGLRenderingContextOverloads::CompressedTexSubImage2D(napi_env env,
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
+        if (imageSize < 0 || imageSize > static_cast<int64_t>(std::numeric_limits<GLsizei>::max())) {
+            LOGE("WebGL imageSize out of range");
+            context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
+            return NVal::CreateNull(env).val_;
+        }
         int64_t offset = 0;
         tie(succ, offset) = NVal(env, funcArg[NARG_POS::NINTH]).ToInt64();
         if (!succ) {
@@ -254,11 +267,17 @@ napi_value WebGLRenderingContextOverloads::CompressedTexSubImage2D(napi_env env,
 
     GLuint srcOffset = 0;
     if (funcArg[NARG_POS::NINTH] != nullptr) {
-        tie(succ, srcOffset) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToUint32();
+        tie(succ, srcOffset) = NVal(env, funcArg[NARG_POS::NINTH]).ToUint32();
+        if (!succ) {
+            return NVal::CreateNull(env).val_;
+        }
     }
     GLuint srcLengthOverride = 0;
     if (funcArg[NARG_POS::TENTH] != nullptr) {
-        tie(succ, srcLengthOverride) = NVal(env, funcArg[NARG_POS::NINTH]).ToUint32();
+        tie(succ, srcLengthOverride) = NVal(env, funcArg[NARG_POS::TENTH]).ToUint32();
+        if (!succ) {
+            return NVal::CreateNull(env).val_;
+        }
     }
     return context->GetWebGLRenderingContextImpl().CompressedTexSubImage2D(env,
         imgArg, funcArg[NARG_POS::EIGHTH], srcOffset, srcLengthOverride);
@@ -336,7 +355,7 @@ napi_value WebGLRenderingContextOverloads::TexImage2D(napi_env env, napi_callbac
     }
     TexImageArg imgArg = {};
     imgArg.func = Impl::IMAGE_TEX_IMAGE_2D;
-    imgArg.depth = 1;
+    imgArg.depth = SINGLE_SLICE_DEPTH;
     bool succ = false;
     tie(succ, imgArg.target) = NVal(env, funcArg[NARG_POS::FIRST]).ToGLenum();
     if (!succ) {
@@ -470,7 +489,8 @@ napi_value WebGLRenderingContextOverloads::TexSubImage2D(napi_env env, napi_call
         if (srcOffset < 0) {
             return NVal::CreateNull(env).val_;
         }
-        return context->GetWebGLRenderingContextImpl().TexSubImage2D(env, imgArg, funcArg[NARG_POS::NINTH], 0);
+        return context->GetWebGLRenderingContextImpl().TexSubImage2D(env, imgArg, funcArg[NARG_POS::NINTH],
+            static_cast<GLuint>(srcOffset));
     } else { // for image source
         return context->GetWebGLRenderingContextImpl().TexSubImage2D(env, imgArg, funcArg[NARG_POS::NINTH]);
     }

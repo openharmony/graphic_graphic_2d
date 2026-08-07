@@ -120,7 +120,13 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
     }
 
     const auto& properties = GetRenderProperties();
-    const auto& absRect = properties.GetBoundsGeometry()->GetAbsRect();
+    const auto& boundsGeometry = properties.GetBoundsGeometry();
+    if (!boundsGeometry) {
+        ROSEN_LOGE("RSEffectRenderNode::SetEffectRegion: bounds geometry is null.");
+        GetMutableRenderProperties().SetHaveEffectRegion(false);
+        return;
+    }
+    const auto& absRect = boundsGeometry->GetAbsRect();
     Drawing::RectI effectRect = effectRegion.value();
     if (!effectRect.Intersect(
         Drawing::RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()))) {

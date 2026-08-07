@@ -2133,18 +2133,22 @@ HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_ValidToken_MatchingNodes, TestSize.L
 {
     // Given: Dump manager and dumper
     ASSERT_NE(dumpManager_, nullptr);
-    ASSERT_NE(dumper_, nullptr);
 
-    dumper_->RenderPipelineDumpInit(dumpManager_);
+    std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    auto dumper = std::make_unique<RSPipelineDumper>(handler);
+    ASSERT_NE(dumper, nullptr);
+
+    dumper->RenderPipelineDumpInit(dumpManager_);
 
     // When: Dump node info with valid pid and token
-    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000", u"12345678" };
+    std::unordered_set<std::u16string> argSets = { u"uiContextState", u"1000", u"12345678" };
     std::string out;
     dumpManager_->CmdExec(argSets, out, nullptr);
 
     // Then: Should execute without crash and contain node statistics header
     EXPECT_FALSE(out.empty());
-    EXPECT_TRUE(out.find("-- Node Type Statistics --") != std::string::npos ||
+    EXPECT_TRUE(out.find("-- Node Count Statistics --") != std::string::npos ||
                 out.find("Usage: contextStates") != std::string::npos);
 }
 
@@ -2163,7 +2167,7 @@ HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_InvalidArguments_NotEnoughArgs, Test
     dumper_->RenderPipelineDumpInit(dumpManager_);
 
     // When: Dump node info with only one argument
-    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000" };
+    std::unordered_set<std::u16string> argSets = { u"uiContextState", u"1000" };
     std::string out;
     dumpManager_->CmdExec(argSets, out, nullptr);
 
@@ -2187,7 +2191,7 @@ HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_InvalidArguments_NoArgs, TestSize.Le
     dumper_->RenderPipelineDumpInit(dumpManager_);
 
     // When: Dump node info with no arguments
-    std::unordered_set<std::u16string> argSets = { u"contextStates" };
+    std::unordered_set<std::u16string> argSets = { u"uiContextState" };
     std::string out;
     dumpManager_->CmdExec(argSets, out, nullptr);
 
@@ -2211,7 +2215,7 @@ HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_InvalidArguments_NonNumericPid, Test
     dumper_->RenderPipelineDumpInit(dumpManager_);
 
     // When: Dump node info with non-numeric pid
-    std::unordered_set<std::u16string> argSets = { u"contextStates", u"abc", u"12345678" };
+    std::unordered_set<std::u16string> argSets = { u"uiContextState", u"abc", u"12345678" };
     std::string out;
     dumpManager_->CmdExec(argSets, out, nullptr);
 
@@ -2235,7 +2239,7 @@ HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_InvalidArguments_NonNumericToken, Te
     dumper_->RenderPipelineDumpInit(dumpManager_);
 
     // When: Dump node info with non-numeric token
-    std::unordered_set<std::u16string> argSets = { u"contextStates", u"1000", u"abc" };
+    std::unordered_set<std::u16string> argSets = { u"uiContextState", u"1000", u"abc" };
     std::string out;
     dumpManager_->CmdExec(argSets, out, nullptr);
 

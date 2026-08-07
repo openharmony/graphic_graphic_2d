@@ -155,8 +155,12 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedImageTest, TestSize.Level1)
     ASSERT_EQ(result, nullptr);
 
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBackendTexture_.isValid_ = true;
-    result = surfaceDrawable_->GetRsSubThreadCache().GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
-    ASSERT_NE(result, nullptr);
+#ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        result = surfaceDrawable_->GetRsSubThreadCache().GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
+        ASSERT_NE(result, nullptr);
+    }
+#endif
 
 #ifdef RS_ENABLE_VK
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();

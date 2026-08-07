@@ -172,6 +172,9 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         AddUIExtensionSurfaceNode(surfaceNode);
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
+    } else if (nodePtr->GetType() == RSRenderNodeType::PROTECTIVE_SOLID_NODE) {
+        auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
+        protectiveSolidNodeMap_.emplace(id, surfaceNode);
     } else if (nodePtr->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = nodePtr->ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);
@@ -221,6 +224,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     screenNodeMap_.erase(id);
     logicalDisplayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
+    protectiveSolidNodeMap_.erase(id);
     auto removeIter = std::remove_if(needAttachedNode_.begin(), needAttachedNode_.end(), [id](const auto& node) {
         if (node && node->GetId() == id) {
             node->GetAttachedInfo() = std::nullopt;
@@ -519,6 +523,19 @@ void RSRenderNodeMap::TraverseSurfaceNodes(std::function<void (const std::shared
     for (const auto& [_, node] : surfaceNodeMap_) {
         func(node);
     }
+}
+
+void RSRenderNodeMap::TraverseProtectiveSolidNodes(
+    std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : protectiveSolidNodeMap_) {
+        func(node);
+    }
+}
+
+size_t RSRenderNodeMap::GetProtectiveSolidNodeMapSize() const
+{
+    return protectiveSolidNodeMap_.size();
 }
 
 void RSRenderNodeMap::TraverseSurfaceNodesBreakOnCondition(

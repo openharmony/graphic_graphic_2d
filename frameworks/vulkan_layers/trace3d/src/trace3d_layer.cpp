@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifdef RS_TRACE3D_LAYER_ENABLED
 #include "trace3d_helper.h"
 
 #include <vulkan/vk_layer.h>
@@ -292,8 +293,9 @@ void DestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator)
 
         TRACE3D_LOGI("%s(device:%p) deviceKey:%p, destroyDevice:%p\n",
             __FUNCTION__, device, deviceKey, devInfo.destroyDevice);
-        if (devInfo.destroyDevice)
+        if (devInfo.destroyDevice) {
             devInfo.destroyDevice(device, pAllocator);
+        }
         deviceMap.erase(deviceKey);
     }
 }
@@ -537,11 +539,12 @@ void* DebugLayerInitialize(const void *funcTable, PFNEGLGETNEXTLAYERPROCADDRESSP
 TRACE3D_LOADER_API
 void* DebugLayerGetProcAddr(const char *funcName, eglMustCastToProperFunctionPointerType next)
 {
-    void *ptr = (void *)next;
+    void *ptr = reinterpret_cast<void *>(next);
     if (g_debugLayerGetProcAddr) {
-        ptr = g_debugLayerGetProcAddr(funcName, next);
+        ptr = reinterpret_cast<void *>(g_debugLayerGetProcAddr(funcName, next));
     }
-    return static_cast<void *>(ptr);
+    return ptr;
 }
 
 } // extern "C"
+#endif //RS_TRACE3D_LAYER_ENABLED

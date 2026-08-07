@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <array>
+#include <limits>
 #include <numeric>
 #include <vector>
 #include <memory>
@@ -70,15 +71,16 @@
 #include "modifier_ng/appearance/rs_border_modifier.h"
 #include "modifier_ng/appearance/rs_color_picker_modifier.h"
 #include "modifier_ng/appearance/rs_compositing_filter_modifier.h"
+#include "modifier_ng/appearance/rs_coverage_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_dynamic_light_up_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "modifier_ng/appearance/rs_spatial_effect_modifier.h"
 #include "modifier_ng/appearance/rs_hdr_brightness_modifier.h"
 #include "modifier_ng/appearance/rs_mask_modifier.h"
 #include "modifier_ng/appearance/rs_outline_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_modifier.h"
-#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_material_filter_modifier.h"
 #include "modifier_ng/appearance/rs_material_shader_modifier.h"
@@ -144,7 +146,7 @@
 #ifdef __gnu_linux__
 #include <sys/syscall.h>
 #include <sys/types.h>
-#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#define gettid []()->int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
 #endif
 
 #undef LOG_TAG
@@ -650,6 +652,8 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
 
     AddAnimationInner(animation);
 
+    RebuildTree();
+
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
         animation->Pause();
@@ -792,16 +796,16 @@ void RSNode::UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& paren
     globalPositionY_ = parentGlobalPositionY + localGeometry_->GetY();
 }
 
-bool RSNode::isNeedCallbackNodeChange_ = true;
+std::atomic<bool> RSNode::isNeedCallbackNodeChange_ = true;
 void RSNode::SetNeedCallbackNodeChange(bool needCallback)
 {
-    isNeedCallbackNodeChange_ = needCallback;
+    isNeedCallbackNodeChange_.store(needCallback, std::memory_order_relaxed);
 }
 
 // Notifies UI observer about page node modifications.
 void RSNode::NotifyPageNodeChanged() const
 {
-    if (isNeedCallbackNodeChange_ && propertyNodeChangeCallback_) {
+    if (isNeedCallbackNodeChange_.load(std::memory_order_relaxed) && propertyNodeChangeCallback_) {
         propertyNodeChangeCallback_();
     }
 }
@@ -1987,8 +1991,10 @@ void RSNode::SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrateg
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerStrategy>(strategy);
     static constexpr uint64_t MIN_INTERVAL = 180; // unit: ms
+    static constexpr uint64_t MAX_INTERVAL = static_cast<uint64_t>(std::numeric_limits<int>::max());
+    int safeInterval = static_cast<int>(std::clamp(interval, MIN_INTERVAL, MAX_INTERVAL));
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
-        &ModifierNG::RSColorPickerModifier::SetColorPickerInterval>(std::max(interval, MIN_INTERVAL));
+        &ModifierNG::RSColorPickerModifier::SetColorPickerInterval>(safeInterval);
 }
 
 void RSNode::SetColorPickerOptions(uint64_t interval, std::pair<uint32_t, uint32_t> notifyThreshold,
@@ -2227,6 +2233,9 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
     // To do: generate composed filter here. Now we just set compositing blur in v1.0.
     auto filterParas = compositingFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
+        if (filterPara == nullptr) {
+            continue;
+        }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
             paramCounts[static_cast<size_t>(SetUIXXFilterCascadeType::CP_BLUR)]++;
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
@@ -2391,10 +2400,10 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         }
         auto backgroundColorEffectPara = std::static_pointer_cast<BackgroundColorEffectPara>(visualEffectPara);
         auto blender = backgroundColorEffectPara->GetBlender();
-        auto brightnessBlender = std::static_pointer_cast<BrightnessBlender>(blender);
-        if (brightnessBlender == nullptr) {
+        if (blender == nullptr || blender->GetBlenderType() != Blender::BRIGHTNESS_BLENDER) {
             continue;
         }
+        auto brightnessBlender = std::static_pointer_cast<BrightnessBlender>(blender);
         if (brightnessBlender->GetHdr() && ROSEN_GNE(brightnessBlender->GetFraction(), 0.0f)) {
             hasHdrBrightnessBlender = true;
         }
@@ -3809,7 +3818,7 @@ void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
 void RSNode::SetLightIntensity(float lightIntensity)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetLightIntensity>(
+    SetPropertyNG<ModifierNG::RSCoverageNGShaderModifier, &ModifierNG::RSCoverageNGShaderModifier::SetLightIntensity>(
         lightIntensity);
 }
 
@@ -3817,7 +3826,7 @@ void RSNode::SetLightColor(uint32_t lightColorValue)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     auto lightColor = Color::FromArgbInt(lightColorValue);
-    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetLightColor>(
+    SetPropertyNG<ModifierNG::RSCoverageNGShaderModifier, &ModifierNG::RSCoverageNGShaderModifier::SetLightColor>(
         lightColor);
 }
 
@@ -3830,28 +3839,28 @@ void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
 void RSNode::SetLightPosition(const Vector4f& lightPosition)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetLightPosition>(
+    SetPropertyNG<ModifierNG::RSCoverageNGShaderModifier, &ModifierNG::RSCoverageNGShaderModifier::SetLightPosition>(
         lightPosition);
 }
 
 void RSNode::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier,
-        &ModifierNG::RSOverlayNGShaderModifier::SetIlluminatedBorderWidth>(illuminatedBorderWidth);
+    SetPropertyNG<ModifierNG::RSCoverageNGShaderModifier,
+        &ModifierNG::RSCoverageNGShaderModifier::SetIlluminatedBorderWidth>(illuminatedBorderWidth);
 }
 
 void RSNode::SetIlluminatedType(uint32_t illuminatedType)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetIlluminatedType>(
+    SetPropertyNG<ModifierNG::RSCoverageNGShaderModifier, &ModifierNG::RSCoverageNGShaderModifier::SetIlluminatedType>(
         illuminatedType);
 }
 
 void RSNode::SetBloom(float bloomIntensity)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetBloom>(
+    SetPropertyNG<ModifierNG::RSCoverageNGShaderModifier, &ModifierNG::RSCoverageNGShaderModifier::SetBloom>(
         bloomIntensity);
 }
 

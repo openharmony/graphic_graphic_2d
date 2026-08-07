@@ -81,7 +81,7 @@ public:
     static void Close(ani_env* env, ani_object obj);
     static ani_boolean IsInverseFillType(ani_env* env, ani_object obj);
     static void ToggleInverseFillType(ani_env* env, ani_object obj);
-    static ani_object Approximate(ani_env* env, ani_object obj, ani_double acceptableErrorobj);
+    static ani_object Approximate(ani_env* env, ani_object obj, ani_double acceptableError);
     static void SetLastPoint(ani_env* env, ani_object obj, ani_double x, ani_double y);
     static void ReWind(ani_env* env, ani_object obj);
     static ani_boolean Interpolate(ani_env* env, ani_object obj, ani_object otherobj, ani_double weight,

@@ -111,15 +111,19 @@ bool RSInterpolatingSpringAnimation::GetIsLogicallyFinishCallback() const
 
 std::shared_ptr<RSRenderInterpolatingSpringAnimation> RSInterpolatingSpringAnimation::CreateRenderAnimation()
 {
-    // placeholder for estimated duration
-    constexpr int SPRING_DURATION_PLACEHOLDER = 300;
+    constexpr int SPRING_DURATION_PLACEHOLDER = 300;  // placeholder for estimated duration
     auto animation = std::make_shared<RSRenderInterpolatingSpringAnimation>(GetId(), GetPropertyId(),
         originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty());
     SetDuration(SPRING_DURATION_PLACEHOLDER);
     UpdateParamToRenderAnimation(animation);
     if (const auto& springParams = timingCurve_.springParams_) {
+        std::optional<ConvergeParams> convergeParams;
+        if (springParams->convergeParams_.has_value()) {
+            convergeParams = ConvergeParams { springParams->convergeParams_->convergeResponseFactor_,
+                springParams->convergeParams_->convergeProgressThreshold_ };
+        }
         animation->SetSpringParameters(springParams->response_, springParams->dampingRatio_,
-            springParams->initialVelocity_, springParams->minimumAmplitudeRatio_);
+            springParams->initialVelocity_, springParams->minimumAmplitudeRatio_, convergeParams);
     }
     animation->SetAdditive(GetAdditive());
     if (GetIsLogicallyFinishCallback()) {
