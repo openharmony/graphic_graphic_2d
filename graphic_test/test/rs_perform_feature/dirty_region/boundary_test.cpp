@@ -74,11 +74,6 @@ public:
             }
             fileName += testInfo->test_case_name() + std::string("_") + testInfo->name() + std::string(".png");
             if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {
-                std::cout << "[   FAILED   ] " << fileName << std::endl;
-                return;
-            }
-            fileName += testInfo->test_case_name() + std::string("_") + testInfo->name() + std::string(".png");
-            if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {
                 // NOT MODIFY THE COMMENTS
                 std::cout << "[   FAILED   ] " << fileName << std::endl;
                 return;
