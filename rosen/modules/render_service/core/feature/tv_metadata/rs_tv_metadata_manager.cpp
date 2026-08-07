@@ -311,9 +311,9 @@ int32_t RSTvMetadataManager::SendVideoRateInfo(const std::unordered_map<std::str
     auto resultRate =
         std::from_chars(rateIt->second.data(), rateIt->second.data() + rateIt->second.size(), rate);
     if (resultRate.ec != std::errc()) {
- 	    return -1;
+        return -1;
     }
- 	videoRate_ = rate;
+    videoRate_ = rate;
     uint32_t decSpeed{0};
     auto speedIt = videoRateInfo.find(VIDEO_DECSPEED_KEY);
     if (speedIt != videoRateInfo.end()) {
