@@ -503,7 +503,13 @@ DrawPointsOpItem::DrawPointsOpItem(const DrawCmdList& cmdList, DrawPointsOpItem:
 
 std::shared_ptr<DrawOpItem> DrawPointsOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPointsOpItem>(cmdList, static_cast<DrawPointsOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawPointsOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->mode < PointMode::POINTS_POINTMODE ||
+        constructorHandle->mode > PointMode::POLYGON_POINTMODE) {
+        LOGD("DrawPointsOpItem Unmarshalling invalid PointMode: %{public}d", static_cast<int>(constructorHandle->mode));
+        return nullptr;
+    }
+    return std::make_shared<DrawPointsOpItem>(cmdList, constructorHandle);
 }
 
 void DrawPointsOpItem::Marshalling(DrawCmdList& cmdList)
@@ -900,8 +906,13 @@ DrawShadowStyleOpItem::DrawShadowStyleOpItem(
 
 std::shared_ptr<DrawOpItem> DrawShadowStyleOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawShadowStyleOpItem>(
-        cmdList, static_cast<DrawShadowStyleOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawShadowStyleOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->flag < ShadowFlags::NONE || constructorHandle->flag > ShadowFlags::ALL) {
+        LOGD("DrawShadowStyleOpItem Unmarshalling invalid ShadowFlags: %{public}d",
+            static_cast<int>(constructorHandle->flag));
+        return nullptr;
+    }
+    return std::make_shared<DrawShadowStyleOpItem>(cmdList, constructorHandle);
 }
 
 void DrawShadowStyleOpItem::Marshalling(DrawCmdList& cmdList)
@@ -954,7 +965,13 @@ DrawShadowOpItem::DrawShadowOpItem(const DrawCmdList& cmdList, DrawShadowOpItem:
 
 std::shared_ptr<DrawOpItem> DrawShadowOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawShadowOpItem>(cmdList, static_cast<DrawShadowOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawShadowOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->flag < ShadowFlags::NONE || constructorHandle->flag > ShadowFlags::ALL) {
+        LOGD("DrawShadowOpItem Unmarshalling invalid ShadowFlags: %{public}d",
+            static_cast<int>(constructorHandle->flag));
+        return nullptr;
+    }
+    return std::make_shared<DrawShadowOpItem>(cmdList, constructorHandle);
 }
 
 void DrawShadowOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1054,7 +1071,13 @@ DrawVerticesOpItem::DrawVerticesOpItem(const DrawCmdList& cmdList, DrawVerticesO
 
 std::shared_ptr<DrawOpItem> DrawVerticesOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawVerticesOpItem>(cmdList, static_cast<DrawVerticesOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawVerticesOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->mode < BlendMode::CLEAR || constructorHandle->mode > BlendMode::LUMINOSITY) {
+        LOGD("DrawVerticesOpItem Unmarshalling invalid BlendMode: %{public}d",
+            static_cast<int>(constructorHandle->mode));
+        return nullptr;
+    }
+    return std::make_shared<DrawVerticesOpItem>(cmdList, constructorHandle);
 }
 
 void DrawVerticesOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1096,7 +1119,13 @@ DrawColorOpItem::DrawColorOpItem(DrawColorOpItem::ConstructorHandle* handle)
 
 std::shared_ptr<DrawOpItem> DrawColorOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawColorOpItem>(static_cast<DrawColorOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawColorOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->mode < BlendMode::CLEAR || constructorHandle->mode > BlendMode::LUMINOSITY) {
+        LOGD("DrawColorOpItem Unmarshalling invalid BlendMode: %{public}d",
+            static_cast<int>(constructorHandle->mode));
+        return nullptr;
+    }
+    return std::make_shared<DrawColorOpItem>(constructorHandle);
 }
 
 void DrawColorOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1126,7 +1155,13 @@ DrawUIColorOpItem::DrawUIColorOpItem(DrawUIColorOpItem::ConstructorHandle* handl
 
 std::shared_ptr<DrawOpItem> DrawUIColorOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawUIColorOpItem>(static_cast<DrawUIColorOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawUIColorOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->mode < BlendMode::CLEAR || constructorHandle->mode > BlendMode::LUMINOSITY) {
+        LOGD("DrawUIColorOpItem Unmarshalling invalid BlendMode: %{public}d",
+            static_cast<int>(constructorHandle->mode));
+        return nullptr;
+    }
+    return std::make_shared<DrawUIColorOpItem>(constructorHandle);
 }
 
 void DrawUIColorOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1166,7 +1201,13 @@ DrawImageNineOpItem::DrawImageNineOpItem(const DrawCmdList& cmdList, DrawImageNi
 
 std::shared_ptr<DrawOpItem> DrawImageNineOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawImageNineOpItem>(cmdList, static_cast<DrawImageNineOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawImageNineOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->filter < FilterMode::NEAREST || constructorHandle->filter > FilterMode::LINEAR) {
+        LOGD("DrawImageNineOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->filter));
+        return nullptr;
+    }
+    return std::make_shared<DrawImageNineOpItem>(cmdList, constructorHandle);
 }
 
 void DrawImageNineOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1451,7 +1492,20 @@ DrawImageOpItem::DrawImageOpItem(const DrawCmdList& cmdList, DrawImageOpItem::Co
 
 std::shared_ptr<DrawOpItem> DrawImageOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawImageOpItem>(cmdList, static_cast<DrawImageOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawImageOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->samplingOptions.GetFilterMode() < FilterMode::NEAREST ||
+        constructorHandle->samplingOptions.GetFilterMode() > FilterMode::LINEAR) {
+        LOGD("DrawImageOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->samplingOptions.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->samplingOptions.GetMipmapMode() < MipmapMode::NONE ||
+        constructorHandle->samplingOptions.GetMipmapMode() > MipmapMode::LINEAR) {
+        LOGD("DrawImageOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->samplingOptions.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawImageOpItem>(cmdList, constructorHandle);
 }
 
 void DrawImageOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1513,7 +1567,20 @@ DrawImageRectOpItem::DrawImageRectOpItem(const Image& image, const Rect& src,
 
 std::shared_ptr<DrawOpItem> DrawImageRectOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawImageRectOpItem>(cmdList, static_cast<DrawImageRectOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawImageRectOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->sampling.GetFilterMode() < FilterMode::NEAREST ||
+        constructorHandle->sampling.GetFilterMode() > FilterMode::LINEAR) {
+        LOGD("DrawImageRectOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->sampling.GetMipmapMode() < MipmapMode::NONE ||
+        constructorHandle->sampling.GetMipmapMode() > MipmapMode::LINEAR) {
+        LOGD("DrawImageRectOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawImageRectOpItem>(cmdList, constructorHandle);
 }
 
 void DrawImageRectOpItem::Marshalling(DrawCmdList& cmdList)

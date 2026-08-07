@@ -46,7 +46,7 @@ bool RSRenderNodeAllocator::AddNodeToAllocator(RSRenderNode* ptr)
     }
     ptr->~RSRenderNode();
     nodeAllocator_.push(ptr);
-    RS_LOGD("AddNodeToAllocator, pool size:%{public}zu", nodeAllocator_.size());
+    RS_LOGD_IF(DEBUG_NODE, "AddNodeToAllocator, pool size:%{public}zu", nodeAllocator_.size());
     nodeAllocatorSpinlock_.unlock();
     return true;
 }
@@ -69,7 +69,7 @@ bool RSRenderNodeAllocator::AddDrawableToAllocator(RSRenderNodeAllocator::Drawab
     }
     ptr->~RSRenderNodeDrawableAdapter();
     drawableAllocator_.push(ptr);
-    RS_LOGD("AddDrawableToAllocator, pool size:%{public}zu", drawableAllocator_.size());
+    RS_LOGD_IF(DEBUG_NODE, "AddDrawableToAllocator, pool size:%{public}zu", drawableAllocator_.size());
     drawableAllocatorSpinlock_.unlock();
     return true;
 }
@@ -88,7 +88,7 @@ std::shared_ptr<RSCanvasRenderNode> RSRenderNodeAllocator::CreateRSCanvasRenderN
         auto front = nodeAllocator_.front();
         nodeAllocator_.pop();
         nodeAllocatorSpinlock_.unlock();
-        RS_LOGD("CreateRSCanvasRenderNode in pool, pool size:%{public}zu, id:%{public}" PRIu64 "",
+        RS_LOGD_IF(DEBUG_NODE, "CreateRSCanvasRenderNode in pool, pool size:%{public}zu, id:%{public}" PRIu64 "",
             nodeAllocator_.size(), id);
         node = std::shared_ptr<RSCanvasRenderNode>(new (front)RSCanvasRenderNode(id,
             context, isTextureExportNode), RSRenderNodeGC::NodeDestructor);
@@ -112,7 +112,7 @@ RSRenderNodeAllocator::DrawablePtr RSRenderNodeAllocator::CreateRSRenderNodeDraw
     }
     auto front = drawableAllocator_.front();
     drawableAllocator_.pop();
-    RS_LOGD("CreateRSRenderNodeDrawable in pool, pool size:%{public}zu", nodeAllocator_.size());
+    RS_LOGD_IF(DEBUG_NODE, "CreateRSRenderNodeDrawable in pool, pool size:%{public}zu", nodeAllocator_.size());
     drawableAllocatorSpinlock_.unlock();
     return generator(node, front);
 }

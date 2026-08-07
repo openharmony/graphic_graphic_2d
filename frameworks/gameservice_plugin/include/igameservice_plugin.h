@@ -48,6 +48,7 @@ public:
                 reinterpret_cast<LoadGameServiceFunc>(dlsym(loadFileHandle_, "LoadGameServicePlugin"));
             if (loadGameServiceFunc == nullptr) {
                 dlclose(loadFileHandle_);
+                loadFileHandle_ = nullptr;
                 instance_ = sptr<IGameServicePlugin>::MakeSptr();
                 return;
             }

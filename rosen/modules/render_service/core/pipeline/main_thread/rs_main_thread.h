@@ -160,7 +160,7 @@ public:
 
     const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const
     {
-        RS_LOGD("You'd better to call GetRenderEngine from RSUniRenderThread directly");
+        RS_LOGD_IF(DEBUG_PIPELINE, "You'd better to call GetRenderEngine from RSUniRenderThread directly");
 #ifdef RS_ENABLE_GPU
         return isUniRender_ ? std::move(RSUniRenderThread::Instance().GetRenderEngine()) : renderEngine_;
 #else
@@ -341,6 +341,7 @@ public:
 
     bool IsPCThreeFingerScenesListScene() const
     {
+        std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
         return !threeFingerScenesList_.empty();
     }
 
@@ -865,7 +866,7 @@ private:
     // for surface occlusion change callback
     std::mutex surfaceOcclusionMutex_;
     std::vector<NodeId> lastRegisteredSurfaceOnTree_;
-    std::mutex systemAnimatedScenesMutex_;
+    mutable std::mutex systemAnimatedScenesMutex_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> systemAnimatedScenesList_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> threeFingerScenesList_;
     std::unordered_map<NodeId, // map<node ID, <pid, callback, partition points vector, level>>

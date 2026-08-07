@@ -100,11 +100,13 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<R
                 canvas.RestoreToCount(saveCount);
                 continue;
             }
-            RS_LOGD("RSRenderEngine::DrawLayers dstRect[%{public}d %{public}d %{public}d %{public}d]",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RSRenderEngine::DrawLayers dstRect[%{public}d %{public}d %{public}d %{public}d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             const std::vector<GraphicIRect>& dirtyRegions = layer->GetDirtyRegions();
             for (auto iter = dirtyRegions.begin(); iter != dirtyRegions.end(); iter++) {
-                RS_LOGD("RSRenderEngine::DrawLayers SrcRect[%{public}d %{public}d %{public}d %{public}d]",
+                RS_LOGD_IF(DEBUG_PIPELINE,
+                    "RSRenderEngine::DrawLayers SrcRect[%{public}d %{public}d %{public}d %{public}d]",
                     iter->x, iter->y, iter->w, iter->h);
             }
             auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU);
@@ -187,7 +189,8 @@ void RSRenderEngine::ClipHoleForLayer(RSPaintFilterCanvas& canvas, RSSurfaceRend
     std::string traceInfo;
     AppendFormat(traceInfo, "Node name:%s ClipHole[%f %f %f %f]", node.GetName().c_str(),
         params.clipRect.GetLeft(), params.clipRect.GetTop(), params.clipRect.GetWidth(), params.clipRect.GetHeight());
-    RS_LOGD("RSRenderEngine::Redraw layer composition ClipHoleForLayer, %{public}s.", traceInfo.c_str());
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSRenderEngine::Redraw layer composition ClipHoleForLayer, %{public}s.",
+        traceInfo.c_str());
     RS_TRACE_NAME(traceInfo);
 
     canvas.Save();
@@ -201,7 +204,8 @@ void RSRenderEngine::SetColorFilterModeToPaint(Drawing::Brush& paint)
 {
     // for test automation
     if (colorFilterMode_ != ColorFilterMode::COLOR_FILTER_END) {
-        RS_LOGD("RSRenderEngine::SetColorFilterModeToPaint mode:%{public}d", static_cast<int32_t>(colorFilterMode_));
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSRenderEngine::SetColorFilterModeToPaint mode:%{public}d",
+            static_cast<int32_t>(colorFilterMode_));
     }
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode_, paint);
 }

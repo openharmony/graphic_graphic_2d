@@ -1307,6 +1307,70 @@ HWTEST_F(GradientShaderObjBaseTest, DifferentTileModes001, TestSize.Level1)
     }
 }
 
+/*
+ * @tc.name: UnmarshalCommonDataInvalidTileMode001
+ * @tc.desc: Test UnmarshalCommonData rejects modeValue below minimum (CLAMP=0)
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ * @tc.author:
+ */
+HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataInvalidTileMode001, TestSize.Level1)
+{
+    auto newShader = LinearGradientShaderObj::CreateForUnmarshalling();
+    ASSERT_TRUE(newShader != nullptr);
+
+    const int32_t INVALID_MODE_BELOW = -1;
+    MessageParcel parcel;
+    parcel.WriteFloat(10.0f); // startX
+    parcel.WriteFloat(20.0f); // startY
+    parcel.WriteFloat(110.0f); // endX
+    parcel.WriteFloat(120.0f); // endY
+    parcel.WriteUint32(1); // colorCount = 1
+    parcel.WriteFloat(1.0f); // R
+    parcel.WriteFloat(0.0f); // G
+    parcel.WriteFloat(0.0f); // B
+    parcel.WriteFloat(1.0f); // A
+    parcel.WriteFloat(0.0f); // H
+    parcel.WriteUint32(0); // posCount = 0
+    parcel.WriteInt32(INVALID_MODE_BELOW); // mode below min
+
+    bool isValid = true;
+    bool unmarshalResult = newShader->Unmarshalling(parcel, isValid);
+    EXPECT_FALSE(unmarshalResult);
+}
+
+/*
+ * @tc.name: UnmarshalCommonDataInvalidTileMode002
+ * @tc.desc: Test UnmarshalCommonData rejects modeValue above maximum (MIRROR=2)
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ * @tc.author:
+ */
+HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataInvalidTileMode002, TestSize.Level1)
+{
+    auto newShader = LinearGradientShaderObj::CreateForUnmarshalling();
+    ASSERT_TRUE(newShader != nullptr);
+
+    const int32_t INVALID_MODE_ABOVE = static_cast<int32_t>(TileMode::MIRROR) + 1;
+    MessageParcel parcel;
+    parcel.WriteFloat(10.0f); // startX
+    parcel.WriteFloat(20.0f); // startY
+    parcel.WriteFloat(110.0f); // endX
+    parcel.WriteFloat(120.0f); // endY
+    parcel.WriteUint32(1); // colorCount = 1
+    parcel.WriteFloat(1.0f); // R
+    parcel.WriteFloat(0.0f); // G
+    parcel.WriteFloat(0.0f); // B
+    parcel.WriteFloat(1.0f); // A
+    parcel.WriteFloat(0.0f); // H
+    parcel.WriteUint32(0); // posCount = 0
+    parcel.WriteInt32(INVALID_MODE_ABOVE); // mode above max
+
+    bool isValid = true;
+    bool unmarshalResult = newShader->Unmarshalling(parcel, isValid);
+    EXPECT_FALSE(unmarshalResult);
+}
+
 #endif // ROSEN_OHOS
 
 } // namespace Drawing

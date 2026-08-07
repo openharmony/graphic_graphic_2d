@@ -90,13 +90,13 @@ private:
     RSUniHwcPrevalidateUtil();
     ~RSUniHwcPrevalidateUtil();
 
-    bool IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr node) const;
+    bool IsYUVBufferFormat(const sptr<SurfaceBuffer>& buffer);
     bool IsNeedDssRotate(GraphicTransformType transform) const;
     void CopyCldInfo(const CldInfo& src, RequestLayerInfo& info);
     void LayerRotate(RequestLayerInfo& info, const sptr<IConsumerSurface>& surface);
-    bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
-    void CheckIfDoCopybit(const RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform,
-        RequestLayerInfo& info);
+    bool CheckIfDoArsrPre(const sptr<SurfaceBuffer>& buffer, const std::string& nodeName);
+    void CheckIfDoCopybit(const sptr<SurfaceBuffer>& buffer, GraphicTransformType transform,
+        RequestLayerInfo& info, const RSSurfaceRenderNode::SharedPtr node);
     void UpdateLayerUsage(const RSSurfaceRenderNode::SharedPtr node,
         RequestLayerInfo& info, bool isHwcEnabledBySolidLayer);
     static bool CheckHwcNode(const RSSurfaceRenderNode::SharedPtr& node);

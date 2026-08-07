@@ -110,7 +110,7 @@ RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::s
             return static_cast<RSComposerError>(serverRet);
         }
     }
-    RS_LOGI("%{public}s success.", __func__);
+    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s success.", __func__);
     return COMPOSITOR_ERROR_OK;
 }
 

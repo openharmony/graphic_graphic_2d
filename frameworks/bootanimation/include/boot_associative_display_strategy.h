@@ -33,8 +33,6 @@ private:
 
     bool IsSupportCoordination();
 
-    void PlayScreenAnimation(const BootAnimationConfig& config, int32_t duration, Rosen::ScreenId activeId);
-
     std::shared_ptr<BootAnimationOperation> operator_;
 };
 } // namespace OHOS

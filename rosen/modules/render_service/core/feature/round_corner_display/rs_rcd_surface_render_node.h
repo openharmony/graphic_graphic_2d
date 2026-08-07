@@ -36,7 +36,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSLayer;
-class RSRenderSurfaceRCDLayer;
 enum class RCDSurfaceType : uint32_t {
     BOTTOM,
     TOP,
