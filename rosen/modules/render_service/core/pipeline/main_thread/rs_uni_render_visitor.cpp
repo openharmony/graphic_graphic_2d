@@ -51,6 +51,9 @@
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+#include "feature/video_3d/rs_tv_shutter_3d_manager.h"
+#endif
 #include "memory/rs_tag_tracker.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_screen_render_params.h"
@@ -851,11 +854,8 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     curScreenNode_->SetFingerprint(hasFingerprint_);
     curScreenNode_->UpdateScreenRenderParams();
 #ifdef RS_ENABLE_TV_SHUTTER_3D
-    UIMode3D uiMode3D = RSMainThread::Instance()->GetUIMode3D();
-    if (uiMode3D == UIMode3D::MODE_SHUTTER_3D) {
-        curScreenNode_->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
-        hwcVisitor_->UpdateHwcNodeEnableByShutter3DLayer();
-    }
+    RSTvShutter3DManager::Instance().UpdateHwcNodeEnableByShutter3DLayer(
+        *curScreenNode_, RSMainThread::Instance()->GetUIMode3D());
 #endif
     UpdateColorSpaceAfterHwcCalc(node);
     RSHdrUtil::UpdatePixelFormatAfterHwcCalc(node);
@@ -2935,7 +2935,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
         bool isInvalidZorder = hwcNodePtr->IsHardwareForcedDisabled() &&
             !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
-        if (RSMainThread::Instance()->GetUIMode3D() == UIMode3D::MODE_SHUTTER_3D && hwcNodePtr->IsFullScreen()) {
+        if (RSMainThread::Instance()->GetUIMode3D() == UIMode3D::MODE_SHUTTER_3D &&
+            RSTvShutter3DManager::Instance().IsFullScreen(*hwcNodePtr)) {
             isInvalidZorder = false;
         }
 #endif

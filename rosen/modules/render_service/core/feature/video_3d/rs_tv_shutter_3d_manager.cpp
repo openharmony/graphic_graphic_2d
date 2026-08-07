@@ -36,16 +36,12 @@ bool RSTvShutter3DManager::Is3DEnabled(UIMode3D uiMode3D) const
     return offscreenSurface3D_ != nullptr && offscreenCanvas3D_ != nullptr && curCanvasBak_ != nullptr;
 }
 
-void RSTvShutter3DManager::Init3DContext(UIMode3D uiMode3D, int32_t width, int32_t height,
+bool RSTvShutter3DManager::Init3DContext(int32_t width, int32_t height,
     std::shared_ptr<RSPaintFilterCanvas>& curCanvas)
 {
-    if (uiMode3D != UIMode3D::MODE_SHUTTER_3D) {
-        return;
-    }
-
     if (!curCanvas) {
         RS_LOGE("RSTvShutter3DManager::Init3DContext curCanvas is null");
-        return;
+        return false;
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
@@ -55,14 +51,14 @@ void RSTvShutter3DManager::Init3DContext(UIMode3D uiMode3D, int32_t width, int32
     offscreenSurface3D_ = curCanvas->GetSurface()->MakeSurface(info);
     if (!offscreenSurface3D_) {
         RS_LOGE("RSTvShutter3DManager::Init3DContext failed to create offscreenSurface3D");
-        return;
+        return false;
     }
 
     offscreenCanvas3D_ = std::make_shared<RSPaintFilterCanvas>(offscreenSurface3D_.get());
     if (!offscreenCanvas3D_) {
         RS_LOGE("RSTvShutter3DManager::Init3DContext failed to create offscreenCanvas3D");
         offscreenSurface3D_ = nullptr;
-        return;
+        return false;
     }
 
     curCanvasBak_ = curCanvas;
@@ -71,6 +67,7 @@ void RSTvShutter3DManager::Init3DContext(UIMode3D uiMode3D, int32_t width, int32
     if (videoDimType_ == VideoDimType::VIDEO_DIM_TYPE_2D) {
         videoDimType_ = VideoDimType::VIDEO_DIM_TYPE_3D_SBS;
     }
+    return true;
 }
 
 void RSTvShutter3DManager::Process3DImage(std::shared_ptr<RSPaintFilterCanvas> targetCanvas,
@@ -152,7 +149,7 @@ void RSTvShutter3DManager::UpdateSurfaceNodeCompositionType(
     surfaceNode->ResetCompositionType();
     auto videoDimType = surfaceNode->GetVideoDimType();
     if (ShouldSet3DShutterComposition(uiMode3D, videoDimType)) {
-        RS_TRACE_NAME_FMT("MODE_SHUTTER_3D name:%s id:%" PRIu64 ", videoDimType: %d",
+        RS_TRACE_NAME_FMT("TvShutter3D: name:%s id:%" PRIu64 ", videoDimType: %d",
              surfaceNode->GetName().c_str(), surfaceNode->GetId(), videoDimType);
         surfaceNode->SetCompositionType(CompositionType::COMPOSITION_3D_SHUTTER);
         RS_LOGD("CollectInfoForHardwareComposer set %{public}s Set COMPOSITION_3D_SHUTTER",
@@ -168,17 +165,22 @@ bool RSTvShutter3DManager::Prepare3DForDraw(const RSScreenRenderParams& params,
         return false;
     }
     UIMode3D uiMode3D = params.GetUIMode3D();
+    if (uiMode3D != UIMode3D::MODE_SHUTTER_3D) {
+        SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_2D); // restore dimension type to 2D
+        return true;
+    }
     VideoDimType videoDimType = params.GetVideoDimType();
     int32_t width = drSurface->Width();
     int32_t height = drSurface->Height();
-    RS_TRACE_NAME_FMT("UX 3D: ui3dMode[%d], videoDimType[%d]", uiMode3D, videoDimType);
+    RS_TRACE_NAME_FMT("TvShutter3D: ui3dMode[%d], videoDimType[%d]", uiMode3D, videoDimType);
     SetVideoDimType(videoDimType);
-    if (uiMode3D == UIMode3D::MODE_SHUTTER_3D) {
-        Init3DContext(uiMode3D, width, height, curCanvas);
-        if (!Is3DEnabled(uiMode3D)) {
-            RS_LOGE("RSTvShutter3DManager::Prepare3DForDraw failed to init 3D context");
-            return false;
-        }
+    if (!Init3DContext(width, height, curCanvas)) {
+        RS_LOGE("RSTvShutter3DManager::Init3DContext failed");
+        return false;
+    }
+    if (!Is3DEnabled(uiMode3D)) {
+        RS_LOGE("RSTvShutter3DManager::Prepare3DForDraw failed to init 3D context");
+        return false;
     }
     return true;
 }
@@ -212,5 +214,75 @@ bool RSTvShutter3DManager::Process3DForFlush(UIMode3D uiMode3D, std::shared_ptr<
     Process3DImage(curCanvas, snapshot, GetVideoDimType());
     Release3DContext();
     return true;
+}
+
+bool RSTvShutter3DManager::IsFullScreen(const RSSurfaceRenderNode& surfaceNode) const
+{
+    if (!surfaceNode.IsOnTheTree()) {
+        return false;
+    }
+    if (surfaceNode.GetCompositionType() != CompositionType::COMPOSITION_3D_SHUTTER) {
+        return false;
+    }
+    auto context = surfaceNode.GetContext().lock();
+    if (!context) {
+        return false;
+    }
+    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(surfaceNode.GetScreenNodeId());
+    if (screenNode) {
+        const auto& screenProperty = screenNode->GetScreenProperty();
+        const auto& dstRect = surfaceNode.GetDstRect();
+        const float ratio = 0.99f;
+        RS_TRACE_NAME_FMT("TvShutter3D: dstRect[%d,%d,%d,%d], screen[%d,%d]",
+            dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_,
+            screenProperty.GetWidth(), screenProperty.GetHeight());
+        if (surfaceNode.GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_SBS) {
+            return dstRect.GetWidth() >= static_cast<int>(screenProperty.GetWidth() * ratio) &&
+                dstRect.left_ <= static_cast<int>(screenProperty.GetWidth() * (1.0 - ratio));
+        }
+        if (surfaceNode.GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_TAB) {
+            return dstRect.GetHeight() >= static_cast<int>(screenProperty.GetHeight() * ratio) &&
+                dstRect.top_ <= static_cast<int>(screenProperty.GetHeight() * (1.0 - ratio));
+        }
+    }
+    return false;
+}
+
+void RSTvShutter3DManager::UpdateHwcNodeEnableByShutter3DLayer(RSScreenRenderNode& screenNode, UIMode3D uiMode3D)
+{
+    if (uiMode3D != UIMode3D::MODE_SHUTTER_3D) {
+        return;
+    }
+    screenNode.SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    const auto& allHwcNodes = screenNode.GetChildHwcNodes();
+    if (screenNode.GetScreenProperty().GetConnectionType() !=
+        ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL) {
+        return;
+    }
+    for (auto& hwcNode : allHwcNodes) {
+        auto hwcNodePtr = hwcNode.lock();
+        if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
+            continue;
+        }
+        if (hwcNodePtr->GetCompositionType() == CompositionType::COMPOSITION_3D_SHUTTER) {
+            bool isFullScreen = IsFullScreen(*hwcNodePtr);
+            RS_TRACE_NAME_FMT("TvShutter3D: IsFullScreen[%d].", isFullScreen);
+            if (isFullScreen) {
+                hwcNodePtr->SetHardwareForcedDisabledState(false);
+                screenNode.SetVideoDimType(hwcNodePtr->GetVideoDimType());
+            } else {
+                hwcNodePtr->SetHardwareForcedDisabledState(true);
+            }
+        } else {
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams *>(hwcNodePtr->GetStagingRenderParams().get());
+        if (!surfaceParams) {
+            RS_LOGE("%{public}s surfaceParams is null", __func__);
+            continue;
+        }
+        surfaceParams->SetHardwareEnabled(!hwcNodePtr->IsHardwareForcedDisabled());
+        hwcNodePtr->AddToPendingSyncList();
+    }
 }
 } // namespace OHOS::Rosen
