@@ -1607,6 +1607,50 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckForceUpdateCallback, Function | SmallTest
 }
 
 /**
+ * @tc.name: SetSchedulerPreferredFps
+ * @tc.desc: Verify the result of SetSchedulerPreferredFps
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, SetSchedulerPreferredFps, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    mgr.schedulePreferredFps_ = OLED_60_HZ;
+    mgr.SetSchedulerPreferredFps(OLED_60_HZ);
+    mgr.SetSchedulerPreferredFps(OLED_120_HZ);
+    ASSERT_EQ(mgr.schedulePreferredFps_, OLED_120_HZ);
+}
+
+/**
+ * @tc.name: InitTimers
+ * @tc.desc: Verify the result of InitTimers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, InitTimers, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    mgr.SetVsyncRateDiscountLTPO({}, 0);
+    ASSERT_TRUE(mgr.changeGeneratorRateValid_);
+    mgr.SetChangeGeneratorRateValid(false);
+    EXPECT_FALSE(mgr.changeGeneratorRateValid_);
+    sleep(1);
+    EXPECT_TRUE(mgr.changeGeneratorRateValid_);
+    mgr.changeGeneratorRateValidTimer_.Stop();
+
+    EXPECT_EQ(mgr.rsFrameRateLinker_, nullptr);
+    mgr.rsFrameRateTimer_.Start();
+    sleep(1);
+
+    mgr.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
+    ASSERT_NE(mgr.rsFrameRateLinker_, nullptr);
+    mgr.rsFrameRateLinker_->SetExpectedRange(FrameRateRange{0, 1, 1}); // not null
+    mgr.rsFrameRateTimer_.Start();
+    sleep(1);
+    EXPECT_EQ(mgr.rsFrameRateLinker_->GetExpectedRange(), FrameRateRange{});
+    mgr.rsFrameRateTimer_.Stop();
+}
+/**
  * @tc.name: TestHandleTouchEvent
  * @tc.desc: Verify the result of HandleTouchEvent
  * @tc.type: FUNC
@@ -1805,36 +1849,6 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandlePointerTask, Function | SmallTest | Leve
 }
 
 /**
- * @tc.name: InitTimers
- * @tc.desc: Verify the result of InitTimers
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, InitTimers, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    mgr.SetVsyncRateDiscountLTPO({}, 0);
-    ASSERT_TRUE(mgr.changeGeneratorRateValid_);
-    mgr.SetChangeGeneratorRateValid(false);
-    EXPECT_FALSE(mgr.changeGeneratorRateValid_);
-    sleep(1);
-    EXPECT_TRUE(mgr.changeGeneratorRateValid_);
-    mgr.changeGeneratorRateValidTimer_.Stop();
-
-    EXPECT_EQ(mgr.rsFrameRateLinker_, nullptr);
-    mgr.rsFrameRateTimer_.Start();
-    sleep(1);
-
-    mgr.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
-    ASSERT_NE(mgr.rsFrameRateLinker_, nullptr);
-    mgr.rsFrameRateLinker_->SetExpectedRange(FrameRateRange{0, 1, 1}); // not null
-    mgr.rsFrameRateTimer_.Start();
-    sleep(1);
-    EXPECT_EQ(mgr.rsFrameRateLinker_->GetExpectedRange(), FrameRateRange{});
-    mgr.rsFrameRateTimer_.Stop();
-}
-
-/**
  * @tc.name: TestCheckRefreshRateChange
  * @tc.desc: Verify the result of CheckRefreshRateChange
  * @tc.type: FUNC
@@ -1955,21 +1969,6 @@ HWTEST_F(HgmFrameRateMgrTest, TriggerAdaptiveVsyncUpdateCallback, Function | Sma
     mgr.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     mgr.TriggerAdaptiveVsyncUpdateCallback();
     ASSERT_EQ(mgr.lastIsAdaptive_.load(), SupportASStatus::NOT_SUPPORT);
-}
-
-/**
- * @tc.name: SetSchedulerPreferredFps
- * @tc.desc: Verify the result of SetSchedulerPreferredFps
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, SetSchedulerPreferredFps, Function | SmallTest | Level2)
-{
-    HgmFrameRateManager mgr;
-    mgr.schedulePreferredFps_ = OLED_60_HZ;
-    mgr.SetSchedulerPreferredFps(OLED_60_HZ);
-    mgr.SetSchedulerPreferredFps(OLED_120_HZ);
-    ASSERT_EQ(mgr.schedulePreferredFps_, OLED_120_HZ);
 }
 
 /**
