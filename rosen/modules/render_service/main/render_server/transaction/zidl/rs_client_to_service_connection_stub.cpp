@@ -143,7 +143,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SHOW_WATERMARK),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::DROP_FRAME_BY_PID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS),
@@ -209,7 +208,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BACKGROUND_REBUILD_ENABLED),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID),
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
