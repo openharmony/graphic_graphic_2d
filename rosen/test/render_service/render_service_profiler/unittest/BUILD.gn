@@ -292,6 +292,11 @@ ohos_unittest("RSProfilerSocketTest") {
 ##############################  RSProfilerTest  ##################################
 ohos_unittest("RSProfilerTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   defines = [ "RS_PROFILER_ENABLED" ]
   sources = [ "rs_profiler_test.cpp" ]
 

@@ -55,12 +55,7 @@ public:
     static std::shared_ptr<RSRenderNodeDrawable> CreateDrawable();
 };
 
-void RSRenderNodeDrawableTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RSRenderNodeDrawableTest::SetUpTestCase() {}
 void RSRenderNodeDrawableTest::TearDownTestCase() {}
 void RSRenderNodeDrawableTest::SetUp() {}
 void RSRenderNodeDrawableTest::TearDown() {}
@@ -461,7 +456,9 @@ HWTEST_F(RSRenderNodeDrawableTest, InitCachedSurfaceTest, TestSize.Level1)
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     params.SetCacheSize({100, 200});
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     drawable->GetOpincDrawCache().isAdd_ = false;
     drawable->GetOpincDrawCache().opCanCache_ = false;
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid());
@@ -490,7 +487,9 @@ HWTEST_F(RSRenderNodeDrawableTest, InitCachedSurfaceEmptyUnionRectBranchTest, Te
 
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     params.SetCacheSize({64.f, 32.f});
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     ASSERT_NE(context, nullptr);
 
     drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
@@ -1140,7 +1139,9 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest002, TestSize.Level1)
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     params.SetCacheSize({ 100, 200 });
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     auto threadId = gettid();
     drawable->GetOpincDrawCache().isAdd_ = false;
     drawable->GetOpincDrawCache().opCanCache_ = false;
@@ -1260,7 +1261,9 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceWithColorGamutMap001, TestS
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     // Create a cached surface with SRGB color space
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     ASSERT_NE(context, nullptr);
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
@@ -1304,7 +1307,9 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceWithColorGamutMap002, TestS
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     // Create a cached surface with SRGB color space
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     ASSERT_NE(context, nullptr);
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
@@ -1347,7 +1352,9 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceWithNullUniParam, TestSize.
     params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     ASSERT_NE(context, nullptr);
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
@@ -1410,7 +1417,9 @@ HWTEST_F(RSRenderNodeDrawableTest, GetImageAliasTest002, TestSize.Level1)
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     params.SetCacheSize({100, 200});
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     EXPECT_NE(context, nullptr);
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid());
     EXPECT_NE(drawable->GetRenderGroupCachedSurface(), nullptr);
@@ -1956,7 +1965,9 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest005, TestSize.Level1)
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     params.SetCacheSize({ DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT });
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     ASSERT_NE(context, nullptr);
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
@@ -1982,7 +1993,9 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest006, TestSize.Level1)
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     params.SetCacheSize({ DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT });
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     ASSERT_NE(context, nullptr);
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
@@ -2008,7 +2021,9 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest007, TestSize.Level1)
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     params.SetCacheSize({ DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT });
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     ASSERT_NE(context, nullptr);
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
@@ -2034,7 +2049,9 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest008, TestSize.Level1)
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     params.SetCacheSize({ DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT });
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     ASSERT_NE(context, nullptr);
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);

@@ -27,6 +27,7 @@
 #include "common/rs_rect.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
+#include "platform/ohos/backend/rs_engine_header_ext.h"
 #include "screen_manager/screen_types.h"
 #include "surface_type.h"
 #include "utils/region.h"
@@ -354,7 +355,6 @@ public:
     void SetParallelThreadId(uint32_t idx);
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
-
     void RecordState(const RSPaintFilterCanvas& other);
     std::weak_ptr<Drawing::Surface> GetWeakSurface();
     // just used in SubTree, used for check whether a new Surface needs to be created in the SubTree thread.

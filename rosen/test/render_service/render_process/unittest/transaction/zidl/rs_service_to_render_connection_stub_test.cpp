@@ -128,11 +128,34 @@ void RSServiceToRenderConnectionStubTest::TearDownTestCase()
 
     renderPipeline->mainThread_->handler_ = nullptr;
     renderPipeline->mainThread_->receiver_ = nullptr;
+    if (renderPipeline->mainThread_->renderEngine_) {
+        if (renderPipeline->mainThread_->renderEngine_->renderContext_) {
+            renderPipeline->mainThread_->renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            renderPipeline->mainThread_->renderEngine_->renderContext_ = nullptr;
+        }
+        renderPipeline->mainThread_->renderEngine_->skContext_ = nullptr;
+        renderPipeline->mainThread_->renderEngine_->imageManager_ = nullptr;
+        renderPipeline->mainThread_->renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        renderPipeline->mainThread_->renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderPipeline->mainThread_->renderEngine_ = nullptr;
 
     renderPipeline->uniRenderThread_->handler_ = nullptr;
     renderPipeline->uniRenderThread_->runner_ = nullptr;
-    renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+    if (renderPipeline->uniRenderThread_->uniRenderEngine_) {
+        if (renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_) {
+            renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+        }
+        renderPipeline->uniRenderThread_->uniRenderEngine_->skContext_ = nullptr;
+        renderPipeline->uniRenderThread_->uniRenderEngine_->imageManager_ = nullptr;
+        renderPipeline->uniRenderThread_->uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        renderPipeline->uniRenderThread_->uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderPipeline->uniRenderThread_ = nullptr;
     renderPipeline = nullptr;

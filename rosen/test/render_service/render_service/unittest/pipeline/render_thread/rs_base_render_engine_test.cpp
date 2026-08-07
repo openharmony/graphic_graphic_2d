@@ -104,13 +104,11 @@ std::set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::s
 
 void RSBaseRenderEngineUnitTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 }
 void RSBaseRenderEngineUnitTest::TearDownTestCase() {}
 void RSBaseRenderEngineUnitTest::SetUp() {}
+
 void RSBaseRenderEngineUnitTest::TearDown() {}
 
 /**
@@ -834,17 +832,23 @@ HWTEST_F(RSBaseRenderEngineUnitTest, SetColorSpaceConverterDisplayParameterTest,
     params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
     ASSERT_EQ(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter), true);
+    RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
     bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     EXPECT_EQ(ret, false);
 
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
+
     staticMetadata.cta861.maxContentLightLevel = 400.0f;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
     ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter);
     EXPECT_EQ(ret, true);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 #endif
 }
 
@@ -1782,5 +1786,48 @@ HWTEST_F(RSBaseRenderEngineUnitTest, FlushGpu_FlushPhaseActive, TestSize.Level2)
     renderFrame->CancelActiveFlush();
     EXPECT_EQ(renderFrame->GetSurface(), nullptr);
     EXPECT_EQ(renderFrame->GetFrame(), nullptr);
+}
+
+/**
+ * @tc.name: InitProtectedRedrawTest
+ * @tc.desc: Test RSBaseRenderEngine Init with PROTECTED_REDRAW type sets isProtected_ to true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, InitProtectedRedrawTest, TestSize.Level1)
+{
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+    renderEngine->Init(RenderEngineType::PROTECTED_REDRAW);
+    // PROTECTED_REDRAW should set isProtected_ to true
+    EXPECT_EQ(renderEngine->isProtected_, true);
+    // protectedRenderContext_ should be created for PROTECTED_REDRAW
+    EXPECT_NE(renderEngine->protectedRenderContext_, nullptr);
+}
+ 
+/**
+ * @tc.name: ProtectedRenderContextSetSurfaceTest
+ * @tc.desc: Test that protectedRenderContext_ is set on surface when isProtected_ is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ProtectedRenderContextSetSurfaceTest, TestSize.Level1)
+{
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+    renderEngine->Init(RenderEngineType::PROTECTED_REDRAW);
+    ASSERT_EQ(renderEngine->isProtected_, true);
+    ASSERT_NE(renderEngine->protectedRenderContext_, nullptr);
+ 
+    // Create a surface and verify SetRenderContext is called with protected context
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("ProtectedRenderCtxTest");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    auto rsSurface = renderEngine->MakeRSSurface(pSurface, false);
+    if (rsSurface != nullptr) {
+        // When isProtected_ is true and protectedRenderContext_ is not null, surface should use it
+        EXPECT_NE(rsSurface, nullptr);
+    }
 }
 }

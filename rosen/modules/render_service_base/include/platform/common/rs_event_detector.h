@@ -19,7 +19,7 @@
 #include <atomic>
 #include <map>
 #include <memory>
-#include "hisysevent.h"
+#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
 #include "rs_log.h"
 
 namespace OHOS {

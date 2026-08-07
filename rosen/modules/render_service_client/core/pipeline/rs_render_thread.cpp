@@ -351,18 +351,12 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RS_TRACE_NAME("Init");
-        renderContext_->Init(); // init context on RT
         std::string cacheDir;
         {
             std::lock_guard<std::mutex> lock(mutex_);
             cacheDir = cacheDir_;
         }
-        if (!cacheDir.empty()) {
-            renderContext_->SetCacheDir(cacheDir);
-        }
-        if (RSSystemProperties::IsUseVulkan()) {
-            renderContext_->SetUpGpuContext();
-        }
+        renderContext_->Init(RenderEngineType::BASIC_RENDER, cacheDir); // init context on RT
 #endif
 #endif
     }

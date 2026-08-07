@@ -1555,6 +1555,22 @@ HWTEST_F(VSyncGeneratorTest, NeedPreexecuteAndUpdateTs001, Function | MediumTest
     usleep(9100);
     ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, lastVsyncTime), false);
 }
+
+/**
+ * @tc.name: NeedPreexecuteAndUpdateTs002
+ * @tc.desc: Test NeedPreexecuteAndUpdateTs when period_ is zero
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VSyncGeneratorTest, NeedPreexecuteAndUpdateTs002, Function | MediumTest| Level3)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->period_ = 0;
+    int64_t period = 0;
+    int64_t timestamp = 0;
+    int64_t lastVsyncTime = SystemTime();
+    ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, lastVsyncTime), false);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

@@ -43,12 +43,7 @@ constexpr int32_t NEGATIVE_ONE = -1;
 constexpr uint32_t MAPPOINTS_SIZE = 5;
 constexpr uint32_t MAPPOINTS_COUNT = 2;
 
-void NativeDrawingMatrixTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingMatrixTest::SetUpTestCase() {}
 void NativeDrawingMatrixTest::TearDownTestCase() {}
 void NativeDrawingMatrixTest::SetUp() {}
 void NativeDrawingMatrixTest::TearDown() {}

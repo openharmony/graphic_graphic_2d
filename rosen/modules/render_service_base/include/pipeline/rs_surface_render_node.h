@@ -1138,7 +1138,7 @@ public:
     void RegisterBufferClearListener(sptr<RSIBufferClearCallback> callback);
 
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
-    void ConnectToNodeInRenderService(sptr<IRemoteObject> connectToRender);
+    void ConnectToNodeInRenderService();
 
     void NotifyRTBufferAvailable(bool isTextureExportNode = false);
     bool IsNotifyRTBufferAvailable() const;
@@ -2463,6 +2463,8 @@ private:
 
     // Used for delegateComposite
     std::shared_ptr<RsDelegateCompositeParams> delegateCompositeParams_ = nullptr;
+
+    bool isBufferFlushed_ = false;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static RS_HIDDEN std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

@@ -18,6 +18,7 @@
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "font_napi/js_font.h"
 
 namespace OHOS::Rosen {
@@ -81,8 +82,8 @@ napi_value JsTextBlob::Constructor(napi_env env, napi_callback_info info)
 
     JsTextBlob *jsTextBlob = new JsTextBlob(env, drawingTextBlob);
 
-    status = napi_wrap(env, jsThis, jsTextBlob,
-                       JsTextBlob::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsTextBlob,
+        JsTextBlob::Destructor, nullptr, &TEXT_BLOB_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsTextBlob;
         ROSEN_LOGE("Failed to wrap native instance");
@@ -113,7 +114,7 @@ napi_value JsTextBlob::MakeFromRunBuffer(napi_env env, napi_callback_info info)
     }
 
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsFont, &FONT_TYPE_TAG);
 
     std::shared_ptr<Font> font = jsFont->GetFont();
     if (font == nullptr) {
@@ -206,7 +207,7 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_TWO, ARGC_THREE);
 
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsFont, &FONT_TYPE_TAG);
 
     std::shared_ptr<Font> font = jsFont->GetFont();
     if (font == nullptr) {
@@ -251,7 +252,7 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
 
 napi_value JsTextBlob::UniqueID(napi_env env, napi_callback_info info)
 {
-    JsTextBlob* me = CheckParamsAndGetThis<JsTextBlob>(env, info);
+    JsTextBlob* me = CheckParamsAndGetThisWithTag<JsTextBlob>(env, info, &TEXT_BLOB_TYPE_TAG);
     return (me != nullptr) ? me->OnUniqueID(env, info) : nullptr;
 }
 
@@ -351,7 +352,8 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
     }
 
     JsFont* jsFont = nullptr;
-    if ((napi_unwrap(env, argv[ARGC_THREE], reinterpret_cast<void**>(&jsFont)) != napi_ok) || jsFont == nullptr) {
+    if ((napi_unwrap_s(env, argv[ARGC_THREE], &FONT_TYPE_TAG,
+        reinterpret_cast<void**>(&jsFont)) != napi_ok) || jsFont == nullptr) {
         delete[] buffer;
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(ARGC_THREE) + " type.");
@@ -404,7 +406,7 @@ napi_value JsTextBlob::CreateJsTextBlob(napi_env env, const std::shared_ptr<Text
 
 napi_value JsTextBlob::Bounds(napi_env env, napi_callback_info info)
 {
-    JsTextBlob* me = CheckParamsAndGetThis<JsTextBlob>(env, info);
+    JsTextBlob* me = CheckParamsAndGetThisWithTag<JsTextBlob>(env, info, &TEXT_BLOB_TYPE_TAG);
     return (me != nullptr) ? me->OnBounds(env, info) : nullptr;
 }
 

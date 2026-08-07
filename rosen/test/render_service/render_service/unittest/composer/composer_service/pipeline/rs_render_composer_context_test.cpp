@@ -35,12 +35,7 @@ public:
     void TearDown() override;
 };
 
-void RsRenderComposerContextTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RsRenderComposerContextTest::SetUpTestCase() {}
 void RsRenderComposerContextTest::TearDownTestCase() {}
 void RsRenderComposerContextTest::SetUp() {}
 void RsRenderComposerContextTest::TearDown() {}

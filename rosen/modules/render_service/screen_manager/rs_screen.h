@@ -95,7 +95,7 @@ public:
     PanelPowerStatus GetPanelPowerStatus() const;
 
     int32_t SetDualScreenState(DualScreenStatus status);
-    int32_t SetAsMainScreen(bool isMainScreen);
+    void SetAsMainScreen(bool isMainScreen);
     bool IsMainScreen() const;
 
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
@@ -231,6 +231,7 @@ private:
         NOT_SUPPORT_HDR };
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
     mutable std::mutex supportedPhysicalHDRFormatsMutex_;
+    std::mutex surfaceConfigsMutex_;
     std::atomic<bool> specialHDRFormatsInit_ = false;
 
     static std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP;

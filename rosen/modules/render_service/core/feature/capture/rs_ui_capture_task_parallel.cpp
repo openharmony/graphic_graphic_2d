@@ -55,6 +55,7 @@
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/native_buffer_utils.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -462,7 +463,11 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);
     if (snapshotDmaEnabled && isEnableFeature) {
         sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, acquireFence,
+        RSUniRenderUtil::OptimizedFlushAndSubmit(
+#ifdef RS_ENABLE_VK
+            RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
+#endif
+            surface, grContext, acquireFence,
             GetFeatureParamValue("UICaptureConfig",
             &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
         bufferGuard.SetAcquireFence(acquireFence);
@@ -644,7 +649,7 @@ std::shared_ptr<Drawing::Surface> RSUiCaptureTaskParallel::CreateSurface(
             RS_LOGE("RSUiCaptureTaskParallel::CreateSurface: renderContext is nullptr");
             return nullptr;
         }
-        renderContext->SetUpGpuContext(nullptr);
+        renderContext->SetUpGpuContext();
         return Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
     }
 #endif
@@ -721,7 +726,9 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
             RS_TRACE_NAME_FMT("RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask "
                 "useDma for HDR. NodeId: [%" PRIu64 "]", id);
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
-            surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, grContext);
+            auto renderContext = RSBackgroundThread::Instance().GetRenderContext();
+            surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, grContext,
+                RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface());
             if (surface == nullptr) {
                 RS_LOGE("RSUiCaptureTaskParallel: GetSurfaceFromSurfaceBuffer fail.");
                 ProcessUiCaptureCallback(callback, id, captureConfig, nullptr, CaptureError::CAPTURE_RENDER_FAIL);

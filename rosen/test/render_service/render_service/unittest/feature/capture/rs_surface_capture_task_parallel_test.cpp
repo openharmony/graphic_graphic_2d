@@ -226,6 +226,37 @@ void RSSurfaceCaptureTaskParallelTest::SetUpTestCase()
 
 void RSSurfaceCaptureTaskParallelTest::TearDownTestCase()
 {
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        mainThread.renderEngine_->skContext_ = nullptr;
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
     surfaceCaptureCb_->Reset();
     screenManager_->preprocessor_ = nullptr;
     runner_->Stop();
@@ -992,7 +1023,20 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
     ASSERT_EQ(task1.Run(callback, captureParam), true);
     // Reset
     nodeMap.UnregisterRenderNode(nodeId);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 }
 
 /*
@@ -1036,7 +1080,21 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run006, TestSize.Level2)
     ASSERT_EQ(task1.Run(callback, captureParam), true);
     // Reset
     nodeMap.UnregisterRenderNode(nodeId);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            rt_.uniRenderEngine_->skContext_ = nullptr;
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 }
 
 /*
@@ -1088,7 +1146,21 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunWithDisplayNode, TestSize.Level2)
     usleep(500000);
 
     // Reset
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            rt_.uniRenderEngine_->skContext_ = nullptr;
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 }
 
 /*
@@ -1281,7 +1353,21 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture001, TestSize.Level0)
     // Reset
     screenManager_->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            rt_.uniRenderEngine_->skContext_ = nullptr;
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 }
 
 /*
@@ -1320,7 +1406,21 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture002, TestSize.Level0)
     // Reset
     screenManager_->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            rt_.uniRenderEngine_->skContext_ = nullptr;
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 }
 
 /*
@@ -1368,7 +1468,21 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture003, TestSize.Level0)
 
     // Reset
     nodeMap.UnregisterRenderNode(nodeId);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            rt_.uniRenderEngine_->skContext_ = nullptr;
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 }
 
 /*
@@ -1425,7 +1539,21 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     // Reset
     screenManager_->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            rt_.uniRenderEngine_->skContext_ = nullptr;
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 }
 
 /*
@@ -1772,8 +1900,9 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, DrawHDRSurfaceContent001, TestSize.Le
     captureConfig.isHdrCapture = true;
     auto task = std::make_shared<RSSurfaceCaptureTaskParallel>(nodeId, captureConfig);
     auto node = std::make_shared<RSRenderNode>(nodeId);
-
-
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     Media::InitializationOptions opts;
     opts.size.width = 480;
     opts.size.height = 320;
@@ -1827,6 +1956,9 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, PixelMapCopy002, TestSize.Level2)
                       RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR;
     ASSERT_TRUE(useDmaType);
 
+    auto context = RenderContext::Create();
+    context->Init();
+    RSBackgroundThread::Instance().renderContext_ = context;
     auto ret = task.PixelMapCopy(pixelmap, colorSpace, texture, Drawing::ColorType::COLORTYPE_RGBA_8888,
         true, 90, false);
     ASSERT_FALSE(ret);
@@ -1834,6 +1966,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, PixelMapCopy002, TestSize.Level2)
 
     ret = task.PixelMapCopy(pixelmap, colorSpace, texture, Drawing::ColorType::COLORTYPE_RGBA_8888, false, 90, false);
     ASSERT_FALSE(ret);
+    RSBackgroundThread::Instance().renderContext_ = nullptr;
 }
 #endif
 }

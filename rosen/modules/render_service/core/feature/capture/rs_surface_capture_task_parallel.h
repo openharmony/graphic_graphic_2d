@@ -22,6 +22,9 @@
 #include "feature/capture/rs_surface_capture_task.h"
 #include "pixel_map.h"
 #include "system/rs_system_parameters.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_interface.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -32,7 +35,7 @@ public:
     ~DmaMem();
     sptr<SurfaceBuffer> DmaMemAlloc(Drawing::ImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelMap);
     std::shared_ptr<Drawing::Surface> GetSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer,
-        std::shared_ptr<Drawing::GPUContext> gpuContext);
+        std::shared_ptr<Drawing::GPUContext> gpuContext, std::shared_ptr<RsVulkanInterface> vkInterface);
     void ReleaseDmaMemory();
 private:
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;

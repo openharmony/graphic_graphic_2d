@@ -23,6 +23,7 @@
 #include "utils/drawing_macros.h"
 #include "utils/rect.h"
 #include "drawing/draw/hps_effect_types.h"
+#include "platform/ohos/backend/rs_engine_header_ext.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -856,6 +857,15 @@ public:
      */
     virtual bool DrawPrimList(const PrimList& primList);
 
+    void SetRenderEngineType(RenderEngineType type)
+    {
+        renderEngineType_ = type;
+    }
+
+    RenderEngineType GetRenderEngineType() const
+    {
+        return renderEngineType_;
+    }
 protected:
     CoreCanvas(int32_t width, int32_t height);
     void BuildNoDraw(int32_t width, int32_t height);
@@ -867,6 +877,7 @@ protected:
 
 private:
     std::shared_ptr<CoreCanvasImpl> impl_;
+    RenderEngineType renderEngineType_ = RenderEngineType::BASIC_RENDER;
 #ifdef RS_ENABLE_GPU
     std::shared_ptr<GPUContext> gpuContext_;
 #endif

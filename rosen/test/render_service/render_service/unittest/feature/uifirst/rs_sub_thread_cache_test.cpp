@@ -66,12 +66,7 @@ public:
     RSRenderNodeDrawableAdapter::SharedPtr CreateStartingNodeDrawable(NodeId startingWindowId);
 };
 
-void RSSubThreadCacheTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RSSubThreadCacheTest::SetUpTestCase() {}
 void RSSubThreadCacheTest::TearDownTestCase() {}
 void RSSubThreadCacheTest::SetUp()
 {
@@ -160,11 +155,12 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedImageTest, TestSize.Level1)
 
 #ifdef RS_ENABLE_VK
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
+    auto vkInterface = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface();
     auto cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
-        10, 10, 0, VkFormat::VK_FORMAT_A1R5G5B5_UNORM_PACK16);
+        vkInterface, 10, 10, 0, VkFormat::VK_FORMAT_A1R5G5B5_UNORM_PACK16);
     auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
-        RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        vkInterface, vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     result = surfaceDrawable_->GetRsSubThreadCache().GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
     ASSERT_NE(result, nullptr);
     delete surfaceDrawable_->GetRsSubThreadCache().cacheCompletedCleanupHelper_;
@@ -209,7 +205,9 @@ HWTEST_F(RSSubThreadCacheTest, DrawCacheSurfaceTest, TestSize.Level1)
     EXPECT_FALSE(result);
 
 #ifdef RS_ENABLE_VK
-    auto context = RsVulkanContext::GetSingleton().GetRsVulkanInterface().CreateDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     rscanvas.canvas_->gpuContext_ = context;
     Drawing::ImageInfo info = Drawing::ImageInfo {
                                 100, 100,
@@ -1295,7 +1293,9 @@ HWTEST_F(RSSubThreadCacheTest, DrawBehindWindowBeforeCacheTest, TestSize.Level1)
     ASSERT_EQ(canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X), scaleFactor);
 
 #ifdef RS_ENABLE_VK
-    auto context = RsVulkanContext::GetSingleton().GetRsVulkanInterface().CreateDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto context = renderContext->CreateDrawingGPUContext();
     Drawing::ImageInfo info = Drawing::ImageInfo { 100, 100, Drawing::ColorType::COLORTYPE_RGBA_8888,
         Drawing::AlphaType::ALPHATYPE_PREMUL };
     auto surface = Drawing::Surface::MakeRenderTarget(context.get(), false, info);

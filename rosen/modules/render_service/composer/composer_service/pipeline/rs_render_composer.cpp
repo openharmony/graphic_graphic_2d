@@ -936,7 +936,7 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
                 break;
             }
         }
-        uniRenderEngine_->GetRenderContext()->ChangeProtectedState(isProtected);
+        uniRenderEngine_->ChangeProtectedState(isProtected);
     }
 #endif
 
@@ -1190,12 +1190,12 @@ void RSRenderComposer::ContextRegisterPostTask()
 #if defined(RS_ENABLE_VK) && defined(IS_ENABLE_DRM)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        uniRenderEngine_->GetRenderContext()->ChangeProtectedState(true);
+        uniRenderEngine_->ChangeProtectedState(true);
         auto context = uniRenderEngine_->GetRenderContext()->GetSharedDrGPUContext();
         if (context) {
             context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
         }
-        uniRenderEngine_->GetRenderContext()->ChangeProtectedState(false);
+        uniRenderEngine_->ChangeProtectedState(false);
         context = uniRenderEngine_->GetRenderContext()->GetSharedDrGPUContext();
         if (context) {
             auto weakThis = weak_from_this();

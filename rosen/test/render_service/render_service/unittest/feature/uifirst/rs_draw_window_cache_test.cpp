@@ -235,17 +235,21 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow003, TestSize.Level1)
 
 #ifdef RS_ENABLE_VK
     drawWindowCache.image_ = std::make_shared<Drawing::Image>();
-    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto drawingContext = renderContext->CreateDrawingGPUContext();
     std::shared_ptr<Drawing::GPUContext> gpuContext(drawingContext);
 
     sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBuffer(10, 10);
     OHNativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
-    auto backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer,
-        surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
+    auto backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+        nativeWindowBuffer, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
     DestroyNativeWindowBuffer(nativeWindowBuffer);
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     auto cleanupHelper = new NativeBufferUtils::VulkanCleanupHelper(
-        RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
 
     Drawing::BitmapFormat bFormat = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     auto colorSpace = Drawing::ColorSpace::CreateSRGB();

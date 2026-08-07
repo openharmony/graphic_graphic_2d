@@ -66,9 +66,6 @@ public:
 
 void RSUniRenderProcessorTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     RSTestUtil::InitRenderNodeGC();
     auto output = std::make_shared<HdiOutput>(screenId_);

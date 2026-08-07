@@ -1494,12 +1494,14 @@ ohos_unittest("RSSurfaceConverterTest") {
 
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "opengles:libGLES",
     "samgr:samgr_proxy",
     "skia:skia_canvaskit",
   ]

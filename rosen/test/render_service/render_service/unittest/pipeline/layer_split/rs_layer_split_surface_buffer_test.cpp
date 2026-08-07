@@ -47,7 +47,31 @@ public:
 
     void TearDown() override
     {
+        if (splitBuffer_ && splitBuffer_->surfaceHandler_) {
+            splitBuffer_->surfaceHandler_->buffer_.buffer.ForceSetRefPtr(nullptr);
+            splitBuffer_->surfaceHandler_->buffer_.acquireFence.ForceSetRefPtr(nullptr);
+            splitBuffer_->surfaceHandler_->buffer_.releaseFence.ForceSetRefPtr(nullptr);
+            splitBuffer_->surfaceHandler_->buffer_.bufferDeleteCb_ = nullptr;
+            splitBuffer_->surfaceHandler_->buffer_.bufferOwnerCount_ = nullptr;
+            splitBuffer_->surfaceHandler_->preBuffer_.buffer.ForceSetRefPtr(nullptr);
+            splitBuffer_->surfaceHandler_->preBuffer_.acquireFence.ForceSetRefPtr(nullptr);
+            splitBuffer_->surfaceHandler_->preBuffer_.releaseFence.ForceSetRefPtr(nullptr);
+            splitBuffer_->surfaceHandler_->preBuffer_.bufferDeleteCb_ = nullptr;
+            splitBuffer_->surfaceHandler_->preBuffer_.bufferOwnerCount_ = nullptr;
+            splitBuffer_->surfaceHandler_->holdBuffer_ = nullptr;
+#ifndef ROSEN_CROSS_PLATFORM
+            splitBuffer_->surfaceHandler_->consumer_.ForceSetRefPtr(nullptr);
+#endif
+        }
+        splitBuffer_->producerSurface_.ForceSetRefPtr(nullptr);
+        if (splitBuffer_->rsSurface_) {
+            splitBuffer_->rsSurface_->producer_.ForceSetRefPtr(nullptr);
+        }
         splitBuffer_.reset();
+        RSSurfaceHandler::SetGPUCacheCleanupCallback(nullptr);
+#ifndef ROSEN_CROSS_PLATFORM
+        RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback(nullptr);
+#endif
     }
 
 protected:
@@ -495,7 +519,7 @@ HWTEST_F(RSSplitSurfaceBufferTest, PreAllocateBufferImpl003_PreAllocBuffersFaile
     ASSERT_NE(splitBuffer_->producerSurface_, nullptr);
     splitBuffer_->PreAllocateBufferImpl(splitBuffer_->bufferConfig_);
     ASSERT_EQ(splitBuffer_->isPreAllocInProgress_.load(), false);
-    splitBuffer_->producerSurface_ = nullptr;
+    splitBuffer_->producerSurface_.ForceSetRefPtr(nullptr);
 }
 
 /**
@@ -515,7 +539,7 @@ HWTEST_F(RSSplitSurfaceBufferTest, PreAllocateBufferImpl004_Success, TestSize.Le
     ASSERT_NE(splitBuffer_->producerSurface_, nullptr);
     splitBuffer_->PreAllocateBufferImpl(splitBuffer_->bufferConfig_);
     ASSERT_EQ(splitBuffer_->isPreAllocInProgress_.load(), false);
-    splitBuffer_->producerSurface_ = nullptr;
+    splitBuffer_->producerSurface_.ForceSetRefPtr(nullptr);
 }
 
 } // namespace
