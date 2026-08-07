@@ -1838,6 +1838,42 @@
     "connectionType": 0
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_185",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSDepthNodeCreate*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_186",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSDepthNodeSetType*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_187",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSetIsDepthBackground*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_188",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSetIsDepthResource*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",
@@ -3256,14 +3292,6 @@
     "testCaseDesc": "SET_COLOR_FOLLOW_TEST_001",
     "interfaceName": "SET_COLOR_FOLLOW",
     "inputParams": "WriteString;WriteBool",
-    "writeInterfaceToken": true,
-    "messageOption": "TF_ASYNC",
-    "connectionType": 1
-  },
-  {
-    "testCaseDesc": "SET_GPU_CRC_DIRTY_ENABLED_PIDLIST_TEST_001",
-    "interfaceName": "SET_GPU_CRC_DIRTY_ENABLED_PIDLIST",
-    "inputParams": "WriteInt32Vector",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC",
     "connectionType": 1

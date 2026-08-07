@@ -1580,145 +1580,135 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ClearCanvasStencil001, TestSize
 }
 
 /**
- * @tc.name: ScaleAndRotateMirrorForWiredScreen
- * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen
+ * @tc.name: ScaleAndRotateMirrorForWiredScreenTest001
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen when nullptr and not nullptr, expect early return
  * @tc.type: FUNC
  * @tc.require: issueIAGR5V
  */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreenTest001, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(mirroredScreenDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_->renderParams_, nullptr);
+    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
+    ASSERT_NE(mirroredScreenDrawable_->renderParams_, nullptr);
 
-    mirroredDisplayDrawable_->renderParams_ = nullptr;
-    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_FALSE(mirroredDisplayDrawable_->GetRenderParams());
-
-    mirroredDisplayDrawable_->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(id);
-    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_TRUE(mirroredDisplayDrawable_->GetRenderParams());
-
+    // pay attentation to the order of the following tests
+    // when screenParam is nullptr, expect early return
     screenDrawable_->renderParams_ = nullptr;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_FALSE(screenDrawable_->GetRenderParams());
+    ASSERT_EQ(screenDrawable_->renderParams_, nullptr);
 
-    ASSERT_TRUE(displayDrawable_->GetRenderParams());
-
-    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(renderParams, nullptr);
-    ScreenId screenId = renderParams->GetScreenId();
+    // when mirroredScreenParams is nullptr, expect early return
+    mirroredScreenDrawable_->renderParams_ = nullptr;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    ASSERT_EQ(mirroredScreenDrawable_->renderParams_, nullptr);
 
-    auto mirroredScreenParams = static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
-    mirroredScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
-        static_cast<uint32_t>(ScreenRotation::ROTATION_90));
-
-    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
-    mirroredParams->SetAncestorScreenDrawable(mirroredScreenNode_->GetRenderDrawable());
-    auto [_, screenParams] = mirroredDisplayDrawable_->GetScreenParams(*mirroredParams);
-    ASSERT_NE(screenParams, nullptr);
-    auto mainScreenInfo = screenParams->GetScreenInfo();
-    mainScreenInfo.width = 1;
+    // when displayParams is nullptr, expect early return
+    displayDrawable_->renderParams_ = nullptr;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    ASSERT_EQ(displayDrawable_->renderParams_, nullptr);
 
-    mirroredScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
-        static_cast<uint32_t>(ScreenRotation::ROTATION_270));
-    mainScreenInfo.height = 1;
-    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    // when mirroredDisplayParams is nullptr, expect early return
     mirroredDisplayDrawable_->renderParams_ = nullptr;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_FALSE(mirroredDisplayDrawable_->renderParams_);
+    ASSERT_EQ(mirroredDisplayDrawable_->renderParams_, nullptr);
 }
 
 /**
- * @tc.name: ScaleAndRotateMirrorForWiredScreen002
- * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen while scale of width smaller
+ * @tc.name: ScaleAndRotateMirrorForWiredScreenTest002
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen when set screenCorrection to mirrorSourceScreenParams
  * @tc.type: FUNC
- * @tc.require: issueIANDBE
+ * @tc.require: issueIAGR5V
  */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen002, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreenTest002, TestSize.Level1)
 {
-    // set drawable screenInfo
-    ASSERT_NE(displayDrawable_, nullptr);
-    auto params = displayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(params, nullptr);
-    auto [_, screenParams] = displayDrawable_->GetScreenParams(*params);
-    ASSERT_NE(screenParams, nullptr);
-    screenParams->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
-        std::make_tuple(50, 100, screenParams->screenProperty_.GetRefreshRate()));
+    auto mirrorSourceScreenParams =
+        static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
 
-    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(mirroredParams, nullptr);
-    mirroredParams->fixedWidth_ = 100;
-    mirroredParams->fixedHeight_ = 100;
-    // scale mirror screen
+    // when set mirrorSourceScreenParams screenCorrection ROTATION_90
+    mirrorSourceScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_90));
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
-    EXPECT_NEAR(displayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
-        screenParams->screenProperty_.GetPhyWidth() / mirroredParams->fixedWidth_, FLOAT_DATA_EPSILON);
-}
 
-/**
- * @tc.name: ScaleAndRotateMirrorForWiredScreen003
- * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen while scale of height smaller
- * @tc.type: FUNC
- * @tc.require: issueIANDBE
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen003, TestSize.Level2)
-{
-    // set drawable screenInfo
-    ASSERT_NE(displayDrawable_, nullptr);
-    auto params = displayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(params, nullptr);
-    auto [_, screenParams] = displayDrawable_->GetScreenParams(*params);
-    ASSERT_NE(screenParams, nullptr);
-    screenParams->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
-        std::make_tuple(50, 100, screenParams->screenProperty_.GetRefreshRate()));
-
-    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(mirroredParams, nullptr);
-    mirroredParams->fixedWidth_ = 100;
-    mirroredParams->fixedHeight_ = 100;
-    // scale mirror screen
+    // when set mirrorSourceScreenParams screenCorrection ROTATION_0
+    mirrorSourceScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_0));
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
-    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
-    EXPECT_NEAR(displayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
-        screenParams->screenProperty_.GetHeight() / mirroredParams->fixedHeight_, FLOAT_DATA_EPSILON);
+
+    // when set mirrorSourceScreenParams screenCorrection INVALID_SCREEN_ROTATION
+    mirrorSourceScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION));
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
 }
 
 /**
- * @tc.name: ScaleAndRotateMirrorForWiredScreen004
- * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen while mainHeight / mainWidth invalid
+ * @tc.name: ScaleAndRotateMirrorForWiredScreenTest003
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen when set rotation
  * @tc.type: FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen004, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreenTest003, TestSize.Level1)
 {
-    // set drawable screenInfo
+    // at first, for more easy testing, set mirrorSourceScreenParams screenCorrection INVALID_SCREEN_ROTATION
+    auto mirrorSourceScreenParams =
+        static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
+    mirrorSourceScreenParams->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION));
+
+    // when rotation is ROTATION_0
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    displayParams->SetMirrorSourceRotation(ScreenRotation::ROTATION_0);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when rotation is ROTATION_90
+    displayParams->SetMirrorSourceRotation(ScreenRotation::ROTATION_90);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when rotation is ROTATION_180
+    displayParams->SetMirrorSourceRotation(ScreenRotation::ROTATION_180);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when rotation is ROTATION_270
+    displayParams->SetMirrorSourceRotation(ScreenRotation::ROTATION_270);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when rotation is INVALID_SCREEN_ROTATION
+    displayParams->SetMirrorSourceRotation(ScreenRotation::INVALID_SCREEN_ROTATION);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+}
+
+/**
+ * @tc.name: ScaleAndRotateMirrorForWiredScreenTest004
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen when isMirrorSLRCopy_ is true or false
+ * @tc.type: FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreenTest004, TestSize.Level2)
+{
     ASSERT_NE(displayDrawable_, nullptr);
-    auto mainParams = displayDrawable_->GetRenderParams() ?
-        static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(mainParams, nullptr);
-    mainParams->SetBoundsRect({0, 0, 0, 0});
-
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    ASSERT_NE(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
-    auto [_, mirroredScreenParams] =
-        mirroredDisplayDrawable_->GetScreenParams(*mirroredDisplayDrawable_->GetRenderParams());
-    ASSERT_NE(mirroredScreenParams, nullptr);
-    mirroredScreenParams->SetBoundsRect({0, 0, 100, 100});
 
-    // scale mirror screen
-    mirroredDisplayDrawable_->ScaleAndRotateMirrorForWiredScreen(*displayDrawable_);
-    ASSERT_NE(mirroredDisplayDrawable_->curCanvas_, nullptr);
-    ASSERT_EQ(mirroredDisplayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X), 1);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(displayParams, nullptr);
+    auto mirrorSourceDisplayParams =
+        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get());
+    ASSERT_NE(mirrorSourceDisplayParams, nullptr);
+
+    // when isMirrorSLRCopy_ is false
+    displayDrawable_->isMirrorSLRCopy_ = false;
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // when isMirrorSLRCopy_ is true
+    displayDrawable_->isMirrorSLRCopy_ = true;
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // test again when isMirrorSLRCopy_ is true
+    displayDrawable_->isMirrorSLRCopy_ = true;
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
 }
 
 /**
@@ -2105,7 +2095,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, FinishOffscreenRender, TestSize
     displayDrawable_->FinishOffscreenRender(sampling);
     ASSERT_FALSE(displayDrawable_->canvasBackup_);
 }
-
 
 /**
  * @tc.name: FinishOffscreenRender_NullBackup

@@ -27,7 +27,6 @@
 #include "rs_layer_transaction_data.h"
 #include "screen_manager/screen_types.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #ifdef RS_ENABLE_GPU
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
@@ -88,7 +87,6 @@ namespace {
 constexpr int SLEEP_TIME_US = 1000;
 const std::string REGISTER_NODE = "RegisterNode";
 constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
-constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 constexpr uint32_t PIDLIST_SIZE_MAX = 128;
 constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
@@ -1009,24 +1007,57 @@ ErrCode RSRenderPipelineAgent::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t&
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+bool RSRenderPipelineAgent::IsBufferConfigValid(const sptr<SurfaceBuffer>& buffer)
+{
+    if (buffer == nullptr) {
+        return true;
+    }
+
+    int32_t width = buffer->GetWidth();
+    int32_t height = buffer->GetHeight();
+    if (width <= 0 || height <= 0) {
+        RS_LOGE("IsBufferConfigValid: invalid dimensions, width=%{public}d, height=%{public}d", width, height);
+        return false;
+    }
+
+    int32_t format = buffer->GetFormat();
+    if (format != GRAPHIC_PIXEL_FMT_RGBA_8888) {
+        RS_LOGE("IsBufferConfigValid: unsupported format=%{public}d", format);
+        return false;
+    }
+
+    int32_t stride = buffer->GetStride();
+    int32_t bytesPerPixel = 4; // Bytes per pixel for RGBA_8888 is 4
+    uint64_t minStride = static_cast<uint64_t>(width) * static_cast<uint64_t>(bytesPerPixel);
+    if (static_cast<uint64_t>(stride) < minStride) {
+        RS_LOGE("IsBufferConfigValid: stride(%{public}d) < width(%{public}d) * bpp(%{public}d)", stride, width,
+            bytesPerPixel);
+        return false;
+    }
+
+    uint32_t size = buffer->GetSize();
+    uint64_t minSize = static_cast<uint64_t>(stride) * static_cast<uint64_t>(height);
+    if (static_cast<uint64_t>(size) < minSize) {
+        RS_LOGE(
+            "IsBufferConfigValid: size(%{public}u) < stride(%{public}d) * height(%{public}d)", size, stride, height);
+        return false;
+    }
+    return true;
+}
+
 void RSRenderPipelineAgent::RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback)
 {
     RSCanvasDmaBufferCache::GetInstance().RegisterCanvasCallback(remotePid, callback);
 }
 
 int32_t RSRenderPipelineAgent::SubmitCanvasPreAllocatedBuffer(
-    pid_t remotePid, NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
-    if (!NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
-        return FEATURE_DISABLED;
-    }
-    auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
+    if (!IsBufferConfigValid(buffer)) {
         return INVALID_ARGUMENTS;
     }
-    if (ExtractPid(nodeId) != remotePid) {
-        RS_LOGE("SubmitCanvasPreAllocatedBuffer: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d",
-            nodeId, remotePid);
+    auto pipeline = rsRenderPipeline_.lock();
+    if (pipeline == nullptr) {
         return INVALID_ARGUMENTS;
     }
     auto& nodeMap = pipeline->GetMainThread()->GetContext().GetMutableNodeMap();
@@ -1329,12 +1360,6 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
     auto defaultUsage = surface->GetDefaultUsage();
     auto nodeId = node->GetId();
-    bool isUseSelfDrawBufferUsage = RSSystemProperties::GetSelfDrawingDirtyRegionEnabled() &&
-                                    RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(nodeId) &&
-                                    config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
-    if (isUseSelfDrawBufferUsage) {
-        defaultUsage |= BUFFER_USAGE_AUXILLARY_BUFFER0;
-    }
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
     if (auto renderEngine = pipeline->GetUniRenderThread()->GetRenderEngine()) {
@@ -2310,17 +2335,6 @@ ErrCode RSRenderPipelineAgent::GetShowRefreshRateEnabled(bool& enable)
         return ERR_INVALID_VALUE;
     }
     enable = RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled();
-    return ERR_OK;
-}
-
-ErrCode RSRenderPipelineAgent::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [pidList]() -> void { RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList(pidList); };
-    pipeline->PostMainThreadTask(task);
     return ERR_OK;
 }
 

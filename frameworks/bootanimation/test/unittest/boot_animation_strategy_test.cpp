@@ -135,7 +135,7 @@ HWTEST_F(BootAnimationStrategyTest, OnScreenChanged_InvalidScreenId_NoScreenTrue
     strategy->noScreen_ = false;
     EXPECT_FALSE(strategy->noScreen_.load());
 
-    strategy->OnScreenChanged(INVALID_SCREEN_ID, ScreenEvent::UNKNOWN, ScreenChangeReason::DEFAULT, nullptr);
+    strategy->OnScreenChanged(NONE_PHYSICAL_SCREEN_ID, ScreenEvent::UNKNOWN, ScreenChangeReason::DEFAULT, nullptr);
 
     EXPECT_TRUE(strategy->noScreen_.load());
 }

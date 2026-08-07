@@ -137,7 +137,7 @@ Filter FilterImpl::WaterRipple(double progress, int32_t waveCount, double x, dou
     }
     auto para = std::make_shared<OHOS::Rosen::WaterRipplePara>();
     para->SetProgress(static_cast<float>(progress));
-    para->SetWaveCount(static_cast<uint32_t>(waveCount));
+    para->SetWaveCount(static_cast<uint32_t>(std::max(waveCount, 0)));
     para->SetRippleCenterX(static_cast<float>(x));
     para->SetRippleCenterY(static_cast<float>(y));
     para->SetRippleMode(ConvertUint32FromTaiheWaterRippleMode(rippleMode));

@@ -117,6 +117,7 @@ private:
     std::optional<ProcessUniqueId> GetRenderProcessUniqueIdByGroupIdLocked(GroupId groupId) const;
     std::optional<ProcessUniqueId> GetValidRenderProcessUniqueIdByPidLocked(pid_t pid) const;
     bool IsValidRenderProcessUniqueIdLocked(ProcessUniqueId uid) const;
+    std::optional<pid_t> ReadPpidFromProc(pid_t pid) const;
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConnByUniqueIdLocked(ProcessUniqueId uid) const;
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnByUniqueIdLocked(ProcessUniqueId uid) const;
     sptr<IRSComposerToRenderConnection> GetComposerToRenderConnByUniqueIdLocked(ProcessUniqueId uid) const;

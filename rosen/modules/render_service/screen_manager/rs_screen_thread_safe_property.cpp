@@ -196,7 +196,6 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::RemoveWhiteList(
     for (auto id : whiteList) {
         tmpList.erase(id);
     }
-
     auto prop = property_->Set<ScreenPropertyType::WHITE_LIST>(tmpList);
     return { ScreenPropertyType::WHITE_LIST, prop };
 }
@@ -341,6 +340,13 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetFrameGravity(
     return { ScreenPropertyType::SCREEN_FRAME_GRAVITY, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::IS_MAIN_SCREEN>(isMainScreen);
+    return { ScreenPropertyType::IS_MAIN_SCREEN, prop };
+}
+
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetMultiSurfaceConfigs(
     const std::vector<SurfaceRegionConfig>& configs)
 {
@@ -371,13 +377,6 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::RemoveSurfaceCon
         }), configs.end());
     auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
     return { ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
-}
-
-RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)
-{
-    UniqueLock lock(propertyMutex_);
-    auto prop = property_->Set<ScreenPropertyType::IS_MAIN_SCREEN>(isMainScreen);
-    return { ScreenPropertyType::IS_MAIN_SCREEN, prop };
 }
 
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetIsRogResolution(bool isRogResolution)
@@ -664,15 +663,16 @@ std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamut
     return property_->GetScreenSupportedColorGamuts();
 }
 
-std::vector<SurfaceRegionConfig> RSScreenThreadSafeProperty::GetMultiSurfaceConfigs() const
-{
-    SharedLock lock(propertyMutex_);
-    return property_->GetMultiSurfaceConfigs();
-}
 bool RSScreenThreadSafeProperty::IsMainScreen() const
 {
     SharedLock lock(propertyMutex_);
     return property_->IsMainScreen();
+}
+
+std::vector<SurfaceRegionConfig> RSScreenThreadSafeProperty::GetMultiSurfaceConfigs() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetMultiSurfaceConfigs();
 }
 
 bool RSScreenThreadSafeProperty::IsRogResolution() const

@@ -531,6 +531,13 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 surfaceNode->UpdateAbilityNodeIds(GetId(), IsOnTheTree());
             }
         }
+    } else if (IsHardwareEnabledType() && RSUniRenderJudgement::IsUniRender()) {
+        if (auto instanceRootNode = GetInstanceRootNode()) {
+            auto surfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (surfaceNode != nullptr && IsOnTheTree()) {
+                surfaceNode->SetNeedCollectHwcNode(true);
+            }
+        }
     }
     OnSubSurfaceChanged();
 
@@ -1711,6 +1718,7 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
     surfaceParams->SetBuffer(buffer, bufferOwnerCount, damageRect);
     surfaceParams->SetAcquireFence(acquireFence);
     surfaceParams->SetBufferSynced(false);
+    isBufferFlushed_ = true;
     surfaceParams->SetIsBufferFlushed(true);
     AddToPendingSyncList();
 #endif
@@ -3949,6 +3957,9 @@ void RSSurfaceRenderNode::SetIsCloned(bool isCloned)
 
 void RSSurfaceRenderNode::ResetIsBufferFlushed()
 {
+    if (!isBufferFlushed_) {
+        return;
+    }
     if (stagingRenderParams_ == nullptr) {
         RS_LOGE("RSSurfaceRenderNode::ResetIsBufferFlushed: stagingRenderPrams is nullptr");
         return;
@@ -3958,6 +3969,7 @@ void RSSurfaceRenderNode::ResetIsBufferFlushed()
         RS_LOGE("RSSurfaceRenderNode::ResetIsBufferFlushed: surfaceParams is nullptr");
         return;
     }
+    isBufferFlushed_ = false;
     if (!surfaceParams->GetIsBufferFlushed()) {
         return;
     }
@@ -3970,20 +3982,7 @@ void RSSurfaceRenderNode::ResetSurfaceNodeStates()
     animateState_ = false;
     isRotating_ = false;
     specialLayerChanged_ = false;
-    if (stagingRenderParams_ == nullptr) {
-        RS_LOGE("RSSurfaceRenderNode::ResetSurfaceNodeStates: stagingRenderPrams is nullptr");
-        return;
-    }
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams == nullptr) {
-        RS_LOGE("RSSurfaceRenderNode::ResetSurfaceNodeStates: surfaceParams is nullptr");
-        return;
-    }
-    if (!surfaceParams->GetIsBufferFlushed()) {
-        return;
-    }
-    surfaceParams->SetIsBufferFlushed(false);
-    AddToPendingSyncList();
+    ResetIsBufferFlushed();
 }
 
 void RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled(bool isEnabled)

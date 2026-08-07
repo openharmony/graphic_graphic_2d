@@ -33,6 +33,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "property/rs_spatial_effect_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2690,13 +2691,17 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetIsBufferFlushed, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
+    testNode->IsBufferFlushed_ = false;
+    testNode->ResetIsBufferFlushed();
+
     testNode->stagingRenderParams_ = nullptr;
+    testNode->IsBufferFlushed_ = true;
     ASSERT_EQ(testNode->stagingRenderParams_, nullptr);
     testNode->ResetIsBufferFlushed();
 
     testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     ASSERT_NE(testNode->stagingRenderParams_, nullptr);
-
+    testNode->IsBufferFlushed_ = true;
     testNode->ResetIsBufferFlushed();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
@@ -2713,12 +2718,13 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceNodeStates, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
     testNode->stagingRenderParams_ = nullptr;
+    testNode->IsBufferFlushed_ = true;
     ASSERT_EQ(testNode->stagingRenderParams_, nullptr);
     testNode->ResetSurfaceNodeStates();
 
     testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     ASSERT_NE(testNode->stagingRenderParams_, nullptr);
-
+    testNode->IsBufferFlushed_ = true;
     testNode->ResetSurfaceNodeStates();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
@@ -2921,6 +2927,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRelatedTest, TestSize.Level1)
     node->SetRelated(true);
     ASSERT_TRUE(node->addedToPendingSyncList_);
     ASSERT_TRUE(node->IsRelated());
+}
+
+/**
+ * @tc.name: SetIsDepthResource
+ * @tc.desc: Test IsDepthResource to surface node
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsDepthResource, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SetIsDepthResource(true);
+    EXPECT_FALSE(RSSpatialEffectManager::Instance()->depthResourceNodeMap_.empty());
+    node->SetIsDepthResource(false);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthResourceNodeMap_.empty());
+}
+
+/**
+ * @tc.name: SetIsDepthBackground
+ * @tc.desc: Test IsDepthBackground to surface node
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsDepthBackground, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SetIsDepthBackground(true);
+    EXPECT_FALSE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
+    node->SetIsDepthBackground(false);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
 }
 
 /**
@@ -3602,6 +3640,20 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRebuildingState003, TestSize.Level1)
     ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
     surfaceRenderNode.SetRebuildingState(true);
     EXPECT_FALSE(surfaceRenderNode.isRebuildingState_);
+}
+
+/**
+ * @tc.name: GetVideoDimType_001
+ * @tc.desc: Test GetVideoDimType returns default VIDEO_DIM_TYPE_2D
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetVideoDimType_001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    EXPECT_EQ(surfaceNode->GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
 }
 } // namespace Rosen
 } // namespace OHOS

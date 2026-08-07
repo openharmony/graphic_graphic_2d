@@ -1334,6 +1334,70 @@ HWTEST_F(RSObjAbsGeometryTest, SetAbsMatrix, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReplaceMatrix001
+ * @tc.desc: Verify function ReplaceMatrix with identity matrices
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, ReplaceMatrix001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. Test ReplaceMatrix with both identity matrices
+     * @tc.expected: matrix_ and absMatrix_ should remain unchanged
+     */
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    Drawing::Matrix identityMatrix;
+    EXPECT_TRUE(identityMatrix.IsIdentity());
+
+    // Set initial non-identity matrices
+    Drawing::Matrix initialMatrix;
+    initialMatrix.SetScale(2.0f, 2.0f);
+    rsObjAbsGeometry->matrix_ = initialMatrix;
+    rsObjAbsGeometry->absMatrix_ = initialMatrix;
+
+    // Call ReplaceMatrix with identity matrices
+    rsObjAbsGeometry->ReplaceMatrix(identityMatrix, identityMatrix);
+
+    // Verify matrices remain unchanged (identity matrices should not replace)
+    for (int i = 0; i < 9; ++i) {
+        EXPECT_EQ(rsObjAbsGeometry->matrix_.Get(i), initialMatrix.Get(i));
+    }
+}
+
+/**
+ * @tc.name: ReplaceMatrix002
+ * @tc.desc: Verify function ReplaceMatrix with non-identity matrix only
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, ReplaceMatrix002, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. Test ReplaceMatrix with non-identity matrix only
+     * @tc.expected: matrix_ should be replaced, absMatrix_ should remain unchanged
+     */
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    Drawing::Matrix identityMatrix;
+    Drawing::Matrix nonIdentityMatrix;
+    nonIdentityMatrix.SetScale(1.5f, 1.5f);
+    EXPECT_FALSE(nonIdentityMatrix.IsIdentity());
+
+    // Set initial matrices
+    Drawing::Matrix initialMatrix;
+    initialMatrix.Translate(10.0f, 20.0f);
+    rsObjAbsGeometry->matrix_ = initialMatrix;
+    rsObjAbsGeometry->absMatrix_ = initialMatrix;
+
+    // Call ReplaceMatrix with non-identity matrix and identity absMatrix
+    rsObjAbsGeometry->ReplaceMatrix(nonIdentityMatrix, identityMatrix);
+
+    // Verify matrix_ is replaced
+    for (int i = 0; i < 9; ++i) {
+        EXPECT_EQ(rsObjAbsGeometry->matrix_.Get(i), nonIdentityMatrix.Get(i));
+    }
+}
+
+/**
  * @tc.name: GetPivotDefaultValuesTest
  * @tc.desc: Verify GetPivot methods return default values when trans_ is not initialized
  * @tc.type: FUNC

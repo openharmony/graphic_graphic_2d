@@ -675,6 +675,11 @@ bool RSMarshallingHelper::GetUseSharedMem(std::thread::id tid)
 
 void RSMarshallingHelper::SetCallingPid(pid_t callingPid) {}
 
+pid_t RSMarshallingHelper::GetCallingPid()
+{
+    return 0;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return true;

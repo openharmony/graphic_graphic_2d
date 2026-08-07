@@ -42,7 +42,6 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_ui_render_director.h"
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
@@ -4464,38 +4463,6 @@ HWTEST_F(RSRenderNodeTest, RepaintBoundary, TestSize.Level1)
     ASSERT_EQ(renderNode->IsRepaintBoundary(), true);
 }
 
-/*
- * @tc.name: IsUIRenderDirectorStopped
- * @tc.desc: Test IsUIRenderDirectorStopped returns true only when the context director is in STOP state
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, IsUIRenderDirectorStopped, TestSize.Level1)
-{
-    constexpr pid_t pid = 600;
-    constexpr uint64_t token = 601;
-    constexpr NodeId nodeId = MakeNodeId(pid, 0);
-    auto renderNode = std::make_shared<RSRenderNode>(nodeId);
-    ASSERT_NE(renderNode, nullptr);
-
-    // no context injected
-    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
-
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    renderNode->OnRegister(context);
-    // no director created yet
-    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
-
-    renderNode->SetUIContextToken(token);
-    context->CreateUIRenderDirector(pid, token);
-    auto director = context->GetUIRenderDirector(pid, token);
-    ASSERT_NE(director, nullptr);
-    // director is not in STOP state
-    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
-
-    director->OnStateSync(RSUIDirectorLifecycleState::STOP);
-    EXPECT_TRUE(renderNode->IsUIRenderDirectorStopped());
-}
-
 #ifdef SUBTREE_PARALLEL_ENABLE
 /*
  * @tc.name: UpdateSubTreeParallelNodes
@@ -5052,6 +5019,22 @@ HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithStagingParams, TestSize.Le
 
     EXPECT_TRUE(node->stagingRenderParams_->ChildHasVisibleFilter());
     EXPECT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
+}
+
+/**
+ * @tc.name: ChildHasSpatialEffect001
+ * @tc.desc: test SetChildHasSpatialEffect and ChildHasSpatialEffect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, ChildHasSpatialEffect001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    EXPECT_FALSE(node.ChildHasSpatialEffect());
+    node.SetChildHasSpatialEffect(true);
+    EXPECT_TRUE(node.ChildHasSpatialEffect());
+    node.SetChildHasSpatialEffect(false);
+    EXPECT_FALSE(node.ChildHasSpatialEffect());
 }
 
 /**

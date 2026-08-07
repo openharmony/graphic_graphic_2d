@@ -1850,4 +1850,44 @@ HWTEST_F(RSOcclusionNodeTest, UpdateCoverageInfo_OccludedFilterNodeSkipsClipping
 
     EXPECT_EQ(globalCoverage.rect_, srcRect);
 }
+
+/*
+ * @tc.name: IsBlendOpaque_WithFgBrightnessValid
+ * @tc.desc: Test IsBlendOpaque returns false when fg brightness is valid
+ * @tc.type: FUNC
+ * @tc.require: issue25487
+ */
+HWTEST_F(RSOcclusionNodeTest, IsBlendOpaque_WithFgBrightnessValid, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    RSProperties renderProperties;
+    RSDynamicBrightnessPara fgParams;
+    fgParams.fraction_ = 0.5f;
+    renderProperties.SetFgBrightnessParams(fgParams);
+    EXPECT_FALSE(rootNode->IsBlendOpaque(renderProperties));
+}
+
+/*
+ * @tc.name: IsBlendOpaque_WithBlendModes
+ * @tc.desc: Test IsBlendOpaque returns correct value for different blend modes
+ * @tc.type: FUNC
+ * @tc.require: issue25487
+ */
+HWTEST_F(RSOcclusionNodeTest, IsBlendOpaque_WithBlendModes, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    RSProperties renderProperties;
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::NONE));
+    EXPECT_TRUE(rootNode->IsBlendOpaque(renderProperties));
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
+    EXPECT_TRUE(rootNode->IsBlendOpaque(renderProperties));
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC));
+    EXPECT_TRUE(rootNode->IsBlendOpaque(renderProperties));
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::MULTIPLY));
+    EXPECT_FALSE(rootNode->IsBlendOpaque(renderProperties));
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::SCREEN));
+    EXPECT_FALSE(rootNode->IsBlendOpaque(renderProperties));
+}
 } // namespace OHOS::Rosen

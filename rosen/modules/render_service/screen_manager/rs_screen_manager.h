@@ -29,8 +29,8 @@
 
 #include <ipc_callbacks/active_screen_id_changed_callback.h>
 #include <ipc_callbacks/screen_change_callback.h>
-#include <ipc_callbacks/screen_supported_hdr_formats_callback.h>
 #include <ipc_callbacks/screen_switching_notify_callback.h>
+#include <ipc_callbacks/screen_supported_hdr_formats_callback.h>
 #include <refbase.h>
 #include <surface.h>
 #include <surface_type.h>
@@ -42,7 +42,6 @@
 #include <screen_manager/rs_screen_hdr_capability.h>
 #include <screen_manager/screen_types.h>
 #include <screen_manager/rs_virtual_screen_resolution.h>
-#include <screen_manager/rs_screen_info.h>
 #include <screen_manager/rs_screen_property.h>
 #include <screen_manager/rs_surface_region_config.h>
 #include "rs_screen_preprocessor.h"
@@ -51,7 +50,9 @@
 namespace OHOS {
 namespace Rosen {
 class RSScreen;
+
 struct VirtualScreenConfigs;
+
 // This class can be only created by RSRenderService to manager screen.
 class RSScreenManager : public RefBase {
 public:
@@ -140,15 +141,15 @@ public:
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
 
     // virtual screen
-    ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height,
-        sptr<Surface> surface,
-        ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<uint64_t> whiteList = {});
+    ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
+        ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
     void RemoveVirtualScreen(ScreenId id);
     uint32_t GetCurrentVirtualScreenNum();
 
     // Multi-surface virtual screen methods
     int32_t AddVirtualScreenSurface(ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs);
     int32_t RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces);
+
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
@@ -167,13 +168,13 @@ public:
 
     // blacklist
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
-    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
-    int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
-    int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
+    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
+    int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
 
     // type blacklist
     int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);
-    
+
     // whitelist
     int32_t AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);
     int32_t RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);
@@ -189,7 +190,6 @@ public:
 
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
-
     void OnScreenChangeCallbackChanged(sptr<RSIScreenManagerAgentListener> agentListener) const;
     bool UpdateVsyncEnabledScreenId(ScreenId screenId);
     uint64_t JudgeVSyncEnabledScreenWhilePowerStatusChanged(
@@ -209,8 +209,8 @@ private:
     void ProcessPendingConnections();
     void ProcessScreenDisConnected(ScreenId id);
     void HandleDefaultScreenDisConnected();
+    sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const; // Only for internal use by ScreenManager.
 
-    sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const; // Only for internal use by ScreenManager
     std::shared_ptr<RSScreen> GetScreen(ScreenId id) const;
     bool HasPhysicalScreen();
 
@@ -266,6 +266,7 @@ private:
 
     bool isFoldScreenFlag_ = false;
     std::unique_ptr<RSFoldScreenManager> foldScreenManager_;
+
     struct FoldScreenStatus {
         bool isConnected;
         bool isPowerOn;

@@ -15,6 +15,7 @@
 
 #include "js_mask_filter.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "native_value.h"
 
 namespace OHOS::Rosen {
@@ -76,7 +77,7 @@ napi_value JsMaskFilter::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsMaskFilter *jsMaskFilter = new JsMaskFilter();
-    status = napi_wrap(env, jsThis, jsMaskFilter, JsMaskFilter::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsMaskFilter, JsMaskFilter::Destructor, nullptr, &MASK_FILTER_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsMaskFilter;
         ROSEN_LOGE("JsMaskFilter::Constructor failed to wrap native instance");
@@ -117,20 +118,26 @@ napi_value JsMaskFilter::CreateBlurMaskFilter(napi_env env, napi_callback_info i
 
 napi_value JsMaskFilter::Create(napi_env env, std::shared_ptr<MaskFilter> maskFilter)
 {
+    if (maskFilter == nullptr) {
+        ROSEN_LOGE("JsMaskFilter::Create maskFilter is null!");
+        return nullptr;
+    }
+
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue == nullptr || maskFilter == nullptr) {
-        ROSEN_LOGE("JsMaskFilter::Create object is null!");
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsMaskFilter::Create napi_create_object failed");
         return nullptr;
     }
 
     std::unique_ptr<JsMaskFilter> jsMaskFilter = std::make_unique<JsMaskFilter>(maskFilter);
-    napi_wrap(env, objValue, jsMaskFilter.release(), JsMaskFilter::Finalizer, nullptr, nullptr);
-
-    if (objValue == nullptr) {
-        ROSEN_LOGE("JsMaskFilter::Create object value is null!");
+    status = napi_wrap_s(env, objValue, jsMaskFilter.get(), JsMaskFilter::Finalizer,
+        nullptr, &MASK_FILTER_TYPE_TAG, nullptr);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsMaskFilter::Create failed to wrap native instance");
         return nullptr;
     }
+    jsMaskFilter.release();
     return objValue;
 }
 

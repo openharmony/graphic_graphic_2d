@@ -51,7 +51,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_tunnel_layer_utils.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
@@ -2142,11 +2141,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (UNLIKELY(surfaceNode == nullptr)) {
                 return;
             }
-            if (surfaceNode->IsUIRenderDirectorStopped()) {
-                RS_OPTIONAL_TRACE_NAME_FMT("ConsumeAndUpdateAllNodes skip stopped director node %" PRIu64,
-                    surfaceNode->GetId());
-                return;
-            }
             surfaceNode->ResetSurfaceNodeStates();
             // Reset BasicGeoTrans info at the beginning of cmd process
             if (surfaceNode->IsLeashOrMainWindow()) {
@@ -2209,12 +2203,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     auto preBufferOwnerCount = surfaceHandler->GetPreBufferOwnerCount();
                     const auto& consumer = surfaceHandler->GetConsumer();
                     if (consumer != nullptr) {
-                        RSGpuDirtyCollector::SetSelfDrawingBufferQueueId(buffer, consumer->GetUniqueId());
                         RSSurfaceFpsManager::GetInstance().RecordFlushTime(surfaceHandler->GetNodeId(), vsyncId_,
                             buffer ? buffer->GetFlushedTimestamp() : 0);
                     }
-                    RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer,
-                        RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(surfaceNode->GetId()));
                     surfaceNode->UpdateBufferInfo(buffer, bufferOwnerCount, surfaceHandler->GetDamageRegion(),
                         surfaceHandler->GetAcquireFence(), preBuffer, preBufferOwnerCount);
                     auto scalingModeChanged = surfaceHandler->CheckScalingModeChanged();

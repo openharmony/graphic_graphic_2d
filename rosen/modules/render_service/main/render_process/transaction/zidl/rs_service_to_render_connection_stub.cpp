@@ -1044,22 +1044,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             HandleHwcEvent(deviceId, eventId, eventData);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
-            std::vector<int32_t> pidList;
-            if (!data.ReadInt32Vector(&pidList)) {
-                RS_LOGE("SetGpuCrcDirtyEnabledPidList: read pidList err.");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (pidList.size() > PIDLIST_SIZE_MAX) {
-                RS_LOGE("SetGpuCrcDirtyEnabledPidList: pidList size %{public}zu exceeds max %{public}zu.",
-                    pidList.size(), PIDLIST_SIZE_MAX);
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetGpuCrcDirtyEnabledPidList(pidList);
-            break;
-        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO): {
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
             if (!reply.WriteInt32(activeDirtyRegionInfos.size())) {

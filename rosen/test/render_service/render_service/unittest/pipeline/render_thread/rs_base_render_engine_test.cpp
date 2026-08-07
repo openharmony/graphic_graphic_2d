@@ -807,17 +807,23 @@ HWTEST_F(RSBaseRenderEngineUnitTest, SetColorSpaceConverterDisplayParameterTest,
     params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
     ASSERT_EQ(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter), true);
+    RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
     bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     EXPECT_EQ(ret, false);
 
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
+
     staticMetadata.cta861.maxContentLightLevel = 400.0f;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
     ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter);
     EXPECT_EQ(ret, true);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 #endif
 }
 

@@ -16,6 +16,7 @@
 #include "js_font.h"
 
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "js_typeface.h"
 #include "native_value.h"
 #include "path_napi/js_path.h"
@@ -31,7 +32,7 @@ thread_local napi_ref JsFont::constructor_ = nullptr;
 static std::mutex g_constructorInitMutex;
 const std::string CLASS_NAME = "Font";
 
-static napi_property_descriptor properties[] = {
+static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("enableSubpixel", JsFont::EnableSubpixel),
     DECLARE_NAPI_FUNCTION("enableEmbolden", JsFont::EnableEmbolden),
     DECLARE_NAPI_FUNCTION("enableLinearMetrics", JsFont::EnableLinearMetrics),
@@ -69,14 +70,13 @@ static napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("getTextPathWithFallback", JsFont::CreatePathForTextWithFallback),
     DECLARE_NAPI_FUNCTION("setThemeFontFollowed", JsFont::SetThemeFontFollowed),
     DECLARE_NAPI_FUNCTION("isThemeFontFollowed", JsFont::IsThemeFontFollowed),
-    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsFont::FontTransferDynamic),
 };
 
 bool JsFont::CreateConstructor(napi_env env)
 {
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-                                           sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+                                           sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("Failed to define Font class");
         return false;
@@ -140,7 +140,8 @@ napi_value JsFont::Constructor(napi_env env, napi_callback_info info)
     font->SetTypeface(JsTypeface::GetZhCnTypeface());
     JsFont *jsFont = new JsFont(font);
 
-    status = napi_wrap_async_finalizer(env, jsThis, jsFont, JsFont::Destructor, nullptr, nullptr, 0);
+    status = napi_wrap_enhance_s(env, jsThis, jsFont, JsFont::Destructor, true,
+        nullptr, 0, &FONT_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsFont;
         ROSEN_LOGE("Failed to wrap native instance");
@@ -160,13 +161,13 @@ void JsFont::Destructor(napi_env env, void *nativeObject, void *finalize)
 
 napi_value JsFont::CreatePathForText(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnCreatePathForText(env, info) : nullptr;
 }
 
 napi_value JsFont::CreatePathForTextWithFallback(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnCreatePathForTextWithFallback(env, info) : nullptr;
 }
 
@@ -205,211 +206,211 @@ JsFont::~JsFont()
 
 napi_value JsFont::EnableSubpixel(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnEnableSubpixel(env, info) : nullptr;
 }
 
 napi_value JsFont::EnableEmbolden(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnEnableEmbolden(env, info) : nullptr;
 }
 
 napi_value JsFont::EnableLinearMetrics(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnEnableLinearMetrics(env, info) : nullptr;
 }
 
 napi_value JsFont::SetBaselineSnap(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetBaselineSnap(env, info) : nullptr;
 }
 
 napi_value JsFont::SetEmbeddedBitmaps(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetEmbeddedBitmaps(env, info) : nullptr;
 }
 
 napi_value JsFont::SetForceAutoHinting(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetForceAutoHinting(env, info) : nullptr;
 }
 
 napi_value JsFont::SetSize(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetSize(env, info) : nullptr;
 }
 
 napi_value JsFont::SetTypeface(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetTypeface(env, info) : nullptr;
 }
 
 napi_value JsFont::GetTypeface(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnGetTypeface(env, info) : nullptr;
 }
 
 napi_value JsFont::GetSize(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnGetSize(env, info) : nullptr;
 }
 
 napi_value JsFont::GetMetrics(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnGetMetrics(env, info) : nullptr;
 }
 
 napi_value JsFont::GetWidths(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnGetWidths(env, info) : nullptr;
 }
 
 napi_value JsFont::GetBounds(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnGetBounds(env, info) : nullptr;
 }
 
 napi_value JsFont::IsBaselineSnap(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnIsBaselineSnap(env, info) : nullptr;
 }
 
 napi_value JsFont::IsEmbeddedBitmaps(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnIsEmbeddedBitmaps(env, info) : nullptr;
 }
 
 napi_value JsFont::IsForceAutoHinting(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnIsForceAutoHinting(env, info) : nullptr;
 }
 
 napi_value JsFont::MeasureSingleCharacter(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnMeasureSingleCharacter(env, info) : nullptr;
 }
 
 napi_value JsFont::MeasureSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnMeasureSingleCharacterWithFeatures(env, info) : nullptr;
 }
 
 napi_value JsFont::MeasureText(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnMeasureText(env, info) : nullptr;
 }
 
 napi_value JsFont::SetScaleX(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetScaleX(env, info) : nullptr;
 }
 
 napi_value JsFont::SetSkewX(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetSkewX(env, info) : nullptr;
 }
 
 napi_value JsFont::SetEdging(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetEdging(env, info) : nullptr;
 }
 
 napi_value JsFont::SetHinting(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetHinting(env, info) : nullptr;
 }
 
 napi_value JsFont::CountText(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnCountText(env, info) : nullptr;
 }
 
 napi_value JsFont::IsSubpixel(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnIsSubpixel(env, info) : nullptr;
 }
 
 napi_value JsFont::IsLinearMetrics(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnIsLinearMetrics(env, info) : nullptr;
 }
 
 napi_value JsFont::GetSkewX(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnGetSkewX(env, info) : nullptr;
 }
 
 napi_value JsFont::IsEmbolden(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnIsEmbolden(env, info) : nullptr;
 }
 
 napi_value JsFont::GetScaleX(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnGetScaleX(env, info) : nullptr;
 }
 
 napi_value JsFont::GetHinting(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnGetHinting(env, info) : nullptr;
 }
 
 napi_value JsFont::GetEdging(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnGetEdging(env, info) : nullptr;
 }
 
 napi_value JsFont::TextToGlyphs(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnTextToGlyphs(env, info) : nullptr;
 }
 
 napi_value JsFont::CreatePathForGlyph(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnCreatePathForGlyph(env, info) : nullptr;
 }
 
 napi_value JsFont::SetThemeFontFollowed(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnSetThemeFontFollowed(env, info) : nullptr;
 }
 
 napi_value JsFont::IsThemeFontFollowed(napi_env env, napi_callback_info info)
 {
-    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    JsFont* me = CheckParamsAndGetThisWithTag<JsFont>(env, info, &FONT_TYPE_TAG);
     return (me != nullptr) ? me->OnIsThemeFontFollowed(env, info) : nullptr;
 }
 
@@ -662,7 +663,7 @@ napi_value JsFont::OnSetTypeface(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsTypeface *jsTypeface = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsTypeface);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsTypeface, &TYPEFACE_TYPE_TAG);
 
     m_font->SetTypeface(jsTypeface->GetTypeface());
     return nullptr;
@@ -1172,40 +1173,32 @@ napi_value JsFont::OnIsThemeFontFollowed(napi_env env, napi_callback_info info)
     return CreateJsValue(env, followed);
 }
 
-napi_value JsFont::FontTransferDynamic(napi_env env, napi_callback_info info)
+napi_value JsFont::CreateFontDynamic(napi_env env, std::shared_ptr<Font> font)
 {
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
-        return nullptr;
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Font> font = *reinterpret_cast<std::shared_ptr<Font>*>(addr);
     if (font == nullptr) {
+        ROSEN_LOGE("JsFont::CreateFontDynamic font is nullptr");
         return nullptr;
     }
-
-    napi_value jsThis = CreateFont(env, info);
-    if (jsThis == nullptr) {
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsFont::CreateFontDynamic napi_create_object failed");
         return nullptr;
     }
-   
     JsFont* jsFont = new JsFont(font);
-    napi_status status = napi_wrap_async_finalizer(env, jsThis, jsFont, JsFont::Destructor, nullptr, nullptr, 0);
+    status = napi_wrap(env, objValue, jsFont, JsFont::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsFont;
-        ROSEN_LOGE("Failed to wrap native instance, status: %{public}d", static_cast<int>(status));
+        ROSEN_LOGE("JsFont::CreateFontDynamic failed to wrap native instance, "
+                   "status: %{public}d", static_cast<int>(status));
         return nullptr;
     }
-    return jsThis;
+    status = napi_define_properties(env, objValue, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsFont::CreateFontDynamic failed to define properties");
+        return nullptr;
+    }
+    return objValue;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

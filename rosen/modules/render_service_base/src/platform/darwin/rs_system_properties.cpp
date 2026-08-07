@@ -801,11 +801,6 @@ bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetGpuDirtyApsEnabled()
 {
     return {};
