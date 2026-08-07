@@ -2658,5 +2658,89 @@ HWTEST_F(RSMarshallingHelperTest, SurfaceRegionConfigUnmarshallingFailTest, Test
     SurfaceRegionConfig val{};
     ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
+
+/**
+ * @tc.name: UnmarshallingMatrixSizeExceedsColorMatrixLimit
+ * @tc.desc: Verify Unmarshalling returns false when size exceeds ColorMatrix::MATRIX_SIZE * sizeof(scalar)
+ * @tc.type: FUNC
+ * @tc.require: issuesI9NIKQ
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingMatrixSizeExceedsColorMatrixLimit, TestSize.Level1)
+{
+    constexpr uint32_t scalarSize = sizeof(float);
+    constexpr uint32_t colorMatrixSize = 20;
+    constexpr uint32_t maxSize = scalarSize * colorMatrixSize;
+    constexpr uint32_t exceedSize = maxSize + scalarSize;
+    Parcel parcel;
+    Drawing::Matrix val;
+    parcel.WriteUint32(exceedSize);
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+}
+
+/**
+ * @tc.name: UnmarshallingMatrixSizeAtColorMatrixBoundary
+ * @tc.desc: Verify Unmarshalling behavior when size equals ColorMatrix::MATRIX_SIZE * sizeof(scalar)
+ * @tc.type: FUNC
+ * @tc.require: issuesI9NIKQ
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingMatrixSizeAtColorMatrixBoundary, TestSize.Level1)
+{
+    constexpr uint32_t scalarSize = sizeof(float);
+    constexpr uint32_t colorMatrixSize = 20;
+    constexpr uint32_t boundarySize = scalarSize * colorMatrixSize;
+    Parcel parcel;
+    Drawing::Matrix val;
+    parcel.WriteUint32(boundarySize);
+    parcel.WriteUint32(boundarySize);
+    std::vector<float> data(colorMatrixSize, 0.0f);
+    data[4] = 1.0f;
+    data[8] = 1.0f;
+    parcel.WriteUnpadBuffer(data.data(), boundarySize);
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+}
+
+/**
+ * @tc.name: UnmarshallingMatrixSizeAtMatrixBoundary
+ * @tc.desc: Verify Unmarshalling succeeds when size equals Matrix::MATRIX_SIZE * sizeof(scalar)
+ * @tc.type: FUNC
+ * @tc.require: issuesI9NIKQ
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingMatrixSizeAtMatrixBoundary, TestSize.Level1)
+{
+    constexpr uint32_t scalarSize = sizeof(float);
+    constexpr uint32_t matrixSize = 9;
+    constexpr uint32_t boundarySize = scalarSize * matrixSize;
+    Parcel parcel;
+    Drawing::Matrix val;
+    parcel.WriteUint32(boundarySize);
+    parcel.WriteUint32(boundarySize);
+    std::vector<float> data(matrixSize, 0.0f);
+    data[0] = 1.0f;
+    data[4] = 1.0f;
+    parcel.WriteUnpadBuffer(data.data(), boundarySize);
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+}
+
+/**
+ * @tc.name: UnmarshallingMatrixSizeBetweenMatrixAndColorMatrix
+ * @tc.desc: Verify Unmarshalling behavior when size is between Matrix and ColorMatrix bounds
+ * @tc.type: FUNC
+ * @tc.require: issuesI9NIKQ
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingMatrixSizeBetweenMatrixAndColorMatrix, TestSize.Level1)
+{
+    constexpr uint32_t scalarSize = sizeof(float);
+    constexpr uint32_t matrixSize = 9;
+    constexpr uint32_t midSize = scalarSize * (matrixSize + 1);
+    Parcel parcel;
+    Drawing::Matrix val;
+    parcel.WriteUint32(midSize);
+    parcel.WriteUint32(midSize);
+    std::vector<float> data(matrixSize + 1, 0.0f);
+    data[0] = 1.0f;
+    data[4] = 1.0f;
+    parcel.WriteUnpadBuffer(data.data(), midSize);
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+}
 } // namespace Rosen
 } // namespace OHOS
