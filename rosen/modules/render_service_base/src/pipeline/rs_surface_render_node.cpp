@@ -530,6 +530,13 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 surfaceNode->UpdateAbilityNodeIds(GetId(), IsOnTheTree());
             }
         }
+    } else if (IsHardwareEnabledType() && RSUniRenderJudgement::IsUniRender()) {
+        if (auto instanceRootNode = GetInstanceRootNode()) {
+            auto surfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (surfaceNode != nullptr && IsOnTheTree()) {
+                surfaceNode->SetNeedCollectHwcNode(true);
+            }
+        }
     }
     OnSubSurfaceChanged();
 
