@@ -1160,6 +1160,11 @@ void SkiaCanvas::ClipRoundRect(const Rect& rect, std::vector<Point>& pts, bool d
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
     }
+    if (pts.size() < RoundRect::CORNER_NUMBER) {
+        LOGD("pts size %{public}zu is less than %{public}d, return on line %{public}d",
+            pts.size(), RoundRect::CORNER_NUMBER, __LINE__);
+        return;
+    }
     SkRRect rRect;
     rRect.setRectRadii(SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()),
         reinterpret_cast<const SkVector *>(pts.data()));
@@ -1442,7 +1447,15 @@ bool SkiaCanvas::ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymb
 
 void SkiaCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
 {
+    if (!canvas) {
+        LOGD("canvas is null, return on line %{public}d", __LINE__);
+        return;
+    }
     auto skiaCanvas = canvas->GetImpl<SkiaCanvas>();
+    if (!skiaCanvas) {
+        LOGD("skiaCanvas is null, return on line %{public}d", __LINE__);
+        return;
+    }
     skiaCanvas_ = std::make_shared<SkOverdrawCanvas>(skiaCanvas->ExportSkCanvas());
     skCanvas_ = skiaCanvas_.get();
 }

@@ -388,8 +388,13 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
         return false;
     }
     if (isInt) {
+        ani_method intGet = AniGlobalMethod::GetInstance().intGet;
+        if (intGet == nullptr) {
+            ROSEN_LOGE("GetColorQuadFromParam failed by intGet is null");
+            return false;
+        }
         ani_int aniColor;
-        if (ANI_OK != env->Object_CallMethod_Int(obj, AniGlobalMethod::GetInstance().intGet, &aniColor)) {
+        if (ANI_OK != env->Object_CallMethod_Int(obj, intGet, &aniColor)) {
             ROSEN_LOGE("GetColorQuadFromParam failed by int value");
             return false;
         }

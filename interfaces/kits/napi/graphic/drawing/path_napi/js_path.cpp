@@ -727,6 +727,10 @@ napi_value JsPath::OnRCubicTo(napi_env env, napi_callback_info info)
 
 napi_value JsPath::OnAddPolygon(napi_env env, napi_callback_info info)
 {
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnAddPolygon path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     napi_value argv[ARGC_TWO] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 

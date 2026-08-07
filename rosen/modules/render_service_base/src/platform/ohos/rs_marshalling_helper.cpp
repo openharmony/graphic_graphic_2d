@@ -650,7 +650,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         const void* addr = pixmap.GetAddr();
         size_t size = bitmap.ComputeByteSize();
 
-        if (!parcel.WriteInt32(size)) {
+        if (!parcel.WriteUint32(size)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 size failed");
             return false;
         }
@@ -658,7 +658,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
             ROSEN_LOGE("RSMarshallingHelper::Marshalling Image write parcel failed");
             return false;
         }
-        if (!parcel.WriteInt32(rb)) {
+        if (!parcel.WriteUint32(rb)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 rb failed");
             return false;
         }

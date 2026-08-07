@@ -2038,7 +2038,15 @@ bool RSRenderPipelineAgent::UnRegisterTypeface(uint64_t globalUniqueId)
     uint32_t uniqueId = typeface->GetUniqueID();
     // Free cpu cache, this only valid in skia path. When deprecating skia, this can be removed.
     auto task = [uniqueId]() {
-        auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        if (!renderEngine) {
+            return;
+        }
+        auto renderContext = renderEngine->GetRenderContext();
+        if (!renderContext) {
+            return;
+        }
+        auto context = renderContext->GetDrGPUContext();
         if (context) {
             context->FreeCpuCache(uniqueId);
             context->PurgeUnlockAndSafeCacheGpuResources();
