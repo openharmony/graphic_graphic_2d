@@ -1540,6 +1540,29 @@ HWTEST_F(HgmFrameRateMgrTest, TestUpdateSoftVSync, Function | SmallTest | Level0
 }
 
 /**
+ * @tc.name: TestMarkVoteChange
+ * @tc.desc: Verify the result of MarkVoteChange
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    mgr.voterTouchEffective_ = true;
+    mgr.MarkVoteChange();
+    mgr.MarkVoteChange("NULL");
+    mgr.voterTouchEffective_ = false;
+    mgr.MarkVoteChange("NULL");
+    mgr.MarkVoteChange("VOTER_POWER_MODE");
+    mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second = false;
+    mgr.MarkVoteChange("VOTER_POWER_MODE");
+    mgr.voterTouchEffective_ = true;
+    mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
+    mgr.MarkVoteChange("VOTER_POWER_MODE");
+    EXPECT_EQ(mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second, true);
+}
+
+/**
  * @tc.name: TestCheckNeedUpdateAppOffset
  * @tc.desc: Verify the result of CheckNeedUpdateAppOffset
  * @tc.type: FUNC
@@ -1657,63 +1680,6 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
 }
 
 /**
- * @tc.name: TestHandlePointerTask
- * @tc.desc: Verify the result of HandlePointerTask
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, TestHandlePointerTask, Function | SmallTest | Level1)
-{
-    HgmFrameRateManager mgr;
-    pid_t pid = DEFAULT_PID + 1;
-    std::string pkg = "com.test.pkg:1000:10000";
-    std::string testStrategy = "test_strategy";
-
-    HgmMultiAppStrategy& mStrategy = mgr.multiAppStrategy_;
-    mStrategy.screenSettingCache_.strategy = testStrategy;
-    mStrategy.pkgs_ = {pkg};
-    mStrategy.strategyConfigMapCache_[testStrategy] = {
-        .min = OLED_NULL_HZ,
-        .max = OLED_120_HZ,
-        .pointerMode = PointerModeType::POINTER_ENABLED
-    };
-
-    mgr.HandlePointerTask(pid, AXIS_BEGIN, 1);
-    EXPECT_TRUE(mgr.cleanPidCallback_[pid].count(CleanPidCallbackType::TOUCH_EVENT) > 0);
-
-    pid = DEFAULT_PID;
-    mgr.HandlePointerTask(pid, AXIS_BEGIN, 1);
-    EXPECT_EQ(mgr.cleanPidCallback_.count(DEFAULT_PID), 0);
-
-    mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED;
-    std::set<TouchStatus> originalSet = {TOUCH_MOVE, TOUCH_BUTTON_DOWN, TOUCH_BUTTON_UP, AXIS_BEGIN, AXIS_UPDATE,
-        AXIS_END, TOUCH_PULL_DOWN};
-    for (TouchStatus status : originalSet) {
-        mgr.HandlePointerTask(pid, status, 1);
-    }
-
-    mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED_EX_MOVE;
-    mgr.HandlePointerTask(pid, TOUCH_BUTTON_DOWN, 1);
-    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
-    mgr.HandlePointerTask(pid, TOUCH_BUTTON_UP, 1);
-    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
-    EXPECT_EQ(mStrategy.strategyConfigMapCache_[testStrategy].pointerMode, PointerModeType::POINTER_ENABLED_EX_MOVE);
-
-    mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_DISENABLED;
-    mgr.HandlePointerTask(pid, AXIS_BEGIN, 1);
-    mgr.HandlePointerTask(pid, AXIS_UPDATE, 1);
-    mgr.HandlePointerTask(pid, AXIS_END, 1);
-
-    mStrategy.screenSettingCache_.strategy = "undefined_strategy";
-    mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED;
-    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
-    mgr.HandlePointerTask(pid, AXIS_BEGIN, 1);
-    mgr.pointerManager_.ChangeState(PointerState::POINTER_IDLE_STATE);
-    EXPECT_EQ(mStrategy.strategyConfigMapCache_[testStrategy].pointerMode, PointerModeType::POINTER_ENABLED);
-    sleep(1);
-}
-
-/**
  * @tc.name: TestHandleTouchTask
  * @tc.desc: Verify the result of HandleTouchTask
  * @tc.type: FUNC
@@ -1782,26 +1748,60 @@ HWTEST_F(HgmFrameRateMgrTest, TestIsMouseOrTouchPadEvent, Function | SmallTest |
 }
 
 /**
- * @tc.name: TestMarkVoteChange
- * @tc.desc: Verify the result of MarkVoteChange
+ * @tc.name: TestHandlePointerTask
+ * @tc.desc: Verify the result of HandlePointerTask
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level0)
+HWTEST_F(HgmFrameRateMgrTest, TestHandlePointerTask, Function | SmallTest | Level1)
 {
     HgmFrameRateManager mgr;
-    mgr.voterTouchEffective_ = true;
-    mgr.MarkVoteChange();
-    mgr.MarkVoteChange("NULL");
-    mgr.voterTouchEffective_ = false;
-    mgr.MarkVoteChange("NULL");
-    mgr.MarkVoteChange("VOTER_POWER_MODE");
-    mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second = false;
-    mgr.MarkVoteChange("VOTER_POWER_MODE");
-    mgr.voterTouchEffective_ = true;
-    mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
-    mgr.MarkVoteChange("VOTER_POWER_MODE");
-    EXPECT_EQ(mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second, true);
+    pid_t pid = DEFAULT_PID + 1;
+    std::string pkg = "com.test.pkg:1000:10000";
+    std::string testStrategy = "test_strategy";
+
+    HgmMultiAppStrategy& mStrategy = mgr.multiAppStrategy_;
+    mStrategy.screenSettingCache_.strategy = testStrategy;
+    mStrategy.pkgs_ = {pkg};
+    mStrategy.strategyConfigMapCache_[testStrategy] = {
+        .min = OLED_NULL_HZ,
+        .max = OLED_120_HZ,
+        .pointerMode = PointerModeType::POINTER_ENABLED
+    };
+
+    mgr.HandlePointerTask(pid, AXIS_BEGIN, 1);
+    EXPECT_TRUE(mgr.cleanPidCallback_[pid].count(CleanPidCallbackType::TOUCH_EVENT) > 0);
+
+    pid = DEFAULT_PID;
+    mgr.HandlePointerTask(pid, AXIS_BEGIN, 1);
+    EXPECT_EQ(mgr.cleanPidCallback_.count(DEFAULT_PID), 0);
+
+    mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED;
+    std::set<TouchStatus> originalSet = {TOUCH_MOVE, TOUCH_BUTTON_DOWN, TOUCH_BUTTON_UP, AXIS_BEGIN, AXIS_UPDATE,
+        AXIS_END, TOUCH_PULL_DOWN};
+    for (TouchStatus status : originalSet) {
+        mgr.HandlePointerTask(pid, status, 1);
+    }
+
+    mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED_EX_MOVE;
+    mgr.HandlePointerTask(pid, TOUCH_BUTTON_DOWN, 1);
+    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
+    mgr.HandlePointerTask(pid, TOUCH_BUTTON_UP, 1);
+    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
+    EXPECT_EQ(mStrategy.strategyConfigMapCache_[testStrategy].pointerMode, PointerModeType::POINTER_ENABLED_EX_MOVE);
+
+    mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_DISENABLED;
+    mgr.HandlePointerTask(pid, AXIS_BEGIN, 1);
+    mgr.HandlePointerTask(pid, AXIS_UPDATE, 1);
+    mgr.HandlePointerTask(pid, AXIS_END, 1);
+
+    mStrategy.screenSettingCache_.strategy = "undefined_strategy";
+    mStrategy.strategyConfigMapCache_[testStrategy].pointerMode = PointerModeType::POINTER_ENABLED;
+    mgr.HandlePointerTask(pid, TOUCH_MOVE, 1);
+    mgr.HandlePointerTask(pid, AXIS_BEGIN, 1);
+    mgr.pointerManager_.ChangeState(PointerState::POINTER_IDLE_STATE);
+    EXPECT_EQ(mStrategy.strategyConfigMapCache_[testStrategy].pointerMode, PointerModeType::POINTER_ENABLED);
+    sleep(1);
 }
 
 /**
