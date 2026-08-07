@@ -786,6 +786,9 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
 bool VSyncGenerator::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime)
 {
     std::lock_guard<std::mutex> locker(mutex_);
+    if (period_ == 0) {
+        return false;
+    }
     int64_t now = SystemTime();
     int64_t offset = (now - lastVsyncTime) % period_;
     if (period_ - offset > PERIOD_CHECK_THRESHOLD) {

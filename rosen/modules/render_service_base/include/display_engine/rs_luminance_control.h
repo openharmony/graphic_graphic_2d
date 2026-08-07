@@ -122,8 +122,8 @@ public:
     virtual float HdrDimmingProcess(ScreenId screenId, const RSSurfaceRenderNode& surfaceNode) = 0;
     virtual void HdrDimmingPostProcess(ScreenId screenId) = 0;
 #ifndef ROSEN_CROSS_PLATFORM
-    virtual int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input,
-        const RSSurfaceRenderNode& surfaceNode, float scaler, HdrStatus hdrStatus) = 0;
+    virtual int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler,
+        HdrStatus hdrStatus) = 0;
 #endif
     virtual int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values) = 0;
 };
@@ -175,8 +175,7 @@ public:
     RSB_EXPORT float HdrDimmingProcess(ScreenId screenId, const RSSurfaceRenderNode& surfaceNode);
     RSB_EXPORT void HdrDimmingPostProcess(ScreenId screenId);
 #ifndef ROSEN_CROSS_PLATFORM
-    RSB_EXPORT int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input,
-        const RSSurfaceRenderNode& surfaceNode, float scaler, HdrStatus hdrStatus);
+    RSB_EXPORT int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler, HdrStatus hdrStatus);
 #endif
     RSB_EXPORT int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values);
 

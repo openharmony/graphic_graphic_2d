@@ -20,6 +20,7 @@
 #include "color_filter_napi/js_color_filter.h"
 #include "image_filter_napi/js_image_filter.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "mask_filter_napi/js_mask_filter.h"
 #include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
@@ -93,7 +94,7 @@ napi_value JsBrush::Constructor(napi_env env, napi_callback_info info)
         jsBrush = new JsBrush(brush);
     } else {
         JsBrush* otherBrush = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ZERO, otherBrush);
+        GET_UNWRAP_PARAM_S(ARGC_ZERO, otherBrush, &BRUSH_TYPE_TAG);
         std::shared_ptr<Brush> other = otherBrush->GetBrush();
         std::shared_ptr<Brush> brush = other == nullptr ? std::make_shared<Brush>() : std::make_shared<Brush>(*other);
         if (brush != nullptr) {
@@ -105,7 +106,7 @@ napi_value JsBrush::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    status = napi_wrap(env, jsThis, jsBrush, JsBrush::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsBrush, JsBrush::Destructor, nullptr, &BRUSH_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsBrush;
         ROSEN_LOGE("JsBrush::Constructor Failed to wrap native instance");
@@ -130,7 +131,7 @@ JsBrush::~JsBrush()
 
 napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (!jsBrush) {
         return nullptr;
     }
@@ -172,7 +173,7 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::GetColor(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColor jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -190,7 +191,7 @@ napi_value JsBrush::GetColor(napi_env env, napi_callback_info info)
 napi_value JsBrush::SetColor4f(napi_env env, napi_callback_info info)
 {
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (!jsBrush) {
         return nullptr;
     }
@@ -227,7 +228,7 @@ napi_value JsBrush::SetColor4f(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::GetColor4f(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColor4f jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -244,7 +245,7 @@ napi_value JsBrush::GetColor4f(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::GetHexColor(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetHexColor jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -261,7 +262,7 @@ napi_value JsBrush::GetHexColor(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (!jsBrush) {
         return nullptr;
     }
@@ -283,7 +284,7 @@ napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (!jsBrush) {
         return nullptr;
     }
@@ -309,7 +310,7 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::IsAntiAlias(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::IsAntiAlias jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -325,7 +326,7 @@ napi_value JsBrush::IsAntiAlias(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::GetAlpha(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetAlpha jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -342,7 +343,7 @@ napi_value JsBrush::GetAlpha(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::SetColorFilter(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (!jsBrush) {
         return nullptr;
     }
@@ -356,7 +357,7 @@ napi_value JsBrush::SetColorFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsColorFilter* jsColorFilter = nullptr;
-    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsColorFilter);
+    GET_UNWRAP_PARAM_S_OR_NULL(ARGC_ZERO, jsColorFilter, &COLOR_FILTER_TYPE_TAG);
 
     Filter filter = brush->GetFilter();
     filter.SetColorFilter(jsColorFilter ? jsColorFilter->GetColorFilter() : nullptr);
@@ -366,7 +367,7 @@ napi_value JsBrush::SetColorFilter(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::GetColorFilter(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColorFilter jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -384,7 +385,7 @@ napi_value JsBrush::GetColorFilter(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::SetImageFilter(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::SetImageFilter jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -399,7 +400,7 @@ napi_value JsBrush::SetImageFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsImageFilter* jsImageFilter = nullptr;
-    GET_UNWRAP_PARAM_S_OR_NULL(ARGC_ZERO, jsImageFilter, &JsImageFilter::NAPI_TYPE_TAG);
+    GET_UNWRAP_PARAM_S_OR_NULL(ARGC_ZERO, jsImageFilter, &IMAGE_FILTER_TYPE_TAG);
 
     Filter filter = brush->GetFilter();
     filter.SetImageFilter(jsImageFilter != nullptr ? jsImageFilter->GetImageFilter() : nullptr);
@@ -409,7 +410,7 @@ napi_value JsBrush::SetImageFilter(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::SetMaskFilter(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::SetMaskFilter jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -424,7 +425,7 @@ napi_value JsBrush::SetMaskFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMaskFilter* jsMaskFilter = nullptr;
-    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsMaskFilter);
+    GET_UNWRAP_PARAM_S_OR_NULL(ARGC_ZERO, jsMaskFilter, &MASK_FILTER_TYPE_TAG);
 
     Filter filter = brush->GetFilter();
     filter.SetMaskFilter(jsMaskFilter ? jsMaskFilter->GetMaskFilter() : nullptr);
@@ -434,7 +435,7 @@ napi_value JsBrush::SetMaskFilter(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::SetBlendMode(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (!jsBrush) {
         return nullptr;
     }
@@ -456,7 +457,7 @@ napi_value JsBrush::SetBlendMode(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::SetShadowLayer(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::SetShadowLayer jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -471,7 +472,7 @@ napi_value JsBrush::SetShadowLayer(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsShadowLayer* jsShadowLayer = nullptr;
-    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsShadowLayer);
+    GET_UNWRAP_PARAM_S_OR_NULL(ARGC_ZERO, jsShadowLayer, &SHADOW_LAYER_TYPE_TAG);
 
     brush->SetLooper(jsShadowLayer ? jsShadowLayer->GetBlurDrawLooper() : nullptr);
     return nullptr;
@@ -479,7 +480,7 @@ napi_value JsBrush::SetShadowLayer(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::SetShaderEffect(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::SetShaderEffect jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -494,7 +495,7 @@ napi_value JsBrush::SetShaderEffect(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsShaderEffect* jsShaderEffect = nullptr;
-    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsShaderEffect);
+    GET_UNWRAP_PARAM_S_OR_NULL(ARGC_ZERO, jsShaderEffect, &SHADER_EFFECT_TYPE_TAG);
 
     brush->SetShaderEffect(jsShaderEffect ? jsShaderEffect->GetShaderEffect() : nullptr);
     return nullptr;
@@ -502,7 +503,7 @@ napi_value JsBrush::SetShaderEffect(napi_env env, napi_callback_info info)
 
 napi_value JsBrush::Reset(napi_env env, napi_callback_info info)
 {
-    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    JsBrush* jsBrush = CheckParamsAndGetThisWithTag<JsBrush>(env, info, &BRUSH_TYPE_TAG);
     if (jsBrush == nullptr) {
         ROSEN_LOGE("JsBrush::Reset jsBrush is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");

@@ -61,8 +61,8 @@ public:
     MOCK_METHOD(void, SetDualScreenStatus, (ScreenId screenId, DualScreenStatus dualScreenStatus), (override));
     MOCK_METHOD(float, HdrDimmingProcess, (ScreenId screenId, const RSSurfaceRenderNode& surfaceNode), (override));
     MOCK_METHOD(void, HdrDimmingPostProcess, (ScreenId screenId), (override));
-    MOCK_METHOD(int32_t, UpdateMetadataBasedOnScaler, (const sptr<SurfaceBuffer>& input,
-        const RSSurfaceRenderNode& surfaceNode, float scaler, HdrStatus hdrStatus), (override));
+    MOCK_METHOD(int32_t, UpdateMetadataBasedOnScaler, (const sptr<SurfaceBuffer>& input, float scaler,
+        HdrStatus hdrStatus), (override));
     MOCK_METHOD(int32_t, NotifyDEStatusChange, (const uint32_t sceneKey, const std::vector<uint8_t>& values),
         (override));
 

@@ -185,8 +185,8 @@ void RSLuminanceControl::HdrDimmingPostProcess(ScreenId screenId)
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-int32_t RSLuminanceControl::UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input,
-    const RSSurfaceRenderNode& surfaceNode, float scaler, HdrStatus hdrStatus)
+int32_t RSLuminanceControl::UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler,
+    HdrStatus hdrStatus)
 {
     return 0;
 }
