@@ -183,11 +183,10 @@ void HdiLayer::CloseLayer()
     retCode = device_->CloseLayer(screenId_, layerId_);
     if (retCode != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Close hwc layer[%{public}u] failed, ret is %{public}d", layerId_, retCode);
+        return;
     }
 
     HLOGD("Close hwc layer succeed, layerId is %{public}u", layerId_);
-    layerId_ = INT_MAX;
-    layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
 }
 
 int32_t HdiLayer::SetLayerAlpha()
