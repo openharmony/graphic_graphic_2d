@@ -69,37 +69,16 @@ enum VulkanCleanType {
 
 class VulkanCleanupHelper {
 public:
-    VulkanCleanupHelper(RsVulkanContext& vkContext, VkImage image, VkDeviceMemory memory,
-        const VulkanCleanType cleanType = VulkanCleanType::EXTERNAL, const pid_t pid = 0,
-        const size_t memSize = 0)
-        : fDevice_(vkContext.GetDevice()),
+    VulkanCleanupHelper(std::shared_ptr<RsVulkanInterface>& vkInterface, VkImage image, VkDeviceMemory memory,
+        const VulkanCleanType cleanType = VulkanCleanType::EXTERNAL, const pid_t pid = 0, const size_t memSize = 0)
+        : fDevice_(vkInterface->GetDevice()),
           fImage_(image),
           fMemory_(memory),
-          fDestroyImage_(vkContext.GetRsVulkanInterface().vkDestroyImage),
-          fFreeMemory_(vkContext.GetRsVulkanInterface().vkFreeMemory),
+          fDestroyImage_(vkInterface->vkDestroyImage),
+          fFreeMemory_(vkInterface->vkFreeMemory),
           cleanType_(cleanType),
           pid_(pid),
           memSize_(memSize),
-          fRefCnt_(1)
-    {
-        // gpu info statics--increase
-        if (cleanType_ == VulkanCleanType::NATIVE && RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-            MemorySnapshot::Instance().UpdateGpuInfo(pid_, memSize_, true, false);
-        }
-    }
-
-    VulkanCleanupHelper(
-        RsVulkanContext& vkContext, const std::shared_ptr<Drawing::VKTextureInfo> vkTextureInfo, const pid_t pid = 0)
-        : fDevice_(vkContext.GetDevice()),
-          fImage_(vkTextureInfo->vkImage),
-          fMemory_(vkTextureInfo->vkAlloc.memory),
-          fDestroyImage_(vkContext.GetRsVulkanInterface().vkDestroyImage),
-          fFreeMemory_(vkContext.GetRsVulkanInterface().vkFreeMemory),
-          cleanType_(vkTextureInfo->vkAlloc.source == Drawing::VKMemSource::NATIVE
-                ? NativeBufferUtils::VulkanCleanType::NATIVE
-                : NativeBufferUtils::VulkanCleanType::EXTERNAL),
-          pid_(pid),
-          memSize_(vkTextureInfo->vkAlloc.size),
           fRefCnt_(1)
     {
         // gpu info statics--increase
@@ -171,41 +150,39 @@ struct NativeSurfaceInfo {
     }
 };
 
-bool IsYcbcrModelOrRangeNotEqual(OH_NativeBuffer *nativeBuffer, VkSamplerYcbcrModelConversion model,
-    VkSamplerYcbcrRange range);
+bool IsYcbcrModelOrRangeNotEqual(std::shared_ptr<RsVulkanInterface>& vkInterface, OH_NativeBuffer *nativeBuffer,
+    VkSamplerYcbcrModelConversion model, VkSamplerYcbcrRange range);
 
-bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
-    NativeSurfaceInfo& nativeSurface, int width, int height, bool isProtected = false);
-
-Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
+bool MakeFromNativeWindowBuffer(
+    std::shared_ptr<RsVulkanInterface>& vkInterface, std::shared_ptr<Drawing::GPUContext> skContext,
+    NativeWindowBuffer* nativeWindowBuffer, NativeSurfaceInfo& nativeSurface,
     int width, int height, bool isProtected = false);
 
-std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBufferImpl(Drawing::GPUContext* gpuContext,
-    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface,
+Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface,
+    NativeWindowBuffer* nativeWindowBuffer, int width, int height, bool isProtected = false);
+
+std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface,
+    Drawing::GPUContext* gpuContext, const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface,
     const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
 
-std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
-    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface);
-
-std::shared_ptr<Drawing::Surface> CreateSurfaceFromNativeBuffer(RsVulkanContext& vkCtx,
-    const Drawing::ImageInfo& imageInfo, OH_NativeBuffer* nativeBuffer,
+std::shared_ptr<Drawing::Surface> CreateSurfaceFromNativeBuffer(std::shared_ptr<RsVulkanInterface>& vkInterface,
+    Drawing::GPUContext* gpuContext, const Drawing::ImageInfo& imageInfo, OH_NativeBuffer* nativeBuffer,
     const std::shared_ptr<Drawing::ColorSpace>& colorSpace);
- 
-Drawing::BackendTexture MakeBackendTextureFromNativeBufferImpl(RsVulkanContext& vkCtx,
-    OH_NativeBuffer* nativeBuffer, int width, int height, bool isProtected = false);
 
 #ifdef RS_ENABLE_VK
-uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+uint32_t FindMemoryType(
+    std::shared_ptr<RsVulkanInterface>& vkInterface, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
     const VkImageCreateInfo& imageInfo);
-Drawing::BackendTexture MakeBackendTexture(
+Drawing::BackendTexture MakeBackendTexture(std::shared_ptr<RsVulkanInterface>& vkInterface,
     uint32_t width, uint32_t height, pid_t pid, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
-Drawing::BackendTexture SetBackendTexture(RsVulkanInterface& vkContext, VkDevice device, VkImage image,
-    uint32_t width, uint32_t height, VkDeviceMemory memory, VkImageCreateInfo imageInfo, pid_t pid);
-
-VkResult CreateVkSemaphore(VkSemaphore& semaphore);
-
-void GetFenceFdFromSemaphore(VkSemaphore& semaphore, int32_t& syncFenceFd);
+Drawing::BackendTexture SetBackendTexture(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device,
+    VkImage image, uint32_t width, uint32_t height, VkDeviceMemory memory, VkImageCreateInfo imageInfo, pid_t pid);
+VkResult CreateVkSemaphore(std::shared_ptr<RsVulkanInterface>& vkInterface, VkSemaphore& semaphore);
+VkResult CreateVkSemaphore(std::shared_ptr<RsVulkanInterface>& vkInterface,
+    VkSemaphore& semaphore, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
+void GetFenceFdFromSemaphore(
+    std::shared_ptr<RsVulkanInterface>& vkInterface, VkSemaphore& semaphore, int32_t& syncFenceFd);
 #endif
 }
 } // OHOS::Rosen

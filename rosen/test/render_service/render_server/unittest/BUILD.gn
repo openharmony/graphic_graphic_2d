@@ -170,6 +170,11 @@ ohos_unittest("RSRenderProcessManagerAgentTest") {
         external_deps += [ "sensor:sensor_interface_native" ]
     }
     subsystem_name = "graphic"
+    sanitize = {
+        cfi = true
+        cfi_cross_dso = true
+        debug = true
+    }
 }
 
 ###############################################################################
@@ -244,6 +249,14 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
         "egl:libEGL",
         "opengles:libGLES",
     ]
+
+    if (defined(use_video_processing_engine) && (use_video_processing_engine)) {
+        defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+        external_deps += [
+            "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+            "video_processing_engine:videoprocessingengine",
+        ]
+    }
 
     if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
         external_deps += [ "sensor:sensor_interface_native" ]

@@ -116,41 +116,20 @@ std::shared_ptr<Drawing::GPUContext> RSColorPickerThread::GetShareGPUContext() c
     return gpuContext_;
 }
 
+std::shared_ptr<RenderContext> RSColorPickerThread::GetRenderContext() const
+{
+    return renderContext_;
+}
+
 std::shared_ptr<Drawing::GPUContext> RSColorPickerThread::CreateShareGPUContext()
 {
     RS_TRACE_NAME("CreateShareGrContext");
-#ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::IsUseVulkan()) {
-        auto gpuContext = std::make_shared<Drawing::GPUContext>();
-        if (gpuContext == nullptr) {
-            return nullptr;
-        }
-        renderContext_->CreateShareContext();
-
-        Drawing::GPUContextOptions options = {};
-        auto handler = std::make_shared<MemoryHandler>();
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size);
-        if (!gpuContext->BuildFromGL(options)) {
-            RS_LOGE("RSColorPickerThread BuildFromGL fail");
-            return nullptr;
-        }
-        return gpuContext;
+    auto gpuContext = renderContext_->CreateDrawingGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSColorPickerThread CreateShareGPUContext fail");
+        return nullptr;
     }
-#endif
-
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        auto gpuContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        if (gpuContext == nullptr) {
-            RS_LOGE("RSColorPickerThread BuildFromVK fail");
-            return nullptr;
-        }
-        return gpuContext;
-    }
-#endif
-    return nullptr;
+    return gpuContext;
 }
 #endif
 } // namespace OHOS::Rosen

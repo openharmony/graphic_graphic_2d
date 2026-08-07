@@ -38,12 +38,7 @@ public:
     void TearDown() override;
 };
 
-void NativeFontTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeFontTest::SetUpTestCase() {}
 void NativeFontTest::TearDownTestCase() {}
 void NativeFontTest::SetUp() {}
 void NativeFontTest::TearDown() {}

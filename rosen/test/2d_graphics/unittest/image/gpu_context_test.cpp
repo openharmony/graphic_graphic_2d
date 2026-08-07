@@ -66,9 +66,6 @@ EGLContext GpuContextTest::eglContext_ = EGL_NO_CONTEXT;
 
 void GpuContextTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     InitEGL();
 }
 

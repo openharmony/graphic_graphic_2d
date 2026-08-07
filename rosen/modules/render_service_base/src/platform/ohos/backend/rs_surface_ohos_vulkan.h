@@ -74,9 +74,9 @@ public:
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     void WaitSurfaceClear()
     {
-        RS_TRACE_NAME_FMT("RSSurfaceOhosVulkan WaitSurfaceClear mSkContext FlushAndSubmit");
-        if (mSkContext) {
-            mSkContext->FlushAndSubmit(true);
+        RS_TRACE_NAME_FMT("RSSurfaceOhosVulkan WaitSurfaceClear GPUContext FlushAndSubmit");
+        if (renderContext_ && renderContext_->GetSharedDrGPUContext()) {
+            renderContext_->GetSharedDrGPUContext()->FlushAndSubmit(true);
         }
         flushState_.Reset();
         mSurfaceMap.clear();
@@ -154,8 +154,6 @@ private:
 #endif
     };
     FlushState flushState_;
-    void CreateVkSemaphore(VkSemaphore& semaphore,
-        RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
 #if defined(ROSEN_OHOS) && defined(RS_GRAPHIC_MEDIACOMMON_ENABLE)
     std::mutex taskHandleMapMutex_;
     std::unordered_map<uint64_t, void*> taskHandleMap_;

@@ -102,9 +102,6 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
     pid_t pid = SURFACE_NODE_ID;
     surfaceNode_ = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(((NodeId)pid << 32 | SURFACE_NODE_ID),
         std::make_shared<RSContext>(), true), RSRenderNodeGC::NodeDestructor);
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_ = sptr<RSScreenManager>::MakeSptr();

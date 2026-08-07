@@ -45,12 +45,7 @@ protected:
     OH_Drawing_GpuContext* gpuContext_ = nullptr;
 };
 
-void NativeDrawingGpuContextTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingGpuContextTest::SetUpTestCase() {}
 void NativeDrawingGpuContextTest::TearDownTestCase() {}
 void NativeDrawingGpuContextTest::SetUp()
 {
@@ -194,6 +189,101 @@ HWTEST_F(NativeDrawingGpuContextTest, CreateDrawingContextTest, TestSize.Level1)
         auto context = DrawingGpuContextManager::GetInstance().CreateDrawingContext();
         EXPECT_NE(context, nullptr);
     }
+}
+
+/**
+ * @tc.name: NativeDrawingGpuContextTest_RemoveWithValidVulkan
+ * @tc.desc: test Remove with non-null renderContext_ and valid Vulkan context
+ *           covers renderContext_ true && IsValid() true → PurgeUnlockedResources (line 76-78)
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_RemoveWithValidVulkan, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    auto& manager = DrawingGpuContextManager::GetInstance();
+    if (!manager.renderContext_) {
+        GTEST_SKIP() << "renderContext_ is null";
+    }
+    auto& vkContext = RsVulkanContext::Get(manager.renderContext_->GetType());
+    if (!vkContext.IsValid()) {
+        GTEST_SKIP() << "Vulkan context not valid";
+    }
+    int dummyKey = 0;
+    auto gpuCtx = std::make_shared<GPUContext>();
+    manager.Insert(&dummyKey, gpuCtx);
+    bool ret = manager.Remove(&dummyKey);
+    EXPECT_EQ(ret, true);
+#else
+    GTEST_SKIP() << "RS_ENABLE_VK not defined";
+#endif
+}
+
+/**
+ * @tc.name: NativeDrawingGpuContextTest_RemoveWithNullRenderContext
+ * @tc.desc: test Remove with null renderContext_ (short-circuit at line 76)
+ *           covers renderContext_ false branch
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_RemoveWithNullRenderContext, TestSize.Level1)
+{
+    auto& manager = DrawingGpuContextManager::GetInstance();
+    auto origRenderContext = manager.renderContext_;
+    manager.renderContext_ = nullptr;
+
+    int dummyKey = 0;
+    auto gpuCtx = std::make_shared<GPUContext>();
+    manager.Insert(&dummyKey, gpuCtx);
+    bool ret = manager.Remove(&dummyKey);
+    EXPECT_EQ(ret, true);
+
+    manager.renderContext_ = origRenderContext;
+}
+
+/**
+ * @tc.name: NativeDrawingGpuContextTest_RemoveWithInvalidVulkan
+ * @tc.desc: test Remove with non-null renderContext_ but invalid Vulkan
+ *           covers renderContext_ true && IsValid() false (line 76-77)
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_RemoveWithInvalidVulkan, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    auto& manager = DrawingGpuContextManager::GetInstance();
+    if (!manager.renderContext_) {
+        GTEST_SKIP() << "renderContext_ is null";
+    }
+    auto& vkContext = RsVulkanContext::Get(manager.renderContext_->GetType());
+    if (vkContext.IsValid()) {
+        GTEST_SKIP() << "Vulkan is valid, cannot test invalid branch";
+    }
+    // Vulkan is invalid → PurgeUnlockedResources should NOT be called
+    int dummyKey = 0;
+    auto gpuCtx = std::make_shared<GPUContext>();
+    manager.Insert(&dummyKey, gpuCtx);
+    bool ret = manager.Remove(&dummyKey);
+    EXPECT_EQ(ret, true);
+#else
+    GTEST_SKIP() << "RS_ENABLE_VK not defined";
+#endif
+}
+
+/**
+ * @tc.name: NativeDrawingGpuContextTest_RemoveWithNullGpuContext
+ * @tc.desc: test Remove with key found but gpuContext is nullptr
+ *           covers iter->second == nullptr branch (line 74)
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_RemoveWithNullGpuContext, TestSize.Level1)
+{
+    auto& manager = DrawingGpuContextManager::GetInstance();
+    int dummyKey = 0;
+    manager.Insert(&dummyKey, nullptr);
+    bool ret = manager.Remove(&dummyKey);
+    EXPECT_EQ(ret, true);
 }
 } // namespace Drawing
 } // namespace Rosen
