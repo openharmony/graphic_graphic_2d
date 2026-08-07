@@ -659,6 +659,22 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMTest, testing::ext
 }
 
 /**
+ * @tc.name: DrawColorUsingSDFWithDRMNullCanvasTest
+ * @tc.desc: DrawColorUsingSDFWithDRM returns safely when canvas is null
+ * @tc.type: FUNC
+ * @tc.require: issue25648
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMNullCanvasTest, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Rect rect(0, 0, 0, 0);
+    bool isDark = true;
+
+    utils->DrawColorUsingSDFWithDRM(nullptr, &rect, isDark, nullptr, "Tag1", "Tag2");
+    EXPECT_TRUE(isDark);
+}
+
+/**
  * @tc.name: IsDangerousBlendModeAndEndBlenderTest016
  * @tc.desc: IsDangerousBlendMode and EndBlender test
  * @tc.type: FUNC
@@ -751,6 +767,23 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(
         &canvasTest, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawShadowMaskFilterNullCanvasTest
+ * @tc.desc: DrawShadowMaskFilter returns safely when canvas is null
+ * @tc.type: FUNC
+ * @tc.require: issue25648
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterNullCanvasTest, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Path path;
+    path.AddRect({ 0, 0, 5, 5 });
+    const auto bounds = path.GetBounds();
+
+    utils->DrawShadowMaskFilter(nullptr, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false);
+    EXPECT_EQ(path.GetBounds(), bounds);
 }
 
 /**
