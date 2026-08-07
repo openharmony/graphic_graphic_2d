@@ -310,32 +310,6 @@ HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate002, Funct
 }
 
 /**
- * @tc.name: ResetAceAnimatorExpectedFrameRate
- * @tc.desc: Verify the result of ResetAceAnimatorExpectedFrameRate function
- * @tc.type: FUNC
- * @tc.require: IAW09K
- */
-HWTEST_F(HgmIdleDetectorTest, ResetAceAnimatorExpectedFrameRate, Function | SmallTest | Level0)
-{
-    std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
-
-    PART("CaseDescription") {
-        STEP("1. get an idleDetector") {
-            STEP_ASSERT_NE(idleDetector, nullptr);
-        }
-        STEP("2. update ace animator expected frame rate") {
-            idleDetector->UpdateAceAnimatorExpectedFrameRate(120);
-        }
-        STEP("3. reset ace animator expected frame rate") {
-            idleDetector->ResetAceAnimatorExpectedFrameRate();
-        }
-        STEP("4. get ace animator expected frame rate") {
-            STEP_ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, HgmIdleDetector::ANIMATOR_NOT_RUNNING);
-        }
-    }
-}
-
-/**
  * @tc.name: UpdateAndGetAceAnimatorExpectedFrameRate003
  * @tc.desc: Verify the result of UpdateAndGetAceAnimatorExpectedFrameRate003 function
  * @tc.type: FUNC
@@ -366,5 +340,30 @@ HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate003, Funct
     ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 0);
 }
 
+/**
+ * @tc.name: ResetAceAnimatorExpectedFrameRate
+ * @tc.desc: Verify the result of ResetAceAnimatorExpectedFrameRate function
+ * @tc.type: FUNC
+ * @tc.require: IAW09K
+ */
+HWTEST_F(HgmIdleDetectorTest, ResetAceAnimatorExpectedFrameRate, Function | SmallTest | Level0)
+{
+    std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
+
+    PART("CaseDescription") {
+        STEP("1. get an idleDetector") {
+            STEP_ASSERT_NE(idleDetector, nullptr);
+        }
+        STEP("2. update ace animator expected frame rate") {
+            idleDetector->UpdateAceAnimatorExpectedFrameRate(120);
+        }
+        STEP("3. reset ace animator expected frame rate") {
+            idleDetector->ResetAceAnimatorExpectedFrameRate();
+        }
+        STEP("4. get ace animator expected frame rate") {
+            STEP_ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, HgmIdleDetector::ANIMATOR_NOT_RUNNING);
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

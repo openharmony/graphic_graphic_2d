@@ -165,31 +165,6 @@ HWTEST_F(HgmXmlParserTest, ParseRefreshRate4Settings001, Function | SmallTest | 
 }
 
 /**
- * @tc.name: IsNumber
- * @tc.desc: Verify the result of IsNumber function
- * @tc.type: FUNC
- * @tc.require: IBCFDD
- */
-HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level0)
-{
-    std::vector<std::pair<std::string, bool>> cases = {
-        { "", false },
-        { "123456789", false },
-        { "-", false },
-        { "a023", false },
-        { "02a3", false },
-        { "023a", false },
-        { "123", true },
-        { "-123", true },
-        { "023", true },
-        { "12345678", true }
-    };
-    for (const auto& [str, res] : cases) {
-        EXPECT_EQ(XMLParser::IsNumber(str), res);
-    }
-}
-
-/**
  * @tc.name: StringToVector001
  * @tc.desc: Verify the result of StringToVector001 functions
  * @tc.type: FUNC
@@ -230,6 +205,31 @@ HWTEST_F(HgmXmlParserTest, StringToVector003, Function | SmallTest | Level0)
     std::string invalidInput = "abc";
     std::vector<uint32_t> result = parser->StringToVector(invalidInput);
     EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: IsNumber
+ * @tc.desc: Verify the result of IsNumber function
+ * @tc.type: FUNC
+ * @tc.require: IBCFDD
+ */
+HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level0)
+{
+    std::vector<std::pair<std::string, bool>> cases = {
+        { "", false },
+        { "123456789", false },
+        { "-", false },
+        { "a023", false },
+        { "02a3", false },
+        { "023a", false },
+        { "123", true },
+        { "-123", true },
+        { "023", true },
+        { "12345678", true }
+    };
+    for (const auto& [str, res] : cases) {
+        EXPECT_EQ(XMLParser::IsNumber(str), res);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
