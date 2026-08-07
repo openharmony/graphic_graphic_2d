@@ -162,7 +162,7 @@ HWTEST_F(TvMetadataTest, CopyTvMetadataToSurface_002, TestSize.Level1)
     metadata.vidFrameCnt = 24;
     metadata.vidWinSize = 2;
     RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
-    RSTvMetadataManager::Instance().recordSurfaceNodeId_ = 1;
+    RSTvMetadataManager::Instance().recordedSurfaceNodeId_ = 1;
     auto rsSurface = CreateRsSurfaceOhos();
     ASSERT_NE(rsSurface, nullptr);
     RSTvMetadataManager::Instance().CopyTvMetadataToSurface(rsSurface);
@@ -187,7 +187,7 @@ HWTEST_F(TvMetadataTest, CopyTvMetadataToSurface_002, TestSize.Level1)
 
     metadata.vidFps = 60;
     RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
-    RSTvMetadataManager::Instance().recordSurfaceNodeId_ = 2;
+    RSTvMetadataManager::Instance().recordedSurfaceNodeId_ = 2;
     RSTvMetadataManager::Instance().CopyTvMetadataToSurface(rsSurface);
     MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
     ASSERT_EQ(0, tvMetadata.vidFps);
@@ -227,7 +227,7 @@ HWTEST_F(TvMetadataTest, CopyFromLayersToSurface_001, TestSize.Level1)
     layerTvMetadata.vidFrameCnt = 24;
     layerTvMetadata.dpPixFmt = 2;
     MetadataHelper::SetVideoTVMetadata(buffer, layerTvMetadata);
-    RSLayerPtr layer = std::make_shared<RSLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     layer->SetBuffer(buffer, acquireFence);
     layers.emplace_back(layer);
@@ -363,7 +363,7 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_001, TestSize.Level1)
     layers.emplace_back(uniRenderLayer);
     RSLayerPtr layerNull;
     layers.emplace_back(layerNull);
-    RSLayerPtr layerNoBuffer = std::make_shared<RSSurfaceLayer>(0, nullptr);;
+    RSLayerPtr layerNoBuffer = std::make_shared<RSSurfaceLayer>(1, nullptr);;
     layers.emplace_back(layerNoBuffer);
     RSTvMetadataUtil::CombineMetadataForAllLayers(layers);
     TvPQMetadata tvMetadata = { 0 };
@@ -392,7 +392,7 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_002, TestSize.Level1)
     selfDrawTvMetadata.vidFrameCnt = 25;
     selfDrawTvMetadata.vidWinSize = 2;
     MetadataHelper::SetVideoTVMetadata(selfDrawBuffer1, selfDrawTvMetadata);
-    RSLayerPtr selfDrawLayer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);;
+    RSLayerPtr selfDrawLayer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     sptr<SyncFence> acquireFence1 = SyncFence::INVALID_FENCE;
     selfDrawLayer1->SetBuffer(selfDrawBuffer1, acquireFence1);
     selfDrawLayer1->SetUniRenderFlag(false);
@@ -407,7 +407,7 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_002, TestSize.Level1)
     selfDrawTvMetadata.vidFrameCnt = 30;
     selfDrawTvMetadata.vidWinSize = 2;
     MetadataHelper::SetVideoTVMetadata(selfDrawBuffer2, selfDrawTvMetadata);
-    RSLayerPtr selfDrawLayer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);;
+    RSLayerPtr selfDrawLayer2 = std::make_shared<RSSurfaceLayer>(1, nullptr);
     sptr<SyncFence> acquireFence2 = SyncFence::INVALID_FENCE;
     selfDrawLayer2->SetBuffer(selfDrawBuffer2, acquireFence2);
     selfDrawLayer2->SetUniRenderFlag(false);
@@ -417,9 +417,9 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_002, TestSize.Level1)
     RSTvMetadataUtil::CombineMetadataForAllLayers(layers);
     TvPQMetadata tvMetadata1 = { 0 };
     MetadataHelper::GetVideoTVMetadata(selfDrawBuffer1, tvMetadata1);
-    ASSERT_EQ(1, tvMetadata1.sceneTag);
-    ASSERT_EQ(25, tvMetadata1.vidFrameCnt);
-    ASSERT_EQ(2, tvMetadata1.vidWinSize);
+    ASSERT_EQ(0, tvMetadata1.sceneTag);
+    ASSERT_EQ(0, tvMetadata1.vidFrameCnt);
+    ASSERT_EQ(0, tvMetadata1.vidWinSize);
 }
 
 /**

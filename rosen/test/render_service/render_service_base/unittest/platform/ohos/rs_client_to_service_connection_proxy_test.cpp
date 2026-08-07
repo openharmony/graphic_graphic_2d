@@ -2168,7 +2168,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SendVideoRateInfo_EmptyMap, TestS
  
 /**
  * @tc.name: SendVideoRateInfo_MapSizeExceedMax
- * @tc.desc: Test SendVideoRateInfo with mapSize > MAX_VIDEO_INFO_SIZE(32)
+ * @tc.desc: Test SendVideoRateInfo with mapSize > maxVideoInfoSize(32)
  * @tc.type: FUNC
  * @tc.require:
  */
