@@ -144,6 +144,11 @@ bool BootCompileProgress::CreateCanvasNode()
     surfaceNodeConfig.isSync = true;
     Rosen::RSSurfaceNodeType surfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create(connectToRender_);
+    if (!rsUIDirector_) {
+        LOGE("rsUIDirector create failed");
+        compileRunner_->Stop();
+        return false;
+    }
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
     if (!rsUIContext) {
         LOGE("rsUIContext is nullptr");
@@ -168,6 +173,11 @@ bool BootCompileProgress::CreateCanvasNode()
     rsUIDirector_->SendMessages();
 
     rsCanvasNode_ = Rosen::RSCanvasNode::Create(true, false, rsUIContext);
+    if (!rsCanvasNode_) {
+        LOGE("rsCanvasNode create failed");
+        compileRunner_->Stop();
+        return false;
+    }
     rsCanvasNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
     SetFrame();
     rsCanvasNode_->SetBackgroundColor(Rosen::Drawing::Color::COLOR_TRANSPARENT);
