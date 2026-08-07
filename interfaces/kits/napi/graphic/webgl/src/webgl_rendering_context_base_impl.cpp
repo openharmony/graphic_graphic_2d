@@ -3042,15 +3042,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribPointer(napi_env env, con
         LOGE("WebGL vertexAttribPointer negative offset");
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
-    uint64_t offset = static_cast<uint64_t>(vertexInfo.offset);
-    uint64_t bufferSize = static_cast<uint64_t>(webGLBuffer->GetBufferSize());
     uint64_t typeSize = WebGLArg::GetWebGLDataSize(vertexInfo.type);
-    uint64_t attributeSize = static_cast<uint64_t>(vertexInfo.size) * typeSize;
-    if (offset > bufferSize || attributeSize > bufferSize - offset) {
-        LOGE("WebGL vertexAttribPointer invalid offset %{public}u", static_cast<unsigned int>(vertexInfo.offset));
-        return WebGLRenderingContextBase::INVALID_VALUE;
-    }
-
     if ((static_cast<uint32_t>(vertexInfo.stride) & static_cast<uint32_t>(typeSize - 1)) ||
         (static_cast<uint32_t>(vertexInfo.offset) & static_cast<uint32_t>(typeSize - 1))) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
