@@ -44,12 +44,7 @@ FoldState TransferAngleToScreenState(float angle)
 }
 } // namespace
 
-RSFoldScreenManager::~RSFoldScreenManager() noexcept
-{
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    UnRegisterSensorCallback();
-#endif
-}
+RSFoldScreenManager::~RSFoldScreenManager() noexcept {}
 
 void RSFoldScreenManager::SetExternalScreenId(ScreenId externalScreenId)
 {
