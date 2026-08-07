@@ -241,7 +241,7 @@ bool RSFile::ReadAnimationStartTime()
         }
         headerAnimeStartTimes_.resize(startTimesSize);
         if (!Utils::FileRead(file_, headerAnimeStartTimes_.data(),
-                headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>))) {
+            headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>))) {
             return false;
         }
     }
