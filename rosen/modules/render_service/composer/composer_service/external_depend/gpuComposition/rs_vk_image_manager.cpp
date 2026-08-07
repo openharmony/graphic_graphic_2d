@@ -147,7 +147,7 @@ std::shared_ptr<VkImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     if (renderContext_) {
         isProtectedFromContext = renderContext_->GetType() == RenderEngineType::PROTECTED_REDRAW;
     }
-    bool isProtectedCondition = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) || isProtectedFromContext;
+    bool isProtectedCondition = isProtectedFromContext || (buffer->GetUsage() & BUFFER_USAGE_PROTECTED);
     auto bufferId = buffer->GetBufferId();
     auto iter = imageCacheSeqs_.find(bufferId);
     if (isProtectedCondition || iter == imageCacheSeqs_.end()) {
