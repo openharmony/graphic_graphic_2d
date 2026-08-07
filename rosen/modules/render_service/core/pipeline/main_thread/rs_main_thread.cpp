@@ -2637,14 +2637,13 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
     if (rsVsyncManagerAgent_ != nullptr) {
         rsVsyncManagerAgent_->SetWaitForDvsyncFrame(unmarshalFinishedCount_ <= 0);
     }
-    if (!unmarshalTaskCond_.wait_for(lock, std::chrono::milliseconds(WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT),
-        [this]() { return unmarshalFinishedCount_ > 0; })) {
-        RS_LOGI("WaitUntilUnmarshallingTaskFinished the wait time exceeds %{public}d ms",
-            WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT);
-        RS_TRACE_NAME_FMT("RSMainThread::WaitUntilUnmarshallingTaskFinished the wait time exceeds %d ms",
-            WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT);
+    if (!unmarshalTaskCond_.wait_for(lock, std::chrono::milliseconds(WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT), [this]() {
+        return unmarshalFinishedCount_ > 0;
+    })) {
+        RS_LOGI("WaitUntilUnmarshallingTaskFinished Skip the waiting step");
+    } else {
+        unmarshalFinishedCount_ = 0;
     }
-    --unmarshalFinishedCount_;
     RS_OPTIONAL_TRACE_END();
 }
 
