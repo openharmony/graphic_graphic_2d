@@ -92,11 +92,11 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand002, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
-    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(context, id, nullptr);
+    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(context, id);
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
-    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(*context2, id2, nullptr);
+    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(*context2, id2);
     ASSERT_EQ(id2, static_cast<NodeId>(10));
 }
 
@@ -229,11 +229,11 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand007, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
-    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(context, id, nullptr);
+    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(context, id);
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
-    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(*context2, id2, nullptr);
+    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(*context2, id2);
     ASSERT_EQ(id2, static_cast<NodeId>(10));
 }
 
