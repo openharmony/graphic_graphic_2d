@@ -1715,6 +1715,48 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchTask, Function | SmallTest | Level0
 }
 
 /**
+ * @tc.name: TestIsMouseOrTouchPadEvent
+ * @tc.desc: Verify the result of IsMouseOrTouchPadEvent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestIsMouseOrTouchPadEvent, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    int32_t touchStatus = TOUCH_MOVE;
+    int32_t sourceType = TouchSourceType::SOURCE_TYPE_MOUSE;
+    mgr.frameVoter_.voterGamesEffective_ = false;
+    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
+    ASSERT_EQ(mgr.pointerManager_.GetState(), 0);
+    usleep(10);
+
+    mgr.frameVoter_.voterGamesEffective_ = false;
+    sourceType = TouchSourceType::SOURCE_TYPE_TOUCHSCREEN;
+    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
+    usleep(10);
+
+    mgr.frameVoter_.voterGamesEffective_ = false;
+    mgr.HandleTouchEvent(0, touchStatus, 1, -1);
+    usleep(10);
+
+    mgr.frameVoter_.voterGamesEffective_ = false;
+    sourceType = TouchSourceType::SOURCE_TYPE_TOUCHPAD;
+    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
+    usleep(10);
+
+    mgr.frameVoter_.voterGamesEffective_ = false;
+    touchStatus = AXIS_BEGIN;
+    sourceType = TouchSourceType::SOURCE_TYPE_TOUCHSCREEN;
+    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
+    usleep(10);
+
+    mgr.frameVoter_.voterGamesEffective_ = false;
+    touchStatus = -1;
+    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
+    usleep(10);
+}
+
+/**
  * @tc.name: TestMarkVoteChange
  * @tc.desc: Verify the result of MarkVoteChange
  * @tc.type: FUNC
@@ -1870,48 +1912,6 @@ HWTEST_F(HgmFrameRateMgrTest, TestSyncHgmConfigUpdateCallback, Function | SmallT
 
     HgmCore::Instance().hgmFrameRateMgr_->curScreenId_.store(curScreenId);
     HgmCore::Instance().mPolicyConfigData_ = std::move(policyConfigData);
-}
-
-/**
- * @tc.name: TestIsMouseOrTouchPadEvent
- * @tc.desc: Verify the result of IsMouseOrTouchPadEvent
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, TestIsMouseOrTouchPadEvent, Function | SmallTest | Level2)
-{
-    HgmFrameRateManager mgr;
-    int32_t touchStatus = TOUCH_MOVE;
-    int32_t sourceType = TouchSourceType::SOURCE_TYPE_MOUSE;
-    mgr.frameVoter_.voterGamesEffective_ = false;
-    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
-    ASSERT_EQ(mgr.pointerManager_.GetState(), 0);
-    usleep(10);
-
-    mgr.frameVoter_.voterGamesEffective_ = false;
-    sourceType = TouchSourceType::SOURCE_TYPE_TOUCHSCREEN;
-    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
-    usleep(10);
-
-    mgr.frameVoter_.voterGamesEffective_ = false;
-    mgr.HandleTouchEvent(0, touchStatus, 1, -1);
-    usleep(10);
-
-    mgr.frameVoter_.voterGamesEffective_ = false;
-    sourceType = TouchSourceType::SOURCE_TYPE_TOUCHPAD;
-    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
-    usleep(10);
-
-    mgr.frameVoter_.voterGamesEffective_ = false;
-    touchStatus = AXIS_BEGIN;
-    sourceType = TouchSourceType::SOURCE_TYPE_TOUCHSCREEN;
-    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
-    usleep(10);
-
-    mgr.frameVoter_.voterGamesEffective_ = false;
-    touchStatus = -1;
-    mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
-    usleep(10);
 }
 
 /**
