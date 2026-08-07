@@ -251,13 +251,13 @@ bool FilterImpl::GetFractionStops(
         return false;
     }
     ani_size len = 0;
-    if (env->Array_GetLength(arrayObj, &len) != ANI_OK || len <= 0) {
+    if (env->Array_GetLength(arrayObj, &len) != ANI_OK) {
         UIEFFECT_LOG_E("call GetFractionStops failed, get ani array failed");
         return false;
     }
-    if (len < NUM_2 || len >NUM_1000) {
-        UIEFFECT_LOG_E("GetFractionStops fractionstops num less than 2 or greater than 1000,
-            array length exceeds limit: %{public}zu", len);
+    if ((len <= 0) || (len < NUM_2 || len > NUM_1000)) {
+        UIEFFECT_LOG_E("GetFractionStops fractionstops num less than 2 or greater than 1000, "
+            "array length exceeds limit: %{public}zu", len);
         return false;
     }
     ani_ref tupleObj {};
