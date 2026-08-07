@@ -151,6 +151,12 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId, std::shared_ptr<Dr
         fullHash = CalculateTypefaceFullHash(typeface);
     } else {
         fullHash = typeface->GetHash();
+        size_t newSize = generalTypefaceTotalCpuMemory_ + typeface->GetSize();
+        if (newSize > GENERAL_TYPEFACE_MEMORY_LIMIT) {
+            RS_LOGD("CacheDrawingTypeface general typeface total size too big.");
+            return;
+        }
+        generalTypefaceTotalCpuMemory_ = newSize;
         if (!fullHash) { // fallback to slow path if the adapter does not provide hash
             std::shared_ptr<Drawing::Data> data = typeface->Serialize();
             if (!data) {
@@ -225,6 +231,13 @@ void RSTypefaceCache::RemoveHashMap(pid_t pid, std::unordered_map<uint64_t, Type
         auto& [typeface, ref] = typefaceHashMap[hash_value];
         if (pid) {
             MemorySnapshot::Instance().RemoveCpuMemory(pid, typeface->GetSize());
+        }
+        if (typeface->GetFd() == INVALID_FD) {
+            if (generalTypefaceTotalCpuMemory_ >= typeface->GetSize()) {
+                generalTypefaceTotalCpuMemory_ -= typeface->GetSize();
+            } else {
+                generalTypefaceTotalCpuMemory_ = 0;
+            }
         }
         ref -= 1;
         if (ref != 0) {
