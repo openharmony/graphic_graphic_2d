@@ -753,12 +753,17 @@ napi_value FilterNapi::SetRadiusGradientBlurPara(napi_env env, napi_callback_inf
 float FilterNapi::GetSpecialValue(napi_env env, napi_value argValue)
 {
     double tmp = 0.0f;
-    if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
-        napi_get_value_double(env, argValue, &tmp) == napi_ok && std::isfinite(tmp) && tmp <= FLT_MAX &&
-        tmp >= -FLT_MAX) {
-        return static_cast<float>(tmp);
+    if (UIEffectNapiUtils::GetType(env, argValue) != napi_number ||
+        napi_get_value_double(env, argValue, &tmp) != napi_ok || std::isnan(tmp)) {
+        return 0.0f;
     }
-    return 0.0f;
+    if (tmp > FLT_MAX) {
+        return FLT_MAX;
+    }
+    if (tmp < -FLT_MAX) {
+        return -FLT_MAX;
+    }
+    return static_cast<float>(tmp);
 }
 
 uint32_t FilterNapi::GetSpecialIntValue(napi_env env, napi_value argValue)
