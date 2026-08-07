@@ -93,6 +93,7 @@ protected:
     void HandlePowerStatus(ScreenPowerStatus status);
     void SetAFBCEnabled(bool enabled);
     int64_t GetDelayTime() const;
+    void DumpVKImageInfo(std::string& dumpString);
 
 private:
     struct LayerCreatedCallbackContext {
@@ -176,7 +177,7 @@ private:
     std::mutex frameBufferSurfaceOhosMapMutex_;
     std::mutex surfaceMutex_;
     std::mutex preAllocMutex_;
-    std::atomic<uint32_t> unExecuteTaskNum_ = 0;
+    std::atomic<int32_t> unExecuteTaskNum_ = 0;
     std::atomic<int64_t> delayTime_ = 0;
     int64_t lastCommitTime_ = 0;
     int64_t intervalTimePoints_ = 0;

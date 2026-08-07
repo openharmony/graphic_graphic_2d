@@ -53,7 +53,7 @@ public:
     int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence);
     void ClearFrameBuffers();
-    uint32_t GetUnExecuteTaskNum() const;
+    int32_t GetUnExecuteTaskNum() const;
     void UpdatePipelineParam(const PipelineParam& pipelineParam);
     PipelineParam GetPipelineParam();
     int GetAccumulatedBufferCount() const;
@@ -78,8 +78,8 @@ private:
     std::mutex clientMutex_; /* Locking is only necessary if not running on uni render thread */
     std::shared_ptr<RSComposerContext> rsComposerContext_;
     std::condition_variable composerThreadTaskCond_;
-    std::atomic<uint32_t> unExecuteTaskNum_ = 0;
-    std::atomic<int> acquiredBufferCount_ = 0;
+    std::atomic<int32_t> unExecuteTaskNum_ = 0;
+    std::atomic<int32_t> acquiredBufferCount_ = 0;
     bool isPreAllocProtectedFrameBuffer_ = false;
     PipelineParam pipelineParam_;
     std::shared_ptr<HdiOutput> output_ = nullptr;

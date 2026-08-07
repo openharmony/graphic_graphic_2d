@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <atomic>
 #include <gtest/gtest.h>
 #include <thread>
 
@@ -1230,6 +1231,106 @@ HWTEST_F(RsRenderComposerAgentTest, MarkTunnelSurfaceInvalid_MultipleSurfaces_Al
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId1) > 0);
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId2) > 0);
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId3) > 0);
+}
+
+/**
+ * Function: DumpVKImageInfo_NullComposer_EarlyReturn
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with null RSRenderComposer
+ *                  2. call DumpVKImageInfo
+ *                  3. verify early return without crash (outer if branch true: rsRenderComposer_ == nullptr)
+ */
+HWTEST_F(RsRenderComposerAgentTest, DumpVKImageInfo_NullComposer_EarlyReturn, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposer> nullComposer = nullptr;
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullComposer);
+    ASSERT_EQ(agent->rsRenderComposer_, nullptr);
+
+    std::string dumpString = "initial";
+    // Outer if branch (rsRenderComposer_ == nullptr) is true: early return
+    agent->DumpVKImageInfo(dumpString);
+    // dumpString should not be modified (early return before posting any task)
+    EXPECT_EQ(dumpString, "initial");
+}
+
+/**
+ * Function: DumpVKImageInfo_ValidComposer_ForwardsCall
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call DumpVKImageInfo
+ *                  3. verify no crash (outer if branch false: rsRenderComposer_ != nullptr;
+ *                      inner both conditions false: renderComposerAgent != nullptr,
+ *                      rsRenderComposer_ != nullptr; call forwarded to composer)
+ */
+HWTEST_F(RsRenderComposerAgentTest, DumpVKImageInfo_ValidComposer_ForwardsCall, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    std::string dumpString;
+    // Outer if branch (rsRenderComposer_ == nullptr) is false: task is posted
+    // Inner: renderComposerAgent != nullptr (agent alive), rsRenderComposer_ != nullptr
+    // The lambda forwards to rsRenderComposer_->DumpVKImageInfo
+    EXPECT_NO_FATAL_FAILURE(agent->DumpVKImageInfo(dumpString));
+    EXPECT_NE(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: DumpVKImageInfo_AgentNotNull_ComposerNull
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. occupy the composer thread with a blocking task so the lambda is queued
+ *                  3. call DumpVKImageInfo from a separate thread (task queued behind blocker)
+ *                  4. set rsRenderComposer_ to nullptr while the lambda is still queued
+ *                  5. release the blocker so the lambda runs and sees rsRenderComposer_ == nullptr
+ *                  6. verify inner if branch: renderComposerAgent != nullptr (false),
+ *                      rsRenderComposer_ == nullptr (true) -> early return without crash
+ */
+HWTEST_F(RsRenderComposerAgentTest, DumpVKImageInfo_AgentNotNull_ComposerNull, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    // Post a blocking task to occupy the composer's event handler thread.
+    // This creates a window where the DumpVKImageInfo lambda is queued but not yet executed.
+    std::atomic<bool> releaseBlocker { false };
+    rsRenderComposer_->PostTask([&releaseBlocker]() {
+        while (!releaseBlocker.load()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    });
+    // Wait for the blocking task to start running on the composer's thread
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    // Call DumpVKImageInfo from a separate thread.
+    // The outer check passes (rsRenderComposer_ is still valid), but the lambda task
+    // is queued behind the blocking task and cannot execute yet.
+    std::string dumpString;
+    std::thread dumpThread([&agent, &dumpString]() {
+        agent->DumpVKImageInfo(dumpString);
+    });
+
+    // Give the dump thread time to pass the outer check and queue the lambda task
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    // Set rsRenderComposer_ to nullptr while the lambda is still queued.
+    // When the lambda executes, renderComposerAgent->rsRenderComposer_ will be nullptr.
+    agent->rsRenderComposer_ = nullptr;
+
+    // Release the blocking task so the queued lambda can execute.
+    // The lambda will: lock weakThis (agent alive -> renderComposerAgent != nullptr),
+    // then check rsRenderComposer_ == nullptr (true) -> early return.
+    releaseBlocker.store(true);
+
+    // Wait for the dump thread to complete
+    dumpThread.join();
+    EXPECT_EQ(agent->rsRenderComposer_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

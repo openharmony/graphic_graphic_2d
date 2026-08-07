@@ -91,11 +91,11 @@ void RSComposerClientManager::RenderFrameStart(uint64_t timestamp)
         clientMap = composerClientMap_;
     }
     if (!clientMap.empty()) {
-        uint32_t minBufferCount = INT_MAX;
+        int32_t minBufferCount = INT_MAX;
         for (auto it : clientMap) {
             minBufferCount = std::min(minBufferCount, it.second->GetUnExecuteTaskNum());
         }
-        RsFrameReport::ReportBufferCount(minBufferCount);
+        RsFrameReport::ReportBufferCount(static_cast<uint32_t>(minBufferCount));
     }
 }
 
