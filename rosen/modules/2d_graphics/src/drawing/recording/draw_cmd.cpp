@@ -1284,7 +1284,7 @@ std::shared_ptr<DrawOpItem> DrawImageLatticeOpItem::Unmarshalling(const DrawCmdL
 {
     auto* constructorHandle = static_cast<DrawImageLatticeOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->filter < FilterMode::NEAREST || constructorHandle->filter > FilterMode::LINEAR) {
-        LOGD("DrawImageLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGE("DrawImageLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->filter));
         return nullptr;
     }

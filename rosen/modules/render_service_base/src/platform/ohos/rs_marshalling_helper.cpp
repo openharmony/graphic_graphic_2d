@@ -530,94 +530,127 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& val)
 {
-    bool success = true;
-    success &= Marshalling(parcel, val.id_);
-    success &= Marshalling(parcel, val.originId_);
-    success &= Marshalling(parcel, val.size_);
-    success &= Marshalling(parcel, val.index_);
-    success &= Marshalling(parcel, val.hash_);
+    if (!Marshalling(parcel, val.id_)) {
+        return false;
+    }
+    if (!Marshalling(parcel, val.originId_)) {
+        return false;
+    }
+    if (!Marshalling(parcel, val.size_)) {
+        return false;
+    }
+    if (!Marshalling(parcel, val.index_)) {
+        return false;
+    }
+    if (!Marshalling(parcel, val.hash_)) {
+        return false;
+    }
     // originId_ == 0: base typeface from ashmem, fd is required for reconstruction
     // originId_ > 0: variation typeface, receiver derives from cached base typeface, no fd needed
     if (val.originId_ == 0) {
         RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
-        success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
+        if (!static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_)) {
+            return false;
+        }
     }
-    success &= Marshalling(parcel, val.hasFontArgs_);
+    if (!Marshalling(parcel, val.hasFontArgs_)) {
+        return false;
+    }
 
     if (!val.hasFontArgs_) {
-        return success;
+        return true;
     }
 
     std::vector<Drawing::FontArguments::VariationPosition::Coordinate>& coords = val.coords_;
     uint32_t coordsCount = coords.size();
 
-    success &= Marshalling(parcel, coordsCount);
-    for (uint32_t i = 0; i < coordsCount; ++i) {
-        success &= Marshalling(parcel, coords[i].axis);
-        success &= Marshalling(parcel, coords[i].value);
+    if (!Marshalling(parcel, coordsCount)) {
+        return false;
     }
-    return success;
+    for (uint32_t i = 0; i < coordsCount; ++i) {
+        if (!Marshalling(parcel, coords[i].axis)) {
+            return false;
+        }
+        if (!Marshalling(parcel, coords[i].value)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface& val)
 {
-    bool success = true;
     uint64_t id = 0;
     uint64_t originId = 0;
     uint32_t size = 0;
     uint32_t index = 0;
     uint32_t hash = 0;
-    int fd = -1;
-    bool hasFontArgs = false;
-
-    success &= Unmarshalling(parcel, id);
-    if (success) { val.id_ = id; }
-    success &= Unmarshalling(parcel, originId);
-    if (success) { val.originId_ = originId; }
-    success &= Unmarshalling(parcel, size);
-    if (success) { val.size_ = size; }
-    success &= Unmarshalling(parcel, index);
-    if (success) { val.index_ = index; }
-    success &= Unmarshalling(parcel, hash);
-    if (success) { val.hash_ = hash; }
+    if (!Unmarshalling(parcel, id)) {
+        return false;
+    }
+    val.id_ = id;
+    if (!Unmarshalling(parcel, originId)) {
+        return false;
+    }
+    val.originId_ = originId;
+    if (!Unmarshalling(parcel, size)) {
+        return false;
+    }
+    val.size_ = size;
+    if (!Unmarshalling(parcel, index)) {
+        return false;
+    }
+    val.index_ = index;
+    if (!Unmarshalling(parcel, hash)) {
+        return false;
+    }
+    val.hash_ = hash;
 
     // originId_ == 0: base typeface from ashmem, fd is required for reconstruction
     // originId_ > 0: variation typeface, receiver derives from cached base typeface, no fd needed
     if (val.originId_ == 0) {
         RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
         if (val.fd_ < 0) {
-            success = false;
+            return false;
         }
     }
-    success &= Unmarshalling(parcel, hasFontArgs);
-    if (success) { val.hasFontArgs_ = hasFontArgs; }
+
+    bool hasFontArgs = false;
+    if (!Unmarshalling(parcel, hasFontArgs)) {
+        return false;
+    }
+    val.hasFontArgs_ = hasFontArgs;
 
     if (!val.hasFontArgs_) {
-        return success;
+        return true;
     }
     auto& coords = val.coords_;
 
     uint32_t coordsCount = 0;
-    success &= Unmarshalling(parcel, coordsCount);
+    if (!Unmarshalling(parcel, coordsCount)) {
+        return false;
+    }
     constexpr uint32_t MAX_COORDS_COUNT = 128;
     if (coordsCount > MAX_COORDS_COUNT) {
         ROSEN_LOGD("RSMarshallingHelper::Unmarshalling coords count %{public}u exceeds max limit %{public}u",
             coordsCount, MAX_COORDS_COUNT);
         return false;
     }
-    if (success) { coords.resize(coordsCount); }
+    coords.resize(coordsCount);
 
     for (uint32_t i = 0; i < coordsCount; ++i) {
         uint32_t axis = 0;
         float value = 0.0f;
-        success &= Unmarshalling(parcel, axis);
-        success &= Unmarshalling(parcel, value);
-        if (success) {
-            coords[i].axis = axis;
-            coords[i].value = value;
+        if (!Unmarshalling(parcel, axis)) {
+            return false;
         }
+        if (!Unmarshalling(parcel, value)) {
+            return false;
+        }
+        coords[i].axis = axis;
+        coords[i].value = value;
     }
-    return success;
+    return true;
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)
