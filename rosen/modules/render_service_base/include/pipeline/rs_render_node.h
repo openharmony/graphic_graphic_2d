@@ -1037,19 +1037,9 @@ public:
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
-    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
-    {
-        if (isAccessibilityConfigChanged) {
-            accessibilityConfigChangedNodeSet_.insert(GetId());
-        } else {
-            accessibilityConfigChangedNodeSet_.erase(GetId());
-        }
-    }
+    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged);
 
-    bool IsAccessibilityConfigChangedNode() const
-    {
-        return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
-    }
+    bool IsAccessibilityConfigChangedNode() const;
 
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
@@ -1345,7 +1335,6 @@ private:
     static const inline RS_HIDDEN auto EmptyChildrenList =
         std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     static inline std::unordered_set<NodeId> containBootAnimationNodeSet_;
-    static inline std::unordered_set<NodeId> accessibilityConfigChangedNodeSet_;
     static inline std::unordered_map<NodeId, int> subSurfaceCntMap_;
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
