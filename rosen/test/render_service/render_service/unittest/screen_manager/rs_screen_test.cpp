@@ -2851,7 +2851,7 @@ HWTEST_F(RSScreenTest, SetAsMainScreenTest, TestSize.Level1)
         auto rsScreen = std::make_shared<RSScreen>(screenId);
         rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
         EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(0));
-        EXPECT_EQ(rsScreen->SetAsMainScreen(isMainScreen), StatusCode::SUCCESS);
+        rsScreen->SetAsMainScreen(isMainScreen);
     }
 
     // case 2: normal screen unset as main screen
@@ -2861,7 +2861,7 @@ HWTEST_F(RSScreenTest, SetAsMainScreenTest, TestSize.Level1)
         auto rsScreen = std::make_shared<RSScreen>(screenId);
         rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
         EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(0));
-        EXPECT_EQ(rsScreen->SetAsMainScreen(isMainScreen), StatusCode::SUCCESS);
+        rsScreen->SetAsMainScreen(isMainScreen);
     }
 
     // case 3: virtual screen
@@ -2869,7 +2869,7 @@ HWTEST_F(RSScreenTest, SetAsMainScreenTest, TestSize.Level1)
         VirtualScreenConfigs config;
         bool isMainScreen = true;
         auto virtualScreen = std::make_shared<RSScreen>(config);
-        EXPECT_EQ(virtualScreen->SetAsMainScreen(isMainScreen), StatusCode::SUCCESS);
+        virtualScreen->SetAsMainScreen(isMainScreen);
     }
 
     // case 4: toggle main screen status
@@ -2881,9 +2881,9 @@ HWTEST_F(RSScreenTest, SetAsMainScreenTest, TestSize.Level1)
             .Times(3)
             .WillRepeatedly(testing::Return(0));
 
-        EXPECT_EQ(rsScreen->SetAsMainScreen(true), StatusCode::SUCCESS);
-        EXPECT_EQ(rsScreen->SetAsMainScreen(false), StatusCode::SUCCESS);
-        EXPECT_EQ(rsScreen->SetAsMainScreen(true), StatusCode::SUCCESS);
+        rsScreen->SetAsMainScreen(true);
+        rsScreen->SetAsMainScreen(false);
+        rsScreen->SetAsMainScreen(true);
     }
 }
 

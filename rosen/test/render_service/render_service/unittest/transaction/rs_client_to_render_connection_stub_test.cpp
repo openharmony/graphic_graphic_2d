@@ -1630,6 +1630,33 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest001, TestSize.
 }
 
 /**
+ * @tc.name: CreateDisplayNodeTest004
+ * @tc.desc: Test CREATE_DISPLAY_NODE rejects out-of-range mirrorSourceRotation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest004, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
+
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId displayNodeId = 10002;
+    data.WriteUint64(displayNodeId);
+    data.WriteUint64(0); // mirrorId
+    data.WriteUint64(screenId_); // screenId
+    data.WriteUint8(static_cast<uint8_t>(DisplayMode::EXPAND)); // displayMode
+    // mirrorSourceRotation beyond INVALID_SCREEN_ROTATION must be rejected
+    data.WriteUint32(static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION) + 1);
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: RegisterApplicationAgentTest001
  * @tc.desc: Test REGISTER_APPLICATION_AGENT interface code path
  * @tc.type: FUNC
