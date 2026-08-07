@@ -50,8 +50,9 @@ constexpr size_t MAX_DATA_SIZE = 1024 * 1024; // 1MB
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 const uint32_t MAX_VOTER_SIZE = 100;
 constexpr uint32_t MAX_SURFACE_REGION_CONFIG_COUNT = 16;
+constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
-static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "client_to_service";
