@@ -75,7 +75,7 @@ HWTEST_F(RSModifiersDrawThreadTest, CommitTransaction_Basic001, TestSize.Level1)
     auto canvasModifiersDrawAgent = std::make_shared<RSCanvasModifiersDrawAgent>();
     auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     auto transactionData = std::make_unique<RSTransactionData>();
-    uint32_t transactionDataIndex = 0;
+    std::atomic<uint32_t> transactionDataIndex = 0;
     thread->CommitTransaction(
         canvasModifiersDrawAgent, renderPipelineClient, std::move(transactionData), transactionDataIndex);
 }

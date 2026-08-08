@@ -43,7 +43,6 @@ RSOffscreenRenderThread::RSOffscreenRenderThread()
     PostTask([this]() {
         renderContext_ = RenderContext::Create();
         renderContext_->Init();
-        renderContext_->SetUpGpuContext();
     });
 #endif
 

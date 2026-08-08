@@ -35,12 +35,7 @@ public:
     void TearDown() override;
 };
 
-void PictureTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void PictureTest::SetUpTestCase() {}
 void PictureTest::TearDownTestCase() {}
 void PictureTest::SetUp() {}
 void PictureTest::TearDown() {}

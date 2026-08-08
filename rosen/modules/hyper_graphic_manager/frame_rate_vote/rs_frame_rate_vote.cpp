@@ -29,7 +29,7 @@ namespace Rosen {
 namespace {
 const std::string VIDEO_RATE_FLAG = "VIDEO_RATE";
 const std::string VIDEO_VOTE_FLAG = "VOTER_VIDEO";
-constexpr uint64_t FFRT_QOS_INHERIT = 4;
+constexpr uint64_t FFRT_QOS_INHERIT = 52;
 constexpr uint64_t DANMU_MAX_INTERVAL_TIME = 50;
 constexpr int32_t VIDEO_VOTE_DELAYS_TIME = 1000 * 1000;
 constexpr int32_t NORMAL_BUFFER_COUNT = 1;
@@ -127,6 +127,10 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
         if (rateIt != videoRateInfo_.end()) {
             videoRate = rateIt->second;
         }
+    }
+
+    if (ShouldSkipFrameRateVote(surfaceNodeId, videoRate)) {
+        return;
     }
 
     auto initTask = [this, surfaceNodeId, videoRate]() {
@@ -247,10 +251,6 @@ void RSFrameRateVote::CancelVoteRate(pid_t pid, std::string eventName)
 
 void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
 {
-    if (!isVideoApp_.load()) {
-        return;
-    }
-
     auto pidIt = videoRateInfo.find("pid");
     if (pidIt == videoRateInfo.end()) {
         RS_LOGD("SetVideoRateInfo can not find pid");
@@ -261,6 +261,10 @@ void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std
     auto resultPid = std::from_chars(pidIt->second.data(), pidIt->second.data() + pidIt->second.size(), pid);
     if (resultPid.ec != std::errc() || resultPid.ptr != pidIt->second.data() + pidIt->second.size() || pid <= 0) {
         RS_LOGD("SetVideoRateInfo read pid fail or invalid pid value");
+        return;
+    }
+
+    if (videoRateInfo_.find(pid) == videoRateInfo_.end() && !isVideoApp_.load()) {
         return;
     }
 
@@ -329,6 +333,16 @@ bool RSFrameRateVote::CheckAvailableBufferCount(int32_t bufferCount)
         return true;
     }
     return false;
+}
+
+bool RSFrameRateVote::ShouldSkipFrameRateVote(uint64_t surfaceNodeId, uint32_t videoRate)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = surfaceVideoRate_.find(surfaceNodeId);
+    if (it == surfaceVideoRate_.end()) {
+        return videoRate == 0;
+    }
+    return it->second == videoRate;
 }
 } // namespace Rosen
 } // namespace OHOS

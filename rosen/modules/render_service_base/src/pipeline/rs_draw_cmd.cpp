@@ -480,6 +480,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return false;
     }
+    auto renderEngineType = canvas.GetRenderEngineType();
     if (nativeWindowBuffer_ == nullptr) {
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
         nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
@@ -489,14 +490,16 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         }
     }
     if (!backendTexture_.IsValid()) {
-        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
+        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+            RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
+            nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             if (!vkTextureInfo) {
                 return false;
             }
-            cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+            cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+                RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
                 vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         } else {
             return false;
@@ -1699,8 +1702,11 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
             OnAfterAcquireBuffer();
         }
     }
-    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-        surfaceBufferInfo_.surfaceBuffer_->GetWidth(), surfaceBufferInfo_.surfaceBuffer_->GetHeight());
+    auto renderEngineType = canvas->GetRenderEngineType();
+    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
+        nativeWindowBuffer_, surfaceBufferInfo_.surfaceBuffer_->GetWidth(),
+        surfaceBufferInfo_.surfaceBuffer_->GetHeight());
     if (!backendTexture.IsValid()) {
         LOGE("DrawSurfaceBufferOpItem::Draw backendTexture is not valid");
         return;
@@ -1714,7 +1720,8 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
     auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
     if (!vkTextureInfo || !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
-        new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage,
+        new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(), vkTextureInfo->vkImage,
             vkTextureInfo->vkAlloc.memory), surfaceBufferInfo_.isIgnoreAlpha_)) {
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;

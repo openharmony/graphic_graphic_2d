@@ -312,6 +312,8 @@ void RSScreen::WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode)
         return;
     }
     static GraphicDisplayModeInfo modeInfo;
+    static std::mutex modeInfoMutex;
+    std::lock_guard<std::mutex> lock(modeInfoMutex);
     if ((modeInfo.freshRate != activeMode.freshRate)
         || modeInfo.width != activeMode.width || modeInfo.height != activeMode.height) {
         RS_TRACE_NAME("RSScreen::WriteHisyseventEpsLcdInfo HiSysEventWrite");
@@ -656,12 +658,11 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
     return StatusCode::SUCCESS;
 }
 
-int32_t RSScreen::SetAsMainScreen(bool isMainScreen)
+void RSScreen::SetAsMainScreen(bool isMainScreen)
 {
     RS_LOGI("RSScreen::SetAsMainScreen screenId:%{public}" PRIu64 " isMainScreen:%{public}d",
             property_.GetId(), isMainScreen);
     UPDATE_PROPERTY(AsMainScreen, isMainScreen);
-    return StatusCode::SUCCESS;
 }
 
 bool RSScreen::IsMainScreen() const
@@ -671,6 +672,7 @@ bool RSScreen::IsMainScreen() const
 
 void RSScreen::SetMultiSurfaceConfigs(const MultiSurfaceConfigs& configs)
 {
+    std::lock_guard<std::mutex> lock(surfaceConfigsMutex_);
     UPDATE_PROPERTY(MultiSurfaceConfigs, configs);
     if (configs.empty()) {
         UPDATE_PROPERTY(State, ScreenState::DISABLED);
@@ -681,6 +683,7 @@ void RSScreen::SetMultiSurfaceConfigs(const MultiSurfaceConfigs& configs)
 
 void RSScreen::AddSurfaceConfigs(const MultiSurfaceConfigs& configs)
 {
+    std::lock_guard<std::mutex> lock(surfaceConfigsMutex_);
     auto prop = property_.AddSurfaceConfigs(configs);
     NotifyScreenPropertyChange(prop);
     auto current = property_.GetMultiSurfaceConfigs();
@@ -693,6 +696,7 @@ void RSScreen::AddSurfaceConfigs(const MultiSurfaceConfigs& configs)
 
 void RSScreen::RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceIds)
 {
+    std::lock_guard<std::mutex> lock(surfaceConfigsMutex_);
     auto prop = property_.RemoveSurfaceConfigs(surfaceIds);
     NotifyScreenPropertyChange(prop);
     auto current = property_.GetMultiSurfaceConfigs();
@@ -713,13 +717,13 @@ void RSScreen::ModeInfoDump(std::string& dumpString)
 {
     size_t modeIndex = 0;
     for (; modeIndex < supportedModes_.size(); ++modeIndex) {
-        AppendFormat(dumpString, "supportedMode[%d]: %dx%d, refreshRate=%d\n",
+        AppendFormat(dumpString, "supportedMode[%zu]: %ux%u, refreshRate=%u\n",
                      modeIndex, supportedModes_[modeIndex].width,
                      supportedModes_[modeIndex].height, supportedModes_[modeIndex].freshRate);
     }
     std::optional<GraphicDisplayModeInfo> activeMode = GetActiveMode();
     if (activeMode) {
-        AppendFormat(dumpString, "activeMode: %dx%d, refreshRate=%d\n",
+        AppendFormat(dumpString, "activeMode: %ux%u, refreshRate=%u\n",
             activeMode->width, activeMode->height, activeMode->freshRate);
     }
 }
@@ -787,7 +791,7 @@ void RSScreen::PropDump(std::string& dumpString)
 {
     decltype(capability_.propertyCount) propIndex = 0;
     for (; propIndex < capability_.propertyCount; ++propIndex) {
-        AppendFormat(dumpString, "prop[%u]: name=%s, propid=%d, value=%d\n",
+        AppendFormat(dumpString, "prop[%u]: name=%s, propid=%u, value=%" PRIu64 "\n",
                      propIndex, capability_.props[propIndex].name.c_str(), capability_.props[propIndex].propId,
                      capability_.props[propIndex].value);
     }

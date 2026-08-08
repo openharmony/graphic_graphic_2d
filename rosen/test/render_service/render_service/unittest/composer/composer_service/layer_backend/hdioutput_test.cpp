@@ -5442,6 +5442,152 @@ HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_DeviceNull_TrueBranch, TestSize
     auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
     EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
 }
+
+/**
+ * Function: GetLayersReleaseFenceLocked_FencesSizeSmaller_FalseBranch
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. layersId_ has more entries than fences_
+ *                  2. call GetLayersReleaseFenceLocked
+ *                  3. verify the new (i < fences_.size()) condition becomes false and the loop
+ *                     stops before iterating past fences_ (added in the fix commit)
+ */
+HWTEST_F(HdiOutputTest, GetLayersReleaseFenceLocked_FencesSizeSmaller_FalseBranch, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(hdiOutput, nullptr);
+    hdiOutput->layersId_.clear();
+    hdiOutput->fences_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+
+    std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(1);
+    hdiOutput->layerIdMap_[1] = hdiLayer1;
+    std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(2);
+    hdiOutput->layerIdMap_[2] = hdiLayer2;
+
+    sptr<SyncFence> fence = sptr<SyncFence>::MakeSptr(-1);
+    hdiOutput->layersId_.push_back(1);
+    hdiOutput->layersId_.push_back(2);
+    // fences_ has only one entry, so i < fences_.size() becomes false at i=1
+    hdiOutput->fences_.push_back(fence);
+
+    auto fences = hdiOutput->GetLayersReleaseFenceLocked();
+    // Only one entry should be returned because the loop stops at i == fences_.size()
+    EXPECT_EQ(fences.size(), 1u);
+}
+
+/**
+ * Function: GetLayersReleaseFenceLocked_FencesSizeSufficient_TrueBranch
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. fences_.size() is greater than or equal to layersId_.size()
+ *                  2. call GetLayersReleaseFenceLocked
+ *                  3. verify the new (i < fences_.size()) condition stays true and the loop
+ *                     iterates over all layersId_ (added in the fix commit)
+ */
+HWTEST_F(HdiOutputTest, GetLayersReleaseFenceLocked_FencesSizeSufficient_TrueBranch, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(hdiOutput, nullptr);
+    hdiOutput->layersId_.clear();
+    hdiOutput->fences_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+
+    std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(1);
+    hdiOutput->layerIdMap_[1] = hdiLayer1;
+    std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(2);
+    hdiOutput->layerIdMap_[2] = hdiLayer2;
+
+    sptr<SyncFence> fence1 = sptr<SyncFence>::MakeSptr(-1);
+    sptr<SyncFence> fence2 = sptr<SyncFence>::MakeSptr(-1);
+    hdiOutput->layersId_.push_back(1);
+    hdiOutput->layersId_.push_back(2);
+    // fences_ has same number of entries as layersId_, so i < fences_.size() stays true
+    hdiOutput->fences_.push_back(fence1);
+    hdiOutput->fences_.push_back(fence2);
+
+    auto fences = hdiOutput->GetLayersReleaseFenceLocked();
+    // Both layers should be returned because the loop iterates over all layersId_
+    EXPECT_EQ(fences.size(), 1u);
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_DeviceNull_TrueBranch
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set device_ to nullptr and isActiveRectSwitching_ to false
+ *                  2. call SetActiveRectSwitchStatus with flag=true
+ *                  3. verify early return keeps isActiveRectSwitching_ as false
+ *                     (true branch of if (device_ == nullptr) at line 1424)
+ */
+HWTEST_F(HdiOutputTest, SetActiveRectSwitchStatus_DeviceNull_TrueBranch, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(hdiOutput, nullptr);
+    hdiOutput->device_ = nullptr;
+    hdiOutput->isActiveRectSwitching_ = false;
+
+    GraphicIRect rect {1, 2, 3, 4};
+    hdiOutput->SetActiveRectSwitchStatus(true, rect);
+    // True branch: device_ == nullptr, early return keeps isActiveRectSwitching_ unchanged
+    EXPECT_FALSE(hdiOutput->isActiveRectSwitching_);
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_DeviceNull_TrueBranch_KeepsTrueState
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set device_ to nullptr and isActiveRectSwitching_ to true
+ *                  2. call SetActiveRectSwitchStatus with flag=false
+ *                  3. verify early return keeps isActiveRectSwitching_ as true,
+ *                     proving the nullptr guard prevents the would-be flip to false
+ *                     (true branch of if (device_ == nullptr) at line 1424)
+ */
+HWTEST_F(HdiOutputTest, SetActiveRectSwitchStatus_DeviceNull_TrueBranch_KeepsTrueState,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(hdiOutput, nullptr);
+    hdiOutput->device_ = nullptr;
+    hdiOutput->isActiveRectSwitching_ = true;
+
+    GraphicIRect rect {1, 2, 3, 4};
+    hdiOutput->SetActiveRectSwitchStatus(false, rect);
+    // True branch: device_ == nullptr, early return prevents isActiveRectSwitching_ from
+    // being flipped to false; it must remain true
+    EXPECT_TRUE(hdiOutput->isActiveRectSwitching_);
+}
+
+/**
+ * Function: SetActiveRectSwitchStatus_DeviceNotNull_FalseBranch
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set device_ to a valid (non-null) mock device
+ *                  2. call SetActiveRectSwitchStatus with flag=true
+ *                  3. verify isActiveRectSwitching_ is set to true
+ *                     (false branch of if (device_ == nullptr) added in the fix commit)
+ */
+HWTEST_F(HdiOutputTest, SetActiveRectSwitchStatus_DeviceNotNull_FalseBranch, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(hdiOutput, nullptr);
+    hdiOutput->device_ = hdiDeviceMock_;
+    hdiOutput->isActiveRectSwitching_ = false;
+
+    GraphicIRect rect {1, 2, 3, 4};
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenActiveRect(_, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    hdiOutput->SetActiveRectSwitchStatus(true, rect);
+    // False branch: device_ != nullptr, normal flow sets isActiveRectSwitching_ to true
+    EXPECT_TRUE(hdiOutput->isActiveRectSwitching_);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

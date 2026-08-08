@@ -50,6 +50,9 @@ inline HdrStatus CheckAIHDRType(uint8_t metadataType)
 // HDR self-processing layer has HDR StaticMetadata and maxContentLightLevel > 203 and has no HDR MetadataType
 bool RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& surfaceBuffer)
 {
+    if (!RSSystemProperties::GetXcomponentEdrEnabled()) {
+        return false;
+    }
     using namespace HDI::Display::Graphic::Common::V1_0;
     std::vector<uint8_t> hdrStaticMetadataVec;
     GSError ret = GSERROR_OK;

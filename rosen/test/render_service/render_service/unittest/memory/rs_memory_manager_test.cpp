@@ -47,9 +47,42 @@ public:
 
 void RSMemoryManagerTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        rtThread.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
 #endif
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread && mainThread->renderEngine_) {
+        if (mainThread->renderEngine_->renderContext_) {
+            mainThread->renderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (mainThread->renderEngine_->protectedRenderContext_) {
+            mainThread->renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread->renderEngine_->skContext_ = nullptr;
+        mainThread->renderEngine_->renderContext_ = nullptr;
+        mainThread->renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread->renderEngine_->imageManager_ = nullptr;
+        mainThread->renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        mainThread->renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        mainThread->renderEngine_ = nullptr;
+    }
     RSTestUtil::InitRenderNodeGC();
 }
 
@@ -66,6 +99,42 @@ void RSMemoryManagerTest::TearDownTestCase()
     renderNodeMap.screenNodeMap_.clear();
     renderNodeMap.canvasDrawingNodeMap_.clear();
     renderNodeMap.uiExtensionSurfaceNodes_.clear();
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        rtThread.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+    if (mainThread && mainThread->renderEngine_) {
+        if (mainThread->renderEngine_->renderContext_) {
+            mainThread->renderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (mainThread->renderEngine_->protectedRenderContext_) {
+            mainThread->renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread->renderEngine_->skContext_ = nullptr;
+        mainThread->renderEngine_->renderContext_ = nullptr;
+        mainThread->renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread->renderEngine_->imageManager_ = nullptr;
+        mainThread->renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        mainThread->renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        mainThread->renderEngine_ = nullptr;
+    }
 }
 
 void RSMemoryManagerTest::SetUp() {}
@@ -958,9 +1027,26 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow001, testing::ext::TestSize.Level1)
 {
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        rtThread.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
+    rtThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
-    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    renderContext->Init();
     RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = renderContext;
     bool ret = MemoryManager::MemoryOverflow(1433, 1024, true);
     EXPECT_TRUE(ret);
@@ -1515,14 +1601,31 @@ HWTEST_F(RSMemoryManagerTest, GpuReportFromKernel001, TestSize.Level1)
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     std::string recvInfo = "ACTION=MEMORY_OVER_LIMIT";
+    auto& rtThread2 = RSUniRenderThread::Instance();
+    if (rtThread2.uniRenderEngine_) {
+        if (rtThread2.uniRenderEngine_->renderContext_) {
+            rtThread2.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (rtThread2.uniRenderEngine_->protectedRenderContext_) {
+            rtThread2.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread2.uniRenderEngine_->skContext_ = nullptr;
+        rtThread2.uniRenderEngine_->renderContext_ = nullptr;
+        rtThread2.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread2.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread2.uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        rtThread2.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     auto renderContext = RenderContext::Create();
-    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    renderContext->Init();
     RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = renderContext;
     MemoryManager::GpuReportFromKernel(recvInfo);
     ASSERT_TRUE(g_logMsg.find(recvInfo) == std::string::npos);
     std::string recvInfo1 = "ACTION=MEMORY_OVER_LIMIT-1";
     MemoryManager::mKernelReportLastTimestamp_ = 0;
-    RSUniRenderThread::Instance().uniRenderEngine_->renderContext_->SetDrGPUContext(nullptr);
+    RSUniRenderThread::Instance().uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
     MemoryManager::GpuReportFromKernel(recvInfo1);
     ASSERT_TRUE(g_logMsg.find(recvInfo1) == std::string::npos);
 }

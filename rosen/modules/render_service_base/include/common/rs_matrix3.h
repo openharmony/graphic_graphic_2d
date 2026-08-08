@@ -404,7 +404,7 @@ template<typename T>
 bool Matrix3<T>::IsNearEqual(const Matrix3& other, T threshold) const
 {
     const T* otherData = other.data_;
-    auto result = std::equal(data_, data_ + 8, otherData,
+    auto result = std::equal(data_, data_ + 9, otherData,
         [&threshold](const T& left, const T& right) { return ROSEN_EQ<T>(left, right, threshold); });
     return result;
 }

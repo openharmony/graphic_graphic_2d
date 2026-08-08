@@ -18,6 +18,7 @@
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "utils/log.h"
 
 namespace OHOS::Rosen {
@@ -84,7 +85,7 @@ napi_value JsRectUtils::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsRectUtils *jsRectUtils = new JsRectUtils();
-    status = napi_wrap(env, jsThis, jsRectUtils, JsRectUtils::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsRectUtils, JsRectUtils::Destructor, nullptr, &RECT_UTILS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsRectUtils;
         ROSEN_LOGE("JsRectUtils::Constructor Failed to wrap native instance");

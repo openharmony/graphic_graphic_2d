@@ -102,9 +102,6 @@ public:
 
 void RSSurfaceLayerTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
     sMgr = std::make_shared<RSRenderComposerManager>(handler);
     auto output = std::make_shared<HdiOutput>(screenId);

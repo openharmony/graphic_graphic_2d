@@ -20,7 +20,10 @@
 #include "platform/common/rs_system_properties.h"
 #include "render_context.h"
 #include "new_render_context/render_context_gl.h"
+#ifdef RS_ENABLE_VK
 #include "new_render_context/render_context_vk.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 
 using namespace testing::ext;
 
@@ -233,9 +236,9 @@ HWTEST_F(RenderContextTest, ClearRedundantTest, Level1)
 {
     auto renderContext = RenderContext::Create();
     EXPECT_NE(renderContext, nullptr);
-    renderContext->SetDrGPUContext(nullptr);
+    renderContext->drGPUContext_ = nullptr;
     renderContext->ClearRedundantResources();
-    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
     renderContext->ClearRedundantResources();
 }
 
@@ -291,7 +294,7 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest, Level1)
 HWTEST_F(RenderContextTest, SetUpGpuContextTest, Level1)
 {
     auto renderContext = RenderContext::Create();
-    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
     EXPECT_TRUE(renderContext->SetUpGpuContext());
 }
 
@@ -303,7 +306,7 @@ HWTEST_F(RenderContextTest, SetUpGpuContextTest, Level1)
 HWTEST_F(RenderContextTest, CreateEGLSurfaceTest, Level1)
 {
     auto renderContext = RenderContext::Create();
-    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
     EXPECT_TRUE(renderContext->SetUpGpuContext());
 }
 
@@ -318,9 +321,9 @@ HWTEST_F(RenderContextTest, AbandonContextTest001, Level1)
     if (RSSystemProperties::IsUseVulkan()) {
         auto renderContext = RenderContext::Create();
         auto renderContextVK = std::static_pointer_cast<RenderContextVK>(renderContext);
-        renderContextVK->SetDrGPUContext(nullptr);
+        renderContextVK->drGPUContext_ = nullptr;
         renderContextVK->AbandonContext();
-        renderContextVK->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+        renderContextVK->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
         renderContextVK->AbandonContext();
     } else {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";

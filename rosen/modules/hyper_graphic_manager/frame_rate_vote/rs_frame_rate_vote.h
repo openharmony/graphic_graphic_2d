@@ -54,6 +54,7 @@ private:
     void CancelVoteRate(pid_t pid, std::string eventName);
     bool CheckSurfaceNodeIdChange(uint64_t surfaceNodeId);
     bool CheckAvailableBufferCount(int32_t bufferCount);
+    bool ShouldSkipFrameRateVote(uint64_t surfaceNodeId, uint32_t videoRate);
 
     bool isSwitchOn_{ false };
     pid_t lastVotedPid_{ DEFAULT_PID };

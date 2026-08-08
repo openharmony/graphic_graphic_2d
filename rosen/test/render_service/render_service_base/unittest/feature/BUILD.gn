@@ -277,8 +277,10 @@ ohos_unittest("RSColorPickerTest") {
   ]
 
   external_deps = [
+    "egl:libEGL",
     "googletest:gmock_main",
-    "ffrt:libffrt"
+    "ffrt:libffrt",
+    "opengles:libGLES",
   ]
 
   subsystem_name = "graphic"
@@ -377,7 +379,9 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
   ]
 
   external_deps = [
+    "egl:libEGL",
     "init:libbegetutil",
+    "opengles:libGLES",
   ]
 
   if (graphic_2d_feature_enable_vulkan) {

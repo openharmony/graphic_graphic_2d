@@ -52,8 +52,6 @@ private:
     std::shared_ptr<RSContext> GetContext() const;
     std::shared_ptr<RSSurfaceRenderNode> GetSurfaceNode(NodeId nodeId) const;
     bool HandleLppTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId) const;
-    void ResetTunnelLayerState(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     void HandleNewTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId);
     void ProcessLayerStateChanged(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId,
         LayerStateChange state, uint64_t tunnelLayerGeneration, const sptr<IConsumerSurface>& consumer);

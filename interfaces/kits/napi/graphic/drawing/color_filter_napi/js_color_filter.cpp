@@ -19,6 +19,7 @@
 #include "draw/color.h"
 
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -86,7 +87,8 @@ napi_value JsColorFilter::Constructor(napi_env env, napi_callback_info info)
 
     JsColorFilter *jsColorFilter = new JsColorFilter();
 
-    status = napi_wrap(env, jsThis, jsColorFilter, JsColorFilter::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsColorFilter, JsColorFilter::Destructor,
+        nullptr, &COLOR_FILTER_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsColorFilter;
         ROSEN_LOGE("Failed to wrap native instance");
@@ -129,10 +131,10 @@ napi_value JsColorFilter::CreateComposeColorFilter(napi_env env, napi_callback_i
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsColorFilter *jsColorFilter1 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsColorFilter1);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsColorFilter1, &COLOR_FILTER_TYPE_TAG);
 
     JsColorFilter *jsColorFilter2 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsColorFilter2);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsColorFilter2, &COLOR_FILTER_TYPE_TAG);
 
     std::shared_ptr<ColorFilter> colorFilter1 = jsColorFilter1->GetColorFilter();
     std::shared_ptr<ColorFilter> colorFilter2 = jsColorFilter2->GetColorFilter();
@@ -222,20 +224,26 @@ napi_value JsColorFilter::CreateLightingColorFilter(napi_env env, napi_callback_
 
 napi_value JsColorFilter::Create(napi_env env, const std::shared_ptr<ColorFilter> colorFilter)
 {
+    if (colorFilter == nullptr) {
+        ROSEN_LOGE("[NAPI]JsColorFilter is null!");
+        return nullptr;
+    }
+
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue == nullptr || colorFilter == nullptr) {
-        ROSEN_LOGE("[NAPI]Object or JsColorFilter is null!");
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("[NAPI]napi_create_object failed");
         return nullptr;
     }
 
     std::unique_ptr<JsColorFilter> jsColorFilter = std::make_unique<JsColorFilter>(colorFilter);
-    napi_wrap(env, objValue, jsColorFilter.release(), JsColorFilter::Finalizer, nullptr, nullptr);
-
-    if (objValue == nullptr) {
-        ROSEN_LOGE("[NAPI]objValue is null!");
+    status = napi_wrap_s(env, objValue, jsColorFilter.get(), JsColorFilter::Finalizer,
+        nullptr, &COLOR_FILTER_TYPE_TAG, nullptr);
+    if (status != napi_ok) {
+        ROSEN_LOGE("[NAPI]Failed to wrap native instance");
         return nullptr;
     }
+    jsColorFilter.release();
     return objValue;
 }
 

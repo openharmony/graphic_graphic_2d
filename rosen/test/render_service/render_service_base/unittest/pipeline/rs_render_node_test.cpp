@@ -5022,6 +5022,22 @@ HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithStagingParams, TestSize.Le
 }
 
 /**
+ * @tc.name: ChildHasSpatialEffect001
+ * @tc.desc: test SetChildHasSpatialEffect and ChildHasSpatialEffect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, ChildHasSpatialEffect001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    EXPECT_FALSE(node.ChildHasSpatialEffect());
+    node.SetChildHasSpatialEffect(true);
+    EXPECT_TRUE(node.ChildHasSpatialEffect());
+    node.SetChildHasSpatialEffect(false);
+    EXPECT_FALSE(node.ChildHasSpatialEffect());
+}
+
+/**
  * @tc.name: MarkAccessibilityConfigChangedTest
  * @tc.desc: Verify MarkAccessibilityConfigChanged inserts/removes node from static set
  * @tc.type: FUNC

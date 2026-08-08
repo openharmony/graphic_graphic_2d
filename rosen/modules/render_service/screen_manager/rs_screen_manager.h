@@ -236,6 +236,7 @@ private:
     std::atomic<ScreenId> defaultScreenId_ = INVALID_SCREEN_ID;
 
     std::mutex virtualScreenIdMutex_;
+    std::mutex virtualScreenSurfaceMutex_;
     std::queue<ScreenId> freeVirtualScreenIds_;
     std::atomic<uint32_t> virtualScreenCount_ = 0;
     std::atomic<uint32_t> currentVirtualScreenNum_ = 0;

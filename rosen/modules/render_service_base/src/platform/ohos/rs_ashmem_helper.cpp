@@ -15,11 +15,12 @@
 
 #include "transaction/rs_ashmem_helper.h"
 
+#include <fcntl.h>
 #include <memory>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
-#include "ashmem.h"
 #include "ipc_file_descriptor.h"
 #include "ipc_types.h"
 #include "platform/common/rs_log.h"
@@ -29,31 +30,107 @@
 #include "sandbox_utils.h"
 #include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 
+#ifndef MFD_CLOEXEC
+#define MFD_CLOEXEC 0x0001U
+#endif
+#ifndef MFD_ALLOW_SEALING
+#define MFD_ALLOW_SEALING 0x0002U
+#endif
+#ifndef F_ADD_SEALS
+#define F_ADD_SEALS 1033
+#endif
+#ifndef F_GET_SEALS
+#define F_GET_SEALS 1034
+#endif
+#ifndef F_SEAL_SEAL
+#define F_SEAL_SEAL 0x0001
+#endif
+#ifndef F_SEAL_SHRINK
+#define F_SEAL_SHRINK 0x0002
+#endif
+#ifndef F_SEAL_GROW
+#define F_SEAL_GROW 0x0004
+#endif
+#ifndef F_SEAL_WRITE
+#define F_SEAL_WRITE 0x0008
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t LARGE_MALLOC = 200000000;
+constexpr int REQUIRED_MEMFD_SEALS = F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW | F_SEAL_WRITE;
 thread_local bool g_isUnmarshalThread = false;
+
+// Only BINDER_TYPE_FD is supported in copied/ashmem parcels; remote objects and any other
+// binder object types are rejected (sender falls back to a normal binder transaction).
+bool IsSupportedObjectType(uint32_t type)
+{
+    return type == BINDER_TYPE_FD;
+}
+
+bool GetFlatObjectAt(const MessageParcel& parcel, binder_size_t offset, const flat_binder_object*& flat)
+{
+    size_t dataSize = parcel.GetDataSize();
+    if (offset > dataSize || sizeof(flat_binder_object) > dataSize - offset) {
+        return false;
+    }
+    flat = reinterpret_cast<const flat_binder_object*>(parcel.GetData() + offset);
+    return true;
+}
+
+// Collect kernel-translated fds from ashmemParcel into ashmemFdWorker keyed by their offsets.
+// The object types are read from the sealed (immutable) shared memory; fd payloads in shared
+// memory have been erased by the sender and are never used.
+bool CollectSupportedFdsFromAshmemParcel(MessageParcel& dataParcel, MessageParcel* ashmemParcel,
+    const binder_size_t* offsets, int32_t offsetSize, AshmemFdWorker& ashmemFdWorker)
+{
+    std::unordered_set<binder_size_t> seenOffsets;
+    for (int32_t i = 0; i < offsetSize; i++) {
+        const flat_binder_object* flat = nullptr;
+        if (!GetFlatObjectAt(dataParcel, offsets[i], flat)) {
+            ROSEN_LOGE("CollectSupportedFdsFromAshmemParcel invalid offset %{public}" PRIu64,
+                static_cast<uint64_t>(offsets[i]));
+            return false;
+        }
+        if (!seenOffsets.insert(offsets[i]).second) {
+            ROSEN_LOGE("CollectSupportedFdsFromAshmemParcel duplicate offset %{public}" PRIu64,
+                static_cast<uint64_t>(offsets[i]));
+            return false;
+        }
+        if (!IsSupportedObjectType(flat->hdr.type)) {
+            ROSEN_LOGE("CollectSupportedFdsFromAshmemParcel unsupported object type:%{public}u",
+                flat->hdr.type);
+            return false;
+        }
+        int fd = ashmemParcel->ReadFileDescriptor();
+        if (fd < 0) {
+            ROSEN_LOGE("CollectSupportedFdsFromAshmemParcel ReadFileDescriptor failed");
+            return false;
+        }
+        ashmemFdWorker.InsertFdWithOffset(fd, offsets[i], true);
+    }
+    return true;
+}
 }
 std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocator(size_t size, int mapType)
 {
     static pid_t pid_ = GetRealPid();
     static std::atomic<uint32_t> shmemCount = 0;
     uint64_t id = ((uint64_t)pid_ << 32) | shmemCount++;
-    std::string name = "RSAshmem" + std::to_string(id);
+    std::string name = "RSMemfd" + std::to_string(id);
 
-    int fd = AshmemCreate(name.c_str(), size);
+    int fd = memfd_create(name.c_str(), MFD_CLOEXEC | MFD_ALLOW_SEALING);
     if (fd < 0) {
-        ROSEN_LOGE("CreateAshmemAllocator: AshmemCreate failed, fd:%{public}d", fd);
+        ROSEN_LOGE("CreateAshmemAllocator: memfd_create failed, errno:%{public}d", errno);
+        return nullptr;
+    }
+    if (::ftruncate(fd, static_cast<off_t>(size)) < 0) {
+        ROSEN_LOGE("CreateAshmemAllocator: ftruncate failed, errno:%{public}d", errno);
+        ::close(fd);
         return nullptr;
     }
     auto allocator = std::make_unique<AshmemAllocator>(fd, size);
-
-    int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
-    if (result < 0) {
-        ROSEN_LOGE("CreateAshmemAllocator: AshmemSetProt failed, result:%{public}d", result);
-        return nullptr;
-    }
 
     if (!allocator->MapAshmem(mapType)) {
         ROSEN_LOGE("CreateAshmemAllocator: MapAshmem failed");
@@ -63,26 +140,51 @@ std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocator(size_t s
     return allocator;
 }
 
-std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocatorWithFd(int fd, size_t size, int mapType)
+bool AshmemAllocator::ValidateSealedMemfd(int fd, size_t size)
 {
     if (fd < 0) {
-        ROSEN_LOGE("CreateAshmemAllocatorWithFd: fd < 0");
+        ROSEN_LOGE("AshmemAllocator::ValidateSealedMemfd: fd < 0");
+        return false;
+    }
+    // check the seals before the size: F_SEAL_SHRINK | F_SEAL_GROW freeze the memfd size for
+    // every holder, so the size check below cannot be raced once the seals are verified
+    int seals = ::fcntl(fd, F_GET_SEALS);
+    if (seals < 0 || (seals & REQUIRED_MEMFD_SEALS) != REQUIRED_MEMFD_SEALS) {
+        ROSEN_LOGE("AshmemAllocator::ValidateSealedMemfd: memfd is not fully sealed, seals:%{public}d",
+            seals);
+        return false;
+    }
+    // lseek(SEEK_END) is used instead of fstat to query the size: it does not require
+    // getattr permission on the fd and works for both memfd and ashmem
+    off_t fileSize = ::lseek(fd, 0, SEEK_END);
+    if (fileSize < 0 || static_cast<uint64_t>(fileSize) < size) {
+        ROSEN_LOGE("AshmemAllocator::ValidateSealedMemfd: invalid memfd size, fd:%{public}d, "
+            "fileSize:%{public}" PRId64 ", size:%{public}zu, errno:%{public}d",
+            fd, static_cast<int64_t>(fileSize), size, errno);
+        return false;
+    }
+    return true;
+}
+
+void* AshmemAllocator::CopyFromMemfd(int fd, size_t size)
+{
+    if (size > LARGE_MALLOC) {
+        ROSEN_LOGW("AshmemAllocator::CopyFromMemfd this time malloc large memory, size:%{public}zu", size);
+    }
+    void* base = malloc(size);
+    if (base == nullptr) {
+        ROSEN_LOGE("AshmemAllocator::CopyFromMemfd malloc failed, size:%{public}zu", size);
         return nullptr;
     }
-    auto allocator = std::make_unique<AshmemAllocator>(fd, size);
-
-    int ashmemSize = AshmemGetSize(fd);
-    if (ashmemSize < 0 || size_t(ashmemSize) < size) {
-        ROSEN_LOGE("CreateAshmemAllocatorWithFd: ashmemSize < size");
+    // pread does not involve mmap, works on platforms that forbid mapping a sealed memfd
+    ssize_t readSize = ::pread(fd, base, size, 0);
+    if (readSize < 0 || static_cast<size_t>(readSize) != size) {
+        ROSEN_LOGE("AshmemAllocator::CopyFromMemfd pread failed, fd:%{public}d, read:%{public}zd, "
+            "size:%{public}zu, errno:%{public}d", fd, readSize, size, errno);
+        free(base);
         return nullptr;
     }
-
-    if (!allocator->MapAshmem(mapType)) {
-        ROSEN_LOGE("CreateAshmemAllocatorWithFd: MapAshmem failed");
-        return nullptr;
-    }
-
-    return allocator;
+    return base;
 }
 
 AshmemAllocator::AshmemAllocator(int fd, size_t size) : fd_(fd), size_(size) {}
@@ -96,10 +198,29 @@ bool AshmemAllocator::MapAshmem(int mapType)
 {
     void *startAddr = ::mmap(nullptr, size_, mapType, MAP_SHARED, fd_, 0);
     if (startAddr == MAP_FAILED) {
-        ROSEN_LOGE("AshmemAllocator::MapAshmem MAP_FAILED");
+        ROSEN_LOGE("AshmemAllocator::MapAshmem MAP_FAILED, fd:%{public}d, size:%{public}zu, "
+            "mapType:%{public}d, errno:%{public}d", fd_, size_, mapType, errno);
         return false;
     }
     data_ = startAddr;
+    return true;
+}
+
+bool AshmemAllocator::Seal()
+{
+    if (fd_ < 0) {
+        ROSEN_LOGE("AshmemAllocator::Seal fd < 0");
+        return false;
+    }
+    if (data_ != nullptr) {
+        // F_SEAL_WRITE requires that no writable shared mapping exists
+        ::munmap(data_, size_);
+        data_ = nullptr;
+    }
+    if (::fcntl(fd_, F_ADD_SEALS, REQUIRED_MEMFD_SEALS) < 0) {
+        ROSEN_LOGE("AshmemAllocator::Seal fcntl F_ADD_SEALS failed, errno:%{public}d", errno);
+        return false;
+    }
     return true;
 }
 
@@ -211,45 +332,23 @@ int AshmemFdContainer::ReadSafeFd(Parcel &parcel, std::function<int(Parcel&)> re
     }
 
     size_t offset = parcel.GetReadPosition();
-    sptr<IPCFileDescriptor> descriptor = parcel.ReadObject<IPCFileDescriptor>();
-
-    int parcelFd = INVALID_FD;
-    if (descriptor == nullptr) {
-        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd ReadObject failed");
-    } else {
-        parcelFd = descriptor->GetFd();
-    }
-    if (parcelFd < 0) {
-        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: invalid parcelFd = %{public}d", parcelFd);
+    // consume the flat_binder_object to move the read cursor, but never trust its payload:
+    // the fd in shared memory was erased by the sender and is not used here
+    if (parcel.ReadBuffer(sizeof(flat_binder_object), false) == nullptr) {
+        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: cannot consume flat object at offset %{public}zu",
+            offset);
+        return INVALID_FD;
     }
 
-    int containerFd = INVALID_FD;
     auto it = fds_.find(offset);
-    if (it != fds_.end()) {
-        containerFd = it->second;
-        fds_.erase(it);
-    } else {
+    if (it == fds_.end()) {
         ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: offset %{public}zu not found", offset);
+        return INVALID_FD;
     }
+    int containerFd = it->second;
+    fds_.erase(it);
     if (containerFd < 0) {
         ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: invalid containerFd = %{public}d", containerFd);
-    }
-
-    if (parcelFd != containerFd) {
-        ROSEN_LOGW("AshmemFdContainer::ReadSafeFd inconsistent parcelFd = %{public}d, containerFd = %{public}d",
-            parcelFd, containerFd);
-    }
-
-    if (parcelFd >= 0 && containerFd < 0) {
-        int fd = dup(parcelFd);
-        if (fd < 0) {
-            ROSEN_LOGE("AshmemFdContainer::ReadSafeFd dup failed: parcelFd = %{public}d, errno = %{public}d",
-                parcelFd, errno);
-        }
-        return fd;
-    }
-
-    if (containerFd < 0) {
         return INVALID_FD;
     }
 
@@ -300,11 +399,11 @@ AshmemFdWorker::AshmemFdWorker(const pid_t callingPid) : callingPid_(callingPid)
 
 AshmemFdWorker::~AshmemFdWorker()
 {
-    if (needManualCloseFds_) {
-        for (const int fd : fdsToBeClosed_) {
-            if (fd > 0) {
-                ::close(fd);
-            }
+    // the worker exclusively owns the fds dup'd from the ashmem parcel (ReadSafeFd hands out
+    // its own dups), so they are always closed here regardless of how far parsing got
+    for (const int fd : fdsToBeClosed_) {
+        if (fd > 0) {
+            ::close(fd);
         }
     }
     if (!isFdContainerUpdated_) {
@@ -329,7 +428,6 @@ void AshmemFdWorker::InsertFdWithOffset(int fd, binder_size_t offset, bool shoul
     }
     ROSEN_LOGW("AshmemFdWorker::InsertFdWithOffset existed offset %{public}" PRIu64 "is overriden, "
         "old fd = %{public}d, new fd = %{public}d", static_cast<uint64_t>(offset), it->second, fd);
-    it->second = fd;
 }
 
 void AshmemFdWorker::PushFdsToContainer()
@@ -344,55 +442,93 @@ void AshmemFdWorker::PushFdsToContainer()
     isFdContainerUpdated_ = true;
 }
 
-void AshmemFdWorker::EnableManualCloseFds()
-{
-    needManualCloseFds_ = true;
-}
-
-void RSAshmemHelper::CopyFileDescriptor(
+bool RSAshmemHelper::CopySupportedObjectsToParcel(
     MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
 {
     binder_size_t* object = reinterpret_cast<binder_size_t*>(dataParcel->GetObjectOffsets());
     size_t objectNum = dataParcel->GetOffsetsSize();
-    uintptr_t data = dataParcel->GetData();
     for (size_t i = 0; i < objectNum; i++) {
-        const flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + object[i]);
-        if (flat->hdr.type == BINDER_TYPE_FD) {
-            if (!ashmemParcel->WriteFileDescriptor(flat->handle)) {
-                ROSEN_LOGE("RSAshmemHelper::CopyFileDescriptor failed, fd:%{public}u", flat->handle);
-            }
+        const flat_binder_object* flat = nullptr;
+        if (!GetFlatObjectAt(*dataParcel, object[i], flat)) {
+            ROSEN_LOGE("RSAshmemHelper::CopySupportedObjectsToParcel invalid offset");
+            return false;
+        }
+        if (!IsSupportedObjectType(flat->hdr.type)) {
+            ROSEN_LOGW("RSAshmemHelper::CopySupportedObjectsToParcel unsupported object type:%{public}u",
+                flat->hdr.type);
+            return false;
+        }
+        if (!ashmemParcel->WriteFileDescriptor(static_cast<int32_t>(flat->handle))) {
+            ROSEN_LOGE("RSAshmemHelper::CopySupportedObjectsToParcel WriteFileDescriptor failed, fd:%{public}u",
+                flat->handle);
+            return false;
+        }
+    }
+    return true;
+}
+
+void RSAshmemHelper::EraseSupportedObjectsInAshmem(void* ashmemData, const MessageParcel& dataParcel)
+{
+    binder_size_t* object = reinterpret_cast<binder_size_t*>(dataParcel.GetObjectOffsets());
+    size_t objectNum = dataParcel.GetOffsetsSize();
+    size_t dataSize = dataParcel.GetDataSize();
+    for (size_t i = 0; i < objectNum; i++) {
+        binder_size_t offset = object[i];
+        if (offset > dataSize || sizeof(flat_binder_object) > dataSize - offset) {
+            continue; // offsets were already validated when copying objects
+        }
+        flat_binder_object* flat =
+            reinterpret_cast<flat_binder_object*>(reinterpret_cast<uintptr_t>(ashmemData) + offset);
+        // keep hdr.type so the receiver can classify the object, erase the fd payload
+        if (IsSupportedObjectType(flat->hdr.type)) {
+            flat->handle = static_cast<uint32_t>(INVALID_FD);
+            flat->cookie = 0;
         }
     }
 }
 
-void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel,
-    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker, pid_t callingPid)
+bool RSAshmemHelper::CopySupportedObjectsForParcelCopy(MessageParcel& oldParcel, MessageParcel& copiedParcel)
 {
-    ashmemFdWorker = std::make_unique<AshmemFdWorker>(callingPid);
-    binder_size_t* object = reinterpret_cast<binder_size_t*>(dataParcel->GetObjectOffsets());
-    size_t objectNum = dataParcel->GetOffsetsSize();
-    uintptr_t data = dataParcel->GetData();
+    binder_size_t* object = reinterpret_cast<binder_size_t*>(oldParcel.GetObjectOffsets());
+    size_t objectNum = oldParcel.GetOffsetsSize();
+    uintptr_t copiedData = copiedParcel.GetData();
+    size_t copiedDataSize = copiedParcel.GetDataSize();
+    auto onFailure = [&object, objectNum, copiedData, copiedDataSize](size_t fromIndex) {
+        // invalidate fd payloads that still hold the origin parcel's fds, so that
+        // ~MessageParcel (ClearFileDescriptor) of the copied parcel never closes them
+        for (size_t j = fromIndex; j < objectNum; j++) {
+            if (object[j] > copiedDataSize || sizeof(flat_binder_object) > copiedDataSize - object[j]) {
+                continue;
+            }
+            flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(copiedData + object[j]);
+            if (IsSupportedObjectType(flat->hdr.type)) {
+                flat->handle = 0;
+            }
+        }
+        return false;
+    };
     for (size_t i = 0; i < objectNum; i++) {
-        binder_size_t offset = object[i];
-        size_t dataSize = dataParcel->GetDataSize();
-        if (offset > dataSize || sizeof(flat_binder_object) > dataSize - offset) {
-            ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor offset invalid");
-            continue;
+        const flat_binder_object* flat = nullptr;
+        if (!GetFlatObjectAt(oldParcel, object[i], flat) || object[i] > copiedDataSize ||
+            sizeof(flat_binder_object) > copiedDataSize - object[i]) {
+            return onFailure(i);
         }
-        flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + offset);
-        if (flat->hdr.type == BINDER_TYPE_FD || flat->hdr.type == BINDER_TYPE_FDR) {
-            int32_t val = ashmemParcel->ReadFileDescriptor();
-            if (val < 0) {
-                ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor failed, fd:%{public}d, handle:%{public}u", val,
-                    flat->handle);
-            }
-            flat->handle = static_cast<uint32_t>(val);
-            if (ashmemFdWorker) {
-                bool shouldCloseFd = flat->hdr.type == BINDER_TYPE_FD;
-                ashmemFdWorker->InsertFdWithOffset(val, offset, shouldCloseFd);
-            }
+        if (!IsSupportedObjectType(flat->hdr.type)) {
+            ROSEN_LOGW("RSAshmemHelper::CopySupportedObjectsForParcelCopy unsupported object type:%{public}u, "
+                "fall back to no copy", flat->hdr.type);
+            return onFailure(i);
         }
+        // duplicate the fd so it survives BC_FREE_BUFFER of the origin parcel; the duplicate
+        // is closed by ~MessageParcel (ClearFileDescriptor) of the copied parcel
+        int32_t dupFd = dup(static_cast<int32_t>(flat->handle));
+        if (dupFd < 0) {
+            ROSEN_LOGE("RSAshmemHelper::CopySupportedObjectsForParcelCopy dup failed, errno:%{public}d", errno);
+            return onFailure(i);
+        }
+        flat_binder_object* copiedFlat = reinterpret_cast<flat_binder_object*>(copiedData + object[i]);
+        copiedFlat->handle = static_cast<uint32_t>(dupFd);
     }
+    return true;
 }
 
 std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_ptr<MessageParcel>& dataParcel)
@@ -400,9 +536,11 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
     size_t dataSize = dataParcel->GetDataSize();
     RS_TRACE_NAME("CreateAshmemParcel data size:" + std::to_string(dataSize));
 
-    // if want a full copy of parcel, need to save its data and fds both:
-    // 1. save origin parcel data to ashmeme and record the fd to new parcel
-    // 2. save all fds and their offsets in new parcel
+    // 1. save origin parcel data to a memfd and record the fd to new parcel
+    // 2. save all fds and their offsets in new parcel (only BINDER_TYPE_FD is supported;
+    //    any other binder object refuses the ashmem parcel, sender falls back to binder)
+    // 3. erase all fd payloads in the memfd copy
+    // 4. seal the memfd so nobody can modify or writable-map it anymore
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
     if (!ashmemAllocator) {
         ROSEN_LOGE("CreateAshmemParcel failed, ashmemAllocator is nullptr");
@@ -427,9 +565,19 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
         // save array that record the offsets of all fds
         ashmemParcel->WriteBuffer(
             reinterpret_cast<void*>(dataParcel->GetObjectOffsets()), sizeof(binder_size_t) * offsetSize);
-        // save all fds of origin parcel
-        ROSEN_LOGD("CreateAshmemParcel invoke CopyFileDescriptor, offsetSize:%{public}zu", offsetSize);
-        CopyFileDescriptor(ashmemParcel.get(), dataParcel);
+        // save all fds of origin parcel; refuse ashmem parcel for non-fd objects
+        if (!CopySupportedObjectsToParcel(ashmemParcel.get(), dataParcel)) {
+            ROSEN_LOGE("CreateAshmemParcel: CopySupportedObjectsToParcel failed");
+            return nullptr;
+        }
+        // 3. erase fd payloads in the memfd copy
+        EraseSupportedObjectsInAshmem(ashmemAllocator->GetData(), *dataParcel);
+    }
+
+    // 4. seal the memfd to make the content immutable for everyone
+    if (!ashmemAllocator->Seal()) {
+        ROSEN_LOGE("CreateAshmemParcel: Seal failed");
+        return nullptr;
     }
 
     return ashmemParcel;
@@ -461,13 +609,25 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
     }
 
     int fd = ashmemParcel->ReadFileDescriptor();
-    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, dataSize, PROT_READ | PROT_WRITE);
-    if (!ashmemAllocator) {
-        ROSEN_LOGE("ParseFromAshmemParcel failed, ashmemAllocator is nullptr");
+    if (!AshmemAllocator::ValidateSealedMemfd(fd, dataSize)) {
+        ROSEN_LOGE("ParseFromAshmemParcel failed, invalid memfd");
+        if (fd >= 0) {
+            ::close(fd);
+        }
         return nullptr;
     }
-    void* data = ashmemAllocator->GetData();
-    auto dataParcel = std::make_shared<MessageParcel>(ashmemAllocator.release());
+    // read the whole payload into an owned buffer instead of mapping the sealed memfd:
+    // some platforms forbid mapping a sealed memfd at all (mmap returns EPERM)
+    void* data = AshmemAllocator::CopyFromMemfd(fd, dataSize);
+    if (fd >= 0) {
+        ::close(fd);
+    }
+    if (data == nullptr) {
+        ROSEN_LOGE("ParseFromAshmemParcel failed, CopyFromMemfd failed");
+        return nullptr;
+    }
+    // the parcel owns the buffer via DefaultAllocator (freed on destruction)
+    auto dataParcel = std::make_shared<MessageParcel>();
     dataParcel->ParseFrom(reinterpret_cast<uintptr_t>(data), dataSize);
 
     int32_t offsetSize = ashmemParcel->ReadInt32();
@@ -482,15 +642,16 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
         auto* offsets = ashmemParcel->ReadBuffer(sizeof(binder_size_t) * offsetSize);
         if (offsets == nullptr) {
             ROSEN_LOGE("ParseFromAshmemParcel: read object offsets failed");
-            if (ashmemFdWorker) {
-                ashmemFdWorker->EnableManualCloseFds();
-            }
             return nullptr;
         }
-        // restore array that record the offsets of all fds
-        dataParcel->InjectOffsets(reinterpret_cast<binder_size_t>(offsets), offsetSize);
-        // restore all fds
-        InjectFileDescriptor(dataParcel, ashmemParcel, ashmemFdWorker, callingPid);
+        ashmemFdWorker = std::make_unique<AshmemFdWorker>(callingPid);
+        // collect kernel-translated fds into the fd container keyed by offset;
+        // never inject offsets into dataParcel nor write anything back to shared memory
+        if (!CollectSupportedFdsFromAshmemParcel(*dataParcel, ashmemParcel,
+                reinterpret_cast<const binder_size_t*>(offsets), offsetSize, *ashmemFdWorker)) {
+            ROSEN_LOGE("ParseFromAshmemParcel: CollectSupportedFdsFromAshmemParcel failed");
+            return nullptr;
+        }
     }
 
     auto token = dataParcel->ReadInterfaceToken();
@@ -500,9 +661,6 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
 
     if (dataParcel->ReadInt32() != 0) { // identify normal parcel
         ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel failed");
-        if (ashmemFdWorker) {
-            ashmemFdWorker->EnableManualCloseFds();
-        }
         return nullptr;
     }
 

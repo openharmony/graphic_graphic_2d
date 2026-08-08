@@ -423,6 +423,12 @@ void RSUniRenderThread::Render()
     }
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
+#ifdef RS_ENABLE_VK
+    auto rc = GetRenderEngine() ? GetRenderEngine()->GetRenderContext() : nullptr;
+    if (rc) {
+        paintFilterCanvas.SetRenderEngineType(rc->GetType());
+    }
+#endif
     RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(paintFilterCanvas);
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
@@ -752,15 +758,13 @@ static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
     SkGraphics::PurgeAllCaches();
     gpuContext->FreeGpuResources();
     gpuContext->PurgeUnlockedResources(true);
-    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
-    rendercontext->CleanAllShaderCache();
+    MemoryHandler::ClearShader();
     gpuContext->FlushAndSubmit(true);
 }
 
 static void TrimMemShaderType()
 {
-    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
-    rendercontext->CleanAllShaderCache();
+    MemoryHandler::ClearShader();
 }
 
 static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& dumpString,

@@ -29,8 +29,12 @@ namespace OHOS {
 
 namespace Rosen {
 using TypefaceTuple = std::tuple<std::shared_ptr<Drawing::Typeface>, uint32_t>;
+
 class RSB_EXPORT RSTypefaceCache {
 public:
+    // Maximum total CPU memory for non-FD (general) typefaces before caching is rejected.
+    // Limit: 1300 MiB, based on typical render service memory budget.
+    static constexpr uint32_t GENERAL_TYPEFACE_MEMORY_LIMIT = 1300 * 1024 * 1024;
     static RSTypefaceCache& Instance();
     static pid_t GetTypefacePid(uint64_t globalUniqueId);
     static uint32_t GetTypefaceId(uint64_t globalUniqueId);
@@ -96,6 +100,7 @@ private:
     mutable std::mutex listMutex_;
     std::list<RSTypefaceRef> delayDestroyTypefaces_;
     std::unordered_map<uint32_t, std::unordered_set<uint64_t>> typefaceHashQueue_;
+    size_t generalTypefaceTotalCpuMemory_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

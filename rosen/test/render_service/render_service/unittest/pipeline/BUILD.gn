@@ -966,6 +966,11 @@ ohos_unittest("RSMainThreadProfilerTest") {
 ## Build RSRenderTaskTest
 ohos_unittest("RSRenderTaskTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [ "parallel_render/rs_render_task_test.cpp" ]
   deps = [
     ":rs_test_common",
@@ -1356,6 +1361,11 @@ ohos_unittest("RSUniHwcVisitorTest") {
     "hwc/rs_uni_hwc_visitor_test.cpp",
     "mock/mock_matrix.cpp",
   ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
