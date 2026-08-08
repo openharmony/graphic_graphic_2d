@@ -26,6 +26,8 @@
 
 namespace OHOS {
 namespace {
+constexpr size_t BOOL_OPTION_COUNT = 2;
+
 class FuzzData {
 public:
     FuzzData(const uint8_t* data, size_t size) : data_(data), size_(size) {}
@@ -123,7 +125,7 @@ void FuzzSurfaceWithWindow(FuzzData& fuzzData)
     }
     auto* surface = new EglWrapperSurface(GetInitializedDisplay(), EGL_NO_SURFACE, window, SelectColorSpace(fuzzData));
     ExerciseSurface(surface, fuzzData);
-    if (fuzzData.Select(2) != 0) {
+    if (fuzzData.Select(BOOL_OPTION_COUNT) != 0) {
         EglWrapperSurface::Disconnect(window);
     }
     surface->Destroy();
@@ -137,7 +139,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         return false;
     }
     FuzzData fuzzData(data, size);
-    if (fuzzData.Select(2) == 0) {
+    if (fuzzData.Select(BOOL_OPTION_COUNT) == 0) {
         FuzzSurfaceWithoutWindow(fuzzData);
     } else {
         FuzzSurfaceWithWindow(fuzzData);

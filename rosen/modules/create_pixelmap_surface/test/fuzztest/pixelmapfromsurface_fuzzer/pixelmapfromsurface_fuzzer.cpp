@@ -34,6 +34,8 @@ using namespace Rosen;
 constexpr int32_t MAX_BUFFER_SIZE = 64;
 constexpr int32_t STRIDE_ALIGNMENT = 8;
 constexpr uint64_t BUFFER_USAGE = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
+constexpr size_t BOOL_OPTION_COUNT = 2;
+constexpr size_t BUFFERED_SCENARIO_COUNT = 3;
 
 class BufferConsumerTestListener : public IBufferConsumerListener {
 public:
@@ -174,7 +176,7 @@ void FuzzValidation(FuzzData& fuzzData)
         Media::Rect { std::numeric_limits<int32_t>::max(), 0, 1, 1 },
         Media::Rect { 0, std::numeric_limits<int32_t>::max(), 1, 1 },
     };
-    (void)CreatePixelMapFromSurface(nullptr, validRect, fuzzData.Select(2) != 0);
+    (void)CreatePixelMapFromSurface(nullptr, validRect, fuzzData.Select(BOOL_OPTION_COUNT) != 0);
     (void)CreatePixelMapFromSurfaceBuffer(nullptr, validRect);
     sptr<SurfaceBuffer> emptyBuffer = SurfaceBuffer::Create().GetRefPtr();
     const auto& invalidRect = invalidRects[fuzzData.Select(invalidRects.size())];
@@ -183,8 +185,8 @@ void FuzzValidation(FuzzData& fuzzData)
     sptr<IBufferProducer> bufferProducer = consumer != nullptr ? consumer->GetProducer() : nullptr;
     if (bufferProducer != nullptr) {
         sptr<Surface> producer = Surface::CreateSurfaceAsProducer(bufferProducer);
-        (void)CreatePixelMapFromSurface(producer, invalidRect, fuzzData.Select(2) != 0);
-        (void)CreatePixelMapFromSurface(producer, validRect, fuzzData.Select(2) != 0);
+        (void)CreatePixelMapFromSurface(producer, invalidRect, fuzzData.Select(BOOL_OPTION_COUNT) != 0);
+        (void)CreatePixelMapFromSurface(producer, validRect, fuzzData.Select(BOOL_OPTION_COUNT) != 0);
     }
 }
 
@@ -203,7 +205,7 @@ void FuzzBufferedSurface(FuzzData& fuzzData)
         fixture.height,
     };
     (void)CreatePixelMapFromSurfaceBuffer(fixture.buffer, outOfBounds);
-    switch (fuzzData.Select(3)) {
+    switch (fuzzData.Select(BUFFERED_SCENARIO_COUNT)) {
         case 0:
             (void)CreatePixelMapFromSurfaceBuffer(fixture.buffer, validRect);
             break;
@@ -216,19 +218,24 @@ void FuzzBufferedSurface(FuzzData& fuzzData)
             break;
     }
 }
+
+void DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    FuzzData fuzzData(data, size);
+    if (fuzzData.Select(BOOL_OPTION_COUNT) == 0) {
+        FuzzValidation(fuzzData);
+    } else {
+        FuzzBufferedSurface(fuzzData);
+    }
+}
 } // namespace
 } // namespace OHOS
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size == 0) {
-        return 0;
-    }
-    OHOS::FuzzData fuzzData(data, size);
-    if (fuzzData.Select(2) == 0) {
-        OHOS::FuzzValidation(fuzzData);
-    } else {
-        OHOS::FuzzBufferedSurface(fuzzData);
-    }
+    OHOS::DoSomethingInterestingWithMyAPI(data, size);
     return 0;
 }

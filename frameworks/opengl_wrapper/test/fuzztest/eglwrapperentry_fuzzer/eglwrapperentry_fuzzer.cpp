@@ -28,6 +28,13 @@ namespace OHOS {
 namespace {
 constexpr size_t NAME_SIZE = 32;
 constexpr size_t ENTRY_SCENARIO_COUNT = 6;
+constexpr size_t BOOL_OPTION_COUNT = 2;
+constexpr size_t CONFIG_COUNT = 2;
+constexpr size_t SCENARIO_THREAD_API = 0;
+constexpr size_t SCENARIO_CONFIG = 1;
+constexpr size_t SCENARIO_CONTEXT_SURFACE = 2;
+constexpr size_t SCENARIO_SYNC_IMAGE = 3;
+constexpr size_t SCENARIO_KHR = 4;
 
 class FuzzData {
 public:
@@ -102,7 +109,7 @@ EGLDisplay GetInitializedDisplay()
 EGLDisplay SelectDisplay(FuzzData& fuzzData)
 {
     EGLDisplay display = GetInitializedDisplay();
-    return display != EGL_NO_DISPLAY && fuzzData.Select(2) != 0 ? display : EGL_NO_DISPLAY;
+    return display != EGL_NO_DISPLAY && fuzzData.Select(BOOL_OPTION_COUNT) != 0 ? display : EGL_NO_DISPLAY;
 }
 
 void FuzzApiNames(FuzzData& fuzzData)
@@ -146,14 +153,14 @@ void FuzzConfigEntries(FuzzData& fuzzData)
 {
     EGLDisplay display = SelectDisplay(fuzzData);
     ScopedHookLoad hookState;
-    EGLConfig configs[2] = { nullptr, nullptr };
+    EGLConfig configs[CONFIG_COUNT] = { nullptr, nullptr };
     EGLint numConfigs = 0;
     EGLint value = 0;
     EGLint attributes[] = { EGL_SURFACE_TYPE, fuzzData.Read<EGLint>(), EGL_NONE };
-    (void)gWrapperHook.wrapper.eglChooseConfig(display, attributes, configs, 2, nullptr);
-    (void)gWrapperHook.wrapper.eglChooseConfig(display, attributes, configs, 2, &numConfigs);
-    (void)gWrapperHook.wrapper.eglGetConfigs(display, configs, 2, nullptr);
-    (void)gWrapperHook.wrapper.eglGetConfigs(display, configs, 2, &numConfigs);
+    (void)gWrapperHook.wrapper.eglChooseConfig(display, attributes, configs, CONFIG_COUNT, nullptr);
+    (void)gWrapperHook.wrapper.eglChooseConfig(display, attributes, configs, CONFIG_COUNT, &numConfigs);
+    (void)gWrapperHook.wrapper.eglGetConfigs(display, configs, CONFIG_COUNT, nullptr);
+    (void)gWrapperHook.wrapper.eglGetConfigs(display, configs, CONFIG_COUNT, &numConfigs);
     (void)gWrapperHook.wrapper.eglGetConfigAttrib(display, nullptr, fuzzData.Read<EGLint>(), &value);
     (void)gWrapperHook.wrapper.eglQueryString(display, EGL_VENDOR);
     (void)gWrapperHook.wrapper.eglQueryString(display, EGL_VERSION);
@@ -265,19 +272,19 @@ void FuzzExtensionEntries(FuzzData& fuzzData)
 void FuzzEntries(FuzzData& fuzzData)
 {
     switch (fuzzData.Select(ENTRY_SCENARIO_COUNT)) {
-        case 0:
+        case SCENARIO_THREAD_API:
             FuzzThreadAndApiEntries(fuzzData);
             break;
-        case 1:
+        case SCENARIO_CONFIG:
             FuzzConfigEntries(fuzzData);
             break;
-        case 2:
+        case SCENARIO_CONTEXT_SURFACE:
             FuzzContextAndSurfaceEntries(fuzzData);
             break;
-        case 3:
+        case SCENARIO_SYNC_IMAGE:
             FuzzSyncAndImageEntries(fuzzData);
             break;
-        case 4:
+        case SCENARIO_KHR:
             FuzzKhrEntries(fuzzData);
             break;
         default:

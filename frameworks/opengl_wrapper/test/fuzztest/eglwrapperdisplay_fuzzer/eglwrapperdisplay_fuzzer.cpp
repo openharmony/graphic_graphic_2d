@@ -32,6 +32,9 @@ namespace {
 constexpr size_t BYTE_ARRAY_SIZE = 16;
 constexpr size_t DISPLAY_SCENARIO_COUNT = 4;
 constexpr size_t TARGET_SCENARIO_COUNT = 2;
+constexpr size_t SCENARIO_VALIDATION = 0;
+constexpr size_t SCENARIO_OBJECTS = 1;
+constexpr size_t SCENARIO_DAMAGE = 2;
 
 class FuzzData {
 public:
@@ -125,14 +128,22 @@ void FuzzBlobHeader(FuzzData& fuzzData)
     alignas(uint32_t) std::array<uint8_t, CACHE_HEAD + BYTE_ARRAY_SIZE> cacheData {};
     std::array<uint8_t, BYTE_ARRAY_SIZE> payload {};
     fuzzData.Fill(payload);
-    (void)memcpy_s(cacheData.data() + CACHE_HEAD, payload.size(), payload.data(), payload.size());
+    if (memcpy_s(cacheData.data() + CACHE_HEAD, payload.size(), payload.data(), payload.size()) != EOK) {
+        return;
+    }
     auto* cache = BlobCache::Get();
     (void)cache->ValidFile(cacheData.data(), CACHE_HEAD - 1);
-    (void)memcpy_s(cacheData.data(), cacheData.size(), "BAD!", CACHE_MAGIC_HEAD);
+    if (memcpy_s(cacheData.data(), cacheData.size(), "BAD!", CACHE_MAGIC_HEAD) != EOK) {
+        return;
+    }
     (void)cache->ValidFile(cacheData.data(), cacheData.size());
-    (void)memcpy_s(cacheData.data(), cacheData.size(), "OSOH", CACHE_MAGIC_HEAD);
+    if (memcpy_s(cacheData.data(), cacheData.size(), "OSOH", CACHE_MAGIC_HEAD) != EOK) {
+        return;
+    }
     uint32_t crc = cache->CrcGen(cacheData.data() + CACHE_HEAD, cacheData.size() - CACHE_HEAD);
-    (void)memcpy_s(cacheData.data() + CACHE_MAGIC_HEAD, sizeof(crc), &crc, sizeof(crc));
+    if (memcpy_s(cacheData.data() + CACHE_MAGIC_HEAD, sizeof(crc), &crc, sizeof(crc)) != EOK) {
+        return;
+    }
     (void)cache->ValidFile(cacheData.data(), cacheData.size());
     cacheData[CACHE_HEAD] ^= 1;
     (void)cache->ValidFile(cacheData.data(), cacheData.size());
@@ -155,19 +166,27 @@ void ReadTemporaryBlobFile(const uint8_t* cacheData, size_t writeSize)
 
 void FuzzBlobFile(FuzzData& fuzzData)
 {
-    constexpr size_t RECORD_DATA_SIZE = 8;
-    constexpr size_t CACHE_FILE_SIZE = CACHE_HEAD + sizeof(BlobCache::CacheHeader) + RECORD_DATA_SIZE;
-    alignas(BlobCache::CacheHeader) std::array<uint8_t, CACHE_FILE_SIZE> cacheData {};
+    constexpr size_t keyDataSize = 4;
+    constexpr size_t valueDataSize = 4;
+    constexpr size_t recordDataSize = keyDataSize + valueDataSize;
+    constexpr size_t cacheFileSize = CACHE_HEAD + sizeof(BlobCache::CacheHeader) + recordDataSize;
+    alignas(BlobCache::CacheHeader) std::array<uint8_t, cacheFileSize> cacheData {};
     std::array<uint8_t, BYTE_ARRAY_SIZE> payload {};
     fuzzData.Fill(payload);
     auto* header = reinterpret_cast<BlobCache::CacheHeader*>(cacheData.data() + CACHE_HEAD);
-    header->keySize = RECORD_DATA_SIZE / 2;
-    header->valueSize = RECORD_DATA_SIZE / 2;
-    (void)memcpy_s(header->mData, RECORD_DATA_SIZE, payload.data(), RECORD_DATA_SIZE);
-    (void)memcpy_s(cacheData.data(), cacheData.size(), "OSOH", CACHE_MAGIC_HEAD);
+    header->keySize = keyDataSize;
+    header->valueSize = valueDataSize;
+    if (memcpy_s(header->mData, recordDataSize, payload.data(), recordDataSize) != EOK) {
+        return;
+    }
+    if (memcpy_s(cacheData.data(), cacheData.size(), "OSOH", CACHE_MAGIC_HEAD) != EOK) {
+        return;
+    }
     auto* cache = BlobCache::Get();
     uint32_t crc = cache->CrcGen(cacheData.data() + CACHE_HEAD, cacheData.size() - CACHE_HEAD);
-    (void)memcpy_s(cacheData.data() + CACHE_MAGIC_HEAD, sizeof(crc), &crc, sizeof(crc));
+    if (memcpy_s(cacheData.data() + CACHE_MAGIC_HEAD, sizeof(crc), &crc, sizeof(crc)) != EOK) {
+        return;
+    }
     ReadTemporaryBlobFile(cacheData.data(), CACHE_HEAD - 1);
     ReadTemporaryBlobFile(cacheData.data(), cacheData.size());
 }
@@ -267,13 +286,13 @@ void FuzzDisplay(FuzzData& fuzzData)
         return;
     }
     switch (fuzzData.Select(DISPLAY_SCENARIO_COUNT)) {
-        case 0:
+        case SCENARIO_VALIDATION:
             FuzzDisplayValidation(display, fuzzData);
             break;
-        case 1:
+        case SCENARIO_OBJECTS:
             FuzzDisplayObjects(display, fuzzData);
             break;
-        case 2:
+        case SCENARIO_DAMAGE:
             FuzzDisplayDamage(display, fuzzData);
             break;
         default:
