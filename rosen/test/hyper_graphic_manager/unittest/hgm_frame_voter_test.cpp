@@ -124,21 +124,6 @@ HWTEST_F(HgmFrameVoterTest, TestMergeRangeByPriority, Function | SmallTest | Lev
 }
 
 /**
- * @tc.name: TestGetVoterGamesEffective
- * @tc.desc: Verify the result of GetVoterGamesEffective function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestGetVoterGamesEffective, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    mgr.frameVoter_.voterGamesEffective_ = false;
-    EXPECT_EQ(mgr.frameVoter_.GetVoterGamesEffective(), false);
-    mgr.frameVoter_.voterGamesEffective_ = true;
-    EXPECT_EQ(mgr.frameVoter_.GetVoterGamesEffective(), true);
-}
-
-/**
  * @tc.name: TestCleanVote
  * @tc.desc: Verify the result of CleanVote function
  * @tc.type: FUNC
@@ -155,6 +140,21 @@ HWTEST_F(HgmFrameVoterTest, TestCleanVote, Function | SmallTest | Level0)
     EXPECT_EQ(hgmFrameVoter.voteRecord_["VOTER_GAMES"].first.size(), 2);
     hgmFrameVoter.CleanVote(1);
     EXPECT_EQ(hgmFrameVoter.voteRecord_["VOTER_GAMES"].first.size(), 1);
+}
+
+/**
+ * @tc.name: TestGetVoterGamesEffective
+ * @tc.desc: Verify the result of GetVoterGamesEffective function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, TestGetVoterGamesEffective, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    mgr.frameVoter_.voterGamesEffective_ = false;
+    EXPECT_EQ(mgr.frameVoter_.GetVoterGamesEffective(), false);
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    EXPECT_EQ(mgr.frameVoter_.GetVoterGamesEffective(), true);
 }
 
 /**
