@@ -334,8 +334,8 @@ HWTEST_F(HgmFrameVoterTest, TestSkipVirtualDisplay, Function | SmallTest | Level
         return voter != "VOTER_GAMES";
     });
     auto [voteInfo3, voteRange3] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
-    EXPECT_EQ(voteRange3.first, OLED_60_HZ);
-    EXPECT_EQ(voteRange3.second, OLED_60_HZ);
+    EXPECT_EQ(voteRange3.first, OLED_MIN_HZ);
+    EXPECT_EQ(voteRange3.second, OLED_MAX_HZ);
 
     hgmFrameVoter.SetSkipVirtualDisplay(false);
     hgmFrameVoter.SetCheckVoteCallback(nullptr);
