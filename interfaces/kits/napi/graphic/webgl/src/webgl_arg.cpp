@@ -726,7 +726,7 @@ GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, G
         }
         out = a * b;
         return true;
-    }
+    };
     uint64_t requiredBytes = 0;
     if (!checkedMul(depth, height, requiredBytes) ||
         !checkedMul(requiredBytes, width, requiredBytes) ||
