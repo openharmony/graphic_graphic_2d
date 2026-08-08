@@ -880,7 +880,8 @@ GLenum WebGL2RenderingContextImpl::CheckTexImage3D(napi_env env, const TexImageA
     if (maxWidthHeight <= 0 || (imgArg.target == GL_TEXTURE_2D_ARRAY && maxArrayTextureLayers_ <= 0)) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
-    const GLint maxMipDimension = maxWidthHeight >> imgArg.level;
+    const GLint maxMipDimension = static_cast<GLint>(
+        static_cast<GLuint>(maxWidthHeight) >> static_cast<GLuint>(imgArg.level));
     const GLint maxDepth = imgArg.target == GL_TEXTURE_3D ? maxMipDimension : maxArrayTextureLayers_;
     if (imgArg.width > maxMipDimension || imgArg.height > maxMipDimension || imgArg.depth > maxDepth) {
         return WebGLRenderingContextBase::INVALID_VALUE;

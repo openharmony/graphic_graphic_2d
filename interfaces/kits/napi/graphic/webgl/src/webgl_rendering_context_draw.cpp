@@ -1833,8 +1833,10 @@ GLenum WebGLRenderingContextBaseImpl::GetMaxReferencedVertex(const WebGLBuffer* 
     if (arg.count > 0 && indexData == nullptr) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
-    uint64_t restartIndex = arg.type == WebGLRenderingContextBase::UNSIGNED_BYTE ? UINT8_MAX :
-        (arg.type == WebGLRenderingContextBase::UNSIGNED_SHORT ? UINT16_MAX : UINT32_MAX);
+    const uint64_t restartIndex = arg.type == WebGLRenderingContextBase::UNSIGNED_BYTE ?
+        static_cast<uint64_t>(UINT8_MAX) :
+        (arg.type == WebGLRenderingContextBase::UNSIGNED_SHORT ? static_cast<uint64_t>(UINT16_MAX) :
+        static_cast<uint64_t>(UINT32_MAX));
     for (GLsizei index = 0; index < arg.count; ++index) {
         uint64_t value = 0;
         const uint8_t* source =
