@@ -26,7 +26,7 @@ void RSScreenManagerAgentListener::OnScreenConnected(ScreenId id,
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenChangeCallback_) {
-        RS_LOGD("RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
         return;
     }
 
@@ -39,7 +39,7 @@ void RSScreenManagerAgentListener::OnScreenDisconnected(ScreenId id, ScreenChang
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenChangeCallback_) {
-        RS_LOGD("RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
         return;
     }
 
@@ -57,7 +57,7 @@ void RSScreenManagerAgentListener::OnHwcEvent(
         if (it != exposedEventCallbacks_.end() && it->second != nullptr) {
             auto callback = it->second;
             auto data = std::make_shared<RSExtScreenUnsupportData>();
-            RS_LOGI("RSScreenManagerAgentListener::OnHwcEvent - EXT_SCREEN_UNSUPPORT detected,"
+            RS_LOGI("RSScreenManagerAgentListener: OnHwcEvent - EXT_SCREEN_UNSUPPORT detected,"
                 "deviceId is %{public}u, eventId is %{public}u", deviceId, eventId);
             callback->OnDisplayEvent(data);
         }
@@ -68,7 +68,8 @@ void RSScreenManagerAgentListener::OnScreenSwitchingNotify(bool status)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenSwitchingNotifyCallback_) {
-        RS_LOGD("RSScreenManagerAgentListener::%{public}s screenSwitchingNotifyCallback is nullptr.", __func__);
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManagerAgentListener::%{public}s screenSwitchingNotifyCallback is nullptr.",
+            __func__);
         return;
     }
 
@@ -111,7 +112,8 @@ void RSScreenManagerAgentListener::OnActiveScreenIdChanged(ScreenId activeScreen
 {
     std::lock_guard<std::mutex> lock(activeScreenIdCallbackMutex_);
     if (!activeScreenIdChangedCallback_) {
-        RS_LOGD("RSScreenManagerAgentListener::%{public}s activeScreenIdChangedCallback_ is nullptr.", __func__);
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManagerAgentListener::%{public}s activeScreenIdChangedCallback_ is nullptr.",
+            __func__);
         return;
     }
     RS_LOGI("RSScreenManagerAgentListener::%{public}s: activeScreenId:%{public}" PRIu64 ".", __func__, activeScreenId);
@@ -201,8 +203,8 @@ ScreenId RSScreenManagerAgent::CreateVirtualScreen(const std::string &name, uint
         return INVALID_SCREEN_ID;
     }
     if (whiteList.size() > MAX_SPECIAL_LAYER_NUM) {
-        RS_LOGW("%{public}s: white list is over max size!", __func__);
-        return INVALID_ARGUMENTS;
+        RS_LOGW("%{public}s: whiteList is over max size!", __func__);
+        return StatusCode::INVALID_ARGUMENTS;
     }
     auto screenId = screenManager_->CreateVirtualScreen(
         name, width, height, surface, associatedScreenId, flags, whiteList);
@@ -372,7 +374,7 @@ int32_t RSScreenManagerAgent::AddVirtualScreenBlackList(ScreenId id, const std::
         return StatusCode::INVALID_ARGUMENTS;
     }
     if (blackList.empty()) {
-        RS_LOGW("%{public}s blacklist is empty", __func__);
+        RS_LOGW("%{public}s: blackList is empty.", __func__);
         return StatusCode::BLACKLIST_IS_EMPTY;
     }
     if (!screenManager_) {
@@ -385,7 +387,7 @@ int32_t RSScreenManagerAgent::AddVirtualScreenBlackList(ScreenId id, const std::
 int32_t RSScreenManagerAgent::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     if (blackList.empty()) {
-        RS_LOGW("%{public}s: blackList is over max size!", __func__);
+        RS_LOGW("%{public}s: blackList is empty.", __func__);
         return StatusCode::BLACKLIST_IS_EMPTY;
     }
     if (!screenManager_) {
@@ -402,7 +404,7 @@ int32_t RSScreenManagerAgent::AddVirtualScreenWhiteList(ScreenId id, const std::
         return StatusCode::INVALID_ARGUMENTS;
     }
     if (whiteList.empty()) {
-        RS_LOGW("%{public}s whiteList is empty", __func__);
+        RS_LOGW("%{public}s: whiteList is empty.", __func__);
         return StatusCode::WHITELIST_IS_EMPTY;
     }
     if (!screenManager_) {
@@ -415,7 +417,7 @@ int32_t RSScreenManagerAgent::AddVirtualScreenWhiteList(ScreenId id, const std::
 int32_t RSScreenManagerAgent::RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
 {
     if (whiteList.empty()) {
-        RS_LOGW("%{public}s: whiteList is over max size!", __func__);
+        RS_LOGW("%{public}s: whiteList is empty.", __func__);
         return StatusCode::WHITELIST_IS_EMPTY;
     }
     if (!screenManager_) {

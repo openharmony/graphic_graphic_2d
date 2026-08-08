@@ -652,6 +652,8 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
 
     AddAnimationInner(animation);
 
+    RebuildTree();
+
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
         animation->Pause();
@@ -794,16 +796,16 @@ void RSNode::UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& paren
     globalPositionY_ = parentGlobalPositionY + localGeometry_->GetY();
 }
 
-bool RSNode::isNeedCallbackNodeChange_ = true;
+std::atomic<bool> RSNode::isNeedCallbackNodeChange_ = true;
 void RSNode::SetNeedCallbackNodeChange(bool needCallback)
 {
-    isNeedCallbackNodeChange_ = needCallback;
+    isNeedCallbackNodeChange_.store(needCallback, std::memory_order_relaxed);
 }
 
 // Notifies UI observer about page node modifications.
 void RSNode::NotifyPageNodeChanged() const
 {
-    if (isNeedCallbackNodeChange_ && propertyNodeChangeCallback_) {
+    if (isNeedCallbackNodeChange_.load(std::memory_order_relaxed) && propertyNodeChangeCallback_) {
         propertyNodeChangeCallback_();
     }
 }

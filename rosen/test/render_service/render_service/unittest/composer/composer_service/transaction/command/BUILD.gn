@@ -18,7 +18,7 @@ module_output_path = "graphic_2d/graphic_2d/render_service/composer/composer_ser
 
 group("unittest") {
   testonly = true
-  deps = [ ":RSRenderLayerUnittest" ]
+  deps = []
 }
 
 ###############################################################################

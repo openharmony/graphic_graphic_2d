@@ -51,6 +51,10 @@ public:
     void BeforeEach() override
     {
         SetSurfaceBounds({ 0, 0, screenSize.x_, screenSize.y_ });
+        if (GetRootNode() == nullptr || GetRootNode()->testSurfaceNodes_.empty() ||
+            GetRootNode()->testSurfaceNodes_.back() == nullptr) {
+            return;
+        }
         GetRootNode()->testSurfaceNodes_.back()->SetAbilityBGAlpha(ABILITY_BGALPHA);
         UIFilterTestDataManager::Initialize();
     }

@@ -461,6 +461,7 @@ ErrCode RSClientToServiceConnectionProxy::SetVirtualScreenTypeBlackList(
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetVirtualScreenTypeBlackList: Send Request err.");
+        repCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
 
@@ -3052,7 +3053,7 @@ bool RSClientToServiceConnectionProxy::SetVirtualMirrorScreenScaleMode(ScreenId 
 
 void WaitNeedRegisterTypefaceReply(uint8_t rspRpc, int& retryCount)
 {
-    RS_LOGD("Check need register state:%{public}hhu", rspRpc);
+    RS_LOGD_IF(DEBUG_IPC, "Check need register state:%{public}hhu", rspRpc);
     if (retryCount >= MAX_RETRY_COUNT) {
         RS_LOGW("Other process is registering too long, need reload full typeface.");
         return;
@@ -3115,7 +3116,7 @@ bool RSClientToServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_TYPEFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        RS_LOGD("RSClientToServiceConnectionProxy::RegisterTypeface: RegisterTypeface failed");
+        RS_LOGD_IF(DEBUG_IPC, "RSClientToServiceConnectionProxy::RegisterTypeface: RegisterTypeface failed");
         return false;
     }
     bool result{false};
@@ -3191,7 +3192,7 @@ bool RSClientToServiceConnectionProxy::UnRegisterTypeface(uint64_t globalUniqueI
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        RS_LOGD("RSClientToServiceConnectionProxy::UnRegisterTypeface: send request failed");
+        RS_LOGD_IF(DEBUG_IPC, "RSClientToServiceConnectionProxy::UnRegisterTypeface: send request failed");
         return false;
     }
 
@@ -3242,7 +3243,8 @@ int32_t RSClientToServiceConnectionProxy::GetDisplayIdentificationData(ScreenId 
         RS_LOGE("RSClientToServiceConnectionProxy::GetDisplayIdentificationData: ReadBuffer failed");
         return READ_PARCEL_ERR;
     }
-    RS_LOGD("RSClientToServiceConnectionProxy::GetDisplayIdentificationData: EdidSize: %{public}u", edidSize);
+    RS_LOGD_IF(DEBUG_IPC, "RSClientToServiceConnectionProxy::GetDisplayIdentificationData: EdidSize: %{public}u",
+        edidSize);
     edidData.assign(editpnt, editpnt + edidSize);
 
     return result;

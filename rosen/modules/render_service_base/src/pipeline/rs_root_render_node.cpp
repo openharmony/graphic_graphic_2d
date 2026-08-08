@@ -15,6 +15,7 @@
 
 #include "params/rs_render_params.h"
 #include "pipeline/rs_root_render_node.h"
+#include "common/rs_common_tools.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -40,6 +41,24 @@ RSRootRenderNode::RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& co
 
 RSRootRenderNode::~RSRootRenderNode()
 {
+    auto childrenDrawable = std::static_pointer_cast<DrawableV2::RSChildrenDrawable>(
+        TemplateUtils::findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::CHILDREN)));
+    auto renderDrawable = renderDrawable_;
+    if (childrenDrawable && renderDrawable) {
+        if (auto context = GetContext().lock()) {
+            auto task = [renderDrawable, childrenDrawable]() {
+                DrawableV2::RSRenderNodeSingleDrawableLocker singleLocker(renderDrawable.get());
+                if (UNLIKELY(!singleLocker.IsLocked())) {
+                    singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+                    if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+                        return;
+                    }
+                }
+                childrenDrawable->clearDrawableVec();
+            };
+            context->PostRTTask(task);
+        }
+    }
 #ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
     MemoryTrack::Instance().UnRegisterNodeMem(ExtractPid(GetId()),

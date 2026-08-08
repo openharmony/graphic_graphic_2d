@@ -31,7 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 
-using RmvSurfaceFpsOpCB = std::function<void(const std::vector<SurfaceFpsOp>&)>;
+using RemoveSurfaceFpsOpCB = std::function<void(const std::vector<SurfaceFpsOp>&)>;
 
 class RSComposerClient {
 public:
@@ -53,7 +53,7 @@ public:
     int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence);
     void ClearFrameBuffers();
-    uint32_t GetUnExecuteTaskNum() const;
+    int32_t GetUnExecuteTaskNum() const;
     void UpdatePipelineParam(const PipelineParam& pipelineParam);
     PipelineParam GetPipelineParam();
     int GetAccumulatedBufferCount() const;
@@ -66,7 +66,7 @@ public:
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
     std::shared_ptr<HdiOutput> GetOutput() const;
     void SetOutput(const std::shared_ptr<HdiOutput>& output);
-    void SetRmvSurfaceFpsOpCallback(RmvSurfaceFpsOpCB callback);
+    void SetRemoveSurfaceFpsOpCallback(RemoveSurfaceFpsOpCB callback);
 
 private:
     explicit RSComposerClient(const sptr<IRSRenderToComposerConnection>& renderToComposerConn);
@@ -78,12 +78,12 @@ private:
     std::mutex clientMutex_; /* Locking is only necessary if not running on uni render thread */
     std::shared_ptr<RSComposerContext> rsComposerContext_;
     std::condition_variable composerThreadTaskCond_;
-    std::atomic<uint32_t> unExecuteTaskNum_ = 0;
-    std::atomic<int> acquiredBufferCount_ = 0;
+    std::atomic<int32_t> unExecuteTaskNum_ = 0;
+    std::atomic<int32_t> acquiredBufferCount_ = 0;
     bool isPreAllocProtectedFrameBuffer_ = false;
     PipelineParam pipelineParam_;
     std::shared_ptr<HdiOutput> output_ = nullptr;
-    RmvSurfaceFpsOpCB rmvSurfaceFpsOpCallback_ = nullptr;
+    RemoveSurfaceFpsOpCB removeSurfaceFpsOpCallback_ = nullptr;
 
     friend std::shared_ptr<RSComposerClient> Create(
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,

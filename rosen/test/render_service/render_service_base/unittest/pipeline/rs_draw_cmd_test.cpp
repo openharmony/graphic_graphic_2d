@@ -1229,4 +1229,231 @@ HWTEST_F(RSDrawCmdTest, RSExtendImageObjectFlushImageCacheTest002, TestSize.Leve
     extendImageLatticeObjWithPixelMap.FlushImageCache();
     ASSERT_NE(extendImageLatticeObjWithPixelMap.rsImage_, nullptr);
 }
+
+// Security validation test constants for enum boundary checks
+constexpr int32_t FILTER_MODE_INVALID_MIN = -1;
+constexpr int32_t FILTER_MODE_INVALID_MAX = 2;
+constexpr int32_t MIPMAP_MODE_INVALID_MIN = -1;
+constexpr int32_t MIPMAP_MODE_INVALID_MAX = 3;
+
+/**
+ * @tc.name: DrawImageWithParmOpItemUnmarshallingSecurity001
+ * @tc.desc: test DrawImageWithParmOpItem Unmarshalling rejects invalid FilterMode/MipmapMode
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawImageWithParmOpItemUnmarshallingSecurity001, TestSize.Level1)
+{
+    Drawing::DrawCmdList cmdList;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::PaintHandle paintHandle;
+
+    // FilterMode below valid range (-1) -> nullptr
+    Drawing::SamplingOptions invalidFilterSampling(
+        static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MIN));
+    Drawing::DrawImageWithParmOpItem::ConstructorHandle handle1(
+        objectHandle, invalidFilterSampling, paintHandle);
+    ASSERT_EQ(Drawing::DrawImageWithParmOpItem::Unmarshalling(cmdList, &handle1), nullptr);
+
+    // FilterMode above valid range (2) -> nullptr
+    Drawing::SamplingOptions invalidFilterSampling2(
+        static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MAX));
+    Drawing::DrawImageWithParmOpItem::ConstructorHandle handle2(
+        objectHandle, invalidFilterSampling2, paintHandle);
+    ASSERT_EQ(Drawing::DrawImageWithParmOpItem::Unmarshalling(cmdList, &handle2), nullptr);
+
+    // MipmapMode below valid range (-1) -> nullptr
+    Drawing::SamplingOptions invalidMipmapSampling(
+        Drawing::FilterMode::NEAREST, static_cast<Drawing::MipmapMode>(MIPMAP_MODE_INVALID_MIN));
+    Drawing::DrawImageWithParmOpItem::ConstructorHandle handle3(
+        objectHandle, invalidMipmapSampling, paintHandle);
+    ASSERT_EQ(Drawing::DrawImageWithParmOpItem::Unmarshalling(cmdList, &handle3), nullptr);
+
+    // MipmapMode above valid range (3) -> nullptr
+    Drawing::SamplingOptions invalidMipmapSampling2(
+        Drawing::FilterMode::NEAREST, static_cast<Drawing::MipmapMode>(MIPMAP_MODE_INVALID_MAX));
+    Drawing::DrawImageWithParmOpItem::ConstructorHandle handle4(
+        objectHandle, invalidMipmapSampling2, paintHandle);
+    ASSERT_EQ(Drawing::DrawImageWithParmOpItem::Unmarshalling(cmdList, &handle4), nullptr);
+
+    // Both FilterMode and MipmapMode valid (NEAREST + NONE) -> not nullptr
+    Drawing::SamplingOptions validSampling(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::DrawImageWithParmOpItem::ConstructorHandle handle5(
+        objectHandle, validSampling, paintHandle);
+    ASSERT_NE(Drawing::DrawImageWithParmOpItem::Unmarshalling(cmdList, &handle5), nullptr);
+}
+
+/**
+ * @tc.name: DrawPixelMapWithParmOpItemUnmarshallingSecurity001
+ * @tc.desc: test DrawPixelMapWithParmOpItem Unmarshalling rejects invalid FilterMode/MipmapMode
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawPixelMapWithParmOpItemUnmarshallingSecurity001, TestSize.Level1)
+{
+    Drawing::DrawCmdList cmdList;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::PaintHandle paintHandle;
+
+    // FilterMode below valid range (-1) -> nullptr
+    Drawing::SamplingOptions invalidFilterSampling(
+        static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MIN));
+    Drawing::DrawPixelMapWithParmOpItem::ConstructorHandle handle1(
+        objectHandle, invalidFilterSampling, paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapWithParmOpItem::Unmarshalling(cmdList, &handle1), nullptr);
+
+    // FilterMode above valid range (2) -> nullptr
+    Drawing::SamplingOptions invalidFilterSampling2(
+        static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MAX));
+    Drawing::DrawPixelMapWithParmOpItem::ConstructorHandle handle2(
+        objectHandle, invalidFilterSampling2, paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapWithParmOpItem::Unmarshalling(cmdList, &handle2), nullptr);
+
+    // MipmapMode below valid range (-1) -> nullptr
+    Drawing::SamplingOptions invalidMipmapSampling(
+        Drawing::FilterMode::NEAREST, static_cast<Drawing::MipmapMode>(MIPMAP_MODE_INVALID_MIN));
+    Drawing::DrawPixelMapWithParmOpItem::ConstructorHandle handle3(
+        objectHandle, invalidMipmapSampling, paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapWithParmOpItem::Unmarshalling(cmdList, &handle3), nullptr);
+
+    // MipmapMode above valid range (3) -> nullptr
+    Drawing::SamplingOptions invalidMipmapSampling2(
+        Drawing::FilterMode::NEAREST, static_cast<Drawing::MipmapMode>(MIPMAP_MODE_INVALID_MAX));
+    Drawing::DrawPixelMapWithParmOpItem::ConstructorHandle handle4(
+        objectHandle, invalidMipmapSampling2, paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapWithParmOpItem::Unmarshalling(cmdList, &handle4), nullptr);
+
+    // Both FilterMode and MipmapMode valid (NEAREST + NONE) -> not nullptr
+    Drawing::SamplingOptions validSampling(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::DrawPixelMapWithParmOpItem::ConstructorHandle handle5(
+        objectHandle, validSampling, paintHandle);
+    ASSERT_NE(Drawing::DrawPixelMapWithParmOpItem::Unmarshalling(cmdList, &handle5), nullptr);
+}
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: DrawHybridPixelMapOpItemUnmarshallingSecurity001
+ * @tc.desc: test DrawHybridPixelMapOpItem Unmarshalling rejects invalid FilterMode/MipmapMode
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawHybridPixelMapOpItemUnmarshallingSecurity001, TestSize.Level1)
+{
+    Drawing::DrawCmdList cmdList;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::PaintHandle paintHandle;
+
+    // FilterMode below valid range (-1) -> nullptr
+    Drawing::SamplingOptions invalidFilterSampling(
+        static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MIN));
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle1(
+        objectHandle, invalidFilterSampling, paintHandle, 0, false);
+    ASSERT_EQ(Drawing::DrawHybridPixelMapOpItem::Unmarshalling(cmdList, &handle1), nullptr);
+
+    // FilterMode above valid range (2) -> nullptr
+    Drawing::SamplingOptions invalidFilterSampling2(
+        static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MAX));
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle2(
+        objectHandle, invalidFilterSampling2, paintHandle, 0, false);
+    ASSERT_EQ(Drawing::DrawHybridPixelMapOpItem::Unmarshalling(cmdList, &handle2), nullptr);
+
+    // MipmapMode below valid range (-1) -> nullptr
+    Drawing::SamplingOptions invalidMipmapSampling(
+        Drawing::FilterMode::NEAREST, static_cast<Drawing::MipmapMode>(MIPMAP_MODE_INVALID_MIN));
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle3(
+        objectHandle, invalidMipmapSampling, paintHandle, 0, false);
+    ASSERT_EQ(Drawing::DrawHybridPixelMapOpItem::Unmarshalling(cmdList, &handle3), nullptr);
+
+    // MipmapMode above valid range (3) -> nullptr
+    Drawing::SamplingOptions invalidMipmapSampling2(
+        Drawing::FilterMode::NEAREST, static_cast<Drawing::MipmapMode>(MIPMAP_MODE_INVALID_MAX));
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle4(
+        objectHandle, invalidMipmapSampling2, paintHandle, 0, false);
+    ASSERT_EQ(Drawing::DrawHybridPixelMapOpItem::Unmarshalling(cmdList, &handle4), nullptr);
+
+    // Both FilterMode and MipmapMode valid (NEAREST + NONE) -> not nullptr
+    Drawing::SamplingOptions validSampling(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle5(
+        objectHandle, validSampling, paintHandle, 0, false);
+    ASSERT_NE(Drawing::DrawHybridPixelMapOpItem::Unmarshalling(cmdList, &handle5), nullptr);
+}
+#endif
+
+/**
+ * @tc.name: DrawPixelMapRectOpItemUnmarshallingSecurity001
+ * @tc.desc: test DrawPixelMapRectOpItem Unmarshalling rejects invalid FilterMode/MipmapMode
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawPixelMapRectOpItemUnmarshallingSecurity001, TestSize.Level1)
+{
+    Drawing::DrawCmdList cmdList;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::PaintHandle paintHandle;
+
+    // FilterMode below valid range (-1) -> nullptr
+    Drawing::SamplingOptions invalidFilterSampling(
+        static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MIN));
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle handle1(
+        objectHandle, invalidFilterSampling, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapRectOpItem::Unmarshalling(cmdList, &handle1), nullptr);
+
+    // FilterMode above valid range (2) -> nullptr
+    Drawing::SamplingOptions invalidFilterSampling2(
+        static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MAX));
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle handle2(
+        objectHandle, invalidFilterSampling2, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapRectOpItem::Unmarshalling(cmdList, &handle2), nullptr);
+
+    // MipmapMode below valid range (-1) -> nullptr
+    Drawing::SamplingOptions invalidMipmapSampling(
+        Drawing::FilterMode::NEAREST, static_cast<Drawing::MipmapMode>(MIPMAP_MODE_INVALID_MIN));
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle handle3(
+        objectHandle, invalidMipmapSampling, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapRectOpItem::Unmarshalling(cmdList, &handle3), nullptr);
+
+    // MipmapMode above valid range (3) -> nullptr
+    Drawing::SamplingOptions invalidMipmapSampling2(
+        Drawing::FilterMode::NEAREST, static_cast<Drawing::MipmapMode>(MIPMAP_MODE_INVALID_MAX));
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle handle4(
+        objectHandle, invalidMipmapSampling2, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapRectOpItem::Unmarshalling(cmdList, &handle4), nullptr);
+
+    // Both FilterMode and MipmapMode valid (NEAREST + NONE) -> not nullptr
+    Drawing::SamplingOptions validSampling(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle handle5(
+        objectHandle, validSampling, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
+    ASSERT_NE(Drawing::DrawPixelMapRectOpItem::Unmarshalling(cmdList, &handle5), nullptr);
+}
+
+/**
+ * @tc.name: DrawPixelMapNineOpItemUnmarshallingSecurity001
+ * @tc.desc: test DrawPixelMapNineOpItem Unmarshalling rejects invalid FilterMode
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, DrawPixelMapNineOpItemUnmarshallingSecurity001, TestSize.Level1)
+{
+    Drawing::DrawCmdList cmdList;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::PaintHandle paintHandle;
+    Drawing::RectI center;
+    Drawing::Rect dst;
+
+    // FilterMode below valid range (-1) -> nullptr
+    Drawing::DrawPixelMapNineOpItem::ConstructorHandle handle1(
+        objectHandle, center, dst, static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MIN), paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapNineOpItem::Unmarshalling(cmdList, &handle1), nullptr);
+
+    // FilterMode above valid range (2) -> nullptr
+    Drawing::DrawPixelMapNineOpItem::ConstructorHandle handle2(
+        objectHandle, center, dst, static_cast<Drawing::FilterMode>(FILTER_MODE_INVALID_MAX), paintHandle);
+    ASSERT_EQ(Drawing::DrawPixelMapNineOpItem::Unmarshalling(cmdList, &handle2), nullptr);
+
+    // FilterMode NEAREST (0, valid) -> not nullptr
+    Drawing::DrawPixelMapNineOpItem::ConstructorHandle handle3(
+        objectHandle, center, dst, Drawing::FilterMode::NEAREST, paintHandle);
+    ASSERT_NE(Drawing::DrawPixelMapNineOpItem::Unmarshalling(cmdList, &handle3), nullptr);
+
+    // FilterMode LINEAR (1, valid) -> not nullptr
+    Drawing::DrawPixelMapNineOpItem::ConstructorHandle handle4(
+        objectHandle, center, dst, Drawing::FilterMode::LINEAR, paintHandle);
+    ASSERT_NE(Drawing::DrawPixelMapNineOpItem::Unmarshalling(cmdList, &handle4), nullptr);
+}
+
 } // namespace OHOS::Rosen

@@ -337,7 +337,7 @@ static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 }
 #endif
 
-// LCOV_EXCL_START
+// LCOV_EXCL_START 
 #if defined(RS_ENABLE_GL)
 std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreatePixelMapForGL(
     sk_sp<GrDirectContext> grContext, const OHOS::Media::Rect &srcRect)
@@ -651,7 +651,7 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::GetPixelMapForVK(con
     options.pixelFormat = PixelFormat::RGBA_8888;
     auto pixelMap = PixelMap::Create(options);
     if (!pixelMap) {
-        RS_LOGE("create pixelMap fail in GetPixcelMapForVK");
+        RS_LOGE("create pixelMap fail in GetPixelMapForVK");
         return nullptr;
     }
 

@@ -2992,16 +2992,6 @@ bool RSProperties::IsGeoDirty() const
     return geoDirty_;
 }
 
-bool RSProperties::IsParentGeoDirty() const
-{
-    return parentGeoDirty_;
-}
-
-void RSProperties::SetParentGeoDirty(bool parentGeoDirty)
-{
-    parentGeoDirty_ = parentGeoDirty;
-}
-
 bool RSProperties::IsCurGeoDirty() const
 {
     return curGeoDirty_;
@@ -3334,26 +3324,6 @@ void RSProperties::SetHDRBrightnessFactor(float factor)
         return;
     }
     hdrBrightnessFactor_ = factor;
-    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(backref_.lock());
-    if (displayNode == nullptr) {
-        ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid displayNode");
-        return;
-    }
-    auto context = displayNode->GetContext().lock();
-    if (!context) {
-        ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
-        return;
-    }
-    const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
-    for (const auto& [nodeId, _] : hdrNodeMap) {
-        auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
-        if (!canvasNode) {
-            RS_LOGD("RSHdrUtil::SetHDRBrightnessFactor canvasNode is not on the tree");
-            continue;
-        }
-        canvasNode->SetContentDirty();
-        canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(factor);
-    }
 }
 
 void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)
@@ -6119,6 +6089,10 @@ void RSProperties::UpdateFilter()
 
 bool RSProperties::DisableHWCForFilter() const
 {
+    // needFilter_ is a superset of the conditions below; if it is false, hwc does not need to be disabled.
+    if (!needFilter_) {
+        return false;
+    }
     // The difference compared to needFilter_ is no need to disable hwc when foregroundFilter is HDR_UI_BRIGHTNESS
     return GetBackgroundFilter() != nullptr || GetFilter() != nullptr || GetUseEffect() || IsLightUpEffectValid() ||
         IsDynamicLightUpValid() || GetGreyCoef().has_value() || GetLinearGradientBlurPara() != nullptr ||

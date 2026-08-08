@@ -1350,6 +1350,44 @@ HWTEST_F(BlendShaderObjTest, MarshallingWriteIsSrcLazyFailureTest001, TestSize.L
     bool result = obj->Marshalling(parcel);
     EXPECT_FALSE(result);
 }
+
+/*
+ * @tc.name: UnmarshallingInvalidBlendModeBelowMin001
+ * @tc.desc: Test BlendShaderObj::Unmarshalling with blendModeValue below minimum (BlendMode::CLEAR)
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BlendShaderObjTest, UnmarshallingInvalidBlendModeBelowMin001, TestSize.Level1)
+{
+    auto obj = BlendShaderObj::CreateForUnmarshalling();
+    ASSERT_NE(obj, nullptr);
+    const int32_t INVALID_BLEND_MODE_LOW = -1;
+    MessageParcel parcel;
+    parcel.WriteInt32(INVALID_BLEND_MODE_LOW);
+    bool isValid = true;
+    bool result = obj->Unmarshalling(parcel, isValid, 0);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: UnmarshallingInvalidBlendModeAboveMax001
+ * @tc.desc: Test BlendShaderObj::Unmarshalling with blendModeValue above maximum (BlendMode::LUMINOSITY)
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BlendShaderObjTest, UnmarshallingInvalidBlendModeAboveMax001, TestSize.Level1)
+{
+    auto obj = BlendShaderObj::CreateForUnmarshalling();
+    ASSERT_NE(obj, nullptr);
+    const int32_t INVALID_BLEND_MODE_HIGH = static_cast<int32_t>(BlendMode::LUMINOSITY) + 1;
+    MessageParcel parcel;
+    parcel.WriteInt32(INVALID_BLEND_MODE_HIGH);
+    bool isValid = true;
+    bool result = obj->Unmarshalling(parcel, isValid, 0);
+    EXPECT_FALSE(result);
+}
 #endif
 
 } // namespace Drawing

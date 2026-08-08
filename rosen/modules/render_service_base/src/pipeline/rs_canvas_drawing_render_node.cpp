@@ -282,7 +282,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
-        RS_LOGD("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
+        RS_LOGD_IF(DEBUG_NODE, "RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
@@ -502,6 +502,9 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
     auto renderParams = std::make_unique<RSCanvasDrawingRenderParams>(GetId());
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     renderParams->SetBufferDraw(IsBufferDraw());
+    if (surfaceHandler_ != nullptr) {
+        renderParams->SetConsumerSurface(surfaceHandler_->GetConsumer());
+    }
 #endif
     stagingRenderParams_ = std::move(renderParams);
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
@@ -884,6 +887,10 @@ void RSCanvasDrawingRenderNode::OnDestoryTokenNode()
         context->GetMutableNodeMap().RegisterSurfaceHandler(GetId(), surfaceHandler_);
     }
     surfaceHandler_ = nullptr;
+    if (stagingRenderParams_ != nullptr) {
+        auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
+        stagingParams->SetConsumerSurface(nullptr);
+    }
 }
  
 void RSCanvasDrawingRenderNode::InitSurfaceHandler()
@@ -902,7 +909,13 @@ void RSCanvasDrawingRenderNode::SetSurfaceHandler(std::shared_ptr<RSSurfaceHandl
 {
     surfaceHandler_ = surfaceHandler;
     if (stagingRenderParams_ != nullptr) {
-        static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get())->SetBufferDraw(IsBufferDraw());
+        auto stagingParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
+        stagingParams->SetBufferDraw(IsBufferDraw());
+        sptr<IConsumerSurface> consumerSurface = nullptr;
+        if (surfaceHandler_ != nullptr) {
+            consumerSurface = surfaceHandler_->GetConsumer();
+        }
+        stagingParams->SetConsumerSurface(consumerSurface);
     }
 }
  

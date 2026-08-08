@@ -146,7 +146,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         if (RSBaseHdrUtil::CheckAIHDRStatus(hdrStatus)) {
             float hdrBrightness = static_cast<HDRType>(surfaceNode.GetHDRType()) == HDRType::DEFAULT?
                 hdrDimmingFactor : surfaceNode.GetHDRBrightness();
-            scaler = rsLuminance.CalScaler(1.0f, std::vector<uint8_t>{}, hdrBrightness * brightnessFactor, hdrStatus);
+            scaler = rsLuminance.CalAIHDRScaler(surfaceNode, hdrBrightness * brightnessFactor, hdrStatus);
         } else {
             scaler = surfaceNode.GetHDRBrightness() * brightnessFactor * (scaler - 1.0f) + 1.0f;
         }
@@ -272,6 +272,29 @@ void RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceN
         RS_LOGD("RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix "
             "matrix[0]: %{public}.2f, matrix[4]: %{public}.2f, matrix[8]: %{public}.2f",
             layerLinearMatrix[0], layerLinearMatrix[4], layerLinearMatrix[8]);
+    }
+}
+
+void RSHdrUtil::UpdateBrightnessFactor(RSLogicalDisplayRenderNode& displayNode)
+{
+    auto context = displayNode.GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSHdrUtil::UpdateBrightnessFactor Invalid context");
+        return;
+    }
+    const auto& hdrNodeMap = displayNode.GetHDRNodeMap();
+    float displayFactor = displayNode.GetRenderProperties().GetHDRBrightnessFactor();
+    for (const auto& [nodeId, _] : hdrNodeMap) {
+        auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
+        if (!canvasNode) {
+            RS_LOGD("RSHdrUtil::UpdateBrightnessFactor canvasNode is not on the tree");
+            continue;
+        }
+        if (ROSEN_EQ(canvasNode->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), displayFactor)) {
+            continue;
+        }
+        canvasNode->SetContentDirty();
+        canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(displayFactor);
     }
 }
 

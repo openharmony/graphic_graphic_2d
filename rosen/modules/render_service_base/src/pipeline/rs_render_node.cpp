@@ -118,6 +118,8 @@ constexpr uint32_t SET_IS_ON_THE_TREE_THRESHOLD = 50;
 static uint32_t g_setIsOntheTreeCnt = 0;
 constexpr size_t CACHE_FILTER_DRAWABLE_SIZE = 3;
 
+static inline std::unordered_set<NodeId> accessibilityConfigChangedNodeSet_;
+
 #ifndef ROSEN_ARKUI_X
 static std::array<std::function<void(DrawCmdIndex&, int)>,
     static_cast<size_t>(RSDrawableSlot::MAX)> rsDrawableSlotToIndexVec;
@@ -179,6 +181,29 @@ static inline std::function<void(DrawCmdIndex&, int)>& GetRsDrawableSlotToIndexV
     return rsDrawableSlotToIndexVec[static_cast<int8_t>(slot)];
 }
 #endif
+
+// RAII guard that marks a node as "on the traversal path"
+class RSRenderNodeCycleGuard {
+public:
+    explicit RSRenderNodeCycleGuard(bool& flag)
+        : inTraversalPath_(flag), isTraversed_(inTraversalPath_)
+    {
+        inTraversalPath_ = true;
+    }
+    ~RSRenderNodeCycleGuard()
+    {
+        if (!isTraversed_) {
+            inTraversalPath_ = false;
+        }
+    }
+    bool HasCycle() const { return isTraversed_; }
+    RSRenderNodeCycleGuard(const RSRenderNodeCycleGuard&) = delete;
+    RSRenderNodeCycleGuard& operator=(const RSRenderNodeCycleGuard&) = delete;
+
+private:
+    bool& inTraversalPath_;
+    bool isTraversed_ = false;
+};
 } // namespace
 
 using RSCacheFilterPara = std::pair<bool, RSDrawableSlot>; // first: update condition, second: slot
@@ -202,7 +227,7 @@ bool RSRenderNode::IsPureContainer() const
 bool RSRenderNode::IsPureBackgroundColor(bool isOpincSplit) const
 {
     if (HasValidDrawCmd(isOpincSplit)) {
-        RS_LOGD("drawCmdList is not none");
+        RS_LOGD_IF(DEBUG_NODE, "drawCmdList is not none");
         return false;
     }
 
@@ -299,6 +324,9 @@ std::string DrawNodeTypeToString(DrawNodeType nodeType)
         "DrawPropertyType",
         "GeometryPropertyType"
     };
+    if (nodeType >= end(typeMap) - begin(typeMap)) {
+        return "undefinedType";
+    }
     return typeMap[nodeType];
 }
 
@@ -713,7 +741,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     RSMemoryInfoManager::RecordNodeOnTreeStatus(flag, GetId(), instanceRootNodeId);
 #endif
     if (flag && IsNodeMemClearEnable()) {
-        RS_LOGD("RSRenderNode::SetIsOnTheTree on tree: node[id:%{public}" PRIu64 "]", GetId());
+        RS_LOGD_IF(DEBUG_NODE, "RSRenderNode::SetIsOnTheTree on tree: node[id:%{public}" PRIu64 "]", GetId());
         InitRenderDrawableAndDrawableVec();
     }
 
@@ -1615,7 +1643,7 @@ void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
     AddToPendingSyncList();
 }
 
-bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
+bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded)
 {
     auto checkType = RSSystemProperties::GetSubTreePrepareCheckType();
     if (checkType == SubTreePrepareCheckType::DISABLED) {
@@ -1640,8 +1668,9 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
-    if (childHasSpatialEffect_ &&
-        (GetRenderProperties().IsParentGeoDirty() || GetRenderProperties().IsCurGeoDirty())) {
+
+    // isAccumGeoDirty represents self or ancestor geoDirty
+    if (childHasSpatialEffect_ && isAccumGeoDirty) {
         return true;
     }
     if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || GetSubSurfaceCnt() > 0) {
@@ -1670,6 +1699,12 @@ void RSRenderNode::PrepareChildrenForApplyModifiers()
 void RSRenderNode::PrepareSelfNodeForApplyModifiers()
 {
 #ifdef RS_ENABLE_GPU
+    RSRenderNodeCycleGuard guard(inTraversalPath_);
+    if (guard.HasCycle()) {
+        ROSEN_LOGE("RSRenderNode::PrepareSelfNodeForApplyModifiers cycle detected, skip node[id:%{public}"
+            PRIu64 "], and return", GetId());
+        return;
+    }
     if (IsNodeMemClearEnable()) {
         ROSEN_LOGD("RSRenderNode::PrepareSelfNodeForApplyModifiers, node[id:%{public}" PRIu64 "]", GetId());
         InitRenderDrawableAndDrawableVec();
@@ -3428,7 +3463,7 @@ void RSRenderNode::UpdateDrawableVecV2()
     // Step 1: Collect dirty slots
     auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, drawableMap);
     if (dirtySlots.empty()) {
-        RS_LOGD("RSRenderNode::update drawable VecV2 dirtySlots is empty");
+        RS_LOGD_IF(DEBUG_NODE, "RSRenderNode::update drawable VecV2 dirtySlots is empty");
         return;
     }
     // Step 2: Update or regenerate drawable if needed
@@ -5213,7 +5248,7 @@ void RSRenderNode::ProcessBehindWindowOnTreeStateChanged()
     if (!rootNode) {
         return;
     }
-    RS_LOGD("RSSurfaceRenderNode::ProcessBehindWindowOnTreeStateChanged nodeId = %{public}" PRIu64
+    RS_LOGD_IF(DEBUG_NODE, "RSSurfaceRenderNode::ProcessBehindWindowOnTreeStateChanged nodeId = %{public}" PRIu64
         ", isOnTheTree_ = %{public}d", GetId(), isOnTheTree_);
     if (isOnTheTree_) {
         rootNode->AddChildBlurBehindWindow(GetId());
@@ -5231,7 +5266,7 @@ void RSRenderNode::ProcessBehindWindowAfterApplyModifiers()
     auto& properties = GetMutableRenderProperties();
     bool useEffect = properties.GetUseEffect();
     UseEffectType useEffectType = static_cast<UseEffectType>(properties.GetUseEffectType());
-    RS_LOGD("RSSurfaceRenderNode::ProcessBehindWindowAfterApplyModifiers nodeId = %{public}" PRIu64
+    RS_LOGD_IF(DEBUG_NODE, "RSSurfaceRenderNode::ProcessBehindWindowAfterApplyModifiers nodeId = %{public}" PRIu64
         ", isOnTheTree_ = %{public}d, useEffect = %{public}d, useEffectType = %{public}hd",
         GetId(), isOnTheTree_, useEffect, useEffectType);
     if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
@@ -5248,12 +5283,12 @@ void RSRenderNode::UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType typ
     auto& drawableMap = GetDrawableVec(__func__);
     auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, drawableMap);
     if (dirtySlots.empty()) {
-        RS_LOGD("RSRenderNode::UpdateDrawableAfterPostPrepare dirtySlots is empty");
+        RS_LOGD_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawableAfterPostPrepare dirtySlots is empty");
         return;
     }
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableMap, dirtySlots);
     RSDrawable::FuzeDrawableSlots(*this, drawableMap);
-    RS_LOGD("RSRenderNode::UpdateDrawableAfterPostPrepare drawableChanged:%{public}d", drawableChanged);
+    RS_LOGD_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawableAfterPostPrepare drawableChanged:%{public}d", drawableChanged);
     if (drawableChanged) {
         RSDrawable::UpdateSaveRestore(*this, drawableMap, drawableVecStatus_);
         if (RSSystemProperties::GetUpdateDisplayListExtEnabled()) {
@@ -5649,15 +5684,6 @@ void RSRenderNode::NodePostPrepare(
     SetHasUnobscuredUEC();
 }
 
-RSDrawable::Vec& RSRenderNode::GetDrawableVec(const char* func) const
-{
-    if (UNLIKELY(!drawableVec_)) {
-        drawableVec_ = std::make_unique<RSDrawable::Vec>();
-        ROSEN_LOGD("drawableVec_ is nullptr, %{public}s", func);
-    }
-    return *drawableVec_;
-}
-
 void RSRenderNode::InitRenderDrawableAndDrawableVec()
 {
     if (renderDrawable_ == nullptr) {
@@ -5665,7 +5691,7 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
     }
 #ifndef ROSEN_ARKUI_X
     if (renderDrawable_ == nullptr) {
-        RS_LOGD("RSRenderNode::InitRenderDrawableAndDrawableVec init renderDrawable_ failed");
+        RS_LOGD_IF(DEBUG_NODE, "RSRenderNode::InitRenderDrawableAndDrawableVec init renderDrawable_ failed");
     }
 #endif
     if (!drawableVec_) {
@@ -5823,13 +5849,18 @@ void RSRenderNode::ReSortChildrenByZIndex()
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::AccumulateParentGeoDirty()
+void RSRenderNode::MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
 {
-    if (auto parentPtr = GetParent().lock()) {
-        bool parentGeoDirty = parentPtr->GetRenderProperties().IsParentGeoDirty() ||
-            parentPtr->GetRenderProperties().IsCurGeoDirty();
-        GetMutableRenderProperties().SetParentGeoDirty(parentGeoDirty);
+    if (isAccessibilityConfigChanged) {
+        accessibilityConfigChangedNodeSet_.insert(GetId());
+    } else {
+        accessibilityConfigChangedNodeSet_.erase(GetId());
     }
+}
+
+bool RSRenderNode::IsAccessibilityConfigChangedNode() const
+{
+    return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
 }
 } // namespace Rosen
 } // namespace OHOS

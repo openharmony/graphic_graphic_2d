@@ -429,6 +429,7 @@ void RSCanvasModifiersDraw::WaitAllTasksFinish()
     if (!threadStarted_.load()) {
         return;
     }
+    RemoveTask(CLEAN_FREE_BUFFERS_TASK_NAME);
     PostSyncTask([canvasModifiersDraw = shared_from_this()]() {
         RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish");
         if (canvasModifiersDraw->gpuContext_ != nullptr) {
@@ -631,6 +632,9 @@ void RSCanvasModifiersDraw::UpdateCanvasContent(NodeId nodeId, Drawing::DrawCmdL
         if (auto* destroySemaphoreInfo = drawable.UpdateContent(drawCmdList, false)) {
             canvasModifiersDraw->canvasNewSemaphoreInfos_.emplace_back(destroySemaphoreInfo);
         }
+        canvasModifiersDraw->lastUpdateCanvasContentTime_ = static_cast<int64_t>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+                .count());
     });
 }
 
@@ -738,7 +742,7 @@ void RSCanvasModifiersDraw::DoCleanFreeBuffers(int64_t maxDuration)
     for (auto* drawable : freeDrawableList) {
         drawable->CleanBuffer();
     }
-    if (gpuContext_ != nullptr) {
+    if (gpuContext_ != nullptr && now - lastUpdateCanvasContentTime_ > CLEAN_FREE_BUFFERS_DURATION) {
         gpuContext_->SetResourceCacheLimits(0, 0);
         needRestoreGpuCacheLimit_ = true;
     }

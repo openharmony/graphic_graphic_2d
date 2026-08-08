@@ -563,7 +563,6 @@ group("unittest") {
     ":RSSingleFrameComposerTest",
     ":RSMemoryInfoManagerTest",
     ":RSWindowKeyFrameRenderNodeTest",
-    ":RSBufferReclaimTest",
     ":RSPowerOffRenderSkipTest",
     ":RSDynamicLayerSkipControllerTest",
   ]

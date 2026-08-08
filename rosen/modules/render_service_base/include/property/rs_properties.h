@@ -730,8 +730,6 @@ public:
     bool IsCurGeoDirty() const;
     bool IsContentDirty() const;
     bool IsSubTreeAllDirty() const;
-    bool IsParentGeoDirty() const;
-    void SetParentGeoDirty(bool parentGeoDirty);
 
     void SetSpherize(float spherizeDegree);
     float GetSpherize() const;
@@ -1091,7 +1089,6 @@ private:
 
     bool isDirty_ = false;
     bool geoDirty_ = false;
-    bool parentGeoDirty_ = false;
     bool contentDirty_ = false;
     bool subTreeAllDirty_ = false;
     bool curIsDirty_ = false;

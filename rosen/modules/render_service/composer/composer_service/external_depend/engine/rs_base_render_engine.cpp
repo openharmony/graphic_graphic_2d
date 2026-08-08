@@ -69,6 +69,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+constexpr float HALF_PIXEL_OFFSET = 0.5f;
 
 #ifdef RS_ENABLE_SWAP_YCBCR_CHANNEL
 static bool NeedYcbcrChannelSwap(const BufferDrawParam& params)
@@ -284,7 +285,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     rsSurface->SetColorSpace(config.colorGamut);
     rsSurface->SetSurfacePixelFormat(config.format);
     if (frameContextConfig.isVirtual) {
-        RS_LOGD("RSBaseRenderEngine::RequestFrame: Virtual Screen Set Timeout to 0.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::RequestFrame: Virtual Screen Set Timeout to 0.");
         rsSurface->SetTimeOut(frameContextConfig.timeOut);
     }
     auto bufferUsage = config.usage;
@@ -545,7 +546,7 @@ bool RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo(const std::shared_p
         Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020))) {
         colorSpaceType = CM_DISPLAY_BT2020_SRGB;
     } else {
-        RS_LOGD("RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo color space not supported");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo color space not supported");
         return false;
     }
 
@@ -567,7 +568,8 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
     GSError ret = MetadataHelper::GetHDRMetadataType(params.buffer, hdrMetadataType);
     if (ret != GSERROR_OK) {
-        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetHDRMetadataType failed with %{public}u.", ret);
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::ColorSpaceConvertor GetHDRMetadataType failed with %{public}u.",
+            ret);
     }
 
     parameter.inputColorSpace.metadataType = hdrMetadataType;
@@ -588,12 +590,13 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     // color temperature
     parameter.layerLinearMatrix = params.layerLinearMatrix;
 
-    RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inPrimaries = %{public}u, inMetadataType = %{public}u, "
-            "outPrimaries = %{public}u, outMetadataType = %{public}u, "
-            "tmoNits = %{public}.2f, currentDisplayNits = %{public}.2f, sdrNits = %{public}.2f",
-            parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
-            parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
-            parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits);
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RSBaseRenderEngine::ColorSpaceConvertor parameter inPrimaries = %{public}u, inMetadataType = %{public}u, "
+        "outPrimaries = %{public}u, outMetadataType = %{public}u, "
+        "tmoNits = %{public}.2f, currentDisplayNits = %{public}.2f, sdrNits = %{public}.2f",
+        parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
+        parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
+        parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits);
 
     return true;
 }
@@ -854,7 +857,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     bool isEDRSurface = static_cast<int32_t>(hdrMetadataType) ==
         static_cast<int32_t>(HDI::Display::Graphic::Common::V2_2::CM_COMPONENT_EDR);
     if (videoInfo.retGetColorSpaceInfo_ != GSERROR_OK && !isEDRSurface) {
-        RS_LOGD("RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.",
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.",
             videoInfo.retGetColorSpaceInfo_);
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
@@ -865,21 +868,21 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Input color space: primaries=%{public}d, transfunc=%{public}d",
         inClrInfo.primaries, inClrInfo.transfunc);
     if (!ConvertDrawingColorSpaceToSpaceInfo(videoInfo.drawingColorSpace_, outClrInfo)) {
-        RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
 
     if (params.colorFollow) {
         // force input and output color spaces to be consistent to avoid color space conversion
-        RS_LOGD("RSBaseRenderEngine::DrawImage force to avoid color space conversion");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::DrawImage force to avoid color space conversion");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
 
     if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc == outClrInfo.transfunc &&
         !params.hasMetadata && !isEDRSurface) {
-        RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal with no metadata.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderEngine::DrawImage primaries and transfunc equal with no metadata.");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
@@ -974,6 +977,7 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
     auto scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
     auto skewX = matrix.Get(Drawing::Matrix::SKEW_X);
     auto skewY = matrix.Get(Drawing::Matrix::SKEW_Y);
+    auto translateY = matrix.Get(Drawing::Matrix::TRANS_Y);
     if (ROSEN_EQ(skewX, 0.0f) && ROSEN_EQ(skewY, 0.0f)) {
         if (!ROSEN_EQ(std::abs(scaleX), 1.0f) || !ROSEN_EQ(std::abs(scaleY), 1.0f)) {
             // has scale
@@ -986,6 +990,10 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
         }
     } else {
         // skew and/or non 90 degrees rotation
+        return true;
+    }
+    if (ROSEN_EQ(std::abs(translateY - std::floor(translateY)), HALF_PIXEL_OFFSET)) {
+        RS_LOGI("RSBaseRenderEngine::NeedBilinearInterpolation translateY=%{public}.2f", translateY);
         return true;
     }
     return false;

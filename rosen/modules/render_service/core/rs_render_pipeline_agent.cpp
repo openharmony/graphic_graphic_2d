@@ -1421,6 +1421,11 @@ int32_t RSRenderPipelineAgent::RegisterOcclusionChangeCallback(pid_t pid, sptr<R
 int32_t RSRenderPipelineAgent::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {
+    if (partitionPoints.size() > MAX_PARTITION_POINTS) {
+        RS_LOGE("RegisterSurfaceOcclusionChangeCallback invalid partitionPoints size: %{public}zu",
+            partitionPoints.size());
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         return StatusCode::INVALID_ARGUMENTS;
@@ -2033,7 +2038,15 @@ bool RSRenderPipelineAgent::UnRegisterTypeface(uint64_t globalUniqueId)
     uint32_t uniqueId = typeface->GetUniqueID();
     // Free cpu cache, this only valid in skia path. When deprecating skia, this can be removed.
     auto task = [uniqueId]() {
-        auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        if (!renderEngine) {
+            return;
+        }
+        auto renderContext = renderEngine->GetRenderContext();
+        if (!renderContext) {
+            return;
+        }
+        auto context = renderContext->GetDrGPUContext();
         if (context) {
             context->FreeCpuCache(uniqueId);
             context->PurgeUnlockAndSafeCacheGpuResources();

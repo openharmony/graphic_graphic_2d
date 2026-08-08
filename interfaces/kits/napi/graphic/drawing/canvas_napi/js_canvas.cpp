@@ -97,8 +97,9 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
         ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh memcpy points failed");
         return;
     }
-    int32_t colorSize = 4; // size of color
-    if (colors && (memcpy_s(builder.Colors(), vertCounts * colorSize, colors, vertCounts * colorSize) != 0)) {
+    constexpr size_t colorSize = 4; // size of color
+    size_t colorsSize = static_cast<size_t>(vertCounts) * colorSize;
+    if (colors && (memcpy_s(builder.Colors(), colorsSize, colors, colorsSize) != 0)) {
         ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh memcpy colors failed");
         return;
     }

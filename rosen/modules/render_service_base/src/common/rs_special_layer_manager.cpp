@@ -174,15 +174,6 @@ bool RSSpecialLayerManager::FindWithScreen(ScreenId screenId, uint32_t type) con
     return HasType(screenSpecialLayer_.at(screenId), type);
 }
 
-uint32_t RSSpecialLayerManager::GetWithScreen(ScreenId screenId) const
-{
-    auto iter = screenSpecialLayer_.find(screenId);
-    if (iter == screenSpecialLayer_.end()) {
-        return SpecialLayerType::NONE;
-    }
-    return iter->second;
-}
-
 void RSSpecialLayerManager::AddIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id)
 {
     uint32_t isType = type & IS_GENERAL_SPECIAL;
@@ -196,6 +187,15 @@ void RSSpecialLayerManager::AddIdsWithScreen(ScreenId screenId, uint32_t type, N
         isType >>= 1;
         currentType <<= 1;
     }
+}
+
+uint32_t RSSpecialLayerManager::GetWithScreen(ScreenId screenId) const
+{
+    auto iter = screenSpecialLayer_.find(screenId);
+    if (iter == screenSpecialLayer_.end()) {
+        return SpecialLayerType::NONE;
+    }
+    return iter->second;
 }
 
 void RSSpecialLayerManager::RemoveIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id)
@@ -272,6 +272,7 @@ void RSSpecialLayerManager::MergeChildren(const RSSpecialLayerManager& childSlm)
 void RSSpecialLayerManager::Clear()
 {
     specialLayerIds_.clear();
+    screenSpecialLayer_.clear();
     screenSpecialLayerIds_.clear();
     hasSlInVisibleRect_.clear();
 }
