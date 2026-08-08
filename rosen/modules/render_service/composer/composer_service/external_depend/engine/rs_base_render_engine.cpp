@@ -753,6 +753,68 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
     return image;
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+void RSBaseRenderEngine::GlassFree3DShaderConvert(RSPaintFilterCanvas& canvas, BufferDrawParam& params,
+    const std::shared_ptr<Drawing::Image>& image, const Drawing::SamplingOptions& samplingOptions)
+{
+    if (!image) {
+        RS_LOGW("RSBaseRenderEngine::GlassFree3DShaderConvert image is nullptr.");
+        return;
+    }
+    Drawing::Rect absRect;
+    canvas.GetTotalMatrix().MapRect(absRect, params.dstRect);
+    Drawing::Matrix matrix = canvas.GetTotalMatrix();
+    // get VPE shader
+    auto inputShader = Drawing::ShaderEffect::CreateImageShader(
+        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
+    if (inputShader == nullptr) {
+        RS_LOGW("RSBaseRenderEngine::GlassFree3DShaderConvert inputShader is nullptr.");
+        return;
+    }
+    int32_t absWidth = static_cast<int32_t>(absRect.GetWidth());
+    int32_t absHeight = static_cast<int32_t>(absRect.GetHeight());
+    bool isFullScreen = (absWidth == canvas.GetWidth() && ROSEN_EQ(absRect.GetLeft(), 0.0f) &&
+        absHeight * 2 > canvas.GetHeight()) || (absHeight == canvas.GetHeight() &&
+        ROSEN_EQ(absRect.GetTop(), 0.0f) && absWidth * 2 > canvas.GetWidth());
+    std::shared_ptr<Drawing::ShaderEffect> outputShader;
+    Media::VideoProcessingEngine::GlassFree3DConverterDisplayParameter parameter3D = {
+        .width = absWidth,
+        .height = absHeight,
+        .screenWidth = canvas.GetHeight(),
+        .screenHeight = canvas.GetWidth(),
+        .coordX = absRect.GetLeft(),
+        .coordY = absRect.GetTop(),
+        .swingX = 0.0f, // Need VPE interface
+        .swingY = 0.0f, // Need VPE interface
+        .swingZ = 0.0f, // Need VPE interface
+        .panelName = "", // Need VPE interface
+        .converterType = params.use3DShader && isFullScreen ? 1 : 0, // 1 means 3D, 0 means 2D
+        .u_matrix = { matrix.Get(Drawing::Matrix::SCALE_X), matrix.Get(Drawing::Matrix::SKEW_X),
+            matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::SKEW_Y),
+            matrix.Get(Drawing::Matrix::SCALE_Y), matrix.Get(Drawing::Matrix::TRANS_Y) }
+    };
+    RS_TRACE_NAME_FMT("%s glassFree3D absRect width[%d], height[%d], canvas width[%d],"
+        "height[%d], left: %f, top: %f, use3DShader: %d, isFullScreen: %d, matrix: [%f, %f, %f, %f, %f, %f]",
+        __func__, absWidth, absHeight, canvas.GetWidth(), canvas.GetHeight(), absRect.GetLeft(), absRect.GetTop(),
+        params.use3DShader, isFullScreen, matrix.Get(Drawing::Matrix::SCALE_X), matrix.Get(Drawing::Matrix::SKEW_X),
+        matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::SKEW_Y),
+        matrix.Get(Drawing::Matrix::SCALE_Y), matrix.Get(Drawing::Matrix::TRANS_Y));
+    if (!glassFree3DConverterDisplay_) {
+        RS_LOGE("RSBaseRenderEngine::GlassFree3DShaderConvert glassFree3DConverterDisplay is nullptr.");
+        return;
+    }
+    glassFree3DConverterDisplay_->Process(inputShader, outputShader, parameter3D);
+    if (outputShader) {
+        params.paint.SetShaderEffect(outputShader);
+        canvas.AttachBrush(params.paint);
+        Drawing::AutoCanvasRestore autoRestore(canvas, true);
+        canvas.ResetMatrix();
+        canvas.DrawRect(absRect);
+        canvas.DetachBrush();
+    }
+}
+#endif
+
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
@@ -807,52 +869,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     if (params.glassFree3D) {
-        Drawing::Rect absRect;
-        canvas.GetTotalMatrix().MapRect(absRect, params.dstRect);
-        Drawing::Matrix matrix = canvas.GetTotalMatrix();
-        // get VPE shader
-        auto inputShader = Drawing::ShaderEffect::CreateImageShader(
-            *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
-        if (inputShader == nullptr) {
-            RS_LOGW("RSBaseRenderEngine::DrawImage inputShader is nullptr.");
-            return;
-        }
-        int32_t absWidth = static_cast<int32_t>(absRect.GetWidth());
-        int32_t absHeight = static_cast<int32_t>(absRect.GetHeight());
-        bool isFullScreen = (absWidth == canvas.GetWidth() && ROSEN_EQ(absRect.GetLeft(), 0.0f) &&
-            absHeight * 2 > canvas.GetHeight()) || (absHeight == canvas.GetHeight() &&
-            ROSEN_EQ(absRect.GetTop(), 0.0f) && absWidth * 2 > canvas.GetWidth());
-        std::shared_ptr<Drawing::ShaderEffect> outputShader;
-        Media::VideoProcessingEngine::GlassFree3DConverterDisplayParameter parameter3D = {
-            .width = absWidth,
-            .height = absHeight,
-            .screenWidth = canvas.GetHeight(),
-            .screenHeight = canvas.GetWidth(),
-            .coordX = absRect.GetLeft(),
-            .coordY = absRect.GetTop(),
-            .swingX = 0.0f, // Need VPE interface
-            .swingY = 0.0f, // Need VPE interface
-            .swingZ = 0.0f, // Need VPE interface
-            .panelName = "", // Need VPE interface
-            .converterType = params.use3DShader && isFullScreen ? 1 : 0 // 1 means 3D, 0 means 2D
-        };
-        RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage glassFree3D absRect width[%d], height[%d], canvas width[%d],"
-            "height[%d], left: %f, top: %f, use3DShader: %d, isFullScreen: %d", absWidth, absHeight, canvas.GetWidth(),
-            canvas.GetHeight(), absRect.GetLeft(), absRect.GetTop(), params.use3DShader, isFullScreen);
-        if (!glassFree3DConverterDisplay_) {
-            RS_LOGE("RSBaseRenderEngine::DrawImage glassFree3DConverterDisplay is nullptr.");
-            return;
-        }
-        glassFree3DConverterDisplay_->Process(inputShader, outputShader, parameter3D);
-        if (outputShader) {
-            params.paint.SetShaderEffect(outputShader);
-            canvas.AttachBrush(params.paint);
-            Drawing::AutoCanvasRestore autoRestore(canvas, true);
-            canvas.ResetMatrix();
-            canvas.DrawRect(absRect);
-            canvas.DetachBrush();
-            return;
-        }
+        GlassFree3DShaderConvert(canvas, params, image, samplingOptions);
+        return;
     }
 
     // For sdr brightness ratio

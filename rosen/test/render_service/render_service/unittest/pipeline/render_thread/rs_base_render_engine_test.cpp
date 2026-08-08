@@ -1394,6 +1394,37 @@ HWTEST_F(RSBaseRenderEngineUnitTest, RegisterDeleteBufferListener_WithValidConsu
     EXPECT_NO_FATAL_FAILURE(renderEngine->RegisterDeleteBufferListener(csurf, false));
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: GlassFree3DShaderConvert_NullImage
+ * @tc.desc: Test GlassFree3DShaderConvert with null image
+ * @tc.type: FUNC
+ * @tc.require: issueI6GJ1Z
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, GlassFree3DShaderConvert_NullImage, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    ASSERT_NE(renderEngine, nullptr);
+
+    std::unique_ptr<Drawing::Canvas> drawingCanvas =
+        std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    BufferDrawParam params;
+    params.use3DShader = true;
+    params.dstRect = DEFAULT_RECT;
+    Drawing::Brush paint;
+    params.paint = paint;
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+
+    // Test with null image - should return early without crash
+    std::shared_ptr<Drawing::Image> nullImage = nullptr;
+    EXPECT_NO_FATAL_FAILURE(renderEngine->GlassFree3DShaderConvert(*canvas, params, nullImage, samplingOptions));
+}
+#endif
+
 /**
  * @tc.name: CreateBufferDeleteCallback_NullGpuCacheManagerTest001
  * @tc.desc: Test CreateBufferDeleteCallback when gpuCacheManager_ is nullptr
