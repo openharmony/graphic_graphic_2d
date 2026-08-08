@@ -794,7 +794,7 @@ GLenum WebGLImageSource::CheckPixelMapBytes()
     requiredBytes *= bytesPerPixel;
     if (requiredBytes > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
         LOGE("WebGl ImageSource pixelMap too small requiredBytes %{public}" PRIu64, requiredBytes);
-        return GL_INVALID_VALUE;
+        return GL_INVALID_OPERATION;
     }
     return GL_NO_ERROR;
 }
