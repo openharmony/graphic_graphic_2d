@@ -1315,10 +1315,23 @@ napi_value WebGLRenderingContextBase::ShaderSource(napi_env env, napi_callback_i
         return NVal::CreateNull(env).val_;
     }
 
+    napi_value sourceValue = funcArg[NARG_POS::SECOND];
+    if (NVal(env, sourceValue).TypeIs(napi_string)) {
+        size_t sourceLength = 0;
+        napi_status status = napi_get_value_string_utf8(env, sourceValue, nullptr, 0, &sourceLength);
+        if (status != napi_ok) {
+            return NVal::CreateNull(env).val_;
+        }
+        if (sourceLength > WebGLRenderingContextBaseImpl::MAX_SHADER_SOURCE_LENGTH) {
+            context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
+            LOGE("WebGL shaderSource length %{public}zu exceeds limit", sourceLength);
+            return NVal::CreateNull(env).val_;
+        }
+    }
     bool succ = false;
     size_t size = 0;
     unique_ptr<char[]> source = nullptr;
-    tie(succ, source, size) = NVal(env, funcArg[NARG_POS::SECOND]).ToUTF8String();
+    tie(succ, source, size) = NVal(env, sourceValue).ToUTF8String();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }

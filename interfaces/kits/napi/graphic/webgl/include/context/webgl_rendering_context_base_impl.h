@@ -95,6 +95,7 @@ class WebGLRenderingContextBaseImpl {
 public:
     inline static const int32_t MAX_COUNT_ATTACHED_SHADER = 128;
     inline static const GLuint MAX_LOCATION_LENGTH = 512;
+    inline static constexpr size_t MAX_SHADER_SOURCE_LENGTH = 16 * 1024 * 1024;
     static const int32_t PARAMETERS_NUM_1 = 1;
     static const int32_t PARAMETERS_NUM_2 = 2;
     static const int32_t PARAMETERS_NUM_3 = 3;

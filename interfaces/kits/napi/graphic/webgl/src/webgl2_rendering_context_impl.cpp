@@ -92,6 +92,16 @@ void WebGL2RenderingContextImpl::Init()
     samplerUnits_.resize(static_cast<size_t>(maxSamplerUnit_));
 
     GLint max = 0;
+    glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &max3DTextureSize_);
+    glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayTextureLayers_);
+    if (max3DTextureSize_ <= 0) {
+        LOGE("WebGL2 Init invalid 3D texture limit %{public}d", max3DTextureSize_);
+        max3DTextureSize_ = 0;
+    }
+    if (maxArrayTextureLayers_ <= 0) {
+        LOGE("WebGL2 Init invalid array texture layer limit %{public}d", maxArrayTextureLayers_);
+        maxArrayTextureLayers_ = 0;
+    }
     glGetIntegerv(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, &max);
     if (max > 0 && max <= MAX_TRACKED_GL_STATE_COUNT) {
         maxBoundTransformFeedbackBufferIndex_ = static_cast<GLuint>(max);
@@ -863,6 +873,18 @@ GLenum WebGL2RenderingContextImpl::CheckTexImage3D(napi_env env, const TexImageA
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         return result;
     }
+    if (imgArg.border != 0 || imgArg.width < 0 || imgArg.height < 0 || imgArg.depth < 0) {
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
+    const GLint maxWidthHeight = imgArg.target == GL_TEXTURE_3D ? max3DTextureSize_ : maxTextureSize_;
+    if (maxWidthHeight <= 0 || (imgArg.target == GL_TEXTURE_2D_ARRAY && maxArrayTextureLayers_ <= 0)) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
+    const GLint maxMipDimension = maxWidthHeight >> imgArg.level;
+    const GLint maxDepth = imgArg.target == GL_TEXTURE_3D ? maxMipDimension : maxArrayTextureLayers_;
+    if (imgArg.width > maxMipDimension || imgArg.height > maxMipDimension || imgArg.depth > maxDepth) {
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
     return CheckTextureFormatAndType(env, imgArg.internalFormat, imgArg.format, imgArg.type, imgArg.level);
 }
 
@@ -893,6 +915,11 @@ napi_value WebGL2RenderingContextImpl::TexImage3D(napi_env env, const TexImageAr
         data = imageSource.GetImageSourceData();
         imgArg.width = imageSource.GetWidth();
         imgArg.height = imageSource.GetHeight();
+        result = CheckTexImage3D(env, imgArg);
+        if (result != WebGLRenderingContextBase::NO_ERROR) {
+            SET_ERROR_WITH_LOG(result, "image source dimensions are invalid");
+            return NVal::CreateNull(env).val_;
+        }
     }
 
     glTexImage3D(imgArg.target, imgArg.level, imgArg.internalFormat, imgArg.width, imgArg.height, imgArg.depth,

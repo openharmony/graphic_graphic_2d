@@ -509,16 +509,21 @@ napi_value WebGLRenderingContextBaseImpl::ShaderSource(napi_env env, napi_value 
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "checkString failed.");
         return NVal::CreateNull(env).val_;
     }
-    if (source.size() > static_cast<size_t>(std::numeric_limits<GLint>::max())) {
+    if (source.size() > MAX_SHADER_SOURCE_LENGTH) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "shader source too long");
         return NVal::CreateNull(env).val_;
     }
     GLint length = static_cast<GLint>(source.size());
     GLchar* str = const_cast<GLchar*>(source.c_str());
+    (void)GetError_();
     glShaderSource(static_cast<GLuint>(shaderId), 1, &str, &length);
+    const GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        SET_ERROR_WITH_LOG(error, "glShaderSource failed");
+        return NVal::CreateNull(env).val_;
+    }
     webGlShader->SetShaderRes(source);
-    LOGD("WebGL shaderSource shaderId %{public}u length %{public}zu result %{public}u",
-        shaderId, source.size(), GetError_());
+    LOGD("WebGL shaderSource shaderId %{public}u length %{public}zu", shaderId, source.size());
     return NVal::CreateNull(env).val_;
 }
 
@@ -2839,7 +2844,7 @@ WebGLRenderbuffer* WebGLRenderingContextBaseImpl::CheckRenderBufferStorage(napi_
             "WebGL renderbufferStorage invalid internalFormat %{public}u", arg.internalFormat);
         return nullptr;
     }
-    if (arg.width < 0 || arg.height < 0) {
+    if (arg.width < 0 || arg.height < 0 || arg.width > maxRenderBufferSize_ || arg.height > maxRenderBufferSize_) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
             "WebGL renderbufferStorage invalid size %{public}d %{public}d", arg.width, arg.height);
         return nullptr;

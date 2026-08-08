@@ -197,6 +197,8 @@ private:
 
     std::vector<GLuint> samplerUnits_ {};
     GLuint maxSamplerUnit_ {};
+    GLint max3DTextureSize_ { 0 };
+    GLint maxArrayTextureLayers_ { 0 };
 };
 } // namespace Impl
 } // namespace Rosen
