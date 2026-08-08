@@ -1322,7 +1322,7 @@ napi_value WebGLRenderingContextBase::ShaderSource(napi_env env, napi_callback_i
         if (status != napi_ok) {
             return NVal::CreateNull(env).val_;
         }
-        if (sourceLength > WebGLRenderingContextBaseImpl::MAX_SHADER_SOURCE_LENGTH) {
+        if (sourceLength > Impl::WebGLRenderingContextBaseImpl::MAX_SHADER_SOURCE_LENGTH) {
             context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
             LOGE("WebGL shaderSource length %{public}zu exceeds limit", sourceLength);
             return NVal::CreateNull(env).val_;
