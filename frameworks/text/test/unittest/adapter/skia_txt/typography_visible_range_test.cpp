@@ -93,6 +93,35 @@ HWTEST_F(OhDrawingTypographyTest, TypographyGetVisibleTextRangesNoLayoutTest, Te
 }
 
 /*
+ * @tc.name: TypographyGetVisibleTextRangesZeroMaxLineTest
+ * @tc.desc: test GetVisibleTextRanges without layout
+ * @tc.type: FUNC
+ */
+HWTEST_F(OhDrawingTypographyTest, TypographyGetVisibleTextRangesZeroMaxLineTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.maxLines = 0;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = DEFAULT_FONT_SIZE;
+    std::u16string text = u"Hello World Test Text";
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    std::vector<TextRange> ranges = typography->GetVisibleTextRanges();
+    EXPECT_EQ(ranges.size(), 1);
+    EXPECT_EQ(ranges[0].start, 0);
+    EXPECT_EQ(ranges[0].end, 0);
+}
+
+/*
  * @tc.name: TypographyGetVisibleTextRangesNoEllipsisTest
  * @tc.desc: test GetVisibleTextRanges with no ellipsis
  * @tc.type: FUNC
