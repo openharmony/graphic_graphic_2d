@@ -205,6 +205,9 @@ bool HgmFrameVoter::ProcessVoteIter(std::vector<std::string>::iterator& voterIte
         return false;
     }
     voteRecord_[voter].second = true;
+    if (isSkipVirtualDisplay_ && voter == "VOTER_VIRTUALDISPLAY") {
+        return false;
+    }
     auto& voteInfos = voteRecord_[voter].first;
     auto firstValidVoteInfoIter = std::find_if(voteInfos.begin(), voteInfos.end(), [this](auto& voteInfo) {
         if (!multiAppStrategy_.CheckPidValid(voteInfo.pid)) {
