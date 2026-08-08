@@ -1327,7 +1327,9 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
     RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     if (surfaceDrawable && cacheCompletedSurfaceInfo_.isContainShadow) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-        surfaceDrawable->DrawClipBounds(canvas, surfaceParams->GetBounds());
+        if (surfaceParams) {
+            surfaceDrawable->DrawClipBounds(canvas, surfaceParams->GetBounds());
+        }
     }
     canvas.Translate(px, py);
     Drawing::Rect absRect;

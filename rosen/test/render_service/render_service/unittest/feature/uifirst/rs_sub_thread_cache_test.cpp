@@ -1309,6 +1309,8 @@ HWTEST_F(RSSubThreadCacheTest, DrawBehindWindowBeforeCacheTest, TestSize.Level1)
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurfaceInfo_.isContainShadow = true;
     subThreadCache.DrawBehindWindowBeforeCache(paintFilterCanvas, 0.f, 0.f, surfaceDrawable_.get());
     ASSERT_EQ(canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X), scaleFactor);
+    surfaceDrawable_->renderParams_.reset();
+    subThreadCache.DrawBehindWindowBeforeCache(paintFilterCanvas, 0.f, 0.f, surfaceDrawable_.get());
 #endif
 }
 
