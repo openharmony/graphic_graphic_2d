@@ -315,6 +315,10 @@ void HdiOutput::DirtyRegions(const std::shared_ptr<RSLayer>& rsLayer)
 void HdiOutput::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
     RS_TRACE_NAME_FMT("HdiOutput::CleanLayerBufferById, screenId=%u, surfaceId=%lu", screenId_, surfaceId);
+    if (device_ == nullptr) {
+        HLOGE("%{public}s device is nullptr", __func__);
+        return;
+    }
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = surfaceIdMap_.find(surfaceId);
     if (iter == surfaceIdMap_.end()) {
