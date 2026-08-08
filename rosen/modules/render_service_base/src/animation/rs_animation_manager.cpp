@@ -67,7 +67,7 @@ void RSAnimationManager::DumpAnimations(std::string& out) const
     }
     const auto lengthTwo = 2;
     out.append(", RSAnimationManager: [");
-    for (auto[id, animation]: animations_) {
+    for (auto [id, animation] : animations_) {
         animation->DumpAnimation(out);
         out.append(", ");
     }
