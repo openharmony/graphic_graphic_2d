@@ -106,11 +106,12 @@ void FuzzSurfaceWithoutWindow(FuzzData& fuzzData)
 void FuzzSurfaceWithWindow(FuzzData& fuzzData)
 {
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create();
-    if (consumer == nullptr || consumer->GetProducer() == nullptr) {
+    sptr<IBufferProducer> bufferProducer = consumer != nullptr ? consumer->GetProducer() : nullptr;
+    if (bufferProducer == nullptr) {
         FuzzSurfaceWithoutWindow(fuzzData);
         return;
     }
-    sptr<Surface> producer = Surface::CreateSurfaceAsProducer(consumer->GetProducer());
+    sptr<Surface> producer = Surface::CreateSurfaceAsProducer(bufferProducer);
     if (producer == nullptr) {
         FuzzSurfaceWithoutWindow(fuzzData);
         return;

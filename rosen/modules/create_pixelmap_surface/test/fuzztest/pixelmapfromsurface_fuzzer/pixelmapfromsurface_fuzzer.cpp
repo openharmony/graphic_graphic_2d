@@ -180,8 +180,9 @@ void FuzzValidation(FuzzData& fuzzData)
     const auto& invalidRect = invalidRects[fuzzData.Select(invalidRects.size())];
     (void)CreatePixelMapFromSurfaceBuffer(emptyBuffer, invalidRect);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create();
-    if (consumer != nullptr && consumer->GetProducer() != nullptr) {
-        sptr<Surface> producer = Surface::CreateSurfaceAsProducer(consumer->GetProducer());
+    sptr<IBufferProducer> bufferProducer = consumer != nullptr ? consumer->GetProducer() : nullptr;
+    if (bufferProducer != nullptr) {
+        sptr<Surface> producer = Surface::CreateSurfaceAsProducer(bufferProducer);
         (void)CreatePixelMapFromSurface(producer, invalidRect, fuzzData.Select(2) != 0);
         (void)CreatePixelMapFromSurface(producer, validRect, fuzzData.Select(2) != 0);
     }
