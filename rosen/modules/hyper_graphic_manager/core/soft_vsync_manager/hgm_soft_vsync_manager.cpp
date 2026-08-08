@@ -95,6 +95,15 @@ void HgmSoftVSyncManager::HandleLinkers()
         }
     }
 
+    // Clear soft frame rate decision data for non-existent linkers to avoid stale residue on re-enable
+    for (auto iter = appVoteData_.begin(); iter != appVoteData_.end();) {
+        if (appFrameRateLinkers_.count(iter->first) == 0) {
+            iter = appVoteData_.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+
     winLinkerMap_.clear();
     vsyncLinkerMap_.clear();
     for (auto linker : appFrameRateLinkers_) {
