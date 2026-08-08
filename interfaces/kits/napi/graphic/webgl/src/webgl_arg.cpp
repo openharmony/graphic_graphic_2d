@@ -717,8 +717,22 @@ GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, G
         return GL_INVALID_VALUE;
     }
     uint64_t depth = static_cast<uint64_t>(std::max(imageOption_.depth, 1));
-    uint64_t requiredBytes = depth * static_cast<uint64_t>(imageOption_.height) * imageOption_.width *
-        formatMap->bytesPrePixel;
+    uint64_t height = static_cast<uint64_t>(imageOption_.height);
+    uint64_t width = static_cast<uint64_t>(imageOption_.width);
+    uint64_t bpp = static_cast<uint64_t>(formatMap->bytesPrePixel);
+    auto checkedMul = [](uint64_t a, uint64_t b, uint64_t& out) -> bool {
+        if (a != 0 && b > std::numeric_limits<uint64_t>::max() / a) {
+            return false;
+        }
+        out = a * b;
+        return true;
+    }
+    uint64_t requiredBytes = 0;
+    if (!checkedMul(depth, height, requiredBytes) ||
+        !checkedMul(requiredBytes, width, requiredBytes) ||
+        !checkedMul(requiredBytes, bpp, requiredBytes)) {
+        return GL_INVALID_VALUE;
+    }
     if (requiredBytes > bufLen - srcOffsetBytes) {
         return GL_INVALID_OPERATION;
     }
@@ -761,10 +775,26 @@ GLenum WebGLImageSource::CheckPixelMapBytes()
     uint64_t bytesPerPixel = static_cast<uint64_t>(componentCount) *
         WebGLArg::GetWebGLDataSize(imageOption_.type);
     uint64_t depth = (imageOption_.depth > 0) ? static_cast<uint64_t>(imageOption_.depth) : 1;
-    uint64_t need = static_cast<uint64_t>(imageOption_.width) * imageOption_.height * depth * bytesPerPixel;
-    if (need > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
-        LOGE("WebGl ImageSource pixelMap too small need %{public}" PRIu64, need);
-        return GL_INVALID_OPERATION;
+    uint64_t width = static_cast<uint64_t>(imageOption_.width);
+    uint64_t height = static_cast<uint64_t>(imageOption_.height);
+    if (width != 0 && height > std::numeric_limits<uint64_t>::max() / width) {
+        LOGE("WebGl ImageSource image size overflow");
+        return GL_INVALID_VALUE;
+    }
+    uint64_t requiredBytes = width * height;
+    if (requiredBytes != 0 && depth > std::numeric_limits<uint64_t>::max() / requiredBytes) {
+        LOGE("WebGl ImageSource image depth overflow");
+        return GL_INVALID_VALUE;
+    }
+    requiredBytes *= depth;
+    if (requiredBytes != 0 && bytesPerPixel > std::numeric_limits<uint64_t>::max() / requiredBytes) {
+        LOGE("WebGl ImageSource image byte size overflow");
+        return GL_INVALID_VALUE;
+    }
+    requiredBytes *= bytesPerPixel;
+    if (requiredBytes > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
+        LOGE("WebGl ImageSource pixelMap too small requiredBytes %{public}" PRIu64, requiredBytes);
+        return GL_INVALID_VALUE;
     }
     return GL_NO_ERROR;
 }
