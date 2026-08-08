@@ -50,7 +50,7 @@ public:
         progress_ = UIEffect::GetLimitedPara(progress, WAVE_DISTURBANCE_MASK_PROGRESS_LIMITS);
     }
 
-    const float& GetProgress() const
+    float GetProgress()
     {
         return progress_;
     }
