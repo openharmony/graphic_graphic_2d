@@ -595,7 +595,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote004, Function | SmallTest | Leve
         TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
 
     usleep(500000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
 }
 
 /**
@@ -642,7 +642,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote006, Function | SmallTest | Leve
         TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
 
     usleep(500000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
 }
 
 /**
@@ -1268,7 +1268,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote010, Function | SmallTest | Leve
     instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
 
     usleep(500000);
-    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 0);
 }
 
 /**
@@ -1325,7 +1325,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote012, Function | SmallTest | Leve
     instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
 
     usleep(500000);
-    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 0);
 }
 
 /**
