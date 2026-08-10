@@ -98,7 +98,7 @@
 | PixelMapFromSurface | `pixelmap-from-surface.md` | `create_pixelmap_surface/`, `PixelMap` | pixelmap/fuzz |
 | Text Framework | `text-framework.md` | `frameworks/text/service/`, `interface/mlb/`, `Texgine` | `text_test` |
 | BootAnimation | `boot-animation.md` | `frameworks/bootanimation/`, `BootAnimation` | boot 测试 |
-| effect_common/NDK | `effect-common-ndk.md` | `rosen/modules/effect/`, `Effect`, `ColorPicker` | effect |
+| EffectKit CAPI/JS | `effect-kit-api.md` | `rosen/modules/effect/`, `OH_Filter_*`, `FilterCommon`, `ColorPicker` | effect |
 | ColorSpace | `colorspace.md` | `utils/color_manager/`, `*color_manager/`, `ColorSpace` | color |
 | DDGR/2D engine | `ddgr-2d-engine.md` | `2d_engine/ddgr/`, `DDGR` | DDGR |
 | GLFW 跨平台上下文 | `glfw-render-context.md` | `glfw_render_context/`, `GLFW` | 跨平台 |
