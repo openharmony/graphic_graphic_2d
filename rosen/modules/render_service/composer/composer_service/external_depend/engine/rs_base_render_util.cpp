@@ -1466,7 +1466,7 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
         RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
         return nullptr;
     }
-    const auto& sendingPid = transactionData->GetSendingPid();
+    const auto& sendingPid = RSMarshallingHelper::GetCallingPid();
     lastSendingPid_.store(sendingPid, std::memory_order_release);
     transactionData->ProfilerPushOffsets(parcel, parcelNumber);
     RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(sendingPid));
