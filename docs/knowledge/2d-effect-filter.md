@@ -106,7 +106,7 @@ Filter
 
 ### ShaderEffectLazy / ImageFilterLazy 延迟创建
 
-- 两者均 `IsLazy() == true`，类型分别为 `LAZY_SHADER`、`LAZY_IMAGE_FILTER`，仅 NDK C 接口支持。
+- 两者均 `IsLazy() == true`，类型分别为 `LAZY_SHADER`、`LAZY_IMAGE_FILTER`。
 - 持有描述性 Obj（`ShaderEffectObj` / `ImageFilterObj`）+ 物化缓存（`shaderEffectCache_` / `imageFilterCache_`，非 lazy）。
 - 物化入口 `Materialize()`：调用时按 Obj 构建真实 ShaderEffect/ImageFilter 并缓存，后续调用复用缓存对象。
 - 触发时机：Canvas 实际绘制阶段按需物化，配置阶段不创建 GPU 资源。
