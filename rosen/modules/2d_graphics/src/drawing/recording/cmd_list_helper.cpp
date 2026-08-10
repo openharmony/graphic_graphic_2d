@@ -42,9 +42,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-
-constexpr int32_t LATTICE_MAX_DIV_COUNT = 5;
-
 static int ColorTypeToBytesPerPixel(ColorType colorType)
 {
     // returns the number of bytes per pixel: 1byte, 2bytes, 4bytes
@@ -359,8 +356,9 @@ Lattice CmdListHelper::GetLatticeFromCmdList(const CmdList& cmdList, const Latti
 
 bool CmdListHelper::ValidateLattice(const Lattice& lattice)
 {
-    if (lattice.fXCount < 0 || lattice.fXCount > LATTICE_MAX_DIV_COUNT ||
-            lattice.fYCount < 0 || lattice.fYCount > LATTICE_MAX_DIV_COUNT) {
+    static constexpr int32_t LATTICE_MAX_DIV_COUNT = 5; // Skia lattice div count upper bound
+ 	if (lattice.fXCount < 0 || lattice.fXCount > LATTICE_MAX_DIV_COUNT ||
+ 	    lattice.fYCount < 0 || lattice.fYCount > LATTICE_MAX_DIV_COUNT) {
         LOGD("ValidateLattice invalid lattice count: fXCount=%d, fYCount=%d",
              lattice.fXCount, lattice.fYCount);
         return false;
