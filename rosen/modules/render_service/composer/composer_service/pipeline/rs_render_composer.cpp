@@ -100,7 +100,6 @@ constexpr int COMPOSER_TIMEOUT_ABORT_CNT = 30;
 constexpr int COMPOSER_TIMEOUT_CNT = 15;
 const std::string PROCESS_NAME_FOR_HISYSEVENT = "/system/bin/render_service";
 const std::string COMPOSER_PIPELINE_TIMEOUT = "composer_pipeline_timeout";
-static const bool IS_SIMULATE_TEST = system::GetParameter("persist.sys.graphic.simulate.test", "0") == "1";
 
 void NotifyLayerStateChangedToRender(const sptr<IRSComposerToRenderConnection>& composerToRenderConnection,
     uint64_t nodeId, bool success, uint64_t tunnelLayerGeneration)
@@ -447,12 +446,8 @@ void RSRenderComposer::ChangeLayersForActiveRectOutside(std::vector<std::shared_
     RS_LOGD_IF(DEBUG_COMPOSER, "emulator device do not need add layer");
     return;
 #endif
-    if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0) {
+    if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0 || RSSystemProperties::IsSimulateTest()) {
         return;
-    }
-
-    if (IS_SIMULATE_TEST) {
-        return ;
     }
 
     const RectI& reviseRect = composerScreenInfo_.reviseRect;

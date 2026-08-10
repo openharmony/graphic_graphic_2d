@@ -1879,5 +1879,11 @@ bool RSSystemProperties::GetVirtualScreenParallelEnabled()
         "persist.sys.graphic.virtualScreenParallel.enabled", true);
     return virtualScreenParallelEnabled;
 }
+
+bool RSSystemProperties::IsSimulateTest()
+{
+    static bool isSimulateTest = system::GetParameter("persist.sys.graphic.simulate.test", "0") == "1";
+    return isSimulateTest;
+}
 } // namespace Rosen
 } // namespace OHOS
