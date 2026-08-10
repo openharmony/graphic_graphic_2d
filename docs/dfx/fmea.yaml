@@ -11,6 +11,15 @@
   关键日志: "copybit ok but too long" 或 "invalid parameter"
   大数据打点事件: DMD_AAE_COPYBIT_EXCEPTION
 
+- 触发条件: AAE hal层出错
+  故障模式: 
+  故障影响: 影响模糊、copybit功能
+  故障原因: 需要结合日志
+  严酷度: 普通
+  恢复措施: 无
+  关键日志: 无
+  大数据打点事件: DMD_AAE_HAL_EXCEPTION
+
 - 触发条件: 调用aae hianimation模糊hianimation失败
   故障模式: 
   故障影响: 失败时若有逃生无影响，无逃生可能会有效果问题
@@ -19,6 +28,15 @@
   恢复措施: 无需恢复
   关键日志: "invalid param is error"
   大数据打点事件: DMD_AAE_HIANIMATION_EXCEPTION
+
+- 触发条件: AAE超时
+  故障模式: 
+  故障影响: 影响模糊、copybit功能
+  故障原因: 需要结合具体日志
+  严酷度: 普通
+  恢复措施: 无
+  关键日志: "wdt isr"
+  大数据打点事件: DMD_AAE_KERNEL_EXCEPTION
 
 - 触发条件: 出现hebc fault错误时
   故障模式: 统计上报
