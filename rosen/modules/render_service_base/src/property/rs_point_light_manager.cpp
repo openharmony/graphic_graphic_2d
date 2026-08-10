@@ -20,6 +20,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "platform/common/rs_log.h"
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties_def.h"
 #include "screen_manager/screen_types.h"
