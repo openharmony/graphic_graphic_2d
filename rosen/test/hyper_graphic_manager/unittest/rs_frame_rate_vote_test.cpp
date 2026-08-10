@@ -57,8 +57,51 @@ void RSFrameRateVoteTest::SetUpTestCase()
     HgmTestBase::SetUpTestCase();
 }
 void RSFrameRateVoteTest::TearDownTestCase() {}
-void RSFrameRateVoteTest::SetUp() {}
-void RSFrameRateVoteTest::TearDown() {}
+
+void RSFrameRateVoteTest::SetUp()
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    if (instance->ffrtQueue_ && instance->taskHandler_) {
+        instance->ffrtQueue_->cancel(instance->taskHandler_);
+        instance->taskHandler_ = nullptr;
+    }
+    if (instance->ffrtQueue_) {
+        auto handle = instance->ffrtQueue_->submit_h([]() {});
+        instance->ffrtQueue_->wait(handle);
+    }
+    instance->surfaceVideoFrameRateVote_.clear();
+    instance->surfaceVideoRate_.clear();
+    instance->videoRateInfo_.clear();
+    // Reset all shared state to ensure each test starts clean
+    instance->isSwitchOn_ = false;
+    instance->isVoted_ = false;
+    RSFrameRateVote::isVideoApp_.store(false);
+    instance->lastSurfaceNodeId_.store(0);
+    instance->lastVotedPid_ = 0;
+    instance->lastVotedRate_ = 0;
+    instance->lastSurfaceNodeIdForCheck_.store(0);
+    instance->lastSurfaceNodeIdUpdateTime_.store(0);
+    instance->hasUiOrSurface = false;
+    instance->transactionFlags_ = "";
+    instance->bufferCountIndex_ = 0;
+    instance->bufferCountHistory_.fill(0);
+    instance->currentUpdateTime_ = 0;
+}
+
+void RSFrameRateVoteTest::TearDown()
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    if (instance->ffrtQueue_ && instance->taskHandler_) {
+        instance->ffrtQueue_->cancel(instance->taskHandler_);
+        instance->taskHandler_ = nullptr;
+    }
+    if (instance->ffrtQueue_) {
+        auto handle = instance->ffrtQueue_->submit_h([]() {});
+        instance->ffrtQueue_->wait(handle);
+    }
+    instance->surfaceVideoFrameRateVote_.clear();
+    instance->surfaceVideoRate_.clear();
+}
 
 /**
  * @tc.name: SetTransactionFlags001
