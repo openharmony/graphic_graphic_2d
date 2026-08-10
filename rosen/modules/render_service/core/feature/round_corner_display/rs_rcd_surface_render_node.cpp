@@ -217,8 +217,8 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
 bool RSRcdSurfaceRenderNode::ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap)
 {
     RS_TRACE_NAME("RSRcdSurfaceRenderNode::ConvertAlpha8ToRgba8888");
-    if (!srcBitmap.IsValid()) {
-        RS_LOGE("RCD: srcBitmap is not valid");
+    if (srcBitmap.IsValid()) {
+        RS_LOGE("RCD: srcBitmap is invalid");
         return false;
     }
     if (srcBitmap.GetColorType() != Drawing::ColorType::COLORTYPE_ALPHA_8) {
@@ -232,8 +232,7 @@ bool RSRcdSurfaceRenderNode::ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcB
         RS_LOGE("RCD: srcBitmap width or height is invalid, width %{public}d, height %{public}d", width, height);
         return false;
     }
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888,
-        Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
     if (!dstBitmap.Build(width, height, format)) {
         RS_LOGE("RCD: build rgba8888 bitmap failed when converting from alpha8");
         return false;
