@@ -373,4 +373,46 @@ HWTEST_F(RenderContextTest, ConvertColorGamutToColorSpaceTest001, Level1)
     EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_BT2100_HLG), nullptr);
     EXPECT_NE(RenderContext::ConvertColorGamutToColorSpace(GRAPHIC_COLOR_GAMUT_SRGB), nullptr);
 }
+
+/**
+ * @tc.name: GetShaderCacheSizeTest001
+ * @tc.desc: Verify GetShaderCacheSize when Vulkan is enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, GetShaderCacheSizeTest001, Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = RenderContext::Create();
+    ASSERT_NE(renderContext, nullptr);
+    auto result = renderContext->GetShaderCacheSize();
+    EXPECT_NE(result, "");
+#else
+    GTEST_LOG_(INFO) << "vulkan not enabled, skip test";
+#endif
+}
+
+/**
+ * @tc.name: CleanAllShaderCacheTest001
+ * @tc.desc: Verify CleanAllShaderCache when Vulkan is enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, CleanAllShaderCacheTest001, Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = RenderContext::Create();
+    ASSERT_NE(renderContext, nullptr);
+    auto result = renderContext->CleanAllShaderCache();
+    EXPECT_NE(result, "");
+#else
+    GTEST_LOG_(INFO) << "vulkan not enabled, skip test";
+#endif
+}
 } // namespace OHOS::Rosen
