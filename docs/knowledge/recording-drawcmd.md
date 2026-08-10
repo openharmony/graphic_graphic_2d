@@ -89,7 +89,7 @@ DrawCmdList (跨进程传输)
 ### DrawCmdList 跨 IPC 序列化格式
 
 - 自定义连续缓冲格式（非 TLV）：`opAllocator_` 存 OpItem 链表，`imageAllocator_`/`bitmapAllocator_` 存附加像素数据。
-- 首部：前两个 `int32_t` 为 width + height（`offset_ = 2 * sizeof(int32_t)`），首个 OpItem 紧随其后。
+- 首部：前两个 `int32_t` 为 width + height（`offset_ = 2 * sizeof(int32_t)`），其后依次排列 OpItem。
 - OpItem 布局：`OpItem` 基类（`type` + `nextOpItem_`）+ 子类 `ConstructorHandle`（定长 POD），靠 `nextOpItemOffset_` 链接；image/bitmap 通过 `OpDataHandle{offset,size}` 引用。
 - Marshalling：`MarshallingDrawOps` 遍历 vector 调 `op->Marshalling(cmdList)` 写入 ConstructorHandle；Unmarshalling 由 `UnmarshallingDrawOps` 按链表偏移读 type，查表构造 DrawOpItem 存入 vector。
 - 附加对象：ExtendImageObject/BaseObj/NineObject/LatticeObject、ExtendDrawFuncObj、RecordCmd、ExtendObject、DrawingObject、SurfaceBufferEntry 各自维护独立 vector，跨进程单独传输后由 `Setup*` 重建。
@@ -108,7 +108,7 @@ DrawCmdList (跨进程传输)
 - 注册：`UNMARSHALLING_REGISTER(name, type, func, size)` 宏在编译期全局对象构造时 `Register` emplace，新增 OpItem 类型自动注册。
 - 查找：`GetFuncAndSize(type)` 返回 `{func, size}`，未注册返回 `{nullptr, 0}`。
 - 兼容：`UnmarshallingPlayer::Unmarshalling` 若 func 为 null 或 `availableSize < desirableSize` 则返回 nullptr，主循环按 `nextOpItemOffset_` 跳过该 op 继续，实现前向/后向兼容——旧版本不识别的新 op 类型被跳过而非崩溃。
-- replay 容错：`isReplayMode` 下若 size 不足会 `malloc` 补齐后仍尝试反序列化（profiler replay 场景）。
+- replay 容错：`isReplayMode` 下若 size 不足会 `malloc` 补齐后仍尝试反序列化（性能分析回放场景）。
 - 大小校验：`DrawOpItem::GetOpSize = sizeof(DrawOpItem) + ConstructorHandle size`，用于链表遍历与越界检查。
 
 ### RecordCmd 嵌套录制的典型使用场景

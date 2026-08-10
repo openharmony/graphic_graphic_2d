@@ -106,9 +106,9 @@ Filter
 
 ### ShaderEffectLazy / ImageFilterLazy 延迟创建
 
-- 两者均 `IsLazy() == true`，类型分别为 `LAZY_SHADER`、`LAZY_IMAGE_FILTER`，仅 NDK 接口支持。
+- 两者均 `IsLazy() == true`，类型分别为 `LAZY_SHADER`、`LAZY_IMAGE_FILTER`，仅 NDK C 接口支持。
 - 持有描述性 Obj（`ShaderEffectObj` / `ImageFilterObj`）+ 物化缓存（`shaderEffectCache_` / `imageFilterCache_`，非 lazy）。
-- 物化入口 `Materialize()`：首次按 Obj 构建真实 ShaderEffect/ImageFilter 并缓存，后续复用。
+- 物化入口 `Materialize()`：调用时按 Obj 构建真实 ShaderEffect/ImageFilter 并缓存，后续调用复用缓存对象。
 - 触发时机：Canvas 实际绘制阶段按需物化，配置阶段不创建 GPU 资源。
 - 序列化限制：`Serialize/Deserialize` 被禁用（log error），跨进程走 `Marshalling/Unmarshalling`（基于 `ExtendObject`/`Object`）。
 - `ShaderEffectLazy` 另支持 `CreateFromShaderEffectObj`（从已构造 Obj 创建）与 `CreateForUnmarshalling`（占位待反序列化）。
@@ -118,5 +118,5 @@ Filter
 - BlendMode 为固定枚举，Skia 内建、开销最小；`Blender::CreateWithBlendMode(mode)` 可将其包成 Blender。
 - 自定义混合：`RuntimeEffect::CreateForBlender(sl)` 编译 SkSL，再由 `RuntimeBlenderBuilder::MakeBlender()` 产出 Blender，统一经 `BlenderImpl` 落到 Skia。
 - 优先级：Paint 同时设置 BlendMode 与 Blender 时，以 Blender（`SetBlender`）为准，BlendMode 被覆盖。
-- 性能：固定 BlendMode 走内建路径无编译；RuntimeBlender 需 SkSL 编译（同 RuntimeEffect 编译与缓存路径），首次有编译开销，运行期按 SkSL 执行，灵活但开销高于内建模式。
+- 性能：固定 BlendMode 走内建路径无编译开销；RuntimeBlender 需 SkSL 编译（同 RuntimeEffect 编译与缓存路径），编译阶段产生额外开销，运行期按 SkSL 执行，灵活但开销高于内建模式。
 
