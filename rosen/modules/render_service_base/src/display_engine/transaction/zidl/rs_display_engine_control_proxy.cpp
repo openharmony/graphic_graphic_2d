@@ -75,6 +75,10 @@ int32_t RSDisplayEngineControlProxy::RegisterDEStatusChangeCallback(const sptr<R
         RS_LOGE("RSDisplayEngineControlProxy::RegisterDEStatusChangeCallback WriteInterfaceToken failed");
         return -1;
     }
+    if (callback == nullptr) {
+        RS_LOGE("RSDisplayEngineControlProxy::RegisterDEStatusChangeCallback callback is nullptr");
+        return -1;
+    }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         RS_LOGE("RSDisplayEngineControlProxy::RegisterDEStatusChangeCallback WriteRemoteObject failed");
         return -1;
