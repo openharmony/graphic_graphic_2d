@@ -1221,7 +1221,7 @@ HWTEST_F(RSUifirstManagerTest, PostSubTaskAndPostReleaseCacheSurfaceSubTask001, 
     EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
 
     // drawable exists but not SURFACE_NODE type, should not be added to subthreadProcessingNode_
-    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.subthreadProcessingNode_.clear();
     constexpr NodeId canvasNodeId = 0xFFFE;
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(canvasNodeId);
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode);
