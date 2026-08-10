@@ -77,10 +77,46 @@ Filter
 | BlurDrawLooper | `BlurDrawLooper` 关联到 Paint | 多次绘制带模糊的循环效果（如阴影扩散） |
 | ColorMatrix 5x4 | `ColorMatrix` 20 元素数组 | 标准 5x4 颜色变换矩阵，兼容 Skia 和 CSS filter |
 
-## 待补充背景
+## 补充背景
 
-- RuntimeEffect 的 SkSL 编译与缓存策略
-- ImageFilter Compose 的链式应用顺序与性能影响
-- ParticleEffect 的完整生命周期管理
-- ShaderEffectLazy 与 ImageFilterLazy 的延迟创建触发时机
-- BlendMode 与 Blender 的使用优先级和性能差异
+### RuntimeEffect 的 SkSL 编译与缓存
+
+- 入口：`RuntimeEffect::CreateForShader / CreateForES3Shader / CreateForBlender`，构造期同步编译。
+- Drawing 接受 GLSL 风格输入，`SkiaRuntimeEffect::GlslToSksl` 用正则改写为 SkSL：
+  `uniform shader <n>;` 保留、`<child>(coord)` → `<child>.eval(coord)`、`uniform sampler2D` → `uniform shader`、`texture(...)` → `.eval(...)`、去除浮点 `f` 后缀。
+- 编译：`SkRuntimeEffect::MakeForShader / MakeForBlender`，ES3 走 `SkRuntimeEffectPriv::ES3Options()`；产物 `sk_sp<SkRuntimeEffect>` 由 `SkiaRuntimeEffect` 持有。
+- 缓存：Drawing 层不缓存 SkRuntimeEffect 实例；GPU 程序缓存由 `ShaderCache` 兜底落盘
+  （`memory_handler.cpp` 将其作为 `PersistentCache` 装入 GPU context），统一管理 SkSL/程序缓存。
+- Options：`forceNoInline`（USE_M133_SKIA 映射为 `forceUnoptimized`）、`useAF`、`useHighpLocalCoords`、`needDrawingslToSksl`。
+
+### ImageFilter Compose 链式应用与性能
+
+- `CreateComposeImageFilter(f1, f2)`：f1 为外层、f2 为内层，按 `f1(f2(input))` 求值，即 f2 先执行。
+- 组合类另有 `BLEND`（两输入按 BlendMode 合成）、`ARITHMETIC`（四系数 `k1..k4` 混合前景/背景，`enforcePMColor` 可钳制 RGB 到 alpha）。
+- 性能：每层 Compose 产生一份中间纹理，深度越大中间纹理与全画面处理次数越多；
+  `cropRect` 默认 `noCropRect`（无穷大）即不裁剪、全画面处理，必要时显式设 cropRect 缩小处理范围。
+
+### ParticleEffect 生命周期
+
+- 构建：`ParticleBuilder` 经 `AddConfigData(name, configStr, typeSize)` / `AddConfigImage(name, image, option)`
+  / `SetUpdateCode(code)` 收集着色器代码与配置，`MakeParticleEffect(maxParticleSize)` 产出 `ParticleEffect`。
+- 运行：`UpdateConfigData` / `UpdateConfigImage` 按 name 增量更新数据与贴图，实现下沉到 `ParticleEffectImpl`。
+- 持久化：支持 `Serialize` / `Deserialize`。
+- 头文件版权 2026，属新增能力，实现细节仍在 `ParticleBuilderImpl` / `ParticleEffectImpl` 内演化。
+
+### ShaderEffectLazy / ImageFilterLazy 延迟创建
+
+- 两者均 `IsLazy() == true`，类型分别为 `LAZY_SHADER`、`LAZY_IMAGE_FILTER`，仅 NDK 接口支持。
+- 持有描述性 Obj（`ShaderEffectObj` / `ImageFilterObj`）+ 物化缓存（`shaderEffectCache_` / `imageFilterCache_`，非 lazy）。
+- 物化入口 `Materialize()`：首次按 Obj 构建真实 ShaderEffect/ImageFilter 并缓存，后续复用。
+- 触发时机：Canvas 实际绘制阶段按需物化，配置阶段不创建 GPU 资源。
+- 序列化限制：`Serialize/Deserialize` 被禁用（log error），跨进程走 `Marshalling/Unmarshalling`（基于 `ExtendObject`/`Object`）。
+- `ShaderEffectLazy` 另支持 `CreateFromShaderEffectObj`（从已构造 Obj 创建）与 `CreateForUnmarshalling`（占位待反序列化）。
+
+### BlendMode 与 Blender 优先级与性能
+
+- BlendMode 为固定枚举，Skia 内建、开销最小；`Blender::CreateWithBlendMode(mode)` 可将其包成 Blender。
+- 自定义混合：`RuntimeEffect::CreateForBlender(sl)` 编译 SkSL，再由 `RuntimeBlenderBuilder::MakeBlender()` 产出 Blender，统一经 `BlenderImpl` 落到 Skia。
+- 优先级：Paint 同时设置 BlendMode 与 Blender 时，以 Blender（`SetBlender`）为准，BlendMode 被覆盖。
+- 性能：固定 BlendMode 走内建路径无编译；RuntimeBlender 需 SkSL 编译（同 RuntimeEffect 编译与缓存路径），首次有编译开销，运行期按 SkSL 执行，灵活但开销高于内建模式。
+

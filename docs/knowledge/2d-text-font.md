@@ -65,10 +65,42 @@
 | FontArguments Hash | `CalculateHash` + `AssembleFullHash` | 变体轴组合的哈希计算，用于字体缓存键 |
 | Typeface 双 Hash 体系 | `hash_`（数据哈希）+ `fullHash_`（含 FontArgs 哈希） | 区分同文件不同变体轴的 Typeface，确保缓存正确性 |
 
-## 待补充背景
+## 补充背景
 
-- FontMgr 的字体扫描与注册流程
-- TextBlob 序列化中 ctx 参数的具体含义（是否关联 GPU 上下文）
-- HM Symbol 的完整渲染管线
-- GetFallbackFont 的 fallback 链查找策略
-- Texgine 文本引擎与 2D Graphics 文本模块的分工边界
+### FontMgr 的字体扫描与注册流程
+
+- 两种实例：`CreateDefaultFontMgr`（系统默认）、`CreateDynamicFontMgr`（动态）。
+- 动态注册：`LoadDynamicFont(familyName, data, dataLength)` 或 `LoadDynamicFont(familyName, Typeface)` 按家族名加载。
+- 主题字体：`LoadThemeFont(familyName, themeName, data)` / `LoadThemeFont(themeName, Typeface)`。
+- 系统扫描：`ParseInstallFontConfig(configPath, fontPathVec)` 解析安装配置文件取字体路径列表，按 `FontCheckCode`（SUCCESSED / ERROR_PARSE_CONFIG_FAILED / ERROR_TYPE_OTHER）返回；`GetFontFullName(fontFd, fullnameVec)` 从 fd 读取字体全名（`FontByteArray` UTF-16BE）。
+- 枚举/查询：`CountFamilies` / `GetFamilyName` / `CreateStyleSet`、`MatchFamily(name)→FontStyleSet`、`MatchFamilyStyle(name, style)→Typeface`。
+
+### TextBlob 序列化 ctx 参数的含义
+
+- ctx 是 `TextBlob::Context*`（非 GPU 上下文），持有 `typeface_` 与 `isCustomTypeface_`。
+- 实现路径：Serialize/Deserialize 经 `SkSerialProcs/SkDeserialProcs.fTypefaceCtx` 透传给 `SkiaTypeface::SerializeTypeface/DeserializeTypeface`。
+- Serialize：对 customTypeface 调 `textblobCtx->SetTypeface(customTypeface)` 记录自定义字体，本体仍走 `typeface->serialize()`。
+- Deserialize：若 ctx 携带 typeface 则直接复用（避免重新反序列化字体文件），否则回退 `SkTypeface::MakeDeserialize`。
+- 设计意图：跨进程传递 TextBlob 时携带自定义 Typeface，避免重复加载/反序列化字体。
+
+### HM Symbol 渲染管线
+
+- 数据：`DrawingHMSymbolData`（symbolGlyphId + layers + renderGroups + path_ + symbolId）。
+- 配置：`DrawingSymbolLayersGroups`（layers + 按 `DrawingSymbolRenderingStrategy`(SINGLE/MULTIPLE_COLOR/MULTIPLE_OPACITY) 分组的 renderModeGroups + animationSettings）。
+- 动画：`DrawingEffectStrategy`（SCALE/VARIABLE_COLOR/APPEAR/DISAPPEAR/BOUNCE/PULSE/REPLACE_APPEAR/REPLACE_DISAPPEAR/DISABLE/QUICK_REPLACE_*，TEXT_FLIP=100）+ `DrawingPiecewiseParameter`（curveType SPRING/LINEAR/FRICTION/SHARP + curveArgs + duration + delay）。
+- 工具：`DrawingHMSymbol::PathOutlineDecompose`（路径分解）、`MultilayerPath`（多层展开）、`SetGetGroupParametersCallback`（静态回调 + `shared_mutex` 保护，供动画参数查询）。
+- 流程：symbolGlyphId → layers 分组 → renderGroups（带 `DrawingSColor`）→ 路径展开 → 按动画策略驱动渲染。
+
+### GetFallbackFont 的 fallback 链查找策略
+
+- 单字符：`Font::GetFallbackFont(unicode)` 返回可绘制该 Unicode 的后备 Font。
+- 系统级：`FontMgr::MatchFamilyStyleCharacter(familyName, fontStyle, bcp47[], bcp47Count, character)`，按 BCP47（ISO 639+15924+3166-1）locale 与字符匹配。
+- 批量两阶段（`GetFallbacksForString`）：Phase 1 用 prior Typeface 经 `UnicharToGlyph` 探测所有码点（非零即命中）；Phase 2 剩余码点走 `MatchFamilyStyleCharacter`，每个新 Typeface 继续批量探测剩余码点；连续同 Typeface 合并为 run（`FontFallbackInfo` 含 typeface + glyphIds），未匹配输出 typeface=nullptr/glyphId=0。
+- 路径回退：`Font::GetTextPathWithFallback` 对非 GLYPH_ID 编码自动 fallback；GLYPH_ID 不支持 fallback，直接走 `GetTextPath`。
+
+### Texgine 与 2D Graphics 文本模块的分工边界
+
+- 位置：Texgine 在 `frameworks/text/service/texgine/`；2D Graphics 文本模块在 `rosen/modules/2d_graphics/include/text/`（Font/Typeface/TextBlob 等）。
+- 双引擎架构：texgine + skia_txt 共存，Texgine 自研引擎逐步替换 SkiaTxt（见 `docs/knowledge/text-framework.md`）。
+- 分工：Texgine 负责复杂文本布局（段落、复杂脚本、emoji 排版），输出 Glyph/RSXform；2D Graphics 文本模块作为底座，负责字形加载、度量、TextBlob 构建与 Canvas 绘制。
+- 衔接：Texgine 调用 Typeface/Font 加载字形，用 TextBlobBuilder 构建可绘制 TextBlob，再交由 Canvas 绘制。
