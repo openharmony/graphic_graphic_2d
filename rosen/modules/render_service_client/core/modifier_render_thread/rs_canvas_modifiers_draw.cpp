@@ -76,7 +76,7 @@ void RSCanvasModifiersDrawable::CreateProducerSurface(std::weak_ptr<RSRenderInte
     std::call_once(flag,
         [gpuContext, &maxGpuResourceBytes]() { gpuContext->GetResourceCacheLimits(nullptr, &maxGpuResourceBytes); });
     auto producerSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
-    producerSurface->SetSkContext(gpuContext);
+    producerSurface->SetRenderContext(renderContext_);
     producerSurface->SetTimeOut(2); // Timeout 2ms
     producerSurface_ = producerSurface;
     drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
@@ -172,7 +172,12 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::Draw()
     }
     drawCmdListCache_->clear();
     forceFlushBuffer_ = false;
-    NativeBufferUtils::CreateVkSemaphore(semaphore_);
+    if (renderContext_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::Draw: renderContext_ is nullptr");
+        return nullptr;
+    }
+    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
+    NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore_);
     return FlushSurfaceWithSemaphore();
 }
 
@@ -239,9 +244,13 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::FlushSurfaceWithSemaphore()
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore_);
 #endif
-    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    if (renderContext_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::FlushSurfaceWithSemaphore: renderContext_ is nullptr");
+        return nullptr;
+    }
+    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
     DestroySemaphoreInfo* destroyInfo =
-        new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore_);
+        new DestroySemaphoreInfo(vkInterface->vkDestroySemaphore, vkInterface->GetDevice(), semaphore_);
     Drawing::FlushInfo drawingFlushInfo;
     drawingFlushInfo.backendSurfaceAccess = true;
     drawingFlushInfo.numSemaphores = 1;
@@ -282,7 +291,12 @@ void RSCanvasModifiersDrawable::OnDirtyBufferCollected(int64_t lastFlushBufferTi
 int32_t RSCanvasModifiersDrawable::GetFenceFd()
 {
     int32_t fenceFd = 0;
-    NativeBufferUtils::GetFenceFdFromSemaphore(semaphore_, fenceFd);
+    if (renderContext_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::GetFenceFd: renderContext_ is nullptr");
+        return -1;
+    }
+    NativeBufferUtils::GetFenceFdFromSemaphore(
+        RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface(), semaphore_, fenceFd);
     return fenceFd;
 }
 
@@ -429,6 +443,7 @@ void RSCanvasModifiersDraw::WaitAllTasksFinish()
     if (!threadStarted_.load()) {
         return;
     }
+    RemoveTask(CLEAN_FREE_BUFFERS_TASK_NAME);
     PostSyncTask([canvasModifiersDraw = shared_from_this()]() {
         RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish");
         if (canvasModifiersDraw->gpuContext_ != nullptr) {
@@ -498,7 +513,11 @@ void RSCanvasModifiersDraw::RemoveTask(const std::string& name)
 std::shared_ptr<Drawing::GPUContext> RSCanvasModifiersDraw::GetGpuContext()
 {
     if (gpuContext_ == nullptr) {
-        gpuContext_ = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir_);
+        if (renderContext_ == nullptr) {
+            renderContext_ = RenderContext::Create();
+            renderContext_->Init(RenderEngineType::BASIC_RENDER, cacheDir_);
+        }
+        gpuContext_ = renderContext_->GetSharedDrGPUContext();
     }
     return gpuContext_;
 }
@@ -517,7 +536,6 @@ void RSCanvasModifiersDraw::SetCacheDir(const std::string& cacheDir)
 void RSCanvasModifiersDraw::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     PostSyncTask([&maxWidth, &maxHeight] {
-        RsVulkanContext::SetRecyclable(true);
         RenderContext::Create()->QueryMaxGpuBufferSize(maxWidth, maxHeight);
     });
 }
@@ -529,8 +547,9 @@ void RSCanvasModifiersDraw::OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderIn
         if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
             auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
             drawable.nodeId_ = nodeId;
-            drawable.CreateProducerSurface(
-                weakRenderInterface, canvasModifiersDraw->GetGpuContext(), maxGpuResourceBytes_);
+            auto gpuContext = canvasModifiersDraw->GetGpuContext();
+            drawable.renderContext_ = canvasModifiersDraw->renderContext_;
+            drawable.CreateProducerSurface(weakRenderInterface, gpuContext, maxGpuResourceBytes_);
         }
     });
 }

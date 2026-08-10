@@ -1407,6 +1407,13 @@ std::shared_ptr<DrawOpItem> DrawAtlasOpItem::Unmarshalling(const DrawCmdList& cm
     auto tex = CmdListHelper::GetVectorFromCmdList<Rect>(cmdList, constructorHandle->tex);
     auto colors = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, constructorHandle->colors);
 
+    static constexpr size_t MAX_ATLAS_ENTRY_COUNT = 128; // atlas entry count upper bound
+    if (xform.size() > MAX_ATLAS_ENTRY_COUNT) {
+        LOGD("DrawAtlasOpItem::Unmarshalling array size exceeds limit: %zu > %zu",
+             xform.size(), MAX_ATLAS_ENTRY_COUNT);
+        return nullptr;
+    }
+
     if (xform.size() != tex.size() || xform.size() != colors.size()) {
         LOGD("DrawAtlasOpItem::Unmarshalling array size mismatch: xform=%zu, tex=%zu, colors=%zu",
              xform.size(), tex.size(), colors.size());
@@ -1806,6 +1813,13 @@ std::shared_ptr<DrawOpItem> DrawGlyphsOpItem::Unmarshalling(const DrawCmdList& c
     auto* constructorHandle = static_cast<DrawGlyphsOpItem::ConstructorHandle*>(handle);
     auto glyphs = CmdListHelper::GetVectorFromCmdList<uint16_t>(cmdList, constructorHandle->glyphs);
     auto positions = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, constructorHandle->positions);
+
+    static constexpr size_t MAX_GLYPHS_COUNT = 65536; // glyphs array size upper bound
+    if (glyphs.size() > MAX_GLYPHS_COUNT) {
+        LOGD("DrawGlyphsOpItem::Unmarshalling array size exceeds limit: %zu > %zu",
+            glyphs.size(), MAX_GLYPHS_COUNT);
+        return nullptr;
+    }
 
     if (glyphs.size() != positions.size()) {
         LOGD("DrawGlyphsOpItem::Unmarshalling array size mismatch: glyphs=%zu, positions=%zu",
@@ -2968,9 +2982,11 @@ std::shared_ptr<DrawOpItem> ClipAdaptiveRoundRectOpItem::Unmarshalling(const Dra
     auto* constructorHandle = static_cast<ClipAdaptiveRoundRectOpItem::ConstructorHandle*>(handle);
     auto radiusData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, constructorHandle->radiusData);
     static constexpr size_t CORNER_COUNT = 4;
-    if (radiusData.size() < CORNER_COUNT) {
-        LOGD("ClipAdaptiveRoundRectOpItem::Unmarshalling radiusData size mismatch: expected>=4, got=%zu",
-             radiusData.size());
+    static constexpr size_t MAX_RADIUS_DATA_COUNT = 16; // radius data count upper bound
+    if (radiusData.size() < CORNER_COUNT || radiusData.size() > MAX_RADIUS_DATA_COUNT) {
+        LOGD("ClipAdaptiveRoundRectOpItem::Unmarshalling radiusData size out of range: "
+             "expected %zu-%zu, got=%zu",
+             CORNER_COUNT, MAX_RADIUS_DATA_COUNT, radiusData.size());
         return nullptr;
     }
     return std::make_shared<ClipAdaptiveRoundRectOpItem>(cmdList, constructorHandle, std::move(radiusData));

@@ -41,6 +41,7 @@
 #include "render/rs_pixel_map_util.h"
 #include "pipeline/rs_test_util.h"
 #include "screen_manager/rs_screen.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -71,6 +72,7 @@ public:
 
     static void SetUpTestCase();
     static void TearDownTestCase();
+    static void CleanUpUniRenderEngine();
     void SetUp() override;
     void TearDown() override;
 
@@ -81,16 +83,66 @@ private:
 
 void RSScreenRenderNodeDrawableTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     // init vsync, default 60hz
     auto receiver = std::make_shared<VSyncReceiver>(nullptr, nullptr, nullptr, "generator_test");
     receiver->init_ = true;
     RSMainThread::Instance()->receiver_ = receiver;
 }
 
-void RSScreenRenderNodeDrawableTest::TearDownTestCase() {}
+void RSScreenRenderNodeDrawableTest::TearDownTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+    auto* mainThread = RSMainThread::Instance();
+    if (mainThread && mainThread->context_) {
+        auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+        nodeMap.FilterNodeByPid(0, true);
+    }
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+    CleanUpUniRenderEngine();
+}
+
+void RSScreenRenderNodeDrawableTest::CleanUpUniRenderEngine()
+{
+    auto* mainThread = RSMainThread::Instance();
+    if (mainThread && mainThread->renderEngine_) {
+        auto* engine = mainThread->renderEngine_.get();
+        if (engine->renderContext_) {
+            engine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (engine->protectedRenderContext_) {
+            engine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        engine->skContext_ = nullptr;
+        engine->renderContext_ = nullptr;
+        engine->protectedRenderContext_ = nullptr;
+        engine->imageManager_ = nullptr;
+        engine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        engine->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        mainThread->renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        auto* engine = rtThread.uniRenderEngine_.get();
+        if (engine->renderContext_) {
+            engine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (engine->protectedRenderContext_) {
+            engine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        engine->skContext_ = nullptr;
+        engine->renderContext_ = nullptr;
+        engine->protectedRenderContext_ = nullptr;
+        engine->imageManager_ = nullptr;
+        engine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        engine->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+}
+
 void RSScreenRenderNodeDrawableTest::SetUp()
 {
     if (!clientHasSet) {
@@ -243,6 +295,8 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     auto result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
+    CleanUpUniRenderEngine();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
@@ -250,6 +304,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     screenDrawable_->surfaceCreated_ = true;
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
+    CleanUpUniRenderEngine();
 }
 
 /**
@@ -295,6 +350,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
     auto result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
+    CleanUpUniRenderEngine();
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->forceCommitReason_ = 1;
     RSUniRenderThread::Instance().Sync(move(renderParams));
@@ -719,9 +775,16 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest003, TestSize.Level1)
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     screenDrawable_->OnDraw(canvas);
-    RSUniRenderThread::Instance().uniRenderEngine_.reset();
+
+    RSUniRenderThread::Instance().uniRenderEngine_->skContext_ = nullptr;
+    if (RSUniRenderThread::Instance().uniRenderEngine_->renderContext_) {
+        RSUniRenderThread::Instance().uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+        RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = nullptr;
+    }
+    CleanUpUniRenderEngine();
     // when realTid != RSUniRenderThread::Instance().GetTId()
     RSUniRenderThread::Instance().tid_ = realTid + 1;
     screenDrawable_->OnDraw(canvas);
@@ -889,6 +952,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
 
     auto renderEngine = std::make_shared<RSRenderEngine>();
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
@@ -961,6 +1025,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
+    CleanUpUniRenderEngine();
     screenDrawable_->OnDraw(canvas);
     EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 }
@@ -1948,8 +2013,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrame_NullRenderEngine, TestSize
     ASSERT_NE(params, nullptr);
 
     // ensure render engine is null
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-
+    CleanUpUniRenderEngine();
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     auto renderFrame = screenDrawable_->RequestFrame(*params, processor);
     EXPECT_EQ(renderFrame, nullptr);
@@ -2070,6 +2134,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignWithGpuTile, TestS
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
 
@@ -2086,7 +2151,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignWithGpuTile, TestS
     EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileInited());
     EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
 
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    CleanUpUniRenderEngine();
 }
 
 /**
@@ -2127,6 +2192,8 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignGpuTileInvalid, Te
     RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(64, 0));
     EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
     screenDrawable_->OnDraw(canvas);
+
+    CleanUpUniRenderEngine();
 }
 
 /**
@@ -2149,7 +2216,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion,
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
-
+    CleanUpUniRenderEngine();
     auto renderParams = std::make_unique<RSRenderThreadParams>();
     renderParams->isDirtyAlignEnabled_ = true;
     renderParams->isOpDropped_ = true;
@@ -2161,6 +2228,8 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion,
     EXPECT_EQ(RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD, 1);
 
     screenDrawable_->OnDraw(canvas);
+
+    CleanUpUniRenderEngine();
 }
 
 /**

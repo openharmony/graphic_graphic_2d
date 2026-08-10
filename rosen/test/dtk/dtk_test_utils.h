@@ -16,14 +16,19 @@
 #define DDGR_TEST_DTK_DTK_TEST_UTILS_H
 
 #include "draw/surface.h"
+#ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
 using TestPlaybackCanvas = Drawing::Canvas;
 inline std::shared_ptr<Drawing::Surface> CreateDrawingSurface(int width, int height)
 {
-    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto drawingContext = renderContext->CreateDrawingGPUContext();
     std::shared_ptr<Drawing::GPUContext> gpuContext(drawingContext);
     Drawing::ImageInfo info = Drawing::ImageInfo { width, height, Drawing::ColorType::COLORTYPE_RGBA_8888,
         Drawing::AlphaType::ALPHATYPE_PREMUL };

@@ -27,11 +27,9 @@ namespace Rosen {
 
 DrawingGpuContextManager::DrawingGpuContextManager()
 {
-    if (Drawing::SystemProperties::IsUseGl()) {
-        renderContext_ = std::static_pointer_cast<RenderContextGL>(RenderContext::Create());
-    }
+    renderContext_ = RenderContext::Create();
 }
-std::shared_ptr<RenderContextGL> DrawingGpuContextManager::GetRenderContext()
+std::shared_ptr<RenderContext> DrawingGpuContextManager::GetRenderContext()
 {
     return renderContext_;
 }
@@ -45,24 +43,8 @@ DrawingGpuContextManager& DrawingGpuContextManager::GetInstance()
 std::shared_ptr<Drawing::GPUContext> DrawingGpuContextManager::CreateDrawingContext()
 {
 #ifdef RS_ENABLE_GPU
-    std::shared_ptr<Drawing::GPUContext> context = nullptr;
-    if (Drawing::SystemProperties::IsUseGl()) {
-        if (renderContext_ == nullptr) {
-            LOGE("CreateDrawingContext: create renderContext failed.");
-            return nullptr;
-        }
-
-        renderContext_->Init();
-        renderContext_->SetUpGpuContext();
-        context = renderContext_->GetSharedDrGPUContext();
-    }
-#ifdef RS_ENABLE_VK
-    if (Drawing::SystemProperties::IsUseVulkan()) {
-        context = RsVulkanContext::GetSingleton().CreateDrawingContext();
-    }
-#endif
-
-    return context;
+    renderContext_->Init();
+    return renderContext_->GetSharedDrGPUContext();
 #endif
     return nullptr;
 }

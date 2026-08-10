@@ -1143,14 +1143,26 @@ void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& r
     canvas.DetachBrush();
 }
 
-void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
+void RSUniRenderUtil::OptimizedFlushAndSubmit(
+#ifdef RS_ENABLE_VK
+    std::shared_ptr<RsVulkanInterface> vkInterface,
+#endif
+    std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, bool optFenceWait)
 {
     auto acquireFence = SyncFence::InvalidFence();
-    OptimizedFlushAndSubmit(surface, grContext, acquireFence, optFenceWait);
+    OptimizedFlushAndSubmit(
+#ifdef RS_ENABLE_VK
+        vkInterface,
+#endif
+        surface, grContext, acquireFence, optFenceWait);
 }
 
-void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
+void RSUniRenderUtil::OptimizedFlushAndSubmit(
+#ifdef RS_ENABLE_VK
+    std::shared_ptr<RsVulkanInterface> vkInterface,
+#endif
+    std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, sptr<SyncFence>& acquireFence, bool optFenceWait)
 {
     if (!surface || !grContext) {
@@ -1163,8 +1175,6 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
 #ifdef RS_ENABLE_VK
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && optFenceWait) {
-        auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-
         VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
         exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
         exportSemaphoreCreateInfo.pNext = nullptr;
@@ -1175,7 +1185,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         semaphoreInfo.pNext = &exportSemaphoreCreateInfo;
         semaphoreInfo.flags = 0;
         VkSemaphore semaphore;
-        vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+        vkInterface->vkCreateSemaphore(vkInterface->GetDevice(), &semaphoreInfo, nullptr, &semaphore);
 #ifdef USE_M133_SKIA
         GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
 #else
@@ -1184,15 +1194,16 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
 #endif
 
         DestroySemaphoreInfo* destroyInfo =
-            new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
+            new DestroySemaphoreInfo(vkInterface->vkDestroySemaphore, vkInterface->GetDevice(), semaphore);
 
         std::vector<GrBackendSemaphore> semaphoreVec = { backendSemaphore };
 #ifdef HETERO_HDR_ENABLE
-        std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
+        std::vector<uint64_t> frameIdVec =
+            RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask(vkInterface->GetInterfaceType());
         RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
 #endif
 #ifdef MHC_ENABLE
-        auto&& pendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface);
+        auto&& pendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(vkInterface, semaphoreVec, surface);
 #endif
         Drawing::FlushInfo drawingFlushInfo;
         drawingFlushInfo.backendSurfaceAccess = true;
@@ -1204,7 +1215,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         grContext->Submit();
 
         int syncFenceFd = -1;
-        NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, syncFenceFd);
+        NativeBufferUtils::GetFenceFdFromSemaphore(vkInterface, semaphore, syncFenceFd);
         acquireFence = sptr<SyncFence>(new SyncFence(syncFenceFd));
 
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);

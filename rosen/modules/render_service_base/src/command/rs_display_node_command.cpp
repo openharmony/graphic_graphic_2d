@@ -49,6 +49,11 @@ bool TrySetScreenNodeByScreenId(RSContext& context, ScreenId id, Lambda&& lambda
 
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
+    if (config.mirrorSourceRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+        RS_LOGE("DisplayNodeCommandHelper::Create invalid mirrorSourceRotation[%{public}" PRIu32 "]",
+            config.mirrorSourceRotation);
+        return;
+    }
     RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::%s displayNodeId[%" PRIu64 "], %s", __func__, id,
         config.ToString().c_str());
 
@@ -184,6 +189,11 @@ void DisplayNodeCommandHelper::SetSecurityDisplay(RSContext& context, NodeId id,
 
 void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
+    if (config.mirrorSourceRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+        RS_LOGE("DisplayNodeCommandHelper::SetDisplayMode invalid mirrorSourceRotation[%{public}" PRIu32 "]",
+            config.mirrorSourceRotation);
+        return;
+    }
     RS_LOGI("DisplayNodeCommandHelper::%{public}s, NodeId[%{public}" PRIu64 "], %{public}s", __func__, id,
         config.ToString().c_str());
     auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id);

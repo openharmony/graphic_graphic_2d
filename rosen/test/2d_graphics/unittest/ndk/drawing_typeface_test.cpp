@@ -38,13 +38,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingTypefaceTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
-
+void NativeDrawingTypefaceTest::SetUpTestCase() {}
 void NativeDrawingTypefaceTest::TearDownTestCase() {}
 void NativeDrawingTypefaceTest::SetUp() {}
 void NativeDrawingTypefaceTest::TearDown() {}

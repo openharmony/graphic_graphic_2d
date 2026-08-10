@@ -19,6 +19,7 @@
 #include "rs_trace.h"
 
 #include "platform/common/rs_log.h"
+#include "transaction/rs_ashmem_helper.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -135,13 +136,16 @@ sptr<RSBufferTransaction> RSBufferTransaction::ReadFromMessageParcel(MessageParc
     }
     uint32_t sequence = 0;
     sptr<SurfaceBuffer> buffer = nullptr;
-    GSError ret = ReadSurfaceBufferImpl(parcel, sequence, buffer);
+    auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+        return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+    };
+    GSError ret = ReadSurfaceBufferImpl(parcel, sequence, buffer, readSafeFdFunc);
     if (ret != GSERROR_OK || buffer == nullptr) {
         RS_LOGE("RSBufferTransaction ReadSurfaceBufferImpl ret:%{public}d", ret);
         buffer = nullptr;
         return nullptr;
     }
-    sptr<SyncFence> fence = SyncFence::ReadFromMessageParcel(parcel);
+    sptr<SyncFence> fence = SyncFence::ReadFromMessageParcel(parcel, readSafeFdFunc);
     int64_t uiTimestamp = 0;
     int64_t desiredPresentTimestamp = 0;
     if (!parcel.ReadInt64(uiTimestamp) || !parcel.ReadInt64(desiredPresentTimestamp)) {

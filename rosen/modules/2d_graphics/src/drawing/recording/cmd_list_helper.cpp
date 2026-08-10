@@ -160,7 +160,12 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
         return nullptr;
     }
 
-    if (memcpy_s(bitmap->GetPixels(), expectedSize, ptr, expectedSize) != EOK) {
+    void* dst = bitmap->GetPixels();
+    if (dst == nullptr) {
+        LOGD("Bitmap GetPixels returned null!");
+        return nullptr;
+    }
+    if (memcpy_s(dst, expectedSize, ptr, expectedSize) != EOK) {
         LOGD("Bitmap memcpy_s failed!");
         return nullptr;
     }
@@ -357,8 +362,8 @@ Lattice CmdListHelper::GetLatticeFromCmdList(const CmdList& cmdList, const Latti
 bool CmdListHelper::ValidateLattice(const Lattice& lattice)
 {
     static constexpr int32_t LATTICE_MAX_DIV_COUNT = 5; // Skia lattice div count upper bound
- 	if (lattice.fXCount < 0 || lattice.fXCount > LATTICE_MAX_DIV_COUNT ||
- 	    lattice.fYCount < 0 || lattice.fYCount > LATTICE_MAX_DIV_COUNT) {
+    if (lattice.fXCount < 0 || lattice.fXCount > LATTICE_MAX_DIV_COUNT ||
+        lattice.fYCount < 0 || lattice.fYCount > LATTICE_MAX_DIV_COUNT) {
         LOGD("ValidateLattice invalid lattice count: fXCount=%d, fYCount=%d",
              lattice.fXCount, lattice.fYCount);
         return false;

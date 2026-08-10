@@ -240,19 +240,7 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
     RS_TRACE_NAME("CreateShareGrContext");
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        renderContext_->CreateShareContext();
-        auto gpuContext = std::make_shared<Drawing::GPUContext>();
-        Drawing::GPUContextOptions options;
-        auto handler = std::make_shared<MemoryHandler>();
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size);
-
-        if (!gpuContext->BuildFromGL(options)) {
-            RS_LOGE("nullptr gpuContext is null");
-            return nullptr;
-        }
-        return gpuContext;
+        return renderContext_->CreateDrawingGPUContext();
     }
 #endif
 
@@ -261,10 +249,11 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         auto gpuContext = std::make_shared<Drawing::GPUContext>();
         Drawing::GPUContextOptions options;
         auto handler = std::make_shared<MemoryHandler>();
-        std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();
+        auto& vkContext = RsVulkanContext::Get(renderContext_->GetType());
+        std::string vulkanVersion = vkContext.GetRsVulkanInterface()->GetVulkanVersion();
         auto size = vulkanVersion.size();
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
-        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(), options)) {
+        if (!gpuContext->BuildFromVK(vkContext.GetGrVkBackendContext(), options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }
@@ -387,7 +376,13 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     bool optFenceWait = (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
         !rsSubThreadCache.IsHighPostPriority()) ? false : true;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+#ifdef RS_ENABLE_VK
+    RSUniRenderUtil::OptimizedFlushAndSubmit(
+        RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface(),
+        cacheSurface, grContext_.get(), acquireFence, optFenceWait);
+#else
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), acquireFence, optFenceWait);
+#endif
     bufferGuard.SetAcquireFence(acquireFence);
     rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
     rsSubThreadCache.UpdateBackendTexture();

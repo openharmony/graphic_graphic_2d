@@ -722,7 +722,7 @@ HWTEST_F(RSUIContextTest, CreateCommitTransactionCallback_LambdaNullModifiersDra
     ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
     auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     auto transactionData = std::make_unique<RSTransactionData>();
-    uint32_t transactionDataIndex = 0;
+    std::atomic<uint32_t> transactionDataIndex = 0;
     // Should not crash, lambda returns early on null modifiersDrawThread_
     callback(renderPipelineClient, std::move(transactionData), transactionDataIndex);
 }
@@ -746,7 +746,7 @@ HWTEST_F(RSUIContextTest, CreateCommitTransactionCallback_LambdaNullCanvasModifi
     rsUIContext->canvasModifiersDrawAgent_ = nullptr;
     auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     auto transactionData = std::make_unique<RSTransactionData>();
-    uint32_t transactionDataIndex = 0;
+    std::atomic<uint32_t> transactionDataIndex = 0;
     // Should not crash, ScheduleTask lambda skips CommitTransaction when agent is null
     callback(renderPipelineClient, std::move(transactionData), transactionDataIndex);
     // canvasModifiersDrawAgent_ is null, but modifiersDrawThread_ is non-null.

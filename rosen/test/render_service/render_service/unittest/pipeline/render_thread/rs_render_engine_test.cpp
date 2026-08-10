@@ -52,9 +52,6 @@ std::shared_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas_ = nullptr;
 
 void RSRenderEngineTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     drawingCanvas_ = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
     RSSurfaceCaptureConfig captureConfig;
@@ -85,6 +82,7 @@ void RSRenderEngineTest::TearDownTestCase()
         mainThread->context_->globalRootRenderNode_ = nullptr;
     }
 }
+
 void RSRenderEngineTest::SetUp() {}
 
 void RSRenderEngineTest::TearDown() {}

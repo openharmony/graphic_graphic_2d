@@ -86,7 +86,33 @@ void RSUniRenderUtilTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
 }
-void RSUniRenderUtilTest::TearDownTestCase() {}
+void RSUniRenderUtilTest::TearDownTestCase()
+{
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+}
 void RSUniRenderUtilTest::SetUp() {}
 void RSUniRenderUtilTest::TearDown() {}
 
@@ -578,6 +604,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo004, TestSize.Lev
     ASSERT_EQ(callbackData1.size() == 1, true);
 }
 
+#ifdef RS_ENABLE_VK
 /*
  * @tc.name: OptimizedFlushAndSubmit001
  * @tc.desc: OptimizedFlushAndSubmit test when gpuContext is nullptr
@@ -591,8 +618,8 @@ HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit001, TestSize.Level2)
     ASSERT_NE(surface, nullptr);
     Drawing::GPUContext* gpuContext = nullptr;
     bool optFenceWait = false;
-
-    rsUniRenderUtil.OptimizedFlushAndSubmit(surface, gpuContext, optFenceWait);
+    auto vkInterface = std::make_shared<RsVulkanInterface>(false, true, RenderEngineType::BASIC_RENDER);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(vkInterface, surface, gpuContext, optFenceWait);
 }
 
 /*
@@ -606,14 +633,16 @@ HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit002, TestSize.Level2)
     RSUniRenderUtil rsUniRenderUtil;
     bool optFenceWait = false;
     std::shared_ptr<Drawing::Surface> surface = nullptr;
-    rsUniRenderUtil.OptimizedFlushAndSubmit(surface, nullptr, optFenceWait);
+    auto vkInterface = std::make_shared<RsVulkanInterface>(false, true, RenderEngineType::BASIC_RENDER);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(vkInterface, surface, nullptr, optFenceWait);
     std::shared_ptr<Drawing::GPUContext> gpuContext = std::make_shared<Drawing::GPUContext>();
     ASSERT_NE(gpuContext, nullptr);
-    rsUniRenderUtil.OptimizedFlushAndSubmit(surface, gpuContext.get(), optFenceWait);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(vkInterface, surface, gpuContext.get(), optFenceWait);
     surface = std::make_shared<Drawing::Surface>();
     ASSERT_NE(surface, nullptr);
-    rsUniRenderUtil.OptimizedFlushAndSubmit(surface, gpuContext.get(), optFenceWait);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(vkInterface, surface, gpuContext.get(), optFenceWait);
 }
+#endif
 
 /*
  * @tc.name: CreateBufferDrawParam001
@@ -1612,7 +1641,20 @@ HWTEST_F(RSUniRenderUtilTest, SwitchColorFilter, TestSize.Level1)
     RSUniRenderUtil::SwitchColorFilter(canvas, 0.6, true);
 
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 }
 
 /**
@@ -1640,7 +1682,20 @@ HWTEST_F(RSUniRenderUtilTest, SwitchColorFilterWithP3, TestSize.Level1)
     RSUniRenderUtil::SwitchColorFilterWithP3(canvas, colorFilterMode);
     RSUniRenderUtil::SwitchColorFilterWithP3(canvas, colorFilterMode, 0.6);
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 }
 
 /**
@@ -2187,7 +2242,20 @@ HWTEST_F(RSUniRenderUtilTest, DrawSingleSelfDrawingNode004, TestSize.Level1)
     std::unordered_set<NodeId> whiteList = { surfaceId };
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
     surfaceDrawable->renderParams_ = std::move(renderParams);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 
     auto result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
     ASSERT_EQ(result, false);
@@ -2223,7 +2291,20 @@ HWTEST_F(RSUniRenderUtilTest, DrawSingleSelfDrawingNode005, TestSize.Level1)
     RSSpecialLayerManager slManager;
     renderParams->specialLayerManager_ = slManager;
     surfaceDrawable->renderParams_ = std::move(renderParams);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    {
+        auto& rt_ = RSUniRenderThread::Instance();
+        if (rt_.uniRenderEngine_) {
+            if (rt_.uniRenderEngine_->renderContext_) {
+                rt_.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+                rt_.uniRenderEngine_->renderContext_ = nullptr;
+            }
+            if (rt_.uniRenderEngine_->protectedRenderContext_) {
+                rt_.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            rt_.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        rt_.uniRenderEngine_ = nullptr;
+    }
 
     auto result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
     ASSERT_EQ(result, false);

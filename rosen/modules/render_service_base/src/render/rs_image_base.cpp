@@ -686,6 +686,7 @@ std::shared_ptr<Drawing::Image> RSImageBase::MakeFromTextureForVK(
         RS_LOGE("RSImageBase MakeFromTextureForVK surfaceBuffer is nullptr");
         return nullptr;
     }
+    auto renderEngineType = canvas.GetRenderEngineType();
     if (nativeWindowBuffer_ == nullptr) {
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
         nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
@@ -696,11 +697,13 @@ std::shared_ptr<Drawing::Image> RSImageBase::MakeFromTextureForVK(
     }
     if (!backendTexture_.IsValid()) {
         backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+            RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
             nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
-                RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+                RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
+                vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         } else {
             return nullptr;
         }
