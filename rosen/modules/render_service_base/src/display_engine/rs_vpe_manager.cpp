@@ -15,6 +15,7 @@
 
 #include <string>
 
+#include "auto_effect_video_fwk.h"
 #include "common/rs_common_def.h"
 #include "display_engine/rs_vpe_manager.h"
 #include "platform/common/rs_log.h"
@@ -118,6 +119,12 @@ bool RSVpeManager::SetVpeVideoParameter(std::shared_ptr<VpeVideo> vpeVideo,
             RS_LOGE("SetParameter level failed!");
             return false;
         }
+    } else if (type == VIDEO_TYPE_AUTO_EFFECT) {
+        param.PutStringValue(ParameterKey::AUTO_EFFECT_NAME, config.name);
+        if (vpeVideo->SetParameter(param) != 0) {
+            RS_LOGE("SetParameter auto effect name failed!");
+            return false;
+        }
     }
     param = Media::Format{};
     param.PutLongValue(ParameterKey::DETAIL_ENHANCER_NODE_ID, config.id);
@@ -200,10 +207,14 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
     }
     sptr<Surface> vpeSurface = surface;
     std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER,
-        VIDEO_TYPE_AI3D_ENHANCER };
+        VIDEO_TYPE_AI3D_ENHANCER, VIDEO_TYPE_AUTO_EFFECT };
     uint32_t supportType = 0;
     for (auto& type : supportTypes) {
-        if (VpeVideo::IsSupported(type, parameter) && VpeVideo::IsSurfaceSupported(type, surface)) {
+        Media::Format typeParameter = parameter;
+        if (type == VIDEO_TYPE_AUTO_EFFECT) {
+            typeParameter.PutStringValue(ParameterKey::AUTO_EFFECT_NAME, config.name);
+        }
+        if (VpeVideo::IsSupported(type, typeParameter) && VpeVideo::IsSurfaceSupported(type, surface)) {
             supportType |= type;
         }
     }
