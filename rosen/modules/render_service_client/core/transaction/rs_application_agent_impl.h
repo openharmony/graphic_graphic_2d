@@ -52,7 +52,7 @@ public:
      * callback. Idempotent: once the singleton is cleared subsequent calls are no-ops. Relies on the
      * caller ensuring there is a single active consumer (see RSUIDirector teardown).
      */
-    static void Release();
+    static void Release(bool isRegistered);
     RSApplicationAgentImpl() = default;
     virtual ~RSApplicationAgentImpl();
 private:
