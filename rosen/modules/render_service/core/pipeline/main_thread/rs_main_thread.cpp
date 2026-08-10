@@ -116,7 +116,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "pipeline/rs_task_dispatcher.h"
-#include "pipeline/rs_unmarshal_task_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -2638,20 +2637,13 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
     if (rsVsyncManagerAgent_ != nullptr) {
         rsVsyncManagerAgent_->SetWaitForDvsyncFrame(unmarshalFinishedCount_ <= 0);
     }
-    if (!unmarshalTaskCond_.wait_for(lock, std::chrono::milliseconds(WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT),
-        [this]() { return unmarshalFinishedCount_ > 0; })) {
-        if (auto task = RSUnmarshalTaskManager::Instance().GetLongestTask()) {
-            RSUnmarshalThread::Instance().RemoveTask(task.value().name);
-            RS_LOGI("WaitUntilUnmarshallingTaskFinished"
-                "the wait time exceeds %{public}d ms, remove task %{public}s",
-                WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT, task.value().name.c_str());
-            RS_TRACE_NAME_FMT("RSMainThread::WaitUntilUnmarshallingTaskFinished"
-                "the wait time exceeds %d ms, remove task %s",
-                WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT, task.value().name.c_str());
-        }
+    if (!unmarshalTaskCond_.wait_for(lock, std::chrono::milliseconds(WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT), [this]() {
+        return unmarshalFinishedCount_ > 0;
+    })) {
+        RS_LOGI("WaitUntilUnmarshallingTaskFinished Skip the waiting step");
+    } else {
+        unmarshalFinishedCount_ = 0;
     }
-    RSUnmarshalTaskManager::Instance().Clear();
-    --unmarshalFinishedCount_;
     RS_OPTIONAL_TRACE_END();
 }
 
