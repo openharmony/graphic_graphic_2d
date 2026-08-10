@@ -31,15 +31,15 @@ namespace Rosen {
 #define LOG_TAG "OHOS::RS"
 #define LOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 #define LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
+
+std::once_flag RsFrameReport::initFlag_;
+bool RsFrameReport::inited = false;
 namespace {
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 const std::string LIB_VULKAN_PATH = "/system/lib64/libvulkan.so";
 const uint32_t MAX_INITIALIZATION_COUNT = 3;
 #endif
 }
-
-std::once_flag RsFrameReport::initFlag_;
-bool RsFrameReport::inited = false;
 
 static void GraphReportSchedEvent(OHOS::RME::FrameSchedEvent event,
     const std::unordered_map<std::string, std::string> &payload)
@@ -136,7 +136,7 @@ void RsFrameReport::CheckBeginFlushPoint()
 void RsFrameReport::ReportBufferCount(uint32_t count)
 {
     std::call_once(initFlag_, &RsFrameReport::InitSched);
-    static uint32_t  bufferCount = 0;
+    static uint32_t bufferCount = 0;
     if (bufferCount == count) {
         return;
     }
@@ -199,25 +199,29 @@ void RsFrameReport::BlurPredict(const std::unordered_map<std::string, std::strin
 void RsFrameReport::ReceiveVSync()
 {
     std::call_once(initFlag_, &RsFrameReport::InitSched);
-    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DDGR_TASK, {});
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_RECEIVE_VSYNC, {});
 }
 
 void RsFrameReport::RequestNextVSync()
 {
     std::call_once(initFlag_, &RsFrameReport::InitSched);
-    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DDGR_TASK, {});
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_REQUEST_NEXT_VSYNC, {});
 }
 
 void RsFrameReport::ReportAddScreenId(const int screenId)
 {
     std::call_once(initFlag_, &RsFrameReport::InitSched);
-    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_ADD_SCREENID, {});
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["screenId"] =  std::to_string(screenId);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_ADD_SCREENID, payload);
 }
 
 void RsFrameReport::ReportDelScreenId(const int screenId)
 {
     std::call_once(initFlag_, &RsFrameReport::InitSched);
-    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DEL_SCREENID, {});
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["screenId"] =  std::to_string(screenId);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DEL_SCREENID, payload);
 }
 
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
@@ -250,7 +254,7 @@ bool RsFrameReport::GetVulkanFunctionPointersByLibrary()
 {
     vkhandle.reset(dlopenFunc(LIB_VULKAN_PATH.c_str(), RTLD_NOW | RTLD_LOCAL));
     if (vkhandle == nullptr) {
-        LOGE("Failed to load Vulkan library: %{public}s", dlerror());
+        LOGE("Failed to load Vulkan library");
         return false;
     }
     vkGetInstanceProcAddr =
@@ -258,7 +262,6 @@ bool RsFrameReport::GetVulkanFunctionPointersByLibrary()
     vkGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(dlsymFunc(vkhandle.get(), "vkGetDeviceProcAddr"));
     vkCreateInstance = reinterpret_cast<PFN_vkCreateInstance>(dlsymFunc(vkhandle.get(), "vkCreateInstance"));
     vkDestroyInstance = reinterpret_cast<PFN_vkDestroyInstance>(dlsymFunc(vkhandle.get(), "vkDestroyInstance"));
-
     return true;
 }
  
