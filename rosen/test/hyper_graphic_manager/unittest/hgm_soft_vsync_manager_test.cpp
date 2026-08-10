@@ -690,5 +690,46 @@ HWTEST_F(HgmSoftVSyncManagerTest, DeliverSoftVoteTest, Function | SmallTest | Le
     mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, false);
     EXPECT_EQ(mgr.appVoteData_.size(), 0);
 }
+
+/**
+ * @tc.name: HandleLinkersTest
+ * @tc.desc: Verify soft frame rate decision data is cleared for unregistered linkers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmSoftVSyncManagerTest, HandleLinkersTest, Function | SmallTest | Level0)
+{
+    HgmSoftVSyncManager mgr;
+    FrameRateRange appExpectedRange = { OLED_60_HZ, OLED_120_HZ, OLED_72_HZ };
+    std::shared_ptr<RSRenderFrameRateLinker> linker1 = std::make_shared<RSRenderFrameRateLinker>(frameRateLinkerId1);
+    linker1->SetExpectedRange(appExpectedRange);
+    linker1->SetWindowNodeId(windowId1);
+    linker1->SetVsyncName(vsyncName1);
+    std::shared_ptr<RSRenderFrameRateLinker> linker2 = std::make_shared<RSRenderFrameRateLinker>(frameRateLinkerId2);
+    linker2->SetExpectedRange(appExpectedRange);
+    linker2->SetWindowNodeId(windowId2);
+    linker2->SetVsyncName(vsyncName2);
+
+    FrameRateLinkerMap linkerMap = { { frameRateLinkerId1, linker1 }, { frameRateLinkerId2, linker2 } };
+    const std::map<uint64_t, int> vRatesMap;
+    mgr.UniProcessDataForLtpo(vRatesMap, linkerMap);
+    EXPECT_EQ(mgr.appFrameRateLinkers_.size(), 2);
+
+    VoteInfo voteInfo = { "VOTER_MID", OLED_120_HZ, OLED_120_HZ, 1, "" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, true);
+    mgr.DeliverSoftVote(frameRateLinkerId2, voteInfo, true);
+    EXPECT_EQ(mgr.appVoteData_.size(), 2);
+    EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].first, OLED_120_HZ);
+    EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId2].first, OLED_120_HZ);
+
+    // Unregister linkerId2 and re-run HandleLinkers, stale decision data must be cleared
+    FrameRateLinkerMap reducedLinkerMap = { { frameRateLinkerId1, linker1 } };
+    mgr.UniProcessDataForLtpo(vRatesMap, reducedLinkerMap);
+    EXPECT_EQ(mgr.appFrameRateLinkers_.size(), 1);
+    EXPECT_EQ(mgr.linkerVoteMap_.count(frameRateLinkerId2), 0);
+    EXPECT_EQ(mgr.appVoteData_.count(frameRateLinkerId2), 0);
+    EXPECT_EQ(mgr.appVoteData_.count(frameRateLinkerId1), 1);
+    EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].first, OLED_120_HZ);
+}
 } // namespace Rosen
 } // namespace OHOS
