@@ -336,6 +336,7 @@ public:
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);
+    uint32_t GetAncoFlags() const;
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetDarkColorMode(bool isDark);
@@ -482,6 +483,7 @@ private:
     std::shared_ptr<RSCompositeLayerUtils> compositeLayerUtils_;
 
     uint32_t windowId_ = 0;
+    std::atomic<int32_t> ancoFlags_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceDelegate> surfaceDelegate_;
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;

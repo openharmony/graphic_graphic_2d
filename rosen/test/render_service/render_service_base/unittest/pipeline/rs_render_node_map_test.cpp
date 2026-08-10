@@ -1193,4 +1193,119 @@ HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeTest002, TestSize.Level1)
     EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(nonAppNodeId));
 }
 
+/**
+ * @tc.name: DestroyTokenNodeAncoNodeProtectedInRenderNodeMap
+ * @tc.desc: Verify ANCO surface node is protected from erasure in renderNodeMap_ during DestroyTokenNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeAncoNodeProtectedInRenderNodeMap, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId ancoNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId normalNodeId = (static_cast<NodeId>(pid) << 32) | 2;
+
+    RSSurfaceRenderNodeConfig ancoConfig = {
+        .id = ancoNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto ancoNode = std::make_shared<RSSurfaceRenderNode>(ancoConfig);
+    ancoNode->SetUIContextToken(token);
+    ancoNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    rsRenderNodeMap.RegisterRenderNode(ancoNode);
+
+    RSSurfaceRenderNodeConfig normalConfig = {
+        .id = normalNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto normalNode = std::make_shared<RSSurfaceRenderNode>(normalConfig);
+    normalNode->SetUIContextToken(token);
+    rsRenderNodeMap.RegisterRenderNode(normalNode);
+
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+
+    EXPECT_NE(rsRenderNodeMap.GetRenderNode(ancoNodeId), nullptr);
+    EXPECT_EQ(rsRenderNodeMap.GetRenderNode(normalNodeId), nullptr);
+}
+
+/**
+ * @tc.name: DestroyTokenNodeAncoNodeProtectedInSurfaceNodeMap
+ * @tc.desc: Verify ANCO self-drawing surface node is protected in surfaceNodeMap_ during DestroyTokenNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeAncoNodeProtectedInSurfaceNodeMap, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId ancoNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId normalNodeId = (static_cast<NodeId>(pid) << 32) | 2;
+
+    RSSurfaceRenderNodeConfig ancoConfig = {
+        .id = ancoNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto ancoNode = std::make_shared<RSSurfaceRenderNode>(ancoConfig);
+    ancoNode->SetUIContextToken(token);
+    ancoNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    rsRenderNodeMap.RegisterRenderNode(ancoNode);
+
+    RSSurfaceRenderNodeConfig normalConfig = {
+        .id = normalNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto normalNode = std::make_shared<RSSurfaceRenderNode>(normalConfig);
+    normalNode->SetUIContextToken(token);
+    rsRenderNodeMap.RegisterRenderNode(normalNode);
+
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+
+    EXPECT_NE(rsRenderNodeMap.surfaceNodeMap_.find(ancoNodeId), rsRenderNodeMap.surfaceNodeMap_.end());
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.find(normalNodeId), rsRenderNodeMap.surfaceNodeMap_.end());
+}
+
+/**
+ * @tc.name: DestroyTokenNodeAncoNodeProtectedInSelfDrawing
+ * @tc.desc: Verify ANCO surface node is protected in selfDrawingNodeInProcess_ during DestroyTokenNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeAncoNodeProtectedInSelfDrawing, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId ancoNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId normalNodeId = (static_cast<NodeId>(pid) << 32) | 2;
+    constexpr NodeId parentId = (static_cast<NodeId>(pid) << 32) | 3;
+
+    RSSurfaceRenderNodeConfig ancoConfig = {
+        .id = ancoNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto ancoNode = std::make_shared<RSSurfaceRenderNode>(ancoConfig);
+    ancoNode->SetUIContextToken(token);
+    ancoNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+
+    RSSurfaceRenderNodeConfig normalConfig = {
+        .id = normalNodeId,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+    };
+    auto normalNode = std::make_shared<RSSurfaceRenderNode>(normalConfig);
+    normalNode->SetUIContextToken(token);
+
+    auto parent = std::make_shared<RSRenderNode>(parentId);
+    parent->AddChild(normalNode);
+
+    rsRenderNodeMap.selfDrawingNodeInProcess_[pid][ancoNodeId] = ancoNode;
+    rsRenderNodeMap.selfDrawingNodeInProcess_[pid][normalNodeId] = normalNode;
+
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+
+    EXPECT_NE(rsRenderNodeMap.selfDrawingNodeInProcess_[pid].find(ancoNodeId),
+              rsRenderNodeMap.selfDrawingNodeInProcess_[pid].end());
+    EXPECT_EQ(rsRenderNodeMap.selfDrawingNodeInProcess_[pid].find(normalNodeId),
+              rsRenderNodeMap.selfDrawingNodeInProcess_[pid].end());
+}
+
 } // namespace OHOS::Rosen

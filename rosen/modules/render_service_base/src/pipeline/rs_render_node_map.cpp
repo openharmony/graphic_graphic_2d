@@ -405,9 +405,12 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
                 return false;
 #endif
             }
+            auto surfaceNode = pair.second->template ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (surfaceNode && (surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
+                return false;
+            }
             pair.second->ReleaseNodeInRender();
 
-            auto surfaceNode = pair.second->template ReinterpretCastTo<RSSurfaceRenderNode>();
             if (surfaceNode && (!surfaceNode->IsSelfDrawingType() || surfaceNode->GetIsTextureExportNode())) {
                 return false;
             }
@@ -427,7 +430,9 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
     RS_TRACE_BEGIN("DestroyTokenNode process surfaceNodeMap");
     EraseIf(surfaceNodeMap_, [pid, token, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid) && pair.second &&
-                           (pair.second->GetUIContextToken() == token) && pair.second->IsSelfDrawingType();
+                           (pair.second->GetUIContextToken() == token) &&
+                           !(pair.second->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) &&
+                           pair.second->IsSelfDrawingType();
         if (shouldErase) {
             if (auto parent = pair.second->GetParent().lock()) {
                 parent->RemoveChildFromFulllist(pair.second->GetId());
@@ -466,7 +471,9 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
     if (selfDrawingIter != selfDrawingNodeInProcess_.end()) {
         auto& selfDrawingSubMap = selfDrawingIter->second;
         EraseIf(selfDrawingSubMap, [token](const auto &pair) -> bool {
-            if (pair.second && pair.second->GetUIContextToken() == token) {
+            if (pair.second &&
+                pair.second->GetUIContextToken() == token &&
+                !(pair.second->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
                 auto parent = pair.second->GetParent().lock();
                 if (parent) {
                     parent->RemoveChildFromFulllist(pair.first);
