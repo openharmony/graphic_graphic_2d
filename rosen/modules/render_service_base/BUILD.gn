@@ -201,7 +201,6 @@ ohos_source_set("render_service_base_src") {
     "src/display_engine/rs_display_engine_control.cpp",
     "src/display_engine/transaction/zidl/rs_display_engine_control_stub.cpp",
 
-
     #common
     "src/common/rs_background_thread.cpp",
     "src/common/rs_color.cpp",
