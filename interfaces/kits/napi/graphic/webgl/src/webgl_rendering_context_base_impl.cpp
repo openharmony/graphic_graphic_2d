@@ -535,6 +535,8 @@ napi_value WebGLRenderingContextBaseImpl::DeleteBuffer(napi_env env, napi_value 
         return NVal::CreateNull(env).val_;
     }
     GLuint buffer = webGlBuffer->GetBufferId();
+    const uint64_t bufferSize = static_cast<uint64_t>(webGlBuffer->GetBufferSize());
+    allocatedBufferBytes_ = allocatedBufferBytes_ >= bufferSize ? allocatedBufferBytes_ - bufferSize : 0;
     DoObjectDelete(WebGLBuffer::objectType, webGlBuffer);
     DeleteObject<WebGLBuffer>(env, buffer);
     glDeleteBuffers(1, &buffer);

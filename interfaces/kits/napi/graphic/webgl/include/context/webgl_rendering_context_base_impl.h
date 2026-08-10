@@ -424,6 +424,7 @@ protected:
     bool depthMask_ { false };
 
     std::map<uint64_t, napi_ref> objects_[WebGLObject::WEBGL_OBJECT_MAX] {};
+    uint64_t allocatedBufferBytes_ { 0 };
     WebGLRenderingContextBasicBase *webGLRenderingContext_ { nullptr };
 private:
     WebGLRenderingContextBaseImpl(const WebGLRenderingContextBaseImpl&) = delete;

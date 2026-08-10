@@ -166,6 +166,7 @@ bool CheckedMultiply(size_t a, size_t b, size_t& result)
 
 constexpr size_t ZERO_BUFFER_CHUNK_SIZE = 64 * 1024;
 constexpr GLsizeiptr MAX_WEBGL_BUFFER_DATA_SIZE = static_cast<GLsizeiptr>(1024) * 1024 * 1024;
+constexpr uint64_t MAX_WEBGL_TOTAL_BUFFER_DATA_SIZE = static_cast<uint64_t>(MAX_WEBGL_BUFFER_DATA_SIZE);
 const std::array<uint8_t, ZERO_BUFFER_CHUNK_SIZE> ZERO_BUFFER_DATA {};
 
 GLenum ClearBufferData(GLenum target, GLsizeiptr size, GLenum usage)
@@ -804,6 +805,15 @@ napi_value WebGLRenderingContextBaseImpl::BufferData_(
             "webGLBuffer->GetTarget %{public}u target %{public}u", webGLBuffer->GetTarget(), target);
         return NVal::CreateNull(env).val_;
     }
+    const uint64_t previousBufferSize = static_cast<uint64_t>(webGLBuffer->GetBufferSize());
+    const uint64_t retainedBufferBytes = allocatedBufferBytes_ >= previousBufferSize ?
+        allocatedBufferBytes_ - previousBufferSize : 0;
+    const uint64_t requestedBufferSize = static_cast<uint64_t>(size);
+    if (retainedBufferBytes > MAX_WEBGL_TOTAL_BUFFER_DATA_SIZE ||
+        requestedBufferSize > MAX_WEBGL_TOTAL_BUFFER_DATA_SIZE - retainedBufferBytes) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::OUT_OF_MEMORY, "buffer allocation exceeds the context quota");
+        return NVal::CreateNull(env).val_;
+    }
     glBufferData(target, size, bufferData, usage);
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
@@ -818,6 +828,7 @@ napi_value WebGLRenderingContextBaseImpl::BufferData_(
             return NVal::CreateNull(env).val_;
         }
     }
+    allocatedBufferBytes_ = retainedBufferBytes + requestedBufferSize;
     webGLBuffer->SetBuffer(size, bufferData);
     webGLBuffer->SetTarget(target);
     return NVal::CreateNull(env).val_;
