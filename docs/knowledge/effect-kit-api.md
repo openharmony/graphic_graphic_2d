@@ -1,42 +1,37 @@
-# Effect Common / NDK
+# EffectKit API（CAPI / JS）
 
 ## 适用范围
 
-- EffectKit 图像效果处理（模糊、亮度、灰度、反色、颜色矩阵）
-- ColorPicker 颜色提取
-- FilterCommon 通用效果处理管线
-- Effect NDK C 接口（`OH_Filter_*` 系列）
-- 高级效果：水波纹（WaterGlass）、竖条纹玻璃（ReededGlass）、水滴过渡（WaterDroplet）、遮罩过渡（MaskTransition）
-- 亮度映射颜色（MapColorByBrightness）、伽马校正（GammaCorrection）
-- NativeBuffer 输出（GPU 直出）
-- SDF 效果
+本文档覆盖 EffectKit 模块的公开接口层，包括：
+- **NDK C API**（`OH_Filter_*` 系列）：图像效果处理管线，供 NAPI/CJ/ANI 等上层语言绑定
+- **FilterCommon JS/CJ API**：同一效果管线的内部 JS/CJ 层入口，含 SDF 等仅内部暴露的效果
+- **ColorPicker API**：颜色提取接口，主色调/沉浸色/莫兰迪色等提取策略
+
+本文档聚焦 API 语义与使用模型，内部渲染管线（skia_effectChain）和 GPU 着色器细节作为 API 行为的背景补充。
 
 ## 快速代码地图
 
 | 文件 | 相对路径 | 职责 |
 |------|----------|------|
-| effect_filter.h | `rosen/modules/effect/effect_ndk/include/effect_filter.h` | OH_Filter NDK C API |
+| effect_filter.h | `rosen/modules/effect/effect_ndk/include/effect_filter.h` | OH_Filter NDK C API 声明 |
 | effect_types.h | `rosen/modules/effect/effect_ndk/include/effect_types.h` | NDK 类型定义与错误码 |
+| effect_filter.cpp | `rosen/modules/effect/effect_ndk/src/effect_filter.cpp` | OH_Filter NDK C API 实现 |
 | filter.h | `rosen/modules/effect/effect_ndk/src/filter/filter.h` | NDK 内部 Filter 类，桥接 C API 到效果管线 |
-| filter_common.h | `rosen/modules/effect/effect_common/include/filter_common.h` | FilterCommon 通用效果处理（CJ/JS 层） |
-| color_picker.h | `rosen/modules/effect/color_picker/include/color_picker.h` | ColorPicker 颜色提取 |
-| color_extract.h | `rosen/modules/effect/color_picker/include/color_extract.h` | ColorExtract 颜色提取核心（Median Cut 量化） |
-| effect_type.h | `rosen/modules/effect/color_picker/include/effect_type.h` | 效果类型定义 |
-| effect_errors.h | `rosen/modules/effect/color_picker/include/effect_errors.h` | 错误码 |
-| effect_utils.h | `rosen/modules/effect/color_picker/include/effect_utils.h` | 工具函数 |
-| effect_image_render.h | `rosen/modules/effect/skia_effectChain/include/effect_image_render.h` | EffectImageFilter 基类 + 11 个子类、EffectImageRender 编排器 |
-| effect_image_chain.h | `rosen/modules/effect/skia_effectChain/include/effect_image_chain.h` | EffectImageChain 低层渲染（surface、canvas、image 状态） |
-| effect_config.gni | `rosen/modules/effect/effect_config.gni` | 构建配置（仅 `effect_enable_gpu` 开关） |
+| filter_common.h | `rosen/modules/effect/effect_common/include/filter_common.h` | FilterCommon JS/CJ 层入口 |
+| color_picker.h | `rosen/modules/effect/color_picker/include/color_picker.h` | ColorPicker 颜色提取 API |
+| color_extract.h | `rosen/modules/effect/color_picker/include/color_extract.h` | ColorExtract 颜色量化核心（Median Cut） |
+| effect_image_render.h | `rosen/modules/effect/skia_effectChain/include/effect_image_render.h` | EffectImageFilter 基类 + 11 子类 |
+| effect_image_chain.h | `rosen/modules/effect/skia_effectChain/include/effect_image_chain.h` | EffectImageChain 低层渲染 |
 | egl_manager.h | `rosen/modules/effect/egl/include/egl_manager.h` | EGL 上下文管理（OpenGL 路径） |
+| effect_config.gni | `rosen/modules/effect/effect_config.gni` | 构建配置（仅 `effect_enable_gpu` 开关） |
 
-## 核心模型
-
-### 分层架构
+## API 分层架构
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  NDK C API (effect_filter.h)    │  CJ/JS API (filter_common.h) │
 │  OH_Filter_* 函数               │  FilterCommon::static 方法    │
+│  · 全部效果 + NativeBuffer 输出  │  · 全部效果 + CreateSDF       │
 └──────────────┬──────────────────┴──────────────┬────────────────┘
                │  Filter 类 (filter.h)            │  sConstructor_
                │  effectFilters_ 向量              │  AddNextFilter
@@ -56,59 +51,80 @@
                GPU 着色器执行（Skia RuntimeEffect / SkSL）
 ```
 
-### Effect NDK 接口
+两个 API 入口共享同一效果管线（`EffectImageRender` → `EffectImageChain`），区别仅在于参数转换层和效果覆盖范围。
+
+## Filter API
+
+### NDK C API：OH_Filter_* 管线模式
 
 采用创建-添加效果-获取结果的管线模式：
 
 ```
 OH_Filter_CreateEffect(pixelmap, &filter)
-  → OH_Filter_Blur(filter, radius)         // 模糊（CPU/GPU 双路径）
-  → OH_Filter_Brighten(filter, brightness)  // 亮度
-  → OH_Filter_GrayScale(filter)             // 灰度
-  → OH_Filter_Invert(filter)                // 反色
-  → OH_Filter_SetColorMatrix(filter, matrix)// 颜色矩阵
-  → OH_Filter_Scale(filter, sx, sy, ...)    // 缩放
-  → OH_Filter_MaskTransition(...)           // 遮罩过渡（GPU only）
-  → OH_Filter_WaterDropletTransition(...)   // 水滴过渡（GPU only）
-  → OH_Filter_WaterGlass(...)               // 水波纹（GPU only）
-  → OH_Filter_ReededGlass(...)              // 竖条纹玻璃（GPU only）
-  → OH_Filter_MapColorByBrightness(...)     // 亮度映射颜色（GPU only）
-  → OH_Filter_GammaCorrection(...)          // 伽马校正（GPU only）
-  → OH_Filter_GetEffectPixelMap(filter, &result)  // 获取 PixelMap 结果
+  → OH_Filter_Blur(filter, radius)                // 模糊（CPU/GPU 双路径）
+  → OH_Filter_Brighten(filter, brightness)         // 亮度
+  → OH_Filter_GrayScale(filter)                    // 灰度
+  → OH_Filter_Invert(filter)                       // 反色
+  → OH_Filter_SetColorMatrix(filter, matrix)       // 颜色矩阵
+  → OH_Filter_Scale(filter, sx, sy, ...)           // 缩放
+  → OH_Filter_MaskTransition(...)                  // 遮罩过渡（GPU only）
+  → OH_Filter_WaterDropletTransition(...)          // 水滴过渡（GPU only）
+  → OH_Filter_WaterGlass(...)                      // 水波纹（GPU only）
+  → OH_Filter_ReededGlass(...)                     // 竖条纹玻璃（GPU only）
+  → OH_Filter_MapColorByBrightness(...)            // 亮度映射颜色（GPU only）
+  → OH_Filter_GammaCorrection(...)                 // 伽马校正（GPU only）
+  → OH_Filter_GetEffectPixelMap(filter, &result)   // 获取 PixelMap 结果
   → OH_Filter_GetEffectNativeBuffer(filter, buf, &fence, release)  // GPU 直出 NativeBuffer
-  → OH_Filter_Release(filter)               // 释放
+  → OH_Filter_Release(filter)                      // 释放
 ```
 
-### FilterCommon
+### FilterCommon JS/CJ API
 
-内部效果处理管线（CJ/JS 层入口）：
+与 NDK C API 共享效果管线，额外提供 `CreateSDF`（无 NDK 对应接口）：
+
 - `CreateEffect(pixmap, errorCode)` → 创建效果实例，设置 `sConstructor_`（线程局部）
 - 效果链：`effectFilters_` 向量，通过 `AddNextFilter` 追加（上限 `MAX_FILTER_COUNT = 1000`）
 - `Render(forceCPU)` → 委托 `EffectImageRender::Render`
 - `GetEffectPixelMap()` → 获取结果 PixelMap
-- SDF 效果仅通过 `FilterCommon::CreateSDF` 暴露，无 `OH_Filter_*` NDK API
+- `CreateSDF(spreadFactor, generateDerivs)` → SDF 效果（仅 FilterCommon 暴露）
+
+### 效果分类
+
+| 效果 | NDK C API | JS/CJ API | 渲染路径 | CPU 支持 |
+|------|-----------|-----------|----------|----------|
+| Blur | `OH_Filter_Blur` | `Blur` | CPU/GPU 双路径 | 是 |
+| Brighten | `OH_Filter_Brighten` | `Brightness` | CPU（DrawingFilter） | 是 |
+| GrayScale | `OH_Filter_GrayScale` | `Grayscale` | CPU（DrawingFilter） | 是 |
+| Invert | `OH_Filter_Invert` | `Invert` | CPU（DrawingFilter） | 是 |
+| SetColorMatrix | `OH_Filter_SetColorMatrix` | `SetColorMatrix` | CPU（DrawingFilter） | 是 |
+| Scale | `OH_Filter_Scale` | `Scale` | GPU 着色器 | 否 |
+| MapColorByBrightness | `OH_Filter_MapColorByBrightness` | `MapColorByBrightness` | GPU 着色器 | 否 |
+| GammaCorrection | `OH_Filter_GammaCorrection` | `GammaCorrection` | GPU 着色器 | 否 |
+| SDF | — | `CreateSDF` | GPU 着色器 | 否 |
+| MaskTransition | `OH_Filter_MaskTransition` | `MaskTransition` | GPU 着色器 | 否 |
+| WaterDropletTransition | `OH_Filter_WaterDropletTransition` | `WaterDropletTransition` | GPU 着色器（闭源） | 否 |
+| WaterGlass | `OH_Filter_WaterGlass` | `WaterGlass` | GPU 着色器（闭源） | 否 |
+| ReededGlass | `OH_Filter_ReededGlass` | `ReededGlass` | GPU 着色器（闭源） | 否 |
 
 ### NDK 类型系统
 
-- `EffectErrorCode`：SUCCESS / BAD_PARAMETER / UNSUPPORTED_OPERATION / UNKNOWN_ERROR
-- `EffectTileMode`：CLAMP / REPEAT / MIRROR / DECAL
-- `EffectMaskType`：LINEAR_GRADIENT_MASK / RADIAL_GRADIENT_MASK
-- `OH_Filter_ColorMatrix`：5x4 颜色矩阵（float[20]）
-- `OH_Filter_Color`：RGBA 四通道浮点颜色
-- `OH_Filter_WaterGlassDataParams`：水波纹参数（30+ 字段，含速度、折射、波形、光照、遮罩等）
-- `OH_Filter_ReededGlassDataParams`：竖条纹玻璃参数（20 字段，含折射、网格光/影、点光源等）
-- `OH_Filter_WaterDropletParams`：水滴过渡参数（12 字段，含位置、半径、扭曲、噪声、光照）
-- `OH_Filter_MapColorByBrightnessParams`：亮度映射颜色参数（颜色数组 + 位置数组，最多 5 对）
+| 类型 | 定义位置 | 用途 |
+|------|----------|------|
+| `EffectErrorCode` | `effect_types.h` | SUCCESS / BAD_PARAMETER / UNSUPPORTED_OPERATION / UNKNOWN_ERROR |
+| `EffectTileMode` | `effect_types.h` | CLAMP / REPEAT / MIRROR / DECAL（模糊边缘处理） |
+| `EffectMaskType` | `effect_types.h` | LINEAR_GRADIENT_MASK / RADIAL_GRADIENT_MASK |
+| `OH_Filter_ColorMatrix` | `effect_types.h` | 5x4 颜色矩阵（float[20]） |
+| `OH_Filter_Color` | `effect_types.h` | RGBA 四通道浮点颜色 |
+| `OH_Filter_WaterGlassDataParams` | `effect_types.h` | 水波纹参数（30+ 字段：速度、折射、波形、光照、遮罩等） |
+| `OH_Filter_ReededGlassDataParams` | `effect_types.h` | 竖条纹玻璃参数（20 字段：折射、网格光/影、点光源等） |
+| `OH_Filter_WaterDropletParams` | `effect_types.h` | 水滴过渡参数（12 字段：位置、半径、扭曲、噪声、光照） |
+| `OH_Filter_MapColorByBrightnessParams` | `effect_types.h` | 亮度映射颜色参数（颜色数组 + 位置数组，最多 5 对） |
 
-## 效果链执行顺序
-
-### 添加顺序
+### 效果链执行顺序
 
 `AddNextFilter` 将 `EffectImageFilter` 追加到 `effectFilters_` 向量尾部（`emplace_back`），保持调用顺序。
 
-### 执行流程
-
-`EffectImageRender::Render` 的执行步骤：
+`EffectImageRender::Render` 执行步骤：
 
 ```
 1. effectImage->Prepare(srcPixelMap, forceCPU)  // 创建 Surface、转换像素
@@ -123,7 +139,7 @@ OH_Filter_CreateEffect(pixelmap, &filter)
 
 **策略 A：惰性 ImageFilter 组合**（CPU 路径滤镜）
 
-适用于 `ApplyDrawingFilter`（亮度、灰度、反色、颜色矩阵）和 CPU 路径 `ApplyBlur`。
+适用于 Brighten、GrayScale、Invert、SetColorMatrix 和 CPU 路径 Blur。
 
 - 通过 `CreateComposeImageFilter(newFilter, existingFilters_)` 将新滤镜包裹为外层
 - 实际执行延迟到 `Draw()` 时统一渲染
@@ -131,7 +147,7 @@ OH_Filter_CreateEffect(pixelmap, &filter)
 
 **策略 B：即时 GPU 着色器应用**
 
-适用于 GPU 路径模糊、MapColorByBrightness、GammaCorrection、SDF、WaterGlass、ReededGlass、MaskTransition、WaterDropletTransition、Scale。
+适用于 GPU 路径 Blur、MapColorByBrightness、GammaCorrection、SDF、WaterGlass、ReededGlass、MaskTransition、WaterDropletTransition、Scale。
 
 - 先调用 `UpdateImage()` 刷出已累积的惰性 ImageFilter（如有）
 - 然后立即调用 `GEShaderFilter::ProcessImage()` 处理 `image_`，原地替换
@@ -141,9 +157,9 @@ OH_Filter_CreateEffect(pixelmap, &filter)
 2. `Invert`：惰性，`CreateComposeImageFilter` 与 `filters_` 组合
 3. `MapColorByBrightness`：先 `UpdateImage()` 刷出 Blur+Invert，再即时 GPU 处理
 
-## GPU NativeBuffer 输出
+### GPU NativeBuffer 输出
 
-### 调用链
+`OH_Filter_GetEffectNativeBuffer` 提供不经过 PixelMap 的 GPU 直出路径：
 
 ```
 OH_Filter_GetEffectNativeBuffer(filter, nativeBuffer, &syncFenceFd, releaseGpuContext)
@@ -154,9 +170,7 @@ OH_Filter_GetEffectNativeBuffer(filter, nativeBuffer, &syncFenceFd, releaseGpuCo
       → EffectImageChain::DrawNativeBuffer()
 ```
 
-### PrepareNativeBuffer
-
-仅 Vulkan 路径（`RS_ENABLE_VK`），OpenGL/EGL 不支持 NativeBuffer 直出：
+**PrepareNativeBuffer**：仅 Vulkan 路径（`RS_ENABLE_VK`），OpenGL/EGL 不支持。
 
 1. `RsVulkanContext::GetSingleton().CreateDrawingContext()` — 创建 Vulkan GPU 上下文
 2. `NativeBufferUtils::CreateSurfaceFromNativeBuffer()` — 将 `OH_NativeBuffer` 导入为 VkImage
@@ -168,7 +182,7 @@ OH_Filter_GetEffectNativeBuffer(filter, nativeBuffer, &syncFenceFd, releaseGpuCo
 
 GPU 直接渲染到 `OH_NativeBuffer`，无需中间 PixelMap 拷贝。
 
-### DrawNativeBuffer 同步机制
+**同步机制**：
 
 ```
 1. DrawOnFilter()                           // 绘制滤镜效果到 canvas
@@ -180,25 +194,27 @@ GPU 直接渲染到 `OH_NativeBuffer`，无需中间 PixelMap 拷贝。
 ```
 
 - `VkExportSemaphoreCreateInfo.handleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT`
-- `GetFenceFdFromSemaphore` 通过 `vkGetSemaphoreFdKHR` 提取 sync_fd
 - 调用者使用 sync_fd 等待 GPU 完成后再读取 NativeBuffer
 - `DestroySemaphoreInfo` 使用原子引用计数（初始 2），一个由显式调用减少，一个由 GPU 完成回调减少
 
-### GPU 上下文生命周期
-
-`releaseGpuContext` 参数控制：
+**GPU 上下文生命周期**：`releaseGpuContext` 参数控制：
 - `false`：保留 GPU 上下文，可复用于后续渲染
 - `true`：`EffectImageChain` 析构时调用 `gpuContext_->ReleaseResourcesAndAbandonContext()`，适用于一次性渲染场景
 
-### OpenGL 路径 Surface 创建
+## ColorPicker API
 
-`EffectImageChain::CreateSurface(forceCPU=false)` 在 OpenGL 路径：
-1. `RenderContext::Create()` → 内部使用 `EglManager` 单例
-2. `EglManager::Init()` → `eglGetDisplay` + `eglInitialize` + 创建 PBuffer Surface + `eglCreateContext`（GLES 3.x）+ `eglMakeCurrent`
-3. `EglManager::RetryEGLContext()` → 重入时检查上下文是否在当前线程，否则重新 `eglMakeCurrent`
-4. `Drawing::Surface::MakeRenderTarget(gpuContext, false, imageInfo)` — 创建渲染目标
+### 接口概览
 
-## ColorPicker 算法
+| 方法 | 策略 | 代码位置 |
+|------|------|----------|
+| `GetMainColor` | 缩放至 1x1 像素（双线性平均） | `color_picker.cpp:149-181` |
+| `GetLargestProportionColor` | 返回特征色中像素数最多的 | `color_picker.cpp:218-225` |
+| `GetHighestSaturationColor` | 遍历特征色，取 HSV 饱和度最高 | `color_picker.cpp:227-244` |
+| `GetAverageColor` | 按像素数加权平均所有特征色 | `color_picker.cpp:246-271` |
+| `GetImmersiveBackgroundColor` | `GetDominantColor` + `ColorBrightnessMode` 调整 | `color_picker.cpp:609-643` |
+| `GetImmersiveForegroundColor` | 反转背景色的亮度模式 | `color_picker.cpp:646-674` |
+| `GetMorandiBackgroundColor` | 强制 S=9, V=84 保留主色调 | `color_picker.cpp:407-447` |
+| `GetReverseColor` | 亮图返回黑色，暗图返回白色 | `color_picker.cpp:374-390` |
 
 ### 核心算法：Median Cut（VBox）颜色量化
 
@@ -219,19 +235,6 @@ GPU 直接渲染到 `OH_NativeBuffer`，无需中间 PixelMap 拷贝。
 | 11. 按像素数降序排列 | `GetNFeatureColors` | `color_extract.cpp:437` |
 
 默认输出 20 个特征色（`specifiedFeatureColorNum_ = 20`），可通过 `SetFeatureColorNum` 配置。
-
-### 主色提取策略
-
-| 方法 | 策略 | 代码位置 |
-|------|------|----------|
-| `GetMainColor` | 缩放至 1x1 像素（双线性平均） | `color_picker.cpp:149-181` |
-| `GetLargestProportionColor` | 返回特征色中像素数最多的 | `color_picker.cpp:218-225` |
-| `GetHighestSaturationColor` | 遍历特征色，取 HSV 饱和度最高 | `color_picker.cpp:227-244` |
-| `GetAverageColor` | 按像素数加权平均所有特征色 | `color_picker.cpp:246-271` |
-| `GetImmersiveBackgroundColor` | `GetDominantColor` + `ColorBrightnessMode` 调整 | `color_picker.cpp:609-643` |
-| `GetImmersiveForegroundColor` | 反转背景色的亮度模式 | `color_picker.cpp:646-674` |
-| `GetMorandiBackgroundColor` | 强制 S=9, V=84 保留主色调 | `color_picker.cpp:407-447` |
-| `GetReverseColor` | 亮图返回黑色，暗图返回白色 | `color_picker.cpp:374-390` |
 
 ### ColorBrightnessMode 分类
 
@@ -264,7 +267,7 @@ GPU 直接渲染到 `OH_NativeBuffer`，无需中间 PixelMap 拷贝。
 
 仅基于 `contrastToWhite_`，阈值依次为 1.5 / 1.9 / 3.0 / 7.0 / 14.0，对应从极浅到极深 6 级。
 
-## skia_effectChain 与 FilterCommon 的关系
+## 内部实现：skia_effectChain 管线
 
 `FilterCommon` 是高层 API 入口，`skia_effectChain` 是低层渲染引擎：
 
@@ -296,7 +299,15 @@ Drawing::GE*ShaderFilter            -- GPU 着色器执行
 
 文件依赖：`filter_common.h` → `effect_image_render.h` → `effect_image_chain.h`
 
-## 水波纹/竖条纹玻璃效果的 GPU 着色器实现
+### OpenGL 路径 Surface 创建
+
+`EffectImageChain::CreateSurface(forceCPU=false)` 在 OpenGL 路径：
+1. `RenderContext::Create()` → 内部使用 `EglManager` 单例
+2. `EglManager::Init()` → `eglGetDisplay` + `eglInitialize` + 创建 PBuffer Surface + `eglCreateContext`（GLES 3.x）+ `eglMakeCurrent`
+3. `EglManager::RetryEGLContext()` → 重入时检查上下文是否在当前线程，否则重新 `eglMakeCurrent`
+4. `Drawing::Surface::MakeRenderTarget(gpuContext, false, imageInfo)` — 创建渲染目标
+
+## 内部实现：GPU 着色器
 
 ### 着色器来源
 
