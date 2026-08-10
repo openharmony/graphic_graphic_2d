@@ -116,7 +116,7 @@ bool GetPixelBytes(GLenum type, uint32_t components, size_t& bytes)
         default:
             return false;
     }
-    if (components == 0 || static_cast<size_t>(components) > SIZE_MAX / componentSize) {
+    if (componentSize == 0 || components == 0 || static_cast<size_t>(components) > SIZE_MAX / componentSize) {
         return false;
     }
     bytes = componentSize * static_cast<size_t>(components);
@@ -290,6 +290,9 @@ struct PixelUnpackState {
 GLenum BuildPixelUnpackLayout(const TexImageArg& imgArg, uint32_t componentCount,
     const PixelUnpackState& state, PixelUnpackLayout& layout)
 {
+    if (state.alignment != 1 && state.alignment != 2 && state.alignment != 4 && state.alignment != 8) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
     layout.width = static_cast<size_t>(imgArg.width);
     layout.height = static_cast<size_t>(imgArg.height);
     bool is3D = imgArg.target == GL_TEXTURE_3D || imgArg.target == GL_TEXTURE_2D_ARRAY;
@@ -387,7 +390,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckPixelUnpackData(
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
     size_t elementSize = GetPixelElementSize(imgArg.type);
-    if (offset < 0 || static_cast<uint64_t>(offset) % elementSize != 0) {
+    if (elementSize == 0 || offset < 0 || static_cast<uint64_t>(offset) % elementSize != 0) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
     if (unpackFlipY_ || unpackPremultiplyAlpha_) {

@@ -1762,6 +1762,10 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
         return NVal::CreateNull(env).val_;
     }
     size_t elementSize = bufferData.GetBufferDataSize();
+    if (elementSize == 0) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "buffer element size is zero");
+        return NVal::CreateNull(env).val_;
+    }
     size_t byteLength = bufferData.GetBufferLength();
     size_t elementCount = bufferData.GetElementCount();
     if (ext.offset > elementCount) {
