@@ -53,7 +53,6 @@ public:
      * caller ensuring there is a single active consumer (see RSUIDirector teardown).
      */
     static void Release();
-    std::atomic<bool> isRegistered_ {false};
     RSApplicationAgentImpl() = default;
     virtual ~RSApplicationAgentImpl();
 private:
@@ -89,6 +88,8 @@ public:
     // Ensures the application agent singleton exists and is registered. Called from RSUIDirector::Init.
     void EnsureRegistered(std::shared_ptr<RSUIContext> rsUIContext);
     ~RSApplicationAgentLifecycleOwner();
+private:
+    std::atomic<bool> isRegistered_ { false };
 };
 }
 }
