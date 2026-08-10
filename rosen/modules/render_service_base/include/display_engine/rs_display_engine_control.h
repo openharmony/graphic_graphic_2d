@@ -37,6 +37,8 @@ public:
     int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values);
     int32_t RegisterDEStatusChangeCallback(const sptr<RSIDEStatusChangeCallback>& callback);
     int32_t UnregisterDEStatusChangeCallback();
+
+    // for inner modules to trigger callback
     int32_t NotifyDEStatusChangeDone(const uint32_t sceneKey, const std::vector<uint8_t>& result);
 
 private:
