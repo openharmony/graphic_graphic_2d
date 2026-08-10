@@ -155,10 +155,10 @@ bool DoCheckIlluminated(const uint8_t* data, size_t size)
     auto illuminatedGeoPtr = std::make_shared<RSRenderNode>(id);
     illuminatedGeoPtr->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
     illuminatedGeoPtr->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
-    instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
+    instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr, false);
 
     lightSourcePtr->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
-    instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
+    instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr, true);
     return true;
 }
 } // namespace Rosen

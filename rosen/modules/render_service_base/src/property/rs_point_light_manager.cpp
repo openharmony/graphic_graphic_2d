@@ -206,7 +206,7 @@ void RSPointLightManager::PrepareLight(std::unordered_map<NodeId, std::weak_ptr<
             }
             std::shared_ptr<RSRenderNode> lightSourceNode = isLightSourceDirty ? dirtyNodePtr : mapElm;
             std::shared_ptr<RSRenderNode> illuminatedNode = isLightSourceDirty ? mapElm : dirtyNodePtr;
-            CheckIlluminated(lightSourceNode, illuminatedNode);
+            CheckIlluminated(lightSourceNode, illuminatedNode, isLightSourceDirty);
         }
         return false;
     });
@@ -222,8 +222,8 @@ static bool IsLightSourceAffectIlluminatedNode(const Vector4f& pos, const RectF&
     return ROSEN_LE(dx * dx + dy * dy, radius * radius);
 }
 
-void RSPointLightManager::CheckIlluminated(
-    const std::shared_ptr<RSRenderNode>& lightSourceNode, const std::shared_ptr<RSRenderNode>& illuminatedNode)
+void RSPointLightManager::CheckIlluminated(const std::shared_ptr<RSRenderNode>& lightSourceNode,
+    const std::shared_ptr<RSRenderNode>& illuminatedNode, bool isLightSourceDirty)
 {
     if (illuminatedNode->GetInstanceRootNodeId() != lightSourceNode->GetInstanceRootNodeId()) {
         return;
@@ -232,6 +232,24 @@ void RSPointLightManager::CheckIlluminated(
     auto illuminatedPtr = illuminatedNode->GetRenderProperties().GetIlluminated();
     if (!lightSourcePtr || !illuminatedPtr) {
         return;
+    }
+    // Only the map node may have been subtree-skipped; the dirtyList node was definitely prepared.
+    auto notInList = [](NodeId id, const std::vector<std::weak_ptr<RSRenderNode>>& list) {
+        for (const auto& w : list) {
+            if (auto n = w.lock(); n && n->GetId() == id) {
+                return false;
+            }
+        }
+        return true;
+    };
+    if (!isLightSourceDirty) {
+        if (notInList(lightSourceNode->GetId(), dirtyLightSourceList_)) {
+            EnsureAbsMatrixUpdated(lightSourceNode);
+        }
+    } else {
+        if (notInList(illuminatedNode->GetId(), dirtyIlluminatedList_)) {
+            EnsureAbsMatrixUpdated(illuminatedNode);
+        }
     }
     // Calculate the relative position of the light source and illuminable node.
     auto lightRelativePosOpt = CalculateLightRelativePosition(lightSourceNode, illuminatedNode);
@@ -248,6 +266,24 @@ void RSPointLightManager::CheckIlluminated(
         MarkIlluminatedNodeDirty(illuminatedNode);
     }
 }
+
+void RSPointLightManager::EnsureAbsMatrixUpdated(const std::shared_ptr<RSRenderNode>& node)
+{
+    // instanceRootNode may be skipped last frame;
+    // harmless: no light change → stay; light changed → correct absMatrix next frame (1-frame delay OK).
+    auto instanceRootNode = node->GetInstanceRootNode();
+    if (!instanceRootNode) {
+        return;
+    }
+    Drawing::Matrix absMatrix;
+    if (node->GetAbsMatrixReverse(*instanceRootNode, absMatrix)) {
+        const auto& geo = node->GetRenderProperties().GetBoundsGeometry();
+        if (geo) {
+            geo->SetAbsMatrix(absMatrix);
+        }
+    }
+}
+
 std::optional<Vector4f> RSPointLightManager::CalculateLightRelativePosition(
     const std::shared_ptr<RSRenderNode>& lightSourceNodePtr, const std::shared_ptr<RSRenderNode>& illuminatedNodePtr)
 {
