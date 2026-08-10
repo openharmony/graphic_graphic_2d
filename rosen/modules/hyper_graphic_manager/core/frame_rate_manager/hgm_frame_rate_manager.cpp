@@ -133,8 +133,7 @@ void HgmFrameRateManager::InitConfig()
         if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
             iter != configData->screenStrategyConfigs_.end()) {
             curScreenStrategyId_ = iter->second;
-        }
-        if (curScreenStrategyId_.empty()) {
+        } else {
             HandleScreenStrategyFallback(configData);
         }
         isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
