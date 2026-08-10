@@ -559,6 +559,10 @@ void RSUniRenderThread::SubScribeSystemAbility()
     std::string strTid = std::to_string(gettid());
 
     saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    if (saStatusChangeListener_ == nullptr) {
+        RS_LOGE("RSUniRenderThread::SubScribeSystemAbility saStatusChangeListener_ is nullptr");
+        return;
+    }
     int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
     if (ret != ERR_OK) {
         RS_LOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
@@ -816,6 +820,9 @@ void RSUniRenderThread::DumpMem(DfxString& log, bool isLite)
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        if (node == nullptr) {
+            return;
+        }
         NodeId nodeId = node->GetId();
         std::string name = node->GetName() + " " + std::to_string(ExtractPid(nodeId)) + " " + std::to_string(nodeId);
         nodeTags.push_back({nodeId, name});
@@ -898,8 +905,9 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         SKResourceManager::Instance().ReleaseResource();
         grContext->Flush();
         SkGraphics::PurgeAllCaches(); // clear cpu cache
-        auto pid = *(this->exitedPidSet_.begin());
-        if (this->exitedPidSet_.size() == 1 && pid == -1) { // no exited app, just clear scratch resource
+        bool noExitedApp = this->exitedPidSet_.empty() ||
+            (this->exitedPidSet_.size() == 1 && *(this->exitedPidSet_.begin()) == -1);
+        if (noExitedApp) { // no exited app, just clear scratch resource
             if (deeply || isDeeplyRelGpuResEnable) {
                 MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
             } else {

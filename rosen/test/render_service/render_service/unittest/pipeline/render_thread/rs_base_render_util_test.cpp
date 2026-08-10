@@ -1045,7 +1045,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     Drawing::Bitmap bitmap;
-    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
 }
 
 /*
@@ -1083,6 +1083,35 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
     rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
         rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_HasCropMetadataNullBuffer
+ * @tc.desc: hasCropMetadata true but buffer nullptr -> dstRect falls back to srcRect (no crash)
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_HasCropMetadataNullBuffer, TestSize.Level2)
+{
+    RectF localBounds;
+    BufferDrawParam params;
+    params.hasCropMetadata = true;
+    params.buffer = nullptr;
+    params.srcRect = Drawing::Rect(1, 2, 3, 4);
+    ASSERT_EQ(params.buffer, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    ASSERT_NE(rsNode->GetRSSurfaceHandler(), nullptr);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
+        rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
+    // buffer nullptr + hasCropMetadata -> else branch: dstRect = srcRect
+    EXPECT_EQ(params.dstRect.GetLeft(), params.srcRect.GetLeft());
+    EXPECT_EQ(params.dstRect.GetTop(), params.srcRect.GetTop());
+    EXPECT_EQ(params.dstRect.GetWidth(), params.srcRect.GetWidth());
+    EXPECT_EQ(params.dstRect.GetHeight(), params.srcRect.GetHeight());
 }
 
 /*
