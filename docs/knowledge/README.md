@@ -63,7 +63,8 @@
 | Composer/HDI | `composer-hdi.md` | `render_service/composer/`, `composer/hdi_backend/`, `HdiBackend` | composer |
 | VSync/native_vsync | `vsync-native-vsync.md` | `composer/vsync/`, `native_vsync/`, `VSync*` | vsync/fuzz |
 | 屏幕/虚拟屏 | `screen-manager.md` | `screen_manager/`, `ScreenManager` | screen/fuzz |
-| Dirty/遮挡 | `dirty-region.md` | `dirty/`, `dirty_region/`, `Occlusion` | dirty |
+| 脏区/局部刷新 | `dirty-region.md` | `DirtyRegion`, `Quick Reject`, `OnSync`, `BufferAge`, `damage`  |
+| 遮挡裁剪/可见区 | `occlusion-culling.md` | `VisibleRegion`, `visible dirty`, `cross`, `Offscreen`, `stencil`  |
 | OPINC/组渲染 | `opinc-rendergroup.md` | `opinc/`, `render_group/` | 性能/图测 |
 | UIFirst 子线程渲染 | `uifirst.md` | `uifirst/`, `RSUifirstManager`, `SubThread` | 性能/图测 |
 | layer/special/tunnel | `layer-special-tunnel.md` | `layer/`, `special_layer/`, `tunnel_layer/` | layer |
@@ -125,6 +126,11 @@
 | fuzz、sanitize、crash、Parcel、IPC、unmarshal | `fuzzing.md` |
 | 越界、溢出、畸形输入、不可信输入 | `fuzzing.md` |
 | 稳帧、帧稳定、FrameStability、dirty 检测、stableDuration、changePercent | `frame_stability_module.md` |
+| dirty、damage、Buffer Age、partial render、EGL damage | `dirty-region.md` |
+| Quick Reject、清理、重置、`syncDirtyManager_` | `dirty-region.md` |
+| occlusion、visible region、opaque region、stencil、遮挡剔除 | `occlusion-culling.md` |
+| visible dirty、first-level cross、Offscreen | `occlusion-culling.md`；涉及 dirty 求交时补读 `dirty-region.md` |
+| Surface/节点被错误跳过、完全遮挡后仍在绘制 | `occlusion-culling.md` |
 
 ## 跨文档补读
 
@@ -135,6 +141,9 @@
 | HGM 与 VSync/DVSync 交互 | `vsync-native-vsync.md` |
 | HDR、颜色空间 | `hdr.md`、`colorspace.md` |
 | Filter、Effect、HPAE 滤镜缓存、NGEffect、ColorPicker | `rs-ui-effect.md`、`2d-effect-filter.md`、`rs-ng-effect-framework.md`、`rs-color-picker-thread.md` |
+| Quick Reject 产生、同步、清理或重建 | 先读 `dirty-region.md`；消费结果改变时再读 `occlusion-culling.md` |
+| visible dirty 求交、cross、Offscreen 或 Surface 误裁剪 | `occlusion-culling.md`、`dirty-region.md` |
+| damage、Buffer Age 或历史脏区 | `dirty-region.md`；不必默认读取遮挡文档 |
 
 ## 知识文档沉淀规则
 
