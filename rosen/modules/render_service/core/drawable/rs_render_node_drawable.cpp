@@ -281,9 +281,12 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
             nodeId_, isForegroundFilterCache, opincCachedMark, params.GetRSFreezeFlag(),
             params.IsFreezedByUser());
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
+        NodeId rootId = curDrawingCacheRootId_;
         curDrawingCacheRoot_ = this;
+        curDrawingCacheRootId_ = GetId();
         UpdateCacheSurface(canvas, params);
         curDrawingCacheRoot_ = root;
+        curDrawingCacheRootId_ = rootId;
         return;
     }
 
@@ -298,12 +301,15 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
         isOffScreenWithClipHole_ = true;
         RS_TRACE_NAME_FMT("UpdateCacheSurface with filter id:%" PRIu64 "", nodeId_);
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
+        NodeId rootId = curDrawingCacheRootId_;
         curDrawingCacheRoot_ = this;
+        curDrawingCacheRootId_ = GetId();
         UpdateCacheSurface(canvas, params);
         // if this NodeGroup contains other nodeGroup with filter, we should reset the isOffScreenWithClipHole_
         isOffScreenWithClipHole_ = isOffScreenWithClipHole;
         curCanvas->SetCacheType(canvasType);
         curDrawingCacheRoot_ = root;
+        curDrawingCacheRootId_ = rootId;
     }
 }
 
@@ -315,7 +321,9 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
         return;
     }
     RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
+    NodeId rootId = curDrawingCacheRootId_;
     curDrawingCacheRoot_ = this;
+    curDrawingCacheRootId_ = GetId();
     SetFilterNodeSize(filterInfoVec.size());
     Drawing::AutoCanvasRestore arc(canvas, true);
     bool isOpDropped = isOpDropped_;
@@ -354,6 +362,7 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     isOpDropped_ = isOpDropped;
     SetDrawBlurForCache(false);
     curDrawingCacheRoot_ = root;
+    curDrawingCacheRootId_ = rootId;
 }
 
 bool RSRenderNodeDrawable::UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params)
