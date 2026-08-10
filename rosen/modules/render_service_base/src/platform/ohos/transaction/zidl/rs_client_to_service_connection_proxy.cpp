@@ -3895,7 +3895,6 @@ sptr<IRemoteObject> RSClientToServiceConnectionProxy::GetDisplayEngineControl()
     sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
     if (rObj == nullptr) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::GetDisplayEngineControl: obj is nullptr");
-        return nullptr;
     }
     return rObj;
 }
