@@ -79,6 +79,10 @@ PropertyId RSPropertyAnimation::GetPropertyId() const
 
 void RSPropertyAnimation::OnStart()
 {
+    if (property_ == nullptr) {
+        ROSEN_LOGE("RSPropertyAnimation::OnStart, property is null");
+        return;
+    }
     if (!hasOriginValue_) {
         originValue_ = GetPropertyValue();
         hasOriginValue_ = true;
