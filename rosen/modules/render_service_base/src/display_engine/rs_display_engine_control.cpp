@@ -62,7 +62,7 @@ int32_t RSDisplayEngineControl::NotifyDEStatusChangeDone(const uint32_t sceneKey
 {
     std::lock_guard<std::mutex> lock(callbackMutex_);
     if (deStatusChangeCallback_ == nullptr) {
-        RS_LOGE("RSDisplayEngineControl::NotifyDEStatusChangeDone deStatusChangeCallback_ is nullptr");
+        RS_LOGW("RSDisplayEngineControl::NotifyDEStatusChangeDone deStatusChangeCallback_ is nullptr");
         return -1;
     }
     deStatusChangeCallback_->OnNotifyDEStatusChangeDone(sceneKey, result);
