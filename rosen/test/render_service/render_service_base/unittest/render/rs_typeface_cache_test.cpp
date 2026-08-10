@@ -1011,5 +1011,208 @@ HWTEST_F(RSTypefaceCacheTest, RemoveHashMap_UnderflowGuard001, TestSize.Level1)
     EXPECT_EQ(RSTypefaceCache::Instance().generalTypefaceTotalCpuMemory_, 0u);
     EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);
 }
+
+// Builds a real typeface from the system Roboto font, so cap tests exercise the genuine ashmem
+// registration path (real fd/size/data) instead of a synthetic default font. Returns nullptr if
+// the font file is absent in the test environment.
+static std::shared_ptr<Drawing::Typeface> MakeRobotoTypeface()
+{
+    std::vector<char> content;
+    if (!LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content) || content.empty()) {
+        return nullptr;
+    }
+    auto tf = Drawing::Typeface::MakeFromAshmem(
+        reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    if (tf != nullptr) {
+        tf->SetSize(content.size()); // keep GetSize() O(1) regardless of build flags
+    }
+    return tf;
+}
+
+/**
+ * @tc.name: CacheCapTest001
+ * @tc.desc: Verify per-pid base cap (1024 distinct base hashes): the 1025th distinct base is rejected,
+ *           existing entries stay cached, and removing one base frees the quota.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, CacheCapTest001, TestSize.Level2)
+{
+    auto base = MakeRobotoTypeface();
+    ASSERT_NE(base, nullptr);
+    constexpr pid_t pid = 777777; // dedicated pid so prior tests cannot affect the count
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid); // ensure clean slate
+    // Only one real font file is available, so distinct base hashes are fabricated via SetHash to
+    // simulate distinct fonts. Cap accounting keys on GetHash() (read at insert time), so the same
+    // typeface reused with different hashes exercises the cap exactly as distinct real fonts would.
+    auto registerDistinct = [&base](pid_t p, uint32_t id, uint32_t baseHash) {
+        base->SetHash(baseHash);
+        return RSTypefaceCache::Instance().CacheDrawingTypeface(
+            (static_cast<uint64_t>(p) << 32) | id, base);
+    };
+
+    constexpr uint32_t perPidCap = 1024;
+    std::vector<uint64_t> ids;
+    ids.reserve(perPidCap);
+    for (uint32_t i = 1; i <= perPidCap; i++) {
+        ids.push_back((static_cast<uint64_t>(pid) << 32) | i);
+        EXPECT_TRUE(registerDistinct(pid, i, i)); // distinct base per registration
+    }
+    // The per-pid + 1-th *distinct* base must be rejected.
+    EXPECT_FALSE(registerDistinct(pid, perPidCap + 1, perPidCap + 1));
+    // Rejection must not evict already-cached entries.
+    EXPECT_NE(RSTypefaceCache::Instance().GetDrawingTypefaceCache(ids.front()), nullptr);
+
+    // Removing one base frees the quota so a new distinct base registers again.
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(ids.back());
+    EXPECT_TRUE(registerDistinct(pid, perPidCap + 1, perPidCap + 1));
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid); // cleanup
+}
+
+/**
+ * @tc.name: CacheCapTest002
+ * @tc.desc: Verify with a REAL font that a base and its variation share one base slot: registering
+ *           Roboto plus a MakeClone variation, and re-registering the same base, leaves the pid at
+ *           exactly one distinct base (variations do not each consume quota).
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, CacheCapTest002, TestSize.Level2)
+{
+    auto base = MakeRobotoTypeface();
+    ASSERT_NE(base, nullptr);
+    constexpr pid_t pid = 666666;
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
+
+    // Register the real font as the base.
+    EXPECT_TRUE(RSTypefaceCache::Instance().CacheDrawingTypeface(
+        (static_cast<uint64_t>(pid) << 32) | 1, base));
+
+    // A variation of the same font shares its base hash; registering it must not add a base slot.
+    Drawing::FontArguments fontArgs;
+    std::vector<Drawing::FontArguments::VariationPosition::Coordinate> coords = {{2003265652, 700.0f}};
+    fontArgs.SetVariationDesignPosition({coords.data(), coords.size()});
+    auto variation = base->MakeClone(fontArgs);
+    ASSERT_NE(variation, nullptr);
+    variation->SetFd(base->GetFd());
+    // Mirror the production variation path (InsertVariationTypeface): MakeClone leaves the clone's
+    // hash unset, and SkTypeface::GetHash() then lazily hashes the already-varied clone to a value
+    // unrelated to the base. Propagate the base hash so the variation shares one cap slot.
+    variation->SetHash(base->GetHash());
+    EXPECT_TRUE(RSTypefaceCache::Instance().CacheDrawingTypeface(
+        (static_cast<uint64_t>(pid) << 32) | 2, variation));
+
+    // Re-registering the same base under more uniqueIds dedups against the existing base.
+    for (uint32_t i = 3; i <= 100; i++) {
+        EXPECT_TRUE(RSTypefaceCache::Instance().CacheDrawingTypeface(
+            (static_cast<uint64_t>(pid) << 32) | i, base));
+    }
+
+    // Base + its variation + duplicates all share one base => exactly one distinct base.
+    EXPECT_EQ(RSTypefaceCache::Instance().pidBaseMap_[pid].size(), 1u);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
+}
+
+/**
+ * @tc.name: CacheCapTest003
+ * @tc.desc: Verify the global base cap (16384 distinct base hashes): once reached, a new base from a
+ *           fresh pid is rejected.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, CacheCapTest003, TestSize.Level3)
+{
+    auto base = MakeRobotoTypeface();
+    ASSERT_NE(base, nullptr);
+    // Reset the shared singleton so the global base baseline is exactly 0 for this test.
+    RSTypefaceCache::Instance().typefaceHashCode_.clear();
+    RSTypefaceCache::Instance().typefaceHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceBaseHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceHashQueue_.clear();
+    RSTypefaceCache::Instance().pidBaseMap_.clear();
+
+    constexpr uint32_t perPidCap = 1024;
+    constexpr uint32_t globalCap = 16384;
+    constexpr uint32_t pidCount = globalCap / perPidCap; // 16 pids
+    constexpr pid_t basePid = 888000;
+
+    // Distinct base hashes are mandatory: fullHash's low 32 bits are GetHash(), so without distinct
+    // hashes every registration of the same font would collapse to one base and never reach the
+    // cap. Only one font file is available, so the hashes are fabricated via SetHash (read at insert
+    // time, hence the typeface can be reused).
+    uint32_t baseHash = 1; // globally unique base hash per registration => one distinct base each
+    for (uint32_t p = 0; p < pidCount; p++) {
+        pid_t pid = basePid + static_cast<pid_t>(p);
+        for (uint32_t i = 1; i <= perPidCap; i++) {
+            base->SetHash(baseHash++);
+            ASSERT_TRUE(RSTypefaceCache::Instance().CacheDrawingTypeface(
+                (static_cast<uint64_t>(pid) << 32) | i, base));
+        }
+    }
+    // Global base cap reached: a brand-new base from a new pid must be rejected.
+    pid_t extraPid = basePid + static_cast<pid_t>(pidCount);
+    base->SetHash(baseHash);
+    EXPECT_FALSE(RSTypefaceCache::Instance().CacheDrawingTypeface(
+        (static_cast<uint64_t>(extraPid) << 32) | 1, base));
+
+    for (uint32_t p = 0; p < pidCount; p++) {
+        RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(basePid + static_cast<pid_t>(p));
+    }
+}
+
+/**
+ * @tc.name: CacheCapTest004
+ * @tc.desc: Verify the ashmem-reuse path (UpdateDrawingTypefaceRef) enforces the per-pid base cap.
+ *           A pid at its cap cannot attach a cached base it does not hold, while a pid under the cap
+ *           can reuse the same base — proving the rejection is the cap, not a cache miss.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, CacheCapTest004, TestSize.Level2)
+{
+    constexpr pid_t pidAtCap = 111111;
+    constexpr pid_t pidUnderCap = 222222;
+    constexpr pid_t seeder = 333333;
+    constexpr uint32_t reuseBaseHash = 999; // pre-cached so the reuse path can find it
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pidAtCap);
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pidUnderCap);
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(seeder);
+
+    // A non-fd typeface is used here deliberately: UpdateDrawingTypefaceRef looks up typefaceHashMap_
+    // by fullHash == hash_, which matches a non-fd cached entry. An fd-backed font's cached
+    // fullHash carries variation coords in its high bits and would not match this lookup.
+    auto makeDefault = [](uint32_t h) {
+        auto tf = Drawing::Typeface::MakeDefault();
+        tf->SetHash(h);
+        static const uint32_t typefaceSize = Drawing::Typeface::MakeDefault()->GetSize();
+        tf->SetSize(typefaceSize);
+        return tf;
+    };
+
+    // Pre-cache reuseBaseHash via a third pid so UpdateDrawingTypefaceRef can find it for reuse.
+    ASSERT_TRUE(RSTypefaceCache::Instance().CacheDrawingTypeface(
+        (static_cast<uint64_t>(seeder) << 32) | 1, makeDefault(reuseBaseHash)));
+
+    // A pid under the cap reuses the cached base => success.
+    Drawing::SharedTypeface reuseUnderCap;
+    reuseUnderCap.id_ = (static_cast<uint64_t>(pidUnderCap) << 32) | 1;
+    reuseUnderCap.hash_ = reuseBaseHash;
+    EXPECT_NE(RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(reuseUnderCap), nullptr);
+
+    // Drive pidAtCap to the per-pid cap with distinct bases (none of them is reuseBaseHash).
+    constexpr uint32_t perPidCap = 1024;
+    for (uint32_t i = 1; i <= perPidCap; i++) {
+        ASSERT_TRUE(RSTypefaceCache::Instance().CacheDrawingTypeface(
+            (static_cast<uint64_t>(pidAtCap) << 32) | i, makeDefault(i + 1000)));
+    }
+    // pidAtCap is at the cap. reuseBaseHash IS cached (proven reusable above), so the only reason
+    // UpdateDrawingTypefaceRef returns null here is the per-pid cap rejecting a base it lacks.
+    Drawing::SharedTypeface reuseAtCap;
+    reuseAtCap.id_ = (static_cast<uint64_t>(pidAtCap) << 32) | (perPidCap + 1);
+    reuseAtCap.hash_ = reuseBaseHash;
+    EXPECT_EQ(RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(reuseAtCap), nullptr);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pidAtCap);
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pidUnderCap);
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(seeder);
+}
 } // namespace Rosen
 } // namespace OHOS
