@@ -75,12 +75,14 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "image_framework:image_native",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "opengles:libGLES",
     "skia:skia_canvaskit",
   ]
 

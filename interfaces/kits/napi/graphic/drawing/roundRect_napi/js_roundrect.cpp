@@ -15,6 +15,7 @@
 
 #include "js_roundrect.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "native_value.h"
 
 namespace OHOS::Rosen {
@@ -72,7 +73,7 @@ napi_value JsRoundRect::Constructor(napi_env env, napi_callback_info info)
     JsRoundRect* jsRoundRect = nullptr;
     if (argCount == ARGC_ONE) {
         JsRoundRect* otherRoundRect = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ZERO, otherRoundRect);
+        GET_UNWRAP_PARAM_S(ARGC_ZERO, otherRoundRect, &ROUND_RECT_TYPE_TAG);
         std::shared_ptr<RoundRect> other = otherRoundRect->GetRoundRectPtr();
         std::shared_ptr<RoundRect> rrect = other == nullptr ? std::make_shared<RoundRect>() :
             std::make_shared<RoundRect>(*other);
@@ -92,8 +93,8 @@ napi_value JsRoundRect::Constructor(napi_env env, napi_callback_info info)
     
         jsRoundRect = new JsRoundRect(drawingRect, xRad, yRad);
     }
-    status = napi_wrap(env, jsThis, jsRoundRect,
-                       JsRoundRect::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsRoundRect,
+        JsRoundRect::Destructor, nullptr, &ROUND_RECT_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsRoundRect;
         ROSEN_LOGE("JsRoundRect::Constructor Failed to wrap native instance");
@@ -114,7 +115,7 @@ void JsRoundRect::Destructor(napi_env env, void* nativeObject, void* finalize)
 
 napi_value JsRoundRect ::SetCorner(napi_env env, napi_callback_info info)
 {
-    JsRoundRect* rect = CheckParamsAndGetThis<JsRoundRect>(env, info);
+    JsRoundRect* rect = CheckParamsAndGetThisWithTag<JsRoundRect>(env, info, &ROUND_RECT_TYPE_TAG);
     return (rect != nullptr) ? rect->OnSetCorner(env, info) : nullptr;
 }
 
@@ -136,7 +137,7 @@ napi_value JsRoundRect ::OnSetCorner(napi_env env, napi_callback_info info)
 
 napi_value JsRoundRect ::GetCorner(napi_env env, napi_callback_info info)
 {
-    JsRoundRect* rect = CheckParamsAndGetThis<JsRoundRect>(env, info);
+    JsRoundRect* rect = CheckParamsAndGetThisWithTag<JsRoundRect>(env, info, &ROUND_RECT_TYPE_TAG);
     return (rect != nullptr) ? rect->OnGetCorner(env, info) : nullptr;
 }
 
@@ -152,7 +153,7 @@ napi_value JsRoundRect ::OnGetCorner(napi_env env, napi_callback_info info)
 
 napi_value JsRoundRect ::Offset(napi_env env, napi_callback_info info)
 {
-    JsRoundRect* rect = CheckParamsAndGetThis<JsRoundRect>(env, info);
+    JsRoundRect* rect = CheckParamsAndGetThisWithTag<JsRoundRect>(env, info, &ROUND_RECT_TYPE_TAG);
     return (rect != nullptr) ? rect->OnOffset(env, info) : nullptr;
 }
 

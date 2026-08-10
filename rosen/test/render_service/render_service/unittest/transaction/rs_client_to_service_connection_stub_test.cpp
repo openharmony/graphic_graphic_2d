@@ -271,9 +271,6 @@ std::shared_ptr<RSSurfaceRenderNode> RSClientToServiceConnectionStubTest::surfac
 
 void RSClientToServiceConnectionStubTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_->MockHdiScreenConnected(rsScreen);
@@ -345,11 +342,44 @@ void RSClientToServiceConnectionStubTest::TearDownTestCase()
 
     renderService_.renderPipeline_->mainThread_->handler_ = nullptr;
     renderService_.renderPipeline_->mainThread_->receiver_ = nullptr;
+    if (renderService_.renderPipeline_->mainThread_->renderEngine_) {
+        auto* engine = renderService_.renderPipeline_->mainThread_->renderEngine_.get();
+        if (engine->renderContext_) {
+            engine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (engine->protectedRenderContext_) {
+            engine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        engine->skContext_ = nullptr;
+        engine->renderContext_ = nullptr;
+        engine->protectedRenderContext_ = nullptr;
+        engine->imageManager_ = nullptr;
+        engine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        engine->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderService_.renderPipeline_->mainThread_->renderEngine_ = nullptr;
 
     renderService_.renderPipeline_->uniRenderThread_->handler_ = nullptr;
     renderService_.renderPipeline_->uniRenderThread_->runner_ = nullptr;
-    renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+    if (renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_) {
+        auto* engine = renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_.get();
+        if (engine->renderContext_) {
+            engine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (engine->protectedRenderContext_) {
+            engine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        engine->skContext_ = nullptr;
+        engine->renderContext_ = nullptr;
+        engine->protectedRenderContext_ = nullptr;
+        engine->imageManager_ = nullptr;
+        engine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        engine->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderService_.renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderService_.renderPipeline_->uniRenderThread_ = nullptr;
     renderService_.renderPipeline_ = nullptr;
@@ -2873,110 +2903,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenCorrectionTest004, TestSi
 }
 
 /**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest001
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data.WriteInt32(-1);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest002
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList;
-    data.WriteInt32Vector(pidList);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest003
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when pidlist is invalid
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
-    data.WriteInt32Vector(pidList);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest004
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when mainThread_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest004, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList;
-    data.WriteInt32Vector(pidList);
-    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidListTest005
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when pidlist is invalid and mainThread_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest005, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
-    data.WriteInt32Vector(pidList);
-    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
-    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
  * @tc.name: SetOptimizeCanvasDirtyPidListTest001
  * @tc.desc: Test SetOptimizeCanvasDirtyPidList when data is invalid
  * @tc.type: FUNC
@@ -4650,6 +4576,48 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest006, TestSize.
 }
 
 /**
+ * @tc.name: RegisterTypefaceTest007
+ * @tc.desc: test the IPC receiver cap-rejection branch: once the calling pid reaches its per-pid
+ *           base cap, a new ashmem typeface registration is rejected (returns -1, needUpdate = -1).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest007, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    // Drive a dedicated pid to its per-pid base cap so the next ashmem registration is rejected.
+    constexpr pid_t pid = 555555;
+    constexpr uint32_t perPidCap = 1024;
+    auto fillBase = [](uint64_t uniqueId, uint32_t baseHash) {
+        auto tf = Drawing::Typeface::MakeDefault();
+        tf->SetHash(baseHash);
+        static const uint32_t typefaceSize = Drawing::Typeface::MakeDefault()->GetSize();
+        tf->SetSize(typefaceSize);
+        RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, tf);
+    };
+    for (uint32_t i = 1; i <= perPidCap; i++) {
+        fillBase((static_cast<uint64_t>(pid) << 32) | i, i + 1000);
+    }
+
+    // A brand-new ashmem typeface for the at-cap pid: the receiver must reject it at the cap and
+    // surface failure (needUpdate = -1), exercising the cap-rejection branch on the IPC path.
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    ASSERT_FALSE(content.empty());
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = (static_cast<uint64_t>(pid) << 32) | (perPidCap + 1);
+    sharedTypeface.hash_ = 7777; // a base the at-cap pid does not hold
+    sharedTypeface.size_ = content.size();
+    sharedTypeface.fd_ = open("/system/fonts/Roboto-Regular.ttf", O_RDONLY);
+    ASSERT_GE(sharedTypeface.fd_, 0);
+
+    int32_t needUpdate = 0;
+    EXPECT_EQ(connectionStub_->RegisterTypeface(sharedTypeface, needUpdate), -1);
+    EXPECT_EQ(needUpdate, -1);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
+}
+
+/**
  * @tc.name: SetWatermarkTest003
  * @tc.desc: Test SetWatermark normal case
  * @tc.type: FUNC
@@ -5443,9 +5411,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level
     connection->SetVmaCacheStatus(false);
     connection->SetCurtainScreenUsingStatus(false);
     connection->renderProcessManagerAgent_ = nullptr;
-    // test SetGpuCrcDirtyEnabledPidList and
-    std::vector<int32_t> pidList = {};
-    connection->SetGpuCrcDirtyEnabledPidList(pidList);
     // test RegisterUIExtensionCallback
     connection->RegisterUIExtensionCallback(0, nullptr);
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;

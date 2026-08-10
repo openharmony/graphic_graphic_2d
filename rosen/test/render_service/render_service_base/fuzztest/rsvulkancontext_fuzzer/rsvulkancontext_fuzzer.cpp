@@ -62,9 +62,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RsVulkanContext::SetRecyclable(false);
-    auto& rsVulkanContext = RsVulkanContext::GetSingleton();
-    rsVulkanContext.SetIsProtected(true);
+    auto& rsVulkanContext = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER);
     rsVulkanContext.GetRsVulkanInterface();
     rsVulkanContext.IsValid();
     rsVulkanContext.CreateSkiaGetProc();
@@ -73,11 +71,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsVulkanContext.GetQueue();
     rsVulkanContext.GetGrVkBackendContext();
     rsVulkanContext.GetVulkanVersion();
-    rsVulkanContext.CreateDrawingContext();
-    rsVulkanContext.GetDrawingContext();
-    rsVulkanContext.GetMemoryHandler();
-    rsVulkanContext.GetIsProtected();
-    rsVulkanContext.ClearGrContext();
     return true;
 }
 } // namespace Rosen

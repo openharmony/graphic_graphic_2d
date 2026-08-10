@@ -35,12 +35,7 @@ public:
     void TearDown() override;
 };
 
-void TraceMemoryDumpTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void TraceMemoryDumpTest::SetUpTestCase() {}
 void TraceMemoryDumpTest::TearDownTestCase() {}
 void TraceMemoryDumpTest::SetUp() {}
 void TraceMemoryDumpTest::TearDown() {}

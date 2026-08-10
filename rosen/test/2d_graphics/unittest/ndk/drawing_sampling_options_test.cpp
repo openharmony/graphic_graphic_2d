@@ -38,12 +38,7 @@ public:
 };
 
 
-void NativeDrawingSamplingOptionsTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingSamplingOptionsTest::SetUpTestCase() {}
 void NativeDrawingSamplingOptionsTest::TearDownTestCase() {}
 void NativeDrawingSamplingOptionsTest::SetUp() {}
 void NativeDrawingSamplingOptionsTest::TearDown() {}

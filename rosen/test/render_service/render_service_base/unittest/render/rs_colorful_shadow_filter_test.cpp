@@ -17,10 +17,6 @@
 #include "gtest/gtest.h"
 #include "render/rs_colorful_shadow_filter.h"
 
-#ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
-
 using namespace testing;
 using namespace testing::ext;
 
@@ -35,12 +31,7 @@ public:
     void TearDown() override;
 };
 
-void RSColorfulShadowFilterTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RSColorfulShadowFilterTest::SetUpTestCase() {}
 void RSColorfulShadowFilterTest::TearDownTestCase() {}
 void RSColorfulShadowFilterTest::SetUp() {}
 void RSColorfulShadowFilterTest::TearDown() {}

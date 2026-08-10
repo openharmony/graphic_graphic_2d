@@ -57,9 +57,6 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
 {
     // IsSpecialFoldDisplay() caches a static const on first call; set before any code path triggers it.
     system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 
     output_ = HdiOutput::CreateHdiOutput(screenId_);

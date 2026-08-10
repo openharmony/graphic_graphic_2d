@@ -19,6 +19,8 @@
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "node_mem_release_param.h"
+#include "surface_buffer_impl.h"
+#include "buffer_handle_utils.h"
 #endif
 
 #include "consumer_surface.h"
@@ -1983,18 +1985,118 @@ HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid001, TestSize.Level1)
 
 /**
  * @tc.name: IsBufferConfigValid002
- * @tc.desc: Verify IsBufferConfigValid rejects buffer with invalid dimensions or non-RGBA_8888 format
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with invalid dimensions
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid002, TestSize.Level1)
 {
-    // SurfaceBuffer::Create() has no handle: GetWidth/Height return -1, GetFormat returns -1
+    // SurfaceBuffer::Create() has no handle, GetWidth/Height return -1
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     ASSERT_NE(buffer, nullptr);
     EXPECT_LT(buffer->GetWidth(), 1);
-    EXPECT_NE(buffer->GetFormat(), GRAPHIC_PIXEL_FMT_RGBA_8888);
     bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
     ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid003
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with non-RGBA_8888 format
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid003, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 400;
+    handle->size = 40000;
+    handle->format = GRAPHIC_PIXEL_FMT_RGB_565;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    EXPECT_NE(buffer->GetFormat(), GRAPHIC_PIXEL_FMT_RGBA_8888);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid004
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with stride less than width * bpp
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid004, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 100; // stride < width * 4 = 400
+    handle->size = 10000;
+    handle->format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    EXPECT_LT(buffer->GetStride(), buffer->GetWidth() * 4);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid005
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with size less than stride * height
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid005, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 400;
+    handle->size = 100; // size < stride * height = 40000
+    handle->format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    uint64_t minSize = static_cast<uint64_t>(buffer->GetStride()) * static_cast<uint64_t>(buffer->GetHeight());
+    EXPECT_LT(static_cast<uint64_t>(buffer->GetSize()), minSize);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid006
+ * @tc.desc: Verify IsBufferConfigValid accepts valid RGBA_8888 buffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid006, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 400;
+    handle->size = 40000;
+    handle->format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    EXPECT_EQ(buffer->GetFormat(), GRAPHIC_PIXEL_FMT_RGBA_8888);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_TRUE(ret);
 }
 #endif
 

@@ -33,7 +33,6 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "engine/rs_uni_render_engine.h"
@@ -1519,10 +1518,8 @@ int32_t RSClientToServiceConnection::RegisterAshmemTypeface(
         needUpdate = 1;
         RS_LOGI("RegisterTypeface(reuse): %{public}s", sharedTypeface.ToString().c_str());
         Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
-        bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
-            return conn->RegisterTypeface(sharedTfForForward);
-        });
-        if (!forwardSuccess) {
+        if (!ForwardToRenderServers(
+            [&](sptr<RSIServiceToRenderConnection>& conn) { return conn->RegisterTypeface(sharedTfForForward); })) {
             RS_LOGE("RegisterTypeface(reuse): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
         }
         return tf->GetFd();
@@ -1538,13 +1535,17 @@ int32_t RSClientToServiceConnection::RegisterAshmemTypeface(
         return -1;
     }
     RS_LOGI("RegisterTypeface(new): %{public}s", sharedTypeface.ToString().c_str());
-    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
+    if (!RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf)) {
+        // tf owns the ashmem fd; dropping it (and clearing fd_) avoids a double close.
+        RS_LOGE("RegisterTypeface(new): rejected by cache cap, %{public}s", sharedTypeface.ToString().c_str());
+        sharedTypeface.fd_ = -1;
+        needUpdate = -1;
+        return -1;
+    }
     sharedTypeface.fd_ = -1;
     Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
-    bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
-        return conn->RegisterTypeface(sharedTfForForward);
-    });
-    if (!forwardSuccess) {
+    if (!ForwardToRenderServers(
+        [&](sptr<RSIServiceToRenderConnection>& conn) { return conn->RegisterTypeface(sharedTfForForward); })) {
         RS_LOGE("RegisterTypeface(new): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
         needUpdate = -1;
         return -1;
@@ -2254,23 +2255,6 @@ ErrCode RSClientToServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainS
     }
     for (auto conn : serviceToRenderConns) {
         conn->SetCurtainScreenUsingStatus(isCurtainScreenOn);
-    }
-    return ERR_OK;
-}
-
-ErrCode RSClientToServiceConnection::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    if (renderProcessManagerAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.empty() || pidList.size() > PIDLIST_SIZE_MAX) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    for (auto conn : serviceToRenderConns) {
-        conn->SetGpuCrcDirtyEnabledPidList(pidList);
     }
     return ERR_OK;
 }

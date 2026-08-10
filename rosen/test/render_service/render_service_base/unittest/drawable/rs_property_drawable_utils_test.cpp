@@ -16,12 +16,18 @@
 #include <gtest/gtest.h>
 
 #include "drawable/rs_property_drawable_utils.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "draw/surface.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect_container.h"
+#include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_depth_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
+#include "property/rs_spatial_effect_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_info.h"
@@ -116,7 +122,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RRect2DrawingRRectAndCreateShadowPathTest0
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
     Drawing::Path path;
-    path.AddRect({0, 0, 10, 10});
+    path.AddRect({ 0, 0, 10, 10 });
     std::shared_ptr<RSPath> rsPath = RSPath::CreateRSPath(path);
     EXPECT_NE(rsPath, nullptr);
     std::shared_ptr<RSPath> clipBounds = std::make_shared<RSPath>();
@@ -357,6 +363,36 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
 }
 
 /**
+ * @tc.name: RSPropertyDrawableUtilsTest009
+ * @tc.desc: DrawBackgroundEffectTest test refractOut when filtercachemanager disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest009, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::shared_ptr<Drawing::ImageFilter> imageFilter = std::make_shared<Drawing::ImageFilter>();
+    std::shared_ptr<RSDrawingFilter> filter = std::make_shared<RSDrawingFilter>(imageFilter, 0);
+    filter->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    NodeId filterId = 1;
+
+    const Drawing::ImageInfo info = Drawing::ImageInfo { 200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
+    auto surface = Drawing::Surface::MakeRaster(info);
+    canvas.surface_ = surface.get();
+    Drawing::RectI bounds(0, 0, 10, 10);
+
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&canvas, filter, filterId, nullptr, bounds, false);
+    EXPECT_NE(canvas.envStack_.top().effectData_, nullptr);
+
+    canvas.envStack_.top().effectData_ = nullptr;
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&canvas, filter, filterId, nullptr, bounds, false);
+    EXPECT_NE(canvas.envStack_.top().effectData_, nullptr);
+}
+
+/**
  * @tc.name: DrawColorFilterTest009
  * @tc.desc: DrawColorFilter test
  * @tc.type: FUNC
@@ -427,7 +463,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::Te
 
 /**
  * @tc.name: TransformativeShaderTest011
- * @tc.desc: MakeDynamicDimShader MakeBinarizationShader MakeDynamicBrightnessBlender MakeDynamicBrightnessBuilder test
+ * @tc.desc: MakeDynamicDimShader MakeBinarizationShader MakeDynamicBrightnessBlender MakeDynamicBrightnessBuilder
+ * MakeLightUpShader test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
@@ -622,6 +659,22 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMTest, testing::ext
 }
 
 /**
+ * @tc.name: DrawColorUsingSDFWithDRMNullCanvasTest
+ * @tc.desc: DrawColorUsingSDFWithDRM returns safely when canvas is null
+ * @tc.type: FUNC
+ * @tc.require: issue25648
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorUsingSDFWithDRMNullCanvasTest, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Rect rect(0, 0, 0, 0);
+    bool isDark = true;
+
+    utils->DrawColorUsingSDFWithDRM(nullptr, &rect, isDark, nullptr, "Tag1", "Tag2");
+    EXPECT_TRUE(isDark);
+}
+
+/**
  * @tc.name: IsDangerousBlendModeAndEndBlenderTest016
  * @tc.desc: IsDangerousBlendMode and EndBlender test
  * @tc.type: FUNC
@@ -658,7 +711,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetColorForShadowSynTest017, testing::ext:
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
     paintFilterCanvas.surface_ = nullptr;
     rsPropertyDrawableUtilsTest->GetColorForShadowSyn(&paintFilterCanvas, path, color, false);
-    path.AddRect({0, 0, 5, 5});
+    path.AddRect({ 0, 0, 5, 5 });
     auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
     paintFilterCanvas.surface_ = surface.get();
     rsPropertyDrawableUtilsTest->GetColorForShadowSyn(&paintFilterCanvas, path, color, false);
@@ -693,7 +746,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest018, testing::ext:
     paintFilterCanvas.surface_ = surface.get();
     auto resultTest2 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
     EXPECT_EQ(resultTest2, nullptr);
-    drPath.AddRect({0, 0, 5, 5});
+    drPath.AddRect({ 0, 0, 5, 5 });
     auto resultTest3 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
     EXPECT_NE(resultTest3, nullptr);
 }
@@ -710,10 +763,27 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
     Drawing::Canvas canvasTest;
     Drawing::Path path;
-    path.AddRect({0, 0, 5, 5});
-    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, false,
-        Color(255, 255, 255, 255), false);
+    path.AddRect({ 0, 0, 5, 5 });
+    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(
+        &canvasTest, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawShadowMaskFilterNullCanvasTest
+ * @tc.desc: DrawShadowMaskFilter returns safely when canvas is null
+ * @tc.type: FUNC
+ * @tc.require: issue25648
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterNullCanvasTest, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    Drawing::Path path;
+    path.AddRect({ 0, 0, 5, 5 });
+    const auto bounds = path.GetBounds();
+
+    utils->DrawShadowMaskFilter(nullptr, path, 1.f, 1.f, 1.f, false, Color(255, 255, 255, 255), false);
+    EXPECT_EQ(path.GetBounds(), bounds);
 }
 
 /**
@@ -785,13 +855,13 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetGravityMatrixTest020, testing::ext::Tes
     ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_TOP_LEFT, rect, 20, 20, matrix));
     ASSERT_FALSE(
         rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, 0, 0, matrix));
-    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(
-        Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rectTwo, 10, 10, matrix));
+    ASSERT_FALSE(
+        rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rectTwo, 10, 10, matrix));
     ASSERT_TRUE(
         rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, 20, 20, matrix));
     ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, 0, 0, matrix));
-    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(
-        Gravity::RESIZE_ASPECT_FILL, rectThree, 10, 100000000, matrix));
+    ASSERT_FALSE(
+        rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rectThree, 10, 100000000, matrix));
     ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, 20, 20, matrix));
     ASSERT_FALSE(
         rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_TOP_LEFT, rect, 0, 0, matrix));
@@ -1109,7 +1179,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter002, test
     EXPECT_EQ(drawingFilter->GetNGRenderFilter(), nullptr);
 }
 
-
 /**
  * @tc.name: ApplySDFShapeToFrostedGlassFilter003
  * @tc.desc: not a frostedGlass filter test
@@ -1175,8 +1244,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter004, test
     RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::FROSTED_GLASS);
-    const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(
-        drawingFilter->GetNGRenderFilter());
+    const auto& filterFromDrawingFilter =
+        std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(drawingFilter->GetNGRenderFilter());
     EXPECT_NE(filterFromDrawingFilter->Getter<FrostedGlassShapeRenderTag>()->stagingValue_, nullptr);
 }
 
@@ -1201,8 +1270,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter005, test
     RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::FROSTED_GLASS);
-    const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(
-        drawingFilter->GetNGRenderFilter());
+    const auto& filterFromDrawingFilter =
+        std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(drawingFilter->GetNGRenderFilter());
     const auto& rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
         filterFromDrawingFilter->Getter<FrostedGlassShapeRenderTag>()->stagingValue_);
     auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
@@ -1231,13 +1300,13 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter006, test
     RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::FROSTED_GLASS);
-    const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(
-        drawingFilter->GetNGRenderFilter());
+    const auto& filterFromDrawingFilter =
+        std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(drawingFilter->GetNGRenderFilter());
     const auto& rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
         filterFromDrawingFilter->Getter<FrostedGlassShapeRenderTag>()->stagingValue_);
     auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
-    EXPECT_TRUE(rrectFromShape.IsNearEqual(RRect(properties.GetRRect().rect_, properties.GetRRect().radius_[0].x_,
-        properties.GetRRect().radius_[0].y_)));
+    EXPECT_TRUE(rrectFromShape.IsNearEqual(
+        RRect(properties.GetRRect().rect_, properties.GetRRect().radius_[0].x_, properties.GetRRect().radius_[0].y_)));
 }
 
 /**
@@ -1264,8 +1333,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter007, test
     RSPropertyDrawableUtils::ApplySDFShapeToFilter(properties, drawingFilter, id);
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::FROSTED_GLASS);
-    const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(
-        drawingFilter->GetNGRenderFilter());
+    const auto& filterFromDrawingFilter =
+        std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(drawingFilter->GetNGRenderFilter());
     const auto& rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
         filterFromDrawingFilter->Getter<FrostedGlassShapeRenderTag>()->stagingValue_);
     auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
@@ -1297,8 +1366,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFilter008, testing::ext::Te
 
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::SDF_EDGE_LIGHT);
-    const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(
-        drawingFilter->GetNGRenderFilter());
+    const auto& filterFromDrawingFilter =
+        std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(drawingFilter->GetNGRenderFilter());
     EXPECT_NE(filterFromDrawingFilter->Getter<SDFEdgeLightSDFShapeRenderTag>()->stagingValue_, nullptr);
 }
 
@@ -1327,8 +1396,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFilter009, testing::ext::Te
 
     ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
     EXPECT_EQ(drawingFilter->GetNGRenderFilter()->GetType(), RSNGEffectType::SDF_EDGE_LIGHT);
-    const auto& filterFromDrawingFilter = std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(
-        drawingFilter->GetNGRenderFilter());
+    const auto& filterFromDrawingFilter =
+        std::static_pointer_cast<RSNGRenderSDFEdgeLightFilter>(drawingFilter->GetNGRenderFilter());
     // Shape should still be null since we returned early
     EXPECT_EQ(filterFromDrawingFilter->Getter<SDFEdgeLightSDFShapeRenderTag>()->stagingValue_, nullptr);
 }
@@ -1940,6 +2009,318 @@ HWTEST_F(RSPropertyDrawableUtilsTest, MakeHdrDarkenBlenderTest001, testing::ext:
 
     RSHdrDarkenBlenderPara hdrDarkenBlenderParams3 = {0.0};
     EXPECT_EQ(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams3), nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithValidParameters
+ * @tc.desc: test DrawDepthOcclusion with valid parameters
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithValidParameters, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(400, 400);
+    auto surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    paintFilterCanvas.surface_ = surface.get();
+
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+    invMatrix.SetScale(1.0f, 1.0f);
+
+    auto result =
+        utils->DrawDepthOcclusion(&paintFilterCanvas, snapshot, depthMap, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithNullCanvas
+ * @tc.desc: test DrawDepthOcclusion with null canvas
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithNullCanvas, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+
+    auto result = utils->DrawDepthOcclusion(nullptr, snapshot, depthMap, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithNullSnapshot
+ * @tc.desc: test DrawDepthOcclusion with null snapshot
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithNullSnapshot, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+
+    auto result = utils->DrawDepthOcclusion(&canvas, nullptr, depthMap, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithNullDepthMap
+ * @tc.desc: test DrawDepthOcclusion with null depthMap
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithNullDepthMap, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    auto snapshot = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+
+    auto result = utils->DrawDepthOcclusion(&canvas, snapshot, nullptr, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithNullSurface
+ * @tc.desc: test DrawDepthOcclusion with null surface
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithNullSurface, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    paintFilterCanvas.surface_ = nullptr;
+
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+
+    auto result =
+        utils->DrawDepthOcclusion(&paintFilterCanvas, snapshot, depthMap, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithZeroOcclusionWeight
+ * @tc.desc: test DrawDepthOcclusion with zero occlusionWeight
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithZeroOcclusionWeight, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(0.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+
+    auto result = utils->DrawDepthOcclusion(&canvas, snapshot, depthMap, depthPlane, nearFar, 0.0f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithZeroNearFar
+ * @tc.desc: test DrawDepthOcclusion with zero nearFar values
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithZeroNearFar, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(0.0f, 0.0f);
+    Drawing::Matrix invMatrix;
+    invMatrix.SetScale(1.0f, 1.0f);
+
+    auto result = utils->DrawDepthOcclusion(&canvas, snapshot, depthMap, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithNegativeWeight
+ * @tc.desc: test DrawDepthOcclusion with negative weight clamped
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithNegativeWeight, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+
+    auto result = utils->DrawDepthOcclusion(&canvas, snapshot, depthMap, depthPlane, nearFar, -1.0f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithIdentityInvMatrix
+ * @tc.desc: test DrawDepthOcclusion with identity matrix
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithIdentityInvMatrix, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+    invMatrix.Set(Drawing::Matrix::TRANS_X, 0.0f);
+    invMatrix.Set(Drawing::Matrix::TRANS_Y, 0.0f);
+    invMatrix.Set(Drawing::Matrix::SCALE_X, 1.0f);
+    invMatrix.Set(Drawing::Matrix::SCALE_Y, 1.0f);
+
+    auto result = utils->DrawDepthOcclusion(&canvas, snapshot, depthMap, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithScaleMatrix
+ * @tc.desc: test DrawDepthOcclusion with scale transform matrix
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithScaleMatrix, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+    invMatrix.SetScale(0.5f, 0.5f);
+    invMatrix.PostTranslate(50.0f, 50.0f);
+
+    auto result = utils->DrawDepthOcclusion(&canvas, snapshot, depthMap, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithReverseMode
+ * @tc.desc: test DrawDepthOcclusion with reverse mode disabled
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithReverseMode, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(400, 400);
+    auto surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    paintFilterCanvas.surface_ = surface.get();
+
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+    invMatrix.SetScale(1.0f, 1.0f);
+
+    auto result =
+        utils->DrawDepthOcclusion(&paintFilterCanvas, snapshot, depthMap, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithZeroWeightAndReverseMode
+ * @tc.desc: test DrawDepthOcclusion with zero weight triggers reverse mode handling
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithZeroWeightAndReverseMode, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    auto surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    paintFilterCanvas.surface_ = surface.get();
+
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(0.0f, 0.0f, 1.0f, 0.0f);
+    Vector2f nearFar(1.0f, 100.0f);
+    Drawing::Matrix invMatrix;
+
+    auto result =
+        utils->DrawDepthOcclusion(&paintFilterCanvas, snapshot, depthMap, depthPlane, nearFar, 0.0f, invMatrix);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawDepthOcclusionWithLargeNearFarValues
+ * @tc.desc: test DrawDepthOcclusion with large near/far values
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawDepthOcclusionWithLargeNearFarValues, testing::ext::TestSize.Level1)
+{
+    auto utils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(utils, nullptr);
+
+    Drawing::Canvas canvas(100, 100);
+    auto snapshot = std::make_shared<Drawing::Image>();
+    auto depthMap = std::make_shared<Drawing::Image>();
+    Vector4f depthPlane(1.0f, 0.0f, 0.0f, 1000000.0f);
+    Vector2f nearFar(10000.0f, 100000.0f);
+    Drawing::Matrix invMatrix;
+    invMatrix.SetScale(1.0f, 1.0f);
+
+    auto result = utils->DrawDepthOcclusion(&canvas, snapshot, depthMap, depthPlane, nearFar, 0.5f, invMatrix);
+    EXPECT_EQ(result, nullptr);
 }
 
 /**

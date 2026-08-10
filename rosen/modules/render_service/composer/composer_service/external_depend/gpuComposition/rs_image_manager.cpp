@@ -32,6 +32,7 @@ std::shared_ptr<RSImageManager> RSImageManager::Create(std::shared_ptr<RenderCon
     if (RSSystemProperties::IsUseVulkan()) {
 #ifdef RS_ENABLE_VK
         imageManager = std::make_shared<RSVkImageManager>();
+        imageManager->SetRenderContext(renderContext);
 #endif
     } else {
         if (renderContext != nullptr) {

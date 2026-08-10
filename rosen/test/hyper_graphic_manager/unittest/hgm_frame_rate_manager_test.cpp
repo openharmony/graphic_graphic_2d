@@ -1424,6 +1424,32 @@ HWTEST_F(HgmFrameRateMgrTest, HandleLowPowerSlideSceneEvent, Function | SmallTes
 }
 
 /**
+ * @tc.name: HandleGamesEventSkipVirtualDisplayTest
+ * @tc.desc: Verify HandleGamesEvent sets/clears isSkipVirtualDisplay by description and eventStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleGamesEventSkipVirtualDisplayTest, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    const pid_t gamePid = 12345;
+
+    EventInfo skipInfo = { .eventName = "VOTER_GAMES", .eventStatus = true,
+        .description = "com.game.test:" + std::to_string(gamePid) + ":1:SKIPVIRTUALDISPLAY" };
+    mgr.HandleGamesEvent(gamePid, skipInfo);
+    EXPECT_EQ(mgr.frameVoter_.isSkipVirtualDisplay_, true);
+
+    EventInfo noSkipInfo = { .eventName = "VOTER_GAMES", .eventStatus = true,
+        .description = "com.game.test:" + std::to_string(gamePid) + ":1" };
+    mgr.HandleGamesEvent(gamePid, noSkipInfo);
+    EXPECT_EQ(mgr.frameVoter_.isSkipVirtualDisplay_, false);
+
+    skipInfo.eventStatus = false;
+    mgr.HandleGamesEvent(gamePid, skipInfo);
+    EXPECT_EQ(mgr.frameVoter_.isSkipVirtualDisplay_, false);
+}
+
+/**
  * @tc.name: UpdateFrameRateWithDelay
  * @tc.desc: Verify the result of UpdateFrameRateWithDelay
  * @tc.type: FUNC

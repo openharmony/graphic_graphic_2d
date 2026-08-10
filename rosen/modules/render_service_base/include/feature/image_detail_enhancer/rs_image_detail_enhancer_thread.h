@@ -131,6 +131,10 @@ public:
 
     float GetImageSize(const std::shared_ptr<Drawing::Image>& image) const;
     long long GetCurTime() const;
+
+private:
+    DetailEnhancerUtils();
+    std::shared_ptr<Drawing::GPUContext> gpuContext_;
 };
 #endif
 } // OHOS

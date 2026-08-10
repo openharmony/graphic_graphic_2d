@@ -68,10 +68,14 @@ void RSVKImageManagerTest::SetUpTestCase()
 void RSVKImageManagerTest::TearDownTestCase() {}
 void RSVKImageManagerTest::SetUp()
 {
-    RsVulkanContext::SetRecyclable(false);
     buffer_ = CreateBuffer();
     vkImageManager_ = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    renderContext->SetUpGpuContext();
+    vkImageManager_->SetRenderContext(renderContext);
 }
+
 void RSVKImageManagerTest::TearDown() {}
 
 /**
@@ -243,16 +247,16 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage005, TestSize.Level1)
  */
 HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage006, TestSize.Level1)
 {
-    VkDevice device = RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_;
+    VkDevice device = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface()->device_;
     auto drawingSurface = std::make_unique<Drawing::Surface>();
     EXPECT_NE(drawingSurface, nullptr);
     if (drawingSurface) {
-        RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_ = VK_NULL_HANDLE;
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface()->device_ = VK_NULL_HANDLE;
         auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(
             buffer_, BufferFence_, fakeTid_, drawingSurface.get());
         EXPECT_EQ(image, nullptr); // Map fail due to vkdevice is null
     }
-    RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_ = device;
+    RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface()->device_ = device;
     auto size = vkImageManager_->imageCacheSeqs_.size();
     vkImageManager_->UnMapImageFromSurfaceBuffer(buffer_->GetBufferId());
     EXPECT_EQ(size, vkImageManager_->imageCacheSeqs_.size());
@@ -376,6 +380,10 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
     params.ignoreAlpha = false;
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init(RenderEngineType::BASIC_RENDER);
+    renderContext->SetUpGpuContext();
+    imageManager->SetRenderContext(renderContext);
     auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
     EXPECT_EQ(res, nullptr);
 
@@ -393,6 +401,10 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
 {
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init(RenderEngineType::BASIC_RENDER);
+    renderContext->SetUpGpuContext();
+    imageManager->SetRenderContext(renderContext);
     auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
     drawingRecordingCanvas->SetGrRecordingContext(std::make_shared<Drawing::GPUContext>());
     auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
@@ -480,6 +492,10 @@ HWTEST_F(RSVKImageManagerTest, GetIntersectImageTest, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, NewImageCacheFromBufferTest, TestSize.Level1)
 {
     std::shared_ptr<RSVkImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    renderContext->SetUpGpuContext();
+    imageManager->SetRenderContext(renderContext);
     sptr<OHOS::SurfaceBuffer> buffer = nullptr;
     pid_t threadIndex = 0;
     bool isProtectedCondition = true;
@@ -750,5 +766,20 @@ HWTEST_F(RSVKImageManagerTest, SetVKImageCacheMapSize_SmallValue_CacheBounded, T
         vkImageManager_->UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
     }
     EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
+}
+
+/**
+ * @tc.name: NewImageCacheFromBuffer001
+ * @tc.desc: Test NewImageCacheFromBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSVKImageManagerTest, NewImageCacheFromBuffer001, TestSize.Level1)
+{
+    auto buffer = CreateBuffer();
+    RSVkImageManager imageManager;
+    imageManager.renderContext_ = nullptr;
+    auto res = imageManager.NewImageCacheFromBuffer(buffer, 0, false);
+    EXPECT_EQ(res, nullptr);
 }
 } // namespace OHOS::Rosen

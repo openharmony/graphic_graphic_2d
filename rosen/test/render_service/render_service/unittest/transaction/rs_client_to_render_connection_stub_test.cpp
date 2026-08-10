@@ -26,7 +26,6 @@
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #endif
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "gtest/gtest.h"
@@ -103,9 +102,6 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
     pid_t pid = SURFACE_NODE_ID;
     surfaceNode_ = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(((NodeId)pid << 32 | SURFACE_NODE_ID),
         std::make_shared<RSContext>(), true), RSRenderNodeGC::NodeDestructor);
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_ = sptr<RSScreenManager>::MakeSptr();
@@ -1195,6 +1191,126 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     ret = connection->SubmitCanvasPreAllocatedBuffer(2, nullptr, 2);
     ASSERT_NE(ret, 0);
 }
+
+/**
+ * @tc.name: SubmitCanvasPreAllocatedBufferTest003
+ * @tc.desc: Test SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER with PID mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest003, TestSize.Level1)
+{
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    // GetCallingPid() returns 0 in same-process test; nodeId with high 32 bits = 999999 makes PID mismatch
+    NodeId nodeId = static_cast<NodeId>(999999) << 32 | 1;
+    data.WriteUint64(nodeId);
+    data.WriteUint32(1);
+    data.WriteUint32(1);
+    data.WriteBool(false);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_NE(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetPixelmap_PixelFormatNotRGBA8888
+ * @tc.desc: Test GET_PIXELMAP rejects pixelmap with non-RGBA_8888 format
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmap_PixelFormatNotRGBA8888, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10003;
+    data.WriteUint64(nodeId);
+    // Create pixelmap with RGB_565 format (not RGBA_8888)
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGB_565;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    EXPECT_NE(pixelmap->GetPixelFormat(), Media::PixelFormat::RGBA_8888);
+    data.WriteParcelable(pixelmap.get());
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    // PixelFormat != RGBA_8888 causes break, ret stays ERR_NONE from init
+    ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetPixelmap_AllocatorNotDMAOrShareMem
+ * @tc.desc: Test GET_PIXELMAP rejects pixelmap with unsupported allocator type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmap_AllocatorNotDMAOrShareMem, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10003;
+    data.WriteUint64(nodeId);
+    // HEAP_ALLOC is neither DMA_ALLOC nor SHARE_MEM_ALLOC
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    EXPECT_NE(pixelmap->GetAllocatorType(), Media::AllocatorType::DMA_ALLOC);
+    EXPECT_NE(pixelmap->GetAllocatorType(), Media::AllocatorType::SHARE_MEM_ALLOC);
+    data.WriteParcelable(pixelmap.get());
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetPixelmap_ShareMemAlloc_RGBA8888
+ * @tc.desc: Test GET_PIXELMAP accepts SHARE_MEM_ALLOC pixelmap with RGBA_8888 format
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmap_ShareMemAlloc_RGBA8888, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10003;
+    data.WriteUint64(nodeId);
+    // SHARE_MEM_ALLOC with RGBA_8888 skips DMA validation
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    EXPECT_EQ(pixelmap->GetAllocatorType(), Media::AllocatorType::SHARE_MEM_ALLOC);
+    data.WriteParcelable(pixelmap.get());
+    // Write Rect and DrawCmdList for complete data
+    Drawing::Rect rect;
+    data.WriteFloat(rect.left_);
+    data.WriteFloat(rect.top_);
+    data.WriteFloat(rect.right_);
+    data.WriteFloat(rect.bottom_);
+    data.WriteUint64(0); // null DrawCmdList
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    // SHARE_MEM_ALLOC path skips DMA check, proceeds to GetPixelmap call
+    EXPECT_TRUE(ret == ERR_NONE || ret == ERR_INVALID_REPLY);
+}
 #endif
 
 /**
@@ -1511,6 +1627,33 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest001, TestSize.
         res = connectionStub_->OnRemoteRequest(code, data, reply, option);
         EXPECT_EQ(res, ERR_INVALID_DATA);
     }
+}
+
+/**
+ * @tc.name: CreateDisplayNodeTest004
+ * @tc.desc: Test CREATE_DISPLAY_NODE rejects out-of-range mirrorSourceRotation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest004, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
+
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId displayNodeId = 10002;
+    data.WriteUint64(displayNodeId);
+    data.WriteUint64(0); // mirrorId
+    data.WriteUint64(screenId_); // screenId
+    data.WriteUint8(static_cast<uint8_t>(DisplayMode::EXPAND)); // displayMode
+    // mirrorSourceRotation beyond INVALID_SCREEN_ROTATION must be rejected
+    data.WriteUint32(static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION) + 1);
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 
 /**
@@ -4275,17 +4418,13 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest013, 
     ret = agent->GetShowRefreshRateEnabled(enabled);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
-    // Test SetGpuCrcDirtyEnabledPidList
-    std::vector<int32_t> pidList = {100};
-    ret = agent->SetGpuCrcDirtyEnabledPidList(pidList);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-
     // Test GetHdrOnDuration
     int64_t duration = 0;
     ret = agent->GetHdrOnDuration(duration);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     // Test SetOptimizeCanvasDirtyPidList
+    std::vector<int32_t> pidList = {100};
     ret = agent->SetOptimizeCanvasDirtyPidList(pidList);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
@@ -4580,32 +4719,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_ZeroPid_012, Test
 
     renderPipelineAgent_->CommitTransaction(0, true, false, transactionData);
     EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
-}
-
-/**
- * @tc.name: CreateNodeAndSurfaceTest001
- * @tc.desc: Test CreateNodeAndSurfaceTest when surfacenode is self drawing node
- * branch)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
-{
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    sptr<Surface> surface = nullptr;
-    std::vector<int32_t> pidList;
-    pidList.emplace_back(ExtractPid(config.id));
-    RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList(pidList);
-    connectionStub_->CreateNodeAndSurface(config, surface, false);
-    ASSERT_NE(surface, nullptr);
-    surface = nullptr;
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    connectionStub_->CreateNodeAndSurface(config, surface, false);
-    ASSERT_NE(surface, nullptr);
-    system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**

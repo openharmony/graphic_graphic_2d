@@ -19,6 +19,7 @@
 
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "render/rs_image_cache.h"
+#include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1064,4 +1065,47 @@ HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowTest, TestSize.Level1)
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
 }
 #endif
+
+/**
+ * @tc.name: IsCacheAccessAllowedTest
+ * @tc.desc: Verify RSImageCache::IsCacheAccessAllowed validates pid ownership
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageCacheTest, IsCacheAccessAllowedTest, TestSize.Level1)
+{
+    constexpr pid_t ownerPid = 1000;
+    constexpr pid_t otherPid = 2000;
+    constexpr uint32_t localId = 42;
+    RSImageCache& imageCache = RSImageCache::Instance();
+    uint64_t uniqueId = (static_cast<uint64_t>(ownerPid) << 32) | localId;
+    auto img = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    auto originPid = RSMarshallingHelper::GetCallingPid();
+
+    // callingPid matches uniqueId's pid - allowed
+    EXPECT_TRUE(RSImageCache::IsCacheAccessAllowed(uniqueId, ownerPid));
+
+    RSMarshallingHelper::SetCallingPid(ownerPid);
+    imageCache.CacheDrawingImage(uniqueId, img);
+    EXPECT_NE(imageCache.GetDrawingImageCache(uniqueId), nullptr);
+    imageCache.CachePixelMap(uniqueId, pixelMap);
+    EXPECT_NE(imageCache.GetPixelMapCache(uniqueId), nullptr);
+    imageCache.CacheEditablePixelMap(uniqueId, pixelMap);
+    EXPECT_NE(imageCache.GetEditablePixelMapCache(uniqueId), nullptr);
+
+    // callingPid differs from uniqueId's pid - denied
+    EXPECT_FALSE(RSImageCache::IsCacheAccessAllowed(uniqueId, otherPid));
+    
+    RSMarshallingHelper::SetCallingPid(otherPid);
+    imageCache.CacheDrawingImage(uniqueId, img);
+    EXPECT_EQ(imageCache.GetDrawingImageCache(uniqueId), nullptr);
+    imageCache.CachePixelMap(uniqueId, pixelMap);
+    EXPECT_EQ(imageCache.GetPixelMapCache(uniqueId), nullptr);
+    imageCache.CacheEditablePixelMap(uniqueId, pixelMap);
+    EXPECT_EQ(imageCache.GetEditablePixelMapCache(uniqueId), nullptr);
+
+    // callingPid = 0 (non-IPC scenario) - allowed
+    EXPECT_TRUE(RSImageCache::IsCacheAccessAllowed(uniqueId, 0));
+    RSMarshallingHelper::SetCallingPid(originPid);
+}
 } // namespace OHOS::Rosen

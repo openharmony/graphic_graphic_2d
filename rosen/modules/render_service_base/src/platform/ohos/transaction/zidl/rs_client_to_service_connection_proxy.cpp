@@ -5585,11 +5585,6 @@ bool RSClientToServiceConnectionProxy::ProfilerIsSecureScreen()
     return retValue;
 }
 
-ErrCode RSClientToServiceConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    return ERR_INVALID_VALUE;
-}
-
 ErrCode RSClientToServiceConnectionProxy::SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList)
 {
     return ERR_INVALID_VALUE;

@@ -225,7 +225,11 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
     }
 
     if (RSSystemProperties::IsUseVulkan()) {
-        gpuContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        if (renderContext_ == nullptr) {
+            renderContext_ = RenderContext::Create();
+            renderContext_->Init();
+        }
+        gpuContext_ = renderContext_->GetSharedDrGPUContext();
         if (gpuContext_ != nullptr) {
             gpuContext_->SetResourceCacheLimits(0, 0);
         }
@@ -245,7 +249,8 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
     surface_ = NativeBufferUtils::CreateSurfaceFromNativeBuffer(
-        RsVulkanContext::GetSingleton(), info, dstNativeBuffer.get(), info.GetColorSpace());
+        RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface(),
+        gpuContext_.get(), info, dstNativeBuffer.get(), info.GetColorSpace());
     if (surface_ == nullptr) {
         EFFECT_LOG_E("EffectImageChain::PrepareNativeBuffer: Failed to create surface %{public}d.", forceCPU_);
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -770,7 +775,8 @@ DrawingError EffectImageChain::DrawNativeBuffer()
         DrawOnFilter();
 
         VkSemaphore semaphore = VK_NULL_HANDLE;
-        NativeBufferUtils::CreateVkSemaphore(semaphore);
+        auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
+        NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore);
         if (semaphore == VK_NULL_HANDLE) {
             EFFECT_COMM_LOG_E("EffectImageChain::DrawNativeBuffer: CreateVkSemaphore failed");
             fenceId_ = -1;
@@ -778,8 +784,8 @@ DrawingError EffectImageChain::DrawNativeBuffer()
             break;
         }
         GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
-        auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-        auto* destroyInfo = new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
+        auto* destroyInfo =
+            new DestroySemaphoreInfo(vkInterface->vkDestroySemaphore, vkInterface->GetDevice(), semaphore);
  
         Drawing::FlushInfo flushInfo;
         flushInfo.backendSurfaceAccess = true;
@@ -791,7 +797,7 @@ DrawingError EffectImageChain::DrawNativeBuffer()
         gpuContext_->Submit();
  
         // Get fence fd from semaphore right after flush
-        NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, fenceId_);
+        NativeBufferUtils::GetFenceFdFromSemaphore(vkInterface, semaphore, fenceId_);
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo); // semaphore inits with ref count = 2
     } while (false);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -897,20 +903,14 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
     }
 
 #ifdef RS_ENABLE_GPU
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+    if (renderContext_ == nullptr) {
         renderContext_ = RenderContext::Create();
         renderContext_->Init();
-        renderContext_->SetUpGpuContext();
         gpuContext_ = renderContext_->GetSharedDrGPUContext();
     }
-
-#ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        gpuContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         gpuContext_->SetResourceCacheLimits(0, 0);
     }
-#endif
-
     if (gpuContext_ == nullptr) {
         EFFECT_COMM_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
         return nullptr;
@@ -934,9 +934,6 @@ EffectImageChain::~EffectImageChain()
     surface_.reset();
     if (gpuContext_ && forceReleaseGpuContext_) {
         gpuContext_->ReleaseResourcesAndAbandonContext();
-#if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
-        RsVulkanContext::ReleaseDrawingContextForThread(gettid());
-#endif
         gpuContext_ = nullptr;
     }
 }

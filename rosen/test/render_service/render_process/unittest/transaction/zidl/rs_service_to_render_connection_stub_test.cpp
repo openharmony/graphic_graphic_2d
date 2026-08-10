@@ -49,7 +49,6 @@ namespace {
 constexpr const size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 constexpr const int WAIT_HANDLER_TIME = 1; // 1S
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
-constexpr const int INVALID_PIDLIST_SIZE = 129;
 constexpr const int INVALID_EVENT_DATA_SIZE = 101;
 
 class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
@@ -129,11 +128,34 @@ void RSServiceToRenderConnectionStubTest::TearDownTestCase()
 
     renderPipeline->mainThread_->handler_ = nullptr;
     renderPipeline->mainThread_->receiver_ = nullptr;
+    if (renderPipeline->mainThread_->renderEngine_) {
+        if (renderPipeline->mainThread_->renderEngine_->renderContext_) {
+            renderPipeline->mainThread_->renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            renderPipeline->mainThread_->renderEngine_->renderContext_ = nullptr;
+        }
+        renderPipeline->mainThread_->renderEngine_->skContext_ = nullptr;
+        renderPipeline->mainThread_->renderEngine_->imageManager_ = nullptr;
+        renderPipeline->mainThread_->renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        renderPipeline->mainThread_->renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderPipeline->mainThread_->renderEngine_ = nullptr;
 
     renderPipeline->uniRenderThread_->handler_ = nullptr;
     renderPipeline->uniRenderThread_->runner_ = nullptr;
-    renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+    if (renderPipeline->uniRenderThread_->uniRenderEngine_) {
+        if (renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_) {
+            renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+        }
+        renderPipeline->uniRenderThread_->uniRenderEngine_->skContext_ = nullptr;
+        renderPipeline->uniRenderThread_->uniRenderEngine_->imageManager_ = nullptr;
+        renderPipeline->uniRenderThread_->uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        renderPipeline->uniRenderThread_->uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderPipeline->uniRenderThread_ = nullptr;
     renderPipeline = nullptr;
@@ -241,71 +263,6 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
         RSIServiceToRenderConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
     g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_TRUE(g_connectionStub);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidList001
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        return;
-    }
-    data.WriteInt32(-1);
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidList002
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    std::vector<int32_t> pidList;
-    data.WriteInt32Vector(pidList);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
-}
-
-/**
- * @tc.name: SetGpuCrcDirtyEnabledPidList003
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of pidList exceeds the maximum value
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
-    data.WriteInt32Vector(pidList);
-    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**

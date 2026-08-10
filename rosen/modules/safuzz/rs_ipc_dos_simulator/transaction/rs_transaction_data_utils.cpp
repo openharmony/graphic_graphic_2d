@@ -24,6 +24,7 @@
 #include "command/rs_base_node_command_utils.h"
 #include "command/rs_canvas_drawing_node_command_utils.h"
 #include "command/rs_canvas_node_command_utils.h"
+#include "command/rs_depth_node_command_utils.h"
 #include "command/rs_display_node_command_utils.h"
 #include "command/rs_effect_node_command_utils.h"
 #include "command/rs_frame_rate_linker_command_utils.h"
@@ -32,6 +33,7 @@
 #include "command/rs_proxy_node_command_utils.h"
 #include "command/rs_root_node_command_utils.h"
 #include "command/rs_surface_node_command_utils.h"
+#include "command/rs_spatial_effect_command_utils.h"
 #include "command/rs_union_node_command_utils.h"
 #include "command/rs_window_keyframe_node_command_utils.h"
 #include "common/safuzz_log.h"
@@ -253,6 +255,14 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     /********** RSFrameRateLinkerCommand **********/
     DECLARE_ADD_RANDOM(RSFrameRateLinkerCommand, RSFrameRateLinkerDestroy),
     DECLARE_ADD_RANDOM(RSFrameRateLinkerCommand, RSFrameRateLinkerUpdateRange),
+
+    /********** RSDepthNodeCommand **********/
+    DECLARE_ADD_RANDOM(RSDepthNodeCommand, RSDepthNodeCreate),
+    DECLARE_ADD_RANDOM(RSDepthNodeCommand, RSDepthNodeSetType),
+
+    /********** RSSpatialEffectCommand **********/
+    DECLARE_ADD_RANDOM(RSSpatialEffectCommand, RSSetIsDepthBackground),
+    DECLARE_ADD_RANDOM(RSSpatialEffectCommand, RSSetIsDepthResource),
 
     /********** RSUnionNodeCommand **********/
     DECLARE_ADD_RANDOM(RSUnionNodeCommand, RSUnionNodeCreate),

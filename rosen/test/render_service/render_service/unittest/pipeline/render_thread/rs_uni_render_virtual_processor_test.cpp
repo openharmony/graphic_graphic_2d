@@ -101,16 +101,35 @@ public:
 
 void RSUniRenderVirtualProcessorTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     // Create render engine in SetUpTestCase for all tests to use
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
 }
 void RSUniRenderVirtualProcessorTest::TearDownTestCase()
 {
-    // Clean up global singletons to prevent crash on test suite exit
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
     RSUniRenderThread::Instance().composerClientManager_ = nullptr;
 }
 void RSUniRenderVirtualProcessorTest::SetUp()
@@ -2329,7 +2348,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_NullParams
     ASSERT_NE(virtualProcessor_, nullptr);
     ASSERT_NE(screenDrawable_, nullptr);
     screenDrawable_->renderParams_ = nullptr;
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 
@@ -2344,7 +2363,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_EmptySurfa
     ASSERT_NE(screenDrawable_, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(nodeId_);
     screenDrawable_->renderParams_ = std::move(screenParams);
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 
@@ -2365,7 +2384,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_NullSurfac
         std::vector<SurfaceRegionConfig>{src});
     screenParams->SetVirtualSurfaceChanged(false);
     screenDrawable_->renderParams_ = std::move(screenParams);
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 
@@ -2387,7 +2406,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_VirtualSur
     screenParams->SetVirtualSurfaceChanged(true);
     screenDrawable_->renderParams_ = std::move(screenParams);
     virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
     virtualProcessor_->renderEngine_ = nullptr;
 }
@@ -2413,7 +2432,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_ValidSurfa
     screenParams->SetVirtualSurfaceChanged(false);
     screenDrawable_->renderParams_ = std::move(screenParams);
     virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     virtualProcessor_->surfaceFrames_.clear();
     virtualProcessor_->renderEngine_ = nullptr;
 }
@@ -2455,7 +2474,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_RequestFra
         sptr<SyncFence> fence2;
         pSurface->RequestBuffer(buf2, fence2, bufConfig);
     }
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     virtualProcessor_->surfaceFrames_.clear();
     virtualProcessor_->renderEngine_ = nullptr;
 }

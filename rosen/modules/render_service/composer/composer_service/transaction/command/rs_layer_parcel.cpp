@@ -92,10 +92,10 @@ void RSLayerParcelHelper::UpdateRSSolidFilledColorLayerCmd(std::shared_ptr<RSRen
         context->AddRSRenderLayer(layerId, rsLayer);
     }
     if (!rsLayer->IsSolidFilledColorLayer()) {
-        auto solidFilledColorLayer = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
-        solidFilledColorLayer->CopyLayerInfo(rsLayer);
-        solidFilledColorLayer->UpdateRSLayerCmd(command);
-        context->AddRSRenderLayer(layerId, solidFilledColorLayer);
+        auto solidFilledLayer = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+        solidFilledLayer->CopyLayerInfo(rsLayer);
+        solidFilledLayer->UpdateRSLayerCmd(command);
+        context->AddRSRenderLayer(layerId, solidFilledLayer);
         return;
     }
     rsLayer->UpdateRSLayerCmd(command);

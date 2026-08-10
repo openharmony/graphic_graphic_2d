@@ -49,16 +49,12 @@ public:
     void TearDown() override;
 };
 
-void RSRenderComposerClientTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RSRenderComposerClientTest::SetUpTestCase() {}
 
 void RSRenderComposerClientTest::TearDownTestCase() {}
 
 void RSRenderComposerClientTest::SetUp() {}
+
 void RSRenderComposerClientTest::TearDown() {}
 
 std::shared_ptr<RSComposerClient> CreateClient()

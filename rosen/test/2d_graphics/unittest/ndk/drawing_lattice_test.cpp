@@ -38,12 +38,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingLatticeTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingLatticeTest::SetUpTestCase() {}
 void NativeDrawingLatticeTest::TearDownTestCase() {}
 void NativeDrawingLatticeTest::SetUp() {}
 void NativeDrawingLatticeTest::TearDown() {}

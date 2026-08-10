@@ -117,7 +117,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Leve
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer, 0);
     usleep(500000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer, 0);
@@ -127,7 +127,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Leve
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
         TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
     usleep(500000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
 }
 
 /**
@@ -1245,6 +1245,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote011, Function | SmallTest | Leve
     instance->surfaceVideoFrameRateVote_.clear();
     instance->transactionFlags_ = "[999, 30]";
     instance->lastVotedPid_ = 12345;
+    instance->surfaceVideoRate_.clear();
 
     pid_t testPid = 12345;
     uint32_t testRate = 60;
@@ -1313,6 +1314,160 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote013, Function | SmallTest | Leve
     ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 0);
 
     instance->ffrtQueue_ = originalQueue;
+}
+
+/**
+ * @tc.name: VideoFrameRateVote019
+ * @tc.desc: test optimization - videorate = 0 && surfaceVideoRate_.end(), skip subimt
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote019, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->isSwitchOn_ = true;
+    RSFrameRateVote::isVideoApp_.store(true);
+    instance->videoRateInfo_.clear();
+    instance->surfaceVideoRate_.clear();
+    instance->surfaceVideoFrameRateVote_.clear();
+
+    pid_t testPid = 12345;
+    instance->videoRateInfo_[testPid] = 0;
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+
+    instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
+    usleep(500000);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 0);
+}
+
+/**
+ * @tc.name: VideoFrameRateVote020
+ * @tc.desc: test optimization - videorate = 0 && surfaceVideoRate_[sId] = 0, skip subimt
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote020, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->isSwitchOn_ = true;
+    RSFrameRateVote::isVideoApp_.store(true);
+    instance->videoRateInfo_.clear();
+    instance->surfaceVideoRate_.clear();
+    instance->surfaceVideoFrameRateVote_.clear();
+
+    pid_t testPid = 12345;
+    instance->videoRateInfo_[testPid] = 0;
+    instance->surfaceVideoRate_[TEST_SURFACE_NODE_ID] = 0;
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+
+    instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
+    usleep(500000);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 0);
+}
+
+/**
+ * @tc.name: VideoFrameRateVote021
+ * @tc.desc: test optimization - videorate = 0 && surfaceVideoRate_[sId] = 30, continue subimt
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote021, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->isSwitchOn_ = true;
+    RSFrameRateVote::isVideoApp_.store(true);
+    instance->videoRateInfo_.clear();
+    instance->surfaceVideoRate_.clear();
+    instance->surfaceVideoFrameRateVote_.clear();
+
+    pid_t testPid = 12345;
+    instance->videoRateInfo_[testPid] = 0;
+    instance->surfaceVideoRate_[TEST_SURFACE_NODE_ID] = 30;
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+
+    instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
+    usleep(500000);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 1);
+}
+
+/**
+ * @tc.name: VideoFrameRateVote022
+ * @tc.desc: test optimization - videorate = 30 && surfaceVideoRate_[sId] = 30, skip subimt
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote022, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->isSwitchOn_ = true;
+    RSFrameRateVote::isVideoApp_.store(true);
+    instance->videoRateInfo_.clear();
+    instance->surfaceVideoRate_.clear();
+    instance->surfaceVideoFrameRateVote_.clear();
+
+    pid_t testPid = 12345;
+    instance->videoRateInfo_[testPid] = 30;
+    instance->surfaceVideoRate_[TEST_SURFACE_NODE_ID] = 30;
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+
+    instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
+    usleep(500000);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 0);
+}
+
+/**
+ * @tc.name: VideoFrameRateVote023
+ * @tc.desc: test optimization - videorate = 30 && surfaceVideoRate_[sId] = 60, continue subimt
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote023, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->isSwitchOn_ = true;
+    RSFrameRateVote::isVideoApp_.store(true);
+    instance->videoRateInfo_.clear();
+    instance->surfaceVideoRate_.clear();
+    instance->surfaceVideoFrameRateVote_.clear();
+
+    pid_t testPid = 12345;
+    instance->videoRateInfo_[testPid] = 30;
+    instance->surfaceVideoRate_[TEST_SURFACE_NODE_ID] = 60;
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+
+    instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
+    usleep(500000);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 1);
+}
+
+/**
+ * @tc.name: VideoFrameRateVote024
+ * @tc.desc: test optimization - videorate = 30 && surfaceVideoRate_.end(), continue subimt
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote024, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->isSwitchOn_ = true;
+    RSFrameRateVote::isVideoApp_.store(true);
+    instance->videoRateInfo_.clear();
+    instance->surfaceVideoRate_.clear();
+    instance->surfaceVideoFrameRateVote_.clear();
+
+    pid_t testPid = 12345;
+    instance->videoRateInfo_[testPid] = 30;
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+
+    instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
+    usleep(500000);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 1);
 }
 
 /**
@@ -1824,6 +1979,80 @@ HWTEST_F(RSFrameRateVoteTest, SetVideoRateInfo026, Function | SmallTest | Level0
     sleep(1);
     ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 0);
     rsVideoFrameRateVote = nullptr;
+}
+
+/**
+ * @tc.name: SetVideoRateInfo027
+ * @tc.desc: test SetVideoRateInfo when pid not in videoRateInfo_  and isVideoApp_ is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, SetVideoRateInfo027, Function | SmallTest | Level0)
+{
+    RSFrameRateVote::isVideoApp_.store(false);
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->videoRateInfo_.clear();
+    instance->videoRateInfo_[99999] = 60;
+
+    std::unordered_map<std::string, std::string> videoRateInfo = {{"pid", "12345"}, {"decRate", "30"}};
+    instance->SetVideoRateInfo(videoRateInfo);
+
+    ASSERT_EQ(instance->videoRateInfo_.find(12345), instance->videoRateInfo_.end());
+    ASSERT_EQ(instance->videoRateInfo_[99999], 60);
+}
+
+/**
+ * @tc.name: ShouldSkipFrameRateVote001
+ * @tc.desc: test ShouldSkipFrameRateVote - surfaceVideoRate_.end() && videoRate == 0, skip
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, ShouldSkipFrameRateVote001, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->surfaceVideoRate_.clear();
+    ASSERT_TRUE(instance->ShouldSkipFrameRateVote(TEST_SURFACE_NODE_ID, 0));
+}
+
+/**
+ * @tc.name: ShouldSkipFrameRateVote002
+ * @tc.desc: test ShouldSkipFrameRateVote - surfaceVideoRate_.end() && videoRate 1= 0, not skip
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, ShouldSkipFrameRateVote002, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->surfaceVideoRate_.clear();
+    ASSERT_FALSE(instance->ShouldSkipFrameRateVote(TEST_SURFACE_NODE_ID, 30));
+}
+
+/**
+ * @tc.name: ShouldSkipFrameRateVote003
+ * @tc.desc: test ShouldSkipFrameRateVote - surfaceVideoRate_[sID] == videoRate, skip
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, ShouldSkipFrameRateVote003, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->surfaceVideoRate_.clear();
+    instance->surfaceVideoRate_[TEST_SURFACE_NODE_ID] = 30;
+    ASSERT_TRUE(instance->ShouldSkipFrameRateVote(TEST_SURFACE_NODE_ID, 30));
+}
+
+/**
+ * @tc.name: ShouldSkipFrameRateVote004
+ * @tc.desc: test ShouldSkipFrameRateVote - surfaceVideoRate_[sID] != videoRate, not skip
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, ShouldSkipFrameRateVote004, Function | SmallTest | Level0)
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    instance->surfaceVideoRate_.clear();
+    instance->surfaceVideoRate_[TEST_SURFACE_NODE_ID] = 60;
+    ASSERT_FALSE(instance->ShouldSkipFrameRateVote(TEST_SURFACE_NODE_ID, 30));
 }
 } // namespace Rosen
 } // namespace OHOS
