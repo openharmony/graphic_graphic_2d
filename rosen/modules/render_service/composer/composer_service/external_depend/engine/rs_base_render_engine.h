@@ -374,6 +374,8 @@ private:
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
     std::shared_ptr<Media::VideoProcessingEngine::GlassFree3DConverterDisplay> glassFree3DConverterDisplay_ = nullptr;
+    void GlassFree3DShaderConvert(RSPaintFilterCanvas& canvas, BufferDrawParam& params,
+        const std::shared_ptr<Drawing::Image>& image, const Drawing::SamplingOptions& samplingOptions);
 #endif
 };
 } // namespace Rosen
