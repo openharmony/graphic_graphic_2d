@@ -1024,8 +1024,13 @@ void HgmFrameRateManager::HandleScreenStrategyFallback(const std::shared_ptr<Pol
     curScreenStrategyId_ = "LTPO-DEFAULT";
     auto screenConfigsIter = configData->screenConfigs_.find(curScreenStrategyId_);
     if (screenConfigsIter == configData->screenConfigs_.end()) {
-        std::string curScreenName = "screen" + std::to_string(curScreenId_.load()) +
-            "_" + (!isLtpo_.load() ? "LTPO" : "LTPS");
+        std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (!isLtpo_ ? "LTPO" : "LTPS");
+        if (curScreenId_ == activeRectScreenId_) {
+            curScreenName += "_" + std::to_string(activeRect_.x);
+            curScreenName += "_" + std::to_string(activeRect_.y);
+            curScreenName += "_" + std::to_string(activeRect_.w);
+            curScreenName += "_" + std::to_string(activeRect_.h);
+        }
         if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
             iter != configData->screenStrategyConfigs_.end()) {
             curScreenStrategyId_ = iter->second;
