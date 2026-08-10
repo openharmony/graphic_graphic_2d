@@ -280,17 +280,6 @@ void RSRenderAnimation::SetFractionInner(float fraction)
     animationFraction_.UpdateRemainTimeFraction(fraction);
 }
 
-void RSRenderAnimation::Restart()
-{
-    if (!IsRunning() && !IsGroupWaiting()) {
-        ROSEN_LOGE("Failed to Restart animation, animation is not running or groupWaiting!");
-        return;
-    }
-    animationFraction_.ResetFraction();
-    OnSetFraction(0.0f);
-    state_ = AnimationState::RUNNING;
-}
-
 void RSRenderAnimation::Rebuild(float fraction, int64_t time, bool isReverseCycle)
 {
     // Initialize animation before RebuildPropertyValue, especially for spring animations
@@ -303,6 +292,17 @@ void RSRenderAnimation::Rebuild(float fraction, int64_t time, bool isReverseCycl
     animationFraction_.SetRebuildFraction(fraction, time, isReverseCycle);
     currentFraction_ = fraction;
     needUpdateStartTime_ = true;
+}
+
+void RSRenderAnimation::Restart()
+{
+    if (!IsRunning() && !IsGroupWaiting()) {
+        ROSEN_LOGE("Failed to Restart animation, animation is not running or groupWaiting!");
+        return;
+    }
+    animationFraction_.ResetFraction();
+    OnSetFraction(0.0f);
+    state_ = AnimationState::RUNNING;
 }
 
 void RSRenderAnimation::ProcessFillModeOnStart(float startFraction)
