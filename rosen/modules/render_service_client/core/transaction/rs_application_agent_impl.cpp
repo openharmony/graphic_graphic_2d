@@ -65,6 +65,7 @@ void RSApplicationAgentImpl::Release(bool isRegistered)
     
     gRSApplicationAgentImplInstance = nullptr;
     if (isRegistered) {
+        ROSEN_LOGI("RSApplicationAgentImpl::Release UnregisterFromAllConnections");
         UnregisterFromAllConnections();
     }
 #endif
