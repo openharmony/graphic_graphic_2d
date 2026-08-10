@@ -38,7 +38,7 @@ const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
 const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 const std::string GENERIC_METADATA_KEY_VCLD_PARAM = "VcldParam";
-const std::string GENERIC_METADATA_KEY_SOLIC_FILL = "SolidFill";
+const std::string GENERIC_METADATA_KEY_SOLID_FILL = "SolidFill";
 }
 
 template<typename T>
@@ -360,7 +360,7 @@ int32_t HdiLayer::SetDelegateModeLayerCrop()
     }
 
     GraphicIRect rect = rsLayer_->GetDelegateModeCropRect();
-    RS_TRACE_NAME_FMT("HdiLayer::SetDelegateModeLayerCrop, layerId=%u, [%d, %d, %d, %d]}",
+    RS_TRACE_NAME_FMT("HdiLayer::SetDelegateModeLayerCrop, layerId=%u, [%d %d %d %d]",
         layerId_, rect.x, rect.y, rect.w, rect.h);
     int32_t ret = device_->SetLayerCrop(screenId_, layerId_, rect);
     return ret;
@@ -892,7 +892,7 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_VCLD_PARAM) {
             ret = SetPerFrameLayerVcldParam();
             CheckRet(ret, "SetLayerVcldParam");
-        } else if (key == GENERIC_METADATA_KEY_SOLIC_FILL) {
+        } else if (key == GENERIC_METADATA_KEY_SOLID_FILL) {
             ret = SetPerFrameLayerSolidFillParam();
             CheckRet(ret, "SetLayerSolidFillParam");
         }
@@ -1009,7 +1009,7 @@ int32_t HdiLayer::SetPerFrameLayerSolidFillParam()
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = rsLayer_->IsSolidFilledColorLayer();
     return device_->SetLayerPerFrameParameterSmq(
-        screenId_, layerId_, GENERIC_METADATA_KEY_SOLIC_FILL, valueBlob);
+        screenId_, layerId_, GENERIC_METADATA_KEY_SOLID_FILL, valueBlob);
 }
 
 void HdiLayer::ClearBufferCache()

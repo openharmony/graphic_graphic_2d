@@ -1467,7 +1467,7 @@ void HdiOutput::OnLayerCreated(uint64_t nodeId, bool success, uint64_t tunnelLay
     RS_TRACE_NAME_FMT("HdiOutput::OnLayerCreated screenId=%u nodeId=%" PRIu64
         " success=%d generation=%" PRIu64, screenId_, nodeId, static_cast<int32_t>(success),
         tunnelLayerGeneration);
-    HLOGI("%{public}s screenId:%{public}" PRIu32 ", nodeId:%{public}" PRIu64
+    HLOGD("%{public}s screenId:%{public}" PRIu32 ", nodeId:%{public}" PRIu64
         ", success:%{public}d, generation:%{public}" PRIu64,
         __func__, screenId_, nodeId, static_cast<int32_t>(success), tunnelLayerGeneration);
     if (onLayerCreatedCb_ == nullptr) {
