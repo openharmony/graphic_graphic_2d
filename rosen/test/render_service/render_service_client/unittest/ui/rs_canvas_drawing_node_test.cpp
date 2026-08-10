@@ -154,6 +154,23 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetBitmapInvalidBitmapTest
+ * @tc.desc: Test GetBitmap returns false when bitmap is not valid in non-renderservice path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapInvalidBitmapTest, TestSize.Level1)
+{
+    auto drawingNode = std::make_shared<RSCanvasDrawingNode>(false);
+    Drawing::Bitmap bitmap;
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
+    Drawing::Rect rect;
+    // When node is not a render service node and bitmap from render thread is invalid,
+    // GetBitmap should return false (not true as the old bug would have done)
+    bool res = drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
+    ASSERT_FALSE(res);
+}
+
+/**
  * @tc.name: GetPixelmapTest
  * @tc.desc: test results of GetPixelmap
  * @tc.type: FUNC

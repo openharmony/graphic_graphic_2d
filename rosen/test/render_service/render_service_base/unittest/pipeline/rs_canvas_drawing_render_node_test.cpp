@@ -378,6 +378,24 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurface, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetSurfaceNullStagingRenderParams
+ * @tc.desc: Test ResetSurface when stagingRenderParams_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceNullStagingRenderParams, TestSize.Level1)
+{
+    NodeId nodeId = 10;
+    std::weak_ptr<RSContext> context;
+    int width = 100;
+    int height = 100;
+    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    rsCanvasDrawingRenderNode->stagingRenderParams_ = nullptr;
+    // Should not crash when stagingRenderParams_ is nullptr
+    rsCanvasDrawingRenderNode->ResetSurface(width, height, 1);
+    ASSERT_EQ(rsCanvasDrawingRenderNode->surface_, nullptr);
+}
+
+/**
  * @tc.name: ResetSurfaceWithTextureTest
  * @tc.desc: Test ResetSurfaceWithTexture
  * @tc.type: FUNC

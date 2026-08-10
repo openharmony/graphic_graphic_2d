@@ -111,8 +111,7 @@ public:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback);
 
-    int32_t SubmitCanvasPreAllocatedBuffer(
-        pid_t remotePid, NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+    int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success);
@@ -255,6 +254,9 @@ private:
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     static std::shared_ptr<RSSurfaceHandler> CreateCanvasSurfaceHandler(NodeId nodeId);
+#endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static bool IsBufferConfigValid(const sptr<SurfaceBuffer>& buffer);
 #endif
     std::weak_ptr<RSRenderPipeline> rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;

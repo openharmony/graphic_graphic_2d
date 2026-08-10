@@ -189,4 +189,21 @@ HWTEST_F(RSCanvasDrawingRenderParamsTest, OnSync_ConsumerSurfaceSyncTest, TestSi
     ASSERT_EQ(target->GetConsumerSurface(), consumerSurface);
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE
+
+/**
+ * @tc.name: OnSync_TargetParamsNullptrTest
+ * @tc.desc: Test OnSync when target unique_ptr is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderParamsTest, OnSync_TargetParamsNullptrTest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    auto source = std::make_unique<RSCanvasDrawingRenderParams>(id);
+    // Target is nullptr, static_cast yields nullptr, early return prevents RSRenderParams::OnSync
+    std::unique_ptr<RSRenderParams> target = nullptr;
+    source->canvasDrawingNodeSurfaceChanged_ = true;
+    source->canvasDrawingResetSurfaceIndex_ = 5;
+    source->OnSync(target);
+    ASSERT_TRUE(source->canvasDrawingNodeSurfaceChanged_);
+}
 } // namespace OHOS::Rosen
