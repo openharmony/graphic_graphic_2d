@@ -52,8 +52,8 @@ int RSDEStatusChangeCallbackStub::OnRemoteRequest(
     return ret;
 }
 
-void RSDEStatusChangeCallbackStub::OnNotifyDEStatusChangeDone(const uint32_t sceneKey,
-    const std::vector<uint8_t>& result)
+void RSDEStatusChangeCallbackStub::OnNotifyDEStatusChangeDone([[maybe_unused]] const uint32_t sceneKey,
+    [[maybe_unused]] const std::vector<uint8_t>& result)
 {
 }
 } // namespace Rosen
