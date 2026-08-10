@@ -2535,7 +2535,7 @@ ErrCode RSClientToServiceConnection::SendVideoRateInfo(
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
-    for (auto conn : serviceToRenderConns) {
+    for (auto& conn : serviceToRenderConns) {
         auto ret = conn->SendVideoRateInfo(videoRateInfo);
         if (ret != ERR_OK) {
             return ret;
