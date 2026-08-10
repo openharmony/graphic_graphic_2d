@@ -129,7 +129,10 @@ RSApplicationAgentLifecycleOwner& RSApplicationAgentLifecycleOwner::Instance()
 
 RSApplicationAgentLifecycleOwner::~RSApplicationAgentLifecycleOwner()
 {
+#ifdef OHOS_PLATFORM
+    ROSEN_LOGI("RSApplicationAgentLifecycleOwner::~RSApplicationAgentImpl");
     RSApplicationAgentImpl::Release(isRegistered_.load());
+#endif
 }
 
 void RSApplicationAgentLifecycleOwner::EnsureRegistered(std::shared_ptr<RSUIContext> rsUIContext)
