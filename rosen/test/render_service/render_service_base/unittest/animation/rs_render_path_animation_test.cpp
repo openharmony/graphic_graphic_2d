@@ -449,6 +449,8 @@ HWTEST_F(RSRenderPathAnimationTest, SetRotationTest, Level1)
     float tangent = 0.f;
     rsRenderPathAnimation.SetRotation(tangent);
     EXPECT_FALSE(tangent);
+    tangent = 0.5f;
+    rsRenderPathAnimation.SetRotation(tangent);
 }
 
 /**

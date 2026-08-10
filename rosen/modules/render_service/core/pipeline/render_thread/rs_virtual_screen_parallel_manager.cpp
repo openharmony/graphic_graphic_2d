@@ -253,7 +253,7 @@ void RSVirtualScreenParallelManager::InitializeThread(ScreenId screenId, std::sh
     auto renderEngine = std::make_shared<RSUniRenderEngine>();
     auto handle = ffrtThread->submit_h([this, &screenId, &renderEngine, &tid]() {
         RS_TRACE_NAME_FMT("InitializeThread init engine screenId: %" PRIu64 "tid: %d", screenId, tid);
-        renderEngine->Init(RenderEngineType::BASIC_RENDER, tid);
+        renderEngine->Init();
         {
             std::unique_lock<ffrt::mutex> lock(taskMutex_);
             uniRenderEngineMap_[screenId] = renderEngine;

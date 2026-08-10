@@ -110,9 +110,6 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSRenderServiceConnectHubContructAndDest
 {
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     ASSERT_EQ(connHub->renderService_, nullptr);
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
-        std::cout << "Run Callback" << std::endl;
-    });
     connHub->Destroy();
 }
 
@@ -130,22 +127,13 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     RSRenderServiceConnectHub::GetClientToServiceConnection();
     RSApplicationAgentImpl::Instance();
-    RSApplicationAgentImpl::Destroy();
-    RSApplicationAgentImpl::Destroy();
+    RSApplicationAgentImpl::Release();
+    RSApplicationAgentImpl::Release();
     RSRenderServiceConnectHub::Destroy();
     RSRenderServiceConnectHub::Init();
     RSApplicationAgentImpl::Instance();
 
-    auto connHub2 = RSRenderServiceConnectHub::GetInstance();
     RSRenderServiceConnectHub::GetClientToServiceConnection();
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, nullptr);
-    EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 1);
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, false);
-    EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 0);
-    connHub2->OnDiedCallbacks_[1] = nullptr;
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
-        std::cout << "Runing APPLICATION_AGENT callback" << std::endl;
-    });
     RSRenderServiceConnectHub::Destroy();
     RSRenderServiceConnectHub::Init();
     auto instance3 = RSApplicationAgentImpl::Instance();
@@ -225,84 +213,6 @@ HWTEST_F(RSRenderServiceConnectHubTest, SetOnConnectCallbackTest004, TestSize.Le
     ASSERT_TRUE(invoked);
 }
 
-/**
- * @tc.name: SetOnDiedCallbackTest001
- * @tc.desc: branch 1 - instance is nullptr, return early, callback not stored
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, SetOnDiedCallbackTest001, TestSize.Level1)
-{
-    auto saved = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    saved->OnDiedCallbacks_.erase(key);
-    RSRenderServiceConnectHub::instance_ = nullptr;
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {});
-    RSRenderServiceConnectHub::instance_ = saved;
-    ASSERT_EQ(saved->OnDiedCallbacks_.count(key), 0);
-}
-
-/**
- * @tc.name: SetOnDiedCallbackTest002
- * @tc.desc: branch 2 - instance is not nullptr, callback stored in OnDiedCallbacks_
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, SetOnDiedCallbackTest002, TestSize.Level1)
-{
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {});
-    bool stored = connHub->OnDiedCallbacks_.count(key) > 0;
-    connHub->OnDiedCallbacks_.erase(key);
-    ASSERT_TRUE(stored);
-}
-
-/**
- * @tc.name: RemoveOnDiedCallbackTest001
- * @tc.desc: branch 1 - isDestructionProcess is true, return early, callback not erased
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, RemoveOnDiedCallbackTest001, TestSize.Level1)
-{
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    connHub->OnDiedCallbacks_[key] = []() {};
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, true);
-    bool preserved = connHub->OnDiedCallbacks_.count(key) > 0;
-    connHub->OnDiedCallbacks_.erase(key);
-    ASSERT_TRUE(preserved);
-}
-
-/**
- * @tc.name: RemoveOnDiedCallbackTest002
- * @tc.desc: branch 2 - isDestructionProcess is false and instance is nullptr, return early
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, RemoveOnDiedCallbackTest002, TestSize.Level1)
-{
-    auto saved = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    saved->OnDiedCallbacks_[key] = []() {};
-    RSRenderServiceConnectHub::instance_ = nullptr;
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, false);
-    RSRenderServiceConnectHub::instance_ = saved;
-    bool preserved = saved->OnDiedCallbacks_.count(key) > 0;
-    saved->OnDiedCallbacks_.erase(key);
-    ASSERT_TRUE(preserved);
-}
-
-/**
- * @tc.name: RemoveOnDiedCallbackTest003
- * @tc.desc: branch 3 - isDestructionProcess is false and instance is not nullptr, callback erased
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderServiceConnectHubTest, RemoveOnDiedCallbackTest003, TestSize.Level1)
-{
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    auto key = static_cast<int32_t>(RSOnDiedCallbackCode::APPLICATION_AGENT);
-    connHub->OnDiedCallbacks_[key] = []() {};
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, false);
-    ASSERT_EQ(connHub->OnDiedCallbacks_.count(key), 0);
-}
 
 /**
  * @tc.name: GetDefaultTokenMaskIdTest001
@@ -487,4 +397,4 @@ HWTEST_F(RSRenderServiceConnectHubTest, OnRemoteDiedTest004, TestSize.Level1)
 
 
 } // namespace Rosen
-} // namespace OHOS
+} // namespace OHOS

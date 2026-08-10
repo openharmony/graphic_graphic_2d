@@ -41,6 +41,22 @@ namespace Rosen {
 static RSTypefaceCache gRSTypefaceCacheInstance;
 static const int MAX_CHUNK_SIZE = 20000;
 static constexpr int INVALID_FD = -1;
+// DoS guard: cap distinct typeface bases so a single app cannot exhaust render-service memory.
+// A base is identified by its base hash (the low 32 bits of fullHash); a variable font's
+// variations share their base, so they share quota and do not each consume it. Both fd-backed
+// (ashmem) and serialized (old IPC) bases count, since both occupy service memory.
+static constexpr uint32_t MAX_TYPEFACE_COUNT_PER_PID = 1024;
+// Bounded to half a typical per-process fd limit so the cap rejects gracefully before the service
+// hits EMFILE: each distinct fd-backed base holds one fd for its cache lifetime, and fd exhaustion
+// fails the whole process (sockets, buffers), not just registration.
+static constexpr size_t MAX_TYPEFACE_TOTAL_COUNT = 16384;
+
+// Base identity = base hash, i.e. the low 32 bits of fullHash (high 32 bits hold variation
+// coords). Variations of one font share this identity and count once.
+static inline uint32_t BaseHashOf(uint64_t fullHash)
+{
+    return static_cast<uint32_t>(fullHash);
+}
 
 RSTypefaceCache& RSTypefaceCache::Instance()
 {
@@ -64,19 +80,75 @@ uint32_t RSTypefaceCache::GetTypefaceId(uint64_t uniqueId)
     return static_cast<uint32_t>(0xFFFFFFFF & uniqueId);
 }
 
-bool RSTypefaceCache::AddIfFound(uint64_t uniqueId, uint32_t hash)
+bool RSTypefaceCache::CanAddEntry(pid_t pid, uint32_t baseHash) const
 {
-    std::unordered_map<uint64_t, TypefaceTuple>::iterator iterator = typefaceHashMap_.find(hash);
-    if (iterator != typefaceHashMap_.end()) {
-        typefaceHashCode_[uniqueId] = hash;
-        std::get<1>(iterator->second)++;
-        pid_t pid = GetTypefacePid(uniqueId);
-        if (pid) {
-            MemorySnapshot::Instance().AddCpuMemory(pid, (std::get<0>(iterator->second))->GetSize());
-        }
+    auto pidIt = pidBaseMap_.find(pid);
+    // Adding a ref to a base this pid already holds (e.g. a variation) never grows the count.
+    if (pidIt != pidBaseMap_.end() && pidIt->second.count(baseHash)) {
         return true;
     }
-    return false;
+    // Global base cap reuses typefaceBaseHashMap_ (the distinct-base set) as its source of truth:
+    // a brand-new base is blocked once full, while re-refcounting a base some other pid already
+    // holds does not grow the set.
+    if (typefaceBaseHashMap_.find(baseHash) == typefaceBaseHashMap_.end() &&
+        typefaceBaseHashMap_.size() >= MAX_TYPEFACE_TOTAL_COUNT) {
+        RS_LOGW("RSTypefaceCache global base cap reached, total:%{public}zu", typefaceBaseHashMap_.size());
+        return false;
+    }
+    // Per-pid cap: the distinct-base count is the inner map's size().
+    if (pidIt != pidBaseMap_.end() && pidIt->second.size() >= MAX_TYPEFACE_COUNT_PER_PID) {
+        RS_LOGW("RSTypefaceCache per-pid base cap reached, pid:%{public}d, count:%{public}zu",
+            static_cast<int32_t>(pid), pidIt->second.size());
+        return false;
+    }
+    return true;
+}
+
+void RSTypefaceCache::CommitHashCodeEntry(uint64_t uniqueId, uint64_t fullHash)
+{
+    bool isNew = typefaceHashCode_.find(uniqueId) == typefaceHashCode_.end();
+    typefaceHashCode_[uniqueId] = fullHash;
+    if (!isNew) {
+        return;
+    }
+    // Per-pid accounting only; the global distinct-base count is typefaceBaseHashMap_.size(),
+    // maintained alongside the typeface data in CacheDrawingTypeface / RemoveHashMap.
+    pidBaseMap_[GetTypefacePid(uniqueId)][BaseHashOf(fullHash)]++;
+}
+
+void RSTypefaceCache::DecPidBaseRef(pid_t pid, uint32_t baseHash)
+{
+    auto pidIt = pidBaseMap_.find(pid);
+    if (pidIt == pidBaseMap_.end()) {
+        return;
+    }
+    auto baseIt = pidIt->second.find(baseHash);
+    if (baseIt != pidIt->second.end()) {
+        baseIt->second -= 1;
+        if (baseIt->second == 0) {
+            pidIt->second.erase(baseIt);
+            if (pidIt->second.empty()) {
+                pidBaseMap_.erase(pidIt);
+            }
+        }
+    }
+}
+
+bool RSTypefaceCache::AddIfFound(uint64_t uniqueId, uint32_t hash)
+{
+    auto iterator = typefaceHashMap_.find(hash);
+    if (iterator == typefaceHashMap_.end()) {
+        return false;
+    }
+    // The HasTypeface dedup path is out of scope for cap enforcement, but the entry must
+    // still be accounted so the removal path stays balanced. `hash` is the base hash here.
+    CommitHashCodeEntry(uniqueId, hash);
+    std::get<1>(iterator->second)++;
+    pid_t pid = GetTypefacePid(uniqueId);
+    if (pid != 0) {
+        MemorySnapshot::Instance().AddCpuMemory(pid, (std::get<0>(iterator->second))->GetSize());
+    }
+    return true;
 }
 
 uint8_t RSTypefaceCache::HasTypeface(uint64_t uniqueId, uint32_t hash)
@@ -136,77 +208,131 @@ uint64_t CalculateTypefaceFullHash(std::shared_ptr<Drawing::Typeface> typeface)
     return AssembleFullHash(CalculateFontArgsHash(coords), typeface->GetHash());
 }
 
-void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId, std::shared_ptr<Drawing::Typeface> typeface)
+// Computes the fullHash used to key typefaceHashMap_. fd-backed typefaces hash over their
+// variation coords + base; others use the adapter hash, falling back to hashing serialized data
+// when the adapter provides none. Returns false only when the fallback serialize yields no data.
+static bool ComputeFullHash(const std::shared_ptr<Drawing::Typeface>& typeface, uint64_t& fullHash)
+{
+    if (typeface->GetFd() != INVALID_FD) {
+        fullHash = CalculateTypefaceFullHash(typeface);
+        return true;
+    }
+    fullHash = typeface->GetHash();
+    if (fullHash != 0) {
+        return true;
+    }
+    std::shared_ptr<Drawing::Data> data = typeface->Serialize();
+    if (data == nullptr) {
+        return false;
+    }
+    const void* stream = data->GetData();
+    size_t size = data->GetSize();
+#ifdef USE_M133_SKIA
+    fullHash = SkChecksum::Hash32(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)));
+#else
+    fullHash = SkOpts::hash_fn(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)), 0);
+#endif
+    return true;
+}
+
+bool RSTypefaceCache::RefExistingEntry(uint64_t uniqueId, uint64_t fullHash,
+    const std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    auto it = typefaceHashMap_.find(fullHash);
+    if (it == typefaceHashMap_.end()) {
+        return false;
+    }
+    auto [faceCache, ref] = it->second;
+    if (faceCache->GetFamilyName() != typeface->GetFamilyName()) {
+        // hash collision. Overwrites the stored hash with uniqueId so RemoveHashMap can
+        // locate typefaceHashMap_[uniqueId]; on removal DecPidBaseRef will then see
+        // BaseHashOf(uniqueId) instead of the committed BaseHashOf(fullHash), a base
+        // accounting drift of ±1 for this pid. Collisions on the 32-bit base hash are
+        // astronomically rare, so this is left as-is rather than complicate the path.
+        typefaceHashCode_[uniqueId] = uniqueId;
+        typefaceHashMap_[uniqueId] = std::make_tuple(typeface, 1);
+        RS_LOGI("CacheDrawingTypeface hash collision");
+    } else {
+        typefaceHashMap_[fullHash] = std::make_tuple(faceCache, ref + 1);
+    }
+    return true;
+}
+
+void RSTypefaceCache::InsertNewEntry(uint64_t fullHash, const std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    typefaceHashMap_[fullHash] = std::make_tuple(typeface, 1);
+    uint32_t baseHash = typeface->GetHash();
+    auto baseEntry = typefaceBaseHashMap_.find(baseHash);
+    if (baseEntry != typefaceBaseHashMap_.end()) {
+        std::get<1>(baseEntry->second)++;
+    } else {
+        typefaceBaseHashMap_[baseHash] = std::make_tuple(typeface, 1);
+    }
+}
+
+void RSTypefaceCache::FulfillQueuedWaiters(uint64_t fullHash, uint64_t uniqueId)
+{
+    auto iterator = typefaceHashQueue_.find(fullHash);
+    if (iterator == typefaceHashQueue_.end()) {
+        return;
+    }
+    for (const uint64_t cacheId : iterator->second) {
+        if (cacheId != uniqueId) {
+            AddIfFound(cacheId, fullHash);
+        }
+    }
+    typefaceHashQueue_.erase(iterator);
+}
+
+bool RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId, std::shared_ptr<Drawing::Typeface> typeface,
+    bool enforceCap)
 {
     if (!typeface || uniqueId == 0) {
-        return;
+        return false;
     }
 
     std::lock_guard<std::mutex> lock(mapMutex_);
     if (typefaceHashCode_.find(uniqueId) != typefaceHashCode_.end()) {
-        return;
+        return true; // this uniqueId is already registered
     }
     uint64_t fullHash = 0;
-    if (typeface->GetFd() != INVALID_FD) {
-        fullHash = CalculateTypefaceFullHash(typeface);
-    } else {
-        fullHash = typeface->GetHash();
+    if (!ComputeFullHash(typeface, fullHash)) {
+        return false;
+    }
+    // Cap keyed on the base hash; checked after fullHash so a variation that shares an already-held
+    // base is allowed through.
+    if (enforceCap && !CanAddEntry(GetTypefacePid(uniqueId), BaseHashOf(fullHash))) {
+        return false;
+    }
+    // General (non-fd) typefaces are deserialized into the render-service process and count against a
+    // global CPU memory cap; fd-backed (new IPC) registrations carry their own ashmem and bypass it.
+    if (typeface->GetFd() == INVALID_FD) {
         size_t newSize = generalTypefaceTotalCpuMemory_ + typeface->GetSize();
         if (newSize > GENERAL_TYPEFACE_MEMORY_LIMIT) {
             RS_LOGD("CacheDrawingTypeface general typeface total size too big.");
-            return;
+            return false;
         }
         generalTypefaceTotalCpuMemory_ = newSize;
-        if (!fullHash) { // fallback to slow path if the adapter does not provide hash
-            std::shared_ptr<Drawing::Data> data = typeface->Serialize();
-            if (!data) {
-                return;
-            }
-            const void* stream = data->GetData();
-            size_t size = data->GetSize();
-#ifdef USE_M133_SKIA
-            fullHash = SkChecksum::Hash32(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)));
-#else
-            fullHash = SkOpts::hash_fn(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)), 0);
-#endif
-        }
     }
 
-    typefaceHashCode_[uniqueId] = fullHash;
+    // The registration now succeeds: record the mapping, charge memory, then attach to an
+    // already-cached fullHash (dedup/collision) or insert a new one.
+    CommitHashCodeEntry(uniqueId, fullHash);
     pid_t pid = GetTypefacePid(uniqueId);
-    if (typefaceHashMap_.find(fullHash) != typefaceHashMap_.end()) {
-        if (pid) {
-            MemorySnapshot::Instance().AddCpuMemory(pid, typeface->GetSize());
-        }
-        auto [faceCache, ref] = typefaceHashMap_[fullHash];
-        if (faceCache->GetFamilyName() != typeface->GetFamilyName()) {
-            // hash collision
-            typefaceHashCode_[uniqueId] = uniqueId;
-            typefaceHashMap_[uniqueId] = std::make_tuple(typeface, 1);
-            RS_LOGI("CacheDrawingTypeface hash collision");
-        } else {
-            typefaceHashMap_[fullHash] = std::make_tuple(faceCache, ref + 1);
-        }
-        return;
-    }
-    typefaceHashMap_[fullHash] = std::make_tuple(typeface, 1);
     if (pid) {
         MemorySnapshot::Instance().AddCpuMemory(pid, typeface->GetSize());
     }
-    typefaceBaseHashMap_[typeface->GetHash()] = std::make_tuple(typeface, 1);
-    if (typeface->GetFd() != INVALID_FD) {
-        return;
+    if (RefExistingEntry(uniqueId, fullHash, typeface)) {
+        return true;
     }
-    // register queued entries old ipc
-    auto iterator = typefaceHashQueue_.find(fullHash);
-    if (iterator != typefaceHashQueue_.end()) {
-        for (const uint64_t cacheId: iterator->second) {
-            if (cacheId != uniqueId) {
-                AddIfFound(cacheId, fullHash);
-            }
-        }
-        typefaceHashQueue_.erase(iterator);
+    InsertNewEntry(fullHash, typeface);
+
+    // fd-backed (new IPC) registrations carry their own ashmem and bypass the waiter queue, which
+    // exists only to dedup serialized (old IPC) registrations behind a concurrent one.
+    if (typeface->GetFd() == INVALID_FD) {
+        FulfillQueuedWaiters(fullHash, uniqueId);
     }
+    return true;
 }
 
 void RemoveHashQueue(
@@ -266,10 +392,11 @@ void RSTypefaceCache::RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqu
         RS_LOGI("RSTypefaceCache:Failed to find typeface, uniqueid:%{public}u", GetTypefaceId(globalUniqueId));
         return;
     }
-    auto hash_value = typefaceHashCode_[globalUniqueId];
+    auto fullHash = typefaceHashCode_[globalUniqueId];
     typefaceHashCode_.erase(globalUniqueId);
+    DecPidBaseRef(GetTypefacePid(globalUniqueId), BaseHashOf(fullHash));
     RS_LOGI("RSTypefaceCache:Remove typeface, uniqueid:%{public}u", GetTypefaceId(globalUniqueId));
-    RemoveHashMap(GetTypefacePid(globalUniqueId), typefaceHashMap_, hash_value);
+    RemoveHashMap(GetTypefacePid(globalUniqueId), typefaceHashMap_, fullHash);
 }
 
 std::shared_ptr<Drawing::Typeface> RSTypefaceCache::GetDrawingTypefaceCache(uint64_t uniqueId) const
@@ -294,9 +421,13 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(Dra
         uint32_t fontArgsHash = CalculateFontArgsHash(sharedTypeface.coords_);
         fullHash = AssembleFullHash(fontArgsHash, sharedTypeface.hash_);
     }
+    // Cap on the base identity (base hash), checked only once fullHash is known.
+    if (!CanAddEntry(GetTypefacePid(sharedTypeface.id_), BaseHashOf(fullHash))) {
+        return nullptr;
+    }
     auto iter = typefaceHashMap_.find(fullHash);
     if (iter != typefaceHashMap_.end()) {
-        typefaceHashCode_[sharedTypeface.id_] = fullHash;
+        CommitHashCodeEntry(sharedTypeface.id_, fullHash);
         std::get<1>(iter->second) += 1;
         pid_t pid = GetTypefacePid(sharedTypeface.id_);
         if (pid) {
@@ -318,7 +449,8 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(Dra
             }
             std::get<1>(baseTypeface->second)++;
             clonedTypeface->SetFd(std::get<0>(baseTypeface->second)->GetFd());
-            typefaceHashCode_[sharedTypeface.id_] = fullHash;
+            clonedTypeface->SetHash(std::get<0>(baseTypeface->second)->GetHash());
+            CommitHashCodeEntry(sharedTypeface.id_, fullHash);
             typefaceHashMap_[fullHash] = std::make_tuple(clonedTypeface, 1);
             return clonedTypeface;
         }
@@ -351,7 +483,15 @@ int32_t RSTypefaceCache::InsertVariationTypeface(Drawing::SharedTypeface& shared
         return -1;
     }
     clonedTypeface->SetFd(typeface->GetFd());
-    CacheDrawingTypeface(sharedTypeface.id_, clonedTypeface);
+    // A variation shares its base's identity for cap accounting. MakeClone leaves the clone's hash
+    // unset; SkTypeface::GetHash() would then lazily hash the already-varied clone to a value
+    // unrelated to the base, so BaseHashOf(fullHash) would diverge and each variation would consume
+    // its own cap slot instead of sharing the base's. Carry the base hash forward.
+    clonedTypeface->SetHash(typeface->GetHash());
+    if (!CacheDrawingTypeface(sharedTypeface.id_, clonedTypeface)) {
+        RS_LOGW("InsertVariationTypeface rejected by cache cap, id:%{public}u", GetTypefaceId(sharedTypeface.id_));
+        return -1;
+    }
     return clonedTypeface->GetFd();
 }
 
@@ -389,9 +529,7 @@ void RSTypefaceCache::RemoveDrawingTypefacesByPid(pid_t pid)
     PurgeMapWithPid(pid, typefaceHashQueue_);
 
     for (auto it = typefaceHashCode_.begin(); it != typefaceHashCode_.end();) {
-        uint64_t uniqueId = it->first;
-        pid_t pidCache = static_cast<pid_t>(uniqueId >> 32);
-        if (pid == pidCache) {
+        if (pid == GetTypefacePid(it->first)) {
             // no need pid, ClearMemoryCache will clear memory snapshot.
             RemoveHashMap(0, typefaceHashMap_, it->second);
             it = typefaceHashCode_.erase(it);
@@ -399,6 +537,10 @@ void RSTypefaceCache::RemoveDrawingTypefacesByPid(pid_t pid)
             ++it;
         }
     }
+    // The whole pid is going away, so drop its per-pid base accounting in one shot. This is also
+    // robust against the hash-collision drift: a per-uniqueId decrement would key on
+    // BaseHashOf(uniqueId) rather than the committed base and could leave the pid non-empty.
+    pidBaseMap_.erase(pid);
 }
 void RSTypefaceCache::AddDelayDestroyQueue(uint64_t globalUniqueId)
 {
@@ -433,6 +575,9 @@ void RSTypefaceCache::Dump(DfxString& log) const
     log.AppendFormat(
         "  Total: %.2fKB (%.2fMB)\n", static_cast<double>(totalMem) / KB, static_cast<double>(totalMem) / MB);
     log.AppendFormat("  Entries: %zu\n", typefaceHashMap_.size());
+    log.AppendFormat("  Fonts: %zu base / %zu registrations (per-pid cap %u, global cap %zu)\n",
+        typefaceBaseHashMap_.size(), typefaceHashCode_.size(), MAX_TYPEFACE_COUNT_PER_PID,
+        MAX_TYPEFACE_TOTAL_COUNT);
     log.AppendFormat("%-6s %-16s %-16s %-4s %-26s %-20s\n", "PID", "UniqueId", "Hash", "Ref", "FamilyName", "Size");
 
     std::unordered_map<uint64_t, std::vector<uint64_t>> hashToUniqueIds;
@@ -537,7 +682,7 @@ std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& stream)
 
         constexpr size_t dummy = std::numeric_limits<size_t>::max();
         if (dummy == size) {
-            CacheDrawingTypeface(uniqueId | mask, typeface);
+            CacheDrawingTypeface(uniqueId | mask, typeface, false);
             continue;
         }
 
@@ -558,7 +703,7 @@ std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& stream)
             ReplayClear();
             return "ReplayDeserialize: Cannot create typeface";
         }
-        CacheDrawingTypeface(uniqueId | mask, typeface);
+        CacheDrawingTypeface(uniqueId | mask, typeface, false);
     }
     return {};
 }

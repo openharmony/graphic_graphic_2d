@@ -78,7 +78,7 @@ private:
     const std::shared_ptr<HgmRPEnergy> hgmRPEnergy_;
 
     std::atomic<int32_t> isAdaptive_ = SupportASStatus::NOT_SUPPORT;
-    std::string gameNodeName_;
+    std::string gameNodeName_ = "";
     std::atomic<bool> isGameNodeOnTree_ = false;
     std::atomic<bool> isAdaptiveVsyncReady_ = false;
 

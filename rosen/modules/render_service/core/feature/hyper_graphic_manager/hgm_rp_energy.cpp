@@ -16,10 +16,12 @@
 
 #include <algorithm>
 
-#include "common/rs_common_hook.h"
-#include "platform/common/rs_log.h"
 #include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
+
+#include "common/rs_common_hook.h"
+#include "platform/common/rs_log.h"
+
 namespace OHOS::Rosen {
 HgmRPEnergy::HgmRPEnergy()
 {

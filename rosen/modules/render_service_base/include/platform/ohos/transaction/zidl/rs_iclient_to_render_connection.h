@@ -96,6 +96,8 @@ public:
 
     virtual ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
+    virtual ErrCode UnRegisterApplicationAgent() = 0;
+
     virtual ErrCode RegisterBufferClearListener(
         NodeId id, sptr<RSIBufferClearCallback> callback) = 0;
 

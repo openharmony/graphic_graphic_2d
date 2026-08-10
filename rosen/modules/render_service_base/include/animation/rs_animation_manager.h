@@ -94,7 +94,7 @@ private:
     std::unordered_map<PropertyId, AnimationId> pathAnimations_;
     std::unordered_map<PropertyId, AnimationId> particleAnimations_;
     std::vector<AnimationId> pendingCancelAnimation_;
-    AnimationId preDrawCmdListAnimationId_;
+    AnimationId preDrawCmdListAnimationId_ = 0;
     friend class RSRenderNodeMap;
     friend class RSRenderNode;
     friend class RSRenderCurveAnimation;

@@ -64,7 +64,8 @@
 | VSync/native_vsync | `vsync-native-vsync.md` | `composer/vsync/`, `native_vsync/`, `VSync*` | vsync/fuzz |
 | 屏幕/虚拟屏 | `screen-manager.md` | `screen_manager/`, `ScreenManager` | screen/fuzz |
 | Dirty/遮挡 | `dirty-region.md` | `dirty/`, `dirty_region/`, `Occlusion` | dirty |
-| UIFirst/OPINC/组渲染 | `uifirst-opinc.md` | `uifirst/`, `opinc/`, `render_group/` | 性能/图测 |
+| OPINC/组渲染 | `opinc-rendergroup.md` | `opinc/`, `render_group/` | 性能/图测 |
+| UIFirst 子线程渲染 | `uifirst.md` | `uifirst/`, `RSUifirstManager`, `SubThread` | 性能/图测 |
 | layer/special/tunnel | `layer-special-tunnel.md` | `layer/`, `special_layer/`, `tunnel_layer/` | layer |
 | overlay/多屏 | `overlay-multi-screen.md` | `overlay_display/`, `multi_screen/`, `Overlay` | 多屏/设备 |
 | HDR | `hdr.md` | `hdr/`, `RSHdrUtil` | HDR/XTS |
