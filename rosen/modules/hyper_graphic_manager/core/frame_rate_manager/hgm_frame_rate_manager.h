@@ -228,6 +228,7 @@ private:
     void HandlePointerTask(pid_t pid, int32_t pointerStatus, int32_t pointerCnt);
     void HandleScreenLtpoConfig(ScreenId id);
     void HandleScreenFrameRate(std::string curScreenName);
+    void HandleScreenStrategyFallback(const std::shared_ptr<PolicyConfigData>& configData);
     void UpdateScreenFrameRate();
     void RegisterUpTimeoutAndDownEvent();
 
