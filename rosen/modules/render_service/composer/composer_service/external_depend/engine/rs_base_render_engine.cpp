@@ -190,7 +190,7 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 {
 }
 
-void RSBaseRenderEngine::Init(RenderEngineType type, int32_t tid)
+void RSBaseRenderEngine::Init(RenderEngineType type)
 {
     if (type >= RenderEngineType::MAX_INTERFACE_TYPE) {
         ROSEN_LOGE("Invalid RenderEngineType %{public}d", static_cast<int>(type));
@@ -282,7 +282,7 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<RSLayerPtr>& layers)
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const std::shared_ptr<RSSurfaceOhos>& rsSurface,
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
-    const FrameContextConfig& frameContextConfig, int32_t tid)
+    const FrameContextConfig& frameContextConfig)
 {
     if (rsSurface == nullptr) {
         RS_LOGE("RSBaseRenderEngine::RequestFrame: surface is null!");
@@ -334,7 +334,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
 
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surface>& targetSurface,
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
-    const FrameContextConfig& frameContextConfig, int32_t tid)
+    const FrameContextConfig& frameContextConfig)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(targetSurface)");
     if (targetSurface == nullptr) {
@@ -363,7 +363,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     }
 
     RS_OPTIONAL_TRACE_END();
-    return RequestFrame(rsSurface, config, forceCPU, useAFBC, frameContextConfig, tid);
+    return RequestFrame(rsSurface, config, forceCPU, useAFBC, frameContextConfig);
 }
 
 std::shared_ptr<RSSurfaceOhos> RSBaseRenderEngine::MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU)

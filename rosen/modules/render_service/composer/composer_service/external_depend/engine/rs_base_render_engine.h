@@ -217,7 +217,7 @@ class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
-    void Init(RenderEngineType type = RenderEngineType::BASIC_RENDER, int32_t tid = 0);
+    void Init(RenderEngineType type = RenderEngineType::BASIC_RENDER);
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -229,12 +229,12 @@ public:
     // for framebuffer surface
     std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
-        const FrameContextConfig& frameContextConfig = FrameContextConfig(false), int32_t tid = 0);
+        const FrameContextConfig& frameContextConfig = FrameContextConfig(false));
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
-        const FrameContextConfig& frameContextConfig = FrameContextConfig(false), int32_t tid = 0);
+        const FrameContextConfig& frameContextConfig = FrameContextConfig(false));
     std::shared_ptr<RSSurfaceOhos> MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU);
     static void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSSurfaceOhos> surfaceOhos);

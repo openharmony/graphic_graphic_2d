@@ -49,6 +49,7 @@ ohos_unittest("RSCanvasDrawingRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",

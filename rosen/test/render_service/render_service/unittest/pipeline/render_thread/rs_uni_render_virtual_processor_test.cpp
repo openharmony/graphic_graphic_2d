@@ -2348,7 +2348,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_NullParams
     ASSERT_NE(virtualProcessor_, nullptr);
     ASSERT_NE(screenDrawable_, nullptr);
     screenDrawable_->renderParams_ = nullptr;
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 
@@ -2363,7 +2363,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_EmptySurfa
     ASSERT_NE(screenDrawable_, nullptr);
     auto screenParams = std::make_unique<RSScreenRenderParams>(nodeId_);
     screenDrawable_->renderParams_ = std::move(screenParams);
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 
@@ -2384,7 +2384,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_NullSurfac
         std::vector<SurfaceRegionConfig>{src});
     screenParams->SetVirtualSurfaceChanged(false);
     screenDrawable_->renderParams_ = std::move(screenParams);
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 
@@ -2406,7 +2406,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_VirtualSur
     screenParams->SetVirtualSurfaceChanged(true);
     screenDrawable_->renderParams_ = std::move(screenParams);
     virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
     virtualProcessor_->renderEngine_ = nullptr;
 }
@@ -2432,7 +2432,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_ValidSurfa
     screenParams->SetVirtualSurfaceChanged(false);
     screenDrawable_->renderParams_ = std::move(screenParams);
     virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     virtualProcessor_->surfaceFrames_.clear();
     virtualProcessor_->renderEngine_ = nullptr;
 }
@@ -2474,7 +2474,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_RequestFra
         sptr<SyncFence> fence2;
         pSurface->RequestBuffer(buf2, fence2, bufConfig);
     }
-    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_, 0);
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
     virtualProcessor_->surfaceFrames_.clear();
     virtualProcessor_->renderEngine_ = nullptr;
 }
