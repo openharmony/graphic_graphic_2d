@@ -58,21 +58,15 @@ bool WebGLArg::GetWebGLArg(napi_value data, WebGLArgValue& arg, const WebGLArgIn
             break;
         }
         case ARG_INTPTR: {
-            int64_t v = 0;
-            tie(succ, v) = NVal(env_, data).ToInt64();
-            arg.glIntptr = static_cast<GLintptr>(v);
+            tie(succ, arg.glIntptr) = NVal(env_, data).ToGLintptr();
             break;
         }
         case ARG_SIZE: {
-            int64_t v = 0;
-            tie(succ, v) = NVal(env_, data).ToInt64();
-            arg.glSizei = static_cast<GLsizei>(v);
+            tie(succ, arg.glSizei) = NVal(env_, data).ToGLsizei();
             break;
         }
         case ARG_SIZEPTR: {
-            int64_t v = 0;
-            tie(succ, v) = NVal(env_, data).ToInt64();
-            arg.glSizeptr = static_cast<GLsizeiptr>(v);
+            tie(succ, arg.glSizeptr) = NVal(env_, data).ToGLsizeiptr();
             break;
         }
         default:
@@ -316,6 +310,11 @@ napi_status WebGLReadBufferArg::GenBufferData(napi_value data, BufferDataType de
         status = napi_get_typedarray_info(
             env_, data, &arrayType, &dataLen_, reinterpret_cast<void**>(&data_), &arrayBuffer, &byteOffset);
         type_ = (BufferDataType)arrayType;
+        size_t elementSize = GetBufferDataSize();
+        // OpenHarmony N-API returns the TypedArray byte length here, as covered by ace_napi_test.
+        if (status != napi_ok || elementSize == 0 || dataLen_ % elementSize != 0) {
+            return napi_invalid_arg;
+        }
     } else if (array) {
         LOGD("WebGL WebGLReadBufferArg array ");
         bufferType_ = BUFFER_ARRAY;
@@ -349,7 +348,8 @@ napi_value WebGLWriteBufferArg::GenExternalArray()
     size_t count = dataLen_ / sizeof(dstT);
     napi_value outputArray = nullptr;
     napi_status status = napi_ok;
-    if (data_ == nullptr) {
+    const bool hasExternalData = data_ != nullptr;
+    if (!hasExternalData) {
         status = napi_create_arraybuffer(env_, dataLen_, reinterpret_cast<void **>(&data_), &outputBuffer);
     } else {
         status = napi_create_external_arraybuffer(
@@ -359,12 +359,15 @@ napi_value WebGLWriteBufferArg::GenExternalArray()
             },
             nullptr, &outputBuffer);
     }
-    if (status == napi_ok) {
-        status = napi_create_typedarray(env_, (napi_typedarray_type)type_, count, outputBuffer, 0, &outputArray);
-    }
-    data_ = nullptr;
     if (status != napi_ok) {
         LOGE("GenExternalArray error %{public}d", status);
+        return nullptr;
+    }
+    // N-API owns both an internal ArrayBuffer and a successfully created external ArrayBuffer.
+    data_ = nullptr;
+    status = napi_create_typedarray(env_, (napi_typedarray_type)type_, count, outputBuffer, 0, &outputArray);
+    if (status != napi_ok) {
+        LOGE("GenExternalArray create typed array error %{public}d", status);
         return nullptr;
     }
     return outputArray;
@@ -405,12 +408,17 @@ napi_value WebGLWriteBufferArg::GenNormalArray(
 {
     napi_value res = nullptr;
     size_t count = dataLen_ / sizeof(srcT);
-    napi_create_array_with_length(env_, count, &res);
+    napi_status status = napi_create_array_with_length(env_, count, &res);
+    if (status != napi_ok) {
+        return nullptr;
+    }
     for (size_t i = 0; i < count; i++) {
         srcT data = *reinterpret_cast<srcT*>(data_ + i * sizeof(srcT));
-        napi_value element;
-        getNApiValue(env_, static_cast<dstT>(data), &element);
-        napi_set_element(env_, res, i, element);
+        napi_value element = nullptr;
+        status = getNApiValue(env_, static_cast<dstT>(data), &element);
+        if (status != napi_ok || napi_set_element(env_, res, i, element) != napi_ok) {
+            return nullptr;
+        }
     }
     return res;
 }
@@ -580,6 +588,11 @@ void WebGLImageSource::DecodeDataForRGB_UBYTE(const WebGLFormatMap* formatMap, u
     }
 }
 
+static bool ReadUnalignedUint16(const uint8_t* data, uint16_t& value)
+{
+    return data != nullptr && memcpy_s(&value, sizeof(value), data, sizeof(value)) == EOK;
+}
+
 void WebGLImageSource::DecodeDataForRGBA_USHORT_4444(const WebGLFormatMap* formatMap, uint8_t* array)
 {
     imageData_.clear();
@@ -589,7 +602,10 @@ void WebGLImageSource::DecodeDataForRGBA_USHORT_4444(const WebGLFormatMap* forma
                 static_cast<size_t>(j);
             uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             ColorParam_4_4_4_4 param;
-            param.value = *reinterpret_cast<uint16_t *>(data);
+            if (!ReadUnalignedUint16(data, param.value)) {
+                imageData_.clear();
+                return;
+            }
             imageData_.emplace_back(FromARGB(
                 param.rgba.alpha, param.rgba.red, param.rgba.green, param.rgba.blue).value);
         }
@@ -605,7 +621,10 @@ void WebGLImageSource::DecodeDataForRGBA_USHORT_5551(const WebGLFormatMap* forma
                 static_cast<size_t>(j);
             uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             ColorParam_5_5_5_1 param;
-            param.value = *reinterpret_cast<uint16_t *>(data);
+            if (!ReadUnalignedUint16(data, param.value)) {
+                imageData_.clear();
+                return;
+            }
             imageData_.emplace_back(FromARGB(
                 param.rgba.alpha, param.rgba.red, param.rgba.green, param.rgba.blue).value);
         }
@@ -621,7 +640,10 @@ void WebGLImageSource::DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatM
                 static_cast<size_t>(j);
             uint8_t *data = array + formatMap->bytesPrePixel * pixelIndex;
             ColorParam_5_6_5 param;
-            param.value = *reinterpret_cast<uint16_t *>(data);
+            if (!ReadUnalignedUint16(data, param.value)) {
+                imageData_.clear();
+                return;
+            }
             imageData_.emplace_back(FromRGB(param.rgb.red, param.rgb.green, param.rgb.blue).value);
         }
     }
@@ -630,6 +652,9 @@ void WebGLImageSource::DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatM
 bool WebGLImageSource::DecodeImageData(
     const WebGLFormatMap* formatMap, const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset)
 {
+    if (formatMap == nullptr || bufferDataArg == nullptr) {
+        return false;
+    }
     size_t bufLen = bufferDataArg->GetBufferLength();
     size_t srcOffsetBytes = 0;
     if (!GetSrcOffsetBytes(bufferDataArg, srcOffset, srcOffsetBytes)) {
@@ -642,7 +667,11 @@ bool WebGLImageSource::DecodeImageData(
         return false;
     }
 
-    uint8_t *start = bufferDataArg->GetBuffer() + srcOffsetBytes;
+    uint8_t* buffer = bufferDataArg->GetBuffer();
+    if (buffer == nullptr) {
+        return false;
+    }
+    uint8_t *start = buffer + srcOffsetBytes;
     switch (formatMap->decodeFunc) {
         case DECODE_RGBA_UBYTE:
             DecodeData(formatMap, start);
@@ -674,7 +703,7 @@ bool WebGLImageSource::DecodeImageData(
 bool WebGLImageSource::CheckImageDataSize(
     const WebGLFormatMap* formatMap, size_t maxSize, uint64_t& pixels) const
 {
-    if (imageOption_.height <= 0 || imageOption_.width <= 0) {
+    if (formatMap == nullptr || imageOption_.height <= 0 || imageOption_.width <= 0) {
         LOGE("DecodeImageData invalid width/height");
         return false;
     }
@@ -711,6 +740,9 @@ bool WebGLImageSource::GetSrcOffsetBytes(
 
 GLenum WebGLImageSource::CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, GLuint srcOffset)
 {
+    if (imageOption_.width < 0 || imageOption_.height < 0 || imageOption_.depth < 0) {
+        return GL_INVALID_VALUE;
+    }
     size_t bufLen = readBuffer_->GetBufferLength();
     size_t srcOffsetBytes = 0;
     if (!GetSrcOffsetBytes(readBuffer_.get(), srcOffset, srcOffsetBytes)) {
@@ -745,6 +777,10 @@ GLenum WebGLImageSource::CheckPixelMapBytes()
     if (pixelMap_ == nullptr) {
         return GL_NO_ERROR;
     }
+    if (imageOption_.width < 0 || imageOption_.height < 0 || imageOption_.depth < 0) {
+        LOGE("WebGl ImageSource invalid image dimensions");
+        return GL_INVALID_VALUE;
+    }
     uint32_t componentCount = 0;
     switch (imageOption_.format) {
         case GL_RGBA:
@@ -775,9 +811,25 @@ GLenum WebGLImageSource::CheckPixelMapBytes()
     uint64_t bytesPerPixel = static_cast<uint64_t>(componentCount) *
         WebGLArg::GetWebGLDataSize(imageOption_.type);
     uint64_t depth = (imageOption_.depth > 0) ? static_cast<uint64_t>(imageOption_.depth) : 1;
-    uint64_t need = static_cast<uint64_t>(imageOption_.width) * imageOption_.height * depth * bytesPerPixel;
-    if (need > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
-        LOGE("WebGl ImageSource pixelMap too small need %{public}" PRIu64, need);
+    uint64_t width = static_cast<uint64_t>(imageOption_.width);
+    uint64_t height = static_cast<uint64_t>(imageOption_.height);
+    if (width != 0 && height > std::numeric_limits<uint64_t>::max() / width) {
+        LOGE("WebGl ImageSource image size overflow");
+        return GL_INVALID_VALUE;
+    }
+    uint64_t requiredBytes = width * height;
+    if (requiredBytes != 0 && depth > std::numeric_limits<uint64_t>::max() / requiredBytes) {
+        LOGE("WebGl ImageSource image depth overflow");
+        return GL_INVALID_VALUE;
+    }
+    requiredBytes *= depth;
+    if (requiredBytes != 0 && bytesPerPixel > std::numeric_limits<uint64_t>::max() / requiredBytes) {
+        LOGE("WebGl ImageSource image byte size overflow");
+        return GL_INVALID_VALUE;
+    }
+    requiredBytes *= bytesPerPixel;
+    if (requiredBytes > static_cast<uint64_t>(pixelMap_->GetByteCount())) {
+        LOGE("WebGl ImageSource pixelMap too small requiredBytes %{public}" PRIu64, requiredBytes);
         return GL_INVALID_OPERATION;
     }
     return GL_NO_ERROR;
@@ -862,8 +914,11 @@ GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value 
         LOGE("WebGl GenImageSource status %{public}u", status);
         return GL_INVALID_VALUE;
     }
-    napi_valuetype valueType;
-    napi_typeof(env_, resultData, &valueType);
+    napi_valuetype valueType = napi_undefined;
+    status = napi_typeof(env_, resultData, &valueType);
+    if (status != napi_ok) {
+        return GL_INVALID_VALUE;
+    }
     if (valueType == napi_object) {
         return GenImageSource(imageOption_, resultData, 0);
     }
@@ -881,7 +936,10 @@ WebGLReadBufferArg *WebGLImageSource::GetWebGLReadBuffer() const
 GLvoid* WebGLImageSource::GetImageSourceData() const
 {
     if (pixelMap_ == nullptr) {
-        return readBuffer_ == nullptr ? nullptr : reinterpret_cast<GLvoid*>(readBuffer_->GetBuffer() + srcOffset_);
+        if (readBuffer_ == nullptr || readBuffer_->GetBuffer() == nullptr) {
+            return nullptr;
+        }
+        return reinterpret_cast<GLvoid*>(readBuffer_->GetBuffer() + srcOffset_);
     }
 
     LOGD("WebGl ImageSource [%{public}u %{public}u] byteCount %{public}u pixelBytes %{public}u rowBytes %{public}u "
@@ -917,12 +975,13 @@ uint32_t WebGLArg::GetWebGLDataSize(GLenum type)
     return sizeof(GLuint);
 }
 
-bool WebGLArg::GetStringList(napi_env env, napi_value array, std::vector<char*>& list)
+bool WebGLArg::GetStringList(napi_env env, napi_value array, uint32_t maxCount, std::vector<char*>& list)
 {
+    constexpr size_t MAX_WEBGL_NAME_LENGTH = 512;
     bool succ = false;
     uint32_t count = 0;
     napi_status status = napi_get_array_length(env, array, &count);
-    if (status != napi_ok) {
+    if (status != napi_ok || count > maxCount) {
         return false;
     }
     uint32_t i;
@@ -935,6 +994,11 @@ bool WebGLArg::GetStringList(napi_env env, napi_value array, std::vector<char*>&
         napi_value result;
         status = napi_coerce_to_string(env, element, &result);
         if (status != napi_ok) {
+            return false;
+        }
+        size_t nameLength = 0;
+        status = napi_get_value_string_utf8(env, result, nullptr, 0, &nameLength);
+        if (status != napi_ok || nameLength > MAX_WEBGL_NAME_LENGTH) {
             return false;
         }
         unique_ptr<char[]> name;

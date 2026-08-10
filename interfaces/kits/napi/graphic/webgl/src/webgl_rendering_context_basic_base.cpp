@@ -15,6 +15,8 @@
 
 #include "context/webgl_rendering_context_basic_base.h"
 
+#include <limits>
+
 #include "context/webgl2_rendering_context.h"
 #include "context/webgl_rendering_context.h"
 #include "napi/n_class.h"
@@ -51,7 +53,7 @@ void WebGLRenderingContextBasicBase::Create(void* context)
 
 void WebGLRenderingContextBasicBase::Init()
 {
-    LOGD("WebGLRenderingContextBasicBase::Init. %{private}p", this);
+    LOGD("WebGLRenderingContextBasicBase::Init");
     EglManager::GetInstance().Init();
     if (eglSurface_ == nullptr) {
         eglSurface_ = EglManager::GetInstance().CreateSurface(eglWindow_);
@@ -60,8 +62,18 @@ void WebGLRenderingContextBasicBase::Init()
 
 void WebGLRenderingContextBasicBase::SetBitMapPtr(char* bitMapPtr, int bitMapWidth, int bitMapHeight)
 {
-    LOGD("WebGLRenderingContextBasicBase::SetBitMapPtr. %{private}p", this);
+    LOGD("WebGLRenderingContextBasicBase::SetBitMapPtr");
     LOGD("WebGLRenderingContextBasicBase SetBitMapPtr [%{public}d %{public}d]", bitMapWidth, bitMapHeight);
+    constexpr size_t RGBA_BYTES_PER_PIXEL = 4;
+    if (bitMapPtr == nullptr || bitMapWidth <= 0 || bitMapHeight <= 0 ||
+        static_cast<size_t>(bitMapWidth) > std::numeric_limits<size_t>::max() / RGBA_BYTES_PER_PIXEL /
+        static_cast<size_t>(bitMapHeight)) {
+        bitMapPtr_ = nullptr;
+        bitMapWidth_ = 0;
+        bitMapHeight_ = 0;
+        LOGE("WebGLRenderingContextBasicBase invalid bitmap parameters");
+        return;
+    }
     bitMapPtr_ = bitMapPtr;
     bitMapWidth_ = bitMapWidth;
     bitMapHeight_ = bitMapHeight;
@@ -88,7 +100,7 @@ void WebGLRenderingContextBasicBase::Update()
         LOGD("eglSwapBuffers");
         EGLDisplay eglDisplay = EglManager::GetInstance().GetEGLDisplay();
         eglSwapBuffers(eglDisplay, eglSurface_);
-    } else {
+    } else if (bitMapPtr_ != nullptr && bitMapWidth_ > 0 && bitMapHeight_ > 0) {
         LOGD("glReadPixels packAlignment %{public}d", packAlignment_);
         glPixelStorei(GL_PACK_ALIGNMENT, 4); // 4 alignment
         glReadPixels(0, 0, bitMapWidth_, bitMapHeight_, GL_RGBA, GL_UNSIGNED_BYTE, bitMapPtr_);
@@ -182,26 +194,40 @@ bool WebGLRenderingContextBasicBase::SetWebGLContextAttributes(const std::vector
 napi_value WebGLRenderingContextBasicBase::GetContextInstance(napi_env env,
     std::string className, napi_callback constructor, napi_finalize finalize_cb)
 {
+    if (env == nullptr || className.empty() || constructor == nullptr) {
+        LOGE("WebGL GetContextInstance invalid arguments");
+        return nullptr;
+    }
     napi_value instanceValue = nullptr;
-    napi_status status;
     if (contextRef_ == nullptr) {
         napi_value contextClass = nullptr;
-        napi_define_class(env, className.c_str(), NAPI_AUTO_LENGTH, constructor, nullptr, 0, nullptr, &contextClass);
+        napi_status status = napi_define_class(
+            env, className.c_str(), NAPI_AUTO_LENGTH, constructor, nullptr, 0, nullptr, &contextClass);
+        if (status != napi_ok || contextClass == nullptr) {
+            LOGE("WebGL GetContextInstance napi_define_class failed %{public}u", status);
+            return NVal::CreateNull(env).val_;
+        }
         status = napi_new_instance(env, contextClass, 0, nullptr, &instanceValue);
-        if (status != napi_ok) {
+        if (status != napi_ok || instanceValue == nullptr) {
+            LOGE("WebGL GetContextInstance napi_new_instance failed %{public}u", status);
             return NVal::CreateNull(env).val_;
         }
         status = napi_wrap(env, instanceValue, static_cast<void*>(this), finalize_cb, nullptr, nullptr);
         if (status != napi_ok) {
+            LOGE("WebGL GetContextInstance napi_wrap failed %{public}u", status);
             return NVal::CreateNull(env).val_;
         }
-        status = napi_create_reference(env, instanceValue, 1, &contextRef_);
-        if (status != napi_ok) {
+        napi_ref contextRef = nullptr;
+        status = napi_create_reference(env, instanceValue, 0, &contextRef);
+        if (status != napi_ok || contextRef == nullptr) {
+            LOGE("WebGL GetContextInstance napi_create_reference failed %{public}u", status);
             return NVal::CreateNull(env).val_;
         }
+        contextRef_ = contextRef;
     } else {
-        status = napi_get_reference_value(env, contextRef_, &instanceValue);
-        if (status != napi_ok) {
+        napi_status status = napi_get_reference_value(env, contextRef_, &instanceValue);
+        if (status != napi_ok || instanceValue == nullptr) {
+            LOGE("WebGL GetContextInstance napi_get_reference_value failed %{public}u", status);
             return NVal::CreateNull(env).val_;
         }
     }
