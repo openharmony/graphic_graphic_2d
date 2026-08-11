@@ -303,7 +303,7 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(
         return nullptr;
     }
     auto canvas = offscreenSurface->GetCanvas();
-    if (canvas == nullptr) {
+    if (UNLIKELY(canvas == nullptr)) {
         ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage failed to get offscreen canvas");
         return nullptr;
     }
@@ -1324,7 +1324,7 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
 void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
     const float& offsetY, const float& radius, const bool& isFilled, Color spotColor, bool disableSDFBlur)
 {
-    if (canvas == nullptr) {
+    if (UNLIKELY(canvas == nullptr)) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawShadowMaskFilter canvas is null");
         return;
     }
@@ -1467,7 +1467,7 @@ void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, 
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
     const std::string& shapeTag)
 {
-    if (canvas == nullptr) {
+    if (UNLIKELY(canvas == nullptr)) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM canvas is null");
         return;
     }
