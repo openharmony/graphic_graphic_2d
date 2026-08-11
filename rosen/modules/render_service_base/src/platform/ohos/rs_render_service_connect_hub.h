@@ -35,9 +35,10 @@ public:
 
     DISALLOW_COPY_AND_MOVE(RSConnectRenderProcessDeathRecipient);
 
-    void OnRemoteDied(const wptr<IRemoteObject> &remote) final override;
+    void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
     void SetOnRenderProcessDiedCallback(std::function<void()> callback)
     {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
         callback_ = callback;
     }
 
@@ -45,6 +46,7 @@ private:
     wptr<RSRenderServiceConnectHub> rsConnHub_;
     std::function<void()> callback_;
     uint64_t tokenMaskId_;
+    std::mutex callbackMutex_;
 };
 
 struct RenderProcessInfo {
@@ -55,28 +57,19 @@ struct RenderProcessInfo {
     sptr<RSIClientToRenderConnection> clientToRenderConnection;
 };
 
-enum class RSOnDiedCallbackCode : int32_t {
-    APPLICATION_AGENT = 0,
-};
-
 class RSRenderServiceConnectHub : public RefBase {
 public:
     static std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderService();
     static sptr<RSIClientToServiceConnection> GetClientToServiceConnection();
     static sptr<RSIClientToRenderConnection> GetClientToRenderConnection(uint64_t tokenMaskId);
+
+    // Snapshot of all render-process connections the agent may have been registered with. Used by the
+    // client to proactively UnRegisterApplicationAgent (resolved by the calling pid) on each before the
+    // agent stub is torn down.
+    static std::map<uint64_t, RenderProcessInfo> GetAllClientToRenderConnections();
     static uint64_t GetDefaultTokenMaskId();
     static uint64_t GetRenderProcessTokenMaskId(sptr<IRemoteObject>& connectToRenderRemote);
-    static void SetOnConnectCallback(OnConnectCallback cb)
-    {
-        onConnectCallback_ = cb;
-        // if already connected, call the callback immediately
-        if (instance_ && instance_->renderConn_ && onConnectCallback_) {
-            onConnectCallback_(instance_->renderConn_);
-        }
-    }
-
-    static void SetOnDiedCallback(RSOnDiedCallbackCode code, std::function<void()> cb);
-    static void RemoveOnDiedCallback(RSOnDiedCallbackCode code, bool isDestreuctionProcess);
+    static void SetOnConnectCallback(OnConnectCallback cb);
 
     static sptr<RSRenderServiceConnectHub> GetConnectHubInstance()
     {
@@ -111,7 +104,7 @@ private:
 
         DISALLOW_COPY_AND_MOVE(RenderServiceDeathRecipient);
 
-        void OnRemoteDied(const wptr<IRemoteObject> &remote) final override;
+        void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
 
     private:
         wptr<RSRenderServiceConnectHub> rsConnHub_;
@@ -120,7 +113,6 @@ private:
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderServiceConnection();
     void CleanConnectRenderProcess();
     void RemoveRenderProcessDeathRecipient(uint64_t tokenMaskId, sptr<RSIConnectToRenderProcess> renderProcess);
-    void ExecuteAndClearDiedCallbacks();
     bool Connect();
     void ConnectDied();
 
@@ -136,8 +128,7 @@ private:
     static std::once_flag flag_;
     static sptr<RSRenderServiceConnectHub> instance_;
     static OnConnectCallback onConnectCallback_;
-    std::mutex onDiedCallbacksMutex_;
-    std::unordered_map<int32_t, std::function<void()>> OnDiedCallbacks_;
+    static std::mutex onConnectCallbackMutex_;
     friend class RSRenderPipelineClient;
 };
 } // namespace Rosen

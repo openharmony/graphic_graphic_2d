@@ -395,6 +395,192 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PrepareLightGraftingRegisterTest
+ * @tc.desc: PrepareLight registers dirty nodes not yet in maps (grafted nodes)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightGraftingRegisterTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    instance->AddDirtyIlluminated(node);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 0u);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightKeepOffTreeTest
+ * @tc.desc: PrepareLight keeps off-tree nodes whose ldid still matches (no repeated unregister)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightKeepOffTreeTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    instance->RegisterIlluminated(node);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+    node->isOnTheTree_ = false;
+    instance->AddDirtyIlluminated(node);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightEraseStaleLdidTest
+ * @tc.desc: PrepareLight erases nodes whose logicalDisplayNodeId does not match (grafted to other display)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightEraseStaleLdidTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    instance->RegisterIlluminated(node);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+    node->isOnTheTree_ = true;
+    node->logicalDisplayNodeId_ = 5;
+    instance->AddDirtyIlluminated(node);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 0u);
+}
+
+/**
+ * @tc.name: PrepareLightGraftingRegisterLightSourceTest
+ * @tc.desc: PrepareLight registers dirty light sources not yet in maps
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightGraftingRegisterLightSourceTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->lightSourceNodeMap_.clear();
+    instance->dirtyLightSourceList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffect().lightSourcePtr_->intensity_ = 1.0f;
+    instance->AddDirtyLightSource(node);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 0u);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightNullDirtyNodeTest
+ * @tc.desc: PrepareLight skips expired weak_ptr in dirty list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightNullDirtyNodeTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    {
+        auto tmp = std::make_shared<RSRenderNode>(1);
+        instance->AddDirtyIlluminated(tmp);
+    }
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.size(), 0u);
+}
+
+/**
+ * @tc.name: PrepareLightKeepMatchingLdidTest
+ * @tc.desc: PrepareLight keeps on-tree nodes whose ldid matches (no erase, continues pairing)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightKeepMatchingLdidTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    instance->RegisterIlluminated(node);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+    node->isOnTheTree_ = true;
+    instance->AddDirtyIlluminated(node);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightKeepRegisteredLightSourceTest
+ * @tc.desc: PrepareLight skips light sources already in map (no repeated register)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightKeepRegisteredLightSourceTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->lightSourceNodeMap_.clear();
+    instance->dirtyLightSourceList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffect().lightSourcePtr_->intensity_ = 1.0f;
+    instance->RegisterLightSource(node);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+    instance->AddDirtyLightSource(node);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightNullDirtyLightSourceTest
+ * @tc.desc: PrepareLight skips expired weak_ptr in dirty light source list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightNullDirtyLightSourceTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->lightSourceNodeMap_.clear();
+    instance->dirtyLightSourceList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    {
+        auto tmp = std::make_shared<RSRenderNode>(1);
+        instance->AddDirtyLightSource(tmp);
+    }
+    instance->PrepareLight();
+    EXPECT_EQ(instance->lightSourceNodeMap_.size(), 0u);
+}
+
+/**
  * @tc.name: PrepareLight002
  * @tc.desc: test results of PrepareLight
  * @tc.type:FUNC

@@ -21,6 +21,10 @@
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_image_cache.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 

@@ -152,6 +152,7 @@ if (is_arkui_x) {
 } else {
   ohos_shared_library("drawing_napi_impl") {
     branch_protector_ret = "pac_ret"
+    branch_protector_frt = "bti"
     sources = [
       "brush_napi/js_brush.cpp",
       "canvas_napi/js_canvas.cpp",

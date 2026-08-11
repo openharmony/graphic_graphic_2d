@@ -448,6 +448,24 @@ HWTEST_F(VSyncManagerTest, DoSamplerCallBack, Function | MediumTest| Level0)
             id, lastVsyncEnabledScreenId, enabled);
     ASSERT_NE(vsyncManager_->vsyncSampler_, nullptr);
 }
+
+/*
+* Function: OnScreenPropertyChangedWithNullProperty
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test OnScreenPropertyChanged with null property
+*/
+HWTEST_F(VSyncManagerTest, OnScreenPropertyChangedWithNullProperty, Function | MediumTest| Level3)
+{
+    ScreenId id = 0;
+    ScreenPropertyType type = ScreenPropertyType::POWER_STATUS;
+    bool isFoldScreen = false;
+    sptr<ScreenPropertyBase> property = nullptr;
+    size_t initialSize = vsyncManager_->physicalScreens_.size();
+    vsyncManager_->OnScreenPropertyChanged(id, type, property, nullptr, isFoldScreen);
+    ASSERT_NE(vsyncManager_->physicalScreens_.size(), initialSize);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

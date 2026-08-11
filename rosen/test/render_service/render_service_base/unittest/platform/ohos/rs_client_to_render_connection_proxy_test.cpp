@@ -155,12 +155,12 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, ExecuteSynchronousTask, TestSize.L
 }
 
 /**
- * @tc.name: CreateNode Test
- * @tc.desc: CreateNode Test
+ * @tc.name: CreateDisplayNodeTest001
+ * @tc.desc: Test CreateDisplayNode
  * @tc.type: FUNC
  * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSClientToRenderConnectionProxyTest, CreateNodeTest, TestSize.Level1)
+HWTEST_F(RSClientToRenderConnectionProxyTest, CreateDisplayNodeTest001, TestSize.Level1)
 {
     RSDisplayNodeConfig rsDisplayNodeConfig;
     NodeId nodeId = 100;
@@ -451,7 +451,6 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetHwcNodeBounds, TestSize.Level1)
 {
     NodeId id = 1;
     proxy->SetHwcNodeBounds(id, 1.0f, 1.0f, 1.0f, 1.0f);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
 /**

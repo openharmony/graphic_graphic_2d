@@ -127,6 +127,7 @@ Drawing::BackendTexture SurfaceBufferUtils::ConvertSurfaceBufferToBackendTexture
 
     // Create BackendTexture
     Drawing::BackendTexture texture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
         nativeWindowBuffer, buffer->GetWidth(), buffer->GetHeight());
     // Destroy nativeWindowBuffer after use
     DestroyNativeWindowBuffer(nativeWindowBuffer);

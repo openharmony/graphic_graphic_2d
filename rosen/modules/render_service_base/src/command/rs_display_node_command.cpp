@@ -15,6 +15,7 @@
 
 #include "command/rs_display_node_command.h"
 
+#include <cmath>
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -48,6 +49,11 @@ bool TrySetScreenNodeByScreenId(RSContext& context, ScreenId id, Lambda&& lambda
 
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
+    if (config.mirrorSourceRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+        RS_LOGE("DisplayNodeCommandHelper::Create invalid mirrorSourceRotation[%{public}" PRIu32 "]",
+            config.mirrorSourceRotation);
+        return;
+    }
     RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::%s displayNodeId[%" PRIu64 "], %s", __func__, id,
         config.ToString().c_str());
 
@@ -183,12 +189,31 @@ void DisplayNodeCommandHelper::SetSecurityDisplay(RSContext& context, NodeId id,
 
 void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
+    if (config.mirrorSourceRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+        RS_LOGE("DisplayNodeCommandHelper::SetDisplayMode invalid mirrorSourceRotation[%{public}" PRIu32 "]",
+            config.mirrorSourceRotation);
+        return;
+    }
     RS_LOGI("DisplayNodeCommandHelper::%{public}s, NodeId[%{public}" PRIu64 "], %{public}s", __func__, id,
         config.ToString().c_str());
     auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id);
     if (node == nullptr) {
         RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
         return;
+    }
+
+    if (!std::isfinite(config.positionZ)) {
+        RS_LOGE("DisplayNodeCommandHelper::%{public}s invalid positionZ", __func__);
+        return;
+    }
+
+    auto screenRenderNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(node->GetParent().lock());
+    if (!screenRenderNode) {
+        RS_LOGE("DisplayNodeCommandHelper::%{public}s parent of displayNodeId[%{public}" PRIu64 "] is invalid",
+            __func__, id);
+    } else if (!ROSEN_EQ(screenRenderNode->GetRenderProperties().GetPositionZ(), config.positionZ)) {
+        screenRenderNode->GetMutableRenderProperties().SetPositionZ(config.positionZ);
+        screenRenderNode->MarkParentNeedRegenerateChildren();
     }
 
     DisplayMode mode = config.displayMode;

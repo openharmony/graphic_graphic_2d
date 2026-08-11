@@ -27,7 +27,6 @@
 
 #include "command/rs_base_node_command.h"
 #include "common/rs_tunnel_layer_utils.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
@@ -46,10 +45,8 @@
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
-#include "pipeline/rs_context.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
-#include "pipeline/rs_ui_render_director.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
@@ -249,6 +246,36 @@ void RSMainThreadTest::SetUpTestCase()
 
 void RSMainThreadTest::TearDownTestCase()
 {
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        mainThread.renderEngine_->skContext_ = nullptr;
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
     std::this_thread::sleep_for(std::chrono::seconds(WAIT_HANDLER_TIME));
     RSMainThread::Instance()->hgmRenderContext_ = nullptr;
     RSMainThread::Instance()->rsVsyncManagerAgent_ = nullptr;
@@ -3400,6 +3427,7 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes_KeepDirectSkipsRedundantVsyn
 
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
     ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->MarkTunnelLayerInfoReceived();
     surfaceHandler->SetAvailableBufferCount(1);
     mainThread->requestNextVsyncTime_ = -1;
 
@@ -6142,6 +6170,19 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
     EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // RESET
+    if (mainThread->renderEngine_) {
+        mainThread->renderEngine_->skContext_ = nullptr;
+        if (mainThread->renderEngine_->renderContext_) {
+            mainThread->renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread->renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread->renderEngine_->protectedRenderContext_) {
+            mainThread->renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread->renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread->renderEngine_->imageManager_ = nullptr;
+        mainThread->renderEngine_->gpuCacheManager_ = nullptr;
+    }
     mainThread->renderEngine_ = nullptr;
 }
 
@@ -7015,7 +7056,7 @@ HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 
     SurfaceFpsOp addOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
     SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 2, "test_surface2", 200};
@@ -7045,21 +7086,21 @@ HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
     EXPECT_TRUE(foundAdd);
     EXPECT_TRUE(foundRemove);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 }
 
 /**
- * @tc.name: RmvSurfaceFpsOpTest
- * @tc.desc: Test Func RmvSurfaceFpsOp with removal
+ * @tc.name: RemoveSurfaceFpsOpTest
+ * @tc.desc: Test Func RemoveSurfaceFpsOp with removal
  * @tc.type: FUNC
  * @tc.require: issue22921
  */
-HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, RemoveSurfaceFpsOpTest, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 
     SurfaceFpsOp addOp1 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
     SurfaceFpsOp addOp2 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 2, "test_surface2", 200};
@@ -7070,10 +7111,10 @@ HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
     mainThread->AddSurfaceFpsOp(removeOp);
     mainThread->AddSurfaceFpsOp(otherOp);
 
-    std::vector<SurfaceFpsOp> rmvList;
-    rmvList.push_back(addOp1);
+    std::vector<SurfaceFpsOp> removeList;
+    removeList.push_back(addOp1);
 
-    mainThread->RmvSurfaceFpsOp(rmvList);
+    mainThread->RemoveSurfaceFpsOp(removeList);
     auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
     EXPECT_EQ(surfaceFpsOpList.size(), 2u);
 
@@ -7093,10 +7134,10 @@ HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
     EXPECT_TRUE(foundAdd2);
     EXPECT_TRUE(foundRemove);
 
-    rmvList.push_back(addOp2);
-    rmvList.push_back(removeOp);
-    rmvList.push_back(otherOp);
-    mainThread->RmvSurfaceFpsOp(rmvList);
+    removeList.push_back(addOp2);
+    removeList.push_back(removeOp);
+    removeList.push_back(otherOp);
+    mainThread->RemoveSurfaceFpsOp(removeList);
     surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
     EXPECT_EQ(surfaceFpsOpList.size(), 0u);
 }
@@ -7420,55 +7461,6 @@ HWTEST_F(RSMainThreadTest, GetProtectiveSolidDrawables002, TestSize.Level1)
     EXPECT_EQ(std::get<1>(drawables[0]), 2);
 
     mainThread->protectiveSolidDrawables_.clear();
-}
-
-/**
- * @tc.name: ConsumeAndUpdateAllNodesStoppedDirector001
- * @tc.desc: ConsumeAndUpdateAllNodes skips surface nodes whose director is in STOP state.
- * @tc.type: FUNC
- * @tc.require: issueI590LM
- */
-HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodesStoppedDirector001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    bool isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = true;
-    mainThread->timestamp_ = 1000;
-
-    // Clear node maps
-    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
-    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
-
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    rsSurfaceRenderNode->OnRegister(mainThread->context_);
-    EXPECT_TRUE(mainThread->context_->GetMutableNodeMap().RegisterRenderNode(rsSurfaceRenderNode));
-
-    // Set up a director and put it in STOP state
-    constexpr uint64_t token = 9999;
-    rsSurfaceRenderNode->SetUIContextToken(token);
-    pid_t pid = ExtractPid(rsSurfaceRenderNode->GetId());
-    mainThread->context_->CreateUIRenderDirector(pid, token);
-    auto director = mainThread->context_->GetUIRenderDirector(pid, token);
-    ASSERT_NE(director, nullptr);
-    director->OnStateSync(RSUIDirectorLifecycleState::STOP);
-    ASSERT_TRUE(rsSurfaceRenderNode->IsUIRenderDirectorStopped());
-
-    // Reset forceRefresh before the call
-    mainThread->isForceRefresh_ = false;
-    // Provide a buffer so ConsumeAndUpdateAllNodes would normally process this node
-    auto surfaceHandler = rsSurfaceRenderNode->GetMutableRSSurfaceHandler();
-    ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetAvailableBufferCount(1);
-
-    mainThread->ConsumeAndUpdateAllNodes();
-
-    // When the director is STOP, ConsumeAndUpdateAllNodes skips the node early,
-    // so isForceRefresh_ should remain false (the node's ForceRefresh is never checked)
-    EXPECT_FALSE(mainThread->isForceRefresh_);
-
-    mainThread->isUniRender_ = isUniRender;
 }
 
 // ====================== Split/Rebuild Transaction (per-pid) tests ======================
@@ -7948,5 +7940,71 @@ HWTEST_F(RSMainThreadTest, CleanResourcesRebuildState001, TestSize.Level1)
     mainThread->pendingSplitTransactions_.clear();
     mainThread->pendingCommandsDuringRebuild_.clear();
 }
+
+/**
+ * @tc.name: SetUIMode3D_001
+ * @tc.desc: Test SetUIMode3D with MODE_2D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetUIMode3D_001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_2D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_2D);
+}
+
+/**
+ * @tc.name: SetUIMode3D_002
+ * @tc.desc: Test SetUIMode3D with MODE_SHUTTER_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetUIMode3D_002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+}
+
+/**
+ * @tc.name: SetUIMode3D_003
+ * @tc.desc: Test SetUIMode3D with MODE_GLASSESFREE_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetUIMode3D_003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+}
+
+/**
+ * @tc.name: SetUIMode3D_004
+ * @tc.desc: Test SetUIMode3D with sequential mode changes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetUIMode3D_004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_2D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_2D);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_2D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_2D);
+}
+
 } // namespace OHOS::Rosen
 #endif

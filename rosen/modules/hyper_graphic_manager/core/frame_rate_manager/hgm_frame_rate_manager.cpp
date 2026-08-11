@@ -703,6 +703,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
         HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
+        RS_TRACE_NAME_FMT("%s: stylusVec size = %zu", __func__, stylusVec_.size());
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
     }
@@ -1199,9 +1200,11 @@ void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
 {
     if (!eventInfo.eventStatus) {
         isGameSupportAS_ = SupportASStatus::NOT_SUPPORT;
+        frameVoter_.SetSkipVirtualDisplay(false);
         DeliverRefreshRateVote({ "VOTER_GAMES" }, false);
         return;
     }
+    frameVoter_.SetSkipVirtualDisplay(eventInfo.description.find(":SKIPVIRTUALDISPLAY") != std::string::npos);
     auto [pkgName, gamePid, appType] = HgmMultiAppStrategy::AnalyzePkgParam(eventInfo.description);
     if (gamePid == DEFAULT_PID) {
         HILOG_COMM_ERROR("unknow game pid: %{public}s, skip", eventInfo.description.c_str());
@@ -1404,6 +1407,7 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                         TouchSourceType::SOURCE_TYPE_TOUCHSCREEN);
                     break;
                 case CleanPidCallbackType::GAMES:
+                    frameVoter_.SetSkipVirtualDisplay(false);
                     DeliverRefreshRateVote({ "VOTER_GAMES" }, false);
                     break;
                 case CleanPidCallbackType::PAGE_URL:

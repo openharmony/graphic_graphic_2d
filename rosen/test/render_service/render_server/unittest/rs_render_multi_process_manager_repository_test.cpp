@@ -39,6 +39,7 @@ constexpr pid_t TEST_PID = 1234;
 constexpr pid_t TEST_PID_2 = 5678;
 constexpr ScreenId TEST_SCREEN_ID = 100;
 constexpr ScreenId TEST_SCREEN_ID_2 = 200;
+constexpr ScreenId TEST_VIRTUAL_SCREEN_ID = 300;
 constexpr GroupId TEST_GROUP_ID = 1;
 const ProcessUniqueId TEST_UID{TEST_PID};
 } // namespace
@@ -354,6 +355,132 @@ HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, IsValidRenderProcessPid003, 
 
     int status = 0;
     waitpid(pid, &status, 0);
+}
+
+/**
+ * @tc.name: ReadPpidFromProc004
+ * @tc.desc: Test ReadPpidFromProc read correct ppid from a forked child process
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, ReadPpidFromProc004, TestSize.Level1)
+{
+    pid_t pid = fork();
+    ASSERT_GE(pid, 0);
+    if (pid == 0) {
+        _exit(0);
+    }
+    int status = 0;
+    waitpid(pid, &status, 0);
+    pid_t pid2 = fork();
+    ASSERT_GE(pid2, 0);
+    if (pid2 == 0) {
+        pause();
+        _exit(0);
+    }
+    auto ppidOpt = store_->ReadPpidFromProc(pid2);
+    ASSERT_TRUE(ppidOpt.has_value());
+    EXPECT_EQ(ppidOpt.value(), getpid());
+    kill(pid2, SIGKILL);
+    waitpid(pid2, &status, 0);
+}
+
+/**
+ * @tc.name: IsValidRenderProcessPid006
+ * @tc.desc: Test IsValidRenderProcessPid ppid check runs before condition_variable wait
+ *           For a PID that is NOT a child of current process, the function should return false
+ *           immediately without blocking for 5 seconds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, IsValidRenderProcessPid006, TestSize.Level1)
+{
+    auto start = std::chrono::steady_clock::now();
+    bool result = store_->IsValidRenderProcessPid(999999);
+    auto elapsed = std::chrono::steady_clock::now() - start;
+    EXPECT_FALSE(result);
+    auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+    EXPECT_LT(elapsedMs, 1000);
+}
+
+/**
+ * @tc.name: AddScreenOutputToProcess002
+ * @tc.desc: Test AddScreenOutputToProcess with same screenId updates exising entry (if branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, AddScreenOutputToProcess002, TestSize.Level1)
+{
+    auto output1 = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    std::promise<bool> promise;
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+        { TEST_SCREEN_ID, output1, property }, std::move(promise));
+
+    auto output2 = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    store_->AddScreenOutputToProcess(uid, TEST_SCREEN_ID, output2);
+
+    auto affected = store_->HandleRenderProcessDeath(uid);
+    EXPECT_EQ(affected.size(), 1u);
+    EXPECT_EQ(affected[0].first, TEST_SCREEN_ID);
+}
+
+/**
+ * @tc.name: AddScreenOutputToProcess003
+ * @tc.desc: Test AddScreenOutputToProcess with null output emplace_back (else branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, AddScreenOutputToProcess003, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    std::promise<bool> promise;
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+        { TEST_SCREEN_ID, output, property }, std::move(promise));
+
+    store_->AddScreenOutputToProcess(uid, TEST_VIRTUAL_SCREEN_ID, nullptr);
+
+    auto affected = store_->HandleRenderProcessDeath(uid);
+    EXPECT_EQ(affected.size(), 2u);
+}
+
+/**
+ * @tc.name: AddScreenOutputToProcess004
+ * @tc.desc: Test AddScreenOutputToProcess multiple emplace_back calls don't cause iterator issues
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, AddScreenOutputToProcess004, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    std::promise<bool> promise;
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+        { TEST_SCREEN_ID, output, property }, std::move(promise));
+
+    for (ScreenId id = TEST_SCREEN_ID + 1; id <= TEST_SCREEN_ID + 10; id++) {
+        auto extraOutput = std::make_shared<HdiOutput>(id);
+        store_->AddScreenOutputToProcess(uid, id, extraOutput);
+    }
+
+    auto affected = store_->HandleRenderProcessDeath(uid);
+    EXPECT_EQ(affected.size(), 11u);
+}
+
+/**
+ * @tc.name: RemoveScreenOutputFromProcess003
+ * @tc.desc: Test RemoveScreenOutputFromProcess with unknown screenId (else branch - not found)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderMultiProcessManagerRepositoryTest, RemoveScreenOutputFromProcess003, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    std::promise<bool> promise;
+    auto uid = store_->RegisterNewProcess(TEST_GROUP_ID, TEST_PID,
+        { TEST_SCREEN_ID, output, property }, std::move(promise));
+    
+    store_->RemoveScreenOutputFromProcess(uid, TEST_VIRTUAL_SCREEN_ID);
+
+    auto affected = store_->HandleRenderProcessDeath(uid);
+    EXPECT_EQ(affected.size(), 1u);
+    EXPECT_EQ(affected[0].first, TEST_SCREEN_ID);
 }
 
 } // namespace OHOS::Rosen

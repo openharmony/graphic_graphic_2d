@@ -368,6 +368,11 @@ void Network::ProcessBinary(const std::vector<char>& data)
         return;
     }
 
+    if (!Utils::IsSandboxPath(path)) {
+        HRPE("Network: ProcessBinary: Invalid file path: %s", path.data());
+        return;
+    }
+
     HRPI("Network: ProcessBinary: %s %.2fMB (%zu)", path.data(), Utils::Megabytes(size), size);
     if (auto file = Utils::FileOpen(path, "wb")) {
         Utils::FileWrite(file, data.data() + offset, size);
@@ -412,13 +417,13 @@ void Network::Receive(Socket& socket)
     }
 
     const size_t size = packet.GetPayloadLength();
-    static const auto MAX_SIZE = std::vector<char>().max_size();
-    if ((size == 0) || (size > MAX_SIZE)) {
+    constexpr size_t maxSize = 64u * 1024u * 1024u;
+    if ((size == 0) || (size > maxSize)) {
         HRPE("Network: Receive: Invalid payload size %zu", size);
         return;
     }
 
-    std::vector<char> data(size, 0);
+    std::vector<char> data(size);
     if (!socket.Receive(data.data(), data.size())) {
         return;
     }

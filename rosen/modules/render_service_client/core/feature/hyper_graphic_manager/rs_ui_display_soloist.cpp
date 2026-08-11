@@ -31,6 +31,7 @@ std::once_flag COMPUTE_FACTORS_FLAG;
 }
 // class RSC_EXPORT SoloistId
 
+// LCOV_EXCL_START
 std::shared_ptr<SoloistId> SoloistId::Create()
 {
     std::shared_ptr<SoloistId> soloistId = std::make_shared<SoloistId>();
@@ -52,6 +53,7 @@ SoloistIdType SoloistId::GetId() const
 SoloistId::SoloistId() : id_(GenerateId()) {}
 
 SoloistId::~SoloistId() {}
+// LCOV_EXCL_STOP
 
 // class RSC_EXPORT RSDisplaySoloist
 
@@ -63,7 +65,6 @@ RSDisplaySoloist::RSDisplaySoloist(SoloistIdType instanceId)
 
 void RSDisplaySoloist::VsyncCallbackInner(TimestampType timestamp)
 {
-#ifdef RS_ENABLE_GPU
     {
         std::lock_guard<std::mutex> lock(mtx_);
         hasRequestedVsync_ = false;
@@ -82,7 +83,6 @@ void RSDisplaySoloist::VsyncCallbackInner(TimestampType timestamp)
         RequestNextVSync();
     }
     FlushFrameRate(frameRateRange_.preferred_);
-#endif
 }
 
 void RSDisplaySoloist::TriggerCallback()
@@ -108,9 +108,9 @@ void RSDisplaySoloist::SetCallback(DisplaySoloistOnFrameCallback cb, void* param
     callback_ = {cb, params};
 }
 
+// LCOV_EXCL_START
 void RSDisplaySoloist::Init()
 {
-#ifdef RS_ENABLE_GPU
     if (useExclusiveThread_ && (!subReceiver_ || !hasInitVsyncReceiver_)) {
         if (!subVsyncHandler_) {
             subVsyncHandler_ = std::make_shared<AppExecFwk::EventHandler>(
@@ -126,12 +126,10 @@ void RSDisplaySoloist::Init()
         subStatus_ = ActiveStatus::ACTIVE;
         hasInitVsyncReceiver_ = true;
     }
-#endif
 }
 
 void RSDisplaySoloist::RequestNextVSync()
 {
-#ifdef RS_ENABLE_GPU
     {
         std::lock_guard<std::mutex> lock(mtx_);
         if (destroyed_) {
@@ -159,7 +157,6 @@ void RSDisplaySoloist::RequestNextVSync()
         });
         hasRequestedVsync_ = true;
     }
-#endif
 }
 
 void RSDisplaySoloist::OnVsyncTimeOut()
@@ -168,6 +165,7 @@ void RSDisplaySoloist::OnVsyncTimeOut()
     std::lock_guard<std::mutex> lock(mtx_);
     hasRequestedVsync_ = false;
 }
+// LCOV_EXCL_STOP
 
 void RSDisplaySoloist::FlushFrameRate(int32_t rate)
 {
@@ -251,6 +249,7 @@ std::vector<int32_t> RSDisplaySoloist::FindRefreshRateFactors(int32_t refreshRat
     return refreshRateFactors;
 }
 
+// LCOV_EXCL_START
 void RSDisplaySoloist::FindAllRefreshRateFactors()
 {
     std::set<int32_t> allFactors;
@@ -262,6 +261,7 @@ void RSDisplaySoloist::FindAllRefreshRateFactors()
     std::copy(allFactors.begin(), allFactors.end(), std::back_inserter(REFRESH_RATE_FACTORS));
     return;
 }
+// LCOV_EXCL_STOP
 
 int32_t RSDisplaySoloist::FindAccurateRefreshRate(int32_t approximateRate)
 {
@@ -327,6 +327,7 @@ int32_t RSDisplaySoloist::SearchMatchedRate(const FrameRateRange& frameRateRange
     return SearchMatchedRate(frameRateRange, vsyncRate, ++iterCount);
 }
 
+// LCOV_EXCL_START
 int64_t RSDisplaySoloist::GetVSyncPeriod()
 {
     {
@@ -365,6 +366,7 @@ int32_t RSDisplaySoloist::GetVSyncRate()
     }
     return rate;
 }
+// LCOV_EXCL_STOP
 
 bool RSDisplaySoloist::SetVSyncRate(int32_t vsyncRate)
 {
@@ -381,6 +383,7 @@ bool RSDisplaySoloist::SetVSyncRate(int32_t vsyncRate)
 
 // RSDisplaySoloistManager
 
+// LCOV_EXCL_START
 RSDisplaySoloistManager& RSDisplaySoloistManager::GetInstance() noexcept
 {
     static RSDisplaySoloistManager soloistManager;
@@ -392,7 +395,6 @@ RSDisplaySoloistManager::~RSDisplaySoloistManager() noexcept {}
 
 void RSDisplaySoloistManager::InitVsyncReceiver()
 {
-#ifdef RS_ENABLE_GPU
     static std::once_flag onceFlag;
     std::call_once(onceFlag, [this]() {
         if (!vsyncHandler_) {
@@ -409,12 +411,10 @@ void RSDisplaySoloistManager::InitVsyncReceiver()
         receiver_->Init();
         managerStatus_ = ActiveStatus::ACTIVE;
     });
-#endif
 }
 
 void RSDisplaySoloistManager::RequestNextVSync()
 {
-#ifdef RS_ENABLE_GPU
     if (receiver_ == nullptr) {
         ROSEN_LOGE("%{public}s, VSyncReceiver is null.", __func__);
         return;
@@ -434,8 +434,8 @@ void RSDisplaySoloistManager::RequestNextVSync()
     }
 
     receiver_->RequestNextVSync(managerFrameCallback_);
-#endif
 }
+// LCOV_EXCL_STOP
 
 void RSDisplaySoloistManager::OnVsync(TimestampType timestamp, void* client)
 {
@@ -616,6 +616,7 @@ void RSDisplaySoloistManager::SetMainFrameRateLinkerEnable(bool enabled)
     RequestNextVSync();
 }
 
+// LCOV_EXCL_START
 FrameRateRange RSDisplaySoloistManager::GetFrameRateRange()
 {
     return frameRateRange_;
@@ -649,6 +650,7 @@ int64_t RSDisplaySoloistManager::GetVSyncPeriod() const
 #endif
     return period;
 }
+// LCOV_EXCL_STOP
 
 bool RSDisplaySoloistManager::SetVSyncRate(int32_t vsyncRate)
 {
@@ -663,6 +665,7 @@ bool RSDisplaySoloistManager::SetVSyncRate(int32_t vsyncRate)
     return true;
 }
 
+// LCOV_EXCL_START
 int32_t RSDisplaySoloistManager::GetVSyncRate() const
 {
     return sourceVsyncRate_;
@@ -672,6 +675,7 @@ void RSDisplaySoloistManager::OnVsyncTimeOut()
 {
     ROSEN_LOGD("%{public}s MainDisplaySoloistManager: Vsync time out", __func__);
 }
+// LCOV_EXCL_STOP
 
 } // namespace Rosen
 } // namespace OHOS

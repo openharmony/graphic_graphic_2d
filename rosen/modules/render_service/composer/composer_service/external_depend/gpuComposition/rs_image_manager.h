@@ -47,9 +47,12 @@ public:
 
     // Vulkan specific functions
     virtual void DumpVkImageInfo(std::string &dumpString) { return; }
+    virtual void SetRenderContext(std::shared_ptr<RenderContext> renderContext) {};
 
     // EGL specific functions
     virtual void ShrinkCachesIfNeeded(bool isForUniRedraw = false) { return; }
+    virtual void SetVKImageCacheMapSize(uint32_t cacheSize) { (void)cacheSize; };
+
 protected:
     RSImageManager() = default;
     mutable std::mutex opMutex_;

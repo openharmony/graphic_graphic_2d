@@ -101,8 +101,9 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
     LOGI("BootAnimationStrategy::%{public}s set screen change callback start.", __func__);
     auto cv = std::make_shared<std::condition_variable>();
     std::weak_ptr<BootAnimationStrategy> weakThis = shared_from_this();
+    std::weak_ptr<std::condition_variable> weakCv = cv;
     int32_t ret = Rosen::RSInterfaces::GetInstance().SetScreenChangeCallback(
-        [cv, weakThis](Rosen::ScreenId rsScreenId, Rosen::ScreenEvent screenEvent,
+        [weakCv, weakThis](Rosen::ScreenId rsScreenId, Rosen::ScreenEvent screenEvent,
             Rosen::ScreenChangeReason reason, sptr<IRemoteObject> connectToRender) {
             auto sharedThis = weakThis.lock();
             if (!sharedThis) {
@@ -110,7 +111,10 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
                 return;
             }
             sharedThis->OnScreenChanged(rsScreenId, screenEvent, reason, connectToRender);
-            cv->notify_all();
+            auto sharedCv = weakCv.lock();
+            if (sharedCv) {
+                sharedCv->notify_all();
+            }
         });
     if (ret != 0) {
         LOGE("BootAnimationStrategy::%{public}s SetScreenChangeCallback failed: %{public}d", __func__, ret);
@@ -119,11 +123,19 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
     }
     {
         std::unique_lock<std::mutex> lock(connectToRenderMapMtx_);
-        LOGI("GetConnectToRenderMap start infinite waiting for %{public}d screens.", count);
-        cv->wait(lock, [this, count]() {
-            return this->connectToRenderMap_.size() >= static_cast<size_t>(count) || noScreen_.load();
+        constexpr uint32_t WAIT_FOR_CONNECT_TO_RENDER_S = 10;
+        LOGI("GetConnectToRenderMap start waiting for %{public}d screens with 10s timeout.", count);
+        bool isConditionMet =
+            cv->wait_for(lock, std::chrono::seconds(WAIT_FOR_CONNECT_TO_RENDER_S), [this, count]() {
+                return this->connectToRenderMap_.size() >= static_cast<size_t>(count) || noScreen_.load();
         });
-        LOGI("GetConnectToRenderMap wait finished. Currently got %{public}zu.", this->connectToRenderMap_.size());
+        if (isConditionMet) {
+            LOGI("GetConnectToRenderMap wait finished normally. Currently got %{public}zu.",
+                this->connectToRenderMap_.size());
+        } else {
+            LOGE("GetConnectToRenderMap wait TIMEOUT! Expected: %{public}d, but got: %{public}zu.",
+                count, this->connectToRenderMap_.size());
+        }
     }
     LOGI("GetConnectToRenderMap %{public}s set screen change callback end.", __func__);
 }
@@ -131,13 +143,13 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
 void BootAnimationStrategy::OnScreenChanged(Rosen::ScreenId rsScreenId, Rosen::ScreenEvent screenEvent,
                                             Rosen::ScreenChangeReason reason, sptr<IRemoteObject> connectToRender)
 {
-    if (rsScreenId == Rosen::INVALID_SCREEN_ID) {
+    if (rsScreenId == Rosen::NONE_PHYSICAL_SCREEN_ID) {
         noScreen_ = true;
         return;
     }
     {
         std::lock_guard<std::mutex> lock(connectToRenderMapMtx_);
-        if (screenEvent == Rosen::ScreenEvent::CONNECTED) {
+        if (screenEvent == Rosen::ScreenEvent::CONNECTED && connectToRender != nullptr) {
             LOGI("BootAnimationStrategy::%{public}s Screen connected:" BPUBU64 "", __func__, rsScreenId);
             connectToRenderMap_.emplace(rsScreenId, connectToRender);
         }
@@ -153,8 +165,9 @@ void BootAnimationStrategy::SubscribeActiveScreenIdChanged()
     LOGI("BootAnimationStrategy::%{public}s get active screen id start.", __func__);
     auto cv = std::make_shared<std::condition_variable>();
     std::weak_ptr<BootAnimationStrategy> weakThis = shared_from_this();
+    std::weak_ptr<std::condition_variable> weakCv = cv;
     Rosen::RSInterfaces::GetInstance().SetActiveScreenIdChangedCallback(
-        [cv, weakThis](Rosen::ScreenId changedActiveScreenId) {
+        [weakCv, weakThis](Rosen::ScreenId changedActiveScreenId) {
             auto sharedThis = weakThis.lock();
             if (!sharedThis) {
                 LOGE("BootAnimationStrategy::Subscribe... shared this is null, screenId:" BPUBU64 "",
@@ -167,7 +180,10 @@ void BootAnimationStrategy::SubscribeActiveScreenIdChanged()
                 std::lock_guard<std::mutex> lock(sharedThis->activeScreenIdMtx_);
                 sharedThis->activeScreenId_ = changedActiveScreenId;
             }
-            cv->notify_all();
+            auto sharedCv = weakCv.lock();
+            if (sharedCv) {
+                sharedCv->notify_all();
+            }
         });
     {
         std::unique_lock<std::mutex> lock(activeScreenIdMtx_);

@@ -317,23 +317,49 @@ HWTEST_F(RSDividedUICaptureTest, CreatePixelMapByNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateSurface
- * @tc.desc: test results of CreateSurface
+ * @tc.name: CreatePixelMapByNode_DimensionExceedsLimit
+ * @tc.desc: Verify CreatePixelMapByNode returns nullptr when a scaled dimension reaches
+ *           MAX_DIVIDED_UI_CAPTURE_DIM, to prevent the downstream int32 overflow in
+ *           CopyDataToPixelMap where size = GetRowBytes()*GetHeight().
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDividedUICaptureTest, CreatePixelMapByNode_DimensionExceedsLimit, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    RSDividedUICapture rsDividedUICapture(nodeId, 1.0f, 1.0f);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    node->GetMutableRenderProperties().SetBoundsSize({17000.0f, 1.0f});
+    EXPECT_EQ(rsDividedUICapture.CreatePixelMapByNode(node), nullptr);
+    node->GetMutableRenderProperties().SetBoundsSize({1.0f, 17000.0f});
+    EXPECT_EQ(rsDividedUICapture.CreatePixelMapByNode(node), nullptr);
+}
+
+/**
+ * @tc.name: CreateSurfaceTest001
+ * @tc.desc: CreateSurface with null pixelmap returns nullptr (branch: pixelmap == nullptr)
  * @tc.type: FUNC
  * @tc.require: issueI5HRIF
  */
-HWTEST_F(RSDividedUICaptureTest, CreateSurface, TestSize.Level1)
+HWTEST_F(RSDividedUICaptureTest, CreateSurfaceTest001, TestSize.Level1)
 {
-    NodeId nodeId = 1;
-    float scaleX = 1.0;
-    float scaleY = 1.0;
-    RSDividedUICapture rsDividedUICapture(nodeId, scaleX, scaleY);
+    RSDividedUICapture rsDividedUICapture(1, 1.0f, 1.0f);
     std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
     auto surface = rsDividedUICapture.CreateSurface(pixelmap);
     EXPECT_EQ(surface, nullptr);
+}
 
-    pixelmap = std::make_shared<Media::PixelMap>();
-    surface = rsDividedUICapture.CreateSurface(pixelmap);
+/**
+ * @tc.name: CreateSurfaceTest002
+ * @tc.desc: CreateSurface with empty pixelmap whose GetPixel32 is null returns nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI5HRIF
+ */
+HWTEST_F(RSDividedUICaptureTest, CreateSurfaceTest002, TestSize.Level1)
+{
+    RSDividedUICapture rsDividedUICapture(1, 1.0f, 1.0f);
+    auto pixelmap = std::make_shared<Media::PixelMap>();
+    auto surface = rsDividedUICapture.CreateSurface(pixelmap);
     EXPECT_EQ(surface, nullptr);
 }
 
@@ -717,4 +743,4 @@ HWTEST_F(RSDividedUICaptureTest, IsRectValid, TestSize.Level1)
     RSRenderThread::Instance().GetContext().GetMutableNodeMap().UnregisterRenderNode(nodeId);
 }
 } // namespace Rosen
-} // namespace OHOS
+} // namespace OHOS

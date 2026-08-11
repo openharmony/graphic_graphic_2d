@@ -473,8 +473,7 @@ void RSBackgroundImageDrawable::ReleaseNativeWindowBuffer()
 std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
 {
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (!Drawing::SystemProperties::IsUseVulkan()) {
         return nullptr;
     }
     if (surfaceBuffer == nullptr || surfaceBuffer->GetBufferHandle() == nullptr) {
@@ -491,12 +490,15 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
             RS_LOGE("MakeFromTextureForVK create native window buffer fail");
             return nullptr;
         }
+        auto renderEngineType = canvas.GetRenderEngineType();
         backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+            RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
             nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
-                RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+                RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
+                vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         } else {
             return nullptr;
         }

@@ -685,7 +685,7 @@ public:
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
         bool isParentPrepareInReverseOrder = false) override;
     // keep specified nodetype preparation
-    virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -830,8 +830,6 @@ public:
     {
         uifirstState_.forceUpdate = b;
     }
-
-    bool IsFullScreen() const;
 
     VideoDimType GetVideoDimType() const;
 
@@ -1138,7 +1136,7 @@ public:
     void RegisterBufferClearListener(sptr<RSIBufferClearCallback> callback);
 
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
-    void ConnectToNodeInRenderService(sptr<IRemoteObject> connectToRender);
+    void ConnectToNodeInRenderService();
 
     void NotifyRTBufferAvailable(bool isTextureExportNode = false);
     bool IsNotifyRTBufferAvailable() const;
@@ -1147,6 +1145,8 @@ public:
     void NotifyUIBufferAvailable();
     bool IsNotifyUIBufferAvailable() const;
     void SetIsNotifyUIBufferAvailable(bool available);
+    bool IsPendingUIBufferNotify() const;
+    void SetPendingUIBufferNotify(bool pending);
 
     // UI Thread would not be notified when SurfaceNode created by Video/Camera in RenderService has available buffer.
     // And RenderThread does not call mainFunc_ if nothing in UI thread is changed
@@ -2223,6 +2223,7 @@ private:
     bool UIExtensionUnobscured_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
+    bool isPendingUIBufferNotify_ = false;
     std::atomic_bool isBufferAvailable_ = false;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
@@ -2465,6 +2466,8 @@ private:
 
     // Used for delegateComposite
     std::shared_ptr<RsDelegateCompositeParams> delegateCompositeParams_ = nullptr;
+
+    bool isBufferFlushed_ = false;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static RS_HIDDEN std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

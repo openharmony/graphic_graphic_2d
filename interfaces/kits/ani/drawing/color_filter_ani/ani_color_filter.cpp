@@ -14,6 +14,7 @@
  */
 
 #include "ani_color_filter.h"
+#include "ani_drawing_transfer_util.h"
 #include "draw/color.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
@@ -42,7 +43,8 @@ ani_status AniColorFilter::AniInit(ani_env *env)
             reinterpret_cast<void*>(CreateBlendModeColorFilterWithNumber) },
         ani_native_function { "colorFilterTransferStaticNative", nullptr,
             reinterpret_cast<void*>(ColorFilterTransferStatic) },
-        ani_native_function { "getColorFilterAddr", nullptr, reinterpret_cast<void*>(GetColorFilterAddr) },
+        ani_native_function { "colorFilterTransferDynamicNative", nullptr,
+            reinterpret_cast<void*>(ColorFilterTransferDynamic) },
         ani_native_function { "createMatrixColorFilter", nullptr, reinterpret_cast<void*>(CreateMatrixColorFilter) },
         ani_native_function { "createComposeColorFilter", nullptr, reinterpret_cast<void*>(CreateComposeColorFilter) },
         ani_native_function { "createLinearToSRGBGamma", nullptr, reinterpret_cast<void*>(CreateLinearToSRGBGamma) },
@@ -125,48 +127,41 @@ ani_object AniColorFilter::CreateBlendModeColorFilterWithNumber(
 
 ani_object AniColorFilter::ColorFilterTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsColorFilter = reinterpret_cast<JsColorFilter*>(unwrapResult);
-    if (jsColorFilter->GetColorFilterPtr() == nullptr) {
-        ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic jsColorFilter is null");
-        return CreateAniUndefined(env);
-    }
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsColorFilter = reinterpret_cast<JsColorFilter*>(unwrapResult);
+        if (jsColorFilter == nullptr || jsColorFilter->GetColorFilterPtr() == nullptr) {
+            ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic jsColorFilter is null");
+            return CreateAniUndefined(env);
+        }
 
-    auto aniColorFilter = new AniColorFilter(jsColorFilter->GetColorFilterPtr());
-    ani_object aniColorFilterObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
-        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
-        aniColorFilter);
-    if (IsUndefined(env, aniColorFilterObj)) {
-        delete aniColorFilter;
-        ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic failed cause aniObj is undefined");
-    }
-    return aniColorFilterObj;
+        auto aniColorFilter = new AniColorFilter(jsColorFilter->GetColorFilterPtr());
+        ani_object aniColorFilterObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+            AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+            aniColorFilter);
+        if (IsUndefined(env, aniColorFilterObj)) {
+            delete aniColorFilter;
+            ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic failed cause aniObj is undefined");
+        }
+        return aniColorFilterObj;
+    });
 }
 
-ani_long AniColorFilter::GetColorFilterAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniColorFilter::ColorFilterTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, input,
-        AniGlobalField::GetInstance().colorFilterNativeObj);
-    if (aniColorFilter == nullptr || aniColorFilter->GetColorFilter() == nullptr) {
-        ROSEN_LOGE("AniColorFilter::GetColorFilterAddr aniColorFilter is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().colorFilter)) {
+        return CreateAniUndefined(aniEnv);
     }
-    
-    return reinterpret_cast<ani_long>(aniColorFilter->GetColorFilterPtrAddr());
-}
-
-std::shared_ptr<ColorFilter>* AniColorFilter::GetColorFilterPtrAddr()
-{
-    return &colorFilter_;
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniColorFilter = GetNativeFromObj<AniColorFilter>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().colorFilterNativeObj);
+            if (aniColorFilter == nullptr || aniColorFilter->GetColorFilter() == nullptr) {
+                ROSEN_LOGE("AniColorFilter::ColorFilterTransferDynamic null aniColorFilter");
+                return nullptr;
+            }
+            return JsColorFilter::Create(napiEnv, aniColorFilter->GetColorFilter());
+        });
 }
 
 ani_object AniColorFilter::CreateLightingColorFilterWithColor(

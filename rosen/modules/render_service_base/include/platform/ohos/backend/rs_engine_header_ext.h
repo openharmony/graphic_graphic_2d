@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,12 +13,17 @@
  * limitations under the License.
  */
 
-#include <cstdint>
-#include <unistd.h>
-#include <climits>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
+#ifndef RS_ENGINE_HEADER_EXT_H
+#define RS_ENGINE_HEADER_EXT_H
 
-#define FUZZ_PROJECT_NAME "rsuisurface_fuzzer"
-
+namespace OHOS {
+namespace Rosen {
+enum class RenderEngineType : uint8_t {
+    BASIC_RENDER = 0,
+    PROTECTED_REDRAW,
+    UNPROTECTED_REDRAW,
+    MAX_INTERFACE_TYPE,
+};
+}
+}
+#endif

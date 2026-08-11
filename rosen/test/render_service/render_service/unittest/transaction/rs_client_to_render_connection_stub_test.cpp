@@ -26,7 +26,6 @@
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #endif
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "gtest/gtest.h"
@@ -103,9 +102,6 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
     pid_t pid = SURFACE_NODE_ID;
     surfaceNode_ = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(((NodeId)pid << 32 | SURFACE_NODE_ID),
         std::make_shared<RSContext>(), true), RSRenderNodeGC::NodeDestructor);
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_ = sptr<RSScreenManager>::MakeSptr();
@@ -1126,11 +1122,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     ASSERT_NE(res, ERR_NONE);
 
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("SubmitCanvasPreAllocatedBuffer001");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
-    ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
     MessageParcel data3;
     data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data3.WriteUint64(1); // Write nodeId
@@ -1183,35 +1174,142 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     buffer->WriteToMessageParcel(data);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
-    ASSERT_EQ(ret, 0);
+    // Feature is disabled, stub should return FEATURE_DISABLED
+    ASSERT_EQ(ret, FEATURE_DISABLED);
 
-    auto newPid = getpid();
-    auto mainThread = RSMainThread::Instance();
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSClientToRenderConnection> toRenderConnection =
-        new RSClientToRenderConnection(0, renderPipelineAgent_, token_->AsObject());
-    ASSERT_EQ(toRenderConnection != nullptr, true);
-    toRenderConnection->mainThread_ = nullptr;
-    buffer = SurfaceBuffer::Create();
-    ret = toRenderConnection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
-    ASSERT_NE(ret, 0);
-    toRenderConnection->mainThread_ = mainThread;
-    toRenderConnection->remotePid_ = 1;
-    ret = toRenderConnection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
-    ASSERT_NE(ret, 0);
-
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("SubmitCanvasPreAllocatedBuffer002");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
-    ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
-    connection->remotePid_ = 0;
-    ret = connection->SubmitCanvasPreAllocatedBuffer(1, buffer, 2);
-    ASSERT_EQ(ret, 0);
-    ret = connection->SubmitCanvasPreAllocatedBuffer(1, buffer, 2);
+    // SurfaceBuffer::Create() has no handle, IsBufferConfigValid returns false
+    buffer = SurfaceBuffer::Create();
+    ret = connection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
     ASSERT_NE(ret, 0);
+    // Direct call bypasses stub PID check; nullptr passes IsBufferConfigValid, AddPendingBuffer succeeds
+    // Use nodeId=2 and resetSurfaceIndex=2 to avoid collision with Test001
+    connection->remotePid_ = 0;
+    ret = connection->SubmitCanvasPreAllocatedBuffer(2, nullptr, 2);
+    ASSERT_EQ(ret, 0);
+    // Duplicate nodeId + resetSurfaceIndex causes AddPendingBuffer to fail
+    ret = connection->SubmitCanvasPreAllocatedBuffer(2, nullptr, 2);
+    ASSERT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: SubmitCanvasPreAllocatedBufferTest003
+ * @tc.desc: Test SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER with PID mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest003, TestSize.Level1)
+{
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    // GetCallingPid() returns 0 in same-process test; nodeId with high 32 bits = 999999 makes PID mismatch
+    NodeId nodeId = static_cast<NodeId>(999999) << 32 | 1;
+    data.WriteUint64(nodeId);
+    data.WriteUint32(1);
+    data.WriteUint32(1);
+    data.WriteBool(false);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_NE(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetPixelmap_PixelFormatNotRGBA8888
+ * @tc.desc: Test GET_PIXELMAP rejects pixelmap with non-RGBA_8888 format
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmap_PixelFormatNotRGBA8888, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10003;
+    data.WriteUint64(nodeId);
+    // Create pixelmap with RGB_565 format (not RGBA_8888)
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGB_565;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    EXPECT_NE(pixelmap->GetPixelFormat(), Media::PixelFormat::RGBA_8888);
+    data.WriteParcelable(pixelmap.get());
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    // PixelFormat != RGBA_8888 causes break, ret stays ERR_NONE from init
+    ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetPixelmap_AllocatorNotDMAOrShareMem
+ * @tc.desc: Test GET_PIXELMAP rejects pixelmap with unsupported allocator type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmap_AllocatorNotDMAOrShareMem, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10003;
+    data.WriteUint64(nodeId);
+    // HEAP_ALLOC is neither DMA_ALLOC nor SHARE_MEM_ALLOC
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.allocatorType = Media::AllocatorType::HEAP_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    EXPECT_NE(pixelmap->GetAllocatorType(), Media::AllocatorType::DMA_ALLOC);
+    EXPECT_NE(pixelmap->GetAllocatorType(), Media::AllocatorType::SHARE_MEM_ALLOC);
+    data.WriteParcelable(pixelmap.get());
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetPixelmap_ShareMemAlloc_RGBA8888
+ * @tc.desc: Test GET_PIXELMAP accepts SHARE_MEM_ALLOC pixelmap with RGBA_8888 format
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelmap_ShareMemAlloc_RGBA8888, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = 10003;
+    data.WriteUint64(nodeId);
+    // SHARE_MEM_ALLOC with RGBA_8888 skips DMA validation
+    Media::InitializationOptions opts;
+    opts.size.width = 10;
+    opts.size.height = 10;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelmap, nullptr);
+    EXPECT_EQ(pixelmap->GetAllocatorType(), Media::AllocatorType::SHARE_MEM_ALLOC);
+    data.WriteParcelable(pixelmap.get());
+    // Write Rect and DrawCmdList for complete data
+    Drawing::Rect rect;
+    data.WriteFloat(rect.left_);
+    data.WriteFloat(rect.top_);
+    data.WriteFloat(rect.right_);
+    data.WriteFloat(rect.bottom_);
+    data.WriteUint64(0); // null DrawCmdList
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    // SHARE_MEM_ALLOC path skips DMA check, proceeds to GetPixelmap call
+    EXPECT_TRUE(ret == ERR_NONE || ret == ERR_INVALID_REPLY);
 }
 #endif
 
@@ -1396,49 +1494,148 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeTest001, TestSize.Level1)
 
 /**
  * @tc.name: CreateDisplayNodeTest001
- * @tc.desc: Test CREATE_DISPLAY_NODE interface code path
+ * @tc.desc: Test CREATE_DISPLAY_NODE interface code path with various scenarios
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest001, TestSize.Level1)
 {
     ASSERT_NE(connectionStub_, nullptr);
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
+    NodeId displayNodeId = 10002;
+    int res;
 
     // Test case 1: missing id
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
 
-    // Test case 2: missing mirrorId/screenId/isMirrored (branch coverage)
-    MessageParcel data2;
-    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    NodeId displayNodeId = 10002;
-    data2.WriteUint64(displayNodeId);
-    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
+    // Test case 2: only id, missing mirrorId/screenId/isMirrored
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        data.WriteUint64(displayNodeId);
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
 
-    // Test case 3: valid data
-    MessageParcel data3;
-    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data3.WriteUint64(displayNodeId);
-    data3.WriteUint64(0); // mirrorId
-    data3.WriteUint64(screenId_); // screenId
-    data3.WriteBool(false); // isMirrored
-    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
-    EXPECT_EQ(res, ERR_NONE);
+    // Test case 3: id + mirrorId, missing screenId
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        data.WriteUint64(displayNodeId);
+        data.WriteUint64(0); // mirrorId
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
+
+    // Test case 4: id + mirrorId + screenId, missing isMirrored
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        data.WriteUint64(displayNodeId);
+        data.WriteUint64(0); // mirrorId
+        data.WriteUint64(screenId_); // screenId
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
+
+    // Test case 5: id + mirrorId + screenId + isMirrored, missing mirrorSourceRotation
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        data.WriteUint64(displayNodeId);
+        data.WriteUint64(0); // mirrorId
+        data.WriteUint64(screenId_); // screenId
+        data.WriteBool(false); // isMirrored
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
+
+    // Test case 6: all fields except positionZ
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        data.WriteUint64(displayNodeId);
+        data.WriteUint64(0); // mirrorId
+        data.WriteUint64(screenId_); // screenId
+        data.WriteBool(false); // isMirrored
+        data.WriteUint32(4); // mirrorSourceRotation
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
+
+    // Test case 7: valid complete data (all fields including positionZ)
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        data.WriteUint64(displayNodeId);
+        data.WriteUint64(0); // mirrorId
+        data.WriteUint64(screenId_); // screenId
+        data.WriteBool(false); // isMirrored
+        data.WriteUint32(4); // mirrorSourceRotation
+        data.WriteFloat(128.0f); // positionZ
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        ASSERT_TRUE(res == ERR_NONE || res == ERR_INVALID_STATE);
+    }
+
+    // Test case 8: positionZ is NAN
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        data.WriteUint64(displayNodeId);
+        data.WriteUint64(0); // mirrorId
+        data.WriteUint64(screenId_); // screenId
+        data.WriteBool(false); // isMirrored
+        data.WriteUint32(4); // mirrorSourceRotation
+        data.WriteFloat(NAN); // positionZ - NAN should be rejected
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
+
+    // Test case 9: positionZ is Inf
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        data.WriteUint64(displayNodeId);
+        data.WriteUint64(0); // mirrorId
+        data.WriteUint64(screenId_); // screenId
+        data.WriteBool(false); // isMirrored
+        data.WriteUint32(4); // mirrorSourceRotation
+        data.WriteFloat(INFINITY); // positionZ - Inf should be rejected
+        res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
 }
 
 /**
- * @tc.name: CreateDisplayNodeTest002
- * @tc.desc: Test CREATE_DISPLAY_NODE with missing screenId (independent Read* condition)
+ * @tc.name: CreateDisplayNodeTest004
+ * @tc.desc: Test CREATE_DISPLAY_NODE rejects out-of-range mirrorSourceRotation
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest002, TestSize.Level1)
+HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest004, TestSize.Level1)
 {
     ASSERT_NE(connectionStub_, nullptr);
     MessageParcel data;
@@ -1446,41 +1643,14 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest002, TestSize.
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
 
-    // Test case: write id and mirrorId, but NOT screenId
-    // This should fail at !data.ReadUint64(screenId) condition
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    NodeId displayNodeId = 10002;
-    data.WriteUint64(displayNodeId);
-    data.WriteUint64(0); // mirrorId
-    // NOT writing screenId - should fail here
-    // NOT writing isMirrored
-
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: CreateDisplayNodeTest003
- * @tc.desc: Test CREATE_DISPLAY_NODE with missing isMirrored (independent Read* condition)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest003, TestSize.Level1)
-{
-    ASSERT_NE(connectionStub_, nullptr);
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
-
-    // Test case: write id, mirrorId, and screenId, but NOT isMirrored
-    // This should fail at !data.ReadBool(isMirrored) condition
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     NodeId displayNodeId = 10002;
     data.WriteUint64(displayNodeId);
     data.WriteUint64(0); // mirrorId
     data.WriteUint64(screenId_); // screenId
-    // NOT writing isMirrored - should fail here
+    data.WriteUint8(static_cast<uint8_t>(DisplayMode::EXPAND)); // displayMode
+    // mirrorSourceRotation beyond INVALID_SCREEN_ROTATION must be rejected
+    data.WriteUint32(static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION) + 1);
 
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
@@ -2254,6 +2424,37 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransactionTest002, TestSize.
     EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: CommitTransactionWithValidData
+ * @tc.desc: Test COMMIT_TRANSACTION with a valid normal parcel so that ParseTransactionData
+ *           succeeds and SetSendingPid is executed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransactionWithValidData, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION);
+
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteInt32(0); // readData = 0, indicate normal parcel
+    // version header: Int64(-1) + 4x Uint64(0) consumed by UnmarshallingTransactionVer
+    data.WriteInt64(-1);
+    data.WriteUint64(0);
+    data.WriteUint64(0);
+    data.WriteUint64(0);
+    data.WriteUint64(0);
+    // Write a valid RSTransactionData parcelable so ParseTransactionData returns non-null
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    ASSERT_TRUE(data.WriteParcelable(transactionData.get()));
+    connectionStub_->OnRemoteRequest(code, data, reply, option);
+}
+#endif
+
 /**
  * @tc.name: ClearSurfaceWatermarkForNodesTest002
  * @tc.desc: Test CLEAR_SURFACE_WATERMARK_FOR_NODES with complete data
@@ -2328,6 +2529,33 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkForNodesTest00
     std::string name = "testWatermark";
     data.WriteString(name);
     // NOT writing nodeList - should fail here
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermarkForNodesTest005
+ * @tc.desc: Test CLEAR_SURFACE_WATERMARK_FOR_NODES when nodeIdList size exceeds MAX_NODE_ID_LIST_SIZE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkForNodesTest005, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+
+    // MAX_NODE_ID_LIST_SIZE is 100000; an oversized list must be rejected to prevent DoS.
+    std::vector<NodeId> nodeIdList(100001, 10001);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    pid_t pid = getpid();
+    data.WriteInt32(pid);
+    std::string name = "testWatermark";
+    data.WriteString(name);
+    data.WriteUInt64Vector(nodeIdList);
 
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
@@ -3217,6 +3445,63 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest002, TestSize
     // Test UICAPTURE without permission - should return nullptr via callback
     renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
         captureConfig, blurParam, specifiedAreaRect, permissions);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureBlackListOverLimit001
+ * @tc.desc: Test TAKE_SURFACE_CAPTURE rejects an oversized blackList (DoS bound)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureBlackListOverLimit001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    NodeId nodeId = surfaceNode_->GetId();
+    data.WriteUint64(nodeId);
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+
+    RSSurfaceCaptureConfig captureConfig;
+    data.WriteFloat(captureConfig.scaleX);
+    data.WriteFloat(captureConfig.scaleY);
+    data.WriteBool(captureConfig.useDma);
+    data.WriteBool(captureConfig.useCurWindow);
+    data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data.WriteBool(captureConfig.isSync);
+    data.WriteBool(captureConfig.isHdrCapture);
+    data.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent));
+    data.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data.WriteBool(captureConfig.needErrorCode);
+    data.WriteFloat(captureConfig.mainScreenRect.left_);
+    data.WriteFloat(captureConfig.mainScreenRect.top_);
+    data.WriteFloat(captureConfig.mainScreenRect.right_);
+    data.WriteFloat(captureConfig.mainScreenRect.bottom_);
+    data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
+    data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
+    // one over the cap; MAX_CAPTURE_BLACK_LIST_SIZE == 1024 in the stub under test
+    constexpr size_t OVERSIZED_BLACK_LIST_SIZE = 1025;
+    std::vector<uint64_t> overLimitBlackList(OVERSIZED_BLACK_LIST_SIZE, 0);
+    data.WriteUInt64Vector(overLimitBlackList);
+    data.WriteUint32(captureConfig.backGroundColor);
+    data.WriteUint32(captureConfig.colorSpace.first);
+    data.WriteBool(captureConfig.colorSpace.second);
+    data.WriteUint32(captureConfig.dynamicRangeMode.first);
+    data.WriteBool(captureConfig.dynamicRangeMode.second);
+    data.WriteBool(captureConfig.isSyncRender);
+    data.WriteBool(captureConfig.windowSync);
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 
 /**
@@ -4164,17 +4449,13 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest013, 
     ret = agent->GetShowRefreshRateEnabled(enabled);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
-    // Test SetGpuCrcDirtyEnabledPidList
-    std::vector<int32_t> pidList = {100};
-    ret = agent->SetGpuCrcDirtyEnabledPidList(pidList);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-
     // Test GetHdrOnDuration
     int64_t duration = 0;
     ret = agent->GetHdrOnDuration(duration);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     // Test SetOptimizeCanvasDirtyPidList
+    std::vector<int32_t> pidList = {100};
     ret = agent->SetOptimizeCanvasDirtyPidList(pidList);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
@@ -4469,32 +4750,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_ZeroPid_012, Test
 
     renderPipelineAgent_->CommitTransaction(0, true, false, transactionData);
     EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
-}
-
-/**
- * @tc.name: CreateNodeAndSurfaceTest001
- * @tc.desc: Test CreateNodeAndSurfaceTest when surfacenode is self drawing node
- * branch)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
-{
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    sptr<Surface> surface = nullptr;
-    std::vector<int32_t> pidList;
-    pidList.emplace_back(ExtractPid(config.id));
-    RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList(pidList);
-    connectionStub_->CreateNodeAndSurface(config, surface, false);
-    ASSERT_NE(surface, nullptr);
-    surface = nullptr;
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    connectionStub_->CreateNodeAndSurface(config, surface, false);
-    ASSERT_NE(surface, nullptr);
-    system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**

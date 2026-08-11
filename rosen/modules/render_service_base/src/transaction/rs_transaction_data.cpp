@@ -373,7 +373,18 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     uint16_t commandType = 0;
     uint16_t commandSubType = 0;
 
-    size_t readableSize = parcel.GetReadableBytes();
+    bool isUniRender = false;
+    if (!parcel.ReadBool(isUniRender)) {
+        ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read isUniRender");
+        return false;
+    }
+
+    // minCommandSizeUniRender = hasCommand(1) + commandType(2) + commandSubType(2)
+    constexpr size_t minCommandSizeUniRender = 5;
+    // minCommandSizeDivide = nodeId(8) + followType(1) + hasCommand(1) + commandType(2) + commandSubType(2)
+    constexpr size_t minCommandSizeDivide = 14;
+    size_t minCommandSize = isUniRender ? minCommandSizeUniRender : minCommandSizeDivide;
+    size_t readableSize = parcel.GetReadableBytes() / minCommandSize;
     size_t len = static_cast<size_t>(commandSize);
     if (len > readableSize || len > payload_.max_size()) {
         ROSEN_LOGE("RSTransactionData UnmarshallingCommand Failed read vector, size:%{public}zu,"
@@ -381,11 +392,6 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         return false;
     }
 
-    bool isUniRender = false;
-    if (!parcel.ReadBool(isUniRender)) {
-        ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read isUniRender");
-        return false;
-    }
     std::unique_lock<std::mutex> payloadLock(commandMutex_, std::defer_lock);
     for (size_t i = 0; i < len; i++) {
         if (!isUniRender) {

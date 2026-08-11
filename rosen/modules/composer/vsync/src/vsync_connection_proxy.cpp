@@ -65,7 +65,7 @@ VsyncError VSyncConnectionProxy::RequestNextVSync(
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch)
+VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom)
 {
     MessageOption opt(MessageOption::TF_ASYNC);
     MessageParcel arg;
@@ -77,6 +77,10 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch)
     }
     if (!arg.WriteBool(dvsyncSwitch)) {
         VLOGE("Failed to write dvsyncSwitch:%{public}d", dvsyncSwitch);
+        return VSYNC_ERROR_API_FAILED;
+    }
+    if (!arg.WriteUint8(static_cast<uint8_t>(fromWhom))) {
+        VLOGE("Failed to write fromWhom:%{public}u", static_cast<uint8_t>(fromWhom));
         return VSYNC_ERROR_API_FAILED;
     }
     auto remote = Remote();

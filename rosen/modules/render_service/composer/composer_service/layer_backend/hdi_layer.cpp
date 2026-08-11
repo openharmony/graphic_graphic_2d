@@ -39,7 +39,7 @@ const std::string GENERIC_METADATA_KEY_GLASS_FREE_3D = "GlassFree3D";
 const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 const std::string GENERIC_METADATA_KEY_VCLD_PARAM = "VcldParam";
-const std::string GENERIC_METADATA_KEY_SOLIC_FILL = "SolidFill";
+const std::string GENERIC_METADATA_KEY_SOLID_FILL = "SolidFill";
 }
 
 template<typename T>
@@ -183,11 +183,10 @@ void HdiLayer::CloseLayer()
     retCode = device_->CloseLayer(screenId_, layerId_);
     if (retCode != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Close hwc layer[%{public}u] failed, ret is %{public}d", layerId_, retCode);
+        return;
     }
 
     HLOGD("Close hwc layer succeed, layerId is %{public}u", layerId_);
-    layerId_ = INT_MAX;
-    layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
 }
 
 int32_t HdiLayer::SetLayerAlpha()
@@ -326,6 +325,7 @@ int32_t HdiLayer::SetLayerBuffer()
         layerBuffer.handle = currBuffer_->GetBufferHandle();
         if (layerBuffer.handle == nullptr) {
             HLOGE("Get buffer handle failed.");
+            return GRAPHIC_DISPLAY_NULL_PTR;
         }
     }
 
@@ -361,7 +361,7 @@ int32_t HdiLayer::SetDelegateModeLayerCrop()
     }
 
     GraphicIRect rect = rsLayer_->GetDelegateModeCropRect();
-    RS_TRACE_NAME_FMT("HdiLayer::SetDelegateModeLayerCrop, layerId=%u, rect={%d, %d, %d, %d}",
+    RS_TRACE_NAME_FMT("HdiLayer::SetDelegateModeLayerCrop, layerId=%u, [%d %d %d %d]",
         layerId_, rect.x, rect.y, rect.w, rect.h);
     int32_t ret = device_->SetLayerCrop(screenId_, layerId_, rect);
     return ret;
@@ -513,7 +513,7 @@ int32_t HdiLayer::SetLayerTunnelHandle()
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    if (rsLayer_->GetTunnelHandle() == nullptr) {
+    if (rsLayer_->GetTunnelHandle() == nullptr || rsLayer_->GetTunnelHandle()->GetHandle() == nullptr) {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, nullptr);
     } else {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, rsLayer_->GetTunnelHandle()->GetHandle());
@@ -896,7 +896,7 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_VCLD_PARAM) {
             ret = SetPerFrameLayerVcldParam();
             CheckRet(ret, "SetLayerVcldParam");
-        } else if (key == GENERIC_METADATA_KEY_SOLIC_FILL) {
+        } else if (key == GENERIC_METADATA_KEY_SOLID_FILL) {
             ret = SetPerFrameLayerSolidFillParam();
             CheckRet(ret, "SetLayerSolidFillParam");
         }
@@ -1026,7 +1026,7 @@ int32_t HdiLayer::SetPerFrameLayerSolidFillParam()
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = rsLayer_->IsSolidFilledColorLayer();
     return device_->SetLayerPerFrameParameterSmq(
-        screenId_, layerId_, GENERIC_METADATA_KEY_SOLIC_FILL, valueBlob);
+        screenId_, layerId_, GENERIC_METADATA_KEY_SOLID_FILL, valueBlob);
 }
 
 void HdiLayer::ClearBufferCache()

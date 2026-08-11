@@ -285,6 +285,11 @@ ohos_unittest("RSHeteroHDRHpaeTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
 }
 
 ## Build RSOcclusionHandlerTest
@@ -328,6 +333,11 @@ ohos_unittest("RSOcclusionNodeTest") {
 ## Build RSPointerWindowManagerTest
 ohos_unittest("RSPointerWindowManagerTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [ "pointer_window_manager/rs_pointer_window_manager_test.cpp" ]
   deps = [
     ":rs_test_common",
@@ -524,12 +534,14 @@ ohos_unittest("RSHdrUtilTest") {
 ## Build RSLayerCacheManagerTest
 ohos_unittest("RSLayerCacheManagerTest") {
   module_out_path = module_output_path
-  sources = [ "layer/rs_layer_cache_manager_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "layer/rs_layer_cache_manager_test.cpp"
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
-    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
@@ -609,6 +621,11 @@ ohos_unittest("RSUiCaptureTaskParallelTest") {
 ## Build RSUiCaptureSoloTaskParallelTest
 ohos_unittest("RSUiCaptureSoloTaskParallelTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
@@ -1177,6 +1194,11 @@ if (rs_enable_gpu) {
 ## Build HgmContextTest
 ohos_unittest("HgmContextTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [
     "hyper_graphic_manager/hgm_context_test.cpp",
     "hyper_graphic_manager/hgm_hardware_utils_test.cpp",
@@ -1340,6 +1362,11 @@ ohos_unittest("RSAncoManagerTest") {
 ## Build RSWindowKeyFrameDrawableTest
 ohos_unittest("RSWindowKeyFrameDrawableTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "window_keyframe/rs_window_keyframe_node_drawable_test.cpp",
@@ -1751,20 +1778,6 @@ ohos_unittest("RSHpaeManagerTest") {
 ohos_unittest("RSChipsetVsyncTest") {
   module_out_path = module_output_path
   sources = [ "chipset_vsync/rs_chipset_vsync_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-}
-
-##Build RSCarMultiDisplayFeatureParamTest
-ohos_unittest("RSCarMultiDisplayFeatureParamTest") {
-  module_out_path = module_output_path
-  if (defined(graphic_2d_car_features_configs.car_features_root)) {
-    sources = graphic_2d_car_features_configs.librender_service_ext_car_features_test
-    include_dirs += graphic_2d_car_features_configs.librender_service_ext_car_features_includes
-  }
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",

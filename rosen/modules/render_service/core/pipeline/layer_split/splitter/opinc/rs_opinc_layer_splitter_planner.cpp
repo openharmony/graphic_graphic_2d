@@ -71,7 +71,8 @@ void RSOpincLayerSplitterPlanner::Reset()
     visitedNodeId_.clear();
     canDoDirectComposition_ = false;
 
-    if (planStatus_ != PlanStatus::ON || UNLIKELY(requestController_ == nullptr)) {
+    if (planStatus_ != PlanStatus::ON || UNLIKELY(requestController_ == nullptr) ||
+        splitSurface_->splitSurfaceBuffer_ == nullptr) {
         return;
     }
     requestController_->IncStayOnCount();
@@ -402,12 +403,14 @@ void RSOpincLayerSplitterPlanner::CheckNeedLeave()
 
     auto instanceRootNode = opIncParentNode_->GetInstanceRootNode();
     if (instanceRootNode) {
-        auto windowSceneNode =
-            RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(instanceRootNode->GetParent().lock());
-        if (windowSceneNode && windowSceneNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
-            LAYER_SPLIT_LOGD("%{public}s UIFirst enabled", __func__);
-            needLeave_ = true;
-            return;
+        auto parent = instanceRootNode->GetParent().lock();
+        if (parent) {
+            auto windowSceneNode = parent->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (windowSceneNode && windowSceneNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
+                LAYER_SPLIT_LOGD("%{public}s UIFirst enabled", __func__);
+                needLeave_ = true;
+                return;
+            }
         }
     }
 
@@ -523,6 +526,7 @@ void RSOpincLayerSplitterPlanner::UpdateSplitPlan()
             break;
         case PlanStatus::LEAVE:
             planStatus_ = PlanStatus::OFF;
+            break;
         default:
             return;
     }
@@ -544,10 +548,6 @@ void RSOpincLayerSplitterPlanner::ProcessPlanStatusAction()
                 opIncParentNode_->AddChild(splitSurface_->splitSurfaceNode_, 0);
             }
             SetColorSpaceInfo();
-        }
-
-        if (requestController_->IsLongTermOff() && !splitSurface_->CheckParentNodeOnTheTree()) {
-            UnregisterSplitSurfaceNode();
         }
     }
     if (needLeave_ && splitSurface_->IsBufferConsumed()) {
@@ -596,6 +596,17 @@ void RSOpincLayerSplitterPlanner::ClearAllChildrenLayerObjects()
     for (const auto& node : lastFrameChildSet_) clearFunc(node);
     if (splitSurface_ && splitSurface_->splitSurfaceDrawable_) {
         splitSurface_->splitSurfaceDrawable_->SetLayerSplitterProcessor(nullptr);
+    }
+}
+
+void RSOpincLayerSplitterPlanner::CheckParentNodeOnTheTree()
+{
+    if (splitSurface_ == nullptr || opIncParentNode_ == nullptr) {
+        return;
+    }
+
+    if (!opIncParentNode_->IsOnTheTree() || !splitSurface_->CheckParentNodeOnTheTree()) {
+        UnregisterSplitSurfaceNode();
     }
 }
 

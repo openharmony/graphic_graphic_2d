@@ -15,6 +15,7 @@
 
 #include "js_matrix.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "native_value.h"
 
 static constexpr uint32_t POLY_POINT_COUNT_MAX = 4;
@@ -55,7 +56,6 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("setPolyToPoly", JsMatrix::SetPolyToPoly),
     DECLARE_NAPI_FUNCTION("setRectToRect", JsMatrix::SetRectToRect),
     DECLARE_NAPI_FUNCTION("mapRect", JsMatrix::MapRect),
-    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsMatrix::MatrixTransferDynamic),
 };
 
 napi_value JsMatrix::Init(napi_env env, napi_value exportObj)
@@ -97,14 +97,14 @@ napi_value JsMatrix::Constructor(napi_env env, napi_callback_info info)
     std::shared_ptr<Matrix> matrix = nullptr;
     if (argCount == ARGC_ONE) {
         JsMatrix* jsOther = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ZERO, jsOther);
+        GET_UNWRAP_PARAM_S(ARGC_ZERO, jsOther, &MATRIX_TYPE_TAG);
         std::shared_ptr<Matrix> other = jsOther->GetMatrix();
         matrix = other == nullptr ? std::make_shared<Matrix>() : std::make_shared<Matrix>(*other);
     } else {
         matrix = std::make_shared<Matrix>();
     }
     JsMatrix* jsMatrix = new JsMatrix(matrix);
-    status = napi_wrap(env, jsThis, jsMatrix, JsMatrix::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsMatrix, JsMatrix::Destructor, nullptr, &MATRIX_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsMatrix;
         ROSEN_LOGE("JsMatrix::Constructor Failed to wrap native instance");
@@ -135,7 +135,7 @@ napi_value JsMatrix::CreateJsMatrix(napi_env env, const std::shared_ptr<Matrix> 
             ROSEN_LOGE("JsMatrix::CreateJsMatrix Create matrix object failed!");
             return nullptr;
         }
-        status = napi_wrap(env, result, jsMatrix, JsMatrix::Destructor, nullptr, nullptr);
+        status = napi_wrap_s(env, result, jsMatrix, JsMatrix::Destructor, nullptr, &MATRIX_TYPE_TAG, nullptr);
         if (status != napi_ok) {
             delete jsMatrix;
             ROSEN_LOGE("JsMatrix::CreateJsMatrix failed to wrap native instance");
@@ -149,7 +149,7 @@ napi_value JsMatrix::CreateJsMatrix(napi_env env, const std::shared_ptr<Matrix> 
 
 napi_value JsMatrix::GetValue(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnGetValue(env, info) : nullptr;
 }
 
@@ -177,7 +177,7 @@ napi_value JsMatrix::OnGetValue(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PostConcat(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPostConcat(env, info) : nullptr;
 }
 
@@ -192,7 +192,7 @@ napi_value JsMatrix::OnPostConcat(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
 
     std::shared_ptr<Matrix> matrix = jsMatrix->GetMatrix();
     if (matrix == nullptr) {
@@ -205,7 +205,7 @@ napi_value JsMatrix::OnPostConcat(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PostRotate(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPostRotate(env, info) : nullptr;
 }
 
@@ -233,7 +233,7 @@ napi_value JsMatrix::OnPostRotate(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PostSkew(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPostSkew(env, info) : nullptr;
 }
 
@@ -262,7 +262,7 @@ napi_value JsMatrix::OnPostSkew(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PostTranslate(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPostTranslate(env, info) : nullptr;
 }
 
@@ -287,7 +287,7 @@ napi_value JsMatrix::OnPostTranslate(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PreRotate(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPreRotate(env, info) : nullptr;
 }
 
@@ -315,7 +315,7 @@ napi_value JsMatrix::OnPreRotate(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PreScale(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPreScale(env, info) : nullptr;
 }
 
@@ -345,7 +345,7 @@ napi_value JsMatrix::OnPreScale(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PreSkew(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPreSkew(env, info) : nullptr;
 }
 
@@ -374,7 +374,7 @@ napi_value JsMatrix::OnPreSkew(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PreTranslate(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPreTranslate(env, info) : nullptr;
 }
 
@@ -400,7 +400,7 @@ napi_value JsMatrix::OnPreTranslate(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::SetConcat(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnSetConcat(env, info) : nullptr;
 }
 
@@ -415,9 +415,9 @@ napi_value JsMatrix::OnSetConcat(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsMatrix* jsMatrix1 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix1);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix1, &MATRIX_TYPE_TAG);
     JsMatrix* jsMatrix2 = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ONE, jsMatrix2);
+    GET_UNWRAP_PARAM_S(ARGC_ONE, jsMatrix2, &MATRIX_TYPE_TAG);
 
     std::shared_ptr<Matrix> matrix1 = jsMatrix1->GetMatrix();
     std::shared_ptr<Matrix> matrix2 = jsMatrix2->GetMatrix();
@@ -432,7 +432,7 @@ napi_value JsMatrix::OnSetConcat(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::SetRotation(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnSetRotation(env, info) : nullptr;
 }
 
@@ -459,7 +459,7 @@ napi_value JsMatrix::OnSetRotation(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::SetScale(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnSetScale(env, info) : nullptr;
 }
 
@@ -488,7 +488,7 @@ napi_value JsMatrix::OnSetScale(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::SetSinCos(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnSetSinCos(env, info) : nullptr;
 }
 
@@ -517,7 +517,7 @@ napi_value JsMatrix::OnSetSinCos(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::SetSkew(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnSetSkew(env, info) : nullptr;
 }
 
@@ -546,7 +546,7 @@ napi_value JsMatrix::OnSetSkew(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::SetTranslation(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnSetTranslation(env, info) : nullptr;
 }
 
@@ -571,7 +571,7 @@ napi_value JsMatrix::OnSetTranslation(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::SetMatrix(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnSetMatrix(env, info) : nullptr;
 }
 
@@ -588,7 +588,7 @@ napi_value JsMatrix::OnSetMatrix(napi_env env, napi_callback_info info)
     uint32_t arrayLength = 0;
     if ((napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength) != napi_ok)) {
         JsMatrix* jsMatrix = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+        GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
 
         std::shared_ptr<Matrix> matrix = jsMatrix->GetMatrix();
         if (matrix == nullptr) {
@@ -633,7 +633,7 @@ napi_value JsMatrix::OnSetMatrix(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PreConcat(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPreConcat(env, info) : nullptr;
 }
 
@@ -648,7 +648,7 @@ napi_value JsMatrix::OnPreConcat(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsMatrix::OnPreConcat matrix is nullptr");
@@ -661,7 +661,7 @@ napi_value JsMatrix::OnPreConcat(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::IsAffine(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnIsAffine(env, info) : nullptr;
 }
 
@@ -677,7 +677,7 @@ napi_value JsMatrix::OnIsAffine(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::IsEqual(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnIsEqual(env, info) : nullptr;
 }
 
@@ -692,7 +692,7 @@ napi_value JsMatrix::OnIsEqual(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsMatrix::OnIsEqual matrix is nullptr");
@@ -705,7 +705,7 @@ napi_value JsMatrix::OnIsEqual(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::Invert(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnInvert(env, info) : nullptr;
 }
 
@@ -720,7 +720,7 @@ napi_value JsMatrix::OnInvert(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsMatrix::OnInvert matrix is nullptr");
@@ -732,7 +732,7 @@ napi_value JsMatrix::OnInvert(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::IsIdentity(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnIsIdentity(env, info) : nullptr;
 }
 
@@ -748,7 +748,7 @@ napi_value JsMatrix::OnIsIdentity(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::MapPoints(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnMapPoints(env, info) : nullptr;
 }
 
@@ -793,7 +793,7 @@ napi_value JsMatrix::OnMapPoints(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::MapRadius(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnMapRadius(env, info) : nullptr;
 }
 
@@ -815,7 +815,7 @@ napi_value JsMatrix::OnMapRadius(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::PostScale(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnPostScale(env, info) : nullptr;
 }
 
@@ -845,7 +845,7 @@ napi_value JsMatrix::OnPostScale(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::RectStaysRect(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnRectStaysRect(env, info) : nullptr;
 }
 
@@ -861,7 +861,7 @@ napi_value JsMatrix::OnRectStaysRect(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::Reset(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnReset(env, info) : nullptr;
 }
 
@@ -878,7 +878,7 @@ napi_value JsMatrix::OnReset(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::GetAll(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnGetAll(env, info) : nullptr;
 }
 
@@ -902,7 +902,7 @@ napi_value JsMatrix::OnGetAll(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::SetPolyToPoly(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnSetPolyToPoly(env, info) : nullptr;
 }
 
@@ -941,7 +941,7 @@ napi_value JsMatrix::OnSetPolyToPoly(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::SetRectToRect(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnSetRectToRect(env, info) : nullptr;
 }
 
@@ -976,7 +976,7 @@ napi_value JsMatrix::OnSetRectToRect(napi_env env, napi_callback_info info)
 
 napi_value JsMatrix::MapRect(napi_env env, napi_callback_info info)
 {
-    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    JsMatrix* me = CheckParamsAndGetThisWithTag<JsMatrix>(env, info, &MATRIX_TYPE_TAG);
     return (me != nullptr) ? me->OnMapRect(env, info) : nullptr;
 }
 
@@ -1012,29 +1012,6 @@ napi_value JsMatrix::OnMapRect(napi_env env, napi_callback_info info)
 JsMatrix::~JsMatrix()
 {
     m_matrix = nullptr;
-}
-
-napi_value JsMatrix::MatrixTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
-        return nullptr;
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Matrix> matrix = *reinterpret_cast<std::shared_ptr<Matrix>*>(addr);
-    if (matrix == nullptr) {
-        return nullptr;
-    }
-    return CreateJsMatrix(env, matrix);
 }
 }
 }

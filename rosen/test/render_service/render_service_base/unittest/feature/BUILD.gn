@@ -154,6 +154,7 @@ ohos_unittest("RSFrameControlToolTest") {
   external_deps = [
     "c_utils:utils",
     "googletest:gtest_main",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
@@ -185,6 +186,10 @@ ohos_unittest("RSOpincManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 
+  external_deps = [
+    "hilog:libhilog",
+  ]
+
   subsystem_name = "graphic"
 }
 
@@ -211,6 +216,10 @@ ohos_unittest("RSOpincManagerLayerPartTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+
+  external_deps = [
+    "hilog:libhilog",
   ]
 
   subsystem_name = "graphic"
@@ -277,8 +286,11 @@ ohos_unittest("RSColorPickerTest") {
   ]
 
   external_deps = [
+    "egl:libEGL",
     "googletest:gmock_main",
-    "ffrt:libffrt"
+    "hilog:libhilog",
+    "ffrt:libffrt",
+    "opengles:libGLES",
   ]
 
   subsystem_name = "graphic"
@@ -312,6 +324,7 @@ ohos_unittest("RSColorSpaceUtilTest") {
   external_deps = [
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "hilog:libhilog",
     "samgr:samgr_proxy",
   ]
   subsystem_name = "graphic"
@@ -343,6 +356,10 @@ ohos_unittest("RSMemoryInfoManagerTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+
+  external_deps = [
+    "hilog:libhilog",
   ]
 
   subsystem_name = "graphic"
@@ -377,7 +394,9 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
   ]
 
   external_deps = [
+    "egl:libEGL",
     "init:libbegetutil",
+    "opengles:libGLES",
   ]
 
   if (graphic_2d_feature_enable_vulkan) {

@@ -179,6 +179,10 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         RS_LOGE("%{public}s uniRenderThread_ is nullptr, return", __func__);
         return;
     }
+    if (!composerToRenderConn) {
+        RS_LOGE("%{public}s composerToRenderConn is nullptr, return", __func__);
+        return;
+    }
     std::shared_ptr<RSComposerClient> composerClient = nullptr;
     if (!rsScreenProperty->IsVirtual()) {
         composerToRenderConn->RegisterReleaseLayerBuffersCB(
@@ -196,9 +200,9 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
             });
         composerClient->RegisterOnReleaseLayerBuffersCB(std::bind(&RSUniRenderThread::OnReleaseLayerBuffers,
             uniRenderThread_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        composerClient->SetRmvSurfaceFpsOpCallback([](const std::vector<SurfaceFpsOp>& rmvList) {
-            RSMainThread::Instance()->PostTask([rmvList]() {
-                RSMainThread::Instance()->RmvSurfaceFpsOp(rmvList);
+        composerClient->SetRemoveSurfaceFpsOpCallback([](const std::vector<SurfaceFpsOp>& removeList) {
+            RSMainThread::Instance()->PostTask([removeList]() {
+                RSMainThread::Instance()->RemoveSurfaceFpsOp(removeList);
             });
         });
         if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -249,12 +253,6 @@ void RSRenderPipeline::InitEnvironment()
         Drawing::FontMgr::CreateDefaultFontMgr();
     });
     preLoadSysTTFThread.detach();
-
-#ifdef RS_ENABLE_VK
-if (Drawing::SystemProperties::IsUseVulkan()) {
-    RsVulkanContext::SetRecyclable(false);
-}
-#endif
 }
 
 void RSRenderPipeline::InitUniRenderConfig()
@@ -303,7 +301,7 @@ void RSRenderPipeline::InitUniRenderThread()
         },
         [](RSPaintFilterCanvas& canvas, const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
             BufferDrawParam& params) -> bool {
-            return RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params);
+            return RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params, true);
         },
         []() -> std::shared_ptr<RSSurfaceHandler> { return RSHeteroHDRManager::Instance().GetHDRSurfaceHandler(); });
 #endif

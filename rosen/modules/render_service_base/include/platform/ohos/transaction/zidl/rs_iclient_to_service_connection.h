@@ -129,6 +129,8 @@ public:
 
     virtual ErrCode SetUifirstScale(float scaleFactor) = 0;
 
+    virtual sptr<IRemoteObject> GetDisplayEngineControl() = 0;
+
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
@@ -356,8 +358,6 @@ public:
 
     virtual void RunOnRemoteDiedCallback() = 0;
 
-    virtual ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) = 0;
-
 #ifndef ENABLE_RS_PROXY
     virtual void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) = 0;
 
@@ -423,8 +423,6 @@ public:
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) = 0;
     virtual bool ProfilerIsSecureScreen() = 0;
 
-    virtual ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) = 0;
-
     virtual ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) = 0;
 
     virtual ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) = 0;
@@ -438,6 +436,9 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
+
+    virtual ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) = 0;
+
     virtual void RemoveToken() = 0;
 
     virtual void RegisterRemoteRefreshCallback() = 0;

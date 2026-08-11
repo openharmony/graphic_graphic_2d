@@ -15,6 +15,7 @@
 
 #include "js_sampling_options.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "native_value.h"
 
 namespace OHOS::Rosen {
@@ -24,7 +25,6 @@ const std::string CLASS_NAME = "SamplingOptions";
 napi_value JsSamplingOptions::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", SamplingOptionsTransferDynamic),
     };
 
     napi_value constructor = nullptr;
@@ -72,8 +72,8 @@ napi_value JsSamplingOptions::Constructor(napi_env env, napi_callback_info info)
         jsSamplingOptions = new JsSamplingOptions(samplingOptions);
     }
 
-    status = napi_wrap(env, jsThis, jsSamplingOptions,
-                       JsSamplingOptions::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsSamplingOptions,
+        JsSamplingOptions::Destructor, nullptr, &SAMPLING_OPTIONS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsSamplingOptions;
         ROSEN_LOGE("JsSamplingOptions::Constructor failed to wrap native instance");
@@ -100,47 +100,24 @@ JsSamplingOptions::~JsSamplingOptions()
 napi_value JsSamplingOptions::CreateJsSamplingOptionsDynamic(
     napi_env env, const std::shared_ptr<SamplingOptions> samplingOptions)
 {
-    napi_value result = nullptr;
-    napi_value constructor = nullptr;
-    if (napi_get_reference_value(env, constructor_, &constructor) != napi_ok) {
-        ROSEN_LOGE("Failed to get the representation of constructor object");
+    if (samplingOptions == nullptr) {
+        ROSEN_LOGE("JsSamplingOptions::CreateJsSamplingOptionsDynamic samplingOptions is nullptr");
         return nullptr;
     }
-    if (napi_new_instance(env, constructor, 0, nullptr, &result) != napi_ok || result == nullptr) {
-        ROSEN_LOGE("Failed to instantiate JavaScript SamplingOptions instance");
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsSamplingOptions::CreateJsSamplingOptionsDynamic napi_create_object failed");
         return nullptr;
     }
     JsSamplingOptions* jsSamplingOptions = new JsSamplingOptions(samplingOptions);
-    napi_status status = napi_wrap(env, result, jsSamplingOptions, JsSamplingOptions::Destructor, nullptr, nullptr);
+    status = napi_wrap(env, objValue, jsSamplingOptions, JsSamplingOptions::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsSamplingOptions;
-        ROSEN_LOGE("Failed to wrap native instance");
+        ROSEN_LOGE("JsSamplingOptions::CreateJsSamplingOptionsDynamic failed to wrap native instance");
         return nullptr;
     }
-    return result;
-}
-
-napi_value JsSamplingOptions::SamplingOptionsTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
-        return nullptr;
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<SamplingOptions> samplingOptions = *reinterpret_cast<std::shared_ptr<SamplingOptions>*>(addr);
-    if (samplingOptions == nullptr) {
-        return nullptr;
-    }
-    return CreateJsSamplingOptionsDynamic(env, samplingOptions);
+    return objValue;
 }
 
 } // namespace Drawing

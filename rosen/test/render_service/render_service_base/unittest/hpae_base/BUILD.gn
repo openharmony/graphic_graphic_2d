@@ -92,6 +92,7 @@ ohos_unittest("RSRenderServiceBaseHpaeBaseTest") {
     "googletest:gtest_main",
     "graphic_surface:buffer_handle",
     "graphics_effect:graphics_effect_core",
+    "hilog:libhilog",
     "init:libbegetutil",
     "ffrt:libffrt",
   ]

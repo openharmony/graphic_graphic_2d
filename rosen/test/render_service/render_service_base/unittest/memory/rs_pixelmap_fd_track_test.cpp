@@ -544,11 +544,19 @@ HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest001, testing::ext::TestS
     std::filesystem::remove(fdMemInfoPath);
     RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
     std::ifstream file1(fdMemInfoPath);
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_TRUE(file1.good());
+#else
     EXPECT_FALSE(file1.good());
+#endif
     file1.close();
     RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
     std::ifstream file2(fdMemInfoPath);
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_TRUE(file2.good());
+#else
     EXPECT_FALSE(file2.good());
+#endif
     file2.close();
     std::filesystem::remove(fdMemInfoPath);
 }
@@ -607,7 +615,11 @@ HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest005, testing::ext::TestS
     std::string fdMemInfoPath = "renderservice_fdmem_test.txt";
     std::filesystem::remove(fdMemInfoPath);
     RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_TRUE(std::ifstream(fdMemInfoPath).good());
+#else
     EXPECT_FALSE(std::ifstream(fdMemInfoPath).good());
+#endif
     std::filesystem::remove(fdMemInfoPath);
 }
 
@@ -649,7 +661,11 @@ HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest007, testing::ext::TestS
     EXPECT_TRUE(file.good());
     std::string content;
     std::getline(file, content, '\0');
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_TRUE(content.find(fdMemInfo) != std::string::npos);
+#else
     EXPECT_FALSE(content.find(fdMemInfo) != std::string::npos);
+#endif
     file.close();
 
     std::filesystem::remove(targetFile);
@@ -669,7 +685,11 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadAshmemInfoFromFileTest001, testing::ext::Tes
     int32_t testPid = -1;
     RSPixelMapFdTrack::ReadAshmemInfoFromFile(testFilePath, ashmemInfo, testPid);
 
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_FALSE(ashmemInfo.empty());
+#else
     EXPECT_TRUE(ashmemInfo.empty());
+#endif
     EXPECT_TRUE(ashmemInfo.find(std::to_string(testPid)) == std::string::npos);
 }
 
@@ -686,8 +706,13 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadAshmemInfoFromFileTest002, testing::ext::Tes
     int32_t testPid = -1;
     RSPixelMapFdTrack::ReadAshmemInfoFromFile(nonExistentPath, ashmemInfo, testPid);
 
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_FALSE(ashmemInfo.empty());
+    EXPECT_TRUE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
+#else
     EXPECT_TRUE(ashmemInfo.empty());
     EXPECT_FALSE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
+#endif
 }
 
 /**
@@ -703,8 +728,13 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadAshmemInfoFromFileTest003, testing::ext::Tes
     int32_t testPid = -1;
     RSPixelMapFdTrack::ReadAshmemInfoFromFile(dirPath, ashmemInfo, testPid);
 
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_FALSE(ashmemInfo.empty());
+    EXPECT_TRUE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
+#else
     EXPECT_TRUE(ashmemInfo.empty());
     EXPECT_FALSE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
+#endif
 }
 
 /**
@@ -736,7 +766,11 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadDmaBufInfoFromFileTest001, testing::ext::Tes
     int32_t testPid = -1;
     RSPixelMapFdTrack::ReadDmaBufInfoFromFile(testFilePath, dmaBufInfo, testPid);
 
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_FALSE(dmaBufInfo.empty());
+#else
     EXPECT_TRUE(dmaBufInfo.empty());
+#endif
     EXPECT_TRUE(dmaBufInfo.find(std::to_string(testPid)) == std::string::npos);
 }
 
@@ -753,8 +787,13 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadDmaBufInfoFromFileTest002, testing::ext::Tes
     int32_t testPid = -1;
     RSPixelMapFdTrack::ReadDmaBufInfoFromFile(nonExistentPath, dmaBufInfo, testPid);
 
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_FALSE(dmaBufInfo.empty());
+    EXPECT_TRUE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
+#else
     EXPECT_TRUE(dmaBufInfo.empty());
     EXPECT_FALSE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
+#endif
 }
 
 /**
@@ -770,8 +809,13 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadDmaBufInfoFromFileTest003, testing::ext::Tes
     int32_t testPid = -1;
     RSPixelMapFdTrack::ReadDmaBufInfoFromFile(dirPath, dmaBufInfo, testPid);
 
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_FALSE(dmaBufInfo.empty());
+    EXPECT_TRUE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
+#else
     EXPECT_TRUE(dmaBufInfo.empty());
     EXPECT_FALSE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
+#endif
 }
 
 /**

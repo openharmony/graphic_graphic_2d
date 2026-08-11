@@ -167,7 +167,7 @@ public:
     ~RSTunnelRuntimeStore() = delete;
 
     static RSTunnelRuntimeState& GetOrCreate(NodeId nodeId);
-    static RSTunnelRuntimeState* TryGet(NodeId nodeId);
+    static std::shared_ptr<RSTunnelRuntimeState> TryGet(NodeId nodeId);
     static bool GetLayerInfoIfPresent(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property);
     static void GetLayerInfoOrDefault(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property);
     static void SetLayerInfo(NodeId nodeId, uint64_t tunnelLayerId, uint32_t property);
@@ -178,7 +178,7 @@ public:
 
 private:
     static std::mutex mutex_;
-    static std::unordered_map<NodeId, std::unique_ptr<RSTunnelRuntimeState>> tunnelRuntimeStates_;
+    static std::unordered_map<NodeId, std::shared_ptr<RSTunnelRuntimeState>> tunnelRuntimeStates_;
 };
 } // namespace Rosen
 } // namespace OHOS

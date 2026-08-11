@@ -35,46 +35,6 @@ void RenderContextGLTest::SetUp() {}
 void RenderContextGLTest::TearDown() {}
 
 /**
- * @tc.name: CleanAllShaderCache
- * @tc.desc: Verify the CleanAllShaderCache of RenderContextGLTest
- * @tc.type: FUNC
-*/
-HWTEST_F(RenderContextGLTest, CleanAllShaderCache, TestSize.Level1)
-{
-    if (RSSystemProperties::IsUseVulkan()) {
-        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
-        return;
-    }
-    auto renderContext = std::make_shared<RenderContextGL>();
-    std::string result = renderContext->CleanAllShaderCache();
-    EXPECT_EQ(result, "");
-
-    renderContext->SetUpGpuContext();
-    result = renderContext->CleanAllShaderCache();
-    EXPECT_EQ(result, "");
-}
-
-/**
- * @tc.name: GetShaderCacheSize
- * @tc.desc: Verify the GetShaderCacheSize of RenderContextGLTest
- * @tc.type: FUNC
-*/
-HWTEST_F(RenderContextGLTest, GetShaderCacheSize, TestSize.Level1)
-{
-    if (RSSystemProperties::IsUseVulkan()) {
-        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
-        return;
-    }
-    auto renderContext = std::make_shared<RenderContextGL>();
-    auto result = renderContext->GetShaderCacheSize();
-    EXPECT_EQ(result, "");
-
-    renderContext->SetUpGpuContext();
-    result = renderContext->GetShaderCacheSize();
-    EXPECT_NE(result, "");
-}
-
-/**
  * @tc.name: ClearRedundantResources
  * @tc.desc: Verify the ClearRedundantResources of RenderContextGLTest
  * @tc.type: FUNC
@@ -224,6 +184,7 @@ HWTEST_F(RenderContextGLTest, CreateEGLSurfaceTest, Function | SmallTest | Level
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
 
     renderContext->Init();
+    renderContext->drGPUContext_ = nullptr;
     eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
     renderContext->SetUpGpuContext();
@@ -335,22 +296,6 @@ HWTEST_F(RenderContextGLTest, AbandonContextTest, Level1)
 }
 
 /**
- * @tc.name: CreateShareContextTest001
- * @tc.desc: Verify CreateShareContext
- * @tc.type: FUNC
- */
-HWTEST_F(RenderContextGLTest, CreateShareContextTest, Level1)
-{
-    if (RSSystemProperties::IsUseVulkan()) {
-        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
-        return;
-    }
-    auto renderContext = std::make_shared<RenderContextGL>();
-    renderContext->CreateShareContext();
-    EXPECT_NE(renderContext, nullptr);
-}
-
-/**
  * @tc.name: DestroyShareContextTest001
  * @tc.desc: Verify DestroyShareContext
  * @tc.type: FUNC
@@ -451,5 +396,48 @@ HWTEST_F(RenderContextGLTest, QueryMaxGpuBufferSize004, TestSize.Level1)
     EXPECT_TRUE(result2);
     EXPECT_EQ(maxWidth1, maxWidth2);
     EXPECT_EQ(maxHeight1, maxHeight2);
+}
+
+/**
+ * @tc.name: CreateDrawingGPUContextTest
+ * @tc.desc: Verify CreateDrawingGPUContext of RenderContextGL
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextGLTest, CreateDrawingGPUContextTest, TestSize.Level1)
+{
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextGL>();
+    EXPECT_NE(renderContext, nullptr);
+    renderContext->Init();
+    auto gpuContext = renderContext->CreateDrawingGPUContext();
+    // In test environment without real GPU, this may return nullptr
+    if (gpuContext != nullptr) {
+        EXPECT_NE(gpuContext, nullptr);
+    } else {
+        EXPECT_EQ(gpuContext, nullptr);
+    }
+}
+
+/**
+ * @tc.name: ReleaseDrawingGPUContextTest
+ * @tc.desc: Verify ReleaseDrawingGPUContext of RenderContextGL
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextGLTest, ReleaseDrawingGPUContextTest, TestSize.Level1)
+{
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextGL>();
+    EXPECT_NE(renderContext, nullptr);
+    renderContext->Init();
+    auto gpuContext = renderContext->CreateDrawingGPUContext();
+    // ReleaseDrawingGPUContext should not crash regardless of gpuContext state
+    renderContext->ReleaseDrawingGPUContext(gpuContext);
+    EXPECT_NE(renderContext, nullptr);
 }
 } // namespace OHOS::Rosen

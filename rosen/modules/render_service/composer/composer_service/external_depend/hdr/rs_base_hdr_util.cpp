@@ -50,6 +50,9 @@ inline HdrStatus CheckAIHDRType(uint8_t metadataType)
 // HDR self-processing layer has HDR StaticMetadata and maxContentLightLevel > 203 and has no HDR MetadataType
 bool RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& surfaceBuffer)
 {
+    if (!RSSystemProperties::GetXcomponentEdrEnabled()) {
+        return false;
+    }
     using namespace HDI::Display::Graphic::Common::V1_0;
     std::vector<uint8_t> hdrStaticMetadataVec;
     GSError ret = GSERROR_OK;
@@ -87,13 +90,14 @@ bool RSBaseHdrUtil::CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> s
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) != GSERROR_OK) {
-        RS_LOGD("RSBaseHdrUtil::CheckIsSurfaceBufferWithMetadata failed to get ColorSpaceInfo");
+        RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseHdrUtil::CheckIsSurfaceBufferWithMetadata failed to get ColorSpaceInfo");
         return false;
     }
     // only primaries P3_D65 and BT2020 has metadata
     if (colorSpaceInfo.primaries != CM_ColorPrimaries::COLORPRIMARIES_P3_D65 &&
         colorSpaceInfo.primaries != CM_ColorPrimaries::COLORPRIMARIES_BT2020) {
-        RS_LOGD("RSBaseHdrUtil::CheckIsSurfaceBufferWithMetadata colorSpaceInfo.primaries not satisfied");
+        RS_LOGD_IF(DEBUG_COMPOSER,
+            "RSBaseHdrUtil::CheckIsSurfaceBufferWithMetadata colorSpaceInfo.primaries not satisfied");
         return false;
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -112,7 +116,7 @@ bool RSBaseHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(const sptr<SurfaceBuff
         return false;
     }
     if (!RSSystemProperties::GetHdrVideoEnabled()) {
-        RS_LOGD("RSBaseHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata HDRVideoEnabled false");
+        RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata HDRVideoEnabled false");
         return false;
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -132,7 +136,7 @@ HdrStatus RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfa
         return HdrStatus::NO_HDR;
     }
     if (!RSSystemProperties::GetHdrVideoEnabled()) {
-        RS_LOGD("RSBaseHdrUtil::CheckIsHdrSurfaceBuffer HDRVideoEnabled false");
+        RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseHdrUtil::CheckIsHdrSurfaceBuffer HDRVideoEnabled false");
         return HdrStatus::NO_HDR;
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE

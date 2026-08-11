@@ -59,12 +59,13 @@
 | 场景 | 先读 | 锚点/搜索词 | 验证 |
 | --- | --- | --- | --- |
 | 硬件线程/HWC | `hwc-hardware-thread.md` | `hardware_thread/`, `HardwareThread` | HWC/设备 |
-| HWC 预校验 | `hwc-prevalidate.md` | `hwc/`, `Prevalidate`, `Hpae` | HWC |
+| HWC 预协商 | `hwc-prevalidate.md` | `hwc/`, `Prevalidate`| HWC/预协商 |
 | Composer/HDI | `composer-hdi.md` | `render_service/composer/`, `composer/hdi_backend/`, `HdiBackend` | composer |
 | VSync/native_vsync | `vsync-native-vsync.md` | `composer/vsync/`, `native_vsync/`, `VSync*` | vsync/fuzz |
 | 屏幕/虚拟屏 | `screen-manager.md` | `screen_manager/`, `ScreenManager` | screen/fuzz |
 | Dirty/遮挡 | `dirty-region.md` | `dirty/`, `dirty_region/`, `Occlusion` | dirty |
-| UIFirst/OPINC/组渲染 | `uifirst-opinc.md` | `uifirst/`, `opinc/`, `render_group/` | 性能/图测 |
+| OPINC/组渲染 | `opinc-rendergroup.md` | `opinc/`, `render_group/` | 性能/图测 |
+| UIFirst 子线程渲染 | `uifirst.md` | `uifirst/`, `RSUifirstManager`, `SubThread` | 性能/图测 |
 | layer/special/tunnel | `layer-special-tunnel.md` | `layer/`, `special_layer/`, `tunnel_layer/` | layer |
 | overlay/多屏 | `overlay-multi-screen.md` | `overlay_display/`, `multi_screen/`, `Overlay` | 多屏/设备 |
 | HDR | `hdr.md` | `hdr/`, `RSHdrUtil` | HDR/XTS |
@@ -128,7 +129,6 @@
 | 当前场景 | 同时检查 |
 | --- | --- |
 | HGM 与 VSync/DVSync 交互 | `vsync-native-vsync.md` |
-| HPAE、LPP、RDO、HWC 预校验 | `hwc-prevalidate.md`、`hpae-lpp-rdo.md` |
 | HDR、颜色空间 | `hdr.md`、`colorspace.md` |
 | Filter、Effect、HPAE 滤镜缓存、NGEffect、ColorPicker | `rs-ui-effect.md`、`2d-effect-filter.md`、`rs-ng-effect-framework.md`、`rs-color-picker-thread.md` |
 

@@ -63,7 +63,6 @@ void RSImageDetailEnhancerThreadTest::SetUpTestCase() {}
 void RSImageDetailEnhancerThreadTest::TearDownTestCase() {}
 void RSImageDetailEnhancerThreadTest::SetUp() {}
 void RSImageDetailEnhancerThreadTest::TearDown() {}
-
 class DetailEnhancerUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -120,7 +119,9 @@ static ColorType GetColorTypeWithVKFormat(VkFormat vkFormat)
 
 static std::shared_ptr<Image> MakeImageFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer)
 {
-    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto drawingContext = renderContext->CreateDrawingGPUContext();
     std::shared_ptr<GPUContext> gpuContext(drawingContext);
     if (surfaceBuffer == nullptr || !gpuContext) {
         return nullptr;
@@ -134,6 +135,7 @@ static std::shared_ptr<Image> MakeImageFromSurfaceBuffer(sptr<SurfaceBuffer> sur
         return nullptr;
     }
     BackendTexture backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
         nativeWindowBuffer, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
     DestroyNativeWindowBuffer(nativeWindowBuffer);
     if (!backendTexture.IsValid()) {
@@ -144,7 +146,8 @@ static std::shared_ptr<Image> MakeImageFromSurfaceBuffer(sptr<SurfaceBuffer> sur
         return nullptr;
     }
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
-        RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     std::shared_ptr<Image> dmaImage = std::make_shared<Image>();
     if (cleanUpHelper == nullptr || dmaImage == nullptr) {
         return nullptr;

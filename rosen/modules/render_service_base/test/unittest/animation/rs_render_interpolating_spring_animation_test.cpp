@@ -18,6 +18,7 @@
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "recording/draw_cmd_list.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -241,6 +242,8 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Unmarshalling001, TestSize.Le
     renderInterpolatingSpringAnimation->Marshalling(parcel);
     renderAnimation = RSRenderInterpolatingSpringAnimation::Unmarshalling(parcel);
     EXPECT_TRUE(renderAnimation != nullptr);
+    EXPECT_EQ(renderAnimation->GetAnimationId(), ANIMATION_ID);
+    EXPECT_EQ(renderAnimation->GetPropertyId(), PROPERTY_ID);
 }
 
 /**
@@ -1106,6 +1109,161 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate004, TestSize.Level1
     renderInterpolatingSpringAnimation->OnAnimate(0.1f);
 
     EXPECT_FALSE(renderInterpolatingSpringAnimation->needLogicallyFinishCallback_);
+}
+
+class MockInterpolatingSpringCmdListProperty : public RSRenderAnimatableProperty<float> {
+public:
+    explicit MockInterpolatingSpringCmdListProperty(const float& value, const PropertyId& id)
+        : RSRenderAnimatableProperty<float>(value, id)
+    {}
+    ~MockInterpolatingSpringCmdListProperty() = default;
+
+    RSPropertyType typeTest_ = RSPropertyType::DRAW_CMD_LIST;
+
+protected:
+    RSPropertyType GetPropertyType() const override
+    {
+        return typeTest_;
+    }
+};
+
+/**
+ * @tc.name: ParseParamDrawCmdList001
+ * @tc.desc: Verify ParseParam with DRAW_CMD_LIST property type for startValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, ParseParamDrawCmdList001, TestSize.Level1)
+{
+    auto property = std::make_shared<MockInterpolatingSpringCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property1 = std::make_shared<MockInterpolatingSpringCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property2 = std::make_shared<MockInterpolatingSpringCmdListProperty>(1.0f, PROPERTY_ID);
+    property->typeTest_ = RSPropertyType::DRAW_CMD_LIST;
+    property1->typeTest_ = RSPropertyType::DRAW_CMD_LIST;
+    property2->typeTest_ = RSPropertyType::DRAW_CMD_LIST;
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+
+    Parcel parcel;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+    auto animation = RSRenderInterpolatingSpringAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(animation != nullptr);
+    EXPECT_EQ(animation->GetAnimationId(), ANIMATION_ID);
+    EXPECT_EQ(animation->GetPropertyId(), PROPERTY_ID);
+}
+
+/**
+ * @tc.name: ParseParamDrawCmdList002
+ * @tc.desc: Verify ParseParam with DRAW_CMD_LIST property type for endValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, ParseParamDrawCmdList002, TestSize.Level1)
+{
+    auto property = std::make_shared<MockInterpolatingSpringCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property1 = std::make_shared<MockInterpolatingSpringCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property2 = std::make_shared<MockInterpolatingSpringCmdListProperty>(1.0f, PROPERTY_ID);
+    property1->typeTest_ = RSPropertyType::FLOAT;
+    property2->typeTest_ = RSPropertyType::FLOAT;
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+
+    Parcel parcel;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+    auto animation = RSRenderInterpolatingSpringAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(animation != nullptr);
+    EXPECT_EQ(animation->GetAnimationId(), ANIMATION_ID);
+    EXPECT_EQ(animation->GetPropertyId(), PROPERTY_ID);
+}
+
+/**
+ * @tc.name: ParseParamDrawCmdListRealTypeTest
+ * @desc: Verify ParseParam with real RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>
+ *        to trigger DRAW_CMD_LIST conversion branch in ParseParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, ParseParamDrawCmdListRealTypeTest, TestSize.Level1)
+{
+    // Create real DrawCmdListPtr property
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 200, Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
+    auto property = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList, PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(nullptr, PROPERTY_ID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList, PROPERTY_ID);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+
+    Parcel parcel;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+
+    // Create new animation and call ParseParam directly
+    auto animation = std::make_shared<RSRenderInterpolatingSpringAnimation>();
+    result = animation->ParseParam(parcel);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(animation->GetAnimationId(), ANIMATION_ID);
+    EXPECT_EQ(animation->GetPropertyId(), PROPERTY_ID);
+}
+
+/**
+ * @tc.name: ParseParamDrawCmdListBothValuesTest
+ * @desc: Verify ParseParam when both startValue and endValue are non-null DRAW_CMD_LIST
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, ParseParamDrawCmdListBothValuesTest, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 200, Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
+    auto property = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList, PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList, PROPERTY_ID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList, PROPERTY_ID);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+
+    Parcel parcel;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+
+    auto animation = std::make_shared<RSRenderInterpolatingSpringAnimation>();
+    result = animation->ParseParam(parcel);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(animation->GetAnimationId(), ANIMATION_ID);
+    EXPECT_EQ(animation->GetPropertyId(), PROPERTY_ID);
+}
+
+/**
+ * @tc.name: ParseParamDrawCmdListNullEndValueTest
+ * @desc: Verify ParseParam when endValue is null (covers !endValue_ branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, ParseParamDrawCmdListNullEndValueTest, TestSize.Level1)
+{
+    // Create real DrawCmdListPtr property for origin and start
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 200, Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
+    auto property = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList, PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList, PROPERTY_ID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(nullptr, PROPERTY_ID); // endValue is null
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+
+    Parcel parcel;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+
+    // Create new animation and call ParseParam directly
+    auto animation = std::make_shared<RSRenderInterpolatingSpringAnimation>();
+    result = animation->ParseParam(parcel);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(animation->GetAnimationId(), ANIMATION_ID);
+    EXPECT_EQ(animation->GetPropertyId(), PROPERTY_ID);
 }
 
 /**

@@ -733,6 +733,8 @@ bool DoCreateNode1()
     displayNodeConfig.displayMode = static_cast<DisplayMode>(GetData<uint8_t>());
     displayNodeConfig.mirrorNodeId = GetData<uint64_t>();
     displayNodeConfig.isSync = GetData<bool>();
+    displayNodeConfig.mirrorSourceRotation = GetData<uint32_t>();
+    displayNodeConfig.positionZ = GetData<float>();
     uint64_t nodeId = GetData<uint64_t>();
     bool success;
     rsToRenderConn_->CreateDisplayNode(displayNodeConfig, nodeId, success);
@@ -1435,6 +1437,19 @@ bool DoSetOverlayDisplayMode()
 }
 #endif
 
+bool DoSendVideoRateInfo()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    std::unordered_map<std::string, std::string> videoRateInfo;
+    std::string key = GetData<std::string>();
+    std::string value = GetData<std::string>();
+    videoRateInfo[key] = value;
+    rsToServiceConn_->SendVideoRateInfo(videoRateInfo);
+    return true;
+}
+
 bool DoSetBehindWindowFilterEnabled()
 {
     if (rsToServiceConn_ == nullptr) {
@@ -1593,6 +1608,16 @@ bool DoFreezeScreen()
     return true;
 }
 
+bool DoGetDisplayEngineControl()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+ 
+    rsToServiceConn_->GetDisplayEngineControl();
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1708,6 +1733,7 @@ void DoFuzzerTest3()
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     DoSetOverlayDisplayMode();
 #endif
+    DoSendVideoRateInfo();
     DoRegisterFirstFrameCommitCallback();
     DoRegisterExposedEventCallback();
     DoNotifySoftVsyncRateDiscountEvent();
@@ -1721,6 +1747,7 @@ void DoFuzzerTest3()
     DoClearUifirstCache();
     DoTakeSurfaceCaptureWithAllWindows();
     DoFreezeScreen();
+    DoGetDisplayEngineControl();
 }
 } // namespace Rosen
 } // namespace OHOS

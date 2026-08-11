@@ -612,6 +612,94 @@ HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig003, Function | MediumTest| Level
         nativeDelayEnable, rsDvsyncAnimationList);
     ASSERT_EQ(res, VSYNC_ERROR_INVALID_ARGUMENTS);
 }
+
+/**
+ * Function: SetUiDvsyncSwitch001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetUiDvsyncSwitch with FromWhom::INNER
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitch001, Function | MediumTest| Level3)
+{
+    bool dvsyncSwitch = true;
+    auto res = vsyncConnectionProxy->SetUiDvsyncSwitch(dvsyncSwitch, FromWhom::INNER);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
+}
+
+/**
+ * Function: SetUiDvsyncSwitch002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetUiDvsyncSwitch with FromWhom::API
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitch002, Function | MediumTest| Level3)
+{
+    bool dvsyncSwitch = false;
+    auto res = vsyncConnectionProxy->SetUiDvsyncSwitch(dvsyncSwitch, FromWhom::API);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
+}
+
+/**
+ * Function: SetUiDvsyncSwitch003
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetUiDvsyncSwitch with default parameter
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitch003, Function | MediumTest| Level3)
+{
+    bool dvsyncSwitch = true;
+    auto res = vsyncConnectionProxy->SetUiDvsyncSwitch(dvsyncSwitch);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
+}
+
+/**
+ * Function: SetUiDvsyncSwitchInvalidValue
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Test OnRemoteRequest with invalid fromWhom value
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchInvalidValue, Function | MediumTest| Level3)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    data.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+    data.WriteBool(true);
+    data.WriteUint8(5);
+
+    int32_t result = vsyncConnection->OnRemoteRequest(
+        IVSyncConnection::IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, data, reply, option);
+
+    ASSERT_EQ(result, VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/**
+ * Function: SetUiDvsyncSwitchValidValue
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Test OnRemoteRequest with valid fromWhom value
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncSwitchValidValue, Function | MediumTest| Level3)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    data.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
+    data.WriteBool(true);
+    data.WriteUint8(0);
+
+    int32_t result = vsyncConnection->OnRemoteRequest(
+        IVSyncConnection::IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, data, reply, option);
+
+    ASSERT_EQ(result, VSYNC_ERROR_OK);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

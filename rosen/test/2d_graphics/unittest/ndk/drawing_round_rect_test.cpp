@@ -42,12 +42,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingRoundRectTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingRoundRectTest::SetUpTestCase() {}
 void NativeDrawingRoundRectTest::TearDownTestCase() {}
 void NativeDrawingRoundRectTest::SetUp() {}
 void NativeDrawingRoundRectTest::TearDown() {}

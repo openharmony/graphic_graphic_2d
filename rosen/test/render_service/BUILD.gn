@@ -294,7 +294,6 @@ group("test") {
     "render_service_client/fuzztest/ui/rssurfacenode4_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rstextureexport_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuidirector_fuzzer:fuzztest",
-    "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rswindowkeyframenode_fuzzer:fuzztest",
     "render_service_client/unittest/animation:unittest",
     "render_service_client/unittest/command_modifier:unittest",

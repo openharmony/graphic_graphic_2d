@@ -211,6 +211,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsRssCalling(codeEnumTypeName_ + "::SET_UIFIRST_SCALE");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DISPLAY_ENGINE_CONTROL): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DISPLAY_ENGINE_CONTROL");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_GAMUT_MAP): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT_MAP");
             break;
@@ -385,6 +389,14 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHIC): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHIC");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO_TO_SP): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO_TO_SP");
             break;
@@ -403,6 +415,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MAIN_SCREEN): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MAIN_SCREEN");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_RESPONSE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPORT_EVENT_RESPONSE");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_GAMESTATE): {
@@ -586,10 +602,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_IS_SECURE_SCREEN");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {

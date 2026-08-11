@@ -227,6 +227,18 @@ inline bool IsReferenceValid(ani_env* env, ani_ref ref)
     return !IsUndefined(env, ref) && !IsNull(env, ref);
 }
 
+inline bool IsInstanceOf(ani_env* env, ani_object obj, ani_class cls)
+{
+    if (cls == nullptr) {
+        return false;
+    }
+    ani_boolean isInstance = false;
+    if (env->Object_InstanceOf(obj, cls, &isInstance) != ANI_OK) {
+        return false;
+    }
+    return isInstance;
+}
+
 bool DrawingPointConvertToAniPoint(ani_env* env, ani_object obj, const Drawing::Point& point);
 
 bool DrawingRectConvertToAniRect(ani_env* env, ani_object obj, const Drawing::Rect& rect);

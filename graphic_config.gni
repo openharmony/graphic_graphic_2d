@@ -30,6 +30,7 @@ declare_args() {
   graphic_2d_feature_freemem_enable = false
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
+  graphic_2d_feature_multi_display_features_enable = false
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_opinc = false
@@ -73,7 +74,7 @@ declare_args() {
   graphic_2d_feature_hetero_hdr_enable = false
   graphic_2d_feature_mhc_enable = false
   graphic_2d_feature_enable_primitive = false
-  graphic_2d_feature_hve_blur_enable = true
+  graphic_2d_feature_hve_blur_enable = false
 }
 
 declare_args() {
@@ -99,8 +100,8 @@ if (graphic_2d_feature_product == "tablet") {
   enable_full_screen_recongnize = true
 }
 
-if (graphic_2d_feature_product == "pc") {
-  graphic_2d_feature_hve_blur_enable = false
+if (graphic_2d_feature_product == "phone") {
+  graphic_2d_feature_hve_blur_enable = true
 }
 
 gpu_defines = []
@@ -314,14 +315,6 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni"))
   graphic_2d_mhc_configs = {
     import(
       "//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni")
-  }
-}
-
-graphic_2d_car_features_configs = {}
-if (path_exists("//foundation/graphic/graphic_2d_ext/car_features/build/car_features_config.gni")) {
-  graphic_2d_car_features_configs = {
-    import(
-      "//foundation/graphic/graphic_2d_ext/car_features/build/car_features_config.gni")
   }
 }
 

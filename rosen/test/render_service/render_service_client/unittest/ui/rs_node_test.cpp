@@ -7596,30 +7596,67 @@ HWTEST_F(RSNodeTest, AddCrossParentChild, TestSize.Level1)
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
 
+ * @tc.name: RemoveCrossParentChildTest001
+ * @tc.desc: Branch A - child is nullptr, function returns early, children_ unchanged
+HWTEST_F(RSNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
+    struct RSDisplayNodeConfig config;
+    auto displayNode = RSDisplayNode::Create(config);
+    ASSERT_NE(displayNode, nullptr);
+    auto newParent = RSCanvasNode::Create();
+    auto child = RSCanvasNode::Create();
+    displayNode->children_.push_back(child);
+    auto countBefore = displayNode->children_.size();
+    displayNode->RemoveCrossParentChild(nullptr, newParent);
+    EXPECT_EQ(displayNode->children_.size(), countBefore);
+}
 /**
- * @tc.name: RemoveCrossParentChild
- * @tc.desc: test results of RemoveCrossParentChild
+ * @tc.name: RemoveCrossParentChildTest002
+ * @tc.desc: Branch B - newParent is nullptr, function returns early, children_ unchanged
  * @tc.type: FUNC
- * @tc.require: issueI9KQ6R
  */
-HWTEST_F(RSNodeTest, RemoveCrossParentChild, TestSize.Level1)
+HWTEST_F(RSNodeTest, RemoveCrossParentChildTest002, TestSize.Level1)
+{
+    struct RSDisplayNodeConfig config;
+    auto displayNode = RSDisplayNode::Create(config);
+    ASSERT_NE(displayNode, nullptr);
+    auto child = RSCanvasNode::Create();
+    displayNode->children_.push_back(child);
+    auto countBefore = displayNode->children_.size();
+    displayNode->RemoveCrossParentChild(child, nullptr);
+    EXPECT_EQ(displayNode->children_.size(), countBefore);
+}
+/**
+ * @tc.name: RemoveCrossParentChildTest003
+ * @tc.desc: Branch C - this is not a DisplayNode, returns early, children_ unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, RemoveCrossParentChildTest003, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    std::shared_ptr<RSNode> child = nullptr;
-    auto parentNode = RSCanvasNode::Create();
-    rsNode->RemoveCrossParentChild(child, parentNode);
-    EXPECT_EQ(child, nullptr);
-
-    child = std::make_shared<RSNode>(1);
-    rsNode->RemoveCrossParentChild(child, parentNode);
-    EXPECT_NE(child, nullptr);
-
-    delete RSTransactionProxy::instance_;
-    RSTransactionProxy::instance_ = nullptr;
-    rsNode->RemoveCrossParentChild(child, parentNode);
-    EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
-    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    ASSERT_NE(rsNode, nullptr);
+    auto child = RSCanvasNode::Create();
+    auto newParent = RSCanvasNode::Create();
+    rsNode->children_.push_back(child);
+    auto countBefore = rsNode->children_.size();
+    rsNode->RemoveCrossParentChild(child, newParent);
+    EXPECT_EQ(rsNode->children_.size(), countBefore);
 }
+
+/**
+ * @tc.name: RemoveCrossParentChildTest004
+ * @tc.desc: Branch D - all valid + DisplayNode, child parent set to newParent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, RemoveCrossParentChildTest004, TestSize.Level1)
+{
+    struct RSDisplayNodeConfig config;
+    auto displayNode = RSDisplayNode::Create(config);
+    ASSERT_NE(displayNode, nullptr);
+    auto child = RSCanvasNode::Create();
+    RSNode::SharedPtr newParent = RSCanvasNode::Create();
+    displayNode->children_.push_back(child);
+    displayNode->RemoveCrossParentChild(child, newParent);
+    EXPECT_EQ(child->GetParent(), newParent);
 
 /**
  * @tc.name: AddCrossScreenChild

@@ -29,6 +29,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "memory/rs_memory_snapshot.h"
 
@@ -56,6 +57,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static void CleanUpUniRenderEngine();
 
     std::shared_ptr<RSSurfaceRenderNode> renderNode_;
     RSRenderNodeDrawableAdapter* drawable_ = nullptr;
@@ -65,8 +67,18 @@ public:
     static inline Occlusion::Rect DEFAULT_RECT{0, 80, 500, 500};
 };
 
-void RSSurfaceRenderNodeDrawableTest::SetUpTestCase() {}
-void RSSurfaceRenderNodeDrawableTest::TearDownTestCase() {}
+void RSSurfaceRenderNodeDrawableTest::SetUpTestCase()
+{
+    CleanUpUniRenderEngine();
+}
+void RSSurfaceRenderNodeDrawableTest::TearDownTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.FilterNodeByPid(0, true);
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+    CleanUpUniRenderEngine();
+}
 void RSSurfaceRenderNodeDrawableTest::SetUp()
 {
     renderNode_ = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
@@ -87,6 +99,46 @@ void RSSurfaceRenderNodeDrawableTest::SetUp()
     }
 }
 void RSSurfaceRenderNodeDrawableTest::TearDown() {}
+
+void RSSurfaceRenderNodeDrawableTest::CleanUpUniRenderEngine()
+{
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->skContext_ = nullptr;
+        mainThread.renderEngine_->renderContext_ = nullptr;
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        mainThread.renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        rtThread.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+}
 
 /**
  * @tc.name: CreateSurfaceRenderNodeDrawableTest
@@ -192,6 +244,32 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw003, TestSize.Level1)
     ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams, *canvas_));
     surfaceDrawable_->OnDraw(*drawingCanvas_);
     RSUniRenderThread::Instance().SetBlackList({});
+}
+
+/**
+ * @tc.name: OnDrawRebuildingSkip
+ * @tc.desc: Test OnDraw sets REBUILDING_SKIP and returns early when surface is mid-rebuild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawRebuildingSkip, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    surfaceParams->SetRebuildingState(true);
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    EXPECT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::REBUILDING_SKIP);
+
+    surfaceParams->SetRebuildingState(false);
 }
 
 /**
@@ -401,22 +479,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     RSUniRenderThread::SetCaptureParam(CaptureParam());
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
 }
-
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-/**
- * @tc.name: DealWithHdr
- * @tc.desc: Test DealWithHdr
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithHdr, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    surfaceDrawable_->DealWithHdr(*renderNode_, *surfaceParams);
-}
-#endif
 
 /**
  * @tc.name: CaptureSurface002
@@ -1556,7 +1618,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest002, 
     std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager =
         std::make_shared<RSVirtualScreenParallelManager>();
     // renderEngine is nullptr: function must early return before any branch below the top-level check
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    CleanUpUniRenderEngine();
 
     // fixed-rotation path: isInRotationFixed_ would be set true if function proceeded past the guard
     RSSurfaceRenderNodeDrawable::isInRotationFixed_ = false;
@@ -1596,6 +1658,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSelfDrawingNodeBufferTest001, Test
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     BufferDrawParam params;
     surfaceParams->selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
@@ -2023,6 +2086,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw004, TestSize.Level1)
 
     surfaceParams->isCloneNode_ = false;
     surfaceParams->isSkipDraw_ = false;
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     canvas_->SetIsParallelCanvas(true);
     surfaceParams->isHardCursor_ = false;
@@ -2036,6 +2100,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw004, TestSize.Level1)
     surfaceDrawable_->offscreenRotationInfo_ = std::make_shared<OffscreenRotationInfo>();
     surfaceDrawable_->OnDraw(*canvas_);
     RSUniRenderThread::Instance().SetBlackList({});
+    CleanUpUniRenderEngine();
 }
 
 /**
@@ -2069,6 +2134,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
     ASSERT_FALSE(surfaceParams->cloneSourceDrawable_.lock());
     surfaceParams->isCloneNode_ = false;
     surfaceParams->isSkipDraw_ = false;
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     RSUniRenderThread::Instance().SetEnableVisibleRect(false);
     surfaceDrawable_->offscreenRotationInfo_ = std::make_shared<OffscreenRotationInfo>();
@@ -2289,11 +2355,13 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetSurfaceDrawRegionTest, TestSize.Lev
 HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawBufferForRotationFixedTest, TestSize.Level1)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    CleanUpUniRenderEngine();
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager =
         std::make_shared<RSVirtualScreenParallelManager>();
     surfaceDrawable_->DrawBufferForRotationFixed(*canvas_, *surfaceParams, virtualScreenParallelManager);
     ASSERT_TRUE(canvas_->envStack_.top().hasOffscreenLayer_);
+    CleanUpUniRenderEngine();
 }
 
 /**
@@ -3232,6 +3300,27 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw_HasDRMInVirtualScreen, TestSize
 }
 
 /**
+ * @tc.name: DepthResourceSkip001
+ * @tc.desc: Test OnDraw & OnCapture with is depth resource
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DepthResourceSkip001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+
+    // Setup: is depth resource true
+    canvas_->SetIsParallelCanvas(false);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isDepthSrc_ = true;
+
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnDraw(*canvas_));
+    EXPECT_NO_FATAL_FAILURE(surfaceDrawable_->OnCapture(*canvas_));
+}
+
+/**
  * @tc.name: Destructor_SelfDrawingType
  * @tc.desc: Test destructor with self drawing type to cover PostTask branch
  * @tc.type: FUNC
@@ -3496,6 +3585,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsUIFirstFirstFrameCacheGenerated001, 
 
     surfaceDrawable_->subThreadCache_.GetRSDrawWindowCache().ClearCache();
     surfaceParams->clonedSourceNode_ = false;
+    CleanUpUniRenderEngine();
 }
 
 /**

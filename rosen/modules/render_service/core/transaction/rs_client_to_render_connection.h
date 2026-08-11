@@ -70,6 +70,8 @@ private:
 
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
+    ErrCode UnRegisterApplicationAgent() override;
+
     ErrCode RegisterBufferClearListener(
         NodeId id, sptr<RSIBufferClearCallback> callback) override;
 

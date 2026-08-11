@@ -120,13 +120,13 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
         RSNodeMap::MutableInstance().RegisterNode(node);
     }
 
-    bool hybridEnabled = false;
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     static std::once_flag hybridEnabledFlag;
-    std::call_once(hybridEnabledFlag, []() { hybridEnabled_ = RSSystemProperties::GetHybridRenderCanvasEnabled(); });
-    hybridEnabled = hybridEnabled_;
+    std::call_once(
+        hybridEnabledFlag, []() { globalHybridEnabled_ = RSSystemProperties::GetHybridRenderCanvasEnabled(); });
+    node->hybridEnabled_ = globalHybridEnabled_ && !isTextureExportNode;
 #endif
-    if (hybridEnabled) {
+    if (node->hybridEnabled_) {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
         auto uiContext = node->GetRSUIContext();
         auto canvasModifiersDrawAgent = uiContext != nullptr ? uiContext->GetCanvasModifiersDrawAgent() : nullptr;
@@ -176,11 +176,7 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
     }
 
     uint32_t resetSurfaceIndex = 0;
-    bool hybridEnabled = false;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    hybridEnabled = hybridEnabled_;
-#endif
-    if (hybridEnabled) {
+    if (hybridEnabled_) {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
         ResetSurfaceForClientRender(width, height);
 #endif
@@ -367,7 +363,7 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
             }
             auto getBitmapTask = [&node, &bitmap]() { bitmap = node->GetBitmap(); };
             RSRenderThread::Instance().PostSyncTask(getBitmapTask);
-            if (bitmap.IsValid()) {
+            if (!bitmap.IsValid()) {
                 return false;
             }
         }
@@ -455,6 +451,7 @@ void RSCanvasDrawingNode::OnFinishRecording(
  
     if (RenderInClient(drawCmdList)) {
         drawCmdList = nullptr;
+        return;
     }
     RSCanvasNode::OnFinishRecording(drawCmdList, modifierType);
 }

@@ -17,6 +17,7 @@
 #define SAFUZZ_RANDOM_DATA_CUSTOMIZED_TYPE_H
 
 #include "command/rs_animation_command.h"
+#include "command/rs_depth_node_command.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_frame_rate_linker_command.h"
 #include "command/rs_node_command.h"
@@ -138,6 +139,9 @@ public:
     static std::shared_ptr<ParticleNoiseFields> GetRandomSmallParticleNoiseFieldsSharedPtr();
     static std::shared_ptr<ParticleRippleFields> GetRandomSmallParticleRippleFieldsSharedPtr();
     static std::shared_ptr<ParticleVelocityFields> GetRandomSmallParticleVelocityFieldsSharedPtr();
+
+    // RSDepthNodeCommand params
+    static DepthSpaceType GetRandomDepthSpaceType();
 };
 } // namespace Rosen
 } // namespace OHOS

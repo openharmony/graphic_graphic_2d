@@ -52,6 +52,180 @@ std::shared_ptr<RSUIContext> RSInteractiveImplictAnimatorTest::CreateRSUIContext
 }
 
 /**
+ * @tc.name: CreateNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, CreateNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    EXPECT_TRUE(animator->rsUIContext_.lock() == nullptr);
+}
+
+/**
+ * @tc.name: AddImplictAnimationNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, AddImplictAnimationNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    std::function<void()> callback = [] (){};
+    auto size = animator->AddImplictAnimation(callback);
+    EXPECT_TRUE(size == 0);
+}
+
+/**
+ * @tc.name: AddAnimationNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, AddAnimationNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    std::function<void()> callback = [] (){};
+    auto size = animator->AddAnimation(callback);
+    EXPECT_TRUE(size == 0);
+}
+
+/**
+ * @tc.name: StartAnimationNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, StartAnimationNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    std::function<void()> callback = [] (){};
+    auto res = animator->StartAnimation();
+    EXPECT_TRUE(static_cast<int>(res) == 1);
+}
+
+/**
+ * @tc.name: PauseAnimationNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, PauseAnimationNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    EXPECT_TRUE(animator != nullptr);
+    animator->PauseAnimation();
+}
+
+/**
+ * @tc.name: ContinueAnimationNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, ContinueAnimationNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    EXPECT_TRUE(animator != nullptr);
+    animator->ContinueAnimation();
+}
+
+/**
+ * @tc.name: FinishAnimationNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, FinishAnimationNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    EXPECT_TRUE(animator != nullptr);
+    animator->FinishAnimation(RSInteractiveAnimationPosition::START);
+}
+
+/**
+ * @tc.name: ReverseAnimationNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, ReverseAnimationNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    EXPECT_TRUE(animator != nullptr);
+    animator->ReverseAnimation();
+}
+
+/**
+ * @tc.name: SetFractionNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, SetFractionNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    EXPECT_TRUE(animator != nullptr);
+    animator->SetFraction(1.1f);
+}
+
+/**
+ * @tc.name: GetFractionNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetFractionNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    EXPECT_TRUE(animator != nullptr);
+    auto fraction = animator->GetFraction();
+    EXPECT_NEAR(fraction, 0.0f, 0.000001);
+}
+
+/**
+ * @tc.name: GetStatusNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, GetStatusNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    EXPECT_TRUE(animator != nullptr);
+    auto state = animator->GetStatus();
+    EXPECT_TRUE(state == RSInteractiveAnimationState::INACTIVE);
+}
+
+/**
+ * @tc.name: SetFinishCallBackNullContextTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInteractiveImplictAnimatorTest, SetFinishCallBackNullContextTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    auto animator = RSInteractiveImplictAnimator::Create(nullptr, timingProtocol, timingCurve);
+    EXPECT_TRUE(animator != nullptr);
+    std::function<void()> callback = [] (){};
+    animator->SetFinishCallBack(callback);
+    EXPECT_TRUE(animator->finishCallback_ != nullptr);
+}
+
+/**
  * @tc.name: CreateGroup001
  * @tc.desc: Test CreateGroup with null rsUIContext
  * @tc.type: FUNC

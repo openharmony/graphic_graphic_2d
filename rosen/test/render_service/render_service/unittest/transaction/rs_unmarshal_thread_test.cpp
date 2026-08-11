@@ -16,8 +16,15 @@
 #include "ffrt_inner.h"
 #include "gtest/gtest.h"
 
+#include <chrono>
+#include <fcntl.h>
+#include <future>
+#include <unistd.h>
+
 #include "command/rs_command.h"
 #include "platform/common/rs_system_properties.h"
+#include "transaction/rs_ashmem_helper.h"
+#include "transaction/rs_transaction_data.h"
 #include "transaction/rs_unmarshal_thread.h"
 
 using namespace testing;
@@ -179,6 +186,128 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel003, TestSize.Level1)
     bool isNonSystemAppCalling = true;
     pid_t callingPid = 1111;
     RSUnmarshalThread::Instance().RecvParcel(data, isNonSystemAppCalling, callingPid);
+}
+
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: RecvParcelSetSendingPid
+ * @tc.desc: Test RecvParcel sets sendingPid so that the parsed transaction data is filed
+ *           under callingPid in cachedTransactionDataMap_.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelSetSendingPid, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+
+    instance.GetCachedTransactionData();
+
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    bool success = data->WriteParcelable(transactionData.get());
+    ASSERT_EQ(success, true);
+
+    pid_t callingPid = 9999;
+    instance.RecvParcel(data, false, callingPid);
+
+    usleep(USLEEP_TIME);
+
+    auto cachedData = instance.GetCachedTransactionData();
+    EXPECT_EQ(cachedData.count(callingPid), 1u);
+}
+#endif
+
+/**
+ * @tc.name: RecvParcelFdWorkerQueueNull
+ * @tc.desc: Test RecvParcel closes the collected ashmem fd when the queue is unavailable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelFdWorkerQueueNull, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.queue_ = nullptr;
+
+    int ownedFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(ownedFd, 0);
+    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(0);
+    ashmemFdWorker->InsertFdWithOffset(ownedFd, 0, true);
+
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    instance.RecvParcel(data, false, 0, std::move(ashmemFdWorker));
+    // early return on the null queue destroys the worker, which closes the fd unconditionally
+    EXPECT_EQ(fcntl(ownedFd, F_GETFD), -1);
+
+    instance.Start();
+}
+
+/**
+ * @tc.name: RecvParcelFdWorkerParcelNull
+ * @tc.desc: Test RecvParcel closes the collected ashmem fd when the parcel is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelFdWorkerParcelNull, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+
+    int ownedFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(ownedFd, 0);
+    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(0);
+    ashmemFdWorker->InsertFdWithOffset(ownedFd, 0, true);
+
+    std::shared_ptr<MessageParcel> data = nullptr;
+    instance.RecvParcel(data, false, 0, std::move(ashmemFdWorker));
+    // early return on the null parcel destroys the worker, which closes the fd unconditionally
+    EXPECT_EQ(fcntl(ownedFd, F_GETFD), -1);
+}
+
+/**
+ * @tc.name: RecvParcelFdWorkerTaskExecuted
+ * @tc.desc: Test RecvParcel closes the collected ashmem fd once the posted task has run
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelFdWorkerTaskExecuted, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+
+    // probe whether the unmarshal queue actually runs tasks in this environment
+    std::promise<void> probe;
+    auto probeFuture = probe.get_future();
+    instance.PostTask([&probe]() { probe.set_value(); }, "probe");
+    if (probeFuture.wait_for(std::chrono::seconds(1)) != std::future_status::ready) {
+        GTEST_SKIP() << "unmarshal queue does not run tasks in this environment";
+    }
+
+    int ownedFd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(ownedFd, 0);
+    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(0);
+    ashmemFdWorker->InsertFdWithOffset(ownedFd, 0, true);
+
+    // an empty parcel makes ParseTransactionData fail; the worker is still reset (and its
+    // fd closed) before the task returns
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    instance.RecvParcel(data, false, 0, std::move(ashmemFdWorker));
+
+    constexpr int maxWaitMs = 1000;
+    constexpr int pollIntervalMs = 10;
+    constexpr int msPerSecond = 1000;
+    bool closed = false;
+    for (int waitedMs = 0; waitedMs < maxWaitMs; waitedMs += pollIntervalMs) {
+        if (fcntl(ownedFd, F_GETFD) == -1) {
+            closed = true;
+            break;
+        }
+        usleep(pollIntervalMs * msPerSecond);
+    }
+    EXPECT_TRUE(closed);
 }
 
 /**

@@ -40,32 +40,27 @@ constexpr int32_t DEFAULT_MAX_FD = 1024;
 
 int32_t ForkAndExec(GroupId groupId)
 {
+    std::string processName = "render_service:" + std::to_string(groupId);
+    const char* argv0 = processName.c_str();
+    const char* execPath = "/system/bin/render_process";
+    long maxfd = sysconf(_SC_OPEN_MAX);
+    if (maxfd < 0) {
+        maxfd = DEFAULT_MAX_FD;
+    }
     pid_t pid = fork();
-    RS_LOGW("%{public}s: Forked done %{public}d", __func__, pid);
     if (pid < 0) {
         RS_LOGE("%{public}s: Fork failed, errorno:%{public}d, errormsg:%{public}s", __func__, errno, strerror(errno));
         return -1;
     }
     if (pid == 0) {
-        long maxfd = sysconf(_SC_OPEN_MAX);
-        if (maxfd < 0) {
-            maxfd = DEFAULT_MAX_FD;
-        }
         for (long fd = 3; fd < maxfd; fd++) {
             close(fd);
         }
-
-        RS_LOGW("%{public}s: Forked success self %{public}d, parent %{public}d", __func__, getpid(), getppid());
         if (prctl(PR_SET_PDEATHSIG, SIGKILL) == -1) {
-            RS_LOGE("%{public}s: prctl(PR_SET_PDEATHSIG, SIGKILL), errorno:%{public}d, errormsg:%{public}s", __func__,
-                errno, strerror(errno));
             _exit(-1);
         }
-        std::string processName = "render_service:" + std::to_string(groupId);
-        char* argv[] = { const_cast<char*>(processName.c_str()), nullptr };
-        if (execv("/system/bin/render_process", argv) == -1) {
-            RS_LOGE("%{public}s: Fork execv command failed, errorno:%{public}d, errormsg:%{public}s", __func__, errno,
-                strerror(errno));
+        char* argv[] = { const_cast<char*>(argv0), nullptr };
+        if (execv(execPath, argv) == -1) {
             _exit(-1);
         }
         return 0;

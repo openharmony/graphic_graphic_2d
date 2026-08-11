@@ -81,6 +81,10 @@ bool RSTextureExport::DoTextureExport()
 
 void RSTextureExport::UpdateBufferInfo(float x, float y, float width, float height)
 {
+    if (!virtualRootNode_) {
+        ROSEN_LOGE("RSTextureExport::UpdateBufferInfo virtualRootNode_ is nullptr");
+        return;
+    }
     virtualRootNode_->SetBounds({-x, -y, width, height});
     virtualRootNode_->SetFrame({-x, -y, width, height});
 }

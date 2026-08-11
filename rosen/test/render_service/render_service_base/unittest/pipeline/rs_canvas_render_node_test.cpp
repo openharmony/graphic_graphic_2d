@@ -22,6 +22,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
+#include "property/rs_spatial_effect_manager.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
@@ -620,6 +621,22 @@ HWTEST_F(RSCanvasRenderNodeTest, MarkNodeColorSpace001, TestSize.Level1)
     EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     node->MarkNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
     EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+}
+
+/**
+ * @tc.name: SetIsDepthBackground
+ * @tc.desc: test SetIsDepthBackground
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetIsDepthBackground, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    node->SetIsDepthBackground(true);
+    EXPECT_FALSE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
+    node->SetIsDepthBackground(false);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthBackgroundNodeMap_.empty());
 }
 
 /**

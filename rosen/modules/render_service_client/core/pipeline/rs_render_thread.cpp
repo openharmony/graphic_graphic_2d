@@ -120,7 +120,11 @@ RSRenderThread::RSRenderThread()
         [](const Drawing::FontEventInfo& info) {
             std::vector<uint32_t> uniqueIds = info.uniqueIds;
             auto task = [uniqueIds]() {
-                auto context = RSRenderThread::Instance().GetRenderContext()->GetDrGPUContext();
+                auto renderContext = RSRenderThread::Instance().GetRenderContext();
+                if (renderContext == nullptr) {
+                    return;
+                }
+                auto context = renderContext->GetDrGPUContext();
                 for (size_t i = 0; i < uniqueIds.size() && context; i += 1) {
                     context->FreeCpuCache(uniqueIds[i]);
                 }
@@ -269,9 +273,7 @@ void RSRenderThread::Stop()
 
     if (handler_) {
         handler_->RemoveAllEvents();
-        handler_ = nullptr;
     }
-    receiver_ = nullptr;
     if (runner_) {
         runner_->Stop();
     }
@@ -280,6 +282,8 @@ void RSRenderThread::Stop()
         thread_->join();
     }
 
+    handler_ = nullptr;
+    receiver_ = nullptr;
     thread_ = nullptr;
     ROSEN_LOGD("RSRenderThread stopped.");
 }
@@ -347,13 +351,12 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RS_TRACE_NAME("Init");
-        renderContext_->Init(); // init context on RT
-        if (!cacheDir_.empty()) {
-            renderContext_->SetCacheDir(cacheDir_);
+        std::string cacheDir;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            cacheDir = cacheDir_;
         }
-        if (RSSystemProperties::IsUseVulkan()) {
-            renderContext_->SetUpGpuContext();
-        }
+        renderContext_->Init(RenderEngineType::BASIC_RENDER, cacheDir); // init context on RT
 #endif
 #endif
     }

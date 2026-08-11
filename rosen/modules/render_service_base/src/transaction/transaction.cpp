@@ -14,6 +14,7 @@
  */
 
 #include "transaction/transaction.h"
+#include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_marshalling_helper.h"
 
 #include <string>
@@ -124,7 +125,10 @@ GSError Transaction::ReadTransactionInfoFromMessageParcel(MessageParcel& parcel,
         RS_LOGE("Transaction ReadBufferInfoFromMessageParcel ret:%{public}d", ret);
         return ret;
     }
-    info.fence = SyncFence::ReadFromMessageParcel(parcel);
+    auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+        return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+    };
+    info.fence = SyncFence::ReadFromMessageParcel(parcel, readSafeFdFunc);
     info.uiTimestamp = parcel.ReadInt64();
     info.desiredPresentTimestamp = parcel.ReadInt64();
     info.isAutoTimestamp = parcel.ReadBool();
@@ -167,7 +171,10 @@ sptr<SurfaceBuffer> Transaction::ReadBufferFromMessageParcel(MessageParcel& parc
 {
     uint32_t sequence = 0;
     sptr<SurfaceBuffer> buffer = nullptr;
-    GSError ret = ReadSurfaceBufferImpl(parcel, sequence, buffer);
+    auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+        return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+    };
+    GSError ret = ReadSurfaceBufferImpl(parcel, sequence, buffer, readSafeFdFunc);
     if (ret != GSERROR_OK || buffer == nullptr) {
         RS_LOGE("Transaction ReadSurfaceBufferImpl ret:%{public}d", ret);
         return nullptr;
@@ -198,7 +205,10 @@ sptr<Transaction> Transaction::ReadFromMessageParcel(MessageParcel& parcel)
     if (!buffer) {
         return nullptr;
     }
-    sptr<SyncFence> fence = SyncFence::ReadFromMessageParcel(parcel);
+    auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+        return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+    };
+    sptr<SyncFence> fence = SyncFence::ReadFromMessageParcel(parcel, readSafeFdFunc);
     int64_t uiTimestamp = 0;
     int64_t desiredPresentTimestamp = 0;
     bool isAutoTimestamp = false;

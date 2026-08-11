@@ -447,7 +447,36 @@ HWTEST_F(RSRenderPropertyTest, dumptest, TestSize.Level1)
 HWTEST_F(RSRenderPropertyTest, tofloattest, TestSize.Level1)
 {
     RSRenderAnimatableProperty<Vector3f> property3f(Vector3f(1.f, 1.f, 1.f)); // 1.f for test
-    EXPECT_NEAR(property3f.ToFloat(), 1.73205f, 1e-4);  // 1.73205.f mod result
+    EXPECT_NEAR(property3f.ToFloat(), 1.73205f, 1e-4);                        // 1.73205.f mod result
+}
+
+/**
+ * @tc.name: DepthCameraParaDump
+ * @tc.desc: Test dump for RSRenderProperty<DepthCameraPara>
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, DepthCameraParaDump, TestSize.Level1)
+{
+    DepthCameraPara para;
+    auto prop = std::make_shared<RSRenderProperty<DepthCameraPara>>();
+    std::string out;
+    prop->Dump(out);
+    EXPECT_EQ(out, "[position: (0.0, 0.0, 0.0), quaternion: (0.0, 0.0, 0.0, 0.0), yFov: 0.0, zNear: 0.1, zFar: 100.0, "
+        "offset: (0.0, 0.0)]");
+}
+
+/**
+ * @tc.name: DepthLightParaDump
+ * @tc.desc: Test dump for RSRenderProperty<DepthLightPara>
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, DepthLightParaDump, TestSize.Level1)
+{
+    DepthLightPara para;
+    auto prop = std::make_shared<RSRenderProperty<DepthLightPara>>();
+    std::string out;
+    prop->Dump(out);
+    EXPECT_EQ(out, "[direction: (0.0, 0.0, 0.0), color: (0.0, 0.0, 0.0), intensity: 0.0]");
 }
 
 /**

@@ -41,6 +41,10 @@ public:
 
 void RSUniHwcPrevalidateUtilTest::SetUpTestCase()
 {
+    auto& util = RSUniHwcPrevalidateUtil::GetInstance();
+    if (!util.IsPrevalidateEnable()) {
+        GTEST_SKIP() << "Skip all tests: prevalidate not enabled on this device";
+    }
     RSTestUtil::InitRenderNodeGC();
 }
 void RSUniHwcPrevalidateUtilTest::TearDownTestCase() {}
@@ -379,6 +383,34 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateScreenNodeLayerInfo003, TestSize.Lev
     if (screenNode->GetRenderDrawable() == nullptr) {
         screenNode->renderDrawable_ = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(screenNode);
     }
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateScreenNodeLayerInfo(
+        DEFAULT_Z_ORDER, screenNode, defaultProperty_, DEFAULT_FPS, info);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CreateScreenNodeLayerInfo004
+ * @tc.desc: CreateScreenNodeLayerInfo with null surfaceHandler
+ * @tc.type: FUNC
+ * @tc.require: #IBIA3V
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateScreenNodeLayerInfo004, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    NodeId id = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
+    if (screenNode->GetRenderDrawable() == nullptr) {
+        screenNode->renderDrawable_ = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(screenNode);
+    }
+    auto screenDrawable = static_cast<DrawableV2::RSScreenRenderNodeDrawable*>(screenNode->GetRenderDrawable().get());
+    ASSERT_NE(screenDrawable, nullptr);
+    
+    screenDrawable->surfaceHandler_ = nullptr;
+    
     RequestLayerInfo info;
     bool ret = uniHwcPrevalidateUtil.CreateScreenNodeLayerInfo(
         DEFAULT_Z_ORDER, screenNode, defaultProperty_, DEFAULT_FPS, info);

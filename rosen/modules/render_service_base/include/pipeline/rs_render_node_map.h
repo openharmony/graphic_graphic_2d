@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
+#include <vector>
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "pipeline/rs_base_render_node.h"
@@ -79,6 +80,14 @@ public:
     bool IsResidentProcessNode(NodeId id) const;
     bool IsUIExtensionSurfaceNode(NodeId id) const;
     void DestroyTokenNode(pid_t pid, uint64_t token);
+
+    // Pending buffer map keyed by AppWindow NodeId, value is LeashWindow NodeId for sibling grouping
+    // appWindow must be non-null and confirmed as AppWindow by caller
+    void AddPendingUIBufferEntry(const std::shared_ptr<RSSurfaceRenderNode>& appWindow);
+    bool HasPendingUIBufferEntry(NodeId appWindowId) const;
+    void RemovePendingUIBufferEntry(NodeId appWindowId);
+    NodeId GetPendingUIBufferLeashId(NodeId appWindowId) const;
+    std::vector<NodeId> GetPendingUIBufferAppWindowsByLeashId(NodeId leashId) const;
 
     NodeId GetEntryViewNodeId() const;
     NodeId GetWallPaperViewNodeId() const;
@@ -151,6 +160,8 @@ private:
 
     std::mutex surfaceHandlerMutex_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceHandler>> surfaceHandlerMap_;
+
+    std::unordered_map<NodeId, NodeId> hasDestoryRebuildAppWindowMap_;
 
     void Initialize(const std::weak_ptr<RSContext>& context);
 
