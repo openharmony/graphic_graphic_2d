@@ -72,7 +72,7 @@ public:
     static napi_value CreatePathForTextWithFallback(napi_env env, napi_callback_info info);
     static napi_value SetThemeFontFollowed(napi_env env, napi_callback_info info);
     static napi_value IsThemeFontFollowed(napi_env env, napi_callback_info info);
-    static napi_value FontTransferDynamic(napi_env env, napi_callback_info info);
+    static napi_value CreateFontDynamic(napi_env env, std::shared_ptr<Font> font);
 
     std::shared_ptr<Font> GetFont()
     {

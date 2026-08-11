@@ -22,6 +22,7 @@
 #include "rs_render_surface_rcd_layer.h"
 #include "rs_render_surface_solid_filled_color_layer.h"
 #include "surface_buffer_impl.h"
+#include "surface_tunnel_handle.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -200,6 +201,33 @@ HWTEST_F(HdiLayerTest, SetLayerTunnelHandle001, Function | MediumTest| Level3)
 
     HdiLayerTest::rsLayer_->SetTunnelHandle(new SurfaceTunnelHandle());
     HdiLayerTest::hdiLayer_->UpdateRSLayer(HdiLayerTest::rsLayer_);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetLayerTunnelHandle(), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetLayerTunnelHandle002
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetLayerTunnelHandle with a SurfaceTunnelHandle whose
+ *                     GetHandle() returns a valid (non-null) GraphicExtDataHandle
+ *                  2. verify the else branch is taken (both OR conditions false)
+ */
+HWTEST_F(HdiLayerTest, SetLayerTunnelHandle002, Function | MediumTest| Level3)
+{
+    HdiLayerTest::rsLayer_->SetTunnelHandleChange(true);
+
+    GraphicExtDataHandle *rawHandle = AllocExtDataHandle(0);
+    ASSERT_NE(rawHandle, nullptr);
+    sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle();
+    ASSERT_EQ(tunnelHandle->SetHandle(rawHandle), GSERROR_OK);
+    FreeExtDataHandle(rawHandle);
+    ASSERT_NE(tunnelHandle->GetHandle(), nullptr);
+
+    HdiLayerTest::rsLayer_->SetTunnelHandle(tunnelHandle);
+    HdiLayerTest::hdiLayer_->UpdateRSLayer(HdiLayerTest::rsLayer_);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, testing::NotNull()))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->SetLayerTunnelHandle(), GRAPHIC_DISPLAY_SUCCESS);
 }
 
@@ -1393,7 +1421,7 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_AllKeys_Success, Function | MediumT
  * CaseDescription: 1. Set paramKey_ with "SolidFill"
  *                  2. call SetPerFrameParameters
  *                  3. verify SetPerFrameLayerSolidFillParam is called
- *                   Cover branch: key == GENERIC_METADATA_KEY_SOLIC_FILL (line 889 true)
+ *                   Cover branch: key == GENERIC_METADATA_KEY_SOLID_FILL (line 889 true)
  */
 HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKey_CallsSolidFillParam, Function | MediumTest| Level1)
 {
@@ -1426,7 +1454,7 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKey_CallsSolidFillParam, F
  * CaseDescription: 1. Set paramKey_ without "SolidFill"
  *                  2. call SetPerFrameParameters
  *                  3. verify SetPerFrameLayerSolidFillParam is not called
- *                   Cover branch: key != GENERIC_METADATA_KEY_SOLIC_FILL (line 889 false)
+ *                   Cover branch: key != GENERIC_METADATA_KEY_SOLID_FILL (line 889 false)
  */
 HWTEST_F(HdiLayerTest, SetPerFrameParameters_NoSolidFillKey_NotCalled, Function | MediumTest| Level1)
 {
@@ -1455,7 +1483,7 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_NoSolidFillKey_NotCalled, Function 
  * CaseDescription: 1. Set paramKey_ with multiple keys including "SolidFill"
  *                  2. call SetPerFrameParameters
  *                  3. verify all keys are processed
- *                   Cover branch: key == GENERIC_METADATA_KEY_SOLIC_FILL (line 889 true)
+ *                   Cover branch: key == GENERIC_METADATA_KEY_SOLID_FILL (line 889 true)
  */
 HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKeyWithOtherKeys_AllProcessed, Function | MediumTest| Level1)
 {
@@ -1489,7 +1517,7 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKeyWithOtherKeys_AllProces
  * CaseDescription: 1. Set paramKey_ with "SolidFill"
  *                  2. mock SetLayerPerFrameParameterSmq to return error
  *                  3. verify error is returned
- *                   Cover branch: key == GENERIC_METADATA_KEY_SOLIC_FILL (line 889 true)
+ *                   Cover branch: key == GENERIC_METADATA_KEY_SOLID_FILL (line 889 true)
  */
 HWTEST_F(HdiLayerTest, SetPerFrameParameters_SolidFillKeyFailure_ReturnsError, Function | MediumTest| Level1)
 {

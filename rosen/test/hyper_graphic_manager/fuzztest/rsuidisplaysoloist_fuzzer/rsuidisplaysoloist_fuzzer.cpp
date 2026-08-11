@@ -30,22 +30,18 @@ const uint8_t DO_INSERT_FRAME_RATE_RANGE = 4;
 const uint8_t DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG = 5;
 const uint8_t DO_SET_VSYNC_RATE = 6;
 const uint8_t DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE = 7;
-const uint8_t DO_SOLOIST_ID_CREATE = 8;
-const uint8_t DO_SOLOIST_IS_COMMON_DIVISOR = 9;
-const uint8_t DO_SOLOIST_FIND_REFRESH_RATE_FACTORS = 10;
-const uint8_t DO_SOLOIST_SET_VSYNC_RATE = 13;
-const uint8_t DO_SOLOIST_SET_CALLBACK_AND_TRIGGER = 14;
-const uint8_t DO_SOLOIST_ON_VSYNC = 15;
-const uint8_t DO_MANAGER_ON_VSYNC = 16;
-const uint8_t DO_MANAGER_VSYNC_CALLBACK_INNER = 17;
-const uint8_t DO_MANAGER_GETTERS = 18;
-const uint8_t DO_MANAGER_FLUSH_FRAME_RATE = 19;
-const uint8_t DO_MANAGER_ON_VSYNC_TIMEOUT = 20;
-const uint8_t DO_SOLOIST_FLUSH_FRAME_RATE = 21;
-const uint8_t DO_SOLOIST_SET_SUB_FRAME_RATE_LINKER_ENABLE = 22;
-const uint8_t DO_SOLOIST_ON_VSYNC_TIMEOUT = 23;
-const uint8_t DO_MANAGER_DISPATCH_SOLOIST_CALLBACK = 24;
-const uint8_t TARGET_SIZE = 25;
+const uint8_t DO_SOLOIST_IS_COMMON_DIVISOR = 8;
+const uint8_t DO_SOLOIST_FIND_REFRESH_RATE_FACTORS = 9;
+const uint8_t DO_SOLOIST_SET_VSYNC_RATE = 10;
+const uint8_t DO_SOLOIST_SET_CALLBACK_AND_TRIGGER = 11;
+const uint8_t DO_SOLOIST_ON_VSYNC = 12;
+const uint8_t DO_MANAGER_ON_VSYNC = 13;
+const uint8_t DO_MANAGER_VSYNC_CALLBACK_INNER = 14;
+const uint8_t DO_MANAGER_FLUSH_FRAME_RATE = 15;
+const uint8_t DO_SOLOIST_FLUSH_FRAME_RATE = 16;
+const uint8_t DO_SOLOIST_SET_SUB_FRAME_RATE_LINKER_ENABLE = 17;
+const uint8_t DO_MANAGER_DISPATCH_SOLOIST_CALLBACK = 18;
+const uint8_t TARGET_SIZE = 19;
 
 void DoStart(FuzzedDataProvider& fdp)
 {
@@ -53,6 +49,7 @@ void DoStart(FuzzedDataProvider& fdp)
     RSDisplaySoloistManager::GetInstance().Start(id);
     std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
     RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoStop(FuzzedDataProvider& fdp)
@@ -61,6 +58,7 @@ void DoStop(FuzzedDataProvider& fdp)
     RSDisplaySoloistManager::GetInstance().Stop(id);
     std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
     RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoRemoveSoloist(FuzzedDataProvider& fdp)
@@ -69,6 +67,7 @@ void DoRemoveSoloist(FuzzedDataProvider& fdp)
     RSDisplaySoloistManager::GetInstance().RemoveSoloist(id);
     std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
     RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoInsertOnVsyncCallback(FuzzedDataProvider& fdp)
@@ -87,6 +86,7 @@ void DoInsertOnVsyncCallback(FuzzedDataProvider& fdp)
     }
     std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
     RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
@@ -100,6 +100,7 @@ void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
     RSDisplaySoloistManager::GetInstance().InsertFrameRateRange(id, frameRateRange);
     std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
     RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
@@ -109,27 +110,21 @@ void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
     RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
     std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
     RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoSetVSyncRate(FuzzedDataProvider& fdp)
 {
     int32_t vsyncRate = fdp.ConsumeIntegral<int32_t>();
     RSDisplaySoloistManager::GetInstance().SetVSyncRate(vsyncRate);
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoSetMainFrameRateLinkerEnable(FuzzedDataProvider& fdp)
 {
     bool enabled = fdp.ConsumeBool();
     RSDisplaySoloistManager::GetInstance().SetMainFrameRateLinkerEnable(enabled);
-}
-
-void DoSoloistIdCreate(FuzzedDataProvider& fdp)
-{
-    (void)fdp;
-    std::shared_ptr<SoloistId> soloistId = SoloistId::Create();
-    if (soloistId) {
-        soloistId->GetId();
-    }
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoSoloistIsCommonDivisor(FuzzedDataProvider& fdp)
@@ -197,6 +192,7 @@ void DoManagerOnVsync(FuzzedDataProvider& fdp)
     } else {
         RSDisplaySoloistManager::OnVsync(timestamp, &RSDisplaySoloistManager::GetInstance());
     }
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoManagerVsyncCallbackInner(FuzzedDataProvider& fdp)
@@ -218,30 +214,14 @@ void DoManagerVsyncCallbackInner(FuzzedDataProvider& fdp)
         manager.idToSoloistMap_.erase(id);
         lock.unlock();
     }
-}
-
-void DoManagerGetters(FuzzedDataProvider& fdp)
-{
-    (void)fdp;
-    auto& manager = RSDisplaySoloistManager::GetInstance();
-    manager.GetFrameRateRange();
-    manager.GetIdToSoloistMap();
-    manager.GetFrameRateLinker();
-    manager.GetManagerStatus();
-    manager.GetVSyncPeriod();
-    manager.GetVSyncRate();
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoManagerFlushFrameRate(FuzzedDataProvider& fdp)
 {
     int32_t rate = fdp.ConsumeIntegral<int32_t>();
     RSDisplaySoloistManager::GetInstance().FlushFrameRate(rate);
-}
-
-void DoManagerOnVsyncTimeout(FuzzedDataProvider& fdp)
-{
-    (void)fdp;
-    RSDisplaySoloistManager::GetInstance().OnVsyncTimeOut();
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 
 void DoSoloistFlushFrameRate(FuzzedDataProvider& fdp)
@@ -260,17 +240,11 @@ void DoSoloistSetSubFrameRateLinkerEnable(FuzzedDataProvider& fdp)
     soloist.SetSubFrameRateLinkerEnable(enabled);
 }
 
-void DoSoloistOnVsyncTimeout(FuzzedDataProvider& fdp)
-{
-    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    RSDisplaySoloist soloist(id);
-    soloist.OnVsyncTimeOut();
-}
-
 void DoManagerDispatchSoloistCallback(FuzzedDataProvider& fdp)
 {
     TimestampType timestamp = fdp.ConsumeIntegral<int64_t>();
     RSDisplaySoloistManager::GetInstance().DispatchSoloistCallback(timestamp);
+    RSDisplaySoloistManager::GetInstance().frameRateLinker_ = nullptr;
 }
 } // namespace
 } // namespace Rosen
@@ -310,9 +284,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE:
             OHOS::Rosen::DoSetMainFrameRateLinkerEnable(fdp);
             break;
-        case OHOS::Rosen::DO_SOLOIST_ID_CREATE:
-            OHOS::Rosen::DoSoloistIdCreate(fdp);
-            break;
         case OHOS::Rosen::DO_SOLOIST_IS_COMMON_DIVISOR:
             OHOS::Rosen::DoSoloistIsCommonDivisor(fdp);
             break;
@@ -334,23 +305,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_MANAGER_VSYNC_CALLBACK_INNER:
             OHOS::Rosen::DoManagerVsyncCallbackInner(fdp);
             break;
-        case OHOS::Rosen::DO_MANAGER_GETTERS:
-            OHOS::Rosen::DoManagerGetters(fdp);
-            break;
         case OHOS::Rosen::DO_MANAGER_FLUSH_FRAME_RATE:
             OHOS::Rosen::DoManagerFlushFrameRate(fdp);
-            break;
-        case OHOS::Rosen::DO_MANAGER_ON_VSYNC_TIMEOUT:
-            OHOS::Rosen::DoManagerOnVsyncTimeout(fdp);
             break;
         case OHOS::Rosen::DO_SOLOIST_FLUSH_FRAME_RATE:
             OHOS::Rosen::DoSoloistFlushFrameRate(fdp);
             break;
         case OHOS::Rosen::DO_SOLOIST_SET_SUB_FRAME_RATE_LINKER_ENABLE:
             OHOS::Rosen::DoSoloistSetSubFrameRateLinkerEnable(fdp);
-            break;
-        case OHOS::Rosen::DO_SOLOIST_ON_VSYNC_TIMEOUT:
-            OHOS::Rosen::DoSoloistOnVsyncTimeout(fdp);
             break;
         case OHOS::Rosen::DO_MANAGER_DISPATCH_SOLOIST_CALLBACK:
             OHOS::Rosen::DoManagerDispatchSoloistCallback(fdp);

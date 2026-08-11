@@ -135,6 +135,7 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS,
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_SWITCH_STATUS, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_FRAME_GRAVITY, int32_t, static_cast<int32_t>(Gravity::DEFAULT));
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_MAIN_SCREEN, bool, false);
 // Multi-surface virtual screen: vector of surface+region configs
 #ifndef ROSEN_CROSS_PLATFORM
 using MultiSurfaceConfigs = std::vector<SurfaceRegionConfig>;
@@ -142,7 +143,6 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::MULTI_SURFACE_CONFIGS, MultiSurfaceCon
 #else
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::MULTI_SURFACE_CONFIGS, void*, nullptr);
 #endif
-DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_MAIN_SCREEN, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_ROG_RESOLUTION, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_HDI_ROG_ENABLE, bool, false);
 
@@ -158,7 +158,7 @@ template<typename T>
 class ScreenProperty : public ScreenPropertyBase {
 public:
     ScreenProperty() = default;
-    ScreenProperty(const T& value) : value_(value) {}
+    explicit ScreenProperty(const T& value) : value_(value) {}
     ~ScreenProperty() override = default;
 
     T Get() { return value_; }

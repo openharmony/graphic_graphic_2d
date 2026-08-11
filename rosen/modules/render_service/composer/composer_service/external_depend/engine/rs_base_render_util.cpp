@@ -672,7 +672,10 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
     GraphicColorGamut srcGamut, GraphicColorGamut dstGamut, const std::vector<GraphicHDRMetaData>& metaDatas)
 {
     RS_TRACE_NAME("ConvertBufferColorGamut");
-
+    if (srcBuf == nullptr) {
+        RS_LOGE("ConvertBufferColorGamut: srcBuf is nullptr");
+        return false;
+    }
     int32_t pixelFormat = srcBuf->GetFormat();
     if (!IsSupportedFormatForGamutConversion(pixelFormat)) {
         RS_LOGE("ConvertBufferColorGamut: the buffer's format is not supported.");
@@ -690,6 +693,10 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
     dstBuf.resize(bufferSize);
 
     auto bufferAddr = srcBuf->GetVirAddr();
+    if (bufferAddr == nullptr) {
+        RS_LOGE("ConvertBufferColorGamut: buffer has no vir addr");
+        return false;
+    }
     uint8_t* srcStart = static_cast<uint8_t*>(bufferAddr);
 
     uint32_t offsetDst = 0;
@@ -859,12 +866,12 @@ void RSBaseRenderUtil::SetNeedClient(bool flag)
 bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
 {
     if (RSSystemProperties::IsForceClient()) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient: client composition is force enabled.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseRenderUtil::IsNeedClient: client composition is force enabled.");
         return true;
     }
 
     if (enableClient) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client");
         return true;
     }
 
@@ -879,22 +886,24 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
     }
 
     if (property.GetBackgroundFilter() || property.GetFilter()) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need filter");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need filter");
         return true;
     }
 
     if (!property.GetCornerRadius().IsZero()) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need round corner");
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need round corner");
         return true;
     }
     if (property.IsShadowValid()) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need shadow");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need shadow");
         return true;
     }
     if (node.IsInstanceOf<RSSurfaceRenderNode>() &&
         (property.GetRotation() != 0 || property.GetRotationX() != 0 || property.GetRotationY() != 0 ||
         property.GetQuaternion() != Quaternion())) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need RSSurfaceRenderNode rotation");
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug RSBaseRenderUtil::IsNeedClient enable composition client need RSSurfaceRenderNode rotation");
         return true;
     }
     return false;
@@ -954,7 +963,8 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
     if (preBuffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(preBuffer, surfaceHandler.GetPreBufferReleaseFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
+            RS_LOGD_IF(DEBUG_PIPELINE,
+                "RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
             return false;
         }
@@ -1151,7 +1161,7 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 
     if (!RSPropertiesPainter::GetGravityMatrix(gravity,
         RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix)) {
-        RS_LOGD("RSBaseRenderUtil::DealWithNodeGravity did not obtain gravity matrix.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderUtil::DealWithNodeGravity did not obtain gravity matrix.");
     }
 
     return gravityMatrix;
@@ -1185,7 +1195,8 @@ void RSBaseRenderUtil::GetRotationLockParam(RSSurfaceRenderNode& node,
 
     totalRotationCorrectionDegree = (screenDegree + logicalDegree + appDegree) % ROUND_ANGLE;
 
-    RS_LOGD("RSBaseRenderUtil::GetRotationLockParam NodeId:%{public}" PRIu64 ", screenCorrectionDegree:%{public}d"
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RSBaseRenderUtil::GetRotationLockParam NodeId:%{public}" PRIu64 ", screenCorrectionDegree:%{public}d"
         ", logicalCorrectionDegree:%{public}d, appCorrectionDegree:%{public}d, totalCorrectionDegree:%{public}d",
         node.GetId(), screenDegree, logicalDegree, appDegree, totalRotationCorrectionDegree);
 
@@ -1301,7 +1312,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
 
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
-    if (UNLIKELY(params.hasCropMetadata)) {
+    if (UNLIKELY(params.hasCropMetadata) && params.buffer != nullptr) {
         params.dstRect = Drawing::Rect(0, 0,
             params.buffer->GetSurfaceBufferWidth(), params.buffer->GetSurfaceBufferHeight());
     } else {
@@ -1331,7 +1342,7 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
             return;
         }
     }
-    RS_LOGD("RSBaseRenderUtil::FlipMatrix %{public}d", transform);
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderUtil::FlipMatrix %{public}d", transform);
     Drawing::Matrix flip;
     camera3D.ApplyToMatrix(flip);
     const float half = 0.5f;
@@ -1372,7 +1383,7 @@ bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::ve
     } else if (buffer->GetFormat() == Detail::STUB_PIXEL_FMT_RGBA_16161616) {
         bitmapCreated = CreateNewColorGamutBitmap(buffer, newBuffer, bitmap, srcGamut, dstGamut, metaDatas);
     } else if (srcGamut != dstGamut) {
-        RS_LOGD("RSBaseRenderUtil::ConvertBufferToBitmap: need to convert color gamut.");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseRenderUtil::ConvertBufferToBitmap: need to convert color gamut.");
         bitmapCreated = CreateNewColorGamutBitmap(buffer, newBuffer, bitmap, srcGamut, dstGamut);
     } else {
         bitmapCreated = CreateBitmap(buffer, bitmap);
@@ -1410,8 +1421,16 @@ bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, s
 bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap)
 {
     Drawing::BitmapFormat format = GenerateDrawingBitmapFormat(buffer);
-    bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format, buffer->GetStride());
-    bitmap.SetPixels(buffer->GetVirAddr());
+    if (!bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format, buffer->GetStride())) {
+        RS_LOGE("RSBaseRenderUtil::CreateBitmap bitmap build failed");
+        return false;
+    }
+    auto bufferAddr = buffer->GetVirAddr();
+    if (bufferAddr == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::CreateBitmap: buffer has no vir addr");
+        return false;
+    }
+    bitmap.SetPixels(bufferAddr);
     return true;
 }
 
@@ -1439,7 +1458,10 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
     if (convertRes) {
         RS_LOGW("CreateNewColorGamutBitmap: convert color gamut succeed, use new buffer to create bitmap.");
         Drawing::BitmapFormat format = GenerateDrawingBitmapFormat(buffer);
-        bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format, buffer->GetStride());
+        if (!bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format, buffer->GetStride())) {
+            RS_LOGE("RSBaseRenderUtil::CreateNewColorGamutBitmap bitmap build failed");
+            return false;
+        }
         bitmap.SetPixels(newBuffer.data());
         return true;
     } else {
@@ -1462,7 +1484,7 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
         RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
         return nullptr;
     }
-    const auto& sendingPid = transactionData->GetSendingPid();
+    const auto& sendingPid = RSMarshallingHelper::GetCallingPid();
     lastSendingPid_.store(sendingPid, std::memory_order_release);
     transactionData->ProfilerPushOffsets(parcel, parcelNumber);
     RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(sendingPid));
@@ -1498,7 +1520,12 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
     WriteToPngParam param;
     param.width = static_cast<uint32_t>(bufferHandle->width);
     param.height = static_cast<uint32_t>(bufferHandle->height);
-    param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
+    auto bufferAddr = buffer->GetVirAddr();
+    if (bufferAddr == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::WriteSurfaceRenderNodeToPng: buffer has no vir addr");
+        return false;
+    }
+    param.data = static_cast<uint8_t *>(bufferAddr);
     param.stride = static_cast<uint32_t>(bufferHandle->stride);
     param.bitDepth = Detail::BITMAP_DEPTH;
 
@@ -1542,7 +1569,10 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::S
     }
     Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
     Drawing::Bitmap bitmap;
-    bitmap.Build(image->GetWidth(), image->GetHeight(), format);
+    if (!bitmap.Build(image->GetWidth(), image->GetHeight(), format)) {
+        RS_LOGE("WriteCacheImageRenderNodeToPng(surface) bitmap build failed");
+        return false;
+    }
     image->ReadPixels(bitmap, 0, 0);
     param.width = static_cast<uint32_t>(image->GetWidth());
     param.height = static_cast<uint32_t>(image->GetHeight());
@@ -1622,7 +1652,10 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::I
     }
     Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
     Drawing::Bitmap bitmap;
-    bitmap.Build(image->GetWidth(), image->GetHeight(), format);
+    if (!bitmap.Build(image->GetWidth(), image->GetHeight(), format)) {
+        RS_LOGE("WriteCacheImageRenderNodeToPng(image) bitmap build failed");
+        return false;
+    }
     image->ReadPixels(bitmap, 0, 0);
     param.width = static_cast<uint32_t>(image->GetWidth());
     param.height = static_cast<uint32_t>(image->GetHeight());
@@ -1673,7 +1706,12 @@ bool RSBaseRenderUtil::WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint
     WriteToPngParam param;
     param.width = static_cast<uint32_t>(bufferHandle->width);
     param.height = static_cast<uint32_t>(bufferHandle->height);
-    param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
+    auto bufferAddr = buffer->GetVirAddr();
+    if (bufferAddr == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::WriteSurfaceBufferToPng: buffer has no vir addr");
+        return false;
+    }
+    param.data = static_cast<uint8_t *>(bufferAddr);
     param.stride = static_cast<uint32_t>(bufferHandle->stride);
     param.bitDepth = Detail::BITMAP_DEPTH;
 

@@ -16,7 +16,10 @@
 #include "gtest/gtest.h"
 
 #include "parameters.h"
+#include "common/rs_background_thread.h"
+#include "feature/color_picker/rs_color_picker_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "rs_composer_to_render_connection.h"
@@ -149,8 +152,59 @@ void RSRenderSingleProcessManagerTest::SetUpTestCase()
 }
 void RSRenderSingleProcessManagerTest::TearDownTestCase()
 {
-    RSUniRenderThread::Instance().uniRenderEngine_->GetRenderContext()->drGPUContext_ = nullptr;
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    // Clean up RSColorPickerThread GPU references before releasing engine
+    auto& colorPickerThread = RSColorPickerThread::Instance();
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    colorPickerThread.gpuContext_ = nullptr;
+    colorPickerThread.renderContext_ = nullptr;
+#endif
+
+    // Clean up RSBackgroundThread GPU references
+    auto& backgroundThread = RSBackgroundThread::Instance();
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    backgroundThread.gpuContext_ = nullptr;
+    backgroundThread.renderContext_ = nullptr;
+#endif
+
+    // Full cleanup of RSMainThread renderEngine
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread->renderEngine_) {
+        if (mainThread->renderEngine_->renderContext_) {
+            mainThread->renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread->renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread->renderEngine_->protectedRenderContext_) {
+            mainThread->renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            mainThread->renderEngine_->protectedRenderContext_ = nullptr;
+        }
+        mainThread->renderEngine_->skContext_ = nullptr;
+        mainThread->renderEngine_->imageManager_ = nullptr;
+        mainThread->renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        mainThread->renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        mainThread->renderEngine_ = nullptr;
+    }
+
+    // Full cleanup of RSUniRenderThread uniRenderEngine
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    if (uniRenderThread.uniRenderEngine_) {
+        if (uniRenderThread.uniRenderEngine_->renderContext_) {
+            uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            uniRenderThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (uniRenderThread.uniRenderEngine_->protectedRenderContext_) {
+            uniRenderThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            uniRenderThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        }
+        uniRenderThread.uniRenderEngine_->skContext_ = nullptr;
+        uniRenderThread.uniRenderEngine_->imageManager_ = nullptr;
+        uniRenderThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        uniRenderThread.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+        uniRenderThread.uniRenderEngine_ = nullptr;
+    }
 }
 void RSRenderSingleProcessManagerTest::SetUp() {}
 void RSRenderSingleProcessManagerTest::TearDown() {}

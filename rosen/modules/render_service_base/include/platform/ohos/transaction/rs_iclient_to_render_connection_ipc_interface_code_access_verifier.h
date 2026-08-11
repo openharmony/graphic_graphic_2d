@@ -50,6 +50,7 @@ private:
     static inline const std::unordered_map<CodeEnumType, uint32_t>
         accessRSIRenderServiceConnectionInterfaceTimesRestrictions_ {
             { CodeEnumType::REGISTER_APPLICATION_AGENT, 15 },
+            { CodeEnumType::UNREGISTER_APPLICATION_AGENT, 15 },
         };
 #endif
 };

@@ -2033,14 +2033,35 @@ bool RSUifirstManager::QuerySubAssignable(RSSurfaceRenderNode& node, bool isRota
     return assignable;
 }
 
+bool RSUifirstManager::IsRebuildForceDisable(const RSSurfaceRenderNode& node) const
+{
+    if (RSMainThread::Instance()->IsPidRebuilding(ExtractPid(node.GetId()))) {
+        return true;
+    }
+    if (!node.IsLeashWindow()) {
+        return false;
+    }
+    for (auto& child : *(node.GetChildren())) {
+        if (!child) {
+            continue;
+        }
+        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceChild && RSMainThread::Instance()->IsPidRebuilding(ExtractPid(surfaceChild->GetId()))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 {
     bool isForceDisabled = (node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE);
     bool hasProtectedLayer = node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED);
-    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || isForceDisabled || hasProtectedLayer) {
+    bool isRebuilding = IsRebuildForceDisable(node);
+    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || isForceDisabled || hasProtectedLayer || isRebuilding) {
         RS_LOGD("uifirst disabled. id:%{public}" PRIu64 ",uifirstOn:%{public}d,support:%{public}d,"
-            "forceDisabled:%{public}d,protectLayer:%{public}d",
-            node.GetId(), isUiFirstOn_, node.GetUifirstSupportFlag(), isForceDisabled, hasProtectedLayer);
+            "forceDisabled:%{public}d,protectLayer:%{public}d,isRebuilding:%{public}d",
+            node.GetId(), isUiFirstOn_, node.GetUifirstSupportFlag(), isForceDisabled, hasProtectedLayer, isRebuilding);
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         return true;
     }

@@ -42,6 +42,7 @@ const std::unique_ptr<RSPointLightManager>& RSPointLightManager::Instance(NodeId
         return it->second;
     }
     auto [itNew, _] = g_managersLUT.emplace(logicalDisplayNodeId, std::make_unique<RSPointLightManager>());
+    itNew->second->logicalDisplayNodeId_ = logicalDisplayNodeId;
     return itNew->second;
 }
 
@@ -155,6 +156,22 @@ void RSPointLightManager::PrepareLight()
     if ((dirtyIlluminatedList_.empty() && dirtyLightSourceList_.empty() && previousFrameIlluminatedNodeMap_.empty())) {
         return;
     }
+    // Register dirty nodes not yet in maps (e.g. grafted across displays) so Collect can clear
+    // their stale lightSourcesAndPosMap and re-pair them.
+    for (auto& weakPtr : dirtyIlluminatedList_) {
+        auto node = weakPtr.lock();
+        if (node && illuminatedNodeMap_.find(node->GetId()) == illuminatedNodeMap_.end()) {
+            RS_LOGI("PrepareLight register grafted illuminated node:%{public}" PRIu64, node->GetId());
+            RegisterIlluminated(node);
+        }
+    }
+    for (auto& weakPtr : dirtyLightSourceList_) {
+        auto node = weakPtr.lock();
+        if (node && lightSourceNodeMap_.find(node->GetId()) == lightSourceNodeMap_.end()) {
+            RS_LOGI("PrepareLight register grafted light source node:%{public}" PRIu64, node->GetId());
+            RegisterLightSource(node);
+        }
+    }
     // Collect the nodes illuminated by the light source in the previous frame.
     CollectPreviousFrameIlluminatedNodes();
     // Checks illumination relationships between light sources and illuminable nodes, marking illuminated nodes as
@@ -177,6 +194,10 @@ void RSPointLightManager::PrepareLight(std::unordered_map<NodeId, std::weak_ptr<
         auto mapElm = pair.second.lock();
         if (!mapElm || !mapElm->IsOnTheTree()) {
             return !mapElm;
+        }
+        if (mapElm->GetLogicalDisplayNodeId() != logicalDisplayNodeId_) {
+            RS_LOGI("PrepareLight erase stale node:%{public}" PRIu64, mapElm->GetId());
+            return true;
         }
         for (const auto& weakPtr : dirtyList) {
             auto dirtyNodePtr = weakPtr.lock();

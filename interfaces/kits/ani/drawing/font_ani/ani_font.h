@@ -76,9 +76,8 @@ public:
 
 private:
     static ani_object FontTransferStatic(
-        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
-    static ani_long GetFontAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    std::shared_ptr<Font>* GetFontPtrAddr();
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    static ani_object FontTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
     std::shared_ptr<Font> font_ = nullptr;
 };
 

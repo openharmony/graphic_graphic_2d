@@ -34,7 +34,7 @@ namespace {
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_LIST_SIZE = 50;
 #ifdef RS_ENABLE_TV_PQ_METADATA
-static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
 constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 constexpr size_t PIDLIST_SIZE_MAX = 128;
@@ -585,7 +585,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (mapSize <= 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
+            if (mapSize == 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -928,15 +928,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                            "size number is too large.");
                 break;
             }
+            bool shouldBreak = false;
             for (uint32_t i = 0; i < size; ++i) {
                 pid_t pid;
                 if (!data.ReadInt32(pid)) {
                     ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
                                "pid failed");
                     ret = ERR_INVALID_REPLY;
+                    shouldBreak = true;
                     break;
                 }
                 constraint.pids.insert(pid);
+            }
+            if (shouldBreak) {
+                break;
             }
             if (!data.ReadInt32(constraint.range.lowLimit.width) || !data.ReadInt32(constraint.range.lowLimit.height) ||
                 !data.ReadInt32(constraint.range.highLimit.width) ||
@@ -1037,22 +1042,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             HandleHwcEvent(deviceId, eventId, eventData);
-            break;
-        }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
-            std::vector<int32_t> pidList;
-            if (!data.ReadInt32Vector(&pidList)) {
-                RS_LOGE("SetGpuCrcDirtyEnabledPidList: read pidList err.");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (pidList.size() > PIDLIST_SIZE_MAX) {
-                RS_LOGE("SetGpuCrcDirtyEnabledPidList: pidList size %{public}zu exceeds max %{public}zu.",
-                    pidList.size(), PIDLIST_SIZE_MAX);
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetGpuCrcDirtyEnabledPidList(pidList);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO): {

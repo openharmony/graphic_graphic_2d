@@ -94,6 +94,7 @@ struct ModuleConfig {
     std::function<std::unique_ptr<FeatureParam>()> featureParam;
 };
 
+
 class GraphicFeatureParamManager : public RefBase {
 public:
     static GraphicFeatureParamManager& GetInstance();

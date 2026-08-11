@@ -26,6 +26,8 @@
 #include "screen_manager/rs_screen.h"
 #include "rs_render_composer_manager.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
+#include "core/transaction/rs_client_to_render_connection.h"
+#include "vsync/vsync_manager_agent.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "hgm_core.h"
 #include "dfx/rs_service_dumper.h"
@@ -70,6 +72,7 @@ void RSRenderServiceTest::SetUpTestCase()
 void RSRenderServiceTest::TearDownTestCase()
 {
     if (RSSystemProperties::IsUseVulkan()) {
+        RSUniRenderThread::Instance().uniRenderEngine_->skContext_ = nullptr;
         RSUniRenderThread::Instance().uniRenderEngine_.reset();
     }
     screenManager_ = nullptr;
@@ -407,5 +410,58 @@ HWTEST_F(RSRenderServiceTest, HandlePowerStatus003, TestSize.Level1)
     renderService->rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(renderService->handler_);
     ScreenPowerStatus status = ScreenPowerStatus::POWER_STATUS_OFF_FAKE;
     renderService->HandlePowerStatus(TEST_SCREEN_ID, status);
+}
+
+/**
+ * @tc.name: GetConnectionTest001
+ * @tc.desc: branch 1 - token is nullptr, returns {nullptr, nullptr}
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceTest, GetConnectionTest001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    sptr<RSIConnectionToken> token = nullptr;
+    auto result = renderService->GetConnection(token);
+    EXPECT_EQ(result.first, nullptr);
+    EXPECT_EQ(result.second, nullptr);
+}
+
+/**
+ * @tc.name: GetConnectionTest002
+ * @tc.desc: branch 2 - token non-null but not found in connections_, returns {nullptr, nullptr}
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceTest, GetConnectionTest002, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    sptr<RSIConnectionToken> token = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+    ASSERT_NE(token, nullptr);
+    auto result = renderService->GetConnection(token);
+    EXPECT_EQ(result.first, nullptr);
+    EXPECT_EQ(result.second, nullptr);
+}
+
+/**
+ * @tc.name: GetConnectionTest003
+ * @tc.desc: branch 3 - token found in connections_, returns the stored pair
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceTest, GetConnectionTest003, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    sptr<RSIConnectionToken> token = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+    auto tokenObj = token->AsObject();
+    sptr<RSVsyncManagerAgent> vsyncAgent = new RSVsyncManagerAgent(nullptr, nullptr, nullptr);
+    sptr<RSIClientToServiceConnection> serviceConn =
+        new RSClientToServiceConnection(0, nullptr, nullptr, nullptr, tokenObj, vsyncAgent);
+    sptr<RSIClientToRenderConnection> renderConn =
+        new RSClientToRenderConnection(0, nullptr, tokenObj);
+    renderService->connections_[tokenObj] = {serviceConn, renderConn};
+    auto result = renderService->GetConnection(token);
+    ASSERT_EQ(result.first.GetRefPtr(), serviceConn.GetRefPtr());
+    ASSERT_EQ(result.second.GetRefPtr(), renderConn.GetRefPtr());
 }
 } // namespace OHOS::Rosen

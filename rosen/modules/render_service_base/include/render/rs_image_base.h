@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_BASE_H
 #define RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_BASE_H
 
+#include <atomic>
 #include <cstdint>
 #include <mutex>
 #include "common/rs_macros.h"
@@ -124,7 +125,7 @@ protected:
     Drawing::Rect src_;
     Drawing::Rect dst_;
     Drawing::Rect lastRect_;
-    bool isDrawn_ = false;
+    std::atomic<bool> isDrawn_ = false;
     uint64_t uniqueId_ = 0;
     bool renderServiceImage_ = false;
     bool isYUVImage_ = false;

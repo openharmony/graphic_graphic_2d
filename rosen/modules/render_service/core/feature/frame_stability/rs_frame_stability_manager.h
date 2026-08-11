@@ -63,10 +63,10 @@ public:
     // Clean contexts related to the pid, called when process exits
     void CleanResourcesByPid(pid_t pid);
 
-    // Clean contexts related to the nodeId, called when ScreenRenderNodeDrawable is destructed
-    void CleanResourcesByScreenId(NodeId nodeId);
+    // Clean contexts related to the nodeId, called when Node is destructed
+    void CleanResourcesByNodeId(NodeId nodeId);
 
-    void RecordCurrentFrameDirty(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float screenArea);
+    void RecordCurrentFrameDirty(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float area);
 private:
     RSFrameStabilityManager() = default;
     ~RSFrameStabilityManager() = default;
@@ -76,10 +76,10 @@ private:
     RSFrameStabilityManager& operator=(const RSFrameStabilityManager&&) = delete;
 
     void HandleStabilityTimeout(uint64_t targetId);
-    void TriggerCallback(uint64_t targetId, bool isStable);
-    float CalculateRegionPercentage(const Occlusion::Region& region, float screenArea);
-    void RecordDirtyToCollector(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float screenArea);
-    void RecordDirtyToDetector(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float screenArea);
+    void TriggerCallback(uint64_t targetId, bool isStable, sptr<RSIFrameStabilityCallback> callback);
+    float CalculateRegionPercentage(const Occlusion::Region& region, float area);
+    void RecordDirtyToCollector(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float area);
+    void RecordDirtyToDetector(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float area);
 
     std::mutex detectorMutex_;
     std::mutex collectorMutex_;

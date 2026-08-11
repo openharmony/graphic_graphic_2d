@@ -55,6 +55,7 @@ ohos_shared_library("libhgmnapi") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   relative_install_dir = "module"

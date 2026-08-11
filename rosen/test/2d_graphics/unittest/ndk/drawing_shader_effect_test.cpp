@@ -43,12 +43,7 @@ public:
 
 constexpr uint32_t POINT_NUM = 3;
 
-void NativeDrawingShaderEffectTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingShaderEffectTest::SetUpTestCase() {}
 void NativeDrawingShaderEffectTest::TearDownTestCase() {}
 void NativeDrawingShaderEffectTest::SetUp() {}
 void NativeDrawingShaderEffectTest::TearDown() {}

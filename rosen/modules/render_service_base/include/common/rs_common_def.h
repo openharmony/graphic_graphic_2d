@@ -59,6 +59,9 @@ constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
 constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 constexpr uint32_t MAX_NODE_COUNT_PER_PID = 500000;
+// Upper bound of live RSRenderService connections a single calling pid may hold,
+// to prevent a malicious client from exhausting connection and memory resources.
+constexpr uint32_t MAX_CONNECTION_COUNT_PER_PID = 64;
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
@@ -686,6 +689,7 @@ struct RSDisplayNodeConfig {
     NodeId mirrorNodeId = 0;
     bool isSync = false;
     uint32_t mirrorSourceRotation = 4; // default INVALID_SCREEN_ROTATION
+    float positionZ = 0.0f;
 
     std::string ToString() const
     {
@@ -693,7 +697,8 @@ struct RSDisplayNodeConfig {
                ", displayMode:" + std::to_string(static_cast<uint8_t>(displayMode)) +
                ", sourceDisplayNodeId:" + std::to_string(mirrorNodeId) +
                ", isSync:" + std::to_string(isSync) +
-               ", mirrorSourceRotation:" + std::to_string(mirrorSourceRotation) + "]";
+               ", mirrorSourceRotation:" + std::to_string(mirrorSourceRotation) +
+               ", positionZ:" + std::to_string(positionZ) + "]";
     }
 };
 

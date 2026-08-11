@@ -42,7 +42,7 @@ bool RSUniRenderJudgement::IsUniRender()
 void RSUniRenderJudgement::InitUniRenderConfig()
 {
     InitUniRenderWithConfigFile();
-    RS_LOGD("Init RenderService UniRender Type:%{public}d", uniRenderEnabledType_);
+    RS_LOGD_IF(DEBUG_NODE, "Init RenderService UniRender Type:%{public}d", uniRenderEnabledType_);
 }
 
 std::ifstream& RSUniRenderJudgement::SafeGetLine(std::ifstream &configFile, std::string &line)

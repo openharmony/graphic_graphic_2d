@@ -359,6 +359,8 @@ RSDisplayNodeConfig RandomDataCustomizedType::GetRandomRSDisplayNodeConfig()
         .displayMode = static_cast<DisplayMode>(RandomDataBasicType::GetRandomUint8()),
         .mirrorNodeId = RandomDataBasicType::GetRandomUint64(),
         .isSync = RandomDataBasicType::GetRandomBool(),
+        .mirrorSourceRotation = RandomDataBasicType::GetRandomUint32(),
+        .positionZ = RandomDataBasicType::GetRandomFloat(),
     };
     return data;
 }
@@ -792,6 +794,13 @@ DrawNodeType RandomDataCustomizedType::GetRandomDrawNodeType()
     static constexpr int DRAW_NODE_TYPE_MAX = 3;
     int randomIndex = RandomEngine::GetRandomIndex(DRAW_NODE_TYPE_MAX);
     return static_cast<DrawNodeType>(randomIndex);
+}
+
+DepthSpaceType RandomDataCustomizedType::GetRandomDepthSpaceType()
+{
+    static constexpr int DEPTH_SPACE_TYPE_INDEX_MAX = 1;
+    int randomIndex = RandomEngine::GetRandomIndex(DEPTH_SPACE_TYPE_INDEX_MAX);
+    return static_cast<DepthSpaceType>(randomIndex);
 }
 } // namespace Rosen
 } // namespace OHOS

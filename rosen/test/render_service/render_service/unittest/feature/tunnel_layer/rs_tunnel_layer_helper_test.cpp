@@ -454,35 +454,6 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect002, TestSize.
 }
 
 /**
- * @tc.name: BufferOwnerCount_ClearReleaseCallbackPreventsDoubleRelease
- * @tc.desc: Test ClearReleaseCallback stops DecRef/~BufferOwnerCount from firing bufferReleaseCb_ a second time,
- *           matching the tunnel commit failure path that already called ReleaseBufferById manually.
- * @tc.type: FUNC
- */
-HWTEST_F(RSTunnelLayerHelperTest, BufferOwnerCount_ClearReleaseCallbackPreventsDoubleRelease, TestSize.Level1)
-{
-    // Control: without ClearReleaseCallback, ~BufferOwnerCount fires the callback when refCount != 0.
-    int32_t controlReleaseCount = 0;
-    {
-        auto controlOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-        controlOwner->bufferId_ = 1;
-        controlOwner->bufferReleaseCb_ = [&controlReleaseCount](uint64_t) { controlReleaseCount++; };
-    }
-    EXPECT_EQ(controlReleaseCount, 1);
-
-    // Experiment: ClearReleaseCallback before destruction; ~BufferOwnerCount must not fire, mirroring the
-    // tunnel failure path that already called ReleaseBufferById and then lets the local pendingBuffer drop.
-    int32_t releaseCount = 0;
-    {
-        auto ownerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-        ownerCount->bufferId_ = 2;
-        ownerCount->bufferReleaseCb_ = [&releaseCount](uint64_t) { releaseCount++; };
-        ownerCount->ClearReleaseCallback();
-    }
-    EXPECT_EQ(releaseCount, 0);
-}
-
-/**
  * @tc.name: TryCommitTunnelLayerBufferDirect003
  * @tc.desc: Test reset tunnel info still lets normal consume release the last direct tunnel buffer.
  * @tc.type: FUNC

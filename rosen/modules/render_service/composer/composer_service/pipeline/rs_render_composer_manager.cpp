@@ -342,5 +342,22 @@ void RSRenderComposerManager::RegisterVsyncManagerCallbacks(ScreenId screenId,
     renderComposerAgent->SetVsyncManagerCallbacks(setHardwareTaskNumCb,
         setTaskEndWithTimeCb, getRealTimeOffsetOfDvsyncCb);
 }
+
+void RSRenderComposerManager::DumpVKImageInfo(std::string& dumpString)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("%s", __func__);
+    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        rsRenderComposerAgentMap = rsRenderComposerAgentMap_;
+    }
+    for (const auto& [id, renderComposerAgent] : rsRenderComposerAgentMap) {
+        if (renderComposerAgent == nullptr) {
+            RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
+            continue;
+        }
+        renderComposerAgent->DumpVKImageInfo(dumpString);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

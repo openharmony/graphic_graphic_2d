@@ -811,6 +811,50 @@ HWTEST_F(RSNodeTest2, AttachProperty, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSpatialEffectPara
+ * @tc.desc: test results of SetSpatialEffectPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetSpatialEffectPara, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::SPATIAL_EFFECT;
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetSpatialEffectPara(nullptr);
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    auto para = std::make_shared<SpatialEffectVariantPara>();
+    para->position = 1.0f;
+    rsNode->SetSpatialEffectPara(para);
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    auto& properties = rsNode->GetModifierCreatedBySetter(modifierType)->properties_;
+
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_DEPTH), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_TOP), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_TOP), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM), properties.end());
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT), properties.end());
+
+    para->position = SpatialEffectPara::CornerPositions();
+    rsNode->SetSpatialEffectPara(para);
+
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_DEPTH), properties.end());
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_TOP), properties.end());
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_TOP), properties.end());
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM), properties.end());
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM), properties.end());
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT), properties.end());
+
+    rsNode->SetSpatialEffectPara(nullptr);
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_DEPTH), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_TOP), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_TOP), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_LEFT_BOTTOM), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_RIGHT_BOTTOM), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SPATIAL_EFFECT_OCCLUSION_WEIGHT), properties.end());
+}
+
+/**
  * @tc.name: GetModifierCreatedBySetter
  * @tc.desc: test results of GetModifierCreatedBySetter
  * @tc.type: FUNC

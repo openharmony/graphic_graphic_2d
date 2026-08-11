@@ -37,12 +37,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingRecordCmdTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingRecordCmdTest::SetUpTestCase() {}
 void NativeDrawingRecordCmdTest::TearDownTestCase() {}
 void NativeDrawingRecordCmdTest::SetUp() {}
 void NativeDrawingRecordCmdTest::TearDown() {}

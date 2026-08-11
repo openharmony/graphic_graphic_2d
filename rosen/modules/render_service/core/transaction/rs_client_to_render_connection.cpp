@@ -30,7 +30,6 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/capture/rs_ui_capture.h"
@@ -177,11 +176,6 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
     if (toDelete) {
         auto token = iface_cast<RSIConnectionToken>(GetToken());
         renderPipelineAgent_->RemoveConnection(remotePid_, token);
-
-        auto appToken = renderPipelineAgent_->UnRegisterApplicationAgent(remotePid_);
-        if (appToken && appToken->AsObject() && applicationDeathRecipient_) {
-            appToken->AsObject()->RemoveDeathRecipient(applicationDeathRecipient_);
-        }
     }
 }
 
@@ -331,6 +325,22 @@ ErrCode RSClientToRenderConnection::RegisterApplicationAgent(uint32_t pid, sptr<
     renderPipelineAgent_->RegisterApplicationAgent(pid, app);
 
     app->AsObject()->AddDeathRecipient(applicationDeathRecipient_);
+    return ERR_OK;
+}
+
+ErrCode RSClientToRenderConnection::UnRegisterApplicationAgent()
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    auto pid = GetCallingPid();
+    RS_LOGI("RSClientToRenderConnection::UnRegisterApplicationAgent pid=[%{public}d]", pid);
+    // The agent is keyed on the client process pid on the server side, so resolve it by the calling pid.
+    sptr<IApplicationAgent> app =
+        renderPipelineAgent_->UnRegisterApplicationAgent(static_cast<uint32_t>(pid));
+    if (app != nullptr && app->AsObject() != nullptr && applicationDeathRecipient_ != nullptr) {
+        app->AsObject()->RemoveDeathRecipient(applicationDeathRecipient_);
+    }
     return ERR_OK;
 }
 // LCOV_EXCL_STOP
@@ -604,7 +614,7 @@ int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    return renderPipelineAgent_->SubmitCanvasPreAllocatedBuffer(remotePid_, nodeId, buffer, resetSurfaceIndex);
+    return renderPipelineAgent_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif
 

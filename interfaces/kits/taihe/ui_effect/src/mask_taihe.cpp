@@ -176,7 +176,10 @@ Mask CreateRadialGradientMask(uintptr_t center, double radiusX, double radiusY, 
 
     std::vector<float> colors;
     std::vector<float> positions;
-    ParseRadialGradientValues(gradients, colors, positions);
+    if (!ParseRadialGradientValues(gradients, colors, positions)) {
+        UIEFFECT_MASK_LOG_E("CreateRadialGradientMask ParseRadialGradientValues failed");
+        return make_holder<MaskImpl, Mask>(std::move(mask));
+    }
     radialGradientMaskPara->SetColors(std::move(colors));
     radialGradientMaskPara->SetPositions(std::move(positions));
 

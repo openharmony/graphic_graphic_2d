@@ -36,6 +36,7 @@ config("color_space_object_convertor_public_config") {
 if (current_os == "ohos") {
   ohos_shared_library("color_space_object_convertor") {
     branch_protector_ret = "pac_ret"
+    branch_protector_frt = "bti"
     public_configs = [ ":color_space_object_convertor_public_config" ]
     sources = [
       "color_space_object_convertor/color_space_object_convertor.cpp",
@@ -127,6 +128,7 @@ template("colorspacemanager_napi_source_set") {
 
   ohos_source_set(target_name) {
     branch_protector_ret = "pac_ret"
+    branch_protector_frt = "bti"
     sources = [
       "colorspacemanager_napi/color_space_manager_module.cpp",
       "colorspacemanager_napi/js_color_space_manager.cpp",
@@ -176,6 +178,7 @@ template("sendablecolorspacemanager_napi_source_set") {
 
   ohos_source_set(target_name) {
     branch_protector_ret = "pac_ret"
+    branch_protector_frt = "bti"
     sources = [
       "sendable_colorspacemanager_napi/js_sendable_color_space_manager.cpp",
       "sendable_colorspacemanager_napi/sendable_color_space_manager_module.cpp",
@@ -217,6 +220,7 @@ sendablecolorspacemanager_napi_source_set(
 if (current_os == "ohos") {
   ohos_shared_library("colorspacemanager_napi") {
     branch_protector_ret = "pac_ret"
+    branch_protector_frt = "bti"
 
     public_deps = [ ":colorspacemanager_napi_source" ]
     deps = [
@@ -229,6 +233,7 @@ if (current_os == "ohos") {
   }
   ohos_shared_library("sendablecolorspacemanager_napi") {
     branch_protector_ret = "pac_ret"
+    branch_protector_frt = "bti"
     sanitize = {
       cfi = true
       cfi_cross_dso = true

@@ -47,8 +47,12 @@ ohos_fuzztest("RSVKImageManagerFuzzTest") {
     "../../../../../modules/composer:libcomposer",
   ]
 
+  external_deps = [
+    "hilog:libhilog",
+  ]
+
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps = [
+    external_deps += [
       "sensor:sensor_interface_native",
       "egl:libEGL",
       "opengles:libGLES",

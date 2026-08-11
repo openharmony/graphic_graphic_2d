@@ -41,12 +41,7 @@ public:
     void TearDown() override;
 };
 
-void RsRenderComposerManagerTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void RsRenderComposerManagerTest::SetUpTestCase() {}
 void RsRenderComposerManagerTest::TearDownTestCase() {}
 void RsRenderComposerManagerTest::SetUp() {}
 void RsRenderComposerManagerTest::TearDown() {}
@@ -1355,6 +1350,117 @@ HWTEST_F(RsRenderComposerManagerTest, OnHwcDead_MultiThreadConcurrency_100Loops,
     EXPECT_EQ(successCount.load(), threadCount * loopCount);
 
     RSUniRenderJudgement::uniRenderEnabledType_ = originalType;
+}
+
+/**
+ * Function: DumpVKImageInfo_EmptyMap_NoCrash
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager with no screens connected
+ *                  2. call DumpVKImageInfo
+ *                  3. verify no crash when the agent map is empty (loop body never executes)
+ */
+HWTEST_F(RsRenderComposerManagerTest, DumpVKImageInfo_EmptyMap_NoCrash, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+    EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
+
+    std::string dumpString;
+    EXPECT_NO_FATAL_FAILURE(mgr->DumpVKImageInfo(dumpString));
+    EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
+}
+
+/**
+ * Function: DumpVKImageInfo_NullAgentInMap_Continue
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager
+ *                  2. manually insert nullptr agent into the map
+ *                  3. call DumpVKImageInfo
+ *                  4. verify early continue (if branch true: renderComposerAgent == nullptr)
+ */
+HWTEST_F(RsRenderComposerManagerTest, DumpVKImageInfo_NullAgentInMap_Continue, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+
+    // Manually insert nullptr agent into the map
+    mgr->rsRenderComposerAgentMap_.insert(std::pair(222u, nullptr));
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+
+    std::string dumpString = "initial";
+    // The if branch (renderComposerAgent == nullptr) is true: continue (skip)
+    EXPECT_NO_FATAL_FAILURE(mgr->DumpVKImageInfo(dumpString));
+    // dumpString should not be modified (nullptr agent is skipped)
+    EXPECT_EQ(dumpString, "initial");
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+}
+
+/**
+ * Function: DumpVKImageInfo_ValidAgentInMap_ForwardsCall
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager
+ *                  2. create RSRenderComposer and RSRenderComposerAgent, insert into map
+ *                  3. call DumpVKImageInfo
+ *                  4. verify call is forwarded (if branch false: renderComposerAgent != nullptr)
+ */
+HWTEST_F(RsRenderComposerManagerTest, DumpVKImageInfo_ValidAgentInMap_ForwardsCall, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+
+    // Create a valid composer and agent
+    auto output = std::make_shared<HdiOutput>(100u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    auto agent = std::make_shared<RSRenderComposerAgent>(composer);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    mgr->rsRenderComposerAgentMap_.insert({ 100u, agent });
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+
+    std::string dumpString;
+    // The if branch (renderComposerAgent == nullptr) is false: forwarded to agent
+    EXPECT_NO_FATAL_FAILURE(mgr->DumpVKImageInfo(dumpString));
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+}
+
+/**
+ * Function: DumpVKImageInfo_MixedNullAndValidAgents
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager
+ *                  2. insert both nullptr and valid agents into the map
+ *                  3. call DumpVKImageInfo
+ *                  4. verify null agent is skipped (if branch true) and valid agent is forwarded (if branch false)
+ */
+HWTEST_F(RsRenderComposerManagerTest, DumpVKImageInfo_MixedNullAndValidAgents, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+
+    // Insert a nullptr agent (if branch true: skipped via continue)
+    mgr->rsRenderComposerAgentMap_.insert({ 300u, nullptr });
+
+    // Insert a valid agent (if branch false: forwarded)
+    auto output = std::make_shared<HdiOutput>(301u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto composer = std::make_shared<RSRenderComposer>(output, property);
+    auto agent = std::make_shared<RSRenderComposerAgent>(composer);
+    mgr->rsRenderComposerAgentMap_.insert({ 301u, agent });
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 2u);
+
+    std::string dumpString;
+    // Both branches are exercised: nullptr is skipped, valid agent is forwarded
+    EXPECT_NO_FATAL_FAILURE(mgr->DumpVKImageInfo(dumpString));
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 2u);
 }
 } // namespace Rosen
 } // namespace OHOS

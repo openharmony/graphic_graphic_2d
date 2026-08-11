@@ -63,6 +63,7 @@ private:
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> previousFrameIlluminatedNodeMap_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyLightSourceList_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyIlluminatedList_;
+    NodeId logicalDisplayNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS

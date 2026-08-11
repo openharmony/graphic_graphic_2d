@@ -151,7 +151,6 @@ public:
     {
         return uiContextTokenList_;
     }
-    bool IsUIRenderDirectorStopped() const;
     void RemoveFromTree(bool skipTransition = false);
 
     virtual bool IsHardwareEnabledType() const
@@ -196,7 +195,7 @@ public:
     void PrepareSelfNodeForApplyModifiers();
     void PrepareChildrenForApplyModifiers();
     // if subtree dirty or child filter need prepare
-    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false);
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool SetAccumulatedClipFlag(bool clipChange);
@@ -540,7 +539,7 @@ public:
 
     std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
     std::shared_ptr<RSAnimationManager> GetOrCreateAnimationManager();
-    void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
+    bool AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void DestroyAnimationInRender();
     void DestroyColorPickerInRender();
 
@@ -1126,7 +1125,11 @@ public:
 
     void ReSortChildrenByZIndex();
 
-    void AccumulateParentGeoDirty();
+    virtual bool IsBufferDirty() const
+    {
+        return false;
+    }
+
 protected:
     void ResetDirtyStatus();
 
@@ -1309,6 +1312,8 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isForcePrepare_ = false;
     bool isParentTreeDirty_ = false;
+    // marks the node as "on the traversal path"
+    bool inTraversalPath_ = false;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> commandExecuted_ = false;

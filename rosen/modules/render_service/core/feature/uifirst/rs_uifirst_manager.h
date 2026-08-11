@@ -232,6 +232,7 @@ public:
         return subthreadProcessingNode_.count(id) > 0;
     }
 private:
+    bool IsRebuildForceDisable(const RSSurfaceRenderNode& node) const;
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;
         bool isFirst = true;

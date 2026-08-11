@@ -39,9 +39,6 @@ public:
 
 void RsSubThreadTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 }
 void RsSubThreadTest::TearDownTestCase()

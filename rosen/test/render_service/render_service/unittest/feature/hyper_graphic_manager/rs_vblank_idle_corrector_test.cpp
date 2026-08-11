@@ -17,6 +17,7 @@
 
 #include "hyper_graphic_manager/rs_vblank_idle_corrector.h"
 #include "hgm_core.h"
+#include "mock_hgm_frame_rate_manager.h"
 #include "screen_manager/rs_screen_manager.h"
 
 using namespace testing;
@@ -112,10 +113,12 @@ HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintTest, TestSize.Level1
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, 0);
 
     rsVBlankIdleCorrector->SetScreenVBlankIdle();
-    frameRateMgr->isAdaptive_ = SupportASStatus::SUPPORT_AS;
-    frameRateMgr->isGameNodeOnTree_ = true;
+    std::shared_ptr<Mock::MockHgmFrameRateManager> mock = std::make_shared<Mock::MockHgmFrameRateManager>();
+    EXPECT_CALL(*mock, AdaptiveStatus()).WillRepeatedly(testing::Return(SupportASStatus::SUPPORT_AS));
+    EXPECT_CALL(*mock, IsGameNodeOnTree()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*mock, IsNeedAdaptiveAfterUpdateMode()).WillRepeatedly(testing::Return(true));
+    hgmCore.hgmFrameRateMgr_ = mock;
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
-    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 1);
 
     hgmCore.hgmFrameRateMgr_ = nullptr;
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
@@ -129,4 +132,68 @@ HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintTest, TestSize.Level1
     frameRateMgr->isGameNodeOnTree_ = orgIsGameNodeOnTree;
 }
 #endif
+
+/**
+ * @tc.name: ProcessScreenConstraintAdaptiveModeTest
+ * @tc.desc: test RSVBlankIdleCorrector.ProcessScreenConstraint with adaptive mode branches (lines 62-66)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintAdaptiveModeTest, TestSize.Level1)
+{
+    auto rsVBlankIdleCorrector = std::make_shared<RSVBlankIdleCorrector>();
+    ASSERT_NE(rsVBlankIdleCorrector, nullptr);
+    auto screenManager = sptr<RSScreenManager>::MakeSptr();
+    ASSERT_NE(screenManager, nullptr);
+
+    HgmCore& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    RSScreenManager* orgScmFromHgm = hgmCore.GetScreenManager();
+    bool orgVBlankIdleCorrectSwitch = hgmCore.vBlankIdleCorrectSwitch_;
+    bool orgIsAdaptive = frameRateMgr->isAdaptive_;
+    bool orgIsGameNodeOnTree = frameRateMgr->isGameNodeOnTree_;
+    hgmCore.SetScreenManager(screenManager.GetRefPtr());
+
+    ScreenId id = frameRateMgr->GetCurScreenId();
+    uint64_t timestamp = 10;
+    uint64_t constraintTime = 10;
+
+    hgmCore.vBlankIdleCorrectSwitch_ = true;
+    rsVBlankIdleCorrector->SetScreenVBlankIdle();
+
+    frameRateMgr->isAdaptive_ = SupportASStatus::SUPPORT_AS;
+    frameRateMgr->isGameNodeOnTree_ = true;
+    rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
+    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 1);
+
+    frameRateMgr->isAdaptive_ = SupportASStatus::NOT_SUPPORT;
+    frameRateMgr->isGameNodeOnTree_ = true;
+    rsVBlankIdleCorrector->SetScreenVBlankIdle();
+    rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
+    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 1);
+
+    frameRateMgr->isAdaptive_ = SupportASStatus::SUPPORT_AS;
+    frameRateMgr->isGameNodeOnTree_ = false;
+    rsVBlankIdleCorrector->SetScreenVBlankIdle();
+    rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
+    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 1);
+
+    frameRateMgr->isAdaptive_ = SupportASStatus::NOT_SUPPORT;
+    frameRateMgr->isGameNodeOnTree_ = false;
+    rsVBlankIdleCorrector->SetScreenVBlankIdle();
+    rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
+    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 1);
+
+    frameRateMgr->isAdaptive_ = SupportASStatus::GAME_SCENE_SKIP;
+    frameRateMgr->isGameNodeOnTree_ = true;
+    rsVBlankIdleCorrector->SetScreenVBlankIdle();
+    rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
+    EXPECT_EQ(rsVBlankIdleCorrector->idleFrameCount_, 1);
+
+    hgmCore.vBlankIdleCorrectSwitch_ = orgVBlankIdleCorrectSwitch;
+    hgmCore.SetScreenManager(orgScmFromHgm);
+    hgmCore.hgmFrameRateMgr_ = frameRateMgr;
+    frameRateMgr->isAdaptive_ = orgIsAdaptive;
+    frameRateMgr->isGameNodeOnTree_ = orgIsGameNodeOnTree;
+}
 } // namespace OHOS::Rosen

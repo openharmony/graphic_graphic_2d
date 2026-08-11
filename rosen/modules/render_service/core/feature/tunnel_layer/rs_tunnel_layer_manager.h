@@ -52,18 +52,13 @@ private:
     std::shared_ptr<RSContext> GetContext() const;
     std::shared_ptr<RSSurfaceRenderNode> GetSurfaceNode(NodeId nodeId) const;
     bool HandleLppTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId) const;
-    void ResetTunnelLayerState(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     void HandleNewTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId);
     void ProcessLayerStateChanged(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId,
         LayerStateChange state, uint64_t tunnelLayerGeneration, const sptr<IConsumerSurface>& consumer);
-    void UpdateLayerStateLog(NodeId nodeId, LayerStateChange callbackState, LayerStateChange inputState,
-        bool isTunnelStateTracked);
     void DispatchLayerStateChanged(
         NodeId nodeId, LayerStateChange state, const sptr<IConsumerSurface>& callbackConsumer) const;
 
     std::weak_ptr<RSContext> context_;
-    std::unordered_map<NodeId, LayerStateChange> lastNotifiedLayerStates_;
 };
 } // namespace Rosen
 } // namespace OHOS

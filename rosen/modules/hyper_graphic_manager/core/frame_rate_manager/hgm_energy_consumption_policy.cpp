@@ -17,13 +17,14 @@
 
 #include <functional>
 
-#include "common/rs_common_hook.h"
 #include "hgm_core.h"
 #include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
 #include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
 #include "xml_parser.h"
+
+#include "common/rs_common_hook.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -158,7 +159,7 @@ void HgmEnergyConsumptionPolicy::StatisticAnimationTime(const std::unordered_map
 void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::unordered_map<std::string, std::string>& commonData)
 {
     auto componentIter = commonData.find("COMPONENT_NAME");
-    std::string componentName;
+    std::string componentName = "";
     if (componentIter != commonData.end()) {
         componentName = componentIter->second;
     }

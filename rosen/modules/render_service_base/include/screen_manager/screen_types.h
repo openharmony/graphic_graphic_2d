@@ -28,6 +28,7 @@ using ScreenId = uint64_t;
 using ScreenPhysicalId = uint32_t;
 
 constexpr ScreenId INVALID_SCREEN_ID = ~(static_cast<ScreenId>(0));
+constexpr ScreenId NONE_PHYSICAL_SCREEN_ID = ~(static_cast<ScreenId>(0)) - 1;
 
 constexpr int32_t INVALID_BACKLIGHT_VALUE = -1;
 
@@ -151,6 +152,7 @@ typedef enum : uint32_t {
     COLOR_GAMUT_BT2100_PQ,
     COLOR_GAMUT_BT2100_HLG,
     COLOR_GAMUT_DISPLAY_BT2020,
+    COLOR_GAMUT_BUTT,  /**< Boundary value for valid enums, new entries MUST be added above this line */
 } ScreenColorGamut;
 
 typedef enum : uint32_t {
@@ -169,6 +171,8 @@ typedef enum : uint32_t {
     IMAGE_HDR_VIVID_SINGLE,
     IMAGE_HDR_ISO_DUAL,
     IMAGE_HDR_ISO_SINGLE,
+    VIDEO_AIHDR,
+    SCREEN_HDR_FORMAT_BUTT,  /**< Boundary value for valid enums, new entries MUST be added above this line */
 } ScreenHDRFormat;
 
 typedef enum : uint32_t {

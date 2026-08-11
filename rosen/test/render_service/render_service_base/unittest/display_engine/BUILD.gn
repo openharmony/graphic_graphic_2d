@@ -53,6 +53,7 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
     "googletest:gmock_main",
     "googletest:gtest_main",
     "graphic_surface:surface",
+    "hilog:libhilog",
     "image_framework:image_native",
     "init:libbegetutil",
     "ipc:ipc_core",
@@ -110,6 +111,7 @@ ohos_unittest("RSBacklightThreadTest") {
   external_deps = [
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "hilog:libhilog",
   ]
 
   subsystem_name = "graphic"

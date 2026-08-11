@@ -106,7 +106,12 @@ public:
     void OnDestoryTokenNode();
  
     bool IsBufferDraw();
- 
+
+    bool IsBufferDirty() const override
+    {
+        return bufferDirty_;
+    }
+
     static bool IsHybridEnabled();
 #endif // RS_MODIFIERS_DRAW_ENABLE
 
@@ -166,6 +171,7 @@ private:
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
     bool sizeOutOfGpuLimit_ = false;
     bool firstBufferAcquired_ = false;
+    bool bufferDirty_ = false;
 #endif
 
     friend class RSCanvasDrawingNodeCommandHelper;

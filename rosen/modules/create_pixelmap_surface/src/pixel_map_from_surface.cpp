@@ -518,10 +518,13 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
 {
 #if defined(RS_ENABLE_VK)
     ScopedBytrace trace1(__func__);
-    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
+    auto renderContext = RSBackgroundThread::Instance().GetRenderContext();
+    if (renderContext == nullptr) {
+        RS_LOGE("DrawImageRectVK renderContext is null");
         return false;
     }
     Drawing::BackendTexture backendTextureTmp = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
         nativeWindowBufferTmp, surfaceBufferTmp->GetWidth(), surfaceBufferTmp->GetHeight());
     if (!backendTextureTmp.IsValid()) {
         return false;
@@ -531,11 +534,10 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         return false;
     }
     vkTextureInfo->imageUsageFlags = vkTextureInfo->imageUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    auto cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+
+    auto cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
+        RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
         vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
-    if (cleanUpHelper == nullptr) {
-        return false;
-    }
     std::shared_ptr<Drawing::Surface> drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         RSBackgroundThread::Instance().GetShareGPUContext().get(),
         backendTextureTmp.GetTextureInfo(),
@@ -564,11 +566,14 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
 {
 #if defined(RS_ENABLE_VK) && defined(RS_ENABLE_UNI_RENDER)
     ScopedBytrace trace(__func__);
-    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
+    auto renderContext = RSBackgroundThread::Instance().GetRenderContext();
+    if (renderContext == nullptr) {
+        RS_LOGE("CreateDrawingImage renderContext is null");
         return nullptr;
     }
-    backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-        surfaceBuffer_->GetWidth(), surfaceBuffer_->GetHeight());
+    backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
+        nativeWindowBuffer_, surfaceBuffer_->GetWidth(), surfaceBuffer_->GetHeight());
     if (!backendTexture_.IsValid()) {
         RS_LOGE("make backendTexture fail");
         return nullptr;
@@ -580,13 +585,9 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
     }
 
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper =
-        new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
-    if (!cleanUpHelper) {
-        RS_LOGE("make cleanUpHelper fail");
-        return nullptr;
-    }
-
+        new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
+            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     Drawing::BitmapFormat bitmapFormat = { GetColorTypeFromVKFormat(vkTextureInfo->format),
         Drawing::AlphaType::ALPHATYPE_PREMUL };
     std::shared_ptr<Drawing::Image> drawingImage = std::make_shared<Drawing::Image>();

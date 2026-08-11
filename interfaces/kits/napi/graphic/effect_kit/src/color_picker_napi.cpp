@@ -445,7 +445,11 @@ bool ColorPickerNapi::ProcessCallbackAndCoordinates(napi_env env, napi_value* ar
             asyncContext->regionFlag = true;
         }
         if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[argCount - 1]) == napi_function) {
-            napi_create_reference(env, argValue[argCount - 1], refCount, &asyncContext->callbackRef);
+            auto ret = napi_create_reference(env, argValue[argCount - 1], refCount, &asyncContext->callbackRef);
+            if (ret != napi_ok) {
+                EFFECT_LOG_E("failed to create callback reference");
+                return false;
+            }
         }
     }
     if (asyncContext->callbackRef == nullptr) {
@@ -626,18 +630,26 @@ napi_value BuildJsColor(napi_env env, ColorManager::Color& color)
     int colorBlue = static_cast<int>(std::clamp(color.b * 255.0f, 0.0f, 255.0f));
     int colorAlpha = static_cast<int>(std::clamp(color.a * 255.0f, 0.0f, 255.0f));
 
-    napi_create_int32(env, colorRed, &clrRed);
-    napi_set_named_property(env, result, "red", clrRed);
-
-    napi_create_int32(env, colorGreen, &clrGreen);
-    napi_set_named_property(env, result, "green", clrGreen);
-
-    napi_create_int32(env, colorBlue, &clrBlue);
-    napi_set_named_property(env, result, "blue", clrBlue);
-    
-    napi_create_int32(env, colorAlpha, &clrAlpha);
-    napi_set_named_property(env, result, "alpha", clrAlpha);
-
+    if (napi_create_int32(env, colorRed, &clrRed) != napi_ok ||
+        napi_set_named_property(env, result, "red", clrRed) != napi_ok) {
+        EFFECT_LOG_E("BuildJsColor create colorRed fail");
+        return nullptr;
+    }
+    if (napi_create_int32(env, colorGreen, &clrGreen) != napi_ok ||
+        napi_set_named_property(env, result, "green", clrGreen) != napi_ok) {
+        EFFECT_LOG_E("BuildJsColor create colorGreen fail");
+        return nullptr;
+    }
+    if (napi_create_int32(env, colorBlue, &clrBlue) != napi_ok ||
+        napi_set_named_property(env, result, "blue", clrBlue) != napi_ok) {
+        EFFECT_LOG_E("BuildJsColor create colorBlue fail");
+        return nullptr;
+    }
+    if (napi_create_int32(env, colorAlpha, &clrAlpha) != napi_ok ||
+        napi_set_named_property(env, result, "alpha", clrAlpha) != napi_ok) {
+        EFFECT_LOG_E("BuildJsColor create colorAlpha fail");
+        return nullptr;
+    }
     return result;
 }
 
@@ -1058,7 +1070,9 @@ napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_i
     status = napi_get_undefined(env, &undefinedValue);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && undefinedValue != nullptr, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors get undefined fail"));
-    napi_create_array_with_length(env, std::max(1u, static_cast<uint32_t>(colors.size())), &arrayValue);
+    status = napi_create_array_with_length(env, std::max(1u, static_cast<uint32_t>(colors.size())), &arrayValue);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && arrayValue != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors create array fail"));
     for (uint32_t i = 0; i < std::max(1u, static_cast<uint32_t>(colors.size())); ++i) {
         napi_value colorValue = undefinedValue;
         if (i < colors.size()) {

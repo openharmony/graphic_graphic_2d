@@ -1017,4 +1017,180 @@ HWTEST_F(RSRenderNodeMapTest, RegisterUnTreeNodeExceedLimit, TestSize.Level1)
     EXPECT_EQ(rsRenderNodeMap.unInTreeNodeSet_.find(extraId), rsRenderNodeMap.unInTreeNodeSet_.end());
 }
 #endif
+
+/**
+ * @tc.name: AddPendingUIBufferEntryTest001
+ * @tc.desc: Cover branch: leashParent is LeashWindow, entry added to map.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr NodeId leashId = 1;
+    constexpr NodeId appId = 2;
+    RSSurfaceRenderNodeConfig leashCfg = { .id = leashId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
+    RSSurfaceRenderNodeConfig appCfg = { .id = appId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
+    leashNode->AddChild(appNode);
+    rsRenderNodeMap.AddPendingUIBufferEntry(appNode);
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(appId));
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(appId), leashId);
+}
+
+/**
+ * @tc.name: AddPendingUIBufferEntryTest002
+ * @tc.desc: Cover branch: parent is not LeashWindow, no entry added.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, AddPendingUIBufferEntryTest002, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr NodeId appId = 2;
+    RSSurfaceRenderNodeConfig appCfg = { .id = appId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
+    rsRenderNodeMap.AddPendingUIBufferEntry(appNode);
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(appId));
+}
+
+/**
+ * @tc.name: HasPendingUIBufferEntryTest001
+ * @tc.desc: Cover branch: entry exists, returns true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, HasPendingUIBufferEntryTest001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    rsRenderNodeMap.hasDestoryRebuildAppWindowMap_[2] = 1;
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(2));
+}
+
+/**
+ * @tc.name: HasPendingUIBufferEntryTest002
+ * @tc.desc: Cover branch: entry does not exist, returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, HasPendingUIBufferEntryTest002, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(999));
+}
+
+/**
+ * @tc.name: RemovePendingUIBufferEntryTest001
+ * @tc.desc: Cover branch: existing entry removed.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, RemovePendingUIBufferEntryTest001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    rsRenderNodeMap.hasDestoryRebuildAppWindowMap_[2] = 1;
+    rsRenderNodeMap.RemovePendingUIBufferEntry(2);
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(2));
+}
+
+/**
+ * @tc.name: GetPendingUIBufferLeashIdTest001
+ * @tc.desc: Cover branch: entry exists, returns stored leashId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, GetPendingUIBufferLeashIdTest001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    rsRenderNodeMap.hasDestoryRebuildAppWindowMap_[2] = 10;
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(2), 10u);
+}
+
+/**
+ * @tc.name: GetPendingUIBufferLeashIdTest002
+ * @tc.desc: Cover branch: entry not found, returns INVALID_NODEID.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, GetPendingUIBufferLeashIdTest002, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(999), INVALID_NODEID);
+}
+
+/**
+ * @tc.name: GetPendingUIBufferAppWindowsByLeashIdTest001
+ * @tc.desc: Cover branch: matching entries found.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, GetPendingUIBufferAppWindowsByLeashIdTest001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    rsRenderNodeMap.hasDestoryRebuildAppWindowMap_[10] = 1;
+    rsRenderNodeMap.hasDestoryRebuildAppWindowMap_[11] = 1;
+    rsRenderNodeMap.hasDestoryRebuildAppWindowMap_[12] = 2;
+    auto result = rsRenderNodeMap.GetPendingUIBufferAppWindowsByLeashId(1);
+    EXPECT_EQ(result.size(), 2u);
+}
+
+/**
+ * @tc.name: GetPendingUIBufferAppWindowsByLeashIdTest002
+ * @tc.desc: Cover branch: no matching entries, returns empty.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, GetPendingUIBufferAppWindowsByLeashIdTest002, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    auto result = rsRenderNodeMap.GetPendingUIBufferAppWindowsByLeashId(999);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: DestroyTokenNodeTest001
+ * @tc.desc: Cover branch: RootNode under AppWindow under LeashWindow, entry added.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeTest001, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId appNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId leashNodeId = (static_cast<NodeId>(pid) << 32) | 2;
+    constexpr NodeId rootNodeId = (static_cast<NodeId>(pid) << 32) | 3;
+    RSSurfaceRenderNodeConfig leashCfg = { .id = leashNodeId, .nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE };
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashCfg);
+    RSSurfaceRenderNodeConfig appCfg = { .id = appNodeId, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
+    auto rootNode = std::make_shared<RSRootRenderNode>(rootNodeId);
+    appNode->SetUIContextToken(token);
+    rootNode->SetUIContextToken(token);
+    leashNode->AddChild(appNode);
+    appNode->AddChild(rootNode);
+    rsRenderNodeMap.RegisterRenderNode(appNode);
+    rsRenderNodeMap.RegisterRenderNode(rootNode);
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+    EXPECT_TRUE(appNode->HasDestoryRebuild());
+    EXPECT_TRUE(rsRenderNodeMap.HasPendingUIBufferEntry(appNodeId));
+    EXPECT_EQ(rsRenderNodeMap.GetPendingUIBufferLeashId(appNodeId), leashNodeId);
+}
+
+/**
+ * @tc.name: DestroyTokenNodeTest002
+ * @tc.desc: Cover branch: RootNode parent is not AppWindow, no entry added.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeTest002, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId nonAppNodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    constexpr NodeId rootNodeId = (static_cast<NodeId>(pid) << 32) | 2;
+    RSSurfaceRenderNodeConfig cfg = { .id = nonAppNodeId, .nodeType = RSSurfaceNodeType::DEFAULT };
+    auto nonAppNode = std::make_shared<RSSurfaceRenderNode>(cfg);
+    auto rootNode = std::make_shared<RSRootRenderNode>(rootNodeId);
+    nonAppNode->SetUIContextToken(token);
+    rootNode->SetUIContextToken(token);
+    nonAppNode->AddChild(rootNode);
+    rsRenderNodeMap.RegisterRenderNode(nonAppNode);
+    rsRenderNodeMap.RegisterRenderNode(rootNode);
+    rsRenderNodeMap.DestroyTokenNode(pid, token);
+    EXPECT_FALSE(rsRenderNodeMap.HasPendingUIBufferEntry(nonAppNodeId));
+}
+
 } // namespace OHOS::Rosen

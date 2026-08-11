@@ -33,7 +33,8 @@ public:
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
-    static napi_value SamplingOptionsTransferDynamic(napi_env env, napi_callback_info info);
+    static napi_value CreateJsSamplingOptionsDynamic(
+        napi_env env, const std::shared_ptr<SamplingOptions> samplingOptions);
 
     std::shared_ptr<SamplingOptions> GetSamplingOptions()
     {
@@ -41,8 +42,6 @@ public:
     }
 
 private:
-    static napi_value CreateJsSamplingOptionsDynamic(
-        napi_env env, const std::shared_ptr<SamplingOptions> samplingOptions);
     static thread_local napi_ref constructor_;
 
     std::shared_ptr<SamplingOptions> m_samplingOptions = nullptr;

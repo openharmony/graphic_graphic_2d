@@ -30,7 +30,8 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
         releaseLayerBuffersCB_(releaseLayerInfo);
     }
     if (FrameReport::GetInstance().HasGameScene()) {
-        RS_LOGD("[game_accelerate_schedule] RSComposerToRenderConnection lastSwapBufferTime %{public}" PRId64,
+        RS_LOGD_IF(DEBUG_COMPOSER,
+            "[game_accelerate_schedule] RSComposerToRenderConnection lastSwapBufferTime %{public}" PRId64,
             releaseLayerInfo.lastSwapBufferTime / 1000);
         FrameReport::GetInstance().SetLastSwapBufferTime(releaseLayerInfo.lastSwapBufferTime);
     }
@@ -45,7 +46,7 @@ void RSComposerToRenderConnection::RegisterReleaseLayerBuffersCB(ReleaseLayerBuf
 int32_t RSComposerToRenderConnection::NotifyLppLayerToRender(
     uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds)
 {
-    RS_LOGD("%s", __func__);
+    RS_LOGD_IF(DEBUG_COMPOSER, "%s", __func__);
     if (judgeLppLayerCB_ != nullptr) {
         judgeLppLayerCB_(vsyncId, lppNodeIds);
     }
@@ -60,7 +61,7 @@ void RSComposerToRenderConnection::RegisterJudgeLppLayerCB(JudgeLppLayerCB callb
 int32_t RSComposerToRenderConnection::NotifyLayerStateChangedToRender(
     uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration)
 {
-    RS_LOGD("%{public}s, nodeId:%{public}" PRIu64 ", state:%{public}u, generation:%{public}" PRIu64,
+    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s, nodeId:%{public}" PRIu64 ", state:%{public}u, generation:%{public}" PRIu64,
         __func__, nodeId, static_cast<uint32_t>(state), tunnelLayerGeneration);
     if (layerStateChangedCB_ != nullptr) {
         layerStateChangedCB_(nodeId, state, tunnelLayerGeneration);

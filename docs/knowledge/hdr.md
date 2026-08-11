@@ -206,7 +206,7 @@ HDR 视频渲染线程绘制部分只在需要走 GPU 绘制时执行，包括�
 
 如果 HDR 视频可以走 HWC，则不需要使用离屏渲染，渲染线程也不需要 GPU 绘制。
 
-HWC 禁用的触发条件（详见 `hwc-prevalidate.md`）：
+HWC 禁用的触发条件：
 - HDR 内容需要走 GPU 绘制时会禁用 HWC，例如 HDR 图片
 - 此时 `SetHasUniRenderHdrSurface` 会被设置为 true
 - HWC 逻辑中通过 `GetHasUniRenderHdrSurface()` 来判断是否禁用 HWC
@@ -372,7 +372,6 @@ HWC 禁用的触发条件（详见 `hwc-prevalidate.md`）：
 ## 相关文档
 
 - `colorspace.md`：颜色空间定义与转换
-- `hwc-prevalidate.md`：HWC 预校验与禁用逻辑
 
 ## 待补充背景
 

@@ -288,15 +288,12 @@ bool BootAnimationOperation::InitRsVulkanCtx()
             return false;
         } else {
             rc->Init();
-            //Init gpu context
-            rc->SetUpGpuContext();
             auto gpuContext = rc->GetSharedDrGPUContext();
             if (gpuContext == nullptr) {
                 LOGE("get vulkan gpu context failed");
                 return false;
             }
 
-            rsSurface_->SetSkContext(gpuContext);
             rsSurface_->SetRenderContext(rc);
             LOGI("init vulkan context success");
         }

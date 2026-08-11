@@ -98,9 +98,10 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
         Occlusion::Region surfaceVisibleDirtyRegion =
             surfaceCurrentAdvancedDirtyRegion.And(visibleRegion);
         std::vector<RectI> refreshRects = surfaceVisibleDirtyRegion.GetRegionRectIs();
+        RectI absDrawRect = surfaceParams->GetAbsDrawRect();
         refreshRects.emplace_back(surfaceDirtyManager->GetHwcDirtyRegion());
         RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
-            surfaceNodeDrawable->GetId(), refreshRects, screenInfo.width * screenInfo.height);
+            surfaceNodeDrawable->GetId(), refreshRects, absDrawRect.GetWidth() * absDrawRect.GetHeight());
     }
     auto screenDirtyManager = screenDrawable.GetSyncDirtyManager();
     if (screenDirtyManager == nullptr) {

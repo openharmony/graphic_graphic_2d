@@ -159,7 +159,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvasAndGetSurface001, TestSize.Level1)
     auto renderContextTest1 = std::make_shared<RenderContextGL>();
     std::shared_ptr<Drawing::GPUContext> drGPUContextTest1 = std::make_shared<Drawing::GPUContext>();
     EXPECT_NE(drGPUContextTest1, nullptr);
-    renderContextTest1->SetDrGPUContext(drGPUContextTest1);
+    renderContextTest1->drGPUContext_ = drGPUContextTest1;
     rsSurfaceTest1.renderContext_ = renderContextTest1;
     EXPECT_EQ(rsSurfaceTest1.GetCanvas(), NULL);
     std::shared_ptr<Drawing::Surface> surface = std::make_shared<Drawing::Surface>();
@@ -172,7 +172,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvasAndGetSurface001, TestSize.Level1)
     auto renderContextTest2 = std::make_shared<RenderContextGL>();
     std::shared_ptr<Drawing::GPUContext> drGPUContextTest2 = std::make_shared<Drawing::GPUContext>();
     EXPECT_NE(drGPUContextTest2, nullptr);
-    renderContextTest2->SetDrGPUContext(drGPUContextTest2);
+    renderContextTest2->drGPUContext_ = drGPUContextTest2;
     rsSurfaceTest2.renderContext_ = renderContextTest2;
     EXPECT_EQ(rsSurfaceTest2.GetSurface(), nullptr);
     rsSurfaceTest2.surface_ = surface;

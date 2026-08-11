@@ -69,6 +69,7 @@ class RSUseEffectRenderModifier;
 }
 
 struct DrawCmdIndex {
+    int8_t maskIndex_                   = -1;
     int8_t transitionIndex_            = -1;
     int8_t envForeGroundColorIndex_    = -1;
     int8_t colorPickerIndex_           = -1;
@@ -145,6 +146,7 @@ enum class DrawSkipType : uint8_t {
     SCREEN_FREEZE = 36,
     BACKFACE_SKIP = 37,
     MEMORYOVER_SKIP = 38,
+    REBUILDING_SKIP = 39,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {

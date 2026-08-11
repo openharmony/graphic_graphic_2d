@@ -20,7 +20,6 @@
 #include "ffrt_inner.h"
 #include "hisysevent.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_unmarshal_task_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction_data.h"
@@ -136,7 +135,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     bool unmarshalParallel = RSSystemProperties::GetUnmarshalParallelEnabled() &&
                              parcel->GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize();
     RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
-        ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() {
+        ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() mutable {
         RSMarshallingHelper::SetCallingPid(callingPid);
         AshmemFdContainer::SetIsUnmarshalThread(true);
         if (ashmemFdWorker) {
@@ -149,7 +148,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (ashmemFdWorker) {
             // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
             parcel->FlushBuffer();
-            ashmemFdWorker->EnableManualCloseFds();
+            ashmemFdWorker.reset();
         }
         if (!transData) {
             return;

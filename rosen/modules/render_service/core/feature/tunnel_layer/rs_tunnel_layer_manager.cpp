@@ -77,7 +77,7 @@ void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     // the HasReceivedTunnelLayerInfo check above since they set layer info via HandleLppTunnelLayerId
     // rather than OnTunnelLayerInfoChanged. This avoids the per-frame store mutex + entry creation
     // for the common case of ordinary surfaces going through the normal consume path every frame.
-    auto* tunnelRuntime = RSTunnelRuntimeStore::TryGet(surfaceNode->GetId());
+    auto tunnelRuntime = RSTunnelRuntimeStore::TryGet(surfaceNode->GetId());
     if (tunnelRuntime == nullptr ||
         tunnelRuntime->GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
         return;
@@ -109,7 +109,6 @@ void RSTunnelLayerManager::ClearRuntimeStateByPid(pid_t remotePid)
     context->GetMutableNodeMap().TraverseSurfaceNodes([this, remotePid](const auto& surfaceNode) {
         if (surfaceNode != nullptr && ExtractPid(surfaceNode->GetId()) == remotePid) {
             RSTunnelRuntimeStore::Clear(surfaceNode->GetId());
-            lastNotifiedLayerStates_.erase(surfaceNode->GetId());
         }
     });
 }
@@ -131,6 +130,9 @@ std::shared_ptr<RSSurfaceRenderNode> RSTunnelLayerManager::GetSurfaceNode(NodeId
 void RSTunnelLayerManager::UpdateTunnelLayerState(
     NodeId nodeId, const std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
 {
+    if (surfaceHandler == nullptr) {
+        return;
+    }
     if (HandleLppTunnelLayerId(surfaceHandler, nodeId)) {
         return;
     }
@@ -178,21 +180,6 @@ bool RSTunnelLayerManager::HandleLppTunnelLayerId(
         TUNNEL_DEBUG_PREFIX, __func__, newTunnelLayerId);
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s lpp surfaceid=%" PRIu64, __func__, newTunnelLayerId);
     return true;
-}
-
-void RSTunnelLayerManager::ResetTunnelLayerState(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
-{
-    uint64_t tunnelLayerId = 0;
-    uint32_t tunnelLayerProperty = TUNNEL_PROP_INVALID;
-    RSTunnelRuntimeStore::GetLayerInfoOrDefault(surfaceNode->GetId(), tunnelLayerId, tunnelLayerProperty);
-    if (tunnelLayerId != 0) {
-        auto tunnelLayerGeneration = RSTunnelRuntimeStore::GetTunnelLayerGeneration(surfaceNode->GetId());
-        ProcessLayerStateChanged(surfaceHandler, surfaceNode->GetId(), LayerStateChange::UNAVAILABLE,
-            tunnelLayerGeneration, surfaceHandler->GetConsumer());
-        return;
-    }
-    RSTunnelLayerHelper::ResetTunnelState(surfaceNode);
 }
 
 void RSTunnelLayerManager::HandleNewTunnelLayerId(
@@ -305,32 +292,9 @@ void RSTunnelLayerManager::ProcessLayerStateChanged(const std::shared_ptr<RSSurf
         RS_LOGD("%{public}s%{public}s tunnel reset, nodeId:%{public}" PRIu64,
             TUNNEL_DEBUG_PREFIX, __func__, nodeId);
     }
-    if (callbackConsumer != nullptr && shouldDispatch) {
-        UpdateLayerStateLog(nodeId, callbackState, state, isTunnelStateTracked);
-    }
     if (shouldDispatch) {
         DispatchLayerStateChanged(nodeId, callbackState, callbackConsumer);
     }
-}
-
-void RSTunnelLayerManager::UpdateLayerStateLog(NodeId nodeId, LayerStateChange callbackState,
-    LayerStateChange inputState, bool isTunnelStateTracked)
-{
-    auto iter = lastNotifiedLayerStates_.find(nodeId);
-    bool stateChanged = iter == lastNotifiedLayerStates_.end() || iter->second != callbackState;
-    if (!stateChanged) {
-        return;
-    }
-    const char* previousState = iter == lastNotifiedLayerStates_.end() ? "NONE" :
-        ToLayerStateChangeName(iter->second);
-    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s nodeId:%" PRIu64 ", state:%s -> %s, input:%s, tracked:%d",
-        __func__, nodeId, previousState, ToLayerStateChangeName(callbackState),
-        ToLayerStateChangeName(inputState), isTunnelStateTracked);
-    RS_LOGD("%{public}s%{public}s nodeId:%{public}" PRIu64
-        ", state:%{public}s -> %{public}s, input:%{public}s, tracked:%{public}d",
-        TUNNEL_DEBUG_PREFIX, __func__, nodeId, previousState, ToLayerStateChangeName(callbackState),
-        ToLayerStateChangeName(inputState), isTunnelStateTracked);
-    lastNotifiedLayerStates_[nodeId] = callbackState;
 }
 
 void RSTunnelLayerManager::DispatchLayerStateChanged(

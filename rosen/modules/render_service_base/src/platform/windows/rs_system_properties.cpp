@@ -369,7 +369,7 @@ bool RSSystemProperties::GetKawaseEnabled()
 
 void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 {
-    forceHpsBlurDisabled_ = flag;
+    forceHpsBlurDisabled_.store(flag);
 }
 
 bool RSSystemProperties::GetHpsBlurEnabled()
@@ -792,11 +792,6 @@ bool RSSystemProperties::GetAIBarDirectCompositeFullEnabled()
 bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
 {
     return false;
-}
-
-bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
-{
-    return {};
 }
 
 bool RSSystemProperties::GetGpuDirtyApsEnabled()

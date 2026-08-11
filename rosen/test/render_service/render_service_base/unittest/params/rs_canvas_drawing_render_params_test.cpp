@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "limit_number.h"
+#include "iconsumer_surface.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -141,4 +142,68 @@ HWTEST_F(RSCanvasDrawingRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest,
     renderParams->SetCanvasDrawingResetSurfaceIndex(2);
     ASSERT_TRUE(renderParams->NeedSync());
 }
+
+/**
+ * @tc.name: OnSync_TargetParamsNullptrTest
+ * @tc.desc: Test OnSync when target unique_ptr is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderParamsTest, OnSync_TargetParamsNullptrTest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    auto source = std::make_unique<RSCanvasDrawingRenderParams>(id);
+    // Target is nullptr, static_cast yields nullptr, early return prevents RSRenderParams::OnSync
+    std::unique_ptr<RSRenderParams> target = nullptr;
+    source->canvasDrawingNodeSurfaceChanged_ = true;
+    source->canvasDrawingResetSurfaceIndex_ = 5;
+    source->OnSync(target);
+    ASSERT_TRUE(source->canvasDrawingNodeSurfaceChanged_);
+}
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: SetAndGetConsumerSurfaceTest
+ * @tc.desc: Test SetConsumerSurface and GetConsumerSurface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderParamsTest, SetAndGetConsumerSurfaceTest, TestSize.Level2)
+{
+    constexpr NodeId id = 1;
+    auto renderParams = std::make_unique<RSCanvasDrawingRenderParams>(id);
+    ASSERT_EQ(renderParams->GetConsumerSurface(), nullptr);
+    renderParams->SetConsumerSurface(nullptr);
+    ASSERT_EQ(renderParams->GetConsumerSurface(), nullptr);
+}
+
+/**
+ * @tc.name: OnSync_ConsumerSurfaceSkipTest
+ * @tc.desc: Test OnSync skips consumerSurface sync when consumerSurface is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderParamsTest, OnSync_ConsumerSurfaceSkipTest, TestSize.Level2)
+{
+    constexpr NodeId id = 1;
+    auto source = std::make_unique<RSCanvasDrawingRenderParams>(id);
+    auto target = std::make_unique<RSCanvasDrawingRenderParams>(id + 1);
+    source->SetBufferDraw(true);
+    source->OnSync(target);
+    ASSERT_EQ(target->GetConsumerSurface(), nullptr);
+}
+
+/**
+ * @tc.name: OnSync_ConsumerSurfaceSyncTest
+ * @tc.desc: Test OnSync syncs consumerSurface when consumerSurface is non-null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderParamsTest, OnSync_ConsumerSurfaceSyncTest, TestSize.Level2)
+{
+    constexpr NodeId id = 1;
+    auto source = std::make_unique<RSCanvasDrawingRenderParams>(id);
+    auto target = std::make_unique<RSCanvasDrawingRenderParams>(id + 1);
+    auto consumerSurface = IConsumerSurface::Create("TestConsumer");
+    source->SetConsumerSurface(consumerSurface);
+    source->OnSync(target);
+    ASSERT_EQ(target->GetConsumerSurface(), consumerSurface);
+}
+#endif // RS_MODIFIERS_DRAW_ENABLE
 } // namespace OHOS::Rosen
