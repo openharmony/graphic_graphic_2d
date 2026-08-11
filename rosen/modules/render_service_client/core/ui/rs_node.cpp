@@ -4703,11 +4703,11 @@ std::string RSCmdModifierTypeToString(RSCmdModifierType type)
 void RSNode::DumpRSCmdModifiers(std::string& out) const
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    if (rsCmdModifiers_.empty()) {
+    if (rsCmdModifiers_.empty() && rsCmdModifierQueue_.empty()) {
         out += "RSCmdModifiers: [empty]";
         return;
     }
- 
+
     out += "RSCmdModifiers: [";
     bool first = true;
     for (const auto& [type, modifier] : rsCmdModifiers_) {
@@ -4718,6 +4718,18 @@ void RSNode::DumpRSCmdModifiers(std::string& out) const
             out += ", ";
         }
         out += "type=" + RSCmdModifierTypeToString(type);
+        out += ", param=";
+        modifier->DumpParam(out);
+        first = false;
+    }
+    for (const auto& modifier : rsCmdModifierQueue_) {
+        if (!modifier) {
+            continue;
+        }
+        if (!first) {
+            out += ", ";
+        }
+        out += "type=" + RSCmdModifierTypeToString(modifier->GetType());
         out += ", param=";
         modifier->DumpParam(out);
         first = false;
