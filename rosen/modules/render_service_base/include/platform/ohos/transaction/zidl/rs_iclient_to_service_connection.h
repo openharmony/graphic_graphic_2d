@@ -129,6 +129,8 @@ public:
 
     virtual ErrCode SetUifirstScale(float scaleFactor) = 0;
 
+    virtual sptr<IRemoteObject> GetDisplayEngineControl() = 0;
+
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 

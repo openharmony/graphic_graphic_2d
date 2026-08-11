@@ -6778,5 +6778,22 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetUIMode3D_InvalidMode, TestSize.
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
 }
+
+/**
+ * @tc.name: GetDisplayEngineControlStubTest
+ * @tc.desc: Test GET_DISPLAY_ENGINE_CONTROL stub
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetDisplayEngineControlStubTest, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
 } // namespace OHOS::Rosen
 #endif

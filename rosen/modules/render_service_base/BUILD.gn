@@ -195,7 +195,11 @@ ohos_source_set("render_service_base_src") {
     "src/offscreen_render/rs_offscreen_render_thread.cpp",
 
     #display_engine
+    "src/display_engine/ipc_callbacks/rs_de_status_change_callback_proxy.cpp",
+    "src/display_engine/ipc_callbacks/rs_de_status_change_callback_stub.cpp",
     "src/display_engine/rs_backlight_thread.cpp",
+    "src/display_engine/rs_display_engine_control.cpp",
+    "src/display_engine/transaction/zidl/rs_display_engine_control_stub.cpp",
 
     #common
     "src/common/rs_background_thread.cpp",

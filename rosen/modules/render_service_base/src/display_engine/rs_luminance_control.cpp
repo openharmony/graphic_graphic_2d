@@ -19,6 +19,7 @@
 #include <string_view>
 
 #include "common/rs_common_def.h"
+#include "display_engine/rs_display_engine_control.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -63,7 +64,7 @@ void RSLuminanceControl::Init()
         CloseLibrary();
     }
     if (create_ != nullptr) {
-        rSLuminanceControlInterface_ = create_();
+        rSLuminanceControlInterface_ = create_(RSDisplayEngineControl::GetInstance());
         if (rSLuminanceControlInterface_ == nullptr) {
             CloseLibrary();
         }
@@ -306,5 +307,11 @@ int32_t RSLuminanceControl::UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer
     return 0;
 }
 #endif
+
+int32_t RSLuminanceControl::NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values)
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->NotifyDEStatusChange(sceneKey, values) : -1;
+}
 } // namespace Rosen
 } // namespace OHOS
