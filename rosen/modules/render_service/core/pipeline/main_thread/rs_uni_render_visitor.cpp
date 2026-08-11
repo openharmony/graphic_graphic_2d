@@ -833,14 +833,14 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
 
     PostPrepare(node, isParentPrepareInReverseOrder);
     node.UpdateChildHwcNode();
-    RSLayerSplitManager::GetInstance()->CheckNeedLeave();
+    RSLayerSplitManager::GetInstance()->CheckNeedLeave(node);
     CollectVirtualScreenNodeId(node);
     RSHdrUtil::UpdateSelfDrawingNodesNit(node);
     UpdateSelfDrawingNodesFor3D(node);
     hwcVisitor_->UpdateHwcNodeEnable();
     UpdateSurfaceDirtyAndGlobalDirty();
     UpdateSurfaceOcclusionInfo();
-    RSLayerSplitManager::GetInstance()->UpdatePlanAndDirtyRegion(curScreenDirtyManager_);
+    RSLayerSplitManager::GetInstance()->UpdatePlanAndDirtyRegion(node, curScreenDirtyManager_);
     GetScreenRotation(node);
     if (needRecalculateOcclusion_) {
         // Callback for registered self drawing surfacenode
@@ -2516,7 +2516,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     // set geometry properties here
     auto screenInfo = screenProperty.GetScreenInfo();
     node.SetScreenInfo(std::move(screenInfo));
-    RSLayerSplitManager::GetInstance()->InitSplitSurface(node.GetScreenInfo());
+    RSLayerSplitManager::GetInstance()->InitSplitSurface(screenInfo);
     curScreenDirtyManager_->SetSurfaceSize(screenProperty.GetWidth(), screenProperty.GetHeight());
     curScreenDirtyManager_->SetActiveSurfaceRect(screenProperty.GetActiveRect());
     auto allBlackList = ScreenSpecialLayerInfo::QueryNodeIdsByType(SpecialLayerType::IS_BLACK_LIST);
