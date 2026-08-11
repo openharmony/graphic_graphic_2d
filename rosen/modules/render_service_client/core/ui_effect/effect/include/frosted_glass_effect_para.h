@@ -302,7 +302,7 @@ public:
         return materialColor_;
     }
 
-    void SetColorBlendMode(BlendMode colorBlendMode)
+    void SetColorBlendMode(float colorBlendMode)
     {
         colorBlendMode_ = colorBlendMode;
     }
@@ -347,7 +347,7 @@ public:
         maskPara_ = maskPara;
     }
 
-    std::shared_ptr<MaskPara> GetMask() const
+    std::shared_ptr<MaskPara>& GetMask() const
     {
         return maskPara_;
     }
