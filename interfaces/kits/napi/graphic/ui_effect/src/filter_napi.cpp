@@ -1607,27 +1607,27 @@ bool FilterNapi::FillFrostedGlassMatColor(napi_env env, napi_value* argv, std::s
 
     Vector4f materialColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[NUM_27], materialColor), false,
-        FILTER_LOG_E("FillFrostedGlassMatColor: materialColor parse fail"));
+        FILTER_LOG_E("FilterNapi::SetFrostedGlass materialColor parse fail"));
     para->SetMaterialColor(materialColor);
 
     double colorBlendMode;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_28], colorBlendMode), false,
-        FILTER_LOG_E("FillFrostedGlassMatColor: colorBlendMode parse fail"));
+        FILTER_LOG_E("FilterNapi::SetFrostedGlass colorBlendMode parse fail"));
     para->SetColorBlendMode(static_cast<float>(colorBlendMode));
 
     double vibrancyStrength;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_29], vibrancyStrength), false,
-        FILTER_LOG_E("FillFrostedGlassMatColor: vibrancyStrength parse fail"));
+        FILTER_LOG_E("FilterNapi::SetFrostedGlass vibrancyStrength parse fail"));
     para->SetVibrancyStrength(static_cast<float>(vibrancyStrength));
 
     Vector3f lumaParams;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_30], lumaParams), false,
-        FILTER_LOG_E("FillFrostedGlassMatColor: lumaParams parse fail"));
+        FILTER_LOG_E("FilterNapi::SetFrostedGlass lumaParams parse fail"));
     para->SetLumaParams(lumaParams);
 
     double materialColorFraction;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_31], materialColorFraction), false,
-        FILTER_LOG_E("FillFrostedGlassMatColor: materialColorFraction parse fail"));
+        FILTER_LOG_E("FilterNapi::SetFrostedGlass materialColorFraction parse fail"));
     para->SetMaterialColorFraction(static_cast<float>(materialColorFraction));
     return true;
 }
@@ -1657,7 +1657,7 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
     para->SetBaseMaterialType(baseMaterialType);
 
     UIEFFECT_NAPI_CHECK_RET_D(FillFrostedGlassMatColor(env, argv, para), nullptr,
-        FILTER_LOG_E("FilterNapi::SetFrostedGlass FillFrostedGlassMatColor fail"));
+        FILTER_LOG_E("FilterNapi::FillFrostedGlassMatColor fail"));
 
     if (realArgc >= maxArgc - NUM_2) {
         float samplingScale = 0.f;
