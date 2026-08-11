@@ -1776,6 +1776,10 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
                            ani_array positionsObj, ani_int positionOffset,
                            ani_int glyphCount, ani_object fontObj)
 {
+    if (env == nullptr) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs env is null");
+        return;
+    }
     auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj, AniGlobalField::GetInstance().canvasNativeObj);
     if (!aniCanvas || !aniCanvas->GetCanvas()) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs canvas is nullptr.");
