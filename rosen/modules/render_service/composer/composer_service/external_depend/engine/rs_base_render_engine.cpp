@@ -653,6 +653,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
     if (colorSpaceConverterDisplay_ == nullptr) {
         RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor colorSpaceConverterDisplay_ is nullptr");
+        RS_OPTIONAL_TRACE_END();
         return;
     }
     auto convRet = colorSpaceConverterDisplay_->Process(inputShader, outputShader, parameter);

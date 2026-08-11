@@ -173,6 +173,10 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
     const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (surfaceHandler == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::CreateLayer failed surfaceHandler is null");
+        return;
+    }
     auto buffer = offlineResult ? offlineResult->buffer : surfaceHandler->GetBuffer();
     auto consumer = offlineResult ? offlineResult->consumer : surfaceHandler->GetConsumer();
     if (buffer == nullptr || consumer == nullptr) {
@@ -513,6 +517,10 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, bool async)
 {
     RS_OFFLINE_LOGD("ProcessOfflineLayer(drawable)");
+    if (surfaceDrawable == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::ProcessOfflineLayer surfaceDrawable is null");
+        return false;
+    }
     offlineTaskId taskId = std::make_pair(RSUniRenderThread::Instance().GetVsyncId(),
         surfaceDrawable->GetId());
     if (!async) {
