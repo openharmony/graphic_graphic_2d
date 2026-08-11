@@ -120,7 +120,7 @@ public:
     void ClearBufferCache();
     void ResetCurrFrameState();
     void Reset();
-    bool SetHardwareResourceToBuffer(Drawing::Bitmap& layerBitmap);
+    bool SetHardwareResourceToBuffer(const Drawing::Bitmap& layerBitmap);
     BufferRequestConfig GetHardenBufferRequestConfig() const;
     bool PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo,
         Drawing::Bitmap& layerBitmap);

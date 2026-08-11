@@ -49,7 +49,7 @@ public:
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
 
-    bool ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node, Drawing::Bitmap& layerBitmap);
+    bool ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node, const Drawing::Bitmap& layerBitmap);
     bool ProcessRcdSurfaceRenderNode(
         RSRcdSurfaceRenderNode& node, const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo, bool resourceChanged);
     void ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged);

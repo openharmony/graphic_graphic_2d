@@ -241,6 +241,11 @@ bool RSRcdSurfaceRenderNode::ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcB
         RS_LOGE("RCD: dstBitmap pixels is nullptr after build");
         return false;
     }
+    // Copy pixels from the Alpha8 source into the RGBA_8888 destination.
+    // ReadPixels performs the color-type conversion: each source alpha byte is
+    // written into the alpha channel of the corresponding RGBA_8888 pixel, with
+    // the R/G/B channels filled accordingly (typically 0). The srcX/srcY offset
+    // (0, 0) means copying from the top-left corner of the source bitmap.
     if (!srcBitmap.ReadPixels(dstBitmap.GetImageInfo(), dstBitmap.GetPixels(),
         static_cast<size_t>(dstBitmap.GetRowBytes()), 0, 0)) {
         RS_LOGE("RCD: read pixels from alpha8 bitmap failed");
@@ -277,7 +282,7 @@ RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBi
     return pixelMap;
 }
 
-bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer(Drawing::Bitmap& layerBitmap)
+bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer(const Drawing::Bitmap& layerBitmap)
 {
     RS_LOGD("RCD: Start RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer");
     if (layerBitmap.IsValid()) {

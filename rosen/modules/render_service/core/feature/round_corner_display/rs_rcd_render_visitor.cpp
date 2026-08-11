@@ -26,7 +26,7 @@ RSRcdRenderVisitor::RSRcdRenderVisitor()
     renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
 }
 
-bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node, Drawing::Bitmap& layerBitmap)
+bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node, const Drawing::Bitmap& layerBitmap)
 {
     node.ResetCurrentFrameBufferConsumed();
     auto availableBufferCnt = node.GetAvailableBufferCount();

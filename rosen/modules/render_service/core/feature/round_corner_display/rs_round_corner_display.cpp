@@ -107,14 +107,14 @@ bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Dra
         RS_LOGE("[%{public}s] Create bitmap from drImage failed \n", __func__);
         return false;
     }
-    // If the image color type is RGBA_8888, convert it to Alpha8 to reduce memory and
-    // match the hardware layer mask format. If conversion fails, fall back to using
-    // the original RGBA_8888 bitmap directly, which is still acceptable for downstream
-    // hardware resource processing.
+    // If the image color type is RGBA_8888 or BGRA_8888, extract its alpha channel
+    // to an Alpha8 bitmap to reduce memory and match the hardware layer mask format.
+    // If extraction fails, fall back to using the original bitmap directly, which is
+    // still acceptable for downstream hardware resource processing.
     if (srcBitmap.GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_8888 ||
         srcBitmap.GetColorType() == Drawing::ColorType::COLORTYPE_BGRA_8888) {
-        if (!ConvertRgba8888ToAlpha8(srcBitmap, bitmap)) {
-            RS_LOGW("[%{public}s] Convert RGBA8888 to Alpha8 failed, fallback to RGBA_8888 \n", __func__);
+        if (!ExtractAlphaChannel(srcBitmap, bitmap)) {
+            RS_LOGW("[%{public}s] Extract alpha channel failed, fallback to original bitmap \n", __func__);
             bitmap = srcBitmap;
         }
     } else {
@@ -123,16 +123,16 @@ bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Dra
     return true;
 }
 
-bool RoundCornerDisplay::ConvertRgba8888ToAlpha8(const Drawing::Bitmap &srcBitmap, Drawing::Bitmap &dstBitmap)
+bool RoundCornerDisplay::ExtractAlphaChannel(const Drawing::Bitmap &srcBitmap, Drawing::Bitmap &dstBitmap)
 {
-    RS_TRACE_NAME("RoundCornerDisplay::ConvertRgba8888ToAlpha8");
+    RS_TRACE_NAME("RoundCornerDisplay::ExtractAlphaChannel");
     if (srcBitmap.IsValid()) {
         RS_LOGE("[%{public}s] srcBitmap is invalid \n", __func__);
         return false;
     }
     if (srcBitmap.GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
         srcBitmap.GetColorType() != Drawing::ColorType::COLORTYPE_BGRA_8888) {
-        RS_LOGE("[%{public}s] srcBitmap color type is not RGBA_8888 \n", __func__);
+        RS_LOGE("[%{public}s] srcBitmap color type is not RGBA_8888 or BGRA_8888 \n", __func__);
         return false;
     }
     int32_t width = srcBitmap.GetWidth();
@@ -156,10 +156,11 @@ bool RoundCornerDisplay::ConvertRgba8888ToAlpha8(const Drawing::Bitmap &srcBitma
     }
     int32_t srcRowBytes = srcBitmap.GetRowBytes();
     int32_t dstRowBytes = dstBitmap.GetRowBytes();
-    // RGBA_8888: 4 bytes per pixel, the alpha channel is the 4th byte (index 3).
+    // RGBA_8888/BGRA_8888: 4 bytes per pixel, the alpha channel is the 4th byte (index 3).
     constexpr int32_t bytesPerPixelRgba8888 = 4;
     constexpr int32_t bytesPerPixelAlpha8 = 1;
-    // Alpha channel offset within a RGBA_8888 pixel (R, G, B, A layout).
+    // Alpha channel offset within a 8888 pixel; for both RGBA_8888 (R,G,B,A) and
+    // BGRA_8888 (B,G,R,A) the alpha is the 4th byte (index 3).
     constexpr int32_t alphaChannelOffset = 3;
     if (srcRowBytes < width * bytesPerPixelRgba8888 || dstRowBytes < width * bytesPerPixelAlpha8) {
         RS_LOGE("[%{public}s] rowBytes too small, srcRowBytes=%{public}d, dstRowBytes=%{public}d, width=%{public}d \n",
@@ -170,7 +171,8 @@ bool RoundCornerDisplay::ConvertRgba8888ToAlpha8(const Drawing::Bitmap &srcBitma
         const uint8_t *srcRow = srcPixels + y * srcRowBytes;
         uint8_t *dstRow = dstPixels + y * dstRowBytes;
         for (int32_t x = 0; x < width; x++) {
-            // Extract alpha from the RGBA_8888 pixel (R, G, B, A layout).
+            // Extract alpha from the 8888 pixel; alpha is the 4th byte for both
+            // RGBA_8888 and BGRA_8888 layouts.
             dstRow[x] = srcRow[x * bytesPerPixelRgba8888 + alphaChannelOffset];
         }
     }
@@ -189,6 +191,33 @@ bool RoundCornerDisplay::SetHardwareLayerSize()
     }
     hardInfo_.displayRect = displayRect_;
     return true;
+}
+
+void RoundCornerDisplay::LoadOrReuseImage(const rs_rcd::RoundCornerLayer& target,
+    const std::initializer_list<std::pair<const rs_rcd::RoundCornerLayer&,
+    std::shared_ptr<Drawing::Image>>>& candidates,
+    std::shared_ptr<Drawing::Image>& outImage)
+{
+    for (const auto& candidate : candidates) {
+        if (target.IsResourceEqual(candidate.first)) {
+            outImage = candidate.second;
+            return;
+        }
+    }
+    LoadImg(target.fileName.c_str(), outImage);
+}
+
+void RoundCornerDisplay::DecodeOrReuseBitmap(const std::shared_ptr<Drawing::Image>& targetImage,
+    const std::initializer_list<std::pair<std::shared_ptr<Drawing::Image>, const Drawing::Bitmap&>>& candidates,
+    Drawing::Bitmap& outBitmap)
+{
+    for (const auto& candidate : candidates) {
+        if (targetImage == candidate.first) {
+            outBitmap = candidate.second;
+            return;
+        }
+    }
+    DecodeBitmap(targetImage, outBitmap);
 }
 
 bool RoundCornerDisplay::GetTopSurfaceSource()
@@ -210,11 +239,7 @@ bool RoundCornerDisplay::GetTopSurfaceSource()
     LoadImg(portrait->layerUp.fileName.c_str(), imgTopPortrait);
     // Reuse the decoded image when the resource config is identical to avoid
     // repeated LoadImg and DecodeBitmap.
-    if (portrait->layerHide.IsResourceEqual(portrait->layerUp)) {
-        imgTopHidden = imgTopPortrait;
-    } else {
-        LoadImg(portrait->layerHide.fileName.c_str(), imgTopHidden);
-    }
+    LoadOrReuseImage(portrait->layerHide, { { portrait->layerUp, imgTopPortrait } }, imgTopHidden);
 
     auto landscape = rog_->GetLandscape(std::string(rs_rcd::NODE_LANDSCAPE));
     if (landscape == std::nullopt) {
@@ -222,29 +247,15 @@ bool RoundCornerDisplay::GetTopSurfaceSource()
         return false;
     }
     std::shared_ptr<Drawing::Image> imgTopLadsOrit = nullptr;
-    if (landscape->layerUp.IsResourceEqual(portrait->layerUp)) {
-        imgTopLadsOrit = imgTopPortrait;
-    } else if (landscape->layerUp.IsResourceEqual(portrait->layerHide)) {
-        imgTopLadsOrit = imgTopHidden;
-    } else {
-        LoadImg(landscape->layerUp.fileName.c_str(), imgTopLadsOrit);
-    }
+    LoadOrReuseImage(landscape->layerUp,
+        { { portrait->layerUp, imgTopPortrait }, { portrait->layerHide, imgTopHidden } }, imgTopLadsOrit);
 
     if (supportHardware_) {
         DecodeBitmap(imgTopPortrait, bitmapTopPortrait_);
         // Reuse the bitmap when the source image is shared to avoid repeated decoding.
-        if (imgTopLadsOrit == imgTopPortrait) {
-            bitmapTopLadsOrit_ = bitmapTopPortrait_;
-        } else {
-            DecodeBitmap(imgTopLadsOrit, bitmapTopLadsOrit_);
-        }
-        if (imgTopHidden == imgTopPortrait) {
-            bitmapTopHidden_ = bitmapTopPortrait_;
-        } else if (imgTopHidden == imgTopLadsOrit) {
-            bitmapTopHidden_ = bitmapTopLadsOrit_;
-        } else {
-            DecodeBitmap(imgTopHidden, bitmapTopHidden_);
-        }
+        DecodeOrReuseBitmap(imgTopLadsOrit, { { imgTopPortrait, bitmapTopPortrait_ } }, bitmapTopLadsOrit_);
+        DecodeOrReuseBitmap(imgTopHidden,
+            { { imgTopPortrait, bitmapTopPortrait_ }, { imgTopLadsOrit, bitmapTopLadsOrit_ } }, bitmapTopHidden_);
     }
     return true;
 }
