@@ -822,9 +822,10 @@ void RSUniHwcVisitor::UpdateHardwareStateByBoundNEDstRectInApps(
     // Traverse hwcNodes in a app from Top to Down.
     for (auto reverseIter = hwcNodes.rbegin(); reverseIter != hwcNodes.rend(); ++reverseIter) {
         auto hwcNodePtr = reverseIter->lock();
+        if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
             continue;
         }
- 
+
         // Only keep the part of boundRect within the screen range.
         RectI boundRect = hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
         boundRect = boundRect.IntersectRect(screenRect);

@@ -1528,10 +1528,19 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps002, Test
 HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps003, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ScreenInfo screenInfo;
+    screenInfo.phyWidth = 1440;
+    screenInfo.phyHeight = 1080;
+    rsUniRenderVisitor->curScreenNode_->SetScreenInfo(screenInfo);
+
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
 
-    std::vector<RectI> aboveBounds;
+    std::vector<std::pair<RectI, RectI>> aboveBounds;
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
 
     RSSurfaceRenderNodeConfig surfaceConfig;
