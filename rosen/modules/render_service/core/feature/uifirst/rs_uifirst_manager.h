@@ -189,6 +189,31 @@ public:
         uifirstCacheState_.clear();
     }
 
+    void SetSystemDoWindowAnimate(bool flag)
+    {
+        systemDoWindowAnimate_ = flag;
+    }
+
+    bool IsInSystemWindowAnimate()
+    {
+        return systemDoWindowAnimate_;
+    }
+    
+    void SetTopLeashWindowId(NodeId id)
+    {
+        topLeashWindowId_ = id;
+    }
+
+    bool IsTopLeashWindow(NodeId id)
+    {
+        return id == topLeashWindowId_;
+    }
+
+    bool IsNotFindTopLeashWindow()
+    {
+        return topLeashWindowId_ == INVALID_NODEID;
+    }
+
     void SetFreeMultiWindowStatus(bool enable)
     {
         isFreeMultiWindowEnabled_ = enable;
@@ -421,6 +446,9 @@ private:
 
     // when all screens are power off, uifirst pending post nodes need purge.
     bool allScreenPowerOffNeedPurge_ = false;
+
+    bool systemDoWindowAnimate_ = false;
+    NodeId topLeashWindowId_ = INVALID_NODEID;
 };
 
 // If a subnode is delivered directly

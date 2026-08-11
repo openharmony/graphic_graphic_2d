@@ -4281,6 +4281,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     }
 
     doWindowAnimate_ = curWinAnim;
+    RSUifirstManager::Instance().SetSystemDoWindowAnimate(doWindowAnimate_);
     RS_LOGD_IF(DEBUG_PIPELINE, "Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
