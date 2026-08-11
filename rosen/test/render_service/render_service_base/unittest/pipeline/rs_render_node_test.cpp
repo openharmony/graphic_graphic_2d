@@ -4627,9 +4627,8 @@ HWTEST_F(RSRenderNodeTest, GetHDRBrightness, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
 
-    SimpleDrawCmdListPtr drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    property->GetRef() = 0.0f;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
         ModifierNG::RSModifierType::HDR_BRIGHTNESS, property, id, ModifierNG::RSPropertyType::HDR_BRIGHTNESS);

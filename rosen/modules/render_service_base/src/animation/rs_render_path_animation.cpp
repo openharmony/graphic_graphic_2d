@@ -231,7 +231,8 @@ void RSRenderPathAnimation::OnDetach()
 void RSRenderPathAnimation::SetPathValue(const Vector2f& value, float tangent)
 {
     SetRotationValue(tangent);
-    auto animatableProperty = property_->CastToAnimatablePropertyOf<Vector2f>(__func__);
+    auto animatableProperty = property_ ?
+        property_->CastToAnimatablePropertyOf<Vector2f>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         animatableProperty->Set(value);
     }
@@ -240,7 +241,8 @@ void RSRenderPathAnimation::SetPathValue(const Vector2f& value, float tangent)
 void RSRenderPathAnimation::SetPathValue(const Vector4f& value, float tangent)
 {
     SetRotationValue(tangent);
-    auto animatableProperty = property_->CastToAnimatablePropertyOf<Vector4f>(__func__);
+    auto animatableProperty = property_ ?
+        property_->CastToAnimatablePropertyOf<Vector4f>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         animatableProperty->Set(value);
     }

@@ -109,7 +109,8 @@ int32_t RSAnimationRateDecider::CalculatePreferredRate(const PropertyValue& prop
 
 int32_t RSAnimationRateDecider::ProcessVector4f(const PropertyValue& property, const FrameRateGetFunc& func)
 {
-    auto animatableProperty = property->CastToAnimatablePropertyOf<Vector4f>(__func__);
+    auto animatableProperty = property ?
+        property->CastToAnimatablePropertyOf<Vector4f>(__func__) : nullptr;
     auto propertyUnit = property->GetPropertyUnit();
     if (!animatableProperty || propertyUnit != RSPropertyUnit::PIXEL_POSITION) {
         return 0;
