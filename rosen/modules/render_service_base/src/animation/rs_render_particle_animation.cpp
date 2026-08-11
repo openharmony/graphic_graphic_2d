@@ -103,7 +103,7 @@ void RSRenderParticleAnimation::FillRebuildProgress()
     runningTimeNs_ = rebuildRunningTimeNs_;
     rebuildRunningTimeNs_ = 0;
     auto property = property_ ?
-        property_->CastToPropertyOf<RSRenderParticleVector>(__func__) nullptr;
+        property_->CastToPropertyOf<RSRenderParticleVector>(__func__) : nullptr;
     if (property) {
         property->Set(renderParticleVector_);
     }
