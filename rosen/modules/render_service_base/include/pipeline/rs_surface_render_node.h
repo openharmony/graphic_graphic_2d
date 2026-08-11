@@ -2091,7 +2091,12 @@ private:
     template<typename T>
     void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
         std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
-        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
+        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier)
+    {
+        if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
+            oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
+        }
+    }
 
     void CountRelatedNode(bool isIncrement);
     void ClearRelatedSourceCache(bool value);

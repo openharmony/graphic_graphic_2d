@@ -4265,16 +4265,6 @@ void RSSurfaceRenderNode::EmplaceSameTypeModifier(
     }
 }
 
-template<typename T>
-void RSSurfaceRenderNode::CopyModifierValue(ModifierNG::RSPropertyType propertyType,
-    std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
-    std::shared_ptr<ModifierNG::RSRenderModifier> newModifier)
-{
-    if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
-        oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
-    }
-}
-
 void RSSurfaceRenderNode::CountRelatedNode(bool isIncrement)
 {
     relatedNodeNum_ += isIncrement ? 1 : -1;
