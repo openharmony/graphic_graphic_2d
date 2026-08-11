@@ -37,9 +37,11 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 
 bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
+#ifdef RS_ENABLE_GPU
     if (!RSProcessor::Init(node, renderEngine)) {
         return false;
     }
+#endif
 
     auto surfaceConfigs = node.GetScreenProperty().GetMultiSurfaceConfigs();
     if (surfaceConfigs.empty()) {
