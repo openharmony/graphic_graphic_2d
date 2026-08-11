@@ -16,6 +16,7 @@
 #include "rs_rcd_surface_render_node.h"
 #include <fstream>
 #include "common/rs_singleton.h"
+#include "feature/round_corner_display/rs_rcd_bitmap_utils.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -182,7 +183,7 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
     }
     if (layerInfo->curBitmap->GetColorType() == Drawing::ColorType::COLORTYPE_ALPHA_8) {
         // alpha8 bitmap cannot be used directly by hardware resource buffer, convert to rgba8888
-        if (!ConvertAlpha8ToRgba8888(*(layerInfo->curBitmap), layerBitmap)) {
+        if (!rs_rcd::ConvertAlpha8ToRgba8888(*(layerInfo->curBitmap), layerBitmap)) {
             RS_LOGE("RCD: convert alpha8 bitmap to rgba8888 bitmap failed");
             return false;
         }
@@ -210,46 +211,6 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
             static_cast<int>(displayRect_.GetTop());
         rcdExtInfo_.dstRect_ = RectI(displayRect_.GetLeft(), dstTop, bitmapWidth, bitmapHeight);
         SetGlobalZOrder(RCD_LAYER_Z_TOP2);
-    }
-    return true;
-}
-
-bool RSRcdSurfaceRenderNode::ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap)
-{
-    RS_TRACE_NAME("RSRcdSurfaceRenderNode::ConvertAlpha8ToRgba8888");
-    if (srcBitmap.IsValid()) {
-        RS_LOGE("RCD: srcBitmap is invalid");
-        return false;
-    }
-    if (srcBitmap.GetColorType() != Drawing::ColorType::COLORTYPE_ALPHA_8) {
-        RS_LOGE("RCD: srcBitmap colortype is not alpha8, colortype %{public}u",
-            static_cast<uint32_t>(srcBitmap.GetColorType()));
-        return false;
-    }
-    int32_t width = srcBitmap.GetWidth();
-    int32_t height = srcBitmap.GetHeight();
-    if (width <= 0 || height <= 0) {
-        RS_LOGE("RCD: srcBitmap width or height is invalid, width %{public}d, height %{public}d", width, height);
-        return false;
-    }
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    if (!dstBitmap.Build(width, height, format)) {
-        RS_LOGE("RCD: build rgba8888 bitmap failed when converting from alpha8");
-        return false;
-    }
-    if (dstBitmap.GetPixels() == nullptr) {
-        RS_LOGE("RCD: dstBitmap pixels is nullptr after build");
-        return false;
-    }
-    // Copy pixels from the Alpha8 source into the RGBA_8888 destination.
-    // ReadPixels performs the color-type conversion: each source alpha byte is
-    // written into the alpha channel of the corresponding RGBA_8888 pixel, with
-    // the R/G/B channels filled accordingly (typically 0). The srcX/srcY offset
-    // (0, 0) means copying from the top-left corner of the source bitmap.
-    if (!srcBitmap.ReadPixels(dstBitmap.GetImageInfo(), dstBitmap.GetPixels(),
-        static_cast<size_t>(dstBitmap.GetRowBytes()), 0, 0)) {
-        RS_LOGE("RCD: read pixels from alpha8 bitmap failed");
-        return false;
     }
     return true;
 }

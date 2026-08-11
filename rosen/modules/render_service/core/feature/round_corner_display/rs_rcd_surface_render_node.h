@@ -154,7 +154,6 @@ private:
     bool FillHardwareResource(HardwareLayerInfo &cldLayerInfo, int height, int width);
     void SetRCDInfo(HardwareLayerInfo &cldLayerInfo, int height, int width, uint32_t offset);
     bool SetRCDMetaData() const;
-    bool ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap);
     HardwareLayerInfo cldLayerInfo;
     PixelMapPtr pixelMap_ = nullptr;
 

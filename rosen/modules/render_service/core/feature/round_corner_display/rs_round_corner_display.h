@@ -197,8 +197,6 @@ private:
     static bool LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img);
 
     static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap);
-    // Extract the alpha channel from an RGBA_8888/BGRA_8888 bitmap into an Alpha8 bitmap.
-    static bool ExtractAlphaChannel(const Drawing::Bitmap &srcBitmap, Drawing::Bitmap &dstBitmap);
 
     // Reuse the decoded image when the resource config is identical to avoid
     // repeated LoadImg. If target is resource-equal to any candidate, reuse the
