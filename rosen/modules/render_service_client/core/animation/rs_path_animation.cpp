@@ -141,7 +141,11 @@ void RSPathAnimation::OnStart()
 
     InitRotationId(target);
     auto animation = CreateRenderAnimation(target);
-    if (isNeedPath_) {
+    if (animation == nullptr) {
+        ROSEN_LOGE("RSPathAnimation::OnStart, CreateRenderAnimation failed");
+        return;
+    }
+    if (isNeedPath_ && property_ != nullptr) {
         property_->AddPathAnimation();
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreatePath>(target->GetId(), animation);
@@ -157,6 +161,11 @@ void RSPathAnimation::InitInterpolationValue()
 {
     if (!animationPath_) {
         ROSEN_LOGE("Failed to update interpolation value, path is null!");
+        return;
+    }
+
+    if (startValue_ == nullptr || endValue_ == nullptr) {
+        ROSEN_LOGE("RSPathAnimation::InitInterpolationValue, startValue or endValue is null");
         return;
     }
 
@@ -307,6 +316,10 @@ const std::shared_ptr<RSPath> RSPathAnimation::PreProcessPath(const std::string&
     const std::shared_ptr<RSPropertyBase>& startValue,
     const std::shared_ptr<RSPropertyBase>& endValue) const
 {
+    if (startValue == nullptr || endValue == nullptr) {
+        ROSEN_LOGE("RSPathAnimation::PreProcessPath, startValue or endValue is null");
+        return {};
+    }
     auto startVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(startValue);
     auto endVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(endValue);
     if (startValue->GetPropertyType() == RSPropertyType::VECTOR2F && startVector2f != nullptr &&
@@ -407,6 +420,12 @@ void RSPathAnimation::UpdateVector4fValueAddOrigin(Vector4f& startValue, Vector4
 
 std::shared_ptr<RSRenderPathAnimation> RSPathAnimation::CreateRenderAnimation(const std::shared_ptr<RSNode>& target)
 {
+    if (originValue_ == nullptr || startValue_ == nullptr || endValue_ == nullptr) {
+        ROSEN_LOGE("RSPathAnimation::CreateRenderAnimation, "
+            "originValue[%{public}d] startValue[%{public}d] endValue[%{public}d]",
+            originValue_ != nullptr, startValue_ != nullptr, endValue_ != nullptr);
+        return nullptr;
+    }
     auto interpolator = timingCurve_.GetInterpolator(GetDuration());
     auto animation = std::make_shared<RSRenderPathAnimation>(GetId(), GetPropertyId(),
         originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty(),
@@ -436,6 +455,10 @@ void RSPathAnimation::RebuildInRender()
     }
     InitRotationId(target);
     auto animation = CreateRenderAnimation(target);
+    if (animation == nullptr) {
+        ROSEN_LOGE("RSPathAnimation::RebuildInRender, CreateRenderAnimation failed");
+        return;
+    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationRebuildPath>(
         target->GetId(), animation, GetRebuildParam().fraction, GetRebuildParam().isReverseCycle);
     target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());

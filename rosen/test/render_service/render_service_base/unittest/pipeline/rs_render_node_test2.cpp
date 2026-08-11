@@ -3960,5 +3960,28 @@ HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers003, TestSize.Level1
     node->inTraversalPath_ = false; // cleanup
 }
 #endif
+
+/**
+ * @tc.name: SetStaticCached_FreezeFlagDirty001
+ * @tc.desc: SetStaticCached dirties the node only when the freeze flag actually changes.
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSRenderNodeTest2, SetStaticCached_FreezeFlagDirty001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+
+    // first call: freeze flag NONE -> FREEZED_BY_USER, changed -> SetDirty fires
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->SetStaticCached(true, false);  // isStaticCached_ = true, skips the trailing SetContentDirty
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::DIRTY);
+
+    // second call with the same value: freeze flag unchanged -> SetDirty must NOT fire
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->SetStaticCached(true, false);
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::CLEAN);
+}
 } // namespace Rosen
 } // namespace OHOS
