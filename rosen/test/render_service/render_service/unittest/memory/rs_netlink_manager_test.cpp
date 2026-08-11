@@ -19,6 +19,7 @@
 #include "gtest/gtest.h"
 #include "pipeline/rs_test_util.h"
 #include "memory/rs_netlink_manager.h"
+#include "mem_param.h"
 
 using namespace testing;
 using namespace testing::ext;

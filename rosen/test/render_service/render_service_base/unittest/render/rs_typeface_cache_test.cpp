@@ -123,6 +123,8 @@ HWTEST_F(RSTypefaceCacheTest, MemorySnapshotTest001, TestSize.Level1)
     // clear context
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid1);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid2);
+    std::set<pid_t> exitedPidSet = { pid1, pid2 };
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPidSet);
 }
 
 /**
