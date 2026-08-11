@@ -44,6 +44,7 @@ namespace OHOS {
 namespace Rosen {
 
 const int MAX_WAIT_TIME = 2000;
+const int MAX_DIVIDED_UI_CAPTURE_DIM = 17000;
 
 bool RSDividedUICapture::IsRectValid(NodeId nodeId, const Drawing::Rect& specifiedAreaRect)
 {
@@ -143,6 +144,16 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::CreatePixelMapByNode(std::s
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);
+    // Each dimension must stay below MAX_DIVIDED_UI_CAPTURE_DIM, otherwise the downstream
+    // size = GetRowBytes()*GetHeight() (int32 multiplication) can overflow in CopyDataToPixelMap,
+    // leading to an undersized ashmem/malloc and an OOB write in ReadPixels.
+    if (opts.size.width >= MAX_DIVIDED_UI_CAPTURE_DIM ||
+        opts.size.height >= MAX_DIVIDED_UI_CAPTURE_DIM) {
+        RS_LOGE("RSDividedUICapture::CreatePixelMapByNode dimension exceeds limit, "
+                "width:%{public}u, height:%{public}u",
+            opts.size.width, opts.size.height);
+        return nullptr;
+    }
     RS_LOGD("RSDividedUICapture::CreatePixelMapByNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}u], height is [%{public}u],"
         " created pixelmap width is [%{public}u], height is [%{public}u],"

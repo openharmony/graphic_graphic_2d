@@ -332,6 +332,30 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode, TestSize
     EXPECT_NE(pxiemap, nullptr);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
+/*
+ * @tc.name: CreatePixelMapBySurfaceNode_NegativeSize
+ * @tc.desc: Test CreatePixelMapBySurfaceNode rejects negative bounds, since ceil(negative*scale)
+ *           assigned to the unsigned opts.size.width would wrap and cause an oversized allocation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode_NegativeSize, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    task.surfaceNode_ = node;
+    node->renderProperties_.SetBoundsWidth(-1.0f);
+    node->renderProperties_.SetBoundsHeight(1.0f);
+    EXPECT_EQ(task.CreatePixelMapBySurfaceNode(node, false), nullptr);
+    node->renderProperties_.SetBoundsWidth(1.0f);
+    node->renderProperties_.SetBoundsHeight(-1.0f);
+    EXPECT_EQ(task.CreatePixelMapBySurfaceNode(node, false), nullptr);
+}
+#endif
+
 /*
  * @tc.name: CreatePixelMapByDisplayNode001
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode while node is nullptr
