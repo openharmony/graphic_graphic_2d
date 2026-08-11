@@ -26,6 +26,14 @@
 #include "pipeline/rs_context.h"
 
 namespace OHOS::Rosen {
+struct EventQuota {
+    time_t deliveryTs { 0 };
+    std::string bundleName { "" };
+    uint64_t faultType { 0 };
+    std::string telemetryId { "" };
+    int quota { 0 };
+    int romRsvSize = 30720;
+};
 
 class MemoryManager {
 public:
@@ -53,6 +61,7 @@ public:
     static void SetGpuMemoryLimit(Drawing::GPUContext* gpuContext);
     static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
     static bool MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
+    static bool MemoryReportAndKill(pid_t pid, MemorySnapshotInfo info, bool isGpu);
     static void CheckIsClearApp();
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
     static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
@@ -71,10 +80,9 @@ public:
         pid_t pid = 0, bool isLite = false);
     static void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::string& type);
-    static bool MemoryReportAndKill(pid_t pid, MemorySnapshotInfo info, bool isGpu);
+    static void DumpNodesInfoForReport(std::string& log, const pid_t pid);
     static void GpuReportFromKernel(const std::string& recvInfo);
     static bool UpdateGpuInfoFromEngine(pid_t pid, size_t memorySize, bool isAdd);
-    static void DumpNodesInfoForReport(std::string& log, const pid_t pid);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log, bool isLite = false);
@@ -91,11 +99,15 @@ private:
     static void DumpMemorySnapshot(DfxString& log);
     static void FillMemorySnapshot();
     static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
-        const std::string& hidumperReport, const std::string& filePath);
-    static void WriteInfoToFile(const std::string& filePath, std::string& gpuMemInfo,
-        const std::string& hidumperReport);
+        const std::string& hidumperReport, const std::string& filePath, bool needNodeAndUiTreeinfo = false);
+    static void WriteInfoToFile(const std::string& filePath, const std::string& logInfo);
     static void TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     static void ErasePidInfo(const std::set<pid_t>& exitedPidSet);
+    static bool ReadData(std::ifstream &inFile, std::string &rtn);
+    static bool ReadData(std::ifstream &inFile, uint64_t &rtn);
+    static bool ReadData(std::ifstream &inFile, time_t &rtn);
+    static bool ReadData(std::ifstream &inFile, int &rtn);
+    static bool ReadQuotaFile(const std::string& filePath);
     static bool NeedReportFromKernel(pid_t& abnormalPid);
 
     static std::mutex mutex_;

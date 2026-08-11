@@ -16,6 +16,7 @@
 #include "memory/rs_memory_manager.h"
 
 #include <ctime>
+#include <charconv>
 #include <dirent.h>
 #include <filesystem>
 #include <fstream>
@@ -25,7 +26,7 @@
 #include <sys/prctl.h>
 #include "include/core/SkGraphics.h"
 #include "rs_trace.h"
-#include "cJSON.h"
+#include "third_party/cJSON/cJSON.h"
 
 #include "memory/rs_dfx_string.h"
 #include "skia_adapter/rs_skia_memory_tracer.h"
@@ -55,10 +56,10 @@
 #include "platform/common/rs_system_properties.h"
 
 #include "app_mgr_client.h"
-#include "hisysevent.h"
 #include "image/gpu_context.h"
 #include "platform/common/rs_hisysevent.h"
 #include "mem_mgr_client.h"
+#include "client/memory_collector_client.h"
 
 #ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
@@ -87,6 +88,7 @@ namespace {
 const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.json";
 const std::string GPUMEM_INFO_PATH = "/proc/gpumem_process_info";
 const std::string GPUMEM_NODEINFO_PATH = "/proc/gpu_memory";
+const std::string TELEMETRY_QUOTA_PATH = "/data/service/el1/public/hiview/oomdump_telemetry";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
 const std::string EVENT_CLEAR_ONE_RET = "CLEAR_1_RECENT_ANI";
 const std::string EVENT_CLEAR_ALL_RET = "CLEAR_All_RECENT_ANI";
@@ -107,6 +109,10 @@ constexpr int DUPM_STRING_BUF_SIZE = 4000;
 constexpr int KILL_PROCESS_TYPE = 301;
 const bool IS_BETA = RSSystemProperties::GetVersionType() == "beta";
 constexpr size_t GPU_REPORT_INTERVAL = 60;   // 60s
+constexpr size_t MAX_BYTES_LIMIT = 5 * 1024 * 1024;     // max string size: 5MB
+constexpr size_t QUOTA_SCREEN_OFF_AND_CHARGE = 4;
+constexpr uint32_t POSTTASK_DELAY_TIME = 1000; // 1000ms
+constexpr uint64_t QUOTA_FAULT_TYPE = 0x400;
 }
 
 std::mutex MemoryManager::mutex_;
@@ -116,6 +122,27 @@ uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
 uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
 uint64_t MemoryManager::mKernelReportLastTimestamp_ = 0;
+
+class RequestUiTreeCallbackImpl : public HiviewDFX::UCollectClient::RequestUiTreeCallback {
+public:
+    explicit RequestUiTreeCallbackImpl(std::function<void()> task) : task_(task)
+    {}
+    void OnUiTreeResponse(uint32_t retCode)
+    {
+        if (task_ == nullptr) {
+            RS_LOGE("OnUiTreeResponse callback task is null");
+            return;
+        }
+        if (retCode != 0) {
+            RS_LOGE("OnUiTreeResponse callback retCode: %{public}d", retCode);
+        }
+        RS_LOGI("OnUiTreeResponse callback ");
+        task_();
+    }
+
+private:
+    std::function<void()> task_;
+};
 
 static std::string Data2String(std::string data, uint32_t targetNumber)
 {
@@ -493,8 +520,8 @@ float MemoryManager::GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext)
     auto total = trace.GetGpuMemorySizeInMB();
     float rsMemSize = 0.f;
     for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
-        Drawing::GPUResourceTag resourceTag(0, 0, 0, tagtype,
-            RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype)));
+        Drawing::GPUResourceTag resourceTag(
+            0, 0, 0, tagtype, RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype)));
         Drawing::TraceMemoryDump gpuTrace("category", true);
         gpuContext->DumpMemoryStatisticsByTag(&gpuTrace, resourceTag);
         rsMemSize += gpuTrace.GetGpuMemorySizeInMB();
@@ -542,15 +569,6 @@ void MemoryManager::CountMemory(
     };
     // Count mem of Skia GPU
     std::for_each(pids.begin(), pids.end(), countMem);
-    float totalMem = 0.0f;
-    for (const auto& mem : mems) {
-        totalMem += mem.GetGpuMemorySize();
-    }
-    const float maxTotalMem = 4.0f * MEMUNIT_RATE * MEMUNIT_RATE * MEMUNIT_RATE;
-    if (totalMem >= maxTotalMem) {
-        RS_LOGE("MemoryManager::CountMemoryTotal may overflow: %.2f GB",
-                totalMem / (MEMUNIT_RATE * MEMUNIT_RATE * MEMUNIT_RATE));
-    }
 }
 
 static std::tuple<uint64_t, std::string, RectI, bool> FindGeoById(uint64_t nodeId)
@@ -725,7 +743,7 @@ void MemoryManager::DumpGpuNodeMemory(DfxString& log)
 }
 // LCOV_EXCL_STOP
 
-static int32_t MemoryTrackerGetGLByPid(int32_t pid)
+static int64_t MemoryTrackerGetGLByPid(int32_t pid)
 {
     return pid;
 }
@@ -744,8 +762,8 @@ void MemoryManager::DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext*
         memoryMap[pid] = 0.0f;
     }
     log.AppendFormat("\n---------------\nGPU Memory Data:\n");
+    int64_t rsMemory = MemoryTrackerGetGLByPid(getpid());
     float totalMemoryKB = 0.0f;
-    int32_t rsMemory = MemoryTrackerGetGLByPid(getpid());
     for (auto& [pid, memory] : memoryMap) {
         Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
         memory = DumpGpuCacheNew(log, gpuContext, &tag);
@@ -755,8 +773,8 @@ void MemoryManager::DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext*
             log.AppendFormat("pid: %d, gpu memory: %.2fKB\n", pid, memoryKB);
         }
     }
-    rsMemory -= static_cast<int32_t>(round(totalMemoryKB));
-    log.AppendFormat("Render Service GPU memory: %d KB\n", rsMemory);
+    rsMemory -= static_cast<int64_t>(round(totalMemoryKB));
+    log.AppendFormat("Render Service GPU memory: %" PRId64 " KB\n", rsMemory);
 #endif
 }
 
@@ -872,7 +890,7 @@ void ProcessJemallocString(std::string* sp, const char* str)
         for (size_t i = 0; i < size; ++i) {
             if (strncmp(line.c_str(), strArray[i], strlen(strArray[i])) == 0) {
                 sp->append(line + "\n");
-                total ++;
+                total++;
             }
         }
 
@@ -1009,7 +1027,8 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
         bool isTotalOver = false;
         MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuMemory, infoMap, isTotalOver);
         auto now = std::chrono::steady_clock::now().time_since_epoch();
-        uint64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+        uint64_t currentTime =
+            static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
         // total memory overflow of all processes in renderservice
         if (isTotalOver && currentTime > totalMemoryReportTime_) {
             TotalMemoryOverReport(infoMap);
@@ -1065,9 +1084,9 @@ void MemoryManager::FillMemorySnapshot()
 static bool KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info)
 {
 #ifdef RS_ENABLE_UNI_RENDER
-    std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory)
-        + "], gpu[" + std::to_string(info.engineGpuMemory + info.nativeGpuMemory) + "], total["
-        + std::to_string(info.TotalMemory()) + "]";
+    RS_TRACE_NAME_FMT("KillProcessByPid pid:%d", pid);
+    std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory) +
+        "], gpu[" + std::to_string(info.TotalGpuMemory()) + "], total[" + std::to_string(info.TotalMemory()) + "]";
     if (pid > 0) {
         AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
         killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESOURCE_LEAK_GPU_RS_LEAK;
@@ -1107,19 +1126,19 @@ bool MemoryManager::NeedReportFromKernel(pid_t& abnormalPid)
         maxIndex++;
     }
     if (maxIndex + 1 < sortedPidInfo.size() &&
-        sortedPidInfo[maxIndex].second.TotalGpuMemory() - sortedPidInfo[maxIndex + 1].second.TotalGpuMemory() >
-        MEMParam::GetKernelReportMemInterval() * MEMUNIT_RATE * MEMUNIT_RATE) {
+        sortedPidInfo[maxIndex].second.TotalGpuMemory() > sortedPidInfo[maxIndex + 1].second.TotalGpuMemory() +
+        static_cast<size_t>(MEMParam::GetKernelReportMemInterval()) * MEMUNIT_RATE * MEMUNIT_RATE) {
         abnormalPid = sortedPidInfo[maxIndex].first;
     }
     if (abnormalPid == 0) {
-        RS_LOGE("MemoryManager::IsNeedReportFromKernel abnormalPid is 0");
+        RS_LOGE("MemoryManager::NeedReportFromKernel abnormalPid is 0");
         return false;
     }
     // status of available memory.
     int32_t availableMem = 0;
     Memory::MemMgrClient::GetInstance().GetAvailableMemory(availableMem);
     if (availableMem > MEMParam::GetKernelReportAvailableMemLimit() * MEMUNIT_RATE) {
-        RS_LOGE("MemoryManager::IsNeedReportFromKernel availableMem:%{public}d", availableMem);
+        RS_LOGE("MemoryManager::NeedReportFromKernel availableMem:%{public}d", availableMem);
         return false;
     }
 
@@ -1154,7 +1173,7 @@ bool MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 bool MemoryManager::MemoryReportAndKill(pid_t pid, MemorySnapshotInfo info, bool isGpu)
 {
     if (pid == 0) {
-        RS_LOGE("MemoryReportAndKill pid = 0, cpu[%{public}zu] nativeGpu[%{public}zu], engineGpu[%{public}zu]",
+        RS_LOGE("MemoryReportAndKill pid=0 cpu[%{public}zu] nativeGpu[%{public}zu] engineGpu[%{public}zu]",
             info.cpuMemory, info.nativeGpuMemory, info.engineGpuMemory);
         return false;
     }
@@ -1169,43 +1188,47 @@ bool MemoryManager::MemoryReportAndKill(pid_t pid, MemorySnapshotInfo info, bool
             pid, info.cpuMemory, info.nativeGpuMemory, info.engineGpuMemory);
         return false;
     }
-    
     // set abnormal pid to intercept drawing.
     MemorySnapshot::Instance().SetAbnormalProcess(pid);
     DfxString dfxLog;
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         auto gpuContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
         if (gpuContext) {
-            // set abnormal pid to intercept drawing.
-            gpuContext->SetAbnormalPid(pid);
             // dump gpu info
             std::string pidName = std::to_string(pid);
             Drawing::GPUResourceTag processTag(pid, 0, 0, 0, pidName);
             DumpGpuCache(dfxLog, gpuContext.get(), &processTag, pidName);
             std::string unirenderName = "unirender";
-            DumpGpuCache(dfxLog, gpuContext.get(), nullptr, pidName);
-            for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE;
-                tagtype++) {
-                Drawing::GPUResourceTag resourceTag(
-                    0, 0, 0, tagtype, RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype)));
-                Drawing::TraceMemoryDump gpuTrace("category", true);
-                gpuContext->DumpMemoryStatisticsByTag(&gpuTrace, resourceTag);
-            }
-        } else {
-            dfxLog.AppendFormat("MemoryReportAndKill gpuContext is nullptr");
+            DumpGpuCache(dfxLog, gpuContext.get(), nullptr, unirenderName);
         }
     }
-
+    bool quotaBetaStatus = ReadQuotaFile(TELEMETRY_QUOTA_PATH) || IS_BETA;
     std::string filePath = GRAPHIC_MEM_DIR + "renderservice_killProcessByPid.txt";
-    MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, dfxLog.GetString(), filePath);
+    MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, dfxLog.GetString(), filePath, quotaBetaStatus);
+    if (quotaBetaStatus) {
+        RS_LOGE("MemoryReportAndKill for quota or beta");
+        auto killProcessTask = [pid, info]() { KillProcessByPid(pid, info); };
+        auto uiTreeTask = [killProcessTask, pid]() {
+            RS_TRACE_NAME_FMT("MemoryReportAndKill for quota or beta pid:%d", pid);
+            auto memoryCollector = HiviewDFX::UCollectClient::MemoryCollector::Create();
+            auto callback = std::make_shared<RequestUiTreeCallbackImpl>(killProcessTask);
+            memoryCollector->RequestUiTree(pid, callback);
+        };
+        RSBackgroundThread::Instance().PostTask(uiTreeTask);
+        RSMainThread::Instance()->PostTask(killProcessTask, "MemoryReportAndKill with delay time", POSTTASK_DELAY_TIME,
+            AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        return true;
+    }
     return KillProcessByPid(pid, info);
 }
 
 void MemoryManager::DumpNodesInfoForReport(std::string& log, const pid_t pid)
 {
     RS_TRACE_NAME("MemoryManager::DumpNodesInfoForReport");
+    log.append("\n-- RS nodes info \n");
+    log.append("\n-- RS render nodes on the tree\n");
     RSMainThread::Instance()->RenderServiceTreeDump(log, true, false);
-    log.append("\n-- Render Node Not On Tree\n");
+    log.append("\n-- RS render nodes not on the Tree\n");
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraversalNodes([&log, pid](const std::shared_ptr<RSBaseRenderNode>& node) {
         if (node == nullptr || ExtractPid(node->GetId()) != pid) {
@@ -1217,64 +1240,179 @@ void MemoryManager::DumpNodesInfoForReport(std::string& log, const pid_t pid)
     });
 }
 
+bool MemoryManager::ReadData(std::ifstream& inFile, std::string& rtn)
+{
+    if (std::getline(inFile, rtn)) {
+        return true;
+    }
+    RS_LOGE("ReadData fail getline.");
+    return false;
+}
+
+bool SafeStoll(const std::string &str, long long &value)
+{
+    value = 0;
+    const char* first = str.data();
+    const char* last = str.data() + str.size();
+    auto [ptr, ec] = std::from_chars(first, last, value);
+
+    return ec == std::errc() && ptr == last;
+}
+
+bool MemoryManager::ReadData(std::ifstream &inFile, uint64_t &rtn)
+{
+    rtn = 0;
+    std::string data = "";
+    if (!ReadData(inFile, data)) {
+        RS_LOGE("ReadData String failed.");
+        return false;
+    }
+
+    long long tmp;
+    if (!SafeStoll(data, tmp)) {
+        RS_LOGE("ReadData SafeStoll failed.");
+        return false;
+    }
+
+    rtn = static_cast<uint64_t>(tmp);
+    return true;
+}
+
+bool MemoryManager::ReadData(std::ifstream &inFile, time_t &rtn)
+{
+    rtn = 0;
+    uint64_t tmp;
+    if (!ReadData(inFile, tmp)) {
+        RS_LOGE("ReadData uint64_t failed.");
+        return false;
+    }
+
+    rtn = static_cast<time_t>(tmp);
+    return true;
+}
+
+bool MemoryManager::ReadData(std::ifstream &inFile, int &rtn)
+{
+    rtn = 0;
+    uint64_t tmp;
+    if (!ReadData(inFile, tmp)) {
+        RS_LOGE("ReadData uint64_t failed.");
+        return false;
+    }
+
+    rtn = static_cast<int>(tmp);
+    return true;
+}
+
+bool MemoryManager::ReadQuotaFile(const std::string& filePath)
+{
+    if (filePath == "") {
+        return false;
+    }
+    std::ifstream fin(filePath);
+    if (!fin.is_open()) {
+        RS_LOGE("ReadQuotaFile failed to fin TELEMETRY_QUOTA_PATH err: %{public}s", strerror(errno));
+        return false;
+    }
+
+    uint64_t size;
+    time_t time;
+    bool flag = ReadData(fin, time);
+    for (size_t i = 0; i < QUOTA_SCREEN_OFF_AND_CHARGE; i++) {
+        flag = flag && ReadData(fin, time);
+    }
+    flag = flag && ReadData(fin, size);
+    if (!flag) {
+        RS_LOGE("ReadQuotaFile fail to ReadData front.");
+        fin.close();
+        return false;
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        EventQuota eq;
+        flag = flag &&
+            ReadData(fin, eq.deliveryTs) && ReadData(fin, eq.bundleName) && ReadData(fin, eq.faultType) &&
+            ReadData(fin, eq.telemetryId) && ReadData(fin, eq.quota) && ReadData(fin, eq.romRsvSize);
+        if (!flag) {
+            RS_LOGE("ReadQuotaFile failed to ReadData quota, index: %{public}zu", i);
+            fin.close();
+            return false;
+        }
+        if (eq.faultType == QUOTA_FAULT_TYPE && eq.quota > 0) {
+            fin.close();
+            RS_LOGI("ReadQuotaFile return true");
+            return true;
+        }
+    }
+
+    fin.close();
+    return false;
+}
+
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
-    const std::string& hidumperReport, const std::string& filePath)
+    const std::string& hidumperReport, const std::string& filePath, bool needNodeAndUiTreeInfo)
 {
     if (pid == 0) {
         RS_LOGE("MemoryManager::MemoryOverReport pid:0 cpu[%{public}zu] gpu[%{public}zu]",
             info.cpuMemory, info.TotalGpuMemory());
         return;
     }
-    RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");
+    std::string memInfo = hidumperReport;
+    DfxString dfxLog;
+    DumpMemorySnapshot(dfxLog);
+    memInfo.append(dfxLog.GetString());
     DfxString pixelmapInfo;
     MemoryTrack::Instance().DumpMemoryPicStatisticsForReport(pixelmapInfo, pid);
     size_t nodeNum = MemoryTrack::Instance().GetNodeNumOfPid(pid);
-    std::string memInfo = hidumperReport;
     memInfo.append("\nNode Size: " + std::to_string(nodeNum) + "\n");
     memInfo.append(pixelmapInfo.GetString());
-    std::string gpuMemInfo;
-    DfxString dfxLog;
-    DumpMemorySnapshot(dfxLog);
-    gpuMemInfo.append(dfxLog.GetString());
     std::ifstream gpuMemInfoFile;
     gpuMemInfoFile.open(GPUMEM_INFO_PATH);
     if (gpuMemInfoFile.is_open()) {
+        memInfo.append("\n******************************\n");
         std::stringstream gpuMemInfoStream;
         gpuMemInfoStream << gpuMemInfoFile.rdbuf();
-        gpuMemInfo.append(gpuMemInfoStream.str());
+        memInfo.append(gpuMemInfoStream.str());
         gpuMemInfoFile.close();
     }
-    if (reportName == RSEventName::RENDER_MEMORY_OVER_ERROR) {
+    WriteInfoToFile(filePath, memInfo);
+
+    if (needNodeAndUiTreeInfo) {
         RSMainThread::Instance()->PostTask([=]() mutable {
             std::string log;
             DumpNodesInfoForReport(log, pid);
-            gpuMemInfo.append(log);
-            WriteInfoToFile(filePath, gpuMemInfo, memInfo);
+            std::string rsTreeFilePath = GRAPHIC_MEM_DIR + "renderservice_killProcess_rstree.txt";
+            WriteInfoToFile(rsTreeFilePath, log);
             int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC, "PID", pid, "TYPE", "GPU",
                 "BUNDLE_NAME", info.bundleName, "CPU_MEMORY", info.cpuMemory, "GPU_MEMORY",
-                info.nativeGpuMemory + info.engineGpuMemory, "TOTAL_MEMORY", info.TotalMemory(), "FILEPATH", filePath);
+                info.TotalGpuMemory(), "TOTAL_MEMORY", info.TotalMemory(), "MEMINFO_FILEPATH", filePath,
+                "RSTREE_FILEPATH", rsTreeFilePath);
             RS_LOGE("hisysevent writ result=%{public}d, send event [FRAMEWORK,%{public}s], "
-                    "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
+                "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
                 ret, reportName.c_str(), pid, info.bundleName.c_str(), info.cpuMemory,
-                info.nativeGpuMemory + info.engineGpuMemory, info.TotalMemory());
+                info.TotalGpuMemory(), info.TotalMemory());
         });
         return;
     }
-
-    WriteInfoToFile(filePath, gpuMemInfo, memInfo);
     int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC, "PID", pid, "TYPE", "GPU", "BUNDLE_NAME",
-        info.bundleName, "CPU_MEMORY", info.cpuMemory, "GPU_MEMORY", info.nativeGpuMemory + info.engineGpuMemory,
-        "TOTAL_MEMORY", info.TotalMemory(), "FILEPATH", filePath);
+        info.bundleName, "CPU_MEMORY", info.cpuMemory, "GPU_MEMORY", info.TotalGpuMemory(),
+        "TOTAL_MEMORY", info.TotalMemory(), "MEMINFO_FILEPATH", filePath);
     RS_LOGE("hisysevent writ result=%{public}d, send event [FRAMEWORK,%{public}s], "
             "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
         ret, reportName.c_str(), pid, info.bundleName.c_str(), info.cpuMemory,
-        info.nativeGpuMemory + info.engineGpuMemory, info.TotalMemory());
+        info.TotalGpuMemory(), info.TotalMemory());
 }
-
-void MemoryManager::WriteInfoToFile(
-    const std::string& filePath, std::string& gpuMemInfo, const std::string& hidumperReport)
+void MemoryManager::WriteInfoToFile(const std::string& filePath, const std::string& logInfo)
 {
+    if (filePath == "") {
+        RS_LOGE("MemoryOverReport::filePath is null!");
+        return;
+    }
     std::ofstream tempFile(filePath);
+    std::string writeInfo = logInfo;
+    if (logInfo.size() > MAX_BYTES_LIMIT) {
+        writeInfo = logInfo.substr(0, MAX_BYTES_LIMIT);
+    }
     if (tempFile.is_open()) {
         auto now = std::chrono::system_clock::now();
         std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
@@ -1282,14 +1420,11 @@ void MemoryManager::WriteInfoToFile(
         char timeStr[100];
         std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", localTime);
         tempFile << "time: " << timeStr << "\n";
-        if (!hidumperReport.empty()) {
+        if (!writeInfo.empty()) {
             tempFile << "\n******************************\n";
             tempFile << "LOGGER_RENDER_SERVICE_MEM\n";
-            tempFile << hidumperReport;
+            tempFile << writeInfo;
         }
-        tempFile << "\n******************************\n";
-        tempFile << gpuMemInfo;
-        tempFile << "\n************ endl ************\n";
     } else {
         RS_LOGE("MemoryOverReport::file open fail!");
     }
