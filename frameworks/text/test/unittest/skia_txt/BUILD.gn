@@ -57,6 +57,7 @@ text_unittest("rosen_text_skia_txt_test") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
     "skia:skia_paragraph_ohos_new",
+    "skia:skia_canvaskit",
   ]
 }
 
