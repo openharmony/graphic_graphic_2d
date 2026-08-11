@@ -61,6 +61,10 @@ uint32_t CacheData::CrcGen(const uint8_t *buffer, size_t bufferSize)
 
 bool CacheData::IsValidFile(uint8_t *buffer, size_t bufferSize)
 {
+    if (buffer == nullptr) {
+        LOGE("abandon, beacuse of buffer is nullptr");
+        return false;
+    }
     if (memcmp(buffer, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
         LOGE("abandon, because of mismatched RS_CACHE_MAGIC_HEAD");
         return false;
@@ -127,7 +131,7 @@ void CacheData::DumpAbnormalCacheToFile(uint8_t *buffer, size_t bufferSize)
     return;
 }
 
-void CacheData::CacheReadFromFile(const std::string filePath)
+void CacheData::CacheReadFromFile(std::string filePath)
 {
     if (filePath.length() <= 0) {
         LOGD("abandon, because of empty filename.");
@@ -239,6 +243,7 @@ void CacheData::WriteToFile()
     if (memcpy_s(buffer, bufferSize, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
         delete[] buffer;
         fdsan_close_with_tag(fd, LOG_DOMAIN);
+        unlink(cacheDir_.c_str());
         return;
     }
     uint32_t *crc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
