@@ -428,7 +428,7 @@ void RSSurfaceOhosVulkan::SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& 
     std::vector<GrBackendSemaphore>& semphoreVec, NativeBufferUtils::NativeSurfaceInfo& surface)
 {
     int ret = -1;
-    VkDevice vkDevice = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface().GetDevice();
+    VkDevice vkDevice = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface()->GetDevice();
     if (preFrameId > 0) {
         std::shared_ptr<VkSemaphore> preNotifySemaphore;
         VkSemaphore preWaitSemaphore;

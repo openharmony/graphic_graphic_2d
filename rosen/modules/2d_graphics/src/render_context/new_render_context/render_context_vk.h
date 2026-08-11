@@ -18,7 +18,12 @@
 
 #include <atomic>
 
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#else
+#include "rs_vulkan_context.h"
+#endif
+
 #include "platform/ohos/backend/rs_vulkan_header_ext.h"
 #include "render_context/render_context.h"
 
@@ -44,7 +49,7 @@ public:
     void SetCleanUpHelper(std::function<void()> func) override;
     void DestroySharedSource() override;
     #endif
-    
+
 private:
     RenderEngineType contextType_ = RenderEngineType::BASIC_RENDER;
 };
