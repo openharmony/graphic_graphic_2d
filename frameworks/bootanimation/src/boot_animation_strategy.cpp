@@ -29,6 +29,9 @@ namespace {
     constexpr uint32_t WAIT_FOR_ACTIVE_SCREEN_ID_CHANGE = 1000;
     const std::string DUE_UPDATE_TYPE_MANUAL = "manual";
     const std::string DUE_UPDATE_TYPE_NIGHT = "night";
+    constexpr const char* VAB_UPDATE_BOOT_PARAM = "updater.vab_update_boot";
+    constexpr const char* LOCKSCREEN_AUTHSTATE_READY_PARAM = "bootevent.lockscreen.authstate.ready";
+    constexpr int64_t AUTHSTATE_READY_TIMEOUT_MS = 10000;
 }
 
 bool BootAnimationStrategy::CheckExitAnimation()
@@ -50,8 +53,31 @@ bool BootAnimationStrategy::CheckExitAnimation()
 #ifdef FEATURE_CHECK_EXIT_ANIMATION_EXT
         return CheckExitAnimationExt();
 #else
-        return true;
+        return CheckAuthStateReadyWithTimeout();
 #endif
+    }
+    return false;
+}
+
+bool BootAnimationStrategy::CheckAuthStateReadyWithTimeout()
+{
+    std::string vabUpdateBoot = system::GetParameter(VAB_UPDATE_BOOT_PARAM, "");
+    if (vabUpdateBoot.empty()) {
+        return true;
+    }
+    if (!isBootCompleted_) {
+        isBootCompleted_ = true;
+        bootCompletedTimeMs_ = GetSystemCurrentTime();
+        LOGI("updater.vab_update_boot exists, start waiting for bootevent.lockscreen.authstate.ready");
+    }
+    if (system::GetBoolParameter(LOCKSCREEN_AUTHSTATE_READY_PARAM, false)) {
+        LOGI("bootevent.lockscreen.authstate.ready is true, exit animation");
+        return true;
+    }
+    int64_t elapsedMs = GetSystemCurrentTime() - bootCompletedTimeMs_;
+    if (elapsedMs >= AUTHSTATE_READY_TIMEOUT_MS) {
+        LOGI("waiting for bootevent.lockscreen.authstate.ready timeout, skip and exit");
+        return true;
     }
     return false;
 }
