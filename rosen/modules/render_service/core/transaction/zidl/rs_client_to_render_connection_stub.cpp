@@ -1724,9 +1724,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t repCode = RegisterFrameStabilityDetection(target, config, callback);
-            if (repCode != 0) {
-                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }
@@ -1751,9 +1752,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t repCode = UnregisterFrameStabilityDetection(target);
-            if (repCode != 0) {
-                RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }
@@ -1797,9 +1799,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t repCode = StartFrameStabilityCollection(target, config);
-            if (repCode != 0) {
-                RS_LOGE("START_FRAME_STABILITY_COLLECTION failed, repCode: %{public}d", repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }
@@ -1881,9 +1884,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t repCode = UpdateFrameStabilityDetection(oldTarget, newTarget);
-            if (repCode != 0) {
+            if (!reply.WriteInt32(repCode)) {
                 RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }

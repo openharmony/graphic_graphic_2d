@@ -33,6 +33,7 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/frame_stability/rs_frame_stability_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -123,6 +124,7 @@ RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
             AddSurfaceFpsOpStatic(SurfaceFpsOpType::SURFACE_FPS_REMOVE, id, name, uniqueId);
         });
     }
+    RSFrameStabilityManager::GetInstance().CleanResourcesByNodeId(id_);
 }
 
 void RSSurfaceRenderNodeDrawable::AddSurfaceFpsOpStatic(

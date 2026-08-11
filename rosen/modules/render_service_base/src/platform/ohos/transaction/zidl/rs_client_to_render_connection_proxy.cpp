@@ -1813,7 +1813,7 @@ int32_t RSClientToRenderConnectionProxy::RegisterFrameStabilityDetection(
         ROSEN_LOGE("%{public}s: WriteFloat changePercent err.", __func__);
         return WRITE_PARCEL_ERR;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ROSEN_LOGE("%{public}s: WriteRemoteObject callback->AsObject() err.", __func__);
         return WRITE_PARCEL_ERR;
@@ -1824,7 +1824,12 @@ int32_t RSClientToRenderConnectionProxy::RegisterFrameStabilityDetection(
         ROSEN_LOGE("%{public}s: SendRequest err: %{public}d", __func__, err);
         return RS_CONNECTION_ERROR;
     }
-    return SUCCESS;
+    int32_t repCode = 0;
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 repCode failed", __func__);
+        return READ_PARCEL_ERR;
+    }
+    return repCode;
 }
 
 int32_t RSClientToRenderConnectionProxy::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
@@ -1849,7 +1854,7 @@ int32_t RSClientToRenderConnectionProxy::UnregisterFrameStabilityDetection(const
         ROSEN_LOGE("%{public}s: WriteUint32 target.type err.", __func__);
         return WRITE_PARCEL_ERR;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(
         RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION);
     int32_t err = SendRequest(code, data, reply, option);
@@ -1857,7 +1862,12 @@ int32_t RSClientToRenderConnectionProxy::UnregisterFrameStabilityDetection(const
         ROSEN_LOGE("%{public}s: SendRequest err: %{public}d", __func__, err);
         return RS_CONNECTION_ERROR;
     }
-    return SUCCESS;
+    int32_t repCode = 0;
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 repCode failed", __func__);
+        return READ_PARCEL_ERR;
+    }
+    return repCode;
 }
 
 int32_t RSClientToRenderConnectionProxy::StartFrameStabilityCollection(
@@ -1897,14 +1907,19 @@ int32_t RSClientToRenderConnectionProxy::StartFrameStabilityCollection(
         ROSEN_LOGE("%{public}s: WriteFloat changePercent err.", __func__);
         return WRITE_PARCEL_ERR;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRequest err: %{public}d", __func__, err);
         return RS_CONNECTION_ERROR;
     }
-    return SUCCESS;
+    int32_t repCode = 0;
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 repCode failed", __func__);
+        return READ_PARCEL_ERR;
+    }
+    return repCode;
 }
 
 int32_t RSClientToRenderConnectionProxy::GetFrameStabilityResult(
@@ -1987,7 +2002,7 @@ int32_t RSClientToRenderConnectionProxy::UpdateFrameStabilityDetection(
         ROSEN_LOGE("%{public}s: WriteUint32 newTarget.type err.", __func__);
         return WRITE_PARCEL_ERR;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(
         RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION);
     int32_t err = SendRequest(code, data, reply, option);
@@ -1995,7 +2010,12 @@ int32_t RSClientToRenderConnectionProxy::UpdateFrameStabilityDetection(
         ROSEN_LOGE("%{public}s: SendRequest err: %{public}d", __func__, err);
         return RS_CONNECTION_ERROR;
     }
-    return reply.ReadInt32();
+    int32_t repCode = 0;
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 repCode failed", __func__);
+        return READ_PARCEL_ERR;
+    }
+    return repCode;
 }
 
 void RSClientToRenderConnectionProxy::SetFreeMultiWindowStatus(bool enable)
