@@ -31,7 +31,7 @@ protected:
     void SetDeeplyRelGpuResEnable(bool isDeeplyRelGpuResEnable);
 
 private:
-    bool isDeeplyRelGpuResEnable_ = true;
+    bool isDeeplyRelGpuResEnable_ = false;
 
     friend class DeeplyRelGpuResParamParse;
 };
