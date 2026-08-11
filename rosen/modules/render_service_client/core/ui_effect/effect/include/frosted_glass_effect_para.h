@@ -307,7 +307,7 @@ public:
         colorBlendMode_ = colorBlendMode;
     }
 
-    const BlendMode GetColorBlendMode() const
+    const GetColorBlendMode() const
     {
         return colorBlendMode_;
     }
