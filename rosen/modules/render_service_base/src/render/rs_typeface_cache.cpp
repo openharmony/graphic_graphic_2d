@@ -661,7 +661,7 @@ std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& stream)
         return "ReplayDeserialize: Cannot read count";
     }
 
-    constexpr size_t maxCount = 1'000u;
+    constexpr size_t maxCount = 10'000u;
     if (count > maxCount) {
         return "ReplayDeserialize: Count exceeds the limit";
     }
