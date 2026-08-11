@@ -457,7 +457,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_MultipleGroups001, TestSize
     ASSERT_NE(config, nullptr);
     EXPECT_EQ(config->GetDefaultRenderProcess(), TEST_GROUP_ID_1);
     const auto& groupConfigs = config->GetGroupInfoConfigs();
-    EXPECT_NE(groupConfigs.size(), EXPECTED_TWO_GROUPS);
+    EXPECT_EQ(groupConfigs.size(), EXPECTED_TWO_GROUPS);
     xmlFreeDoc(doc);
 }
 
@@ -557,7 +557,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ExtractPropertyValue_PropertyExists001, T
 
 /**
  * @tc.name: ExtractPropertyValue_PropertyNotExists001
- * @tc.desc: Test ExtractPropertyValue returns empty when property does not exists
+ * @tc.desc: Test ExtractPropertyValue returns empty when property does not exist
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -597,7 +597,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_NonElementNodes001, TestSiz
     const std::string xmlContent =
         R"(<?xml version="1.0"?><render_mode value="1">)"
         R"(<!-- this is a comment -->)"
-        R"(    <text>whitespace text</text>)"
+        R"(  <text>whitespace text</text>)"
         R"(<render_process id="5" name="g5"><screen id="100" name="s0"/></render_process></render_mode>)";
     xmlDocPtr doc = StringToXmlDoc(xmlContent);
     ASSERT_NE(doc, nullptr);
