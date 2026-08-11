@@ -169,6 +169,7 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
         case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_BUFFER_CALLBACK):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK):
         case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SELF_SURFACE_CAPTURE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE_SOLO):
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HIDE_PRIVACY_CONTENT):
