@@ -90,6 +90,10 @@ bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
     // unmarshalling as RSProxyNode
     if (isRSProxyNode) {
         surfaceNode_ = RSSurfaceNode::UnmarshallingAsProxyNode(parcel);
+        if (surfaceNode_ == nullptr) {
+            WALOGE("RSWindowAnimationTarget::ReadFromParcel, UnmarshallingAsProxyNode failed");
+            return false;
+        }
     }
     if (!(parcel.ReadUint32(windowId_) &&
         parcel.ReadUint64(displayId_) &&

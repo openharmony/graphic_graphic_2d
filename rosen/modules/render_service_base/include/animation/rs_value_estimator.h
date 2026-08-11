@@ -229,8 +229,11 @@ public:
 
     T GetAnimationValue(const float fraction, const bool isAdditive)
     {
-        if (!(durationKeyframes_.empty())) {
+        if (!durationKeyframes_.empty()) {
             return GetDurationKeyframeAnimationValue(fraction, isAdditive);
+        }
+        if (keyframes_.empty()) {
+            return property_ != nullptr ? property_->Get() : T();
         }
         float preKeyframeFraction = std::get<0>(keyframes_.front());
         auto preKeyframeValue = std::get<1>(keyframes_.front());
