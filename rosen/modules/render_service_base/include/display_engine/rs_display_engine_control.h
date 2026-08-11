@@ -34,6 +34,7 @@ public:
 
     static RSDisplayEngineControl& GetInstance();
 
+    // for IPC call
     int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values);
     int32_t RegisterDEStatusChangeCallback(const sptr<RSIDEStatusChangeCallback>& callback);
     int32_t UnregisterDEStatusChangeCallback();
