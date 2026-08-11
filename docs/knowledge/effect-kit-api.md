@@ -22,7 +22,7 @@
 | color_extract.h | `rosen/modules/effect/color_picker/include/color_extract.h` | ColorExtract 颜色量化核心（Median Cut） |
 | effect_image_render.h | `rosen/modules/effect/skia_effectChain/include/effect_image_render.h` | EffectImageFilter 基类 + 11 子类 |
 | effect_image_chain.h | `rosen/modules/effect/skia_effectChain/include/effect_image_chain.h` | EffectImageChain 低层渲染 |
-| egl_manager.h | `rosen/modules/effect/egl/include/egl_manager.h` | EGL 上下文管理（OpenGL 路径） |
+| render_context.h | `rosen/modules/2d_graphics/src/render_context/render_context.h` | RenderContext / RenderContextGL（OpenGL 路径） |
 | effect_config.gni | `rosen/modules/effect/effect_config.gni` | 构建配置（仅 `effect_enable_gpu` 开关） |
 
 ## API 分层架构
@@ -115,8 +115,8 @@ OH_Filter_CreateEffect(pixelmap, &filter)
 | `EffectMaskType` | `effect_types.h` | LINEAR_GRADIENT_MASK / RADIAL_GRADIENT_MASK |
 | `OH_Filter_ColorMatrix` | `effect_types.h` | 5x4 颜色矩阵（float[20]） |
 | `OH_Filter_Color` | `effect_types.h` | RGBA 四通道浮点颜色 |
-| `OH_Filter_WaterGlassDataParams` | `effect_types.h` | 水波纹参数（30+ 字段：速度、折射、波形、光照、遮罩等） |
-| `OH_Filter_ReededGlassDataParams` | `effect_types.h` | 竖条纹玻璃参数（20 字段：折射、网格光/影、点光源等） |
+| `OH_Filter_WaterGlassDataParams` | `effect_types.h` | 水波纹参数（25 字段：速度、折射、波形、光照、遮罩等） |
+| `OH_Filter_ReededGlassDataParams` | `effect_types.h` | 竖条纹玻璃参数（17 字段：折射、网格光/影、点光源等） |
 | `OH_Filter_WaterDropletParams` | `effect_types.h` | 水滴过渡参数（12 字段：位置、半径、扭曲、噪声、光照） |
 | `OH_Filter_MapColorByBrightnessParams` | `effect_types.h` | 亮度映射颜色参数（颜色数组 + 位置数组，最多 5 对） |
 
@@ -172,7 +172,7 @@ OH_Filter_GetEffectNativeBuffer(filter, nativeBuffer, &syncFenceFd, releaseGpuCo
 
 **PrepareNativeBuffer**：仅 Vulkan 路径（`RS_ENABLE_VK`），OpenGL/EGL 不支持。
 
-1. `RsVulkanContext::GetSingleton().CreateDrawingContext()` — 创建 Vulkan GPU 上下文
+1. `RsVulkanContext::Get(...)` — 获取 Vulkan 上下文单例
 2. `NativeBufferUtils::CreateSurfaceFromNativeBuffer()` — 将 `OH_NativeBuffer` 导入为 VkImage
    - `GetNativeBufferFormatProperties` — 查询格式属性
    - `CreateVkImage` — 从外部 buffer 创建 VkImage
@@ -207,14 +207,14 @@ GPU 直接渲染到 `OH_NativeBuffer`，无需中间 PixelMap 拷贝。
 
 | 方法 | 策略 | 代码位置 |
 |------|------|----------|
-| `GetMainColor` | 缩放至 1x1 像素（双线性平均） | `color_picker.cpp:149-181` |
-| `GetLargestProportionColor` | 返回特征色中像素数最多的 | `color_picker.cpp:218-225` |
-| `GetHighestSaturationColor` | 遍历特征色，取 HSV 饱和度最高 | `color_picker.cpp:227-244` |
-| `GetAverageColor` | 按像素数加权平均所有特征色 | `color_picker.cpp:246-271` |
-| `GetImmersiveBackgroundColor` | `GetDominantColor` + `ColorBrightnessMode` 调整 | `color_picker.cpp:609-643` |
-| `GetImmersiveForegroundColor` | 反转背景色的亮度模式 | `color_picker.cpp:646-674` |
-| `GetMorandiBackgroundColor` | 强制 S=9, V=84 保留主色调 | `color_picker.cpp:407-447` |
-| `GetReverseColor` | 亮图返回黑色，暗图返回白色 | `color_picker.cpp:374-390` |
+| `GetMainColor` | 缩放至 1x1 像素（双线性平均） | `color_picker.cpp:150` |
+| `GetLargestProportionColor` | 返回特征色中像素数最多的 | `color_picker.cpp:219` |
+| `GetHighestSaturationColor` | 遍历特征色，取 HSV 饱和度最高 | `color_picker.cpp:228` |
+| `GetAverageColor` | 按像素数加权平均所有特征色 | `color_picker.cpp:247` |
+| `GetImmersiveBackgroundColor` | `GetDominantColor` + `ColorBrightnessMode` 调整 | `color_picker.cpp:610` |
+| `GetImmersiveForegroundColor` | 反转背景色的亮度模式 | `color_picker.cpp:647` |
+| `GetMorandiBackgroundColor` | 强制 S=9, V=84 保留主色调 | `color_picker.cpp:408` |
+| `GetReverseColor` | 亮图返回黑色，暗图返回白色 | `color_picker.cpp:375` |
 
 ### 核心算法：Median Cut（VBox）颜色量化
 
@@ -238,7 +238,7 @@ GPU 直接渲染到 `OH_NativeBuffer`，无需中间 PixelMap 拷贝。
 
 ### ColorBrightnessMode 分类
 
-`DiscriminateDarkOrBrightColor`（`color_picker.cpp:513-543`）基于 HSV 判定：
+`DiscriminateDarkOrBrightColor`（`color_picker.cpp:514`）基于 HSV 判定：
 
 | 条件 | 模式 |
 |------|------|
@@ -302,9 +302,9 @@ Drawing::GE*ShaderFilter            -- GPU 着色器执行
 ### OpenGL 路径 Surface 创建
 
 `EffectImageChain::CreateSurface(forceCPU=false)` 在 OpenGL 路径：
-1. `RenderContext::Create()` → 内部使用 `EglManager` 单例
-2. `EglManager::Init()` → `eglGetDisplay` + `eglInitialize` + 创建 PBuffer Surface + `eglCreateContext`（GLES 3.x）+ `eglMakeCurrent`
-3. `EglManager::RetryEGLContext()` → 重入时检查上下文是否在当前线程，否则重新 `eglMakeCurrent`
+1. `RenderContext::Create()` → 创建 `RenderContextGL` 实例
+2. `renderContext_->Init()` → 内部初始化 EGL：`eglGetDisplay` + `eglInitialize` + 创建 PBuffer Surface + `eglCreateContext`（GLES 3.x）+ `eglMakeCurrent`
+3. `renderContext_->GetSharedDrGPUContext()` → 获取共享 GPU 上下文
 4. `Drawing::Surface::MakeRenderTarget(gpuContext, false, imageInfo)` — 创建渲染目标
 
 ## 内部实现：GPU 着色器
@@ -313,9 +313,9 @@ Drawing::GE*ShaderFilter            -- GPU 着色器执行
 
 | 效果 | 着色器来源 | 代码位置 |
 |------|-----------|----------|
-| WaterGlass | `libgraphics_effect_ext.z.so`（闭源，运行时动态加载） | `effect_image_chain.cpp:907-919` |
-| ReededGlass | `libgraphics_effect_ext.z.so`（闭源，运行时动态加载） | `effect_image_chain.cpp:921-933` |
-| WaterDropletTransition | `libgraphics_effect_ext.z.so`（闭源，运行时动态加载） | `effect_image_chain.cpp:600-616` |
+| WaterGlass | `libgraphics_effect_ext.z.so`（闭源，运行时动态加载） | `effect_image_chain.cpp:953` |
+| ReededGlass | `libgraphics_effect_ext.z.so`（闭源，运行时动态加载） | `effect_image_chain.cpp:971` |
+| WaterDropletTransition | `libgraphics_effect_ext.z.so`（闭源，运行时动态加载） | `effect_image_chain.cpp:628` |
 | MaskTransition | 开源 SkSL（`ge_mask_transition_shader_filter.cpp`） | `graphic_graphics_effect` 仓库 |
 | WaterRipple | 开源 SkSL（4 种变体，`ge_water_ripple_filter.h`） | `graphic_graphics_effect` 仓库 |
 
@@ -329,7 +329,7 @@ GEExternalDynamicLoader::CreateGEXObjectByType(filterType, sizeof(Params), param
   → 返回 GEShaderFilter*（闭源）
 ```
 
-- `filterType`：`GEFilterType` 枚举值（WATER_GLASS=40, REEDED_GLASS=41, WATER_DROPLET_TRANSITION=36）
+- `filterType`：`GEFilterType` 枚举值（WATER_GLASS、REEDED_GLASS、WATER_DROPLET_TRANSITION，定义在 `graphics_effect` 外部组件）
 - `sizeof(Params)`：类型安全校验
 - 系统属性 `rosen.graphic.gex.enable` 控制是否启用（默认 true）
 
@@ -379,7 +379,7 @@ MaskTransition 同时作为 NGEffect 滤镜注册（`rs_render_filter_def.in`）
 | 管线式效果添加 | 多个 OH_Filter_* 可链式调用 | 灵活组合效果，避免为每种组合创建单独 API |
 | CPU/GPU 双路径 | `Render(forceCPU)` + `GetEffectNativeBuffer` | GPU 直出 NativeBuffer 更高效，CPU fallback 兼容 |
 | NDK C 接口 | `OH_Filter_*` 系列函数 | 供 NAPI/CJ/ANI 等上层语言绑定使用 |
-| 复杂效果参数化 | `OH_Filter_WaterGlassDataParams` 30+ 字段 | 精细控制视觉效果，支持动态动画 |
+| 复杂效果参数化 | `OH_Filter_WaterGlassDataParams` 25 字段 | 精细控制视觉效果，支持动态动画 |
 | TileMode 控制 | `EffectTileMode` 枚举 | 模糊等效果边缘处理策略 |
 | thread_local FilterCommon | `sConstructor_` 线程局部 | 避免多线程竞争，每个线程独立效果实例 |
 | 惰性 + 即时双组合策略 | CPU 滤镜惰性组合，GPU 着色器即时处理 | CPU 滤镜可批量优化，GPU 着色器需即时消费 |
@@ -396,7 +396,6 @@ MaskTransition 同时作为 NGEffect 滤镜注册（`rs_render_filter_def.in`）
 | effect_image_chain_unittest.cpp | `rosen/modules/effect/test/unittest/` | EffectImageChain 各 Apply* 方法 |
 | filter_common_unittest.cpp | `rosen/modules/effect/test/unittest/` | FilterCommon（CJ/JS 层）含 CreateSDF、多效果链 |
 | color_picker_unittest.cpp | `rosen/modules/effect/test/unittest/` | ColorPicker 颜色提取 |
-| egl_manager_test.cpp | `rosen/modules/effect/test/unittest/` | EGL 上下文管理 |
 | effectfilter_fuzzer.cpp | `rosen/test/render_service/render_service/fuzztest/effectfilter_fuzzer/` | 全部 18 个 OH_Filter_* NDK API 模糊测试 |
 
 GPU 依赖测试仅在 `effect_enable_gpu = true` 时编译（由 `effect_config.gni` 控制）。
