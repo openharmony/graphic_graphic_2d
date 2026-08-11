@@ -155,7 +155,7 @@ HWTEST_F(RSRenderServiceTest, RenderProcessManagerInit001, TestSize.Level1)
         if (rsDistributor != nullptr) {
             auto conn = rsDistributor->GetVSyncConnection(0);
             if (conn != nullptr) {
-                conn->CloseReceiverFd();
+                conn->CloseReceiveFd();
             }
         }
     }
