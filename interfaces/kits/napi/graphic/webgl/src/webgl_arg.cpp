@@ -540,7 +540,7 @@ bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuety
         if (!succ) {
             return false;
         }
-        LOGD("WebGl ImageSource src: %{public}s", source.get());
+        LOGD("WebGl ImageSource uses a file path");
         imageSource = ImageSource::CreateImageSource(source.get(), opts, errorCode);
     } else if (valueType == napi_number) { // Fd
         int32_t fd = 0;
@@ -549,7 +549,7 @@ bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuety
             LOGE("WebGl ImageSource invalid fd type");
             return false;
         }
-        LOGD("WebGl ImageSource fdIndex is [%{public}d]", fd);
+        LOGD("WebGl ImageSource uses a file descriptor");
         imageSource = ImageSource::CreateImageSource(fd, opts, errorCode);
     } else {
         LOGE("WebGl ImageSource not support type %{public}u", valueType);

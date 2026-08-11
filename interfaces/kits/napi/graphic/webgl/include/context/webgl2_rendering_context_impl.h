@@ -176,7 +176,8 @@ private:
     bool CheckStorageInternalFormat(napi_env env, GLenum internalFormat);
     bool CheckTransformFeedbackBuffer(GLenum target, WebGLBuffer* buffer);
     bool CheckTransformFeedbackBindings(napi_env env);
-    bool CheckClearBufferOffsetValid(int64_t srcOffset, size_t requiredSize, size_t bufferByteLen);
+    bool CheckClearBufferOffsetValid(int64_t srcOffset, size_t requiredElementCount, size_t elementSize,
+        size_t bufferByteLen, size_t& byteOffset);
     void SaveBoundVertexArrayState();
     void RestoreVertexArrayState(GLuint vertexArrayId);
     napi_value HandleFrameBufferPname(

@@ -1399,29 +1399,26 @@ napi_value WebGL2RenderingContextImpl::ClearBufferV(
     bufferData.DumpBuffer(bufferData.GetBufferDataType());
 
     size_t bufferByteLen = bufferData.GetBufferLength();
-    size_t requiredSize = 0;
+    constexpr size_t COLOR_CLEAR_ELEMENT_COUNT = 4;
+    bool requiresFourElements = buffer == WebGL2RenderingContextBase::COLOR ||
+        buffer == WebGLRenderingContextBase::FRONT || buffer == WebGLRenderingContextBase::BACK ||
+        buffer == WebGLRenderingContextBase::FRONT_AND_BACK;
+    size_t requiredElementCount = requiresFourElements ? COLOR_CLEAR_ELEMENT_COUNT : 1;
+    size_t byteOffset = 0;
+    if (!CheckClearBufferOffsetValid(srcOffset, requiredElementCount, bufferData.GetBufferDataSize(),
+        bufferByteLen, byteOffset)) {
+        return NVal::CreateNull(env).val_;
+    }
 
     switch (type) {
         case BUFFER_DATA_FLOAT_32:
-            requiredSize = 4 * sizeof(GLfloat);
-            if (!CheckClearBufferOffsetValid(srcOffset, requiredSize, bufferByteLen)) {
-                return NVal::CreateNull(env).val_;
-            }
-            glClearBufferfv(buffer, drawBuffer, reinterpret_cast<GLfloat*>(bufferData.GetBuffer() + srcOffset));
+            glClearBufferfv(buffer, drawBuffer, reinterpret_cast<GLfloat*>(bufferData.GetBuffer() + byteOffset));
             break;
         case BUFFER_DATA_INT_32:
-            requiredSize = sizeof(GLint);
-            if (!CheckClearBufferOffsetValid(srcOffset, requiredSize, bufferByteLen)) {
-                return NVal::CreateNull(env).val_;
-            }
-            glClearBufferiv(buffer, drawBuffer, reinterpret_cast<GLint*>(bufferData.GetBuffer() + srcOffset));
+            glClearBufferiv(buffer, drawBuffer, reinterpret_cast<GLint*>(bufferData.GetBuffer() + byteOffset));
             break;
         case BUFFER_DATA_UINT_32:
-            requiredSize = sizeof(GLuint);
-            if (!CheckClearBufferOffsetValid(srcOffset, requiredSize, bufferByteLen)) {
-                return NVal::CreateNull(env).val_;
-            }
-            glClearBufferuiv(buffer, drawBuffer, reinterpret_cast<GLuint*>(bufferData.GetBuffer() + srcOffset));
+            glClearBufferuiv(buffer, drawBuffer, reinterpret_cast<GLuint*>(bufferData.GetBuffer() + byteOffset));
             break;
         default:
             break;
@@ -2711,11 +2708,23 @@ bool WebGL2RenderingContextImpl::CheckStorageInternalFormat(napi_env env, GLenum
     });
 }
 
-bool WebGL2RenderingContextImpl::CheckClearBufferOffsetValid(int64_t srcOffset, size_t requiredSize,
-    size_t bufferByteLen)
+bool WebGL2RenderingContextImpl::CheckClearBufferOffsetValid(int64_t srcOffset, size_t requiredElementCount,
+    size_t elementSize, size_t bufferByteLen, size_t& byteOffset)
 {
-    if (srcOffset < 0 || static_cast<uint64_t>(srcOffset) > bufferByteLen ||
-        requiredSize > bufferByteLen - static_cast<size_t>(srcOffset)) {
+    if (srcOffset < 0 || elementSize == 0 || static_cast<uint64_t>(srcOffset) >
+        std::numeric_limits<size_t>::max() / elementSize) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
+            "WebGL2 clearBuffer srcOffset out of bounds");
+        return false;
+    }
+    byteOffset = static_cast<size_t>(srcOffset) * elementSize;
+    if (requiredElementCount > std::numeric_limits<size_t>::max() / elementSize) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
+            "WebGL2 clearBuffer required size overflow");
+        return false;
+    }
+    size_t requiredSize = requiredElementCount * elementSize;
+    if (byteOffset > bufferByteLen || requiredSize > bufferByteLen - byteOffset) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
             "WebGL2 clearBuffer srcOffset out of bounds");
         return false;
