@@ -446,7 +446,7 @@ void RSRenderComposer::ChangeLayersForActiveRectOutside(std::vector<std::shared_
     RS_LOGD_IF(DEBUG_COMPOSER, "emulator device do not need add layer");
     return;
 #endif
-    if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0) {
+    if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0 || RSSystemProperties::IsSimulateTest()) {
         return;
     }
 
