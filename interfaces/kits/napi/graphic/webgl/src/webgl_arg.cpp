@@ -1006,7 +1006,7 @@ bool WebGLArg::GetStringList(napi_env env, napi_value array, uint32_t maxCount, 
         if (!succ) {
             return false;
         }
-        LOGD("WebGL2 GetStringList = %{public}s", name.get());
+        LOGD("WebGL2 GetStringList nameLength %{public}zu", nameLength);
         list.emplace_back(name.get());
         name.release();
     }

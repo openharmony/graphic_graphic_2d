@@ -2434,7 +2434,8 @@ napi_value WebGLRenderingContextBase::GetActiveAttrib(napi_env env, napi_callbac
             if (length > WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH) {
                 LOGE("WebGL: getActiveAttrib: error bufSize exceed!");
             }
-            LOGD("WebGL getActiveAttrib %{public}s %{public}u %{public}d %{public}u", name, type, size, length);
+            LOGD("WebGL getActiveAttrib type %{public}u size %{public}d nameLength %{public}u",
+                type, size, length);
         });
 }
 
@@ -2448,7 +2449,8 @@ napi_value WebGLRenderingContextBase::GetActiveUniform(napi_env env, napi_callba
             if (length > WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH) {
                 LOGE("WebGL: getActiveUniform: error bufSize exceed!");
             }
-            LOGD("WebGL GetActiveUniform %{public}s %{public}u %{public}d", name, type, size);
+            LOGD("WebGL GetActiveUniform type %{public}u size %{public}d nameLength %{public}u",
+                type, size, length);
         });
 }
 
@@ -2795,8 +2797,8 @@ napi_value WebGLRenderingContextBase::GetShaderInfoLog(napi_env env, napi_callba
         return NVal::CreateUTF8String(env, "").val_;
     }
     string str = buf.get();
-    LOGD("WebGL getShaderInfoLog shaderId %{public}u length %{public}d %{public}zu %{public}s",
-        shaderId, length, str.size(), str.c_str());
+    LOGD("WebGL getShaderInfoLog shaderId %{public}u length %{public}d resultLength %{public}zu",
+        shaderId, length, str.size());
     return NVal::CreateUTF8String(env, str).val_;
 }
 
@@ -2827,8 +2829,8 @@ napi_value WebGLRenderingContextBase::GetProgramInfoLog(napi_env env, napi_callb
         return NVal::CreateUTF8String(env, "").val_;
     }
     string str = buf.get();
-    LOGD("WebGL getProgramInfoLog programId %{public}u length %{public}d %{public}zu %{public}s",
-        programId, length, str.size(), str.c_str());
+    LOGD("WebGL getProgramInfoLog programId %{public}u length %{public}d resultLength %{public}zu",
+        programId, length, str.size());
     return NVal::CreateUTF8String(env, str).val_;
 }
 

@@ -1070,8 +1070,8 @@ napi_value WebGLRenderingContextBaseImpl::GetUniformLocation(napi_env env, napi_
     }
 
     GLint locationId = glGetUniformLocation(programId, name.c_str());
-    LOGD("WebGL getUniformLocation locationId programId %{public}u name '%{public}s' %{public}d",
-        programId, name.c_str(), locationId);
+    LOGD("WebGL getUniformLocation programId %{public}u nameLength %{public}zu location %{public}d",
+        programId, name.size(), locationId);
     if (locationId == -1) {
         return NVal::CreateNull(env).val_;
     }
@@ -1105,8 +1105,8 @@ napi_value WebGLRenderingContextBaseImpl::GetAttribLocation(napi_env env, napi_v
     }
     GLuint programId = webGlProgram->GetProgramId();
     GLint returnValue = glGetAttribLocation(programId, const_cast<char*>(name.c_str()));
-    LOGD("WebGL getAttribLocation programId %{public}u name %{public}s, location %{public}d",
-        programId, name.c_str(), returnValue);
+    LOGD("WebGL getAttribLocation programId %{public}u nameLength %{public}zu location %{public}d",
+        programId, name.size(), returnValue);
     return NVal::CreateInt64(env, static_cast<int64_t>(returnValue)).val_;
 }
 
@@ -1593,8 +1593,8 @@ napi_value WebGLRenderingContextBaseImpl::BindAttribLocation(
     if (!CheckLocationName(name)) {
         return NVal::CreateNull(env).val_;
     }
-    LOGD("WebGL bindAttribLocation programId %{public}u index %{public}u name %{public}s",
-        programId, index, name.c_str());
+    LOGD("WebGL bindAttribLocation programId %{public}u index %{public}u nameLength %{public}zu",
+        programId, index, name.size());
     glBindAttribLocation(programId, index, const_cast<char*>(name.c_str()));
     return NVal::CreateNull(env).val_;
 }
@@ -2349,7 +2349,8 @@ GLenum WebGLRenderingContextBaseImpl::GetUniformType(GLuint programId, GLint loc
         if (nameLength < 0 || nameLength >= maxNameLength || size < 0 || size > MAX_ACTIVE_UNIFORM_COUNT) {
             return 0;
         }
-        LOGD("WebGL getUniform index %{public}d type 0x%{public}x name %{public}s ", i, type, name.data());
+        LOGD("WebGL getUniform index %{public}d type 0x%{public}x nameLength %{public}d",
+            i, type, nameLength);
         if (glGetUniformLocation(programId, name.data()) == locationId) {
             return type;
         }

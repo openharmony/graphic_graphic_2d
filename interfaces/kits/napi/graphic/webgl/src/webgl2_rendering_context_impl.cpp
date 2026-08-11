@@ -803,8 +803,8 @@ napi_value WebGL2RenderingContextImpl::GetTransformFeedbackVarying(napi_env env,
     GLenum type = 0;
     GLchar name[WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH] = { 0 };
     glGetTransformFeedbackVarying(programId, index, bufSize, &length, &size, &type, name);
-    LOGD("WebGL2 getTransformFeedbackVarying: name '%{public}s' %{public}u length %{public}d %{public}d"
-        " index %{public}u", name, type, length, size, index);
+    LOGD("WebGL2 getTransformFeedbackVarying type %{public}u nameLength %{public}d size %{public}d"
+        " index %{public}u", type, length, size, index);
     if (type == 0) {
         SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
@@ -1489,7 +1489,7 @@ napi_value WebGL2RenderingContextImpl::GetFragDataLocation(napi_env env, napi_va
     program = webGLProgram->GetProgramId();
 
     GLint res = glGetFragDataLocation(program, const_cast<char*>(name.c_str()));
-    LOGD("WebGL2 getFragDataLocation name %{public}s result %{public}d", name.c_str(), res);
+    LOGD("WebGL2 getFragDataLocation nameLength %{public}zu result %{public}d", name.size(), res);
     return NVal::CreateInt64(env, res).val_;
 }
 
@@ -2064,8 +2064,8 @@ napi_value WebGL2RenderingContextImpl::GetUniformBlockIndex(
         return NVal::CreateInt64(env, -1).val_;
     }
     GLuint returnValue = glGetUniformBlockIndex(programId, uniformBlockName.c_str());
-    LOGD("WebGL2 getUniformBlockIndex name %{public}s programId %{public}u result %{public}u",
-        uniformBlockName.c_str(), programId, returnValue);
+    LOGD("WebGL2 getUniformBlockIndex nameLength %{public}zu programId %{public}u result %{public}u",
+        uniformBlockName.size(), programId, returnValue);
     return NVal::CreateInt64(env, returnValue).val_;
 }
 
@@ -2394,8 +2394,8 @@ napi_value WebGL2RenderingContextImpl::GetActiveUniformBlockName(
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "invalid uniform block name size");
         return NVal::CreateUTF8String(env, "").val_;
     }
-    LOGD("WebGL2 getActiveUniformBlockName programId %{public}u uniformBlockIndex  %{public}u name %{public}s",
-        programId, uniformBlockIndex, buf.get());
+    LOGD("WebGL2 getActiveUniformBlockName programId %{public}u uniformBlockIndex %{public}u"
+        " nameLength %{public}d", programId, uniformBlockIndex, size);
     string str(buf.get(), size);
     return NVal::CreateUTF8String(env, str).val_;
 }
