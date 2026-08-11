@@ -83,6 +83,7 @@ private:
     static bool FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
     static bool FillFrostedGlassEnv(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
     static bool FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
+    static bool FillFrostedGlassMatColor(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
     static bool BuildFrostedGlassEffectPara(napi_env env, napi_value* argv,
         std::shared_ptr<FrostedGlassEffectPara>& outPara);
     static napi_value CreateDistortionCollapseEffect(napi_env env, napi_callback_info info);

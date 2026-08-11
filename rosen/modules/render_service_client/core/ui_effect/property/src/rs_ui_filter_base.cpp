@@ -413,6 +413,11 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(frostedGlassFilterPara->GetBaseVibrancyEnabled());
     frostedGlassFilter->Setter<FrostedGlassBaseMaterialTypeTag>(frostedGlassFilterPara->GetBaseMaterialType());
     frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(frostedGlassFilterPara->GetMaterialColor());
+    frostedGlassFilter->Setter<FrostedGlassColorBlendModeTag>(frostedGlassFilterPara->GetColorBlendMode());
+    frostedGlassFilter->Setter<FrostedGlassVibrancyStrengthTag>(frostedGlassFilterPara->GetVibrancyStrength());
+    frostedGlassFilter->Setter<FrostedGlassLumaParamsTag>(frostedGlassFilterPara->GetLumaParams());
+    frostedGlassFilter->Setter<FrostedGlassMaterialColorFractionTag>(
+        frostedGlassFilterPara->GetMaterialColorFraction());
     frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(frostedGlassFilterPara->GetSamplingScale());
     frostedGlassFilter->Setter<FrostedGlassWaveMaskTag>(RSNGMaskBase::Create(frostedGlassFilterPara->GetMask()));
     ConvertOptionalAdaptivePara(frostedGlassFilterPara.get(), frostedGlassFilter.get());

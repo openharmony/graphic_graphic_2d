@@ -333,6 +333,46 @@ public:
         return materialColor_;
     }
 
+    void SetColorBlendMode(float colorBlendMode)
+    {
+        colorBlendMode_ = colorBlendMode;
+    }
+
+    float GetColorBlendMode() const
+    {
+        return colorBlendMode_;
+    }
+
+    void SetVibrancyStrength(float vibrancyStrength)
+    {
+        vibrancyStrength_ = vibrancyStrength;
+    }
+
+    float GetVibrancyStrength() const
+    {
+        return vibrancyStrength_;
+    }
+
+    void SetLumaParams(Vector3f& lumaParams)
+    {
+        lumaParams_ = lumaParams;
+    }
+
+    const Vector3f GetLumaParams() const
+    {
+        return lumaParams_;
+    }
+
+    void SetMaterialColorFraction(float materialColorFraction)
+    {
+        materialColorFraction_ = materialColorFraction;
+    }
+
+    float GetMaterialColorFraction() const
+    {
+        return materialColorFraction_;
+    }
+
     void SetSamplingScale(float samplingScale)
     {
         samplingScale_ = samplingScale;
@@ -426,6 +466,10 @@ private:
     bool baseVibrancyEnabled_ = true;
     float baseMaterialType_ = 0.0f;
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+    float colorBlendMode_ = 0.0f; // 0: LINEAR_MIX, 1: TILTED_GLASS
+    float vibrancyStrength_ = 0.0f;
+    Vector3f lumaParams_ = Vector3f(0.0f, 0.0f, 0.0f);
+    float materialColorFraction_ = 0.0f;
     float darkScale_ = 0.0f; // later will use interpolation between 0.0 and 1.0
     float samplingScale_ = 1.0f;
     std::shared_ptr<MaskPara> maskPara_ = nullptr;

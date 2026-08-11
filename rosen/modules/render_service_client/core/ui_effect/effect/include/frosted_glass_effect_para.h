@@ -302,12 +302,52 @@ public:
         return materialColor_;
     }
 
-    void SetMask(std::shared_ptr<MaskPara> maskPara)
+    void SetColorBlendMode(BlendMode colorBlendMode)
+    {
+        colorBlendMode_ = colorBlendMode;
+    }
+
+    const BlendMode GetColorBlendMode() const
+    {
+        return colorBlendMode_;
+    }
+
+    void SetVibrancyStrength(float vibrancyStrength)
+    {
+        vibrancyStrength_ = vibrancyStrength;
+    }
+
+    float GetVibrancyStrength() const
+    {
+        return vibrancyStrength_;
+    }
+
+    void SetLumaParams(Vector3f& lumaParams)
+    {
+        lumaParams_ = lumaParams;
+    }
+
+    const Vector3f GetLumaParams() const
+    {
+        return lumaParams_;
+    }
+
+    void SetMaterialColorFraction(float materialColorFraction)
+    {
+        materialColorFraction_ = materialColorFraction;
+    }
+
+    float GetMaterialColorFraction() const
+    {
+        return materialColorFraction_;
+    }
+
+    void Setmask(std::shared_ptr<MaskPara> maskPara)
     {
         maskPara_ = maskPara;
     }
 
-    const std::shared_ptr<MaskPara>& GetMask() const
+    std::shared_ptr<MaskPara> GetMask() const
     {
         return maskPara_;
     }
@@ -316,7 +356,6 @@ public:
     {
         return enableSDFCache_;
     }
-
 private:
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
@@ -350,6 +389,10 @@ private:
     Vector3f edLightPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+    float colorBlendMode_ = 0.0f; // 0: LINEAR_MIX, 1: TILTED_GLASS
+    float vibrancyStrength_ = 0.0f;
+    Vector3f lumaParams_ = Vector3f(0.0f, 0.0f, 0.0f);
+    float materialColorFraction_ = 0.0f;
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
     bool enableSDFCache_ = false;
 };

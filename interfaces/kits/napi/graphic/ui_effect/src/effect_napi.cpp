@@ -1075,12 +1075,40 @@ bool EffectNapi::FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_23], edLightNeg), false,
         UIEFFECT_LOG_E("FillFrostedGlassEdl: edLightNeg parse fail"));
     para->SetEdLightNeg(edLightNeg);
+    return true;
+}
+
+bool EffectNapi::FillFrostedGlassMatColor(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para)
+{
+    if (!para) {
+        UIEFFECT_LOG_E("FillFrostedGlassMatColor: para is nullptr");
+        return false;
+    }
 
     Vector4f materialColor;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[NUM_24], materialColor), false,
-        UIEFFECT_LOG_E("FillFrostedGlassEdl: materialColor parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassMatColor: materialColor parse fail"));
     para->SetMaterialColor(materialColor);
 
+    double colorBlendMode;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_25], colorBlendMode), false,
+        UIEFFECT_LOG_E("FillFrostedGlassMatColor: colorBlendMode parse fail"));
+    para->SetColorBlendMode(static_cast<float>(colorBlendMode));
+
+    double vibrabcyStrength;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_26], vibrabcyStrength), false,
+        UIEFFECT_LOG_E("FillFrostedGlassMatColor: vibrabcyStrength parse fail"));
+    para->SetVibrabcyStrength(static_cast<float>(vibrabcyStrength));
+
+    Vector3f lumaParams;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_27], lumaParams), false,
+        UIEFFECT_LOG_E("FillFrostedGlassMatColor: lumaParams parse fail"));
+    para->SetLumaParams(lumaParams);
+
+    double materialColorFraction;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_28], materialColorFraction), false,
+        UIEFFECT_LOG_E("FillFrostedGlassMatColor: materialColorFraction parse fail"));
+    para->SetMaterialColorFraction(static_cast<float>(materialColorFraction));
     return true;
 }
 
@@ -1104,6 +1132,9 @@ bool EffectNapi::BuildFrostedGlassEffectPara(napi_env env, napi_value* argv,
     UIEFFECT_NAPI_CHECK_RET_D(FillFrostedGlassEdl(env, argv, outPara), false,
         UIEFFECT_LOG_E("BuildFrostedGlassEffectPara: FillFrostedGlassEdl fail"));
 
+    UIEFFECT_NAPI_CHECK_RET_D(FillFrostedGlassMatColor(env, argv, outPara), false,
+        UIEFFECT_LOG_E("BuildFrostedGlassEffectPara: FillFrostedGlassMatColor fail"));
+
     return true;
 }
 
@@ -1115,8 +1146,8 @@ napi_value EffectNapi::CreateFrostedGlassEffect(napi_env env, napi_callback_info
             "EffectNapi CreateFrostedGlassEffect failed, is not system app");
         return nullptr;
     }
-    constexpr size_t minArgc = NUM_25;
-    constexpr size_t maxArgc = NUM_27;
+    constexpr size_t minArgc = NUM_29;
+    constexpr size_t maxArgc = NUM_31;
 
     napi_status status;
     napi_value thisVar = nullptr;
@@ -1133,13 +1164,13 @@ napi_value EffectNapi::CreateFrostedGlassEffect(napi_env env, napi_callback_info
 
     if (realArgc >= minArgc + NUM_1) {
         float bgAlpha = 1.f;
-        bgAlpha = GetSpecialValue(env, argv[NUM_25]);
+        bgAlpha = GetSpecialValue(env, argv[minArgc]);
         para->SetBgAlpha(bgAlpha);
     }
 
     if (realArgc >= minArgc + NUM_2) {
         Mask* mask = nullptr;
-        if (napi_unwrap_s(env, argv[NUM_26], &MASK_NAPI_TYPE_TAG,
+        if (napi_unwrap_s(env, argv[minArgc + NUM_1], &MASK_NAPI_TYPE_TAG,
             reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
             para->SetMask(mask->GetMaskPara());
         }

@@ -1598,10 +1598,44 @@ bool FilterNapi::BuildFrostedGlassPara(napi_env env, napi_value* argv,
     return true;
 }
 
+bool FilterNapi::FillFrostedGlassMatColor(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para)
+{
+    if (!para) {
+        FILTER_LOG_E("FillFrostedGlassMatColor: para is nullptr");
+        return false;
+    }
+
+    Vector4f materialColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[NUM_27], materialColor), false,
+        FILTER_LOG_E("FillFrostedGlassMatColor: materialColor parse fail"));
+    para->SetMaterialColor(materialColor);
+
+    double colorBlendMode;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_28], colorBlendMode), false,
+        FILTER_LOG_E("FillFrostedGlassMatColor: colorBlendMode parse fail"));
+    para->SetColorBlendMode(static_cast<float>(colorBlendMode));
+
+    double vibrancyStrength;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_29], vibrancyStrength), false,
+        FILTER_LOG_E("FillFrostedGlassMatColor: vibrancyStrength parse fail"));
+    para->SetVibrancyStrength(static_cast<float>(vibrancyStrength));
+
+    Vector3f lumaParams;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_30], lumaParams), false,
+        FILTER_LOG_E("FillFrostedGlassMatColor: lumaParams parse fail"));
+    para->SetLumaParams(lumaParams);
+
+    double materialColorFraction;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_31], materialColorFraction), false,
+        FILTER_LOG_E("FillFrostedGlassMatColor: materialColorFraction parse fail"));
+    para->SetMaterialColorFraction(static_cast<float>(materialColorFraction));
+    return true;
+}
+
 napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
 {
-    constexpr size_t maxArgc = 31; // 31 is the number of params the frostedglassfilter has
-    constexpr size_t minArgc = NUM_28;
+    constexpr size_t maxArgc = 35; // 35 is the number of params the frostedglassfilter has
+    constexpr size_t minArgc = 32; // 32 is the number of mandatory params
 
     napi_status status;
     napi_value thisVar = nullptr;
@@ -1622,10 +1656,8 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
     float baseMaterialType = GetSpecialValue(env, argv[NUM_26]);
     para->SetBaseMaterialType(baseMaterialType);
 
-    Vector4f materialColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[NUM_27], materialColor), nullptr,
-        FILTER_LOG_E("FilterNapi::SetFrostedGlass materialColor parse fail"));
-    para->SetMaterialColor(materialColor);
+    UIEFFECT_NAPI_CHECK_RET_D(FillFrostedGlassMatColor(env, argv, para), nullptr,
+        FILTER_LOG_E("FilterNapi::SetFrostedGlass FillFrostedGlassMatColor fail"));
 
     if (realArgc >= maxArgc - NUM_2) {
         float samplingScale = 0.f;
