@@ -358,6 +358,11 @@ void RSRenderPipeline::AddConnection(pid_t remotePid, uint64_t tokenMaskId,
         RS_LOGE("RSRenderPipeline::AddConnection: tokenMaskId already exists");
         return;
     }
+
+    if (connectionProcessPid_.find(remotePid) != connectionProcessPid_.end()) {
+        RS_LOGE("RSRenderPipeline::AddConnection: remotePid already exists");
+        return;   
+    }
     renderConnections_[token] = {tokenMaskId, connectToRenderConnection};
     tokenMaskIdMapTokens_[tokenMaskId] = token;
     connectionProcessPid_[remotePid] = token;
