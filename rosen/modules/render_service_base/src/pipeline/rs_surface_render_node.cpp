@@ -2888,37 +2888,6 @@ void RSSurfaceRenderNode::OnApplyModifiers()
     }
 }
 
-bool RSSurfaceRenderNode::IsFullScreen() const
-{
-    if (!IsOnTheTree()) {
-        return false;
-    }
-    if (GetCompositionType() != CompositionType::COMPOSITION_3D_SHUTTER) {
-        return false;
-    }
-    auto context = GetContext().lock();
-    if (!context) {
-        return false;
-    }
-    const uint32_t percentage = 90; /* 90: 90% of the rect */
-    const uint32_t fullRange = 100; /* 100: full range of the rect */
-    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(GetScreenNodeId());
-    if (screenNode) {
-        const auto& screenInfo = screenNode->GetScreenInfo();
-        const auto& nodeProperties = GetRenderProperties();
-        auto rect = nodeProperties.GetBoundsGeometry()->GetAbsRect();
-        RS_TRACE_NAME_FMT("IsFullScreen: surface width[%d], height[%d], screen width[%d], height[%d]",
-            rect.GetWidth(), rect.GetHeight(), screenInfo.width, screenInfo.height);
-        if (GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_SBS) {
-            return rect.GetWidth() >= screenInfo.width * percentage / fullRange;
-        }
-        if (GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_TAB) {
-            return rect.GetHeight() >= screenInfo.height * percentage / fullRange;
-        }
-    }
-    return false;
-}
-
 VideoDimType RSSurfaceRenderNode::GetVideoDimType() const
 {
     if (!IsOnTheTree()) {
