@@ -15,187 +15,310 @@
 
 #include "eglwrapperdisplay_fuzzer.h"
 
-#include <securec.h>
-
 #include <EGL/egl.h>
+#include <array>
+#include <cstdlib>
+#include <mutex>
+#include <securec.h>
+#include <unistd.h>
+
+#include "egl_blob_cache.h"
+#include "egl_defs.h"
 #include "egl_wrapper_display.h"
-#include "egl_wrapper_object.h"
+#include "egl_wrapper_surface.h"
 
 namespace OHOS {
-    namespace {
-        const uint8_t* data_ = nullptr;
-        size_t size_ = 0;
-        size_t pos;
-        bool g_inited = false;
-        EglWrapperDisplay* eglWrapperDisplay = nullptr;
-    }
+namespace {
+constexpr size_t BYTE_ARRAY_SIZE = 16;
+constexpr size_t DISPLAY_SCENARIO_COUNT = 4;
+constexpr size_t TARGET_SCENARIO_COUNT = 2;
+constexpr size_t SCENARIO_VALIDATION = 0;
+constexpr size_t SCENARIO_OBJECTS = 1;
+constexpr size_t SCENARIO_DAMAGE = 2;
 
-    /*
-    * describe: get data from outside untrusted data(data_) which size is according to sizeof(T)
-    * tips: only support basic type
-    */
+class FuzzData {
+public:
+    FuzzData(const uint8_t* data, size_t size) : data_(data), size_(size) {}
+
     template<class T>
-    T GetData()
+    T Read()
     {
-        T object {};
-        size_t objectSize = sizeof(object);
-        if (data_ == nullptr || objectSize > size_ - pos) {
-            return object;
+        T value {};
+        if (data_ == nullptr || pos_ > size_ || sizeof(T) > size_ - pos_) {
+            return value;
         }
-        errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
-        if (ret != EOK) {
+        if (memcpy_s(&value, sizeof(T), data_ + pos_, sizeof(T)) != EOK) {
             return {};
         }
-        pos += objectSize;
-        return object;
+        pos_ += sizeof(T);
+        return value;
     }
 
-    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    size_t Select(size_t limit)
     {
-        if (data == nullptr || size < 0) {
-            return false;
-        }
-
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
-        EGLDisplay display1 = GetData<EGLDisplay>();
-        EGLDisplay display2 = GetData<EGLDisplay>();
-        EGLint major1 = GetData<EGLint>();
-        EGLint minor1 = GetData<EGLint>();
-        EGLSurface draw1 = GetData<EGLSurface>();
-        EGLSurface read1 = GetData<EGLSurface>();
-        EGLContext ctx1 = GetData<EGLContext>();
-        EGLenum platform1 = GetData<EGLenum>();
-        EGLNativeDisplayType disp1 = GetData<EGLNativeDisplayType>();
-        EGLAttrib attribList1 = GetData<EGLAttrib>();
-        EGLenum platform2 = GetData<EGLenum>();
-        void* disp2 = GetData<void*>();
-        EGLint attribList2 = GetData<EGLint>();
-        EGLContext ctx2 = GetData<EGLContext>();
-        EGLSurface surf1 = GetData<EGLSurface>();
-        EGLConfig config1 = GetData<EGLConfig>();
-        EGLContext shareList1 = GetData<EGLContext>();
-        EGLint attribList3 = GetData<EGLint>();
-        EGLConfig config2 = GetData<EGLConfig>();
-        NativeWindowType window1 = GetData<NativeWindowType>();
-        EGLint attribList4[] = {
-            GetData<EGLint>(), GetData<EGLint>(),
-            EGL_NONE
-        };
-        EGLContext context1 = GetData<EGLContext>();
-        EGLSurface surf2 = GetData<EGLSurface>();
-        EglWrapperDisplay* disp3 =  EglWrapperDisplay::GetWrapperDisplay(display1);
-        EglWrapperObject *obj1 = new  EglWrapperObject(disp3);
-        EglWrapperDisplay* disp4 =  EglWrapperDisplay::GetWrapperDisplay(display2);
-        EglWrapperObject *obj2 = new  EglWrapperObject(disp4);
-        EGLSurface surf3 = GetData<EGLSurface>();
-        NativePixmapType target1 = GetData<NativePixmapType>();
-        EGLConfig config3 = GetData<EGLConfig>();
-        EGLint attribList5 = GetData<EGLint>();
-        EGLConfig config4 = GetData<EGLConfig>();
-        EGLNativePixmapType pixmap1 = GetData<EGLNativePixmapType>();
-        EGLint attribList6 = GetData<EGLint>();
-        EGLContext ctx3 = GetData<EGLContext>();
-        EGLint attribList7 = GetData<EGLint>();
-        EGLint value1 = GetData<EGLint>();
-        EGLSurface surf4 = GetData<EGLSurface>();
-        EGLint attribList8 = GetData<EGLint>();
-        EGLint value2 = GetData<EGLint>();
-        EGLSurface surf5 = GetData<EGLSurface>();
-        EGLSurface surf6 = GetData<EGLSurface>();
-        EGLint buffer1 = GetData<EGLint>();
-        EGLSurface surf7 = GetData<EGLSurface>();
-        EGLint buffer2 = GetData<EGLint>();
-        EGLSurface surf8 = GetData<EGLSurface>();
-        EGLint attribList9 = GetData<EGLint>();
-        EGLint value3 = GetData<EGLint>();
-        EGLenum buftype1 = GetData<EGLenum>();
-        EGLClientBuffer buffer3 = GetData<EGLClientBuffer>();
-        EGLConfig config5 = GetData<EGLConfig>();
-        EGLint attribList10 = GetData<EGLint>();
-        EGLContext ctx4 = GetData<EGLContext>();
-        EGLenum target2 = GetData<EGLenum>();
-        EGLClientBuffer buffer4 = GetData<EGLClientBuffer>();
-        EGLAttrib attribList11 = GetData<EGLAttrib>();
-        EGLImage img1 = GetData<EGLImage>();
-        EGLConfig config6 = GetData<EGLConfig>();
-        void *nativeWindow = GetData<void*>();
-        EGLAttrib attribList12 = GetData<EGLAttrib>();
-        EGLConfig config7 = GetData<EGLConfig>();
-        void *nativePixmap = GetData<void*>();
-        EGLAttrib attribList13 = GetData<EGLAttrib>();
-        EGLSurface surf9 = GetData<EGLSurface>();
-        EGLint attribList14 = GetData<EGLint>();
-        EGLSurface surf10 = GetData<EGLSurface>();
-        EGLContext ctx5 = GetData<EGLContext>();
-        EGLenum target3 = GetData<EGLenum>();
-        EGLClientBuffer buffer5 = GetData<EGLClientBuffer>();
-        EGLint attribList15 = GetData<EGLint>();
-        EGLImageKHR img2 = GetData<EGLImageKHR>();
-        EGLConfig config8 = GetData<EGLConfig>();
-        EGLStreamKHR stream = GetData<EGLStreamKHR>();
-        EGLint attribList16 = GetData<EGLint>();
-        EGLSurface draw2 = GetData<EGLSurface>();
-        EGLint rects1 = GetData<EGLint>();
-        EGLint nRects1 = GetData<EGLint>();
-        EGLSurface surf11 = GetData<EGLSurface>();
-        EGLint rects2 = GetData<EGLint>();
-        EGLint nRects2 = GetData<EGLint>();
-        if (g_inited == false) {
-            auto eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-            eglWrapperDisplay =  EglWrapperDisplay::GetWrapperDisplay(eglDisplay);
-            eglWrapperDisplay->Init(&major1, &minor1);
-            eglWrapperDisplay->MakeCurrent(draw1, read1, ctx1);
-            g_inited = true;
-        }
-
-        // test
-        EglWrapperDisplay::GetEglDisplay(platform1, disp1, &attribList1);
-        EglWrapperDisplay::GetEglDisplayExt(platform2, disp2, &attribList2);
-        eglWrapperDisplay->ValidateEglContext(ctx2);
-        eglWrapperDisplay->ValidateEglSurface(surf1);
-        eglWrapperDisplay->CreateEglContext(config1, shareList1, &attribList3);
-        eglWrapperDisplay->CreateEglSurface(config2, window1, attribList4);
-        eglWrapperDisplay->DestroyEglContext(context1);
-        eglWrapperDisplay->DestroyEglSurface(surf2);
-        eglWrapperDisplay->AddObject(obj1);
-        eglWrapperDisplay->RemoveObject(obj2);
-        eglWrapperDisplay->CopyBuffers(surf3, target1);
-        eglWrapperDisplay->CreatePbufferSurface(config3, &attribList5);
-        eglWrapperDisplay->CreatePixmapSurface(config4, pixmap1, &attribList6);
-        eglWrapperDisplay->QueryContext(ctx3, attribList7, &value1);
-        eglWrapperDisplay->QuerySurface(surf4, attribList8, &value2);
-        eglWrapperDisplay->SwapBuffers(surf5);
-        eglWrapperDisplay->BindTexImage(surf6, buffer1);
-        eglWrapperDisplay->ReleaseTexImage(surf7, buffer2);
-        eglWrapperDisplay->SurfaceAttrib(surf8, attribList9, value3);
-        eglWrapperDisplay->CreatePbufferFromClientBuffer(buftype1, buffer3, config5, &attribList10);
-        EGLImage image1 = static_cast<EGLImage>(eglWrapperDisplay->CreateImage(ctx4, target2, buffer4, &attribList11));
-        eglWrapperDisplay->DestroyImage(img1);
-        eglWrapperDisplay->CreatePlatformWindowSurface(config6, nativeWindow, &attribList12);
-        eglWrapperDisplay->CreatePlatformPixmapSurface(config7, nativePixmap, &attribList13);
-        eglWrapperDisplay->LockSurfaceKHR(surf9, &attribList14);
-        eglWrapperDisplay->UnlockSurfaceKHR(surf10);
-        EGLImageKHR image2 = eglWrapperDisplay->CreateImageKHR(ctx5, target3, buffer5, &attribList15);
-        eglWrapperDisplay->DestroyImageKHR(img2);
-        eglWrapperDisplay->CreateStreamProducerSurfaceKHR(config8, stream, &attribList16);
-        eglWrapperDisplay->SwapBuffersWithDamageKHR(draw2, &rects1, nRects1);
-        eglWrapperDisplay->SetDamageRegionKHR(surf11, &rects2, nRects2);
-        eglWrapperDisplay->DestroyImage(image1);
-        eglWrapperDisplay->DestroyImageKHR(image2);
-        obj1->Release();
-        obj2->Release();
-        return true;
+        return limit == 0 ? 0 : Read<uint8_t>() % limit;
     }
+
+    void Fill(std::array<uint8_t, BYTE_ARRAY_SIZE>& output)
+    {
+        for (auto& value : output) {
+            value = Read<uint8_t>();
+        }
+    }
+
+private:
+    const uint8_t* data_ = nullptr;
+    size_t size_ = 0;
+    size_t pos_ = 0;
+};
+
+class ScopedHookLoad {
+public:
+    ScopedHookLoad() : wasLoaded_(gWrapperHook.isLoad)
+    {
+        gWrapperHook.isLoad = false;
+    }
+
+    ~ScopedHookLoad()
+    {
+        gWrapperHook.isLoad = wasLoaded_;
+    }
+
+private:
+    bool wasLoaded_;
+};
+
+EglWrapperDisplay* GetInitializedDisplay()
+{
+    static EglWrapperDisplay* display = []() {
+        EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        auto* wrapperDisplay = EglWrapperDisplay::GetWrapperDisplay(eglDisplay);
+        if (wrapperDisplay != nullptr && !wrapperDisplay->IsReady()) {
+            EGLint major = 0;
+            EGLint minor = 0;
+            (void)wrapperDisplay->Init(&major, &minor);
+        }
+        return wrapperDisplay;
+    }();
+    return display;
 }
 
-/* Fuzzer entry point */
+void FuzzBlobValues(FuzzData& fuzzData)
+{
+    static constexpr std::array<uint8_t, 4> KEY = { 1, 2, 3, 4 };
+    static constexpr std::array<uint8_t, 4> VALUE = { 5, 6, 7, 8 };
+    static constexpr std::array<uint8_t, 4> UPDATED_VALUE = { 8, 7, 6, 5 };
+    std::array<uint8_t, BYTE_ARRAY_SIZE> output {};
+    auto* cache = BlobCache::Get();
+    cache->SetBlobLock(nullptr, KEY.size(), VALUE.data(), VALUE.size());
+    cache->SetBlobLock(KEY.data(), 0, VALUE.data(), VALUE.size());
+    static std::once_flag insertFlag;
+    std::call_once(insertFlag, [cache]() {
+        cache->SetBlobLock(KEY.data(), KEY.size(), VALUE.data(), VALUE.size());
+        cache->SetBlobLock(KEY.data(), KEY.size(), UPDATED_VALUE.data(), UPDATED_VALUE.size());
+    });
+    EGLsizeiANDROID outputSize = static_cast<EGLsizeiANDROID>(fuzzData.Select(output.size()));
+    (void)cache->GetBlobLock(nullptr, KEY.size(), output.data(), outputSize);
+    (void)cache->GetBlobLock(KEY.data(), KEY.size(), output.data(), outputSize);
+    (void)cache->GetBlobLock(KEY.data(), KEY.size(), output.data(), output.size());
+}
+
+void FuzzBlobHeader(FuzzData& fuzzData)
+{
+    alignas(uint32_t) std::array<uint8_t, CACHE_HEAD + BYTE_ARRAY_SIZE> cacheData {};
+    std::array<uint8_t, BYTE_ARRAY_SIZE> payload {};
+    fuzzData.Fill(payload);
+    if (memcpy_s(cacheData.data() + CACHE_HEAD, payload.size(), payload.data(), payload.size()) != EOK) {
+        return;
+    }
+    auto* cache = BlobCache::Get();
+    (void)cache->ValidFile(cacheData.data(), CACHE_HEAD - 1);
+    if (memcpy_s(cacheData.data(), cacheData.size(), "BAD!", CACHE_MAGIC_HEAD) != EOK) {
+        return;
+    }
+    (void)cache->ValidFile(cacheData.data(), cacheData.size());
+    if (memcpy_s(cacheData.data(), cacheData.size(), "OSOH", CACHE_MAGIC_HEAD) != EOK) {
+        return;
+    }
+    uint32_t crc = cache->CrcGen(cacheData.data() + CACHE_HEAD, cacheData.size() - CACHE_HEAD);
+    if (memcpy_s(cacheData.data() + CACHE_MAGIC_HEAD, sizeof(crc), &crc, sizeof(crc)) != EOK) {
+        return;
+    }
+    (void)cache->ValidFile(cacheData.data(), cacheData.size());
+    cacheData[CACHE_HEAD] ^= 1;
+    (void)cache->ValidFile(cacheData.data(), cacheData.size());
+}
+
+void ReadTemporaryBlobFile(const uint8_t* cacheData, size_t writeSize)
+{
+    auto* cache = BlobCache::Get();
+    char filePath[] = "/data/local/tmp/egl_blob_cache_XXXXXX";
+    int fd = mkstemp(filePath);
+    if (fd < 0) {
+        cache->BlobCacheReadFromDisk(filePath);
+        return;
+    }
+    (void)write(fd, cacheData, writeSize);
+    (void)close(fd);
+    cache->BlobCacheReadFromDisk(filePath);
+    (void)unlink(filePath);
+}
+
+void FuzzBlobFile(FuzzData& fuzzData)
+{
+    constexpr size_t keyDataSize = 4;
+    constexpr size_t valueDataSize = 4;
+    constexpr size_t recordDataSize = keyDataSize + valueDataSize;
+    constexpr size_t cacheFileSize = CACHE_HEAD + sizeof(BlobCache::CacheHeader) + recordDataSize;
+    alignas(BlobCache::CacheHeader) std::array<uint8_t, cacheFileSize> cacheData {};
+    std::array<uint8_t, BYTE_ARRAY_SIZE> payload {};
+    fuzzData.Fill(payload);
+    auto* header = reinterpret_cast<BlobCache::CacheHeader*>(cacheData.data() + CACHE_HEAD);
+    header->keySize = keyDataSize;
+    header->valueSize = valueDataSize;
+    if (memcpy_s(header->mData, recordDataSize, payload.data(), recordDataSize) != EOK) {
+        return;
+    }
+    if (memcpy_s(cacheData.data(), cacheData.size(), "OSOH", CACHE_MAGIC_HEAD) != EOK) {
+        return;
+    }
+    auto* cache = BlobCache::Get();
+    uint32_t crc = cache->CrcGen(cacheData.data() + CACHE_HEAD, cacheData.size() - CACHE_HEAD);
+    if (memcpy_s(cacheData.data() + CACHE_MAGIC_HEAD, sizeof(crc), &crc, sizeof(crc)) != EOK) {
+        return;
+    }
+    ReadTemporaryBlobFile(cacheData.data(), CACHE_HEAD - 1);
+    ReadTemporaryBlobFile(cacheData.data(), cacheData.size());
+}
+
+void FuzzBlobCache(FuzzData& fuzzData)
+{
+    static std::once_flag diskFlag;
+    std::call_once(diskFlag, [&fuzzData]() {
+        BlobCache::Get()->SetCacheDir("/path/that/does/not/exist/egl_blob_cache");
+        FuzzBlobFile(fuzzData);
+    });
+    FuzzBlobValues(fuzzData);
+    BlobCache::Get()->SetCacheShaderSize(0);
+    BlobCache::Get()->SetCacheShaderSize(MAX_SHADER + 1);
+    BlobCache::Get()->SetCacheShaderSize(static_cast<int32_t>(fuzzData.Select(MAX_SHADER)) + 1);
+    (void)BlobCache::Get()->GetCacheSize();
+    (void)BlobCache::Get()->GetMapSize();
+    FuzzBlobHeader(fuzzData);
+}
+
+void FuzzDisplayObjects(EglWrapperDisplay* display, FuzzData& fuzzData)
+{
+    ScopedHookLoad hookState;
+    EGLint value = 0;
+    EGLint intAttributes[] = { EGL_WIDTH, fuzzData.Read<EGLint>(), EGL_NONE };
+    EGLAttrib attributes[] = { EGL_WIDTH, fuzzData.Read<EGLAttrib>(), EGL_NONE };
+    auto* surface = new EglWrapperSurface(display, EGL_NO_SURFACE, nullptr, EGL_GL_COLORSPACE_SRGB_KHR);
+    EGLSurface surfaceHandle = reinterpret_cast<EGLSurface>(surface);
+    (void)display->QuerySurface(surfaceHandle, EGL_GL_COLORSPACE_KHR, &value);
+    (void)display->CopyBuffers(surfaceHandle, nullptr);
+    (void)display->SwapBuffers(surfaceHandle);
+    (void)display->BindTexImage(surfaceHandle, fuzzData.Read<EGLint>());
+    (void)display->ReleaseTexImage(surfaceHandle, fuzzData.Read<EGLint>());
+    (void)display->SurfaceAttrib(surfaceHandle, fuzzData.Read<EGLint>(), fuzzData.Read<EGLint>());
+    (void)display->LockSurfaceKHR(surfaceHandle, intAttributes);
+    (void)display->UnlockSurfaceKHR(surfaceHandle);
+    (void)display->CreateImage(EGL_NO_CONTEXT, fuzzData.Read<EGLenum>(), nullptr, attributes);
+    (void)display->CreateImageKHR(EGL_NO_CONTEXT, fuzzData.Read<EGLenum>(), nullptr, intAttributes);
+    surface->Destroy();
+}
+
+void FuzzDisplayDamage(EglWrapperDisplay* display, FuzzData& fuzzData)
+{
+    ScopedHookLoad hookState;
+    EGLint rects[] = { fuzzData.Read<EGLint>(), fuzzData.Read<EGLint>(), 1, 1 };
+    auto* surface = new EglWrapperSurface(display, EGL_NO_SURFACE);
+    EGLSurface surfaceHandle = reinterpret_cast<EGLSurface>(surface);
+    (void)display->SwapBuffersWithDamageKHR(surfaceHandle, nullptr, 1);
+    (void)display->SwapBuffersWithDamageKHR(surfaceHandle, rects, -1);
+    (void)display->SwapBuffersWithDamageKHR(surfaceHandle, rects, 1);
+    (void)display->SetDamageRegionKHR(surfaceHandle, nullptr, 1);
+    (void)display->SetDamageRegionKHR(surfaceHandle, rects, 1);
+    (void)display->SwapBuffersWithDamageEXT(surfaceHandle, rects, 1);
+    (void)display->GetCompositorTimingSupportedANDROID(surfaceHandle, fuzzData.Read<EGLint>());
+    (void)display->GetFrameTimestampSupportedANDROID(surfaceHandle, fuzzData.Read<EGLint>());
+    (void)display->PresentationTimeANDROID(surfaceHandle, fuzzData.Read<EGLnsecsANDROID>());
+    surface->Destroy();
+}
+
+void FuzzDisplayCreation(EglWrapperDisplay* display, FuzzData& fuzzData)
+{
+    ScopedHookLoad hookState;
+    EGLint intAttributes[] = { EGL_NONE };
+    EGLAttrib attributes[] = { EGL_NONE };
+    (void)display->CreateEglContext(nullptr, EGL_NO_CONTEXT, intAttributes);
+    (void)display->CreateEglSurface(nullptr, nullptr, intAttributes);
+    (void)display->CreatePbufferSurface(nullptr, intAttributes);
+    (void)display->CreatePixmapSurface(nullptr, nullptr, intAttributes);
+    (void)display->CreatePbufferFromClientBuffer(fuzzData.Read<EGLenum>(), nullptr, nullptr, intAttributes);
+    (void)display->CreatePlatformWindowSurface(nullptr, nullptr, attributes);
+    (void)display->CreatePlatformPixmapSurface(nullptr, nullptr, attributes);
+    (void)display->CreatePlatformWindowSurfaceEXT(nullptr, nullptr, intAttributes);
+    (void)display->CreatePlatformPixmapSurfaceEXT(nullptr, nullptr, intAttributes);
+    (void)display->CreateStreamProducerSurfaceKHR(nullptr, EGL_NO_STREAM_KHR, intAttributes);
+    (void)display->DestroyImage(EGL_NO_IMAGE);
+    (void)display->DestroyImageKHR(EGL_NO_IMAGE_KHR);
+}
+
+void FuzzDisplayValidation(EglWrapperDisplay* display, FuzzData& fuzzData)
+{
+    EGLint value = 0;
+    (void)EglWrapperDisplay::GetWrapperDisplay(EGL_NO_DISPLAY);
+    (void)EglWrapperDisplay::ValidateEglContext(EGL_NO_CONTEXT);
+    (void)EglWrapperDisplay::ValidateEglSurface(EGL_NO_SURFACE);
+    (void)display->MakeCurrent(EGL_NO_SURFACE, reinterpret_cast<EGLSurface>(display), EGL_NO_CONTEXT);
+    (void)display->DestroyEglContext(EGL_NO_CONTEXT);
+    (void)display->DestroyEglSurface(EGL_NO_SURFACE);
+    (void)display->QueryContext(EGL_NO_CONTEXT, fuzzData.Read<EGLint>(), &value);
+    (void)display->QuerySurface(EGL_NO_SURFACE, fuzzData.Read<EGLint>(), &value);
+}
+
+void FuzzDisplay(FuzzData& fuzzData)
+{
+    auto* display = GetInitializedDisplay();
+    if (display == nullptr) {
+        (void)EglWrapperDisplay::GetWrapperDisplay(EGL_NO_DISPLAY);
+        return;
+    }
+    switch (fuzzData.Select(DISPLAY_SCENARIO_COUNT)) {
+        case SCENARIO_VALIDATION:
+            FuzzDisplayValidation(display, fuzzData);
+            break;
+        case SCENARIO_OBJECTS:
+            FuzzDisplayObjects(display, fuzzData);
+            break;
+        case SCENARIO_DAMAGE:
+            FuzzDisplayDamage(display, fuzzData);
+            break;
+        default:
+            FuzzDisplayCreation(display, fuzzData);
+            break;
+    }
+}
+} // namespace
+
+bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+    FuzzData fuzzData(data, size);
+    if (fuzzData.Select(TARGET_SCENARIO_COUNT) == 0) {
+        FuzzBlobCache(fuzzData);
+    } else {
+        FuzzDisplay(fuzzData);
+    }
+    return true;
+}
+} // namespace OHOS
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    /* Run your code on data */
-    OHOS::DoSomethingInterestingWithMyAPI(data, size);
+    (void)OHOS::DoSomethingInterestingWithMyAPI(data, size);
     return 0;
 }
