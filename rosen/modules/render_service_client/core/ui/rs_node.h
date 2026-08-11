@@ -30,7 +30,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 
 #include <atomic>
-#include <deque>
+#include <list>
 #include <optional>
 #include <unordered_map>
 
@@ -2133,7 +2133,7 @@ protected:
     bool hybridRenderCanvas_ = false;
 
     mutable std::map<RSCmdModifierType, std::shared_ptr<RSCmdModifier>> rsCmdModifiers_;
-    mutable std::deque<std::shared_ptr<RSCmdModifier>> rsCmdModifierQueue_;
+    mutable std::list<std::shared_ptr<RSCmdModifier>> rsCmdModifierQueue_;
     /**
      * @brief Called when child nodes are added to this node.
      */
