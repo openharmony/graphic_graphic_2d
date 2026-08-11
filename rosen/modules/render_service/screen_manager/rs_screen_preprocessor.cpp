@@ -273,12 +273,14 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
         isHwcDead_ = true;
         std::map<ScreenId, std::shared_ptr<RSScreen>> retScreens;
         screenManager_.OnHwcDeadEvent(retScreens);
+        #ifdef RS_ENABLE_GPU
         // The `NotifyHwcDead` method synchronously calls the composition cleanup-related resources.
         // It may take a long time due to task accumulation, resulting in holding screenMapMutex lock for too long.
         // That is why it is necessary to handle this notification independently.
         for (const auto& [id, _] : retScreens) {
             callbackMgr_.NotifyHwcDead(id);
         }
+        #endif
         if (!composer_) {
             RS_LOGE("CleanAndReinit: Failed to get composer.");
             return;
@@ -303,8 +305,10 @@ void RSScreenPreprocessor::OnHwcEventCallback(
 
 void RSScreenPreprocessor::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
 {
+#ifdef RS_ENABLE_GPU
     ScreenId id = ToScreenId(devId);
     callbackMgr_.NotifyVBlankIdle(id, ns);
+#endif
 }
 
 void RSScreenPreprocessor::ScheduleTask(std::function<void()> task)
