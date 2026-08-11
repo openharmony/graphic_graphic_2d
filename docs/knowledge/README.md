@@ -71,6 +71,7 @@
 | HGM/LTPO/DVSync | `hyper-graphic-manager.md` | `hyper_graphic_manager/`, `vrate/`, `Hgm*` | HGM |
 | soft VSync/投票 | `hyper-graphic-manager.md` | `frame_rate_vote/`, `soft_vsync_manager/` | HGM/fuzz |
 | chipset_vsync/帧稳定 | `chipset-vsync.md` | `chipset_vsync/`, `frame_stability/` | 性能 |
+| 稳帧检测/采集/配置更新 | `frame_stability_module.md` | `FrameStability`, `DetectorContext`, `CollectorContext`, `RecordCurrentFrameDirty`, `UpdateFrameStabilityConfig` | frame_stability |
 | HPAE/LPP/RDO | `hpae-lpp-rdo.md` | `hpae/`, `lpp/`, `rdo/` | 设备/性能 |
 | capture/截图 | `capture.md` | `capture/`, `Capture` | capture/fuzz |
 | DRM/水印/安全层 | `drm-watermark.md` | `drm/`, `watermark/`, `Watermark` | 安全/设备 |
@@ -121,11 +122,14 @@
 | soft VSync、voting、刷新率拆分、刷新率投票 | `hyper-graphic-manager.md` |
 | fuzz、sanitize、crash、Parcel、IPC、unmarshal | `fuzzing.md` |
 | 越界、溢出、畸形输入、不可信输入 | `fuzzing.md` |
+| 稳帧、帧稳定、FrameStability、dirty 检测、stableDuration、changePercent | `frame_stability_module.md` |
 
 ## 跨文档补读
 
 | 当前场景 | 同时检查 |
 | --- | --- |
+| 稳帧检测与脏区收集 | `frame_stability_module.md`、`dirty-region.md` |
+| 稳帧检测与 IPC/安全注册 | `frame_stability_module.md`、`fuzzing.md` |
 | HGM 与 VSync/DVSync 交互 | `vsync-native-vsync.md` |
 | HPAE、LPP、RDO、HWC 预校验 | `hwc-prevalidate.md`、`hpae-lpp-rdo.md` |
 | HDR、颜色空间 | `hdr.md`、`colorspace.md` |
