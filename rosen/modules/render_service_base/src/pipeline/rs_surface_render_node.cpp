@@ -618,7 +618,6 @@ void RSSurfaceRenderNode::GetAllSubSurfaceNodes(
     for (auto& [id, node] : childSubSurfaceNodes_) {
         auto subSubSurfaceNodePtr = node.lock();
         if (!subSubSurfaceNodePtr) {
-            RS_LOGE("RSSurfaceRenderNode::GetAllSubSurfaceNodes subSubSurfaceNodePtr is null");
             continue;
         }
         if (subSubSurfaceNodePtr->HasSubSurfaceNodes()) {
