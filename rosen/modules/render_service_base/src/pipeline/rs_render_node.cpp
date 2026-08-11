@@ -4857,9 +4857,10 @@ void RSRenderNode::OnSync()
         return;
     }
     // uifirstSkipPartialSync means don't need to trylock whether drawable is onDraw or not
+    bool skipPartialSync = IsUifirstSkipPartialSync();
     DrawableV2::RSRenderNodeSingleDrawableLocker
-        singleLocker(IsUifirstSkipPartialSync() ? nullptr : renderDrawable_.get());
-    if (!IsUifirstSkipPartialSync() && UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker(skipPartialSync ? nullptr : renderDrawable_.get());
+    if (!skipPartialSync && UNLIKELY(!singleLocker.IsLocked())) {
 #ifdef RS_ENABLE_GPU
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
 #endif
@@ -4917,7 +4918,7 @@ void RSRenderNode::OnSync()
         }
         unobscuredUECChildrenNeedSync_ = false;
     }
-    if (!IsUifirstSkipPartialSync()) {
+    if (!skipPartialSync) {
         if (!dirtySlots_.empty()) {
             auto& drawableMap = GetDrawableVec(__func__);
             for (const auto& slot : dirtySlots_) {
