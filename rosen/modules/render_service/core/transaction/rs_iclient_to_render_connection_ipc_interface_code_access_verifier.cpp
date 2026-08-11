@@ -155,6 +155,7 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_NODE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_NODE_AND_SURFACE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_APPLICATION_AGENT):
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_APPLICATION_AGENT):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_TRANSACTION_DATA_CALLBACK):
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_BITMAP):
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PIXELMAP):
