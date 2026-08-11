@@ -1095,10 +1095,10 @@ bool EffectNapi::FillFrostedGlassMatColor(napi_env env, napi_value* argv, std::s
         UIEFFECT_LOG_E("FillFrostedGlassMatColor: colorBlendMode parse fail"));
     para->SetColorBlendMode(static_cast<float>(colorBlendMode));
 
-    double vibrabcyStrength;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_26], vibrabcyStrength), false,
-        UIEFFECT_LOG_E("FillFrostedGlassMatColor: vibrabcyStrength parse fail"));
-    para->SetVibrabcyStrength(static_cast<float>(vibrabcyStrength));
+    double vibrancyStrength;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_26], vibrancyStrength), false,
+        UIEFFECT_LOG_E("FillFrostedGlassMatColor: vibrancyStrength parse fail"));
+    para->vibrancyStrength(static_cast<float>(vibrancyStrength));
 
     Vector3f lumaParams;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_27], lumaParams), false,
