@@ -57,7 +57,6 @@ void RSFoldScreenManager::SetExternalScreenId(ScreenId externalScreenId)
 
 void RSFoldScreenManager::Init()
 {
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     RS_LOGI("%{public}s FoldScreen need to RegisterSensorCallback.", __func__);
     RegisterSensorCallback();
     RSSystemProperties::WatchSystemProperty(BOOTEVENT_BOOT_COMPLETED.c_str(), OnBootComplete, this);
@@ -66,23 +65,20 @@ void RSFoldScreenManager::Init()
         RS_LOGW("%{public}s boot completed.", __func__);
         UnRegisterSensorCallback();
     }
-#endif // RS_SUBSCRIBE_SENSOR_ENABLE
 }
 
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 void RSFoldScreenManager::HandleSensorData(float angle, float abAngle)
 {
     if (std::isless(angle, ANGLE_MIN_VAL) || std::isgreater(angle, ANGLE_MAX_VAL) ||
         std::isless(abAngle, ANGLE_MIN_VAL) || std::isgreater(abAngle, ANGLE_MAX_VAL)) {
-        RS_LOGW("%{public}s Invalid angle value, angle is %{public}f. abAngle is %{public}f",
-            __func__, angle, abAngle);
+        RS_LOGW("%{public}s Invalid angle value, angle is %{public}f. abAngle:%{public}f", __func__, angle, abAngle);
         return;
     }
 
     // abAngle(default is 0) and angle both fold, and externalScreenId_ not be INVALID_SCREEN_ID,
     // targetScreenId will be externalScreenId_
-    ScreenId targetScreenId = ((TransferAngleToScreenState(angle) == FoldState::FOLDED) &&
-        (TransferAngleToScreenState(abAngle) == FoldState::FOLDED) && (externalScreenId_ != INVALID_SCREEN_ID))
+    ScreenId targetScreenId = (TransferAngleToScreenState(angle) == FoldState::FOLDED &&
+        TransferAngleToScreenState(abAngle) == FoldState::FOLDED && externalScreenId_ != INVALID_SCREEN_ID)
         ? externalScreenId_ : innerScreenId_;
     std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
     if (activeScreenId_ != targetScreenId) {
@@ -93,22 +89,13 @@ void RSFoldScreenManager::HandleSensorData(float angle, float abAngle)
         screenPreprocessor_.NotifyActiveScreenIdChanged(targetScreenId);
     }
 }
-#endif // RS_SUBSCRIBE_SENSOR_ENABLE
 
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 ScreenId RSFoldScreenManager::GetActiveScreenId()
 {
     std::lock_guard<std::mutex> lock(activeScreenIdAssignedMutex_);
     return activeScreenId_;
 }
-#else // RS_SUBSCRIBE_SENSOR_ENABLE
-ScreenId RSFoldScreenManager::GetActiveScreenId()
-{
-    return INVALID_SCREEN_ID;
-}
-#endif // RS_SUBSCRIBE_SENSOR_ENABLE
 
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 void RSFoldScreenManager::RegisterSensorCallback()
 {
     std::unique_lock<std::mutex> lock(registerSensorMutex_);
@@ -165,13 +152,14 @@ void RSFoldScreenManager::UnRegisterSensorCallback()
 void RSFoldScreenManager::OnBootComplete(const char* key, const char* value, void* context)
 {
     if (strcmp(key, BOOTEVENT_BOOT_COMPLETED.c_str()) == 0 && strcmp(value, "true") == 0) {
+        RSFoldScreenManager* foldScreenManager = nullptr;
         if (!context) {
             RS_LOGI("%{public}s: data is nullptr", __func__);
             return;
         } else {
             RS_LOGI("%{public}s: data is not nullptr", __func__);
         }
-        auto foldScreenManager = static_cast<RSFoldScreenManager*>(context);
+        foldScreenManager = static_cast<RSFoldScreenManager*>(context);
         foldScreenManager->OnBootCompleteEvent();
     } else {
         RS_LOGE("%{public}s key:%{public}s, value:%{public}s", __func__, key, value);
@@ -206,6 +194,5 @@ void RSFoldScreenManager::HandlePostureData(const SensorEvent* const event)
     mainHandler_->PostTask([this, angle, abAngle]() { HandleSensorData(angle, abAngle); },
         AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
-#endif // RS_SUBSCRIBE_SENSOR_ENABLE
 } // namespace Rosen
 } // namespace OHOS

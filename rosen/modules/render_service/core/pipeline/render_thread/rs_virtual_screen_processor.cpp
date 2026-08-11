@@ -37,11 +37,9 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 
 bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
-#ifdef RS_ENABLE_GPU
     if (!RSProcessor::Init(node, renderEngine)) {
         return false;
     }
-#endif
 
     auto surfaceConfigs = node.GetScreenProperty().GetMultiSurfaceConfigs();
     if (surfaceConfigs.empty()) {
@@ -49,14 +47,15 @@ bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RS
             node.GetScreenId());
         return false;
     }
-    auto producerSurface = surfaceConfigs[0].surface;
-    if (producerSurface == nullptr) {
+    auto producerSurface_ = surfaceConfigs[0].surface;
+    if (producerSurface_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::Init: ProducerSurface is null!");
         return false;
     }
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
+
     bool forceCPU = false;
-    renderFrame_ = renderEngine_->RequestFrame(producerSurface, renderFrameConfig_, forceCPU, false);
+    renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU, false);
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::Init: renderFrame_ is null!");
         return false;
@@ -66,11 +65,7 @@ bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RS
         return false;
     }
 
-    if (mirroredScreenInfo_.id != INVALID_SCREEN_ID) {
-        canvas_->ConcatMatrix(mirrorAdaptiveMatrix_);
-    } else {
-        canvas_->ConcatMatrix(screenTransformMatrix_);
-    }
+    canvas_->ConcatMatrix(screenTransformMatrix_);
 
     return true;
 }
@@ -105,6 +100,12 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     // clipHole: false.
     // forceCPU: true.
     auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, false);
+    const float adaptiveDstWidth = params.dstRect.GetWidth() * mirrorAdaptiveCoefficient_;
+    const float adaptiveDstHeight = params.dstRect.GetHeight() * mirrorAdaptiveCoefficient_;
+    params.dstRect.SetLeft(0);
+    params.dstRect.SetTop(0);
+    params.dstRect.SetRight(adaptiveDstWidth);
+    params.dstRect.SetBottom(adaptiveDstHeight);
     renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
 }
 

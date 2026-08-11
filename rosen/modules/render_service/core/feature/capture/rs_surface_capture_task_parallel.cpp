@@ -16,7 +16,7 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 
 #include <memory>
-#include "parameters.h"
+#include <parameters.h>
 #include <sys/mman.h>
 
 #include "draw/surface.h"
@@ -42,6 +42,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
@@ -140,7 +141,6 @@ void RSSurfaceCaptureTaskParallel::Capture(
             "RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", captureParam.id);
         return;
     }
-
     std::shared_ptr<RSSurfaceCaptureTaskParallel> captureHandle =
         std::make_shared<RSSurfaceCaptureTaskParallel>(captureParam.id, captureParam.config);
     if (!captureHandle->CreateResources()) {
@@ -186,7 +186,6 @@ void RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(NodeId id)
         RSUniRenderThread::Instance().PostTask(clearCacheTask);
     }
 }
-
 
 bool RSSurfaceCaptureTaskParallel::CreateResources()
 {
@@ -397,6 +396,7 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
     } else {
         canvas.Translate(-boundsX_, -boundsY_);
     }
+
     canvas.SetOnMultipleScreen(!isOnHDR); // not isOnHDR means tmo to sdr
     canvas.SetHdrOn(isOnHDR);
     canvas.SetScreenId(screenId_);
@@ -539,14 +539,17 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     finalRotationAngle_ = CalPixelMapRotation();
     uint32_t pixmapWidth = static_cast<uint32_t>(node->GetFixedWidth());
     uint32_t pixmapHeight = static_cast<uint32_t>(node->GetFixedHeight());
-    auto bounds = node->GetRenderProperties().GetBoundsGeometry();
-    boundsX_ = bounds->GetX();
-    boundsY_ = bounds->GetY();
     const Rect& contentRect = node->GetDisplayContentRect();
     if (contentRect.w > 0 && contentRect.h > 0) {
+        RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: contentRect valid,"
+            "width: %{public}d, height: %{public}d", contentRect.w, contentRect.h);
         pixmapWidth = static_cast<uint32_t>(contentRect.w);
         pixmapHeight = static_cast<uint32_t>(contentRect.h);
     }
+
+    auto bounds = node->GetRenderProperties().GetBoundsGeometry();
+    boundsX_ = bounds->GetX();
+    boundsY_ = bounds->GetY();
 
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
     float rectWidth = rect.GetWidth();
@@ -564,10 +567,12 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTaskParallel::%{public}s NodeId[%{public}" PRIu64 "],pixelmap[%{public}u, %{public}u],"
         " scale[%{public}f, %{public}f], rect[%{public}f, %{public}f, %{public}f, %{public}f], dma[%{public}d],"
-        " rotation[%{public}d], correction[%{public}d], blackList[%{public}zu], isHDRCapture[%{public}d]", __func__,
+        " rotation[%{public}d], correction[%{public}d], blackList[%{public}zu], isHDRCapture[%{public}d],"
+        " contentRect[%{public}d, %{public}d, %{public}d, %{public}d]", __func__,
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(), captureConfig_.useDma, screenRotation_,
-        screenCorrection_, captureConfig_.blackList.size(), isHDRCapture);
+        screenCorrection_, captureConfig_.blackList.size(), isHDRCapture,
+        contentRect.x, contentRect.y, contentRect.w, contentRect.h);
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
         GraphicColorGamut windowColorGamut = isHDRCapture ?
@@ -599,7 +604,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
         colorType, Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace};
 
-#if (defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE))
+#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
         if (renderEngine == nullptr) {

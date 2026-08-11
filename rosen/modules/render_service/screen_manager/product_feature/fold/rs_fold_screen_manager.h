@@ -19,10 +19,8 @@
 #include <mutex>
 #include <screen_manager/screen_types.h>
 #include <event_handler.h>
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 #include <sensor_agent.h>
 #include <sensor_agent_type.h>
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -43,18 +41,15 @@ public:
     void SetExternalScreenId(ScreenId externalScreenId);
     void Init();
 private:
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void RegisterSensorCallback();
     void UnRegisterSensorCallback();
     static void OnBootComplete(const char* key, const char* value, void* context);
     void OnBootCompleteEvent();
     void HandlePostureData(const SensorEvent* const event);
     void HandleSensorData(float angle, float abAngle);
-#endif
 
     RSScreenPreprocessor& screenPreprocessor_;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser sensorUser_;
     bool hasRegisterSensorCallback_ = false;
     mutable std::mutex registerSensorMutex_;
@@ -62,7 +57,6 @@ private:
     ScreenId externalScreenId_ = INVALID_SCREEN_ID;
     ScreenId activeScreenId_ = INVALID_SCREEN_ID;
     mutable std::mutex activeScreenIdAssignedMutex_;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS
