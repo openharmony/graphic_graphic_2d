@@ -265,6 +265,8 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId) override;
+
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) override;
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos) override;
