@@ -647,7 +647,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByNodeBelow()
     std::vector<RectI> hwcRects;
     RectI backgroundAlphaRect;
     bool isHardwareEnableByBackgroundAlpha = false;
-    std::vector<RectI> abovedBounds;
+    std::vector<std::pair<RectI, RectI>> abovedBoundDstRects;
     // Top-Down
     std::for_each(curMainAndLeashSurfaces.begin(), curMainAndLeashSurfaces.end(),
         [this](RSBaseRenderNode::SharedPtr& nodePtr) {
@@ -665,7 +665,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByNodeBelow()
         }
     });
     auto& allHwcNodes = uniRenderVisitor_.curScreenNode_->GetChildHwcNodes();
-    UpdateHardwareStateByBoundNEDstRectInApps(allHwcNodes, abovedBounds);
+    UpdateHardwareStateByBoundNEDstRectInApps(allHwcNodes, abovedBoundDstRects);
     if (RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag() &&
         RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag()) {
         UpdateHardwareStateByHwcNodeBackgroundAlpha(allHwcNodes, backgroundAlphaRect,
@@ -811,38 +811,38 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(const std::shar
 
 // called by windows from Top to Down
 void RSUniHwcVisitor::UpdateHardwareStateByBoundNEDstRectInApps(
-    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes, std::vector<RectI>& abovedBounds)
+    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
+    std::vector<std::pair<RectI, RectI>>& abovedBoundDstRects)
 {
+    if (!uniRenderVisitor_.curScreenNode_) {
+        return;
+    }
+    ScreenInfo screenInfo = uniRenderVisitor_.curScreenNode_->GetScreenInfo();
+    RectI screenRect = { 0, 0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight() };
     // Traverse hwcNodes in a app from Top to Down.
     for (auto reverseIter = hwcNodes.rbegin(); reverseIter != hwcNodes.rend(); ++reverseIter) {
         auto hwcNodePtr = reverseIter->lock();
-        if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
             continue;
         }
-
+ 
+        // Only keep the part of boundRect within the screen range.
         RectI boundRect = hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        boundRect = boundRect.IntersectRect(screenRect);
         RectI dstRect = hwcNodePtr->GetDstRect();
-        if (!abovedBounds.empty()) {
-            bool intersectWithAbovedRect = std::any_of(abovedBounds.begin(), abovedBounds.end(),
-                [&boundRect](const RectI& abovedBound) { return !abovedBound.IntersectRect(boundRect).IsEmpty(); });
+        if (!abovedBoundDstRects.empty()) {
+            bool intersectWithAbovedRect = std::any_of(abovedBoundDstRects.begin(), abovedBoundDstRects.end(),
+                [&boundRect](const std::pair<RectI, RectI>& aboved) {
+                    RectI intersectRect = boundRect.IntersectRect(aboved.first);
+                    // The aboved node's dstRect fully covers the intersect region, so it is not an obstruction.
+                    return !intersectRect.IsEmpty() && !intersectRect.IsInsideOf(aboved.second);
+                });
             if (intersectWithAbovedRect) {
                 hwcNodePtr->SetHardwareForcedDisabledState(true);
                 RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by aboved BoundNEDstRect hwcNode",
-                    hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
-                Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
-                    HwcDisabledReasons::DISABLED_BY_ABOVED_BOUND_NE_DST_RECT, hwcNodePtr->GetName());
-                continue;
-            }
-        }
-
-        // Anco nodes do not collect
-        if (hwcNodePtr->GetAncoForceDoDirect()) {
-            continue;
-        }
-
+ 
         // Check if the hwcNode's DstRect is inside of BoundRect, and not equal each other.
         if (dstRect.IsInsideOf(boundRect) && dstRect != boundRect) {
-            abovedBounds.emplace_back(boundRect);
+            abovedBoundDstRects.emplace_back(boundRect, dstRect);
         }
     }
 }

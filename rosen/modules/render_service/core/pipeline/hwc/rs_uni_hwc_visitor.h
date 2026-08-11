@@ -56,7 +56,7 @@ public:
     void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::vector<RectI>& hwcRects);
     void UpdateHardwareStateByBoundNEDstRectInApps(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
-        std::vector<RectI>& abovedBounds);
+        std::vector<std::pair<RectI, RectI>>& abovedBoundDstRects);
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
         RectI& backgroundAlphaRect, bool& isHardwareEnableByBackgroundAlpha);
