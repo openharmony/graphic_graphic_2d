@@ -1029,7 +1029,7 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem002, TestSize.Level1)
     EXPECT_TRUE(opItem != nullptr);
     auto targetCmdList = DrawCmdList::CreateFromData({nullptr, 0}, false);
     EXPECT_TRUE(targetCmdList != nullptr);
-    sizr_t sizeBefore = targetCmdList->GetOpItemSize();
+    size_t sizeBefore = targetCmdList->GetOpItemSize();
     opItem->Marshalling(*targetCmdList);
     EXPECT_EQ(targetCmdList->GetOpItemSize(), sizeBefore);
 }
