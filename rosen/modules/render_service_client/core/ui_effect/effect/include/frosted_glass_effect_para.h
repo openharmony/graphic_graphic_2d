@@ -342,7 +342,7 @@ public:
         return materialColorFraction_;
     }
 
-    void Setmask(std::shared_ptr<MaskPara> maskPara)
+    void SetMask(std::shared_ptr<MaskPara> maskPara)
     {
         maskPara_ = maskPara;
     }
