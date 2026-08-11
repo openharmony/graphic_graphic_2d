@@ -98,6 +98,24 @@ HWTEST_F(RSTransactionDataTest, UnmarshallingCommand001, TestSize.Level1)
     ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), true);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: UnmarshallingCommandUniRenderTrue
+ * @tc.desc: Test UnmarshallingCommand with isUniRender=true, covers the minCommandSizeUniRender
+ *           branch of the ternary that divides readableSize by minCommandSize.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionDataTest, UnmarshallingCommandUniRenderTrue, TestSize.Level1)
+{
+    RSTransactionData rsTransactionData;
+    Parcel parcel;
+    parcel.WriteInt32(static_cast<int32_t>(rsTransactionData.payload_.size())); // for test commandSize
+    parcel.WriteBool(true); // for test isUniRender = true
+    ASSERT_EQ(rsTransactionData.UnmarshallingCommand(parcel), false);
+}
+#endif
+
 /**
  * @tc.name: UnmarshallingCommand002
  * @tc.desc: Test UnmarshallingCommand

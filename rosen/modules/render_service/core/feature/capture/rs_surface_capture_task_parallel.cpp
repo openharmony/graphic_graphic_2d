@@ -513,6 +513,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     }
     int pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     int pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
+    if (pixmapWidth < 0 || pixmapHeight < 0) {
+        RS_LOGE("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: invalid negative size, "
+            "width:%{public}d, height:%{public}d", pixmapWidth, pixmapHeight);
+        return nullptr;
+    }
 
     Media::InitializationOptions opts;
     if (isF16Capture) {

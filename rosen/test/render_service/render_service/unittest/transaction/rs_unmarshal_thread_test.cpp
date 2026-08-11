@@ -24,6 +24,7 @@
 #include "command/rs_command.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "transaction/rs_transaction_data.h"
 #include "transaction/rs_unmarshal_thread.h"
 
 using namespace testing;
@@ -186,6 +187,37 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel003, TestSize.Level1)
     pid_t callingPid = 1111;
     RSUnmarshalThread::Instance().RecvParcel(data, isNonSystemAppCalling, callingPid);
 }
+
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: RecvParcelSetSendingPid
+ * @tc.desc: Test RecvParcel sets sendingPid so that the parsed transaction data is filed
+ *           under callingPid in cachedTransactionDataMap_.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcelSetSendingPid, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+
+    instance.GetCachedTransactionData();
+
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    bool success = data->WriteParcelable(transactionData.get());
+    ASSERT_EQ(success, true);
+
+    pid_t callingPid = 9999;
+    instance.RecvParcel(data, false, callingPid);
+
+    usleep(USLEEP_TIME);
+
+    auto cachedData = instance.GetCachedTransactionData();
+    EXPECT_EQ(cachedData.count(callingPid), 1u);
+}
+#endif
 
 /**
  * @tc.name: RecvParcelFdWorkerQueueNull
