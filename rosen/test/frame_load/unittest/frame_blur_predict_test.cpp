@@ -334,7 +334,7 @@ HWTEST_F(RsFrameBlurPredictTest, PredictDrawLargeAreaBlur005, TestSize.Level1)
     );
     instance->AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
     EXPECT_FALSE(instance->isValidBlurFrame_);
-    instance->isValidBlurFrame_ = true;
+    instance->isValidBlurFrame_.store(true);
     instance->AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
     EXPECT_FALSE(instance->predictDrawLargeAreaBlur_.first);
     SUCCEED();
@@ -353,10 +353,10 @@ HWTEST_F(RsFrameBlurPredictTest, PredictDrawLargeAreaBlur006, TestSize.Level1)
         &RsFrameBlurPredict::GetInstance(),
         [](RsFrameBlurPredict*) {}
     );
-    instance->isValidBlurFrame_ = false;
+    instance->isValidBlurFrame_.store(false);
     instance->UpdateCurrentFrameDrawLargeAreaBlurFrequencyPrecisely();
     EXPECT_FALSE(instance->isValidBlurFrame_);
-    instance->isValidBlurFrame_ = true;
+    instance->isValidBlurFrame_.store(true);
     instance->UpdateCurrentFrameDrawLargeAreaBlurFrequencyPrecisely();
     EXPECT_FALSE(instance->predictDrawLargeAreaBlur_.second);
     SUCCEED();

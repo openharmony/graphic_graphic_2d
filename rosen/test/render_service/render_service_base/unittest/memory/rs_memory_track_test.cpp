@@ -936,10 +936,10 @@ HWTEST_F(RSMemoryTrackTest, GenerateDumpTitleTest, testing::ext::TestSize.Level1
 HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest001, testing::ext::TestSize.Level1)
 {
     DfxString log;
-    bool isLite = false;
+    bool isLite = true;
     MemoryTrack::Instance().DumpMemoryNodeStatistics(log, isLite);
     std::string  str = log.GetString();
-    EXPECT_EQ("", str);
+    EXPECT_NE("", str);
 }
 
 /**
