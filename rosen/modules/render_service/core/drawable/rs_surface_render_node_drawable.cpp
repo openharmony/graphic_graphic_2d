@@ -1205,8 +1205,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_) ||
         surfaceParams->GetSpecialLayerMgr().Find(HAS_GENERAL_SPECIAL)) {
         RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_ = true;
-        RS_LOGW("RSSurfaceRenderNodeDrawable::OnCapture surfaceNode marked as privacy or special layer, "
-            "nodeId:[%{public}" PRIu64 "].", nodeId_);
+        RS_LOGD("Marked as privacy or special layer, nodeId:[%{public}" PRIu64 "].", nodeId_);
     }
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
