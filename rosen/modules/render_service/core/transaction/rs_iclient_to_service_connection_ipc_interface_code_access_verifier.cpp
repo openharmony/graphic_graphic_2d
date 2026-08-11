@@ -604,7 +604,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_APS_CONFIG_PARAMS");
             break;
         }
-        // IPCs invoked by third-party applications on the normal rendering path, allowed explicitly.
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_UNI_RENDER_ENABLED):
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_BACKGROUND_REBUILD_ENABLED):
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_VSYNC_CONNECTION):
@@ -623,10 +622,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         case static_cast<CodeUnderlyingType>(CodeEnumType::NEED_REGISTER_TYPEFACE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SHARED_TYPEFACE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_TYPEFACE):
-        // The following IPCs are probably used by system components only, but their callers are
-        // out of this repository and unconfirmed; keep them allowed until confirmed.
-        // CREATE_CONNECTION shares the same code value with SET_DUAL_SCREEN_STATE and has no
-        // sender on this interface, it is covered here as well.
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DUAL_SCREEN_STATE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_TOTAL_APP_MEM_SIZE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HDR_ON_DURATION):
@@ -635,17 +630,11 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = true;
             break;
         }
-        // CREATE_PIXEL_MAP_FROM_SURFACE may be invoked by application processes via ArkUI component
-        // snapshot, keep it allowed until the caller is confirmed.
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_PIXEL_MAP_FROM_SURFACE): {
             hasPermission = true;
             break;
         }
         default: {
-            // Deny IPCs that are not listed above, including dead codes without stub handlers.
-            // GET_MEMORY_GRAPHIC and GET_REFRESH_INFO are intentionally denied here: the stub
-            // entry exemption lets them reach their handlers, which enforce self-pid
-            // validation via IsValidCallingPid.
             hasPermission = false;
             break;
         }

@@ -384,8 +384,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
     }
     auto accessible = securityManager_.IsInterfaceCodeAccessible(code);
-    // These codes are exempted here so that callers failing the verifier can still reach the
-    // per-case self-pid validation (IsValidCallingPid) in their handlers.
     if (!accessible &&
         code != static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC) &&
         code != static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
