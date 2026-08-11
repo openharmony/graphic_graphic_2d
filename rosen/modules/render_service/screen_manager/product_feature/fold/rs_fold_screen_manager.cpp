@@ -100,12 +100,12 @@ ScreenId RSFoldScreenManager::GetActiveScreenId()
     std::lock_guard<std::mutex> lock(activeScreenIdAssignedMutex_);
     return activeScreenId_;
 }
-#else // RS_SUBSCRIBE_SENSOR_ENABLE 
- ScreenId RSFoldScreenManager::GetActiveScreenId() 
- { 
-     return INVALID_SCREEN_ID; 
- } 
- #endif // RS_SUBSCRIBE_SENSOR_ENABLE
+#else // RS_SUBSCRIBE_SENSOR_ENABLE
+ScreenId RSFoldScreenManager::GetActiveScreenId()
+{
+    return INVALID_SCREEN_ID;
+}
+#endif // RS_SUBSCRIBE_SENSOR_ENABLE
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 void RSFoldScreenManager::RegisterSensorCallback()
