@@ -1010,12 +1010,12 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawTextBlobOpItem002
+ * @tc.name: DrawTextBlobOpItem0020
  * @tc.desc: Test functions for DrawTextBlobOpItem
  * @tc.type: FUNC
  * @tc.require: I9120P
  */
-HWTEST_F(DrawCmdTest, DrawTextBlobOpItem002, TestSize.Level1)
+HWTEST_F(DrawCmdTest, DrawTextBlobOpItem0020, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({nullptr, 0}, false);
     EXPECT_TRUE(drawCmdList != nullptr);
