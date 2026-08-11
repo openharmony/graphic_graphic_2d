@@ -839,7 +839,18 @@ void RSUniHwcVisitor::UpdateHardwareStateByBoundNEDstRectInApps(
             if (intersectWithAbovedRect) {
                 hwcNodePtr->SetHardwareForcedDisabledState(true);
                 RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by aboved BoundNEDstRect hwcNode",
- 
+                    hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
+                Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
+                    HwcDisabledReasons::DISABLED_BY_ABOVED_BOUND_NE_DST_RECT, hwcNodePtr->GetName());
+                continue;
+            }
+        }
+
+        // Anco nodes do not collect
+        if (hwcNodePtr->GetAncoForceDoDirect()) {
+            continue;
+        }
+
         // Check if the hwcNode's DstRect is inside of BoundRect, and not equal each other.
         if (dstRect.IsInsideOf(boundRect) && dstRect != boundRect) {
             abovedBoundDstRects.emplace_back(boundRect, dstRect);
