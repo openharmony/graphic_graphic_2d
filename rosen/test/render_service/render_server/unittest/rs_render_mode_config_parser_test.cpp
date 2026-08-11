@@ -200,7 +200,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_ValueIsZero001, TestSize.Le
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
     EXPECT_FALSE(parser->isMultiProcessModeEnabled_);
     xmlFreeDoc(doc);
@@ -208,7 +208,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_ValueIsZero001, TestSize.Le
 
 /**
  * @tc.name: ParseInternal_ValueIsOne001
- * @tc.desc: Test ParseInternal with value="1" disables multi-process mode
+ * @tc.desc: Test ParseInternal with value="1" enables multi-process mode
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -221,9 +221,9 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_ValueIsOne001, TestSize.Lev
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
-    EXPECT_FALSE(parser->isMultiProcessModeEnabled_);
+    EXPECT_TRUE(parser->isMultiProcessModeEnabled_);
     xmlFreeDoc(doc);
 }
 
@@ -242,7 +242,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_ValueIsOtherNumber001, Test
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
     EXPECT_FALSE(parser->isMultiProcessModeEnabled_);
     xmlFreeDoc(doc);
@@ -263,7 +263,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_ValueIsNegative001, TestSiz
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
     EXPECT_FALSE(parser->isMultiProcessModeEnabled_);
     xmlFreeDoc(doc);
@@ -284,9 +284,8 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_ValueIsNotNumber001, TestSi
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
-    EXPECT_TRUE(result);
-    EXPECT_FALSE(parser->isMultiProcessModeEnabled_);
+    bool result = parser->ParseInternal(*root);
+    EXPECT_FALSE(result);
     xmlFreeDoc(doc);
 }
 
@@ -305,9 +304,8 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_EmptyValue001, TestSize.Lev
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
-    EXPECT_TRUE(result);
-    EXPECT_FALSE(parser->isMultiProcessModeEnabled_);
+    bool result = parser->ParseInternal(*root);
+    EXPECT_FALSE(result);
     xmlFreeDoc(doc);
 }
 
@@ -321,14 +319,14 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_WithDefaultGroup001, TestSi
 {
     auto parser = std::make_unique<RSRenderModeConfigParser>();
     const std::string xmlContent =
-        R"(<?xml version="1.0"?><render_mode value="1" default_group="3"/>)"
+        R"(<?xml version="1.0"?><render_mode value="1" default_group="3">)"
         R"(<rp id="3" name="g3"><screen id="100" name="s0"/></rp></render_mode>)";
     xmlDocPtr doc = StringToXmlDoc(xmlContent);
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
     auto config = parser->builder.Build();
     ASSERT_NE(config, nullptr);
@@ -353,7 +351,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_FirstGroupBecomesDefault001
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
     auto config = parser->builder.Build();
     ASSERT_NE(config, nullptr);
@@ -378,7 +376,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_ChildWithNoIdUsesDefault001
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
     auto config = parser->builder.Build();
     ASSERT_NE(config, nullptr);
@@ -397,14 +395,14 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_RootNameIsRenderProcess001,
 {
     auto parser = std::make_unique<RSRenderModeConfigParser>();
     const std::string xmlContent =
-        R"(<?xml version="1.0"?><render_mode value="1">)"
-        R"(<rp id="5" name="g5"><screen id="100" name="s0"/></rp></render_mode>)";
+        R"(<?xml version="1.0"?><render_process value="1">)"
+        R"(<rp id="5" name="g5"><screen id="100" name="s0"/></rp></render_process>)";
     xmlDocPtr doc = StringToXmlDoc(xmlContent);
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
     auto config = parser->builder.Build();
     ASSERT_NE(config, nullptr);
@@ -430,36 +428,36 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_ParseGroupFails001, TestSiz
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
-    EXPECT_TRUE(result);
-    auto config = parser->builder.Build();
-    ASSERT_NE(config, nullptr);
-    EXPECT_EQ(config->GetDefaultRenderProcess(), TEST_GROUP_ID_1);
-    const auto& groupConfigs = config->GetGroupInfoConfigs();
-    EXPECT_NE(groupConfigs.size(), EXPECTED_TWO_GROUPS);
+    bool result = parser->ParseInternal(*root);
+    EXPECT_FALSE(result);
     xmlFreeDoc(doc);
 }
 
 /**
- * @tc.name: ParseInternal_MutipleGroup001
+ * @tc.name: ParseInternal_MultipleGroups001
  * @tc.desc: Test ParseInternal with multiple group children
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_MutipleGroup001, TestSize.Level1)
+HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_MultipleGroups001, TestSize.Level1)
 {
     auto parser = std::make_unique<RSRenderModeConfigParser>();
     const std::string xmlContent =
-        R"(<?xml version="1.0"?><render_mode value="1" default_groups="1">)"
-        R"(<render_process id="1" name="g1"><screen id="100" name="s0"/></render_process>)";
+        R"(<?xml version="1.0"?><render_mode value="1" default_group="1">)"
+        R"(<render_process id="1" name="g1"><screen id="100" name="s0"/></render_process>)"
         R"(<render_process id="2" name="g2"><screen id="101" name="s1"/></render_process></render_mode>)";
     xmlDocPtr doc = StringToXmlDoc(xmlContent);
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
-    EXPECT_FALSE(result);
+    bool result = parser->ParseInternal(*root);
+    EXPECT_TRUE(result);
+    auto config = parser->builder.Build();
+    ASSERT_NE(config, nullptr);
+    EXPECT_EQ(config->GetDefaultRenderProcess(), TEST_GROUP_ID_1);
+    const auto& groupConfigs = config->GetGroupInfoConfigs();
+    EXPECT_NE(groupConfigs.size(), EXPECTED_TWO_GROUPS);
     xmlFreeDoc(doc);
 }
 
@@ -521,7 +519,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseGroup_InvalidScreenId001, TestSize.L
 HWTEST_F(RSRenderModeConfigParserTest, ParseGroup_NoChildNodes001, TestSize.Level1)
 {
     auto parser = std::make_unique<RSRenderModeConfigParser>();
-    const std::string xmlContent =R"(<?xml version="1.0"?><rp id="1" name="g1"/>)";
+    const std::string xmlContent = R"(<?xml version="1.0"?><rp id="1" name="g1"/>)";
     xmlDocPtr doc = StringToXmlDoc(xmlContent);
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
@@ -546,7 +544,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseGroup_NoChildNodes001, TestSize.Leve
 HWTEST_F(RSRenderModeConfigParserTest, ExtractPropertyValue_PropertyExists001, TestSize.Level1)
 {
     auto parser = std::make_unique<RSRenderModeConfigParser>();
-    const std::string xmlContent =R"(<?xml version="1.0"?><node name="testName"/>)";
+    const std::string xmlContent = R"(<?xml version="1.0"?><node name="testName"/>)";
     xmlDocPtr doc = StringToXmlDoc(xmlContent);
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
@@ -559,14 +557,14 @@ HWTEST_F(RSRenderModeConfigParserTest, ExtractPropertyValue_PropertyExists001, T
 
 /**
  * @tc.name: ExtractPropertyValue_PropertyNotExists001
- * @tc.desc: Test ExtractPropertyValue returns value when property exists
+ * @tc.desc: Test ExtractPropertyValue returns empty when property does not exists
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSRenderModeConfigParserTest, ExtractPropertyValue_PropertyNotExists001, TestSize.Level1)
 {
     auto parser = std::make_unique<RSRenderModeConfigParser>();
-    const std::string xmlContent =R"(<?xml version="1.0"?><node name="testName"/>)";
+    const std::string xmlContent = R"(<?xml version="1.0"?><node name="testName"/>)";
     xmlDocPtr doc = StringToXmlDoc(xmlContent);
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
@@ -577,7 +575,7 @@ HWTEST_F(RSRenderModeConfigParserTest, ExtractPropertyValue_PropertyNotExists001
     xmlFreeDoc(doc);
 }
 
-//Newly Added Phase2
+// Newly Added Phase2
 HWTEST_F(RSRenderModeConfigParserTest, Parse_RootNodeIsNull001, TestSize.Level1)
 {
     auto parser = std::make_unique<RSRenderModeConfigParser>();
@@ -586,7 +584,7 @@ HWTEST_F(RSRenderModeConfigParserTest, Parse_RootNodeIsNull001, TestSize.Level1)
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
-    auto config = parser->builder.Build();
+    auto config = parser->BuildRenderConfig();
     ASSERT_NE(config, nullptr);
     auto defaultGroup = config->GetDefaultRenderProcess();
     ASSERT_GE(defaultGroup, DEFAULT_GROUP_ID);
@@ -599,14 +597,14 @@ HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_NonElementNodes001, TestSiz
     const std::string xmlContent =
         R"(<?xml version="1.0"?><render_mode value="1">)"
         R"(<!-- this is a comment -->)"
-        R"(   <text>whitespace text</text>)"
-        R"<render_process id="5" name="g5"><screen id="100" name="s0"/></render_process></render_mode>)";
+        R"(    <text>whitespace text</text>)"
+        R"(<render_process id="5" name="g5"><screen id="100" name="s0"/></render_process></render_mode>)";
     xmlDocPtr doc = StringToXmlDoc(xmlContent);
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
 
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
     auto config = parser->builder.Build();
     ASSERT_NE(config, nullptr);
@@ -625,7 +623,7 @@ HWTEST_F(RSRenderModeConfigParserTest, Parse_MultipleBranches001, TestSize.Level
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_TRUE(result);
     EXPECT_TRUE(parser->isMultiProcessModeEnabled_);
     auto config = parser->builder.Build();
@@ -633,7 +631,7 @@ HWTEST_F(RSRenderModeConfigParserTest, Parse_MultipleBranches001, TestSize.Level
     xmlFreeDoc(doc);
 }
 
-HWTEST_F(RSRenderModeConfigParserTest, Parse_ParserInternalFails001, TestSize.Level1)
+HWTEST_F(RSRenderModeConfigParserTest, Parse_ParseInternalFails001, TestSize.Level1)
 {
     auto parser = std::make_unique<RSRenderModeConfigParser>();
     const std::string xmlContent = R"(<?xml version="1.0"?><render_mode value="invalid"/>)";
@@ -641,12 +639,12 @@ HWTEST_F(RSRenderModeConfigParserTest, Parse_ParserInternalFails001, TestSize.Le
     ASSERT_NE(doc, nullptr);
     xmlNode* root = xmlDocGetRootElement(doc);
     ASSERT_NE(root, nullptr);
-    bool result = parser->ParserInternal(*root);
+    bool result = parser->ParseInternal(*root);
     EXPECT_FALSE(result);
     xmlFreeDoc(doc);
 }
 
-class RSRenderModeConfigParseMock : public RSRenderModeConfigParser {
+class RSRenderModeConfigParserMock : public RSRenderModeConfigParser {
 public:
     int32_t LoadConfigurationsMock()
     {
@@ -658,14 +656,15 @@ public:
         xmlDocument_ = doc;
         return RSRenderModeConfigParser::RENDER_MODE_PARSE_EXEC_SUCCESS;
     }
-}
+};
 
-HWTEST_F(RSRenderModeConfigParserTest, ParseInternal_WithDefaultGroup001, TestSize.Level1)
+HWTEST_F(RSRenderModeConfigParserTest, LoadConfigurations_XmlReadFileFails001, TestSize.Level1)
 {
-    auto parser = std::make_unique<RSRenderModeConfigParser>();
+    auto parser = std::make_unique<RSRenderModeConfigParserMock>();
     int32_t result = parser->LoadConfigurationsMock();
     EXPECT_EQ(result, RSRenderModeConfigParser::RENDER_MODE_PARSE_FILE_LOAD_FAIL);
     auto config = parser->BuildRenderConfig();
     ASSERT_NE(config, nullptr);
 }
+
 } // namespace OHOS::Rosen
