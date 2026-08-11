@@ -642,14 +642,12 @@ napi_value WebGLRenderingContextBaseImpl::DeleteRenderBuffer(napi_env env, napi_
     if (framebufferBinding != nullptr) {
         framebufferBinding->RemoveAttachment(GL_READ_FRAMEBUFFER, renderbuffer, AttachmentType::RENDER_BUFFER);
     }
+    if (boundRenderBufferIds_[BoundRenderBufferType::RENDERBUFFER] == renderbuffer) {
+        boundRenderBufferIds_[BoundRenderBufferType::RENDERBUFFER] = WebGLRenderbuffer::DEFAULT_RENDER_BUFFER;
+    }
     DeleteObject<WebGLRenderbuffer>(env, renderbuffer);
     glDeleteRenderbuffers(1, &renderbuffer);
     LOGD("WebGL deleteRenderbuffer renderbuffer %{public}u", renderbuffer);
-    uint32_t index = 0;
-    if (!CheckRenderBufferTarget(env, webGlRenderbuffer->GetTarget(), index)) {
-        return NVal::CreateNull(env).val_;
-    }
-    boundRenderBufferIds_[index] = 0;
     return NVal::CreateNull(env).val_;
 }
 
