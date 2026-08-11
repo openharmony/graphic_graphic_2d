@@ -29,10 +29,7 @@ public:
     ~RSPointLightManager() = default;
 
     static const std::unique_ptr<RSPointLightManager>& Instance(NodeId logicalDisplayNodeId);
-    static RSPointLightManager* FindInstance(NodeId logicalDisplayNodeId);
     static void ReleaseInstance(NodeId logicalDisplayNodeId);
-    static void UpdateLightResourcesOnTreeChanged(const std::shared_ptr<RSRenderNode>& node,
-        NodeId oldLogicalDisplayNodeId, NodeId newLogicalDisplayNodeId, bool isOnTree);
     void RegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode);
     void RegisterIlluminated(const std::shared_ptr<RSRenderNode>& renderNode);
     void UnRegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode);
@@ -66,6 +63,7 @@ private:
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> previousFrameIlluminatedNodeMap_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyLightSourceList_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyIlluminatedList_;
+    NodeId logicalDisplayNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS
