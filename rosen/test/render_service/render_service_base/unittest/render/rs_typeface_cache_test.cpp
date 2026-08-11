@@ -399,6 +399,122 @@ HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReplayDeserializeTest006
+ * @tc.desc: Verify ReplayDeserialize returns error when count read fails
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest006, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    // Empty stream — count read will fail
+    std::stringstream stream;
+    auto error = typefaceCache.ReplayDeserialize(stream);
+    EXPECT_FALSE(error.empty());
+}
+
+/**
+ * @tc.name: ReplayDeserializeTest007
+ * @tc.desc: Verify ReplayDeserialize returns error when count exceeds maxCount
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest007, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    std::stringstream stream;
+    constexpr size_t maxCount = 1000u;
+    size_t count = maxCount + 1;
+    stream.write(reinterpret_cast<char*>(&count), sizeof(count));
+    auto error = typefaceCache.ReplayDeserialize(stream);
+    EXPECT_FALSE(error.empty());
+}
+
+/**
+ * @tc.name: ReplayDeserializeTest008
+ * @tc.desc: Verify ReplayDeserialize calls ReplayClear on error path
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest008, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    // Pre-populate cache with a replay entry, then trigger error to verify ReplayClear clears it
+    constexpr uint64_t mask = 1ull << 62;
+    constexpr uint64_t existingId = 0xA0000001ull | mask;
+    typefaceCache.CacheDrawingTypeface(existingId, typeface);
+    ASSERT_NE(typefaceCache.typefaceHashCode_.find(existingId), typefaceCache.typefaceHashCode_.end());
+
+    // Trigger error: stream has count=1 but size read fails (truncated after uniqueId)
+    std::stringstream stream;
+    size_t count = 1;
+    stream.write(reinterpret_cast<char*>(&count), sizeof(count));
+    uint64_t uniqueId = 0xD0000001ull;
+    stream.write(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId));
+    uint8_t partialSize = 0x01;
+    stream.write(reinterpret_cast<char*>(&partialSize), sizeof(partialSize));
+
+    auto error = typefaceCache.ReplayDeserialize(stream);
+    EXPECT_FALSE(error.empty());
+    EXPECT_EQ(typefaceCache.typefaceHashCode_.find(existingId), typefaceCache.typefaceHashCode_.end());
+}
+
+/**
+ * @tc.name: ReplayDeserializeTest009
+ * @tc.desc: Verify ReplayDeserialize rejects when totalSize exceeds maxTotalSize
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest009, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    std::stringstream stream;
+    size_t count = 2;
+    stream.write(reinterpret_cast<char*>(&count), sizeof(count));
+    // First entry: valid small entry
+    uint64_t uniqueId1 = 0xE0000001ull;
+    stream.write(reinterpret_cast<char*>(&uniqueId1), sizeof(uniqueId1));
+    size_t size1 = sizeof(uint64_t);
+    stream.write(reinterpret_cast<char*>(&size1), sizeof(size1));
+    uint64_t dummyData = 0;
+    stream.write(reinterpret_cast<char*>(&dummyData), sizeof(dummyData));
+    // Second entry: declared size causes totalSize + size > maxTotalSize
+    uint64_t uniqueId2 = 0xE0000002ull;
+    stream.write(reinterpret_cast<char*>(&uniqueId2), sizeof(uniqueId2));
+    constexpr size_t maxTotalSize = 500u * 1024u * 1024u;
+    size_t oversize = maxTotalSize;
+    stream.write(reinterpret_cast<char*>(&oversize), sizeof(oversize));
+
+    auto error = typefaceCache.ReplayDeserialize(stream);
+    EXPECT_FALSE(error.empty());
+}
+
+/**
+ * @tc.name: ReplayDeserializeTest010
+ * @tc.desc: Verify ReplayDeserialize calls ReplayClear when uniqueId read fails
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest010, TestSize.Level1)
+{
+    RSTypefaceCache typefaceCache;
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    constexpr uint64_t mask = 1ull << 62;
+    constexpr uint64_t existingId = 0xA0000002ull | mask;
+    typefaceCache.CacheDrawingTypeface(existingId, typeface);
+    ASSERT_NE(typefaceCache.typefaceHashCode_.find(existingId), typefaceCache.typefaceHashCode_.end());
+
+    // count readable, but uniqueId is truncated (only 4 bytes instead of 8)
+    std::stringstream stream;
+    size_t count = 1;
+    stream.write(reinterpret_cast<char*>(&count), sizeof(count));
+    uint32_t partial = 0;
+    stream.write(reinterpret_cast<char*>(&partial), sizeof(partial));
+
+    auto error = typefaceCache.ReplayDeserialize(stream);
+    EXPECT_FALSE(error.empty());
+    EXPECT_EQ(typefaceCache.typefaceHashCode_.find(existingId), typefaceCache.typefaceHashCode_.end());
+}
+
+/**
  * @tc.name: ReplayClearTest001
  * @tc.desc: Verify function ReplayClear
  * @tc.type:FUNC

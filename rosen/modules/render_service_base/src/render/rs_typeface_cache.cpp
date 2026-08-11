@@ -652,44 +652,58 @@ void RSTypefaceCache::ReplaySerialize(std::stringstream& stream)
 
 std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& stream)
 {
-    constexpr size_t maxSize = 40'000'000;
-    constexpr uint32_t bitNumber = 30 + 32;
-    constexpr uint64_t replayMask = uint64_t(1) << bitNumber;
+    constexpr uint64_t mask = 1ull << 62;
+    constexpr size_t maxSize = 40'000'000u;
+    constexpr size_t maxTotalSize = 500u * 1024u * 1024u;
 
-    size_t count = 0;
-    stream.read(reinterpret_cast<char*>(&count), sizeof(count));
+    size_t count = 0u;
+    if (!stream.read(reinterpret_cast<char*>(&count), sizeof(count))) {
+        return "ReplayDeserialize: Cannot read count";
+    }
+
+    constexpr size_t maxCount = 1'000u;
+    if (count > maxCount) {
+        return "ReplayDeserialize: Count exceeds the limit";
+    }
 
     std::shared_ptr<Drawing::Typeface> typeface;
-    std::vector<uint8_t> data;
-    for (size_t i = 0; i < count; i++) {
-        uint64_t uniqueId = 0;
-        stream.read(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId));
+    for (size_t i = 0, totalSize = 0; i < count; i++) {
+        uint64_t uniqueId = 0ull;
+        if (!stream.read(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId))) {
+            ReplayClear();
+            return "ReplayDeserialize: Cannot read unique id";
+        }
 
-        size_t size = 0;
-        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        size_t size = 0u;
+        if (!stream.read(reinterpret_cast<char*>(&size), sizeof(size))) {
+            ReplayClear();
+            return "ReplayDeserialize: Cannot read size";
+        }
 
         constexpr size_t dummy = std::numeric_limits<size_t>::max();
         if (dummy == size) {
-            CacheDrawingTypeface(uniqueId | replayMask, typeface, false);
+            CacheDrawingTypeface(uniqueId | mask, typeface, false);
             continue;
         }
 
-        if (size > maxSize) {
-            return "Typeface serialized data is over 40MB";
+        if (size > maxSize || totalSize + size > maxTotalSize) {
+            ReplayClear();
+            return "ReplayDeserialize: Size exceeds the limit";
         }
+        totalSize += size;
 
-        data.resize(size);
-        stream.read(reinterpret_cast<char*>(data.data()), data.size());
-
-        if (stream.eof()) {
-            return "Typeface track is damaged";
+        std::vector<char> data(size);
+        if (!stream.read(data.data(), static_cast<std::streamsize>(data.size()))) {
+            ReplayClear();
+            return "ReplayDeserialize: Cannot read data";
         }
 
         typeface = Drawing::Typeface::Deserialize(data.data(), data.size());
         if (!typeface) {
-            return "Typeface unmarshalling failed";
+            ReplayClear();
+            return "ReplayDeserialize: Cannot create typeface";
         }
-        CacheDrawingTypeface(uniqueId | replayMask, typeface, false);
+        CacheDrawingTypeface(uniqueId | mask, typeface, false);
     }
     return {};
 }

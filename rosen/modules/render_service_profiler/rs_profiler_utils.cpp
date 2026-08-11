@@ -328,6 +328,16 @@ bool Utils::Set(void* data, size_t size, int32_t value, size_t count)
 }
 
 // File system routines
+bool Utils::IsSandboxPath(const std::string& path)
+{
+    static const std::string_view SANDBOX = "/data/";
+    if (path.empty() || path.find(SANDBOX) != 0 || path.find('\\') != path.npos) {
+        return false;
+    }
+    const auto file = GetFileName(path);
+    return (file != ".") && (file != "..") && (path == (GetRealPath(GetDirectory(path)) + '/' + file));
+}
+
 std::string Utils::GetRealPath(const std::string& path)
 {
     std::string realPath;
@@ -484,6 +494,7 @@ void Utils::LoadContent(const std::string& path, std::string& content)
 
 static std::stringstream g_recordInMemory(std::ios::in | std::ios::out | std::ios::binary);
 static FILE* g_recordInMemoryFile = reinterpret_cast<FILE*>(1);
+static std::mutex g_recordInMemoryMutex;
 
 static bool IsRecordInMemoryFile(const std::string& path)
 {
@@ -521,6 +532,7 @@ bool Utils::FileExists(const std::string& path)
 bool Utils::FileDelete(const std::string& path)
 {
     if (IsRecordInMemoryFile(path)) {
+        const std::lock_guard<std::mutex> guard(g_recordInMemoryMutex);
         g_recordInMemory = std::stringstream(std::ios::in | std::ios::out | std::ios::binary);
         return true;
     }
@@ -536,6 +548,7 @@ bool Utils::FileDelete(const std::string& path)
 FILE* Utils::FileOpen(const std::string& path, const std::string& options)
 {
     if (IsRecordInMemoryFile(path)) {
+        const std::lock_guard<std::mutex> guard(g_recordInMemoryMutex);
         g_recordInMemory.seekg(0, std::ios_base::beg);
         g_recordInMemory.seekp(0, std::ios_base::beg);
         return g_recordInMemoryFile;
@@ -552,12 +565,12 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
         const int fd = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR | O_NOFOLLOW, S_IRUSR | S_IWUSR);
         if (fd != -1) {
             fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
-            FILE* file = fdopen(fd, options.data());
-            if (file) {
+            if (auto file = fdopen(fd, options.data())) {
                 return file;
             }
-            HRPE("FileOpen: fdopen failed on '%s'!", realPath.data()); // NOLINT
+            unlink(realPath.data());
             fdsan_close_with_tag(fd, LOG_DOMAIN);
+            HRPE("FileOpen: fdopen failed on '%s'!", realPath.data()); // NOLINT
             return nullptr;
         }
     }
@@ -576,6 +589,7 @@ void Utils::FileClose(FILE* file)
         return;
     }
     if (file == g_recordInMemoryFile) {
+        const std::lock_guard<std::mutex> guard(g_recordInMemoryMutex);
         g_recordInMemory.seekg(0, std::ios_base::beg);
         g_recordInMemory.seekp(0, std::ios_base::beg);
         return;
@@ -596,6 +610,7 @@ bool Utils::IsFileValid(FILE* file)
 size_t Utils::FileSize(FILE* file)
 {
     if (file == g_recordInMemoryFile) {
+        const std::lock_guard<std::mutex> guard(g_recordInMemoryMutex);
         const auto position = g_recordInMemory.tellg();
         g_recordInMemory.seekg(0, std::ios_base::end);
         const auto size = g_recordInMemory.tellg();
@@ -626,6 +641,7 @@ size_t Utils::FileSize(FILE* file)
 size_t Utils::FileTell(FILE* file)
 {
     if (file == g_recordInMemoryFile) {
+        const std::lock_guard<std::mutex> guard(g_recordInMemoryMutex);
         return g_recordInMemory.tellg();
     }
     if (!IsFileValid(file)) {
@@ -642,6 +658,7 @@ size_t Utils::FileTell(FILE* file)
 void Utils::FileSeek(FILE* file, int64_t offset, int origin)
 {
     if (file == g_recordInMemoryFile) {
+        const std::lock_guard<std::mutex> guard(g_recordInMemoryMutex);
         if (origin == SEEK_SET) {
             g_recordInMemory.seekg(offset, std::ios_base::beg);
             g_recordInMemory.seekp(offset, std::ios_base::beg);
@@ -673,6 +690,7 @@ bool Utils::FileRead(FILE* file, void* data, size_t size)
         return false;
     }
     if (file == g_recordInMemoryFile) {
+        const std::lock_guard<std::mutex> guard(g_recordInMemoryMutex);
         g_recordInMemory.read(reinterpret_cast<char*>(data), static_cast<std::streamsize>(size));
         if (g_recordInMemory.gcount() != static_cast<std::streamsize>(size)) {
             HRPE("FileRead: Error while reading from memory file"); // NOLINT
@@ -697,6 +715,7 @@ void Utils::FileWrite(FILE* file, const void* data, size_t size)
     }
 
     if (file == g_recordInMemoryFile) {
+        const std::lock_guard<std::mutex> guard(g_recordInMemoryMutex);
         g_recordInMemory.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
         g_recordInMemory.seekg(g_recordInMemory.tellp());
         return;
@@ -704,18 +723,6 @@ void Utils::FileWrite(FILE* file, const void* data, size_t size)
     if (fwrite(data, size, 1, file) < 1) {
         HRPE("FileWrite: Error while writing to file"); // NOLINT
     }
-}
-
-// deprecated
-bool Utils::FileRead(void* data, size_t size, size_t count, FILE* file)
-{
-    return FileRead(file, data, size * count);
-}
-
-// deprecated
-void Utils::FileWrite(const void* data, size_t size, size_t count, FILE* file)
-{
-    FileWrite(file, data, size * count);
 }
 
 } // namespace OHOS::Rosen
