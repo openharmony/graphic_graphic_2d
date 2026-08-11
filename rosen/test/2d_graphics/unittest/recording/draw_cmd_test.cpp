@@ -1010,6 +1010,31 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawTextBlobOpItem002
+ * @tc.desc: Test functions for DrawTextBlobOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, DrawTextBlobOpItem002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({nullptr, 0}, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    OpDataHandle invalidHandle{};
+    uint64_t globalUniqueId = 0;
+    PaintHandle paintHandle;
+    DrawTextBlobOpItem::ConstructorHandle constructorHandle{
+        invalidHandle, globalUniqueId, TextBlobRenderOption(), 10, 10, paintHandle};
+    auto opItem = DrawTextBlobOpItem::Unmarshalling(*drawCmdList,
+        static_cast<void*>(&constructorHandle));
+    EXPECT_TRUE(opItem != nullptr);
+    auto targetCmdList = DrawCmdList::CreateFromData({nullptr, 0}, false);
+    EXPECT_TRUE(targetCmdList != nullptr);
+    sizr_t sizeBefore = targetCmdList->GetOpItemSize();
+    opItem->Marshalling(*targetCmdList);
+    EXPECT_EQ(targetCmdList->GetOpItemSize(), sizeBefore);
+}
+
+/**
  * @tc.name: IsHighContrastEnableTest
  * @tc.desc: Test functions for IsHighContrastEnableTest
  * @tc.type: FUNC
