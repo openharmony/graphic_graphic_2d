@@ -30,6 +30,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 
 #include <atomic>
+#include <deque>
 #include <optional>
 #include <unordered_map>
 
@@ -2132,6 +2133,7 @@ protected:
     bool hybridRenderCanvas_ = false;
 
     mutable std::map<RSCmdModifierType, std::shared_ptr<RSCmdModifier>> rsCmdModifiers_;
+    mutable std::deque<std::shared_ptr<RSCmdModifier>> rsCmdModifierQueue_;
     /**
      * @brief Called when child nodes are added to this node.
      */
@@ -2158,6 +2160,22 @@ protected:
             return it->second;
         }
         return nullptr;
+    }
+
+    template<typename ModifierType, typename ParamType>
+    void PushRSCmdModifierToQueue(const ParamType& param)
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        auto modifier = std::make_shared<ModifierType>(weak_from_this(), param);
+        rsCmdModifierQueue_.push_back(modifier);
+    }
+
+    void PopFrontRSCmdModifierQueue()
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        if (!rsCmdModifierQueue_.empty()) {
+            rsCmdModifierQueue_.pop_front();
+        }
     }
 
     std::vector<PropertyId> GetModifierIds() const;
@@ -2351,6 +2369,11 @@ private:
     // for node rebuilding only.
     void UpdateAllRSCmdModifiersToRender() {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        for (auto& modifier : rsCmdModifierQueue_) {
+            if (modifier) {
+                modifier->UpdateToRender();
+            }
+        }
         for (auto& [type, modifier] : rsCmdModifiers_) {
             if (modifier) {
                 modifier->UpdateToRender();
@@ -2360,6 +2383,7 @@ private:
  
     void ClearAllRSCmdModifiers() {
         rsCmdModifiers_.clear();
+        rsCmdModifierQueue_.clear();
     }
 
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
