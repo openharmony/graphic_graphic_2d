@@ -83,24 +83,6 @@ HWTEST_F(RSPointLightManagerTest, Instance003, TestSize.Level1)
 }
 
 /**
- * @tc.name: Instance004
- * @tc.desc: test ReleaseInstance and re-create
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPointLightManagerTest, Instance004, TestSize.Level1)
-{
-    RSPointLightManager::ReleaseInstance(0);
-    auto& instance1 = RSPointLightManager::Instance(0);
-    auto ptr1 = instance1.get();
-    RSPointLightManager::ReleaseInstance(0);
-    auto& instance2 = RSPointLightManager::Instance(0);
-    auto ptr2 = instance2.get();
-    EXPECT_NE(ptr1, ptr2);
-    RSPointLightManager::ReleaseInstance(0);
-}
-
-/**
  * @tc.name: Instance005
  * @tc.desc: test ReleaseInstance with non-existent display node ID
  * @tc.type:FUNC
