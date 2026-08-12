@@ -15,8 +15,11 @@
 
 #include "gtest/gtest.h"
 
+#include <vector>
+
 #include "command/rs_ui_director_command.h"
 #include "common/rs_common_def.h"
+#include "pipeline/rs_background_rebuild_param.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_ui_render_director.h"
 
@@ -95,6 +98,35 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperMissingDirectorTest, Te
     RSUIDirectorCommandHelper::GoDestroy(rsContext, nodeId, token);
 
     EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperGoStopNodeMapModeTest
+ * @tc.desc: Test GoStop dispatches node map operation by GoStopNodeMapMode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopNodeMapModeTest, TestSize.Level1)
+{
+    constexpr pid_t pid = 400;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+    const std::vector<GoStopNodeMapMode> modes = {
+        GoStopNodeMapMode::NONE,
+        GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP,
+        GoStopNodeMapMode::DESTROY_TOKEN_NODE,
+    };
+    for (size_t i = 0; i < modes.size(); i++) {
+        RSContext rsContext;
+        uint64_t token = 401 + i;
+        RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+        auto director = rsContext.GetUIRenderDirector(pid, token);
+        ASSERT_NE(director, nullptr);
+
+        RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(modes[i]);
+        RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
+        EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+    }
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
 }
 
 } // namespace OHOS::Rosen
