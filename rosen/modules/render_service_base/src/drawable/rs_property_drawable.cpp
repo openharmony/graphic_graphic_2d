@@ -85,7 +85,7 @@ RSPropertyDrawCmdListUpdater::RSPropertyDrawCmdListUpdater(int width, int height
 RSPropertyDrawCmdListUpdater::~RSPropertyDrawCmdListUpdater()
 {
     if (recordingCanvas_ && target_) {
-        target_->stagingDrawCmdList_ = recordingCanvas_->GetDrawCmdList();
+        target_->stagingDrawCmdList_ = RSSimpleDrawCmdList::CreateFromDrawCmdList(recordingCanvas_->GetDrawCmdList());
         target_->needSync_ = true;
         ExtendRecordingCanvas::Recycle(recordingCanvas_);
         recordingCanvas_.reset();
