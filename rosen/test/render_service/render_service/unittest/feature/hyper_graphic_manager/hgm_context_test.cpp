@@ -63,10 +63,7 @@ void HgmContextTest::TearDownTestCase() {}
 
 void HgmContextTest::SetUp() {}
 
-void HgmHardwareUtilsTest::TearDown()
-{
-    HgmCore::Instance().RegisterScreenManagerCallbacks({});
-}
+void HgmContextTest::TearDown() {}
 
 /**
  * @tc.name: InitHgmTaskHandleThreadTest001
