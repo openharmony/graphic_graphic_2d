@@ -197,6 +197,7 @@ void BlobCache::SetBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     auto it = mBlobMap_.find(keyBlob);
     if (it != mBlobMap_.end()) {
         free(it->second->data);
+        it->second->data = nullptr;
         it->second->data = malloc(valueSize);
         if (it->second->data != nullptr) {
             it->second->dataSize = valueSize;
@@ -258,7 +259,7 @@ EGLsizeiANDROID BlobCache::GetBlob(const void *key, EGLsizeiANDROID keySize, voi
             errno_t status = memcpy_s(value, valueSize, it->second->data, it->second->dataSize);
             if (status != EOK) {
                 WLOGE("memcpy_s failed");
-                return ret;
+                return 0;
             }
             auto moveblob = it->first;
             moveblob->prev_->next_ = moveblob->next_;
