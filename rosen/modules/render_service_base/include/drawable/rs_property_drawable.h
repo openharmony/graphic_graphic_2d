@@ -24,6 +24,7 @@
 #include "recording/draw_cmd_list.h"
 
 #include "drawable/rs_drawable.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 #include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
@@ -38,7 +39,7 @@ class GEVisualEffectContainer;
 namespace DrawableV2 {
 class RSPropertyDrawable : public RSDrawable {
 public:
-    RSPropertyDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : drawCmdList_(std::move(drawCmdList)) {}
+    RSPropertyDrawable(SimpleDrawCmdListPtr&& drawCmdList) : drawCmdList_(std::move(drawCmdList)) {}
     RSPropertyDrawable() = default;
     ~RSPropertyDrawable() override = default;
 
@@ -48,8 +49,8 @@ public:
 
 protected:
     bool needSync_ = false;
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList_;
-    std::shared_ptr<Drawing::DrawCmdList> stagingDrawCmdList_;
+    SimpleDrawCmdListPtr drawCmdList_;
+    SimpleDrawCmdListPtr stagingDrawCmdList_;
     std::string propertyDescription_;
     std::string stagingPropertyDescription_;
 
@@ -77,7 +78,7 @@ protected:
 // Frame offset
 class RSFrameOffsetDrawable : public RSPropertyDrawable {
 public:
-    RSFrameOffsetDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+    RSFrameOffsetDrawable(SimpleDrawCmdListPtr&& drawCmdList)
         : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSFrameOffsetDrawable() = default;
@@ -118,7 +119,7 @@ private:
 
 class RSClipToFrameDrawable : public RSPropertyDrawable {
 public:
-    RSClipToFrameDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+    RSClipToFrameDrawable(SimpleDrawCmdListPtr&& drawCmdList)
         : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSClipToFrameDrawable() = default;
