@@ -109,6 +109,18 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
     return (it->second)(parcel, val);
 }
 
+bool RSRenderPropertyBase::CheckPropertyType(const RSPropertyType type, const char* funcName) const
+{
+    if (type != GetPropertyType()) {
+        auto node = node_.lock();
+        RS_COLD_LOGE("%{public}s type mismatch, nodeId=%{public}" PRIu64 ", propertyId=%{public}" PRIu64
+            " update type:%{public}hhu, property type:%{public}hhu", funcName, node ? node->GetId() : INVALID_NODEID,
+            GetId(), type, GetPropertyType());
+        return false;
+    }
+    return true;
+}
+
 template<>
 float RSRenderAnimatableProperty<float>::ToFloat() const
 {

@@ -1448,8 +1448,10 @@ uint32_t RSProfiler::CalcNodeCmdListCount(RSRenderNode& node)
         for (auto& modifier : slot) {
             std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyPtr = nullptr;
             if (modifier != nullptr) {
-                propertyPtr = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
-                    modifier->GetProperty(ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType())));
+                auto baseProperty = modifier->GetProperty(
+                    ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType()));
+                propertyPtr = baseProperty ?
+                    baseProperty->CastToPropertyOf<Drawing::DrawCmdListPtr>(__func__) : nullptr;
             }
             auto propertyValue = propertyPtr ? propertyPtr->Get() : nullptr;
             if (propertyValue && propertyValue->GetOpItemSize() > 0) {

@@ -145,10 +145,11 @@ public:
             }
         }
         if (auto property = node->GetProperty(id)) {
-            if (UNLIKELY(!CheckPropertyType(__func__, *property, RSRenderPropertyTypeTraits<T>::type, nodeId))) {
+            auto prop = property->CastToPropertyOf<T>(__func__);
+            if (!prop) {
                 return;
             }
-            std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);
+            prop->Set(value, type);
         }
     }
 
