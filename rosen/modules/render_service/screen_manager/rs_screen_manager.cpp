@@ -342,7 +342,6 @@ uint64_t RSScreenManager::JudgeVSyncEnabledScreenWhilePowerStatusChanged(
     return enabledScreenId;
 }
 
-
 // LCOV_EXCL_START
 ScreenId RSScreenManager::GenerateVirtualScreenId()
 {
