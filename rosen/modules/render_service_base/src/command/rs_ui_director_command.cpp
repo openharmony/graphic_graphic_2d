@@ -80,24 +80,26 @@ void RSUIDirectorCommandHelper::GoBackground(RSContext& context, NodeId nodeId, 
 void RSUIDirectorCommandHelper::GoStop(RSContext& context, NodeId nodeId, uint64_t token)
 {
     pid_t pid = ExtractPid(nodeId);
+    // pid_t varies across platforms, cast to int32_t for the log format specifier
+    auto logPid = static_cast<int32_t>(pid);
     // Node map cleanup is dispatched by the tiered GoStopNodeMapMode instead of the BackgroundRebuildEnabled
     // bool: NONE is a debug tier that keeps the node map untouched for comparison, and the default
     // REMOVE_SURFACE_NODE_MAP keeps the historical disabled-rebuild behavior.
     switch (RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode()) {
         case GoStopNodeMapMode::DESTROY_TOKEN_NODE:
             RS_LOGI("RSUIDirectorCommandHelper::GoStop DestroyTokenNode, pid: %{public}d, token: %{public}" PRIu64,
-                pid, token);
+                logPid, token);
             context.GetMutableNodeMap().DestroyTokenNode(pid, token);
             break;
         case GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP:
             RS_LOGI("RSUIDirectorCommandHelper::GoStop RemoveSurfaceNodeMap, pid: %{public}d, token: %{public}" PRIu64,
-                pid, token);
+                logPid, token);
             context.GetMutableNodeMap().RemoveSurfaceNodeMap(pid, token);
             break;
         case GoStopNodeMapMode::NONE:
         default:
             RS_LOGD("RSUIDirectorCommandHelper::GoStop skip node map operation, pid: %{public}d, "
-                "token: %{public}" PRIu64, pid, token);
+                "token: %{public}" PRIu64, logPid, token);
             break;
     }
     auto director = context.GetUIRenderDirector(pid, token);
