@@ -2532,14 +2532,14 @@ void RSRenderPipelineAgent::AddTransactionDataPidInfo(pid_t remotePid)
     pipeline->AddTransactionDataPidInfo(remotePid);
 }
 
-void RSRenderPipelineAgent::AddConnection(pid_t remotePid, uint64_t tokenMaskId,
-    sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
+std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipelineAgent::AddConnection(pid_t remotePid,
+    uint64_t tokenMaskId, sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
 {
     auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
-        return;
+    if (pipeline == nullptr) {
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
-    pipeline->AddConnection(remotePid, tokenMaskId, token, connectToRenderConnection);
+    return pipeline->AddConnection(remotePid, tokenMaskId, token, connectToRenderConnection);
 }
 
 std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipelineAgent::FindClientToRenderConnection(

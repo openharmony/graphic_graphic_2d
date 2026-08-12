@@ -344,16 +344,17 @@ bool RSRenderPipeline::RemoveConnection(pid_t remotePid, const sptr<RSIConnectio
     return true;
 }
 
-void RSRenderPipeline::AddConnection(pid_t remotePid, uint64_t tokenMaskId,
-    sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
+std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipeline::AddConnection(pid_t remotePid,
+    uint64_t tokenMaskId, sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
 {
     std::unique_lock<std::mutex> lock(renderConnectionMutex_);
     auto iter = renderConnections_.find(remotePid);
     if (iter != renderConnections_.end()) {
         RS_LOGE("RSRenderPipeline::AddConnection: pid %{public}d already exists", remotePid);
-        return;
+        return {iter->second.connection, iter->second.tokenMaskId};
     }
     renderConnections_[remotePid] = {tokenMaskId, token, connectToRenderConnection};
+    return {connectToRenderConnection, tokenMaskId};
 }
 
 std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipeline::FindClientToRenderConnection(
