@@ -917,7 +917,9 @@ ani_object AniPath::GetLastPoint(ani_env* env, ani_object obj)
     Drawing::Point point;
     path->GetLastPoint(point);
     ani_object aniPointObj;
-    CreatePointObjAndCheck(env, point, aniPointObj);
+    if (!CreatePointObjAndCheck(env, point, aniPointObj)) {
+        return CreateAniUndefined(env);
+    }
     return aniPointObj;
 }
 
