@@ -116,7 +116,7 @@ bool GetPixelBytes(GLenum type, uint32_t components, size_t& bytes)
         default:
             return false;
     }
-    if (components == 0 || static_cast<size_t>(components) > SIZE_MAX / componentSize) {
+    if (componentSize == 0 || components == 0 || static_cast<size_t>(components) > SIZE_MAX / componentSize) {
         return false;
     }
     bytes = componentSize * static_cast<size_t>(components);
@@ -166,6 +166,7 @@ bool CheckedMultiply(size_t a, size_t b, size_t& result)
 
 constexpr size_t ZERO_BUFFER_CHUNK_SIZE = 64 * 1024;
 constexpr GLsizeiptr MAX_WEBGL_BUFFER_DATA_SIZE = static_cast<GLsizeiptr>(1024) * 1024 * 1024;
+constexpr uint64_t MAX_WEBGL_TOTAL_BUFFER_DATA_SIZE = static_cast<uint64_t>(MAX_WEBGL_BUFFER_DATA_SIZE);
 const std::array<uint8_t, ZERO_BUFFER_CHUNK_SIZE> ZERO_BUFFER_DATA {};
 
 GLenum ClearBufferData(GLenum target, GLsizeiptr size, GLenum usage)
@@ -289,6 +290,9 @@ struct PixelUnpackState {
 GLenum BuildPixelUnpackLayout(const TexImageArg& imgArg, uint32_t componentCount,
     const PixelUnpackState& state, PixelUnpackLayout& layout)
 {
+    if (state.alignment != 1 && state.alignment != 2 && state.alignment != 4 && state.alignment != 8) {
+        return WebGLRenderingContextBase::INVALID_OPERATION;
+    }
     layout.width = static_cast<size_t>(imgArg.width);
     layout.height = static_cast<size_t>(imgArg.height);
     bool is3D = imgArg.target == GL_TEXTURE_3D || imgArg.target == GL_TEXTURE_2D_ARRAY;
@@ -386,7 +390,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckPixelUnpackData(
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
     size_t elementSize = GetPixelElementSize(imgArg.type);
-    if (offset < 0 || static_cast<uint64_t>(offset) % elementSize != 0) {
+    if (elementSize == 0 || offset < 0 || static_cast<uint64_t>(offset) % elementSize != 0) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
     if (unpackFlipY_ || unpackPremultiplyAlpha_) {
@@ -804,6 +808,15 @@ napi_value WebGLRenderingContextBaseImpl::BufferData_(
             "webGLBuffer->GetTarget %{public}u target %{public}u", webGLBuffer->GetTarget(), target);
         return NVal::CreateNull(env).val_;
     }
+    const uint64_t previousBufferSize = static_cast<uint64_t>(webGLBuffer->GetBufferSize());
+    const uint64_t retainedBufferBytes = allocatedBufferBytes_ >= previousBufferSize ?
+        allocatedBufferBytes_ - previousBufferSize : 0;
+    const uint64_t requestedBufferSize = static_cast<uint64_t>(size);
+    if (retainedBufferBytes > MAX_WEBGL_TOTAL_BUFFER_DATA_SIZE ||
+        requestedBufferSize > MAX_WEBGL_TOTAL_BUFFER_DATA_SIZE - retainedBufferBytes) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::OUT_OF_MEMORY, "buffer allocation exceeds the context quota");
+        return NVal::CreateNull(env).val_;
+    }
     glBufferData(target, size, bufferData, usage);
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
@@ -818,6 +831,7 @@ napi_value WebGLRenderingContextBaseImpl::BufferData_(
             return NVal::CreateNull(env).val_;
         }
     }
+    allocatedBufferBytes_ = retainedBufferBytes + requestedBufferSize;
     webGLBuffer->SetBuffer(size, bufferData);
     webGLBuffer->SetTarget(target);
     return NVal::CreateNull(env).val_;

@@ -65,6 +65,7 @@ void WebGLRenderingContextBasicBase::SetBitMapPtr(char* bitMapPtr, int bitMapWid
     LOGD("WebGLRenderingContextBasicBase::SetBitMapPtr");
     LOGD("WebGLRenderingContextBasicBase SetBitMapPtr [%{public}d %{public}d]", bitMapWidth, bitMapHeight);
     constexpr size_t RGBA_BYTES_PER_PIXEL = 4;
+    std::lock_guard<std::mutex> lock(bitMapMutex_);
     if (bitMapPtr == nullptr || bitMapWidth <= 0 || bitMapHeight <= 0 ||
         static_cast<size_t>(bitMapWidth) > std::numeric_limits<size_t>::max() / RGBA_BYTES_PER_PIXEL /
         static_cast<size_t>(bitMapHeight)) {
@@ -100,12 +101,15 @@ void WebGLRenderingContextBasicBase::Update()
         LOGD("eglSwapBuffers");
         EGLDisplay eglDisplay = EglManager::GetInstance().GetEGLDisplay();
         eglSwapBuffers(eglDisplay, eglSurface_);
-    } else if (bitMapPtr_ != nullptr && bitMapWidth_ > 0 && bitMapHeight_ > 0) {
-        LOGD("glReadPixels packAlignment %{public}d", packAlignment_);
-        glPixelStorei(GL_PACK_ALIGNMENT, 4); // 4 alignment
-        glReadPixels(0, 0, bitMapWidth_, bitMapHeight_, GL_RGBA, GL_UNSIGNED_BYTE, bitMapPtr_);
-        glPixelStorei(GL_PACK_ALIGNMENT, packAlignment_);
-        LOGD("glReadPixels result %{public}u", glGetError());
+    } else {
+        std::lock_guard<std::mutex> lock(bitMapMutex_);
+        if (bitMapPtr_ != nullptr && bitMapWidth_ > 0 && bitMapHeight_ > 0) {
+            LOGD("glReadPixels packAlignment %{public}d", packAlignment_);
+            glPixelStorei(GL_PACK_ALIGNMENT, 4); // 4 alignment
+            glReadPixels(0, 0, bitMapWidth_, bitMapHeight_, GL_RGBA, GL_UNSIGNED_BYTE, bitMapPtr_);
+            glPixelStorei(GL_PACK_ALIGNMENT, packAlignment_);
+            LOGD("glReadPixels result %{public}u", glGetError());
+        }
     }
     if (updateCallback_) {
         LOGD("mUpdateCallback");

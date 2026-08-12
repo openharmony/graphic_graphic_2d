@@ -17,6 +17,7 @@
 #define WEBGL_RENDERING_CONTEXT_BASIC_BASE_H
 
 #include <map>
+#include <mutex>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -54,11 +55,13 @@ public:
 
     int GetBufferWidth() const
     {
+        std::lock_guard<std::mutex> lock(bitMapMutex_);
         return bitMapWidth_;
     }
 
     int GetBufferHeight() const
     {
+        std::lock_guard<std::mutex> lock(bitMapMutex_);
         return bitMapHeight_;
     }
 
@@ -72,6 +75,7 @@ public:
 
     void SetPackAlignment(GLint packAlignment)
     {
+        std::lock_guard<std::mutex> lock(bitMapMutex_);
         packAlignment_ = packAlignment;
     }
     std::function<void()> updateCallback_;
@@ -82,6 +86,7 @@ private:
     int bitMapWidth_ = 0;
     int bitMapHeight_ = 0;
     GLint packAlignment_ = 4;
+    mutable std::mutex bitMapMutex_;
     EGLSurface eglSurface_ = nullptr;
     NativeWindow* eglWindow_ = nullptr;
     std::shared_ptr<WebGLContextAttributes> webGlContextAttributes_ = nullptr;
