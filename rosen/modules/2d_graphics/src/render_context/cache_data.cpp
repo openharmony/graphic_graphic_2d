@@ -62,7 +62,7 @@ uint32_t CacheData::CrcGen(const uint8_t *buffer, size_t bufferSize)
 bool CacheData::IsValidFile(uint8_t *buffer, size_t bufferSize)
 {
     if (buffer == nullptr) {
-        LOGE("abandon, beacuse of buffer is nullptr");
+        LOGE("abandon, because of buffer is nullptr");
         return false;
     }
     if (memcmp(buffer, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
