@@ -143,8 +143,6 @@ private:
 
     void SetCacheDir(const std::string& cacheDir);
 
-    void QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
-
     void OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
 
     void OnNodeRelease(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);

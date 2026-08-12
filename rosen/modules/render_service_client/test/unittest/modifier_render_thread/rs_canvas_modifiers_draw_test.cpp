@@ -598,6 +598,34 @@ HWTEST_F(RSCanvasModifiersDrawTest, Destroy_BeforeStartThread001, TestSize.Level
     EXPECT_FALSE(canvasModifiersDraw->threadStarted_.load());
 }
 
+// Verify Destroy() sets runner_ and handler_ to nullptr after Stop/RemoveAllEvents,
+// and the null-safety guards work when runner_/handler_ are already nullptr.
+HWTEST_F(RSCanvasModifiersDrawTest, Destroy_NullptrAfterStopAndNullGuards001, TestSize.Level1)
+{
+    // Case 1: Start then Destroy — runner_/handler_ become nullptr after Stop+RemoveAllEvents
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    ASSERT_NE(canvasModifiersDraw->runner_, nullptr);
+    ASSERT_NE(canvasModifiersDraw->handler_, nullptr);
+    canvasModifiersDraw->Destroy();
+    EXPECT_EQ(canvasModifiersDraw->runner_, nullptr);
+    EXPECT_EQ(canvasModifiersDraw->handler_, nullptr);
+    EXPECT_TRUE(canvasModifiersDraw->threadDestroyed_.load());
+    EXPECT_FALSE(canvasModifiersDraw->threadStarted_.load());
+
+    // Case 2: threadStarted_=true but runner_/handler_ already nullptr —
+    // bypasses early return, exercises null-safety guards (if handler_ != nullptr / if runner_ != nullptr)
+    auto canvasModifiersDraw2 = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw2->threadStarted_ = true;
+    canvasModifiersDraw2->runner_ = nullptr;
+    canvasModifiersDraw2->handler_ = nullptr;
+    canvasModifiersDraw2->Destroy();
+    EXPECT_EQ(canvasModifiersDraw2->runner_, nullptr);
+    EXPECT_EQ(canvasModifiersDraw2->handler_, nullptr);
+    EXPECT_TRUE(canvasModifiersDraw2->threadDestroyed_.load());
+    EXPECT_FALSE(canvasModifiersDraw2->threadStarted_.load());
+}
+
 HWTEST_F(RSCanvasModifiersDrawTest, SetCacheDir_Basic001, TestSize.Level1)
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();

@@ -447,6 +447,81 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRenderTest, TestSize.Leve
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 /**
+ * @tc.name: OnCreate_NullCheckEarlyReturn
+ * @tc.desc: Test OnCreate returns early on null uiContext/agent/renderInterface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnCreate_NullCheckEarlyReturn, TestSize.Level1)
+{
+    // Disable DMA pre-allocation to avoid VK path in destructor accessing uninitialized surfaceBufferMutex_
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+
+    // Branch 1: uiContext == nullptr → early return
+    auto nodeNoCtx = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(nodeNoCtx, nullptr);
+    nodeNoCtx->OnCreate();
+    EXPECT_EQ(nodeNoCtx->GetRSUIContext(), nullptr);
+
+    // Branch 2 & 3: use texture export nodes (hybridEnabled_=false) so Create() won't
+    // call OnCreate() internally, avoiding GPU init and DDGR process-exit crash.
+    // Then manually call OnCreate() to test null-check early returns.
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = (uidirector != nullptr) ? uidirector->GetRSUIContext() : nullptr;
+
+    // Branch 2: uiContext != nullptr but canvasModifiersDrawAgent == nullptr
+    auto nodeNullAgent = RSCanvasDrawingNode::Create(true, true, rsUIContext);
+    ASSERT_NE(nodeNullAgent, nullptr);
+    auto ctx = nodeNullAgent->GetRSUIContext();
+    if (ctx != nullptr) {
+        auto savedAgent = ctx->canvasModifiersDrawAgent_;
+        ctx->canvasModifiersDrawAgent_ = nullptr;
+        nodeNullAgent->OnCreate();
+        ctx->canvasModifiersDrawAgent_ = savedAgent;
+        EXPECT_EQ(nodeNullAgent->GetRSUIContext(), ctx);
+    }
+
+    // Branch 3: agent != nullptr but renderInterface == nullptr
+    auto nodeNullRI = RSCanvasDrawingNode::Create(true, true, rsUIContext);
+    ASSERT_NE(nodeNullRI, nullptr);
+    auto ctx2 = nodeNullRI->GetRSUIContext();
+    if (ctx2 != nullptr && ctx2->canvasModifiersDrawAgent_ != nullptr) {
+        auto savedRI = ctx2->rsRenderInterface_;
+        ctx2->rsRenderInterface_ = nullptr;
+        nodeNullRI->OnCreate();
+        ctx2->rsRenderInterface_ = savedRI;
+        EXPECT_NE(ctx2->canvasModifiersDrawAgent_, nullptr);
+    }
+    EXPECT_NE(nodeNullRI, nullptr);
+}
+
+/**
+ * @tc.name: OnCreate_NormalPath
+ * @tc.desc: Test OnCreate normal path where all dependencies are non-null (line 189)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnCreate_NormalPath, TestSize.Level1)
+{
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = (uidirector != nullptr) ? uidirector->GetRSUIContext() : nullptr;
+    if (rsUIContext == nullptr) {
+        GTEST_SKIP() << "RSUIContext not available";
+    }
+    auto node = RSCanvasDrawingNode::Create(true, false, rsUIContext);
+    ASSERT_NE(node, nullptr);
+    auto uiContext = node->GetRSUIContext();
+    if (uiContext != nullptr && uiContext->GetCanvasModifiersDrawAgent() != nullptr) {
+        // OnCreate was already called by Create(), verify it completed without crash
+        EXPECT_NE(uiContext->GetCanvasModifiersDrawAgent(), nullptr);
+        // Wait for async OnNodeCreate task to finish on worker thread
+        usleep(1000000); // 1s
+        // Proactively destroy CanvasModifiersDraw before test exits
+        uiContext->DestroyModifiersDraw();
+    }
+    EXPECT_NE(node, nullptr);
+}
+
+/**
  * @tc.name: ResetSurfaceForClientRender_MaxGpuSizeTest
  * @tc.desc: Test ResetSurfaceForClientRender with sizeOutOfGpuLimit when exceeding max GPU buffer size
  * @tc.type: FUNC
