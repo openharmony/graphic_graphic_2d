@@ -48,6 +48,11 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsInterfa
 {
     auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = 0;
+    // unlisted codes fall into the default branch and are denied
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), false);
+    // explicitly allowed codes are accessible
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_UNI_RENDER_ENABLED);
     ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
 }
 
