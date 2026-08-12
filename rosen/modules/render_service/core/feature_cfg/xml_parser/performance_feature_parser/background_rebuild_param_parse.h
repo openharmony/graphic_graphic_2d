@@ -29,6 +29,7 @@ public:
 
 private:
     int32_t ParseBackgroundRebuildInternal(xmlNode& node);
+    int32_t ParseGoStopNodeMapMode(const std::string& name, const std::string& val);
 };
 } // namespace OHOS::Rosen
 #endif // BACKGROUND_REBUILD_PARAM_PARSE_H
