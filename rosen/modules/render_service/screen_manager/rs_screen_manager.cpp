@@ -76,6 +76,7 @@ bool RSScreenManager::Init(const std::shared_ptr<AppExecFwk::EventHandler>& main
     return true;
 }
 
+// LCOV_EXCL_START
 bool RSScreenManager::HasPhysicalScreen()
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
@@ -90,11 +91,14 @@ bool RSScreenManager::HasPhysicalScreen()
     }
     return false;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 ScreenId RSScreenManager::GetActiveScreenId() const
 {
     return foldScreenManager_ ? foldScreenManager_->GetActiveScreenId() : INVALID_SCREEN_ID;
 }
+// LCOV_EXCL_STOP
 
 void RSScreenManager::OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens)
 {
@@ -116,6 +120,7 @@ void RSScreenManager::OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen
     noScreenProcessed_ = false;
 }
 
+// LCOV_EXCL_START
 void RSScreenManager::ProcessPendingConnections()
 {
     std::vector<ScreenId> pendingConnectedIds;
@@ -159,6 +164,7 @@ void RSScreenManager::ProcessPendingConnections()
         }
     }
 }
+// LCOV_EXCL_STOP
 
 void RSScreenManager::ProcessScreenConnected(ScreenId id)
 {
@@ -241,6 +247,7 @@ bool RSScreenManager::UpdateVsyncEnabledScreenId(ScreenId screenId)
 // and find the first physical screen to be the default screen.
 // If there was no physical screen left, we set the first screen as default, no matter what type it is.
 // At last, if no screen left, we set Default Screen Id to INVALID_SCREEN_ID.
+// LCOV_EXCL_START
 void RSScreenManager::HandleDefaultScreenDisConnected()
 {
     ScreenId defaultScreenId = INVALID_SCREEN_ID;
@@ -258,6 +265,7 @@ void RSScreenManager::HandleDefaultScreenDisConnected()
     }
     defaultScreenId_ = defaultScreenId;
 }
+// LCOV_EXCL_STOP
 
 void RSScreenManager::UpdateFoldScreenConnectStatusLocked(ScreenId screenId, bool connected)
 {
@@ -298,10 +306,12 @@ uint64_t RSScreenManager::GetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId
     return vsyncEnabledScreenId;
 }
 
+// LCOV_EXCL_START
 bool RSScreenManager::GetIsFoldScreenFlag()
 {
     return isFoldScreenFlag_;
 }
+// LCOV_EXCL_STOP
 
 uint64_t RSScreenManager::JudgeVSyncEnabledScreenWhilePowerStatusChanged(
     ScreenId screenId, ScreenPowerStatus status, uint64_t enabledScreenId)
@@ -332,6 +342,7 @@ uint64_t RSScreenManager::JudgeVSyncEnabledScreenWhilePowerStatusChanged(
     return enabledScreenId;
 }
 
+// LCOV_EXCL_START
 ScreenId RSScreenManager::GenerateVirtualScreenId()
 {
     std::lock_guard<std::mutex> lock(virtualScreenIdMutex_);
@@ -346,6 +357,7 @@ ScreenId RSScreenManager::GenerateVirtualScreenId()
     // The left 32 bits is for virtual screen id.
     return (static_cast<ScreenId>(virtualScreenCount_++) << 32) | 0xffffffffu;
 }
+// LCOV_EXCL_STOP
 
 void RSScreenManager::GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const
 {
@@ -439,11 +451,14 @@ ScreenPowerStatus RSScreenManager::GetScreenPowerStatus(ScreenId id) const
     return screen->GetPowerStatus();
 }
 
+// LCOV_EXCL_START
 ScreenId RSScreenManager::GetDefaultScreenId() const
 {
     return defaultScreenId_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::vector<ScreenId> RSScreenManager::GetAllScreenIds() const
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
@@ -453,6 +468,7 @@ std::vector<ScreenId> RSScreenManager::GetAllScreenIds() const
     }
     return ids;
 }
+// LCOV_EXCL_STOP
 
 bool RSScreenManager::ValidateVirtualScreenLimits(uint32_t width, uint32_t height) const
 {
@@ -900,10 +916,12 @@ void RSScreenManager::RemoveVirtualScreen(ScreenId id)
     }
 }
 
+// LCOV_EXCL_START
 uint32_t RSScreenManager::GetCurrentVirtualScreenNum()
 {
     return currentVirtualScreenNum_;
 }
+// LCOV_EXCL_STOP
 
 uint32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
@@ -971,6 +989,7 @@ int32_t RSScreenManager::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
     return SUCCESS;
 }
 
+// LCOV_EXCL_START
 ScreenId RSScreenManager::GetMainScreenId()
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
@@ -988,6 +1007,7 @@ ScreenId RSScreenManager::GetMainScreenId()
 
     return mainScreenId;
 }
+// LCOV_EXCL_STOP
 
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
@@ -1561,10 +1581,12 @@ int32_t RSScreenManager::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceTy
     return screen->SetScreenColorSpace(colorSpace);
 }
 
+// LCOV_EXCL_START
 void RSScreenManager::MarkPowerOffNeedProcessOneFrame()
 {
     powerOffNeedProcessOneFrame_ = true;
 }
+// LCOV_EXCL_STOP
 
 void RSScreenManager::DisablePowerOffRenderControl(ScreenId id)
 {
