@@ -194,7 +194,7 @@ HWTEST_F(RsFrameReportTest, ReportUnmarshalData001, TestSize.Level1)
     ASSERT_TRUE(RsFrameReport::IsInitSchedCompleted());
 }
 
-#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X) && defined (RS_MULTI_DISPLAY_FEATURES)
 /**
  * @tc.name: ReportWindowInfo001
  * @tc.desc: test
