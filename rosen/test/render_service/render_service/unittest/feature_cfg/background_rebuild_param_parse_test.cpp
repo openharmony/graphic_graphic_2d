@@ -229,6 +229,17 @@ HWTEST_F(BackgroundRebuildParamParseTest, ParseGoStopNodeMapModeValid, TestSize.
     EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
     EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::NONE);
 
+    // cover the remaining valid tiers 1 and 2
+    xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("1"));
+    res = paramParse.ParseBackgroundRebuildInternal(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+    EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+
+    xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("2"));
+    res = paramParse.ParseBackgroundRebuildInternal(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+    EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::DESTROY_TOKEN_NODE);
+
     RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
 }
 
@@ -252,6 +263,36 @@ HWTEST_F(BackgroundRebuildParamParseTest, ParseGoStopNodeMapModeInvalid, TestSiz
 
     auto res = paramParse.ParseBackgroundRebuildInternal(node);
     EXPECT_EQ(res, ParseErrCode::PARSE_ERROR);
+    EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+
+    // cover the non-numeric value branch
+    xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("abc"));
+    res = paramParse.ParseBackgroundRebuildInternal(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_ERROR);
+    EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+}
+
+/**
+ * @tc.name: ParseBackgroundRebuildDisabledSyncsGoStopMode
+ * @tc.desc: Verify parsing BackgroundRebuildEnabled=false syncs GoStopNodeMapMode to REMOVE_SURFACE_NODE_MAP
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BackgroundRebuildParamParseTest, ParseBackgroundRebuildDisabledSyncsGoStopMode, TestSize.Level1)
+{
+    BackgroundRebuildParamParse paramParse;
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::NONE);
+
+    xmlNode node;
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+    std::string name = "FeatureSwitch";
+    node.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    xmlSetProp(&node, (const xmlChar*)("name"), (const xmlChar*)("BackgroundRebuildEnabled"));
+    xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("false"));
+
+    auto res = paramParse.ParseBackgroundRebuildInternal(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+    EXPECT_EQ(RSBackgroundRebuildParam::Instance().IsBackgroundRebuildEnabled(), false);
     EXPECT_EQ(RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode(), GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
 }
 

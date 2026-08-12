@@ -167,4 +167,29 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoResumePairingTest, Te
     EXPECT_FALSE(surfaceNode->IsUIRenderDirectorStopped());
 }
 
+/**
+ * @tc.name: UIDirectorCommandHelperGoStopInvalidModeTest
+ * @tc.desc: Test GoStop default branch skips node map operation for an out-of-range mode value.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopInvalidModeTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 600;
+    constexpr uint64_t token = 601;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+    auto director = rsContext.GetUIRenderDirector(pid, token);
+    ASSERT_NE(director, nullptr);
+
+    // out-of-range value falls into the default branch and must behave like NONE without crashing
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(static_cast<GoStopNodeMapMode>(0xFF));
+    RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+}
+
 } // namespace OHOS::Rosen
