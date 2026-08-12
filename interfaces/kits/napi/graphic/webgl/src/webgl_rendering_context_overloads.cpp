@@ -150,11 +150,17 @@ napi_value WebGLRenderingContextOverloads::CompressedTexImage2D(napi_env env, na
     imgArg.func = Impl::IMAGE_COMPRESSED_TEX_IMAGE_2D;
     bool succ = false;
     tie(succ, imgArg.target) = NVal(env, funcArg[NARG_POS::FIRST]).ToGLenum();
+    if (!succ) {
+        return NVal::CreateNull(env).val_;
+    }
     tie(succ, imgArg.level) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt32();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
     tie(succ, imgArg.internalFormat) = NVal(env, funcArg[NARG_POS::THIRD]).ToGLenum();
+    if (!succ) {
+        return NVal::CreateNull(env).val_;
+    }
     tie(succ, imgArg.width) = NVal(env, funcArg[NARG_POS::FOURTH]).ToGLsizei();
     if (!succ) {
         return NVal::CreateNull(env).val_;
