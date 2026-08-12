@@ -1186,7 +1186,8 @@ napi_value JsFont::CreateFontDynamic(napi_env env, std::shared_ptr<Font> font)
         return nullptr;
     }
     JsFont* jsFont = new JsFont(font);
-    status = napi_wrap(env, objValue, jsFont, JsFont::Destructor, nullptr, nullptr);
+    status = napi_wrap_enhance_s(env, objValue, jsFont, JsFont::Destructor, true,
+        nullptr, 0, &FONT_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsFont;
         ROSEN_LOGE("JsFont::CreateFontDynamic failed to wrap native instance, "

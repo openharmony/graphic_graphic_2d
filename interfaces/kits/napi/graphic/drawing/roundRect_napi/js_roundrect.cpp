@@ -184,7 +184,7 @@ napi_value JsRoundRect::CreateJsRoundRectDynamic(napi_env env, const std::shared
         return nullptr;
     }
     JsRoundRect* jsRoundRect = new JsRoundRect(roundRect);
-    status = napi_wrap(env, objValue, jsRoundRect, JsRoundRect::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, objValue, jsRoundRect, JsRoundRect::Destructor, nullptr, &ROUND_RECT_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsRoundRect;
         ROSEN_LOGE("JsRoundRect::CreateJsRoundRectDynamic failed to wrap native instance");

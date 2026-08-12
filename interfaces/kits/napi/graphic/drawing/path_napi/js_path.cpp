@@ -1574,7 +1574,7 @@ napi_value JsPath::CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path>
         return nullptr;
     }
     JsPath* jsPath = new JsPath(path);
-    status = napi_wrap(env, objValue, jsPath, JsPath::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, objValue, jsPath, JsPath::Destructor, nullptr, &PATH_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsPath;
         ROSEN_LOGE("JsPath::CreateJsPathDynamic failed to wrap native instance");
