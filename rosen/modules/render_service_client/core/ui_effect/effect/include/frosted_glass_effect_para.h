@@ -302,12 +302,12 @@ public:
         return materialColor_;
     }
 
-    void SetColorBlendMode(float colorBlendMode)
+    void SetColorBlendMode(int colorBlendMode)
     {
         colorBlendMode_ = colorBlendMode;
     }
 
-    float GetColorBlendMode() const
+    int GetColorBlendMode() const
     {
         return colorBlendMode_;
     }
@@ -389,7 +389,7 @@ private:
     Vector3f edLightPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
-    float colorBlendMode_ = 0.0f; // 0: LINEAR_MIX, 1: TILTED_GLASS
+    int colorBlendMode_ = 0; // 0: LINEAR_MIX, 1: TILTED_GLASS
     float vibrancyStrength_ = 0.0f;
     Vector3f lumaParams_ = Vector3f(0.0f, 0.0f, 0.0f);
     float materialColorFraction_ = 0.0f;

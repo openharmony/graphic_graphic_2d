@@ -1613,7 +1613,8 @@ bool FilterNapi::FillFrostedGlassMatColor(napi_env env, napi_value* argv, std::s
     double colorBlendMode;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_28], colorBlendMode), false,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass colorBlendMode parse fail"));
-    para->SetColorBlendMode(static_cast<float>(colorBlendMode));
+    int mode = static_cast<int>(colorBlendMode);
+    para->SetColorBlendMode(mode);
 
     double vibrancyStrength;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_29], vibrancyStrength), false,

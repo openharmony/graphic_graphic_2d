@@ -1093,7 +1093,8 @@ bool EffectNapi::FillFrostedGlassMatColor(napi_env env, napi_value* argv, std::s
     double colorBlendMode;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_25], colorBlendMode), false,
         UIEFFECT_LOG_E("FillFrostedGlassMatColor: colorBlendMode parse fail"));
-    para->SetColorBlendMode(static_cast<float>(colorBlendMode));
+    int mode = static_cast<int>(colorBlendMode);
+    para->SetColorBlendMode(mode);
 
     double vibrancyStrength;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_26], vibrancyStrength), false,
