@@ -1372,7 +1372,7 @@ HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump001, TestSize.Level1)
 
 /**
  * @tc.name: RenderServiceAllSurfaceDump002
- * @tc.desc: Test RenderServiceAllSurfaceDump with null consumer
+ * @tc.desc: Test RenderServiceAllSurfaceDump with null consumer 
  * @tc.type: FUNC
  * @tc.require: issueIB57QP
  */
@@ -1519,11 +1519,11 @@ HWTEST_F(RSMemoryManagerTest, GpuReportFromKernel001, TestSize.Level1)
     }
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 
-    // pid1：cpu=1024, gpu=2048, total=3072
+    // pid1: cpu=1024, gpu=2048, total=3072
     MemorySnapshot::Instance().AddCpuMemory(pid1, 1024);
-    // pid2：cpu=2048, gpu=1024, total=3072
+    // pid2: cpu=2048, gpu=1024, total=3072
     MemorySnapshot::Instance().AddCpuMemory(pid2, 2048);
-    // pid3：cpu=512, gpu=512, total=1024
+    // pid3: cpu=512, gpu=512, total=1024
     MemorySnapshot::Instance().AddCpuMemory(pid3, 512);
     std::unordered_map<pid_t, size_t> gpuInfo = {{pid1, 2048}, {pid2, 1024}, {pid3, 512}};
     std::unordered_map<pid_t, MemorySnapshotInfo> pidForReport;
@@ -1570,11 +1570,11 @@ HWTEST_F(RSMemoryManagerTest, NeedReportFromKernel001, TestSize.Level1)
     bool ret = MemoryManager::NeedReportFromKernel(abnormalPid);
     ASSERT_FALSE(ret);
 
-    // pid1：cpu=1024, gpu=2048, total=3072
+    // pid1: cpu=1024, gpu=2048, total=3072
     MemorySnapshot::Instance().AddCpuMemory(pid1, 1024);
-    // pid2：cpu=2048, gpu=1024, total=3072
+    // pid2: cpu=2048, gpu=1024, total=3072
     MemorySnapshot::Instance().AddCpuMemory(pid2, 2048);
-    // pid3：cpu=512, gpu=512, total=1024
+    // pid3: cpu=512, gpu=512, total=1024
     MemorySnapshot::Instance().AddCpuMemory(pid3, 512);
     std::unordered_map<pid_t, size_t> gpuInfo = {{pid1, 2048}, {pid2, 1024}, {pid3, 512}};
     std::unordered_map<pid_t, MemorySnapshotInfo> pidForReport;
@@ -1943,7 +1943,7 @@ HWTEST_F(RSMemoryManagerTest, ReadDataStringTest002, TestSize.Level1)
     outFile.close();
 
     std::ifstream inFile(testFilePath);
-    std::string result = 0;
+    std::string result;
     bool success = MemoryManager::ReadData(inFile, result);
     inFile.close();
 
@@ -2002,7 +2002,7 @@ HWTEST_F(RSMemoryManagerTest, ReadDataUint64Test003, TestSize.Level1)
 
 /**
  * @tc.name: ReadDataTimeTTest001
- * @tc.desc: Test ReadData with time_t type invalid input.
+ * @tc.desc: Test ReadData with time_t type valid input.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2162,16 +2162,16 @@ HWTEST_F(RSMemoryManagerTest, ReadQuotaFileTest003, TestSize.Level1)
 {
     std::string testFilePath = "/data/service/el0/render_service/telemetry_quota.txt";
     std::ofstream outFile(testFilePath);
-    outFile << "1714567890" << std::endl;       // deliveryTS
-    outFile << "1714567891" << std::endl;       // screen off time
-    outFile << "1714567892" << std::endl;       // charge time
-    outFile << "1024" << std::endl;             // size
-    outFile << "1714567893" << std::endl;       // EventQuota.deliveryTS
-    outFile << "com.example.test" << std::endl; // EventQuota.bundleName
-    outFile << "0x401" << std::endl;            // EventQuota.faultType (not 0x400)
-    outFile << "telemetry_id_123" << std::endl; // EventQuota.telemetryId
-    outFile << "100" << std::endl;              // EventQuota.quota
-    outFile << "30720" << std::endl;            // EventQuota.romRsvSize
+    outFile << "1714567890" << std::endl;        // deliveryTS
+    outFile << "1714567891" << std::endl;        // screen off time
+    outFile << "1714567892" << std::endl;        // charge time
+    outFile << "1024" << std::endl;              // size
+    outFile << "1714567893" << std::endl;        // EventQuota.deliveryTS
+    outFile << "com.example.test" << std::endl;  // EventQuota.bundleName
+    outFile << "0x401" << std::endl;             // EventQuota.faultType (not 0x400)
+    outFile << "telemetry_id_123" << std::endl;  // EventQuota.telemetryId
+    outFile << "100" << std::endl;               // EventQuota.quota
+    outFile << "30720" << std::endl;             // EventQuota.romRsvSize
     outFile.close();
 
     bool result = MemoryManager::ReadQuotaFile(testFilePath);
@@ -2190,18 +2190,18 @@ HWTEST_F(RSMemoryManagerTest, ReadQuotaFileTest004, TestSize.Level1)
 {
     std::string testFilePath = "/data/service/el0/render_service/telemetry_quota.txt";
     std::ofstream outFile(testFilePath);
-    outFile << "0" << std::endl;       // deliveryTS
-    outFile << "0" << std::endl;       // screen off time
-    outFile << "0" << std::endl;       // charge time
+    outFile << "0" << std::endl;        // deliveryTS
+    outFile << "0" << std::endl;        // screen off time
+    outFile << "0" << std::endl;        // charge time
     outFile << "0" << std::endl;
     outFile << "0" << std::endl;
-    outFile << "1" << std::endl;             // size
-    outFile << "1714567893" << std::endl;       // EventQuota.deliveryTS
-    outFile << "com.example.test" << std::endl; // EventQuota.bundleName
-    outFile << "1024" << std::endl;            // EventQuota.faultType (not 0x400)
-    outFile << "telemetry_id_123" << std::endl; // EventQuota.telemetryId
-    outFile << "100" << std::endl;              // EventQuota.quota
-    outFile << "30720" << std::endl;            // EventQuota.romRsvSize
+    outFile << "1" << std::endl;              // size
+    outFile << "1714567893" << std::endl;        // EventQuota.deliveryTS
+    outFile << "com.example.test" << std::endl;  // EventQuota.bundleName
+    outFile << "1024" << std::endl;              // EventQuota.faultType (0x400)
+    outFile << "telemetry_id_123" << std::endl;  // EventQuota.telemetryId
+    outFile << "100" << std::endl;               // EventQuota.quota
+    outFile << "30720" << std::endl;             // EventQuota.romRsvSize
     outFile.close();
 
     bool result = MemoryManager::ReadQuotaFile(testFilePath);
@@ -2220,7 +2220,7 @@ HWTEST_F(RSMemoryManagerTest, ReadQuotaFileTest005, TestSize.Level1)
 {
     std::string testFilePath = "/data/service/el0/render_service/telemetry_quota.txt";
     std::ofstream outFile(testFilePath);
-    outFile << "1714567890" << std::endl;   // Only deliveryTS
+    outFile << "1714567890" << std::endl;  // Only deliveryTS
     outFile.close();
 
     bool result = MemoryManager::ReadQuotaFile(testFilePath);
