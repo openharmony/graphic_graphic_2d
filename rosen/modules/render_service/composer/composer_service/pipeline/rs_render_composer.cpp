@@ -721,6 +721,7 @@ GraphicColorGamut RSRenderComposer::ComputeTargetColorGamut(const sptr<SurfaceBu
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
         RS_LOGD_IF(DEBUG_COMPOSER, "PreAllocateProtectedBuffer Get color space failed");
+        return GRAPHIC_COLOR_GAMUT_INVALID;
     }
     if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
         RS_LOGD_IF(DEBUG_COMPOSER,
@@ -849,7 +850,7 @@ GSError RSRenderComposer::ClearFrameBuffersInner(bool isNeedResetContext)
 GSError RSRenderComposer::ClearFrameBuffers(bool isNeedResetContext)
 {
     if (hdiOutput_ == nullptr || hdiOutput_->GetBufferCacheSize() <= 0) {
-        RS_LOGE("%{public}s buffer cache size less 0", __func__);
+        RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s buffer cache size less 0", __func__);
         return COMPOSITOR_ERROR_NULLPTR;
     }
     return ClearFrameBuffersInner(isNeedResetContext);
@@ -1165,7 +1166,8 @@ bool RSRenderComposer::GetDisplayClientTargetProperty(GraphicPixelFormat& pixelF
     int32_t dataspaceInt = 0;
     if (hdiOutput_ != nullptr) {
         int32_t ret = hdiOutput_->GetDisplayClientTargetProperty(pixelFormatInt, dataspaceInt);
-        if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        if (ret == GRAPHIC_DISPLAY_SUCCESS && pixelFormatInt >= GRAPHIC_PIXEL_FMT_CLUT8 &&
+            pixelFormatInt < GRAPHIC_PIXEL_FMT_BUTT) {
             // Direct cast from int32_t to GraphicPixelFormat
             pixelFormat = static_cast<GraphicPixelFormat>(pixelFormatInt);
             return true;
@@ -1196,7 +1198,12 @@ void RSRenderComposer::ContextRegisterPostTask()
         uniRenderEngine_->GetRenderContext()->ChangeProtectedState(false);
         context = uniRenderEngine_->GetRenderContext()->GetSharedDrGPUContext();
         if (context) {
-            context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+            auto weakThis = weak_from_this();
+            context->RegisterPostFunc([weakThis](const std::function<void()>& task) {
+                if (auto sp = weakThis.lock()) {
+                    sp->PostTask(task);
+                }
+            });
         }
     }
 #endif
@@ -1335,7 +1342,7 @@ void RSRenderComposer::OnHwcDead()
 void RSRenderComposer::DestroyComposerLayer(std::shared_ptr<RSLayerParcel> rsLayerParcel)
 {
     RS_TRACE_NAME_FMT("%s screenId: %" PRIu64, __func__, screenId_);
-    RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
+    RS_LOGD_IF(DEBUG_COMPOSER, "%{public}s screenId: %{public}" PRIu64, __func__, screenId_);
     auto rsLayerId = rsLayerParcel->GetRSLayerId();
     auto rsLayer = rsRenderComposerContext_ == nullptr ?
         nullptr : rsRenderComposerContext_->GetRSRenderLayer(rsLayerId);
