@@ -144,7 +144,6 @@ void HgmFrameRateManager::InitConfig()
         if (isNeedFallBack) {
             HandleScreenStrategyFallback(configData);
         }
-            
         isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
         if (auto configVisitor = hgmCore.GetPolicyConfigVisitor()) {
             configVisitor->ChangeScreen(curScreenStrategyId_);
@@ -1032,12 +1031,20 @@ void HgmFrameRateManager::HandleScreenStrategyFallback(const std::shared_ptr<Pol
 {
     auto screenConfigsIter = configData->screenConfigs_.find(curScreenStrategyId_);
     if (screenConfigsIter == configData->screenConfigs_.end()) {
-        std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (!isLtpo_ ? "LTPO" : "LTPS");
+        std::string curScreenName = "screen" + std::to_string(
+            curScreenId_.load()) + "_" + (!isLtpo_.load() ? "LTPO" : "LTPS");
         if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
             iter != configData->screenStrategyConfigs_.end()) {
             curScreenStrategyId_ = iter->second;
         } else {
-            curScreenStrategyId_ = "LTPS-DEFAULT";
+            curScreenName = "screen" + std::to_string(curScreenId_.load()) + "_" + (isLtpo_.load() ? "LTPO" : "LTPS");
+            if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
+                iter != configData->screenStrategyConfigs_.end()) {
+                curScreenStrategyId_ = iter->second;
+            } else {
+                HGM_LOGE("get screenStrategyId fail");
+                curScreenStrategyId_ = "LTPS-DEFAULT";
+            }
         }
     }
 }
