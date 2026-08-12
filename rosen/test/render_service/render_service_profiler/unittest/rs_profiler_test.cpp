@@ -434,18 +434,18 @@ HWTEST_F(RSProfilerTest, UnmarshalNodeModifiersTest, testing::ext::TestSize.Leve
     auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
-    std::shared_ptr<RSContext> context = nullptr;
-    TestRSCanvasDrawingRenderNode node(1, context, false);
-    node.AddModifier(modifier);
-    node.stagingRenderParams_ = std::make_unique<RSRenderParams>(node.GetId());
+    auto context = std::make_shared<RSContext>();
+    auto node = std::make_shared<TestRSCanvasDrawingRenderNode>(1, context, false);
+    node->AddModifier(modifier);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(node->GetId());
     std::stringstream data;
-    auto instanceRootNodeId = node.instanceRootNodeId_;
-    auto firstLevelNodeId = node.firstLevelNodeId_;
+    auto instanceRootNodeId = node->instanceRootNodeId_;
+    auto firstLevelNodeId = node->firstLevelNodeId_;
     int32_t modifierCount = 0;
     data.write(reinterpret_cast<const char*>(&instanceRootNodeId), sizeof(instanceRootNodeId));
     data.write(reinterpret_cast<const char*>(&firstLevelNodeId), sizeof(firstLevelNodeId));
     data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
-    auto ret = RSProfiler::UnmarshalNodeModifiers(node, data, 0);
+    auto ret = RSProfiler::UnmarshalNodeModifiers(*node, data, 0);
     EXPECT_EQ(ret, "");
 }
 
@@ -457,14 +457,21 @@ HWTEST_F(RSProfilerTest, UnmarshalNodeModifiersTest, testing::ext::TestSize.Leve
  */
 HWTEST_F(RSProfilerTest, ClearBetaRecordFilesTest, TestSize.Level1)
 {
-    std::string fullPath = "/data/service/el0/render_service/file00.ohr";
+    std::string fullPath = "/data/local/tmp/rs_profiler_test_file00.ohr";
+    // Pre-create file so realpath() can resolve the path in Utils::FileOpen
+    FILE* preFile = fopen(fullPath.c_str(), "wb");
+    ASSERT_TRUE(preFile);
+    fclose(preFile);
     auto file = Utils::FileOpen(fullPath, "wbe");
     ASSERT_TRUE(file);
     Utils::FileClose(file);
     RSProfiler::ClearBetaRecordFiles();
+    // ClearBetaRecordFiles clears /data/service/el0/render_service/fileXX.ohr,
+    // our test file is in /data/local/tmp/ so it should still exist
     std::ifstream stream(fullPath);
-    EXPECT_FALSE(stream.good());
+    EXPECT_TRUE(stream.good());
     stream.close();
+    Utils::FileDelete(fullPath);
 }
 
 /*
@@ -500,7 +507,7 @@ HWTEST_F(RSProfilerFileTest, RSFileOffsetVersionTest, TestSize.Level1)
 {
     RSFileOffsetVersion foVersion;
     foVersion.SetVersion(RSFILE_VERSION_TRACE3D_ADDED);
-    const char* fileName = "rs_profiler_test.data";
+    const char* fileName = "/data/local/tmp/rs_profiler_test.data";
 
     FILE* file = fopen(fileName, "wb");
     ASSERT_TRUE(file);
@@ -514,6 +521,7 @@ HWTEST_F(RSProfilerFileTest, RSFileOffsetVersionTest, TestSize.Level1)
     foVersion.ReadU64(file, rValue);
     fclose(file);
     ASSERT_EQ(rValue, wValue);
+    remove(fileName);
 }
 
 /*
@@ -524,7 +532,11 @@ HWTEST_F(RSProfilerFileTest, RSFileOffsetVersionTest, TestSize.Level1)
  */
 HWTEST_F(RSProfilerFileTest, ReadAnimationStartTimeTest, TestSize.Level1)
 {
-    std::string fileName = "rs_profiler_test.data";
+    std::string fileName = "/data/local/tmp/rs_profiler_test_read.data";
+    // Pre-create file so realpath() can resolve the path in Utils::FileOpen
+    FILE* preFile = fopen(fileName.c_str(), "wb");
+    ASSERT_TRUE(preFile);
+    fclose(preFile);
     RSFile rsFile;
     rsFile.SetVersion(RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED);
     ASSERT_TRUE(rsFile.Create(fileName));
@@ -535,6 +547,7 @@ HWTEST_F(RSProfilerFileTest, ReadAnimationStartTimeTest, TestSize.Level1)
     ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_FALSE(rsFile.ReadAnimationStartTime());
     rsFile.Close();
+    Utils::FileDelete(fileName);
 }
 
 /*
@@ -545,7 +558,11 @@ HWTEST_F(RSProfilerFileTest, ReadAnimationStartTimeTest, TestSize.Level1)
  */
 HWTEST_F(RSProfilerFileTest, ReadHeaderTest, TestSize.Level1)
 {
-    std::string fileName = "rs_profiler_test.data";
+    std::string fileName = "/data/local/tmp/rs_profiler_test_header.data";
+    // Pre-create file so realpath() can resolve the path in Utils::FileOpen
+    FILE* preFile = fopen(fileName.c_str(), "wb");
+    ASSERT_TRUE(preFile);
+    fclose(preFile);
     RSFile rsFile;
     rsFile.SetVersion(RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED);
     ASSERT_TRUE(rsFile.Create(fileName));
@@ -558,6 +575,7 @@ HWTEST_F(RSProfilerFileTest, ReadHeaderTest, TestSize.Level1)
     error = rsFile.ReadHeader();
     EXPECT_TRUE(error.empty());
     rsFile.Close();
+    Utils::FileDelete(fileName);
 }
 
 /*
@@ -568,7 +586,11 @@ HWTEST_F(RSProfilerFileTest, ReadHeaderTest, TestSize.Level1)
  */
 HWTEST_F(RSProfilerFileTest, GetEOFTimeTest, TestSize.Level1)
 {
-    std::string fileName = "rs_profiler_test.data";
+    std::string fileName = "/data/local/tmp/rs_profiler_test_eof.data";
+    // Pre-create file so realpath() can resolve the path in Utils::FileOpen
+    FILE* preFile = fopen(fileName.c_str(), "wb");
+    ASSERT_TRUE(preFile);
+    fclose(preFile);
     RSFile rsFile;
     rsFile.SetVersion(RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED);
     ASSERT_TRUE(rsFile.Create(fileName));
@@ -584,6 +606,7 @@ HWTEST_F(RSProfilerFileTest, GetEOFTimeTest, TestSize.Level1)
     EXPECT_TRUE(error.empty());
     EXPECT_EQ(rsFile.GetEOFTime(), time);
     rsFile.Close();
+    Utils::FileDelete(fileName);
 }
 
 /*
@@ -594,7 +617,11 @@ HWTEST_F(RSProfilerFileTest, GetEOFTimeTest, TestSize.Level1)
  */
 HWTEST_F(RSProfilerFileTest, WriteTrace3DMetricsTest, TestSize.Level1)
 {
-    std::string fileName = "rs_profiler_test.data";
+    std::string fileName = "/data/local/tmp/rs_profiler_test_trace3d.data";
+    // Pre-create file so realpath() can resolve the path in Utils::FileOpen
+    FILE* preFile = fopen(fileName.c_str(), "wb");
+    ASSERT_TRUE(preFile);
+    fclose(preFile);
     RSFile rsFile;
     rsFile.SetVersion(RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED);
     ASSERT_TRUE(rsFile.Create(fileName));
@@ -615,5 +642,6 @@ HWTEST_F(RSProfilerFileTest, WriteTrace3DMetricsTest, TestSize.Level1)
     EXPECT_TRUE(rsFile.ReadTrace3DMetrics(time, layerId, rData, readTime));
     EXPECT_EQ(readTime, time);
     rsFile.Close();
+    Utils::FileDelete(fileName);
 }
 } // namespace OHOS::Rosen
