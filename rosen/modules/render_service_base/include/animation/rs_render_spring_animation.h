@@ -57,6 +57,7 @@ private:
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
 #endif
+    bool ValidateSpringParams() const;
     RSRenderSpringAnimation() = default;
 
     // status inherited related

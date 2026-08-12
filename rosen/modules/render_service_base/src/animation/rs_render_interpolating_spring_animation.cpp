@@ -15,6 +15,8 @@
 
 #include "animation/rs_render_interpolating_spring_animation.h"
 
+#include <cmath>
+
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_value_estimator.h"
 #include "command/rs_animation_command.h"
@@ -54,6 +56,11 @@ void RSRenderInterpolatingSpringAnimation::DumpAnimationInfo(std::string& out) c
 void RSRenderInterpolatingSpringAnimation::SetSpringParameters(float response, float dampingRatio,
     float normalizedInitialVelocity, float minimumAmplitudeRatio, std::optional<ConvergeParams> convergeParams)
 {
+    if (!std::isfinite(response) || !std::isfinite(dampingRatio) ||
+        !std::isfinite(normalizedInitialVelocity) || !std::isfinite(minimumAmplitudeRatio)) {
+        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::SetSpringParameters: invalid spring parameters.");
+        return;
+    }
     response_ = response;
     dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     normalizedInitialVelocity_ = normalizedInitialVelocity;
@@ -64,7 +71,7 @@ void RSRenderInterpolatingSpringAnimation::SetSpringParameters(float response, f
 void RSRenderInterpolatingSpringAnimation::SetZeroThreshold(float zeroThreshold)
 {
     constexpr float ZERO = 0.0f;
-    if (zeroThreshold < ZERO) {
+    if (zeroThreshold < ZERO || !std::isfinite(zeroThreshold)) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::SetZeroThreshold: invalid threshold value.");
         needLogicallyFinishCallback_ = false;
         return;
