@@ -20,8 +20,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSConnectToRenderProcessProxy::RSConnectToRenderProcessProxy(const sptr<IRemoteObject>& impl)
-    : IRemoteProxy<RSIConnectToRenderProcess>(impl) {}
+RSConnectToRenderProcessProxy::RSConnectToRenderProcessProxy(const sptr<IRemoteObject>& impl) :
+    IRemoteProxy<RSIConnectToRenderProcess>(impl) {}
 std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSConnectToRenderProcessProxy::CreateRenderConnection(
     uint64_t tokenMaskId, const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
@@ -40,14 +40,17 @@ std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSConnectToRenderProcessP
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection WriteUint64 tokenMaskId err.");
         return {nullptr, INVALID_TOKEN_MASK_ID};
     }
+
     if (!data.WriteRemoteObject(token->AsObject())) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection WriteRemoteObject callback->AsObject() err.");
         return {nullptr, INVALID_TOKEN_MASK_ID};
     }
+
     if (!data.WriteBool(needRefresh)) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection needRefresh err.");
         return {nullptr, INVALID_TOKEN_MASK_ID};
     }
+
     uint32_t code = static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::CREATE_CONNECTION);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

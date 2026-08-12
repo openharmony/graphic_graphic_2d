@@ -23,6 +23,8 @@
 #include "rs_profiler.h"
 #include "rs_render_pipeline.h"
 
+#include "rs_render_to_composer_connection.h"
+#include "rs_render_composer.h"
 #include "rs_render_composer_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "screen_manager/screen_types.h"
@@ -51,14 +53,13 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(
     // step2: Create renderPipeline and Following Connections
     auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     renderServiceAgent->RegisterHgmProcessCallback(std::move(hgmProcessCallback));
-    auto renderProcessManagerAgent =
-        sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
+    auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
     auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService.screenManager_);
     renderToServiceConnection_ =
         sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
     renderService.renderPipeline_ = RSRenderPipeline::Create(renderService.handler_,
         receiver, renderToServiceConnection_, renderService_.vsyncManager_->GetVsyncManagerAgent());
-    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderService.renderPipeline_);
     serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
     composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
 

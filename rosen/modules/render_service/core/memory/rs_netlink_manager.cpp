@@ -137,7 +137,8 @@ bool RSNetlinkManager::Start()
 void RSNetlinkManager::Stop()
 {
     close(socketFd_);
-    if (rsNetlinkListener_ != nullptr && rsNetlinkListener_->StopListener()) {
+    if (rsNetlinkListener_ != nullptr) {
+        rsNetlinkListener_->StopListener();
         delete rsNetlinkListener_;
     }
     rsNetlinkListener_ = nullptr;
