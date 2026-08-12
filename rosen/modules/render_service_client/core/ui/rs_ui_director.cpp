@@ -430,9 +430,9 @@ void RSUIDirector::GoStop()
         currentUIDirectorState_ == RSUIDirectorLifecycleState::RESUME) {
         if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::GetBackgroundRebuildEnabled()) {
             ExecuteGoStop();
-            AddUIDirectorCommand<RSUIDirectorGoStop>();
         }
     }
+    AddUIDirectorCommand<RSUIDirectorGoStop>();
     currentUIDirectorState_ = RSUIDirectorLifecycleState::STOP;
 }
 

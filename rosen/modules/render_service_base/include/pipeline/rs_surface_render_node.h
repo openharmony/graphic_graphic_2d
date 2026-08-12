@@ -1756,6 +1756,11 @@ public:
         return isUIRenderDirectorStopped_.load();
     }
 
+    void SetUIRenderDirectorStopped(bool isUIRenderDirectorStopped)
+    {
+        isUIRenderDirectorStopped_ = isUIRenderDirectorStopped;
+    }
+
     bool IsSecureUIExtension() const
     {
         return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
@@ -1949,8 +1954,6 @@ public:
     {
         return apiCompatibleVersion_;
     }
-
-    void SetIsTextureExportNode(bool isTextureExportNode) override;
 
     void ResetIsBufferFlushed();
 

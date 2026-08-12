@@ -16,6 +16,7 @@
 #include "command/rs_ui_director_command.h"
 
 #include "common/rs_common_def.h"
+#include "pipeline/rs_background_rebuild_param.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_ui_render_director.h"
 #include "platform/common/rs_log.h"
@@ -42,7 +43,11 @@ void RSUIDirectorCommandHelper::GoCreate(RSContext& context, NodeId nodeId, uint
 
 void RSUIDirectorCommandHelper::GoResume(RSContext& context, NodeId nodeId, uint64_t token)
 {
-    auto director = context.GetUIRenderDirector(ExtractPid(nodeId), token);
+    pid_t pid = ExtractPid(nodeId);
+    auto director = context.GetUIRenderDirector(pid, token);
+    if (!RSBackgroundRebuildParam::Instance().IsBackgroundRebuildEnabled()) {
+        context.GetMutableNodeMap().RegisterSurfaceRenderNode(pid, token);
+    }
     if (director == nullptr) {
         RS_LOGE("RSUIDirectorCommandHelper::GoResume failed to find director for token: %{public}" PRIu64, token);
         return;
@@ -73,7 +78,11 @@ void RSUIDirectorCommandHelper::GoBackground(RSContext& context, NodeId nodeId, 
 void RSUIDirectorCommandHelper::GoStop(RSContext& context, NodeId nodeId, uint64_t token)
 {
     pid_t pid = ExtractPid(nodeId);
-    context.GetMutableNodeMap().DestroyTokenNode(pid, token);
+    if (RSBackgroundRebuildParam::Instance().IsBackgroundRebuildEnabled()) {
+        context.GetMutableNodeMap().DestroyTokenNode(pid, token);
+    } else {
+        context.GetMutableNodeMap().RemoveSurfaceNodeMap(pid, token);
+    }
     auto director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
         RS_LOGE("RSUIDirectorCommandHelper::GoStop failed to find director for token: %{public}" PRIu64, token);
