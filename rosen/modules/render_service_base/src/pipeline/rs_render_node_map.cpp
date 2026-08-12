@@ -410,7 +410,6 @@ void RSRenderNodeMap::RemoveSurfaceNodeMap(pid_t pid, uint64_t token)
                            !pair.second->GetIsTextureExportNode();
         if (shouldErase) {
             pair.second->SetUIRenderDirectorStopped(true);
-            // 需要加个去重
             backgroundSurfaceNodeMap_[pid][token].emplace_back(pair.second);
         }
         return shouldErase;

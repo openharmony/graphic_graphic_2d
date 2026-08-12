@@ -21,6 +21,7 @@
 #include "common/rs_common_def.h"
 #include "pipeline/rs_background_rebuild_param.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_ui_render_director.h"
 
 using namespace testing;
@@ -127,6 +128,43 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopNodeMapModeTest, 
         EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
     }
     RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperGoResumePairingTest
+ * @tc.desc: Test GoResume restores stashed surface nodes only in REMOVE_SURFACE_NODE_MAP mode.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoResumePairingTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 500;
+    constexpr uint64_t token = 501;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+    constexpr NodeId surfaceNodeId = MakeNodeId(pid, 1);
+
+    RSSurfaceRenderNodeConfig config = { .id = surfaceNodeId, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetUIContextToken(token);
+    ASSERT_TRUE(rsContext.GetMutableNodeMap().RegisterRenderNode(surfaceNode));
+
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+
+    // REMOVE tier: GoStop stashes the node and marks it stopped.
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+    RSUIDirectorCommandHelper::GoStop(rsContext, nodeId, token);
+    EXPECT_TRUE(surfaceNode->IsUIRenderDirectorStopped());
+
+    // NONE tier: GoResume must not restore the stashed node.
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::NONE);
+    RSUIDirectorCommandHelper::GoResume(rsContext, nodeId, token);
+    EXPECT_TRUE(surfaceNode->IsUIRenderDirectorStopped());
+
+    // REMOVE tier: GoResume restores the node and clears the stopped flag.
+    RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+    RSUIDirectorCommandHelper::GoResume(rsContext, nodeId, token);
+    EXPECT_FALSE(surfaceNode->IsUIRenderDirectorStopped());
 }
 
 } // namespace OHOS::Rosen

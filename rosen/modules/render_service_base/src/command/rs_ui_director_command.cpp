@@ -45,7 +45,9 @@ void RSUIDirectorCommandHelper::GoResume(RSContext& context, NodeId nodeId, uint
 {
     pid_t pid = ExtractPid(nodeId);
     auto director = context.GetUIRenderDirector(pid, token);
-    if (!RSBackgroundRebuildParam::Instance().IsBackgroundRebuildEnabled()) {
+    // Restore stashed surface nodes only when GoStop stashed them; keep both sides paired on the
+    // same tiered switch instead of the BackgroundRebuildEnabled bool.
+    if (RSBackgroundRebuildParam::Instance().GetGoStopNodeMapMode() == GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP) {
         context.GetMutableNodeMap().RegisterSurfaceRenderNode(pid, token);
     }
     if (director == nullptr) {
