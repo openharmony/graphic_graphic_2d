@@ -2256,6 +2256,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
             }
             if (child->IsDirty() || child->IsSubTreeDirty()) {
                 uifirstContentDirty = true;
+                break;
             }
         }
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !HasRemovedChild();
