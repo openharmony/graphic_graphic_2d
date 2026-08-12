@@ -501,7 +501,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
         surfaceHandler.SetHoldBuffer(surfaceBuffer);
         RSBaseSurfaceUtil::DropFrameConfig config; // Default: no drop
         RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
-        ASSERT_EQ(surfaceConsumer->GetName(), "DisplayNode");
+        ASSERT_EQ(surfaceConsumer->GetName(), "ScreenNode");
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
     // release buffer
