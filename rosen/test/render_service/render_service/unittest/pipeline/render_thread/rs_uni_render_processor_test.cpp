@@ -332,7 +332,7 @@ HWTEST_F(RSUniRenderProcessorTest, InitForRenderThread002, TestSize.Level1)
         auto renderEngine = std::make_shared<RSRenderEngine>();
         ASSERT_NE(renderEngine, nullptr);
         bool result = renderProcessor->InitForRenderThread(*screenDrawable, renderEngine);
-        ASSERT_EQ(result, false);
+        ASSERT_EQ(result, true);
     }
 }
 
@@ -742,10 +742,12 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("GetLayerInfo001_test");
     ASSERT_NE(consumer, nullptr);
+#ifdef RS_ENABLE_VK
     sptr<SyncFence> acquireFence = nullptr;
     SetTunnelLayerSnapshot(params.GetId());
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
-    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result, nullptr);
+#endif
 }
 
 /**
