@@ -130,12 +130,21 @@ void HgmFrameRateManager::InitConfig()
     std::string curScreenName = "screen" + std::to_string(
         curScreenId_.load()) + "_" + (isLtpo_.load() ? "LTPO" : "LTPS");
     if (auto configData = hgmCore.GetPolicyConfigData()) {
+        bool isNeedFallBack = false;
         if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
             iter != configData->screenStrategyConfigs_.end()) {
             curScreenStrategyId_ = iter->second;
         } else {
+            isNeedFallBack = true;
+        }
+        if (curScreenStrategyId_.empty()) {
+            curScreenStrategyId_ = "LTPO-DEFAULT";
+            isNeedFallBack = true;
+        }
+        if (isNeedFallBack) {
             HandleScreenStrategyFallback(configData);
         }
+            
         isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
         if (auto configVisitor = hgmCore.GetPolicyConfigVisitor()) {
             configVisitor->ChangeScreen(curScreenStrategyId_);
@@ -1021,16 +1030,9 @@ void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
 
 void HgmFrameRateManager::HandleScreenStrategyFallback(const std::shared_ptr<PolicyConfigData>& configData)
 {
-    curScreenStrategyId_ = "LTPO-DEFAULT";
     auto screenConfigsIter = configData->screenConfigs_.find(curScreenStrategyId_);
     if (screenConfigsIter == configData->screenConfigs_.end()) {
         std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (!isLtpo_ ? "LTPO" : "LTPS");
-        if (curScreenId_ == activeRectScreenId_) {
-            curScreenName += "_" + std::to_string(activeRect_.x);
-            curScreenName += "_" + std::to_string(activeRect_.y);
-            curScreenName += "_" + std::to_string(activeRect_.w);
-            curScreenName += "_" + std::to_string(activeRect_.h);
-        }
         if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
             iter != configData->screenStrategyConfigs_.end()) {
             curScreenStrategyId_ = iter->second;
@@ -1056,6 +1058,7 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
         iter != configData->screenStrategyConfigs_.end()) {
         curScreenStrategyId_ = iter->second;
     } else {
+        curScreenStrategyId_ = "LTPO-DEFAULT";
         HandleScreenStrategyFallback(configData);
     }
     curScreenDefaultStrategyId_ = curScreenStrategyId_;
