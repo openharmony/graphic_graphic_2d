@@ -294,6 +294,7 @@ public:
     void ClearSurfaceWatermark(pid_t pid);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
+    void ClearInheritedProperties(pid_t pid);
     // Save marks, and use it for ScreenNode later.
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);

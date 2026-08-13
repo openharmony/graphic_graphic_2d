@@ -3975,6 +3975,56 @@ HWTEST_F(RSMainThreadTest, CleanResourcesForRefreshTest, TestSize.Level1)
     mainThread->isUniRender_ = isUniRender;
 }
 
+namespace {
+constexpr InheritedPropertyType MAIN_THREAD_TEST_PROPERTY_TYPE = static_cast<InheritedPropertyType>(100);
+
+class MainThreadTestProperty : public IInheritedProperty {
+public:
+    MainThreadTestProperty() = default;
+    ~MainThreadTestProperty() override = default;
+
+    InheritedPropertyType GetType() const override
+    {
+        return MAIN_THREAD_TEST_PROPERTY_TYPE;
+    }
+};
+} // namespace
+
+/**
+ * @tc.name: ClearInheritedPropertiesTest
+ * @tc.desc: ClearInheritedProperties clears inherited properties of the given pid,
+ *           tolerates null context and keeps properties of other pids.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearInheritedPropertiesTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    pid_t pid = 12345;
+    pid_t pidOther = 12346;
+    auto savedContext = mainThread->context_;
+
+    // context_ is null: must not crash
+    mainThread->context_ = nullptr;
+    mainThread->ClearInheritedProperties(pid);
+
+    // context_ is valid: properties of the given pid are cleared, other pids kept
+    mainThread->context_ = std::make_shared<RSContext>();
+    auto& manager = mainThread->context_->GetMutableInheritedPropertyManager();
+    NodeId nodeId = MakeNodeId(pid, 1);
+    NodeId nodeIdOther = MakeNodeId(pidOther, 1);
+    manager.Store(nodeId, std::make_shared<MainThreadTestProperty>());
+    manager.Store(nodeIdOther, std::make_shared<MainThreadTestProperty>());
+
+    mainThread->ClearInheritedProperties(pid);
+
+    EXPECT_EQ(manager.Get(nodeId, MAIN_THREAD_TEST_PROPERTY_TYPE), nullptr);
+    EXPECT_NE(manager.Get(nodeIdOther, MAIN_THREAD_TEST_PROPERTY_TYPE), nullptr);
+
+    // Cleanup
+    mainThread->context_ = savedContext;
+}
+
 /**
  * @tc.name: AddTransactionDataPidInfo001
  * @tc.desc: AddTransactionDataPidInfo Test, no UniRender
