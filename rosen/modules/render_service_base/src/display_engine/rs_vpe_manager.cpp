@@ -221,7 +221,7 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
             supportType |= type;
         }
     }
-        if (supportType == 0) {
+    if (supportType == 0) {
         return surface;
     }
     auto vpeSurface = GetVpeVideoSurface(supportType, surface, config);
