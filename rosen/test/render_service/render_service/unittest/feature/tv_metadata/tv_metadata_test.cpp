@@ -519,7 +519,7 @@ HWTEST_F(TvMetadataTest, SetVideoDimType_002, TestSize.Level1)
 
     RSTvMetadataManager::SetVideoDimType(static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_SBS));
     RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
-    RSTvMetadataManager::Instance().CopyFromLayersToSurface(rsSurface);
+    RSTvMetadataManager::Instance().CopyTvMetadataToSurface(rsSurface);
     MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
     EXPECT_EQ(tvMetadata.reserved[2], static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_SBS));
 
