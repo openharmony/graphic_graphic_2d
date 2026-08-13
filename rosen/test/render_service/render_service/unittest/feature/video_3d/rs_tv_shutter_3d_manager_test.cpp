@@ -291,4 +291,187 @@ HWTEST_F(RSTvShutter3DManagerTest, Prepare3DForDraw_005, TestSize.Level1)
     EXPECT_TRUE(result);
     EXPECT_EQ(RSTvShutter3DManager::Instance().GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
 }
+
+/**
+ * @tc.name: Prepare3DForDraw_006
+ * @tc.desc: Test Prepare3DForDraw with MODE_SHUTTER_3D and valid canvas (normal path)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Prepare3DForDraw_006, TestSize.Level1)
+{
+    RSScreenRenderParams params(0);
+    params.SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    params.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    std::shared_ptr<Drawing::Surface> drSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<RSPaintFilterCanvas> curCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+
+    bool result = RSTvShutter3DManager::Instance().Prepare3DForDraw(params, drSurface, curCanvas);
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(RSTvShutter3DManager::Instance().Is3DEnabled(UIMode3D::MODE_SHUTTER_3D));
+    EXPECT_NE(curCanvas, nullptr);
+}
+
+/**
+ * @tc.name: Process3DForFlush_005
+ * @tc.desc: Test Process3DForFlush with initialized 3D context (core path, returns true)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Process3DForFlush_005, TestSize.Level1)
+{
+    RSScreenRenderParams params(0);
+    params.SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    params.SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    std::shared_ptr<Drawing::Surface> drSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<RSPaintFilterCanvas> curCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+
+    RSTvShutter3DManager::Instance().Prepare3DForDraw(params, drSurface, curCanvas);
+
+    bool result = RSTvShutter3DManager::Instance().Process3DForFlush(UIMode3D::MODE_SHUTTER_3D, curCanvas);
+    EXPECT_TRUE(result);
+    EXPECT_FALSE(RSTvShutter3DManager::Instance().Is3DEnabled(UIMode3D::MODE_SHUTTER_3D));
+}
+
+/**
+ * @tc.name: Release3DContext_001
+ * @tc.desc: Test Release3DContext resets context state
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Release3DContext_001, TestSize.Level1)
+{
+    RSTvShutter3DManager::Instance().Release3DContext();
+    EXPECT_FALSE(RSTvShutter3DManager::Instance().Is3DEnabled(UIMode3D::MODE_SHUTTER_3D));
+    EXPECT_EQ(RSTvShutter3DManager::Instance().GetOffscreenCanvas(), nullptr);
+    EXPECT_EQ(RSTvShutter3DManager::Instance().GetBackupCanvas(), nullptr);
+}
+
+/**
+ * @tc.name: Process3DImage_001
+ * @tc.desc: Test Process3DImage with null targetCanvas
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Process3DImage_001, TestSize.Level1)
+{
+    std::shared_ptr<RSPaintFilterCanvas> targetCanvas = nullptr;
+    std::shared_ptr<Drawing::Image> snapshot = nullptr;
+    RSTvShutter3DManager::Instance().Process3DImage(targetCanvas, snapshot, VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    EXPECT_TRUE(targetCanvas == nullptr);
+}
+
+/**
+ * @tc.name: Process3DImage_002
+ * @tc.desc: Test Process3DImage with null snapshot
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Process3DImage_002, TestSize.Level1)
+{
+    auto drSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<RSPaintFilterCanvas> targetCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    std::shared_ptr<Drawing::Image> snapshot = nullptr;
+    RSTvShutter3DManager::Instance().Process3DImage(targetCanvas, snapshot, VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    EXPECT_NE(targetCanvas, nullptr);
+    EXPECT_TRUE(snapshot == nullptr);
+}
+
+/**
+ * @tc.name: Process3DImage_003
+ * @tc.desc: Test Process3DImage with VIDEO_DIM_TYPE_3D_SBS
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Process3DImage_003, TestSize.Level1)
+{
+    auto drSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<RSPaintFilterCanvas> targetCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    auto snapshotSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<Drawing::Image> snapshot = snapshotSurface->GetImageSnapshot();
+    RSTvShutter3DManager::Instance().Process3DImage(targetCanvas, snapshot, VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    EXPECT_NE(targetCanvas, nullptr);
+    EXPECT_NE(snapshot, nullptr);
+}
+
+/**
+ * @tc.name: Process3DImage_004
+ * @tc.desc: Test Process3DImage with VIDEO_DIM_TYPE_3D_TAB
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Process3DImage_004, TestSize.Level1)
+{
+    auto drSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<RSPaintFilterCanvas> targetCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    auto snapshotSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<Drawing::Image> snapshot = snapshotSurface->GetImageSnapshot();
+    RSTvShutter3DManager::Instance().Process3DImage(targetCanvas, snapshot, VideoDimType::VIDEO_DIM_TYPE_3D_TAB);
+    EXPECT_NE(targetCanvas, nullptr);
+    EXPECT_NE(snapshot, nullptr);
+}
+
+/**
+ * @tc.name: Process3DImage_005
+ * @tc.desc: Test Process3DImage with VIDEO_DIM_TYPE_2D (no-op)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Process3DImage_005, TestSize.Level1)
+{
+    auto drSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<RSPaintFilterCanvas> targetCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    auto snapshotSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<Drawing::Image> snapshot = snapshotSurface->GetImageSnapshot();
+    RSTvShutter3DManager::Instance().Process3DImage(targetCanvas, snapshot, VideoDimType::VIDEO_DIM_TYPE_2D);
+    EXPECT_NE(targetCanvas, nullptr);
+    EXPECT_NE(snapshot, nullptr);
+}
+
+/**
+ * @tc.name: Init3DContext_001
+ * @tc.desc: Test Init3DContext with MODE_2D (no-op)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Init3DContext_001, TestSize.Level1)
+{
+    auto drSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<RSPaintFilterCanvas> curCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+
+    RSTvShutter3DManager::Instance().Init3DContext(UIMode3D::MODE_2D, 100, 100, curCanvas);
+    EXPECT_FALSE(RSTvShutter3DManager::Instance().Is3DEnabled(UIMode3D::MODE_SHUTTER_3D));
+}
+
+/**
+ * @tc.name: Init3DContext_002
+ * @tc.desc: Test Init3DContext with MODE_SHUTTER_3D and null canvas
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Init3DContext_002, TestSize.Level1)
+{
+    std::shared_ptr<RSPaintFilterCanvas> curCanvas = nullptr;
+
+    RSTvShutter3DManager::Instance().Init3DContext(UIMode3D::MODE_SHUTTER_3D, 100, 100, curCanvas);
+    EXPECT_FALSE(RSTvShutter3DManager::Instance().Is3DEnabled(UIMode3D::MODE_SHUTTER_3D));
+}
+
+/**
+ * @tc.name: Init3DContext_003
+ * @tc.desc: Test Init3DContext with MODE_SHUTTER_3D and valid canvas
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTvShutter3DManagerTest, Init3DContext_003, TestSize.Level1)
+{
+    auto drSurface = Drawing::Surface::MakeRaster(
+        Drawing::ImageInfo{100, 100, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL});
+    std::shared_ptr<RSPaintFilterCanvas> curCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    auto originalCanvas = curCanvas;
+
+    RSTvShutter3DManager::Instance().Init3DContext(UIMode3D::MODE_SHUTTER_3D, 100, 100, curCanvas);
+    EXPECT_TRUE(RSTvShutter3DManager::Instance().Is3DEnabled(UIMode3D::MODE_SHUTTER_3D));
+    EXPECT_EQ(RSTvShutter3DManager::Instance().GetBackupCanvas(), originalCanvas);
+    EXPECT_NE(curCanvas, nullptr);
+}
 }
