@@ -2483,13 +2483,13 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenStrategyFallback, Function | SmallTest
     auto configData = hgmCore.GetPolicyConfigData();
     frameRateMgr->curScreenId_.store(100);
     const std::string init = "LTPO-DEFAULT";
-    auto fallback = [&](bool isLtpo) -> std::string {
+    auto fallback = [&frameRateMgr, &init, &configData](bool isLtpo) -> std::string {
         frameRateMgr->isLtpo_.store(isLtpo);
         frameRateMgr->curScreenStrategyId_ = init;
         frameRateMgr->HandleScreenStrategyFallback(configData);
         return frameRateMgr->curScreenStrategyId_;
     };
-    auto clear = [&] {
+    auto clear = [&configData] {
         configData->screenConfigs_.clear();
         configData->screenStrategyConfigs_.clear();
     };
