@@ -1381,6 +1381,7 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
     int mainwindowNum = 0;
     int canvasNodeNum = 0;
     bool support = true;
+    bool startingWindowEnabled = true;
     std::shared_ptr<RSRenderNode> startingWindow = nullptr;
     bool hasContentAppWindow = false;
     for (auto& child : *(node.GetSortedChildren())) {
@@ -1399,9 +1400,9 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
             continue;
         }
         auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceChild && surfaceChild->IsMainWindowType() && surfaceChild->ShouldPaint() &&
-            canvasNodeNum == 0 && !surfaceChild->IsNotifyUIBufferAvailable()) {
+        if (surfaceChild && surfaceChild->IsMainWindowType() && canvasNodeNum == 0) {
             mainwindowNum++;
+            startingWindowEnabled &= surfaceChild->ShouldPaint() && !surfaceChild->IsNotifyUIBufferAvailable();
             if (IsContentAppWindow(surfaceChild)) {
                 hasContentAppWindow = true;
             }
@@ -1410,9 +1411,10 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         support = false;
     }
     node.SetUifirstHasContentAppWindow(hasContentAppWindow);
-    RS_TRACE_NAME_FMT("support:%d, canvasNodeNum:%d, mainwindowNum:%d, hasStarting:%d, hasContent:%d", support,
-        canvasNodeNum, mainwindowNum, startingWindow != nullptr, hasContentAppWindow);
-    if (support && canvasNodeNum == 1 && mainwindowNum > 0 && startingWindow) { // starting window & appwindow
+    RS_TRACE_NAME_FMT("support:%d, canvasNodeNum:%d, mainwindowNum:%d, hasStarting:%d, "
+        "hasContent:%d, startingWindowEnable:%d", support, canvasNodeNum, mainwindowNum,
+        startingWindow != nullptr, hasContentAppWindow, startingWindowEnabled);
+    if (support && canvasNodeNum == 1 && mainwindowNum > 0 && startingWindow && startingWindowEnabled) {
         startingWindow->SetStartingWindowFlag(true);
         return startingWindow->GetId();
     } else {

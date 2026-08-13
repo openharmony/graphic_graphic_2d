@@ -1658,7 +1658,7 @@ HWTEST_F(RSUifirstManagerTest, LeashWindowContainMainWindowAndStarting002, TestS
 
     NodeId resId = uifirstManager_.LeashWindowContainMainWindowAndStarting(node);
     EXPECT_FALSE(resId);
-    EXPECT_FALSE(node.GetUifirstHasContentAppWindow());
+    EXPECT_TRUE(node.GetUifirstHasContentAppWindow());
 }
 
 /**
