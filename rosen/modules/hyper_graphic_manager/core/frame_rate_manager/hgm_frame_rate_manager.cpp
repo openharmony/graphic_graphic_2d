@@ -1029,8 +1029,8 @@ void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
 
 void HgmFrameRateManager::HandleScreenStrategyFallback(const std::shared_ptr<PolicyConfigData>& configData)
 {
-    auto screenConfigsIter = configData->screenConfigs_.find(curScreenStrategyId_);
-    if (screenConfigsIter == configData->screenConfigs_.end()) {
+    if (auto screenConfigsIter = configData->screenConfigs_.find(curScreenStrategyId_);
+        screenConfigsIter == configData->screenConfigs_.end()) {
         std::string curScreenName = "screen" + std::to_string(
             curScreenId_.load()) + "_" + (!isLtpo_.load() ? "LTPO" : "LTPS");
         HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
