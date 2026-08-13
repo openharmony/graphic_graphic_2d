@@ -541,13 +541,6 @@ void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canva
     if (cacheRootDrawable == nullptr || cacheRootDrawable.get() != curDrawingCacheRoot_) {
         RS_LOGE("curDrawingCacheRoot_ may be dangling, ptr=%{public}p, callerNodeId=%{public}" PRIu64,
             curDrawingCacheRoot_, GetId());
-#ifdef ROSEN_OHOS
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "DRAWABLE_CACHE_ROOT_DANGLING",
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
-            "PTR", reinterpret_cast<uintptr_t>(curDrawingCacheRoot_),
-            "CALLER_NODE_ID", static_cast<int64_t>(GetId()),
-            "TID", gettid());
-#endif
         return;
     }
     auto& withoutFilterMatrixMap = cacheRootDrawable->GetWithoutFilterMatrixMap();
