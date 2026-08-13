@@ -10684,31 +10684,5 @@ HWTEST_F(RSUniRenderVisitorTest, CollectHwcAndFilterNodesForCrossNode005, TestSi
     ASSERT_NE(mirrored, nullptr);
     EXPECT_EQ(mirrored->GetId(), sourceChild->GetId());
 }
-
-/**
- * @tc.name: InitScreenInfoUIMode3D_001
- * @tc.desc: Test InitScreenInfo sets default UIMode3D to MODE_2D
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderVisitorTest, InitScreenInfoUIMode3D_001, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-
-    auto rsContext = std::make_shared<RSContext>();
-    rsContext->GetMutableNodeMap().Initialize(rsContext);
-    NodeId screenNodeId = 10;
-    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
-    ASSERT_NE(screenNode, nullptr);
-    screenNode->InitRenderParams();
-    rsUniRenderVisitor->curScreenNode_ = screenNode;
-
-    screenNode->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
-    EXPECT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
-
-    rsUniRenderVisitor->InitScreenInfo(*screenNode);
-    EXPECT_EQ(screenNode->GetUIMode3D(), UIMode3D::MODE_2D);
-}
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

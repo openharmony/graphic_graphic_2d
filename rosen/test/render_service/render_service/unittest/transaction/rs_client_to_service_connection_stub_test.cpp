@@ -6297,7 +6297,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetUIMode3D_InvalidMode, TestSize.
     data.WriteUint32(999);
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen
 #endif

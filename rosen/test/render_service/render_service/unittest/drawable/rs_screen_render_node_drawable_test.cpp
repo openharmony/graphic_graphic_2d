@@ -2242,9 +2242,9 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DMode2D, TestSize.Level1)
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     params->isAccumulatedDirty_ = true;
-    RSMainThread::Instance().SetUIMode3D(UIMode3D::MODE_2D);
+    RSMainThread::Instance()->SetUIMode3D(UIMode3D::MODE_2D);
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(RSMainThread::Instance().GetUIMode3D(), UIMode3D::MODE_2D);
+    EXPECT_EQ(RSMainThread::Instance()->GetUIMode3D(), UIMode3D::MODE_2D);
 }
 
 /**
@@ -2258,9 +2258,9 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DModeShutter, TestSize.Leve
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     params->isAccumulatedDirty_ = true;
-    RSMainThread::Instance().SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    RSMainThread::Instance()->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(RSMainThread::Instance().GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(RSMainThread::Instance()->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
 }
 
 /**
@@ -2274,8 +2274,8 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_3DModeGlassesFree, TestSize.
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     params->isAccumulatedDirty_ = true;
-    RSMainThread::Instance().SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    RSMainThread::Instance()->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
     screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(RSMainThread::Instance().GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(RSMainThread::Instance()->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
 }
 } // namespace OHOS::Rosen
