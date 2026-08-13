@@ -17,6 +17,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_system_properties.h"
 #include "utils/matrix.h"
+#include "drawing/engine_adapter/skia_adapter/skia_matrix.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1137,18 +1138,20 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding004, TestSize.Level1)
 
     RectF srcRect(srcRectLeft, srcRectTop, srcRectRight - srcRectLeft, srcRectBottom - srcRectTop);
     Drawing::Matrix matrix;
-    matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_2, 1.f);
-    matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
-    matrix.Set(Drawing::Matrix::SKEW_X, 1.f);
-    matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
-    matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
-    RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
-    EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
-    EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
-    EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
-    EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
+    if (matrix.GetImpl<Drawing::SkiaMatrix>() == nullptr) {
+        matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
+        matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
+        matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+        matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
+        matrix.Set(Drawing::Matrix::SKEW_X, 1.f);
+        matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
+        matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
+        RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
+        EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
+        EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
+        EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
+        EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
+    }
 }
 
 /**
@@ -1170,18 +1173,20 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding005, TestSize.Level1)
 
     RectF srcRect(srcRectLeft, srcRectTop, srcRectRight - srcRectLeft, srcRectBottom - srcRectTop);
     Drawing::Matrix matrix;
-    matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_2, 1.f);
-    matrix.Set(Drawing::Matrix::SCALE_X, -1.f);
-    matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
-    matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
-    matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
-    RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
-    EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
-    EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
-    EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
-    EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
+    if (matrix.GetImpl<Drawing::SkiaMatrix>() == nullptr) {
+        matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
+        matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
+        matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+        matrix.Set(Drawing::Matrix::SCALE_X, -1.f);
+        matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
+        matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
+        matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
+        RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
+        EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
+        EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
+        EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
+        EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
+    }
 }
 
 /**
@@ -1203,18 +1208,20 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding006, TestSize.Level1)
 
     RectF srcRect(srcRectLeft, srcRectTop, srcRectRight - srcRectLeft, srcRectBottom - srcRectTop);
     Drawing::Matrix matrix;
-    matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_2, 1.f);
-    matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
-    matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
-    matrix.Set(Drawing::Matrix::SKEW_Y, 1.f);
-    matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
-    RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
-    EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
-    EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
-    EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
-    EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
+    if (matrix.GetImpl<Drawing::SkiaMatrix>() == nullptr) {
+        matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
+        matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
+        matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+        matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
+        matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
+        matrix.Set(Drawing::Matrix::SKEW_Y, 1.f);
+        matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
+        RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
+        EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
+        EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
+        EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
+        EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
+    }
 }
 
 /**
@@ -1236,18 +1243,20 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding007, TestSize.Level1)
 
     RectF srcRect(srcRectLeft, srcRectTop, srcRectRight - srcRectLeft, srcRectBottom - srcRectTop);
     Drawing::Matrix matrix;
-    matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
-    matrix.Set(Drawing::Matrix::PERSP_2, 1.f);
-    matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
-    matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
-    matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
-    matrix.Set(Drawing::Matrix::SCALE_Y, -1.f);
-    RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
-    EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
-    EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
-    EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
-    EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
+    if (matrix.GetImpl<Drawing::SkiaMatrix>() == nullptr) {
+        matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
+        matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
+        matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+        matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
+        matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
+        matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
+        matrix.Set(Drawing::Matrix::SCALE_Y, -1.f);
+        RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
+        EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
+        EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
+        EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
+        EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
+    }
 }
 
 /**
