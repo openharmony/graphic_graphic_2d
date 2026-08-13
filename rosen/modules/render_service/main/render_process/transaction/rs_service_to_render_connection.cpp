@@ -346,11 +346,6 @@ ErrCode RSServiceToRenderConnection::GetHdrOnDuration(int64_t& hdrOnDuration)
     return renderPipelineAgent_->GetHdrOnDuration(hdrOnDuration);
 }
 
-ErrCode RSServiceToRenderConnection::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    return renderPipelineAgent_->SetGpuCrcDirtyEnabledPidList(pidList);
-}
-
 ErrCode RSServiceToRenderConnection::SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList)
 {
     return renderPipelineAgent_->SetOptimizeCanvasDirtyPidList(pidList);

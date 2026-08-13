@@ -49,6 +49,7 @@ namespace {
 constexpr const size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 constexpr const int WAIT_HANDLER_TIME = 1; // 1S
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
+constexpr const int INVALID_EVENT_DATA_SIZE = 101;
 
 class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
 public:
@@ -242,12 +243,12 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
 }
 
 /**
- * @tc.name: SetGpuCrcDirtyEnabledPidList001
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
+ * @tc.name: HandleHwcEvent001
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of eventData exceeds the maximum value
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList001, TestSize.Level1)
+HWTEST_F(RSServiceToRenderConnectionStubTest, HandleHwcEvent001, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -256,19 +257,25 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList001, T
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         return;
     }
-    data.WriteInt32(-1);
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
+    std::vector<int32_t> eventData(INVALID_EVENT_DATA_SIZE, 0);
+    uint32_t deviceId{0};
+    uint32_t eventId{0};
+
+    data.WriteUint32(deviceId);
+    data.WriteUint32(eventId);
+    data.WriteInt32Vector(eventData);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**
- * @tc.name: SetGpuCrcDirtyEnabledPidList002
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
+ * @tc.name: HandleHwcEvent002
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of pidList is valid
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList002, TestSize.Level1)
+HWTEST_F(RSServiceToRenderConnectionStubTest, HandleHwcEvent002, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -277,9 +284,14 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList002, T
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         return;
     }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    std::vector<int32_t> pidList;
-    data.WriteInt32Vector(pidList);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
+    std::vector<int32_t> eventData;
+    uint32_t deviceId{0};
+    uint32_t eventId{0};
+
+    data.WriteInt32Vector(eventData);
+    data.WriteUint32(deviceId);
+    data.WriteUint32(eventId);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_NONE);
 }

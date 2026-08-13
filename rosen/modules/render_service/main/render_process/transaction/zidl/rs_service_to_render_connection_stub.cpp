@@ -37,6 +37,7 @@ constexpr uint32_t MAX_LIST_SIZE = 50;
 constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
 constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
+constexpr size_t HWC_EVENT_DATA_SIZE_MAX = 100;
 } // namespace
 
 static void TypefaceXcollieCallback(void* arg)
@@ -975,17 +976,13 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            HandleHwcEvent(deviceId, eventId, eventData);
-            break;
-        }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
-            std::vector<int32_t> pidList;
-            if (!data.ReadInt32Vector(&pidList)) {
-                RS_LOGE("SetGpuCrcDirtyEnabledPidList: read pidList err.");
+            if (eventData.size() > HWC_EVENT_DATA_SIZE_MAX) {
+                RS_LOGE("HandleHwcEvent: eventData size %{public}zu exceeds max %{public}zu.",
+                    eventData.size(), HWC_EVENT_DATA_SIZE_MAX);
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            SetGpuCrcDirtyEnabledPidList(pidList);
+            HandleHwcEvent(deviceId, eventId, eventData);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO): {

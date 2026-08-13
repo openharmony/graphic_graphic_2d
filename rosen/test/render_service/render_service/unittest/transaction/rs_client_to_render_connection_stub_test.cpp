@@ -27,7 +27,6 @@
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #endif
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "gtest/gtest.h"
@@ -4215,17 +4214,13 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest013, 
     ret = agent->GetShowRefreshRateEnabled(enabled);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
-    // Test SetGpuCrcDirtyEnabledPidList
-    std::vector<int32_t> pidList = { 100 };
-    ret = agent->SetGpuCrcDirtyEnabledPidList(pidList);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-
     // Test GetHdrOnDuration
     int64_t duration = 0;
     ret = agent->GetHdrOnDuration(duration);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     // Test SetOptimizeCanvasDirtyPidList
+    std::vector<int32_t> pidList = {100};
     ret = agent->SetOptimizeCanvasDirtyPidList(pidList);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
@@ -4519,33 +4514,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_ZeroPid_012, Test
     transactionData->SetTimestamp(1234567890);
 
     renderPipelineAgent_->CommitTransaction(0, true, false, transactionData);
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
-}
-
-/**
- * @tc.name: CreateNodeAndSurfaceTest001
- * @tc.desc: Test CreateNodeAndSurfaceTest when surfacenode is self drawing node
- * branch)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
-{
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    sptr<Surface> surface = nullptr;
-    std::vector<int32_t> pidList;
-    pidList.emplace_back(ExtractPid(config.id));
-    RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList(pidList);
-    connectionStub_->CreateNodeAndSurface(config, surface, false);
-    ASSERT_NE(surface, nullptr);
-    surface = nullptr;
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    connectionStub_->CreateNodeAndSurface(config, surface, false);
-    ASSERT_NE(surface, nullptr);
-    system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**

@@ -123,7 +123,6 @@ public:
     virtual HwcDisabledReasonInfos GetHwcDisabledReasonInfo() = 0;
     virtual ErrCode GetHdrOnDuration(int64_t& hdrOnDuration) = 0;
     virtual ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) = 0;
-    virtual ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) = 0;
 
     // Game
     virtual void ReportGameStateData(GameStateData info) = 0;
