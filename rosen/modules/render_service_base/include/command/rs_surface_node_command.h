@@ -167,7 +167,7 @@ ADD_COMMAND(RSSurfaceNodeCreate,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CREATE,
         SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
 ADD_COMMAND(RSSurfaceNodeCreateWithConfig,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG,
         SurfaceNodeCommandHelper::CreateWithConfig, NodeId, std::string, uint8_t, enum SurfaceWindowType))
 ADD_COMMAND(RSSurfaceNodeSetContextMatrix,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
