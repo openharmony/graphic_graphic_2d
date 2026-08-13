@@ -114,7 +114,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
                         ret, layer->GetRSLayerId());
                     continue;
                 }
-                RS_TRACE_NAME_FMT("GetLayerSolidFilledColor layerId:%" PRIu64 " solidFilledColor:%u",
+                RS_TRACE_NAME_FMT("GetLayerSolidFilledColor layerId:%" PRIu64 " solidFilledColor %u",
                     layer->GetRSLayerId(), solidFilledColor);
                 Drawing::AutoCanvasRestore acr(canvas, true);
                 const auto& dstRect = layer->GetLayerSize();

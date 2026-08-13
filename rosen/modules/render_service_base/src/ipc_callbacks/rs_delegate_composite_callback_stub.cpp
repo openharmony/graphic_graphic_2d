@@ -20,18 +20,18 @@ namespace OHOS {
 namespace Rosen {
 
 #ifndef ROSEN_CROSS_PLATFORM
-static void RsDelegateCompositeCallbackPrintLog(const std::string &log)
+static void RsDelegateCompositeCallbackPrintLog(const std::string& log)
 {
     ROSEN_LOGE("DelegateModeDebugTag:%{public}s:%{public}s", __func__, log.c_str());
     RS_OPTIONAL_TRACE_NAME_FMT("DelegateModeDebugTag:%s:%s", __func__, log.c_str());
 }
 #endif
 
-int32_t RSWebProxyComposerCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &arguments,
-    MessageParcel &reply, MessageOption &option)
+int32_t RSWebProxyComposerCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& arguments,
+    MessageParcel& reply, MessageOption& option)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    RS_OPTIONAL_TRACE_NAME_FMT("RSWebProxyComposerCallbackStub OnRemoteRequest");
+    RS_OPTIONAL_TRACE_NAME("RSWebProxyComposerCallbackStub OnRemoteRequest");
     (void)(option);
     auto remoteDescriptor = arguments.ReadInterfaceToken();
     if (GetDescriptor() != remoteDescriptor) {
@@ -131,7 +131,7 @@ int32_t SurfaceNodeBufferReleaseCallbackStub::OnRemoteRequest(uint32_t code, Mes
                     break;
                 }
                 RS_TRACE_NAME_FMT(
-                    "SurfaceNodeBufferReleaseCallbackStub:nodeId=%llu bufferSeqNum=%u, clientPid=%u",
+                    "SurfaceNodeBufferReleaseCallbackStub:nodeId=%llu queueId=%llu bufferSeqNum=%u, clientPid=%u",
                     onCompletedRet.nodeId, onCompletedRet.queueId,
                     onCompletedRet.bufferSeqNum, onCompletedRet.clientPid);
 #ifdef ROSEN_OHOS
