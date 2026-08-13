@@ -27,6 +27,10 @@ namespace ColorManager {
 napi_status BindFunctions(napi_env env, napi_value object);
 class JsColorSpace final {
 public:
+    static constexpr napi_type_tag NAPI_TYPE_TAG = {
+        .lower = 0x7f3a8c92e4d1b5f6,
+        .upper = 0x2a9e4c1f8b7d30e6
+    };
     explicit JsColorSpace(const std::shared_ptr<ColorSpace>& colorSpace) : colorSpaceToken_(colorSpace) {};
     ~JsColorSpace() {};
     static void Finalizer(napi_env env, void* data, void* hint);

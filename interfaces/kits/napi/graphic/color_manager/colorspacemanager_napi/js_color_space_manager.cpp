@@ -162,7 +162,8 @@ napi_value JsColorSpaceManagerInit(napi_env env, napi_value exportObj)
 
     std::unique_ptr<JsColorSpaceManager> jsColorSpaceManager = std::make_unique<JsColorSpaceManager>();
     NAPI_CALL_DEFAULT(
-        napi_wrap(env, exportObj, jsColorSpaceManager.release(), JsColorSpaceManager::Finalizer, nullptr, nullptr));
+        napi_wrap_s(env, exportObj, jsColorSpaceManager.release(), JsColorSpaceManager::Finalizer, nullptr,
+            &JsColorSpaceManager::NAPI_TYPE_TAG, nullptr));
     auto valueColorSpace = ColorSpaceTypeInit(env);
     auto valueCmError = CMErrorInit(env);
     auto valueCmErrorCode = CMErrorCodeInit(env);

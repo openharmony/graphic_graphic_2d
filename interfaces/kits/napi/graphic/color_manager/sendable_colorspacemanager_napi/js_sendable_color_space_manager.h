@@ -25,6 +25,10 @@ namespace ColorManager {
 napi_value JsSendableColorSpaceManagerInit(napi_env env, napi_value exportObj);
 class JsSendableColorSpaceManager {
 public:
+    static constexpr napi_type_tag NAPI_TYPE_TAG = {
+        .lower = 0x9d1e5a7c3b8f2d40,
+        .upper = 0x6f4c8a2e1d9b7c5a
+    };
     JsSendableColorSpaceManager() {};
     ~JsSendableColorSpaceManager() {};
     static void Finalizer(napi_env env, void* data, void* hint);
