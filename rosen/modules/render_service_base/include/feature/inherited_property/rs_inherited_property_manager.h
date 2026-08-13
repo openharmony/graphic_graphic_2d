@@ -58,6 +58,10 @@ public:
     // Clears all inherited properties of the given node.
     void Clear(NodeId nodeId);
 
+    // Clears the property of the given type on the given node; when the node has no
+    // remaining properties, its entry is removed.
+    void Clear(NodeId nodeId, InheritedPropertyType type);
+
     // Clears inherited properties of all nodes belonging to the given pid.
     void ClearByPid(pid_t pid);
 

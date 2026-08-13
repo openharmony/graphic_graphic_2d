@@ -33,7 +33,7 @@ This framework only provides storage and lifecycle management. Business behavior
 │                    RSInheritedPropertyManager                        │
 │   map<NodeId, map<InheritedPropertyType, shared_ptr<Property>>>      │
 │   - Store(nodeId, property)   - Get(nodeId, type) / GetAs<T>()       │
-│   - Clear(nodeId)             - ClearByPid(pid)                      │
+│   - Clear(nodeId[, type])     - ClearByPid(pid)                      │
 └────────────────────────────┬────────────────────────────────────────┘
                              │ holds
                              ▼
@@ -68,8 +68,10 @@ main thread and pass the copy; do not share the manager across threads.
 
 - **Process exit**: `RSMainThread::CleanResources(pid)` calls
   `ClearInheritedProperties(pid)`, which forwards to `ClearByPid(pid)`.
-- **Node-level cleanup**: `Clear(nodeId)` is invoked by the integrating feature when the
-  node's property is removed; the framework does not hook node destruction itself.
+- **Node-level cleanup**: `Clear(nodeId)` removes all property types of a node, while
+  `Clear(nodeId, type)` removes a single type (the node entry is dropped once its last
+  type is cleared). Both are invoked by the integrating feature when the node removes
+  the property; the framework does not hook node destruction itself.
 
 ## Integration Steps (for a new property type)
 

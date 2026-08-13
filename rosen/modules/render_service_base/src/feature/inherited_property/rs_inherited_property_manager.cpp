@@ -44,6 +44,18 @@ void RSInheritedPropertyManager::Clear(NodeId nodeId)
     properties_.erase(nodeId);
 }
 
+void RSInheritedPropertyManager::Clear(NodeId nodeId, InheritedPropertyType type)
+{
+    auto nodeIt = properties_.find(nodeId);
+    if (nodeIt == properties_.end()) {
+        return;
+    }
+    nodeIt->second.erase(type);
+    if (nodeIt->second.empty()) {
+        properties_.erase(nodeIt);
+    }
+}
+
 void RSInheritedPropertyManager::ClearByPid(pid_t pid)
 {
     for (auto it = properties_.begin(); it != properties_.end();) {

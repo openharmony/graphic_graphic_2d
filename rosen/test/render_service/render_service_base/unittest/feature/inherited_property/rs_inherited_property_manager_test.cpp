@@ -215,6 +215,62 @@ HWTEST_F(RSInheritedPropertyManagerTest, ClearRemovesAllTypesOfNode, TestSize.Le
 }
 
 /**
+ * @tc.name: ClearByNodeIdAndType
+ * @tc.desc: Clear(nodeId, type) removes only the given type of the given node;
+ *           other types of the same node and other nodes are kept.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInheritedPropertyManagerTest, ClearByNodeIdAndType, TestSize.Level1)
+{
+    RSInheritedPropertyManager manager;
+    NodeId nodeId = MakeNodeId(TEST_PID, 1);
+    NodeId nodeIdOther = MakeNodeId(TEST_PID, 2);
+    manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
+    manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE_OTHER));
+    manager.Store(nodeIdOther, std::make_shared<TestProperty>(TEST_TYPE));
+
+    manager.Clear(nodeId, TEST_TYPE);
+
+    EXPECT_EQ(manager.Get(nodeId, TEST_TYPE), nullptr);
+    EXPECT_NE(manager.Get(nodeId, TEST_TYPE_OTHER), nullptr);
+    EXPECT_NE(manager.Get(nodeIdOther, TEST_TYPE), nullptr);
+}
+
+/**
+ * @tc.name: ClearLastTypeRemovesNode
+ * @tc.desc: Clear(nodeId, type) on the last remaining type removes the node entirely.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInheritedPropertyManagerTest, ClearLastTypeRemovesNode, TestSize.Level1)
+{
+    RSInheritedPropertyManager manager;
+    NodeId nodeId = MakeNodeId(TEST_PID, 1);
+    manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
+
+    manager.Clear(nodeId, TEST_TYPE);
+
+    EXPECT_EQ(manager.Get(nodeId, TEST_TYPE), nullptr);
+}
+
+/**
+ * @tc.name: ClearByNodeIdAndTypeOnMissing
+ * @tc.desc: Clear(nodeId, type) on an absent node or absent type is safe and
+ *           keeps the remaining types untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInheritedPropertyManagerTest, ClearByNodeIdAndTypeOnMissing, TestSize.Level1)
+{
+    RSInheritedPropertyManager manager;
+    NodeId nodeId = MakeNodeId(TEST_PID, 1);
+    manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
+
+    manager.Clear(MakeNodeId(TEST_PID_OTHER, 1), TEST_TYPE);
+    manager.Clear(nodeId, TEST_TYPE_OTHER);
+
+    EXPECT_NE(manager.Get(nodeId, TEST_TYPE), nullptr);
+}
+
+/**
  * @tc.name: ClearByPid
  * @tc.desc: ClearByPid removes properties of all nodes of the given pid only.
  * @tc.type: FUNC
