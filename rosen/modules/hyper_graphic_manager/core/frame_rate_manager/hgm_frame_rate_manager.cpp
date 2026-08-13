@@ -1042,7 +1042,7 @@ void HgmFrameRateManager::HandleScreenStrategyFallback(const std::shared_ptr<Pol
                 iter != configData->screenStrategyConfigs_.end()) {
                 curScreenStrategyId_ = iter->second;
             } else {
-                HGM_LOGE("get screenStrategyId fail");
+                HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
                 curScreenStrategyId_ = "LTPS-DEFAULT";
             }
         }
