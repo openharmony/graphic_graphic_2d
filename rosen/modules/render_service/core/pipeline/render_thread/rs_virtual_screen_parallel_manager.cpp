@@ -60,6 +60,9 @@ RSVirtualScreenParallelManager::ScreenDrawableInfo RSVirtualScreenParallelManage
     if (!drawable) {
         return info;
     }
+    if (drawable->GetDrawableType() != RSRenderNodeDrawableType::SCREEN_NODE_DRAWABLE) {
+        return info;
+    }
     info.drawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
     if (!info.drawable) {
         return info;
@@ -141,7 +144,7 @@ void RSVirtualScreenParallelManager::ExecuteAllVirtualScreenRenderTasks(
                 tid = it->second;
             } else {
                 RS_LOGE("%{public}s not find tid for screen id: %{public}" PRIu64, __func__, info.screenId);
-                DecrementPendingTaskCount(info.screenId);
+                DecrementPendingTaskCountLocked(info.screenId);
                 continue;
             }
         }
@@ -270,9 +273,8 @@ void RSVirtualScreenParallelManager::IncrementPendingTaskCount(size_t nodeCount)
     pendingTaskCount_ += nodeCount;
 }
 
-void RSVirtualScreenParallelManager::DecrementPendingTaskCount(ScreenId screenId)
+void RSVirtualScreenParallelManager::DecrementPendingTaskCountLocked(ScreenId screenId)
 {
-    std::unique_lock<ffrt::mutex> lock(taskMutex_);
     if (pendingTaskCount_ > 0) {
         pendingTaskCount_--;
     }
@@ -289,6 +291,12 @@ void RSVirtualScreenParallelManager::DecrementPendingTaskCount(ScreenId screenId
         RS_TRACE_NAME_FMT("%s notify finish", __func__);
         taskCondition_.notify_all();
     }
+}
+
+void RSVirtualScreenParallelManager::DecrementPendingTaskCount(ScreenId screenId)
+{
+    std::unique_lock<ffrt::mutex> lock(taskMutex_);
+    DecrementPendingTaskCountLocked(screenId);
 }
 
 bool RSVirtualScreenParallelManager::GetRenderEngineByTid(int32_t tid,

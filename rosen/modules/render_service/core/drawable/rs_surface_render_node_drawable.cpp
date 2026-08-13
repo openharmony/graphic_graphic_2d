@@ -1756,12 +1756,8 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(
     uint32_t threadId = canvas.GetParallelThreadId();
     auto params = RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(*this, surfaceParams,
         static_cast<uint32_t>(threadId));
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
-    auto bRet = virtualScreenParallelManager->GetRenderEngineByTid(
-        -canvas.GetParallelThreadIdx(), renderEngine);
-    if (!bRet) {
-        renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    }
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    virtualScreenParallelManager->GetRenderEngineByTid(-canvas.GetParallelThreadIdx(), renderEngine);
     renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
     canvas.Restore();
 }

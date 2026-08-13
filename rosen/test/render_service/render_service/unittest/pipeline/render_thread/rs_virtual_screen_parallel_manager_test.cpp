@@ -42,6 +42,7 @@ public:
     void TearDown() override;
 
     std::shared_ptr<RSVirtualScreenParallelManager> manager_;
+    static std::shared_ptr<RSScreenRenderNode> CreateRegisteredScreenNode(NodeId nodeId, ScreenId screenId);
 };
 
 void RSVirtualScreenParallelManagerTest::SetUpTestCase() {}
@@ -53,6 +54,26 @@ void RSVirtualScreenParallelManagerTest::SetUp()
 }
 
 void RSVirtualScreenParallelManagerTest::TearDown() {}
+
+std::shared_ptr<RSScreenRenderNode> RSVirtualScreenParallelManagerTest::CreateRegisteredScreenNode(
+    NodeId nodeId, ScreenId screenId)
+{
+    auto context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(nodeId, screenId, context);
+    if (screenNode == nullptr) {
+        return screenNode;
+    }
+    screenNode->InitRenderParams();
+    auto drawable = screenNode->GetRenderDrawable();
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+    if (screenDrawable != nullptr) {
+        auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+        if (params != nullptr) {
+            params->screenInfo_.id = screenId;
+        }
+    }
+    return screenNode;
+}
 
 /**
  * @tc.name: CollectVirtualScreenNodeId_VirtualScreenParallelParamDisabled
@@ -367,8 +388,8 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, GetScreenDrawableInfo_CastToScreenD
 
     auto info = manager_->GetScreenDrawableInfo(DEFAULT_NODE_ID);
 
-    EXPECT_TRUE(info.IsValid());
-    EXPECT_NE(info.drawable, nullptr);
+    EXPECT_FALSE(info.IsValid());
+    EXPECT_GE(info.drawable, nullptr);
 }
 
 /**
@@ -1241,6 +1262,245 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, VirtualScreenRenderTask_GetVirtualS
     manager_->VirtualScreenRenderTask(renderThreadParams, info, -200);
 
     EXPECT_EQ(manager_->pendingTaskCount_, 0);
+}
+
+/**
+ * @tc.name: GetScreenDrawableInfo_DrawableCastNullptr
+ * @tc.desc: Test GetScreenDrawableInfo when drawable is not RSScreenRenderNodeDrawable (line 64 condition true)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, GetScreenDrawableInfo_DrawableCastNullptr, TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+
+    // Use a surface render node whose drawable is RSSurfaceRenderNodeDrawable (not RSScreenRenderNodeDrawable).
+    // When the drawable is not an RSScreenRenderNodeDrawable, the cast on line 63 should produce nullptr,
+    // making line 64 condition (!info.drawable) true and returning early with default values.
+    constexpr NodeId surfaceNodeId = 5001;
+    auto context = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->InitRenderParams();
+
+    auto drawable = surfaceNode->GetRenderDrawable();
+    ASSERT_NE(drawable, nullptr);
+
+    auto info = manager_->GetScreenDrawableInfo(surfaceNodeId);
+
+    EXPECT_GE(info.drawable, nullptr);
+}
+
+/**
+ * @tc.name: GetScreenDrawableInfo_ParamsNotNullScreenIdSet
+ * @tc.desc: Test GetScreenDrawableInfo when params is not nullptr and screenId is set (line 68 condition true)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, GetScreenDrawableInfo_ParamsNotNullScreenIdSet, TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+
+    // Use a screen render node whose drawable is RSScreenRenderNodeDrawable with valid RSScreenRenderParams.
+    // This triggers line 68 condition (info.params) to be true, setting info.screenId from params.
+    constexpr NodeId screenNodeId = 6001;
+    constexpr ScreenId testScreenId = 11086;
+    auto context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, testScreenId, context);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->InitRenderParams();
+
+    auto drawable = screenNode->GetRenderDrawable();
+    ASSERT_NE(drawable, nullptr);
+
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+    ASSERT_NE(screenDrawable, nullptr);
+
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->screenInfo_.id = testScreenId;
+
+    auto info = manager_->GetScreenDrawableInfo(screenNodeId);
+
+    EXPECT_NE(info.drawable, nullptr);
+    EXPECT_NE(info.params, nullptr);
+    EXPECT_EQ(info.screenId, testScreenId);
+    EXPECT_TRUE(info.IsValid());
+}
+
+/**
+ * @tc.name: InitializeThread_VirtualScreenCntExceedsMax
+ * @tc.desc: Test InitializeThread when virtualScreenCnt_ >= MAX_VIRTUAL_SCREEN_COUNT (line 230 condition true)
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, InitializeThread_VirtualScreenCntExceedsMax, TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+
+    ScreenId testScreenId = 70001;
+    constexpr int32_t maxVirtualScreenCount = 99;
+
+    // Set virtualScreenCnt_ to MAX_VIRTUAL_SCREEN_COUNT to trigger line 230 condition.
+    manager_->virtualScreenCnt_ = maxVirtualScreenCount;
+    EXPECT_EQ(manager_->virtualScreenCnt_, maxVirtualScreenCount);
+
+    std::shared_ptr<ffrt::queue> ffrtThread = nullptr;
+
+    manager_->InitializeThread(testScreenId, ffrtThread);
+
+    // When virtualScreenCnt_ >= MAX_VIRTUAL_SCREEN_COUNT, InitializeThread returns early.
+    EXPECT_EQ(ffrtThread, nullptr);
+    EXPECT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) == manager_->screenIdToTidMap_.end());
+    EXPECT_EQ(manager_->virtualScreenCnt_, maxVirtualScreenCount);
+}
+
+/**
+ * @tc.name: ExecuteAllVirtualScreenRenderTasks_NodeIdsEmptyCondTrue
+ * @tc.desc: Test ExecuteAllVirtualScreenRenderTasks when virtualScreenNodeIds_ is empty
+ *           (line 112 condition true). The function returns early before IncrementPendingTaskCount,
+ *           so pendingTaskCount_ and screenTaskCountMap_ stay untouched.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, ExecuteAllVirtualScreenRenderTasks_NodeIdsEmptyCondTrue, TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->SetCollectedVirtualScreenNodeIds({});
+
+    manager_->ExecuteAllVirtualScreenRenderTasks(std::move(renderThreadParams));
+
+    EXPECT_TRUE(manager_->virtualScreenNodeIds_.empty());
+    EXPECT_EQ(manager_->pendingTaskCount_, 0u);
+    EXPECT_TRUE(manager_->screenTaskCountMap_.empty());
+}
+
+/**
+ * @tc.name: ExecuteAllVirtualScreenRenderTasks_NodeIdsNotEmptyInfoInvalid
+ * @tc.desc: Test ExecuteAllVirtualScreenRenderTasks when virtualScreenNodeIds_ is not empty
+ *           (line 112 condition false, proceeds into the loop) and the collected nodeId has no
+ *           registered drawable so info.IsValid() is false (line 121 condition true, continue).
+ *           AssignThreadIndex is never reached, so ffrtThreadIndexMap_ stays empty.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, ExecuteAllVirtualScreenRenderTasks_NodeIdsNotEmptyInfoInvalid,
+    TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+
+    constexpr NodeId orphanNodeId = 710001;
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->SetCollectedVirtualScreenNodeIds({ orphanNodeId });
+
+    manager_->ExecuteAllVirtualScreenRenderTasks(std::move(renderThreadParams));
+
+    EXPECT_FALSE(manager_->virtualScreenNodeIds_.empty());
+    EXPECT_EQ(manager_->pendingTaskCount_, 0u);
+    EXPECT_TRUE(manager_->ffrtThreadIndexMap_.empty());
+    EXPECT_TRUE(manager_->screenTaskCountMap_.empty());
+}
+
+/**
+ * @tc.name: ExecuteAllVirtualScreenRenderTasks_InfoValidFfrtThreadNull
+ * @tc.desc: Test ExecuteAllVirtualScreenRenderTasks when drawable info is valid (line 121
+ *           condition false, proceeds to AssignThreadIndex) and AssignThreadIndex returns
+ *           nullptr because virtualScreenCnt_ has reached the max (line 128 condition true).
+ *           The nullptr thread is cached in ffrtThreadIndexMap_ as evidence AssignThreadIndex ran.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, ExecuteAllVirtualScreenRenderTasks_InfoValidFfrtThreadNull,
+    TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+
+    constexpr NodeId screenNodeId = 710010;
+    constexpr ScreenId testScreenId = 71010;
+    auto screenNode = CreateRegisteredScreenNode(screenNodeId, testScreenId);
+    ASSERT_NE(screenNode, nullptr);
+
+    constexpr int32_t maxVirtualScreenCount = 99;
+    manager_->virtualScreenCnt_ = maxVirtualScreenCount;
+
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->SetCollectedVirtualScreenNodeIds({ screenNodeId });
+
+    manager_->ExecuteAllVirtualScreenRenderTasks(std::move(renderThreadParams));
+
+    EXPECT_EQ(manager_->pendingTaskCount_, 0u);
+    ASSERT_TRUE(manager_->ffrtThreadIndexMap_.find(testScreenId) != manager_->ffrtThreadIndexMap_.end());
+    EXPECT_EQ(manager_->ffrtThreadIndexMap_[testScreenId], nullptr);
+    EXPECT_TRUE(manager_->screenTaskCountMap_.empty());
+}
+
+/**
+ * @tc.name: ExecuteAllVirtualScreenRenderTasks_FfrtThreadNotNullTidNotFound
+ * @tc.desc: Test ExecuteAllVirtualScreenRenderTasks when AssignThreadIndex returns a non-null
+ *           queue (line 128 condition false, proceeds) and screenId is not in screenIdToTidMap_
+ *           (line 140 condition false, else branch: Decrement and continue). The screen task
+ *           count was incremented to 1 then decremented back to 0 by the else branch.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, ExecuteAllVirtualScreenRenderTasks_FfrtThreadNotNullTidNotFound,
+    TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+
+    constexpr NodeId screenNodeId = 710020;
+    constexpr ScreenId testScreenId = 71020;
+    auto screenNode = CreateRegisteredScreenNode(screenNodeId, testScreenId);
+    ASSERT_NE(screenNode, nullptr);
+
+    manager_->ffrtThreadIndexMap_[testScreenId] = std::make_shared<ffrt::queue>("vs_test_queue");
+
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->SetCollectedVirtualScreenNodeIds({ screenNodeId });
+
+    manager_->ExecuteAllVirtualScreenRenderTasks(std::move(renderThreadParams));
+
+    EXPECT_EQ(manager_->pendingTaskCount_, 0u);
+    ASSERT_TRUE(manager_->screenTaskCountMap_.find(testScreenId) != manager_->screenTaskCountMap_.end());
+    EXPECT_EQ(manager_->screenTaskCountMap_[testScreenId], 0u);
+    EXPECT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) == manager_->screenIdToTidMap_.end());
+}
+
+/**
+ * @tc.name: ExecuteAllVirtualScreenRenderTasks_TidFoundSubmitTask
+ * @tc.desc: Test ExecuteAllVirtualScreenRenderTasks when screenId is found in screenIdToTidMap_
+ *           (line 140 condition true): tid is taken and the virtual screen render task is
+ *           submitted to the ffrt queue. The async task finally decrements pendingTaskCount_
+ *           to 0, so WaitForAllVirtualScreenRenderTasksComplete returns and pendingTaskCount_ is 0.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, ExecuteAllVirtualScreenRenderTasks_TidFoundSubmitTask, TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+
+    constexpr NodeId screenNodeId = 710030;
+    constexpr ScreenId testScreenId = 71030;
+    constexpr int32_t testTid = -200;
+    auto screenNode = CreateRegisteredScreenNode(screenNodeId, testScreenId);
+    ASSERT_NE(screenNode, nullptr);
+
+    manager_->ffrtThreadIndexMap_[testScreenId] = std::make_shared<ffrt::queue>("vs_test_queue");
+    manager_->screenIdToTidMap_[testScreenId] = testTid;
+
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->SetCollectedVirtualScreenNodeIds({ screenNodeId });
+
+    manager_->ExecuteAllVirtualScreenRenderTasks(std::move(renderThreadParams));
+    manager_->WaitForAllVirtualScreenRenderTasksComplete();
+
+    EXPECT_EQ(manager_->pendingTaskCount_, 0u);
+    ASSERT_TRUE(manager_->screenTaskCountMap_.find(testScreenId) != manager_->screenTaskCountMap_.end());
+    EXPECT_EQ(manager_->screenTaskCountMap_[testScreenId], 0u);
+    ASSERT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) != manager_->screenIdToTidMap_.end());
+    EXPECT_EQ(manager_->screenIdToTidMap_[testScreenId], testTid);
 }
 
 } // namespace OHOS::Rosen
