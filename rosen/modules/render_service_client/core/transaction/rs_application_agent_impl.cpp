@@ -27,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 #ifdef OHOS_PLATFORM
 static sptr<RSApplicationAgentImpl> gRSApplicationAgentImplInstance;
+constexpr int32_t TOKEN_STRONG_REF_COUNT = 1;
 #endif
 RSApplicationAgentImpl::~RSApplicationAgentImpl()
 {
