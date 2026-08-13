@@ -394,7 +394,9 @@ static void WaitFence(const sptr<SyncFence>& srcAcquireFence, int32_t releaseFen
     RS_OFFLINE_LOGD("start to wait fence.");
     sptr<SyncFence> dstReleaseFence = sptr<SyncFence>::MakeSptr(releaseFenceFd);
     dstReleaseFence->Wait(WAIT_FENCE_TIMEOUT_MS);
-    srcAcquireFence->Wait(WAIT_FENCE_TIMEOUT_MS);
+    if (srcAcquireFence != nullptr) {
+        srcAcquireFence->Wait(WAIT_FENCE_TIMEOUT_MS);
+    }
     RS_OFFLINE_LOGD("wait fence done.");
 }
 
@@ -567,7 +569,11 @@ bool RSHpaeOfflineDevice::PostProcessOfflineTask(
 bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineContext>& context,
     RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId)
 {
-    if (context->IsSkipDraw()) {
+    if (surfaceParams == nullptr) {
+        RS_OFFLINE_LOGW("surfaceParams is nullptr.");
+        return false;
+    }
+    if (context->isSkipDraw()) {
         return SetResultWhenSkipDraw(context, surfaceParams, taskId);
     }
     // while posting offline task in rt thread, there is prevalidate to avoid piling up, post directly
