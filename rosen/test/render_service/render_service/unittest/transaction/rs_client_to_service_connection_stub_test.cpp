@@ -6793,7 +6793,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetDisplayEngineControlStubTest, T
     data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_NONE);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen
 #endif
