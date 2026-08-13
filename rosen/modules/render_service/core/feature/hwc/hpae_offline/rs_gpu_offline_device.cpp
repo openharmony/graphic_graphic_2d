@@ -583,7 +583,7 @@ BufferDrawParam RSGPUOfflineDevice::CreateBufferDrawParam(const GPUOfflineSubThr
     params.sdrNits = taskContext.drawParams.sdrNit;
     params.tmoNits = taskContext.drawParams.displayNit;
     float clampedRatio = std::max(taskContext.drawParams.brightnessRatio, BRIGHTNESS_RATIO_EPSILON);
- 	params.displayNits = params.tmoNits / std::pow(clampedRatio, 2.2f);
+    params.displayNits = params.tmoNits / std::pow(clampedRatio, 2.2f);
     params.layerLinearMatrix = taskContext.drawParams.layerLinearMatrix;
     params.isHdrRedraw = true;
 #endif
