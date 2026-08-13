@@ -418,13 +418,14 @@ public:
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
         CaptureError captureErrorCode = CaptureError::CAPTURE_OK, Media::PixelMap* pixelmapHDR = nullptr) override
     {
+        // Take ownership before any early return so the pixelmaps are always released.
+        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
+        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
         auto client = client_.lock();
         if (!client) {
             ROSEN_LOGE("SurfaceCaptureCallbackDirector::OnSurfaceCapture: client has been destroyed");
             return;
         }
-        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
-        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
         client->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, captureErrorCode, surfaceCaptureHDR);
     };
 
