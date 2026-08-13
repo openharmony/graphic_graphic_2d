@@ -19,6 +19,8 @@
 #include "display_engine/rs_vpe_manager.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include "xperf_service_client.h"
+#include "xperf_service_action_type.h"
 
 using namespace OHOS::Media::VideoProcessingEngine;
 
@@ -181,6 +183,19 @@ bool RSVpeManager::IsConfigNameSkipped(const std::string& name)
     return name == "RosenWeb" || name == "delegate_child" || name == "delegate_child_video";
 }
 
+void RSVpeManager::NotifyToXperf(const sptr<Surface>& surface, const sptr<Surface>& vpeSurface) const
+{
+    if (surface == nullptr || vpeSurface == nullptr || surface->GetUniqueId() == vpeSurface->GetUniqueId()) {
+        return;
+    }
+    HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(
+        HiviewDFX::DomainId::APP, HiviewDFX::AppEventCode::VPE_SURFACE_MAP,
+        "#ORIG_UNIQUE_ID:" + std::to_string(surface->GetUniqueId()) +
+        "#ORIG_SURFACE_NAME:" + surface->GetName() +
+        "#VPE_UNIQUE_ID:" + std::to_string(vpeSurface->GetUniqueId()) +
+        "#VPE_SURFACE_NAME:" + vpeSurface->GetName());
+}
+
 sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, const RSSurfaceRenderNodeConfig& config)
 {
     RS_TRACE_NAME_FMT("RSVpeManager::Create name: %s nodeId:%" PRIu64, config.name.c_str(), config.id);
@@ -198,7 +213,6 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
     if (!VpeVideo::IsSupported()) {
         return surface;
     }
-    sptr<Surface> vpeSurface = surface;
     std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER,
         VIDEO_TYPE_AI3D_ENHANCER };
     uint32_t supportType = 0;
@@ -207,7 +221,12 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
             supportType |= type;
         }
     }
-    return supportType == 0 ? surface : GetVpeVideoSurface(supportType, surface, config);
+        if (supportType == 0) {
+        return surface;
+    }
+    auto vpeSurface = GetVpeVideoSurface(supportType, surface, config);
+    NotifyToXperf(surface, vpeSurface);
+    return vpeSurface;
 }
 } // namespace Rosen
 } // namespace OHOS
