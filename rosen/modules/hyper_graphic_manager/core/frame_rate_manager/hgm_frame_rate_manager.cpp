@@ -1033,11 +1033,13 @@ void HgmFrameRateManager::HandleScreenStrategyFallback(const std::shared_ptr<Pol
     if (screenConfigsIter == configData->screenConfigs_.end()) {
         std::string curScreenName = "screen" + std::to_string(
             curScreenId_.load()) + "_" + (!isLtpo_.load() ? "LTPO" : "LTPS");
+        HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
         if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
             iter != configData->screenStrategyConfigs_.end()) {
             curScreenStrategyId_ = iter->second;
         } else {
             curScreenName = "screen" + std::to_string(curScreenId_.load()) + "_" + (isLtpo_.load() ? "LTPO" : "LTPS");
+            HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
             if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
                 iter != configData->screenStrategyConfigs_.end()) {
                 curScreenStrategyId_ = iter->second;
