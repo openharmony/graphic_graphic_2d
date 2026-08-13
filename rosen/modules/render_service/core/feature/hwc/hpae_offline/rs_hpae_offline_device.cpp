@@ -569,7 +569,7 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
     RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId)
 {
     if (surfaceParams == nullptr) {
-        RS_OFFLINE_LOGW("surfaceParams is nullptr.");
+        RS_OFFLINE_LOGW("surfaceParams is nullptr");
         return false;
     }
     if (context->IsSkipDraw()) {
