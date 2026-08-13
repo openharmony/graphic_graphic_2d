@@ -572,7 +572,7 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
         RS_OFFLINE_LOGW("surfaceParams is nullptr.");
         return false;
     }
-    if (context->isSkipDraw()) {
+    if (context->IsSkipDraw()) {
         return SetResultWhenSkipDraw(context, surfaceParams, taskId);
     }
     // while posting offline task in rt thread, there is prevalidate to avoid piling up, post directly
