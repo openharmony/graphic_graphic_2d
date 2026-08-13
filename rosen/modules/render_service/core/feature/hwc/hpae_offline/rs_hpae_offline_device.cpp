@@ -112,6 +112,7 @@ void RSHpaeOfflineDevice::LoadPreProcessHandle()
     if ((initFunc == nullptr) || (initFunc() != 0)) {
         RS_OFFLINE_LOGW("prevalidate init failed");
         dlclose(preProcessHandle_);
+        preProcessHandle_ = nullptr;
         return;
     }
 
@@ -317,8 +318,13 @@ bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params, 
         return false;
     }
     auto srcSurfaceBuffer = params.GetBuffer();
+    BufferHandle* srcHandle = srcSurfaceBuffer->GetBufferHandle();
+ 	if (!srcHandle) {
+ 	    RS_OFFLINE_LOGW("Source buffer handle is not available.");
+ 	    return false;
+ 	}
     inputInfo.id = params.GetId();
-    inputInfo.srcHandle = srcSurfaceBuffer->GetBufferHandle();
+    inputInfo.srcHandle = srcHandle;
     inputInfo.dstHandle = dstHandle;
     auto src = params.GetLayerInfo().srcRect;
     if (taskData.contextType == OfflineContextType::AI2020) {

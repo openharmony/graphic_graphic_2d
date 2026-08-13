@@ -37,6 +37,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t MAX_NUM_INVALID_FRAME = 10;
+constexpr float BRIGHTNESS_RATIO_EPSILON = 1e-6;
 }
 using namespace HDI::Display::Graphic::Common::V1_0;
 
@@ -103,7 +104,7 @@ bool RSGPUOfflineDevice::PostProcessOfflineTask(
     // while doing direct composition, there is no IsRSHpaeOfflineProcessorReady to update context
     if (!UpdateContext(surfaceNode, offlineContext)) {
         RS_LOGI("RSGPUOfflineDevice::UpdateContext failed");
-        return false;
+        return false; 
     }
     auto* params = surfaceNode->GetStagingRenderParams().get();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params);
@@ -256,6 +257,7 @@ void RSGPUOfflineDevice::TryRemoveContext(NodeId nodeId)
 
 bool RSGPUOfflineDevice::CanDeleteDevice()
 {
+    std::unique_lock<std::mutex> tryLock(cacheMutex_);
     return offlineContextCache_.empty();
 }
 
@@ -416,7 +418,7 @@ void RSGPUOfflineDevice::SetGpuOfflineEnable(RSScreenRenderNode& node,
     std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
     if (!RSOfflineProcessor::GetOfflineProcessor().IsRSOfflineProcessorReady(
-        surfaceNode, OfflineDeviceType::GPU_OFFLINE_DEVICE)) {
+            surfaceNode, OfflineDeviceType::GPU_OFFLINE_DEVICE)) {
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by GPU offline not ready ",
             surfaceNode->GetName().c_str(), surfaceNode->GetId());
         surfaceNode->SetHardwareForcedDisabledState(true);
@@ -538,15 +540,11 @@ bool RSGPUOfflineDevice::DrawHDRImage(RSSurfaceRenderParams& surfaceParams,
     auto engine = offlineThread_.GetRenderEngine();
     auto renderFrame = offlineBuffer->RequestFrame(engine, bufferConfig, false, taskContext.drawParams.switchType);
     if (renderFrame == nullptr) {
-        RS_LOGW("RSGPUOfflineDevice::RequestFrame failed, force redraw next frame");
+        RS_LOGW("RSGPUOfflineDevice::GPU offline RequestFrame failed, force redraw next frame");
         return false;
     }
 
     auto canvas = renderFrame->GetCanvas();
-    if (canvas == nullptr) {
-        RS_LOGW("RSGPUOfflineDevice::GPU offline GetCanvas failed, force redraw next frame");
-        return false;
-    }
     canvas->Save();
     canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     canvas->SetHdrOn(taskContext.drawParams.hdrPresent);
@@ -584,7 +582,8 @@ BufferDrawParam RSGPUOfflineDevice::CreateBufferDrawParam(const GPUOfflineSubThr
     params.targetColorGamut = taskContext.drawParams.targetColorGamut;
     params.sdrNits = taskContext.drawParams.sdrNit;
     params.tmoNits = taskContext.drawParams.displayNit;
-    params.displayNits = params.tmoNits / std::pow(taskContext.drawParams.brightnessRatio, 2.2f);
+    float clampedRatio = std::max(taskContext.drawParams.brightnessRatio, BRIGHTNESS_RATIO_EPSILON)
+ 	params.displayNits = params.tmoNits / std::pow(clampedRatio, 2.2f);
     params.layerLinearMatrix = taskContext.drawParams.layerLinearMatrix;
     params.isHdrRedraw = true;
 #endif
