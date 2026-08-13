@@ -533,8 +533,8 @@ bool RSGPUOfflineDevice::DrawHDRImage(RSSurfaceRenderParams& surfaceParams,
     BufferRequestConfig bufferConfig = GetGPUBufferConfig(taskContext);
     auto engine = offlineThread_.GetRenderEngine();
     auto renderFrame = offlineBuffer->RequestFrame(engine, bufferConfig, false, taskContext.drawParams.switchType);
-    if (renderFrame == nullptr) {
-        RS_LOGW("RSGPUOfflineDevice::GPU offline RequestFrame failed, force redraw next frame");
+    if (renderFrame == nullptr || renderFrame->GetCanvas() == nullptr) {
+        RS_LOGW("RSGPUOfflineDevice::RequestFrame failed, force redraw next frame");
         return false;
     }
 
