@@ -2688,6 +2688,14 @@ HWTEST_F(RSScreenTest, PhysicalScreenInit, testing::ext::TestSize.Level1)
     ASSERT_NE(nullptr, rsScreen);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
     EXPECT_NE(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
+
+    id = 0;
+    MultiScreenParam::SetSkipFrameByActiveRefreshRate(true);
+    EXPECT_TRUE(MultiScreenParam::IsSkipFrameByActiveRefreshRate());
+    rsScreen = std::make_shared<RSScreen>(id);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL);
+    EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
 }
 
 /*
