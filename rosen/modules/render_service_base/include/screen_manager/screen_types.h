@@ -170,6 +170,7 @@ typedef enum : uint32_t {
     IMAGE_HDR_VIVID_SINGLE,
     IMAGE_HDR_ISO_DUAL,
     IMAGE_HDR_ISO_SINGLE,
+    VIDEO_AIHDR,
 } ScreenHDRFormat;
 
 typedef enum : uint32_t {
