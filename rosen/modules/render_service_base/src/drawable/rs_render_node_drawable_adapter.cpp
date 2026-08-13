@@ -700,15 +700,21 @@ void RSRenderNodeDrawableAdapter::AlignRectToDevicePixels(const Drawing::Matrix&
     inverseMatrix.MapRect(rect, deviceRect);
 }
 
+bool RSRenderNodeDrawableAdapter::NeedClearResource()
+{
+    return needClearResource_.load();
+}
+
 void RSRenderNodeDrawableAdapter::ClearResource()
 {
-    if (toClearDrawableVec_.empty() && toClearCmdListVec_.empty()) {
+    if (!NeedClearResource()) {
         return;
     }
     RS_TRACE_NAME_FMT("ClearResource count drawable %d, cmdList %d",
         toClearDrawableVec_.size(), toClearCmdListVec_.size());
     toClearDrawableVec_.clear();
     toClearCmdListVec_.clear();
+    needClearResource_.store(false);
 }
 
 void RSRenderNodeDrawableAdapter::AddToClearDrawables(DrawableVec &vec)
@@ -717,6 +723,7 @@ void RSRenderNodeDrawableAdapter::AddToClearDrawables(DrawableVec &vec)
         toClearDrawableVec_.push_back(drawable);
     }
     vec.clear();
+    needClearResource_.store(needClearResource_.load() || !toClearDrawableVec_.empty());
 }
 
 void RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
@@ -725,6 +732,7 @@ void RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
         toClearCmdListVec_.push_back(cmdList);
     }
     vec.clear();
+    needClearResource_.store(needClearResource_.load() || !toClearCmdListVec_.empty());
     if (toClearCmdListVec_.size() >= CMD_LIST_COUNT_WARNING_LIMIT) {
         ROSEN_LOGW("%{public}s, cmdList count(%{public}zu) out of limit", __func__, toClearCmdListVec_.size());
     }
