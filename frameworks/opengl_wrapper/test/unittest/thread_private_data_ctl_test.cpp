@@ -41,7 +41,6 @@ HWTEST_F(ThreadPrivateDataCtlTest, GetError001, Level1)
 
     auto result = threadPrivateDataCtl.GetError();
     ASSERT_EQ(EGL_SUCCESS, result);
-    threadPrivateDataCtl.~ThreadPrivateDataCtl();
 }
 
 /**
@@ -56,7 +55,6 @@ HWTEST_F(ThreadPrivateDataCtlTest, GetError002, Level2)
 
     auto result = threadPrivateDataCtl.GetError();
     ASSERT_NE(EGL_SUCCESS, result);
-    threadPrivateDataCtl.~ThreadPrivateDataCtl();
 }
 
 /**
@@ -70,7 +68,6 @@ HWTEST_F(ThreadPrivateDataCtlTest, GetContext001, Level1)
     EGLContext ctx = nullptr;
     threadPrivateDataCtl.SetContext(ctx);
     ASSERT_EQ(ctx, threadPrivateDataCtl.GetContext());
-    threadPrivateDataCtl.~ThreadPrivateDataCtl();
 }
 
 /**
@@ -83,7 +80,6 @@ HWTEST_F(ThreadPrivateDataCtlTest, GetContext002, Level2)
     ThreadPrivateDataCtl threadPrivateDataCtl;
     threadPrivateDataCtl.SetError(0);
     ASSERT_EQ(EGL_NO_CONTEXT, threadPrivateDataCtl.GetContext());
-    threadPrivateDataCtl.~ThreadPrivateDataCtl();
 }
 
 /**
@@ -97,7 +93,6 @@ HWTEST_F(ThreadPrivateDataCtlTest, GetGlHookTable001, Level1)
     GlHookTable *table = nullptr;
     threadPrivateDataCtl.SetGlHookTable(table);
     ASSERT_EQ(table, threadPrivateDataCtl.GetGlHookTable());
-    threadPrivateDataCtl.~ThreadPrivateDataCtl();
 }
 
 /**
@@ -110,6 +105,5 @@ HWTEST_F(ThreadPrivateDataCtlTest, GetGlHookTable002, Level2)
     ThreadPrivateDataCtl threadPrivateDataCtl;
     threadPrivateDataCtl.SetError(0);
     ASSERT_EQ(nullptr, threadPrivateDataCtl.GetGlHookTable());
-    threadPrivateDataCtl.~ThreadPrivateDataCtl();
 }
 } // OHOS::Rosen
