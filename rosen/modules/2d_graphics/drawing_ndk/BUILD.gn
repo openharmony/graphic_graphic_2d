@@ -153,7 +153,7 @@ template("drawing_ndk_source_set") {
         "$rosen_text_root/adapter",
         "$rosen_text_root/interface/export",
       ]
-      external_deps += [ "bounds_checking_function:libsec_static" ]
+      external_deps += [ "bounds_checking_function:libsec_shared" ]
     } else {
       include_dirs += [
         "$ace_napi_frameworks/frameworks",
@@ -169,7 +169,7 @@ template("drawing_ndk_source_set") {
       public_deps += ["$graphic_2d_root/utils/color_manager/ndk:libnative_color_space_manager"]
       defines += [ "OHOS_PLATFORM" ]
       external_deps += [
-        "bounds_checking_function:libsec_static",
+        "bounds_checking_function:libsec_shared",
         "hilog:libhilog",
         "icu:shared_icuuc",
         "image_framework:image_native",
@@ -187,7 +187,7 @@ template("drawing_ndk_source_set") {
         deps += [ "$rosen_root/modules/platform:hilog" ]
       }
 
-      external_deps += [ "bounds_checking_function:libsec_static" ]
+      external_deps += [ "bounds_checking_function:libsec_shared" ]
       defines += [ "MODULE_DRAWING" ]
     }
     if (enable_text_gine) {

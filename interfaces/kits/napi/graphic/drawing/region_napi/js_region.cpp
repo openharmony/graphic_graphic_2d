@@ -542,7 +542,7 @@ napi_value JsRegion::CreateJsRegionDynamic(napi_env env, const std::shared_ptr<R
         return nullptr;
     }
     JsRegion* jsRegion = new JsRegion(region);
-    status = napi_wrap(env, objValue, jsRegion, JsRegion::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, objValue, jsRegion, JsRegion::Destructor, nullptr, &REGION_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsRegion;
         ROSEN_LOGE("JsRegion::CreateJsRegionDynamic failed to wrap native instance");
