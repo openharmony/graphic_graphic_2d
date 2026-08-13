@@ -104,7 +104,7 @@ bool RSGPUOfflineDevice::PostProcessOfflineTask(
     // while doing direct composition, there is no IsRSHpaeOfflineProcessorReady to update context
     if (!UpdateContext(surfaceNode, offlineContext)) {
         RS_LOGI("RSGPUOfflineDevice::UpdateContext failed");
-        return false; 
+        return false;
     }
     auto* params = surfaceNode->GetStagingRenderParams().get();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params);
@@ -418,7 +418,7 @@ void RSGPUOfflineDevice::SetGpuOfflineEnable(RSScreenRenderNode& node,
     std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
     if (!RSOfflineProcessor::GetOfflineProcessor().IsRSOfflineProcessorReady(
-            surfaceNode, OfflineDeviceType::GPU_OFFLINE_DEVICE)) {
+        surfaceNode, OfflineDeviceType::GPU_OFFLINE_DEVICE)) {
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by GPU offline not ready ",
             surfaceNode->GetName().c_str(), surfaceNode->GetId());
         surfaceNode->SetHardwareForcedDisabledState(true);
