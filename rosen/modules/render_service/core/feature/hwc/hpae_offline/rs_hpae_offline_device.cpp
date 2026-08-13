@@ -242,13 +242,6 @@ bool RSHpaeOfflineDevice::IsOfflineDeviceEnable(std::shared_ptr<RSHpaeOfflineCon
         RS_OFFLINE_LOGD("hetero can`t clear buffer, (node: %{public}" PRIu64 ").", context->nodeId);
         return false;
     }
-    if (context->heteroEnableFrames < MAX_HETERO_ENABLE_FRAME) {
-        RSHeteroHDRManager::Instance().SetHeteroEnable(false);
-        RS_OFFLINE_LOGD("disable offline process, validFrames: %{public}zu, (node: %{public}" PRIu64 ").",
-            context->heteroEnableFrames.load(), context->nodeId);
-        context->heteroEnableFrames++;
-        return false;
-    }
     RSHeteroHDRManager::Instance().SetHeteroEnable(true);
     context->isSetHeteroEnable = true;
     return true;
