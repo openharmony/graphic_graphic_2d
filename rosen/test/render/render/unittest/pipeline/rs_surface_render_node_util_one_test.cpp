@@ -677,6 +677,26 @@ HWTEST_F(RSSurfaceRenderNodeUtilOneTest, SetInFixedRotationTest005, TestSize.Lev
 }
 
 /**
+ * @tc.name: CheckScreenChangedTest001
+ * @tc.desc: test results of CheckScreenChanged for first access, same screen, and screen change
+ * @tc.type: FUNC
+ * @tc.require: issueICCYNK
+ */
+HWTEST_F(RSSurfaceRenderNodeUtilOneTest, CheckScreenChangedTest001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->InitRenderParams();
+    // First access: lastScreenId_ is INVALID_SCREEN_ID, should return false (no false positive)
+    EXPECT_FALSE(surfaceNode->CheckScreenChanged(0));
+    // Same screen: should return false
+    EXPECT_FALSE(surfaceNode->CheckScreenChanged(0));
+    // Different screen: should return true
+    EXPECT_TRUE(surfaceNode->CheckScreenChanged(1));
+    // Same screen as last call: should return false (confirms lastScreenId_ was updated)
+    EXPECT_FALSE(surfaceNode->CheckScreenChanged(1));
+}
+
+/**
  * @tc.name: SetForceUIFirstTest
  * @tc.desc: test results of SetForceUIFirst
  * @tc.type: FUNC
