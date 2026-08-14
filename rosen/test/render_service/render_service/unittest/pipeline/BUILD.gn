@@ -65,6 +65,7 @@ group("unittest") {
     ":RSOpincLayerSplitterProcessorTest",
     ":RSSplitSurfaceTest",
     ":RSCanvasDrawingNodeBufferConsumerListenerTest",
+    ":RSSurfacePermissionTest",
   ]
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [ ":RSRenderTaskTest" ]
@@ -1686,6 +1687,24 @@ ohos_unittest("RSCanvasDrawingNodeBufferConsumerListenerTest") {
       "main_thread/rs_canvas_drawing_node_buffer_consumer_listener_test.cpp",
     ]
     defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
+  }
+}
+
+## Build RSSurfacePermissionTest
+ohos_unittest("RSSurfacePermissionTest") {
+  module_out_path = module_output_path
+  sources = [
+    "main_thread/rs_surface_permission_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
   }
 }
 
