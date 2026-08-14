@@ -9308,7 +9308,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenColorGamut004, TestSiz
     screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
 
     ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
     screenManager_->MockHdiScreenConnected(rsScreen);
     screenNode->screenId_ = screenId;
