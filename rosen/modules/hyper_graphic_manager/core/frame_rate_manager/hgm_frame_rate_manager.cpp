@@ -131,12 +131,19 @@ void HgmFrameRateManager::InitConfig()
     std::string curScreenName = "screen" + std::to_string(
         curScreenId_.load()) + "_" + (isLtpo_.load() ? "LTPO" : "LTPS");
     if (auto configData = hgmCore.GetPolicyConfigData()) {
+        bool isNeedFallBack = false;
         if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
             iter != configData->screenStrategyConfigs_.end()) {
             curScreenStrategyId_ = iter->second;
+        } else {
+            isNeedFallBack = true;
         }
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
+            isNeedFallBack = true;
+        }
+        if (isNeedFallBack) {
+            HandleScreenStrategyFallback(configData);
         }
         isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
         if (auto configVisitor = hgmCore.GetPolicyConfigVisitor()) {
@@ -1022,6 +1029,30 @@ void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
     HandleScreenFrameRate(curScreenName);
 }
 
+void HgmFrameRateManager::HandleScreenStrategyFallback(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (auto screenConfigsIter = configData->screenConfigs_.find(curScreenStrategyId_);
+        screenConfigsIter == configData->screenConfigs_.end()) {
+        std::string curScreenName = "screen" + std::to_string(
+            curScreenId_.load()) + "_" + (!isLtpo_.load() ? "LTPO" : "LTPS");
+        HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
+        if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
+            iter != configData->screenStrategyConfigs_.end()) {
+            curScreenStrategyId_ = iter->second;
+        } else {
+            curScreenName = "screen" + std::to_string(curScreenId_.load()) + "_" + (isLtpo_.load() ? "LTPO" : "LTPS");
+            HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
+            if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
+                iter != configData->screenStrategyConfigs_.end()) {
+                curScreenStrategyId_ = iter->second;
+            } else {
+                HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
+                curScreenStrategyId_ = "LTPS-DEFAULT";
+            }
+        }
+    }
+}
+
 void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
 {
     auto& hgmCore = HgmCore::Instance();
@@ -1039,6 +1070,7 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
         curScreenStrategyId_ = iter->second;
     } else {
         curScreenStrategyId_ = "LTPO-DEFAULT";
+        HandleScreenStrategyFallback(configData);
     }
     curScreenDefaultStrategyId_ = curScreenStrategyId_;
 
