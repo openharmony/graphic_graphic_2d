@@ -1363,8 +1363,17 @@ int32_t RSScreen::GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) cons
 {
     ScreenColorGamut curGamut;
     int32_t result = GetScreenColorGamut(curGamut);
-    colorSpace = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(curGamut)];
-    return result;
+    if (result != StatusCode::SUCCESS) {
+        RS_LOGE("%{public}s failed, GetScreenColorGamut returned error", __func__);
+        return result;
+    }
+    auto iter = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(static_cast<GraphicColorGamut>(curGamut));
+    if (iter == RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
+        RS_LOGE("%{public}s failed, color gamut not found in map", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    colorSpace = iter->second;
+    return StatusCode::SUCCESS;
 }
 
 int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
