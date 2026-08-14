@@ -152,6 +152,7 @@ typedef enum : uint32_t {
     COLOR_GAMUT_BT2100_PQ,
     COLOR_GAMUT_BT2100_HLG,
     COLOR_GAMUT_DISPLAY_BT2020,
+    COLOR_GAMUT_BUTT,  /**< Boundary value for valid enums, new entries MUST be added above this line */
 } ScreenColorGamut;
 
 typedef enum : uint32_t {
@@ -171,6 +172,7 @@ typedef enum : uint32_t {
     IMAGE_HDR_ISO_DUAL,
     IMAGE_HDR_ISO_SINGLE,
     VIDEO_AIHDR,
+    SCREEN_HDR_FORMAT_BUTT,  /**< Boundary value for valid enums, new entries MUST be added above this line */
 } ScreenHDRFormat;
 
 typedef enum : uint32_t {
