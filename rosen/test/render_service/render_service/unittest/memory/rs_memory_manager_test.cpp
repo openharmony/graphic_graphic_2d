@@ -21,6 +21,7 @@
 #include "pipeline/rs_test_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -47,42 +48,9 @@ public:
 
 void RSMemoryManagerTest::SetUpTestCase()
 {
-    auto& rtThread = RSUniRenderThread::Instance();
-    if (rtThread.uniRenderEngine_) {
-        if (rtThread.uniRenderEngine_->renderContext_) {
-            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
-        }
-        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
-            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
-        }
-        rtThread.uniRenderEngine_->skContext_ = nullptr;
-        rtThread.uniRenderEngine_->renderContext_ = nullptr;
-        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
-        rtThread.uniRenderEngine_->imageManager_ = nullptr;
-        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-        rtThread.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
 #endif
-        rtThread.uniRenderEngine_ = nullptr;
-    }
-    auto mainThread = RSMainThread::Instance();
-    if (mainThread && mainThread->renderEngine_) {
-        if (mainThread->renderEngine_->renderContext_) {
-            mainThread->renderEngine_->renderContext_->drGPUContext_ = nullptr;
-        }
-        if (mainThread->renderEngine_->protectedRenderContext_) {
-            mainThread->renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
-        }
-        mainThread->renderEngine_->skContext_ = nullptr;
-        mainThread->renderEngine_->renderContext_ = nullptr;
-        mainThread->renderEngine_->protectedRenderContext_ = nullptr;
-        mainThread->renderEngine_->imageManager_ = nullptr;
-        mainThread->renderEngine_->gpuCacheManager_ = nullptr;
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-        mainThread->renderEngine_->colorSpaceConverterDisplay_ = nullptr;
-#endif
-        mainThread->renderEngine_ = nullptr;
-    }
     RSTestUtil::InitRenderNodeGC();
 }
 
@@ -99,42 +67,6 @@ void RSMemoryManagerTest::TearDownTestCase()
     renderNodeMap.screenNodeMap_.clear();
     renderNodeMap.canvasDrawingNodeMap_.clear();
     renderNodeMap.uiExtensionSurfaceNodes_.clear();
-
-    auto& rtThread = RSUniRenderThread::Instance();
-    if (rtThread.uniRenderEngine_) {
-        if (rtThread.uniRenderEngine_->renderContext_) {
-            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
-        }
-        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
-            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
-        }
-        rtThread.uniRenderEngine_->skContext_ = nullptr;
-        rtThread.uniRenderEngine_->renderContext_ = nullptr;
-        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
-        rtThread.uniRenderEngine_->imageManager_ = nullptr;
-        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-        rtThread.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
-#endif
-        rtThread.uniRenderEngine_ = nullptr;
-    }
-    if (mainThread && mainThread->renderEngine_) {
-        if (mainThread->renderEngine_->renderContext_) {
-            mainThread->renderEngine_->renderContext_->drGPUContext_ = nullptr;
-        }
-        if (mainThread->renderEngine_->protectedRenderContext_) {
-            mainThread->renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
-        }
-        mainThread->renderEngine_->skContext_ = nullptr;
-        mainThread->renderEngine_->renderContext_ = nullptr;
-        mainThread->renderEngine_->protectedRenderContext_ = nullptr;
-        mainThread->renderEngine_->imageManager_ = nullptr;
-        mainThread->renderEngine_->gpuCacheManager_ = nullptr;
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-        mainThread->renderEngine_->colorSpaceConverterDisplay_ = nullptr;
-#endif
-        mainThread->renderEngine_ = nullptr;
-    }
 }
 
 void RSMemoryManagerTest::SetUp() {}
@@ -624,9 +556,7 @@ HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch002, testing::ext::
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::SetGpuCacheSuppressWindowSwitch(nullptr, true);
-#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") != std::string::npos);
-#endif
 }
 
 /**
@@ -657,9 +587,7 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch002, testing::ext:
     LOG_SetCallback(MyLogCallback);
     const std::function<void()> setThreadPriority;
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(nullptr, true, setThreadPriority);
-#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") != std::string::npos);
-#endif
 }
 
 /**
@@ -688,9 +616,7 @@ HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue002, testing::ext::TestSi
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     MemoryManager::FlushGpuMemoryInWaitQueue(nullptr);
-#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") != std::string::npos);
-#endif
 }
 
 /**
@@ -721,9 +647,7 @@ HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio002, testing::ext
     LOG_SetCallback(MyLogCallback);
     const std::function<bool(void)> nextFrameHasArrived;
     MemoryManager::SuppressGpuCacheBelowCertainRatio(nullptr, nextFrameHasArrived);
-#ifdef RS_ENABLE_VK
     EXPECT_TRUE(g_logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") != std::string::npos);
-#endif
 }
 
 /**
@@ -1171,10 +1095,10 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1
     info1.engineGpuMemory = 2048;
     MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
     ASSERT_TRUE(std::ifstream(filePath).good());
-    MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_WARNING", hidumperReport, filePath);
+    MemoryManager::MemoryOverReport(pid1, info, "RENDER_MEMORY_OVER_WARNING", hidumperReport, filePath);
     ASSERT_TRUE(std::ifstream(filePath).good());
-    // clean up
-    std::filesystem::remove(filePath);
+    // Clean up
+    std::remove(filePath.c_str());
 }
 
 /**
@@ -1186,14 +1110,14 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1
 HWTEST_F(RSMemoryManagerTest, WriteInfoToFile, testing::ext::TestSize.Level1)
 {
     std::string filePath = "";
-    std::string gpuMemInfo = "info";
-    std::string hidumperReport = "";
-    MemoryManager::WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
-    filePath = "/data/service/el0/render_service/renderservice_mem.txt";
-    MemoryManager::WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
-    hidumperReport = "hidumper";
-    MemoryManager::WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
+    std::string hidumperReport = "info";
+    MemoryManager::WriteInfoToFile(filePath, hidumperReport);
+    filePath = "/data/service/el0/render_service/renderservice_mem_write_test.txt";
+    MemoryManager::WriteInfoToFile(filePath, hidumperReport);
+    std::string bigInfo(10 * 1024 * 1024, 'a');
+    MemoryManager::WriteInfoToFile(filePath, bigInfo);
     ASSERT_TRUE(std::ifstream(filePath).good());
+    std::remove(filePath.c_str());
 }
 
 /**
@@ -1600,6 +1524,27 @@ HWTEST_F(RSMemoryManagerTest, GpuReportFromKernel001, TestSize.Level1)
 {
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
+    pid_t pid1 = 0;
+    pid_t pid2 = 1021;
+    pid_t pid3 = 1022;
+    std::set<pid_t> exitedPids = {pid1, pid2, pid3};
+    std::unordered_map<pid_t, MemorySnapshotInfo> snapshot;
+    MemorySnapshot::Instance().GetMemorySnapshot(snapshot);
+    for (const auto& [pid, snapshotInfo] : snapshot) {
+        exitedPids.insert(pid);
+    }
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+    // pid1: cpu=1024, gpu=2048, total=3072
+    MemorySnapshot::Instance().AddCpuMemory(pid1, 1024);
+    // pid2: cpu=2048, gpu=1024, total=3072
+    MemorySnapshot::Instance().AddCpuMemory(pid2, 2048);
+    // pid3: cpu=512, gpu=512, total=1024
+    MemorySnapshot::Instance().AddCpuMemory(pid3, 512);
+    std::unordered_map<pid_t, size_t> gpuInfo = {{pid1, 2048}, {pid2, 1024}, {pid3, 512}};
+    std::unordered_map<pid_t, MemorySnapshotInfo> pidForReport;
+    bool isTotalOver = false;
+    MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, pidForReport, isTotalOver);
+    MemoryManager::mKernelReportLastTimestamp_ = 0;
     std::string recvInfo = "ACTION=MEMORY_OVER_LIMIT";
     auto& rtThread2 = RSUniRenderThread::Instance();
     if (rtThread2.uniRenderEngine_) {
@@ -1611,12 +1556,6 @@ HWTEST_F(RSMemoryManagerTest, GpuReportFromKernel001, TestSize.Level1)
         }
         rtThread2.uniRenderEngine_->skContext_ = nullptr;
         rtThread2.uniRenderEngine_->renderContext_ = nullptr;
-        rtThread2.uniRenderEngine_->protectedRenderContext_ = nullptr;
-        rtThread2.uniRenderEngine_->imageManager_ = nullptr;
-        rtThread2.uniRenderEngine_->gpuCacheManager_ = nullptr;
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-        rtThread2.uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
-#endif
     }
     auto renderContext = RenderContext::Create();
     renderContext->Init();
@@ -1628,6 +1567,49 @@ HWTEST_F(RSMemoryManagerTest, GpuReportFromKernel001, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
     MemoryManager::GpuReportFromKernel(recvInfo1);
     ASSERT_TRUE(g_logMsg.find(recvInfo1) == std::string::npos);
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: NeedReportFromKernel001
+ * @tc.desc: Test NeedReportFromKernel with valid info
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, NeedReportFromKernel001, TestSize.Level1)
+{
+    pid_t pid1 = 1020;
+    pid_t pid2 = 1021;
+    pid_t pid3 = 1022;
+    std::set<pid_t> exitedPids = {pid1, pid2, pid3};
+    std::unordered_map<pid_t, MemorySnapshotInfo> snapshot;
+    MemorySnapshot::Instance().GetMemorySnapshot(snapshot);
+    for (const auto& [pid, snapshotInfo] : snapshot) {
+        exitedPids.insert(pid);
+    }
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    MemoryManager::mKernelReportLastTimestamp_ = 0;
+    pid_t abnormalPid = 0;
+    bool ret = MemoryManager::NeedReportFromKernel(abnormalPid);
+    ASSERT_FALSE(ret);
+
+    // pid1: cpu=1024, gpu=2048, total=3072
+    MemorySnapshot::Instance().AddCpuMemory(pid1, 1024);
+    // pid2: cpu=2048, gpu=1024, total=3072
+    MemorySnapshot::Instance().AddCpuMemory(pid2, 2048);
+    // pid3: cpu=512, gpu=512, total=1024
+    MemorySnapshot::Instance().AddCpuMemory(pid3, 512);
+    std::unordered_map<pid_t, size_t> gpuInfo = {{pid1, 2048}, {pid2, 1024}, {pid3, 512}};
+    std::unordered_map<pid_t, MemorySnapshotInfo> pidForReport;
+    bool isTotalOver = false;
+    MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, pidForReport, isTotalOver);
+
+    MemoryManager::mKernelReportLastTimestamp_ = 0;
+    ret = MemoryManager::NeedReportFromKernel(abnormalPid);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 
 /**
@@ -1656,6 +1638,35 @@ HWTEST_F(RSMemoryManagerTest, UpdateGpuInfoFromEngineTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateGpuInfoFromEngineTest002
+ * @tc.desc: Test UpdateGpuInfoFromEngine with memory deallocation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, UpdateGpuInfoFromEngineTest002, TestSize.Level1)
+{
+    pid_t pid = 3002;
+    size_t addSize = 2048;
+    size_t removeSize = 1024;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add engine GPU memory
+    MemoryManager::UpdateGpuInfoFromEngine(pid, addSize, true);
+
+    // Remove engine GPU memory
+    bool ret = MemoryManager::UpdateGpuInfoFromEngine(pid, removeSize, false);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshotInfo info;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.engineGpuMemory, addSize - removeSize);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
  * @tc.name: MemoryOverflow004
  * @tc.desc: Test MemoryOverflow with GPU memory overflow.
  * @tc.type: FUNC
@@ -1673,7 +1684,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow004, TestSize.Level1)
 
     // Test GPU memory overflow
     bool ret = MemoryManager::MemoryOverflow(pid, overflowMemory, true);
-    EXPECT_FALSE(ret);
+    ASSERT_TRUE(ret);
 
     MemorySnapshotInfo info;
     ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
@@ -1771,7 +1782,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest004, TestSize.Level1)
 
     // GPU memory overflow
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_FALSE(ret);
+    ASSERT_TRUE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1796,7 +1807,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest005, TestSize.Level1)
 
     // CPU memory overflow
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, false);
-    ASSERT_FALSE(ret);
+    ASSERT_TRUE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1853,7 +1864,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport002, TestSize.Level1)
     MemoryManager::MemoryOverReport(pid, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
 
     // Verify file was created
-    ASSERT_FALSE(std::ifstream(filePath).good());
+    ASSERT_TRUE(std::ifstream(filePath).good());
 
     // Clean up
     std::remove(filePath.c_str());
@@ -1881,7 +1892,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest006, TestSize.Level1)
 
     // Test with empty bundle name - should try to get bundle name from AppMgrClient
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_FALSE(ret);
+    ASSERT_TRUE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1916,6 +1927,357 @@ HWTEST_F(RSMemoryManagerTest, DumpNodesInfoForReportTest001, TestSize.Level1)
 
     std::string log;
     MemoryManager::DumpNodesInfoForReport(log, pid);
-    ASSERT_TRUE(log.find("Render Node Not On Tree") != std::string::npos);
+    ASSERT_TRUE(log.find("RS nodes info") != std::string::npos);
 }
+
+/**
+ * @tc.name: ReadDataStringTest001
+ * @tc.desc: Test ReadData with string type from valid file.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadDataStringTest001, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/test_read_string.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "test_string_data" << std::endl;
+    outFile.close();
+
+    std::ifstream inFile(testFilePath);
+    std::string result;
+    bool success = MemoryManager::ReadData(inFile, result);
+    inFile.close();
+
+    ASSERT_TRUE(success);
+    ASSERT_EQ(result, "test_string_data");
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadDataStringTest002
+ * @tc.desc: Test ReadData with string type from empty file.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadDataStringTest002, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/test_read_empty.txt";
+    std::ofstream outFile(testFilePath);
+    outFile.close();
+
+    std::ifstream inFile(testFilePath);
+    std::string result;
+    bool success = MemoryManager::ReadData(inFile, result);
+    inFile.close();
+
+    ASSERT_FALSE(success);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadDataUint64Test001
+ * @tc.desc: Test ReadData with uint64_t type valid input.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadDataUint64Test001, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/test_read_uint64.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "123456789" << std::endl;
+    outFile.close();
+
+    std::ifstream inFile(testFilePath);
+    uint64_t result = 0;
+    bool success = MemoryManager::ReadData(inFile, result);
+    inFile.close();
+
+    ASSERT_TRUE(success);
+    ASSERT_EQ(result, 123456789ULL);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadDataUint64Test003
+ * @tc.desc: Test ReadData with uint64_t type invalid input.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadDataUint64Test003, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/test_read_uint64_invalid.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "invalid_number" << std::endl;
+    outFile.close();
+
+    std::ifstream inFile(testFilePath);
+    uint64_t result = 999;
+    bool success = MemoryManager::ReadData(inFile, result);
+    inFile.close();
+
+    ASSERT_FALSE(success);
+    ASSERT_EQ(result, 0);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadDataTimeTTest001
+ * @tc.desc: Test ReadData with time_t type valid input.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadDataTimeTTest001, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/test_read_timet.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "1714567890" << std::endl;
+    outFile.close();
+
+    std::ifstream inFile(testFilePath);
+    time_t result = 0;
+    bool success = MemoryManager::ReadData(inFile, result);
+    inFile.close();
+
+    ASSERT_TRUE(success);
+    ASSERT_EQ(result, 1714567890);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadDataTimeTTest002
+ * @tc.desc: Test ReadData with time_t type zero value.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadDataTimeTTest002, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/test_read_timet_zero.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "0" << std::endl;
+    outFile.close();
+
+    std::ifstream inFile(testFilePath);
+    time_t result = 999;
+    bool success = MemoryManager::ReadData(inFile, result);
+    inFile.close();
+
+    ASSERT_TRUE(success);
+    ASSERT_EQ(result, 0);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadDataIntTest001
+ * @tc.desc: Test ReadData with int type valid positive input.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadDataIntTest001, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/test_read_int.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "42" << std::endl;
+    outFile.close();
+
+    std::ifstream inFile(testFilePath);
+    int result = 0;
+    bool success = MemoryManager::ReadData(inFile, result);
+    inFile.close();
+
+    ASSERT_TRUE(success);
+    ASSERT_EQ(result, 42);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadDataIntTest002
+ * @tc.desc: Test ReadData with int type negative value.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadDataIntTest002, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/test_read_int_neg.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "-12345" << std::endl;
+    outFile.close();
+
+    std::ifstream inFile(testFilePath);
+    int result = 0;
+    bool success = MemoryManager::ReadData(inFile, result);
+    inFile.close();
+
+    ASSERT_TRUE(success);
+    ASSERT_EQ(result, -12345);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadDataIntTest003
+ * @tc.desc: Test ReadData with int type invalid input.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadDataIntTest003, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/test_read_int_invalid.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "not_a_number" << std::endl;
+    outFile.close();
+
+    std::ifstream inFile(testFilePath);
+    int result = 999;
+    bool success = MemoryManager::ReadData(inFile, result);
+    inFile.close();
+
+    ASSERT_FALSE(success);
+    ASSERT_EQ(result, 0);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadQuotaFileTest001
+ * @tc.desc: Test ReadQuotaFile when file does not exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadQuotaFileTest001, TestSize.Level1)
+{
+    // Test with non-existent file - should return false
+    bool result = MemoryManager::ReadQuotaFile("");
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: ReadQuotaFileTest002
+ * @tc.desc: Test ReadQuotaFile with invalid file format.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadQuotaFileTest002, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/telemetry_quota.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "invalid_content" << std::endl;
+    outFile.close();
+
+    bool result = MemoryManager::ReadQuotaFile(testFilePath);
+    ASSERT_FALSE(result);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadQuotaFileTest003
+ * @tc.desc: Test ReadQuotaFile with valid format but wrong faultType.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadQuotaFileTest003, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/telemetry_quota.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "1714567890" << std::endl;        // deliveryTS
+    outFile << "1714567891" << std::endl;        // screen off time
+    outFile << "1714567892" << std::endl;        // charge time
+    outFile << "1024" << std::endl;              // size
+    outFile << "1714567893" << std::endl;        // EventQuota.deliveryTS
+    outFile << "com.example.test" << std::endl;  // EventQuota.bundleName
+    outFile << "0x401" << std::endl;             // EventQuota.faultType (not 0x400)
+    outFile << "telemetry_id_123" << std::endl;  // EventQuota.telemetryId
+    outFile << "100" << std::endl;               // EventQuota.quota
+    outFile << "30720" << std::endl;             // EventQuota.romRsvSize
+    outFile.close();
+
+    bool result = MemoryManager::ReadQuotaFile(testFilePath);
+    ASSERT_FALSE(result);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadQuotaFileTest004
+ * @tc.desc: Test ReadQuotaFile with valid format and correct faultType 0x400.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadQuotaFileTest004, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/telemetry_quota.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "0" << std::endl;        // deliveryTS
+    outFile << "0" << std::endl;        // screen off time
+    outFile << "0" << std::endl;        // charge time
+    outFile << "0" << std::endl;
+    outFile << "0" << std::endl;
+    outFile << "1" << std::endl;              // size
+    outFile << "1714567893" << std::endl;        // EventQuota.deliveryTS
+    outFile << "com.example.test" << std::endl;  // EventQuota.bundleName
+    outFile << "1024" << std::endl;              // EventQuota.faultType (0x400)
+    outFile << "telemetry_id_123" << std::endl;  // EventQuota.telemetryId
+    outFile << "100" << std::endl;               // EventQuota.quota
+    outFile << "30720" << std::endl;             // EventQuota.romRsvSize
+    outFile.close();
+
+    bool result = MemoryManager::ReadQuotaFile(testFilePath);
+    ASSERT_TRUE(result);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: ReadQuotaFileTest005
+ * @tc.desc: Test ReadQuotaFile with incomplete data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, ReadQuotaFileTest005, TestSize.Level1)
+{
+    std::string testFilePath = "/data/service/el0/render_service/telemetry_quota.txt";
+    std::ofstream outFile(testFilePath);
+    outFile << "1714567890" << std::endl;  // Only deliveryTS
+    outFile.close();
+
+    bool result = MemoryManager::ReadQuotaFile(testFilePath);
+    ASSERT_FALSE(result);
+
+    std::filesystem::remove(testFilePath);
+}
+
+/**
+ * @tc.name: MemoryOverReportWithQuotaTest001
+ * @tc.desc: Test MemoryOverReport integration with ReadQuotaFile.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverReportWithQuotaTest001, TestSize.Level1)
+{
+    pid_t pid = 4001;
+    MemorySnapshotInfo info;
+    info.pid = pid;
+    info.cpuMemory = 1024;
+    info.engineGpuMemory = 2048;
+    info.bundleName = "com.example.test";
+
+    std::string hidumperReport = "test_report";
+    std::string filePath = "/data/service/el0/render_service/mem_over_quota_test.txt";
+
+    // This should not trigger quota-based reporting as quota file doesn't exist
+    MemoryManager::MemoryOverReport(pid, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath, true);
+
+    // Verify the file was created (normal memory over report still works)
+    ASSERT_TRUE(std::ifstream(filePath).good());
+
+    std::filesystem::remove(filePath);
+}
+
 } // namespace OHOS::Rosen

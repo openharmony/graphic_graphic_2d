@@ -649,6 +649,7 @@ ohos_shared_library("librender_service") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
+    "hiview:libucollection_client",
     "config_policy:configpolicy_util",
     "egl:libEGL",
     "opengles:libGLES",
