@@ -31,12 +31,12 @@ DVSyncLibManager& DVSyncLibManager::Instance()
 
 DVSyncLibManager& DVSyncLibManager::DvsyncDelayInstance()
 {
-    static DVSyncLibManager dvsyncDelayInstance;
+    static DVSyncLibManager* dvsyncDelayInstance = new DVSyncLibManager();
     static std::once_flag dvsyncDelayCreateFlag;
     std::call_once(dvsyncDelayCreateFlag, []() {
-        dvsyncDelayInstance.Initialize("libdvsync.z.so", true);
+        dvsyncDelayInstance->Initialize("libdvsync.z.so", true);
     });
-    return dvsyncDelayInstance;
+    return *dvsyncDelayInstance;
 }
 
 DVSyncLibManager::~DVSyncLibManager() {}
