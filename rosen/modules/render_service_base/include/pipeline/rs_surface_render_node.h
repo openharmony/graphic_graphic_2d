@@ -310,14 +310,14 @@ public:
         return isFixRotationByUser_;
     }
     bool IsInFixedRotation() const;
-    void SetInFixedRotation(bool isRotating, bool screenChanged);
-    void SetLastScreenId(ScreenId screenId)
+    void SetInFixedRotation(bool isRotating, bool screenChanged = false);
+    // Returns true if the screen the node is being prepared on differs from the last one,
+    // and records the current screen for the next comparison.
+    bool CheckScreenChanged(ScreenId screenId)
     {
+        bool screenChanged = lastScreenId_ != screenId;
         lastScreenId_ = screenId;
-    }
-    ScreenId GetLastScreenId() const
-    {
-        return lastScreenId_;
+        return screenChanged;
     }
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
@@ -2172,8 +2172,8 @@ private:
     bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
+    bool haveScreenChangeInRotation_ = false;
     ScreenId lastScreenId_ = INVALID_SCREEN_ID;
-    static bool haveScreenChangedInRotation_;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isSplitSurfaceNode_ = false;
