@@ -315,7 +315,7 @@ public:
     // and records the current screen for the next comparison.
     bool CheckScreenChanged(ScreenId screenId)
     {
-        bool screenChanged = lastScreenId_ != screenId;
+        bool screenChanged = lastScreenId_ != INVALID_SCREEN_ID && lastScreenId_ != screenId;
         lastScreenId_ = screenId;
         return screenChanged;
     }
