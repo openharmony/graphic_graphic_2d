@@ -69,12 +69,12 @@ void RSModifiersDrawThread::Destroy()
 
     if (handler_ != nullptr) {
         handler_->RemoveAllEvents();
-        handler_ = nullptr;
     }
     if (runner_ != nullptr) {
         runner_->Stop();
-        runner_ = nullptr;
     }
+    runner_ = nullptr;
+    handler_ = nullptr;
 }
 
 void RSModifiersDrawThread::PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime)

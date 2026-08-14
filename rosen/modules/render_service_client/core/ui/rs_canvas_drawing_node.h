@@ -173,6 +173,8 @@ private:
     void RegisterNodeMap() override;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+    void OnCreate();
+
     void ResetSurfaceForClientRender(int width, int height);
 
     bool GetPixelmapForClientRender(

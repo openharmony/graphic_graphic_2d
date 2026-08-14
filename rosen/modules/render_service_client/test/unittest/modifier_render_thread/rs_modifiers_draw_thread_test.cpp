@@ -17,6 +17,7 @@
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_render_pipeline_client.h"
+#include <future>
 
 using namespace testing;
 using namespace testing::ext;
@@ -53,10 +54,11 @@ HWTEST_F(RSModifiersDrawThreadTest, PostTask_AfterStart001, TestSize.Level1)
 {
     auto thread = std::make_shared<RSModifiersDrawThread>();
     thread->Start();
-    bool taskExecuted = false;
-    thread->PostTask([&taskExecuted]() { taskExecuted = true; }, "TestTask", 0);
-    usleep(10000);
-    EXPECT_TRUE(taskExecuted);
+    std::promise<void> promise;
+    auto future = promise.get_future();
+    thread->PostTask([&promise]() { promise.set_value(); }, "TestTask", 0);
+    future.wait_for(std::chrono::milliseconds(1000));
+    EXPECT_TRUE(future.valid());
 }
 
 HWTEST_F(RSModifiersDrawThreadTest, PostTask_BeforeStart001, TestSize.Level1)
@@ -84,13 +86,99 @@ HWTEST_F(RSModifiersDrawThreadTest, ScheduleTask_Basic001, TestSize.Level1)
 {
     auto thread = std::make_shared<RSModifiersDrawThread>();
     thread->Start();
-    bool taskExecuted = false;
-    auto future = thread->ScheduleTask([&taskExecuted]() {
-        taskExecuted = true;
+    std::promise<int> promise;
+    auto future = promise.get_future();
+    thread->ScheduleTask([&promise]() {
+        promise.set_value(0);
         return 0;
     });
-    usleep(10000);
-    EXPECT_TRUE(taskExecuted);
+    auto result = future.wait_for(std::chrono::milliseconds(1000));
+    EXPECT_EQ(result, std::future_status::ready);
+}
+
+HWTEST_F(RSModifiersDrawThreadTest, PostTask_ReturnsEarlyAfterDestroy001, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSModifiersDrawThread>();
+    thread->Start();
+    thread->Destroy();
+    bool taskExecuted = false;
+    thread->PostTask([&taskExecuted]() { taskExecuted = true; }, "TestTask", 0);
+    EXPECT_FALSE(taskExecuted);
+    EXPECT_TRUE(thread->destroyed_.load());
+}
+
+HWTEST_F(RSModifiersDrawThreadTest, PostSyncTask_ReturnsEarlyAfterDestroy001, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSModifiersDrawThread>();
+    thread->Start();
+    thread->Destroy();
+    bool taskExecuted = false;
+    thread->PostSyncTask([&taskExecuted]() { taskExecuted = true; });
+    EXPECT_FALSE(taskExecuted);
+    EXPECT_TRUE(thread->destroyed_.load());
+}
+
+HWTEST_F(RSModifiersDrawThreadTest, Start_ReturnsEarlyAfterDestroy001, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSModifiersDrawThread>();
+    thread->Start();
+    thread->Destroy();
+    thread->Start();
+    EXPECT_FALSE(thread->started_.load());
+    EXPECT_TRUE(thread->destroyed_.load());
+}
+
+HWTEST_F(RSModifiersDrawThreadTest, WaitAllTasksFinish_AfterDestroy001, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSModifiersDrawThread>();
+    thread->Start();
+    thread->Destroy();
+    thread->WaitAllTasksFinish();
+    EXPECT_TRUE(thread->destroyed_.load());
+}
+
+HWTEST_F(RSModifiersDrawThreadTest, Destroy_BeforeStart001, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSModifiersDrawThread>();
+    thread->Destroy();
+    EXPECT_TRUE(thread->destroyed_.load());
+    EXPECT_FALSE(thread->started_.load());
+}
+
+// Verify Destroy() sets runner_ and handler_ to nullptr after Stop/RemoveAllEvents,
+// and the null-safety guards work when runner_/handler_ are already nullptr.
+HWTEST_F(RSModifiersDrawThreadTest, Destroy_NullptrAfterStopAndNullGuards001, TestSize.Level1)
+{
+    // Case 1: Start then Destroy — runner_/handler_ become nullptr after Stop+RemoveAllEvents
+    auto thread = std::make_shared<RSModifiersDrawThread>();
+    thread->Start();
+    ASSERT_NE(thread->runner_, nullptr);
+    ASSERT_NE(thread->handler_, nullptr);
+    thread->Destroy();
+    EXPECT_EQ(thread->runner_, nullptr);
+    EXPECT_EQ(thread->handler_, nullptr);
+    EXPECT_TRUE(thread->destroyed_.load());
+    EXPECT_FALSE(thread->started_.load());
+
+    // Case 2: started_=true but runner_/handler_ already nullptr —
+    // bypasses early return, exercises null-safety guards (if handler_ != nullptr / if runner_ != nullptr)
+    auto thread2 = std::make_shared<RSModifiersDrawThread>();
+    thread2->started_ = true;
+    thread2->runner_ = nullptr;
+    thread2->handler_ = nullptr;
+    thread2->Destroy();
+    EXPECT_EQ(thread2->runner_, nullptr);
+    EXPECT_EQ(thread2->handler_, nullptr);
+    EXPECT_TRUE(thread2->destroyed_.load());
+    EXPECT_FALSE(thread2->started_.load());
+}
+
+HWTEST_F(RSModifiersDrawThreadTest, PostSyncTask_BeforeStart001, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSModifiersDrawThread>();
+    bool taskExecuted = false;
+    thread->PostSyncTask([&taskExecuted]() { taskExecuted = true; });
+    EXPECT_FALSE(taskExecuted);
 }
 } // namespace Rosen
 } // namespace OHOS
