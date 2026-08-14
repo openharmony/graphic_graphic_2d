@@ -483,7 +483,10 @@ ohos_unittest("RSUIDirectorTest") {
     defines = [ "RS_ENABLE_VK" ]
   }
 
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
 
   configs = [
     ":ui_test",

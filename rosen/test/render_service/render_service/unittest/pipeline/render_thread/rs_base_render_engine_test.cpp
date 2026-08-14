@@ -72,16 +72,16 @@ public:
     void SetUp() override;
     void TearDown() override;
 #ifdef RS_ENABLE_VK
-    static std::set<uint64_t> CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+    static std::unordered_set<uint64_t> CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
         uint32_t imageNums);
 #endif
 };
 
 #ifdef RS_ENABLE_VK
-std::set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+std::unordered_set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
     uint32_t imageNums)
 {
-    std::set<uint64_t> bufferIdCache;
+    std::unordered_set<uint64_t> bufferIdCache;
     for (uint32_t i = 0; i < imageNums; i++) {
         auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
         drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
