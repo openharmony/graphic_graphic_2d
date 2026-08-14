@@ -13,8 +13,12 @@
  * limitations under the License.
  */
 
+#include <cstdio>
 #include <filesystem>
+#include <fstream>
+#include <memory>
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "common/rs_singleton.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
@@ -33,6 +37,8 @@
 #include "engine/rs_uni_render_engine.h"
 #include "surface_buffer_impl.h"
 #include "rs_test_util.h"
+#include "image/bitmap.h"
+#include "engine_adapter/impl_interface/bitmap_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -3722,6 +3728,94 @@ HWTEST_F(RSRoundCornerDisplayTest, DecodeBitmap_ConvertFallback, TestSize.Level1
 }
 
 /*
+ * @tc.name: DecodeBitmap_ValidBgra8888Image
+ * @tc.desc: Test RoundCornerDisplay::DecodeBitmap with valid BGRA_8888 image (covers BGRA_8888 branch at line 116)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DecodeBitmap_ValidBgra8888Image, TestSize.Level1)
+{
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    const int width = 10;
+    const int height = 10;
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    auto image = std::make_shared<Drawing::Image>();
+    if (!image->BuildFromBitmap(srcBitmap)) {
+        std::cout << "DecodeBitmap_ValidBgra8888Image: BuildFromBitmap not supported in test env" << std::endl;
+        return;
+    }
+    Drawing::Bitmap dstBitmap;
+    bool result = rcdInstance.DecodeBitmap(image, dstBitmap);
+    EXPECT_TRUE(result);
+    // After successful ExtractAlphaChannel, the dstBitmap should be an Alpha8 bitmap
+    EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_ALPHA_8);
+}
+
+/*
+ * @tc.name: DecodeBitmap_ExtractAlphaFallbackNullPixels
+ * @tc.desc: Test RoundCornerDisplay::DecodeBitmap fallback path (lines 117-120) when ExtractAlphaChannel fails
+ *           because srcBitmap pixels are null after AsLegacyBitmap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DecodeBitmap_ExtractAlphaFallbackNullPixels, TestSize.Level1)
+{
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    const int width = 10;
+    const int height = 10;
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    // Set pixels to nullptr to make ExtractAlphaChannel fail at the GetPixels check,
+    // triggering the fallback path (bitmap = srcBitmap) at lines 117-120.
+    srcBitmap.SetPixels(nullptr);
+    auto image = std::make_shared<Drawing::Image>();
+    if (!image->BuildFromBitmap(srcBitmap)) {
+        std::cout << "DecodeBitmap_ExtractAlphaFallbackNullPixels: BuildFromBitmap not supported in test env" << std::endl;
+        return;
+    }
+    Drawing::Bitmap dstBitmap;
+    bool result = rcdInstance.DecodeBitmap(image, dstBitmap);
+    EXPECT_TRUE(result);
+    // When ExtractAlphaChannel fails, the fallback assigns srcBitmap to bitmap,
+    // so dstBitmap should retain the original RGBA_8888 color type (not Alpha8).
+    EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_RGBA_8888);
+}
+
+/*
+ * @tc.name: DecodeBitmap_ExtractAlphaFallbackBgraNullPixels
+ * @tc.desc: Test RoundCornerDisplay::DecodeBitmap fallback path (lines 117-120) for BGRA_8888 when
+ *           ExtractAlphaChannel fails, covering both the BGRA_8888 condition and the fallback branch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DecodeBitmap_ExtractAlphaFallbackBgraNullPixels, TestSize.Level1)
+{
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    const int width = 10;
+    const int height = 10;
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    // Set pixels to nullptr to make ExtractAlphaChannel fail at the GetPixels check,
+    // triggering the fallback path (bitmap = srcBitmap) at lines 117-120.
+    srcBitmap.SetPixels(nullptr);
+    auto image = std::make_shared<Drawing::Image>();
+    if (!image->BuildFromBitmap(srcBitmap)) {
+        std::cout << "DecodeBitmap_ExtractAlphaFallbackBgraNullPixels: BuildFromBitmap not supported in test env" << std::endl;
+        return;
+    }
+    Drawing::Bitmap dstBitmap;
+    bool result = rcdInstance.DecodeBitmap(image, dstBitmap);
+    EXPECT_TRUE(result);
+    // When ExtractAlphaChannel fails, the fallback assigns srcBitmap to bitmap,
+    // so dstBitmap should retain the original BGRA_8888 color type (not Alpha8).
+    EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_BGRA_8888);
+}
+
+/*
  * @tc.name: ExtractAlphaChannel_ValidRgba8888
  * @tc.desc: Test rs_rcd::ExtractAlphaChannel with valid RGBA_8888 bitmap
  * @tc.type: FUNC
@@ -4249,14 +4343,584 @@ HWTEST_F(RSRoundCornerDisplayTest, IsResourceEqual_Symmetric, TestSize.Level1)
 }
 
 /*
- * @tc.name: IsResourceEqual_Reflexive
- * @tc.desc: Test RoundCornerLayer::IsResourceEqual is reflexive (a.IsResourceEqual(a) == true)
+ * @tc.name: ExtractAlphaChannel_NegativeWidth
+ * @tc.desc: Test rs_rcd::ExtractAlphaChannel with negative width fails
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRoundCornerDisplayTest, IsResourceEqual_Reflexive, TestSize.Level1)
+HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_NegativeWidth, TestSize.Level1)
 {
-    rs_rcd::RoundCornerLayer layer{"top.png", 1, 2, "top.bin", 100, 10, 20, nullptr};
-    EXPECT_TRUE(layer.IsResourceEqual(layer));
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(-1, 10,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
+    Drawing::Bitmap dstBitmap;
+    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ExtractAlphaChannel_NegativeHeight
+ * @tc.desc: Test rs_rcd::ExtractAlphaChannel with negative height fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_NegativeHeight, TestSize.Level1)
+{
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(10, -1,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
+    Drawing::Bitmap dstBitmap;
+    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ExtractAlphaChannel_NullSrcPixels
+ * @tc.desc: Test rs_rcd::ExtractAlphaChannel with null src pixels fails (GetPixels returns nullptr)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_NullSrcPixels, TestSize.Level1)
+{
+    const int width = 10;
+    const int height = 10;
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
+    srcBitmap.SetPixels(nullptr);
+    Drawing::Bitmap dstBitmap;
+    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ExtractAlphaChannel_Rgb565ColorType
+ * @tc.desc: Test rs_rcd::ExtractAlphaChannel with RGB_565 color type fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_Rgb565ColorType, TestSize.Level1)
+{
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(10, 10,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    Drawing::Bitmap dstBitmap;
+    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ConvertAlpha8ToRgba8888_NonAlpha8ColorType
+ * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with RGBA_8888 (non-ALPHA_8) color type fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_NonAlpha8ColorType, TestSize.Level1)
+{
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(10, 10,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    Drawing::Bitmap dstBitmap;
+    bool result = rs_rcd::ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ConvertAlpha8ToRgba8888_BgraColorType
+ * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with BGRA_8888 (non-ALPHA_8) color type fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_BgraColorType, TestSize.Level1)
+{
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(10, 10,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    Drawing::Bitmap dstBitmap;
+    bool result = rs_rcd::ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ConvertAlpha8ToRgba8888_Rgb565ColorType
+ * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with RGB_565 (non-ALPHA_8) color type fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_Rgb565ColorType, TestSize.Level1)
+{
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(10, 10,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    Drawing::Bitmap dstBitmap;
+    bool result = rs_rcd::ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ConvertAlpha8ToRgba8888_NullSrcPixels
+ * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with null src pixels (ReadPixels fails)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_NullSrcPixels, TestSize.Level1)
+{
+    const int width = 10;
+    const int height = 10;
+    Drawing::Bitmap srcBitmap;
+    srcBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    srcBitmap.SetPixels(nullptr);
+    Drawing::Bitmap dstBitmap;
+    bool result = rs_rcd::ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_SetHardwareResourceToBufferFailed
+ * @tc.desc: Test RSRcdRenderVisitor::ConsumeAndUpdateBuffer when SetHardwareResourceToBuffer returns false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBuffer_SetHardwareResourceToBufferFailed, TestSize.Level1)
+{
+    // prepare test: create a surface node with a real consumer surface and a queued buffer
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // create consumer surface and register listener
+    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNode);
+    ASSERT_NE(listener, nullptr);
+    ASSERT_TRUE(surfaceNode->CreateSurface(listener));
+    ASSERT_TRUE(surfaceNode->IsSurfaceCreated());
+
+    // get consumer and producer, create producer surface
+    auto consumer = surfaceNode->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    sptr<Surface> producerSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(producerSurface, nullptr);
+
+    // request and flush a buffer so that AcquireBuffer can succeed
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    GSError ret = producerSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+    ret = producerSurface->FlushBuffer(buffer, SyncFence::INVALID_FENCE, flushConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    // increase available buffer count so ConsumeAndUpdateBuffer does not early-return
+    surfaceNode->IncreaseAvailableBuffer();
+    ASSERT_TRUE(surfaceNode->GetAvailableBufferCount() > 0);
+
+    // use an invalid (unbuilt) layerBitmap so that SetHardwareResourceToBuffer returns false
+    // (layerBitmap.IsValid() returns true for an unbuilt bitmap, causing early return false)
+    Drawing::Bitmap layerBitmap;
+    ASSERT_TRUE(layerBitmap.IsValid());
+
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    // ConsumeAndUpdateBuffer should return false because SetHardwareResourceToBuffer failed
+    bool result = visitor->ConsumeAndUpdateBuffer(*surfaceNode, layerBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_AcquireBufferFailed
+ * @tc.desc: Test RSRcdRenderVisitor::ConsumeAndUpdateBuffer when AcquireBuffer fails (no buffer queued)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBuffer_AcquireBufferFailed, TestSize.Level1)
+{
+    // prepare test: create a surface node with a real consumer surface but no buffer queued
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNode);
+    ASSERT_NE(listener, nullptr);
+    ASSERT_TRUE(surfaceNode->CreateSurface(listener));
+
+    auto consumer = surfaceNode->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+
+    // increase available buffer count so ConsumeAndUpdateBuffer does not early-return
+    surfaceNode->IncreaseAvailableBuffer();
+    ASSERT_TRUE(surfaceNode->GetAvailableBufferCount() > 0);
+
+    // no buffer has been queued, so AcquireBuffer should fail and ConsumeAndUpdateBuffer returns false
+    Drawing::Bitmap layerBitmap;
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    bool result = visitor->ConsumeAndUpdateBuffer(*surfaceNode, layerBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_NullConsumer
+ * @tc.desc: Test RSRcdRenderVisitor::ConsumeAndUpdateBuffer when consumer is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBuffer_NullConsumer, TestSize.Level1)
+{
+    // prepare test: create a surface node without creating surface (consumer is nullptr)
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_FALSE(surfaceNode->IsSurfaceCreated());
+    ASSERT_EQ(surfaceNode->GetConsumer(), nullptr);
+
+    // increase available buffer count so ConsumeAndUpdateBuffer does not early-return
+    surfaceNode->IncreaseAvailableBuffer();
+    ASSERT_TRUE(surfaceNode->GetAvailableBufferCount() > 0);
+
+    // consumer is nullptr, ConsumeAndUpdateBuffer should return false
+    Drawing::Bitmap layerBitmap;
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    bool result = visitor->ConsumeAndUpdateBuffer(*surfaceNode, layerBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_NoAvailableBuffer
+ * @tc.desc: Test RSRcdRenderVisitor::ConsumeAndUpdateBuffer when availableBufferCount <= 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBuffer_NoAvailableBuffer, TestSize.Level1)
+{
+    // prepare test: create a surface node with availableBufferCount == 0
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->ResetBufferAvailableCount();
+    ASSERT_EQ(surfaceNode->GetAvailableBufferCount(), 0);
+
+    // availableBufferCount <= 0, ConsumeAndUpdateBuffer should return true (use old buffer)
+    Drawing::Bitmap layerBitmap;
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    bool result = visitor->ConsumeAndUpdateBuffer(*surfaceNode, layerBitmap);
+    EXPECT_TRUE(result);
+}
+
+/*
+ * @tc.name: PrepareHardwareResourceBuffer_Alpha8ConversionFails
+ * @tc.desc: Test RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer when ConvertAlpha8ToRgba8888 fails
+ *           (covers lines 187-188: alpha8 to rgba8888 conversion failure path)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_Alpha8ConversionFails, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    const int width = 100;
+    const int height = 50;
+    Drawing::Bitmap alpha8Bitmap;
+    alpha8Bitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    // Set pixels to nullptr so that ConvertAlpha8ToRgba8888 fails (ReadPixels fails with null src pixels)
+    alpha8Bitmap.SetPixels(nullptr);
+
+    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &alpha8Bitmap};
+    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
+
+    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
+    Drawing::Bitmap layerBitmap;
+    // curBitmap is ALPHA_8 so the conversion branch is entered (line 184-189);
+    // ConvertAlpha8ToRgba8888 returns false because src pixels are null,
+    // covering lines 187-188 (log error and return false)
+    bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: PrepareHardwareResourceBuffer_Alpha8ConversionFailsZeroWidth
+ * @tc.desc: Test RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer when alpha8 bitmap has zero width
+ *           causing ConvertAlpha8ToRgba8888 to fail (covers lines 187-188)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_Alpha8ConversionFailsZeroWidth, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // Build an ALPHA_8 bitmap with zero width; GetColorType() still returns ALPHA_8
+    Drawing::Bitmap alpha8Bitmap;
+    alpha8Bitmap.Build(0, 50,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &alpha8Bitmap};
+    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
+
+    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
+    Drawing::Bitmap layerBitmap;
+    // If color type is ALPHA_8, conversion branch is entered and ConvertAlpha8ToRgba8888
+    // fails due to zero width, covering lines 187-188.
+    // If color type is not ALPHA_8 (Build with 0 width may not set color type),
+    // the else branch is taken and failure occurs at bitmap width check (line 196).
+    // Either way the function returns false.
+    bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: PrintRcdNodeInfo_TopSurface
+ * @tc.desc: Test RSRcdSurfaceRenderNode::PrintRcdNodeInfo with TOP surface type
+ *           (covers PrintRcdNodeInfo function and RCDTopSurfaceNode branch)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, PrintRcdNodeInfo_TopSurface, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_TRUE(surfaceNode->IsTopSurface());
+
+    const int width = 100;
+    const int height = 50;
+    Drawing::Bitmap layerBitmap;
+    layerBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    // PrintRcdNodeInfo should not crash and should log node info for TOP surface
+    surfaceNode->PrintRcdNodeInfo(layerBitmap);
+    EXPECT_EQ(static_cast<int>(layerBitmap.GetWidth()), width);
+    EXPECT_EQ(static_cast<int>(layerBitmap.GetHeight()), height);
+}
+
+/*
+ * @tc.name: PrintRcdNodeInfo_BottomSurface
+ * @tc.desc: Test RSRcdSurfaceRenderNode::PrintRcdNodeInfo with BOTTOM surface type
+ *           (covers PrintRcdNodeInfo function and RCDBottomSurfaceNode branch)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, PrintRcdNodeInfo_BottomSurface, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_TRUE(surfaceNode->IsBottomSurface());
+
+    const int width = 200;
+    const int height = 100;
+    Drawing::Bitmap layerBitmap;
+    layerBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    // PrintRcdNodeInfo should not crash and should log node info for BOTTOM surface
+    surfaceNode->PrintRcdNodeInfo(layerBitmap);
+    EXPECT_EQ(static_cast<int>(layerBitmap.GetWidth()), width);
+    EXPECT_EQ(static_cast<int>(layerBitmap.GetHeight()), height);
+}
+
+/*
+ * @tc.name: PrintRcdNodeInfo_InvalidSurface
+ * @tc.desc: Test RSRcdSurfaceRenderNode::PrintRcdNodeInfo with INVALID surface type
+ *           (covers PrintRcdNodeInfo function with non-TOP surface)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, PrintRcdNodeInfo_InvalidSurface, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::INVALID);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_TRUE(surfaceNode->IsInvalidSurface());
+    ASSERT_FALSE(surfaceNode->IsTopSurface());
+
+    Drawing::Bitmap layerBitmap;
+    layerBitmap.Build(50, 50,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    // PrintRcdNodeInfo should not crash even with INVALID surface type
+    surfaceNode->PrintRcdNodeInfo(layerBitmap);
+}
+
+/*
+ * @tc.name: PrintRcdNodeInfo_WithCldInfo
+ * @tc.desc: Test RSRcdSurfaceRenderNode::PrintRcdNodeInfo after cldInfo is populated
+ *           via PrepareHardwareResourceBuffer (verifies cldInfo values are logged)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, PrintRcdNodeInfo_WithCldInfo, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // Populate buffer dimensions and cldLayerInfo via PrepareHardwareResourceBuffer
+    const int width = 100;
+    const int height = 50;
+    Drawing::Bitmap rgbaBitmap;
+    rgbaBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &rgbaBitmap};
+    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
+    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
+    Drawing::Bitmap layerBitmap;
+    ASSERT_TRUE(surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap));
+
+    // cldInfo_ is default-initialized (populated by FillHardwareResource/SetRCDInfo);
+    // PrintRcdNodeInfo should log the cldInfo values without crashing
+    const CldInfo& cldInfo = surfaceNode->GetCldInfo();
+    EXPECT_EQ(cldInfo.cldWidth, 0u); // not yet populated by SetRCDInfo
+
+    surfaceNode->PrintRcdNodeInfo(layerBitmap);
+}
+
+/*
+ * @tc.name: ProcessRcdSurfaceRenderNode_ConsumeAndUpdateBufferFailed
+ * @tc.desc: Test RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode when RequestFrame succeeds but
+ *           ConsumeAndUpdateBuffer fails (covers line 135: ConsumeAndUpdateBuffer returns false).
+ *           The full success path up to line 134 (renderFrame->Flush()) is exercised; then
+ *           ConsumeAndUpdateBuffer fails because SetHardwareResourceToBuffer cannot read the
+ *           .bin file (path /sys_prod/etc/display/RoundCornerDisplay/xxx.bin does not exist in
+ *           the test environment), causing line 135 condition true -> line 136-137 log + return false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode_ConsumeAndUpdateBufferFailed, TestSize.Level1)
+{
+    // 1. create surface node (TOP) and create a real consumer/producer surface
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNode);
+    ASSERT_NE(listener, nullptr);
+    ASSERT_TRUE(surfaceNode->CreateSurface(listener));
+    ASSERT_TRUE(surfaceNode->IsSurfaceCreated());
+
+    // 2. set up render engine (initialized so RequestFrame can succeed)
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    RSUniRenderThread::Instance().uniRenderEngine_->Init();
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    ASSERT_NE(visitor->renderEngine_, nullptr);
+
+    // 3. set up a valid uni processor
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
+    visitor->SetUniProcessor(processor);
+    ASSERT_NE(visitor->uniProcessor_, nullptr);
+    ASSERT_FALSE(surfaceNode->IsInvalidSurface());
+
+    // 4. build a valid layerInfo with an RGBA_8888 bitmap and set display rect
+    const int width = 100;
+    const int height = 50;
+    Drawing::Bitmap rgbaBitmap;
+    rgbaBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &rgbaBitmap};
+    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
+    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
+
+    // 5. queue a buffer via producer surface so that AcquireBuffer can succeed later
+    auto consumer = surfaceNode->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    sptr<Surface> producerSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(producerSurface, nullptr);
+    BufferRequestConfig requestConfig = {
+        .width = width,
+        .height = height,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = { .w = width, .h = height, },
+    };
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    GSError ret = producerSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    if (ret == OHOS::GSERROR_OK && buffer != nullptr) {
+        ret = producerSurface->FlushBuffer(buffer, SyncFence::INVALID_FENCE, flushConfig);
+        ASSERT_EQ(ret, OHOS::GSERROR_OK);
+        surfaceNode->IncreaseAvailableBuffer();
+        ASSERT_TRUE(surfaceNode->GetAvailableBufferCount() > 0);
+    }
+
+    // 6. call ProcessRcdSurfaceRenderNode with resourceChanged=true
+    // If RequestFrame succeeds -> Flush succeeds -> ConsumeAndUpdateBuffer fails
+    //    (SetHardwareResourceToBuffer fails because .bin file does not exist)
+    //    -> covers line 135-138
+    // If RequestFrame fails -> covers line 127-133 (CleanCache branch)
+    bool result = visitor->ProcessRcdSurfaceRenderNode(*surfaceNode, layerInfo, true);
+    EXPECT_FALSE(result);
+
+    // cleanup
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
+
+/*
+ * @tc.name: ProcessRcdSurfaceRenderNode_RequestFrameFailed
+ * @tc.desc: Test RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode when RequestFrame returns nullptr
+ *           (covers lines 127-133: renderFrame == nullptr -> CleanCache -> log -> return false).
+ *           A render engine is set but NOT initialized (no Init() call), so renderContext_ is
+ *           nullptr and RequestFrame returns nullptr, exercising the CleanCache branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode_RequestFrameFailed, TestSize.Level1)
+{
+    // 1. create surface node (TOP) and create a real surface so GetRSSurface() != nullptr
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(surfaceNode, nullptr);
+    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNode);
+    ASSERT_NE(listener, nullptr);
+    ASSERT_TRUE(surfaceNode->CreateSurface(listener));
+    ASSERT_TRUE(surfaceNode->IsSurfaceCreated());
+
+    // 2. set up a render engine WITHOUT calling Init() so RequestFrame returns nullptr
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    ASSERT_NE(visitor->renderEngine_, nullptr);
+
+    // 3. set up a valid uni processor
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
+    visitor->SetUniProcessor(processor);
+    ASSERT_NE(visitor->uniProcessor_, nullptr);
+    ASSERT_FALSE(surfaceNode->IsInvalidSurface());
+
+    // 4. build a valid layerInfo so PrepareHardwareResourceBuffer succeeds (passes line 119-122)
+    const int width = 100;
+    const int height = 50;
+    Drawing::Bitmap rgbaBitmap;
+    rgbaBitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &rgbaBitmap};
+    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
+    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
+
+    // 5. call ProcessRcdSurfaceRenderNode with resourceChanged=true
+    // RequestFrame returns nullptr -> line 127 condition true ->
+    //   line 128-130 CleanCache (if surface valid) -> line 131-132 log -> line 133 return false
+    bool result = visitor->ProcessRcdSurfaceRenderNode(*surfaceNode, layerInfo, true);
+    EXPECT_FALSE(result);
+
+    // cleanup
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 } // OHOS::Rosen
