@@ -991,7 +991,7 @@ bool RSSurfaceRenderNode::IsInFixedRotation() const
 void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating, bool screenChanged)
 {
     if (isFixRotationByUser_) {
-        if (!isInFixedRotation_ && isRotating) {
+        if (!isInFixedRotation_ && isRotating && !haveScreenChangeInRotation_) {
 #ifndef ROSEN_CROSS_PLATFORM
 #ifdef RS_ENABLE_GPU
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());

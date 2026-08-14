@@ -639,11 +639,25 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetInFixedRotationTest004, TestSize.Level1)
     ASSERT_TRUE(dstRect1.left_ == oriDstRect.left_ && dstRect1.top_ == oriDstRect.top_ &&
                 dstRect1.width_ == oriDstRect.width_ && dstRect1.height_ == oriDstRect.height_);
 
-    // the next frame leaves fixed rotation, then original rects are re-captured with new rects
+    // the next frames leave fixed rotation; guard prevents re-saving rects while flag is set
     surfaceNode->SetInFixedRotation(true);
     EXPECT_FALSE(surfaceNode->isInFixedRotation_);
     surfaceNode->SetInFixedRotation(true);
     EXPECT_FALSE(surfaceNode->isInFixedRotation_);
+    // rects are still srcRect1 because guard blocks saving while haveScreenChangeInRotation_ is true
+    oriSrcRect = surfaceNode->GetOriginalSrcRect();
+    oriDstRect = surfaceNode->GetOriginalDstRect();
+    ASSERT_TRUE(srcRect1.left_ == oriSrcRect.left_ && srcRect1.top_ == oriSrcRect.top_ &&
+                srcRect1.width_ == oriSrcRect.width_ && srcRect1.height_ == oriSrcRect.height_);
+    ASSERT_TRUE(dstRect1.left_ == oriDstRect.left_ && dstRect1.top_ == oriDstRect.top_ &&
+                dstRect1.width_ == oriDstRect.width_ && dstRect1.height_ == oriDstRect.height_);
+    // rotation stops: haveScreenChangeInRotation_ is cleared
+    surfaceNode->SetInFixedRotation(false);
+    EXPECT_FALSE(surfaceNode->isInFixedRotation_);
+    EXPECT_FALSE(surfaceNode->haveScreenChangeInRotation_);
+    // next rotation starts: guard no longer blocks, rects are re-captured with new values
+    surfaceNode->SetInFixedRotation(true);
+    EXPECT_TRUE(surfaceNode->isInFixedRotation_);
     oriSrcRect = surfaceNode->GetOriginalSrcRect();
     oriDstRect = surfaceNode->GetOriginalDstRect();
     ASSERT_TRUE(srcRect2.left_ == oriSrcRect.left_ && srcRect2.top_ == oriSrcRect.top_ &&
