@@ -1274,8 +1274,8 @@ HWTEST_F(RSRenderNodeMapTest, RemoveAndRegisterSurfaceNodeMapRoundTrip, TestSize
     EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.size(), 2);
     EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.count(node1->GetId()), 1);
     EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.count(node2->GetId()), 1);
-    // the token entry is erased while the pid key stays with an empty sub map
-    EXPECT_TRUE(rsRenderNodeMap.backgroundSurfaceNodeMap_.at(pid).empty());
+    // the token entry is erased, and the pid key is also removed when sub map becomes empty
+    EXPECT_EQ(rsRenderNodeMap.backgroundSurfaceNodeMap_.count(pid), 0);
     EXPECT_FALSE(node1->IsUIRenderDirectorStopped());
     EXPECT_FALSE(node2->IsUIRenderDirectorStopped());
 }
