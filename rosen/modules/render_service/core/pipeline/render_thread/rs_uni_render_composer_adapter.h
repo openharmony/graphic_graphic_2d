@@ -63,7 +63,8 @@ private:
     void SetComposeInfoToLayer(
         const RSLayerPtr& layer,
         const ComposeInfo& info,
-        const sptr<IConsumerSurface>& surface) const;
+        const sptr<IConsumerSurface>& surface,
+        bool isNeedComposition = true) const;
     static void SetBufferColorSpace(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     void LayerRotate(const RSLayerPtr& layer, RSSurfaceRenderNode& node) const;
     void LayerRotate(const RSLayerPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable) const;

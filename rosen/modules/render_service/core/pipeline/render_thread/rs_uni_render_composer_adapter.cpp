@@ -254,7 +254,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
 void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     const RSLayerPtr& layer,
     const ComposeInfo& info,
-    const sptr<IConsumerSurface>& surface) const
+    const sptr<IConsumerSurface>& surface,
+    bool isNeedComposition) const
 {
     if (layer == nullptr || surface == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::SetCInfoToLayer layer or surface is nullptr");
@@ -297,7 +298,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetCycleBuffersNum(cycleBufferNum);
     layer->SetSurfaceName(surface->GetName());
     layer->SetSurfaceUniqueId(surface->GetUniqueId());
-    layer->SetIsNeedComposition(true);
+    layer->SetIsNeedComposition(isNeedComposition);
     layer->SetBufferOwnerCount(info.bufferOwnerCount);
 }
 
@@ -1173,9 +1174,8 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
         layer->SetUniRenderFlag(true);
         screenDrawable.SetRSLayer(screenInfo_.id, layer);
-        SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
+        SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer(), !skipLayerCommit);
         layer->SetNeedBilinearInterpolation(true);
-        layer->SetIsNeedComposition(!skipLayerCommit);
     }
     // do not crop or scale down for displayNode's layer.
     return layer;
@@ -1232,10 +1232,9 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         layer->SetNodeId(node.GetId());
         layer->SetUniRenderFlag(true);
         node.SetRSLayer(screenInfo_.id, layer);
-        SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
+        SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer(), !skipLayerCommit);
         LayerRotate(layer, *screenDrawable);
         layer->SetNeedBilinearInterpolation(true);
-        layer->SetIsNeedComposition(!skipLayerCommit);
     }
     // do not crop or scale down for screenNode's layer.
     return layer;
