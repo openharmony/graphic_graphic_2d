@@ -32,7 +32,6 @@
 
 namespace OHOS {
 namespace Rosen {
-ScreenId RSUniHwcVisitor::lastScreenId_ = 0;
 namespace {
 constexpr int32_t MAX_ALPHA = 255;
 constexpr uint32_t API18 = 18;
