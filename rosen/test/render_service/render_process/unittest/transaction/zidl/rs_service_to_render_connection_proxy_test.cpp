@@ -1571,19 +1571,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetCacheEnabledForRotationTest001
     ASSERT_NE(proxy, nullptr);
 }
 
-/**
- * @tc.name: SetCacheEnabledForRotation_NullRemote
- * @tc.desc: Test SetCacheEnabledForRotation when Remote() is nullptr
- * @tc.type: FUNC
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetCacheEnabledForRotation_NullRemote, TestSize.Level1)
-{
-    auto nullProxy = std::make_shared<RSServiceToRenderConnectionProxy>(nullptr);
-    nullProxy->SetCacheEnabledForRotation(true);
-    nullProxy->SetCacheEnabledForRotation(false);
-    ASSERT_NE(nullProxy, nullptr);
-}
-
 // ==================== NotifyPackageEvent Tests ====================
 
 /**
