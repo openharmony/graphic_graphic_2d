@@ -137,7 +137,8 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
         auto result = consumer->GetFrontDesiredPresentTimeStamp(frontDesiredPresentTimeStamp, isAutoTimeStamp);
         // isBufferingReasonable: true when there is buffer accumulation AND it's in producer-set timestamp mode
         // AND producer timestamp > system timestamp (reasonable accumulation)
-        bool isBufferingReasonable = result == 0 && !isAutoTimeStamp && frontDesiredPresentTimeStamp > presentWhen;
+        bool isBufferingReasonable = result == 0 && !isAutoTimeStamp
+            && static_cast<uint64_t>(frontDesiredPresentTimeStamp) > presentWhen;
         availableBufferCount = isBufferingReasonable ? 0 : availableBufferCount;
         // Reset drop frame level after acquire to avoid affecting subsequent acquires
         if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
