@@ -51,8 +51,6 @@ config("export_config") {
     "$rosen_text_root/service",
   ]
 
-  configs = [ "//third_party/bounds_checking_function:libsec_public_config" ]
-
   if (rs_enable_gpu) {
     defines = [ "RS_ENABLE_GPU" ]
   }
