@@ -311,6 +311,14 @@ public:
     }
     bool IsInFixedRotation() const;
     void SetInFixedRotation(bool isRotating, bool screenChanged);
+    void SetLastScreenId(ScreenId screenId)
+    {
+        lastScreenId_ = screenId;
+    }
+    ScreenId GetLastScreenId() const
+    {
+        return lastScreenId_;
+    }
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -2164,6 +2172,7 @@ private:
     bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
+    ScreenId lastScreenId_ = INVALID_SCREEN_ID;
     static bool haveScreenChangedInRotation_;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;

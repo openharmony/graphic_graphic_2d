@@ -134,8 +134,6 @@ private:
 
     bool isOffscreen_ = false;
 
-    static ScreenId lastScreenId_;
-
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
 };

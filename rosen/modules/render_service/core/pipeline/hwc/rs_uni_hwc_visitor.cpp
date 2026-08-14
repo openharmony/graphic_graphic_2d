@@ -1334,8 +1334,8 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     node.SetHardwareForcedDisabledState(false);
     auto curScreenId = uniRenderVisitor_.curScreenNode_->GetScreenInfo().id;
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
-                            uniRenderVisitor_.isScreenRotationAnimating_, lastScreenId_ != curScreenId);
-    lastScreenId_ = curScreenId;
+                            uniRenderVisitor_.isScreenRotationAnimating_, node.GetLastScreenId() != curScreenId);
+    node.SetLastScreenId(curScreenId);
     bool isHardwareForcedDisabled = !node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) &&
         (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
          IsDisableHwcOnExpandScreen() ||
