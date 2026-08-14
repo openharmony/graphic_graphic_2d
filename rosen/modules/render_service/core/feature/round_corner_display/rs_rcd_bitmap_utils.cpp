@@ -101,8 +101,9 @@ bool ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& 
     // written into the alpha channel of the corresponding RGBA_8888 pixel, with
     // the R/G/B channels filled accordingly (typically 0). The srcX/srcY offset
     // (0, 0) means copying from the top-left corner of the source bitmap.
-    if (!srcBitmap.ReadPixels(dstBitmap.GetImageInfo(), dstBitmap.GetPixels(),
-        static_cast<size_t>(dstBitmap.GetRowBytes()), 0, 0)) {
+    succeeded = srcBitmap.ReadPixels(dstBitmap.GetImageInfo(), dstBitmap.GetPixels(),
+        static_cast<size_t>(dstBitmap.GetRowBytes()), 0, 0);
+    if (!succeeded) {
         RS_LOGE("RCD: read pixels from alpha8 bitmap failed");
         return false;
     }
