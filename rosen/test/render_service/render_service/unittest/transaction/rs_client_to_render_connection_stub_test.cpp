@@ -23,6 +23,7 @@
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
+
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #endif
@@ -30,14 +31,18 @@
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "gtest/gtest.h"
+#include "limit_number.h"
+#include "mock_hdi_device.h"
+#include "sandbox_utils.h"
+
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/rs_application_agent_stub.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_frame_stability_callback_stub.h"
-#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
 #include "ipc_callbacks/rs_iframe_stability_callback.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
@@ -45,8 +50,6 @@
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
-#include "limit_number.h"
-#include "mock_hdi_device.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_composer_adapter.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -54,7 +57,6 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
-#include "sandbox_utils.h"
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_client_to_render_connection.h"
@@ -70,7 +72,7 @@ constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
 constexpr const int SURFACE_NODE_ID = 1003;
 constexpr const int TEST_NULLPTR_CONN_PID = 10;
-};
+}; // namespace
 
 namespace OHOS::Rosen {
 class RSClientToRenderConnectionStubTest : public testing::Test {
@@ -86,6 +88,7 @@ public:
     float mirrorAdaptiveCoefficient = 1.0f;
     static uint32_t screenId_;
     static std::shared_ptr<RSSurfaceRenderNode> surfaceNode_;
+
 private:
     int OnRemoteRequestTest(uint32_t code);
     static void WaitHandlerTask();
@@ -101,8 +104,9 @@ std::shared_ptr<RSSurfaceRenderNode> RSClientToRenderConnectionStubTest::surface
 void RSClientToRenderConnectionStubTest::SetUpTestCase()
 {
     pid_t pid = SURFACE_NODE_ID;
-    surfaceNode_ = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(((NodeId)pid << 32 | SURFACE_NODE_ID),
-        std::make_shared<RSContext>(), true), RSRenderNodeGC::NodeDestructor);
+    surfaceNode_ = std::shared_ptr<RSSurfaceRenderNode>(
+        new RSSurfaceRenderNode(((NodeId)pid << 32 | SURFACE_NODE_ID), std::make_shared<RSContext>(), true),
+        RSRenderNodeGC::NodeDestructor);
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
@@ -190,9 +194,8 @@ class RSSurfaceCaptureCallbackStubMock : public RSSurfaceCaptureCallbackStub {
 public:
     RSSurfaceCaptureCallbackStubMock() = default;
     virtual ~RSSurfaceCaptureCallbackStubMock() = default;
-    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        Media::PixelMap* pixelmap, CaptureError captureErrorCode = CaptureError::CAPTURE_OK,
-        Media::PixelMap* pixelmapHDR = nullptr) override {};
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
+        CaptureError captureErrorCode = CaptureError::CAPTURE_OK, Media::PixelMap* pixelmapHDR = nullptr) override {};
 };
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -236,7 +239,7 @@ public:
     ~RSBufferClearCallbackStubMock() noexcept override = default;
     void OnBufferClear() override {}
 };
- 
+
 class RSOcclusionChangeCallbackStubMock : public RSOcclusionChangeCallbackStub {
 public:
     RSOcclusionChangeCallbackStubMock() = default;
@@ -304,8 +307,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, 
 {
     auto newPid = getpid();
 
-    connectionStub_ =
-        new RSClientToRenderConnection(newPid, renderPipelineAgent_, token_->AsObject());
+    connectionStub_ = new RSClientToRenderConnection(newPid, renderPipelineAgent_, token_->AsObject());
     ASSERT_EQ(connectionStub_ != nullptr, true);
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     ASSERT_EQ(callback != nullptr, true);
@@ -407,22 +409,20 @@ HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, 
     nodeMap.UnregisterRenderNode(id);
 }
 
-
 class RSScreenChangeCallbackStubMock : public RSScreenChangeCallbackStub {
 public:
     RSScreenChangeCallbackStubMock() = default;
     virtual ~RSScreenChangeCallbackStubMock() = default;
-    void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override {};
+    void OnScreenChanged(
+        ScreenId id, ScreenEvent event, ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override {};
 };
-
 
 class RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
 public:
     RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock() = default;
     virtual ~RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock() = default;
-    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid,
-        const std::string& xcomponentId, int32_t expectedFps) override {};
+    void OnFrameRateLinkerExpectedFpsUpdate(
+        pid_t dstPid, const std::string& xcomponentId, int32_t expectedFps) override {};
 };
 
 /**
@@ -434,30 +434,36 @@ public:
 HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub001, TestSize.Level1)
 {
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK)),
+                  static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK)),
         ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK)),
+                  static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK)),
         ERR_INVALID_DATA);
     if (RSUniRenderJudgement::IsUniRender()) {
         EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
                       RSIClientToRenderConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER)),
             ERR_INVALID_DATA);
     }
-    EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK)), ERR_NULL_OBJECT);
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE)), ERR_INVALID_DATA);
+                  static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK)),
+        ERR_NULL_OBJECT);
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT)), ERR_INVALID_DATA);
+                  static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE)),
+        ERR_INVALID_DATA);
+    EXPECT_EQ(
+        OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT)),
+        ERR_INVALID_DATA);
+    EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE)),
+        ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE)), ERR_INVALID_DATA);
+                  static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_APPLICATION_AGENT)),
+        ERR_NULL_OBJECT);
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_APPLICATION_AGENT)), ERR_NULL_OBJECT);
-    EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER)), ERR_INVALID_DATA);
-    EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER)), ERR_INVALID_DATA);
+                  static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER)),
+        ERR_INVALID_DATA);
+    EXPECT_EQ(
+        OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER)),
+        ERR_INVALID_DATA);
 }
 
 /**
@@ -468,26 +474,34 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
  */
 HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub002, TestSize.Level1)
 {
+    ASSERT_EQ(
+        OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT)),
+        ERR_INVALID_STATE);
+    ASSERT_EQ(
+        OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_CONTAINER)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(
+        OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(
+        OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(
+        OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE)),
+        ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT)), ERR_INVALID_STATE);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_CONTAINER)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES)), ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK)), ERR_INVALID_STATE);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HARDWARE_ENABLED)), ERR_INVALID_DATA);
+                  static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(
+        OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK)),
+        ERR_INVALID_STATE);
+    ASSERT_EQ(
+        OnRemoteRequestTest(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HARDWARE_ENABLED)),
+        ERR_INVALID_DATA);
 }
 
 /**
@@ -704,8 +718,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint64(displayNodeId);
     data.WriteBool(checkDrmAndSurfaceLock);
@@ -772,14 +786,14 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     permissions.screenCapturePermission = false;
     res = connection->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, true, permissions);
     EXPECT_EQ(res, ERR_PERMISSION_DENIED);
-    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_, nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_.lock(), nullptr);
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     res = connection->TakeSurfaceCaptureWithAllWindows(0, callback, captureConfig, true, permissions);
     EXPECT_EQ(res, ERR_PERMISSION_DENIED);
 
     ASSERT_NE(renderPipelineAgent_, nullptr);
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     res = renderPipelineAgent_->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, true, permissions);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
     renderPipelineAgent_->rsRenderPipeline_ = pipeline;
@@ -797,8 +811,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     MessageParcel data1;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
     data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data1.WriteBool(false);
     int res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
@@ -882,9 +896,9 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     connection->renderPipelineAgent_ = agent;
 
     ASSERT_NE(connection->renderPipelineAgent_, nullptr);
-    std::shared_ptr<RSRenderPipeline> pipeline = connection->renderPipelineAgent_->rsRenderPipeline_;
-    connection->renderPipelineAgent_->rsRenderPipeline_ = nullptr;
-    ASSERT_EQ(connection->renderPipelineAgent_->rsRenderPipeline_, nullptr);
+    std::shared_ptr<RSRenderPipeline> pipeline = connection->renderPipelineAgent_->rsRenderPipeline_.lock();
+    connection->renderPipelineAgent_->rsRenderPipeline_.reset();
+    ASSERT_EQ(connection->renderPipelineAgent_->rsRenderPipeline_.lock(), nullptr);
     res = connection->FreezeScreen(0, false, false);
     ASSERT_EQ(res, ERR_INVALID_VALUE);
     connection->renderPipelineAgent_->rsRenderPipeline_ = pipeline;
@@ -900,7 +914,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
         new RSScreenRenderNode(screenNodeId, screenId), RSRenderNodeGC::NodeDestructor);
     ASSERT_NE(screenNode, nullptr);
     displayNode->SetParent(screenNode);
-    auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_->mainThread_->GetContext().GetMutableNodeMap();
+    auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->GetContext().GetMutableNodeMap();
     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
     EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
     res = connection->FreezeScreen(displayNodeId, false, false);
@@ -920,8 +934,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
 {
     constexpr uint32_t TIME_OF_FREEZE_TASK = 100000;
     ASSERT_NE(renderPipelineAgent_, nullptr);
-    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_, nullptr);
-    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_->mainThread_, nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_.lock(), nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_, nullptr);
     NodeId displayNodeId = 896;
     NodeId screenNodeId = 54;
     ScreenId screenId = 1;
@@ -933,7 +947,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
         new RSScreenRenderNode(screenNodeId, screenId), RSRenderNodeGC::NodeDestructor);
     ASSERT_NE(screenNode, nullptr);
     displayNode->SetParent(screenNode);
-    auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_->mainThread_->GetContext().GetMutableNodeMap();
+    auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->GetContext().GetMutableNodeMap();
     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
     EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
     auto res = renderPipelineAgent_->FreezeScreen(displayNodeId, false, false);
@@ -956,8 +970,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
 {
     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
     ASSERT_NE(renderPipelineAgent_, nullptr);
-    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_, nullptr);
-    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_->mainThread_, nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_.lock(), nullptr);
+    ASSERT_NE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_, nullptr);
 
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCapturePermissions permissions;
@@ -968,7 +982,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
         new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
     ASSERT_NE(displayNode, nullptr);
-    auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_->mainThread_->GetContext().GetMutableNodeMap();
+    auto& nodeMap = renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->GetContext().GetMutableNodeMap();
     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
     auto ret = renderPipelineAgent_->TakeSurfaceCaptureWithAllWindows(
         displayNodeId, nullptr, captureConfig, false, permissions);
@@ -1128,27 +1142,27 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
 
     MessageParcel data3;
     data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data3.WriteUint64(1); // Write nodeId
-    data3.WriteUint32(1); // Write resetSurfaceIndex
-    data3.WriteUint32(1); // Write sequence
+    data3.WriteUint64(1);   // Write nodeId
+    data3.WriteUint32(1);   // Write resetSurfaceIndex
+    data3.WriteUint32(1);   // Write sequence
     data3.WriteBool(false); // Whether has buffer
     res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
     ASSERT_EQ(res, ERR_NONE);
 
     MessageParcel data4;
     data4.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data4.WriteUint64(1); // Write nodeId
-    data4.WriteUint32(1); // Write resetSurfaceIndex
-    data4.WriteUint32(1); // Write sequence
+    data4.WriteUint64(1);  // Write nodeId
+    data4.WriteUint32(1);  // Write resetSurfaceIndex
+    data4.WriteUint32(1);  // Write sequence
     data4.WriteBool(true); // Whether has buffer
     res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
 
     MessageParcel data5;
     data5.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data5.WriteUint64(3); // Write nodeId
-    data5.WriteUint32(3); // Write resetSurfaceIndex
-    data5.WriteUint32(1); // Write sequence
+    data5.WriteUint64(3);  // Write nodeId
+    data5.WriteUint32(3);  // Write resetSurfaceIndex
+    data5.WriteUint32(1);  // Write sequence
     data5.WriteBool(true); // Whether has buffer
     sptr<SurfaceBuffer> buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(1, 100, 100);
     buffer->WriteToMessageParcel(data5);
@@ -1170,9 +1184,9 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest0
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint64(3); // Write nodeId
-    data.WriteUint32(3); // Write resetSurfaceIndex
-    data.WriteUint32(1); // Write sequence
+    data.WriteUint64(3);  // Write nodeId
+    data.WriteUint32(3);  // Write resetSurfaceIndex
+    data.WriteUint32(1);  // Write sequence
     data.WriteBool(true); // Whether has buffer
     auto buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(1, 100, 100);
     buffer->WriteToMessageParcel(data);
@@ -1527,9 +1541,9 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest001, TestSize.
     MessageParcel data3;
     data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data3.WriteUint64(displayNodeId);
-    data3.WriteUint64(0); // mirrorId
+    data3.WriteUint64(0);         // mirrorId
     data3.WriteUint64(screenId_); // screenId
-    data3.WriteBool(false); // isMirrored
+    data3.WriteBool(false);       // isMirrored
     res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
     EXPECT_EQ(res, ERR_NONE);
 }
@@ -1580,7 +1594,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CreateDisplayNodeTest003, TestSize.
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     NodeId displayNodeId = 10002;
     data.WriteUint64(displayNodeId);
-    data.WriteUint64(0); // mirrorId
+    data.WriteUint64(0);         // mirrorId
     data.WriteUint64(screenId_); // screenId
     // NOT writing isMirrored - should fail here
 
@@ -2272,8 +2286,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransactionTest001, TestSize.
     data.WriteInt32(0); // readData = 0 (normal parcel)
     // Write minimal transaction data
     data.WriteUint64(1); // timestamp
-    data.WriteInt32(0); // follower count
-    data.WriteInt32(0); // command count
+    data.WriteInt32(0);  // follower count
+    data.WriteInt32(0);  // command count
 
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     // Should succeed or return invalid data if parsing fails
@@ -2320,7 +2334,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkForNodesTest00
     data.WriteInt32(pid);
     std::string name = "testWatermark";
     data.WriteString(name);
-    std::vector<NodeId> nodeList = {10001, 10002};
+    std::vector<NodeId> nodeList = { 10001, 10002 };
     data.WriteUInt64Vector(nodeList);
 
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -2625,13 +2639,12 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest001, Tes
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
- 
+
 /**
  * @tc.name: SetSystemAnimatedScenesTest002
  * @tc.desc: Test SetSystemAnimatedScenes when data is ReadBool fail
@@ -2643,14 +2656,13 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest002, Tes
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint32(0);
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
- 
+
 /**
  * @tc.name: SetSystemAnimatedScenesTest003
  * @tc.desc: Test SetSystemAnimatedScenes when ReadUint32 fail
@@ -2662,14 +2674,13 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest003, Tes
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteBool(true);
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
- 
+
 /**
  * @tc.name: SetSystemAnimatedScenesTest004
  * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ isn't nullptr
@@ -2681,8 +2692,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest004, Tes
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint32(0);
     data.WriteBool(true);
@@ -2741,7 +2751,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest003, Test
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteInt16(10); // RS_NODE_SYNCHRONOUS_READ_PROPERTY
+    data.WriteInt16(10);  // RS_NODE_SYNCHRONOUS_READ_PROPERTY
     data.WriteInt16(999); // Invalid subType that doesn't have a registered func
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
@@ -2780,7 +2790,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest005, Test
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteInt16(11); // RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION
+    data.WriteInt16(11);  // RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION
     data.WriteInt16(999); // Invalid subType
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
@@ -2801,7 +2811,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest006, Test
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteInt16(11); // RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION
-    data.WriteInt16(0); // subType that doesn't have registered func
+    data.WriteInt16(0);  // subType that doesn't have registered func
     data.WriteUint64(0); // Incomplete data
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
@@ -2816,7 +2826,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ExecuteSynchronousTaskTest006, Test
 HWTEST_F(RSClientToRenderConnectionStubTest, ReportJankStats_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     ErrCode ret = renderPipelineAgent_->ReportJankStats();
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
     renderPipelineAgent_->rsRenderPipeline_ = pipeline;
@@ -2831,7 +2841,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportJankStats_NullPipeline, TestS
 HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventResponse_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     DataBaseRs info;
     ErrCode ret = renderPipelineAgent_->ReportEventResponse(info);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
@@ -2847,7 +2857,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventResponse_NullPipeline, T
 HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventComplete_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     DataBaseRs info;
     ErrCode ret = renderPipelineAgent_->ReportEventComplete(info);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
@@ -2863,7 +2873,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventComplete_NullPipeline, T
 HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventJankFrame_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     DataBaseRs info;
     ErrCode ret = renderPipelineAgent_->ReportEventJankFrame(info);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
@@ -2879,7 +2889,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportEventJankFrame_NullPipeline, 
 HWTEST_F(RSClientToRenderConnectionStubTest, ReportRsSceneJankStart_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     AppInfo info;
     ErrCode ret = renderPipelineAgent_->ReportRsSceneJankStart(info);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
@@ -2895,7 +2905,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportRsSceneJankStart_NullPipeline
 HWTEST_F(RSClientToRenderConnectionStubTest, ReportRsSceneJankEnd_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     AppInfo info;
     ErrCode ret = renderPipelineAgent_->ReportRsSceneJankEnd(info);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
@@ -2911,9 +2921,9 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ReportRsSceneJankEnd_NullPipeline, 
 HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoStart_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
-    std::vector<uint64_t> uniqueIdList = {1};
-    std::vector<std::string> surfaceNameList = {"surface1"};
+    renderPipelineAgent_->rsRenderPipeline_.reset();
+    std::vector<uint64_t> uniqueIdList = { 1 };
+    std::vector<std::string> surfaceNameList = { "surface1" };
     uint32_t fps = 120;
     uint64_t reportTime = 16;
     ErrCode ret = renderPipelineAgent_->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
@@ -2930,9 +2940,9 @@ HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoStart_NullPipeline, Tes
 HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoStop_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
-    std::vector<uint64_t> uniqueIdList = {1};
-    std::vector<std::string> surfaceNameList = {"surface1"};
+    renderPipelineAgent_->rsRenderPipeline_.reset();
+    std::vector<uint64_t> uniqueIdList = { 1 };
+    std::vector<std::string> surfaceNameList = { "surface1" };
     uint32_t fps = 120;
     ErrCode ret = renderPipelineAgent_->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
@@ -2948,7 +2958,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoStop_NullPipeline, Test
 HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoGet_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     uint64_t uniqueId = 1;
     ErrCode ret = renderPipelineAgent_->AvcodecVideoGet(uniqueId);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
@@ -2964,7 +2974,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoGet_NullPipeline, TestS
 HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoGetRecent_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     ErrCode ret = renderPipelineAgent_->AvcodecVideoGetRecent();
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
     renderPipelineAgent_->rsRenderPipeline_ = pipeline;
@@ -2979,7 +2989,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, AvcodecVideoGetRecent_NullPipeline,
 HWTEST_F(RSClientToRenderConnectionStubTest, GetMemoryGraphic_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     int pid = 1001;
     MemoryGraphic memoryGraphic;
     ErrCode ret = renderPipelineAgent_->GetMemoryGraphic(pid, memoryGraphic);
@@ -2996,7 +3006,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetMemoryGraphic_NullPipeline, Test
 HWTEST_F(RSClientToRenderConnectionStubTest, GetTotalAppMemSize_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     float cpuMemSize = 0.0f;
     float gpuMemSize = 0.0f;
     ErrCode ret = renderPipelineAgent_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
@@ -3013,7 +3023,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetTotalAppMemSize_NullPipeline, Te
 HWTEST_F(RSClientToRenderConnectionStubTest, GetMemoryGraphics_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     std::vector<MemoryGraphic> memoryGraphics;
     ErrCode ret = renderPipelineAgent_->GetMemoryGraphics(memoryGraphics);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
@@ -3029,7 +3039,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetMemoryGraphics_NullPipeline, Tes
 HWTEST_F(RSClientToRenderConnectionStubTest, GetPidGpuMemoryInMB_NullPipeline, TestSize.Level1)
 {
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     pid_t pid = 1001;
     float gpuMemInMB = 0.0f;
     int32_t ret = renderPipelineAgent_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
@@ -3047,8 +3057,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionDeathRecipientTest001, 
 {
     // Create isolated connection for this test
     auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
+    auto testConnection =
+        new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID, renderPipelineAgent_, testToken->AsObject());
 
     // Create death recipient
     auto deathRecipient = new RSClientToRenderConnection::RSConnectionDeathRecipient(testConnection);
@@ -3069,8 +3079,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionDeathRecipientTest002, 
 {
     // Create isolated connection for this test
     auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
+    auto testConnection =
+        new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID, renderPipelineAgent_, testToken->AsObject());
 
     // Create death recipient
     auto deathRecipient = new RSClientToRenderConnection::RSConnectionDeathRecipient(testConnection);
@@ -3093,8 +3103,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionDeathRecipientTest003, 
 {
     // Create isolated connection for this test
     auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
+    auto testConnection =
+        new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID, renderPipelineAgent_, testToken->AsObject());
 
     // Create death recipient
     auto deathRecipient = new RSClientToRenderConnection::RSConnectionDeathRecipient(testConnection);
@@ -3117,8 +3127,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionDeathRecipientTest004, 
 {
     // Create isolated connection for this test
     auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
+    auto testConnection =
+        new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID, renderPipelineAgent_, testToken->AsObject());
 
     // Create death recipient
     auto deathRecipient = new RSClientToRenderConnection::RSConnectionDeathRecipient(testConnection);
@@ -3138,8 +3148,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RSApplicationRenderThreadDeathRecip
 {
     // Create isolated connection for this test
     auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
+    auto testConnection =
+        new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID, renderPipelineAgent_, testToken->AsObject());
 
     // Create application death recipient
     auto appDeathRecipient = new RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient(testConnection);
@@ -3160,8 +3170,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RSApplicationRenderThreadDeathRecip
 {
     // Create isolated connection for this test
     auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
+    auto testConnection =
+        new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID, renderPipelineAgent_, testToken->AsObject());
 
     // Create application death recipient
     auto appDeathRecipient = new RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient(testConnection);
@@ -3184,8 +3194,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RSApplicationRenderThreadDeathRecip
 {
     // Create isolated connection with nullptr renderPipelineAgent
     auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        nullptr, testToken->AsObject());
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID, nullptr, testToken->AsObject());
 
     // Create application death recipient
     auto appDeathRecipient = new RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient(testConnection);
@@ -3205,8 +3214,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RSApplicationRenderThreadDeathRecip
 {
     // Create isolated connection for this test
     auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
+    auto testConnection =
+        new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID, renderPipelineAgent_, testToken->AsObject());
 
     // Create application death recipient
     auto appDeathRecipient = new RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient(testConnection);
@@ -3261,8 +3270,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest002, TestSize
     permissions.selfCapture = false;
     ASSERT_NE(callback, nullptr);
     // Test UICAPTURE without permission - should return nullptr via callback
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3287,8 +3296,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest003, TestSize
     permissions.selfCapture = true;
     ASSERT_NE(callback, nullptr);
     // Test UICAPTURE with selfCapture permission - should proceed
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3312,8 +3321,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest004, TestSize
     permissions.selfCapture = false;
     ASSERT_NE(callback, nullptr);
     // Test UICAPTURE with system calling permission - should proceed
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3337,8 +3346,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest005, TestSize
     permissions.screenCapturePermission = true;
     ASSERT_NE(callback, nullptr);
     // Test with non-existent node - should return nullptr via callback
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3374,8 +3383,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest006, TestSize
     permissions.screenCapturePermission = false;
     ASSERT_NE(callback, nullptr);
     // Test LOGICAL_DISPLAY_NODE without permission - should return nullptr via callback
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 
     nodeMap.UnregisterRenderNode(nodeId);
 }
@@ -3413,8 +3422,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest007, TestSize
     permissions.screenCapturePermission = true;
     ASSERT_NE(callback, nullptr);
     // Test LOGICAL_DISPLAY_NODE with permission - should proceed
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 
     nodeMap.UnregisterRenderNode(nodeId);
 }
@@ -3445,8 +3454,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest008, TestSize
     permissions.selfCapture = false;
     ASSERT_NE(callback, nullptr);
     // Test SURFACE_NODE with blur but no permission - should return nullptr via callback
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 
     nodeMap.UnregisterRenderNode(nodeId);
 }
@@ -3477,8 +3486,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest009, TestSize
     permissions.selfCapture = true;
     ASSERT_NE(callback, nullptr);
     // Test SURFACE_NODE with blur and selfCapture permission - should proceed
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 
     nodeMap.UnregisterRenderNode(nodeId);
 }
@@ -3505,9 +3514,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest010, TestSize
     permissions.selfCapture = false;
     ASSERT_NE(callback, nullptr);
     // Test SURFACE_NODE without blur and no permission - should return nullptr via callback
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
-
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3531,8 +3539,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest011, TestSize
     permissions.selfCapture = true;
     ASSERT_NE(callback, nullptr);
     // Test with specified area rect - should proceed
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId,
-        callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3552,17 +3560,16 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest012, TestSize
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     RSSurfaceCaptureBlurParam blurParam;
-    blurParam.isNeedBlur = false;  // Explicitly set to false
+    blurParam.isNeedBlur = false; // Explicitly set to false
     Drawing::Rect specifiedAreaRect;
     RSSurfaceCapturePermissions permissions;
     permissions.isSystemCalling = true;
     permissions.selfCapture = true;
-    permissions.screenCapturePermission = false;  // Not needed for SURFACE_NODE without blur
+    permissions.screenCapturePermission = false; // Not needed for SURFACE_NODE without blur
     ASSERT_NE(callback, nullptr);
     // Test with dirty SURFACE_NODE - should set hasDirtyContentInSurfaceCapture = true
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
-
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3582,16 +3589,16 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest013, TestSize
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     RSSurfaceCaptureBlurParam blurParam;
-    blurParam.isNeedBlur = false;  // Explicitly set to false
+    blurParam.isNeedBlur = false; // Explicitly set to false
     Drawing::Rect specifiedAreaRect;
     RSSurfaceCapturePermissions permissions;
     permissions.isSystemCalling = true;
     permissions.selfCapture = true;
-    permissions.screenCapturePermission = false;  // Not needed for SURFACE_NODE without blur
+    permissions.screenCapturePermission = false; // Not needed for SURFACE_NODE without blur
     ASSERT_NE(callback, nullptr);
     // Test with subtree dirty SURFACE_NODE - should set hasDirtyContentInSurfaceCapture = true
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3608,7 +3615,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest014, TestSize
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
-    captureConfig.isSyncRender = true;  // Enable isSyncRender to trigger the branch
+    captureConfig.isSyncRender = true; // Enable isSyncRender to trigger the branch
     RSSurfaceCaptureBlurParam blurParam;
     Drawing::Rect specifiedAreaRect;
     RSSurfaceCapturePermissions permissions;
@@ -3616,9 +3623,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest014, TestSize
     permissions.selfCapture = true;
     ASSERT_NE(callback, nullptr);
     // Test with isSyncRender=true - should trigger the RegisterCaptureCallback branch (lines 461-474)
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
-
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3640,7 +3646,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest015, TestSize
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
-    captureConfig.isSyncRender = true;  // Enable isSyncRender
+    captureConfig.isSyncRender = true; // Enable isSyncRender
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = false;
     Drawing::Rect specifiedAreaRect;
@@ -3650,8 +3656,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest015, TestSize
     permissions.screenCapturePermission = false;
     ASSERT_NE(callback, nullptr);
     // Test with HAS_GENERAL_SPECIAL and dirty - should skip RegisterCaptureCallback but set dirty flag
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 
     // Clean up
     surfaceNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
@@ -3683,7 +3689,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest016, TestSize
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
-    captureConfig.isSyncRender = true;  // Enable isSyncRender
+    captureConfig.isSyncRender = true; // Enable isSyncRender
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = false;
     Drawing::Rect specifiedAreaRect;
@@ -3692,8 +3698,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest016, TestSize
     permissions.screenCapturePermission = true;
     ASSERT_NE(callback, nullptr);
     // Test with non-surface node - surfaceNode will be null, skip RegisterCaptureCallback branch
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
     std::this_thread::sleep_for(std::chrono::milliseconds(TIME_OF_CAPUTRE_TASK));
     nodeMap.UnregisterRenderNode(nodeId);
 }
@@ -3709,13 +3715,13 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest017, TestSize
     ASSERT_NE(renderPipelineAgent_, nullptr);
 
     NodeId nodeId = surfaceNode_->GetId();
-    surfaceNode_->SetDirty(false);  // Ensure not dirty
-    surfaceNode_->SetSubTreeDirty(false);  // Ensure subtree not dirty
+    surfaceNode_->SetDirty(false);        // Ensure not dirty
+    surfaceNode_->SetSubTreeDirty(false); // Ensure subtree not dirty
 
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
-    captureConfig.isSyncRender = false;  // Disable isSyncRender to go to else path
+    captureConfig.isSyncRender = false; // Disable isSyncRender to go to else path
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = false;
     Drawing::Rect specifiedAreaRect;
@@ -3725,8 +3731,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest017, TestSize
     permissions.screenCapturePermission = false;
     ASSERT_NE(callback, nullptr);
     // Test with clean SURFACE_NODE - should not set hasDirtyContentInSurfaceCapture
-    renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
-        captureConfig, blurParam, specifiedAreaRect, permissions);
+    renderPipelineAgent_->TakeSurfaceCapture(
+        nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 /**
@@ -3901,7 +3907,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest005, 
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     // Test DropFrameByPid
-    std::vector<int32_t> pidList = {100, 200};
+    std::vector<int32_t> pidList = { 100, 200 };
     ret = agent->DropFrameByPid(pidList, 1);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
@@ -3926,8 +3932,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest006, 
 
     // Test TakeSurfaceCaptureWithAllWindows
     RSSurfaceCapturePermissions permissions;
-    ErrCode ret = agent->TakeSurfaceCaptureWithAllWindows(nodeId, callback,
-        captureConfig, false, permissions);
+    ErrCode ret = agent->TakeSurfaceCaptureWithAllWindows(nodeId, callback, captureConfig, false, permissions);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     // Test TakeUICaptureInRange
@@ -4034,8 +4039,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest009, 
     sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
 
     // Test AvcodecVideoStart
-    std::vector<uint64_t> uniqueIdList = {123, 456};
-    std::vector<std::string> surfaceNameList = {"surface1", "surface2"};
+    std::vector<uint64_t> uniqueIdList = { 123, 456 };
+    std::vector<std::string> surfaceNameList = { "surface1", "surface2" };
     ErrCode ret = agent->AvcodecVideoStart(uniqueIdList, surfaceNameList, 60, 0);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
@@ -4141,7 +4146,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest012, 
     // Should return without crash
 
     // Test NotifyPackageEvent
-    std::vector<std::string> packageList = {"com.example.test"};
+    std::vector<std::string> packageList = { "com.example.test" };
     agent->NotifyPackageEvent(packageList);
     // Should return without crash
 
@@ -4211,7 +4216,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest013, 
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     // Test SetGpuCrcDirtyEnabledPidList
-    std::vector<int32_t> pidList = {100};
+    std::vector<int32_t> pidList = { 100 };
     ret = agent->SetGpuCrcDirtyEnabledPidList(pidList);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
@@ -4255,9 +4260,9 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest014, 
 
     // Test SetSurfaceWatermark
     std::shared_ptr<Media::PixelMap> watermark = nullptr;
-    std::vector<NodeId> nodeIdList = {123, 456};
-    uint32_t ret3 = agent->SetSurfaceWatermark(100, "test", watermark, nodeIdList,
-        SurfaceWatermarkType::SYSTEM_WATER_MARK, true);
+    std::vector<NodeId> nodeIdList = { 123, 456 };
+    uint32_t ret3 =
+        agent->SetSurfaceWatermark(100, "test", watermark, nodeIdList, SurfaceWatermarkType::SYSTEM_WATER_MARK, true);
     EXPECT_EQ(ret3, WATER_MARK_IPC_ERROR);
 
     // Test ClearSurfaceWatermark
@@ -4369,7 +4374,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_NullTransactionDa
     std::unique_ptr<RSTransactionData> transactionData = nullptr;
 
     renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
-    EXPECT_EQ(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.size(), 0);
+    EXPECT_EQ(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.size(), 0);
 }
 
 /**
@@ -4383,7 +4388,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_NormalCase_003, T
     transactionData->SetTimestamp(1234567890);
 
     renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4397,7 +4402,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_WithDVSyncUpdate_
     transactionData->SetTimestamp(1234567890);
 
     renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4411,7 +4416,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_NonSystemApp_005,
     transactionData->SetTimestamp(1234567890);
 
     renderPipelineAgent_->CommitTransaction(1234, true, true, transactionData);
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4425,7 +4430,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_InvalidTokenType_
     transactionData->SetTimestamp(1234567890);
 
     renderPipelineAgent_->CommitTransaction(1234, false, false, transactionData);
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4438,7 +4443,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_EmptyTransactionD
     std::unique_ptr<RSTransactionData> transactionData = std::make_unique<RSTransactionData>();
 
     renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4454,7 +4459,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_MultipleCalls_008
 
         renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
     }
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4472,7 +4477,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_DifferentPids_009
 
         renderPipelineAgent_->CommitTransaction(pid, true, false, transactionData);
     }
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4486,7 +4491,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_WithMainThread_01
     transactionData->SetTimestamp(1234567890);
 
     renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4500,7 +4505,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_LargeTimestamp_01
     transactionData->SetTimestamp(UINT64_MAX);
 
     renderPipelineAgent_->CommitTransaction(1234, true, false, transactionData);
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4514,7 +4519,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_ZeroPid_012, Test
     transactionData->SetTimestamp(1234567890);
 
     renderPipelineAgent_->CommitTransaction(0, true, false, transactionData);
-    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
+    EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_.lock()->mainThread_->cachedTransactionDataMap_.empty());
 }
 
 /**
@@ -4672,7 +4677,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterOcclusionChangeCallbackTest
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     pid_t pid = getpid();
     sptr<RSIOcclusionChangeCallback> callback = nullptr;
     auto res = renderPipelineAgent_->RegisterOcclusionChangeCallback(pid, callback);
@@ -4692,7 +4697,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterSurfaceOcclusionChangeCallb
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     pid_t pid = getpid();
     NodeId id = 1;
     sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
@@ -4748,7 +4753,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, UnregisterSurfaceOcclusionChangeCal
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
     auto pipeline = renderPipelineAgent_->rsRenderPipeline_;
-    renderPipelineAgent_->rsRenderPipeline_ = nullptr;
+    renderPipelineAgent_->rsRenderPipeline_.reset();
     NodeId id = 1;
     auto res = renderPipelineAgent_->UnRegisterSurfaceOcclusionChangeCallback(id);
     EXPECT_EQ(res, StatusCode::INVALID_ARGUMENTS);
@@ -4765,12 +4770,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, UnregisterSurfaceOcclusionChangeCal
  */
 HWTEST_F(RSClientToRenderConnectionStubTest, SetLogicalCameraRotationCorrectionTest002, TestSize.Level1)
 {
-    EXPECT_EQ(connectionStub_->SetLogicalCameraRotationCorrection(WAIT_HANDLER_TIME,
-        ScreenRotation::ROTATION_90), ERR_OK);
-    EXPECT_EQ(connectionStub_->SetLogicalCameraRotationCorrection(screenId_,
-        ScreenRotation::ROTATION_90), ERR_OK);
-    EXPECT_EQ(connectionStub_->SetLogicalCameraRotationCorrection(surfaceNode_->GetId(),
-        ScreenRotation::ROTATION_90), ERR_OK);
+    EXPECT_EQ(
+        connectionStub_->SetLogicalCameraRotationCorrection(WAIT_HANDLER_TIME, ScreenRotation::ROTATION_90), ERR_OK);
+    EXPECT_EQ(connectionStub_->SetLogicalCameraRotationCorrection(screenId_, ScreenRotation::ROTATION_90), ERR_OK);
+    EXPECT_EQ(connectionStub_->SetLogicalCameraRotationCorrection(surfaceNode_->GetId(), ScreenRotation::ROTATION_90),
+        ERR_OK);
 }
 
 /**
@@ -4829,7 +4833,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelMapTest, TestSize.Level1)
 HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest001, TestSize.Level1)
 {
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS)),
+                  static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS)),
         ERR_INVALID_DATA);
 }
 
@@ -4846,8 +4850,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest002, Te
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteBool(true);
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
 }
@@ -4865,8 +4868,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest003, Te
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteBool(false);
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
 }
@@ -4883,8 +4885,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, UpdateFrameStabilityDetectionTest00
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION);
 
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     FrameStabilityTarget oldTarget;
@@ -4915,7 +4916,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_RPEvent_NullAge
     auto backupAgent = connectionStub_->renderProcessManagerAgent_;
     connectionStub_->renderProcessManagerAgent_ = nullptr;
 
-    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    std::unordered_map<std::string, std::string> params = { { "key1", "value1" } };
     auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
@@ -4936,7 +4937,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_RPEvent_NullCon
     auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
     auto backupConn = connectionStub_->renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
 
-    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    std::unordered_map<std::string, std::string> params = { { "key1", "value1" } };
     auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -4956,7 +4957,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_RPEvent_Success
     auto serviceToRenderConn = connectionStub_->renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
     ASSERT_NE(serviceToRenderConn, nullptr);
 
-    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    std::unordered_map<std::string, std::string> params = { { "key1", "value1" } };
     auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -4974,7 +4975,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_RSEvent, TestSi
     auto backupAgent = connectionStub_->renderProcessManagerAgent_;
     connectionStub_->renderProcessManagerAgent_ = nullptr;
 
-    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    std::unordered_map<std::string, std::string> params = { { "key1", "value1" } };
     auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
