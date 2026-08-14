@@ -39,10 +39,7 @@ DVSyncLibManager& DVSyncLibManager::DvsyncDelayInstance()
     return dvsyncDelayInstance;
 }
 
-DVSyncLibManager::~DVSyncLibManager()
-{
-    Shutdown();
-}
+DVSyncLibManager::~DVSyncLibManager() {}
 
 bool DVSyncLibManager::Initialize(const std::string& libPath, bool isDvsyncDelay)
 {
@@ -72,17 +69,6 @@ bool DVSyncLibManager::Initialize(const std::string& libPath, bool isDvsyncDelay
     }
     initialized_ = true;
     return true;
-}
-
-void DVSyncLibManager::Shutdown()
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (libHandle_) {
-        dlclose(libHandle_);
-        libHandle_ = nullptr;
-        ClearAllFunctions();
-        initialized_ = false;
-    }
 }
 
 bool DVSyncLibManager::LoadAllFunctions()

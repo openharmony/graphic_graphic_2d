@@ -251,7 +251,6 @@ HWTEST_F(DVSyncLibManagerTest, Initialize003, Function | MediumTest| Level1)
     bool success = DVSyncLibManagerTest::dvsyncLibManager.Initialize("nolibdvsync.so");
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.libHandle_, nullptr);
     ASSERT_EQ(success, false);
-    DVSyncLibManagerTest::dvsyncLibManager.Shutdown();
 }
 
 /*
@@ -270,7 +269,6 @@ HWTEST_F(DVSyncLibManagerTest, Initialize004, Function | MediumTest| Level1)
     success = DVSyncLibManagerTest::dvsyncLibManager.Initialize("libdvsync.z.so");
     ASSERT_EQ(success, true);
     DVSyncLibManagerTest::dvsyncLibManager.ClearAllFunctions();
-    DVSyncLibManagerTest::dvsyncLibManager.Shutdown();
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.libHandle_, nullptr);
 }
 
@@ -310,7 +308,6 @@ HWTEST_F(DVSyncLibManagerTest, Initialize005, Function | MediumTest| Level1)
     ASSERT_NE(DVSyncLibManagerTest::dvsyncLibManager.setVSyncTimeUpdatedFunc_, nullptr);
     DVSyncLibManagerTest::dvsyncLibManager.NeedSkipRsCommitDelay();
     ASSERT_NE(DVSyncLibManagerTest::dvsyncLibManager.needSkipRsCommitDelayFunc_, nullptr);
-    DVSyncLibManagerTest::dvsyncLibManager.Shutdown();
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.libHandle_, nullptr);
 }
 
@@ -363,7 +360,6 @@ HWTEST_F(DVSyncLibManagerTest, LoadFunction001, Function | MediumTest| Level1)
     loadSuccess &= dvsyncLibManager.LoadFunction("WrongRecordEnableVsync", dvsyncLibManager.recordEnableVsyncFunc_);
     loadSuccess &= dvsyncLibManager.LoadFunction("WrongRecordRNV", dvsyncLibManager.recordRNVFunc_);
     ASSERT_NE(loadSuccess, true);
-    DVSyncLibManagerTest::dvsyncLibManager.Shutdown();
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.libHandle_, nullptr);
 }
 
@@ -412,7 +408,6 @@ HWTEST_F(DVSyncLibManagerTest, LoadFunction002, Function | MediumTest| Level1)
     loadSuccess &= dvsyncLibManager.LoadFunction("WrongSetTouchEvent", dvsyncLibManager.setTouchEventFunc_);
     loadSuccess &= dvsyncLibManager.LoadFunction("WrongUpdateDelayInfo", dvsyncLibManager.updateDelayInfoFunc_);
     ASSERT_NE(loadSuccess, true);
-    DVSyncLibManagerTest::dvsyncLibManager.Shutdown();
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.libHandle_, nullptr);
 }
 
@@ -467,7 +462,6 @@ HWTEST_F(DVSyncLibManagerTest, LoadFunction003, Function | MediumTest| Level1)
     DVSyncLibManagerTest::dvsyncLibManager.ForceRsDVsync(sceneId);
     DVSyncLibManagerTest::dvsyncLibManager.GetVsyncCount(VsyncCount);
     DVSyncLibManagerTest::dvsyncLibManager.InitDvsyncController(vsyncGenerator, offset, vsyncController);
-    DVSyncLibManagerTest::dvsyncLibManager.Shutdown();
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.libHandle_, nullptr);
 }
 

@@ -88,7 +88,6 @@ public:
     static DVSyncLibManager& Instance();
     static DVSyncLibManager& DvsyncDelayInstance();
     bool Initialize(const std::string& libPath = "libdvsync.z.so", bool isDvsyncDelay = false);
-    void Shutdown();
     bool IsInitialized() const { return initialized_; }
     bool AllFunctionsLoaded() const;
 
