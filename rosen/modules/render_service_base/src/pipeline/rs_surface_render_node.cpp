@@ -68,6 +68,7 @@ namespace Rosen {
 // with the suffix 0.000x is still rounded up.
 constexpr float RECT_CEIL_DEVIATION = 0.001;
 constexpr size_t MAX_FILTER_CACHE_TYPES = 3;
+bool RSSurfaceRenderNode::haveScreenChangedInRotation_ = false;
 namespace {
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -988,21 +989,32 @@ bool RSSurfaceRenderNode::IsInFixedRotation() const
     return isInFixedRotation_;
 }
 
-void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating)
+void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating, bool screenChanged)
 {
-    if (isFixRotationByUser_ && !isInFixedRotation_ && isRotating) {
-#ifndef ROSEN_CROSS_PLATFORM
-#ifdef RS_ENABLE_GPU
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-        if (surfaceParams) {
-            auto layer = surfaceParams->GetLayerInfo();
-            originalSrcRect_ = { layer.srcRect.x, layer.srcRect.y, layer.srcRect.w, layer.srcRect.h };
-            originalDstRect_ = { layer.dstRect.x, layer.dstRect.y, layer.dstRect.w, layer.dstRect.h };
+    if (isFixRotationByUser_) {
+        if (isFixRotationByUser_ && !isInFixedRotation_ && isRotating) {
+    #ifndef ROSEN_CROSS_PLATFORM
+    #ifdef RS_ENABLE_GPU
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+            if (surfaceParams) {
+                auto layer = surfaceParams->GetLayerInfo();
+                originalSrcRect_ = { layer.srcRect.x, layer.srcRect.y, layer.srcRect.w, layer.srcRect.h };
+                originalDstRect_ = { layer.dstRect.x, layer.dstRect.y, layer.dstRect.w, layer.dstRect.h };
+            }
+    #endif
+    #endif
         }
-#endif
-#endif
+        isInFixedRotation_ = isRotating && !RSSurfaceRenderNode::haveScreenChangedInRotation_;
+        if (screenChanged && isRotating) {
+            RSSurfaceRenderNode::haveScreenChangedInRotation_ = true;
+            RS_TRACE_NAME_FMT("RSSurfaceRenderNode::SetInFixedRotation, screen changed in rotation, nodeId:%" PRIu64,
+                GetId());
+        }
+        if (!isRotating) {
+            RSSurfaceRenderNode::haveScreenChangedInRotation_ = false;
+        }
+
     }
-    isInFixedRotation_ = isFixRotationByUser_ && isRotating;
 }
 
 void RSSurfaceRenderNode::SetHidePrivacyContent(bool needHidePrivacyContent)

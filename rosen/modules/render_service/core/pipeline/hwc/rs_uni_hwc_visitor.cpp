@@ -32,6 +32,7 @@
 
 namespace OHOS {
 namespace Rosen {
+ScreenId RSUniHwcVisitor::lastScreenId_ = 0;
 namespace {
 constexpr int32_t MAX_ALPHA = 255;
 constexpr uint32_t API18 = 18;
@@ -142,8 +143,6 @@ void RSUniHwcVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const 
     if (!node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
         return;
     }
-    node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
-        uniRenderVisitor_.isScreenRotationAnimating_);
     const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
     auto surfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
     ((surfaceParams != nullptr && surfaceParams->GetIsHwcEnabledBySolidLayer()) || apiCompatibleVersion >= API18 ||
@@ -1333,8 +1332,10 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     const Drawing::Matrix& absMatrix, bool subTreeSkipped)
 {
     node.SetHardwareForcedDisabledState(false);
+    auto curScreenId = uniRenderVisitor_.curScreenNode_->GetScreenInfo().id;
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
-                            uniRenderVisitor_.isScreenRotationAnimating_);
+                            uniRenderVisitor_.isScreenRotationAnimating_, lastScreenId_ != curScreenId);
+    lastScreenId_ = curScreenId;
     bool isHardwareForcedDisabled = !node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) &&
         (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
          IsDisableHwcOnExpandScreen() ||

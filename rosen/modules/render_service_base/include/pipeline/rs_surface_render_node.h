@@ -310,7 +310,7 @@ public:
         return isFixRotationByUser_;
     }
     bool IsInFixedRotation() const;
-    void SetInFixedRotation(bool isRotating);
+    void SetInFixedRotation(bool isRotating, bool screenChanged);
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -2164,6 +2164,7 @@ private:
     bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
+    static bool haveScreenChangedInRotation_;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isSplitSurfaceNode_ = false;
