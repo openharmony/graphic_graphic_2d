@@ -1059,7 +1059,7 @@ void RSMainThread::OnScreenPropertyChanged(
     HandlePowerStatusChanged(id, type, property);
     HandlePhysicalModeParamsChanged(id, type, property);
     UpdateScreenProperty(id, type, property);
-    HandleProtectiveSolidNode(id);
+    // [Planning]: HandleProtectiveSolidNode
 }
 
 void RSMainThread::ReleaseImageMem()
