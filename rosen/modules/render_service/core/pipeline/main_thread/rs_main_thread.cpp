@@ -1042,16 +1042,16 @@ void RSMainThread::HandleProtectiveSolidNode(ScreenId id)
     if (!RSSystemProperties::IsSpecialFoldDisplay() || id != 0) {
         return;
     }
-    std::shared_ptr<RSScreenRenderNode> innerNode;
-    context_->GetMutableNodeMap().TraverseScreenNodes([&innerNode](const std::shared_ptr<RSScreenRenderNode>& node) {
+    std::shared_ptr<RSScreenRenderNode> screenNode;
+    context_->GetMutableNodeMap().TraverseScreenNodes([&screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
         if (node && node->GetScreenId() == 0) {
-            innerNode = node;
+            screenNode = node;
         }
     });
-    if (!innerNode) {
+    if (!screenNode) {
         return;
     }
-    const auto& sp = innerNode->GetScreenProperty();
+    const auto& sp = screenNode->GetScreenProperty();
     bool powerOn = (sp.GetScreenPowerStatus() == ScreenPowerStatus::POWER_STATUS_ON);
     if (powerOn && sp.GetActiveRect() == PROTECTIVE_SOLID_N_RECT) {
         CreateProtectiveSolidRenderNode(id);
