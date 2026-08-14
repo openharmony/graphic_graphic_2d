@@ -280,6 +280,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.NotifySoftVsyncRateDiscountEvent(1, name, 1);
     rsClientToServiceConnectionProxy.NotifyTouchEvent(pid1, uid, sourceType);
     rsClientToServiceConnectionProxy.NotifyDynamicModeEvent(true);
+    rsClientToServiceConnectionProxy.SetHgmExclusiveScreen(static_cast<ScreenId>(0));
+    rsClientToServiceConnectionProxy.SetHgmExclusiveScreen(std::nullopt);
     rsClientToServiceConnectionProxy.NotifyHgmConfigEvent(name, true);
     rsClientToServiceConnectionProxy.NotifyXComponentExpectedFrameRate(name, expectedFrameRate);
     rsClientToServiceConnectionProxy.ReportEventResponse(info);
