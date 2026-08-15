@@ -744,7 +744,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     MessageOption option;
 
     int res = connectionStub_->OnRemoteRequest(-1, data, reply, option);
-    ASSERT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 
 /**
