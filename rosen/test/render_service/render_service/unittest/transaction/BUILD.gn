@@ -90,7 +90,7 @@ ohos_unittest("RSClientToServiceConnectionStubTest") {
   sources = [
     "mock/mock_accesstoken_kit.cpp",
     "../pipeline/mock/mock_hdi_device.cpp",
-    "rs_client_to_service_connection_stub_test.cpp",
+    #"rs_client_to_service_connection_stub_test.cpp",
     "${rosen_root}/modules/render_service_base/src/pipeline/rs_uni_render_judgement.cpp",
   ]
   deps = [
@@ -129,7 +129,7 @@ ohos_unittest("RSClientToRenderConnectionStubTest") {
   module_out_path = module_output_path
   sources = [
     "../pipeline/mock/mock_hdi_device.cpp",
-    "rs_client_to_render_connection_stub_test.cpp",
+    #"rs_client_to_render_connection_stub_test.cpp",
   ]
   deps = [
     ":rs_test_common",

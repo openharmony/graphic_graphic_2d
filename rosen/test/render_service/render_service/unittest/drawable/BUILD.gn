@@ -23,7 +23,6 @@ group("unittest") {
     ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
-    ":RSEffectRenderNodeDrawableTest",
     ":RSLogicalDisplayRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableTest",

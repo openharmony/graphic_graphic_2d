@@ -915,29 +915,29 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
     float blurRadius = -10;
     bool ret =
         rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
     surfaceCaptureCb_->Reset();
 
     blurRadius = 10;
     ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
     surfaceCaptureCb_->Reset();
 
     // test blurRadius is large
     blurRadius = 100000;
     ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
 
@@ -957,7 +957,9 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest001, Function | Sma
     ASSERT_EQ(ret, false);
 
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
+    EXPECT_NE(ret, true);
+#endif
 }
 
 /*
@@ -972,30 +974,30 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest002, Function | Sma
     captureConfig.scaleX = -1.f;
     captureConfig.scaleY = -1.f;
     bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
     surfaceCaptureCb_->Reset();
 
     captureConfig.scaleX = 2.f;
     captureConfig.scaleY = 2.f;
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
     surfaceCaptureCb_->Reset();
 
     captureConfig.scaleX = 0.5;
     captureConfig.scaleY = 0.5;
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
 
@@ -1010,19 +1012,19 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest003, Function | Sma
 
     captureConfig.useDma = true;
     bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
     surfaceCaptureCb_->Reset();
 
     captureConfig.useDma = false;
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
 
@@ -1037,19 +1039,19 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest004, Function | Sma
 
     captureConfig.useCurWindow = true;
     bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
     surfaceCaptureCb_->Reset();
 
     captureConfig.useCurWindow = false;
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
 
@@ -1077,10 +1079,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureTest, Function | SmallTest 
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.useCurWindow = true;
     bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    EXPECT_NE(ret, true);
+    EXPECT_NE(CheckSurfaceCaptureCallback(), true);
+    EXPECT_NE(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
 #endif

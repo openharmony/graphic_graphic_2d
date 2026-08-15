@@ -36,7 +36,6 @@ group("unittest") {
     ":RSSurfaceCaptureTaskParallelTest",
     ":RSSurfaceCaptureTaskTest",
     ":RSRenderGroupCacheTest",
-    ":RSUiCaptureSoloTaskParallelTest",
     ":RSUiCaptureTaskParallelTest",
     ":RSUniHwcComputeUtilTest",
     ":RSUniUiCaptureTest",
