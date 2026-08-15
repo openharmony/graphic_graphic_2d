@@ -20,9 +20,9 @@
 
 #include "animation/rs_render_animation.h"
 #include "modifier/rs_modifier_manager.h"
-#include "transaction/rs_interfaces.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
 #include "ui/rs_root_node.h"
@@ -41,7 +41,6 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 class RSUIDirectorTest : public testing::Test {
 public:
-
     std::shared_ptr<RSUIDirector> CreateRSUIDirector();
     static constexpr int g_normalInt_1 = 123;
     static constexpr int g_normalInt_2 = 34342;
@@ -1594,24 +1593,6 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderCanvasEnabledTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnCanvasDrawingNodeRenderStartEndTest
- * @tc.desc: Test canvas drawing node render start/end bookkeeping
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIDirectorTest, OnCanvasDrawingNodeRenderStartEndTest, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_NE(director, nullptr);
-    NodeId nodeId1 = 1001;
-    NodeId nodeId2 = 1002;
-    director->OnCanvasDrawingNodeRenderStart(nodeId1);
-    director->OnCanvasDrawingNodeRenderStart(nodeId2);
-    director->OnCanvasDrawingNodeRenderEnd(nodeId1);
-    director->OnCanvasDrawingNodeRenderEnd(nodeId2);
-    SUCCEED();
-}
-
-/**
  * @tc.name: AnimationDestroyInRenderCallbackProcessorInvalidTest
  * @tc.desc: Test AnimationDestroyInRenderCallbackProcessor with invalid token, invalid node id and valid node
  * @tc.type: FUNC
@@ -1630,8 +1611,7 @@ HWTEST_F(RSUIDirectorTest, AnimationDestroyInRenderCallbackProcessorInvalidTest,
 
     // valid token and valid node
     auto node = RSCanvasNode::Create(false, false, uiContext);
-    RSUIDirector::AnimationDestroyInRenderCallbackProcessor(
-        node->GetId(), 1, uiContext->GetToken(), 0.5f, true);
+    RSUIDirector::AnimationDestroyInRenderCallbackProcessor(node->GetId(), 1, uiContext->GetToken(), 0.5f, true);
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE

@@ -14,7 +14,8 @@
  */
 #include "gtest/gtest.h"
 
-#include "transaction/rs_render_interface.h"
+#include "transaction/rs_interfaces.h"
+#include "ui/rs_canvas_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -157,13 +158,13 @@ HWTEST_F(RSRenderInterfaceTest, TakeUICaptureInRangeWithConfigInactiveNodeTest, 
         {}
     };
     auto callback = std::make_shared<TestSurfaceCapture>();
-    auto canvasNodeBegin = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
-    auto canvasNodeEnd = RSCanvasNode::Create(false, true, rsUiDirector_->GetRSUIContext());
+    auto canvasNodeBegin = RSCanvasNode::Create(false, true, nullptr);
+    auto canvasNodeEnd = RSCanvasNode::Create(false, true, nullptr);
     bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
     RSSystemProperties::isUniRenderEnabled_ = true;
     canvasNodeBegin->nodeState_ = RSNodeState::INACTIVE;
     RSSurfaceCaptureConfig captureConfig;
-    auto res = rsRenderInterface_->TakeUICaptureInRangeWithConfig(
+    auto res = RSInterfaces::GetInstance().TakeUICaptureInRangeWithConfig(
         canvasNodeBegin, canvasNodeEnd, false, callback, captureConfig);
     RSSystemProperties::isUniRenderEnabled_ = backupProperty;
     EXPECT_EQ(res, true);

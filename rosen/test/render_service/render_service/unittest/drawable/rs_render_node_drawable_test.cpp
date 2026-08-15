@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "feature_cfg/feature_param/performance_feature/opinc_param.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render/rs_blur_filter.h"
@@ -495,9 +496,10 @@ HWTEST_F(RSRenderNodeDrawableTest, InitCachedSurfaceEmptyUnionRectBranchTest, Te
 
     drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
     drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid());
-    if (drawable->cachedSurface_ && drawable->cachedSurface_->GetCanvas()) {
-        EXPECT_EQ(drawable->cachedSurface_->GetCanvas()->GetWidth(), 64);
-        EXPECT_EQ(drawable->cachedSurface_->GetCanvas()->GetHeight(), 32);
+    auto cachedSurface = drawable->GetCachedSurface(gettid());
+    if (cachedSurface && cachedSurface->GetCanvas()) {
+        EXPECT_EQ(cachedSurface->GetCanvas()->GetWidth(), 64);
+        EXPECT_EQ(cachedSurface->GetCanvas()->GetHeight(), 32);
     }
     drawable->ClearCachedSurface();
 #else
