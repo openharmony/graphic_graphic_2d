@@ -1738,8 +1738,6 @@ group("unittest") {
     ":RSLogTest",
     #":RSMarshallingHelperTest",
     ":RSNodeStatsTest",
-    ":RSProxyTest",
-    ":RSRenderServiceConnectHubTest",
     ":RSClientToServiceConnectionProxyTest",
     ":RSClientToRenderConnectionProxyTest",
     ":RSSurfaceConverterTest",

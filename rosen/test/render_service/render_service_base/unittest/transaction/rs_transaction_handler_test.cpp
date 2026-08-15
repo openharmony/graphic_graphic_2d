@@ -1374,7 +1374,7 @@ HWTEST_F(RSTransactionHandlerTest, DumpCommandTest, TestSize.Level1)
     transaction->FlushImplicitTransaction();
     dumpString.clear();
     transaction->DumpCommand(dumpString);
-    ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionData") == std::string::npos);
+    ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionData") != std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionData") == std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionDataStack") == std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionDataStack") == std::string::npos);

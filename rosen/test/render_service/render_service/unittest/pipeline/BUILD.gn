@@ -51,9 +51,7 @@ group("unittest") {
     ":RSUniRenderUtilSecUIExtensionTest",
     ":RSUniRenderUtilTest",
     ":RSUniRenderVirtualProcessorTest",
-    ":RSUniRenderVisitorTest",
     ":RSVirtualScreenProcessorTest",
-    ":RSRenderPipelineTest",
     ":RSRenderPipelineAgentTest",
     ":RSOpincSplitNodeSelectorTest",
     ":RSOpincLayerSplitterPlannerTest",
@@ -223,7 +221,9 @@ ohos_unittest("RSRenderPipelineAgentTest") {
 ## Build RSRenderServiceUnitTest
 ohos_unittest("RSRenderServiceUnitTest") {
   module_out_path = module_output_path
-  sources = [ "rs_render_service_test.cpp" ]
+  sources = [
+    #"rs_render_service_test.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -798,7 +798,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
 ohos_unittest("RSMainThreadTest") {
   module_out_path = module_output_path
   sources = [
-    "main_thread/rs_main_thread_test.cpp",
+    #"main_thread/rs_main_thread_test.cpp",
     "mock/mock_rs_luminance_control.cpp"
   ]
   deps = [

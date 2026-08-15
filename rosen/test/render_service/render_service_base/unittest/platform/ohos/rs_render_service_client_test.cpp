@@ -147,9 +147,12 @@ HWTEST_F(RSServiceClientTest, SetCurtainScreenUsingStatus002, TestSize.Level2)
 HWTEST_F(RSServiceClientTest, GetUniRenderEnabled001, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
+#ifdef RS_ENABLE_UNI_RENDER
+    ASSERT_EQ(rsClient->GetUniRenderEnabled(), true);
+#else
     ASSERT_EQ(rsClient->GetUniRenderEnabled(), false);
+#endif
 }
-
 /**
  * @tc.name: GetMemoryGraphic Test
  * @tc.desc: GetMemoryGraphic Test
