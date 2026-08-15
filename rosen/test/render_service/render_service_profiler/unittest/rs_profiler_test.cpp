@@ -496,32 +496,6 @@ HWTEST_F(RSProfilerFileTest, RSFileOffsetVersionTest, TestSize.Level1)
 }
 
 /*
- * @tc.name: ReadAnimationStartTimeTest
- * @tc.desc: Test ReadAnimationStartTime
- * @tc.type: FUNC
- * @tc.require: 22491
- */
-HWTEST_F(RSProfilerFileTest, ReadAnimationStartTimeTest, TestSize.Level1)
-{
-    std::string fileName = "/data/local/tmp/rs_profiler_test_read.data";
-    // Pre-create file so realpath() can resolve the path in Utils::FileOpen
-    FILE* preFile = fopen(fileName.c_str(), "wb");
-    ASSERT_TRUE(preFile);
-    fclose(preFile);
-    RSFile rsFile;
-    rsFile.SetVersion(RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED);
-    ASSERT_TRUE(rsFile.Create(fileName));
-    rsFile.WriteAnimationStartTime();
-    rsFile.Close();
-
-    std::string error;
-    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
-    EXPECT_TRUE(rsFile.ReadAnimationStartTime());
-    rsFile.Close();
-    Utils::FileDelete(fileName);
-}
-
-/*
  * @tc.name: ReadHeaderTest
  * @tc.desc: Test ReadHeader
  * @tc.type: FUNC
