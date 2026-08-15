@@ -2775,11 +2775,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidEqualsZero, Tes
     ASSERT_NE(virtualProcessor_, nullptr);
     ASSERT_NE(screenDrawable_, nullptr);
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-
     int32_t tid = 0;
-    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_,
+        RSUniRenderThread::Instance().uniRenderEngine_, tid);
 
     EXPECT_TRUE(result || !result);
 }
@@ -2795,11 +2793,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidEqualsZero_NotS
     ASSERT_NE(virtualProcessor_, nullptr);
     ASSERT_NE(screenDrawable_, nullptr);
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-
     int32_t tid = 0;
-    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_,
+        RSUniRenderThread::Instance().uniRenderEngine_, tid);
 
     EXPECT_TRUE(result || !result);
 }
@@ -2815,11 +2811,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidNotZero, TestSi
     ASSERT_NE(virtualProcessor_, nullptr);
     ASSERT_NE(screenDrawable_, nullptr);
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-
     int32_t tid = -200;
-    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_,
+        RSUniRenderThread::Instance().uniRenderEngine_, tid);
 
     EXPECT_TRUE(result || !result);
 }
@@ -2835,11 +2829,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidPositive, TestS
     ASSERT_NE(virtualProcessor_, nullptr);
     ASSERT_NE(screenDrawable_, nullptr);
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-
     int32_t tid = 100;
-    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_,
+        RSUniRenderThread::Instance().uniRenderEngine_, tid);
 
     EXPECT_TRUE(result || !result);
 }
@@ -2855,11 +2847,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidNegative_SetPar
     ASSERT_NE(virtualProcessor_, nullptr);
     ASSERT_NE(screenDrawable_, nullptr);
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-
     int32_t tid = -250;
-    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_,
+        RSUniRenderThread::Instance().uniRenderEngine_, tid);
 
     EXPECT_TRUE(result || !result);
 }
@@ -2875,11 +2865,9 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread_TidPositive_SetPar
     ASSERT_NE(virtualProcessor_, nullptr);
     ASSERT_NE(screenDrawable_, nullptr);
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-
     int32_t tid = 200;
-    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_, renderEngine, tid);
+    bool result = virtualProcessor_->InitForRenderThread(*screenDrawable_,
+        RSUniRenderThread::Instance().uniRenderEngine_, tid);
 
     EXPECT_TRUE(result || !result);
 }
