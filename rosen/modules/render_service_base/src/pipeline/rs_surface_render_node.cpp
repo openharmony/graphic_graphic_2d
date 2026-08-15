@@ -1004,14 +1004,14 @@ void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating, bool screenChanged
 #endif
             isInFixedRotation_ = isRotating && !haveScreenChangeInRotation_;
         }
-        if (screenChanged && isRotating) {
-            isInFixedRotation_ = false;
-            haveScreenChangeInRotation_ = true;
-            RS_TRACE_NAME_FMT("SetInFixedRotation, screen changed in rotation, node id:%" PRIu64, GetId());
-        }
-        if (haveScreenChangeInRotation_ && !isRotating) {
-            haveScreenChangeInRotation_ = false;
-        }
+    }
+    if (screenChanged && isRotating) {
+        isInFixedRotation_ = false;
+        haveScreenChangeInRotation_ = true;
+        RS_TRACE_NAME_FMT("SetInFixedRotation, screen changed in rotation, node id:%" PRIu64, GetId());
+    }
+    if (haveScreenChangeInRotation_ && !isRotating) {
+        haveScreenChangeInRotation_ = false;
     }
 }
 
