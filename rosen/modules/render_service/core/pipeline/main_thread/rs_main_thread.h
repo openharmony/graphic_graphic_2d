@@ -543,14 +543,14 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
-    std::shared_ptr<RSProtectiveSolidRenderNode> CreateProtectiveSolidRenderNode(ScreenId screenId);
+    void CreateProtectiveSolidRenderNode(ScreenId screenId);
     void DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void HandlePhysicalModeParamsChanged(
         ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
-    void HandleActiveRectOption(ScreenId id, const sptr<ScreenPropertyBase>& property);
+    void HandleProtectiveSolidNode(ScreenId id);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
