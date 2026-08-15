@@ -19,6 +19,8 @@
 
 #include "rs_profiler.h"
 
+#include "animation/rs_spring_model.h"
+#include "animation/rs_value_estimator.h"
 #include "animation/rs_particle_field_collection.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
@@ -701,7 +703,7 @@ template<>
 bool RSRenderAnimatableProperty<float>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
-    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<float>>(value);
+    auto animatableProperty = value ? value->CastToAnimatablePropertyOf<float>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         return fabs(RSRenderProperty<float>::stagingValue_ - animatableProperty->stagingValue_) <= zeroThreshold;
     }
@@ -713,7 +715,7 @@ template<>
 bool RSRenderAnimatableProperty<Vector2f>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
-    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Vector2f>>(value);
+    auto animatableProperty = value ? value->CastToAnimatablePropertyOf<Vector2f>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         return RSRenderProperty<Vector2f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
@@ -725,7 +727,7 @@ template<>
 bool RSRenderAnimatableProperty<Vector3f>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
-    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Vector3f>>(value);
+    auto animatableProperty = value ? value->CastToAnimatablePropertyOf<Vector3f>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         return RSRenderProperty<Vector3f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
@@ -737,7 +739,7 @@ template<>
 bool RSRenderAnimatableProperty<Quaternion>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
-    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Quaternion>>(value);
+    auto animatableProperty = value ? value->CastToAnimatablePropertyOf<Quaternion>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         return RSRenderProperty<Quaternion>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
@@ -749,7 +751,7 @@ template<>
 bool RSRenderAnimatableProperty<Vector4f>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
-    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Vector4f>>(value);
+    auto animatableProperty = value ? value->CastToAnimatablePropertyOf<Vector4f>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         return RSRenderProperty<Vector4f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
@@ -761,7 +763,7 @@ template<>
 bool RSRenderAnimatableProperty<Matrix3f>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
-    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Matrix3f>>(value);
+    auto animatableProperty = value ? value->CastToAnimatablePropertyOf<Matrix3f>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         return RSRenderProperty<Matrix3f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
@@ -773,7 +775,7 @@ template<>
 bool RSRenderAnimatableProperty<Color>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
-    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Color>>(value);
+    auto animatableProperty = value ? value->CastToAnimatablePropertyOf<Color>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         return RSRenderProperty<Color>::stagingValue_.IsNearEqual(
             animatableProperty->Get(), static_cast<int16_t>(zeroThreshold));
@@ -786,7 +788,7 @@ template<>
 bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
-    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Vector4<Color>>>(value);
+    auto animatableProperty = value ? value->CastToAnimatablePropertyOf<Vector4<Color>>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         auto thisData = RSRenderProperty<Vector4<Color>>::stagingValue_.data_;
         auto otherValue = animatableProperty->Get();
@@ -804,7 +806,7 @@ template<>
 bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
-    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<RRect>>(value);
+    auto animatableProperty = value ? value->CastToAnimatablePropertyOf<RRect>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         return RSRenderProperty<RRect>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }

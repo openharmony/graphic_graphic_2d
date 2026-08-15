@@ -27,14 +27,12 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include "modifier/rs_render_property.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderPropertyBase;
-template<typename T>
-class RSRenderAnimatableProperty;
 
 class RSB_EXPORT RSValueEstimator {
 public:
@@ -88,10 +86,10 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& endValue,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
-        auto animatableStartValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(startValue);
-        auto animatableEndValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(endValue);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableProperty = property ? property->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableStartValue = startValue ? startValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableEndValue = endValue ? endValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty && animatableStartValue && animatableEndValue && animatableLastValue) {
             property_ = animatableProperty;
             startValue_ = animatableStartValue->Get();
@@ -185,14 +183,16 @@ public:
         std::shared_ptr<RSInterpolator>>>& keyframes,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableProperty = property ? property->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty && animatableLastValue) {
             property_ = animatableProperty;
             lastValue_ = animatableLastValue->Get();
         }
         for (const auto& keyframe : keyframes) {
-            auto keyframeValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(std::get<1>(keyframe));
+            auto& keyframeProp = std::get<1>(keyframe);
+            auto keyframeValue = keyframeProp ?
+                keyframeProp->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
             if (keyframeValue != nullptr) {
                 keyframes_.push_back({ std::get<0>(keyframe), keyframeValue->Get(), std::get<2>(keyframe) });
             }
@@ -204,14 +204,16 @@ public:
         std::shared_ptr<RSInterpolator>>>& keyframes,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableProperty = property ? property->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty && animatableLastValue) {
             property_ = animatableProperty;
             lastValue_ = animatableLastValue->Get();
         }
         for (const auto& keyframe : keyframes) {
-            auto keyframeValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(std::get<2>(keyframe));
+            auto& keyframeProp = std::get<2>(keyframe);
+            auto keyframeValue = keyframeProp ?
+                keyframeProp->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
             if (keyframeValue != nullptr) {
                 durationKeyframes_.push_back(
                     { std::get<0>(keyframe), std::get<1>(keyframe), keyframeValue->Get(), std::get<3>(keyframe) });
@@ -416,7 +418,8 @@ public:
 
     void SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& initialVelocity) override
     {
-        auto animatableInitialVelocity = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(initialVelocity);
+        auto animatableInitialVelocity =
+            initialVelocity ? initialVelocity->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableInitialVelocity != nullptr && springModel_ != nullptr) {
             springModel_->initialVelocity_ = animatableInitialVelocity->Get();
         }
@@ -426,10 +429,10 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
-        auto animatableStartValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(startValue);
-        auto animatableEndValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(endValue);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableProperty = property ? property->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableStartValue = startValue ? startValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableEndValue = endValue ? endValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableProperty && animatableStartValue && animatableEndValue && animatableLastValue) {
             property_ = animatableProperty;
             startValue_ = animatableStartValue->Get();
@@ -444,8 +447,8 @@ public:
     void UpdateStartValueAndLastValue(const std::shared_ptr<RSRenderPropertyBase>& startValue,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
     {
-        auto animatableStartValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(startValue);
-        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        auto animatableStartValue = startValue ? startValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
+        auto animatableLastValue = lastValue ? lastValue->CastToAnimatablePropertyOf<T>(__func__) : nullptr;
         if (animatableStartValue && animatableLastValue) {
             startValue_ = animatableStartValue->Get();
             lastValue_ = animatableLastValue->Get();
@@ -531,6 +534,35 @@ private:
 
 #undef DECLARE_PROPERTY
 #undef DECLARE_ANIMATABLE_PROPERTY
+
+} // namespace Rosen
+} // namespace OHOS
+
+namespace OHOS {
+namespace Rosen {
+
+template<typename T>
+std::shared_ptr<RSValueEstimator> RSRenderAnimatableProperty<T>::CreateRSValueEstimator(
+    const RSValueEstimatorType type)
+{
+    switch (type) {
+        case RSValueEstimatorType::CURVE_VALUE_ESTIMATOR: {
+            return std::make_shared<RSCurveValueEstimator<T>>();
+        }
+        case RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR: {
+            return std::make_shared<RSKeyframeValueEstimator<T>>();
+        }
+        default: {
+            return nullptr;
+        }
+    }
+}
+
+template<typename T>
+std::shared_ptr<RSSpringValueEstimatorBase> RSRenderAnimatableProperty<T>::CreateRSSpringValueEstimator()
+{
+    return std::make_shared<RSSpringValueEstimator<T>>();
+}
 
 } // namespace Rosen
 } // namespace OHOS
