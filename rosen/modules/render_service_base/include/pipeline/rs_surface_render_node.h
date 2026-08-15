@@ -310,7 +310,7 @@ public:
         return isFixRotationByUser_;
     }
     bool IsInFixedRotation() const;
-    void SetInFixedRotation(bool isRotating, bool screenChanged = false);
+    void SetInFixedRotation(bool isRotating, bool screenChanged);
     // Returns true if the screen the node is being prepared on differs from the last one,
     // and records the current screen for the next comparison.
     bool CheckScreenChanged(ScreenId screenId)
