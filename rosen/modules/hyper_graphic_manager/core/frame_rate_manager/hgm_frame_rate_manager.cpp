@@ -61,6 +61,7 @@ constexpr int DISPLAY_SUCCESS = 1;
 constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
 constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
 constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
+constexpr size_t VOTE_INFO_SIMPLE_PREFIX_LEN = 6;
 
 bool IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType)
 {
@@ -1242,8 +1243,9 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
         }
     } else {
         lastVoteInfo_ = resultVoteInfo;
-        HGM_LOGI("%{public}s %{public}d %{public}d %{public}s", curScreenStrategyId_.c_str(),
-            static_cast<int>(curScreenId_.load()), curRefreshRateMode_, resultVoteInfo.ToSimpleString().c_str());
+        HGM_LOGI_SHORT("%{public}s %{public}d %{public}d %{public}s", curScreenStrategyId_.c_str(),
+            static_cast<int>(curScreenId_.load()), curRefreshRateMode_,
+            resultVoteInfo.ToSimpleString().erase(0, VOTE_INFO_SIMPLE_PREFIX_LEN).c_str());
     }
 
     // max used here
