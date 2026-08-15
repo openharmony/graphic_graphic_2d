@@ -1158,8 +1158,8 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
 
 bool RSSystemProperties::GetNewTunnelEnabled()
 {
-    static std::string val = system::GetParameter("persist.rosen.debug.new_tunnel", "0");
-    return val == "1";
+    static bool tunnelEnabled = std::atoi(system::GetParameter("persist.rosen.debug.new_tunnel", "0").c_str()) == 1;
+    return tunnelEnabled;
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
