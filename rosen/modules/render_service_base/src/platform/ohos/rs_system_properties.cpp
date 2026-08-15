@@ -1158,7 +1158,7 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
 
 bool RSSystemProperties::GetNewTunnelEnabled()
 {
-    static bool tunnelEnabled = std::atoi(system::GetParameter("persist.rosen.debug.new_tunnel", "0").c_str()) == 1;
+    static bool tunnelEnabled = std::atoi(system::GetParameter("persist.rosen.debug.new_tunnel", "1").c_str()) == 1;
     return tunnelEnabled;
 }
 
