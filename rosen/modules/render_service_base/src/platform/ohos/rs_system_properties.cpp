@@ -1158,11 +1158,8 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
 
 bool RSSystemProperties::GetNewTunnelEnabled()
 {
-    static CachedHandle handle = CachedParameterCreate("rosen.debug.new_tunnel", "false");
-    int changed = 0;
-    const char* enabled = CachedParameterGetChanged(handle, &changed);
-    return enabled != nullptr &&
-        (strcmp(enabled, "1") == 0 || strcmp(enabled, "true") == 0);
+    static std::string val = system::GetParameter("persist.rosen.debug.new_tunnel", "0");
+    return val == "1";
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
