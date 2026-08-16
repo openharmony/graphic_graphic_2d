@@ -569,11 +569,10 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetInFixedRotationTest003, TestSize.Level1)
 {
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
     surfaceNode->InitRenderParams();
-    // isFixRotationByUser_ is false: nothing changes even if rotating and screen changed
     surfaceNode->SetInFixedRotation(true, true);
     EXPECT_FALSE(surfaceNode->isFixRotationByUser_);
     EXPECT_FALSE(surfaceNode->isInFixedRotation_);
-    EXPECT_FALSE(surfaceNode->haveScreenChangeInRotation_);
+    EXPECT_TRUE(surfaceNode->haveScreenChangeInRotation_);
 
     surfaceNode->SetForceHardwareAndFixRotation(true);
     EXPECT_TRUE(surfaceNode->isFixRotationByUser_);
@@ -592,6 +591,28 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetInFixedRotationTest003, TestSize.Level1)
     // the next rotation can enter fixed rotation again
     surfaceNode->SetInFixedRotation(true, false);
     EXPECT_TRUE(surfaceNode->isInFixedRotation_);
+}
+
+/**
+ * @tc.name: SetInFixedRotationTest004
+ * @tc.desc: test results of SetInFixedRotation with screenChanged while not rotating
+ * @tc.type: FUNC
+ * @tc.require: issueICCYNK
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SetInFixedRotationTest004, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->InitRenderParams();
+    RectI srcRect1 { 0, 0, 10, 10 };
+    RectI dstRect1 { 5, 5, 15, 15 };
+    surfaceNode->SetSrcRect(srcRect1);
+    surfaceNode->SetDstRect(dstRect1);
+    surfaceNode->UpdateHwcNodeLayerInfo(GraphicTransformType::GRAPHIC_ROTATE_NONE, true);
+    surfaceNode->SetForceHardwareAndFixRotation(true);
+    surfaceNode->SetInFixedRotation(true, false);
+    EXPECT_TRUE(surfaceNode->isInFixedRotation_);
+    surfaceNode->SetInFixedRotation(false, true);
+    EXPECT_FALSE(surfaceNode->haveScreenChangeInRotation_);
 }
 
 /**
