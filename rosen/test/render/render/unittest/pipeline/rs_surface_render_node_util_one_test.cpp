@@ -614,7 +614,7 @@ HWTEST_F(RSSurfaceRenderNodeUtilOneTest, SetInFixedRotationTest005, TestSize.Lev
     ASSERT_TRUE(defaultDstRect.left_ == oriDstRect.left_ && defaultDstRect.top_ == oriDstRect.top_ &&
                 defaultDstRect.width_ == oriDstRect.width_ && defaultDstRect.height_ == oriDstRect.height_);
     renderNode->SetInFixedRotation(false, false);
-    EXPECT_TRUE(renderNode->isInFixedRotation_);
+    EXPECT_FALSE(renderNode->isInFixedRotation_);
 }
 
 /**
