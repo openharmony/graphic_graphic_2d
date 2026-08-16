@@ -1004,7 +1004,7 @@ void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating, bool screenChanged
 #endif
         }
     }
-    isInFixedRotation_ = isRotating && !haveScreenChangeInRotation_;
+    isInFixedRotation_ = isFixRotationByUser_ && isRotating && !haveScreenChangeInRotation_;
     if (screenChanged && isRotating) {
         isInFixedRotation_ = false;
         haveScreenChangeInRotation_ = true;
