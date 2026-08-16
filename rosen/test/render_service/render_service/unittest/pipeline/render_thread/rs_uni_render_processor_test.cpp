@@ -720,6 +720,7 @@ HWTEST_F(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Leve
 HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
 {
     ASSERT_NE(renderProcessor, nullptr);
+    renderProcessor->composerClient_ = nullptr;
     RSSurfaceRenderParams params(0);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
