@@ -273,52 +273,6 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionTest002, Function | S
 }
 
 /**
- * @tc.name: HandleAdaptiveVsyncConditionForLTPS001
- * @tc.desc: Test HandleAdaptiveVsyncCondition with SUPPORT_AS_LTPS adaptive status
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForLTPS001, Function | SmallTest | Level1)
-{
-    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
-    HgmRenderContext hgmRenderContext(renderToServiceConnection);
-    auto rsContext = std::make_shared<RSContext>();
-
-    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS_LTPS);
-    hgmRenderContext.isAdaptiveVsyncReady_.store(false);
-
-    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_FALSE(hgmRenderContext.isGameNodeOnTree_.load());
-    EXPECT_TRUE(hgmRenderContext.isAdaptiveVsyncReady_.load());
-}
-
-/**
- * @tc.name: HandleAdaptiveVsyncConditionForLTPS002
- * @tc.desc: Test HandleAdaptiveVsyncCondition with SUPPORT_AS_LTPS and game node on tree
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForLTPS002, Function | SmallTest | Level1)
-{
-    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
-    HgmRenderContext hgmRenderContext(renderToServiceConnection);
-    auto rsContext = std::make_shared<RSContext>();
-    RSSurfaceRenderNodeConfig config;
-    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS_LTPS);
-    hgmRenderContext.gameNodeName_ = "gameNode";
-
-    config.id = 1;
-    config.name = "gameNode";
-    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
-    surfaceNode->SetIsOnTheTree(true);
-    rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
-
-    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
-    EXPECT_TRUE(hgmRenderContext.isGameNodeOnTree_.load());
-}
-
-/**
  * @tc.name: SetServiceToProcessInfoTest
  * @tc.desc: test HgmRenderContext.SetServiceToProcessInfo
  * @tc.type: FUNC
