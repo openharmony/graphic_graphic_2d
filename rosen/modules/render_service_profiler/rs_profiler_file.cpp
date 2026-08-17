@@ -53,8 +53,8 @@ bool RSFile::Create(const std::string& fname)
     }
 
     uint32_t headerId = 'ROHR';
-    Utils::FileWrite(&headerId, sizeof(headerId), 1, file_);
-    Utils::FileWrite(&versionId_, sizeof(versionId_), 1, file_);
+    Utils::FileWrite(file_, &headerId, sizeof(headerId));
+    Utils::FileWrite(file_, &versionId_, sizeof(versionId_));
     offsetVersionHandler_.SetVersion(versionId_);
 
     headerOff_ = 0; // TEMP VALUE
@@ -175,21 +175,21 @@ void RSFile::WriteHeader()
 
     if (preparedHeaderMode_) {
         // WRITE RAW
-        Utils::FileWrite(preparedHeader_.data(), 1, preparedHeader_.size(), file_);
+        Utils::FileWrite(file_, preparedHeader_.data(), preparedHeader_.size());
         preparedHeader_.clear();
     } else {
         // WRITE TIME START
-        Utils::FileWrite(&writeStartTime_, 1, sizeof(writeStartTime_), file_);
+        Utils::FileWrite(file_, &writeStartTime_, sizeof(writeStartTime_));
 
         // SAVE PID LIST
         const uint32_t recordSize = headerPidList_.size();
-        Utils::FileWrite(&recordSize, sizeof(recordSize), 1, file_);
-        Utils::FileWrite(headerPidList_.data(), headerPidList_.size(), sizeof(pid_t), file_);
+        Utils::FileWrite(file_, &recordSize, sizeof(recordSize));
+        Utils::FileWrite(file_, headerPidList_.data(), headerPidList_.size() * sizeof(pid_t));
 
         // SAVE FIRST SCREEN
         uint32_t firstScrSize = headerFirstFrame_.size();
-        Utils::FileWrite(&firstScrSize, sizeof(firstScrSize), 1, file_);
-        Utils::FileWrite(headerFirstFrame_.data(), headerFirstFrame_.size(), 1, file_);
+        Utils::FileWrite(file_, &firstScrSize, sizeof(firstScrSize));
+        Utils::FileWrite(file_, headerFirstFrame_.data(), headerFirstFrame_.size());
 
         WriteAnimationStartTime();
 
@@ -199,7 +199,7 @@ void RSFile::WriteHeader()
 
     // SAVE LAYERS OFFSETS
     const uint32_t recordSize = layerData_.size();
-    Utils::FileWrite(&recordSize, sizeof(recordSize), 1, file_);
+    Utils::FileWrite(file_, &recordSize, sizeof(recordSize));
     for (auto& i : layerData_) {
         // Write separately
         offsetVersionHandler_.WriteU64(file_, i.layerHeader.first);
@@ -214,11 +214,11 @@ void RSFile::WriteHeader()
 bool RSFile::ReadHeaderPidList()
 {
     uint32_t recordSize = 0u;
-    if (!Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_) || recordSize > chunkSizeMax) {
+    if (!Utils::FileRead(file_, &recordSize, sizeof(recordSize)) || recordSize > chunkSizeMax) {
         return false;
     }
     headerPidList_.resize(recordSize);
-    return Utils::FileRead(headerPidList_.data(), headerPidList_.size(), sizeof(pid_t), file_);
+    return Utils::FileRead(file_, headerPidList_.data(), headerPidList_.size() * sizeof(pid_t));
 }
 
 void RSFile::WriteAnimationStartTime()
@@ -226,9 +226,9 @@ void RSFile::WriteAnimationStartTime()
     if (versionId_ >= RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED) {
         // ANIME START TIMES
         uint32_t startTimesSize = headerAnimeStartTimes_.size();
-        Utils::FileWrite(&startTimesSize, sizeof(startTimesSize), 1, file_);
-        Utils::FileWrite(headerAnimeStartTimes_.data(),
-            headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>), 1, file_);
+        Utils::FileWrite(file_, &startTimesSize, sizeof(startTimesSize));
+        Utils::FileWrite(
+            file_, headerAnimeStartTimes_.data(), headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>));
     }
 }
 
@@ -236,12 +236,12 @@ bool RSFile::ReadAnimationStartTime()
 {
     if (versionId_ >= RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED) {
         uint32_t startTimesSize = 0u;
-        if (!Utils::FileRead(&startTimesSize, sizeof(startTimesSize), 1, file_) || startTimesSize > chunkSizeMax) {
+        if (!Utils::FileRead(file_, &startTimesSize, sizeof(startTimesSize)) || startTimesSize > chunkSizeMax) {
             return false;
         }
         headerAnimeStartTimes_.resize(startTimesSize);
-        if (!Utils::FileRead(headerAnimeStartTimes_.data(),
-            headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>), 1, file_)) {
+        if (!Utils::FileRead(file_, headerAnimeStartTimes_.data(),
+            headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>))) {
             return false;
         }
     }
@@ -251,7 +251,7 @@ bool RSFile::ReadAnimationStartTime()
 bool RSFile::ReadLayersOffset()
 {
     uint32_t recordSize = 0u;
-    if (!Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_) || recordSize > chunkSizeMax) {
+    if (!Utils::FileRead(file_, &recordSize, sizeof(recordSize)) || recordSize > chunkSizeMax) {
         return false;
     }
     layerData_.resize(recordSize);
@@ -295,7 +295,7 @@ std::string RSFile::ReadHeader()
     const std::string errCode = "can't read header";
 
     // READ what was write start time
-    if (!Utils::FileRead(&writeStartTime_, 1, sizeof(writeStartTime_), file_)) {
+    if (!Utils::FileRead(file_, &writeStartTime_, sizeof(writeStartTime_))) {
         return errCode;
     }
 
@@ -324,7 +324,7 @@ std::string RSFile::ReadHeader()
             return "Invalid subheader";
         }
         preparedHeader_.resize(subHeaderLen);
-        if (!Utils::FileRead(preparedHeader_.data(), subHeaderLen, 1, file_)) {
+        if (!Utils::FileRead(file_, preparedHeader_.data(), subHeaderLen)) {
             return errCode;
         }
     }
@@ -378,8 +378,8 @@ void RSFile::LayerWriteHeader(uint32_t layer)
 
     // SAVE LAYER PROPERTY
     uint32_t recordSize = propertyData.size();
-    Utils::FileWrite(&recordSize, sizeof(recordSize), 1, file_);
-    Utils::FileWrite(propertyData.data(), propertyData.size(), 1, file_);
+    Utils::FileWrite(file_, &recordSize, sizeof(recordSize));
+    Utils::FileWrite(file_, propertyData.data(), propertyData.size());
 
     LayerWriteHeaderOfTrack(layerData.rsData);
     LayerWriteHeaderOfTrack(layerData.oglData);
@@ -609,7 +609,7 @@ bool RSFile::ReadRSData(double untilTime, std::vector<uint8_t>& data, double& re
 
     Utils::FileSeek(file_, layerData.rsData[layerData.readindexRsData].first, SEEK_SET);
 
-    Utils::FileRead(&readTime, sizeof(readTime), 1, file_);
+    Utils::FileRead(file_, &readTime, sizeof(readTime));
     constexpr double epsilon = 1e-9;
     if (readTime >= untilTime + epsilon) {
         return false;
@@ -620,7 +620,7 @@ bool RSFile::ReadRSData(double untilTime, std::vector<uint8_t>& data, double& re
         return false;
     }
     data.resize(dataLen);
-    Utils::FileRead(data.data(), dataLen, 1, file_);
+    Utils::FileRead(file_, data.data(), dataLen);
 
     layerData.readindexRsData++;
     return true;
@@ -683,10 +683,9 @@ bool RSFile::GetDataCopy(std::vector<uint8_t>& data)
 
     const auto position = static_cast<int64_t>(Utils::FileTell(file_));
     Utils::FileSeek(file_, 0, SEEK_SET);
-    Utils::FileRead(file_, data.data(), fileSize);
+    const auto result = Utils::FileRead(file_, data.data(), fileSize);
     Utils::FileSeek(file_, position, SEEK_SET); // set ptr back
-
-    return true;
+    return result;
 }
 
 bool RSFile::HasLayer(uint32_t layer) const
@@ -777,8 +776,8 @@ void RSFile::WriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer, dou
     (layerData.*trackMarkup).emplace_back(writeDataOff_, size + sizeof(time));
 
     Utils::FileSeek(file_, writeDataOff_, SEEK_SET);
-    Utils::FileWrite(&time, sizeof(time), 1, file_);
-    Utils::FileWrite(data, size, 1, file_);
+    Utils::FileWrite(file_, &time, sizeof(time));
+    Utils::FileWrite(file_, data, size);
     writeDataOff_ = Utils::FileTell(file_);
 }
 
@@ -798,7 +797,7 @@ bool RSFile::ReadTrackData(
     }
 
     Utils::FileSeek(file_, static_cast<int64_t>(trackData[trackIndex].first), SEEK_SET);
-    if (!Utils::FileRead(&readTime, sizeof(readTime), 1, file_)) {
+    if (!Utils::FileRead(file_, &readTime, sizeof(readTime))) {
         return false;
     }
     if (readTime > untilTime) {
@@ -810,7 +809,7 @@ bool RSFile::ReadTrackData(
         return false;
     }
     data.resize(dataLen);
-    if (!Utils::FileRead(data.data(), dataLen, 1, file_)) {
+    if (!Utils::FileRead(file_, data.data(), dataLen)) {
         return false;
     }
 

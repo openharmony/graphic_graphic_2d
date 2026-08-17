@@ -1174,7 +1174,8 @@ void RSProfiler::UnmarshalSelfDrawingNodes()
 std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion, bool betaRecordStarted)
 {
     if (!mainThread_ || !context_) {
-        return "FirstFrameMarshalling: Invalid mainThread or context";
+        HRPE("FirstFrameMarshalling: Invalid mainThread or context");
+        return "";
     }
 
     RS_TRACE_NAME("Profiler FirstFrameMarshalling");
@@ -1229,6 +1230,55 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion, bool betaRec
     return stream.str();
 }
 
+static bool SetFocusAppInfo(RSMainThread& mainThread, std::stringstream& data)
+{
+    constexpr size_t maxSize = 4096u;
+
+    int32_t pid = 0;
+    if (!data.read(reinterpret_cast<char*>(&pid), sizeof(pid))) {
+        return false;
+    }
+
+    int32_t uid = 0;
+    if (!data.read(reinterpret_cast<char*>(&uid), sizeof(uid))) {
+        return false;
+    }
+
+    uint64_t focusNodeId = 0u;
+    if (!data.read(reinterpret_cast<char*>(&focusNodeId), sizeof(focusNodeId))) {
+        return false;
+    }
+
+    size_t size = 0u;
+    if (!data.read(reinterpret_cast<char*>(&size), sizeof(size)) || (size > maxSize)) {
+        return false;
+    }
+
+    std::string bundle(size, 0);
+    if (!data.read(bundle.data(), static_cast<std::streamsize>(bundle.size()))) {
+        return false;
+    }
+
+    size = 0u;
+    if (!data.read(reinterpret_cast<char*>(&size), sizeof(size)) || (size > maxSize)) {
+        return false;
+    }
+
+    std::string ability(size, 0);
+    if (!data.read(ability.data(), static_cast<std::streamsize>(ability.size()))) {
+        return false;
+    }
+
+    mainThread.SetFocusAppInfo({
+        .pid = Utils::GetMockPid(pid),
+        .uid = uid,
+        .bundleName = bundle,
+        .abilityName = ability,
+        .focusNodeId = Utils::PatchNodeId(focusNodeId),
+    });
+    return true;
+}
+
 std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion)
 {
     if (!mainThread_ || !context_) {
@@ -1244,56 +1294,17 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
     SetSubMode(SubMode::READ_EMUL);
     DisableSharedMemory();
     error = UnmarshalNodes(*context_, stream, fileVersion);
-    UnmarshalSelfDrawingNodes();
+    if (error.empty()) {
+        UnmarshalSelfDrawingNodes();
+    }
     EnableSharedMemory();
     SetSubMode(SubMode::NONE);
 
-    if (!error.empty()) {
-        return error;
+    if (error.empty() && !SetFocusAppInfo(*mainThread_, stream)) {
+        FilterMockNode(*context_);
+        error = "FirstFrameUnmarshalling: Cannot set focus app info";
     }
-
-    int32_t focusPid = 0;
-    stream.read(reinterpret_cast<char*>(&focusPid), sizeof(focusPid));
-
-    int32_t focusUid = 0;
-    stream.read(reinterpret_cast<char*>(&focusUid), sizeof(focusUid));
-
-    uint64_t focusNodeId = 0;
-    stream.read(reinterpret_cast<char*>(&focusNodeId), sizeof(focusNodeId));
-
-    constexpr size_t nameSizeMax = 4096;
-    size_t size = 0;
-    stream.read(reinterpret_cast<char*>(&size), sizeof(size));
-    if (size > nameSizeMax) {
-        return "FirstFrameUnmarshalling: Invalid bundle name size";
-    }
-    std::string bundleName;
-    bundleName.resize(size, ' ');
-    stream.read(reinterpret_cast<char*>(bundleName.data()), size);
-
-    size = 0;
-    stream.read(reinterpret_cast<char*>(&size), sizeof(size));
-    if (size > nameSizeMax) {
-        return "FirstFrameUnmarshalling: Invalid ability name size";
-    }
-    std::string abilityName(size, ' ');
-    stream.read(reinterpret_cast<char*>(abilityName.data()), size);
-
-    if (stream.eof()) {
-        return "FirstFrameUnmarshalling: EOF of file reached";
-    }
-
-    focusPid = Utils::GetMockPid(focusPid);
-    focusNodeId = Utils::PatchNodeId(focusNodeId);
-
-    const FocusAppInfo info { .pid = focusPid,
-        .uid = focusUid,
-        .bundleName = bundleName,
-        .abilityName = abilityName,
-        .focusNodeId = focusNodeId
-    };
-    mainThread_->SetFocusAppInfo(info);
-    return "";
+    return error;
 }
 
 void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVersion)
@@ -1312,22 +1323,29 @@ void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVer
 std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion)
 {
     if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
-        std::vector<uint8_t> fontData;
-        std::stringstream fontStream;
-        constexpr auto fontStreamSizeMax = 1024u * 1024u * 1024u;
-        size_t fontStreamSize = fontStreamSizeMax + 1;
-        
-        stream.read(reinterpret_cast<char*>(&fontStreamSize), sizeof(fontStreamSize));
-        if (!fontStreamSize) {
+        size_t size = 0u;
+        if (!stream.read(reinterpret_cast<char*>(&size), sizeof(size))) {
+            return "TypefaceUnmarshalling: Cannot read size";
+        }
+
+        constexpr auto maxSize = 500u * 1024u * 1024u;
+        if (size > maxSize) {
+            return "TypefaceUnmarshalling: Size exceeds the limit";
+        }
+
+        if (!size) {
             return "";
         }
-        if (fontStreamSize > fontStreamSizeMax) {
-            return "Typeface track size is over 1GB";
+
+        std::vector<char> data(size);
+        if (!stream.read(data.data(), static_cast<std::streamsize>(data.size()))) {
+            return "TypefaceUnmarshalling: Cannot read data";
         }
-        fontData.resize(fontStreamSize);
-        stream.read(reinterpret_cast<char*>(fontData.data()), fontData.size());
-        fontStream.write(reinterpret_cast<const char*>(fontData.data()), fontData.size());
-        return RSTypefaceCache::Instance().ReplayDeserialize(fontStream);
+
+        std::stringstream fonts;
+        fonts.write(data.data(), static_cast<std::streamsize>(data.size()));
+        fonts.seekg(0);
+        return RSTypefaceCache::Instance().ReplayDeserialize(fonts);
     }
     return "";
 }
@@ -1612,16 +1630,12 @@ void RSProfiler::Respond(const std::string& message)
 
 void RSProfiler::SendMessage(const char* format, ...)
 {
-    if (!format) {
-        return;
-    }
-
     va_list args;
     va_start(args, format);
-    const auto out = Utils::Format(format, args);
+    const auto message = Utils::Format(format, args);
     va_end(args);
 
-    Network::SendMessage(out);
+    Network::SendMessage(message);
 }
 
 void RSProfiler::DumpConnections(const ArgList& args)
@@ -2288,72 +2302,60 @@ int64_t RSProfiler::PlaybackDeltaTimeNano()
 bool ReadRemoteRequest(
     const std::vector<uint8_t>& data, pid_t& pid, uint32_t& code, MessageParcel& parcel, MessageOption& option)
 {
-    std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+    std::stringstream stream;
     stream.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
     stream.seekg(0);
 
-    pid = 0;
-    stream.read(reinterpret_cast<char*>(&pid), sizeof(pid));
-
-    code = 0;
-    stream.read(reinterpret_cast<char*>(&code), sizeof(code));
-
-    size_t size = 0;
-    stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+    if (!stream.read(reinterpret_cast<char*>(&pid), sizeof(pid)) ||
+        !stream.read(reinterpret_cast<char*>(&code), sizeof(code))) {
+        return false;
+    }
 
     static const auto MAX_SIZE = std::min(std::numeric_limits<size_t>::max() - 1, std::vector<char>().max_size());
-    if ((size <= 0) || (size > MAX_SIZE)) {
+    size_t size = 0;
+    if (!stream.read(reinterpret_cast<char*>(&size), sizeof(size)) || (size > MAX_SIZE)) {
         return false;
     }
 
-    std::vector<char> parcelData(size, 0);
-    stream.read(parcelData.data(), static_cast<std::streamsize>(size));
-
-    const auto capacity = size + 1;
-    if ((parcel.GetMaxCapacity() < capacity) && !parcel.SetMaxCapacity(capacity)) {
-        return false;
-    }
-
-    if (!parcel.WriteBuffer(parcelData.data(), size)) {
+    std::vector<char> buffer(size);
+    if (!stream.read(buffer.data(), static_cast<std::streamsize>(size))) {
         return false;
     }
 
     int32_t flags = 0;
-    stream.read(reinterpret_cast<char*>(&flags), sizeof(flags));
+    if (!stream.read(reinterpret_cast<char*>(&flags), sizeof(flags))) {
+        return false;
+    }
+    option.SetFlags(flags);
 
     int32_t waitTime = 0;
-    stream.read(reinterpret_cast<char*>(&waitTime), sizeof(waitTime));
-
-    option.SetFlags(flags);
+    if (!stream.read(reinterpret_cast<char*>(&waitTime), sizeof(waitTime))) {
+        return false;
+    }
     option.SetWaitTime(waitTime);
-    return true;
+
+    return (parcel.GetMaxCapacity() >= buffer.size() || parcel.SetMaxCapacity(buffer.size())) &&
+           parcel.WriteBuffer(buffer.data(), buffer.size());
 }
 
 double RSProfiler::PlaybackUpdate(double deltaTime, double eofTime, double advanceTime)
 {
-    const auto& pids = g_playbackFile.GetHeaderPids();
-
     std::vector<uint8_t> data;
-    double readTime = 0.0;
-    while (!g_playbackShouldBeTerminated && g_playbackFile.ReadRSData(deltaTime + advanceTime, data, readTime)) {
+    double time = 0.0;
+    while (!g_playbackShouldBeTerminated && g_playbackFile.ReadRSData(deltaTime + advanceTime, data, time)) {
         pid_t pid = 0;
         uint32_t code = 0;
         AlignedMessageParcel parcel;
         MessageOption option;
         if (ReadRemoteRequest(data, pid, code, parcel.parcel, option)) {
-            auto connection = GetMockConnection(Utils::GetMockPid(pid));
-            if (!connection && !pids.empty()) {
-                connection = GetMockConnection(Utils::GetMockPid(pids[0]));
-            }
-
-            if (connection) {
+            if (const auto connection = GetMockConnection(Utils::GetMockPid(pid))) {
                 MessageParcel reply;
                 connection->SendRequest(code, parcel.parcel, reply, option);
             }
         }
 
         if (g_playbackImmediate) {
-            deltaTime = readTime;
+            deltaTime = time;
             break;
         }
     }
@@ -2361,7 +2363,7 @@ double RSProfiler::PlaybackUpdate(double deltaTime, double eofTime, double advan
     if (deltaTime >= eofTime) {
         g_playbackShouldBeTerminated = true;
     }
-    return readTime;
+    return time;
 }
 
 void RSProfiler::PlaybackPrepare(const ArgList& args)
@@ -2648,8 +2650,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
         return;
     }
 
-    static const std::string_view SANDBOX = "/data/";
-    if (path.empty() || (path.find(SANDBOX) != 0) || Utils::GetRealPath(Utils::GetDirectory(path)).empty()) {
+    if (!Utils::IsSandboxPath(path)) {
         SendMessage("Error: Invalid path: %s", path.data());
         return;
     }
@@ -2675,46 +2676,47 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
 
 void RSProfiler::TestLoadSubTree(const ArgList& args)
 {
-    const auto nodeId = args.Node();
-    auto node = GetRenderNode(nodeId);
+    if (!context_) {
+        SendMessage("Error: Invalid context");
+        return;
+    }
+
+    const auto node = GetRenderNode(args.Node());
     if (!node) {
-        Respond("Error: node not found");
+        SendMessage("Error: Invalid node");
         return;
     }
 
-    const auto filePath = args.String(1);
-    if (filePath.empty()) {
-        Respond("Error: Path is empty");
+    const auto path = Utils::GetRealPath(args.String(1));
+    if (path.empty()) {
+        SendMessage("Error: Invalid path");
         return;
     }
 
-    char realPath[PATH_MAX] = {0};
-    if (!realpath(filePath.c_str(), realPath)) {
-        Respond("Error: Path is invalid");
+    std::ifstream file(path);
+    if (!file) {
+        const std::error_code code(errno, std::system_category());
+        RS_LOGE("RSProfiler::TestLoadSubTree read file failed: %{public}s", code.message().data()); // NOLINT
+        SendMessage("RSProfiler::TestLoadSubTree read file failed: %s", code.message().data());
         return;
     }
 
-    std::ifstream file(realPath);
-    if (!file.is_open()) {
-        std::error_code ec(errno, std::system_category());
-        RS_LOGE("RSProfiler::TestLoadSubTree read file failed: %{public}s", ec.message().c_str());
-        Respond("RSProfiler::TestLoadSubTree read file failed: " + ec.message());
-        return;
-    }
     std::stringstream stream;
     stream << file.rdbuf();
     file.close();
 
-    // Load RSFILE_VERSION
     uint32_t fileVersion = 0u;
-    stream.read(reinterpret_cast<char*>(&fileVersion), sizeof(fileVersion));
-
-    std::string errorReason = UnmarshalSubTree(*context_, stream, *node, fileVersion);
-    if (errorReason.size()) {
-        RS_LOGE("RSProfiler::TestLoadSubTree failed: %{public}s", errorReason.c_str());
-        Respond("RSProfiler::TestLoadSubTree failed: " + errorReason);
+    if (!stream.read(reinterpret_cast<char*>(&fileVersion), sizeof(fileVersion))) {
+        SendMessage("Error: Cannot read file version");
+        return;
     }
-    Respond("Load subTree result: " + errorReason);
+
+    const auto error = UnmarshalSubTree(*context_, stream, *node, fileVersion);
+    if (!error.empty()) {
+        RS_LOGE("RSProfiler::TestLoadSubTree failed: %{public}s", error.c_str()); // NOLINT
+        SendMessage("RSProfiler::TestLoadSubTree failed: %s", error.data());
+    }
+    SendMessage("Load subTree result: %s", error.data());
 }
 
 void RSProfiler::TestClearSubTree(const ArgList& args)
@@ -2763,47 +2765,48 @@ void RSProfiler::MarshalSubTree(RSContext& context, std::stringstream& data,
     data.write(dataNodes.str().data(), dataNodes.str().size());
 }
 
-std::string RSProfiler::UnmarshalSubTree(RSContext& context, std::stringstream& data,
-    RSRenderNode& attachNode, uint32_t fileVersion, bool clearImageCache)
+std::string RSProfiler::UnmarshalSubTree(
+    RSContext& context, std::stringstream& data, RSRenderNode& attachNode, uint32_t fileVersion, bool clearImageCache)
 {
     if (clearImageCache) {
         ImageCache::Reset();
     }
 
-    std::string errReason = TypefaceUnmarshalling(data, fileVersion);
-    if (!errReason.empty()) {
-        return errReason;
+    auto error = TypefaceUnmarshalling(data, fileVersion);
+    if (!error.empty()) {
+        return error;
     }
 
     uint32_t pixelMapSize = 0u;
-    data.read(reinterpret_cast<char*>(&pixelMapSize), sizeof(pixelMapSize));
+    if (!data.read(reinterpret_cast<char*>(&pixelMapSize), sizeof(pixelMapSize))) {
+        RSTypefaceCache::Instance().ReplayClear();
+        return "UnmarshalSubTree: Cannot read pixelmap size";
+    }
 
-    // read Cache
     ImageCache::Deserialize(data);
 
-    uint32_t nodesSize = 0u;
-    data.read(reinterpret_cast<char*>(&nodesSize), sizeof(nodesSize));
+    uint32_t nodeCount = 0u;
+    if (!data.read(reinterpret_cast<char*>(&nodeCount), sizeof(nodeCount))) {
+        RSTypefaceCache::Instance().ReplayClear();
+        ImageCache::Reset();
+        return "UnmarshalSubTree: Cannot read node count";
+    }
 
     SetSubMode(SubMode::READ_EMUL);
     DisableSharedMemory();
-
-    errReason = UnmarshalSubTreeLo(context, data, attachNode, fileVersion);
-
+    error = UnmarshalSubTreeLo(context, data, attachNode, fileVersion);
     EnableSharedMemory();
     SetSubMode(SubMode::NONE);
 
-    auto& nodeMap = context.GetMutableNodeMap();
-    nodeMap.TraversalNodes([](const std::shared_ptr<RSBaseRenderNode>& node) {
-        if (node == nullptr) {
-            return;
-        }
-        if (Utils::IsNodeIdPatched(node->GetId())) {
-            node->SetContentDirty();
-            node->SetDirty();
-        }
-    });
+    if (!error.empty()) {
+        RSTypefaceCache::Instance().ReplayClear();
+        ImageCache::Reset();
+        return error;
+    }
+
+    MarkReplayNodesDirty(context);
     AwakeRenderServiceThread();
-    return errReason;
+    return "";
 }
 
 uint64_t RSProfiler::GetRootNodeId()

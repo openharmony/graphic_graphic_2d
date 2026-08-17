@@ -193,7 +193,7 @@ private:
     void LayerWriteHeaderOfTrack(const Track& track)
     {
         uint32_t recordSize = track.size();
-        Utils::FileWrite(&recordSize, sizeof(recordSize), 1, file_);
+        Utils::FileWrite(file_, &recordSize, sizeof(recordSize));
         for (auto item : track) {
             offsetVersionHandler_.WriteU64(file_, item.first);
             offsetVersionHandler_.WriteU64(file_, item.second);
@@ -209,23 +209,27 @@ private:
     template<typename Track>
     bool LayerReadHeaderOfTrack(Track& track)
     {
-        uint32_t recordSize = 0u;
-        Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
+        uint32_t count = 0u;
+        if (!Utils::FileRead(file_, &count, sizeof(count))) {
+            return false;
+        }
         // chunkSizeMax bounds total bytes; convert to element count to avoid huge resize
         constexpr size_t trackElementSize = sizeof(typename Track::value_type);
-        constexpr size_t recordCountMax = chunkSizeMax / trackElementSize;
-        if (recordSize > recordCountMax) {
+        constexpr size_t maxCount = chunkSizeMax / trackElementSize;
+        if (count > maxCount) {
             return false;
         }
         // reject if declared bytes exceed remaining file size
-        const size_t declaredBytes = static_cast<size_t>(recordSize) * trackElementSize;
+        const size_t declaredBytes = static_cast<size_t>(count) * trackElementSize;
         if (declaredBytes > Utils::FileSize(file_)) {
             return false;
         }
-        track.resize(recordSize);
-        for (size_t i = 0; i < recordSize; i++) {
-            offsetVersionHandler_.ReadU64(file_, track[i].first);
-            offsetVersionHandler_.ReadU64(file_, track[i].second);
+        track.resize(count);
+        for (size_t i = 0; i < count; i++) {
+            if (!offsetVersionHandler_.ReadU64(file_, track[i].first) ||
+                !offsetVersionHandler_.ReadU64(file_, track[i].second)) {
+                return false;
+            }
         }
         return true;
     }
