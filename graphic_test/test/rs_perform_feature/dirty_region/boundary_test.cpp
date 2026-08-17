@@ -58,16 +58,19 @@ public:
                 ::testing::UnitTest::GetInstance()->current_test_info();
             std::string fileName = "/data/local/graphic_test/rs_perform_feature/dirty_region/";
             namespace fs = std::filesystem;
-            if (!fs::exists(fileName)) {
-                if (!fs::create_directories(fileName)) {
-                    std::cout << "create dir failed" << std::endl;
-                    return;
+            std::error_code createEc;
+            fs::create_directories(fileName, createEc);
+
+            std::error_code statusEc;
+            if (!fs::is_directory(fileName, statusEc)) {
+                if (statusEc) {
+                    std::cout << "check dir failed: " << statusEc.message() << std::endl;
+                } else if (createEc) {
+                    std::cout << "create dir failed: " << createEc.message() << std::endl;
+                } else {
+                    std::cout << "path is not dir: " << fileName << std::endl;
                 }
-            } else {
-                if (!fs::is_directory(fileName)) {
-                    std::cout << "path is not dir" << std::endl;
-                    return;
-                }
+                return;
             }
             fileName += testInfo->test_case_name() + std::string("_") + testInfo->name() + std::string(".png");
             if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {

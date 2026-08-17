@@ -195,7 +195,7 @@ public:
     void PrepareSelfNodeForApplyModifiers();
     void PrepareChildrenForApplyModifiers();
     // if subtree dirty or child filter need prepare
-    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false);
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool SetAccumulatedClipFlag(bool clipChange);
@@ -539,7 +539,7 @@ public:
 
     std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
     std::shared_ptr<RSAnimationManager> GetOrCreateAnimationManager();
-    void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
+    bool AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void DestroyAnimationInRender();
     void DestroyColorPickerInRender();
 
@@ -795,7 +795,7 @@ public:
     {
         return false;
     }
-    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) {}
+    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) {}
     // only RSSurfaceRenderNode holds singleFrameComposer_
     virtual std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const
     {
@@ -1038,19 +1038,9 @@ public:
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
-    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
-    {
-        if (isAccessibilityConfigChanged) {
-            accessibilityConfigChangedNodeSet_.insert(GetId());
-        } else {
-            accessibilityConfigChangedNodeSet_.erase(GetId());
-        }
-    }
+    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged);
 
-    bool IsAccessibilityConfigChangedNode() const
-    {
-        return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
-    }
+    bool IsAccessibilityConfigChangedNode() const;
 
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
@@ -1135,7 +1125,11 @@ public:
 
     void ReSortChildrenByZIndex();
 
-    void AccumulateParentGeoDirty();
+    virtual bool IsBufferDirty() const
+    {
+        return false;
+    }
+
 protected:
     void ResetDirtyStatus();
 
@@ -1318,6 +1312,8 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isForcePrepare_ = false;
     bool isParentTreeDirty_ = false;
+    // marks the node as "on the traversal path"
+    bool inTraversalPath_ = false;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> commandExecuted_ = false;
@@ -1349,7 +1345,6 @@ private:
     static inline std::unordered_map<NodeId, int> subSurfaceCntMap_;
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
-    std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
     std::weak_ptr<RSContext> context_ = {};
@@ -1455,8 +1450,6 @@ private:
     void FilterModifiersByPid(pid_t pid);
 
     bool UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
-    RectI GetDrawCmdListRect() const;
-    void CollectAndUpdateRenderFitRect();
     void CollectAndUpdateLocalShadowRect();
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
@@ -1521,9 +1514,11 @@ struct RSB_EXPORT SharedTransitionParam {
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
     bool IsLower(const NodeId nodeId) const;
     void UpdateHierarchy(const NodeId nodeId);
-    bool IsInAppTranSition() const
+    bool IsCrossAppTranSition() const
     {
-        return !crossApplication_;
+        auto inNode = inNode_.lock();
+        auto outNode = outNode_.lock();
+        return crossApplication_ && inNode && outNode;
     }
     void InternalUnregisterSelf();
     bool HasRelation();

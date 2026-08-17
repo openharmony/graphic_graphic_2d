@@ -27,14 +27,19 @@ RSLogicalDisplayRenderNode::RSLogicalDisplayRenderNode(NodeId id,
     const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSRenderNode(id, context, isTextureExportNode), screenId_(config.screenId)
 {
-    RS_LOGI("RSLogicalDisplayRenderNode ctor id:%{public}" PRIu64 ", config[screenid:%{public}" PRIu64
-            ", isMirrored:%{public}d, mirrorNodeId:%{public}" PRIu64 ", isSync:%{public}d",
-            id, screenId_, config.isMirrored, config.mirrorNodeId, config.isSync);
+    RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNode ctor id[%" PRIu64 "], %s", id, config.ToString().c_str());
+
+    RS_LOGI("RSLogicalDisplayRenderNode ctor id[%{public}" PRIu64 "], %{public}s", id, config.ToString().c_str());
 }
 
 RSLogicalDisplayRenderNode::~RSLogicalDisplayRenderNode()
 {
-    RS_LOGI("%{public}s, NodeId:[%{public}" PRIu64 "]", __func__, GetId());
+    RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNode dtor, NodeId[%" PRIu64 "], screenId[%" PRIu64 "]", GetId(),
+        screenId_);
+
+    RS_LOGI("RSLogicalDisplayRenderNode dtor, NodeId[%{public}" PRIu64 "], screenId[%{public}" PRIu64 "]", GetId(),
+        screenId_);
+
     RSPointLightManager::ReleaseInstance(GetLogicalDisplayNodeId());
 }
 
@@ -95,7 +100,7 @@ void RSLogicalDisplayRenderNode::UpdateRenderParams()
     logicalDisplayRenderParam->SetTopSurfaceOpaqueRects(std::move(topSurfaceOpaqueRects_));
     logicalDisplayRenderParam->screenRotation_ = GetScreenRotation();
     logicalDisplayRenderParam->nodeRotation_ = GetRotation();
-    logicalDisplayRenderParam->isMirrorDisplay_ = IsMirrorDisplay();
+    logicalDisplayRenderParam->displayMode_ = displayMode_;
     logicalDisplayRenderParam->specialLayerManager_ = specialLayerManager_;
     auto mirroredNode = GetMirrorSource().lock();
     if (mirroredNode) {
@@ -177,10 +182,10 @@ void RSLogicalDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRender
 {
     if (auto oldContainer = std::exchange(windowContainer_, container)) {
         if (container) {
-            RS_LOGD("RSLogicalDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64
+            RS_LOGD_IF(DEBUG_NODE, "RSLogicalDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64
                 ", newContainer: %{public}" PRIu64, oldContainer->GetId(), container->GetId());
         } else {
-            RS_LOGD("RSLogicalDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64,
+            RS_LOGD_IF(DEBUG_NODE, "RSLogicalDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64,
                 oldContainer->GetId());
         }
     }
@@ -319,7 +324,7 @@ bool RSLogicalDisplayRenderNode::GetSecurityDisplay() const
 
 void RSLogicalDisplayRenderNode::SetMirrorSource(SharedPtr node)
 {
-    if (!isMirrorDisplay_ || node == nullptr) {
+    if (displayMode_ != DisplayMode::MIRROR || node == nullptr) {
         return;
     }
     mirrorSource_ = node;
@@ -335,31 +340,25 @@ RSLogicalDisplayRenderNode::WeakPtr RSLogicalDisplayRenderNode::GetMirrorSource(
     return mirrorSource_;
 }
 
-void RSLogicalDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
+void RSLogicalDisplayRenderNode::SetDisplayMode(DisplayMode displayMode)
 {
-    if (isMirrorDisplay_ != isMirror) {
-        isMirrorDisplayChanged_ = true;
-    }
-    isMirrorDisplay_ = isMirror;
-    RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNode::%s, node id:[%" PRIu64 "], isMirrorDisplay: [%d]", __func__,
-        GetId(), isMirrorDisplay_);
-    RS_LOGI("RSLogicalDisplayRenderNode::%{public}s, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}d]",
-        __func__, GetId(), isMirrorDisplay_);
+    displayMode_ = displayMode;
+
+    RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNode::%s, nodeId[%" PRIu64 "], displayMode[%d]", __func__, GetId(),
+        static_cast<int>(displayMode_));
+
+    RS_LOGI("RSLogicalDisplayRenderNode::%{public}s, nodeId[%{public}" PRIu64 "], displayMode[%{public}d]", __func__,
+        GetId(), static_cast<int>(displayMode_));
+}
+
+DisplayMode RSLogicalDisplayRenderNode::GetDisplayMode() const
+{
+    return displayMode_;
 }
 
 bool RSLogicalDisplayRenderNode::IsMirrorDisplay() const
 {
-    return isMirrorDisplay_;
-}
-
-bool RSLogicalDisplayRenderNode::IsMirrorDisplayChanged() const
-{
-    return isMirrorDisplayChanged_;
-}
-
-void RSLogicalDisplayRenderNode::ResetMirrorDisplayChangedFlag()
-{
-    isMirrorDisplayChanged_ = false;
+    return displayMode_ == DisplayMode::MIRROR;
 }
 
 void RSLogicalDisplayRenderNode::SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus)

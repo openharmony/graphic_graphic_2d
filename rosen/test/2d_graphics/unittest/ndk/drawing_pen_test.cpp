@@ -52,12 +52,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingPenTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingPenTest::SetUpTestCase() {}
 void NativeDrawingPenTest::TearDownTestCase() {}
 void NativeDrawingPenTest::SetUp() {}
 void NativeDrawingPenTest::TearDown() {}

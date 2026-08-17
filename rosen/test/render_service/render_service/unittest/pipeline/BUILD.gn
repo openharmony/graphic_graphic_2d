@@ -53,6 +53,7 @@ group("unittest") {
     ":RSUniRenderUtilTest",
     ":RSUniRenderVirtualProcessorTest",
     ":RSUniRenderVisitorTest",
+    ":RSVirtualScreenParallelManagerTest",
     ":RSVirtualScreenProcessorTest",
     ":RSRenderPipelineTest",
     ":RSRenderPipelineAgentTest",
@@ -64,6 +65,7 @@ group("unittest") {
     ":RSOpincLayerSplitterProcessorTest",
     ":RSSplitSurfaceTest",
     ":RSCanvasDrawingNodeBufferConsumerListenerTest",
+    ":RSSurfacePermissionTest",
   ]
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [ ":RSRenderTaskTest" ]
@@ -122,6 +124,49 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
     "egl:libEGL",
     "opengles:libGLES",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
+## Build RSVirtualScreenParallelManagerTest
+ohos_unittest("RSVirtualScreenParallelManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "render_thread/rs_virtual_screen_parallel_manager_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
+  sanitize = {
+    cfi = false
+    cfi_cross_dso = false
+    cfi_no_nvcall = false
+    cfi_vcall_icall_only = false
+    debug = true
+  }
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -714,6 +759,7 @@ ohos_unittest("RSUniRenderUtilTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
+    "ffrt:libffrt",
     "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -801,6 +847,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
@@ -920,6 +967,11 @@ ohos_unittest("RSMainThreadProfilerTest") {
 ## Build RSRenderTaskTest
 ohos_unittest("RSRenderTaskTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [ "parallel_render/rs_render_task_test.cpp" ]
   deps = [
     ":rs_test_common",
@@ -1310,6 +1362,11 @@ ohos_unittest("RSUniHwcVisitorTest") {
     "hwc/rs_uni_hwc_visitor_test.cpp",
     "mock/mock_matrix.cpp",
   ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -1380,7 +1437,7 @@ ohos_unittest("RSLayerSplitManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
-
+ 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
@@ -1397,14 +1454,14 @@ ohos_unittest("RSLayerSplitManagerTest") {
     "init:libbegetutil",
   ]
   defines += gpu_defines
-
+ 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
       external_deps += [ "sensor:sensor_interface_native" ]
   }
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
-
+ 
   cflags = [
     "-Wall",
     "-Werror",
@@ -1427,7 +1484,7 @@ ohos_unittest("RSOpincSplitNodeSelectorTest") {
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
-
+ 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
@@ -1444,14 +1501,14 @@ ohos_unittest("RSOpincSplitNodeSelectorTest") {
     "init:libbegetutil",
   ]
   defines += gpu_defines
-
+ 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
       external_deps += [ "sensor:sensor_interface_native" ]
   }
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
-
+ 
   cflags = [
     "-Wall",
     "-Werror",
@@ -1462,7 +1519,7 @@ ohos_unittest("RSOpincSplitNodeSelectorTest") {
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
-
+ 
 ## Build RSOpincLayerSplitterPlannerTest
 ohos_unittest("RSOpincLayerSplitterPlannerTest") {
   module_out_path = module_output_path
@@ -1555,6 +1612,10 @@ ohos_unittest("RSLayerSplitSurfaceBufferTest") {
   sources = [
     "layer_split/rs_layer_split_surface_buffer_test.cpp",
   ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -1626,6 +1687,24 @@ ohos_unittest("RSCanvasDrawingNodeBufferConsumerListenerTest") {
       "main_thread/rs_canvas_drawing_node_buffer_consumer_listener_test.cpp",
     ]
     defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
+  }
+}
+
+## Build RSSurfacePermissionTest
+ohos_unittest("RSSurfacePermissionTest") {
+  module_out_path = module_output_path
+  sources = [
+    "main_thread/rs_surface_permission_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
   }
 }
 

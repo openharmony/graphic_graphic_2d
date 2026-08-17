@@ -22,6 +22,8 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "display_engine/ipc_callbacks/rs_ide_status_change_callback.h"
+#include "display_engine/rs_display_engine_control.h"
 #include "screen_manager/screen_types.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
@@ -120,9 +122,10 @@ public:
     virtual float HdrDimmingProcess(ScreenId screenId, const RSSurfaceRenderNode& surfaceNode) = 0;
     virtual void HdrDimmingPostProcess(ScreenId screenId) = 0;
 #ifndef ROSEN_CROSS_PLATFORM
-    virtual int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input,
-        const RSSurfaceRenderNode& surfaceNode, float scaler, HdrStatus hdrStatus) = 0;
+    virtual int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler,
+        HdrStatus hdrStatus) = 0;
 #endif
+    virtual int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values) = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -172,9 +175,9 @@ public:
     RSB_EXPORT float HdrDimmingProcess(ScreenId screenId, const RSSurfaceRenderNode& surfaceNode);
     RSB_EXPORT void HdrDimmingPostProcess(ScreenId screenId);
 #ifndef ROSEN_CROSS_PLATFORM
-    RSB_EXPORT int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input,
-        const RSSurfaceRenderNode& surfaceNode, float scaler, HdrStatus hdrStatus);
+    RSB_EXPORT int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler, HdrStatus hdrStatus);
 #endif
+    RSB_EXPORT int32_t NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values);
 
 private:
     RSLuminanceControl() = default;
@@ -187,7 +190,7 @@ private:
     void *extLibHandle_{nullptr};
     RSLuminanceControlInterface* rSLuminanceControlInterface_{nullptr};
 
-    using CreateFunc = RSLuminanceControlInterface*(*)();
+    using CreateFunc = RSLuminanceControlInterface*(*)(RSDisplayEngineControl&);
     using DestroyFunc = void(*)();
 
     CreateFunc create_{nullptr};

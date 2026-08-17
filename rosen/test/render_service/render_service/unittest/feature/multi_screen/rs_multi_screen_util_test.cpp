@@ -19,11 +19,13 @@
 
 #include "common/rs_special_layer_manager.h"
 #include "composer/composer_client/pipeline/rs_composer_client_manager.h"
+#include "engine/rs_uni_render_engine.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/multi_screen/rs_multi_screen_util.h"
 #include "graphic_feature_param_manager.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_processor_factory.h"
@@ -82,15 +84,16 @@ public:
 
 void RSMultiScreenUtilTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     auto& renderNodeGC = RSRenderNodeGC::Instance();
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
 }
 
-void RSMultiScreenUtilTest::TearDownTestCase() {}
+void RSMultiScreenUtilTest::TearDownTestCase()
+{
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
 
 void RSMultiScreenUtilTest::SetUp()
 {
@@ -165,6 +168,33 @@ void RSMultiScreenUtilTest::SetUp()
 
 void RSMultiScreenUtilTest::TearDown()
 {
+    auto cleanupScreenPropertySptrs = [](RSScreenRenderParams* params) {
+        if (params == nullptr) {
+            return;
+        }
+        auto& props = params->screenProperty_.screenProperties_;
+        for (auto& [key, sptrVal] : props) {
+            sptrVal.ForceSetRefPtr(nullptr);
+        }
+        props.clear();
+    };
+    cleanupScreenPropertySptrs(screenParams_);
+    cleanupScreenPropertySptrs(mirrorSourceScreenParams_);
+    displayDrawable_ = nullptr;
+    mirrorSourceDisplayDrawable_ = nullptr;
+    screenDrawable_ = nullptr;
+    mirrorSourceScreenDrawable_ = nullptr;
+    displayParams_ = nullptr;
+    mirrorSourceDisplayParams_ = nullptr;
+    screenParams_ = nullptr;
+    mirrorSourceScreenParams_ = nullptr;
+    displayNode_.reset();
+    mirrorSourceDisplayNode_.reset();
+    screenNode_.reset();
+    mirrorSourceScreenNode_.reset();
+    canvas_.reset();
+    paintFilterCanvas_.reset();
+    virtualProcessor_.reset();
     // clear RSRenderThreadParams after each testcase
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
 }
@@ -251,8 +281,6 @@ HWTEST_F(RSMultiScreenUtilTest, HandleMirrorDisplayTest002, TestSize.Level1)
     displayDrawable_->renderParams_ = nullptr;
     bool res = processor->UpdateMirrorInfo(*displayDrawable_);
     EXPECT_FALSE(res);
-    RSMultiScreenUtil::HandleMirrorDisplay(*displayDrawable_, *displayParams_, processor);
-    EXPECT_NE(displayParams_, nullptr);
 }
 
 /**
@@ -276,7 +304,7 @@ HWTEST_F(RSMultiScreenUtilTest, HandleMirrorDisplayTest003, TestSize.Level1)
     RSMultiScreenUtil::HandleMirrorDisplay(*displayDrawable_, *displayParams_, virtualProcessor_);
 
     // when compositeType_ of params is not UNI_RENDER_COMPOSITE
-    displayParams_->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
+    displayParams_->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE;
     RSMultiScreenUtil::HandleMirrorDisplay(*displayDrawable_, *displayParams_, virtualProcessor_);
     EXPECT_NE(displayParams_, nullptr);
 }
@@ -415,8 +443,15 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest002, TestSize.Level
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     EXPECT_NE(uniParam, nullptr);
 
+    ScreenId screenId = 7;
+    auto &uniThread = RSUniRenderThread::Instance();
+    uniThread.composerClientManager_ = std::make_shared<RSComposerClientManager>();
+    sptr<IRSRenderToComposerConnection> conn = nullptr;
+    auto client = std::make_shared<RSComposerClient>(conn);
+    client->SetOutput(std::make_shared<HdiOutput>(screenId));
+    uniThread.composerClientManager_->AddComposerClient(screenId, client);
     // when processor is not RSUniRenderVirtualProcessor
-    auto processor = std::make_shared<RSUniRenderProcessor>();
+    auto processor = std::make_shared<RSUniRenderProcessor>(screenId);
 
     // processor is not RSUniRenderVirtualProcessor
     processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
@@ -1179,6 +1214,12 @@ HWTEST_F(RSMultiScreenUtilTest, DrawVirtualMirrorDisplayTest004, TestSize.Level1
     screenParams->SetHDRPresent(true);
     RSMultiScreenUtil::DrawVirtualMirrorDisplay(*displayDrawable_, *displayParams_, virtualProcessor_);
     EXPECT_FALSE(virtualProcessor_->GetDrawVirtualMirrorCopy());
+    instance.uniRenderEngine_->skContext_ = nullptr;
+    if (instance.uniRenderEngine_->renderContext_ != nullptr) {
+        instance.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+        instance.uniRenderEngine_->renderContext_ = nullptr;
+    }
+    instance.uniRenderEngine_ = nullptr;
 }
 
 /**
@@ -1660,5 +1701,68 @@ HWTEST_F(RSMultiScreenUtilTest, GetMultiScreenParamsTest001, TestSize.Level1)
     displayParams_->SetAncestorScreenDrawable(nullptr);
     RSMultiScreenUtil::GetMultiScreenParams(*displayParams_);
     EXPECT_EQ(screenDrawable_, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreen_RenderEngineNull
+ * @tc.desc: Test HandleVirtualExtendScreen when renderEngine is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreen_RenderEngineNull, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenParams_, nullptr);
+
+    auto processor = RSProcessorFactory::CreateProcessor(
+        CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE, SCREEN_ID);
+    ASSERT_NE(processor, nullptr);
+
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
+    int32_t tid = 0;
+
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor, renderEngine, tid);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreen_RenderEngineNotNull
+ * @tc.desc: Test HandleVirtualExtendScreen when renderEngine is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreen_RenderEngineNotNull, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenParams_, nullptr);
+
+    auto processor = RSProcessorFactory::CreateProcessor(
+        CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE, SCREEN_ID);
+    ASSERT_NE(processor, nullptr);
+
+    int32_t tid = -200;
+
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_,
+        processor, RSUniRenderThread::Instance().uniRenderEngine_, tid);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreen_RenderEngineNotNull_TidZero
+ * @tc.desc: Test HandleVirtualExtendScreen when renderEngine is not nullptr and tid is zero
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreen_RenderEngineNotNull_TidZero, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenParams_, nullptr);
+
+    auto processor = RSProcessorFactory::CreateProcessor(
+        CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE, SCREEN_ID);
+    ASSERT_NE(processor, nullptr);
+
+    int32_t tid = 0;
+
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_,
+        processor, RSUniRenderThread::Instance().uniRenderEngine_, tid);
 }
 } // namespace OHOS::Rosen

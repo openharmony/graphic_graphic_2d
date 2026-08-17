@@ -188,12 +188,12 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
         return;
     }
     renderPipelineClient_->CommitTransaction(transactionData);
-    transactionDataIndex_ = transactionData->GetIndex();
+    transactionDataIndex_.store(transactionData->GetIndex(), std::memory_order_relaxed);
 }
 
 uint32_t RSTransactionHandler::GetTransactionDataIndex() const
 {
-    return transactionDataIndex_;
+    return transactionDataIndex_.load(std::memory_order_relaxed);
 }
 
 void RSTransactionHandler::SetRSTransactionDataScene(RSTransactionDataScenes scene)
@@ -275,7 +275,7 @@ void RSTransactionHandler::Begin(uint64_t syncId)
     RS_TRACE_NAME_FMT("RSTransactionHandler::Begin syncId:%" PRIu64 ", transactionHandler:%zu, "
         "remoteTransactionDataStack.size:%zu",
         syncId, std::hash<RSTransactionHandler*>()(this), implicitRemoteTransactionDataStack_.size());
-    RS_LOGI("RSTransactionHandler::Begin syncId:%{public}" PRIu64 ", transactionHandler:%{public}zu, "
+    RS_LOGD("RSTransactionHandler::Begin syncId:%{public}" PRIu64 ", transactionHandler:%{public}zu, "
         "remoteTransactionDataStack.size:%{public}zu", syncId, std::hash<RSTransactionHandler*>()(this),
         implicitRemoteTransactionDataStack_.size());
     implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
@@ -290,7 +290,7 @@ void RSTransactionHandler::Commit(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     RS_TRACE_NAME_FMT("RSTransactionHandler::Commit transactionHandler:%zu", std::hash<RSTransactionHandler*>()(this));
-    RS_LOGI("RSTransactionHandler::Commit transactionHandler:%{public}zu", std::hash<RSTransactionHandler*>()(this));
+    RS_LOGD("RSTransactionHandler::Commit transactionHandler:%{public}zu", std::hash<RSTransactionHandler*>()(this));
     if (!implicitRemoteTransactionDataStack_.empty() && implicitRemoteTransactionDataStack_.top()->IsNeedSync()) {
         RS_TRACE_NAME_FMT("RSTransactionHandler::Commit not pop dataStack, transactionHandler:%zu",
             std::hash<RSTransactionHandler*>()(this));

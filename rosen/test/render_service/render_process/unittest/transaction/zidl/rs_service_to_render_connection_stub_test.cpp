@@ -49,6 +49,7 @@ namespace {
 constexpr const size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 constexpr const int WAIT_HANDLER_TIME = 1; // 1S
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
+constexpr const int INVALID_EVENT_DATA_SIZE = 101;
 
 class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
 public:
@@ -127,11 +128,34 @@ void RSServiceToRenderConnectionStubTest::TearDownTestCase()
 
     renderPipeline->mainThread_->handler_ = nullptr;
     renderPipeline->mainThread_->receiver_ = nullptr;
+    if (renderPipeline->mainThread_->renderEngine_) {
+        if (renderPipeline->mainThread_->renderEngine_->renderContext_) {
+            renderPipeline->mainThread_->renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            renderPipeline->mainThread_->renderEngine_->renderContext_ = nullptr;
+        }
+        renderPipeline->mainThread_->renderEngine_->skContext_ = nullptr;
+        renderPipeline->mainThread_->renderEngine_->imageManager_ = nullptr;
+        renderPipeline->mainThread_->renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        renderPipeline->mainThread_->renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderPipeline->mainThread_->renderEngine_ = nullptr;
 
     renderPipeline->uniRenderThread_->handler_ = nullptr;
     renderPipeline->uniRenderThread_->runner_ = nullptr;
-    renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+    if (renderPipeline->uniRenderThread_->uniRenderEngine_) {
+        if (renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_) {
+            renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
+        }
+        renderPipeline->uniRenderThread_->uniRenderEngine_->skContext_ = nullptr;
+        renderPipeline->uniRenderThread_->uniRenderEngine_->imageManager_ = nullptr;
+        renderPipeline->uniRenderThread_->uniRenderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        renderPipeline->uniRenderThread_->uniRenderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
+    }
     renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderPipeline->uniRenderThread_ = nullptr;
     renderPipeline = nullptr;
@@ -242,12 +266,12 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
 }
 
 /**
- * @tc.name: SetGpuCrcDirtyEnabledPidList001
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
+ * @tc.name: HandleHwcEvent001
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of eventData exceeds the maximum value
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList001, TestSize.Level1)
+HWTEST_F(RSServiceToRenderConnectionStubTest, HandleHwcEvent001, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -256,19 +280,25 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList001, T
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         return;
     }
-    data.WriteInt32(-1);
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
+    std::vector<int32_t> eventData(INVALID_EVENT_DATA_SIZE, 0);
+    uint32_t deviceId{0};
+    uint32_t eventId{0};
+
+    data.WriteUint32(deviceId);
+    data.WriteUint32(eventId);
+    data.WriteInt32Vector(eventData);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**
- * @tc.name: SetGpuCrcDirtyEnabledPidList002
- * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
+ * @tc.name: HandleHwcEvent002
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when When the size of pidList is valid
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList002, TestSize.Level1)
+HWTEST_F(RSServiceToRenderConnectionStubTest, HandleHwcEvent002, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -277,9 +307,14 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetGpuCrcDirtyEnabledPidList002, T
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         return;
     }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
-    std::vector<int32_t> pidList;
-    data.WriteInt32Vector(pidList);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
+    std::vector<int32_t> eventData;
+    uint32_t deviceId{0};
+    uint32_t eventId{0};
+
+    data.WriteInt32Vector(eventData);
+    data.WriteUint32(deviceId);
+    data.WriteUint32(eventId);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_NONE);
 }
@@ -1045,6 +1080,58 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart003, TestSize.Lev
 }
 
 /**
+ * @tc.name: AvcodecVideoStart004
+ * @tc.desc: Test AvcodecVideoStart when uniqueIdList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    std::vector<uint64_t> uniqueIdList(9, 1000);
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 60;
+    uint64_t reportTime = 1000;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    data.WriteUint64(reportTime);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStart005
+ * @tc.desc: Test AvcodecVideoStart when surfaceNameList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStart005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    std::vector<uint64_t> uniqueIdList = {1000};
+    std::vector<std::string> surfaceNameList(9, "surface");
+    uint32_t fps = 60;
+    uint64_t reportTime = 1000;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    data.WriteUint64(reportTime);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: AvcodecVideoStop001
  * @tc.desc: Test AvcodecVideoStop when reading data fails
  * @tc.type: FUNC
@@ -1109,6 +1196,54 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop003, TestSize.Leve
     data.WriteUint32(fps);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop004
+ * @tc.desc: Test AvcodecVideoStop when uniqueIdList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    std::vector<uint64_t> uniqueIdList(9, 1000);
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 60;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop005
+ * @tc.desc: Test AvcodecVideoStop when surfaceNameList size exceeds max
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, AvcodecVideoStop005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    std::vector<uint64_t> uniqueIdList = {1000};
+    std::vector<std::string> surfaceNameList(9, "surface");
+    uint32_t fps = 60;
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 
 /**
@@ -2324,5 +2459,99 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetApsConfigParamsStub_SuccessMult
 
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_EmptyData
+ * @tc.desc: Test SetUIMode3D stub when data is empty.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_EmptyData, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetUIMode3D_Mode2D
+ * @tc.desc: Test SetUIMode3D stub with MODE_2D.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_Mode2D, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(UIMode3D::MODE_2D)));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_ModeShutter3D
+ * @tc.desc: Test SetUIMode3D stub with MODE_SHUTTER_3D.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_ModeShutter3D, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(UIMode3D::MODE_SHUTTER_3D)));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_ModeGlassesFree3D
+ * @tc.desc: Test SetUIMode3D stub with MODE_GLASSESFREE_3D.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_ModeGlassesFree3D, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(UIMode3D::MODE_GLASSESFREE_3D)));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_InvalidMode
+ * @tc.desc: Test SetUIMode3D stub with invalid mode value.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, SetUIMode3D_InvalidMode, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(UIMode3D::MODE_TYPE_BUTT)));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UI_MODE_3D);
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen

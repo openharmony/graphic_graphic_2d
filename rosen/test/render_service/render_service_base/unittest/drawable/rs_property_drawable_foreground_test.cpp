@@ -15,11 +15,19 @@
 
 #include <gtest/gtest.h>
 #include "drawable/rs_property_drawable_foreground.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "ge_visual_effect_container.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_depth_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "property/rs_spatial_effect_def.h"
+#include "property/rs_spatial_effect_manager.h"
+#include "recording/recording_canvas.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -451,9 +459,9 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderTest002, TestSize.Level1)
 
     border->styles_.emplace_back(BorderStyle::SOLID);
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, false);
-    border->SetRadiusFour({0.f, 0.f, 0.f, 0.f});
+    border->SetRadiusFour({ 0.f, 0.f, 0.f, 0.f });
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
-    border->SetRadiusFour({1.f, 1.f, 1.f, 1.f});
+    border->SetRadiusFour({ 1.f, 1.f, 1.f, 1.f });
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
     EXPECT_EQ(border->widths_.size(), 1);
 }
@@ -546,6 +554,845 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest00
 
     bool result = particleDrawable->OnUpdate(renderNode);
     EXPECT_FALSE(result);
+}
+
+class RSTestRenderNodeDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit RSTestRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node)), nodeId_(GetId())
+    {
+        renderParams_ = std::make_unique<RSDepthRenderParams>(nodeId_);
+    }
+    ~RSTestRenderNodeDrawableAdapter() override = default;
+
+    void Draw(Drawing::Canvas& canvas) override
+    {
+        printf("Draw:GetRecordingState: %d \n", canvas.GetRecordingState());
+    }
+
+private:
+    NodeId nodeId_;
+};
+
+/**
+ * @tc.name: RSSpatialEffectDrawableOnGenerate
+ * @tc.desc: Test RSSpatialEffectDrawable OnGenerate at fail and succeesful case
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableOnGenerate, TestSize.Level1)
+{
+    // fail case
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSRenderNode& renderNode = *renderNodePtr;
+    EXPECT_EQ(DrawableV2::RSSpatialEffectDrawable::OnGenerate(renderNode), nullptr);
+
+    // succeesful case
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNode.GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, 1.0f);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, 1.0f);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, 1.0f);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, 1.0f);
+    props.SetSpatialEffectPara(spatialEffectPara);
+    EXPECT_NE(DrawableV2::RSSpatialEffectDrawable::OnGenerate(renderNode), nullptr);
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableOnUpdate
+ * @tc.desc: Test RSSpatialEffectDrawable OnUpdate on different cases
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableOnUpdate, TestSize.Level1)
+{
+    // fail case with no depth node
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSRenderNode& renderNode = *renderNodePtr;
+    std::shared_ptr<DrawableV2::RSSpatialEffectDrawable> spatialEffectDrawable =
+        std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    EXPECT_NE(spatialEffectDrawable, nullptr);
+    EXPECT_FALSE(spatialEffectDrawable->OnUpdate(renderNode));
+
+    // fail case with node not depth node
+    auto fakeNode = std::make_shared<RSRenderNode>(1);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(fakeNode, renderNodePtr);
+    EXPECT_FALSE(spatialEffectDrawable->OnUpdate(renderNode));
+
+    // fail case with depth node has no drawable
+    auto depthNode = std::make_shared<RSDepthRenderNode>(2);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+    EXPECT_FALSE(spatialEffectDrawable->OnUpdate(renderNode));
+
+    // fail case with no spatial effect para
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+    EXPECT_TRUE(spatialEffectDrawable->OnUpdate(renderNode));
+
+    // succeesful case
+    auto& props = renderNode.GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, 1.0f);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, 1.0f);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, 1.0f);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, 1.0f);
+    props.SetSpatialEffectPara(spatialEffectPara);
+    EXPECT_TRUE(spatialEffectDrawable->OnUpdate(renderNode));
+    EXPECT_TRUE(spatialEffectDrawable->needSync_);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableOnUpdate002
+ * @tc.desc: Test GLOBAL depthNode but no master global depthNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableOnUpdate002, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto depthNode = std::make_shared<RSDepthRenderNode>(102);
+    depthNode->SetDepthSpaceType(DepthSpaceType::GLOBAL);
+
+    auto renderNode = std::make_shared<RSRenderNode>(3);
+    renderNode->SetParent(depthNode);
+
+    std::shared_ptr<DrawableV2::RSSpatialEffectDrawable> spatialEffectDrawable =
+        std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    ASSERT_NE(spatialEffectDrawable, nullptr);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNode);
+    EXPECT_FALSE(spatialEffectDrawable->OnUpdate(*renderNode));
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableOnUpdate003
+ * @tc.desc: Test GLOBAL depthNode and master global depthNode exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableOnUpdate003, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+
+    auto globalDepthNode = std::make_shared<RSDepthRenderNode>(200);
+    globalDepthNode->SetDepthSpaceType(DepthSpaceType::GLOBAL);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(101);
+    depthNode->SetDepthSpaceType(DepthSpaceType::GLOBAL);
+    RSSpatialEffectManager::Instance()->masterGlobalDepthNodeMap_.emplace(depthNode->GetLogicalDisplayNodeId(),
+        globalDepthNode->weak_from_this());
+
+    auto renderNode = std::make_shared<RSRenderNode>(2);
+    renderNode->SetParent(depthNode);
+
+    std::shared_ptr<DrawableV2::RSSpatialEffectDrawable> spatialEffectDrawable =
+        std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    ASSERT_NE(spatialEffectDrawable, nullptr);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthSpace(depthNode);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(globalDepthNode, renderNode);
+    auto drawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(globalDepthNode);
+    globalDepthNode->renderDrawable_ = drawable;
+    EXPECT_TRUE(spatialEffectDrawable->OnUpdate(*renderNode));
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableOnSync
+ * @tc.desc: Test RSSpatialEffectDrawable OnSync method
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableOnSync, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSSpatialEffectDrawable> spatialEffectDrawable =
+        std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    EXPECT_NE(spatialEffectDrawable, nullptr);
+
+    spatialEffectDrawable->stagingSpatialEffectPara_ = SpatialEffectPara();
+    spatialEffectDrawable->OnSync();
+    EXPECT_FALSE(spatialEffectDrawable->spatialEffectPara_.has_value());
+
+    spatialEffectDrawable->needSync_ = true;
+    spatialEffectDrawable->OnSync();
+    EXPECT_TRUE(spatialEffectDrawable->spatialEffectPara_.has_value());
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableDrawSucc
+ * @tc.desc: Test RSSpatialEffectDrawable OnDraw in normal case
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableDrawSucc, TestSize.Level1)
+{
+    // init surface and canvas
+    auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    EXPECT_TRUE(surface != nullptr);
+    RSPaintFilterCanvas pfCanvas(surface.get());
+
+    // init depth image
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap.Build(10, 10, bitmapFormat);
+    auto depthImage = std::make_shared<Drawing::Image>();
+    depthImage->BuildFromBitmap(bitmap);
+
+    // init node and drawable
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSRenderNode& renderNode = *renderNodePtr;
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    const auto& depthParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    depthParams->SetDepthImage(depthImage);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    // init properties
+    auto& props = renderNode.GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, 1.0f);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, 1.0f);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, 1.0f);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, 1.0f);
+    spatialEffectPara.occlusionWeight = 1.0;
+    props.SetSpatialEffectPara(spatialEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+
+    // generate effect drawable and sync
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(renderNode);
+    effectDrawable->OnSync();
+
+    Drawing::Rect rect(0.0f, 0.0f, 100, 100);
+    EXPECT_EQ(pfCanvas.customStack_.size(), 0);
+    effectDrawable->OnDraw(&pfCanvas, &rect);
+    // no gpu context, RSPropertyDrawableUtils::DrawDepthOcclusion still return nullptr
+    EXPECT_EQ(pfCanvas.customStack_.size(), 0);
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableDrawWithDepth
+ * @tc.desc: Test RSSpatialEffectDrawable OnDraw in normal case with depth
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableDrawWithDepth, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    // init surface and canvas
+    auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    EXPECT_TRUE(surface != nullptr);
+    RSPaintFilterCanvas pfCanvas(surface.get());
+
+    // init depth image
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap.Build(10, 10, bitmapFormat);
+    auto depthImage = std::make_shared<Drawing::Image>();
+    depthImage->BuildFromBitmap(bitmap);
+
+    // init node and drawable
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSRenderNode& renderNode = *renderNodePtr;
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    const auto& depthParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    depthParams->SetDepthImage(depthImage);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    // init properties
+    auto& props = renderNode.GetMutableRenderProperties();
+    DepthEffectPara depthEffectPara;
+    depthEffectPara.occlusionWeight = 1.0;
+    props.SetDepthEffectPara(depthEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+
+    // generate effect drawable and sync
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(renderNode);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+
+    Drawing::Rect rect(0.0f, 0.0f, 100, 100);
+    EXPECT_EQ(pfCanvas.customStack_.size(), 0);
+    effectDrawable->OnDraw(&pfCanvas, &rect);
+    // no gpu context, RSPropertyDrawableUtils::DrawDepthOcclusion still return nullptr
+    EXPECT_EQ(pfCanvas.customStack_.size(), 0);
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableDrawNoEffectPara
+ * @tc.desc: Test RSSpatialEffectDrawable OnDraw early exit with no effect para
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableDrawNoEffectPara, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    EXPECT_NE(canvas, nullptr);
+    EXPECT_EQ(canvas->GetSurface(), nullptr);
+
+    std::shared_ptr<DrawableV2::RSSpatialEffectDrawable> spatialEffectDrawable =
+        std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    EXPECT_NE(spatialEffectDrawable, nullptr);
+    spatialEffectDrawable->OnDraw(canvas.get(), nullptr);
+    EXPECT_EQ(canvas->GetDrawCmdList()->IsEmpty(), true);
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableDrawNoOcclusionWeight
+ * @tc.desc: Test RSSpatialEffectDrawable OnDraw early exit with occlusionWeight = 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableDrawNoOcclusionWeight, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    EXPECT_NE(canvas, nullptr);
+    EXPECT_EQ(canvas->GetSurface(), nullptr);
+
+    std::shared_ptr<DrawableV2::RSSpatialEffectDrawable> spatialEffectDrawable =
+        std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    EXPECT_NE(spatialEffectDrawable, nullptr);
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.occlusionWeight = 0.0;
+    spatialEffectDrawable->spatialEffectPara_ = spatialEffectPara;
+    spatialEffectDrawable->OnDraw(canvas.get(), nullptr);
+    EXPECT_EQ(canvas->GetDrawCmdList()->IsEmpty(), true);
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableDrawNoDstPts
+ * @tc.desc: Test RSSpatialEffectDrawable OnDraw early exit with no dstPoints
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableDrawNoDstPts, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    EXPECT_NE(canvas, nullptr);
+    EXPECT_EQ(canvas->GetSurface(), nullptr);
+
+    std::shared_ptr<DrawableV2::RSSpatialEffectDrawable> spatialEffectDrawable =
+        std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    EXPECT_NE(spatialEffectDrawable, nullptr);
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.occlusionWeight = 1.0;
+    spatialEffectDrawable->spatialEffectPara_ = spatialEffectPara;
+    spatialEffectDrawable->OnDraw(canvas.get(), nullptr);
+    EXPECT_EQ(canvas->GetDrawCmdList()->IsEmpty(), true);
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableDrawNoDrawable
+ * @tc.desc: Test RSSpatialEffectDrawable OnDraw early exit when depthNodeDrawable_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableDrawNoDrawable, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    EXPECT_NE(canvas, nullptr);
+    EXPECT_EQ(canvas->GetSurface(), nullptr);
+
+    std::shared_ptr<DrawableV2::RSSpatialEffectDrawable> spatialEffectDrawable =
+        std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    EXPECT_NE(spatialEffectDrawable, nullptr);
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.occlusionWeight = 1.0;
+    std::vector<Drawing::Point> dstPoints = {};
+    spatialEffectDrawable->spatialEffectPara_ = spatialEffectPara;
+    spatialEffectDrawable->spatialEffectDstPoints_ = dstPoints;
+    spatialEffectDrawable->depthNodeDrawable_.reset();
+    spatialEffectDrawable->OnDraw(canvas.get(), nullptr);
+    EXPECT_EQ(canvas->GetDrawCmdList()->IsEmpty(), true);
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableDrawNoParams
+ * @tc.desc: Test RSSpatialEffectDrawable OnDraw early exit when renderParams is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableDrawNoParams, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    EXPECT_NE(canvas, nullptr);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    depthNodeDrawable->renderParams_ = nullptr;
+    depthNode->renderDrawable_ = depthNodeDrawable;
+
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNodePtr->GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, 1.0f);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, 1.0f);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, 1.0f);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, 1.0f);
+    spatialEffectPara.occlusionWeight = 1.0;
+    props.SetSpatialEffectPara(spatialEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+    EXPECT_EQ(canvas->GetDrawCmdList()->IsEmpty(), true);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableDrawNoDepthImage
+ * @tc.desc: Test RSSpatialEffectDrawable OnDraw early exit when depth image is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableDrawNoDepthImage, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    EXPECT_NE(canvas, nullptr);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNodePtr->GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, 1.0f);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, 1.0f);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, 1.0f);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, 1.0f);
+    spatialEffectPara.occlusionWeight = 1.0;
+    props.SetSpatialEffectPara(spatialEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+    EXPECT_EQ(canvas->GetDrawCmdList()->IsEmpty(), true);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableIsNeedSkipOcclusion001
+ * @tc.desc: Test OnDraw - occlusionWeight > 0, IsNeedSkipOcclusion returns false, continues to draw
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableIsNeedSkipOcclusion001, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    ASSERT_NE(canvas, nullptr);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNodePtr->GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, 1.0f);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, 1.0f);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, 1.0f);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, 1.0f);
+    spatialEffectPara.occlusionWeight = 1.0;
+    props.SetSpatialEffectPara(spatialEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableIsNeedSkipOcclusion002
+ * @tc.desc: Test OnDraw - occlusionWeight <= 0, all corners within NearFar, IsNeedSkipOcclusion returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableIsNeedSkipOcclusion002, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    ASSERT_NE(canvas, nullptr);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNodePtr->GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    constexpr float DEPTH_WITHIN_RANGE = -5.0f;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, DEPTH_WITHIN_RANGE);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, DEPTH_WITHIN_RANGE);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, DEPTH_WITHIN_RANGE);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, DEPTH_WITHIN_RANGE);
+    spatialEffectPara.occlusionWeight = 0.0;
+    props.SetSpatialEffectPara(spatialEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+    EXPECT_EQ(canvas->GetDrawCmdList()->IsEmpty(), true);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableIsNeedSkipOcclusion003
+ * @tc.desc: Test OnDraw - occlusionWeight <= 0, corner beyond NearFar near, IsNeedSkipOcclusion returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableIsNeedSkipOcclusion003, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    ASSERT_NE(canvas, nullptr);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNodePtr->GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    constexpr float DEPTH_BEYOND_NEAR = -0.01f;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, DEPTH_BEYOND_NEAR);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, DEPTH_BEYOND_NEAR);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, DEPTH_BEYOND_NEAR);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, DEPTH_BEYOND_NEAR);
+    spatialEffectPara.occlusionWeight = 0.0;
+    props.SetSpatialEffectPara(spatialEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableIsNeedSkipOcclusion004
+ * @tc.desc: Test OnDraw - occlusionWeight <= 0, corner beyond NearFar far, IsNeedSkipOcclusion returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableIsNeedSkipOcclusion004, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    ASSERT_NE(canvas, nullptr);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNodePtr->GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    constexpr float DEPTH_BEYOND_FAR = -200.0f;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, DEPTH_BEYOND_FAR);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, DEPTH_BEYOND_FAR);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, DEPTH_BEYOND_FAR);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, DEPTH_BEYOND_FAR);
+    spatialEffectPara.occlusionWeight = 0.0;
+    props.SetSpatialEffectPara(spatialEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableIsNeedSkipOcclusion005
+ * @tc.desc: Test OnDraw - occlusionWeight <= 0, corners within NearFar with cameraPara, skip occlusion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableIsNeedSkipOcclusion005, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    ASSERT_NE(canvas, nullptr);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    const auto& depthParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 0.0f);
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+    depthParams->SetDepthCameraPara(cameraPara);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNodePtr->GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    constexpr float DEPTH_WITHIN_CAMERA_RANGE = -5.0f;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, DEPTH_WITHIN_CAMERA_RANGE);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, DEPTH_WITHIN_CAMERA_RANGE);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, DEPTH_WITHIN_CAMERA_RANGE);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, DEPTH_WITHIN_CAMERA_RANGE);
+    spatialEffectPara.occlusionWeight = 0.0;
+    props.SetSpatialEffectPara(spatialEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+    EXPECT_EQ(canvas->GetDrawCmdList()->IsEmpty(), true);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableIsNeedSkipOcclusion006
+ * @tc.desc: Test OnDraw - occlusionWeight <= 0, corner beyond camera NearFar, IsNeedSkipOcclusion returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableIsNeedSkipOcclusion006, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    ASSERT_NE(canvas, nullptr);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    const auto& depthParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 0.0f);
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+    depthParams->SetDepthCameraPara(cameraPara);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNodePtr->GetMutableRenderProperties();
+    SpatialEffectPara spatialEffectPara;
+    constexpr float DEPTH_BEYOND_CAMERA_FAR = -200.0f;
+    spatialEffectPara.leftTop = Vector3f(0.0f, 0.0f, DEPTH_BEYOND_CAMERA_FAR);
+    spatialEffectPara.rightTop = Vector3f(1.0f, 0.0f, DEPTH_BEYOND_CAMERA_FAR);
+    spatialEffectPara.leftBottom = Vector3f(0.0f, 1.0f, DEPTH_BEYOND_CAMERA_FAR);
+    spatialEffectPara.rightBottom = Vector3f(1.0f, 1.0f, DEPTH_BEYOND_CAMERA_FAR);
+    spatialEffectPara.occlusionWeight = 0.0;
+    props.SetSpatialEffectPara(spatialEffectPara);
+    std::vector<Drawing::Point> dstPoints = {
+        Drawing::Point(0.f, 0.f),
+        Drawing::Point(100.f, 0.f),
+        Drawing::Point(100.f, 100.f),
+        Drawing::Point(0.f, 100.f)
+    };
+    props.SetSpatialEffectDstPoints(dstPoints);
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableIsNeedSkipOcclusion007
+ * @tc.desc: Test OnDraw - not PerspectiveEnabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableIsNeedSkipOcclusion007, TestSize.Level1)
+{
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(100, 100);
+    ASSERT_NE(canvas, nullptr);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    depthNode->renderDrawable_ = depthNodeDrawable;
+
+    auto renderNodePtr = std::make_shared<RSRenderNode>(0);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNodePtr);
+
+    auto& props = renderNodePtr->GetMutableRenderProperties();
+    SpatialEffectVariantPara para;
+    para.position = -5.0f; // -5.0 : in NearFar range
+    para.occlusionWeight = 0.0f;
+    props.SetSpatialEffectVariantPara(para);
+    auto effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+
+    para.position = -500.0f; // out of Far
+    props.SetSpatialEffectVariantPara(para);
+    effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+
+    para.position = 1.0f; // out of Near
+    props.SetSpatialEffectVariantPara(para);
+    effectDrawable = DrawableV2::RSSpatialEffectDrawable::OnGenerate(*renderNodePtr);
+    ASSERT_NE(effectDrawable, nullptr);
+    effectDrawable->OnSync();
+    effectDrawable->OnDraw(canvas.get(), nullptr);
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableCalcDepthPlaneInsufficientPts
+ * @tc.desc: Test CalcDepthPlane with insufficient dstPoints (less than 3)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableCalcDepthPlaneInsufficientPts, TestSize.Level1)
+{
+    SpatialEffectPara para;
+    para.leftTop = Vector3f(0.0f, 0.0f, -1.0f);
+    para.rightTop = Vector3f(1.0f, 0.0f, -1.0f);
+    para.rightBottom = Vector3f(1.0f, 1.0f, -1.0f);
+
+    constexpr int RECT_LEFT = 0;
+    constexpr int RECT_TOP = 0;
+    Drawing::RectI drawRect(RECT_LEFT, RECT_TOP, 100, 100);
+
+    std::vector<Drawing::Point> dstPoints = { Drawing::Point(0.f, 0.f), Drawing::Point(100.f, 0.f) };
+
+    auto drawable = std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    const auto& depthParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    Vector4f result = drawable->CalcDepthPlane(*depthParams, para, dstPoints, drawRect);
+
+    Vector4f expect(0.f, 0.f, 1.f, -1.f);
+    EXPECT_FLOAT_EQ(result.x_, expect.x_);
+    EXPECT_FLOAT_EQ(result.y_, expect.y_);
+    EXPECT_FLOAT_EQ(result.z_, expect.z_);
+    EXPECT_FLOAT_EQ(result.w_, expect.w_);
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableCalcDepthPlaneCollinearPts
+ * @tc.desc: Test CalcDepthPlane with collinear points
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableCalcDepthPlaneCollinearPts, TestSize.Level1)
+{
+    SpatialEffectPara para;
+    para.leftTop = Vector3f(0.0f, 0.0f, -1.0f);
+    para.rightTop = Vector3f(1.0f, 0.0f, -1.0f);
+    para.rightBottom = Vector3f(2.0f, 0.0f, -1.0f);
+
+    Drawing::RectI drawRect(0, 0, 100, 100);
+
+    std::vector<Drawing::Point> dstPoints = { Drawing::Point(0.f, 0.f), Drawing::Point(50.f, 0.f),
+        Drawing::Point(100.f, 0.f) };
+
+    auto drawable = std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    const auto& depthParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    Vector4f result = drawable->CalcDepthPlane(*depthParams, para, dstPoints, drawRect);
+
+    Vector4f expect(0.f, 0.f, 1.f, -1.f);
+    EXPECT_FLOAT_EQ(result.x_, expect.x_);
+    EXPECT_FLOAT_EQ(result.y_, expect.y_);
+    EXPECT_FLOAT_EQ(result.z_, expect.z_);
+    EXPECT_FLOAT_EQ(result.w_, expect.w_);
+}
+
+/**
+ * @tc.name: RSSpatialEffectDrawableCalcDepthPlaneNormal
+ * @tc.desc: Test CalcDepthPlane with valid non-collinear points
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSSpatialEffectDrawableCalcDepthPlaneNormal, TestSize.Level1)
+{
+    SpatialEffectPara para;
+    para.leftTop = Vector3f(0.0f, 0.0f, 2.0f);
+    para.rightTop = Vector3f(1.0f, 0.0f, 3.0f);
+    para.rightBottom = Vector3f(1.0f, 1.0f, 4.0f);
+
+    Drawing::RectI drawRect(10, 20, 100, 100);
+
+    std::vector<Drawing::Point> dstPoints = { Drawing::Point(10.f, 20.f), Drawing::Point(60.f, 20.f),
+        Drawing::Point(60.f, 60.f) };
+
+    auto drawable = std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    auto depthNode = std::make_shared<RSDepthRenderNode>(1);
+    auto depthNodeDrawable = std::make_shared<RSTestRenderNodeDrawableAdapter>(depthNode);
+    const auto& depthParams = static_cast<RSDepthRenderParams*>(depthNodeDrawable->GetRenderParams().get());
+    Vector4f result = drawable->CalcDepthPlane(*depthParams, para, dstPoints, drawRect);
+
+    EXPECT_GT(result.GetSqrLength(), 0.f);
 }
 
 /**
@@ -711,10 +1558,10 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableDraw
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     auto drawingFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
-    
+
     renderNode.GetMutableRenderProperties().SetForegroundFilter(drawingFilter);
     renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
-    
+
     EXPECT_TRUE(drawable->OnUpdate(renderNode));
     EXPECT_EQ(drawable->stagingDrawRect_, nullptr);
 }
@@ -732,9 +1579,9 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableDraw
     auto stagingDrawRect = std::make_unique<RectF>(10.0f, 10.0f, 50.0f, 50.0f);
     drawable->stagingDrawRect_ = std::make_unique<RectF>(*stagingDrawRect);
     drawable->needSync_ = true;
-    
+
     drawable->OnSync();
-    
+
     EXPECT_FALSE(drawable->needSync_);
     EXPECT_NE(drawable->drawRect_, nullptr);
     EXPECT_EQ(drawable->drawRect_->left_, stagingDrawRect->left_);
@@ -754,11 +1601,12 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableDraw
     EXPECT_NE(drawable, nullptr);
 
     drawable->stagingDrawRect_ = nullptr;
+    
     drawable->drawRect_ = std::make_unique<RectF>(10.0f, 10.0f, 50.0f, 50.0f);
     drawable->needSync_ = true;
-    
+
     drawable->OnSync();
-    
+
     EXPECT_FALSE(drawable->needSync_);
     EXPECT_EQ(drawable->drawRect_, nullptr);
 }
@@ -780,14 +1628,14 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableHasC
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     auto drawingFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
-    
+
     auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
     drawingFilter->SetNGRenderFilter(renderFilter);
     drawingFilter->SetHasCustomRegion(true);
-    
+
     renderNode.GetMutableRenderProperties().SetForegroundFilter(drawingFilter);
     renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
-    
+
     EXPECT_TRUE(drawable->OnUpdate(renderNode));
     EXPECT_NE(drawable->stagingDrawRect_, nullptr);
 }

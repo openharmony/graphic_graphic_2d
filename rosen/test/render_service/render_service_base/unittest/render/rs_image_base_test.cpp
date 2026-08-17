@@ -21,6 +21,10 @@
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_image_cache.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -1798,5 +1802,25 @@ HWTEST_F(RSImageBaseTest, RSImageBaseMarshallingTest003, TestSize.Level1)
     rsImageBase->SetPixelMap(pixelMap);
     MessageParcel parcel;
     EXPECT_TRUE(rsImageBase->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSImageBaseFlushCacheTest001
+ * @tc.desc: test RSImageBase::FlushCache with null and valid pixelMap_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageBaseTest, RSImageBaseFlushCacheTest001, TestSize.Level1)
+{
+    auto rsImageBase = std::make_shared<RSImageBase>();
+    // pixelMap_ is nullptr by default, should not crash
+    rsImageBase->FlushCache();
+
+    int width = 100;
+    int height = 100;
+    auto pixelMap = CreatePixelMap(width, height);
+    ASSERT_NE(pixelMap, nullptr);
+    rsImageBase->SetPixelMap(pixelMap);
+    // FlushCache should not crash with a valid pixelMap
+    rsImageBase->FlushCache();
 }
 } // namespace OHOS::Rosen

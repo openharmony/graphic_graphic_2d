@@ -381,7 +381,15 @@ void RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, 
     const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        RS_LOGE("UpdateHwcNodeByScalingMode surfaceHandler is nullptr");
+        return;
+    }
     const auto buffer = surfaceHandler->GetBuffer();
+    if (!buffer) {
+        RS_LOGE("UpdateHwcNodeByScalingMode buffer is nullptr");
+        return;
+    }
     const auto consumer = surfaceHandler->GetConsumer();
     float bufferWidth = buffer->GetSurfaceBufferWidth();
     float bufferHeight = buffer->GetSurfaceBufferHeight();
@@ -831,7 +839,8 @@ std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifie
     const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType)
 {
     if (auto modifier = node.GetModifierNG(modifierType)) {
-        return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty(propertyType));
+        auto baseProperty = modifier->GetProperty(propertyType);
+        return baseProperty ? baseProperty->CastToPropertyOf<T>(__func__) : nullptr;
     }
     return nullptr;
 }

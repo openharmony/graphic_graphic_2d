@@ -16,6 +16,7 @@
 
 #include "cj_color_picker.h"
 #include "cj_filter.h"
+#include "effect/color_matrix.h"
 #include "effect_errors.h"
 #include "effect_utils.h"
 #include "media_errors.h"
@@ -28,6 +29,7 @@ using namespace OHOS::Media;
 using namespace OHOS::Rosen;
 
 const int64_t EFFECTKIT_ERROR = -1;
+constexpr int64_t REGION_SIZE = 4;
 
 void BuildCJColor(ColorManager::Color color, CJColor& cjColor)
 {
@@ -94,6 +96,20 @@ void FfiEffectKitGrayscale(int64_t id)
 
 void FfiEffectKitSetColorMatrix(int64_t id, CArrFloat cjColorMatrix, uint32_t* errorCode)
 {
+    if (errorCode == nullptr) {
+        EFFECT_LOG_E("[CJFilter] errorCode is nullptr");
+        return;
+    }
+    if (cjColorMatrix.head == nullptr) {
+        EFFECT_LOG_E("[CJFilter] color matrix head is nullptr");
+        *errorCode = Rosen::ERR_INVALID_PARAM;
+        return;
+    }
+    if (cjColorMatrix.size > Drawing::ColorMatrix::MATRIX_SIZE) {
+        EFFECT_LOG_E("[CJFilter] color matrix size exceeds limit");
+        *errorCode = Rosen::ERR_INVALID_PARAM;
+        return;
+    }
     std::vector<float> naColor;
     for (int i = 0; i < cjColorMatrix.size; i++) {
         naColor.push_back(cjColorMatrix.head[i]);
@@ -133,14 +149,25 @@ int64_t FfiEffectKitCreateColorPicker(int64_t sourceId, uint32_t* errorCode)
 
 int64_t FfiEffectKitCreateColorPickerRegion(int64_t sourceId, CArrDouble region, uint32_t* errorCode)
 {
+    if (errorCode == nullptr) {
+        EFFECT_LOG_E("[CJColorPicker] errorCode is nullptr");
+        return EFFECTKIT_ERROR;
+    }
     auto instance = FFIData::GetData<PixelMapImpl>(sourceId);
     if (!instance) {
         EFFECT_LOG_E("[PixelMap] instance not exist %{public}" PRId64, sourceId);
         *errorCode = static_cast<int32_t>(Rosen::ERR_INVALID_PARAM);
         return EFFECTKIT_ERROR;
     }
+    if (region.head == nullptr || region.size < REGION_SIZE) {
+        EFFECT_LOG_E("[CJColorPicker] region is invalid");
+        *errorCode = Rosen::ERR_INVALID_PARAM;
+        return EFFECTKIT_ERROR;
+    }
     std::vector<double> cRegion;
-    for (int i = 0; i < region.size; i++) {
+    cRegion.reserve(REGION_SIZE);
+    // Keep consistent with ColorPickerCommon, which only consumes the first four region coordinates.
+    for (int64_t i = 0; i < REGION_SIZE; i++) {
         cRegion.push_back(region.head[i]);
     }
     return CJColorPicker::CreateColorPicker(instance, cRegion, *errorCode);

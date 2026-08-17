@@ -27,6 +27,7 @@
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
+#include "pipeline/rs_virtual_screen_thread_id_adapt.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
 #include "common/rs_common_tools.h"
@@ -376,6 +377,7 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
     // Adapt to the subtree feature to ensure the correct thread ID (TID) is set.
     RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
+    RSVirtualScreenThreadIdAdapt::AdaptVirtualScreenFfrtThreadId(canvas, threadId);
     if (!pixelMap->IsEditable()) {
         imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(
             rsImage_->GetUniqueId(), threadId);
@@ -478,6 +480,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return false;
     }
+    auto renderEngineType = canvas.GetRenderEngineType();
     if (nativeWindowBuffer_ == nullptr) {
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
         nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
@@ -487,14 +490,16 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         }
     }
     if (!backendTexture_.IsValid()) {
-        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
+        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+            RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
+            nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             if (!vkTextureInfo) {
                 return false;
             }
-            cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+            cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+                RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
                 vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         } else {
             return false;
@@ -539,6 +544,13 @@ void RSExtendImageObject::PurgeMipmapMem()
     }
 }
 #endif
+
+void RSExtendImageObject::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
+    }
+}
 
 RSExtendImageObject::~RSExtendImageObject()
 {
@@ -621,6 +633,13 @@ void RSExtendImageBaseObj::Purge()
     }
 }
 
+void RSExtendImageBaseObj::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
+    }
+}
+
 bool RSExtendImageBaseObj::Marshalling(Parcel &parcel) const
 {
     bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
@@ -680,6 +699,13 @@ void RSExtendImageNineObject::Purge()
     }
 }
 
+void RSExtendImageNineObject::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
+    }
+}
+
 bool RSExtendImageNineObject::Marshalling(Parcel &parcel) const
 {
     bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
@@ -733,6 +759,13 @@ void RSExtendImageLatticeObject::Purge()
 {
     if (rsImage_) {
         rsImage_->Purge();
+    }
+}
+
+void RSExtendImageLatticeObject::FlushImageCache()
+{
+    if (rsImage_ != nullptr) {
+        rsImage_->FlushCache();
     }
 }
 
@@ -799,8 +832,20 @@ DrawImageWithParmOpItem::DrawImageWithParmOpItem(const std::shared_ptr<Image>& i
 
 std::shared_ptr<DrawOpItem> DrawImageWithParmOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawImageWithParmOpItem>(
-        cmdList, static_cast<DrawImageWithParmOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawImageWithParmOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
+        constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawImageWithParmOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
+        constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
+        LOGD("DrawImageWithParmOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawImageWithParmOpItem>(cmdList, constructorHandle);
 }
 
 void DrawImageWithParmOpItem::Marshalling(DrawCmdList& cmdList)
@@ -865,8 +910,20 @@ DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(const std::shared_ptr<Med
 
 std::shared_ptr<DrawOpItem> DrawPixelMapWithParmOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPixelMapWithParmOpItem>(
-        cmdList, static_cast<DrawPixelMapWithParmOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawPixelMapWithParmOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
+        constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawPixelMapWithParmOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
+        constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
+        LOGD("DrawPixelMapWithParmOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawPixelMapWithParmOpItem>(cmdList, constructorHandle);
 }
 
 void DrawPixelMapWithParmOpItem::Marshalling(DrawCmdList& cmdList)
@@ -949,8 +1006,20 @@ void DrawHybridPixelMapOpItem::Marshalling(DrawCmdList& cmdList)
 
 std::shared_ptr<DrawOpItem> DrawHybridPixelMapOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawHybridPixelMapOpItem>(
-        cmdList, static_cast<DrawHybridPixelMapOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawHybridPixelMapOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
+        constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawHybridPixelMapOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
+        constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
+        LOGD("DrawHybridPixelMapOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawHybridPixelMapOpItem>(cmdList, constructorHandle);
 }
 
 void DrawHybridPixelMapOpItem::SetNodeId(NodeId id)
@@ -1024,8 +1093,20 @@ DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(const std::shared_ptr<Media::Pixe
 
 std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPixelMapRectOpItem>(
-        cmdList, static_cast<DrawPixelMapRectOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawPixelMapRectOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->sampling.GetFilterMode() < Drawing::FilterMode::NEAREST ||
+        constructorHandle->sampling.GetFilterMode() > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawPixelMapRectOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetFilterMode()));
+        return nullptr;
+    }
+    if (constructorHandle->sampling.GetMipmapMode() < Drawing::MipmapMode::NONE ||
+        constructorHandle->sampling.GetMipmapMode() > Drawing::MipmapMode::LINEAR) {
+        LOGD("DrawPixelMapRectOpItem Unmarshalling invalid MipmapMode: %{public}d",
+            static_cast<int>(constructorHandle->sampling.GetMipmapMode()));
+        return nullptr;
+    }
+    return std::make_shared<DrawPixelMapRectOpItem>(cmdList, constructorHandle);
 }
 
 void DrawPixelMapRectOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1086,8 +1167,14 @@ DrawPixelMapNineOpItem::DrawPixelMapNineOpItem(const std::shared_ptr<Media::Pixe
 
 std::shared_ptr<DrawOpItem> DrawPixelMapNineOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPixelMapNineOpItem>(
-        cmdList, static_cast<DrawPixelMapNineOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawPixelMapNineOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->filterMode < Drawing::FilterMode::NEAREST ||
+        constructorHandle->filterMode > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawPixelMapNineOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->filterMode));
+        return nullptr;
+    }
+    return std::make_shared<DrawPixelMapNineOpItem>(cmdList, constructorHandle);
 }
 
 void DrawPixelMapNineOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1139,6 +1226,14 @@ DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(
     lattice_ = CmdListHelper::GetLatticeFromCmdList(cmdList, handle->latticeHandle);
 }
 
+DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(
+    const DrawCmdList& cmdList, DrawPixelMapLatticeOpItem::ConstructorHandle* handle, Lattice&& lattice)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_LATTICE_OPITEM),
+      lattice_(std::move(lattice)), dst_(handle->dst), filterMode_(handle->filterMode)
+{
+    objectHandle_ = CmdListHelper::GetImageLatticeObjecFromCmdList(cmdList, handle->objectHandle);
+}
+
 DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
     const Drawing::Lattice& lattice, const Drawing::Rect& dst, Drawing::FilterMode filterMode, const Paint& paint)
     : DrawWithPaintOpItem(paint, PIXELMAP_LATTICE_OPITEM), lattice_(lattice), dst_(dst), filterMode_(filterMode)
@@ -1148,8 +1243,20 @@ DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(const std::shared_ptr<Media
 
 std::shared_ptr<DrawOpItem> DrawPixelMapLatticeOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPixelMapLatticeOpItem>(
-        cmdList, static_cast<DrawPixelMapLatticeOpItem::ConstructorHandle*>(handle));
+    auto* constructorHandle = static_cast<DrawPixelMapLatticeOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle->filterMode < Drawing::FilterMode::NEAREST ||
+        constructorHandle->filterMode > Drawing::FilterMode::LINEAR) {
+        LOGD("DrawPixelMapLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
+            static_cast<int>(constructorHandle->filterMode));
+        return nullptr;
+    }
+
+    auto lattice = CmdListHelper::GetLatticeFromCmdList(cmdList, constructorHandle->latticeHandle);
+    if (!CmdListHelper::ValidateLattice(lattice)) {
+        LOGD("DrawPixelMapLatticeOpItem Unmarshalling invalid lattice");
+        return nullptr;
+    }
+    return std::make_shared<DrawPixelMapLatticeOpItem>(cmdList, constructorHandle, std::move(lattice));
 }
 
 void DrawPixelMapLatticeOpItem::Marshalling(DrawCmdList& cmdList)
@@ -1595,8 +1702,11 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
             OnAfterAcquireBuffer();
         }
     }
-    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-        surfaceBufferInfo_.surfaceBuffer_->GetWidth(), surfaceBufferInfo_.surfaceBuffer_->GetHeight());
+    auto renderEngineType = canvas->GetRenderEngineType();
+    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(),
+        nativeWindowBuffer_, surfaceBufferInfo_.surfaceBuffer_->GetWidth(),
+        surfaceBufferInfo_.surfaceBuffer_->GetHeight());
     if (!backendTexture.IsValid()) {
         LOGE("DrawSurfaceBufferOpItem::Draw backendTexture is not valid");
         return;
@@ -1610,7 +1720,8 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
     auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
     if (!vkTextureInfo || !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
-        new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage,
+        new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(renderEngineType).GetRsVulkanInterface(), vkTextureInfo->vkImage,
             vkTextureInfo->vkAlloc.memory), surfaceBufferInfo_.isIgnoreAlpha_)) {
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;

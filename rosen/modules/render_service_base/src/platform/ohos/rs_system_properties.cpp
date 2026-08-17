@@ -17,6 +17,7 @@
 
 #include <charconv>
 #include <cstdlib>
+#include <mutex>
 #include <parameter.h>
 #include <parameters.h>
 #include "param/sys_param.h"
@@ -127,7 +128,7 @@ int RSSystemProperties::GetRecordingEnabled()
 void RSSystemProperties::SetRecordingDisenabled()
 {
     system::SetParameter("debug.graphic.recording.enabled", "0");
-    RS_LOGD("RSSystemProperties::SetRecordingDisenabled");
+    RS_LOGD_IF(DEBUG_IPC, "RSSystemProperties::SetRecordingDisenabled");
 }
 
 bool RSSystemProperties::GetProfilerEnabled()
@@ -192,15 +193,12 @@ std::string RSSystemProperties::GetRecordingFile()
 
 bool RSSystemProperties::GetUniRenderEnabled()
 {
-    static bool inited = false;
-    if (inited) {
-        return isUniRenderEnabled_;
-    }
-
-    isUniRenderEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())
-        ->GetUniRenderEnabled();
-    inited = true;
-    ROSEN_LOGD("RSSystemProperties::GetUniRenderEnabled:%{public}d", isUniRenderEnabled_);
+    static std::once_flag onceFlag;
+    std::call_once(onceFlag, []() {
+        isUniRenderEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(
+            RSIRenderClient::CreateRenderServiceClient())->GetUniRenderEnabled();
+        ROSEN_LOGD("RSSystemProperties::GetUniRenderEnabled:%{public}d", isUniRenderEnabled_);
+    });
     return isUniRenderEnabled_;
 }
 
@@ -211,8 +209,10 @@ bool RSSystemProperties::GetBackgroundRebuildEnabled()
         return isBackgroundRebuildEnabled_;
     }
 
-    isBackgroundRebuildEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(
+    uint8_t remoteValue = std::static_pointer_cast<RSRenderServiceClient>(
         RSIRenderClient::CreateRenderServiceClient())->GetBackgroundRebuildEnabled();
+    isBackgroundRebuildEnabled_ = (remoteValue & 0xF0) != 0;
+    isCanvasDrawingNodeClientRenderEnabled_ = (remoteValue & 0x0F) != 0;
     inited = true;
     ROSEN_LOGD("RSSystemProperties::GetBackgroundRebuildEnabled:%{public}d", isBackgroundRebuildEnabled_);
     return isBackgroundRebuildEnabled_;
@@ -618,8 +618,15 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
 
 ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 {
-    static ParallelRenderingType systemPropertieType = static_cast<ParallelRenderingType>(
-        std::atoi((system::GetParameter("persist.rosen.parallelrender.enabled", "0")).c_str()));
+    static ParallelRenderingType systemPropertieType = []() -> ParallelRenderingType {
+        int value = std::atoi(
+            (system::GetParameter("persist.rosen.parallelrender.enabled", "0")).c_str());
+        if (value < static_cast<int>(ParallelRenderingType::AUTO) ||
+            value > static_cast<int>(ParallelRenderingType::ENABLE)) {
+            return ParallelRenderingType::AUTO;
+        }
+        return static_cast<ParallelRenderingType>(value);
+    }();
     return systemPropertieType;
 }
 
@@ -777,7 +784,7 @@ bool RSSystemProperties::GetKawaseEnabled()
 
 void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 {
-    forceHpsBlurDisabled_ = flag;
+    forceHpsBlurDisabled_.store(flag);
 }
 
 float RSSystemProperties::GetHpsBlurNoiseFactor()
@@ -791,7 +798,7 @@ bool RSSystemProperties::GetHpsBlurEnabled()
 {
     static bool hpsBlurEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.HpsBlurEnable", "1")).c_str()) != 0;
-    return hpsBlurEnabled && !forceHpsBlurDisabled_;
+    return hpsBlurEnabled && !forceHpsBlurDisabled_.load();
 }
 
 bool RSSystemProperties::GetMESABlurFuzedEnabled()
@@ -1020,14 +1027,6 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
     return debugEnable;
 }
 
-bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.optSchedule.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
 bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
@@ -1159,11 +1158,8 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
 
 bool RSSystemProperties::GetNewTunnelEnabled()
 {
-    static CachedHandle handle = CachedParameterCreate("rosen.debug.new_tunnel", "false");
-    int changed = 0;
-    const char* enabled = CachedParameterGetChanged(handle, &changed);
-    return enabled != nullptr &&
-        (strcmp(enabled, "1") == 0 || strcmp(enabled, "true") == 0);
+    static bool tunnelEnabled = std::atoi(system::GetParameter("persist.rosen.debug.new_tunnel", "1").c_str()) == 1;
+    return tunnelEnabled;
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
@@ -1218,6 +1214,14 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
     return singleFrameComposerEnabled;
 }
 
+// Per-pid total time budget for a rebuild; once exceeded the time-slice check is skipped to force finish.
+float RSSystemProperties::GetSplitTransactionMaxTotalTimeMs()
+{
+    static float maxTotalTimeMs =
+        std::atof((system::GetParameter("persist.sys.graphic.splitTransactionMaxTotalTimeMs", "100.0")).c_str());
+    return maxTotalTimeMs;
+}
+
 bool RSSystemProperties::GetEffectMergeEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.effectMergeEnabled", "1");
@@ -1242,9 +1246,11 @@ float RSSystemProperties::GetSplitTransactionMaxProcessTimeMs()
  
 size_t RSSystemProperties::GetSplitTransactionCheckInterval()
 {
-    static size_t checkInterval =
-        static_cast<size_t>(std::atoi(
-            (system::GetParameter("persist.sys.graphic.splitTransactionCheckInterval", "200")).c_str()));
+    static size_t checkInterval = []() -> size_t {
+        int interval = std::atoi(
+            (system::GetParameter("persist.sys.graphic.splitTransactionCheckInterval", "200")).c_str());
+        return interval >= 0 ? static_cast<size_t>(interval) : 200u;
+    }();
     return checkInterval;
 }
 
@@ -1616,10 +1622,25 @@ bool RSSystemProperties::GetHybridRenderDfxEnabled()
 
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
-    static bool canvasEnabled =
-        Drawing::SystemProperties::IsUseVulkan() &&
-        system::GetParameter("const.product.devicetype", "phone") == "phone" &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
+    static bool inited = false;
+    static bool canvasEnabled = false;
+    if (inited) {
+        return canvasEnabled;
+    }
+
+    canvasEnabled = GetHybridRenderCanvasEnabledWithoutCCM();
+    if (canvasEnabled) {
+        GetBackgroundRebuildEnabled();
+        canvasEnabled = isCanvasDrawingNodeClientRenderEnabled_;
+    }
+    inited = true;
+    return canvasEnabled;
+}
+
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    static bool canvasEnabled = Drawing::SystemProperties::IsUseVulkan() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
     return canvasEnabled;
 }
 
@@ -1700,14 +1721,6 @@ bool RSSystemProperties::GetRSMemoryInfoManagerParam()
     return dmaMarkEnable;
 }
 
-bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
 bool RSSystemProperties::GetGpuDirtyApsEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.gpudirtyaps.enabled", "1");
@@ -1784,7 +1797,7 @@ bool RSSystemProperties::GetUnmarshalParallelEnabled()
 {
     static bool unmarshalParallel =
         RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
-        std::atoi((system::GetParameter("persist.sys.graphic.unmarshalParallel.enabled", "1")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.unmarshalParallel.enabled", "0")).c_str()) != 0;
     return unmarshalParallel;
 }
 
@@ -1855,6 +1868,19 @@ bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
 {
     static bool enable = system::GetBoolParameter("persist.graphic.enable_delegate_composite_dfx", false);
     return enable;
+}
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
+{
+    static bool virtualScreenParallelEnabled = system::GetBoolParameter(
+        "persist.sys.graphic.virtualScreenParallel.enabled", true);
+    return virtualScreenParallelEnabled;
+}
+
+bool RSSystemProperties::IsSimulateTest()
+{
+    static bool isSimulateTest = system::GetParameter("persist.sys.graphic.simulate.test", "0") == "1";
+    return isSimulateTest;
 }
 } // namespace Rosen
 } // namespace OHOS

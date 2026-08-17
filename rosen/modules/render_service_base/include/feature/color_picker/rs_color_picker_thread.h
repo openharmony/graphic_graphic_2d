@@ -46,6 +46,7 @@ public:
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void InitRenderContext(std::shared_ptr<RenderContext> context);
     std::shared_ptr<Drawing::GPUContext> GetShareGPUContext() const;
+    std::shared_ptr<RenderContext> GetRenderContext() const;
 #endif
 
 private:

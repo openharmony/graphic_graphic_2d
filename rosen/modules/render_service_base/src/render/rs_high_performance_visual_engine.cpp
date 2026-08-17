@@ -33,31 +33,33 @@ HveFilter& HveFilter::GetHveFilter()
 
 void HveFilter::Sync()
 {
-    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     ClearSurfaceNodeInfo();
+    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     hveFilterToSurfaceNodeMap_ = hveFilterToSurfaceNodeStagingMap_;
     hveFilterToSurfaceNodeStagingMap_.clear();
 }
 
 void HveFilter::ClearSurfaceNodeInfo()
 {
+    std::lock_guard<std::mutex> lock(surfaceInfoMtx_);
     surfaceNodeInfo_.clear();
 }
 
 void HveFilter::PushSurfaceNodeInfo(SurfaceNodeInfo& surfaceNodeInfo)
 {
-    std::lock_guard<std::mutex> lock(hveFilterMtx_);
+    std::lock_guard<std::mutex> lock(surfaceInfoMtx_);
     surfaceNodeInfo_.push_back(surfaceNodeInfo);
 }
 
 std::vector<SurfaceNodeInfo> HveFilter::GetSurfaceNodeInfo() const
 {
+    std::lock_guard<std::mutex> lock(surfaceInfoMtx_);
     return surfaceNodeInfo_;
 }
 
 int HveFilter::GetSurfaceNodeSize() const
 {
-    std::lock_guard<std::mutex> lock(hveFilterMtx_);
+    std::lock_guard<std::mutex> lock(surfaceInfoMtx_);
     return surfaceNodeInfo_.size();
 }
 
@@ -122,6 +124,7 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
 
 void HveFilter::PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId)
 {
+    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     if (hveFilterToSurfaceNodeStagingMap_.find(filterId) == hveFilterToSurfaceNodeStagingMap_.end()) {
         hveFilterToSurfaceNodeStagingMap_[filterId] = std::vector<NodeId>();
     }
@@ -154,7 +157,6 @@ void HveFilter::DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
 std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
     RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId)
 {
-    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     auto drawingSurface = canvas.GetSurface();
     if (drawingSurface == nullptr) {
         ClearSurfaceNodeInfo();
@@ -179,6 +181,7 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
     size_t surfaceNodeSize = vecSurfaceNode.size();
     RS_TRACE_NAME_FMT("surfaceNodeSize:%d", surfaceNodeSize);
     Drawing::RectI dstRect = Drawing::RectI(0, 0, widthUI, heightUI);
+    std::lock_guard<std::mutex> lock(hveFilterMtx_);
     auto it = hveFilterToSurfaceNodeMap_.find(filterId);
     std::vector<NodeId> surfaceNodeIds = (it != hveFilterToSurfaceNodeMap_.end()) ? it->second : std::vector<NodeId>{};
 

@@ -33,6 +33,7 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/frame_stability/rs_frame_stability_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -43,6 +44,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -122,6 +124,7 @@ RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
             AddSurfaceFpsOpStatic(SurfaceFpsOpType::SURFACE_FPS_REMOVE, id, name, uniqueId);
         });
     }
+    RSFrameStabilityManager::GetInstance().CleanResourcesByNodeId(id_);
 }
 
 void RSSurfaceRenderNodeDrawable::AddSurfaceFpsOpStatic(
@@ -234,7 +237,7 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
         TryResumeLastBuffer(surfaceParams.GetBuffer());
-        DealWithSelfDrawingNodeBuffer(canvas, surfaceParams);
+        DealWithSelfDrawingNodeBuffer(canvas, surfaceParams, uniParams.GetVirtualScreenParallelManager());
     }
 
     if (isSelfDrawingSurface) {
@@ -751,6 +754,13 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    bool isRebuildingState = surfaceParams->GetRebuildingState();
+    if (isRebuildingState) {
+        SetDrawSkipType(DrawSkipType::REBUILDING_SKIP);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw isRebuildingState");
+        return;
+    }
+
     if (layerSplitterProcessor_) {
         layerSplitterProcessor_->RequestFrame(*surfaceParams);
     }
@@ -1195,8 +1205,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_) ||
         surfaceParams->GetSpecialLayerMgr().Find(HAS_GENERAL_SPECIAL)) {
         RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_ = true;
-        RS_LOGW("RSSurfaceRenderNodeDrawable::OnCapture surfaceNode marked as privacy or special layer, "
-            "nodeId:[%{public}" PRIu64 "].", nodeId_);
+        RS_LOGD("Marked as privacy or special layer, nodeId:[%{public}" PRIu64 "].", nodeId_);
     }
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
@@ -1522,12 +1531,18 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
 }
 
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
-    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+    const std::shared_ptr<RSVirtualScreenParallelManager>& virtualScreenParallelManager)
 {
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (!renderEngine) {
-        RS_LOGE("DealWithSelfDrawingNodeBuffer renderEngine is nullptr");
-        return;
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
+    auto bRet = virtualScreenParallelManager->GetRenderEngineByTid(
+        -canvas.GetParallelThreadIdx(), renderEngine);
+    if (!bRet) {
+        renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        if (!renderEngine) {
+            RS_LOGE("DealWithSelfDrawingNodeBuffer renderEngine is nullptr");
+            return;
+        }
     }
     if ((surfaceParams.GetHardwareEnabled() || surfaceParams.GetHardCursorStatus()) &&
         !RSUniRenderThread::IsInCaptureProcess()) {
@@ -1569,15 +1584,20 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     }
     if (surfaceParams.IsInFixedRotation()) {
         isInRotationFixed_ = true;
-        DrawBufferForRotationFixed(canvas, surfaceParams);
+        DrawBufferForRotationFixed(canvas, surfaceParams, virtualScreenParallelManager);
         return;
     }
 
     RSAutoCanvasRestore arc(&canvas);
     auto params = RSUniRenderUtil::DealWithBufferDrawParam(canvas, surfaceParams, *this);
 
+    if (surfaceParams.GetCompositionType() == CompositionType::COMPOSITION_3D_GLASS_FREE) {
+        params.glassFree3D = true;
+        params.use3DShader = surfaceParams.GetIsOnInternalScreen() && !RSUniRenderThread::IsInCaptureProcess();
+    }
+
     UpdateRectForDelegateMode(surfaceParams, params);
-    DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
+    DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params, virtualScreenParallelManager);
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawCloneNode(RSPaintFilterCanvas& canvas,
@@ -1717,8 +1737,9 @@ void RSSurfaceRenderNodeDrawable::ClipHoleForSelfDrawingNode(RSPaintFilterCanvas
     }
 }
 
-void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas,
-    RSSurfaceRenderParams& surfaceParams)
+void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+    const std::shared_ptr<RSVirtualScreenParallelManager>& virtualScreenParallelManager)
 {
     ClipHoleForSelfDrawingNode(canvas, surfaceParams);
 
@@ -1735,12 +1756,15 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
     uint32_t threadId = canvas.GetParallelThreadId();
     auto params = RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(*this, surfaceParams,
         static_cast<uint32_t>(threadId));
-    RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, *this, params);
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    virtualScreenParallelManager->GetRenderEngineByTid(-canvas.GetParallelThreadIdx(), renderEngine);
+    renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
     canvas.Restore();
 }
 
 void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
-    RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
+    RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params,
+    const std::shared_ptr<RSVirtualScreenParallelManager>& virtualScreenParallelManager)
 {
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_DRAWSELFDRAWINGNODEBUFFER);
@@ -1750,7 +1774,12 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
         bgColor = surfaceParams.GetSolidLayerColor();
         RS_LOGD("solidLayer enabled, %{public}s, brush set color: %{public}08x", __func__, bgColor.AsArgbInt());
     }
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
+    auto bRet = virtualScreenParallelManager->GetRenderEngineByTid(
+        -canvas.GetParallelThreadIdx(), renderEngine);
+    if (!bRet) {
+        renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    }
     if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
         (bgColor != RgbPalette::Transparent())) {
         Drawing::Brush brush;

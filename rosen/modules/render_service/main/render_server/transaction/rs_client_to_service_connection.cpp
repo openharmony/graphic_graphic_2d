@@ -33,7 +33,6 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "engine/rs_uni_render_engine.h"
@@ -83,6 +82,7 @@
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
+#include "display_engine/transaction/zidl/rs_display_engine_control_stub.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
@@ -314,9 +314,12 @@ ErrCode RSClientToServiceConnection::GetUniRenderEnabled(bool& res)
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnection::GetBackgroundRebuildEnabled(bool& res)
+ErrCode RSClientToServiceConnection::GetBackgroundRebuildEnabled(uint8_t& res)
 {
-    res = RSBackgroundRebuildParam::Instance().IsBackgroundRebuildEnabled();
+    uint8_t backgroundRebuildEnabled = RSBackgroundRebuildParam::Instance().IsBackgroundRebuildEnabled() ? 1 : 0;
+    uint8_t canvasDrawingNodeBufferEnabled = NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled() ? 1 : 0;
+    // High 4 bits store backgroundRebuildEnabled, low 4 bits store canvasDrawingNodeBufferEnabled
+    res = (backgroundRebuildEnabled << 4) | canvasDrawingNodeBufferEnabled;
     return ERR_OK;
 }
 
@@ -512,6 +515,12 @@ sptr<IRemoteObject> RSClientToServiceConnection::GetConnectToRenderToken(ScreenI
         return nullptr;
     }
     return renderServiceAgent_->GetConnectToRenderToken(screenId);
+}
+
+sptr<IRemoteObject> RSClientToServiceConnection::GetDisplayEngineControl()
+{
+    static sptr<RSDisplayEngineControlStub> stub = sptr<RSDisplayEngineControlStub>::MakeSptr();
+    return stub->AsObject();
 }
 
 ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
@@ -1516,10 +1525,8 @@ int32_t RSClientToServiceConnection::RegisterAshmemTypeface(
         needUpdate = 1;
         RS_LOGI("RegisterTypeface(reuse): %{public}s", sharedTypeface.ToString().c_str());
         Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
-        bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
-            return conn->RegisterTypeface(sharedTfForForward);
-        });
-        if (!forwardSuccess) {
+        if (!ForwardToRenderServers(
+            [&](sptr<RSIServiceToRenderConnection>& conn) { return conn->RegisterTypeface(sharedTfForForward); })) {
             RS_LOGE("RegisterTypeface(reuse): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
         }
         return tf->GetFd();
@@ -1535,13 +1542,17 @@ int32_t RSClientToServiceConnection::RegisterAshmemTypeface(
         return -1;
     }
     RS_LOGI("RegisterTypeface(new): %{public}s", sharedTypeface.ToString().c_str());
-    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
+    if (!RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf)) {
+        // tf owns the ashmem fd; dropping it (and clearing fd_) avoids a double close.
+        RS_LOGE("RegisterTypeface(new): rejected by cache cap, %{public}s", sharedTypeface.ToString().c_str());
+        sharedTypeface.fd_ = -1;
+        needUpdate = -1;
+        return -1;
+    }
     sharedTypeface.fd_ = -1;
     Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
-    bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
-        return conn->RegisterTypeface(sharedTfForForward);
-    });
-    if (!forwardSuccess) {
+    if (!ForwardToRenderServers(
+        [&](sptr<RSIServiceToRenderConnection>& conn) { return conn->RegisterTypeface(sharedTfForForward); })) {
         RS_LOGE("RegisterTypeface(new): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
         needUpdate = -1;
         return -1;
@@ -1915,7 +1926,6 @@ ErrCode RSClientToServiceConnection::NotifyXComponentExpectedFrameRate(const std
         RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
-    
     hgmContext_->NotifyXComponentExpectedFrameRate(remotePid_, id, expectedFrameRate);
     return ERR_OK;
 }
@@ -2061,7 +2071,7 @@ ErrCode RSClientToServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 std::vector<ActiveDirtyRegionInfo> RSClientToServiceConnection::GetActiveDirtyRegionInfo()
 {
     std::vector<ActiveDirtyRegionInfo> activeDirtyRegionInfos;
-    if (renderProcessManagerAgent_  == nullptr) {
+    if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
         return activeDirtyRegionInfos;
     }
@@ -2083,6 +2093,10 @@ std::vector<ActiveDirtyRegionInfo> RSClientToServiceConnection::GetActiveDirtyRe
 GlobalDirtyRegionInfo RSClientToServiceConnection::GetGlobalDirtyRegionInfo()
 {
     GlobalDirtyRegionInfo globalDirtyRegionInfo;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return globalDirtyRegionInfo;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
@@ -2098,6 +2112,10 @@ GlobalDirtyRegionInfo RSClientToServiceConnection::GetGlobalDirtyRegionInfo()
 LayerComposeInfo RSClientToServiceConnection::GetLayerComposeInfo()
 {
     LayerComposeInfo layerComposeInfo;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return layerComposeInfo;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
@@ -2116,6 +2134,10 @@ LayerComposeInfo RSClientToServiceConnection::GetLayerComposeInfo()
 HwcDisabledReasonInfos RSClientToServiceConnection::GetHwcDisabledReasonInfo()
 {
     HwcDisabledReasonInfos hwcDisabledReasonInfos;
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return hwcDisabledReasonInfos;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
@@ -2132,6 +2154,10 @@ HwcDisabledReasonInfos RSClientToServiceConnection::GetHwcDisabledReasonInfo()
 
 ErrCode RSClientToServiceConnection::GetHdrOnDuration(int64_t& hdrOnDuration)
 {
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
@@ -2236,23 +2262,6 @@ ErrCode RSClientToServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainS
     }
     for (auto conn : serviceToRenderConns) {
         conn->SetCurtainScreenUsingStatus(isCurtainScreenOn);
-    }
-    return ERR_OK;
-}
-
-ErrCode RSClientToServiceConnection::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
-{
-    if (renderProcessManagerAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.empty() || pidList.size() > PIDLIST_SIZE_MAX) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    for (auto conn : serviceToRenderConns) {
-        conn->SetGpuCrcDirtyEnabledPidList(pidList);
     }
     return ERR_OK;
 }
@@ -2571,7 +2580,7 @@ ErrCode RSClientToServiceConnection::SendVideoRateInfo(
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
-    for (auto conn : serviceToRenderConns) {
+    for (auto& conn : serviceToRenderConns) {
         auto ret = conn->SendVideoRateInfo(videoRateInfo);
         if (ret != ERR_OK) {
             return ret;

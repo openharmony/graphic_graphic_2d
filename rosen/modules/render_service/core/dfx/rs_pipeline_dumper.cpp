@@ -578,8 +578,8 @@ void RSPipelineDumper::DumpVkTextureLimit(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- vktextureLimit:\n");
-    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
+    auto vkInterface = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface();
+    VkPhysicalDevice physicalDevice = vkInterface->GetPhysicalDevice();
     if (physicalDevice == VK_NULL_HANDLE) {
         dumpString.append("Vulkan physical device not available\n");
         return;

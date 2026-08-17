@@ -38,6 +38,7 @@ namespace OHOS {
 constexpr int NUMBER_TWO = 2;
 constexpr int READ_SIZE = 8192;
 constexpr int MAX_FILE_NAME = 512;
+constexpr size_t MAX_CONFIG_FILE_SIZE = 1024 * 1024;
 #ifdef VERIFY_PLAT_FPGA
 constexpr int SLEEP_TIME_US = 600000;
 #else

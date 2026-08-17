@@ -22,6 +22,7 @@ group("unittest") {
   deps = [
     ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
+    ":RSDepthRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
     ":RSEffectRenderNodeDrawableTest",
     ":RSLogicalDisplayRenderNodeDrawableTest",
@@ -48,12 +49,20 @@ ohos_unittest("RSCanvasDrawingRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  if (defined(use_video_processing_engine) && (use_video_processing_engine)) {
+    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "video_processing_engine:videoprocessingengine",
+    ]
   }
 }
 
@@ -81,6 +90,27 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
   }
 }
 
+## Build RSDepthRenderNodeDrawableTest
+ohos_unittest("RSDepthRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_depth_render_node.cpp",
+    "rs_depth_render_node_drawable_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
 ## Build RSScreenRenderNodeDrawableTest
 ohos_unittest("RSScreenRenderNodeDrawableTest") {
   module_out_path = module_output_path
@@ -96,12 +126,22 @@ ohos_unittest("RSScreenRenderNodeDrawableTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "egl:libEGL",
     "opengles:libGLES",
   ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_video_processing_engine) && (use_video_processing_engine)) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "video_processing_engine:videoprocessingengine",
+    ]
+  }
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -184,6 +224,11 @@ ohos_unittest("RSRenderNodeDrawableAdapterTest") {
 ## Build RSRenderNodeDrawableTest
 ohos_unittest("RSRenderNodeDrawableTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [ "rs_render_node_drawable_test.cpp" ]
   deps = [
     ":rs_test_common",
@@ -223,12 +268,22 @@ ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_video_processing_engine) && (use_video_processing_engine)) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "video_processing_engine:videoprocessingengine",
+    ]
   }
 }
 
@@ -290,7 +345,9 @@ ohos_unittest("RSRefreshRateDfxTest") {
   deps = [ ":rs_test_common"]
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
     "hilog:libhilog",
+    "opengles:libGLES",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native"]

@@ -60,7 +60,6 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     AVCODEC_VIDEO_START = 0x000038,
     AVCODEC_VIDEO_STOP = 0x000039,
     UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK = 0x00003C,
-    SET_GPU_CRC_DIRTY_ENABLED_PIDLIST = 0x00003E,
     SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST = 0x00003F,
     SET_ROG_SCREEN_RESOLUTION = 0x000041,
     GET_ROG_SCREEN_RESOLUTION = 0x000042,
@@ -205,6 +204,9 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
 
     GET_SCREEN_VCP_FEATURE = 0x014003,
     SET_SCREEN_VCP_FEATURE = 0x014004,
+
+    // DisplayEngine control
+    GET_DISPLAY_ENGINE_CONTROL = 0x016000,
 
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,

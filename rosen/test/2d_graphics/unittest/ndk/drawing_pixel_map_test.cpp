@@ -35,12 +35,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingPixelMapTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingPixelMapTest::SetUpTestCase() {}
 void NativeDrawingPixelMapTest::TearDownTestCase() {}
 void NativeDrawingPixelMapTest::SetUp() {}
 void NativeDrawingPixelMapTest::TearDown() {}

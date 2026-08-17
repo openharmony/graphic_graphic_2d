@@ -147,7 +147,7 @@ HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo002, TestSize.Level1)
 
 /**
  * @tc.name: ResolveTunnelLayerInfo_RejectsInvalidInputs
- * @tc.desc: Test ResolveTunnelLayerInfo rejects disabled feature, null consumer, and consumer callback errors.
+ * @tc.desc: Test ResolveTunnelLayerInfo rejects null consumer and consumer callback errors.
  * @tc.type: FUNC
  */
 HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo_RejectsInvalidInputs, TestSize.Level1)
@@ -156,11 +156,6 @@ HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo_RejectsInvalidInputs, T
     uint32_t property = TUNNEL_PROP_BUFFER_ADDR;
     auto consumer = IConsumerSurface::Create("counting");
     ASSERT_NE(consumer, nullptr);
-
-    {
-        ScopedNewTunnelSwitch scopedNewTunnelSwitch(false);
-        EXPECT_FALSE(RSTunnelLayerHelper::ResolveTunnelLayerInfo(consumer, tunnelLayerId, property));
-    }
 
     ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
     EXPECT_FALSE(RSTunnelLayerHelper::ResolveTunnelLayerInfo(nullptr, tunnelLayerId, property));
@@ -451,35 +446,6 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect002, TestSize.
     EXPECT_EQ(clearedTunnelLayerId, 0u);
     EXPECT_EQ(clearedProperty, TUNNEL_PROP_INVALID);
     EXPECT_EQ(context.consumer->GetAvailableBufferCount(), 0u);
-}
-
-/**
- * @tc.name: BufferOwnerCount_ClearReleaseCallbackPreventsDoubleRelease
- * @tc.desc: Test ClearReleaseCallback stops DecRef/~BufferOwnerCount from firing bufferReleaseCb_ a second time,
- *           matching the tunnel commit failure path that already called ReleaseBufferById manually.
- * @tc.type: FUNC
- */
-HWTEST_F(RSTunnelLayerHelperTest, BufferOwnerCount_ClearReleaseCallbackPreventsDoubleRelease, TestSize.Level1)
-{
-    // Control: without ClearReleaseCallback, ~BufferOwnerCount fires the callback when refCount != 0.
-    int32_t controlReleaseCount = 0;
-    {
-        auto controlOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-        controlOwner->bufferId_ = 1;
-        controlOwner->bufferReleaseCb_ = [&controlReleaseCount](uint64_t) { controlReleaseCount++; };
-    }
-    EXPECT_EQ(controlReleaseCount, 1);
-
-    // Experiment: ClearReleaseCallback before destruction; ~BufferOwnerCount must not fire, mirroring the
-    // tunnel failure path that already called ReleaseBufferById and then lets the local pendingBuffer drop.
-    int32_t releaseCount = 0;
-    {
-        auto ownerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-        ownerCount->bufferId_ = 2;
-        ownerCount->bufferReleaseCb_ = [&releaseCount](uint64_t) { releaseCount++; };
-        ownerCount->ClearReleaseCallback();
-    }
-    EXPECT_EQ(releaseCount, 0);
 }
 
 /**

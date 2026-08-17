@@ -1237,6 +1237,41 @@ HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnored_WithClipToFrame_AndDrawRect
 }
 
 /*
+ * @tc.name: IsSubTreeShouldIgnored_WithSharedTransitionParam
+ * @tc.desc: Test IsSubTreeShouldIgnored when GetSharedTransitionParam is not null
+ * @tc.type: FUNC
+ * @tc.require: issue25374
+ */
+HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnored_WithSharedTransitionParam, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSRenderNode>(firstNodeId);
+    std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(secondNodeId);
+    auto param = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
+    renderNode->SetSharedTransitionParam(param);
+    RSProperties renderProperties;
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties));
+}
+
+/*
+ * @tc.name: IsSubTreeShouldIgnored_WithSuggestOpincNode
+ * @tc.desc: Test IsSubTreeShouldIgnored when node is a suggested opinc node
+ * @tc.type: FUNC
+ * @tc.require: issue25374
+ */
+HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnored_WithSuggestOpincNode, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
+    renderNode->MarkSuggestOpincNode(true, false);
+    RSProperties renderProperties;
+    EXPECT_TRUE(rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties));
+}
+
+/*
  * @tc.name: CalculateDrawRect_WithEmptyBounds
  * @tc.desc: Test CalculateDrawRect when bounds width and height are non-positive
  * @tc.type: FUNC
@@ -1582,7 +1617,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_FilterRectCollectedWhenIgnor
     renderNode->GetFilterRegionInfo().filterRegion_ = RectI(5, 5, 50, 50);
 
     renderNode->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
-
+    renderNode->isTextureExportNode_ = true;
     childNode->CollectNodeProperties(*renderNode);
 
     EXPECT_TRUE(childNode->isSubTreeIgnored_);
@@ -1814,5 +1849,45 @@ HWTEST_F(RSOcclusionNodeTest, UpdateCoverageInfo_OccludedFilterNodeSkipsClipping
     occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
 
     EXPECT_EQ(globalCoverage.rect_, srcRect);
+}
+
+/*
+ * @tc.name: IsBlendOpaque_WithFgBrightnessValid
+ * @tc.desc: Test IsBlendOpaque returns false when fg brightness is valid
+ * @tc.type: FUNC
+ * @tc.require: issue25487
+ */
+HWTEST_F(RSOcclusionNodeTest, IsBlendOpaque_WithFgBrightnessValid, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    RSProperties renderProperties;
+    RSDynamicBrightnessPara fgParams;
+    fgParams.fraction_ = 0.5f;
+    renderProperties.SetFgBrightnessParams(fgParams);
+    EXPECT_FALSE(rootNode->IsBlendOpaque(renderProperties));
+}
+
+/*
+ * @tc.name: IsBlendOpaque_WithBlendModes
+ * @tc.desc: Test IsBlendOpaque returns correct value for different blend modes
+ * @tc.type: FUNC
+ * @tc.require: issue25487
+ */
+HWTEST_F(RSOcclusionNodeTest, IsBlendOpaque_WithBlendModes, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    RSProperties renderProperties;
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::NONE));
+    EXPECT_TRUE(rootNode->IsBlendOpaque(renderProperties));
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
+    EXPECT_TRUE(rootNode->IsBlendOpaque(renderProperties));
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC));
+    EXPECT_TRUE(rootNode->IsBlendOpaque(renderProperties));
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::MULTIPLY));
+    EXPECT_FALSE(rootNode->IsBlendOpaque(renderProperties));
+    renderProperties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::SCREEN));
+    EXPECT_FALSE(rootNode->IsBlendOpaque(renderProperties));
 }
 } // namespace OHOS::Rosen

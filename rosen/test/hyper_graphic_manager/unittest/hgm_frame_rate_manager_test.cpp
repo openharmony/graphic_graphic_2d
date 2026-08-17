@@ -1424,6 +1424,32 @@ HWTEST_F(HgmFrameRateMgrTest, HandleLowPowerSlideSceneEvent, Function | SmallTes
 }
 
 /**
+ * @tc.name: HandleGamesEventSkipVirtualDisplayTest
+ * @tc.desc: Verify HandleGamesEvent sets/clears isSkipVirtualDisplay by description and eventStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleGamesEventSkipVirtualDisplayTest, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    const pid_t gamePid = 12345;
+
+    EventInfo skipInfo = { .eventName = "VOTER_GAMES", .eventStatus = true,
+        .description = "com.game.test:" + std::to_string(gamePid) + ":1:SKIPVIRTUALDISPLAY" };
+    mgr.HandleGamesEvent(gamePid, skipInfo);
+    EXPECT_EQ(mgr.frameVoter_.isSkipVirtualDisplay_, true);
+
+    EventInfo noSkipInfo = { .eventName = "VOTER_GAMES", .eventStatus = true,
+        .description = "com.game.test:" + std::to_string(gamePid) + ":1" };
+    mgr.HandleGamesEvent(gamePid, noSkipInfo);
+    EXPECT_EQ(mgr.frameVoter_.isSkipVirtualDisplay_, false);
+
+    skipInfo.eventStatus = false;
+    mgr.HandleGamesEvent(gamePid, skipInfo);
+    EXPECT_EQ(mgr.frameVoter_.isSkipVirtualDisplay_, false);
+}
+
+/**
  * @tc.name: UpdateFrameRateWithDelay
  * @tc.desc: Verify the result of UpdateFrameRateWithDelay
  * @tc.type: FUNC
@@ -2434,9 +2460,58 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Func
 
     frameRateMgr->HandleScreenRectFrameRate(testScreenId, rect2);
     std::string strategyId2 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_EQ(strategyId2, "LTPO-DEFAULT");
+    EXPECT_NE(strategyId2.find("screen40_LTP"), std::string::npos);
+    EXPECT_EQ(strategyId2.find("150_250_350_450"), std::string::npos);
 
     EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
+
+    HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
+}
+
+/**
+ * @tc.name: HandleScreenStrategyFallback
+ * @tc.desc: Verify all fallback branches of HandleScreenStrategyFallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenStrategyFallback, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = std::make_shared<PolicyConfigData>();
+    auto configData = hgmCore.GetPolicyConfigData();
+    frameRateMgr->curScreenId_.store(100);
+    const std::string init = "LTPO-DEFAULT";
+    auto fallback = [&frameRateMgr, &init, &configData](bool isLtpo) -> std::string {
+        frameRateMgr->isLtpo_.store(isLtpo);
+        frameRateMgr->curScreenStrategyId_ = init;
+        frameRateMgr->HandleScreenStrategyFallback(configData);
+        return frameRateMgr->curScreenStrategyId_;
+    };
+    auto clear = [&configData] {
+        configData->screenConfigs_.clear();
+        configData->screenStrategyConfigs_.clear();
+    };
+
+    clear();
+    configData->screenConfigs_[init] = {}; // in screenConfigs -> keep unchanged
+    EXPECT_EQ(fallback(true), init);
+
+    clear();
+    configData->screenStrategyConfigs_["screen100_LTPS"] = "LTPS-CUSTOM"; // opposite found
+    EXPECT_EQ(fallback(true), "LTPS-CUSTOM");
+
+    clear();
+    configData->screenStrategyConfigs_["screen100_LTPO"] = "LTPO-CUSTOM"; // opposite missing, same found
+    EXPECT_EQ(fallback(true), "LTPO-CUSTOM");
+
+    clear(); // none found -> LTPS-DEFAULT
+    EXPECT_EQ(fallback(true), "LTPS-DEFAULT");
+
+    clear();
+    configData->screenStrategyConfigs_["screen100_LTPO"] = "LTPO-CUSTOM"; // isLtpo=false, opposite=LTPO
+    EXPECT_EQ(fallback(false), "LTPO-CUSTOM");
 
     HgmCore::Instance().mPolicyConfigData_ = cachedPolicyConfigData;
 }

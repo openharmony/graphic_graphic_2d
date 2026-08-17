@@ -15,6 +15,7 @@
 
 #include "command/rs_display_node_command.h"
 
+#include <cmath>
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -48,9 +49,14 @@ bool TrySetScreenNodeByScreenId(RSContext& context, ScreenId id, Lambda&& lambda
 
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
-    RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::Create displayNodeId[%" PRIu64 "], screenId[%" PRIu64 "]",
-        id, config.screenId);
-    
+    if (config.mirrorSourceRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+        RS_LOGE("DisplayNodeCommandHelper::Create invalid mirrorSourceRotation[%{public}" PRIu32 "]",
+            config.mirrorSourceRotation);
+        return;
+    }
+    RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::%s displayNodeId[%" PRIu64 "], %s", __func__, id,
+        config.ToString().c_str());
+
     auto node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
         config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     auto& nodeMap = context.GetMutableNodeMap();
@@ -183,27 +189,46 @@ void DisplayNodeCommandHelper::SetSecurityDisplay(RSContext& context, NodeId id,
 
 void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
+    if (config.mirrorSourceRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+        RS_LOGE("DisplayNodeCommandHelper::SetDisplayMode invalid mirrorSourceRotation[%{public}" PRIu32 "]",
+            config.mirrorSourceRotation);
+        return;
+    }
+    RS_LOGI("DisplayNodeCommandHelper::%{public}s, NodeId[%{public}" PRIu64 "], %{public}s", __func__, id,
+        config.ToString().c_str());
     auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id);
     if (node == nullptr) {
         RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
         return;
     }
 
-    bool isMirror = config.isMirrored;
-    node->SetIsMirrorDisplay(isMirror);
-    if (isMirror) {
+    if (!std::isfinite(config.positionZ)) {
+        RS_LOGE("DisplayNodeCommandHelper::%{public}s invalid positionZ", __func__);
+        return;
+    }
+
+    auto screenRenderNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(node->GetParent().lock());
+    if (!screenRenderNode) {
+        RS_LOGE("DisplayNodeCommandHelper::%{public}s parent of displayNodeId[%{public}" PRIu64 "] is invalid",
+            __func__, id);
+    } else if (!ROSEN_EQ(screenRenderNode->GetRenderProperties().GetPositionZ(), config.positionZ)) {
+        screenRenderNode->GetMutableRenderProperties().SetPositionZ(config.positionZ);
+        screenRenderNode->MarkParentNeedRegenerateChildren();
+    }
+
+    DisplayMode mode = config.displayMode;
+    node->SetDisplayMode(mode);
+    if (mode == DisplayMode::MIRROR) {
         NodeId mirroredNodeId = config.mirrorNodeId;
         auto& nodeMap = context.GetNodeMap();
         auto mirrorSourceNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(mirroredNodeId);
         if (mirrorSourceNode == nullptr) {
-            RS_LOGW("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%{public}" PRIu64 "]"
-                "mirroredNodeId:[%{public}" PRIu64 "]", id, mirroredNodeId);
+            RS_LOGW("DisplayNodeCommandHelper::%{public}s fail, displayNodeId[%{public}" PRIu64
+                    "], mirroredNodeId[%{public}" PRIu64 "]", __func__, id, mirroredNodeId);
             return;
         }
         node->SetMirrorSource(mirrorSourceNode);
         node->SetMirrorSourceRotation(static_cast<ScreenRotation>(config.mirrorSourceRotation));
-        RS_LOGI("DisplayNodeCommandHelper::%{public}s displayNodeId: %{public}" PRIu64 " mirrorSource: %{public}" PRIu64
-            " mirrorSourceRotation: %{public}" PRIu32, __func__, id, mirroredNodeId, config.mirrorSourceRotation);
     } else {
         node->ResetMirrorSource();
     }

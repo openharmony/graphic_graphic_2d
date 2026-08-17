@@ -33,6 +33,7 @@ public:
     static bool IsNodeUnSupportLayer(std::shared_ptr<RSRenderNode> node);
     static bool IsNodeUnSupportLayer(RSRenderNode& node);
     static void SetLayerParamsIsUnSupportLayer(RSRenderNode& node, bool isUnSupportLayer);
+    static bool CheckNodeUnSupportLayer(RSRenderNode& node);
 
     static std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> layerDrawables_;
 };

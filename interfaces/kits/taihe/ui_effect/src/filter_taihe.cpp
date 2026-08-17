@@ -137,7 +137,7 @@ Filter FilterImpl::WaterRipple(double progress, int32_t waveCount, double x, dou
     }
     auto para = std::make_shared<OHOS::Rosen::WaterRipplePara>();
     para->SetProgress(static_cast<float>(progress));
-    para->SetWaveCount(static_cast<uint32_t>(waveCount));
+    para->SetWaveCount(static_cast<uint32_t>(std::max(waveCount, 0)));
     para->SetRippleCenterX(static_cast<float>(x));
     para->SetRippleCenterY(static_cast<float>(y));
     para->SetRippleMode(ConvertUint32FromTaiheWaterRippleMode(rippleMode));
@@ -251,8 +251,13 @@ bool FilterImpl::GetFractionStops(
         return false;
     }
     ani_size len = 0;
-    if (env->Array_GetLength(arrayObj, &len) != ANI_OK || len <= 0) {
+    if (env->Array_GetLength(arrayObj, &len) != ANI_OK) {
         UIEFFECT_LOG_E("call GetFractionStops failed, get ani array failed");
+        return false;
+    }
+    if ((len <= 0) || (len < NUM_2 || len > NUM_1000)) {
+        UIEFFECT_LOG_E("GetFractionStops fractionstops num less than 2 or greater than 1000, "
+            "array length exceeds limit: %{public}zu", len);
         return false;
     }
     ani_ref tupleObj {};
@@ -305,7 +310,11 @@ Filter FilterImpl::RadiusGradientBlur(double value, uintptr_t options)
         ani_enum_item enumItem = static_cast<ani_enum_item>(direction);
         ani_int value = 0;
         if (env->EnumItem_GetValue_Int(enumItem, &value) == ANI_OK) {
-            para->SetDirection(static_cast<OHOS::Rosen::GradientDirection>(value));
+            const ani_int minDir = static_cast<ani_int>(OHOS::Rosen::GradientDirection::LEFT);
+            const ani_int maxDir = static_cast<ani_int>(OHOS::Rosen::GradientDirection::NONE);
+            if (value >= minDir && value <= maxDir) {
+                para->SetDirection(static_cast<OHOS::Rosen::GradientDirection>(value));
+            }
         }
     }
 

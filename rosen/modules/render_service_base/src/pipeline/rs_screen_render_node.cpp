@@ -69,6 +69,9 @@ void RSScreenRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
     if (!visitor) {
         return;
     }
+    // Set geometry properties before ApplyModifiers, so that valid geometry properties can be used in ApplyModifier
+    auto screenInfo = screenProperty_.GetScreenInfo();
+    SetScreenInfo(screenInfo);
     ApplyModifiers();
     visitor->QuickPrepareScreenRenderNode(*this, isParentPrepareInReverseOrder);
 }
@@ -333,6 +336,28 @@ void RSScreenRenderNode::SetUIMode3D(UIMode3D uiMode3D)
 UIMode3D RSScreenRenderNode::GetUIMode3D() const
 {
     return uiMode3D_;
+}
+
+void RSScreenRenderNode::SetHasGlassFree3DLayer(bool hasGlassFree3DLayer)
+{
+    if (hasGlassFree3DLayer_ == hasGlassFree3DLayer) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::SetHasGlassFree3DLayer screenParams is null");
+        return;
+    }
+    hasGlassFree3DLayer_ = hasGlassFree3DLayer;
+    screenParams->SetHasGlassFree3DLayer(hasGlassFree3DLayer);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+bool RSScreenRenderNode::GetHasGlassFree3DLayer() const
+{
+    return hasGlassFree3DLayer_;
 }
 
 void RSScreenRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
@@ -767,7 +792,7 @@ void RSScreenRenderNode::SetLogicalCameraRotationCorrection(ScreenRotation logic
         return;
     }
     screenParams->SetLogicalCameraRotationCorrection(logicalCorrection);
-    RS_LOGD("RSScreenRenderNode::SetLogicalCameraRotationCorrection: Node: %{public}" PRIu64
+    RS_LOGD_IF(DEBUG_NODE, "RSScreenRenderNode::SetLogicalCameraRotationCorrection: Node: %{public}" PRIu64
             ", appRotationCorrection: %{public}u", GetId(), logicalCorrection);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();

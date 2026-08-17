@@ -530,94 +530,128 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& val)
 {
-    bool success = true;
-    success &= Marshalling(parcel, val.id_);
-    success &= Marshalling(parcel, val.originId_);
-    success &= Marshalling(parcel, val.size_);
-    success &= Marshalling(parcel, val.index_);
-    success &= Marshalling(parcel, val.hash_);
+    if (!Marshalling(parcel, val.id_)) {
+        return false;
+    }
+    if (!Marshalling(parcel, val.originId_)) {
+        return false;
+    }
+    if (!Marshalling(parcel, val.size_)) {
+        return false;
+    }
+    if (!Marshalling(parcel, val.index_)) {
+        return false;
+    }
+    if (!Marshalling(parcel, val.hash_)) {
+        return false;
+    }
     // originId_ == 0: base typeface from ashmem, fd is required for reconstruction
     // originId_ > 0: variation typeface, receiver derives from cached base typeface, no fd needed
     if (val.originId_ == 0) {
         RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
-        success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
+        if (!static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_)) {
+            return false;
+        }
     }
-    success &= Marshalling(parcel, val.hasFontArgs_);
+    if (!Marshalling(parcel, val.hasFontArgs_)) {
+        return false;
+    }
 
     if (!val.hasFontArgs_) {
-        return success;
+        return true;
     }
 
     std::vector<Drawing::FontArguments::VariationPosition::Coordinate>& coords = val.coords_;
     uint32_t coordsCount = coords.size();
 
-    success &= Marshalling(parcel, coordsCount);
-    for (uint32_t i = 0; i < coordsCount; ++i) {
-        success &= Marshalling(parcel, coords[i].axis);
-        success &= Marshalling(parcel, coords[i].value);
+    if (!Marshalling(parcel, coordsCount)) {
+        return false;
     }
-    return success;
+    for (uint32_t i = 0; i < coordsCount; ++i) {
+        if (!Marshalling(parcel, coords[i].axis)) {
+            return false;
+        }
+        if (!Marshalling(parcel, coords[i].value)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface& val)
 {
-    bool success = true;
     uint64_t id = 0;
     uint64_t originId = 0;
     uint32_t size = 0;
     uint32_t index = 0;
     uint32_t hash = 0;
-    int fd = -1;
-    bool hasFontArgs = false;
-
-    success &= Unmarshalling(parcel, id);
-    if (success) { val.id_ = id; }
-    success &= Unmarshalling(parcel, originId);
-    if (success) { val.originId_ = originId; }
-    success &= Unmarshalling(parcel, size);
-    if (success) { val.size_ = size; }
-    success &= Unmarshalling(parcel, index);
-    if (success) { val.index_ = index; }
-    success &= Unmarshalling(parcel, hash);
-    if (success) { val.hash_ = hash; }
+    if (!Unmarshalling(parcel, id)) {
+        return false;
+    }
+    val.id_ = id;
+    if (!Unmarshalling(parcel, originId)) {
+        return false;
+    }
+    val.originId_ = originId;
+    if (!Unmarshalling(parcel, size)) {
+        return false;
+    }
+    val.size_ = size;
+    if (!Unmarshalling(parcel, index)) {
+        return false;
+    }
+    val.index_ = index;
+    if (!Unmarshalling(parcel, hash)) {
+        return false;
+    }
+    val.hash_ = hash;
 
     // originId_ == 0: base typeface from ashmem, fd is required for reconstruction
     // originId_ > 0: variation typeface, receiver derives from cached base typeface, no fd needed
     if (val.originId_ == 0) {
         RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
         if (val.fd_ < 0) {
-            success = false;
+            return false;
         }
     }
-    success &= Unmarshalling(parcel, hasFontArgs);
-    if (success) { val.hasFontArgs_ = hasFontArgs; }
+
+    bool hasFontArgs = false;
+    if (!Unmarshalling(parcel, hasFontArgs)) {
+        return false;
+    }
+    val.hasFontArgs_ = hasFontArgs;
 
     if (!val.hasFontArgs_) {
-        return success;
+        return true;
     }
     auto& coords = val.coords_;
 
     uint32_t coordsCount = 0;
-    success &= Unmarshalling(parcel, coordsCount);
+    if (!Unmarshalling(parcel, coordsCount)) {
+        return false;
+    }
+    // Max coords count per SharedTypeface, based on practical font glyph coordinate limits
     constexpr uint32_t MAX_COORDS_COUNT = 128;
     if (coordsCount > MAX_COORDS_COUNT) {
         ROSEN_LOGD("RSMarshallingHelper::Unmarshalling coords count %{public}u exceeds max limit %{public}u",
             coordsCount, MAX_COORDS_COUNT);
         return false;
     }
-    if (success) { coords.resize(coordsCount); }
+    coords.resize(coordsCount);
 
     for (uint32_t i = 0; i < coordsCount; ++i) {
         uint32_t axis = 0;
         float value = 0.0f;
-        success &= Unmarshalling(parcel, axis);
-        success &= Unmarshalling(parcel, value);
-        if (success) {
-            coords[i].axis = axis;
-            coords[i].value = value;
+        if (!Unmarshalling(parcel, axis)) {
+            return false;
         }
+        if (!Unmarshalling(parcel, value)) {
+            return false;
+        }
+        coords[i].axis = axis;
+        coords[i].value = value;
     }
-    return success;
+    return true;
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)
@@ -960,7 +994,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Matrix& val
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
 {
     uint32_t size = parcel.ReadUint32();
-    if (size < sizeof(Drawing::scalar) * Drawing::Matrix::MATRIX_SIZE) {
+    if (size < sizeof(Drawing::scalar) * Drawing::Matrix::MATRIX_SIZE ||
+        size > sizeof(Drawing::scalar) * Drawing::ColorMatrix::MATRIX_SIZE) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing::Matrix failed size %{public}u", size);
         return false;
     }
@@ -3432,6 +3467,11 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel memcpy_s failed");
         return false;
     }
+    // seal the memfd so that the receiver can safely map it read-only
+    if (!ashmemAllocator->Seal()) {
+        ROSEN_LOGE("RSMarshallingHelper::WriteToParcel Seal failed");
+        return false;
+    }
     return true;
 }
 
@@ -3493,8 +3533,12 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
         return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
     };
     int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
-    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
-    return ashmemAllocator != nullptr;
+    // validate seals and size without mapping: some platforms forbid mapping a sealed memfd
+    bool valid = AshmemAllocator::ValidateSealedMemfd(fd, size);
+    if (fd >= 0) {
+        ::close(fd);
+    }
+    return valid;
 }
 
 const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, bool& isMalloc)
@@ -3504,13 +3548,23 @@ const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, boo
         return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
     };
     int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
-    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
-    if (!ashmemAllocator) {
-        ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem CreateAshmemAllocator fail");
+    if (!AshmemAllocator::ValidateSealedMemfd(fd, size)) {
+        ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem invalid memfd");
+        if (fd >= 0) {
+            ::close(fd);
+        }
+        return nullptr;
+    }
+    void* data = AshmemAllocator::CopyFromMemfd(fd, size);
+    if (fd >= 0) {
+        ::close(fd);
+    }
+    if (data == nullptr) {
+        ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem CopyFromMemfd fail");
         return nullptr;
     }
     isMalloc = true;
-    return ashmemAllocator->CopyFromAshmem(size);
+    return data;
 }
 
 void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid)
@@ -3554,6 +3608,11 @@ bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
 void RSMarshallingHelper::SetCallingPid(pid_t callingPid)
 {
     g_callingPid = callingPid;
+}
+
+pid_t RSMarshallingHelper::GetCallingPid()
+{
+    return g_callingPid;
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
@@ -3706,40 +3765,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SurfaceRegionConfig& val
     return true;
 }
 #endif
-
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sptr<IRemoteObject>& val)
-{
-    if (val != nullptr) {
-        if (!parcel.WriteBool(true)) {
-            return false;
-        }
-        if (!parcel.WriteRemoteObject(val)) {
-            return false;
-        }
-    } else {
-        if (!parcel.WriteBool(false)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<IRemoteObject>& val)
-{
-    val = nullptr;
-    bool hasObject{false};
-    if (!parcel.ReadBool(hasObject)) {
-        return false;
-    }
-    if (hasObject) {
-        auto remoteObject = static_cast<MessageParcel*>(&parcel)->ReadRemoteObject();
-        if (remoteObject == nullptr) {
-            return false;
-        }
-        val = remoteObject;
-    }
-    return true;
-}
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSSurfaceRenderNodeConfig& val)
 {

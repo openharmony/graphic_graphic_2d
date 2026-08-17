@@ -30,6 +30,7 @@
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_log.h"
@@ -360,16 +361,7 @@ bool RSRenderNodeDrawable::UpdateCurRenderGroupCacheRootFilterState(const RSRend
     if (!renderGroupCacheDrawable_) {
         renderGroupCacheDrawable_ = std::make_unique<RSRenderGroupCacheDrawable>();
     }
-    renderGroupCacheDrawable_->SetLastFrameCacheRootHasExcludedChild(params.HasChildExcludedFromNodeGroup());
     return params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
-}
-
-bool RSRenderNodeDrawable::IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const
-{
-    if (!renderGroupCacheDrawable_) {
-        return false;
-    }
-    return renderGroupCacheDrawable_->IsLastFrameCacheRootHasExcludedChild() != params.HasChildExcludedFromNodeGroup();
 }
 
 void RSRenderNodeDrawable::SetShouldClipHole(bool value)
@@ -895,13 +887,22 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorSpace = Drawing::ColorSpace::CreateSRGB();
         }
-        SetCachedBackendTexture(NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(nodeId_), format));
+        SetCachedBackendTexture(NativeBufferUtils::MakeBackendTexture(
+            RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+            width, height, ExtractPid(nodeId_), format));
         auto vkTextureInfo = GetCachedBackendTexture().GetTextureInfo().GetVKTextureInfo();
         if (!GetCachedBackendTexture().IsValid() || !vkTextureInfo) {
             return;
         }
-        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid);
+        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+            vkTextureInfo->vkImage,
+            vkTextureInfo->vkAlloc.memory,
+            vkTextureInfo->vkAlloc.source == Drawing::VKMemSource::NATIVE
+                ? NativeBufferUtils::VulkanCleanType::NATIVE
+                : NativeBufferUtils::VulkanCleanType::EXTERNAL,
+            RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid,
+            vkTextureInfo->vkAlloc.size);
         REAL_ALLOC_CONFIG_SET_STATUS(true);
         SetRenderGroupCachedSurface(Drawing::Surface::MakeFromBackendTexture(gpuContext,
             GetCachedBackendTexture().GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,
@@ -1160,9 +1161,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
         ClearCachedSurface();
         return true;
     }
-    if (IsCurRenderGroupCacheRootExcludedStateChanged(params)) {
-        return true;
-    }
     if (updateTimes == 0 || params.GetDrawingCacheChanged()) {
         return true;
     }
@@ -1228,6 +1226,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     // Adapt to the subtree feature to ensure the correct thread ID(TID) is set.
     RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
+    RSVirtualScreenThreadIdAdapt::AdaptVirtualScreenFfrtThreadId(canvas, threadId);
 
     bool isHdrOn = params.SelfOrChildHasHDR();
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
@@ -1270,10 +1269,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     RSLayerPartDrawCacheHelper::PushLayerPartRenderDirtyRegion(*this, params, *curCanvas, *cacheCanvas,
         RSRenderNodeDrawable::GetTotalProcessedNodeCount());
     // copy current canvas properties into cacheCanvas
-    const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (renderEngine) {
-        cacheCanvas->SetHighContrast(renderEngine->IsHighContrastEnabled());
-    }
+    cacheCanvas->SetHighContrast(RSBaseRenderEngine::IsHighContrastEnabled());
     cacheCanvas->CopyConfigurationToOffscreenCanvas(*curCanvas);
     cacheCanvas->CopyHDRConfiguration(*curCanvas);
     // Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures

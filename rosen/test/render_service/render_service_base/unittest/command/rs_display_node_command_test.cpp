@@ -48,7 +48,7 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand001, TestSize.Level1)
     EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 
     NodeId id2 = static_cast<NodeId>(1);
-    RSDisplayNodeConfig config { 0, false, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::EXPAND, 0 };
     DisplayNodeCommandHelper::Create(context, id2, config);
     DisplayNodeCommandHelper::SetScreenId(context, id2, screenId);
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id2), nullptr);
@@ -66,24 +66,143 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand003, TestSize.Level1)
     bool isSecurityDisplay = false;
     DisplayNodeCommandHelper::SetSecurityDisplay(context, id, isSecurityDisplay);
 
-    RSDisplayNodeConfig config { 0, false, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::EXPAND, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetSecurityDisplay(context, id, isSecurityDisplay);
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 
 /**
- * @tc.name: TestRSDisplayNodeCommand004
- * @tc.desc: SetDisplayMode test.
+ * @tc.name: SetDisplayModeTest001
+ * @tc.desc: Test SetDisplayMode
  * @tc.type: FUNC
  */
-HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand004, TestSize.Level1)
+HWTEST_F(RSDisplayNodeCommandTest, SetDisplayModeTest001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
-    RSDisplayNodeConfig config { 0, true, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::MIRROR, 0 };
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
     EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayModeTest002
+ * @tc.desc: SetScreenId test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetDisplayModeTest002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config { 0, DisplayMode::EXPAND, 0 };
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+
+    DisplayNodeCommandHelper::Create(context, id, config);
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+
+    config.displayMode = DisplayMode::MIRROR;
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+
+    NodeId mirrorNodeId = static_cast<NodeId>(2);
+    config.mirrorNodeId = mirrorNodeId;
+    DisplayNodeCommandHelper::Create(context, mirrorNodeId, config);
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+}
+
+/**
+ * @tc.name: SetDisplayModeTest003
+ * @tc.desc: Test SetDisplayMode with positionZ, screenRenderNode exists (if branch true)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetDisplayModeTest003, TestSize.Level1)
+{
+    RSContext context;
+    NodeId screenNodeId = static_cast<NodeId>(100);
+    NodeId displayNodeId = static_cast<NodeId>(1);
+
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 1, context.weak_from_this());
+    context.GetMutableNodeMap().RegisterRenderNode(screenRenderNode);
+
+    RSDisplayNodeConfig config;
+    config.screenId = 1;
+    DisplayNodeCommandHelper::Create(context, displayNodeId, config);
+    DisplayNodeCommandHelper::AddDisplayNodeToTree(context, displayNodeId);
+    DisplayNodeCommandHelper::SetDisplayMode(context, displayNodeId, config);
+
+    config.positionZ = 128;
+    DisplayNodeCommandHelper::SetDisplayMode(context, displayNodeId, config);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId), nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayModeTest004
+ * @tc.desc: Test SetDisplayMode with positionZ, screenRenderNode null (if branch false)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetDisplayModeTest004, TestSize.Level1)
+{
+    RSContext context;
+    NodeId displayNodeId = static_cast<NodeId>(1);
+
+    RSDisplayNodeConfig config;
+    config.positionZ = 128;
+
+    DisplayNodeCommandHelper::SetDisplayMode(context, displayNodeId, config);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId), nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayModeTest005
+ * @tc.desc: Test SetDisplayMode with NAN positionZ (should be rejected)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetDisplayModeTest005, TestSize.Level1)
+{
+    RSContext context;
+    NodeId screenNodeId = static_cast<NodeId>(100);
+    NodeId displayNodeId = static_cast<NodeId>(1);
+
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 1, context.weak_from_this());
+    context.GetMutableNodeMap().RegisterRenderNode(screenRenderNode);
+
+    RSDisplayNodeConfig config;
+    config.screenId = 1;
+    DisplayNodeCommandHelper::Create(context, displayNodeId, config);
+    DisplayNodeCommandHelper::AddDisplayNodeToTree(context, displayNodeId);
+
+    float originalZ = screenRenderNode->GetRenderProperties().GetPositionZ();
+    config.positionZ = NAN;
+    DisplayNodeCommandHelper::SetDisplayMode(context, displayNodeId, config);
+    // positionZ should NOT be applied when NAN
+    EXPECT_EQ(screenRenderNode->GetRenderProperties().GetPositionZ(), originalZ);
+}
+
+/**
+ * @tc.name: SetDisplayModeTest006
+ * @tc.desc: Test SetDisplayMode with Inf positionZ (should be rejected)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetDisplayModeTest006, TestSize.Level1)
+{
+    RSContext context;
+    NodeId screenNodeId = static_cast<NodeId>(100);
+    NodeId displayNodeId = static_cast<NodeId>(1);
+
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 1, context.weak_from_this());
+    context.GetMutableNodeMap().RegisterRenderNode(screenRenderNode);
+
+    RSDisplayNodeConfig config;
+    config.screenId = 1;
+    DisplayNodeCommandHelper::Create(context, displayNodeId, config);
+    DisplayNodeCommandHelper::AddDisplayNodeToTree(context, displayNodeId);
+
+    float originalZ = screenRenderNode->GetRenderProperties().GetPositionZ();
+    config.positionZ = INFINITY;
+    DisplayNodeCommandHelper::SetDisplayMode(context, displayNodeId, config);
+    // positionZ should NOT be applied when Inf
+    EXPECT_EQ(screenRenderNode->GetRenderProperties().GetPositionZ(), originalZ);
 }
 
 /**
@@ -95,12 +214,12 @@ HWTEST_F(RSDisplayNodeCommandTest, Create001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
-    RSDisplayNodeConfig config { 0, false, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::EXPAND, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 
     NodeId id2 = static_cast<NodeId>(2);
-    config.isMirrored = true;
+    config.displayMode = DisplayMode::MIRROR;
     DisplayNodeCommandHelper::Create(context, id2, config);
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id2), nullptr);
 
@@ -156,7 +275,7 @@ HWTEST_F(RSDisplayNodeCommandTest, SetBootAnimation001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
-    RSDisplayNodeConfig config { 0, true, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::MIRROR, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetBootAnimation(context, id, true);
 
@@ -175,7 +294,7 @@ HWTEST_F(RSDisplayNodeCommandTest, SetScreenRotation001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(1);
     DisplayNodeCommandHelper::SetScreenRotation(context, id, ScreenRotation::ROTATION_0);
 
-    RSDisplayNodeConfig config { 0, false, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::EXPAND, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetScreenRotation(context, id, ScreenRotation::ROTATION_0);
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
@@ -190,14 +309,14 @@ HWTEST_F(RSDisplayNodeCommandTest, SetDisplayMode001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
-    RSDisplayNodeConfig config { 0, false, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::EXPAND, 0 };
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
     EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 
-    config.isMirrored = true;
+    config.displayMode = DisplayMode::MIRROR;
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 
     NodeId mirrorNodeId = static_cast<NodeId>(2);
@@ -247,11 +366,45 @@ HWTEST_F(RSDisplayNodeCommandTest, SetVirtualScreenMuteStatus001, TestSize.Level
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
-    RSDisplayNodeConfig config { 0, true, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::MIRROR, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
-    
+
     bool virtualScreenMuteStatus = false;
     DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, 5, virtualScreenMuteStatus);
+}
+
+/**
+ * @tc.name: CreateInvalidRotation001
+ * @tc.desc: Create rejects out-of-range mirrorSourceRotation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, CreateInvalidRotation001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config;
+    config.mirrorSourceRotation = static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION) + 1;
+    DisplayNodeCommandHelper::Create(context, id, config);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayModeInvalidRotation001
+ * @tc.desc: SetDisplayMode rejects out-of-range mirrorSourceRotation without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetDisplayModeInvalidRotation001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig validConfig { 0, DisplayMode::MIRROR, 0 };
+    DisplayNodeCommandHelper::Create(context, id, validConfig);
+    ASSERT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+
+    RSDisplayNodeConfig badConfig { 0, DisplayMode::MIRROR, 0 };
+    badConfig.mirrorSourceRotation = static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION) + 1;
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, badConfig);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 } // namespace OHOS::Rosen

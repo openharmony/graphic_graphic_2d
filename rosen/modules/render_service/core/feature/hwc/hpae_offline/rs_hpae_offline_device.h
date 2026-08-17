@@ -32,7 +32,7 @@ namespace Rosen {
 enum OfflineContextType : uint32_t {
     INVALID = 0,
     SCALE,
-    AI2020
+    AI2020,
 };
 
 struct OfflineProcessInputInfo {
@@ -90,7 +90,7 @@ public:
     explicit RSHpaeOfflineContext(OfflineContextType type);
     ~RSHpaeOfflineContext();
 
-    bool isSkipDraw();
+    bool IsSkipDraw();
 
     OfflineContextType contextType = OfflineContextType::INVALID;
     NodeId nodeId = 0;
@@ -109,7 +109,6 @@ public:
     std::atomic<bool> preAllocBufferSucc = false;
     std::atomic<size_t> invalidFrames = 0;
     std::atomic<size_t> maxInvalidFrames = 0;
-    std::atomic<size_t> heteroEnableFrames = 0;
     std::atomic<bool> isSetHeteroEnable = false;
     std::atomic<bool> skipDraw = false;
     std::atomic<bool> hasDrawn = false;

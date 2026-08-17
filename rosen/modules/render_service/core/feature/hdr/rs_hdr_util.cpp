@@ -170,7 +170,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
 #ifndef ROSEN_CROSS_PLATFORM
     if (ROSEN_GNE(sdrNits, 0.0f)) {
         scaler = std::clamp(scaler, 1.0f, displayNits / sdrNits);
-        rsLuminance.UpdateMetadataBasedOnScaler(surfaceBuffer, surfaceNode, scaler, hdrStatus);
+        rsLuminance.UpdateMetadataBasedOnScaler(surfaceBuffer, scaler, hdrStatus);
     }
 #endif
 
@@ -272,6 +272,29 @@ void RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceN
         RS_LOGD("RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix "
             "matrix[0]: %{public}.2f, matrix[4]: %{public}.2f, matrix[8]: %{public}.2f",
             layerLinearMatrix[0], layerLinearMatrix[4], layerLinearMatrix[8]);
+    }
+}
+
+void RSHdrUtil::UpdateBrightnessFactor(RSLogicalDisplayRenderNode& displayNode)
+{
+    auto context = displayNode.GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSHdrUtil::UpdateBrightnessFactor Invalid context");
+        return;
+    }
+    const auto& hdrNodeMap = displayNode.GetHDRNodeMap();
+    float displayFactor = displayNode.GetRenderProperties().GetHDRBrightnessFactor();
+    for (const auto& [nodeId, _] : hdrNodeMap) {
+        auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
+        if (!canvasNode) {
+            RS_LOGD("RSHdrUtil::UpdateBrightnessFactor canvasNode is not on the tree");
+            continue;
+        }
+        if (ROSEN_EQ(canvasNode->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), displayFactor)) {
+            continue;
+        }
+        canvasNode->SetContentDirty();
+        canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(displayFactor);
     }
 }
 
@@ -515,7 +538,7 @@ bool RSHdrUtil::HDRColorHeadroomMapping(const Drawing::UIColor& srcColor, Drawin
 void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
 {
     ScreenColorGamut screenColorGamut = node.GetScreenProperty().GetScreenColorGamut();
-    if (node.GetCompositeType() == CompositeType::UNI_RENDER_MIRROR_COMPOSITE) {
+    if (node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
         if (!mirrorNode) {
             RS_LOGE("RSHdrUtil::HandleVirtualScreenHDRStatus get mirror source failed.");
@@ -529,7 +552,8 @@ void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
             "ColorGamut: %{public}d, GetFirstFrameVirtualScreenInit: %{public}d",
             mirrorNodeIsHDROn, screenColorGamut, node.GetFirstFrameVirtualScreenInit());
         UpdateHDRCastProperties(node, isNeedHDRCast, hdrCastColorGamut);
-    } else if (node.GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+    } else if (node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_EXPAND_COMPOSITE ||
+               node.GetCompositeType() == CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE) {
         bool expandIsHDROn = node.GetDisplayHdrStatus() != HdrStatus::NO_HDR;
         bool hdrCastColorGamut = static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
         bool isNeedHDRCast = expandIsHDROn && hdrCastColorGamut;

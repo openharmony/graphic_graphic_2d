@@ -130,7 +130,10 @@ std::shared_ptr<Data> SkiaVertices::Serialize() const
     skiaVertices_->priv().encode(writer);
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
+    if (!data->BuildUninitialized(length)) {
+        LOGD("SkiaVertices::Serialize, BuildUninitialized failed.");
+        return nullptr;
+    }
     writer.writeToMemory(data->WritableData());
     return data;
 }
@@ -143,6 +146,9 @@ bool SkiaVertices::Deserialize(std::shared_ptr<Data> data)
     }
 
     SkReadBuffer reader(data->GetData(), data->GetSize());
+    if (skiaVertices_ == nullptr) {
+        return false;
+    }
     skiaVertices_ = skiaVertices_->priv().Decode(reader);
     return skiaVertices_ != nullptr;
 }

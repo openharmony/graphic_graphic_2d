@@ -160,7 +160,12 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
         return nullptr;
     }
 
-    if (memcpy_s(bitmap->GetPixels(), expectedSize, ptr, expectedSize) != EOK) {
+    void* dst = bitmap->GetPixels();
+    if (dst == nullptr) {
+        LOGD("Bitmap GetPixels returned null!");
+        return nullptr;
+    }
+    if (memcpy_s(dst, expectedSize, ptr, expectedSize) != EOK) {
         LOGD("Bitmap memcpy_s failed!");
         return nullptr;
     }
@@ -290,7 +295,7 @@ std::shared_ptr<Data> CmdListHelper::GetCompressDataFromCmdList(const CmdList& c
     }
 
     auto imageData = std::make_shared<Data>();
-    imageData->BuildWithoutCopy(ptr, imageHandle.size);
+    imageData->BuildWithCopy(ptr, imageHandle.size);
     return imageData;
 }
 
@@ -356,7 +361,9 @@ Lattice CmdListHelper::GetLatticeFromCmdList(const CmdList& cmdList, const Latti
 
 bool CmdListHelper::ValidateLattice(const Lattice& lattice)
 {
-    if (lattice.fXCount < 0 || lattice.fXCount > 5 || lattice.fYCount < 0 || lattice.fYCount > 5) { // 5: max size.
+    static constexpr int32_t LATTICE_MAX_DIV_COUNT = 5; // Skia lattice div count upper bound
+    if (lattice.fXCount < 0 || lattice.fXCount > LATTICE_MAX_DIV_COUNT ||
+        lattice.fYCount < 0 || lattice.fYCount > LATTICE_MAX_DIV_COUNT) {
         LOGD("ValidateLattice invalid lattice count: fXCount=%d, fYCount=%d",
              lattice.fXCount, lattice.fYCount);
         return false;
@@ -542,6 +549,10 @@ std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(const CmdList& cmdList, 
         auto typefaceData = std::make_shared<Data>();
         typefaceData->BuildWithoutCopy(data, fontHandle.size);
         typeface = Typeface::Deserialize(typefaceData->GetData(), typefaceData->GetSize());
+    }
+    if (!typeface) {
+        LOGD("font typeface is nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
     }
     typeface->SetIsCustomTypeface(fontHandle.isCustomTypeface);
     typeface->SetIsThemeTypeface(fontHandle.isThemeTypeface);
@@ -794,6 +805,10 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
         return nullptr;
     }
 
+    if (shaderEffectHandle.type < static_cast<uint32_t>(ShaderEffect::ShaderEffectType::NO_TYPE) ||
+        shaderEffectHandle.type > static_cast<uint32_t>(ShaderEffect::ShaderEffectType::LAZY_SHADER)) {
+        return nullptr;
+    }
     ShaderEffect::ShaderEffectType type = static_cast<ShaderEffect::ShaderEffectType>(shaderEffectHandle.type);
     if (type == ShaderEffect::ShaderEffectType::LAZY_SHADER) {
         // Lazy type: rebuild from DrawingObject and immediately instantiate
@@ -946,6 +961,11 @@ std::shared_ptr<MaskFilter> CmdListHelper::GetMaskFilterFromCmdList(const CmdLis
         return nullptr;
     }
 
+    if (maskFilterHandle.type < static_cast<uint32_t>(MaskFilter::FilterType::NO_TYPE) ||
+        maskFilterHandle.type > static_cast<uint32_t>(MaskFilter::FilterType::BLUR)) {
+        LOGD("GetMaskFilterFromCmdList invalid FilterType: %{public}u", maskFilterHandle.type);
+        return nullptr;
+    }
     auto maskFilterData = std::make_shared<Data>();
     maskFilterData->BuildWithoutCopy(ptr, maskFilterHandle.size);
     auto maskFilter = std::make_shared<MaskFilter>
@@ -985,6 +1005,11 @@ std::shared_ptr<ColorFilter> CmdListHelper::GetColorFilterFromCmdList(const CmdL
         return nullptr;
     }
 
+    if (colorFilterHandle.type < static_cast<uint32_t>(ColorFilter::FilterType::NO_TYPE) ||
+        colorFilterHandle.type > static_cast<uint32_t>(ColorFilter::FilterType::LIGHTING)) {
+        LOGD("GetColorFilterFromCmdList invalid FilterType: %{public}u", colorFilterHandle.type);
+        return nullptr;
+    }
     auto colorFilterData = std::make_shared<Data>();
     colorFilterData->BuildWithoutCopy(ptr, colorFilterHandle.size);
     auto colorFilter = std::make_shared<ColorFilter>

@@ -347,7 +347,6 @@ std::vector<std::shared_ptr<Drawing::Typeface>> ExtractTypefacesFromArray(
     napi_env env, napi_value typefacesArray, uint32_t arrayLength)
 {
     std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
-    typefaces.reserve(arrayLength);
 
     for (uint32_t i = 0; i < arrayLength; i++) {
         napi_value elementValue = nullptr;

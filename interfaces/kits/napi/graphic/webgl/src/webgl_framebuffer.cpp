@@ -242,7 +242,7 @@ bool WebGLFramebuffer::GetWebGLAttachmentInfo(napi_env env, Impl::WebGLRendering
         return false;
     }
     
-    LOGD("GetWebGLAttachmentInfo %{public}u %{public}u %{public}lu",
+    LOGD("GetWebGLAttachmentInfo %{public}u %{public}d %{public}lu",
          static_cast<unsigned int>(attachedObject->type), attachedObject->attachment,
          static_cast<unsigned long>(attachedObject->id));
     if (attachedObject->IsRenderBuffer()) {
@@ -310,7 +310,7 @@ bool WebGLFramebuffer::CheckAttachmentComplete(bool isHighWebGL, WebGLAttachment
 }
 
 GLenum WebGLFramebuffer::CheckStatus(napi_env env, Impl::WebGLRenderingContextBaseImpl* context,
-    WebGLAttachmentInfo info, std::vector<WebGLAttachment*>& attachments, WebGLAttachment* attachedObject) const
+    WebGLAttachmentInfo& info, std::vector<WebGLAttachment*>& attachments, WebGLAttachment* attachedObject) const
 {
     if (!GetWebGLAttachmentInfo(env, context, attachedObject, info)) {
         LOGE("GetWebGLAttachmentInfo failed.");

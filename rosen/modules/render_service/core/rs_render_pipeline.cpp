@@ -179,6 +179,10 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         RS_LOGE("%{public}s uniRenderThread_ is nullptr, return", __func__);
         return;
     }
+    if (!composerToRenderConn) {
+        RS_LOGE("%{public}s composerToRenderConn is nullptr, return", __func__);
+        return;
+    }
     std::shared_ptr<RSComposerClient> composerClient = nullptr;
     if (!rsScreenProperty->IsVirtual()) {
         composerToRenderConn->RegisterReleaseLayerBuffersCB(
@@ -196,9 +200,9 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
             });
         composerClient->RegisterOnReleaseLayerBuffersCB(std::bind(&RSUniRenderThread::OnReleaseLayerBuffers,
             uniRenderThread_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        composerClient->SetRmvSurfaceFpsOpCallback([](const std::vector<SurfaceFpsOp>& rmvList) {
-            RSMainThread::Instance()->PostTask([rmvList]() {
-                RSMainThread::Instance()->RmvSurfaceFpsOp(rmvList);
+        composerClient->SetRemoveSurfaceFpsOpCallback([](const std::vector<SurfaceFpsOp>& removeList) {
+            RSMainThread::Instance()->PostTask([removeList]() {
+                RSMainThread::Instance()->RemoveSurfaceFpsOp(removeList);
             });
         });
         if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -249,12 +253,6 @@ void RSRenderPipeline::InitEnvironment()
         Drawing::FontMgr::CreateDefaultFontMgr();
     });
     preLoadSysTTFThread.detach();
-
-#ifdef RS_ENABLE_VK
-if (Drawing::SystemProperties::IsUseVulkan()) {
-    RsVulkanContext::SetRecyclable(false);
-}
-#endif
 }
 
 void RSRenderPipeline::InitUniRenderConfig()
@@ -303,7 +301,7 @@ void RSRenderPipeline::InitUniRenderThread()
         },
         [](RSPaintFilterCanvas& canvas, const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
             BufferDrawParam& params) -> bool {
-            return RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params);
+            return RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params, true);
         },
         []() -> std::shared_ptr<RSSurfaceHandler> { return RSHeteroHDRManager::Instance().GetHDRSurfaceHandler(); });
 #endif
@@ -332,56 +330,42 @@ bool RSRenderPipeline::RemoveConnection(pid_t remotePid, const sptr<RSIConnectio
         RS_LOGE("RemoveConnection: token is nullptr");
         return false;
     }
-    // temporarily extending the life cycle
-    auto tokenObj = token->AsObject();
     std::unique_lock<std::mutex> lock(renderConnectionMutex_);
-    auto iter = renderConnections_.find(tokenObj);
+    auto iter = renderConnections_.find(remotePid);
     if (iter == renderConnections_.end()) {
         return false;
     }
-    uint64_t tokenMaskId = iter->second.first;
-    tokenMaskIdMapTokens_.erase(tokenMaskId);
-    renderConnections_.erase(tokenObj);
-    connectionProcessPid_.erase(remotePid);
-    lock.unlock();
+    // verify token consistency
+    if (iter->second.token != token->AsObject()) {
+        RS_LOGE("RemoveConnection: token mismatch for pid %{public}d", remotePid);
+        return false;
+    }
+    renderConnections_.erase(iter);
     return true;
 }
 
-void RSRenderPipeline::AddConnection(pid_t remotePid, uint64_t tokenMaskId,
-    sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
+std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipeline::AddConnection(pid_t remotePid,
+    uint64_t tokenMaskId, sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
 {
     std::unique_lock<std::mutex> lock(renderConnectionMutex_);
-    if (renderConnections_.find(token) != renderConnections_.end()) {
-        RS_LOGE("RSRenderPipeline::AddConnection: token already exists");
-        return;
+    auto iter = renderConnections_.find(remotePid);
+    if (iter != renderConnections_.end()) {
+        RS_LOGE("RSRenderPipeline::AddConnection: pid %{public}d already exists", remotePid);
+        return {iter->second.connection, iter->second.tokenMaskId};
     }
-
-    if (tokenMaskIdMapTokens_.find(tokenMaskId) != tokenMaskIdMapTokens_.end()) {
-        RS_LOGE("RSRenderPipeline::AddConnection: tokenMaskId already exists");
-        return;
-    }
-    renderConnections_[token] = {tokenMaskId, connectToRenderConnection};
-    tokenMaskIdMapTokens_[tokenMaskId] = token;
-    connectionProcessPid_[remotePid] = token;
+    renderConnections_[remotePid] = {tokenMaskId, token, connectToRenderConnection};
+    return {connectToRenderConnection, tokenMaskId};
 }
 
 std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipeline::FindClientToRenderConnection(
     uint64_t remotePid)
 {
     std::unique_lock<std::mutex> lock(renderConnectionMutex_);
-
-    auto iter = connectionProcessPid_.find(remotePid);
-    if (iter == connectionProcessPid_.end() || iter->second == nullptr) {
+    auto iter = renderConnections_.find(static_cast<pid_t>(remotePid));
+    if (iter == renderConnections_.end()) {
         return {nullptr, INVALID_TOKEN_MASK_ID};
     }
-
-    sptr<IRemoteObject> tmpToken = iter->second;
-    auto it = renderConnections_.find(tmpToken);
-    if (it != renderConnections_.end()) {
-        auto [tokenMaskId, clientToRenderConnection] = it->second;
-        return {clientToRenderConnection, tokenMaskId};
-    }
-    return {nullptr, INVALID_TOKEN_MASK_ID};
+    return {iter->second.connection, iter->second.tokenMaskId};
 }
 
 void RSRenderPipeline::RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn)

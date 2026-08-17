@@ -496,14 +496,35 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetParallelRenderingEnabled
- * @tc.desc: GetParallelRenderingEnabled Test
+ * @tc.name: GetParallelRenderingEnabledTest001
+ * @tc.desc: GetParallelRenderingEnabled out-of-range fallback branch; param "-1" < AUTO(0) -> AUTO.
  * @tc.type:FUNC
  * @tc.require: issueI9JZWC
  */
-HWTEST_F(RSSystemPropertiesTest, GetParallelRenderingEnabled, TestSize.Level1)
+HWTEST_F(RSSystemPropertiesTest, GetParallelRenderingEnabledTest001, TestSize.Level1)
 {
-    ASSERT_EQ(RSSystemProperties::GetParallelRenderingEnabled(), ParallelRenderingType::AUTO);
+    constexpr const char *key = "persist.rosen.parallelrender.enabled";
+    auto origin = system::GetParameter(key, "0");
+    system::SetParameter(key, "-1");
+    auto result = RSSystemProperties::GetParallelRenderingEnabled();
+    system::SetParameter(key, origin);
+    ASSERT_EQ(result, ParallelRenderingType::AUTO);
+}
+
+/**
+ * @tc.name: GetSplitTransactionCheckIntervalTest001
+ * @tc.desc: GetSplitTransactionCheckInterval out-of-range fallback branch; param "-1" < 0 -> 200u.
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSplitTransactionCheckIntervalTest001, TestSize.Level1)
+{
+    constexpr const char *key = "persist.sys.graphic.splitTransactionCheckInterval";
+    auto origin = system::GetParameter(key, "200");
+    system::SetParameter(key, "-1");
+    auto result = RSSystemProperties::GetSplitTransactionCheckInterval();
+    system::SetParameter(key, origin);
+    ASSERT_EQ(result, 200u);
 }
 
 /**
@@ -1194,19 +1215,53 @@ HWTEST_F(RSSystemPropertiesTest, CanvasDrawingNodeDmaTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetHybridRenderCanvasEnabledTest
- * @tc.desc: GetHybridRenderCanvasEnabled Test - covers all combinations of
+ * @tc.name: GetHybridRenderCanvasEnabledWithoutCCMTest
+ * @tc.desc: GetHybridRenderCanvasEnabledWithoutCCM Test - covers all combinations of
  *           hybrid_render_canvas_drawing_node_enabled parameter. GPU API type
  *           and device type are compile-time constants and cannot be mocked.
  * @tc.type:FUNC
  */
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledWithoutCCMTest, TestSize.Level1)
+{
+    bool useVulkan = RSSystemProperties::IsUseVulkan();
+    auto value = system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
+    EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM(), value && useVulkan);
+}
+
+/**
+ * @tc.name: GetHybridRenderCanvasEnabledTest
+ * @tc.desc: Test GetHybridRenderCanvasEnabled covers all branches - cached return, WithoutCCM false path,
+ *           and WithoutCCM true + isCanvasDrawingNodeClientRenderEnabled_ interaction
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledTest, TestSize.Level1)
 {
-    auto deviceType = system::GetParameter("const.product.devicetype", "phone");
-    bool isPhone = deviceType == "phone";
-    bool useVulkan = RSSystemProperties::IsUseVulkan();
-    auto value = system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
-    EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), value && useVulkan && isPhone);
+    // Branch: GetHybridRenderCanvasEnabledWithoutCCM() returns true
+    // and isCanvasDrawingNodeClientRenderEnabled_ = true → result = true
+    if (RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()) {
+        RSSystemProperties::isCanvasDrawingNodeClientRenderEnabled_ = true;
+        bool result = RSSystemProperties::GetHybridRenderCanvasEnabled();
+        // Branch: cached path — second call returns same cached value
+        EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), result);
+    } else {
+        // Branch: GetHybridRenderCanvasEnabledWithoutCCM() returns false → result = false
+        bool result = RSSystemProperties::GetHybridRenderCanvasEnabled();
+        // Branch: cached path — second call returns same cached value
+        EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), result);
+    }
+}
+
+/**
+ * @tc.name: GetSplitTransactionMaxTotalTimeMs001
+ * @tc.desc: GetSplitTransactionMaxTotalTimeMs Test - returns a positive total time budget (default 100.0ms)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSplitTransactionMaxTotalTimeMs001, TestSize.Level1)
+{
+    auto value = RSSystemProperties::GetSplitTransactionMaxTotalTimeMs();
+    EXPECT_GT(value, 0.0f);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -132,6 +132,9 @@ std::shared_ptr<Data> SkiaTextBlob::Serialize(void* ctx) const
 
 std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t size, void* ctx)
 {
+    if (data == nullptr) {
+        return nullptr;
+    }
     SkDeserialProcs procs;
     procs.fTypefaceProc = &SkiaTypeface::DeserializeTypeface;
     procs.fTypefaceCtx = ctx;

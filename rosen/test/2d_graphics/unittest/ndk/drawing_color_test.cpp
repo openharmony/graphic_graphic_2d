@@ -36,12 +36,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingColorTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingColorTest::SetUpTestCase() {}
 void NativeDrawingColorTest::TearDownTestCase() {}
 void NativeDrawingColorTest::SetUp() {}
 void NativeDrawingColorTest::TearDown() {}

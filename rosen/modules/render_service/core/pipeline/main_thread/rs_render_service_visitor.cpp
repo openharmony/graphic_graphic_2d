@@ -98,10 +98,11 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
-            RS_LOGI("PrepareScreenRenderNode mirrorSource haven't existed");
+            RS_LOGI("%{public}s mirrorSource haven't existed", __func__);
             return;
         }
         if (mParallelEnable) {
+            RS_LOGD_IF(DEBUG_SCREEN, "%{public}s mParallelEnable", __func__);
             CreateCanvas(logicalScreenWidth, logicalScreenHeight, true);
         }
         PrepareChildren(*existingSource);
@@ -115,7 +116,7 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
 void RSRenderServiceVisitor::ProcessScreenRenderNode(RSScreenRenderNode& node)
 {
     // need reset isSecurityDisplay_ on ProcessScreenRenderNode
-    RS_LOGD("RsDebug ProcessScreenRenderNode: nodeid:[%{public}" PRIu64 "]"
+    RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug ProcessScreenRenderNode: nodeid:[%{public}" PRIu64 "]"
         " screenid:[%{public}" PRIu64 "] isSecurityDisplay:[%{public}s] child size:[%{public}d]",
         node.GetId(), node.GetScreenId(), isSecurityDisplay_ ? "true" : "false", node.GetChildrenCount());
     globalZOrder_ = 0.0f;
@@ -187,17 +188,17 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     
     if (isSecurityDisplay_ && node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
-        RS_LOGD("PrepareSurfaceRenderNode node : [%{public}" PRIu64 "] prepare paused "
+        RS_LOGD_IF(DEBUG_PIPELINE, "PrepareSurfaceRenderNode node : [%{public}" PRIu64 "] prepare paused "
             "because of skip SurfaceNode.", node.GetId());
         return;
     }
     if (!canvas_) {
-        RS_LOGD("PrepareSurfaceRenderNode node : %{public}" PRIu64 " canvas is nullptr",
+        RS_LOGD_IF(DEBUG_PIPELINE, "PrepareSurfaceRenderNode node : %{public}" PRIu64 " canvas is nullptr",
             node.GetId());
         return;
     }
     if (!node.ShouldPaint()) {
-        RS_LOGD("PrepareSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
+        RS_LOGD_IF(DEBUG_PIPELINE, "PrepareSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
             node.GetId());
         return;
     }
@@ -227,7 +228,7 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     if (!node.ShouldPaint()) {
-        RS_LOGD("ProcessSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
+        RS_LOGD_IF(DEBUG_PIPELINE, "ProcessSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
             node.GetId());
         return;
     }
@@ -235,7 +236,7 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     if (isSecurityDisplay_ && node.GetMultableSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
-        RS_LOGD("ProcessSurfaceRenderNode node[%{public}" PRIu64 "] process paused "
+        RS_LOGD_IF(DEBUG_PIPELINE, "ProcessSurfaceRenderNode node[%{public}" PRIu64 "] process paused "
             "because of skip SurfaceNode.", node.GetId());
         return;
     }

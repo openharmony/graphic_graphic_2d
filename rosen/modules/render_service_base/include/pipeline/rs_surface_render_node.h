@@ -310,7 +310,15 @@ public:
         return isFixRotationByUser_;
     }
     bool IsInFixedRotation() const;
-    void SetInFixedRotation(bool isRotating);
+    void SetInFixedRotation(bool isRotating, bool screenChanged);
+    // Returns true if the screen the node is being prepared on differs from the last one,
+    // and records the current screen for the next comparison.
+    bool CheckScreenChanged(ScreenId screenId)
+    {
+        bool screenChanged = lastScreenId_ != INVALID_SCREEN_ID && lastScreenId_ != screenId;
+        lastScreenId_ = screenId;
+        return screenChanged;
+    }
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -685,7 +693,7 @@ public:
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
         bool isParentPrepareInReverseOrder = false) override;
     // keep specified nodetype preparation
-    virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -831,8 +839,6 @@ public:
         uifirstState_.forceUpdate = b;
     }
 
-    bool IsFullScreen() const;
-
     VideoDimType GetVideoDimType() const;
 
     RSUIFirstSwitch GetUIFirstSwitch() const
@@ -899,6 +905,7 @@ public:
     {
         return hdrPhotoNum_ > 0;
     }
+    void SetRebuildingState(bool isRebuildingState);
 
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
@@ -1137,7 +1144,7 @@ public:
     void RegisterBufferClearListener(sptr<RSIBufferClearCallback> callback);
 
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
-    void ConnectToNodeInRenderService(sptr<IRemoteObject> connectToRender);
+    void ConnectToNodeInRenderService();
 
     void NotifyRTBufferAvailable(bool isTextureExportNode = false);
     bool IsNotifyRTBufferAvailable() const;
@@ -1146,6 +1153,8 @@ public:
     void NotifyUIBufferAvailable();
     bool IsNotifyUIBufferAvailable() const;
     void SetIsNotifyUIBufferAvailable(bool available);
+    bool IsPendingUIBufferNotify() const;
+    void SetPendingUIBufferNotify(bool pending);
 
     // UI Thread would not be notified when SurfaceNode created by Video/Camera in RenderService has available buffer.
     // And RenderThread does not call mainFunc_ if nothing in UI thread is changed
@@ -1544,7 +1553,9 @@ public:
         return isForeground_;
     }
     bool GetNodeIsSingleFrameComposer() const override;
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) override;
+
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
+
     std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const override
     {
         if (!singleFrameComposer_) {
@@ -1744,6 +1755,16 @@ public:
     bool IsContainerWindowTransparent() const
     {
         return isContainerWindowTransparent_;
+    }
+
+    bool IsUIRenderDirectorStopped() const
+    {
+        return isUIRenderDirectorStopped_.load();
+    }
+
+    void SetUIRenderDirectorStopped(bool isUIRenderDirectorStopped)
+    {
+        isUIRenderDirectorStopped_ = isUIRenderDirectorStopped;
     }
 
     bool IsSecureUIExtension() const
@@ -1993,6 +2014,9 @@ public:
     void SetCompositionType(CompositionType type);
     CompositionType GetCompositionType() const;
 
+    void SetIsOnInternalScreen(bool isOnInternalScreen);
+    bool GetIsOnInternalScreen() const;
+
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
 
@@ -2085,7 +2109,12 @@ private:
     template<typename T>
     void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
         std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
-        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
+        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier)
+    {
+        if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
+            oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
+        }
+    }
 
     void CountRelatedNode(bool isIncrement);
     void ClearRelatedSourceCache(bool value);
@@ -2143,6 +2172,8 @@ private:
     bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
+    bool haveScreenChangeInRotation_ = false;
+    ScreenId lastScreenId_ = INVALID_SCREEN_ID;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isSplitSurfaceNode_ = false;
@@ -2212,6 +2243,7 @@ private:
     bool UIExtensionUnobscured_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
+    bool isPendingUIBufferNotify_ = false;
     std::atomic_bool isBufferAvailable_ = false;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
@@ -2248,7 +2280,6 @@ private:
     float hdrBrightnessFactor_ = 1.0f; // no discount by default
     float hdrDimmingFactor_ = 1.0f; // no discount by default
     float localZOrder_ = 0.0f;
-    uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     uint32_t wideColorGamutWindowCount_ = 0;
@@ -2257,6 +2288,8 @@ private:
     std::atomic<uint32_t> ancoFlags_ = 0;
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    bool isRebuildingState_ = false;
+    std::atomic<bool> isUIRenderDirectorStopped_ = false;
     SurfaceId surfaceId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     struct GamutCollector
@@ -2454,6 +2487,8 @@ private:
 
     // Used for delegateComposite
     std::shared_ptr<RsDelegateCompositeParams> delegateCompositeParams_ = nullptr;
+
+    bool isBufferFlushed_ = false;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static RS_HIDDEN std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

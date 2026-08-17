@@ -30,6 +30,7 @@ declare_args() {
   graphic_2d_feature_freemem_enable = false
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
+  graphic_2d_feature_multi_display_features_enable = false
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_opinc = false
@@ -61,6 +62,7 @@ declare_args() {
   graphic_2d_feature_enable_mediacommon = false
   graphic_2d_feature_enable_image_detail_enhancer = false
   graphic_2d_feature_rs_modifiers_draw_enable = false
+  graphic_2d_feature_enable_swap_ycbcr_channel = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -212,6 +214,10 @@ if (graphic_2d_feature_tv_metadata_enable) {
   gpu_defines += [ "RS_ENABLE_TV_PQ_METADATA" ]
 }
 
+if (graphic_2d_feature_enable_swap_ycbcr_channel) {
+  gpu_defines += [ "RS_ENABLE_SWAP_YCBCR_CHANNEL" ]
+}
+
 if (path_exists("//foundation/graphic/graphic_2d_ext/dvsync/BUILD.gn")) {
   graphic_2d_feature_enable_dvsync = true
 }
@@ -309,14 +315,6 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni"))
   graphic_2d_mhc_configs = {
     import(
       "//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni")
-  }
-}
-
-graphic_2d_car_features_configs = {}
-if (path_exists("//foundation/graphic/graphic_2d_ext/car_features/build/car_features_config.gni")) {
-  graphic_2d_car_features_configs = {
-    import(
-      "//foundation/graphic/graphic_2d_ext/car_features/build/car_features_config.gni")
   }
 }
 

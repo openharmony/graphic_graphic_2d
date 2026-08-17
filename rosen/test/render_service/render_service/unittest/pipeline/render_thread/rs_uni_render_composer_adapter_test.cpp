@@ -57,9 +57,6 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
 {
     // IsSpecialFoldDisplay() caches a static const on first call; set before any code path triggers it.
     system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 
     output_ = HdiOutput::CreateHdiOutput(screenId_);
@@ -592,6 +589,38 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity001, TestSize.Level2
         delete buffer;
         buffer = nullptr;
     }
+}
+
+/**
+ * @tc.name: DealWithNodeGravity_NullBuffer
+ * @tc.desc: info.buffer nullptr -> early return, gravity not modified (no crash)
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity_NullBuffer, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    ComposeInfo composeInfo{};
+    composeInfo.gravity = -999; // sentinel to prove early return
+    ASSERT_EQ(composeInfo.buffer, nullptr);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, composeInfo);
+    EXPECT_EQ(composeInfo.gravity, -999);
+}
+
+/**
+ * @tc.name: SetComposeInfoToLayer_NullSurface
+ * @tc.desc: surface nullptr -> early return (no crash)
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, SetComposeInfoToLayer_NullSurface, TestSize.Level2)
+{
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(layer, nullptr);
+    ComposeInfo composeInfo{};
+    composerAdapter_->SetComposeInfoToLayer(layer, composeInfo, nullptr);
+    SUCCEED();
 }
 
 /**
@@ -2099,6 +2128,49 @@ HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCD_WithZOrderTest001, 
 
     // Verify zOrder is set correctly
     EXPECT_EQ(info.zOrder, 100);
+}
+
+/**
+ * @tc.name: BuildComposeInfo_GlassFree3D
+ * @tc.desc: Test BuildComposeInfo propagates glassFree3D from screen params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo_GlassFree3D, TestSize.Level2)
+{
+    auto context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 0, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(screenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+    auto buffer = new SurfaceBufferImpl(0);
+    buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
+    buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
+    ScreenInfo info {};
+    info.width = DEFAULT_CANVAS_WIDTH;
+    info.height = DEFAULT_CANVAS_HEIGHT;
+    info.phyWidth = DEFAULT_CANVAS_WIDTH;
+    info.phyHeight = DEFAULT_CANVAS_HEIGHT;
+    info.colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
+    info.state = ScreenState::UNKNOWN;
+    info.rotation = ScreenRotation::ROTATION_0;
+    composerAdapter_->Init(info, nullptr);
+
+    // Set hasGlassFree3DLayer on screen params
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->SetHasGlassFree3DLayer(true);
+
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+    EXPECT_TRUE(composeInfo.glassFree3D);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
 }
 
 // ==================== CreateLayer Additional Tests ====================

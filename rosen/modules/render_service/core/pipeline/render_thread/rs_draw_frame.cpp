@@ -29,6 +29,7 @@
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_high_performance_visual_engine.h"
@@ -54,7 +55,8 @@ namespace {
     constexpr int RENDER_TIMEOUT_ABORT = 12; // 12: render 12 consecutive frames are too long
 }
 RSDrawFrame::RSDrawFrame()
-    : unirenderInstance_(RSUniRenderThread::Instance()), rsParallelType_(RSSystemParameters::GetRsParallelType())
+    : unirenderInstance_(RSUniRenderThread::Instance()),
+    rsParallelType_(RSSystemParameters::GetRsParallelType())
 {}
 
 RSDrawFrame::~RSDrawFrame() noexcept {}
@@ -111,9 +113,12 @@ void RSDrawFrame::RenderFrame()
     RSUifirstManager::Instance().PostUifirstSubTasks();
     RSMainThread::Instance()->CheckWindowCapTasks();
     RSMainThread::Instance()->ProcessWindowCapTasks();
+    auto virtualScreenManager = RSMainThread::Instance()->GetVirtualScreenParallelManager();
+    virtualScreenManager->ExecuteAllVirtualScreenRenderTasks(std::move(virtualExpandThreadParams_));
     UnblockMainThread();
     RsFrameReport::CheckUnblockMainThreadPoint();
     Render();
+    virtualScreenManager->WaitForAllVirtualScreenRenderTasksComplete();
 #ifdef SUBTREE_PARALLEL_ENABLE
     RSParallelManager::Singleton().Clear();
 #endif
@@ -225,6 +230,10 @@ void RSDrawFrame::PostAndWait()
 
 void RSDrawFrame::ClearDrawableResource()
 {
+    if (!DrawableV2::RSRenderNodeDrawableAdapter::NeedClearResource()) {
+        return;
+    }
+
     switch (rsParallelType_) {
         case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
             unirenderInstance_.PostSyncTask([]() { DrawableV2::RSRenderNodeDrawableAdapter::ClearResource(); });
@@ -339,6 +348,7 @@ void RSDrawFrame::Sync()
     pendingSyncNodes.clear();
     HveFilter::GetHveFilter().Sync();
 
+    virtualExpandThreadParams_ = std::make_unique<RSRenderThreadParams>(*stagingRenderThreadParams_);
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
     RSMainThread::Instance()->GetRSVsyncRateReduceManager().SyncOneFramePeriod();
 #ifdef SUBTREE_PARALLEL_ENABLE

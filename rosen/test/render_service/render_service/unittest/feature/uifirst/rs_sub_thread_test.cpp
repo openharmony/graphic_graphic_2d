@@ -39,9 +39,6 @@ public:
 
 void RsSubThreadTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 }
 void RsSubThreadTest::TearDownTestCase()
@@ -391,7 +388,7 @@ HWTEST_F(RsSubThreadTest, SetHighContrastIfEnabledTest, TestSize.Level1)
 
     RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(true);
     curThread->SetHighContrastIfEnabled(filterCanvas);
-    EXPECT_FALSE(filterCanvas.isHighContrastEnabled());
+    EXPECT_TRUE(filterCanvas.isHighContrastEnabled());
 
     RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(false);
     curThread->SetHighContrastIfEnabled(filterCanvas);

@@ -38,9 +38,9 @@ MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
     return {};
 }
 
-bool RSRenderServiceClient::GetBackgroundRebuildEnabled()
+uint8_t RSRenderServiceClient::GetBackgroundRebuildEnabled()
 {
-    return {};
+    return 0;
 }
 
 std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
@@ -409,7 +409,8 @@ int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCa
 
 int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
 {
-    return {};
+    pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BUTT;
+    return RS_CONNECTION_ERROR;
 }
 
 int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
@@ -451,7 +452,8 @@ int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorS
 
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
-    return {};
+    screenType = RSScreenType::UNKNOWN_TYPE_SCREEN;
+    return RS_CONNECTION_ERROR;
 }
 
 bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)

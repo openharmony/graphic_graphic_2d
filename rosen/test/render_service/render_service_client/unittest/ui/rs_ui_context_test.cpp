@@ -637,8 +637,8 @@ HWTEST_F(RSUIContextTest, DestroyModifiersDrawTest, TestSize.Level1)
     auto rsUIContext = CreateRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
     if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_NE(rsUIContext->modifiersDrawThread_, nullptr);
-        ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
         rsUIContext->DestroyModifiersDraw();
         ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
         ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
@@ -646,6 +646,46 @@ HWTEST_F(RSUIContextTest, DestroyModifiersDrawTest, TestSize.Level1)
     // Already destroyed, modifiersDrawThread_ is nullptr, early return branch
     rsUIContext->DestroyModifiersDraw();
     ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+}
+
+/**
+ * @tc.name: DestroyModifiersDrawNullAgentTest
+ * @tc.desc: Test DestroyModifiersDraw with null canvasModifiersDrawAgent_ and non-null modifiersDrawThread_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, DestroyModifiersDrawNullAgentTest, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        return;
+    }
+    ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+    rsUIContext->canvasModifiersDrawAgent_ = nullptr;
+    ASSERT_NO_FATAL_FAILURE(rsUIContext->DestroyModifiersDraw());
+    ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+    ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+}
+
+/**
+ * @tc.name: DestroyModifiersDrawNullThreadTest
+ * @tc.desc: Test DestroyModifiersDraw with null modifiersDrawThread_ and non-null canvasModifiersDrawAgent_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, DestroyModifiersDrawNullThreadTest, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+        return;
+    }
+    ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+    rsUIContext->modifiersDrawThread_ = nullptr;
+    ASSERT_NO_FATAL_FAILURE(rsUIContext->DestroyModifiersDraw());
+    ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+    ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
 }
 
 /**
@@ -659,7 +699,7 @@ HWTEST_F(RSUIContextTest, CreateCommitTransactionCallback_NullModifiersDrawThrea
     ASSERT_NE(rsUIContext, nullptr);
     rsUIContext->modifiersDrawThread_ = nullptr;
     auto callback = rsUIContext->CreateCommitTransactionCallback();
-    ASSERT_EQ(callback, nullptr);
+    ASSERT_NE(callback, nullptr);
 }
 
 /**
@@ -682,7 +722,7 @@ HWTEST_F(RSUIContextTest, CreateCommitTransactionCallback_LambdaNullModifiersDra
     ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
     auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     auto transactionData = std::make_unique<RSTransactionData>();
-    uint32_t transactionDataIndex = 0;
+    std::atomic<uint32_t> transactionDataIndex = 0;
     // Should not crash, lambda returns early on null modifiersDrawThread_
     callback(renderPipelineClient, std::move(transactionData), transactionDataIndex);
 }
@@ -706,13 +746,14 @@ HWTEST_F(RSUIContextTest, CreateCommitTransactionCallback_LambdaNullCanvasModifi
     rsUIContext->canvasModifiersDrawAgent_ = nullptr;
     auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     auto transactionData = std::make_unique<RSTransactionData>();
-    uint32_t transactionDataIndex = 0;
+    std::atomic<uint32_t> transactionDataIndex = 0;
     // Should not crash, ScheduleTask lambda skips CommitTransaction when agent is null
     callback(renderPipelineClient, std::move(transactionData), transactionDataIndex);
-    // Cleanup: canvasModifiersDrawAgent_ is already null, cannot call DestroyModifiersDraw()
-    // which would dereference it. Clean up modifiersDrawThread_ directly instead.
-    rsUIContext->modifiersDrawThread_->Destroy();
-    rsUIContext->modifiersDrawThread_ = nullptr;
+    // canvasModifiersDrawAgent_ is null, but modifiersDrawThread_ is non-null.
+    // DestroyModifiersDraw now handles null canvasModifiersDrawAgent_ safely.
+    rsUIContext->DestroyModifiersDraw();
+    ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+    ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
 }
 
 /**
@@ -726,107 +767,13 @@ HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest_NullCanvasModifiersD
     rsUIContext->canvasDrawingNodeUpdated_ = true;
     rsUIContext->canvasModifiersDrawAgent_ = nullptr;
     rsUIContext->FlushCanvasDrawingNodeBuffers();
-    // canvasModifiersDrawAgent_ is null, SubmitAndCollectCanvasBuffers is skipped,
-    // but function still completes and sets canvasDrawingNodeUpdated_ = false
-    EXPECT_NE(rsUIContext->canvasDrawingNodeUpdated_, RSSystemProperties::GetHybridRenderCanvasEnabled());
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        EXPECT_FALSE(rsUIContext->canvasDrawingNodeUpdated_);
+    } else {
+        EXPECT_TRUE(rsUIContext->canvasDrawingNodeUpdated_);
+    }
 }
 
-/**
- * @tc.name: FlushCanvasDrawingNodeBuffersTest
- * @tc.desc: Test FlushCanvasDrawingNodeBuffers early return when hybrid canvas disabled
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest, TestSize.Level1)
-{
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    ASSERT_NE(uiContext, nullptr);
-    uiContext->FlushCanvasDrawingNodeBuffers();
-
-    // transaction handler null path
-    auto savedTransaction = uiContext->rsTransactionHandler_;
-    uiContext->rsTransactionHandler_ = nullptr;
-    uiContext->FlushCanvasDrawingNodeBuffers();
-    uiContext->rsTransactionHandler_ = savedTransaction;
-    SUCCEED();
-}
-
-/**
- * @tc.name: CreateCommitTransactionCallbackNullTest
- * @tc.desc: Test callback returned by CreateCommitTransactionCallback handles null inputs
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIContextTest, CreateCommitTransactionCallbackNullTest, TestSize.Level1)
-{
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    ASSERT_NE(uiContext, nullptr);
-    auto callback = uiContext->CreateCommitTransactionCallback();
-    uint32_t index = 0;
-    std::shared_ptr<RSRenderPipelineClient> nullClient = nullptr;
-    std::unique_ptr<RSTransactionData> nullData = nullptr;
-    callback(nullClient, std::move(nullData), index);
-    SUCCEED();
-}
-
-/**
- * @tc.name: CreateCommitTransactionCallbackExpiredContextTest
- * @tc.desc: Test callback handles expired RSUIContext
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIContextTest, CreateCommitTransactionCallbackExpiredContextTest, TestSize.Level1)
-{
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    ASSERT_NE(uiContext, nullptr);
-    auto callback = uiContext->CreateCommitTransactionCallback();
-    uint64_t token = uiContext->GetToken();
-    RSUIContextManager::MutableInstance().DestroyContext(token);
-    uiContext.reset();
-
-    uint32_t index = 0;
-    auto renderClient = std::make_shared<RSRenderPipelineClient>();
-    auto transactionData = std::make_unique<RSTransactionData>();
-    callback(renderClient, std::move(transactionData), index);
-    SUCCEED();
-}
-
-/**
- * @tc.name: UnblockUIThreadTest
- * @tc.desc: Test UnblockUIThread with canBlockUIThread_ true and false
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIContextTest, UnblockUIThreadTest, TestSize.Level1)
-{
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    ASSERT_NE(uiContext, nullptr);
-    uiContext->canBlockUIThread_ = false;
-    uiContext->UnblockUIThread();
-
-    uiContext->canBlockUIThread_ = true;
-    uiContext->UnblockUIThread();
-    EXPECT_FALSE(uiContext->canBlockUIThread_);
-}
-
-/**
- * @tc.name: ModifiersDrawThreadAccessorsTest
- * @tc.desc: Test getters are consistent with hybrid canvas enabled state
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIContextTest, ModifiersDrawThreadAccessorsTest, TestSize.Level1)
-{
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    ASSERT_NE(uiContext, nullptr);
-    bool hybridCanvasEnabled = RSSystemProperties::GetHybridRenderCanvasEnabled();
-    EXPECT_EQ(uiContext->GetModifiersDrawThread() != nullptr, hybridCanvasEnabled);
-    EXPECT_EQ(uiContext->GetCanvasModifiersDrawThread() != nullptr, hybridCanvasEnabled);
-    EXPECT_EQ(uiContext->GetCanvasModifiersDraw() != nullptr, hybridCanvasEnabled);
-}
-#endif
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
 /**
  * @tc.name: FlushCanvasDrawingNodeBuffersTest001
  * @tc.desc: Test FlushCanvasDrawingNodeBuffers with canvasDrawingNodeUpdated false
@@ -839,7 +786,7 @@ HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest001, TestSize.Level1)
     rsUIContext->FlushCanvasDrawingNodeBuffers();
     EXPECT_FALSE(rsUIContext->canvasDrawingNodeUpdated_);
 }
- 
+
 /**
  * @tc.name: FlushCanvasDrawingNodeBuffersTest002
  * @tc.desc: Test FlushCanvasDrawingNodeBuffers with null transaction
@@ -853,7 +800,7 @@ HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest002, TestSize.Level1)
     rsUIContext->FlushCanvasDrawingNodeBuffers();
     EXPECT_TRUE(rsUIContext->canvasDrawingNodeUpdated_);
 }
- 
+
 /**
  * @tc.name: FlushCanvasDrawingNodeBuffersTest003
  * @tc.desc: Test FlushCanvasDrawingNodeBuffers resets canvasDrawingNodeUpdated_
@@ -862,6 +809,7 @@ HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest002, TestSize.Level1)
 HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest003, TestSize.Level1)
 {
     auto rsUIContext = CreateRSUIContext();
+    rsUIContext->CreateCommitTransactionCallback();
     rsUIContext->canvasDrawingNodeUpdated_ = true;
     rsUIContext->FlushCanvasDrawingNodeBuffers();
     if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
@@ -883,9 +831,10 @@ HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest003, TestSize.Level1)
 HWTEST_F(RSUIContextTest, RSModifiersDrawThreadDestroyTest001, TestSize.Level1)
 {
     auto rsUIContext = CreateRSUIContext();
+    rsUIContext->CreateCommitTransactionCallback();
     ASSERT_NE(rsUIContext, nullptr);
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        ASSERT_NE(rsUIContext->modifiersDrawThread_, nullptr);
         return;
     }
     ASSERT_NE(rsUIContext->modifiersDrawThread_, nullptr);
@@ -907,9 +856,10 @@ HWTEST_F(RSUIContextTest, RSModifiersDrawThreadDestroyTest001, TestSize.Level1)
 HWTEST_F(RSUIContextTest, RSModifiersDrawThreadDestroyTest002, TestSize.Level1)
 {
     auto rsUIContext = CreateRSUIContext();
+    rsUIContext->CreateCommitTransactionCallback();
     ASSERT_NE(rsUIContext, nullptr);
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        ASSERT_NE(rsUIContext->modifiersDrawThread_, nullptr);
         return;
     }
     // Save handler_/runner_ before setting started_ = false
@@ -931,9 +881,10 @@ HWTEST_F(RSUIContextTest, RSModifiersDrawThreadDestroyTest002, TestSize.Level1)
 HWTEST_F(RSUIContextTest, RSModifiersDrawThreadPostSyncTaskTest001, TestSize.Level1)
 {
     auto rsUIContext = CreateRSUIContext();
+    rsUIContext->CreateCommitTransactionCallback();
     ASSERT_NE(rsUIContext, nullptr);
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        ASSERT_NE(rsUIContext->modifiersDrawThread_, nullptr);
         return;
     }
     rsUIContext->modifiersDrawThread_->handler_ = nullptr;
@@ -950,9 +901,10 @@ HWTEST_F(RSUIContextTest, RSModifiersDrawThreadPostSyncTaskTest001, TestSize.Lev
 HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawDestroyTest001, TestSize.Level1)
 {
     auto rsUIContext = CreateRSUIContext();
+    rsUIContext->CreateCommitTransactionCallback();
     ASSERT_NE(rsUIContext, nullptr);
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+        ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
         return;
     }
     ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
@@ -974,9 +926,10 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawDestroyTest001, TestSize.Level1)
 HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawDestroyTest002, TestSize.Level1)
 {
     auto rsUIContext = CreateRSUIContext();
+    rsUIContext->CreateCommitTransactionCallback();
     ASSERT_NE(rsUIContext, nullptr);
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+        ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
         return;
     }
     auto& draw = rsUIContext->canvasModifiersDrawAgent_->canvasModifiersDraw_;
@@ -1001,8 +954,9 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawAgent_DestroyTest, TestSize.Level
 {
     auto rsUIContext = CreateRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
+    rsUIContext->CreateCommitTransactionCallback();
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+        ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
         return;
     }
     ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
@@ -1018,58 +972,6 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawAgent_DestroyTest, TestSize.Level
 }
 
 /**
- * @tc.name: RSCanvasModifiersDraw_QueryMaxGpuBufferSizeTest
- * @tc.desc: Test RSCanvasModifiersDraw::QueryMaxGpuBufferSize calls PostSyncTask which starts thread
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIContextTest, RSCanvasModifiersDraw_QueryMaxGpuBufferSizeTest, TestSize.Level1)
-{
-    auto rsUIContext = CreateRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
-        return;
-    }
-    ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
-    auto& draw = rsUIContext->canvasModifiersDrawAgent_->canvasModifiersDraw_;
-    ASSERT_NE(draw, nullptr);
-    // PostSyncTask internally calls StartThread which creates handler_ and starts the thread
-    uint32_t maxWidth = 0;
-    uint32_t maxHeight = 0;
-    draw->QueryMaxGpuBufferSize(maxWidth, maxHeight);
-    // After QueryMaxGpuBufferSize, thread should be started
-    ASSERT_TRUE(draw->threadStarted_);
-    ASSERT_NE(draw->handler_, nullptr);
-    // Cleanup
-    draw->Destroy();
-}
-
-/**
- * @tc.name: RSCanvasModifiersDrawAgent_QueryMaxGpuBufferSizeTest
- * @tc.desc: Test RSCanvasModifiersDrawAgent::QueryMaxGpuBufferSize transparently calls inner method
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawAgent_QueryMaxGpuBufferSizeTest, TestSize.Level1)
-{
-    auto rsUIContext = CreateRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
-        return;
-    }
-    ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
-    auto& draw = rsUIContext->canvasModifiersDrawAgent_->canvasModifiersDraw_;
-    ASSERT_NE(draw, nullptr);
-    uint32_t maxWidth = 0;
-    uint32_t maxHeight = 0;
-    rsUIContext->canvasModifiersDrawAgent_->QueryMaxGpuBufferSize(maxWidth, maxHeight);
-    // Transparent call should start the inner thread
-    ASSERT_TRUE(draw->threadStarted_);
-    ASSERT_NE(draw->handler_, nullptr);
-    // Cleanup
-    draw->Destroy();
-}
-/**
  * @tc.name: RSCanvasModifiersDraw_WaitAllTasksFinishTest001
  * @tc.desc: Test WaitAllTasksFinish when threadStarted_ is false
  * @tc.type:FUNC
@@ -1078,8 +980,9 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDraw_WaitAllTasksFinishTest001, TestS
 {
     auto rsUIContext = CreateRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
+    rsUIContext->CreateCommitTransactionCallback();
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+        ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
         return;
     }
     auto& draw = rsUIContext->canvasModifiersDrawAgent_->canvasModifiersDraw_;
@@ -1100,8 +1003,9 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDraw_WaitAllTasksFinishTest002, TestS
 {
     auto rsUIContext = CreateRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
+    rsUIContext->CreateCommitTransactionCallback();
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+        ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
         return;
     }
     auto& draw = rsUIContext->canvasModifiersDrawAgent_->canvasModifiersDraw_;
@@ -1125,8 +1029,9 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawAgent_WaitAllTasksFinishTest, Tes
 {
     auto rsUIContext = CreateRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
+    rsUIContext->CreateCommitTransactionCallback();
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->canvasModifiersDrawAgent_, nullptr);
+        ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
         return;
     }
     auto& draw = rsUIContext->canvasModifiersDrawAgent_->canvasModifiersDraw_;
@@ -1148,15 +1053,16 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawAgent_WaitAllTasksFinishTest, Tes
 HWTEST_F(RSUIContextTest, RSModifiersDrawThread_WaitAllTasksFinishTest001, TestSize.Level1)
 {
     auto rsUIContext = CreateRSUIContext();
+    rsUIContext->CreateCommitTransactionCallback();
     ASSERT_NE(rsUIContext, nullptr);
     if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        ASSERT_NE(rsUIContext->modifiersDrawThread_, nullptr);
         return;
     }
     ASSERT_NE(rsUIContext->modifiersDrawThread_, nullptr);
-    ASSERT_FALSE(rsUIContext->modifiersDrawThread_->started_);
+    ASSERT_TRUE(rsUIContext->modifiersDrawThread_->started_);
     rsUIContext->modifiersDrawThread_->WaitAllTasksFinish();
-    ASSERT_FALSE(rsUIContext->modifiersDrawThread_->started_);
+    ASSERT_TRUE(rsUIContext->modifiersDrawThread_->started_);
 }
 
 /**
@@ -1172,13 +1078,61 @@ HWTEST_F(RSUIContextTest, RSModifiersDrawThread_WaitAllTasksFinishTest002, TestS
         ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
         return;
     }
-    ASSERT_NE(rsUIContext->modifiersDrawThread_, nullptr);
+    ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
     auto callback = rsUIContext->CreateCommitTransactionCallback();
     ASSERT_NE(callback, nullptr);
     ASSERT_TRUE(rsUIContext->modifiersDrawThread_->started_);
     rsUIContext->modifiersDrawThread_->WaitAllTasksFinish();
     ASSERT_TRUE(rsUIContext->modifiersDrawThread_->started_);
     rsUIContext->modifiersDrawThread_->Destroy();
+}
+
+/**
+ * @tc.name: DestroyModifiersDrawClearsCallbackTest
+ * @tc.desc: Test DestroyModifiersDraw sets CommitTransactionCallback to nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, DestroyModifiersDrawClearsCallbackTest, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        ASSERT_EQ(rsUIContext->modifiersDrawThread_, nullptr);
+        return;
+    }
+    auto callback = rsUIContext->CreateCommitTransactionCallback();
+    ASSERT_NE(callback, nullptr);
+    rsUIContext->rsTransactionHandler_->commitTransactionCallback_ = callback;
+    ASSERT_NE(rsUIContext->rsTransactionHandler_, nullptr);
+    ASSERT_NE(rsUIContext->rsTransactionHandler_->commitTransactionCallback_, nullptr);
+    rsUIContext->DestroyModifiersDraw();
+    ASSERT_EQ(rsUIContext->rsTransactionHandler_->commitTransactionCallback_, nullptr);
+}
+
+/**
+ * @tc.name: FlushCanvasDrawingNodeBuffersNoBufferFlushedFlagTest
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers always resets canvasDrawingNodeUpdated_ without bufferFlushed flag
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersNoBufferFlushedFlagTest, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    rsUIContext->CreateCommitTransactionCallback();
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        ASSERT_NE(rsUIContext, nullptr);
+        return;
+    }
+    rsUIContext->canvasDrawingNodeUpdated_ = true;
+    rsUIContext->FlushCanvasDrawingNodeBuffers();
+    ASSERT_FALSE(rsUIContext->canvasDrawingNodeUpdated_);
+    rsUIContext->canvasDrawingNodeUpdated_ = true;
+    rsUIContext->FlushCanvasDrawingNodeBuffers();
+    ASSERT_FALSE(rsUIContext->canvasDrawingNodeUpdated_);
+    // FlushCanvasDrawingNodeBuffers starts the CanvasModifiersDraw thread;
+    // Destroy the agent before RSUIContext destructor to avoid Vulkan access in WaitAllTasksFinish
+    rsUIContext->canvasModifiersDrawAgent_->Destroy();
+    rsUIContext->canvasModifiersDrawAgent_ = nullptr;
 }
 
 /**

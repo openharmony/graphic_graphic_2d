@@ -27,7 +27,6 @@
 
 #include "command/rs_base_node_command.h"
 #include "common/rs_tunnel_layer_utils.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
@@ -247,6 +246,36 @@ void RSMainThreadTest::SetUpTestCase()
 
 void RSMainThreadTest::TearDownTestCase()
 {
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        mainThread.renderEngine_->skContext_ = nullptr;
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_->skContext_ = nullptr;
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread.uniRenderEngine_->gpuCacheManager_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
     std::this_thread::sleep_for(std::chrono::seconds(WAIT_HANDLER_TIME));
     RSMainThread::Instance()->hgmRenderContext_ = nullptr;
     RSMainThread::Instance()->rsVsyncManagerAgent_ = nullptr;
@@ -2150,6 +2179,7 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    mainThread->virtualScreenParallelManager_ = nullptr;
     // prepare nodes
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
@@ -3397,6 +3427,7 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes_KeepDirectSkipsRedundantVsyn
 
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
     ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->MarkTunnelLayerInfoReceived();
     surfaceHandler->SetAvailableBufferCount(1);
     mainThread->requestNextVsyncTime_ = -1;
 
@@ -4560,6 +4591,77 @@ HWTEST_F(RSMainThreadTest, UpdateScreenNodeScreenId004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateCompositionType_GlassesFree3D_2DVideo
+ * @tc.desc: Test UpdateCompositionType with MODE_GLASSESFREE_3D and 2D video should not set 3D type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, UpdateCompositionType_GlassesFree3D_2DVideo, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->InitRenderParams();
+    // GetVideoDimType() returns VIDEO_DIM_TYPE_2D when not on tree or no buffer
+    mainThread->UpdateCompositionType(surfaceNode, UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_NE(surfaceNode->GetCompositionType(), CompositionType::COMPOSITION_3D_GLASS_FREE);
+}
+
+/**
+ * @tc.name: UpdateCompositionType_GlassesFree3D_3DVideo
+ * @tc.desc: Test UpdateCompositionType with MODE_GLASSESFREE_3D and 3D video sets 3D composition type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, UpdateCompositionType_GlassesFree3D_3DVideo, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true);
+    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto buffer = surfaceHandler->GetBuffer();
+    ASSERT_NE(buffer, nullptr);
+    buffer->SetSurfaceBufferVideoDimensionType(VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    mainThread->UpdateCompositionType(surfaceNode, UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(surfaceNode->GetCompositionType(), CompositionType::COMPOSITION_3D_GLASS_FREE);
+}
+
+/**
+ * @tc.name: UpdateCompositionType_NullSurfaceNode
+ * @tc.desc: Test UpdateCompositionType with null surfaceNode returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, UpdateCompositionType_NullSurfaceNode, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    // Null surfaceNode should not crash
+    mainThread->UpdateCompositionType(nullptr, UIMode3D::MODE_GLASSESFREE_3D);
+}
+
+/**
+ * @tc.name: UpdateCompositionType_Mode2D
+ * @tc.desc: Test UpdateCompositionType with MODE_2D resets composition type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, UpdateCompositionType_Mode2D, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->InitRenderParams();
+    surfaceNode->SetCompositionType(CompositionType::COMPOSITION_3D_GLASS_FREE);
+    mainThread->UpdateCompositionType(surfaceNode, UIMode3D::MODE_2D);
+    // MODE_2D should reset composition type
+    EXPECT_NE(surfaceNode->GetCompositionType(), CompositionType::COMPOSITION_3D_GLASS_FREE);
+}
+
+/**
  * @tc.name: CheckSystemSceneStatus001
  * @tc.desc: Test CheckSystemSceneStatus, APPEAR_MISSION_CENTER
  * @tc.type: FUNC
@@ -4945,28 +5047,6 @@ HWTEST_F(RSMainThreadTest, GetDynamicRefreshRate002, TestSize.Level2)
 
 /**
  * @tc.name: OnUniRenderDraw
- * @tc.desc: test OnUniRenderDraw001, test isUniRender_ & doDirectComposition_ = false
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, OnUniRenderDraw001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    auto isUniRender = false;
-    mainThread->OnUniRenderDraw();
-    mainThread->isUniRender_ = true;
-    auto doDirectComposition = mainThread->doDirectComposition_ ;
-    mainThread->doDirectComposition_ = false;
-    mainThread->drawFrame_.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SYNC;
-    mainThread->OnUniRenderDraw();
-    mainThread->isUniRender_ = isUniRender;
-    mainThread->doDirectComposition_ = doDirectComposition;
-}
-
-/**
- * @tc.name: OnUniRenderDraw
  * @tc.desc: test OnUniRenderDraw002, doDirectComposition_ = true
  * @tc.type: FUNC
  * @tc.require: issueIAIPI3
@@ -5238,7 +5318,7 @@ HWTEST_F(RSMainThreadTest, HasMirrorDisplay003, TestSize.Level2)
     id++;
     displayNode3->isMirroredScreen_ = true;
     displayNode3->SetMirrorSource(mirrorSourceNode2);
-    displayNode2->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
+    displayNode2->compositeType_ = CompositeType::UNI_RENDER_VIRTUAL_MIRROR_COMPOSITE;
     node1->AddChild(displayNode3);
     node1->GenerateFullChildrenList();
 
@@ -6090,6 +6170,19 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
     EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // RESET
+    if (mainThread->renderEngine_) {
+        mainThread->renderEngine_->skContext_ = nullptr;
+        if (mainThread->renderEngine_->renderContext_) {
+            mainThread->renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread->renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread->renderEngine_->protectedRenderContext_) {
+            mainThread->renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread->renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread->renderEngine_->imageManager_ = nullptr;
+        mainThread->renderEngine_->gpuCacheManager_ = nullptr;
+    }
     mainThread->renderEngine_ = nullptr;
 }
 
@@ -6963,7 +7056,7 @@ HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 
     SurfaceFpsOp addOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
     SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 2, "test_surface2", 200};
@@ -6993,21 +7086,21 @@ HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
     EXPECT_TRUE(foundAdd);
     EXPECT_TRUE(foundRemove);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 }
 
 /**
- * @tc.name: RmvSurfaceFpsOpTest
- * @tc.desc: Test Func RmvSurfaceFpsOp with removal
+ * @tc.name: RemoveSurfaceFpsOpTest
+ * @tc.desc: Test Func RemoveSurfaceFpsOp with removal
  * @tc.type: FUNC
  * @tc.require: issue22921
  */
-HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, RemoveSurfaceFpsOpTest, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->addSurfaceFpsOpMap_.clear();
-    mainThread->rmvSurfaceFpsOpMap_.clear();
+    mainThread->removeSurfaceFpsOpMap_.clear();
 
     SurfaceFpsOp addOp1 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
     SurfaceFpsOp addOp2 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 2, "test_surface2", 200};
@@ -7018,10 +7111,10 @@ HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
     mainThread->AddSurfaceFpsOp(removeOp);
     mainThread->AddSurfaceFpsOp(otherOp);
 
-    std::vector<SurfaceFpsOp> rmvList;
-    rmvList.push_back(addOp1);
+    std::vector<SurfaceFpsOp> removeList;
+    removeList.push_back(addOp1);
 
-    mainThread->RmvSurfaceFpsOp(rmvList);
+    mainThread->RemoveSurfaceFpsOp(removeList);
     auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
     EXPECT_EQ(surfaceFpsOpList.size(), 2u);
 
@@ -7041,10 +7134,10 @@ HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
     EXPECT_TRUE(foundAdd2);
     EXPECT_TRUE(foundRemove);
 
-    rmvList.push_back(addOp2);
-    rmvList.push_back(removeOp);
-    rmvList.push_back(otherOp);
-    mainThread->RmvSurfaceFpsOp(rmvList);
+    removeList.push_back(addOp2);
+    removeList.push_back(removeOp);
+    removeList.push_back(otherOp);
+    mainThread->RemoveSurfaceFpsOp(removeList);
     surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
     EXPECT_EQ(surfaceFpsOpList.size(), 0u);
 }
@@ -7094,51 +7187,162 @@ HWTEST_F(RSMainThreadTest, InitCreatePipelineTimeCallbackTest001, TestSize.Level
     GTEST_LOG_(INFO) << "RSMainThreadTest InitCreatePipelineTimeCallbackTest001 end";
 }
 
-
 /**
- * @tc.name: HandleActiveRectOptionTest001
- * @tc.desc: Test HandleActiveRectOption with null property (activeRectProperty is nullptr)
+ * @tc.name: HandleProtectiveSolidNodeTest001
+ * @tc.desc: Test HandleProtectiveSolidNode with non-zero screenId early-returns
  * @tc.type: FUNC
  */
-HWTEST_F(RSMainThreadTest, HandleActiveRectOptionTest001, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, HandleProtectiveSolidNodeTest001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    ScreenId screenId = 0;
-    sptr<ScreenPropertyBase> property = nullptr;
-    mainThread->HandleActiveRectOption(screenId, property);
+    mainThread->HandleProtectiveSolidNode(1);
+    EXPECT_TRUE(mainThread->protectiveSolidNodeIdMap_.empty());
 }
 
 /**
- * @tc.name: HandleActiveRectOptionTest002
- * @tc.desc: Test HandleActiveRectOption with non-zero screenId should early return
+ * @tc.name: HandleProtectiveSolidNodeTest002
+ * @tc.desc: Test HandleProtectiveSolidNode early-returns on non-special-fold device
  * @tc.type: FUNC
  */
-HWTEST_F(RSMainThreadTest, HandleActiveRectOptionTest002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    ScreenId screenId = 1;
-    auto rect = activeRectValType(RectI(0, 0, 2232, 2128), RectI(), RectI());
-    sptr<ScreenPropertyBase> property = sptr<ScreenProperty<activeRectValType>>::MakeSptr(rect);
-    mainThread->HandleActiveRectOption(screenId, property);
-}
-
-/**
- * @tc.name: HandleActiveRectOptionTest003
- * @tc.desc: Test HandleActiveRectOption on primary screen with default fold type (not special fold)
- * @tc.type: FUNC
- */
-HWTEST_F(RSMainThreadTest, HandleActiveRectOptionTest003, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, HandleProtectiveSolidNodeTest002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     std::string origType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
-    ScreenId screenId = 0;
-    auto rect = activeRectValType(RectI(0, 0, 2232, 2128), RectI(), RectI());
-    sptr<ScreenPropertyBase> property = sptr<ScreenProperty<activeRectValType>>::MakeSptr(rect);
-    mainThread->HandleActiveRectOption(screenId, property);
+    mainThread->HandleProtectiveSolidNode(0);
+    EXPECT_TRUE(mainThread->protectiveSolidNodeIdMap_.empty());
+    system::SetParameter("const.window.foldscreen.type", origType);
+}
+
+/**
+ * @tc.name: HandleProtectiveSolidNodeTest003
+ * @tc.desc: Test HandleProtectiveSolidNode destroys node when inner screen powered off (fold to outer)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, HandleProtectiveSolidNodeTest003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    std::string origType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
+    if (!RSSystemProperties::IsSpecialFoldDisplay()) {
+        system::SetParameter("const.window.foldscreen.type", origType);
+        GTEST_SKIP() << "IsSpecialFoldDisplay already cached false, cannot exercise path";
+    }
+
+    ScreenId innerScreenId = 0;
+    NodeId displayId = static_cast<NodeId>(0x09000010);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, innerScreenId, rsContext);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
+
+    mainThread->CreateProtectiveSolidRenderNode(innerScreenId);
+    EXPECT_EQ(mainThread->protectiveSolidNodeIdMap_.count(innerScreenId), 1);
+    NodeId nodeId = mainThread->protectiveSolidNodeIdMap_[innerScreenId];
+
+    // fold to outer: inner powered off, active rect still N
+    screenNode->UpdateScreenProperty(ScreenPropertyType::POWER_STATUS,
+        sptr<ScreenProperty<uint32_t>>::MakeSptr(ScreenPowerStatus::POWER_STATUS_OFF));
+    screenNode->UpdateScreenProperty(
+        ScreenPropertyType::ACTIVE_RECT_OPTION, sptr<ScreenProperty<activeRectValType>>::MakeSptr(
+                                                    activeRectValType(RectI(0, 0, 2232, 1136), RectI(), RectI())));
+    mainThread->HandleProtectiveSolidNode(innerScreenId);
+
+    EXPECT_TRUE(mainThread->protectiveSolidNodeIdMap_.empty());
+    EXPECT_EQ(mainThread->GetContext().GetMutableNodeMap().GetRenderNode<RSProtectiveSolidRenderNode>(nodeId), nullptr);
+
+    mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
+    mainThread->protectiveSolidNodeIdMap_.clear();
+    system::SetParameter("const.window.foldscreen.type", origType);
+}
+
+/**
+ * @tc.name: HandleProtectiveSolidNodeTest004
+ * @tc.desc: Test HandleProtectiveSolidNode creates node when inner powered on in N state (fold to inner)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, HandleProtectiveSolidNodeTest004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    std::string origType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
+    if (!RSSystemProperties::IsSpecialFoldDisplay()) {
+        system::SetParameter("const.window.foldscreen.type", origType);
+        GTEST_SKIP() << "IsSpecialFoldDisplay already cached false, cannot exercise path";
+    }
+
+    ScreenId innerScreenId = 0;
+    NodeId displayId = static_cast<NodeId>(0x09000011);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, innerScreenId, rsContext);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
+
+    screenNode->UpdateScreenProperty(
+        ScreenPropertyType::POWER_STATUS, sptr<ScreenProperty<uint32_t>>::MakeSptr(ScreenPowerStatus::POWER_STATUS_ON));
+    screenNode->UpdateScreenProperty(
+        ScreenPropertyType::ACTIVE_RECT_OPTION, sptr<ScreenProperty<activeRectValType>>::MakeSptr(
+                                                    activeRectValType(RectI(0, 0, 2232, 1136), RectI(), RectI())));
+    mainThread->HandleProtectiveSolidNode(innerScreenId);
+
+    EXPECT_EQ(mainThread->protectiveSolidNodeIdMap_.count(innerScreenId), 1);
+    NodeId nodeId = mainThread->protectiveSolidNodeIdMap_[innerScreenId];
+    auto node = mainThread->GetContext().GetMutableNodeMap().GetRenderNode<RSProtectiveSolidRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto bounds = node->GetRenderProperties().GetBounds();
+    EXPECT_EQ(bounds.x_, 0.0f);
+    EXPECT_EQ(bounds.y_, 1136.0f);
+    EXPECT_EQ(bounds.z_, 2232.0f);
+    EXPECT_EQ(bounds.w_, 200.0f);
+
+    mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
+    mainThread->protectiveSolidNodeIdMap_.clear();
+    system::SetParameter("const.window.foldscreen.type", origType);
+}
+
+/**
+ * @tc.name: HandleProtectiveSolidNodeTest005
+ * @tc.desc: Test HandleProtectiveSolidNode destroys node when active rect is not N state (LM mode)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, HandleProtectiveSolidNodeTest005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    std::string origType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
+    if (!RSSystemProperties::IsSpecialFoldDisplay()) {
+        system::SetParameter("const.window.foldscreen.type", origType);
+        GTEST_SKIP() << "IsSpecialFoldDisplay already cached false, cannot exercise path";
+    }
+
+    ScreenId innerScreenId = 0;
+    NodeId displayId = static_cast<NodeId>(0x09000012);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, innerScreenId, rsContext);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
+
+    mainThread->CreateProtectiveSolidRenderNode(innerScreenId);
+    NodeId nodeId = mainThread->protectiveSolidNodeIdMap_[innerScreenId];
+
+    // LM mode rect (not N), inner powered on -> destroy
+    screenNode->UpdateScreenProperty(
+        ScreenPropertyType::POWER_STATUS, sptr<ScreenProperty<uint32_t>>::MakeSptr(ScreenPowerStatus::POWER_STATUS_ON));
+    screenNode->UpdateScreenProperty(
+        ScreenPropertyType::ACTIVE_RECT_OPTION, sptr<ScreenProperty<activeRectValType>>::MakeSptr(
+                                                    activeRectValType(RectI(0, 0, 2232, 2128), RectI(), RectI())));
+    mainThread->HandleProtectiveSolidNode(innerScreenId);
+
+    EXPECT_TRUE(mainThread->protectiveSolidNodeIdMap_.empty());
+    EXPECT_EQ(mainThread->GetContext().GetMutableNodeMap().GetRenderNode<RSProtectiveSolidRenderNode>(nodeId), nullptr);
+
+    mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
+    mainThread->protectiveSolidNodeIdMap_.clear();
     system::SetParameter("const.window.foldscreen.type", origType);
 }
 
@@ -7158,10 +7362,11 @@ HWTEST_F(RSMainThreadTest, CreateProtectiveSolidRenderNodeTest001, TestSize.Leve
     auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, rsContext);
     mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
 
-    auto node = mainThread->CreateProtectiveSolidRenderNode(screenId);
-    EXPECT_NE(node, nullptr);
+    mainThread->CreateProtectiveSolidRenderNode(screenId);
     EXPECT_EQ(mainThread->protectiveSolidNodeIdMap_.count(screenId), 1);
-    EXPECT_EQ(mainThread->protectiveSolidNodeIdMap_[screenId], node->GetId());
+    NodeId nodeId = mainThread->protectiveSolidNodeIdMap_[screenId];
+    auto node = mainThread->GetContext().GetMutableNodeMap().GetRenderNode<RSProtectiveSolidRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
 
     mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
     mainThread->protectiveSolidNodeIdMap_.clear();
@@ -7183,10 +7388,11 @@ HWTEST_F(RSMainThreadTest, CreateProtectiveSolidRenderNodeTest002, TestSize.Leve
     auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, rsContext);
     mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
 
-    auto node1 = mainThread->CreateProtectiveSolidRenderNode(screenId);
-    ASSERT_NE(node1, nullptr);
-    auto node2 = mainThread->CreateProtectiveSolidRenderNode(screenId);
-    EXPECT_EQ(node1, node2);
+    mainThread->CreateProtectiveSolidRenderNode(screenId);
+    NodeId nodeId1 = mainThread->protectiveSolidNodeIdMap_[screenId];
+    mainThread->CreateProtectiveSolidRenderNode(screenId);
+    NodeId nodeId2 = mainThread->protectiveSolidNodeIdMap_[screenId];
+    EXPECT_EQ(nodeId1, nodeId2);
 
     mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
     mainThread->protectiveSolidNodeIdMap_.clear();
@@ -7204,8 +7410,7 @@ HWTEST_F(RSMainThreadTest, CreateProtectiveSolidRenderNodeTest003, TestSize.Leve
     ASSERT_NE(mainThread->context_, nullptr);
     ScreenId screenId = 999;
 
-    auto node = mainThread->CreateProtectiveSolidRenderNode(screenId);
-    EXPECT_NE(node, nullptr);
+    mainThread->CreateProtectiveSolidRenderNode(screenId);
     EXPECT_EQ(mainThread->protectiveSolidNodeIdMap_.count(screenId), 1);
 
     mainThread->protectiveSolidNodeIdMap_.clear();
@@ -7253,9 +7458,8 @@ HWTEST_F(RSMainThreadTest, DestroyProtectiveSolidRenderNodeTest003, TestSize.Lev
     auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, rsContext);
     mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
 
-    auto node = mainThread->CreateProtectiveSolidRenderNode(screenId);
-    ASSERT_NE(node, nullptr);
-    NodeId nodeId = node->GetId();
+    mainThread->CreateProtectiveSolidRenderNode(screenId);
+    NodeId nodeId = mainThread->protectiveSolidNodeIdMap_[screenId];
 
     mainThread->DestroyProtectiveSolidRenderNode(screenId, nodeId);
     auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
@@ -7368,6 +7572,549 @@ HWTEST_F(RSMainThreadTest, GetProtectiveSolidDrawables002, TestSize.Level1)
     EXPECT_EQ(std::get<1>(drawables[0]), 2);
 
     mainThread->protectiveSolidDrawables_.clear();
+}
+
+// ====================== Split/Rebuild Transaction (per-pid) tests ======================
+
+static std::unique_ptr<RSTransactionData> MakeRebuildTransactionForTest(pid_t pid)
+{
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetSendingPid(pid);
+    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    return txn;
+}
+
+static std::unique_ptr<RSTransactionData> MakeNormalTransactionForTest(pid_t pid)
+{
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetSendingPid(pid);
+    return txn;
+}
+
+/**
+ * @tc.name: IsPidRebuilding001
+ * @tc.desc: Test IsPidRebuilding / IsRebuildTransactionInProgress reflect per-pid rebuild state
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, IsPidRebuilding001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1000;
+    constexpr pid_t pidB = 2000;
+    EXPECT_FALSE(mainThread->IsRebuildTransactionInProgress());
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    EXPECT_TRUE(mainThread->IsRebuildTransactionInProgress());
+    EXPECT_TRUE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidB));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_FALSE(mainThread->IsRebuildTransactionInProgress());
+}
+
+/**
+ * @tc.name: AddSplitTransaction001
+ * @tc.desc: Test AddSplitTransaction queues per-pid and records startTimeMs only on empty->non-empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddSplitTransaction001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1100;
+    constexpr pid_t pidB = 1200;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    auto& stateA = mainThread->pendingSplitTransactions_[pidA];
+    EXPECT_EQ(stateA.transactions.size(), 1u);
+    EXPECT_GT(stateA.startTimeMs, 0.0f);
+    float firstStartA = stateA.startTimeMs;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    EXPECT_EQ(mainThread->pendingSplitTransactions_[pidA].transactions.size(), 2u);
+    EXPECT_EQ(mainThread->pendingSplitTransactions_[pidA].startTimeMs, firstStartA);
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidB));
+    EXPECT_TRUE(mainThread->IsPidRebuilding(pidB));
+    EXPECT_GT(mainThread->pendingSplitTransactions_[pidB].startTimeMs, 0.0f);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: AddSplitTransaction002
+ * @tc.desc: Test AddSplitTransaction uses trusted callingPid (not forgeable sendingPid) as map key
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddSplitTransaction002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t callingPid = 2100;
+    constexpr pid_t sendingPid = 2200;
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetCallingPid(callingPid);
+    txn->SetSendingPid(sendingPid);
+    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(txn));
+    EXPECT_TRUE(mainThread->IsPidRebuilding(callingPid));
+    EXPECT_FALSE(mainThread->IsPidRebuilding(sendingPid));
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands001
+ * @tc.desc: Test ProcessSplitTransactionCommands early-returns when map is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    EXPECT_FALSE(mainThread->IsRebuildTransactionInProgress());
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsRebuildTransactionInProgress());
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands002
+ * @tc.desc: Test single pid rebuild drains and erases the entry
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1300;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands003
+ * @tc.desc: Test multiple pids rebuild independently; both drain in one pass
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1400;
+    constexpr pid_t pidB = 1500;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidB));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidB));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidB));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands004
+ * @tc.desc: Test null transaction at front is popped and loop continues
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1600;
+    std::unique_ptr<RSTransactionData> nullTxn;
+    mainThread->pendingSplitTransactions_[pidA].transactions.push_back(std::move(nullTxn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands005
+ * @tc.desc: Test a single pid's multiple transactions are processed back-to-back in one frame
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2400;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    ASSERT_EQ(mainThread->pendingSplitTransactions_[pidA].transactions.size(), 3u);
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands006
+ * @tc.desc: Test empty-deque map entry is erased via the defensive check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2500;
+    // inject an entry with an empty transactions deque (defensive branch)
+    mainThread->pendingSplitTransactions_[pidA];
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands007
+ * @tc.desc: Test time-check entry true / time-slice false / command process true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands007, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2600;
+    auto txn = MakeRebuildTransactionForTest(pidA);
+    txn->payload_.resize(1);
+    txn->payload_[0] = std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>(
+        0, FollowType::NONE, std::make_unique<RSBaseNodeAddChild>(0, 1, 3));
+    mainThread->AddSplitTransaction(std::move(txn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands008
+ * @tc.desc: Test command process false branch (null command in payload)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands008, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2700;
+    auto txn = MakeRebuildTransactionForTest(pidA);
+    txn->payload_.resize(1);
+    txn->payload_[0] = std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>(0, FollowType::NONE, nullptr);
+    mainThread->AddSplitTransaction(std::move(txn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands009
+ * @tc.desc: Test isTotalTimeExceeded true skips the time-slice check (force-finish)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands009, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2800;
+    auto txn = MakeRebuildTransactionForTest(pidA);
+    txn->payload_.resize(1);
+    txn->payload_[0] = std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>(
+        0, FollowType::NONE, std::make_unique<RSBaseNodeAddChild>(0, 1, 3));
+    mainThread->AddSplitTransaction(std::move(txn));
+    // force isTotalTimeExceeded=true (startTimeMs far in the past) to skip the time-slice check
+    mainThread->pendingSplitTransactions_[pidA].startTimeMs = 0.0f;
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+}
+
+/**
+ * @tc.name: ProcessSplitTransactionCommands010
+ * @tc.desc: Test rebuild drain resets isRebuildingState_ on the pid's surface nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessSplitTransactionCommands010, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2900;
+    constexpr NodeId surfaceId = MakeNodeId(pidA, 1);
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    ASSERT_NE(nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceId), nullptr);
+    surfaceNode->isRebuildingState_ = true;
+
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_FALSE(surfaceNode->isRebuildingState_);
+
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: ProcessRSTransactionData001
+ * @tc.desc: Test rebuild-scene transaction is routed to AddSplitTransaction
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessRSTransactionData001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1700;
+    auto txn = MakeRebuildTransactionForTest(pidA);
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    mainThread->ProcessRSTransactionData(txn, pidA);
+    EXPECT_TRUE(mainThread->IsPidRebuilding(pidA));
+    mainThread->pendingSplitTransactions_.clear();
+}
+
+/**
+ * @tc.name: ProcessRSTransactionData002
+ * @tc.desc: Test normal transaction during rebuild is cached per-pid, not processed immediately
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessRSTransactionData002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1800;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    auto normalTxn = MakeNormalTransactionForTest(pidA);
+    mainThread->ProcessRSTransactionData(normalTxn, pidA);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_[pidA].size(), 1u);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: ProcessRSTransactionData003
+ * @tc.desc: Test normal transaction with no rebuild in progress is not cached
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessRSTransactionData003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 1900;
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    auto normalTxn = MakeNormalTransactionForTest(pidA);
+    mainThread->ProcessRSTransactionData(normalTxn, pidA);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+}
+
+/**
+ * @tc.name: ProcessRSTransactionData004
+ * @tc.desc: Test rebuild deferral uses trusted callingPid, not the untrusted pid param (from sendingPid)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessRSTransactionData004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t callingPid = 2300;
+    constexpr pid_t sendingPid = 2400;
+    auto rebuildTxn = std::make_unique<RSTransactionData>();
+    rebuildTxn->SetCallingPid(callingPid);
+    rebuildTxn->SetSendingPid(sendingPid);
+    rebuildTxn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(rebuildTxn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(callingPid));
+    auto normalTxn = std::make_unique<RSTransactionData>();
+    normalTxn->SetCallingPid(callingPid);
+    normalTxn->SetSendingPid(sendingPid);
+    mainThread->ProcessRSTransactionData(normalTxn, sendingPid);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(callingPid), 1u);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_[callingPid].size(), 1u);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(sendingPid), 0u);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: ProcessPendingCommandsDuringRebuild001
+ * @tc.desc: Test ProcessPendingCommandsDuringRebuild is a no-op when nothing cached
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessPendingCommandsDuringRebuild001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2000;
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+    mainThread->ProcessPendingCommandsDuringRebuild(pidA);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+}
+
+/**
+ * @tc.name: ProcessPendingCommandsDuringRebuild002
+ * @tc.desc: Test ProcessPendingCommandsDuringRebuild replays and erases cached transactions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessPendingCommandsDuringRebuild002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2100;
+    mainThread->pendingCommandsDuringRebuild_[pidA].emplace_back(MakeNormalTransactionForTest(pidA));
+    ASSERT_EQ(mainThread->pendingCommandsDuringRebuild_[pidA].size(), 1u);
+    mainThread->ProcessPendingCommandsDuringRebuild(pidA);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+}
+
+/**
+ * @tc.name: CleanResourcesRebuildState001
+ * @tc.desc: Test CleanResources(pid) erases only that pid's rebuild state, leaving other pids intact
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CleanResourcesRebuildState001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+    constexpr pid_t pidA = 2200;
+    constexpr pid_t pidB = 2300;
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidA));
+    mainThread->AddSplitTransaction(MakeRebuildTransactionForTest(pidB));
+    mainThread->pendingCommandsDuringRebuild_[pidA].emplace_back(MakeNormalTransactionForTest(pidA));
+    mainThread->pendingCommandsDuringRebuild_[pidB].emplace_back(MakeNormalTransactionForTest(pidB));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidA));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(pidB));
+    mainThread->CleanResources(pidA, false);
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidA));
+    EXPECT_TRUE(mainThread->IsPidRebuilding(pidB));
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidA), 0u);
+    EXPECT_EQ(mainThread->pendingCommandsDuringRebuild_.count(pidB), 1u);
+    mainThread->CleanResources(pidB, false);
+    EXPECT_FALSE(mainThread->IsPidRebuilding(pidB));
+    mainThread->pendingSplitTransactions_.clear();
+    mainThread->pendingCommandsDuringRebuild_.clear();
+}
+
+/**
+ * @tc.name: SetUIMode3D_001
+ * @tc.desc: Test SetUIMode3D with MODE_2D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetUIMode3D_001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_2D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_2D);
+}
+
+/**
+ * @tc.name: SetUIMode3D_002
+ * @tc.desc: Test SetUIMode3D with MODE_SHUTTER_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetUIMode3D_002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+}
+
+/**
+ * @tc.name: SetUIMode3D_003
+ * @tc.desc: Test SetUIMode3D with MODE_GLASSESFREE_3D
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetUIMode3D_003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+}
+
+/**
+ * @tc.name: SetUIMode3D_004
+ * @tc.desc: Test SetUIMode3D with sequential mode changes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SetUIMode3D_004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_2D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_2D);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+
+    mainThread->SetUIMode3D(UIMode3D::MODE_2D);
+    EXPECT_EQ(mainThread->GetUIMode3D(), UIMode3D::MODE_2D);
 }
 
 } // namespace OHOS::Rosen

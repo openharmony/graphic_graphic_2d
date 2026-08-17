@@ -14,6 +14,7 @@
  */
 
 #include "ani_font.h"
+#include "ani_drawing_transfer_util.h"
 
 #include "path_ani/ani_path.h"
 #include "typeface_ani/ani_typeface.h"
@@ -153,7 +154,7 @@ ani_status AniFont::AniInit(ani_env *env)
 
     std::array staticMethods = {
         ani_native_function { "fontTransferStaticNative", nullptr, reinterpret_cast<void*>(FontTransferStatic) },
-        ani_native_function { "getFontAddr", nullptr, reinterpret_cast<void*>(GetFontAddr) },
+        ani_native_function { "fontTransferDynamicNative", nullptr, reinterpret_cast<void*>(FontTransferDynamic) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
@@ -484,6 +485,23 @@ void AniFont::SetForceAutoHinting(ani_env* env, ani_object obj, ani_boolean isFo
     aniFont->GetFont()->SetForceAutoHinting(forceAutoHinting);
 }
 
+std::unique_ptr<uint16_t[]> GetGlyphArrayFromAni(ani_env* env, ani_array glyphs, uint32_t count)
+{
+    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(count);
+    for (uint32_t i = 0; i < count; i++) {
+        ani_int glyph;
+        ani_ref glyphRef;
+        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
+            ANI_OK != env->Object_CallMethod_Int(
+                static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
+            ROSEN_LOGE("AniFont Incorrect parameter glyph type.");
+            return nullptr;
+        }
+        glyphPtr[i] = glyph;
+    }
+    return glyphPtr;
+}
+
 ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_array glyphs)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
@@ -498,17 +516,13 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_array glyphs)
         return CreateAniUndefined(env);
     }
     uint32_t fontSize = static_cast<uint32_t>(aniLength);
-    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(fontSize);
-    for (uint32_t i = 0; i < fontSize; i++) {
-        ani_int glyph;
-        ani_ref glyphRef;
-        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
-            ANI_OK != env->Object_CallMethod_Int(
-                static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
-            ROSEN_LOGE("AniFont::GetWidths Incorrect parameter glyph type.");
-            return CreateAniUndefined(env);
-        }
-        glyphPtr[i] = glyph;
+    if (fontSize > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("AniFont::GetWidths size of glyph array exceeds the upper limit");
+        return CreateAniUndefined(env);
+    }
+    auto glyphPtr = GetGlyphArrayFromAni(env, glyphs, fontSize);
+    if (glyphPtr == nullptr) {
+        return CreateAniUndefined(env);
     }
 
     std::shared_ptr<Font> font = aniFont->GetFont();
@@ -810,17 +824,13 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_array glyphs)
     }
     
     uint32_t glyphscnt = static_cast<uint32_t>(aniLength);
-    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(glyphscnt);
-    for (uint32_t i = 0; i < glyphscnt; i++) {
-        ani_int glyph;
-        ani_ref glyphRef;
-        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
-            ANI_OK != env->Object_CallMethod_Int(
-                static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
-            ROSEN_LOGE("AniFont::GetBounds Incorrect parameter glyph type.");
-            return CreateAniUndefined(env);
-        }
-        glyphPtr[i] = glyph;
+    if (glyphscnt > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("AniFont::GetBounds size of glyph array exceeds the upper limit");
+        return CreateAniUndefined(env);
+    }
+    auto glyphPtr = GetGlyphArrayFromAni(env, glyphs, glyphscnt);
+    if (glyphPtr == nullptr) {
+        return CreateAniUndefined(env);
     }
 
     std::shared_ptr<Font> font = aniFont->GetFont();
@@ -926,54 +936,48 @@ ani_boolean AniFont::IsThemeFontFollowed(ani_env* env, ani_object obj)
 
 
 ani_object AniFont::FontTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniFont::FontTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniFont::FontTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsFont = reinterpret_cast<JsFont*>(unwrapResult);
-    if (jsFont->GetFont() == nullptr) {
-        ROSEN_LOGE("AniFont::FontTransferStatic jsFont is null");
-        return CreateAniUndefined(env);
-    }
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsFont = reinterpret_cast<JsFont*>(unwrapResult);
+        if (jsFont == nullptr || jsFont->GetFont() == nullptr) {
+            ROSEN_LOGE("AniFont::FontTransferStatic jsFont is null");
+            return CreateAniUndefined(env);
+        }
 
-    auto aniFont = new AniFont(jsFont->GetFont());
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().font,
-        AniGlobalMethod::GetInstance().fontCtorWithPtr, reinterpret_cast<ani_long>(aniFont));
-    if (IsUndefined(env, aniObj)) {
-        ROSEN_LOGE("AniFont::FontTransferStatic failed create aniFont");
-        delete aniFont;
-        return CreateAniUndefined(env);
-    }
-    return aniObj;
+        auto aniFont = new AniFont(jsFont->GetFont());
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().font,
+            AniGlobalMethod::GetInstance().fontCtorWithPtr, reinterpret_cast<ani_long>(aniFont));
+        if (IsUndefined(env, aniObj)) {
+            ROSEN_LOGE("AniFont::FontTransferStatic failed create aniFont");
+            delete aniFont;
+            return CreateAniUndefined(env);
+        }
+        return aniObj;
+    });
 }
 
-ani_long AniFont::GetFontAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniFont::FontTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, input, AniGlobalField::GetInstance().fontNativeObj);
-    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
-        ROSEN_LOGE("AniFont::GetFontAddr aniFont is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().font)) {
+        return CreateAniUndefined(aniEnv);
     }
-
-    return reinterpret_cast<ani_long>(aniFont->GetFontPtrAddr());
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniFont = GetNativeFromObj<AniFont>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().fontNativeObj);
+            if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
+                ROSEN_LOGE("AniFont::FontTransferDynamic null aniFont");
+                return nullptr;
+            }
+            return JsFont::CreateFontDynamic(napiEnv, aniFont->GetFont());
+        });
 }
 
 std::shared_ptr<Font> AniFont::GetFont()
 {
     return font_;
-}
-
-std::shared_ptr<Font>* AniFont::GetFontPtrAddr()
-{
-    return &font_;
 }
 
 AniFont::~AniFont()

@@ -45,12 +45,7 @@ public:
     void TearDown() override;
 };
 
-void NdkFontTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NdkFontTest::SetUpTestCase() {}
 void NdkFontTest::TearDownTestCase() {}
 void NdkFontTest::SetUp() {}
 void NdkFontTest::TearDown() {}

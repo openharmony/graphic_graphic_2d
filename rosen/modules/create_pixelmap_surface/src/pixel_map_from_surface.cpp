@@ -24,6 +24,7 @@
 #include <scoped_bytrace.h>
 #include <string>
 #include "common/rs_background_thread.h"
+#include "common/rs_common_def.h"
 #include "draw/canvas.h"
 #include "image/image.h"
 #include "native_window.h"
@@ -74,7 +75,6 @@ constexpr Drawing::scalar ROTATE_90 = 90.0f;
 constexpr Drawing::scalar ROTATE_180 = 180.0f;
 constexpr Drawing::scalar ROTATE_270 = 270.0f;
 
-#ifdef RS_ENABLE_GPU
 // LCOV_EXCL_START
 static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_t &height,
     const std::unique_ptr<Media::PixelMap>& pixelmap)
@@ -114,7 +114,6 @@ static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_
     return surfaceBuffer;
 #endif
 }
-#endif
 
 #if defined(RS_ENABLE_GL)
 class DmaMem {
@@ -168,7 +167,6 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
         }
     }
     EGLint attrs[] = { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE, };
-
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (disp == EGL_NO_DISPLAY) {
         RS_LOGE("egl get display fail in GetSkSurfaceFromSurfaceBuffer");
@@ -209,8 +207,7 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
 #endif
     return skSurface;
 }
-#endif
-// LCOV_EXCL_STOP
+#endif // LCOV_EXCL_STOP
 
 class PixelMapFromSurface {
 public:
@@ -303,7 +300,7 @@ void PixelMapFromSurface::Clear() noexcept
     surfaceBuffer_ = nullptr;
     surface_ = nullptr;
 
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) // LCOV_EXCL_START
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         if (texId_ != 0U) {
             glDeleteTextures(1, &texId_);
@@ -316,7 +313,7 @@ void PixelMapFromSurface::Clear() noexcept
             }
         }
     }
-#endif
+#endif // LCOV_EXCL_STOP
 
     if (nativeWindowBuffer_ != nullptr) {
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
@@ -324,7 +321,6 @@ void PixelMapFromSurface::Clear() noexcept
     }
 }
 
-// LCOV_EXCL_START
 #if defined(RS_ENABLE_VK)
 static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
@@ -343,6 +339,7 @@ static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 }
 #endif
 
+// LCOV_EXCL_START
 #if defined(RS_ENABLE_GL)
 std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreatePixelMapForGL(
     sk_sp<GrDirectContext> grContext, const OHOS::Media::Rect &srcRect)
@@ -410,23 +407,20 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::GetPixelMapForGL(con
         RS_LOGE("GetPixelMapForGL nativeWindowBuffer_ or surfaceBuffer_ is null");
         return nullptr;
     }
-
     auto gpuContext = RSBackgroundThread::Instance().GetShareGPUContext();
     if (!gpuContext) {
         RS_LOGE("get gpuContext  fail");
         return nullptr;
     }
-
     sk_sp<GrDirectContext> grContext = nullptr;
     auto skiaGpuContext = gpuContext->GetImpl<Drawing::SkiaGPUContext>();
     if (skiaGpuContext) {
         grContext = skiaGpuContext->GetGrContext();
     }
     if (!grContext) {
-        RS_LOGE("get gpuContext  fail");
+        RS_LOGE("get grContext  fail");
         return nullptr;
     }
-
     if (!CreateEGLImage()) {
         return nullptr;
     }
@@ -477,8 +471,14 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(surfaceBuffer_->GetFormat());
     if (pixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
         pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
-        auto sx = dstRect.GetWidth() / srcDrawRect.GetWidth();
-        auto sy = dstRect.GetHeight() / srcDrawRect.GetHeight();
+        auto srcWidth = srcDrawRect.GetWidth();
+        auto srcHeight = srcDrawRect.GetHeight();
+        if (ROSEN_LE(srcWidth, 0.0f) || ROSEN_LE(srcHeight, 0.0f)) {
+            RS_LOGE("[PixelMapFromSurface] CanvasDrawImage srcRect width or height is invalid");
+            return false;
+        }
+        auto sx = dstRect.GetWidth() / srcWidth;
+        auto sy = dstRect.GetHeight() / srcHeight;
         auto tx = dstRect.GetLeft() - srcDrawRect.GetLeft() * sx;
         auto ty = dstRect.GetTop() - srcDrawRect.GetTop() * sy;
         matrix.SetScaleTranslate(sx, sy, tx, ty);
@@ -518,10 +518,13 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
 {
 #if defined(RS_ENABLE_VK)
     ScopedBytrace trace1(__func__);
-    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
+    auto renderContext = RSBackgroundThread::Instance().GetRenderContext();
+    if (renderContext == nullptr) {
+        RS_LOGE("DrawImageRectVK renderContext is null");
         return false;
     }
     Drawing::BackendTexture backendTextureTmp = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
         nativeWindowBufferTmp, surfaceBufferTmp->GetWidth(), surfaceBufferTmp->GetHeight());
     if (!backendTextureTmp.IsValid()) {
         return false;
@@ -531,11 +534,10 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         return false;
     }
     vkTextureInfo->imageUsageFlags = vkTextureInfo->imageUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    auto cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+
+    auto cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
+        RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
         vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
-    if (cleanUpHelper == nullptr) {
-        return false;
-    }
     std::shared_ptr<Drawing::Surface> drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         RSBackgroundThread::Instance().GetShareGPUContext().get(),
         backendTextureTmp.GetTextureInfo(),
@@ -564,11 +566,14 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
 {
 #if defined(RS_ENABLE_VK) && defined(RS_ENABLE_UNI_RENDER)
     ScopedBytrace trace(__func__);
-    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
+    auto renderContext = RSBackgroundThread::Instance().GetRenderContext();
+    if (renderContext == nullptr) {
+        RS_LOGE("CreateDrawingImage renderContext is null");
         return nullptr;
     }
-    backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-        surfaceBuffer_->GetWidth(), surfaceBuffer_->GetHeight());
+    backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
+        nativeWindowBuffer_, surfaceBuffer_->GetWidth(), surfaceBuffer_->GetHeight());
     if (!backendTexture_.IsValid()) {
         RS_LOGE("make backendTexture fail");
         return nullptr;
@@ -580,13 +585,9 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
     }
 
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper =
-        new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
-    if (!cleanUpHelper) {
-        RS_LOGE("make cleanUpHelper fail");
-        return nullptr;
-    }
-
+        new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
+            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     Drawing::BitmapFormat bitmapFormat = { GetColorTypeFromVKFormat(vkTextureInfo->format),
         Drawing::AlphaType::ALPHATYPE_PREMUL };
     std::shared_ptr<Drawing::Image> drawingImage = std::make_shared<Drawing::Image>();
@@ -659,7 +660,7 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::GetPixelMapForVK(con
     options.pixelFormat = PixelFormat::RGBA_8888;
     auto pixelMap = PixelMap::Create(options);
     if (!pixelMap) {
-        RS_LOGE("create pixelMap fail in CreateForVK");
+        RS_LOGE("create pixelMap fail in GetPixcelMapForVK");
         return nullptr;
     }
 
@@ -892,7 +893,7 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
         RS_LOGE("surfaceBuffer check GPUContext fail");
         return nullptr;
     }
-#endif
+#endif // LCOV_EXCL_START
     RS_LOGI("PixelMapFromSurface::Create surfaceBuffer srcRect[%{public}d, %{public}d, %{public}d, %{public}d]",
         srcRect.left, srcRect.top, srcRect.width, srcRect.height);
 
@@ -914,7 +915,7 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
         RS_LOGE("surfaceBuffer Create pixelMap fail");
         Clear();
     }
-    return pixelMap;
+    return pixelMap; // LCOV_EXCL_STOP
 }
 
 void PixelMapFromSurface::SetRotationEnabled(bool transformEnabled)
@@ -1049,7 +1050,7 @@ bool PixelMapFromSurface::ShouldSwapDimensions()
         transform_ == GraphicTransformType::GRAPHIC_FLIP_V_ROT90 ||
         transform_ == GraphicTransformType::GRAPHIC_FLIP_H_ROT270 ||
         transform_ == GraphicTransformType::GRAPHIC_FLIP_V_ROT270) {
-            return true;
+        return true;
     } else {
         return false;
     }

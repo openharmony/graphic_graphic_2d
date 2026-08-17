@@ -27,6 +27,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_test_util.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "rs_surface_layer.h"
 #include "screen_manager/rs_screen_property.h"
@@ -45,9 +46,6 @@ public:
 
 void RSRenderPipelineTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSUniRenderThread::Instance().InitGrContext();
 
     auto& renderNodeGC = RSRenderNodeGC::Instance();
@@ -60,26 +58,55 @@ void RSRenderPipelineTest::SetUpTestCase()
 }
 void RSRenderPipelineTest::TearDownTestCase()
 {
-    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
-    if (renderEngine != nullptr) {
-        renderEngine->renderContext_ = nullptr;
+    // Clear GC buckets and node map to prevent ~RSContext → ~RSSurfaceRenderNode crash at process exit
+    RSTestUtil::InitRenderNodeGC();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.FilterNodeByPid(0, true);
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->skContext_ = nullptr;
+        mainThread.renderEngine_->renderContext_ = nullptr;
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_->imageManager_ = nullptr;
+        mainThread.renderEngine_->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        mainThread.renderEngine_->colorSpaceConverterDisplay_ = nullptr;
+#endif
     }
 
-    RSMainThread::Instance()->handler_ = nullptr;
-    RSMainThread::Instance()->receiver_ = nullptr;
-    RSMainThread::Instance()->renderEngine_ = nullptr;
+    mainThread.handler_ = nullptr;
+    mainThread.receiver_ = nullptr;
+    mainThread.renderEngine_ = nullptr;
 
     RSUniRenderThread::Instance().handler_ = nullptr;
     RSUniRenderThread::Instance().runner_ = nullptr;
     auto uniEngine = RSUniRenderThread::Instance().uniRenderEngine_;
     if (uniEngine != nullptr) {
+        if (uniEngine->renderContext_) {
+            uniEngine->renderContext_->drGPUContext_ = nullptr;
+        }
+        if (uniEngine->protectedRenderContext_) {
+            uniEngine->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        uniEngine->skContext_ = nullptr;
         uniEngine->renderContext_ = nullptr;
+        uniEngine->protectedRenderContext_ = nullptr;
+        uniEngine->imageManager_ = nullptr;
+        uniEngine->gpuCacheManager_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        uniEngine->colorSpaceConverterDisplay_ = nullptr;
+#endif
     }
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 
-    auto& renderNodeGC = RSRenderNodeGC::Instance();
-    renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
-    renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
     usleep(5000);
 }
 void RSRenderPipelineTest::SetUp() {}
@@ -615,7 +642,7 @@ HWTEST_F(RSRenderPipelineTest, OnScreenConnected_CallbackExecuted, TestSize.Leve
     RSMainThread::Instance()->PostSyncTask([]() {});
     EXPECT_EQ(pipeline->mainThread_->GetSurfaceFpsOpList().size(), 0u);
 
-    client->SetRmvSurfaceFpsOpCallback(nullptr);
+    client->SetRemoveSurfaceFpsOpCallback(nullptr);
     layer->SetTunnelHandleChange(true);
     client->CommitLayers(composerInfo);
     RSMainThread::Instance()->PostSyncTask([]() {});

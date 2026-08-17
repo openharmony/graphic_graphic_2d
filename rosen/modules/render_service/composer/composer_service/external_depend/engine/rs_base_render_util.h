@@ -55,6 +55,7 @@ struct ComposeInfo {
     float displayNit { 0.0f };
     float brightnessRatio { 0.0f };
     std::vector<float> layerLinearMatrix;
+    bool glassFree3D = false;
 };
 #ifdef RS_ENABLE_GPU
 class RSSurfaceRenderParams;
@@ -74,6 +75,8 @@ struct BufferDrawParam {
     Drawing::Rect dstRect; // surface's boundsSize
     bool hasCropMetadata = false;
     HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion metaRegion;
+    bool glassFree3D = false;
+    bool use3DShader = false;
 
     Vector4f cornerRadius;
     RRect clipRRect;

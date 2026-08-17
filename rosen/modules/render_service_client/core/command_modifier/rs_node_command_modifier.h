@@ -253,7 +253,6 @@ private:
 
 struct MarkNodeSingleFrameComposerCmdParam {
     bool isNodeSingleFrameComposer_;
-    pid_t realPid_;
 };
 
 class MarkNodeSingleFrameComposerCmdModifier : public RSCmdModifier {

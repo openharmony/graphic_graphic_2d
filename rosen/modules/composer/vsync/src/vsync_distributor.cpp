@@ -225,7 +225,7 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
         int64_t receiveData[3];
         socketPair->ReceiveData(receiveData, sizeof(receiveData));
         ret = socketPair->SendData(data, sizeof(data));
-        VLOGW("vsync signal is not processed in time, please check pid:%{public}d, ret:%{public}d", proxyPid_, ret);
+        VLOGW("check pid:%{public}d", proxyPid_);
     }
     if (ret > -1) {
         ScopedDebugTrace successful("successful");
@@ -362,7 +362,7 @@ bool VSyncConnection::NeedTriggeredVsyncLocked(const int64_t& currentTime)
     return isNeedTriggered;
 }
 
-VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch)
+VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch, FromWhom fromWhom)
 {
     sptr<VSyncDistributor> distributor;
     {
@@ -379,7 +379,7 @@ VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch)
             return VSYNC_ERROR_NULLPTR;
         }
     }
-    return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this);
+    return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this, fromWhom);
 }
 
 VsyncError VSyncConnection::SetNativeDVSyncSwitch(bool dvsyncSwitch)
@@ -612,7 +612,6 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
         std::lock_guard<std::mutex> locker(mutex_);
         if (isFirstSend_) {
             isFirstSend_ = false;
-            VLOGI("F send");
         }
         // Start of DVSync
         DVSyncRecordVSync(now, period, refreshRate, false);
@@ -1242,9 +1241,10 @@ void VSyncDistributor::SetFrameIsRender(bool isRender)
     DVSyncLibManager::Instance().MarkRSRendering(isRender);
 }
 
-VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection)
+VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection,
+    FromWhom fromWhom)
 {
-    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, false);
+    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, false, fromWhom);
     return VSYNC_ERROR_OK;
 }
 
@@ -1258,7 +1258,7 @@ VsyncError VSyncDistributor::SetUiDvsyncConfig(int32_t bufferCount, bool composi
 
 VsyncError VSyncDistributor::SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection)
 {
-    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, true);
+    DVSyncLibManager::Instance().SetAppDVSyncSwitch(connection, dvsyncSwitch, true, FromWhom::INNER);
     return VSYNC_ERROR_OK;
 }
 

@@ -88,6 +88,10 @@ public:
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override;
  
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetPreBufferOwnerCount() const override;
+
+    void SetConsumerSurface(sptr<IConsumerSurface> consumerSurface);
+
+    sptr<IConsumerSurface> GetConsumerSurface() const;
 #endif // RS_MODIFIERS_DRAW_ENABLE
 
 private:
@@ -104,6 +108,7 @@ private:
     Rect damageRect_ = { 0, 0, 0, 0 };
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount_ = nullptr;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
+    sptr<IConsumerSurface> consumerSurface_ = nullptr;
 #endif // RS_MODIFIERS_DRAW_ENABLE
 };
 } // namespace OHOS::Rosen

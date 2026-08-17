@@ -189,6 +189,31 @@ public:
         uifirstCacheState_.clear();
     }
 
+    void SetSystemDoWindowAnimate(bool flag)
+    {
+        systemDoWindowAnimate_ = flag;
+    }
+
+    bool IsInSystemWindowAnimate()
+    {
+        return systemDoWindowAnimate_;
+    }
+    
+    void SetTopLeashWindowId(NodeId id)
+    {
+        topLeashWindowId_ = id;
+    }
+
+    bool IsTopLeashWindow(NodeId id)
+    {
+        return id == topLeashWindowId_;
+    }
+
+    bool IsNotFindTopLeashWindow()
+    {
+        return topLeashWindowId_ == INVALID_NODEID;
+    }
+
     void SetFreeMultiWindowStatus(bool enable)
     {
         isFreeMultiWindowEnabled_ = enable;
@@ -232,6 +257,7 @@ public:
         return subthreadProcessingNode_.count(id) > 0;
     }
 private:
+    bool IsRebuildForceDisable(const RSSurfaceRenderNode& node) const;
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;
         bool isFirst = true;
@@ -351,7 +377,6 @@ private:
     std::atomic<int> noUifirstNodeFrameCount_ = 0;
     NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
     NodeId negativeScreenNodeId_ = INVALID_NODEID; // negativeScreen surfaceNode ID
-    RSMainThread* mainThread_ = nullptr;
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
@@ -421,6 +446,9 @@ private:
 
     // when all screens are power off, uifirst pending post nodes need purge.
     bool allScreenPowerOffNeedPurge_ = false;
+
+    bool systemDoWindowAnimate_ = false;
+    NodeId topLeashWindowId_ = INVALID_NODEID;
 };
 
 // If a subnode is delivered directly

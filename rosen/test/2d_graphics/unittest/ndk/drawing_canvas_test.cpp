@@ -99,12 +99,7 @@ static void TestIsOpaqueHelper(OH_Drawing_ColorFormat colorType, OH_Drawing_Alph
     OH_Drawing_GpuContextDestroy(gpuContext);
 }
 
-void NativeDrawingCanvasTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingCanvasTest::SetUpTestCase() {}
 void NativeDrawingCanvasTest::TearDownTestCase() {}
 void NativeDrawingCanvasTest::SetUp()
 {

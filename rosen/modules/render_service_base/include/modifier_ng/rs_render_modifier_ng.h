@@ -104,11 +104,11 @@ public:
     inline T Getter(RSPropertyType type, const T& defaultValue = {}) const
     {
         auto it = properties_.find(type);
-        if (it == properties_.end()) {
+        if (it == properties_.end() || !it->second) {
             return defaultValue;
         }
-        auto property = std::static_pointer_cast<RSRenderProperty<T>>(it->second);
-        return property->Get();
+        auto property = it->second->CastToPropertyOf<T>(__func__);
+        return property ? property->Get() : defaultValue;
     }
 
     template<typename T>
@@ -116,8 +116,13 @@ public:
     {
         auto it = properties_.find(type);
         if (it != properties_.end()) {
-            auto property = std::static_pointer_cast<RSRenderProperty<T>>(it->second);
-            property->Set(value);
+            if (!it->second) {
+                return;
+            }
+            auto property = it->second->CastToPropertyOf<T>(__func__);
+            if (property) {
+                property->Set(value);
+            }
         } else {
             // should not happen
         }
@@ -231,15 +236,23 @@ protected:
     template<typename T, auto Setter>
     static void PropertyApplyHelper(RSProperties& properties, RSRenderPropertyBase& property)
     {
-        const auto& value = static_cast<RSRenderProperty<T>&>(property).GetRef();
+        auto propertyPtr = property.CastToPropertyOf<T>(__func__);
+        if (!propertyPtr) {
+            return;
+        }
+        const auto& value = propertyPtr->GetRef();
         (properties.*Setter)(value);
     }
 
     template<typename T, auto Setter, auto Getter>
     static void PropertyApplyHelperAdd(RSProperties& properties, RSRenderPropertyBase& property)
     {
+        auto propertyPtr = property.CastToPropertyOf<T>(__func__);
+        if (!propertyPtr) {
+            return;
+        }
         const auto& orig = (properties.*Getter)();
-        const auto& value = static_cast<RSRenderProperty<T>&>(property).GetRef();
+        const auto& value = propertyPtr->GetRef();
         const auto newValue = Add(orig, value);
         (properties.*Setter)(newValue);
     }
@@ -247,8 +260,12 @@ protected:
     template<typename T, auto Setter, auto Getter>
     static void PropertyApplyHelperMultiply(RSProperties& properties, RSRenderPropertyBase& property)
     {
+        auto propertyPtr = property.CastToPropertyOf<T>(__func__);
+        if (!propertyPtr) {
+            return;
+        }
         const auto& orig = (properties.*Getter)();
-        const auto& value = static_cast<RSRenderProperty<T>&>(property).GetRef();
+        const auto& value = propertyPtr->GetRef();
         const auto newValue = Multiply(orig, value);
         (properties.*Setter)(newValue);
     }

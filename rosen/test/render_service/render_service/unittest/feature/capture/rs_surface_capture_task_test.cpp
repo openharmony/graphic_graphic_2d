@@ -121,8 +121,10 @@ public:
 };
 RSInterfaces* RSSurfaceCaptureTaskTest::rsInterfaces_ = nullptr;
 std::shared_ptr<RenderContext> RSSurfaceCaptureTaskTest::renderContext_ = nullptr;
-RSDisplayNodeConfig RSSurfaceCaptureTaskTest::defaultConfig_ = {INVALID_SCREEN_ID, false, INVALID_SCREEN_ID};
-RSDisplayNodeConfig RSSurfaceCaptureTaskTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
+RSDisplayNodeConfig RSSurfaceCaptureTaskTest::defaultConfig_ = { INVALID_SCREEN_ID, DisplayMode::EXPAND,
+    INVALID_SCREEN_ID };
+RSDisplayNodeConfig RSSurfaceCaptureTaskTest::mirrorConfig_ = { INVALID_SCREEN_ID, DisplayMode::MIRROR,
+    INVALID_SCREEN_ID };
 std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskTest::surfaceNode_ = nullptr;
 std::shared_ptr<CustomizedSurfaceCapture> RSSurfaceCaptureTaskTest::surfaceCaptureCb_ = nullptr;
 
@@ -184,13 +186,46 @@ void RSSurfaceCaptureTaskTest::SetUpTestCase()
 
 void RSSurfaceCaptureTaskTest::TearDownTestCase()
 {
-    rsInterfaces_->RemoveVirtualScreen(mirrorConfig_.screenId);
-    rsInterfaces_ = nullptr;
-    renderContext_ = nullptr;
+    auto* mainThreadPtr = RSMainThread::Instance();
+    if (mainThreadPtr != nullptr) {
+        auto& mainThread = *mainThreadPtr;
+        if (mainThread.renderEngine_) {
+            if (mainThread.renderEngine_->renderContext_) {
+                mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+                mainThread.renderEngine_->renderContext_ = nullptr;
+            }
+            if (mainThread.renderEngine_->protectedRenderContext_) {
+                mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+            }
+            mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+            mainThread.renderEngine_ = nullptr;
+        }
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+    if (rsInterfaces_ != nullptr) {
+        rsInterfaces_->RemoveVirtualScreen(mirrorConfig_.screenId);
+        rsInterfaces_ = nullptr;
+    }
+    if (renderContext_ != nullptr) {
+        renderContext_->drGPUContext_ = nullptr;
+        renderContext_ = nullptr;
+    }
     surfaceNode_ = nullptr;
-    surfaceCaptureCb_->Reset();
-    surfaceCaptureCb_ = nullptr;
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    if (surfaceCaptureCb_ != nullptr) {
+        surfaceCaptureCb_->Reset();
+        surfaceCaptureCb_ = nullptr;
+    }
     usleep(SLEEP_TIME_FOR_PROXY);
 }
 
@@ -1084,5 +1119,28 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureTest, Function | SmallTest 
 #endif
 }
 #endif
+
+/**
+ * @tc.name: CreateSurfaceWithDifferentRenderEngineType
+ * @tc.desc: Test RSSurfaceCaptureTask CreateSurface with different render engine types to cover Vulkan path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurfaceWithDifferentRenderEngineType, Function | SmallTest | Level2)
+{
+    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
+    if (renderEngine == nullptr) {
+        GTEST_LOG_(INFO) << "RenderEngine is null, skip test";
+        return;
+    }
+    auto renderContext = renderEngine->GetRenderContext();
+    if (renderContext == nullptr) {
+        GTEST_LOG_(INFO) << "RenderContext is null, skip test";
+        return;
+    }
+    // Exercise SetUpGpuContext path by calling it directly
+    renderContext->SetUpGpuContext();
+    EXPECT_NE(renderContext, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -38,12 +38,7 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingPathIteratorTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingPathIteratorTest::SetUpTestCase() {}
 void NativeDrawingPathIteratorTest::TearDownTestCase() {}
 void NativeDrawingPathIteratorTest::SetUp() {}
 void NativeDrawingPathIteratorTest::TearDown() {}

@@ -25,6 +25,7 @@ namespace OHOS {
 namespace Rosen {
 constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
 constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
+constexpr uint32_t MAX_APP_BUFFER_SIZE = 64;
 
 class RSHgmConfigDataTest : public testing::Test {
 public:
@@ -81,9 +82,12 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest002, TestSize.Level1)
     parcel.WriteInt32(1000);
     parcel.WriteInt32(120);
     parcel.WriteUint32(1);
+    parcel.WriteString("appBuffer");
+    parcel.WriteUint32(1);
     parcel.WriteString("pageName");
     RSHgmConfigData* rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel);
     EXPECT_EQ(rsHgmConfigDataPtr->configData_.size(), 1);
+    EXPECT_EQ(rsHgmConfigDataPtr->appBufferList_.size(), 1);
     EXPECT_EQ(rsHgmConfigDataPtr->pageNameList_.size(), 1);
 
     Parcel parcel2;
@@ -136,6 +140,174 @@ HWTEST_F(RSHgmConfigDataTest, MarshallingTest, TestSize.Level1)
     rsHgmConfigData.AddAnimDynamicItem(item);
     bool marshalling = rsHgmConfigData.Marshalling(parcel);
     ASSERT_TRUE(marshalling);
+}
+
+/**
+ * @tc.name: AppBufferListApiTest
+ * @tc.desc: test GetAppBufferList, SetAppBufferList, AddAppBuffer APIs
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSHgmConfigDataTest, AppBufferListApiTest, TestSize.Level1)
+{
+    RSHgmConfigData data;
+    EXPECT_TRUE(data.GetAppBufferList().empty());
+
+    const std::string buf1{"buf1"};
+    const std::string buf2{"buf2"};
+    std::vector<std::string> list = {buf1, buf2};
+    data.SetAppBufferList(list);
+    EXPECT_EQ(data.GetAppBufferList().size(), 2);
+    EXPECT_EQ(data.GetAppBufferList()[0], buf1);
+    EXPECT_EQ(data.GetAppBufferList()[1], buf2);
+
+    const std::string buf3{"buf3"};
+    data.AddAppBuffer(buf3);
+    EXPECT_EQ(data.GetAppBufferList().size(), 3);
+    EXPECT_EQ(data.GetAppBufferList()[2], buf3);
+
+    const std::string buf4{"buf4"};
+    data.AddAppBuffer(buf4);
+    EXPECT_EQ(data.GetAppBufferList().size(), 4);
+    EXPECT_EQ(data.GetAppBufferList()[3], buf4);
+}
+
+/**
+ * @tc.name: MarshallingWithAppBufferListTest
+ * @tc.desc: test Marshalling and Unmarshalling round-trip with appBufferList
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSHgmConfigDataTest, MarshallingWithAppBufferListTest, TestSize.Level1)
+{
+    RSHgmConfigData srcData;
+    const std::string name1{"buffer_a"};
+    const std::string name2{"buffer_b"};
+    srcData.AddAppBuffer(name1);
+    srcData.AddAppBuffer(name2);
+
+    Parcel parcel;
+    EXPECT_TRUE(srcData.Marshalling(parcel));
+
+    RSHgmConfigData* dstData = srcData.Unmarshalling(parcel);
+    ASSERT_NE(dstData, nullptr);
+    EXPECT_EQ(dstData->GetAppBufferList().size(), 2);
+    EXPECT_EQ(dstData->GetAppBufferList()[0], name1);
+    EXPECT_EQ(dstData->GetAppBufferList()[1], name2);
+    delete dstData;
+}
+
+/**
+ * @tc.name: UnmarshallingAppBufferListReadSizeFailTest
+ * @tc.desc: UnmarshallingAppBufferList fails when ReadUint32(appBufferSize) fails
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSHgmConfigDataTest, UnmarshallingAppBufferListReadSizeFailTest, TestSize.Level1)
+{
+    RSHgmConfigData rsHgmConfigData;
+    Parcel parcel;
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteUint32(0);
+
+    RSHgmConfigData* result = rsHgmConfigData.Unmarshalling(parcel);
+    ASSERT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingAppBufferListExceedMaxSizeTest
+ * @tc.desc: UnmarshallingAppBufferList fails when appBufferSize > MAX_APP_BUFFER_SIZE
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSHgmConfigDataTest, UnmarshallingAppBufferListExceedMaxSizeTest, TestSize.Level1)
+{
+    RSHgmConfigData rsHgmConfigData;
+    Parcel parcel;
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteUint32(0);
+    parcel.WriteUint32(MAX_APP_BUFFER_SIZE + 1);
+
+    RSHgmConfigData* result = rsHgmConfigData.Unmarshalling(parcel);
+    ASSERT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingAppBufferListReadStringFailTest
+ * @tc.desc: UnmarshallingAppBufferList fails when ReadString fails in loop
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSHgmConfigDataTest, UnmarshallingAppBufferListReadStringFailTest, TestSize.Level1)
+{
+    RSHgmConfigData rsHgmConfigData;
+    Parcel parcel;
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteUint32(0);
+    parcel.WriteUint32(2);
+    parcel.WriteString("valid");
+
+    RSHgmConfigData* result = rsHgmConfigData.Unmarshalling(parcel);
+    ASSERT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingAppBufferListSkipEmptyTest
+ * @tc.desc: UnmarshallingAppBufferList skips empty strings
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSHgmConfigDataTest, UnmarshallingAppBufferListSkipEmptyTest, TestSize.Level1)
+{
+    RSHgmConfigData rsHgmConfigData;
+    Parcel parcel;
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteUint32(0);
+    parcel.WriteUint32(3);
+    const std::string valid1{"valid1"};
+    const std::string valid2{"valid2"};
+    parcel.WriteString(valid1);
+    parcel.WriteString("");
+    parcel.WriteString(valid2);
+    parcel.WriteUint32(0);
+
+    RSHgmConfigData* result = rsHgmConfigData.Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->GetAppBufferList().size(), 2);
+    EXPECT_EQ(result->GetAppBufferList()[0], valid1);
+    EXPECT_EQ(result->GetAppBufferList()[1], valid2);
+    delete result;
+}
+
+/**
+ * @tc.name: UnmarshallingAppBufferListZeroSizeTest
+ * @tc.desc: UnmarshallingAppBufferList with zero size succeeds
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSHgmConfigDataTest, UnmarshallingAppBufferListZeroSizeTest, TestSize.Level1)
+{
+    RSHgmConfigData rsHgmConfigData;
+    Parcel parcel;
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteUint32(0);
+    parcel.WriteUint32(0);
+    parcel.WriteUint32(0);
+
+    RSHgmConfigData* result = rsHgmConfigData.Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    EXPECT_TRUE(result->GetAppBufferList().empty());
+    delete result;
 }
 } // namespace Rosen
 } // namespace OHOS

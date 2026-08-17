@@ -46,16 +46,11 @@ public:
     static inline Occlusion::Region DEFAULT_VISIBLE_REGION = Occlusion::Rect(0, 0, 10, 10);
     static inline RectI VISIBLE_DIRTY_REGION = {0, 0, 10, 10};
     static inline RectI INVISIBLE_DIRTY_REGION = {20, 20, 10, 10};
-    static void SetOptScheduleEnabled(int enabled);
-    static int GetOptScheduleEnabled();
 };
 
 void RSUifirstManagerTest2::SetUpTestCase()
 {
     mainThread_ = RSMainThread::Instance();
-    if (mainThread_) {
-        uifirstManager_.mainThread_ = mainThread_;
-    }
     RSTestUtil::InitRenderNodeGC();
 }
 
@@ -86,16 +81,6 @@ void RSUifirstManagerTest2::TearDownTestCase()
 
 void RSUifirstManagerTest2::SetUp() {}
 void RSUifirstManagerTest2::TearDown() {}
-
-int RSUifirstManagerTest2::GetOptScheduleEnabled()
-{
-    return RSSystemProperties::GetUIFirstOptScheduleEnabled();
-}
-
-void RSUifirstManagerTest2::SetOptScheduleEnabled(int enabled)
-{
-    system::SetParameter("rosen.ui.first.optSchedule.enabled", std::to_string(enabled));
-}
 
 /**
  * @tc.name: OnPurgePendingPostNodesInner
@@ -193,6 +178,11 @@ HWTEST_F(RSUifirstManagerTest2, NeedPurgePendingPostNodesInner, TestSize.Level1)
     subThreadCache.cacheCompletedSurfaceInfo_.isContainShadow = true;
     ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, true);
     EXPECT_FALSE(ret);
+
+    // surfaceParams null
+    drawable->renderParams_ = nullptr;
+    ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, false);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -221,8 +211,22 @@ HWTEST_F(RSUifirstManagerTest2, DoPurgePendingPostNodes000, TestSize.Level1)
     EXPECT_NE(surfaceParams, nullptr);
     surfaceParams->surfaceCacheContentStatic_ = true;
 
+    // Test case 1: GetUiFirstRootNodeId() == INVALID_NODEID (default case)
+    surfaceParams->SetUiFirstRootNode(INVALID_NODEID);
+    surfaceParams->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
+
+    // Test case 2: GetUiFirstRootNodeId() != INVALID_NODEID
+    pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
+    surfaceRenderNode->uifirstRootNodeId_ = nodeId;
+    surfaceRenderNode->InitRenderParams();
+    bool isAdaptiveColorGamutEnable = ColorGamutParam::IsAdaptiveColorGamutEnabled();
+    ColorGamutParam::SetAdaptiveColorGamutEnable(true);
+    surfaceParams->SetUiFirstRootNode(nodeId); // Set valid uifirst root node id
+    surfaceParams->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_TRUE(pendingNode.empty());
+    ColorGamutParam::SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnable);
 }
 
 /**
@@ -2477,24 +2481,6 @@ HWTEST_F(RSUifirstManagerTest2, LeashWindowContainMainWindow001, TestSize.Level1
 }
 
 /**
- * @tc.name: MarkPostNodesPriority001
- * @tc.desc: Test branch: GetUIFirstOptScheduleEnabled() returns false
- *           Property disabled, early return without processing
- * @tc.type: FUNC
- * @tc.require: issue23461
- */
-HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority001, TestSize.Level1)
-{
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(0);
-    uifirstManager_.sortedSubThreadNodeIds_.push_back(1);
-    uifirstManager_.MarkPostNodesPriority();
-    ASSERT_FALSE(uifirstManager_.sortedSubThreadNodeIds_.empty());
-    SetOptScheduleEnabled(originProp);
-    uifirstManager_.sortedSubThreadNodeIds_.clear();
-}
-
-/**
  * @tc.name: MarkPostNodesPriority002
  * @tc.desc: Test branch: drawable is null
  *           GetSurfaceDrawableByID returns null, continue to next iteration
@@ -2503,13 +2489,10 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority001, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority002, TestSize.Level1)
 {
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(INVALID_NODEID);
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_FALSE(uifirstManager_.sortedSubThreadNodeIds_.empty());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
@@ -2530,14 +2513,11 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority003, TestSize.Level1)
     auto& subCache = drawable->GetRsSubThreadCache();
     subCache.SetRenderCachePriority(NodePriorityType::SUB_HIGH_PRIORITY);
 
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(node->GetId());
     uifirstManager_.isFocusNodeFound_ = false;
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_TRUE(subCache.IsHighPostPriority());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
@@ -2557,14 +2537,11 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority004, TestSize.Level1)
     auto& subCache = drawable->GetRsSubThreadCache();
     subCache.SetRenderCachePriority(NodePriorityType::SUB_LOW_PRIORITY);
 
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(node->GetId());
     uifirstManager_.isFocusNodeFound_ = false;
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_TRUE(subCache.IsHighPostPriority());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
@@ -2577,8 +2554,6 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority004, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority005, TestSize.Level1)
 {
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.subthreadProcessingNode_.clear();
 
@@ -2603,7 +2578,6 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority005, TestSize.Level1)
     ASSERT_TRUE(firstSubCache.IsHighPostPriority());
     ASSERT_FALSE(lastSubCache.IsHighPostPriority());
 
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.subthreadProcessingNode_.clear();
 }
@@ -2626,15 +2600,12 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority006, TestSize.Level1)
     subCache.SetRenderCachePriority(NodePriorityType::SUB_LOW_PRIORITY);
     subCache.SetLastFrameUsedThreadIndex(2);
 
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(node->GetId());
     uifirstManager_.isFocusNodeFound_ = true;
     uifirstManager_.focusNodeThreadIndex_ = 2;
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_TRUE(subCache.IsHighPostPriority());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
@@ -2656,15 +2627,12 @@ HWTEST_F(RSUifirstManagerTest2, MarkPostNodesPriority007, TestSize.Level1)
     subCache.SetRenderCachePriority(NodePriorityType::SUB_LOW_PRIORITY);
     subCache.SetLastFrameUsedThreadIndex(1);
 
-    int originProp = GetOptScheduleEnabled();
-    SetOptScheduleEnabled(1);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.sortedSubThreadNodeIds_.push_back(node->GetId());
     uifirstManager_.isFocusNodeFound_ = true;
     uifirstManager_.focusNodeThreadIndex_ = 2;
     uifirstManager_.MarkPostNodesPriority();
     ASSERT_FALSE(subCache.IsHighPostPriority());
-    SetOptScheduleEnabled(originProp);
     uifirstManager_.sortedSubThreadNodeIds_.clear();
 }
 
@@ -2814,5 +2782,149 @@ HWTEST_F(RSUifirstManagerTest2, GetScreenId004, TestSize.Level1)
     ASSERT_NE(screenNode, nullptr);
     RSBaseRenderNode::WeakPtr screenPtr = screenNode;
     EXPECT_EQ(RSUifirstManager::GetScreenId(screenPtr), screenId);
+}
+
+/**
+ * @tc.name: IsRebuildForceDisable001
+ * @tc.desc: Test IsRebuildForceDisable returns true when node's own pid is rebuilding, false otherwise
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessSplitTransactionCommands();
+    constexpr pid_t rebuildPid = 3200;
+    RSSurfaceRenderNodeConfig config;
+    config.id = MakeNodeId(rebuildPid, 1);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(config);
+    ASSERT_NE(surfaceNode, nullptr);
+ 
+    // no rebuild: false
+    EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*surfaceNode));
+ 
+    // start rebuild for the node's pid: true
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetSendingPid(rebuildPid);
+    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(txn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(rebuildPid));
+    EXPECT_TRUE(RSUifirstManager::Instance().IsRebuildForceDisable(*surfaceNode));
+ 
+    // rebuild done: false again
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(rebuildPid));
+    EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*surfaceNode));
+}
+ 
+/**
+ * @tc.name: IsRebuildForceDisable002
+ * @tc.desc: Test IsRebuildForceDisable returns false for non-leash node whose pid is not rebuilding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessSplitTransactionCommands();
+    constexpr pid_t otherPid = 3300; // this one is rebuilding, not the node
+    RSSurfaceRenderNodeConfig config;
+    config.id = MakeNodeId(3400, 1); // node's pid differs from rebuilding pid
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(config);
+    ASSERT_NE(surfaceNode, nullptr);
+ 
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetSendingPid(otherPid);
+    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(txn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(otherPid));
+ 
+    // non-leash node, own pid not rebuilding: false
+    EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*surfaceNode));
+    mainThread->ProcessSplitTransactionCommands();
+}
+ 
+/**
+ * @tc.name: IsRebuildForceDisable003
+ * @tc.desc: Test IsRebuildForceDisable returns true for leash window when child belongs to rebuilding pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessSplitTransactionCommands();
+    constexpr pid_t systemPid = 100;
+    constexpr pid_t rebuildPid = 200;
+ 
+    RSSurfaceRenderNodeConfig leashConfig;
+    leashConfig.id = MakeNodeId(systemPid, 1);
+    auto leashNode = RSTestUtil::CreateSurfaceNode(leashConfig);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+ 
+    RSSurfaceRenderNodeConfig appConfig;
+    appConfig.id = MakeNodeId(rebuildPid, 2);
+    auto appNode = RSTestUtil::CreateSurfaceNode(appConfig);
+    ASSERT_NE(appNode, nullptr);
+    leashNode->AddChild(appNode);
+    leashNode->GenerateFullChildrenList();
+ 
+    // no rebuild: false
+    EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*leashNode));
+ 
+    // start rebuild for the child's pid: true
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetSendingPid(rebuildPid);
+    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(txn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(rebuildPid));
+    EXPECT_TRUE(RSUifirstManager::Instance().IsRebuildForceDisable(*leashNode));
+ 
+    // rebuild done: false again
+    mainThread->ProcessSplitTransactionCommands();
+    EXPECT_FALSE(mainThread->IsPidRebuilding(rebuildPid));
+    EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*leashNode));
+}
+ 
+/**
+ * @tc.name: IsRebuildForceDisable004
+ * @tc.desc: Test IsRebuildForceDisable returns false for leash when child pid is not rebuilding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUifirstManagerTest2, IsRebuildForceDisable004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessSplitTransactionCommands();
+    constexpr pid_t systemPid = 100;
+    constexpr pid_t appPid = 200;
+    constexpr pid_t otherPid = 300; // this one is rebuilding, not the leash's child
+ 
+    RSSurfaceRenderNodeConfig leashConfig;
+    leashConfig.id = MakeNodeId(systemPid, 1);
+    auto leashNode = RSTestUtil::CreateSurfaceNode(leashConfig);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+ 
+    RSSurfaceRenderNodeConfig appConfig;
+    appConfig.id = MakeNodeId(appPid, 2);
+    auto appNode = RSTestUtil::CreateSurfaceNode(appConfig);
+    ASSERT_NE(appNode, nullptr);
+    leashNode->AddChild(appNode);
+    leashNode->GenerateFullChildrenList();
+ 
+    // rebuild for otherPid (not the leash's child pid): false
+    auto txn = std::make_unique<RSTransactionData>();
+    txn->SetSendingPid(otherPid);
+    txn->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+    mainThread->AddSplitTransaction(std::move(txn));
+    ASSERT_TRUE(mainThread->IsPidRebuilding(otherPid));
+    EXPECT_FALSE(RSUifirstManager::Instance().IsRebuildForceDisable(*leashNode));
+    mainThread->ProcessSplitTransactionCommands();
 }
 }

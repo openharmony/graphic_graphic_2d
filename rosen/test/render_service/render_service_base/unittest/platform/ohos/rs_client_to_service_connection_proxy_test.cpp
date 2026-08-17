@@ -139,14 +139,14 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetBackgroundRebuildEnabled001, T
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
         .WillRepeatedly(
             testing::Invoke([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
-                reply.WriteBool(true);
+                reply.WriteUint8(0x10);
                 return 0;
             }));
 
-    bool enable = false;
+    uint8_t enable = 0;
     auto ret = mockproxy->GetBackgroundRebuildEnabled(enable);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_TRUE(enable);
+    EXPECT_EQ(enable, 0x10);
 }
 
 /**
@@ -163,14 +163,14 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetBackgroundRebuildEnabled002, T
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
         .WillRepeatedly(
             testing::Invoke([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
-                reply.WriteBool(false);
+                reply.WriteUint8(0);
                 return 0;
             }));
 
-    bool enable = true;
+    uint8_t enable = 0xFF;
     auto ret = mockproxy->GetBackgroundRebuildEnabled(enable);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_FALSE(enable);
+    EXPECT_EQ(enable, 0);
 }
 
 /**
@@ -186,14 +186,14 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetBackgroundRebuildEnabled003, T
 
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
 
-    bool enable = false;
+    uint8_t enable = 0;
     auto ret = mockproxy->GetBackgroundRebuildEnabled(enable);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
 /**
  * @tc.name: GetBackgroundRebuildEnabled004
- * @tc.desc: Test GetBackgroundRebuildEnabled when ReadBool fails
+ * @tc.desc: Test GetBackgroundRebuildEnabled when ReadUint8 fails
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -208,7 +208,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetBackgroundRebuildEnabled004, T
                 return 0;
             }));
 
-    bool enable = false;
+    uint8_t enable = 0;
     auto ret = mockproxy->GetBackgroundRebuildEnabled(enable);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
@@ -1427,22 +1427,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Le
     ASSERT_TRUE(proxy);
 }
 
-#ifdef RS_ENABLE_UNI_RENDER
-/**
- * @tc.name: NotifyLightFactorStatus Test
- * @tc.desc: NotifyLightFactorStatus Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, ReportGameStateData, TestSize.Level1)
-{
-    GameStateData info;
-    proxy->ReportGameStateData(info);
-    proxy->NotifyLightFactorStatus(1);
-    ASSERT_EQ(proxy->transactionDataIndex_, 5);
-}
-#endif
-
 /**
  * @tc.name: NotifyXComponentExpectedFrameRate Test
  * @tc.desc: NotifyXComponentExpectedFrameRate Test
@@ -2276,7 +2260,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SendVideoRateInfo_EmptyMap, TestS
  
 /**
  * @tc.name: SendVideoRateInfo_MapSizeExceedMax
- * @tc.desc: Test SendVideoRateInfo with mapSize > MAX_VIDEO_INFO_SIZE(32)
+ * @tc.desc: Test SendVideoRateInfo with mapSize > maxVideoInfoSize(32)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2374,6 +2358,23 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetApsConfigParams_Success, TestS
     std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
     ErrCode ret = mockProxy->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
     EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: GetDisplayEngineControl_Success
+ * @tc.desc: Test GetDisplayEngineControl with successful response
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetDisplayEngineControl_Success, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL);
+    EXPECT_CALL(*remoteObject, SendRequest(code, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockProxy->GetDisplayEngineControl();
+    EXPECT_EQ(ret, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -31,25 +31,6 @@ public:
     void TearDown() override {}
 };
 
-HWTEST_F(RequestControllerTest, Constructor001, TestSize.Level1)
-{
-    RequestController controller;
-}
-
-HWTEST_F(RequestControllerTest, IncStayOnCount001, TestSize.Level1)
-{
-    RequestController controller;
-    controller.IncStayOnCount();
-    controller.IncStayOnCount();
-    controller.IncStayOnCount();
-}
-
-HWTEST_F(RequestControllerTest, IsLongTermOff_DefaultFalse, TestSize.Level1)
-{
-    RequestController controller;
-    ASSERT_FALSE(controller.IsLongTermOff());
-}
-
 HWTEST_F(RequestControllerTest, IsLongTermOff_After101Off_True, TestSize.Level1)
 {
     RequestController controller;

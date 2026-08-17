@@ -90,7 +90,7 @@ void VSyncSampler::RegSetScreenVsyncEnabledCallbackForRenderService(ScreenId vsy
 void VSyncSampler::ProcessVSyncScreenIdWhilePowerStatusChanged(ScreenId id, ScreenPowerStatus status,
     std::shared_ptr<AppExecFwk::EventHandler> handler, bool isFold)
 {
-    RS_TRACE_NAME_FMT("%s, id:%lu, status:%d, isPowerOff:%d, isSuspend:%d", __func__, id, status,
+    RS_TRACE_NAME_FMT("%s, id:%" PRIu64 ", status:%d, isPowerOff:%d, isSuspend:%d", __func__, id, status,
         (status == ScreenPowerStatus::POWER_STATUS_OFF), (status == ScreenPowerStatus::POWER_STATUS_SUSPEND));
     if (status == ScreenPowerStatus::POWER_STATUS_OFF || status == ScreenPowerStatus::POWER_STATUS_SUSPEND) {
         SetScreenVsyncEnabledInRSMainThread(id, false);
@@ -101,7 +101,7 @@ void VSyncSampler::ProcessVSyncScreenIdWhilePowerStatusChanged(ScreenId id, Scre
             id, status, lastVsyncEnabledScreenId);
         if (vsyncEnabledScreenId != lastVsyncEnabledScreenId) {
             RS_TRACE_NAME_FMT("vsyncEnabledScreenId has changed, need disable lastVsyncEnabledScreenId vsync, "
-                "vsyncEnabledScreenId:%lu, lastVsyncEnabledScreenId:%lu",
+                "vsyncEnabledScreenId:%" PRIu64 ", lastVsyncEnabledScreenId:%" PRIu64,
                 vsyncEnabledScreenId, lastVsyncEnabledScreenId);
             SetScreenVsyncEnabledInRSMainThread(lastVsyncEnabledScreenId, false);
         }

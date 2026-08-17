@@ -56,7 +56,7 @@ public:
     ~RSUniRenderVirtualProcessor() noexcept override = default;
 
     bool InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-        std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
+        std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid = 0) override;
     bool UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable) override;
     void ProcessScreenSurfaceForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;

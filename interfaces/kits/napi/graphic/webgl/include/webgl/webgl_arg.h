@@ -88,7 +88,7 @@ struct WebGLImageOption {
     GLsizei height;
     GLsizei depth;
 
-    WebGLImageOption() : format(0), type(0), width(0), height(0) {}
+    WebGLImageOption() : format(0), type(0), width(0), height(0), depth(1) {}
     WebGLImageOption(GLenum format, GLenum type, GLsizei width, GLsizei height)
     {
         this->format = format;
@@ -400,8 +400,9 @@ struct VertexAttribDesc {
 };
 
 struct VertexAttribInfo {
-    BufferDataType type;
+    BufferDataType type { BUFFER_DATA_FLOAT_32 };
     bool enabled { false };
+    bool integer { false };
     GLuint bufferId { 0 };
     GLenum glType { 0 };
     GLint size { 0 };
@@ -455,7 +456,7 @@ public:
     WebGLArg(napi_env env, napi_value thisVar) : env_(env) {}
     virtual ~WebGLArg() {}
 
-    static bool GetStringList(napi_env env, napi_value array, std::vector<char *>& list);
+    static bool GetStringList(napi_env env, napi_value array, uint32_t maxCount, std::vector<char *>& list);
     static void FreeStringList(std::vector<char *>& list);
     static std::tuple<GLenum, GLintptr> ToGLintptr(napi_env env, napi_value data);
     static uint32_t GetWebGLDataSize(GLenum type);
@@ -499,7 +500,12 @@ class WebGLCommBuffer {
 public:
     const static int32_t MAX_DUMP = 12;
     WebGLCommBuffer(napi_env env) : env_(env) {}
-    ~WebGLCommBuffer() {}
+    ~WebGLCommBuffer()
+    {
+        if (!buffer_.empty()) {
+            (void)memset_s(buffer_.data(), buffer_.size(), 0, buffer_.size());
+        }
+    }
 
     size_t GetBufferDataSize() const;
     void DumpBuffer(BufferDataType destDataType) const;
@@ -553,7 +559,7 @@ private:
 
 class WebGLWriteBufferArg : public WebGLCommBuffer {
 public:
-    const static int32_t MAX_ALLOC_BUFFER_SIZE = 1024 * 1024;
+    const static size_t MAX_ALLOC_BUFFER_SIZE = 1024 * 1024;
     explicit WebGLWriteBufferArg(napi_env env) : WebGLCommBuffer(env) {}
     ~WebGLWriteBufferArg()
     {
@@ -564,7 +570,7 @@ public:
 
     uint8_t* AllocBuffer(size_t size)
     {
-        if (size > static_cast<size_t>(MAX_ALLOC_BUFFER_SIZE)) {
+        if (size > MAX_ALLOC_BUFFER_SIZE) {
             return nullptr;
         }
         if (data_ != nullptr) {
@@ -650,6 +656,7 @@ private:
     void DecodeDataForRGBA_USHORT_5551(const WebGLFormatMap* formatMap, uint8_t* array);
     void DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatMap, uint8_t* array);
     bool DecodeImageData(const WebGLFormatMap* formatMap, const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset);
+    bool CheckImageDataSize(const WebGLFormatMap* formatMap, size_t maxSize, uint64_t& pixels) const;
     GLenum CheckSrcOffsetBounds(const WebGLFormatMap* formatMap, GLuint srcOffset);
     GLenum CheckPixelMapBytes();
 
@@ -657,12 +664,13 @@ private:
     std::tuple<bool, T> GetObjectIntField(napi_value resultObject, const std::string& name);
     bool HandleImageSourceData(napi_value resultData, napi_valuetype valueType);
     bool BuildPixelMapFromSource(std::unique_ptr<OHOS::Media::ImageSource>& imageSource, uint32_t errorCode);
+    bool GetSrcOffsetBytes(const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset, size_t& srcOffsetBytes) const;
 
     int webGLVersion_ { 0 };
     napi_env env_ { nullptr };
     bool unpackFlipY_ { false };
     bool unpackPremultiplyAlpha_ { false };
-    GLuint srcOffset_ { 0 };
+    size_t srcOffset_ { 0 };
     WebGLImageOption imageOption_ {};
     std::vector<uint32_t> imageData_ {};
     std::unique_ptr<OHOS::Media::PixelMap> pixelMap_ { nullptr };

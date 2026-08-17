@@ -68,10 +68,14 @@ void RSVKImageManagerTest::SetUpTestCase()
 void RSVKImageManagerTest::TearDownTestCase() {}
 void RSVKImageManagerTest::SetUp()
 {
-    RsVulkanContext::SetRecyclable(false);
     buffer_ = CreateBuffer();
     vkImageManager_ = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    renderContext->SetUpGpuContext();
+    vkImageManager_->SetRenderContext(renderContext);
 }
+
 void RSVKImageManagerTest::TearDown() {}
 
 /**
@@ -243,16 +247,16 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage005, TestSize.Level1)
  */
 HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage006, TestSize.Level1)
 {
-    VkDevice device = RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_;
+    VkDevice device = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface()->device_;
     auto drawingSurface = std::make_unique<Drawing::Surface>();
     EXPECT_NE(drawingSurface, nullptr);
     if (drawingSurface) {
-        RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_ = VK_NULL_HANDLE;
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface()->device_ = VK_NULL_HANDLE;
         auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(
             buffer_, BufferFence_, fakeTid_, drawingSurface.get());
         EXPECT_EQ(image, nullptr); // Map fail due to vkdevice is null
     }
-    RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_ = device;
+    RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface()->device_ = device;
     auto size = vkImageManager_->imageCacheSeqs_.size();
     vkImageManager_->UnMapImageFromSurfaceBuffer(buffer_->GetBufferId());
     EXPECT_EQ(size, vkImageManager_->imageCacheSeqs_.size());
@@ -376,6 +380,10 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
     params.ignoreAlpha = false;
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init(RenderEngineType::BASIC_RENDER);
+    renderContext->SetUpGpuContext();
+    imageManager->SetRenderContext(renderContext);
     auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
     EXPECT_EQ(res, nullptr);
 
@@ -393,6 +401,10 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
 {
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init(RenderEngineType::BASIC_RENDER);
+    renderContext->SetUpGpuContext();
+    imageManager->SetRenderContext(renderContext);
     auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
     drawingRecordingCanvas->SetGrRecordingContext(std::make_shared<Drawing::GPUContext>());
     auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
@@ -480,6 +492,10 @@ HWTEST_F(RSVKImageManagerTest, GetIntersectImageTest, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, NewImageCacheFromBufferTest, TestSize.Level1)
 {
     std::shared_ptr<RSVkImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    renderContext->SetUpGpuContext();
+    imageManager->SetRenderContext(renderContext);
     sptr<OHOS::SurfaceBuffer> buffer = nullptr;
     pid_t threadIndex = 0;
     bool isProtectedCondition = true;
@@ -661,5 +677,109 @@ HWTEST_F(RSVKImageManagerTest, UnMapImageOneByOne001, TestSize.Level1)
         vkImageManager_->oneByoneUnmapCacheSeqs_.pop();
     }
     vkImageManager_->imageCacheSeqs_.clear();
+}
+
+/**
+ * @tc.name: SetVKImageCacheMapSize_DefaultValue
+ * @tc.desc: Verify the default value of maxCacheSizeForReuse_ is 40
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSVKImageManagerTest, SetVKImageCacheMapSize_DefaultValue, TestSize.Level1)
+{
+    std::shared_ptr<RSVkImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    // Default value of maxCacheSizeForReuse_ should be 40
+    constexpr uint32_t expectedDefault = 40;
+    EXPECT_EQ(imageManager->maxCacheSizeForReuse_, expectedDefault);
+}
+
+/**
+ * @tc.name: SetVKImageCacheMapSize_LargeValue_AllBuffersCached
+ * @tc.desc: Set a large cache size via SetVKImageCacheMapSize, map buffers below the limit,
+ *           verify all buffers are cached (if branch true: imageCacheSeqSize < maxCacheSizeForReuse_)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSVKImageManagerTest, SetVKImageCacheMapSize_LargeValue_AllBuffersCached, TestSize.Level1)
+{
+    // Set a large cache size limit that exceeds the number of buffers we will map
+    constexpr uint32_t customCacheSize = 50;
+    vkImageManager_->SetVKImageCacheMapSize(customCacheSize);
+    EXPECT_EQ(vkImageManager_->maxCacheSizeForReuse_, customCacheSize);
+
+    // Map fewer buffers than customCacheSize so the if branch is always true
+    constexpr uint32_t bufferCount = 10;
+    std::vector<sptr<SurfaceBuffer>> buffers;
+    for (uint32_t i = 0; i < bufferCount; i++) {
+        auto buffer = CreateBuffer();
+        ASSERT_NE(buffer, nullptr);
+        buffers.push_back(buffer);
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, fakeTid_);
+        EXPECT_NE(imageCache, nullptr);
+        // Each buffer should be cached: imageCacheSeqSize < customCacheSize is true
+        EXPECT_EQ(i + 1, vkImageManager_->imageCacheSeqs_.size());
+    }
+    EXPECT_EQ(vkImageManager_->imageCacheSeqs_.size(), bufferCount);
+
+    // Cleanup
+    for (const auto& buffer : buffers) {
+        vkImageManager_->UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
+    }
+    EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
+}
+
+/**
+ * @tc.name: SetVKImageCacheMapSize_SmallValue_CacheBounded
+ * @tc.desc: Set a small cache size via SetVKImageCacheMapSize, map more buffers than the limit,
+ *           verify cache is bounded (if branch false: imageCacheSeqSize >= maxCacheSizeForReuse_)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSVKImageManagerTest, SetVKImageCacheMapSize_SmallValue_CacheBounded, TestSize.Level1)
+{
+    // Set a small cache size limit
+    constexpr uint32_t customCacheSize = 5;
+    vkImageManager_->SetVKImageCacheMapSize(customCacheSize);
+    EXPECT_EQ(vkImageManager_->maxCacheSizeForReuse_, customCacheSize);
+
+    // Map more buffers than customCacheSize so the if branch becomes false after the limit is reached
+    constexpr uint32_t bufferCount = 10;
+    std::vector<sptr<SurfaceBuffer>> buffers;
+    for (uint32_t i = 0; i < bufferCount; i++) {
+        auto buffer = CreateBuffer();
+        ASSERT_NE(buffer, nullptr);
+        buffers.push_back(buffer);
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, fakeTid_);
+        EXPECT_NE(imageCache, nullptr);
+        if (i < customCacheSize) {
+            // First customCacheSize buffers: imageCacheSeqSize < customCacheSize is true (cached)
+            EXPECT_EQ(i + 1, vkImageManager_->imageCacheSeqs_.size());
+        } else {
+            // Subsequent buffers: imageCacheSeqSize >= customCacheSize is false (not cached)
+            EXPECT_EQ(customCacheSize, vkImageManager_->imageCacheSeqs_.size());
+        }
+    }
+    // Final cache size should be bounded by customCacheSize
+    EXPECT_EQ(vkImageManager_->imageCacheSeqs_.size(), customCacheSize);
+
+    // Cleanup
+    for (const auto& buffer : buffers) {
+        vkImageManager_->UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
+    }
+    EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
+}
+
+/**
+ * @tc.name: NewImageCacheFromBuffer001
+ * @tc.desc: Test NewImageCacheFromBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSVKImageManagerTest, NewImageCacheFromBuffer001, TestSize.Level1)
+{
+    auto buffer = CreateBuffer();
+    RSVkImageManager imageManager;
+    imageManager.renderContext_ = nullptr;
+    auto res = imageManager.NewImageCacheFromBuffer(buffer, 0, false);
+    EXPECT_EQ(res, nullptr);
 }
 } // namespace OHOS::Rosen

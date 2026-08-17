@@ -139,7 +139,7 @@ RenderContextGL::~RenderContextGL()
     mHandler_ = nullptr;
 }
 
-bool RenderContextGL::Init()
+bool RenderContextGL::Init(RenderEngineType type, const std::string& cacheDir)
 {
     if (IsEglContextReady()) {
         return true;
@@ -187,7 +187,7 @@ bool RenderContextGL::Init()
         return false;
     }
     LOGD("Create EGL context successfully, version %{public}d.%{public}d", major, minor);
-    return true;
+    return SetUpGpuContext(cacheDir);
 }
 
 bool RenderContextGL::AbandonContext()
@@ -196,7 +196,7 @@ bool RenderContextGL::AbandonContext()
     return true;
 }
 
-bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
+bool RenderContextGL::SetUpGpuContext(const std::string& cacheDir)
 {
     if (drGPUContext_ != nullptr) {
         LOGD("Drawing GPUContext has already created!!");
@@ -205,14 +205,15 @@ bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
 
     mHandler_ = std::make_shared<MemoryHandler>();
     auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto dir = cacheDir;
     if (isUniRenderMode_) {
-        cacheDir_ = UNIRENDER_CACHE_DIR;
+        dir = UNIRENDER_CACHE_DIR;
     }
     Drawing::GPUContextOptions options;
     options.SetIsUniRender(isUniRenderMode_);
     if (glesVersion != nullptr) {
         auto size = glesVersion ? strlen(glesVersion) : 0;
-        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
+        mHandler_->ConfigureContext(&options, glesVersion, size, dir, isUniRenderMode_);
     }
 
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
@@ -421,26 +422,6 @@ void RenderContextGL::ClearRedundantResources()
     }
 }
 
-std::string RenderContextGL::GetShaderCacheSize() const
-{
-    if (mHandler_) {
-        return mHandler_->QuerryShader();
-    }
-
-    LOGD("GetShaderCacheSize no shader cache");
-    return "";
-}
-
-std::string RenderContextGL::CleanAllShaderCache() const
-{
-    if (mHandler_) {
-        return mHandler_->ClearShader();
-    }
-
-    LOGD("CleanAllShaderCache no shader cache");
-    return "";
-}
-
 void RenderContextGL::CreateShareContext()
 {
     std::unique_lock<std::mutex> lock(shareContextMutex_);
@@ -484,6 +465,27 @@ bool RenderContextGL::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHei
     LOGD("RenderContextGL::QueryMaxGpuBufferSize: GL_MAX_TEXTURE_SIZE = %d, GL_MAX_RENDERBUFFER_SIZE = %d, result = %u",
         maxTextureSize, maxRenderBufferSize, maxWidth);
     return true;
+}
+
+std::shared_ptr<Drawing::GPUContext> RenderContextGL::CreateDrawingGPUContext(const std::string& cacheDir)
+{
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    CreateShareContext();
+    Drawing::GPUContextOptions options = {};
+    auto handler = std::make_shared<MemoryHandler>();
+    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto size = glesVersion ? strlen(glesVersion) : 0;
+    handler->ConfigureContext(&options, glesVersion, size);
+    if (!gpuContext->BuildFromGL(options)) {
+        LOGE("BuildFromGL fail");
+        return nullptr;
+    }
+    return gpuContext;
+}
+
+void RenderContextGL::ReleaseDrawingGPUContext(std::shared_ptr<Drawing::GPUContext> gpuContext)
+{
+    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 }
 } // namespace Rosen
 } // namespace OHOS

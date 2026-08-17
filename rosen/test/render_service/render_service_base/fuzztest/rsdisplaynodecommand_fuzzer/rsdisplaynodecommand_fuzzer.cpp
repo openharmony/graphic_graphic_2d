@@ -59,9 +59,12 @@ bool DoDisplayNode(const uint8_t* data, size_t size, RSContext& context)
     // test
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
-    bool isMirrored = GetData<bool>();
+    DisplayMode displayMode = GetData<DisplayMode>();
     NodeId mirrorNodeId = GetData<NodeId>();
-    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
+    bool isSync = GetData<bool>();
+    uint32_t mirrorSourceRotation = GetData<uint32_t>();
+    float positionZ = GetData<float>();
+    RSDisplayNodeConfig config = { screenId, displayMode, mirrorNodeId, isSync, mirrorSourceRotation, positionZ };
     bool isSecurityDisplay = GetData<bool>();
     bool isBootAnimation = GetData<bool>();
     NodeId id2 = GetData<NodeId>();
@@ -82,13 +85,13 @@ bool DoSetDisplayMode(const uint8_t* data, size_t size, RSContext& context)
     }
 
     NodeId id = GetData<NodeId>();
-    RSDisplayNodeConfig config { 0, false, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::EXPAND, 0};
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 
-    config.isMirrored = true;
+    config.displayMode = DisplayMode::MIRROR;
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 
     NodeId mirrorNodeId = GetData<NodeId>();
@@ -106,7 +109,7 @@ bool DoSetBootAnimation(const uint8_t* data, size_t size, RSContext& context)
 
     NodeId id = GetData<NodeId>();
     NodeId rID = GetData<NodeId>();
-    RSDisplayNodeConfig config { 0, true, 0 };
+    RSDisplayNodeConfig config { 0, DisplayMode::MIRROR, 0};
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetBootAnimation(context, id, true);
     DisplayNodeCommandHelper::SetBootAnimation(context, rID, true);

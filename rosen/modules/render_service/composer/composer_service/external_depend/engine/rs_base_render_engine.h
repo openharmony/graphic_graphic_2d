@@ -44,6 +44,7 @@
 #include "rs_layer_transaction_data.h"
 
 #include "platform/drawing/rs_surface_frame.h"
+#include "platform/ohos/backend/rs_engine_header_ext.h"
 #include "platform/ohos/rs_surface_ohos.h"
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
 #include "render_context/render_context.h"
@@ -53,6 +54,7 @@
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "colorspace_converter_display.h"
+#include "glassfree3d_converter_display.h"
 #endif
 
 namespace OHOS {
@@ -151,10 +153,7 @@ public:
     {
         return acquireFence_;
     }
-    std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
-    {
-        return std::make_unique<RSPaintFilterCanvas>(surfaceFrame_->GetSurface().get());
-    }
+    std::unique_ptr<RSPaintFilterCanvas> GetCanvas();
 
     int32_t GetBufferAge()
     {
@@ -211,13 +210,6 @@ struct VideoInfo {
     GSError retGetColorSpaceInfo_ = GSERROR_OK;
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter_ = {};
 #endif
-};
-
-enum class RenderEngineType : uint8_t {
-    BASIC_RENDER = 0,
-    PROTECTED_REDRAW,
-    UNPROTECTED_REDRAW,
-    MAX_INTERFACE_TYPE,
 };
 
 // This render engine aims to do the client composition for all surfaces that hardware can't handle.
@@ -289,16 +281,36 @@ public:
     static bool IsHighContrastEnabled();
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
-    const std::shared_ptr<RenderContext>& GetRenderContext()
+    const std::shared_ptr<RenderContext> GetRenderContext()
     {
+        if (isProtected_) {
+            return protectedRenderContext_;
+        }
         return renderContext_;
     }
+
+    void ChangeProtectedState(bool isProtected)
+    {
+        if (isProtected != isProtected_) {
+            auto targetRenderContext = isProtected ? protectedRenderContext_ : renderContext_;
+            imageManager_->SetRenderContext(targetRenderContext);
+            skContext_ = targetRenderContext->GetSharedDrGPUContext();
+        }
+        isProtected_ = isProtected;
+    }
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
+
     void ResetCurrentContext();
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
     const std::shared_ptr<RSImageManager>& GetImageManager()
     {
         return imageManager_;
+    }
+    void SetVKImageCacheMapSize(uint32_t cacheSize)
+    {
+        if (imageManager_ != nullptr) {
+            imageManager_->SetVKImageCacheMapSize(cacheSize);
+        }
     }
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -347,8 +359,8 @@ private:
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
-#endif // RS_ENABLE_GL || RS_ENABLE_VK
-#ifdef RS_ENABLE_VK
+    std::shared_ptr<RenderContext> protectedRenderContext_ = nullptr;
+    bool isProtected_ = false;
     std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
 #endif
     std::shared_ptr<RSImageManager> imageManager_ = nullptr;
@@ -361,6 +373,9 @@ private:
     static bool ConvertDrawingColorSpaceToSpaceInfo(const std::shared_ptr<Drawing::ColorSpace>& colorSpace,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
+    std::shared_ptr<Media::VideoProcessingEngine::GlassFree3DConverterDisplay> glassFree3DConverterDisplay_ = nullptr;
+    void GlassFree3DShaderConvert(RSPaintFilterCanvas& canvas, BufferDrawParam& params,
+        const std::shared_ptr<Drawing::Image>& image, const Drawing::SamplingOptions& samplingOptions);
 #endif
 };
 } // namespace Rosen

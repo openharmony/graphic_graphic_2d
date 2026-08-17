@@ -40,6 +40,7 @@ rosen/modules/render_service_base/include/pipeline/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/pipeline/rs_dirty_region_manager.h @chenlushen
 rosen/modules/render_service_base/include/pipeline/rs_draw_cmd_list.h @hanamaru
 rosen/modules/render_service_base/include/pipeline/rs_effect_render_node.h @hanamaru
+rosen/modules/render_service_base/include/pipeline/rs_effect_utils.h @hanamaru
 rosen/modules/render_service_base/include/pipeline/rs_occlusion_config.h @chenlushen
 rosen/modules/render_service_base/include/pipeline/rs_render_display_sync.h @wh_qwe
 rosen/modules/render_service_base/include/pipeline/rs_render_node_map.h @gaoshuai3011
@@ -49,6 +50,7 @@ rosen/modules/render_service_base/src/pipeline/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/pipeline/rs_dirty_region_manager.cpp @chenlushen
 rosen/modules/render_service_base/src/pipeline/rs_draw_cmd_list.cpp @hanamaru
 rosen/modules/render_service_base/src/pipeline/rs_effect_render_node.cpp @hanamaru
+rosen/modules/render_service_base/src/pipeline/rs_effect_utils.cpp @hanamaru
 rosen/modules/render_service_base/src/pipeline/rs_occlusion_config.cpp @chenlushen
 rosen/modules/render_service_base/src/pipeline/rs_render_display_sync.cpp @wh_qwe
 rosen/modules/render_service_base/src/pipeline/rs_render_node_map.cpp @gaoshuai3011
@@ -200,6 +202,8 @@ rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.h @aslk
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.cpp @aslklw
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.h @aslklw
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @aslklw
+rosen/modules/render_service/core/pipeline/main_thread/rs_uni_render_visitor.cpp @chuchengcheng
+rosen/modules/render_service/core/pipeline/main_thread/rs_uni_render_visitor.h @chuchengcheng
 
 [buffer_manager]
 rosen/modules/render_service/core/pipeline/buffer_manager/rs_buffer_manager.cpp @lipeng123s
@@ -260,14 +264,46 @@ rosen/modules/render_service_base/src/transaction/rs_hgm_config_data.cpp @wh_qwe
 rosen/modules/render_service_client/core/feature/hyper_graphic_manager/ @wh_qwe
 
 [screen manager]
-rosen/modules/render_service/core/screen_manager/ @pengquan1
+rosen/modules/render_service/screen_manager/ @pengquan1
+rosen/test/render_service/render_service/unittest/screen_manager/ @pengquan1
 rosen/modules/render_service_base/include/screen_manager/ @pengquan1
 rosen/modules/render_service_base/src/screen_manager/ @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/rs_exposed_event_callback_proxy.h @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/rs_exposed_event_callback_proxy.cpp @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/rs_exposed_event_callback_stub.h @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/rs_exposed_event_callback_stub.cpp @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/screen_change_callback_stub.h @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/screen_change_callback_stub.cpp @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/screen_change_callback_proxy.h @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/screen_change_callback_proxy.cpp @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/screen_switching_notify_callback_proxy.h @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/screen_switching_notify_callback_proxy.cpp @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/screen_switching_notify_callback_stub.h @pengquan1
+rosen/modules/render_service_base/src/ipc_callbacks/screen_switching_notify_callback_stub.cpp @pengquan1
+rosen/test/render_service/render_service_base/unittest/screen_manager/ @pengquan1
+rosen/modules/render_service/core/pipeline/render_thread/rs_virtual_screen_processor.h @pengquan1
+rosen/modules/render_service/core/pipeline/render_thread/rs_virtual_screen_processor.cpp @pengquan1
+rosen/test/render_service/render_service/unittest/pipeline/render_thread/rs_virtual_screen_processor_test.cpp @pengquan1
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_virtual_processor.h @pengquan1
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_virtual_processor.cpp @pengquan1
+rosen/test/render_service/render_service/unittest/pipeline/render_thread/rs_uni_render_virtual_processor_test.cpp @pengquan1
 rosen/modules/render_service/core/feature/multi_screen/rs_multi_screen_util.h @pengquan1
 rosen/modules/render_service/core/feature/multi_screen/rs_multi_screen_util.cpp @pengquan1
 rosen/test/render_service/render_service/unittest/feature/multi_screen/rs_multi_screen_util_test.cpp @pengquan1
+rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature/multiscreen_param.h @pengquan1
+rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature/multiscreen_param.cpp @pengquan1
+rosen/test/render_service/render_service/unittest/feature_cfg/multiscreen_param_test.cpp @pengquan1
+rosen/modules/render_service/core/feature_cfg/graphic_feature_param_manager.h @pengquan1
+rosen/modules/render_service/core/feature_cfg/graphic_feature_param_manager.cpp @pengquan1
+rosen/test/render_service/render_service/unittest/feature_cfg/graphic_feature_param_manager_test.cpp @pengquan1
+rosen/modules/render_service/core/feature_cfg/feature_param/feature_param.h @pengquan1
+rosen/modules/render_service/core/feature_cfg/feature_param/feature_param.cpp @pengquan1
+rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser/multiscreen_param_parse.h @pengquan1
+rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser/multiscreen_param_parse.cpp @pengquan1
+rosen/test/render_service/render_service/unittest/feature_cfg/multiscreen_param_parse_test.cpp @pengquan1
+rosen/modules/render_service/core/feature_cfg/xml_parser/xml_parser_base.h @pengquan1
+rosen/modules/render_service/core/feature_cfg/xml_parser/xml_parser_base.cpp @pengquan1
+rosen/test/render_service/render_service/unittest/feature_cfg/xml_parser_base_test.cpp @pengquan1
 graphic_test/test/rs_func_feature/multi_screen/multi_screen_test.cpp @pengquan1
 
 [render_group]
@@ -303,7 +339,36 @@ rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.h @chenlushen
 rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.cpp @chenlushen
 
 [capture]
-rosen/modules/render_service/core/feature/capture @chuchengcheng
+rosen/modules/render_service/core/feature/capture/rs_ui_capture_solo_task_parallel.cpp @chuchengcheng
+rosen/modules/render_service/core/feature/capture/rs_surface_capture_task_parallel.cpp @chuchengcheng
+rosen/modules/render_service/core/feature/capture/rs_ui_capture_task_parallel.cpp @chuchengcheng
+
+[ut_test_2d_framework]
+rosen/test/render_service/render_service_base/unittest/pipeline/rs_render_node_map_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_base_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_canvas_drawing_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_canvas_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_command_factory_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_display_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_effect_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_frame_rate_linker_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_message_processor_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_node_showing_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_proxy_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_root_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/command/rs_surface_node_command_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_render_pipeline_client_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_client_to_render_connection_proxy_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_client_to_service_connection_proxy_test.cpp @gao_yufan
+rosen/test/render_service/render_service/unittest/transaction/rs_client_to_render_connection_stub_test.cpp @gao_yufan
+rosen/test/render_service/render_service/unittest/transaction/rs_client_to_service_connection_stub_test.cpp @gao_yufan
+rosen/test/render_service/render_service/unittest/pipeline/main_thread/rs_main_thread_test.cpp @gao_yufan
+rosen/test/render_service/render_service_client/unittest/render_thread/rs_render_thread_visitor_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/transaction/ @gao_yufan
+rosen/test/render_service/render_service/unittest/pipeline/main_thread/rs_uni_render_visitor_test.cpp @gao_yufan
+rosen/test/render_service/render_service/unittest/pipeline/main_thread/rs_render_pipeline_agent_test.cpp @gao_yufan
+rosen/test/render_service/render_process/unittest/transaction/ipc_persistence/rs_ipc_persistence_data_test.cpp @gao_yufan
 
 [rs_render_context]
 rosen/modules/render_service_base/src/platform/ohos/backend/rs_vulkan_context.cpp @zhouhuan31

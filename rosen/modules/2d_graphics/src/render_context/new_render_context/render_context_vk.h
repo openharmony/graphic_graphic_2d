@@ -17,40 +17,41 @@
 #define RENDER_CONTEXT_VK_H
 
 #include <atomic>
+
+#ifndef ROSEN_ARKUI_X
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#else
+#include "rs_vulkan_context.h"
+#endif
+
+#include "platform/ohos/backend/rs_vulkan_header_ext.h"
 #include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
-
-enum class RenderContextVKType : uint8_t {
-    BASIC_RENDER = 0,
-    PROTECTED_REDRAW,
-    UNPROTECTED_REDRAW,
-    MAX_INTERFACE_TYPE,
-};
 
 class RenderContextVK : public RenderContext {
 public:
     RenderContextVK() = default;
     ~RenderContextVK() override;
 
-    bool Init() override;
+    bool Init(RenderEngineType type = RenderEngineType::BASIC_RENDER, const std::string& cacheDir = "") override;
     bool AbandonContext() override;
-    std::string GetShaderCacheSize() const override;
-    std::string CleanAllShaderCache() const override;
-    bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) override;
-    void SetRenderContextType(uint8_t type) override;
-    void ChangeProtectedState(bool isProtected) override;
+    RenderEngineType GetType() override { return contextType_; }
+    bool SetUpGpuContext(const std::string& cacheDir = "") override;
     bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
+    std::shared_ptr<Drawing::GPUContext> CreateDrawingGPUContext(const std::string& cacheDir = "") override;
+    void ReleaseDrawingGPUContext(std::shared_ptr<Drawing::GPUContext> gpuContext) override;
+
     #ifdef ROSEN_ARKUI_X
     void AddSurface() override;
     void DeleteSurface() override;
     void SetCleanUpHelper(std::function<void()> func) override;
     void DestroySharedSource() override;
     #endif
-    
+
 private:
-    std::atomic<bool> isProtected_{false};
+    RenderEngineType contextType_ = RenderEngineType::BASIC_RENDER;
 };
 } // namespace Rosen
 } // namespace OHOS

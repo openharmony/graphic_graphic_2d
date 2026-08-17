@@ -227,5 +227,460 @@ HWTEST_F(RSValueEstimatorTest, GetAnimationValueEmptyKeyframesNoProperty001, Tes
     GTEST_LOG_(INFO) << "RSValueEstimatorTest GetAnimationValueEmptyKeyframesNoProperty001 end";
 }
 
+/**
+ * @tc.name: InitCurveAnimationValuePropertyNull001
+ * @tc.desc: Verify InitCurveAnimationValue returns early when property is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValuePropertyNull001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitCurveAnimationValue(nullptr, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+    EXPECT_FLOAT_EQ(estimator->startValue_, 0.0f);
+    EXPECT_FLOAT_EQ(estimator->endValue_, 0.0f);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 0.0f);
+}
+
+/**
+ * @tc.name: InitCurveAnimationValuePropertyTypeMismatch001
+ * @tc.desc: Verify InitCurveAnimationValue returns early when property type does not match T
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValuePropertyTypeMismatch001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitCurveAnimationValueTypeInconsistent001
+ * @tc.desc: Verify InitCurveAnimationValue skips when startValue/endValue/lastValue type
+ *           does not match property
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueTypeInconsistent001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitCurveAnimationValueTypeInconsistent002
+ * @tc.desc: Verify InitCurveAnimationValue skips when endValue type does not match property
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueTypeInconsistent002, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitCurveAnimationValueTypeInconsistent003
+ * @tc.desc: Verify InitCurveAnimationValue skips when lastValue type does not match property
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueTypeInconsistent003, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    estimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitCurveAnimationValueAllTypeMatch001
+ * @tc.desc: Verify InitCurveAnimationValue succeeds when all types match
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueAllTypeMatch001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    estimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    EXPECT_NE(estimator->property_, nullptr);
+    EXPECT_FLOAT_EQ(estimator->startValue_, 2.0f);
+    EXPECT_FLOAT_EQ(estimator->endValue_, 8.0f);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 8.0f);
+}
+
+/**
+ * @tc.name: InitKeyframeAnimationValuePropertyNull001
+ * @tc.desc: Verify InitKeyframeAnimationValue returns early when property is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitKeyframeAnimationValuePropertyNull001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    std::vector<std::tuple<float, std::shared_ptr<RSRenderPropertyBase>,
+        std::shared_ptr<RSInterpolator>>> keyframes;
+    estimator->InitKeyframeAnimationValue(nullptr, keyframes, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitKeyframeAnimationValuePropertyTypeMismatch001
+ * @tc.desc: Verify InitKeyframeAnimationValue returns early when property type does not match T
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitKeyframeAnimationValuePropertyTypeMismatch001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    std::vector<std::tuple<float, std::shared_ptr<RSRenderPropertyBase>,
+        std::shared_ptr<RSInterpolator>>> keyframes;
+    estimator->InitKeyframeAnimationValue(property, keyframes, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitKeyframeAnimationValueKeyframeTypeInconsistent001
+ * @tc.desc: Verify InitKeyframeAnimationValue skips keyframe whose type does not match property
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitKeyframeAnimationValueKeyframeTypeInconsistent001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto mismatchedKeyframe = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto matchedKeyframe = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    auto interpolator = std::make_shared<RSStepsInterpolator>(1, StepsCurvePosition::START);
+    std::vector<std::tuple<float, std::shared_ptr<RSRenderPropertyBase>,
+        std::shared_ptr<RSInterpolator>>> keyframes;
+    keyframes.push_back({0.0f, mismatchedKeyframe, interpolator});
+    keyframes.push_back({1.0f, matchedKeyframe, interpolator});
+    estimator->InitKeyframeAnimationValue(property, keyframes, lastValue);
+    EXPECT_NE(estimator->property_, nullptr);
+    EXPECT_EQ(estimator->keyframes_.size(), 1u);
+}
+
+/**
+ * @tc.name: InitDurationKeyframeAnimationValuePropertyNull001
+ * @tc.desc: Verify InitDurationKeyframeAnimationValue returns early when property is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitDurationKeyframeAnimationValuePropertyNull001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    std::vector<std::tuple<float, float, std::shared_ptr<RSRenderPropertyBase>,
+        std::shared_ptr<RSInterpolator>>> keyframes;
+    estimator->InitDurationKeyframeAnimationValue(nullptr, keyframes, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitDurationKeyframeAnimationValueTypeInconsistent001
+ * @tc.desc: Verify InitDurationKeyframeAnimationValue skips keyframe whose type does not match
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitDurationKeyframeAnimationValueTypeInconsistent001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSKeyframeValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto mismatchedKeyframe = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto matchedKeyframe = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    auto interpolator = std::make_shared<RSStepsInterpolator>(1, StepsCurvePosition::START);
+    std::vector<std::tuple<float, float, std::shared_ptr<RSRenderPropertyBase>,
+        std::shared_ptr<RSInterpolator>>> keyframes;
+    keyframes.push_back({0, 100, mismatchedKeyframe, interpolator});
+    keyframes.push_back({100, 200, matchedKeyframe, interpolator});
+    estimator->InitDurationKeyframeAnimationValue(property, keyframes, lastValue);
+    EXPECT_NE(estimator->property_, nullptr);
+    EXPECT_EQ(estimator->durationKeyframes_.size(), 1u);
+}
+
+/**
+ * @tc.name: InitRSSpringValueEstimatorPropertyNull001
+ * @tc.desc: Verify InitRSSpringValueEstimator returns early when property is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitRSSpringValueEstimatorPropertyNull001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitRSSpringValueEstimator(nullptr, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitRSSpringValueEstimatorPropertyTypeMismatch001
+ * @tc.desc: Verify InitRSSpringValueEstimator returns early when property type does not match T
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitRSSpringValueEstimatorPropertyTypeMismatch001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitRSSpringValueEstimatorTypeInconsistent001
+ * @tc.desc: Verify InitRSSpringValueEstimator skips when startValue type does not match property
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitRSSpringValueEstimatorTypeInconsistent001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitRSSpringValueEstimatorTypeInconsistent002
+ * @tc.desc: Verify InitRSSpringValueEstimator skips when endValue type does not match property
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitRSSpringValueEstimatorTypeInconsistent002, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitRSSpringValueEstimatorTypeInconsistent003
+ * @tc.desc: Verify InitRSSpringValueEstimator skips when lastValue type does not match property
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitRSSpringValueEstimatorTypeInconsistent003, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: InitRSSpringValueEstimatorAllTypeMatch001
+ * @tc.desc: Verify InitRSSpringValueEstimator succeeds when all types match
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitRSSpringValueEstimatorAllTypeMatch001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    estimator->InitRSSpringValueEstimator(property, startValue, endValue, lastValue);
+    EXPECT_NE(estimator->property_, nullptr);
+    EXPECT_FLOAT_EQ(estimator->startValue_, 2.0f);
+    EXPECT_FLOAT_EQ(estimator->endValue_, 8.0f);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 8.0f);
+}
+
+/**
+ * @tc.name: UpdateStartValueAndLastValuePropertyNull001
+ * @tc.desc: Verify UpdateStartValueAndLastValue returns early when property_ is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, UpdateStartValueAndLastValuePropertyNull001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    estimator->property_ = nullptr;
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    estimator->UpdateStartValueAndLastValue(startValue, lastValue);
+    EXPECT_FLOAT_EQ(estimator->startValue_, 0.0f);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 0.0f);
+}
+
+/**
+ * @tc.name: UpdateStartValueAndLastValueTypeInconsistent001
+ * @tc.desc: Verify UpdateStartValueAndLastValue skips when startValue type does not match
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, UpdateStartValueAndLastValueTypeInconsistent001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    estimator->property_ = property;
+    estimator->endValue_ = 8.0f;
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    estimator->UpdateStartValueAndLastValue(startValue, lastValue);
+    EXPECT_FLOAT_EQ(estimator->startValue_, 0.0f);
+}
+
+/**
+ * @tc.name: UpdateStartValueAndLastValueTypeInconsistent002
+ * @tc.desc: Verify UpdateStartValueAndLastValue skips when lastValue type does not match
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, UpdateStartValueAndLastValueTypeInconsistent002, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    estimator->property_ = property;
+    estimator->endValue_ = 8.0f;
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f));
+    estimator->UpdateStartValueAndLastValue(startValue, lastValue);
+    EXPECT_FLOAT_EQ(estimator->startValue_, 0.0f);
+    EXPECT_FLOAT_EQ(estimator->lastValue_, 0.0f);
+}
+
+/**
+ * @tc.name: SetInitialVelocityNull001
+ * @tc.desc: Verify SetInitialVelocity does nothing when initialVelocity is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, SetInitialVelocityNull001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    estimator->InitSpringModel();
+    EXPECT_NE(estimator->springModel_, nullptr);
+    auto prevVelocity = estimator->springModel_->initialVelocity_;
+    estimator->SetInitialVelocity(nullptr);
+    EXPECT_FLOAT_EQ(estimator->springModel_->initialVelocity_, prevVelocity);
+}
+
+/**
+ * @tc.name: SetInitialVelocityTypeMismatch001
+ * @tc.desc: Verify SetInitialVelocity does nothing when initialVelocity type does not match T
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, SetInitialVelocityTypeMismatch001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    estimator->InitSpringModel();
+    EXPECT_NE(estimator->springModel_, nullptr);
+    auto prevVelocity = estimator->springModel_->initialVelocity_;
+    auto velocity = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(1.f));
+    estimator->SetInitialVelocity(velocity);
+    EXPECT_FLOAT_EQ(estimator->springModel_->initialVelocity_, prevVelocity);
+}
+
+/**
+ * @tc.name: SetInitialVelocityTypeMatch001
+ * @tc.desc: Verify SetInitialVelocity succeeds when type matches T
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, SetInitialVelocityTypeMatch001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
+    estimator->InitSpringModel();
+    EXPECT_NE(estimator->springModel_, nullptr);
+    auto velocity = std::make_shared<RSRenderAnimatableProperty<float>>(3.0f);
+    estimator->SetInitialVelocity(velocity);
+    EXPECT_FLOAT_EQ(estimator->springModel_->initialVelocity_, 3.0f);
+}
+
+/**
+ * @tc.name: CastToAnimatablePropertyOfNotAnimatable001
+ * @tc.desc: Verify CastToAnimatablePropertyOf returns nullptr for non-animatable RSRenderProperty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, CastToAnimatablePropertyOfNotAnimatable001, TestSize.Level1)
+{
+    auto nonAnimatable = std::make_shared<RSRenderProperty<float>>();
+    EXPECT_FALSE(nonAnimatable->IsAnimatable());
+    auto result = nonAnimatable->CastToAnimatablePropertyOf<float>(__func__);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: CastToAnimatablePropertyOfAnimatable001
+ * @tc.desc: Verify CastToAnimatablePropertyOf succeeds for RSRenderAnimatableProperty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, CastToAnimatablePropertyOfAnimatable001, TestSize.Level1)
+{
+    auto animatable = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    EXPECT_TRUE(animatable->IsAnimatable());
+    auto result = animatable->CastToAnimatablePropertyOf<float>(__func__);
+    EXPECT_NE(result, nullptr);
+    EXPECT_FLOAT_EQ(result->Get(), 1.0f);
+}
+
+/**
+ * @tc.name: CastToAnimatablePropertyOfTypeMismatch001
+ * @tc.desc: Verify CastToAnimatablePropertyOf returns nullptr when T does not match property type
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, CastToAnimatablePropertyOfTypeMismatch001, TestSize.Level1)
+{
+    auto animatable = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto result = animatable->CastToAnimatablePropertyOf<Vector4f>(__func__);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: IsAnimatablePropertyBase001
+ * @tc.desc: Verify RSRenderPropertyBase::IsAnimatable returns false for RSRenderProperty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, IsAnimatablePropertyBase001, TestSize.Level1)
+{
+    auto nonAnimatable = std::make_shared<RSRenderProperty<float>>();
+    EXPECT_FALSE(nonAnimatable->IsAnimatable());
+    auto animatable = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    EXPECT_TRUE(animatable->IsAnimatable());
+}
+
+/**
+ * @tc.name: InitCurveAnimationValueNotAnimatableProperty001
+ * @tc.desc: Verify InitCurveAnimationValue returns early when property is not animatable
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueNotAnimatableProperty001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto nonAnimatableProperty = std::make_shared<RSRenderProperty<float>>();
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    estimator->InitCurveAnimationValue(nonAnimatableProperty, startValue, endValue, lastValue);
+    EXPECT_EQ(estimator->property_, nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -39,12 +39,7 @@ protected:
     OH_Drawing_Bitmap* bitmap_ = nullptr;
 };
 
-void NativeDrawingBitmapTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingBitmapTest::SetUpTestCase() {}
 void NativeDrawingBitmapTest::TearDownTestCase() {}
 void NativeDrawingBitmapTest::SetUp()
 {

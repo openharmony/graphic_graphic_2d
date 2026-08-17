@@ -82,7 +82,7 @@ private:
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
     ErrCode GetUniRenderEnabled(bool& enable) override;
-    ErrCode GetBackgroundRebuildEnabled(bool& enable) override;
+    ErrCode GetBackgroundRebuildEnabled(uint8_t& enable) override;
 
     ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
                                   const std::string& name,
@@ -305,6 +305,8 @@ private:
     
     ErrCode SetUifirstScale(float scaleFactor) override;
 
+    sptr<IRemoteObject> GetDisplayEngineControl() override;
+
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     ErrCode ReportJankStats() override;
@@ -377,8 +379,6 @@ private:
 
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
-
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 

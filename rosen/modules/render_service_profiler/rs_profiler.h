@@ -559,7 +559,8 @@ public:
 
     RSB_EXPORT static void MarshallingTouch(NodeId nodeId);
 
-    RSB_EXPORT static void SendMessageBase(const std::string& msg);
+    RSB_EXPORT static void SendMessageBase(const char* format, ...) __attribute__((__format__(printf, 1, 2)))
+    __attribute__((__nonnull__(1)));
     RSB_EXPORT static std::string ReceiveMessageBase();
     RSB_EXPORT static RSProfilerLogMsg ReceiveRSLogBase();
     RSB_EXPORT static void SendRSLogBase(RSProfilerLogType type, const std::string& msg);
@@ -709,7 +710,7 @@ private:
     RSB_EXPORT static NodeId GetRandomSurfaceNode(const RSContext& context);
 
     RSB_EXPORT static void MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion,
-        std::shared_ptr<ProfilerMarshallingJob> job);
+        const std::shared_ptr<ProfilerMarshallingJob>& job);
     RSB_EXPORT static void MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
         uint32_t depth = 0u);
     RSB_EXPORT static void MarshalNode(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
@@ -774,9 +775,6 @@ private:
     RSB_EXPORT static NodeId PatchPlainNodeId(const Parcel& parcel, NodeId id);
     RSB_EXPORT static pid_t PatchPlainPid(const Parcel& parcel, pid_t pid);
 
-    RSB_EXPORT static uint32_t PerfTreeFlatten(std::shared_ptr<RSRenderNode> node,
-        std::vector<std::pair<NodeId, uint32_t>>& nodeSet, std::unordered_map<NodeId, uint32_t>& mapNode2Count,
-        uint32_t depth);
     RSB_EXPORT static uint32_t CalcNodeCmdListCount(RSRenderNode& node);
     RSB_EXPORT static void CalcPerfNodePrepare(NodeId nodeId, uint32_t timeCount, bool excludeDown);
     RSB_EXPORT static void CalcPerfNodePrepareLo(const std::shared_ptr<RSRenderNode>& node, bool forceExcludeNode);
@@ -827,7 +825,8 @@ private:
     static void ProcessCommands();
     // Deprecated: Use SendMessage instead
     static void Respond(const std::string& message);
-    static void SendMessage(const char* format, ...) __attribute__((__format__(printf, 1, 2)));
+    static void SendMessage(const char* format, ...) __attribute__((__format__(printf, 1, 2)))
+    __attribute__((__nonnull__(1)));
     static void SetSystemParameter(const ArgList& args);
     static void GetSystemParameter(const ArgList& args);
     static void DumpSystemParameters(const ArgList& args);

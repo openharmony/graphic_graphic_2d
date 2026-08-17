@@ -45,7 +45,6 @@ public:
     static napi_value MakeFromRawFileWithArguments(napi_env env, napi_callback_info info);
     // Default typeface does not support chinese characters, needs to load chinese character ttf file.
     static std::shared_ptr<Typeface> GetZhCnTypeface();
-    static napi_value TypefaceTransferDynamic(napi_env env, napi_callback_info info);
     static napi_value IsBold(napi_env env, napi_callback_info info);
     static napi_value IsItalic(napi_env env, napi_callback_info info);
 
@@ -53,6 +52,8 @@ public:
     {
         return m_typeface;
     }
+
+    static bool IsInstanceOf(napi_env env, napi_value obj);
 
 private:
     napi_value OnGetFamilyName(napi_env env, napi_callback_info info);

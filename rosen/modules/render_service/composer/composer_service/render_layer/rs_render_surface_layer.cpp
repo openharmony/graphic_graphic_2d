@@ -42,14 +42,15 @@ static std::unordered_map<RSLayerCmdType, RSLayerCmdHandler> cmdHandlers_ = {
 RSRenderSurfaceLayer::RSRenderSurfaceLayer()
 {
     RS_TRACE_NAME_FMT("Constructing %s", __func__);
-    RS_LOGD("Constructing %{public}s", __func__);
+    RS_LOGD_IF(DEBUG_COMPOSER, "Constructing %{public}s", __func__);
 }
 
 RSRenderSurfaceLayer::~RSRenderSurfaceLayer()
 {
     RS_TRACE_NAME_FMT("%s id: %" PRIu64 ", name: %s, layer type: %d",
         __func__, rsLayerId_, surfaceName_.c_str(), layerType_);
-    RS_LOGD("Destructing %{public}s, id: %{public}" PRIu64 ", surface name: %{public}s, layer type: %{public}d",
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "Destructing %{public}s, id: %{public}" PRIu64 ", surface name: %{public}s, layer type: %{public}d",
         __func__, rsLayerId_, surfaceName_.c_str(), layerType_);
 }
 
@@ -165,21 +166,21 @@ const GraphicIRect& RSRenderSurfaceLayer::GetCropRect() const
 
 void RSRenderSurfaceLayer::SetDelegateModeCropRect(const GraphicIRect& crop)
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateModeCropRect in:layerId=%" PRIu64 ", %d %d %d %d",
         rsLayerId_, crop.x, crop.y, crop.w, crop.h);
     delegateModeCropRect_ = crop;
 }
 
 GraphicIRect RSRenderSurfaceLayer::GetDelegateModeCropRect()
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateModeCropRect in:layerId=%" PRIu64 ", %d %d %d %d",
         rsLayerId_, delegateModeCropRect_.x, delegateModeCropRect_.y, delegateModeCropRect_.w, delegateModeCropRect_.h);
     return delegateModeCropRect_;
 }
 
 bool RSRenderSurfaceLayer::GetDelegateMode() const
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateMode in:layerId=%" PRIu64 ", %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateMode in:layerId=%" PRIu64 ", %d",
         rsLayerId_, isDelegateMode_);
     return isDelegateMode_;
 }
@@ -187,7 +188,7 @@ bool RSRenderSurfaceLayer::GetDelegateMode() const
 void RSRenderSurfaceLayer::SetDelegateMode(bool isDelegateMode)
 {
     isDelegateMode_ = isDelegateMode;
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateMode in:layerId=%" PRIu64 ", %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateMode in:layerId=%" PRIu64 ", %d",
         rsLayerId_, isDelegateMode_);
 }
 
@@ -431,6 +432,16 @@ const std::vector<float>& RSRenderSurfaceLayer::GetLayerLinearMatrix() const
     return layerLinearMatrix_;
 }
 
+void RSRenderSurfaceLayer::SetGlassFree3D(bool glassFree3D)
+{
+    glassFree3D_ = glassFree3D;
+}
+
+bool RSRenderSurfaceLayer::GetGlassFree3D() const
+{
+    return glassFree3D_;
+}
+
 void RSRenderSurfaceLayer::SetLayerSourceTuning(int32_t layerSource)
 {
     layerSource_ = layerSource;
@@ -573,7 +584,6 @@ sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetBuffer() const
 {
     auto sbuffer = sbuffer_.promote();
     if (sbuffer == nullptr) {
-        RS_LOGE("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return sbuffer;
@@ -656,17 +666,17 @@ void RSRenderSurfaceLayer::SetUseDeviceOffline(bool useOffline)
     }
     useDeviceOffline_ = useOffline;
 }
- 
+
 bool RSRenderSurfaceLayer::GetUseDeviceOffline() const
 {
     return useDeviceOffline_;
 }
- 
+
 void RSRenderSurfaceLayer::SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo)
 {
     hpaeOriginalInfo_ = hpaeOriginalInfo;
 }
- 
+
 const HpaeOriginalInfo& RSRenderSurfaceLayer::GetHpaeOriginalInfo() const
 {
     return hpaeOriginalInfo_;
@@ -697,6 +707,7 @@ void RSRenderSurfaceLayer::SetVcldInfo(const RSVcldParam& vcldInfo)
 {
     vcldInfo_ = vcldInfo;
 }
+
 const RSVcldParam& RSRenderSurfaceLayer::GetVcldInfo() const
 {
     return vcldInfo_;
@@ -738,6 +749,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     displayNit_ = rsLayer->GetDisplayNit();
     brightnessRatio_ = rsLayer->GetBrightnessRatio();
     layerLinearMatrix_ = rsLayer->GetLayerLinearMatrix();
+    glassFree3D_ = rsLayer->GetGlassFree3D();
     layerSource_ = rsLayer->GetLayerSourceTuning();
     rotationFixed_ = rsLayer->GetRotationFixed();
     arsrTag_ = rsLayer->GetLayerArsr();
@@ -763,8 +775,10 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     ancoSrcRect_ = rsLayer->GetAncoSrcRect();
     splitLayerTag_ = rsLayer->GetSplitLayerTag();
     vcldInfo_ = rsLayer->GetVcldInfo();
-    delegateModeCropRect_ = rsLayer->GetDelegateModeCropRect();
     isDelegateMode_ = rsLayer->GetDelegateMode();
+    if (isDelegateMode_) {
+        delegateModeCropRect_ = rsLayer->GetDelegateModeCropRect();
+    }
 }
 
 void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command)

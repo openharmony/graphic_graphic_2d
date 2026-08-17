@@ -154,6 +154,23 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetBitmapInvalidBitmapTest
+ * @tc.desc: Test GetBitmap returns false when bitmap is not valid in non-renderservice path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapInvalidBitmapTest, TestSize.Level1)
+{
+    auto drawingNode = std::make_shared<RSCanvasDrawingNode>(false);
+    Drawing::Bitmap bitmap;
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
+    Drawing::Rect rect;
+    // When node is not a render service node and bitmap from render thread is invalid,
+    // GetBitmap should return false (not true as the old bug would have done)
+    bool res = drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
+    ASSERT_FALSE(res);
+}
+
+/**
  * @tc.name: GetPixelmapTest
  * @tc.desc: test results of GetPixelmap
  * @tc.type: FUNC
@@ -190,6 +207,66 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
     pixelmap = std::make_shared<Media::PixelMap>();
     res = drawingNode1->GetPixelmap(pixelmap, drawCmdList, &rect);
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: Create_TextureExportNodeDisablesHybrid
+ * @tc.desc: Test that isTextureExportNode=true results in hybridEnabled_=false regardless of globalHybridEnabled_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, Create_TextureExportNodeDisablesHybrid, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr normalNode = RSCanvasDrawingNode::Create(true, false);
+    RSCanvasDrawingNode::SharedPtr textureExportNode = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(normalNode, nullptr);
+    ASSERT_NE(textureExportNode, nullptr);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    ASSERT_EQ(normalNode->hybridEnabled_, RSCanvasDrawingNode::globalHybridEnabled_);
+#else
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    ASSERT_FALSE(normalNode->hybridEnabled_);
+#endif
+}
+
+/**
+ * @tc.name: SetNodeState_TextureExportNode
+ * @tc.desc: Test SetNodeState returns false when isTextureExportNode disables hybrid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, SetNodeState_TextureExportNode, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr textureExportNode = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(textureExportNode, nullptr);
+    ASSERT_FALSE(textureExportNode->hybridEnabled_);
+    bool res = textureExportNode->SetNodeState(RSNodeState::ACTIVE);
+    ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ResetSurface_HybridEnabledPath
+ * @tc.desc: Test ResetSurface takes ResetSurfaceForClientRender path when hybridEnabled_ is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurface_HybridEnabledPath, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true, false);
+    ASSERT_NE(canvasNode, nullptr);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 10000;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 10000;
+    if (canvasNode->hybridEnabled_) {
+        canvasNode->ResetSurface(100, 100);
+        ASSERT_FALSE(canvasNode->sizeOutOfGpuLimit_);
+        canvasNode->ResetSurface(20000, 20000);
+        ASSERT_TRUE(canvasNode->sizeOutOfGpuLimit_);
+    }
+    RSCanvasDrawingNode::maxGpuSupportedWidth_ = 0;
+    RSCanvasDrawingNode::maxGpuSupportedHeight_ = 0;
+#else
+    bool ret = canvasNode->ResetSurface(100, 100);
+    ASSERT_TRUE(ret);
+#endif
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -369,6 +446,81 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRenderTest, TestSize.Leve
 #endif
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: OnCreate_NullCheckEarlyReturn
+ * @tc.desc: Test OnCreate returns early on null uiContext/agent/renderInterface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnCreate_NullCheckEarlyReturn, TestSize.Level1)
+{
+    // Disable DMA pre-allocation to avoid VK path in destructor accessing uninitialized surfaceBufferMutex_
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+
+    // Branch 1: uiContext == nullptr → early return
+    auto nodeNoCtx = RSCanvasDrawingNode::Create(true);
+    ASSERT_NE(nodeNoCtx, nullptr);
+    nodeNoCtx->OnCreate();
+    EXPECT_EQ(nodeNoCtx->GetRSUIContext(), nullptr);
+
+    // Branch 2 & 3: use texture export nodes (hybridEnabled_=false) so Create() won't
+    // call OnCreate() internally, avoiding GPU init and DDGR process-exit crash.
+    // Then manually call OnCreate() to test null-check early returns.
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = (uidirector != nullptr) ? uidirector->GetRSUIContext() : nullptr;
+
+    // Branch 2: uiContext != nullptr but canvasModifiersDrawAgent == nullptr
+    auto nodeNullAgent = RSCanvasDrawingNode::Create(true, true, rsUIContext);
+    ASSERT_NE(nodeNullAgent, nullptr);
+    auto ctx = nodeNullAgent->GetRSUIContext();
+    if (ctx != nullptr) {
+        auto savedAgent = ctx->canvasModifiersDrawAgent_;
+        ctx->canvasModifiersDrawAgent_ = nullptr;
+        nodeNullAgent->OnCreate();
+        ctx->canvasModifiersDrawAgent_ = savedAgent;
+        EXPECT_EQ(nodeNullAgent->GetRSUIContext(), ctx);
+    }
+
+    // Branch 3: agent != nullptr but renderInterface == nullptr
+    auto nodeNullRI = RSCanvasDrawingNode::Create(true, true, rsUIContext);
+    ASSERT_NE(nodeNullRI, nullptr);
+    auto ctx2 = nodeNullRI->GetRSUIContext();
+    if (ctx2 != nullptr && ctx2->canvasModifiersDrawAgent_ != nullptr) {
+        auto savedRI = ctx2->rsRenderInterface_;
+        ctx2->rsRenderInterface_ = nullptr;
+        nodeNullRI->OnCreate();
+        ctx2->rsRenderInterface_ = savedRI;
+        EXPECT_NE(ctx2->canvasModifiersDrawAgent_, nullptr);
+    }
+    EXPECT_NE(nodeNullRI, nullptr);
+}
+
+/**
+ * @tc.name: OnCreate_NormalPath
+ * @tc.desc: Test OnCreate normal path where all dependencies are non-null (line 189)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnCreate_NormalPath, TestSize.Level1)
+{
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    auto uidirector = CreateRSUIDirector();
+    auto rsUIContext = (uidirector != nullptr) ? uidirector->GetRSUIContext() : nullptr;
+    if (rsUIContext == nullptr) {
+        GTEST_SKIP() << "RSUIContext not available";
+    }
+    auto node = RSCanvasDrawingNode::Create(true, false, rsUIContext);
+    ASSERT_NE(node, nullptr);
+    auto uiContext = node->GetRSUIContext();
+    if (uiContext != nullptr && uiContext->GetCanvasModifiersDrawAgent() != nullptr) {
+        // OnCreate was already called by Create(), verify it completed without crash
+        EXPECT_NE(uiContext->GetCanvasModifiersDrawAgent(), nullptr);
+        // Wait for async OnNodeCreate task to finish on worker thread
+        usleep(1000000); // 1s
+        // Proactively destroy CanvasModifiersDraw before test exits
+        uiContext->DestroyModifiersDraw();
+    }
+    EXPECT_NE(node, nullptr);
+}
+
 /**
  * @tc.name: ResetSurfaceForClientRender_MaxGpuSizeTest
  * @tc.desc: Test ResetSurfaceForClientRender with sizeOutOfGpuLimit when exceeding max GPU buffer size

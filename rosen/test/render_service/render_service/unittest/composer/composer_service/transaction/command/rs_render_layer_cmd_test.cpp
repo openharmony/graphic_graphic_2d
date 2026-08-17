@@ -1204,6 +1204,65 @@ HWTEST(RSRenderLayerCmdTest, Marshall_Unmarshall_VcldInfo_Success, TestSize.Leve
 }
 
 /**
+ * Function: SplitLayerTag_Marshalling_Unmarshalling_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Round-trip bool command for SPLIT_LAYER_TAG
+ */
+HWTEST(RSRenderLayerCmdTest, SplitLayerTag_Marshalling_Unmarshalling_Success, TestSize.Level1)
+{
+    bool value = true;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(value);
+    auto cmd = std::make_shared<RSRenderLayerSplitLayerTagCmd>(prop);
+    MessageParcel parcel;
+    ASSERT_TRUE(cmd->Marshalling(parcel));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(out->GetRSRenderLayerCmdType(), RSLayerCmdType::SPLIT_LAYER_TAG);
+    
+    auto outProp = std::static_pointer_cast<RSRenderLayerCmdProperty<bool>>(out->GetRSRenderLayerProperty());
+    ASSERT_NE(outProp, nullptr);
+    EXPECT_EQ(outProp->Get(), value);
+}
+/**
+ * Function: SplitLayerTag_SetFalseValue_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Round-trip bool command for SPLIT_LAYER_TAG with false value
+ */
+HWTEST(RSRenderLayerCmdTest, SplitLayerTag_SetFalseValue_Success, TestSize.Level1)
+{
+    bool value = false;
+    auto prop = std::make_shared<RSRenderLayerCmdProperty<bool>>(value);
+    auto cmd = std::make_shared<RSRenderLayerSplitLayerTagCmd>(prop);
+    MessageParcel parcel;
+    ASSERT_TRUE(cmd->Marshalling(parcel));
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    ASSERT_NE(out, nullptr);
+    
+    auto outProp = std::static_pointer_cast<RSRenderLayerCmdProperty<bool>>(out->GetRSRenderLayerProperty());
+    ASSERT_NE(outProp, nullptr);
+    EXPECT_FALSE(outProp->Get());
+}
+/**
+ * Function: SplitLayerTag_Unmarshalling_InvalidData_ReturnsNull
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: Verify unmarshalling returns nullptr for invalid data
+ */
+HWTEST(RSRenderLayerCmdTest, SplitLayerTag_Unmarshalling_InvalidData_ReturnsNull, TestSize.Level1)
+{
+    MessageParcel parcel;
+    parcel.WriteUint32(0xFFFFFFFF); // invalid cmd type
+    
+    auto out = RSRenderLayerCmd::Unmarshalling(parcel);
+    EXPECT_EQ(out, nullptr);
+}
+
+/**
  * Function: Unmarshall_Fail_MetaDataSet_PayloadMissing
  * Type: Function
  * Rank: Important(2)

@@ -25,6 +25,7 @@
 #include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_render_light_blur_filter.h"
 #include "render/rs_render_water_ripple_filter.h"
+#include "render_context/render_context.h"
 #include "ge_visual_effect_container.h"
 using namespace testing;
 using namespace testing::ext;

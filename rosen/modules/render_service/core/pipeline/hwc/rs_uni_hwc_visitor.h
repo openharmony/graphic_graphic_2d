@@ -47,16 +47,13 @@ public:
     void CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
     void UpdateHwcNodeEnable();
-#ifdef RS_ENABLE_TV_SHUTTER_3D
-    void UpdateHwcNodeEnableByShutter3DLayer();
-#endif
     void UpdateHwcNodeEnableByNodeBelow();
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
     void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::vector<RectI>& hwcRects);
     void UpdateHardwareStateByBoundNEDstRectInApps(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
-        std::vector<RectI>& abovedBounds);
+        std::vector<std::pair<RectI, RectI>>& abovedBoundDstRects);
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
         RectI& backgroundAlphaRect, bool& isHardwareEnableByBackgroundAlpha);
@@ -108,11 +105,10 @@ private:
     bool IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
     void UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
         Drawing::Rect& childRectMapped);
+    void UpdateHwcNodeMatrix(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
+        Drawing::Matrix& accumulatedMatrix);
     void UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
         const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix);
-    // Refresh the boundsGeo_ of every intermediate ancestor between rootNode and hwcNodePtr in a skipped subtree.
-    void RefreshAncestorGeometryInSkippedSubTree(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
-        const RSRenderNode& rootNode, const std::vector<std::shared_ptr<RSRenderNode>>& ancestors);
 
     // Solid Layer
     bool IsTargetSolidLayer(RSSurfaceRenderNode& node);

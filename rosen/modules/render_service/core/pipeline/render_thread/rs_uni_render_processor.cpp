@@ -25,7 +25,6 @@
 #include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_tunnel_layer_utils.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
@@ -86,7 +85,7 @@ bool RSUniRenderProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBase
 }
 
 bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+    std::shared_ptr<RSBaseRenderEngine> renderEngine, int32_t tid)
 {
     if (!RSProcessor::InitForRenderThread(screenDrawable, renderEngine)) {
         return false;
@@ -116,10 +115,14 @@ void RSUniRenderProcessor::PostProcess()
     if (uniBufferOwnerCount) {
         for (auto layerPtr : layers_) {
             auto layer = layerPtr.lock();
-            if (layer == nullptr || layer == uniLayer_ || layer->GetBuffer() == nullptr) {
+            if (layer == nullptr || layer == uniLayer_) {
                 continue;
             }
-            uniBufferOwnerCount->InsertUniOnDrawSet(layer->GetRSLayerId(), layer->GetBuffer()->GetBufferId());
+            auto buffer = layer->GetBuffer();
+            if (buffer == nullptr) {
+                continue;
+            }
+            uniBufferOwnerCount->InsertUniOnDrawSet(layer->GetRSLayerId(), buffer->GetBufferId());
             auto bufferOwnerCount = layer->GetBufferOwnerCount();
             if (bufferOwnerCount == nullptr) {
                 continue;
@@ -148,7 +151,7 @@ void RSUniRenderProcessor::PostProcess()
     }
 
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers_.size());
-    RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
 static void SetDeviceOfflineOriginalInfo(RSLayerPtr& layer, RSSurfaceRenderParams& params)
@@ -284,7 +287,8 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio(),
         uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio());
     HandleDelegateComposerLayer(layer, params);
-    RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "dirty:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "buffer:[%{public}d, %{public}d] alpha:[%{public}f]"
@@ -381,7 +385,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     if (offlineResult) {
         SetDeviceOfflineOriginalInfo(layer, params);
     }
-    params.SetPreBuffer(nullptr, nullptr);
+    params.ClearPreBufferOnly();
     layer->SetZorder(layerInfo.zOrder);
     layer->SetRotationFixed(params.GetFixRotationByUser());
     RSRenderThreadParams::TunnelLayerSnapshot tunnelLayerSnapshot;
@@ -421,7 +425,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     bool forceClientForDRM = GetForceClientForDRM(params);
     RS_OPTIONAL_TRACE_NAME_FMT("%s nodeName[%s] forceClientForDRM[%d]",
         __func__, params.GetName().c_str(), forceClientForDRM);
-    RS_LOGD("%{public}s nodeName[%{public}s] forceClientForDRM[%{public}d]",
+    RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s nodeName[%{public}s] forceClientForDRM[%{public}d]",
         __func__, params.GetName().c_str(), forceClientForDRM);
     bool forceClient = RSSystemProperties::IsForceClient() || forceClientForDRM;
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
@@ -452,22 +456,10 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
             dirtyRegions.emplace_back(intersectRect);
         } else {
             const auto& bufferDamage = params.GetBufferDamage();
-            Rect selfDrawingDirtyRect = bufferDamage;
-            // When the size of the damage region equals that of the buffer, use dirty region from gpu crc
-            bool isUseSelfDrawingDirtyRegion = buffer != nullptr && buffer->GetSurfaceBufferWidth() == bufferDamage.w &&
-                buffer->GetSurfaceBufferHeight() == bufferDamage.h && bufferDamage.x == 0 && bufferDamage.y == 0;
-            bool isSelfDrawingDirtyRegionValid = false;
-            if (isUseSelfDrawingDirtyRegion) {
-                isSelfDrawingDirtyRegionValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
-            }
-            if (isSelfDrawingDirtyRegionValid) {
-                RS_OPTIONAL_TRACE_NAME_FMT("selfDrawingDirtyRect:[%d, %d, %d, %d]",
-                    selfDrawingDirtyRect.x, selfDrawingDirtyRect.y, selfDrawingDirtyRect.w, selfDrawingDirtyRect.h);
-            }
             bool isTargetedHwcDirtyRegion = params.GetIsBufferFlushed() ||
                 RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
-            GraphicIRect dirtyRect = isTargetedHwcDirtyRegion ? GraphicIRect { selfDrawingDirtyRect.x,
-                selfDrawingDirtyRect.y, selfDrawingDirtyRect.w, selfDrawingDirtyRect.h } : GraphicIRect { 0, 0, 0, 0 };
+            GraphicIRect dirtyRect = isTargetedHwcDirtyRegion ? GraphicIRect { bufferDamage.x,
+                bufferDamage.y, bufferDamage.w, bufferDamage.h } : GraphicIRect { 0, 0, 0, 0 };
             auto intersectRect = RSUniDirtyComputeUtil::IntersectRect(layerInfo.srcRect, dirtyRect);
             RS_OPTIONAL_TRACE_NAME_FMT("intersectRect:[%d, %d, %d, %d]",
                 intersectRect.x, intersectRect.y, intersectRect.w, intersectRect.h);
@@ -554,6 +546,10 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNo
         taskId, HPAE_OFFLINE_TIMEOUT, *processOfflineResult);
     if (waitSuccess && processOfflineResult->taskSuccess) {
         auto params = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+        if (params == nullptr) {
+            RS_LOGE("RSUniRenderProcessor::ProcessOfflineLayer params is nullptr");
+            return false;
+        }
         CreateLayer(*node, *params, processOfflineResult);
         return true;
     } else {
@@ -577,7 +573,7 @@ void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
     }
     if (node.GetFingerprint()) {
         layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
-        RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
         layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
     }
@@ -590,6 +586,10 @@ void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
     }
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
     auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    if (!surfaceHandler) {
+        RS_LOGE("RSUniRenderProcessor::ProcessScreenSurface surfaceHandler is nullptr");
+        return;
+    }
     RSUniRenderThread::Instance().SetAcquireFence(surfaceHandler->GetAcquireFence());
 }
 
@@ -609,7 +609,7 @@ void RSUniRenderProcessor::ProcessScreenSurfaceForRenderThread(
     }
     if (params->GetFingerprint()) {
         layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
-        RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
         layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
     }

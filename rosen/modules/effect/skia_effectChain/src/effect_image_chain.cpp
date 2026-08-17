@@ -181,7 +181,8 @@ void EffectImageChain::UpdateCanvas()
         EFFECT_COMM_LOG_E("EffectImageChain::UpdateCanvas: canvasRec is invalid");
         return;
     }
-    if (canvasRec_.GetRight() != imageRec_.GetRight() || canvasRec_.GetBottom() != imageRec_.GetBottom()) {
+    if (!ROSEN_EQ(canvasRec_.GetRight(), imageRec_.GetRight()) ||
+        !ROSEN_EQ(canvasRec_.GetBottom(), imageRec_.GetBottom())) {
         float scaleX = imageRec_.GetRight() / canvasRec_.GetRight();
         float scaleY = imageRec_.GetBottom() / canvasRec_.GetBottom();
         ScaleCanvas(scaleX, scaleY);
@@ -216,7 +217,7 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
  
-    image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+    image_ = RSPixelMapUtil::ExtractDrawingImageNoCache(srcPixelMap_);
     if (image_ == nullptr) {
         EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: extract drawing image failed.");
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -224,7 +225,11 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
     }
 
     if (RSSystemProperties::IsUseVulkan()) {
-        gpuContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        if (renderContext_ == nullptr) {
+            renderContext_ = RenderContext::Create();
+            renderContext_->Init();
+        }
+        gpuContext_ = renderContext_->GetSharedDrGPUContext();
         if (gpuContext_ != nullptr) {
             gpuContext_->SetResourceCacheLimits(0, 0);
         }
@@ -244,7 +249,8 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
     surface_ = NativeBufferUtils::CreateSurfaceFromNativeBuffer(
-        RsVulkanContext::GetSingleton(), info, dstNativeBuffer.get(), info.GetColorSpace());
+        RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface(),
+        gpuContext_.get(), info, dstNativeBuffer.get(), info.GetColorSpace());
     if (surface_ == nullptr) {
         EFFECT_LOG_E("EffectImageChain::PrepareNativeBuffer: Failed to create surface %{public}d.", forceCPU_);
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -280,7 +286,7 @@ DrawingError EffectImageChain::ApplyDrawingFilter(const std::shared_ptr<Drawing:
 DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& tileMode,
     bool isDirection, float angle)
 {
-    if (radius < 0.0f) { // invalid radius
+    if (ROSEN_LNE(radius, 0.0f)) { // invalid radius
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
@@ -328,10 +334,10 @@ static std::shared_ptr<GEShaderFilter> GenerateGEXShaderFilter(Drawing::GEFilter
 DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
     float maskRadiusX, float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees)
 {
-    if (blurRadius < 0.0f) { // invalid radius
+    if (ROSEN_LNE(blurRadius, 0.0f)) { // invalid radius
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    if (maskRadiusX <= 0.0f || maskRadiusY <= 0.0f) {
+    if (ROSEN_LE(maskRadiusX, 0.0f) || ROSEN_LE(maskRadiusY, 0.0f)) {
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
@@ -582,7 +588,7 @@ DrawingError EffectImageChain::ApplyMaskTransitionFilter(const std::shared_ptr<M
     canvasInfo.geoWidth = srcPixelMap_->GetWidth();
     canvasInfo.geoHeight = srcPixelMap_->GetHeight();
 
-    auto topLayer = RSPixelMapUtil::ExtractDrawingImage(topLayerMap);
+    auto topLayer = RSPixelMapUtil::ExtractDrawingImageNoCache(topLayerMap);
     if (!topLayer || canvasInfo.geoHeight <= 0 || canvasInfo.geoWidth <= 0) {
         EFFECT_LOG_E("EffectImageChain::ApplyMaskTransitionFilter: input image is null or invalid.");
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -654,7 +660,7 @@ DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shar
         EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: geWaterDropletParams is null.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    geWaterDropletParams->topLayer = RSPixelMapUtil::ExtractDrawingImage(topLayerMap);
+    geWaterDropletParams->topLayer = RSPixelMapUtil::ExtractDrawingImageNoCache(topLayerMap);
     if (!geWaterDropletParams->topLayer) {
         EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: ConvertPixelMapToDrawingImage null.");
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -707,7 +713,8 @@ void EffectImageChain::DrawOnFilter()
     canvas_->Save();
     canvas_->ResetMatrix();
     canvas_->AttachPaint(paint);
-    if (imageRec_.GetRight() != canvasRec_.GetRight() || imageRec_.GetBottom() != canvasRec_.GetBottom()) {
+    if (!ROSEN_EQ(imageRec_.GetRight(), canvasRec_.GetRight()) ||
+        !ROSEN_EQ(imageRec_.GetBottom(), canvasRec_.GetBottom())) {
         canvas_->DrawImageRect(*image_,
             imageRec_,
             canvasRec_,
@@ -768,7 +775,8 @@ DrawingError EffectImageChain::DrawNativeBuffer()
         DrawOnFilter();
 
         VkSemaphore semaphore = VK_NULL_HANDLE;
-        NativeBufferUtils::CreateVkSemaphore(semaphore);
+        auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
+        NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore);
         if (semaphore == VK_NULL_HANDLE) {
             EFFECT_COMM_LOG_E("EffectImageChain::DrawNativeBuffer: CreateVkSemaphore failed");
             fenceId_ = -1;
@@ -776,8 +784,8 @@ DrawingError EffectImageChain::DrawNativeBuffer()
             break;
         }
         GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
-        auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-        auto* destroyInfo = new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
+        auto* destroyInfo =
+            new DestroySemaphoreInfo(vkInterface->vkDestroySemaphore, vkInterface->GetDevice(), semaphore);
  
         Drawing::FlushInfo flushInfo;
         flushInfo.backendSurfaceAccess = true;
@@ -789,7 +797,7 @@ DrawingError EffectImageChain::DrawNativeBuffer()
         gpuContext_->Submit();
  
         // Get fence fd from semaphore right after flush
-        NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, fenceId_);
+        NativeBufferUtils::GetFenceFdFromSemaphore(vkInterface, semaphore, fenceId_);
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo); // semaphore inits with ref count = 2
     } while (false);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -843,7 +851,7 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_) };
 
 #if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
-    image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+    image_ = RSPixelMapUtil::ExtractDrawingImageNoCache(srcPixelMap_);
 #if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
     // If image_ release earlier, grContext may release and cause null pointer error
     // Store image_ pointer to maintain correct image life cycle when use DDGR
@@ -895,20 +903,14 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
     }
 
 #ifdef RS_ENABLE_GPU
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+    if (renderContext_ == nullptr) {
         renderContext_ = RenderContext::Create();
         renderContext_->Init();
-        renderContext_->SetUpGpuContext();
         gpuContext_ = renderContext_->GetSharedDrGPUContext();
     }
-
-#ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        gpuContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         gpuContext_->SetResourceCacheLimits(0, 0);
     }
-#endif
-
     if (gpuContext_ == nullptr) {
         EFFECT_COMM_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
         return nullptr;
@@ -932,9 +934,6 @@ EffectImageChain::~EffectImageChain()
     surface_.reset();
     if (gpuContext_ && forceReleaseGpuContext_) {
         gpuContext_->ReleaseResourcesAndAbandonContext();
-#if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
-        RsVulkanContext::ReleaseDrawingContextForThread(gettid());
-#endif
         gpuContext_ = nullptr;
     }
 }
@@ -1064,10 +1063,10 @@ DrawingError EffectImageChain::ApplyReededGlass(
 DrawingError EffectImageChain::ApplyScale(
     float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
 {
-    if (scaleX <= 0.0f || scaleY <= 0.0f) {
+    if (ROSEN_LE(scaleX, 0.0f) || ROSEN_LE(scaleY, 0.0f)) {
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    if (scaleX == 1.0f || scaleY == 1.0f) {
+    if (ROSEN_EQ(scaleX, 1.0f) || ROSEN_EQ(scaleY, 1.0f)) {
         return DrawingError::ERR_OK;
     }
     std::lock_guard<std::mutex> lock(apiMutex_);

@@ -484,6 +484,8 @@ HWTEST_F(VsyncReceiverTest, SetUiDvsyncSwitchTest, Function | MediumTest| Level3
     vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(vsyncReceiver->SetUiDvsyncSwitch(true), VSYNC_ERROR_OK);
     ASSERT_EQ(vsyncReceiver->SetUiDvsyncSwitch(false), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncReceiver->SetUiDvsyncSwitch(true, FromWhom::INNER), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncReceiver->SetUiDvsyncSwitch(false, FromWhom::API), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
 }
 

@@ -26,6 +26,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_visitor.h"
 #include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
@@ -50,7 +51,33 @@ void RSRenderServiceVisitorTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
 }
-void RSRenderServiceVisitorTest::TearDownTestCase() {}
+void RSRenderServiceVisitorTest::TearDownTestCase()
+{
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+}
 void RSRenderServiceVisitorTest::SetUp()
 {
     if (RSUniRenderJudgement::IsUniRender()) {
@@ -370,14 +397,14 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareLogicalDisplayRenderNode002, TestSiz
     NodeId nodeId = 100;
     auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     rsLogicalDisplayRenderNode->GetMutableRenderProperties().SetRotation(0.0f);
-    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(false);
+    rsLogicalDisplayRenderNode->SetDisplayMode(DisplayMode::EXPAND);
     EXPECT_EQ(rsLogicalDisplayRenderNode->GetRotation(), ScreenRotation::ROTATION_0);
-    EXPECT_FALSE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
+    EXPECT_FALSE(rsLogicalDisplayRenderNode->GetDisplayMode() == DisplayMode::MIRROR);
     rsRenderServiceVisitor.PrepareLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
 
-    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(true);
+    rsLogicalDisplayRenderNode->SetDisplayMode(DisplayMode::MIRROR);
     rsRenderServiceVisitor.PrepareLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
-    ASSERT_TRUE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
+    ASSERT_TRUE(rsLogicalDisplayRenderNode->GetDisplayMode() == DisplayMode::MIRROR);
 }
 
 /**
@@ -393,11 +420,11 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareLogicalDisplayRenderNode003, TestSiz
     NodeId nodeId = 100;
     auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     rsLogicalDisplayRenderNode->GetMutableRenderProperties().SetRotation(0.0f);
-    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(true);
+    rsLogicalDisplayRenderNode->SetDisplayMode(DisplayMode::MIRROR);
     EXPECT_EQ(rsLogicalDisplayRenderNode->GetRotation(), ScreenRotation::ROTATION_0);
 
     rsRenderServiceVisitor.PrepareLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
-    ASSERT_TRUE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
+    ASSERT_TRUE(rsLogicalDisplayRenderNode->GetDisplayMode() == DisplayMode::MIRROR);
 }
 
 /**
@@ -1231,9 +1258,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessLogicalDisplayRenderNodeTest001, Tes
     NodeId nodeId = 100;
     auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
 
-    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(true);
+    rsLogicalDisplayRenderNode->SetDisplayMode(DisplayMode::MIRROR);
     rsRenderServiceVisitor.ProcessLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
-    ASSERT_TRUE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
+    ASSERT_TRUE(rsLogicalDisplayRenderNode->GetDisplayMode() == DisplayMode::MIRROR);
 }
 
 /**
@@ -1251,9 +1278,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessLogicalDisplayRenderNodeTest002, Tes
     NodeId displayNodeId = 101;
     auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
 
-    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(false);
+    rsLogicalDisplayRenderNode->SetDisplayMode(DisplayMode::EXPAND);
     rsRenderServiceVisitor.ProcessLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
-    ASSERT_FALSE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
+    ASSERT_FALSE(rsLogicalDisplayRenderNode->GetDisplayMode() == DisplayMode::MIRROR);
 }
 
 /**

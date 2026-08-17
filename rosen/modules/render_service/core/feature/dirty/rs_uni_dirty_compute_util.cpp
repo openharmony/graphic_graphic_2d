@@ -39,7 +39,6 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_effect_render_node.h"
-#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -99,9 +98,10 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
         Occlusion::Region surfaceVisibleDirtyRegion =
             surfaceCurrentAdvancedDirtyRegion.And(visibleRegion);
         std::vector<RectI> refreshRects = surfaceVisibleDirtyRegion.GetRegionRectIs();
+        RectI absDrawRect = surfaceParams->GetAbsDrawRect();
         refreshRects.emplace_back(surfaceDirtyManager->GetHwcDirtyRegion());
         RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
-            surfaceNodeDrawable->GetId(), refreshRects, screenInfo.width * screenInfo.height);
+            surfaceNodeDrawable->GetId(), refreshRects, absDrawRect.GetWidth() * absDrawRect.GetHeight());
     }
     auto screenDirtyManager = screenDrawable.GetSyncDirtyManager();
     if (screenDirtyManager == nullptr) {
@@ -355,7 +355,8 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
         .intersectRegion_ = filterRegion,
         .filterDirty_ = filterRegion,
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
-        .isBackgroundFilterClean_ = RSEffectUtils::HasBackgroundDependentFilter(filterProperties) &&
+        .isBackgroundFilterClean_ =
+            (filterProperties.GetBackgroundFilter() || filterProperties.GetNeedDrawBehindWindow()) &&
             !filterNode.IsBackgroundInAppOrNodeSelfDirty(),
         .forceDisablePartialRender_ = filterNode.IsPixelStretchValid() ||
             filterNode.GetRenderProperties().NeedDisabledPartialRender()
@@ -412,7 +413,7 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
 
     // update accumulated special layer status changed
-    auto currentBlackList = RSSpecialLayerUtils::GetMergeBlackList(params.GetScreenProperty());
+    auto currentBlackList = RSSpecialLayerUtils::GetMergeBlackListInRenderThread(params.GetScreenProperty());
     if (currentBlackList != params.GetLastBlackList()) {
         params.SetLastBlackList(currentBlackList);
         params.SetAccumulatedSpecialLayerStatusChanged(true);
@@ -444,6 +445,10 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
 {
     // Regardless of whether the current frame is skipped, the state needs to be accumulated
     if (!RSSystemProperties::GetVirtualExpandScreenSkipEnabled()) {
+        return false;
+    }
+
+    if (!screenDrawable.IsFirstFrameFlushed()) {
         return false;
     }
 
@@ -493,7 +498,7 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
     }
     const auto& displayDrawables = mirrorScreenParams->GetDisplayDrawables();
     auto& curAllSurfaceDrawables = mainScreenParams->GetAllMainAndLeashSurfaceDrawables();
-    auto curBlackList = RSSpecialLayerUtils::GetMergeBlackList(mirrorScreenParams->GetScreenProperty());
+    auto curBlackList = RSSpecialLayerUtils::GetMergeBlackListInRenderThread(mirrorScreenParams->GetScreenProperty());
     auto curTypeBlackList = mirrorScreenParams->GetScreenProperty().GetTypeBlackList();
     for (const auto& drawable : displayDrawables) {
         if (drawable == nullptr) {

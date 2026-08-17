@@ -34,7 +34,7 @@ public:
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     ErrCode GetUniRenderEnabled(bool& enable) override;
-    ErrCode GetBackgroundRebuildEnabled(bool& enable) override;
+    ErrCode GetBackgroundRebuildEnabled(uint8_t& enable) override;
 
     virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
                                           const std::string& name,
@@ -81,6 +81,8 @@ public:
         bool& success, uint32_t rowCount = 0, uint32_t colCount = 0) override;
 
     ErrCode SetUifirstScale(float scaleFactor) override;
+
+    sptr<IRemoteObject> GetDisplayEngineControl() override;
 
     void ForceRefreshOneFrameWithNextVSync() override;
 
@@ -302,8 +304,6 @@ public:
 
     void RunOnRemoteDiedCallback() override;
 
-    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) override;
-
 #ifndef ENABLE_RS_PROXY
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
@@ -365,8 +365,6 @@ public:
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
 
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
-
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 
     bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
@@ -397,6 +395,7 @@ private:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
+    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) override;
 
     void RegisterRemoteRefreshCallback() override {};
 

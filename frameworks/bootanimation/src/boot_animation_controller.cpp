@@ -35,6 +35,9 @@ namespace {
 void BootAnimationController::Start()
 {
     LOGI("BootAnimationController START");
+#ifdef IS_CAR
+    WaitPowerStateChange();
+#endif
     WaitRenderServiceInit();
     std::string path = GetConfigFilePath();
     if (!ParseBootConfig(path, duration_, isCompatible_, isMultiDisplay_, animationConfigs_)) {
@@ -50,6 +53,43 @@ void BootAnimationController::Start()
         strategy_->Display(duration_, animationConfigs_);
     }
 }
+
+#ifdef IS_CAR
+#define CHECK_START_ANIMATION_EXT_PATH "libcar_bootanimation_ext.z.so"
+#define CHECK_START_ANIMATION_EXT_FUNC_NAME "IsActiveState"
+typedef bool (*Func)();
+
+void BootAnimationController::WaitPowerStateChange() const
+{
+    LOGI("WaitPowerStateChange");
+    void *handler = dlopen(CHECK_START_ANIMATION_EXT_PATH, RTLD_LAZY | RTLD_NODELETE);
+    if (handler == nullptr) {
+        LOGI("WaitPowerStateChange Dlopen failed, reason: %{public}s", dlerror());
+        dlclose(handler);
+        return;
+    }
+    LOGI("WaitPowerStateChange dlopen success");
+    Func CheckPowerStateFunc = (Func)dlsym(handler, CHECK_START_ANIMATION_EXT_FUNC_NAME);
+    if (CheckPowerStateFunc == nullptr) {
+        LOGI("WaitPowerStateChange find function failed, reason: %{public}s", dlerror());
+        dlclose(handler);
+        return;
+    }
+    LOGI("WaitPowerStateChange find function success");
+    bool stateIsChanged = false;
+    while (!stateIsChanged) {
+        bool resCode = CheckPowerStateFunc();
+        if (!resCode) {
+            usleep(SLEEP_TIME_US);
+        } else {
+            LOGI("power state is changed");
+            stateIsChanged = true;
+        }
+    }
+    dlclose(handler);
+    LOGI("WaitPowerStateChange End");
+}
+#endif
 
 void BootAnimationController::WaitRenderServiceInit() const
 {

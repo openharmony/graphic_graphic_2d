@@ -329,7 +329,7 @@ void RSSurfaceLayer::SetDelegateModeCropRect(const GraphicIRect& crop)
     if (delegateModeCropRect_ == crop) {
         return;
     }
-    RS_TRACE_NAME_FMT("SetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("SetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
         rsLayerId_, crop.x, crop.y, crop.w, crop.h);
     delegateModeCropRect_ = crop;
     SetRSLayerCmd<RSRenderLayerDelegateModeCropRectCmd>(crop);
@@ -337,7 +337,7 @@ void RSSurfaceLayer::SetDelegateModeCropRect(const GraphicIRect& crop)
 
 GraphicIRect RSSurfaceLayer::GetDelegateModeCropRect()
 {
-    RS_TRACE_NAME_FMT("GetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("GetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
         rsLayerId_, delegateModeCropRect_.x, delegateModeCropRect_.y, delegateModeCropRect_.w, delegateModeCropRect_.h);
     return delegateModeCropRect_;
 }
@@ -690,6 +690,20 @@ void RSSurfaceLayer::SetLayerLinearMatrix(const std::vector<float>& layerLinearM
 const std::vector<float>& RSSurfaceLayer::GetLayerLinearMatrix() const
 {
     return layerLinearMatrix_;
+}
+
+void RSSurfaceLayer::SetGlassFree3D(bool glassFree3D)
+{
+    if (glassFree3D_ == glassFree3D) {
+        return;
+    }
+    glassFree3D_ = glassFree3D;
+    SetRSLayerCmd<RSRenderLayerGlassFree3DCmd>(glassFree3D);
+}
+
+bool RSSurfaceLayer::GetGlassFree3D() const
+{
+    return glassFree3D_;
 }
 
 void RSSurfaceLayer::SetLayerSourceTuning(int32_t layerSource)

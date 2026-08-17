@@ -117,7 +117,7 @@ bool RSRenderDisplaySync::OnFrameSkip(uint64_t timestamp, int64_t period, bool i
         "isCurrentAnimateNeedSkip:[%d]",
         GetId(), expectedFrameRateRange_.preferred_, currentPeriod_,
         static_cast<int32_t>(isCurrentAnimateNeedSkip));
-    RS_LOGD("[RenderAnimation] Id: %{public}" PRIu64 " preferred: %{public}d "
+    RS_LOGD_IF(DEBUG_NODE, "[RenderAnimation] Id: %{public}" PRIu64 " preferred: %{public}d "
         "isCurrentAnimateNeedSkip: %{public}d",
         GetId(), expectedFrameRateRange_.preferred_, static_cast<int32_t>(isCurrentAnimateNeedSkip));
     return isCurrentAnimateNeedSkip;
@@ -172,7 +172,7 @@ bool RSRenderDisplaySync::OnFrameSkipForAnimate(
         "RSRenderDisplaySync::OnFrameSkipForAnimate nodeId:[%" PRIu64 "] isFrameSkip:[%d] preferred:[%d] "
         "currentPeriod:[%d] nextFrameTime:[%" PRId64 "]", GetId(), static_cast<int32_t>(isCurrentAnimateNeedSkip),
         expectedFrameRateRange_.preferred_, currentPeriod_, nextFrameTime);
-    RS_LOGD("[RenderAnimation] Id: %{public}" PRIu64 " preferred: %{public}d "
+    RS_LOGD_IF(DEBUG_NODE, "[RenderAnimation] Id: %{public}" PRIu64 " preferred: %{public}d "
         "isFrameSkip: %{public}d nextFrameTime: %{public}" PRId64,
         GetId(), expectedFrameRateRange_.preferred_, static_cast<int32_t>(isCurrentAnimateNeedSkip), nextFrameTime);
     return isCurrentAnimateNeedSkip;

@@ -82,6 +82,8 @@
 #include "behind_window_filter_param.h"
 #include "buffer_reclaim_param_parse.h"
 #include "buffer_reclaim_param.h"
+#include "virtual_screen_parallel_param_parse.h"
+#include "virtual_screen_parallel_param.h"
 #include "background_rebuild_param_parse.h"
 #include "background_rebuild_param.h"
 
@@ -91,6 +93,7 @@ struct ModuleConfig {
     std::function<std::unique_ptr<XMLParserBase>()> xmlParser;
     std::function<std::unique_ptr<FeatureParam>()> featureParam;
 };
+
 
 class GraphicFeatureParamManager : public RefBase {
 public:

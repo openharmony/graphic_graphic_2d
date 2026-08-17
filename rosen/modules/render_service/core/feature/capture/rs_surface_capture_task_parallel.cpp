@@ -24,6 +24,9 @@
 #include "rs_trace.h"
 
 #include "common/rs_background_thread.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #include "common/rs_obj_abs_geometry.h"
 #include "engine/rs_base_render_engine.h"
 #include "feature/hdr/rs_hdr_util.h"
@@ -341,9 +344,16 @@ bool RSSurfaceCaptureTaskParallel::Run(
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+#ifdef RS_ENABLE_VK
+    auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
+    auto vkInterface = RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface();
+    RSUniRenderUtil::OptimizedFlushAndSubmit(vkInterface, surface, gpuContext_.get(), acquireFence,
+        GetFeatureParamValue("CaptureConfig", &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+#else
     RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), acquireFence,
         GetFeatureParamValue("CaptureConfig",
             &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+#endif
     bufferGuard.SetAcquireFence(acquireFence);
     if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
         RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
@@ -419,8 +429,15 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+#ifdef RS_ENABLE_VK
+    auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
+    auto vkInterface = RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface();
+    RSUniRenderUtil::OptimizedFlushAndSubmit(vkInterface, surface, gpuContext_.get(), acquireFence,
+        GetFeatureParamValue("CaptureConfig", &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+#else
     RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), acquireFence,
         GetFeatureParamValue("CaptureConfig", &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+#endif
     bufferGuard.SetAcquireFence(acquireFence);
 #endif
     return true;
@@ -496,6 +513,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     }
     int pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     int pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
+    if (pixmapWidth < 0 || pixmapHeight < 0) {
+        RS_LOGE("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: invalid negative size, "
+            "width:%{public}d, height:%{public}d", pixmapWidth, pixmapHeight);
+        return nullptr;
+    }
 
     Media::InitializationOptions opts;
     if (isF16Capture) {
@@ -620,7 +642,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
             RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: renderContext is nullptr");
             return nullptr;
         }
-        renderContext->SetUpGpuContext(nullptr);
+        renderContext->SetUpGpuContext();
         return Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
     }
 #endif
@@ -801,29 +823,31 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             return;
         }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-        GSError ret = RSHdrUtil::SetMetadata(reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()),
-            RSHDRUtilConst::HDR_CAPTURE_SDR_COLORSPACE,
-            HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_DUAL);
-        if (ret != GSERROR_OK) {
-            RS_LOGE("RSSurfaceCaptureTaskParallel: Set SDR metadata error with: %{public}d", ret);
-            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::HDR_SET_FAIL, nullptr);
-            RSUniRenderUtil::ClearNodeCacheSurface(
-                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-            RSUniRenderUtil::ClearNodeCacheSurface(
-                std::move(std::get<1>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-            return;
-        }
-        ret = RSHdrUtil::SetMetadata(reinterpret_cast<SurfaceBuffer*>(pixelmapHDR->GetFd()),
-            RSHDRUtilConst::HDR_CAPTURE_HDR_COLORSPACE,
-            HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_SINGLE);
-        if (ret != GSERROR_OK) {
-            RS_LOGE("RSSurfaceCaptureTaskParallel: Set HDR metadata error with: %{public}d", ret);
-            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::HDR_SET_FAIL, nullptr);
-            RSUniRenderUtil::ClearNodeCacheSurface(
-                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-            RSUniRenderUtil::ClearNodeCacheSurface(
-                std::move(std::get<1>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-            return;
+        if (pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+            GSError ret = RSHdrUtil::SetMetadata(reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()),
+                RSHDRUtilConst::HDR_CAPTURE_SDR_COLORSPACE,
+                HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_DUAL);
+            if (ret != GSERROR_OK) {
+                RS_LOGE("RSSurfaceCaptureTaskParallel: Set SDR metadata error with: %{public}d", ret);
+                callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::HDR_SET_FAIL, nullptr);
+                RSUniRenderUtil::ClearNodeCacheSurface(
+                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+                RSUniRenderUtil::ClearNodeCacheSurface(
+                    std::move(std::get<1>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+                return;
+            }
+            ret = RSHdrUtil::SetMetadata(reinterpret_cast<SurfaceBuffer*>(pixelmapHDR->GetFd()),
+                RSHDRUtilConst::HDR_CAPTURE_HDR_COLORSPACE,
+                HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_SINGLE);
+            if (ret != GSERROR_OK) {
+                RS_LOGE("RSSurfaceCaptureTaskParallel: Set HDR metadata error with: %{public}d", ret);
+                callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::HDR_SET_FAIL, nullptr);
+                RSUniRenderUtil::ClearNodeCacheSurface(
+                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+                RSUniRenderUtil::ClearNodeCacheSurface(
+                    std::move(std::get<1>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+                return;
+            }
         }
 #endif
         callback->OnSurfaceCapture(id, captureConfig, pixelmap.get(), CaptureError::CAPTURE_OK, pixelmapHDR.get());
@@ -866,7 +890,9 @@ bool RSSurfaceCaptureTaskParallel::PixelMapCopy(std::unique_ptr<Media::PixelMap>
         if (surfaceBuffer != nullptr && colorSpace != nullptr && !colorSpace->IsSRGB()) {
             surfaceBuffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
         }
-        surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, grContext);
+        auto renderContext = RSBackgroundThread::Instance().GetRenderContext();
+        surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, grContext,
+            RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface());
         if (surface == nullptr) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: GetSurfaceFromSurfaceBuffer fail.");
             return false;
@@ -995,7 +1021,8 @@ static inline void DeleteVkImage(void *context)
 }
 
 std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(
-    sptr<SurfaceBuffer> surfaceBuffer, std::shared_ptr<Drawing::GPUContext> gpuContext)
+    sptr<SurfaceBuffer> surfaceBuffer, std::shared_ptr<Drawing::GPUContext> gpuContext,
+    std::shared_ptr<RsVulkanInterface> vkInterface)
 {
     if (surfaceBuffer == nullptr || gpuContext == nullptr) {
         RS_LOGE("GetSurfaceFromSurfaceBuffer surfaceBuffer or gpuContext is nullptr");
@@ -1010,8 +1037,8 @@ std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(
     }
 
     Drawing::BackendTexture backendTextureTmp =
-        NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
+        NativeBufferUtils::MakeBackendTextureFromNativeBuffer(vkInterface,
+            nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
     if (!backendTextureTmp.IsValid()) {
         return nullptr;
     }
@@ -1021,7 +1048,8 @@ std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(
         return nullptr;
     }
     vkTextureInfo->imageUsageFlags = vkTextureInfo->imageUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    auto cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+    auto cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
+        vkInterface,
         vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     if (cleanUpHelper == nullptr) {
         return nullptr;

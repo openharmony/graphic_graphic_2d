@@ -34,6 +34,7 @@ DECLARE_RSLAYER_CMD(LayerCopybit, bool, LAYER_COPYBIT)
 DECLARE_RSLAYER_CMD(NeedBilinearInterpolation, bool, NEED_BILINEAR_INTERPOLATION)
 DECLARE_RSLAYER_CMD(IsMaskLayer, bool, IS_MASK_LAYER)
 DECLARE_RSLAYER_CMD(IsNeedComposition, bool, IS_NEED_COMPOSITION)
+DECLARE_RSLAYER_CMD(GlassFree3D, bool, GLASS_FREE_3D)
 DECLARE_RSLAYER_CMD(UseDeviceOffline, bool, USE_DEVICE_OFFLINE)
 DECLARE_RSLAYER_CMD(IgnoreAlpha, bool, IGNORE_ALPHA)
 DECLARE_RSLAYER_CMD(DeleteLayer, bool, DELETE_LAYER)
@@ -95,8 +96,8 @@ DECLARE_RSLAYER_CMD(Buffer, sptr<SurfaceBuffer>, BUFFER)
 DECLARE_RSLAYER_CMD(AcquireFence, sptr<SyncFence>, ACQUIRE_FENCE)
 DECLARE_RSLAYER_CMD(PreBuffer, sptr<SurfaceBuffer>, PRE_BUFFER)
 
-// hpae_offline command
-DECLARE_RSLAYER_CMD(HpaeOriginalInfo, HpaeOriginalInfo, HPAE_ORIGINAL_INFO)
-
 // opinc_split command
 DECLARE_RSLAYER_CMD(SplitLayerTag, bool, SPLIT_LAYER_TAG)
+
+// hpae_offline command
+DECLARE_RSLAYER_CMD(HpaeOriginalInfo, HpaeOriginalInfo, HPAE_ORIGINAL_INFO)

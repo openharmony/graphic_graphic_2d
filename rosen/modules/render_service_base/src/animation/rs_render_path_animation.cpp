@@ -125,43 +125,40 @@ void RSRenderPathAnimation::SetRotationId(const PropertyId id)
 
 void RSRenderPathAnimation::OnAnimate(float fraction)
 {
-    if (animationPath_ == nullptr) {
-        ROSEN_LOGE("Failed to animate motion path, path is null!");
-        return;
-    }
-
-    if (GetOriginValue() == nullptr) {
-        ROSEN_LOGE("Failed to animate motion path, originValue is null!");
+    if (animationPath_ == nullptr || GetOriginValue() == nullptr) {
+        ROSEN_LOGE("Failed to animate motion path, path or originValue is null!");
         return;
     }
 
     Vector2f position;
-    float tangent = 0.0;
-    GetPosTanValue(fraction, position, tangent);
-    if (GetOriginValue()->GetPropertyType() == RSPropertyType::VECTOR2F) {
+    float tangent = 0.0f;
+    auto propertyType = GetOriginValue()->GetPropertyType();
+    if (propertyType == RSPropertyType::VECTOR2F) {
+        GetPosTanValue(fraction, position, tangent);
         UpdateVector2fPathValue(position);
         SetPathValue(position, tangent);
-        return;
-    }
-
-    if (!isNeedPath_) {
-        if (valueEstimator_ == nullptr || interpolator_ == nullptr) {
+    } else if (propertyType == RSPropertyType::VECTOR4F) {
+        if (!isNeedPath_) {
+            if (valueEstimator_ == nullptr || interpolator_ == nullptr) {
+                ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, valueEstimator or interpolator is null");
+                return;
+            }
+            valueEstimator_->UpdateAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
             return;
         }
-        valueEstimator_->UpdateAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
-        return;
-    }
-
-    if (GetOriginValue()->GetPropertyType() != RSPropertyType::VECTOR4F) {
-        ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, property type is not VECTOR4F");
-        return;
-    }
-    auto vector4fValueEstimator = std::static_pointer_cast<RSCurveValueEstimator<Vector4f>>(valueEstimator_);
-    if (vector4fValueEstimator != nullptr && interpolator_ != nullptr) {
+        GetPosTanValue(fraction, position, tangent);
+        auto vector4fValueEstimator = std::static_pointer_cast<RSCurveValueEstimator<Vector4f>>(valueEstimator_);
+        if (vector4fValueEstimator == nullptr || interpolator_ == nullptr) {
+            ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, vector4fValueEstimator or interpolator is null");
+            return;
+        }
         auto animationValue =
             vector4fValueEstimator->GetAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
         UpdateVector4fPathValue(animationValue, position);
         SetPathValue(animationValue, tangent);
+    } else {
+        ROSEN_LOGE("RSRenderPathAnimation::OnAnimate failed, unsupported property type:%{public}d",
+            static_cast<int>(propertyType));
     }
 }
 
@@ -234,7 +231,8 @@ void RSRenderPathAnimation::OnDetach()
 void RSRenderPathAnimation::SetPathValue(const Vector2f& value, float tangent)
 {
     SetRotationValue(tangent);
-    auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(property_);
+    auto animatableProperty = property_ ?
+        property_->CastToAnimatablePropertyOf<Vector2f>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         animatableProperty->Set(value);
     }
@@ -243,7 +241,8 @@ void RSRenderPathAnimation::SetPathValue(const Vector2f& value, float tangent)
 void RSRenderPathAnimation::SetPathValue(const Vector4f& value, float tangent)
 {
     SetRotationValue(tangent);
-    auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property_);
+    auto animatableProperty = property_ ?
+        property_->CastToAnimatablePropertyOf<Vector4f>(__func__) : nullptr;
     if (animatableProperty != nullptr) {
         animatableProperty->Set(value);
     }
@@ -274,7 +273,9 @@ void RSRenderPathAnimation::SetRotation(const float tangent)
         return;
     }
 
-    auto property = std::static_pointer_cast<RSRenderProperty<float>>(target->GetProperty(rotationId_));
+    auto baseProperty = target->GetProperty(rotationId_);
+    auto property = baseProperty ?
+        baseProperty->CastToPropertyOf<float>(__func__) : nullptr;
     if (property != nullptr) {
         property->Set(tangent);
     }
@@ -290,7 +291,9 @@ void RSRenderPathAnimation::GetPosTanValue(float fraction, Vector2f& position, f
 void RSRenderPathAnimation::UpdateVector2fPathValue(Vector2f& value)
 {
     if (needAddOrigin_) {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(GetOriginValue());
+        auto originValue = GetOriginValue();
+        auto animatableProperty = originValue ?
+            originValue->CastToAnimatablePropertyOf<Vector2f>(__func__) : nullptr;
         if (animatableProperty) {
             value += animatableProperty->Get();
         }
@@ -302,7 +305,9 @@ void RSRenderPathAnimation::UpdateVector4fPathValue(Vector4f& value, const Vecto
     value[0] = position[0];
     value[1] = position[1];
     if (needAddOrigin_) {
-        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(GetOriginValue());
+        auto originValue = GetOriginValue();
+        auto animatableProperty = originValue ?
+            originValue->CastToAnimatablePropertyOf<Vector4f>(__func__) : nullptr;
         if (animatableProperty) {
             value[0] += animatableProperty->Get()[0];
             value[1] += animatableProperty->Get()[1];

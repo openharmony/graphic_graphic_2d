@@ -43,18 +43,21 @@ static WebGLRenderingContext* GetWebGLRenderingContextBase(napi_env env, napi_va
     return static_cast<WebGLRenderingContext*>(Util::GetContextObject(env, thisVar));
 }
 
+constexpr GLint SINGLE_SLICE_DEPTH = 1;
+
 static int64_t GetOffset(napi_env env, napi_value data, WebGLRenderingContext* context)
 {
-    if (!NVal(env, data).IsNull()) {
-        int64_t srcOffset = 0;
-        bool succ = false;
-        tie(succ, srcOffset) = NVal(env, data).ToInt64();
-        if (!succ || srcOffset < 0) {
-            context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
-            return -1;
-        }
+    if (NVal(env, data).IsNull()) {
+        return 0;
     }
-    return 0;
+    int64_t srcOffset = 0;
+    bool succ = false;
+    tie(succ, srcOffset) = NVal(env, data).ToInt64();
+    if (!succ || srcOffset < 0 || srcOffset > static_cast<int64_t>(std::numeric_limits<GLuint>::max())) {
+        context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
+        return -1;
+    }
+    return srcOffset;
 }
 
 napi_value WebGLRenderingContextOverloads::BufferData(napi_env env, napi_callback_info info)
@@ -80,8 +83,8 @@ napi_value WebGLRenderingContextOverloads::BufferData(napi_env env, napi_callbac
     }
     bool usageSucc = NVal(env, funcArg[NARG_POS::SECOND]).TypeIs(napi_number);
     if (usageSucc) {
-        int64_t size;
-        tie(succ, size) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt64();
+        GLsizeiptr size = 0;
+        tie(succ, size) = NVal(env, funcArg[NARG_POS::SECOND]).ToGLsizeiptr();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
@@ -117,8 +120,8 @@ napi_value WebGLRenderingContextOverloads::BufferSubData(napi_env env, napi_call
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t offset = 0;
-    tie(succ, offset) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt64();
+    GLintptr offset = 0;
+    tie(succ, offset) = NVal(env, funcArg[NARG_POS::SECOND]).ToGLintptr();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
@@ -128,8 +131,8 @@ napi_value WebGLRenderingContextOverloads::BufferSubData(napi_env env, napi_call
         context->GetWebGLRenderingContextImpl().SetError(GL_INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
-    return context->GetWebGLRenderingContextImpl().BufferSubData(env, target,
-        static_cast<GLintptr>(offset), funcArg[NARG_POS::THIRD], ext);
+    return context->GetWebGLRenderingContextImpl().BufferSubData(
+        env, target, offset, funcArg[NARG_POS::THIRD], ext);
 }
 
 napi_value WebGLRenderingContextOverloads::CompressedTexImage2D(napi_env env, napi_callback_info info)
@@ -167,18 +170,22 @@ napi_value WebGLRenderingContextOverloads::CompressedTexImage2D(napi_env env, na
     imgArg.format = imgArg.internalFormat;
     bool usageNumber = NVal(env, funcArg[NARG_POS::SEVENTH]).TypeIs(napi_number);
     if (context->GetWebGLRenderingContextImpl().IsHighWebGL() && usageNumber) {
-        int64_t imageSize = 0;
-        tie(succ, imageSize) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToInt64();
+        GLsizei imageSize = 0;
+        tie(succ, imageSize) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToGLsizei();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        int64_t offset = 0;
-        tie(succ, offset) = NVal(env, funcArg[NARG_POS::NINTH]).ToInt64();
+        if (imageSize < 0) {
+            LOGE("WebGL imageSize out of range");
+            context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
+            return NVal::CreateNull(env).val_;
+        }
+        GLintptr offset = 0;
+        tie(succ, offset) = NVal(env, funcArg[NARG_POS::NINTH]).ToGLintptr();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        return context->GetWebGLRenderingContextImpl().CompressedTexImage2D(env,
-            imgArg, static_cast<GLsizei>(imageSize), static_cast<GLintptr>(offset));
+        return context->GetWebGLRenderingContextImpl().CompressedTexImage2D(env, imgArg, imageSize, offset);
     }
 
     GLuint srcOffset = 0;
@@ -238,18 +245,22 @@ napi_value WebGLRenderingContextOverloads::CompressedTexSubImage2D(napi_env env,
     imgArg.internalFormat = imgArg.format;
     bool usageNumber = NVal(env, funcArg[NARG_POS::EIGHTH]).TypeIs(napi_number);
     if (context->GetWebGLRenderingContextImpl().IsHighWebGL() && usageNumber) {
-        int64_t imageSize = 0;
-        tie(succ, imageSize) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToInt64();
+        GLsizei imageSize = 0;
+        tie(succ, imageSize) = NVal(env, funcArg[NARG_POS::EIGHTH]).ToGLsizei();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        int64_t offset = 0;
-        tie(succ, offset) = NVal(env, funcArg[NARG_POS::NINTH]).ToInt64();
+        if (imageSize < 0) {
+            LOGE("WebGL imageSize out of range");
+            context->GetWebGLRenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
+            return NVal::CreateNull(env).val_;
+        }
+        GLintptr offset = 0;
+        tie(succ, offset) = NVal(env, funcArg[NARG_POS::NINTH]).ToGLintptr();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        return context->GetWebGLRenderingContextImpl().CompressedTexSubImage2D(env,
-            imgArg, static_cast<GLsizei>(imageSize), static_cast<GLintptr>(offset));
+        return context->GetWebGLRenderingContextImpl().CompressedTexSubImage2D(env, imgArg, imageSize, offset);
     }
 
     GLuint srcOffset = 0;
@@ -342,7 +353,7 @@ napi_value WebGLRenderingContextOverloads::TexImage2D(napi_env env, napi_callbac
     }
     TexImageArg imgArg = {};
     imgArg.func = Impl::IMAGE_TEX_IMAGE_2D;
-    imgArg.depth = 1;
+    imgArg.depth = SINGLE_SLICE_DEPTH;
     bool succ = false;
     tie(succ, imgArg.target) = NVal(env, funcArg[NARG_POS::FIRST]).ToGLenum();
     if (!succ) {
@@ -366,11 +377,11 @@ napi_value WebGLRenderingContextOverloads::TexImage2D(napi_env env, napi_callbac
         return !succ ? nullptr :
             context->GetWebGLRenderingContextImpl().TexImage2D(env, imgArg, funcArg[NARG_POS::SIXTH]);
     }
-    tie(succ, imgArg.width) = NVal(env, funcArg[NARG_POS::FOURTH]).ToInt64();
+    tie(succ, imgArg.width) = NVal(env, funcArg[NARG_POS::FOURTH]).ToGLsizei();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    tie(succ, imgArg.height) = NVal(env, funcArg[NARG_POS::FIFTH]).ToInt64();
+    tie(succ, imgArg.height) = NVal(env, funcArg[NARG_POS::FIFTH]).ToGLsizei();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
@@ -388,12 +399,12 @@ napi_value WebGLRenderingContextOverloads::TexImage2D(napi_env env, napi_callbac
     }
     usageNumber = NVal(env, funcArg[NARG_POS::NINTH]).TypeIs(napi_number);
     if (context->GetWebGLRenderingContextImpl().IsHighWebGL() && usageNumber) { // support pboOffset
-        int64_t pboOffset = 0;
-        tie(succ, pboOffset) = NVal(env, funcArg[NARG_POS::NINTH]).ToInt64();
+        GLintptr pboOffset = 0;
+        tie(succ, pboOffset) = NVal(env, funcArg[NARG_POS::NINTH]).ToGLintptr();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        return context->GetWebGLRenderingContextImpl().TexImage2D(env, imgArg, static_cast<GLintptr>(pboOffset));
+        return context->GetWebGLRenderingContextImpl().TexImage2D(env, imgArg, pboOffset);
     } else if (NVal(env, funcArg[NARG_POS::NINTH]).IsBufferArray()) {
         int64_t srcOffset = GetOffset(env, funcArg[NARG_POS::TENTH], context);
         if (srcOffset < 0) {
@@ -465,12 +476,12 @@ napi_value WebGLRenderingContextOverloads::TexSubImage2D(napi_env env, napi_call
     }
     usageNumber = NVal(env, funcArg[NARG_POS::NINTH]).TypeIs(napi_number);
     if (context->GetWebGLRenderingContextImpl().IsHighWebGL() && usageNumber) { // support pboOffset
-        int64_t pboOffset = 0;
-        tie(succ, pboOffset) = NVal(env, funcArg[NARG_POS::NINTH]).ToInt64();
+        GLintptr pboOffset = 0;
+        tie(succ, pboOffset) = NVal(env, funcArg[NARG_POS::NINTH]).ToGLintptr();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        return context->GetWebGLRenderingContextImpl().TexSubImage2D(env, imgArg, static_cast<GLintptr>(pboOffset));
+        return context->GetWebGLRenderingContextImpl().TexSubImage2D(env, imgArg, pboOffset);
     } else if (NVal(env, funcArg[NARG_POS::NINTH]).IsBufferArray()) { // buffer
         int64_t srcOffset = GetOffset(env, funcArg[NARG_POS::TENTH], context);
         if (srcOffset < 0) {

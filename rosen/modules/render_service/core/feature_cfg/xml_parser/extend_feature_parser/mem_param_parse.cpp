@@ -14,7 +14,6 @@
  */
 
 #include "mem_param_parse.h"
-#include "memory/rs_memory_snapshot.h"
 
 namespace OHOS::Rosen {
 
@@ -65,10 +64,6 @@ int32_t MEMParamParse::ParseMemInternal(FeatureParamMapType &featureMap, xmlNode
         } else if (name == "RSCacheLimitsResourceSize" && IsNumber(val)) {
             memParam_->SetRSCacheLimitsResourceSize(stoi(val));
             RS_LOGI("RSCacheLimitsResourceSize %{public}d", memParam_->GetRSCacheLimitsResourceSize());
-        } else if (name =="MemSnapshotPrintHilogLimit" && IsNumber(val)) {
-            MemorySnapshot::Instance().SetMemSnapshotPrintHilogLimit(stoi(val));
-            RS_LOGI("memSnapshotPrintHilogLimit %{public}d",
-                MemorySnapshot::Instance().GetMemSnapshotPrintHilogLimit());
         } else if (name == "MaxUniRenderSize" && IsNumber(val)) {
             ShaderCache::Instance().SetMaxUniRenderSize(stoi(val));
             RS_LOGI("MaxUniRenderSize %{public}d", ShaderCache::Instance().GetMaxUniRenderSize());

@@ -14,7 +14,6 @@
  */
 
 #include "pipeline/rs_effect_utils.h"
-#include "property/rs_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,9 +59,28 @@ bool RSEffectUtils::IsOffscreenForFilterCache(RSRenderNode& node)
         node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE || node.IsForegroundFilterEnable());
 }
 
-bool RSEffectUtils::HasBackgroundDependentFilter(const RSProperties& properties)
+bool RSEffectUtils::ShouldSkipFilterNodeCheckInOccludedSubTree(
+    const std::shared_ptr<RSSurfaceRenderNode>& curSurfaceNode, const RSRenderNode& rootNode,
+    RSDirtyRegionManager& dirtyManager)
 {
-    return properties.GetBackgroundFilter() || properties.GetMaterialFilter() || properties.GetNeedDrawBehindWindow();
+    return curSurfaceNode &&
+           !curSurfaceNode->IsTransparent() &&
+           dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty();
+}
+
+void RSEffectUtils::UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode& node,
+    RSDirtyRegionManager& dirtyManager)
+{
+    if (node.GetRenderProperties().GetMaterialFilter()) {
+        node.UpdateFilterCacheWithBelowDirty(
+            Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()), RSDrawableSlot::MATERIAL_FILTER);
+        node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::MATERIAL_FILTER);
+    }
+    if (node.GetRenderProperties().GetBackgroundFilter()) {
+        node.UpdateFilterCacheWithBelowDirty(
+            Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
+        node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

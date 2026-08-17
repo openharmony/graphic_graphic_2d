@@ -115,6 +115,8 @@ public:
     float GetBrightnessRatio() const override;
     void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix) override;
     const std::vector<float>& GetLayerLinearMatrix() const override;
+    void SetGlassFree3D(bool glassFree3D) override;
+    bool GetGlassFree3D() const override;
     void SetLayerSourceTuning(int32_t layerSource) override;
     int32_t GetLayerSourceTuning() const override;
     void SetWindowsName(std::vector<std::string>& windowsName) override;
@@ -194,10 +196,10 @@ private:
     void SetRSLayerCmd(const T& value);
     // rs layer pipeline info
     std::weak_ptr<RSComposerContext> rsComposerContext_;
-    RSLayerId rsLayerId_ = 0;
     bool isNeedComposition_ = false;
 
     // rs layer property info
+    RSLayerId rsLayerId_ = 0;
     int32_t zOrder_ = 0;
     GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     GraphicIRect layerRect_ = {0};
@@ -237,6 +239,7 @@ private:
     bool preMulti_ = false;
     bool needBilinearInterpolation_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
+    bool glassFree3D_ = false; // glass free 3D mode
     float sdrNit_ = 500.0f; // default sdr nit
     float displayNit_ = 500.0f; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr

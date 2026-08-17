@@ -21,11 +21,9 @@
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "effect/rs_render_shape_base.h"
-#include "metadata_helper.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -59,7 +57,6 @@ const Rect DEFAULT_RECT = { 0, 0, 200, 200 };
 const RectF DEFAULT_SELF_DRAW_RECT = { 0, 0, 200, 200 };
 
 const int DEFAULT_NODE_ID = 1;
-const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 
 class RSRenderNodeDrawableAdapterBoy : public DrawableV2::RSRenderNodeDrawableAdapter {
 public:
@@ -90,18 +87,9 @@ public:
         .height = 200,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_GPU_RENDER_DIRTY,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
-    };
-
-    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
-        .gpuDirtyEnable = true,
-        .curFrameDirtyEnable = true,
-        .left = 0,
-        .top = 0,
-        .right = 100,
-        .bottom = 100,
     };
 
     static void SetUpTestCase();
@@ -280,49 +268,6 @@ HWTEST_F(RSRenderNodeTest2, GetStagingRenderParams, TestSize.Level1)
 }
 
 /**
- * @tc.name: CollectAndUpdateRenderFitRect
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, CollectAndUpdateRenderFitRect, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    node.CollectAndUpdateRenderFitRect();
-    ASSERT_TRUE(true);
-
-    node.GetMutableRenderProperties().SetFrameGravity(Gravity::CENTER);
-    node.CollectAndUpdateRenderFitRect();
-    ASSERT_TRUE(true);
-
-    std::shared_ptr<RectF> rect = std::make_shared<RectF>();
-    rect->SetAll(0, 0, 1000, 1000);
-    node.GetMutableRenderProperties().SetDrawRegion(rect);
-    node.CollectAndUpdateRenderFitRect();
-    ASSERT_TRUE(true);
-
-    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
-    node.modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(modifier);
-
-    auto modifierCmdList =
-        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
-    auto ptr = std::make_shared<Drawing::DrawCmdList>(1000, 1000);
-    PropertyId id = 1;
-    auto propertyCmdList = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(ptr, id);
-    modifierCmdList->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, propertyCmdList);
-    node.modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(modifierCmdList);
-
-    auto modifierAlpha = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
-    auto propertyAlpha = std::make_shared<RSRenderProperty<float>>();
-    modifierAlpha->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
-    node.modifiersNG_[ModifierNG::RSModifierType::ALPHA].emplace_back(modifierAlpha);
-    node.CollectAndUpdateRenderFitRect();
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: CollectAndUpdateLocalShadowRect
  * @tc.desc: test
  * @tc.type: FUNC
@@ -384,71 +329,6 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion, TestSize.Level1)
     RectI drawRegion{0, 0, 1000, 1000};
     node.UpdateBufferDirtyRegion(dirtyRect, drawRegion);
     ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: UpdateBufferDirtyRegion002
- * @tc.desc: test UpdateBufferDirtyRegion when gpuDirtyRegion is valid
- * @tc.type: FUNC
- * @tc.require: issuesICA3L1
- */
-HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
-    auto buffer = SurfaceBuffer::Create();
-    auto ret = buffer->Alloc(requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_EQ(src, nullptr);
-
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
-    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
-    surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
-    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    surfaceNode->UpdateBufferDirtyRegion();
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
-}
-
-/**
- * @tc.name: UpdateBufferDirtyRegion003
- * @tc.desc: test UpdateBufferDirtyRegion when upper layer don't have selfDrawingDirtyRegion
- * @tc.type: FUNC
- * @tc.require: issuesICA3L1
- */
-HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion003, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
-    auto buffer = SurfaceBuffer::Create();
-    auto ret = buffer->Alloc(requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
-    surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
-    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
-    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    surfaceNode->UpdateBufferDirtyRegion();
-}
-
-/**
- * @tc.name: UpdateBufferDirtyRegion004
- * @tc.desc: test UpdateBufferDirtyRegion when upper layer has selfDrawingDirtyRegion
- * @tc.type: FUNC
- * @tc.require: issuesICA3L1
- */
-HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion004, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
-    auto buffer = SurfaceBuffer::Create();
-    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
-    surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
-    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
-    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
-    surfaceNode->UpdateBufferDirtyRegion();
 }
 
 /**
@@ -3983,6 +3863,88 @@ HWTEST_F(RSRenderNodeTest2, ReSortChildrenByZIndex001, TestSize.Level1)
     EXPECT_TRUE(node.isFullChildrenListValid_);
     node.ReSortChildrenByZIndex();
     EXPECT_FALSE(node.isFullChildrenListValid_);
+}
+
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: PrepareSelfNodeForApplyModifiers001
+ * @tc.desc: test PrepareSelfNodeForApplyModifiers on a node without cycle, flag is reset after call
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->SetGlobalAlpha(1.0f); // lazy-init stagingRenderParams_ to avoid null deref in SetAlpha
+    EXPECT_FALSE(node->inTraversalPath_);
+    node->PrepareSelfNodeForApplyModifiers();
+    EXPECT_FALSE(node->inTraversalPath_); // RAII guard must reset the flag on exit
+}
+
+/**
+ * @tc.name: PrepareSelfNodeForApplyModifiers002
+ * @tc.desc: test PrepareSelfNodeForApplyModifiers detects cycle and avoids stack overflow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers002, TestSize.Level1)
+{
+    auto nodeA = std::make_shared<RSRenderNode>(id, context);
+    auto nodeB = std::make_shared<RSRenderNode>(id + 1, context);
+    nodeA->SetGlobalAlpha(1.0f);
+    nodeB->SetGlobalAlpha(1.0f);
+    // build a detached 2-node cycle A<->B (AddChild reparents, so it is not reachable from root,
+    // but a NodeId-based entry like UI capture can still hit it)
+    nodeA->AddChild(nodeB);
+    nodeB->AddChild(nodeA);
+    EXPECT_FALSE(nodeA->inTraversalPath_);
+    EXPECT_FALSE(nodeB->inTraversalPath_);
+    // must not stack-overflow: re-entry of A is detected and skipped; outer guards reset both flags
+    nodeA->PrepareSelfNodeForApplyModifiers();
+    EXPECT_FALSE(nodeA->inTraversalPath_);
+    EXPECT_FALSE(nodeB->inTraversalPath_);
+}
+
+/**
+ * @tc.name: PrepareSelfNodeForApplyModifiers003
+ * @tc.desc: test re-entry guard does not reset the flag it did not set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareSelfNodeForApplyModifiers003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->SetGlobalAlpha(1.0f);
+    // simulate that the node is already on the recursion stack (cycle re-entry)
+    node->inTraversalPath_ = true;
+    node->PrepareSelfNodeForApplyModifiers(); // must return early without running body or resetting flag
+    // the re-entry guard is not the setter, so it must leave the flag untouched
+    EXPECT_TRUE(node->inTraversalPath_);
+    node->inTraversalPath_ = false; // cleanup
+}
+#endif
+
+/**
+ * @tc.name: SetStaticCached_FreezeFlagDirty001
+ * @tc.desc: SetStaticCached dirties the node only when the freeze flag actually changes.
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSRenderNodeTest2, SetStaticCached_FreezeFlagDirty001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+
+    // first call: freeze flag NONE -> FREEZED_BY_USER, changed -> SetDirty fires
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->SetStaticCached(true, false);  // isStaticCached_ = true, skips the trailing SetContentDirty
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::DIRTY);
+
+    // second call with the same value: freeze flag unchanged -> SetDirty must NOT fire
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->SetStaticCached(true, false);
+    EXPECT_EQ(node->GetDirtyStatus(), RSRenderNode::NodeDirty::CLEAN);
 }
 } // namespace Rosen
 } // namespace OHOS

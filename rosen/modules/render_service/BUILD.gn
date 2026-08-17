@@ -189,12 +189,14 @@ ohos_shared_library("librender_service") {
     "core/pipeline/hwc/rs_uni_hwc_visitor.cpp",
     "core/pipeline/main_thread/rs_main_thread.cpp",
     "core/pipeline/main_thread/rs_render_service_listener.cpp",
+    "core/pipeline/main_thread/rs_surface_permission.cpp",
     "core/pipeline/main_thread/rs_render_service_visitor.cpp",
     "core/pipeline/render_thread/rs_base_surface_util.cpp",
     "core/pipeline/render_thread/rs_composer_adapter.cpp",
     "core/pipeline/render_thread/rs_divided_render_util.cpp",
     "core/pipeline/render_thread/rs_physical_screen_processor.cpp",
     "core/pipeline/render_thread/rs_render_engine.cpp",
+    "core/pipeline/render_thread/rs_virtual_screen_parallel_manager.cpp",
     "core/pipeline/render_thread/rs_virtual_screen_processor.cpp",
     "core/pipeline/layer_split/buffer/rs_layer_split_surface_buffer.cpp",
     "core/pipeline/layer_split/selector/opinc/rs_opinc_split_node_selector.cpp",
@@ -205,7 +207,6 @@ ohos_shared_library("librender_service") {
     "core/pipeline/layer_split/splitter/opinc/rs_opinc_layer_splitter_planner.cpp",
     "core/pipeline/rs_processor.cpp",
     "core/pipeline/rs_processor_factory.cpp",
-    "core/pipeline/rs_unmarshal_task_manager.cpp",
     "core/pipeline/slr_scale/rs_slr_scale.cpp",
     "core/system/rs_system_parameters.cpp",
     "core/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.cpp",
@@ -261,6 +262,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/extend_feature/surface_capture_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/ui_capture_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/gpu_cache_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/virtual_screen_parallel_param.cpp",
     "core/feature_cfg/feature_param/feature_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/accessibility_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/background_rebuild_param.cpp",
@@ -291,6 +293,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/extend_feature_parser/surface_capture_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/ui_capture_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/gpu_cache_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/virtual_screen_parallel_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/accessibility_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/background_rebuild_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/buffer_reclaim_param_parse.cpp",
@@ -488,11 +491,16 @@ ohos_shared_library("librender_service") {
 
   public_deps = []
 
-  # car features
-  if (defined(graphic_2d_car_features_configs.car_features_root)) {
-    defines += [ "RS_CAR_FEATURES" ]
-    sources += graphic_2d_car_features_configs.librender_service_ext_car_features_sources
-    include_dirs += graphic_2d_car_features_configs.librender_service_ext_car_features_includes
+  # multi display features
+  if (graphic_2d_feature_multi_display_features_enable) {
+    defines += [ "RS_MULTI_DISPLAY_FEATURES" ]
+    sources += [
+      "main/render_server/server_config/rs_multi_display_feature_param_parse.cpp",
+      "main/render_server/server_config/rs_multi_display_feature_param.cpp",
+    ]
+    include_dirs += [
+      "main/render_server/server_config",
+    ]
   }
 
   if (graphic_2d_feature_subtree_parallel_enable && defined(graphic_2d_subtree_configs.subtree_root)) {
@@ -641,6 +649,7 @@ ohos_shared_library("librender_service") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
+    "hiview:libucollection_client",
     "config_policy:configpolicy_util",
     "egl:libEGL",
     "opengles:libGLES",

@@ -15,6 +15,11 @@
 
 #include <gtest/gtest.h>
 
+#include "animation/rs_render_particle_animation.h"
+#include "animation/rs_particle_noise_field.h"
+#include "animation/rs_particle_ripple_field.h"
+#include "animation/rs_particle_velocity_field.h"
+#include "animation/rs_particle_field_collection.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "params/rs_render_params.h"
@@ -24,15 +29,15 @@
 #include "property/rs_properties.h"
 #include "property/rs_color_picker_def.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
 #include "property/rs_point_light_manager.h"
-#include "render/rs_drawing_filter.h"
+#include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_depth_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "animation/rs_render_particle_animation.h"
-#include "animation/rs_particle_noise_field.h"
-#include "animation/rs_particle_ripple_field.h"
-#include "animation/rs_particle_velocity_field.h"
-#include "animation/rs_particle_field_collection.h"
+#include "property/rs_spatial_effect_manager.h"
+#include "drawable/rs_property_drawable_foreground.h"
+#include "util/ge_transform_helper.h"
+#include "render/rs_drawing_filter.h"
 #include "utils/rect.h"
 
 using namespace testing;
@@ -234,14 +239,15 @@ HWTEST_F(PropertiesTest, OnApplyModifiersTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateFilterTest
+ * @tc.name: UpdateFilterTest001
  * @tc.desc: test results of UpdateFilter
  * @tc.type: FUNC
  * @tc.require: issueI9W24N
  */
-HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
+HWTEST_F(PropertiesTest, UpdateFilterTest001, TestSize.Level1)
 {
     RSProperties properties;
+    std::shared_ptr<RSFilter> filter;
     properties.GetEffect().shadow_ = std::make_optional<RSShadow>();
     properties.GetEffect().shadow_->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
     properties.UpdateFilter();
@@ -254,12 +260,14 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
     properties.SetSpherize(1.0f);
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
     properties.SetSpherize(0.0f);
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
     properties.GetEffect().isAttractionValid_ = true;
@@ -269,17 +277,31 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.GetEffect().isAttractionValid_ = false;
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
     properties.GetEffect().shadow_->imageMask_ = false;
     properties.UpdateFilter();
     EXPECT_TRUE(!properties.foregroundFilter_);
+}
 
+/**
+ * @tc.name: UpdateFilterTest002
+ * @tc.desc: test results of UpdateFilter
+ * @tc.type: FUNC
+ * @tc.require: issue25344
+ */
+HWTEST_F(PropertiesTest, UpdateFilterTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSFilter> filter;
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
     properties.GetEffect().motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    filter = RSProperties::IS_UNI_RENDER ? properties.foregroundFilterCache_ : properties.foregroundFilter_;
+    EXPECT_NE(filter, nullptr);
 
+    properties.GetEffect().motionBlurPara_ = nullptr;
     uint32_t flyMode = 0;
     RSFlyOutPara rs_fly_out_param = {
         flyMode
@@ -296,7 +318,7 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     EXPECT_TRUE(properties.foregroundFilter_);
 
     properties.SetDistortionK(0.7f);
-    properties.GetEffect().shadow_->imageMask_ = true;
+    properties.GetEffect().shadow_->imageMask_ = false;
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
 }
@@ -695,54 +717,6 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor002, TestSize.Level1)
     float newFactor = 0.5f;
     properties.SetHDRBrightnessFactor(newFactor);
     EXPECT_EQ(properties.GetHDRBrightnessFactor(), newFactor);
-}
-
-/**
- * @tc.name: SetHDRBrightnessFactor003
- * @tc.desc: test results of SetHDRBrightnessFactor
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
-{
-    RSProperties properties;
-    float initialFactor = 1.0f;
-
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
-    properties.backref_ = node;
-    properties.SetHDRBrightnessFactor(initialFactor);
-
-    NodeId displayNodeId = 5;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
-
-    NodeId screenRenderNodeId = 2;
-    ScreenId screenId = 0;
-    auto context = std::make_shared<RSContext>();
-    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
-
-    properties.backref_ = displayNode;
-    displayNode->IncreaseHDRNode(screenRenderNodeId);
-    EXPECT_NE(displayNode->hdrNodeMap_.find(screenRenderNodeId), displayNode->hdrNodeMap_.end());
-    properties.SetHDRBrightnessFactor(0.5f);
-
-    NodeId nodeId1 = 0;
-    auto node1 = std::make_shared<RSRenderNode>(nodeId1);
-    pid_t pid1 = ExtractPid(nodeId1);
-    context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
-    displayNode->IncreaseHDRNode(nodeId1);
-    properties.SetHDRBrightnessFactor(0.6f);
-
-    pid_t pid = ExtractPid(screenRenderNodeId);
-    context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = screenRenderNode;
-    properties.SetHDRBrightnessFactor(0.8f);
-
-    ScreenId displayNodeId2 = 6;
-    auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
-    properties.backref_ = displayNode2;
-    displayNode->IncreaseHDRNode(3);
-    EXPECT_NE(displayNode->hdrNodeMap_.find(3), displayNode->hdrNodeMap_.end());
-    properties.SetHDRBrightnessFactor(0.9f);
 }
 
 /**
@@ -2816,6 +2790,1702 @@ HWTEST_F(PropertiesTest, SetPixelStretchPercentNulloptResetTest, TestSize.Level1
     ASSERT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
     EXPECT_TRUE(properties.GetPixelStretchPercent().IsZero());
     EXPECT_TRUE(properties.pixelStretchNeedUpdate_);
+}
+
+/**
+ * @tc.name: SetAndGetDepthImage001
+ * @tc.desc: test results of SetDepthImage and GetDepthImage
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, SetAndGetDepthImage001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetDepthImage(), nullptr);
+
+    auto depthImage = std::make_shared<RSImage>();
+    properties.SetDepthImage(depthImage);
+    EXPECT_EQ(properties.GetDepthImage(), nullptr);
+
+    auto renderNode = std::make_shared<RSRenderNode>(114);
+    properties.backref_ = renderNode->weak_from_this();
+    properties.SetDepthImage(depthImage);
+    EXPECT_EQ(properties.GetDepthImage(), depthImage);
+}
+
+/**
+ * @tc.name: SetAndGetDepthCameraPara001
+ * @tc.desc: test results of SetDepthCameraPara and GetDepthCameraPara
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, SetAndGetDepthCameraPara001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.GetDepthCameraPara().has_value());
+
+    DepthCameraPara para;
+    para.position = {1.0f, 2.0f, 3.0f};
+    para.quaternion = {0.0f, 0.0f, 0.0f, 1.0f};
+    para.yFov = 60.0f;
+    para.zNear = 0.1f;
+    para.zFar = 100.0f;
+    properties.SetDepthCameraPara(para);
+    EXPECT_TRUE(properties.GetDepthCameraPara().has_value());
+    EXPECT_EQ(properties.GetDepthCameraPara().value(), para);
+}
+
+/**
+ * @tc.name: SetAndGetDepthLightPara001
+ * @tc.desc: test results of SetDepthLightPara and GetDepthLightPara
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, SetAndGetDepthLightPara001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.GetDepthLightPara().has_value());
+
+    DepthLightPara para;
+    para.direction = {0.0f, -1.0f, 0.0f};
+    para.color = {1.0f, 1.0f, 1.0f};
+    para.intensity = 0.8f;
+    properties.SetDepthLightPara(para);
+    EXPECT_TRUE(properties.GetDepthLightPara().has_value());
+    EXPECT_EQ(properties.GetDepthLightPara().value(), para);
+}
+
+/**
+ * @tc.name: SetAndGetDepthImageMatrix001
+ * @tc.desc: test results of SetDepthImageMatrix and GetDepthImageMatrix
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, SetAndGetDepthImageMatrix001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.GetDepthImageMatrix().has_value());
+
+    Matrix3f matrix(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
+    properties.SetDepthImageMatrix(matrix);
+    EXPECT_TRUE(properties.GetDepthImageMatrix().has_value());
+    EXPECT_EQ(properties.GetDepthImageMatrix().value(), matrix);
+}
+
+/**
+ * @tc.name: SetSpatialEffectDepth001
+ * @tc.desc: test results of SetSpatialEffectDepth
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetSpatialEffectDepth001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    properties.SetSpatialEffectDepth(5.0f);
+    EXPECT_TRUE(properties.GetDepthEffectPara().has_value());
+    EXPECT_FLOAT_EQ(properties.GetDepthEffectPara().value().depth, 5.0f);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    DepthEffectPara depthPara;
+    properties.SetDepthEffectPara(depthPara);
+    properties.SetSpatialEffectDepth(10.0f);
+    EXPECT_TRUE(properties.GetDepthEffectPara().has_value());
+    EXPECT_FLOAT_EQ(properties.GetDepthEffectPara().value().depth, 10.0f);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    SpatialEffectPara spatialPara;
+    properties.SetSpatialEffectVariantPara(spatialPara);
+    properties.SetSpatialEffectDepth(15.0f);
+    EXPECT_TRUE(properties.GetDepthEffectPara().has_value());
+    EXPECT_FLOAT_EQ(properties.GetDepthEffectPara().value().depth, 15.0f);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+    auto renderNode = std::make_shared<RSRenderNode>(514);
+    depthNode->AddChild(renderNode);
+    properties.backref_ = renderNode->weak_from_this();
+    properties.SetSpatialEffectDepth(20.0f);
+    EXPECT_TRUE(properties.GetDepthEffectPara().has_value());
+    EXPECT_FLOAT_EQ(properties.GetDepthEffectPara().value().depth, 20.0f);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: SetSpatialEffectLeftTop001
+ * @tc.desc: test results of SetSpatialEffectLeftTop
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetSpatialEffectLeftTop001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    Vector3f leftTop1(1.0f, 2.0f, 3.0f);
+    properties.SetSpatialEffectLeftTop(leftTop1);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().leftTop, leftTop1);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    DepthEffectPara depthPara;
+    properties.SetDepthEffectPara(depthPara);
+    Vector3f leftTop2(4.0f, 5.0f, 6.0f);
+    properties.SetSpatialEffectLeftTop(leftTop2);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().leftTop, leftTop2);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    SpatialEffectPara spatialPara;
+    properties.SetSpatialEffectPara(spatialPara);
+    Vector3f leftTop3(7.0f, 8.0f, 9.0f);
+    properties.SetSpatialEffectLeftTop(leftTop3);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().leftTop, leftTop3);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+    auto renderNode = std::make_shared<RSRenderNode>(514);
+    depthNode->AddChild(renderNode);
+    properties.backref_ = renderNode->weak_from_this();
+    Vector3f leftTop4(10.0f, 11.0f, 12.0f);
+    properties.SetSpatialEffectLeftTop(leftTop4);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().leftTop, leftTop4);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: SetSpatialEffectRightTop001
+ * @tc.desc: test results of SetSpatialEffectRightTop
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetSpatialEffectRightTop001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    Vector3f rightTop1(1.0f, 2.0f, 3.0f);
+    properties.SetSpatialEffectRightTop(rightTop1);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().rightTop, rightTop1);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    DepthEffectPara depthPara;
+    properties.SetDepthEffectPara(depthPara);
+    Vector3f rightTop2(4.0f, 5.0f, 6.0f);
+    properties.SetSpatialEffectRightTop(rightTop2);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().rightTop, rightTop2);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    SpatialEffectPara spatialPara;
+    properties.SetSpatialEffectPara(spatialPara);
+    Vector3f rightTop3(7.0f, 8.0f, 9.0f);
+    properties.SetSpatialEffectRightTop(rightTop3);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().rightTop, rightTop3);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+    auto renderNode = std::make_shared<RSRenderNode>(514);
+    depthNode->AddChild(renderNode);
+    properties.backref_ = renderNode->weak_from_this();
+    Vector3f rightTop4(10.0f, 11.0f, 12.0f);
+    properties.SetSpatialEffectRightTop(rightTop4);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().rightTop, rightTop4);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: SetSpatialEffectLeftBottom001
+ * @tc.desc: test results of SetSpatialEffectLeftBottom
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetSpatialEffectLeftBottom001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    Vector3f leftBottom1(1.0f, 2.0f, 3.0f);
+    properties.SetSpatialEffectLeftBottom(leftBottom1);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().leftBottom, leftBottom1);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    DepthEffectPara depthPara;
+    properties.SetDepthEffectPara(depthPara);
+    Vector3f leftBottom2(4.0f, 5.0f, 6.0f);
+    properties.SetSpatialEffectLeftBottom(leftBottom2);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().leftBottom, leftBottom2);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    SpatialEffectPara spatialPara;
+    properties.SetSpatialEffectPara(spatialPara);
+    Vector3f leftBottom3(7.0f, 8.0f, 9.0f);
+    properties.SetSpatialEffectLeftBottom(leftBottom3);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().leftBottom, leftBottom3);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+    auto renderNode = std::make_shared<RSRenderNode>(514);
+    depthNode->AddChild(renderNode);
+    properties.backref_ = renderNode->weak_from_this();
+    Vector3f leftBottom4(10.0f, 11.0f, 12.0f);
+    properties.SetSpatialEffectLeftBottom(leftBottom4);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().leftBottom, leftBottom4);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: SetSpatialEffectRightBottom001
+ * @tc.desc: test results of SetSpatialEffectRightBottom
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetSpatialEffectRightBottom001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    Vector3f rightBottom1(1.0f, 2.0f, 3.0f);
+    properties.SetSpatialEffectRightBottom(rightBottom1);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().rightBottom, rightBottom1);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    DepthEffectPara depthPara;
+    properties.SetDepthEffectPara(depthPara);
+    Vector3f rightBottom2(4.0f, 5.0f, 6.0f);
+    properties.SetSpatialEffectRightBottom(rightBottom2);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().rightBottom, rightBottom2);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    SpatialEffectPara spatialPara;
+    properties.SetSpatialEffectPara(spatialPara);
+    Vector3f rightBottom3(7.0f, 8.0f, 9.0f);
+    properties.SetSpatialEffectRightBottom(rightBottom3);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().rightBottom, rightBottom3);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+    auto renderNode = std::make_shared<RSRenderNode>(514);
+    depthNode->AddChild(renderNode);
+    properties.backref_ = renderNode->weak_from_this();
+    Vector3f rightBottom4(10.0f, 11.0f, 12.0f);
+    properties.SetSpatialEffectRightBottom(rightBottom4);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value().rightBottom, rightBottom4);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: SetSpatialEffectOcclusionWeight001
+ * @tc.desc: test results of SetSpatialEffectOcclusionWeight
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetSpatialEffectOcclusionWeight001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    properties.SetSpatialEffectOcclusionWeight(0.5f);
+    EXPECT_TRUE(properties.GetSpatialEffectVariantPara().has_value());
+    EXPECT_FLOAT_EQ(properties.GetSpatialEffectVariantPara().value().occlusionWeight, 0.5f);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+    auto renderNode = std::make_shared<RSRenderNode>(514);
+    depthNode->AddChild(renderNode);
+    properties.backref_ = renderNode->weak_from_this();
+    properties.SetSpatialEffectOcclusionWeight(0.8f);
+    EXPECT_TRUE(properties.GetSpatialEffectVariantPara().has_value());
+    EXPECT_FLOAT_EQ(properties.GetSpatialEffectVariantPara().value().occlusionWeight, 0.8f);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: SetSpatialEffectMode001
+ * @tc.desc: test results of SetSpatialEffectMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetSpatialEffectMode001, TestSize.Level1)
+{
+    {
+        RSProperties properties;
+        properties.SetSpatialEffectMode(0);
+        EXPECT_TRUE(properties.GetSpatialEffectVariantPara().has_value());
+        EXPECT_EQ(properties.GetSpatialEffectVariantPara().value().spatialEffectMode,
+            static_cast<SpatialEffectMode>(0));
+        EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+        EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+    }
+
+    {
+        RSProperties properties;
+        properties.SetSpatialEffectMode(0);
+        EXPECT_TRUE(properties.GetSpatialEffectVariantPara().has_value());
+        properties.SetSpatialEffectMode(1);
+        EXPECT_EQ(properties.GetSpatialEffectVariantPara().value().spatialEffectMode,
+            static_cast<SpatialEffectMode>(1));
+    }
+
+    {
+        RSProperties properties;
+        auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+        auto renderNode = std::make_shared<RSRenderNode>(514);
+        depthNode->AddChild(renderNode);
+        properties.backref_ = renderNode->weak_from_this();
+
+        properties.SetSpatialEffectMode(1);
+        EXPECT_TRUE(properties.GetSpatialEffectVariantPara().has_value());
+        EXPECT_EQ(properties.GetSpatialEffectVariantPara().value().spatialEffectMode,
+            static_cast<SpatialEffectMode>(1));
+        EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+        EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+        RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+        RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+    }
+}
+
+/**
+ * @tc.name: SetDepthEffectPara001
+ * @tc.desc: test results of SetDepthEffectPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetDepthEffectPara001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    DepthEffectPara para;
+    para.depth = 5.0f;
+    para.occlusionWeight = 0.5f;
+    properties.SetDepthEffectPara(para);
+    EXPECT_TRUE(properties.GetDepthEffectPara().has_value());
+    EXPECT_EQ(properties.GetDepthEffectPara().value(), para);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+    auto renderNode = std::make_shared<RSRenderNode>(514);
+    depthNode->AddChild(renderNode);
+    properties.backref_ = renderNode->weak_from_this();
+    properties.SetDepthEffectPara(para);
+    EXPECT_TRUE(properties.GetDepthEffectPara().has_value());
+    EXPECT_EQ(properties.GetDepthEffectPara().value(), para);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+    properties.SetDepthEffectPara(std::nullopt);
+    EXPECT_FALSE(properties.GetDepthEffectPara().has_value());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: GetDepthEffectPara001
+ * @tc.desc: test results of GetDepthEffectPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetDepthEffectPara001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.GetDepthEffectPara().has_value());
+
+    properties.SetDepthEffectPara(std::nullopt);
+    EXPECT_FALSE(properties.GetDepthEffectPara().has_value());
+
+    SpatialEffectPara spatialPara;
+    properties.SetSpatialEffectPara(spatialPara);
+    EXPECT_FALSE(properties.GetDepthEffectPara().has_value());
+
+    DepthEffectPara depthPara;
+    depthPara.depth = 5.0f;
+    depthPara.occlusionWeight = 0.5f;
+    properties.SetDepthEffectPara(depthPara);
+    EXPECT_TRUE(properties.GetDepthEffectPara().has_value());
+    EXPECT_EQ(properties.GetDepthEffectPara().value(), depthPara);
+}
+
+/**
+ * @tc.name: SetSpatialEffectPara001
+ * @tc.desc: test results of SetSpatialEffectPara
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, SetSpatialEffectPara001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    SpatialEffectPara para;
+    para.leftTop = {0.0f, 0.0f, 0.0f};
+    para.rightTop = {1.0f, 0.0f, 0.0f};
+    para.leftBottom = {0.0f, 1.0f, 0.0f};
+    para.rightBottom = {1.0f, 1.0f, 0.0f};
+    para.occlusionWeight = 0.5f;
+
+    properties.SetSpatialEffectPara(para);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value(), para);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+    auto renderNode = std::make_shared<RSRenderNode>(514);
+    depthNode->AddChild(renderNode);
+    properties.backref_ = renderNode->weak_from_this();
+    properties.SetSpatialEffectPara(para);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value(), para);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+    properties.SetSpatialEffectPara(std::nullopt);
+    EXPECT_FALSE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: GetSpatialEffectPara001
+ * @tc.desc: test results of GetSpatialEffectPara
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, GetSpatialEffectPara001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.GetSpatialEffectPara().has_value());
+
+    properties.SetSpatialEffectPara(std::nullopt);
+    EXPECT_FALSE(properties.GetSpatialEffectPara().has_value());
+
+    DepthEffectPara depthPara;
+    properties.SetDepthEffectPara(depthPara);
+    EXPECT_FALSE(properties.GetSpatialEffectPara().has_value());
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = {0.0f, 0.0f, 0.0f};
+    spatialPara.rightTop = {1.0f, 0.0f, 0.0f};
+    spatialPara.leftBottom = {0.0f, 1.0f, 0.0f};
+    spatialPara.rightBottom = {1.0f, 1.0f, 0.0f};
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+    EXPECT_TRUE(properties.GetSpatialEffectPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectPara().value(), spatialPara);
+}
+
+/**
+ * @tc.name: SetAndGetSpatialEffectVariantPara001
+ * @tc.desc: test results of SetSpatialEffectVariantPara and GetSpatialEffectVariantPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetAndGetSpatialEffectVariantPara001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    SpatialEffectVariantPara para;
+    para.position = 0.1f;
+    para.occlusionWeight = 0.5f;
+
+    properties.SetSpatialEffectVariantPara(para);
+    EXPECT_TRUE(properties.GetSpatialEffectVariantPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectVariantPara().value(), para);
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.empty());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(114);
+    auto renderNode = std::make_shared<RSRenderNode>(514);
+    depthNode->AddChild(renderNode);
+    properties.backref_ = renderNode->weak_from_this();
+    properties.SetSpatialEffectVariantPara(para);
+    EXPECT_TRUE(properties.GetSpatialEffectVariantPara().has_value());
+    EXPECT_EQ(properties.GetSpatialEffectVariantPara().value(), para);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.size(), 1);
+    EXPECT_EQ(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.size(), 1);
+
+    properties.SetSpatialEffectVariantPara(std::nullopt);
+    EXPECT_FALSE(properties.GetSpatialEffectVariantPara().has_value());
+    EXPECT_TRUE(RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.empty());
+
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.clear();
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.clear();
+}
+
+/**
+ * @tc.name: GetSpatialEffectOcclusionEnabled001
+ * @tc.desc: test GetSpatialEffectOcclusionEnabled with no spatial effect para
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, GetSpatialEffectOcclusionEnabled001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.GetSpatialEffectOcclusionEnabled());
+
+    properties.SetSpatialEffectPara(std::nullopt);
+    EXPECT_FALSE(properties.GetSpatialEffectOcclusionEnabled());
+
+    SpatialEffectPara para;
+    para.occlusionWeight = 0.0f;
+    properties.SetSpatialEffectPara(para);
+    EXPECT_FALSE(properties.GetSpatialEffectOcclusionEnabled());
+
+    para.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(para);
+    EXPECT_TRUE(properties.GetSpatialEffectOcclusionEnabled());
+}
+
+/**
+ * @tc.name: SetAndGetSpatialEffectDstPointsTest001
+ * @tc.desc: Test SetSpatialEffectDstPoints & GetSpatialEffectDstPoints with nullopt
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetAndGetSpatialEffectDstPointsTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetSpatialEffectDstPoints(std::nullopt);
+    auto ret = properties.GetSpatialEffectDstPoints();
+    EXPECT_FALSE(ret.has_value());
+}
+
+/**
+ * @tc.name: SetAndGetSpatialEffectDstPointsTest002
+ * @tc.desc: Test SetSpatialEffectDstPoints & GetSpatialEffectDstPoints with valid points
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetAndGetSpatialEffectDstPointsTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    std::vector<Drawing::Point> points = {
+        Drawing::Point(0.0f, 0.0f),
+        Drawing::Point(100.0f, 0.0f),
+        Drawing::Point(100.0f, 100.0f),
+        Drawing::Point(0.0f, 100.0f)
+    };
+    properties.SetSpatialEffectDstPoints(points);
+    auto ret = properties.GetSpatialEffectDstPoints();
+    EXPECT_TRUE(ret.has_value());
+    EXPECT_EQ(ret->size(), 4);
+    EXPECT_FLOAT_EQ(ret->at(0).GetX(), 0.0f);
+    EXPECT_FLOAT_EQ(ret->at(0).GetY(), 0.0f);
+}
+
+/**
+ * @tc.name: UpdateGeometryByParentWithSpatialEffectTest001
+ * @tc.desc: Test UpdateGeometryByParent when GetSpatialEffectPara() returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, UpdateGeometryByParentWithSpatialEffectTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    properties.backref_ = renderNode;
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, 0.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, 0.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, 0.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+
+    Drawing::Matrix parentMatrix;
+    std::optional<Drawing::Point> offset = Drawing::Point(0.0f, 0.0f);
+
+    auto result = properties.UpdateGeometryByParent(&parentMatrix, offset);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: UpdateGeometryByParentWithSpatialEffectTest002
+ * @tc.desc: Test UpdateGeometryByParent when GetSpatialEffectPara() returns nullopt
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, UpdateGeometryByParentWithSpatialEffectTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetSpatialEffectPara(std::nullopt);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+
+    Drawing::Matrix parentMatrix;
+    std::optional<Drawing::Point> offset = Drawing::Point(0.0f, 0.0f);
+
+    auto result = properties.UpdateGeometryByParent(&parentMatrix, offset);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest001
+ * @tc.desc: Test ApplySpatialEffectMatrix when renderNode is expired
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.backref_ = std::weak_ptr<RSRenderNode>();
+
+    SpatialEffectPara spatialPara;
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.ApplySpatialEffectMatrix();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest002
+ * @tc.desc: Test ApplySpatialEffectMatrix with valid renderNode but no depth node ancestor
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest002, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, 0.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, 0.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, 0.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+
+    properties.ApplySpatialEffectMatrix();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest003
+ * @tc.desc: Test ApplySpatialEffectMatrix with depth node but no camera para
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest003, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    auto depthNode = std::make_shared<RSDepthRenderNode>(2);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, 0.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, 0.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, 0.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+
+    RSSpatialEffectManager::Instance()->RegisterDepthSpace(depthNode);
+    RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    RSSpatialEffectManager::Instance()->UnregisterSpatialEffect(renderNode);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest004
+ * @tc.desc: Test ApplySpatialEffectMatrix with depth node and camera para
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest004, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    auto depthNode = std::make_shared<RSDepthRenderNode>(2);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 5.0f);
+    cameraPara.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    cameraPara.yFov = 60.0f;
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+    properties.SetDepthCameraPara(cameraPara);
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, 0.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, 0.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, 0.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+    properties.boundsGeo_->SetX(0.0f);
+    properties.boundsGeo_->SetY(0.0f);
+
+    auto& depthProps = depthNode->GetMutableRenderProperties();
+    depthProps.SetDepthCameraPara(cameraPara);
+    depthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    depthProps.boundsGeo_->width_ = 100.0f;
+    depthProps.boundsGeo_->height_ = 100.0f;
+    depthProps.boundsGeo_->SetX(0.0f);
+    depthProps.boundsGeo_->SetY(0.0f);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthSpace(depthNode);
+    RSSpatialEffectManager::Instance()->RegisterSpatialEffect(renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    RSSpatialEffectManager::Instance()->UnregisterSpatialEffect(renderNode);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest005
+ * @tc.desc: Test ApplySpatialEffectMatrix with depthNode parent relationship (INSTANCE type)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest005, TestSize.Level1)
+{
+    auto depthNode = std::make_shared<RSDepthRenderNode>(100);
+    depthNode->SetDepthSpaceType(DepthSpaceType::INSTANCE);
+
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    renderNode->SetParent(depthNode);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 5.0f);
+    cameraPara.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    cameraPara.yFov = 60.0f;
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+    properties.SetDepthCameraPara(cameraPara);
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, 0.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, 0.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, 0.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+    properties.boundsGeo_->SetX(0.0f);
+    properties.boundsGeo_->SetY(0.0f);
+
+    auto& depthProps = depthNode->GetMutableRenderProperties();
+    depthProps.SetDepthCameraPara(cameraPara);
+    depthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    depthProps.boundsGeo_->width_ = 100.0f;
+    depthProps.boundsGeo_->height_ = 100.0f;
+    depthProps.boundsGeo_->SetX(0.0f);
+    depthProps.boundsGeo_->SetY(0.0f);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.erase(renderNode->GetId());
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.erase(depthNode->GetId());
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest006
+ * @tc.desc: Test ApplySpatialEffectMatrix with GLOBAL depthNode and master global depthNode exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest006, TestSize.Level1)
+{
+    auto globalDepthNode = std::make_shared<RSDepthRenderNode>(200);
+    globalDepthNode->SetDepthSpaceType(DepthSpaceType::GLOBAL);
+
+    auto& globalDepthProps = globalDepthNode->GetMutableRenderProperties();
+    DepthCameraPara globalCameraPara;
+    globalCameraPara.position = Vector3f(0.0f, 0.0f, 10.0f);
+    globalCameraPara.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    globalCameraPara.yFov = 60.0f;
+    globalCameraPara.zNear = 0.1f;
+    globalCameraPara.zFar = 200.0f;
+    globalDepthProps.SetDepthCameraPara(globalCameraPara);
+    globalDepthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    globalDepthProps.boundsGeo_->width_ = 200.0f;
+    globalDepthProps.boundsGeo_->height_ = 200.0f;
+    globalDepthProps.boundsGeo_->SetX(0.0f);
+    globalDepthProps.boundsGeo_->SetY(0.0f);
+
+    auto depthNode = std::make_shared<RSDepthRenderNode>(101);
+    depthNode->SetDepthSpaceType(DepthSpaceType::GLOBAL);
+
+    auto renderNode = std::make_shared<RSRenderNode>(2);
+    renderNode->SetParent(depthNode);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    properties.SetDepthCameraPara(globalCameraPara);
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, 0.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, 0.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, 0.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+    properties.boundsGeo_->SetX(0.0f);
+    properties.boundsGeo_->SetY(0.0f);
+
+    auto& depthProps = depthNode->GetMutableRenderProperties();
+    depthProps.SetDepthCameraPara(globalCameraPara);
+    depthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    depthProps.boundsGeo_->width_ = 100.0f;
+    depthProps.boundsGeo_->height_ = 100.0f;
+    depthProps.boundsGeo_->SetX(0.0f);
+    depthProps.boundsGeo_->SetY(0.0f);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthSpace(globalDepthNode);
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(globalDepthNode, renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.erase(renderNode->GetId());
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.erase(globalDepthNode->GetId());
+    RSSpatialEffectManager::Instance()->masterGlobalDepthNodeMap_.clear();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest007
+ * @tc.desc: Test ApplySpatialEffectMatrix with GLOBAL depthNode but no master global depthNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest007, TestSize.Level1)
+{
+    auto depthNode = std::make_shared<RSDepthRenderNode>(102);
+    depthNode->SetDepthSpaceType(DepthSpaceType::GLOBAL);
+
+    auto renderNode = std::make_shared<RSRenderNode>(3);
+    renderNode->SetParent(depthNode);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 5.0f);
+    cameraPara.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    cameraPara.yFov = 60.0f;
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+    properties.SetDepthCameraPara(cameraPara);
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, 0.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, 0.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, 0.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+    properties.boundsGeo_->SetX(0.0f);
+    properties.boundsGeo_->SetY(0.0f);
+
+    auto& depthProps = depthNode->GetMutableRenderProperties();
+    depthProps.SetDepthCameraPara(cameraPara);
+    depthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    depthProps.boundsGeo_->width_ = 100.0f;
+    depthProps.boundsGeo_->height_ = 100.0f;
+    depthProps.boundsGeo_->SetX(0.0f);
+    depthProps.boundsGeo_->SetY(0.0f);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.erase(renderNode->GetId());
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.erase(depthNode->GetId());
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest008
+ * @tc.desc: Test ApplySpatialEffectMatrix with depthNode but no depthCameraPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest008, TestSize.Level1)
+{
+    auto depthNode = std::make_shared<RSDepthRenderNode>(103);
+    depthNode->SetDepthSpaceType(DepthSpaceType::INSTANCE);
+
+    auto renderNode = std::make_shared<RSRenderNode>(4);
+    renderNode->SetParent(depthNode);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 5.0f);
+    cameraPara.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    cameraPara.yFov = 60.0f;
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, 0.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, 0.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, 0.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+    properties.boundsGeo_->SetX(0.0f);
+    properties.boundsGeo_->SetY(0.0f);
+
+    auto& depthProps = depthNode->GetMutableRenderProperties();
+    depthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    depthProps.boundsGeo_->width_ = 100.0f;
+    depthProps.boundsGeo_->height_ = 100.0f;
+    depthProps.boundsGeo_->SetX(0.0f);
+    depthProps.boundsGeo_->SetY(0.0f);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.erase(renderNode->GetId());
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.erase(depthNode->GetId());
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest009
+ * @tc.desc: Test ApplySpatialEffectMatrix with identity transform matrix case
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest009, TestSize.Level1)
+{
+    auto depthNode = std::make_shared<RSDepthRenderNode>(104);
+    depthNode->SetDepthSpaceType(DepthSpaceType::INSTANCE);
+
+    auto renderNode = std::make_shared<RSRenderNode>(5);
+    renderNode->SetParent(depthNode);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 5.0f);
+    cameraPara.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    cameraPara.yFov = 60.0f;
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+    properties.SetDepthCameraPara(cameraPara);
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightTop = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.rightBottom = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 0.0f, 0.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+    properties.boundsGeo_->SetX(0.0f);
+    properties.boundsGeo_->SetY(0.0f);
+
+    auto& depthProps = depthNode->GetMutableRenderProperties();
+    depthProps.SetDepthCameraPara(cameraPara);
+    depthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    depthProps.boundsGeo_->width_ = 100.0f;
+    depthProps.boundsGeo_->height_ = 100.0f;
+    depthProps.boundsGeo_->SetX(0.0f);
+    depthProps.boundsGeo_->SetY(0.0f);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.erase(renderNode->GetId());
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.erase(depthNode->GetId());
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest010
+ * @tc.desc: Test ApplySpatialEffectMatrix with NDC_XY_WORLD_Z_MODE fills xyzCornerPoints
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest010, TestSize.Level1)
+{
+    auto depthNode = std::make_shared<RSDepthRenderNode>(105);
+    depthNode->SetDepthSpaceType(DepthSpaceType::INSTANCE);
+
+    auto renderNode = std::make_shared<RSRenderNode>(6);
+    renderNode->SetParent(depthNode);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 5.0f);
+    cameraPara.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    cameraPara.yFov = 60.0f;
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(-0.5f, -0.5f, -5.0f);
+    spatialPara.rightTop = Vector3f(0.5f, -0.5f, -5.0f);
+    spatialPara.rightBottom = Vector3f(0.5f, 0.5f, -5.0f);
+    spatialPara.leftBottom = Vector3f(-0.5f, 0.5f, -5.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    spatialPara.spatialEffectMode = SpatialEffectMode::NDC_XY_WORLD_Z_MODE;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+    properties.boundsGeo_->SetX(0.0f);
+    properties.boundsGeo_->SetY(0.0f);
+
+    auto& depthProps = depthNode->GetMutableRenderProperties();
+    depthProps.SetDepthCameraPara(cameraPara);
+    depthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    depthProps.boundsGeo_->width_ = 100.0f;
+    depthProps.boundsGeo_->height_ = 100.0f;
+    depthProps.boundsGeo_->SetX(0.0f);
+    depthProps.boundsGeo_->SetY(0.0f);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    // Verify xyzCornerPoints is populated after ApplySpatialEffectMatrix
+    auto variantPara = properties.GetSpatialEffectVariantPara();
+    ASSERT_TRUE(variantPara.has_value());
+    bool hasNonZeroXyzCorner = false;
+    for (uint32_t i = 0; i < SpatialEffectPara::CORNER_NUMBER; i++) {
+        if (variantPara->xyzCornerPoints[i].x_ != 0.0f || variantPara->xyzCornerPoints[i].y_ != 0.0f) {
+            hasNonZeroXyzCorner = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(hasNonZeroXyzCorner);
+
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.erase(renderNode->GetId());
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.erase(depthNode->GetId());
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest011
+ * @tc.desc: Test ApplySpatialEffectMatrix with WORLD_XYZ_MODE does not fill xyzCornerPoints
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest011, TestSize.Level1)
+{
+    auto depthNode = std::make_shared<RSDepthRenderNode>(106);
+    depthNode->SetDepthSpaceType(DepthSpaceType::INSTANCE);
+
+    auto renderNode = std::make_shared<RSRenderNode>(7);
+    renderNode->SetParent(depthNode);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 5.0f);
+    cameraPara.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    cameraPara.yFov = 60.0f;
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, -5.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, -5.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, -5.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, -5.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    spatialPara.spatialEffectMode = SpatialEffectMode::WORLD_XYZ_MODE;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+    properties.boundsGeo_->SetX(0.0f);
+    properties.boundsGeo_->SetY(0.0f);
+
+    auto& depthProps = depthNode->GetMutableRenderProperties();
+    depthProps.SetDepthCameraPara(cameraPara);
+    depthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    depthProps.boundsGeo_->width_ = 100.0f;
+    depthProps.boundsGeo_->height_ = 100.0f;
+    depthProps.boundsGeo_->SetX(0.0f);
+    depthProps.boundsGeo_->SetY(0.0f);
+
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    // Verify xyzCornerPoints remains default (all zeros) in WORLD_XYZ_MODE
+    auto variantPara = properties.GetSpatialEffectVariantPara();
+    ASSERT_TRUE(variantPara.has_value());
+    for (uint32_t i = 0; i < SpatialEffectPara::CORNER_NUMBER; i++) {
+        EXPECT_FLOAT_EQ(variantPara->xyzCornerPoints[i].x_, 0.0f);
+        EXPECT_FLOAT_EQ(variantPara->xyzCornerPoints[i].y_, 0.0f);
+        EXPECT_FLOAT_EQ(variantPara->xyzCornerPoints[i].z_, 0.0f);
+    }
+
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.erase(renderNode->GetId());
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.erase(depthNode->GetId());
+}
+
+/**
+ * @tc.name: ApplySpatialEffectMatrixTest012
+ * @tc.desc: Test ProcessSpatialEffectDstPoints with drawable present in slots
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ApplySpatialEffectMatrixTest012, TestSize.Level1)
+{
+    auto depthNode = std::make_shared<RSDepthRenderNode>(107);
+    depthNode->SetDepthSpaceType(DepthSpaceType::INSTANCE);
+
+    auto renderNode = std::make_shared<RSRenderNode>(8);
+    renderNode->SetParent(depthNode);
+
+    RSProperties properties;
+    properties.backref_ = renderNode;
+
+    DepthCameraPara cameraPara;
+    cameraPara.position = Vector3f(0.0f, 0.0f, 5.0f);
+    cameraPara.quaternion = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    cameraPara.yFov = 60.0f;
+    cameraPara.zNear = 0.1f;
+    cameraPara.zFar = 100.0f;
+
+    SpatialEffectPara spatialPara;
+    spatialPara.leftTop = Vector3f(0.0f, 0.0f, -5.0f);
+    spatialPara.rightTop = Vector3f(100.0f, 0.0f, -5.0f);
+    spatialPara.rightBottom = Vector3f(100.0f, 100.0f, -5.0f);
+    spatialPara.leftBottom = Vector3f(0.0f, 100.0f, -5.0f);
+    spatialPara.occlusionWeight = 0.5f;
+    properties.SetSpatialEffectPara(spatialPara);
+
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 100.0f;
+    properties.boundsGeo_->height_ = 100.0f;
+    properties.boundsGeo_->SetX(0.0f);
+    properties.boundsGeo_->SetY(0.0f);
+
+    auto& depthProps = depthNode->GetMutableRenderProperties();
+    depthProps.SetDepthCameraPara(cameraPara);
+    depthProps.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    depthProps.boundsGeo_->width_ = 100.0f;
+    depthProps.boundsGeo_->height_ = 100.0f;
+    depthProps.boundsGeo_->SetX(0.0f);
+    depthProps.boundsGeo_->SetY(0.0f);
+
+    // Add drawable to SPATIAL_EFFECT slot to cover the if branch
+    auto drawable = std::make_shared<DrawableV2::RSSpatialEffectDrawable>();
+    renderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::SPATIAL_EFFECT)] = drawable;
+
+    RSSpatialEffectManager::Instance()->RegisterDepthNodeAndSpatialEffect(depthNode, renderNode);
+
+    properties.ApplySpatialEffectMatrix();
+
+    EXPECT_NO_FATAL_FAILURE(properties.GetSpatialEffectDstPoints());
+
+    RSSpatialEffectManager::Instance()->spatialEffectDepthNodeMap_.erase(renderNode->GetId());
+    RSSpatialEffectManager::Instance()->depthSpatialEffectNodeMap_.erase(depthNode->GetId());
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest001
+ * @tc.desc: Test CalculateSpatialEffectMatrix with normal parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 100.0f, 0.0f),
+        Vector3f(0.0f, 100.0f, 0.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 60.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.1f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 5.0f;
+    extrinsics.rotation = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_FALSE(ret.transformMatrix.IsIdentity());
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest002
+ * @tc.desc: Test CalculateSpatialEffectMatrix with different corner points
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest002, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 200.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 200.0f, 100.0f);
+    params.cornerPoints = {
+        Vector3f(10.0f, 10.0f, 0.0f),
+        Vector3f(190.0f, 10.0f, 0.0f),
+        Vector3f(190.0f, 90.0f, 0.0f),
+        Vector3f(10.0f, 90.0f, 0.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 45.0f;
+    intrinsics.aspectRatio = 2.0f;
+    intrinsics.near = 1.0f;
+    intrinsics.far = 50.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 100.0f;
+    extrinsics.position[1] = 50.0f;
+    extrinsics.position[2] = 10.0f;
+    extrinsics.rotation = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_FALSE(ret.transformMatrix.IsIdentity());
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest003
+ * @tc.desc: Test CalculateSpatialEffectMatrix with zero width/height depNodeRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest003, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 0.0f, 0.0f);
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 100.0f, 0.0f),
+        Vector3f(0.0f, 100.0f, 0.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 60.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.1f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 5.0f;
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_FALSE(ret.transformMatrix.IsIdentity());
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest004
+ * @tc.desc: Test CalculateSpatialEffectMatrix when SetPolyToPoly fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest004, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 100.0f, 0.0f),
+        Vector3f(0.0f, 100.0f, 0.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 60.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.1f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 5.0f;
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_EQ(ret.dstPoints.size(), 4);
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest005
+ * @tc.desc: Test CalculateSpatialEffectMatrix with far depth
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest005, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, 50.0f),
+        Vector3f(100.0f, 0.0f, 50.0f),
+        Vector3f(100.0f, 100.0f, 50.0f),
+        Vector3f(0.0f, 100.0f, 50.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 60.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.1f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 5.0f;
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_FALSE(ret.transformMatrix.IsIdentity());
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest006
+ * @tc.desc: Test CalculateSpatialEffectMatrix with different fov
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest006, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 100.0f, 0.0f),
+        Vector3f(0.0f, 100.0f, 0.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 90.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.1f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 5.0f;
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_FALSE(ret.transformMatrix.IsIdentity());
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest007
+ * @tc.desc: Test CalculateSpatialEffectMatrix with matrixDep transform
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest007, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 100.0f, 0.0f),
+        Vector3f(0.0f, 100.0f, 0.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 60.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.1f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 5.0f;
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_FALSE(ret.transformMatrix.IsIdentity());
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest008
+ * @tc.desc: Test CalculateSpatialEffectMatrix with zero near plane
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest008, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 100.0f, 0.0f),
+        Vector3f(0.0f, 100.0f, 0.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 60.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.0f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 5.0f;
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_FALSE(ret.transformMatrix.IsIdentity());
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest009
+ * @tc.desc: Test CalculateSpatialEffectMatrix when outW is near zero (perspective divide fails)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest009, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    // Use very large Z values that could cause outW to be near zero
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 100.0f, 0.0f),
+        Vector3f(0.0f, 100.0f, 0.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 60.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.0f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 0.0f;
+    extrinsics.rotation = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    // When outW is near zero, the function returns eraly with identity matrix
+    EXPECT_TRUE(ret.transformMatrix.IsIdentity());
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest010
+ * @tc.desc: Test CalculateSpatialEffectMatrix with negative Z values
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest010, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, -10.0f),
+        Vector3f(100.0f, 0.0f, -10.0f),
+        Vector3f(100.0f, 100.0f, -10.0f),
+        Vector3f(0.0f, 100.0f, -10.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 60.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.1f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 5.0f;
+    extrinsics.rotation = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_EQ(ret.dstPoints.size(), 4);
+}
+
+/**
+ * @tc.name: CalculateSpatialEffectMatrixTest011
+ * @tc.desc: Test CalculateSpatialEffectMatrix with very small depNodeRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculateSpatialEffectMatrixTest011, TestSize.Level1)
+{
+    RSProperties properties;
+
+    RSProperties::SpatialEffectMatrixParams params;
+    params.rectSelf = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    params.depNodeRect = RectF(0.0f, 0.0f, 1.0f, 1.0f);
+    params.cornerPoints = {
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 0.0f, 0.0f),
+        Vector3f(100.0f, 100.0f, 0.0f),
+        Vector3f(0.0f, 100.0f, 0.0f)
+    };
+
+    Drawing::GECameraIntrinsics intrinsics;
+    intrinsics.fov = 60.0f;
+    intrinsics.aspectRatio = 1.0f;
+    intrinsics.near = 0.1f;
+    intrinsics.far = 100.0f;
+
+    Drawing::GECameraExtrinsics extrinsics;
+    extrinsics.position[0] = 0.0f;
+    extrinsics.position[1] = 0.0f;
+    extrinsics.position[2] = 5.0f;
+    extrinsics.rotation = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    auto ret = properties.CalculateSpatialEffectMatrix(params, intrinsics, extrinsics);
+    EXPECT_EQ(ret.dstPoints.size(), 4);
+}
+
+/**
+ * @tc.name: SetGeoDirtyTest001
+ * @tc.desc: Test SetGeoDirty function
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGeoDirtyTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    // Initially geoDirty should be false
+    EXPECT_FALSE(properties.IsGeoDirty());
+
+    // Call SetGeoDirty
+    properties.SetGeoDirty();
+
+    // geoDirty should now be true
+    EXPECT_TRUE(properties.IsGeoDirty());
+}
+
+/**
+ * @tc.name: SetGeoDirtyTest002
+ * @tc.desc: Test SetGeoDirty called multiple times
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGeoDirtyTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.IsGeoDirty());
+
+    // Call SetGeoDirty multiple times
+    properties.SetGeoDirty();
+    EXPECT_TRUE(properties.IsGeoDirty());
+
+    properties.SetGeoDirty();
+    EXPECT_TRUE(properties.IsGeoDirty());
+
+    properties.SetGeoDirty();
+    EXPECT_TRUE(properties.IsGeoDirty());
 }
 } // namespace Rosen
 } // namespace OHOS

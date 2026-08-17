@@ -474,37 +474,23 @@ namespace drawing {
     native constructorNative(filterMode: FilterMode): void;
 
     static samplingOptionsTransferStatic(input: Any): Object {
-      let samplingOptions: SamplingOptions = new SamplingOptions();
-      return SamplingOptions.samplingOptionsTransferStaticNative(samplingOptions, ESValue.wrap(input));
+      return SamplingOptions.samplingOptionsTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native samplingOptionsTransferStaticNative(samplingOptions: SamplingOptions, input: ESValue): Object;
+    private static native samplingOptionsTransferStaticNative(input: ESValue): Object;
 
     static samplingOptionsTransferDynamic(input: Object): Any {
-      let samplingOptions = input as SamplingOptions;
-      if (!samplingOptions) {
+      if (!(input instanceof SamplingOptions)) {
         return null;
       }
-      let addr = SamplingOptions.getSamplingOptionsAddr(samplingOptions);
-      if (addr == 0) {
+      let esValue: ESValue = SamplingOptions.samplingOptionsTransferDynamicNative(input as SamplingOptions);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("SamplingOptions");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("SamplingOptions");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getSamplingOptionsAddr(input: SamplingOptions): long;
+    private static native samplingOptionsTransferDynamicNative(input: SamplingOptions): ESValue;
   }
 
   /**
@@ -587,34 +573,17 @@ namespace drawing {
     private static native canvasTransferStaticNative(input: ESValue): Object;
 
     static canvasTransferDynamic(input: Object): Any {
-      let canvas = input as Canvas;
-      if (!canvas) {
+      if (!(input instanceof Canvas)) {
         return null;
       }
-      let canvasAddr = Canvas.getCanvasAddr(canvas);
-      if (canvasAddr == 0) {
+      let esValue: ESValue = Canvas.canvasTransferDynamicNative(input as Canvas);
+      if (!esValue) {
         return null;
       }
-      let pixelMapAddr = Canvas.getPixelMapAddr(canvas);
-      let owned = Canvas.getOwned(canvas);
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("Canvas");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("Canvas");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(canvasAddr), ESObject.wrap(pixelMapAddr), owned);
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getCanvasAddr(input: Canvas): long;
-    private static native getPixelMapAddr(input: Canvas): long;
-    private static native getOwned(input: Canvas): boolean;
+    private static native canvasTransferDynamicNative(input: Canvas): ESValue;
 
     /**
      * If rectangle is stroked, use pen to stroke width describes the line thickness,
@@ -1436,30 +1405,17 @@ namespace drawing {
     private static native colorFilterTransferStaticNative(input: ESValue): Object;
 
     static colorFilterTransferDynamic(input: Object): Any {
-      let colorFilter = input as ColorFilter;
-      if (!colorFilter) {
+      if (!(input instanceof ColorFilter)) {
         return null;
       }
-      let addr = ColorFilter.getColorFilterAddr(colorFilter);
-      if (addr == 0) {
+      let esValue: ESValue = ColorFilter.colorFilterTransferDynamicNative(input as ColorFilter);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("ColorFilter");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("ColorFilter");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getColorFilterAddr(input: ColorFilter): long;
+    private static native colorFilterTransferDynamicNative(nativeObj: Object): ESValue;
 
     /**
      * Creates a ColorFilter object with a given color and blend mode.
@@ -1601,37 +1557,23 @@ namespace drawing {
     native constructorNative(pen: Pen): void;
 
     static penTransferStatic(input: Any): Object {
-      let pen: Pen = new Pen();
-      return Pen.penTransferStaticNative(pen, ESValue.wrap(input));
+      return Pen.penTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native penTransferStaticNative(pen: Pen, input: ESValue): Object;
+    private static native penTransferStaticNative(input: ESValue): Object;
 
     static penTransferDynamic(input: Object): Any {
-      let pen = input as Pen;
-      if (!pen) {
+      if (!(input instanceof Pen)) {
         return null;
       }
-      let addr = Pen.getPenAddr(pen);
-      if (addr == 0) {
+      let esValue: ESValue = Pen.penTransferDynamicNative(input as Pen);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("Pen");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("Pen");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getPenAddr(input: Pen): long;
+    private static native penTransferDynamicNative(input: Pen): ESValue;
 
     /**
     * Replaces alpha, leaving RGB
@@ -1987,37 +1929,23 @@ namespace drawing {
     native constructorNative(brush: Brush): void;
 
     static brushTransferStatic(input: Any): Object {
-      let brush: Brush = new Brush();
-      return Brush.brushTransferStaticNative(brush, ESValue.wrap(input));
+      return Brush.brushTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native brushTransferStaticNative(brush: Brush, input: ESValue): Object;
+    private static native brushTransferStaticNative(input: ESValue): Object;
 
     static brushTransferDynamic(input: Object): Any {
-      let brush = input as Brush;
-      if (!brush) {
+      if (!(input instanceof Brush)) {
         return null;
       }
-      let addr = Brush.getBrushAddr(brush);
-      if (addr == 0) {
+      let esValue: ESValue = Brush.brushTransferDynamicNative(input as Brush);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("Brush");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("Brush");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getBrushAddr(input: Brush): long;
+    private static native brushTransferDynamicNative(input: Brush): ESValue;
 
     /**
      * Replaces alpha, leaving RGB
@@ -2252,30 +2180,17 @@ namespace drawing {
     private static native typefaceTransferStaticNative(input: ESValue): Object;
 
     static typefaceTransferDynamic(input: Object): Any {
-      let typeface = input as Typeface;
-      if (!typeface) {
+      if (!(input instanceof Typeface)) {
         return null;
       }
-      let addr = Typeface.getTypefaceAddr(typeface);
-      if (addr == 0) {
+      let esValue: ESValue = Typeface.typefaceTransferDynamicNative(input as Typeface);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("Typeface");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("Typeface");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getTypefaceAddr(input: Typeface): long;
+    private static native typefaceTransferDynamicNative(input: Typeface): ESValue;
 
     /**
      * Get the family name for this typeface.
@@ -2462,37 +2377,23 @@ namespace drawing {
     native constructorNative(): void;
 
     static fontTransferStatic(input: Any): Object {
-      let font: Font = new Font();
-      return Font.fontTransferStaticNative(font, ESValue.wrap(input));
+      return Font.fontTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native fontTransferStaticNative(font: Font, input: ESValue): Object;
+    private static native fontTransferStaticNative(input: ESValue): Object;
 
     static fontTransferDynamic(input: Object): Any {
-      let font = input as Font;
-      if (!font) {
+      if (!(input instanceof Font)) {
         return null;
       }
-      let addr = Font.getFontAddr(font);
-      if (addr == 0) {
+      let esValue: ESValue = Font.fontTransferDynamicNative(input as Font);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("Font");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("Font");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getFontAddr(input: Font): long;
+    private static native fontTransferDynamicNative(input: Font): ESValue;
 
     /**
      * Enables subpixel font rendering.
@@ -3198,30 +3099,17 @@ namespace drawing {
     private static native latticeTransferStaticNative(input: ESValue): Object;
 
     static latticeTransferDynamic(input: Object): Any {
-      let lattice = input as Lattice;
-      if (!lattice) {
+      if (!(input instanceof Lattice)) {
         return null;
       }
-      let addr = Lattice.getLatticeAddr(lattice);
-      if (addr == 0) {
+      let esValue: ESValue = Lattice.latticeTransferDynamicNative(input as Lattice);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("Lattice");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("Lattice");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getLatticeAddr(input: Lattice): long;
+    private static native latticeTransferDynamicNative(input: Lattice): ESValue;
 
     /**
      * Divide an image into a rectangular grid. Grid entries on even columns and even rows are fixed;
@@ -3322,36 +3210,23 @@ namespace drawing {
     native constructorNative(matrix: Matrix): void;
 
     static matrixTransferStatic(input: Any): Object {
-      let matrix: Matrix = new Matrix();
-      return Matrix.matrixTransferStaticNative(matrix, ESValue.wrap(input));
+      return Matrix.matrixTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native matrixTransferStaticNative(matrix: Matrix, input: ESValue): Object;
+    private static native matrixTransferStaticNative(input: ESValue): Object;
 
     static matrixTransferDynamic(input: Object): Any {
-      let matrix = input as Matrix;
-      if (!matrix) {
+      if (!(input instanceof Matrix)) {
         return null;
       }
-      let addr = Matrix.getMatrixAddr(matrix);
-      if (addr == 0) {
+      let esValue: ESValue = Matrix.matrixTransferDynamicNative(input as Matrix);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("Matrix");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("Matrix");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
-    private static native getMatrixAddr(input: Matrix): long;
+
+    private static native matrixTransferDynamicNative(input: Matrix): ESValue;
 
     /**
      * Sets this matrix as an identity matrix and rotates it by a given degree around the rotation point (px, py).
@@ -4344,37 +4219,23 @@ namespace drawing {
     native constructorNative(path: Path): void;
 
     static pathTransferStatic(input: Any): Object {
-      let path: Path = new Path();
-      return Path.pathTransferStaticNative(path, ESValue.wrap(input));
+      return Path.pathTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native pathTransferStaticNative(output: Path, input: ESValue): Object;
+    private static native pathTransferStaticNative(input: ESValue): Object;
 
     static pathTransferDynamic(input: Object): Any {
-      let path = input as Path;
-      if (!path) {
+      if (!(input instanceof Path)) {
         return null;
       }
-      let addr = Path.getPathAddr(path);
-      if (addr == 0) {
+      let esValue: ESValue = Path.pathTransferDynamicNative(input as Path);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("Path");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("Path");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getPathAddr(input: Path): long;
+    private static native pathTransferDynamicNative(input: Path): ESValue;
 
     /**
      * Sets the start point of this path.
@@ -5539,37 +5400,23 @@ namespace drawing {
     native constructorNative(left: int, top: int, right: int, bottom: int): void;
 
     static regionTransferStatic(input: Any): Object {
-      let region: Region = new Region();
-      return Region.regionTransferStaticNative(region, ESValue.wrap(input));
+      return Region.regionTransferStaticNative(ESValue.wrap(input));
     }
 
-    private static native regionTransferStaticNative(region: Region, input: ESValue): Object;
+    private static native regionTransferStaticNative(input: ESValue): Object;
 
     static regionTransferDynamic(input: Object): Any {
-      let region = input as Region;
-      if (!region) {
+      if (!(input instanceof Region)) {
         return null;
       }
-      let addr = Region.getRegionAddr(region);
-      if (addr == 0) {
+      let esValue: ESValue = Region.regionTransferDynamicNative(input as Region);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("Region");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("Region");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getRegionAddr(input: Region): long;
+    private static native regionTransferDynamicNative(input: Region): ESValue;
 
     /**
      * Set the current region to empty.
@@ -5847,30 +5694,17 @@ namespace drawing {
     private static native roundRectTransferStaticNative(input: ESValue): Object;
 
     static roundRectTransferDynamic(input: Object): Any {
-      let roundRect = input as RoundRect;
-      if (!roundRect) {
+      if (!(input instanceof RoundRect)) {
         return null;
       }
-      let addr = RoundRect.getRoundRectAddr(roundRect);
-      if (addr == 0) {
+      let esValue: ESValue = RoundRect.roundRectTransferDynamicNative(input as RoundRect);
+      if (!esValue) {
         return null;
       }
-      let module = ESValue.load(`@ohos:graphics.drawing`);
-      let hasProperty: boolean = module.hasProperty("RoundRect");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("RoundRect");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
+      return esValue.unwrap();
     }
 
-    private static native getRoundRectAddr(input: RoundRect): long;
+    private static native roundRectTransferDynamicNative(input: RoundRect): ESValue;
 
     /**
      * Sets the radii of the specified rounded corner in this rounded rectangle.

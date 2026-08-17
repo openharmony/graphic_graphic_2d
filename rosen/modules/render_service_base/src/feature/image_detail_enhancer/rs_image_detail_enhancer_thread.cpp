@@ -102,17 +102,23 @@ bool RSImageDetailEnhancerThread::RegisterCallback(const std::function<void(uint
         RS_LOGE("RSImageDetailEnhancerThread RegisterCallback failed, callback is invalid!");
         return false;
     }
+    std::lock_guard<std::mutex> lock(callbackMutex_);
     callback_ = callback;
     return true;
 }
 
 void RSImageDetailEnhancerThread::MarkScaledImageDirty(uint64_t nodeId)
 {
-    if (callback_ == nullptr) {
+    std::function<void(uint64_t)> callback;
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        callback = callback_;
+    }
+    if (callback == nullptr) {
         RS_LOGE("RSImageDetailEnhancerThread MarkScaledImageDirty failed!");
         return;
     }
-    callback_(nodeId);
+    callback(nodeId);
 }
 
 bool RSImageDetailEnhancerThread::IsSizeSupported(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
@@ -123,7 +129,8 @@ bool RSImageDetailEnhancerThread::IsSizeSupported(int srcWidth, int srcHeight, i
     }
 
     // Limit upscale target to 1080P
-    if (srcWidth < dstWidth && srcHeight < dstHeight && srcWidth * srcHeight > MAX_SCALEUP_SIZE) {
+    if (srcWidth < dstWidth && srcHeight < dstHeight &&
+        static_cast<long long>(srcWidth) * srcHeight > MAX_SCALEUP_SIZE) {
         return false;
     }
 
@@ -288,7 +295,7 @@ void RSImageDetailEnhancerThread::ExecuteTaskAsync(const Drawing::Rect& dst,
     int srcWidth = image->GetWidth();
     int srcHeight = image->GetHeight();
     float scaleRatio = static_cast<float>(dstWidth) / static_cast<float>(srcWidth);
-    if (scaleRatio > slrParams_.rangeParams.back().rangeMax) {
+    if (!slrParams_.rangeParams.empty() && scaleRatio > slrParams_.rangeParams.back().rangeMax) {
         dstImage = ScaleByAAE(dstSurfaceBuffer, image);
     }
     if (dstImage == nullptr) {
@@ -546,6 +553,13 @@ DetailEnhancerUtils& DetailEnhancerUtils::Instance()
     return instance;
 }
 
+DetailEnhancerUtils::DetailEnhancerUtils()
+{
+#ifdef RS_ENABLE_VK
+    gpuContext_ = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).CreateDrawingGPUContext();
+#endif
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth, int dstHeight,
     sptr<SurfaceBuffer>& dstSurfaceBuffer, const std::shared_ptr<Drawing::Image>& image)
@@ -560,21 +574,21 @@ std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth,
     }
     Drawing::ImageInfo imageInfoForRenderTarget(dstWidth, dstHeight, image->GetColorType(),
         image->GetAlphaType(), image->GetColorSpace());
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
     std::unique_ptr<NativeBufferUtils::NativeSurfaceInfo> nativeSurfaceInfo =
         std::make_unique<NativeBufferUtils::NativeSurfaceInfo>();
-    OHNativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&dstSurfaceBuffer);
     if (nativeSurfaceInfo == nullptr) {
         RS_LOGE("DetailEnhancerUtils InitSurface failed, nativeSurfaceInfo is invalid!");
         return nullptr;
     }
+    OHNativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&dstSurfaceBuffer);
     if (nativeWindowBuffer == nullptr) {
         RS_LOGE("DetailEnhancerUtils InitSurface failed, nativeWindowBuffer is invalid!");
         return nullptr;
     }
     nativeSurfaceInfo->nativeWindowBuffer = nativeWindowBuffer;
-    std::shared_ptr<Drawing::Surface> newSurface = NativeBufferUtils::CreateFromNativeWindowBufferImpl(context.get(),
-        imageInfoForRenderTarget, *nativeSurfaceInfo, image->GetColorSpace());
+    std::shared_ptr<Drawing::Surface> newSurface = NativeBufferUtils::CreateFromNativeWindowBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+        gpuContext_.get(), imageInfoForRenderTarget, *nativeSurfaceInfo, image->GetColorSpace());
     return newSurface;
 }
 
@@ -586,9 +600,7 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, GpuApiType is not support!");
         return nullptr;
     }
-    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> gpuContext(drawingContext);
-    if (!surfaceBuffer || !image || !gpuContext) {
+    if (!surfaceBuffer || !image || !gpuContext_) {
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, input is invalid!");
         return nullptr;
     }
@@ -598,6 +610,7 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
         return nullptr;
     }
     Drawing::BackendTexture backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
         nativeWindowBuffer, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
     DestroyNativeWindowBuffer(nativeWindowBuffer);
     if (!backendTexture.IsValid()) {
@@ -610,7 +623,8 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
         return nullptr;
     }
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
-        RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
     if (cleanUpHelper == nullptr || dmaImage == nullptr) {
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, cleanUpHelper is invalid!");
@@ -619,7 +633,7 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
     image->GetBackendTexture(false, &origin);
     Drawing::BitmapFormat bitmapFormat = {GetColorTypeWithVKFormat(vkTextureInfo->format), image->GetAlphaType()};
-    if (!dmaImage->BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(), origin,
+    if (!dmaImage->BuildFromTexture(*gpuContext_, backendTexture.GetTextureInfo(), origin,
         bitmapFormat, image->GetColorSpace(), NativeBufferUtils::DeleteVkImage, cleanUpHelper->Ref())) {
         RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer build image failed!");
         NativeBufferUtils::DeleteVkImage(cleanUpHelper);
@@ -683,7 +697,11 @@ sptr<SurfaceBuffer> DetailEnhancerUtils::CreateSurfaceBuffer(const std::shared_p
         .timeout = 0,
         .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
     };
-    surfaceBuffer->Alloc(bufConfig);
+    GSError allocRect = surfaceBuffer->Alloc(bufConfig);
+    if (allocRect != GSERROR_OK) {
+        RS_LOGE("DetailEnhancerUtils dst buffer alloc failed");
+        return nullptr;
+    }
 #ifndef ROSEN_CROSS_PLATFORM
     auto srcSurfaceBuffer = static_cast<SurfaceBuffer*>(pixelMap->GetFd());
     if (srcSurfaceBuffer == nullptr) {
@@ -725,8 +743,8 @@ float DetailEnhancerUtils::GetImageSize(const std::shared_ptr<Drawing::Image>& i
     if (image == nullptr) {
         return 0.0f;
     }
-    return static_cast<float>(image->GetWidth() * image->GetHeight()
-        * CHANNELS_CNT / MEMUNIT_RATE / MEMUNIT_RATE);
+    return static_cast<float>(image->GetWidth()) * image->GetHeight()
+        * CHANNELS_CNT / MEMUNIT_RATE / MEMUNIT_RATE;
 }
 
 long long DetailEnhancerUtils::GetCurTime() const

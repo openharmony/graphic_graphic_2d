@@ -353,6 +353,26 @@ bool DoSetOverlayDisplayModeFuzzTest(const uint8_t* data, size_t size)
 }
 #endif
 
+bool DoSendVideoRateInfoFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    // get data
+    std::unordered_map<std::string, std::string> videoRateInfo;
+    std::string key = GetData<std::string>();
+    std::string value = GetData<std::string>();
+    videoRateInfo[key] = value;
+ 
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSClientToServiceConnectionProxy rsClientToServiceConnectionProxy(remoteObject);
+    rsClientToServiceConnectionProxy.SendVideoRateInfo(videoRateInfo);
+    return true;
+}
+
 bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -710,6 +730,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     OHOS::Rosen::DoSetOverlayDisplayModeFuzzTest(data, size);
 #endif
+    OHOS::Rosen::DoSendVideoRateInfoFuzzTest(data, size);
     OHOS::Rosen::DoTakeSurfaceCapture(data, size);
     OHOS::Rosen::DoBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoSetApsConfigParams(data, size);

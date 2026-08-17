@@ -173,7 +173,7 @@ bool RSHpaeFfrtPatternManager::MHCGraphPatternInit(size_t size)
 
 bool RSHpaeFfrtPatternManager::MHCGraphPatternWarmup()
 {
-    HPAE_LOGI("mhc_so MHCGraphPatternWarmup");
+    HPAE_LOGD("mhc_so MHCGraphPatternWarmup");
     if (!g_instance) {
         HPAE_LOGW("mhc_so MHCGraphPatternWarmup g_instance nullptr");
         return false;
@@ -277,7 +277,7 @@ bool RSHpaeFfrtPatternManager::MHCReleaseEGraph(uint64_t frameId)
 void RSHpaeFfrtPatternManager::MHCReleaseAll(bool releaseHcs)
 {
 #ifdef RS_ENABLE_VK
-    HPAE_LOGI("mhc_so MHCReleaseAll. semaphoreMapSize: %{public}zu", semaphoreMap_.size());
+    HPAE_LOGD("mhc_so MHCReleaseAll. semaphoreMapSize: %{public}zu", semaphoreMap_.size());
 #endif
     if (g_instance == nullptr) {
         HPAE_LOGE("mhc_so MHCReleaseAll g_instance == nullptr");
@@ -293,7 +293,7 @@ void RSHpaeFfrtPatternManager::MHCReleaseAll(bool releaseHcs)
 #ifdef RS_ENABLE_VK
     ClearSemaphoreMap();
 #endif
-    ROSEN_LOGI("mhc_so MHCReleaseAll, ret=%{public}d", ret);
+    ROSEN_LOGD("mhc_so MHCReleaseAll, ret=%{public}d", ret);
 }
 
 bool RSHpaeFfrtPatternManager::MHCSubmitTask(uint64_t frameId, MHC_PatternTaskName taskName, \

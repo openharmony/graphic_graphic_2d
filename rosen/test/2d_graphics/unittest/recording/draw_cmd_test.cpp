@@ -1010,6 +1010,31 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawTextBlobOpItem0020
+ * @tc.desc: Test functions for DrawTextBlobOpItem
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, DrawTextBlobOpItem0020, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({nullptr, 0}, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    OpDataHandle invalidHandle{};
+    uint64_t globalUniqueId = 0;
+    PaintHandle paintHandle;
+    DrawTextBlobOpItem::ConstructorHandle constructorHandle{
+        invalidHandle, globalUniqueId, TextBlobRenderOption(), 10, 10, paintHandle};
+    auto opItem = DrawTextBlobOpItem::Unmarshalling(*drawCmdList,
+        static_cast<void*>(&constructorHandle));
+    EXPECT_TRUE(opItem != nullptr);
+    auto targetCmdList = DrawCmdList::CreateFromData({nullptr, 0}, false);
+    EXPECT_TRUE(targetCmdList != nullptr);
+    size_t sizeBefore = targetCmdList->GetOpItemSize();
+    opItem->Marshalling(*targetCmdList);
+    EXPECT_EQ(targetCmdList->GetOpItemSize(), sizeBefore);
+}
+
+/**
  * @tc.name: IsHighContrastEnableTest
  * @tc.desc: Test functions for IsHighContrastEnableTest
  * @tc.type: FUNC
@@ -2266,6 +2291,54 @@ HWTEST_F(DrawCmdTest, ClipAdaptiveRoundRectUnmarshalling005, TestSize.Level1)
     ClipAdaptiveRoundRectOpItem::ConstructorHandle handle{radiusHandle};
     auto result = ClipAdaptiveRoundRectOpItem::Unmarshalling(*drawCmdList, &handle);
     EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawGlyphsUnmarshalling004
+ * @tc.desc: Test DrawGlyphsOpItem::Unmarshalling with glyphs size exceeding upper bound.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawGlyphsUnmarshalling004, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+    PaintHandle paintHandle;
+    Font font;
+    OpFontHandle fontHandle = CmdListHelper::AddFontToCmdList(*drawCmdList, &font);
+    Point point;
+
+    // glyphs with 65537 elements > MAX_GLYPHS_COUNT (65536)
+    std::vector<uint16_t> glyphsData(65537, 0);
+    auto glyphsHandle = CmdListHelper::AddVectorToCmdList<uint16_t>(*drawCmdList, glyphsData);
+    // positions only need 1 element; the oversized glyphs check returns before the mismatch check
+    std::vector<Point> positionsData = {Point(0, 0)};
+    auto positionsHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, positionsData);
+
+    DrawGlyphsOpItem::ConstructorHandle handle{glyphsHandle, positionsHandle, point,
+        fontHandle, 0, paintHandle};
+    auto result = DrawGlyphsOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: ClipAdaptiveRoundRectUnmarshalling006
+ * @tc.desc: Test ClipAdaptiveRoundRectOpItem::Unmarshalling with radiusData size exceeding upper bound.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, ClipAdaptiveRoundRectUnmarshalling006, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    // radiusData with 1025 elements > MAX_RADIUS_DATA_COUNT (1024)
+    std::vector<Point> radiusData(1025, Point(1, 1));
+    auto radiusHandle = CmdListHelper::AddVectorToCmdList<Point>(*drawCmdList, radiusData);
+
+    ClipAdaptiveRoundRectOpItem::ConstructorHandle handle{radiusHandle};
+    auto result = ClipAdaptiveRoundRectOpItem::Unmarshalling(*drawCmdList, &handle);
+    EXPECT_EQ(result, nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

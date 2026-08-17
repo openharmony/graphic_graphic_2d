@@ -53,7 +53,10 @@ void HgmHardwareUtilsTest::TearDownTestCase()
 }
 
 void HgmHardwareUtilsTest::SetUp() {}
-void HgmHardwareUtilsTest::TearDown() {}
+void HgmHardwareUtilsTest::TearDown()
+{
+    HgmCore::Instance().RegisterScreenManagerCallbacks({});
+}
 
 /**
  * @tc.name: ExecuteSwitchRefreshRateTest
@@ -82,9 +85,9 @@ HWTEST_F(HgmHardwareUtilsTest, ExecuteSwitchRefreshRateTest, TestSize.Level1)
     hgmCore.SetScreenRefreshRateImme(1);
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);
 
-    hgmHardwareUtils->setRateRetryMap_[SCREEN_ID] = std::make_pair(true, 1);
+    hgmHardwareUtils->setRateRetryParam_.needRetrySetRate = true;
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);
-    hgmHardwareUtils->setRateRetryMap_[SCREEN_ID] = std::make_pair(false, 0);
+    hgmHardwareUtils->setRateRetryParam_.needRetrySetRate = false;
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);
     hgmCore.GetFrameRateMgr()->curScreenId_.store(hgmCore.GetFrameRateMgr()->GetLastCurScreenId());
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);
@@ -92,38 +95,6 @@ HWTEST_F(HgmHardwareUtilsTest, ExecuteSwitchRefreshRateTest, TestSize.Level1)
     hgmHardwareUtils->ExecuteSwitchRefreshRate(SCREEN_ID);
     int32_t status = hgmCore.SetScreenRefreshRate(0, SCREEN_ID, 0);
     EXPECT_TRUE(status < EXEC_SUCCESS);
-}
-
-/**
- * @tc.name: UpdateRetrySetRateStatusTest
- * @tc.desc: test HgmHardwareUtils.UpdateRetrySetRateStatus
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmHardwareUtilsTest, UpdateRetrySetRateStatusTest, TestSize.Level1)
-{
-    auto hgmHardwareUtils = std::make_shared<HgmHardwareUtils>();
-    ASSERT_NE(hgmHardwareUtils, nullptr);
-
-    auto& rateRetryParam = hgmHardwareUtils->setRateRetryParam_;
-    EXPECT_EQ(rateRetryParam.needRetrySetRate, false);
-    EXPECT_EQ(rateRetryParam.retryCount, 0);
-
-    hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SET_RATE_ERROR);
-    EXPECT_EQ(rateRetryParam.needRetrySetRate, true);
-    EXPECT_EQ(rateRetryParam.retryCount, 1);
-    for (int i = 1; i < MAX_SETRATE_RETRY_COUNT; ++i) {
-        hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SET_RATE_ERROR);
-        EXPECT_EQ(rateRetryParam.needRetrySetRate, true);
-        EXPECT_EQ(rateRetryParam.retryCount, i + 1);
-    }
-    hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SET_RATE_ERROR);
-    EXPECT_EQ(rateRetryParam.needRetrySetRate, false);
-    EXPECT_EQ(rateRetryParam.retryCount, MAX_SETRATE_RETRY_COUNT);
-
-    hgmHardwareUtils->UpdateRetrySetRateStatus(SCREEN_ID, 1, StatusCode::SUCCESS);
-    EXPECT_EQ(rateRetryParam.needRetrySetRate, false);
-    EXPECT_EQ(rateRetryParam.retryCount, 0);
 }
 
 /**
@@ -164,9 +135,10 @@ HWTEST_F(HgmHardwareUtilsTest, PerformSetActiveModeTest, TestSize.Level1)
 
     hgmHardwareUtils->PerformSetActiveMode(output);
 
-    hgmHardwareUtils->hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
-    hgmHardwareUtils->setRateRetryParam_.needRetrySetRate = false;
     hgmHardwareUtils->setRateRetryParam_.retryCount = 0;
+    hgmHardwareUtils->setRateRetryParam_.needRetrySetRate = false;
+    hgmHardwareUtils->setRateRetryParam_.isRetryOverLimit = false;
+    hgmHardwareUtils->hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
     if (hgmCore.modeListToApply_ == nullptr) {
         hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
     }
@@ -308,6 +280,7 @@ HWTEST_F(HgmHardwareUtilsTest, SwitchRefreshRateFoldDeviceTest, TestSize.Level1)
         rsScreen->property_.SetPowerStatus(ScreenPowerStatus::POWER_STATUS_SUSPEND);
         hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
     }
+
     hgmCore.SetScreenManager(orgScmFromHgm);
     hgmCore.RegisterScreenManagerCallbacks(orgCallbacks);
 }

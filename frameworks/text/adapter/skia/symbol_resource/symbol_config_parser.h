@@ -57,7 +57,7 @@ private:
     static void ParseAnimationSettings(const cJSON* root, std::vector<RSAnimationSetting>& animationSettings);
     static void ParseAnimationSetting(const cJSON* root, RSAnimationSetting& animationSetting);
     static void ParseAnimationTypes(const cJSON* root, std::vector<RSAnimationType>& animationTypes);
-    static void ParseAnimationType(const std::string& animationTypeStr, RSAnimationType& animationType);
+    static bool ParseAnimationType(const std::string& animationTypeStr, RSAnimationType& animationType);
     static void ParseGroupSettings(const cJSON* root, std::vector<RSGroupSetting>& groupSettings);
     static void ParseGroupSetting(const cJSON* root, RSGroupSetting& groupSetting);
     static void ParseOneSymbol(const cJSON* root,

@@ -51,6 +51,7 @@ public:
     void UpdateChildren(const std::shared_ptr<RSRenderNode>& parent) override;
     std::string GetDfxString() override;
     void SetOpIncParentNode(const std::shared_ptr<RSRenderNode>& parentNode) override;
+    void CheckParentNodeOnTheTree() override;
 
     std::shared_ptr<RSRenderNode> GetOpIncParentNode() const override { return opIncParentNode_; }
     PlanStatus GetPlanStatus() const override { return planStatus_; }

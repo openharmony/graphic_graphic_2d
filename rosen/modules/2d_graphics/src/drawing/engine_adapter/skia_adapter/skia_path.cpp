@@ -382,6 +382,9 @@ std::vector<float> SkiaPath::GetConicWeightData() const
 {
     int32_t count = SkPathPriv::ConicWeightCnt(path_);
     std::vector<float> result;
+    if (count < 0) {
+        return {};
+    }
     result.resize(count);
 
     const SkScalar* weights = SkPathPriv::ConicWeightData(path_);
@@ -650,7 +653,10 @@ std::shared_ptr<Data> SkiaPath::Serialize() const
     writer.writePath(path_);
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
+    if (!data->BuildUninitialized(length)) {
+        LOGD("SkiaPath::Serialize, BuildUninitialized failed.");
+        return nullptr;
+    }
     writer.writeToMemory(data->WritableData());
     return data;
 }

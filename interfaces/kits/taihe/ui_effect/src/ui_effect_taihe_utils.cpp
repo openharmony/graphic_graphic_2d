@@ -199,6 +199,10 @@ ani_status GetRectPropertyValue(
 bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values)
 {
     ani_env *env = get_env();
+    if (env == nullptr) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniRect env is nullptr");
+        return false;
+    }
     ani_class rectClass = nullptr;
     if (env->FindClass(ANI_INTERFACE_RECT, &rectClass) != ANI_OK) {
         UIEFFECT_LOG_E("ConvertVector4fFromAniRect FindClass failed");
@@ -248,10 +252,10 @@ bool ConvertVector4fFromAniColor(uintptr_t color, OHOS::Rosen::Vector4f& values)
         return false;
     }
     const float colorMax = 255.0; // colorMax: color max value
-    values[NUM_0] = static_cast<float>(colorR / colorMax);
-    values[NUM_1] = static_cast<float>(colorG / colorMax);
-    values[NUM_2] = static_cast<float>(colorB / colorMax);
-    values[NUM_3] = static_cast<float>(colorA / colorMax);
+    values[NUM_0] = static_cast<float>(colorR) / colorMax;
+    values[NUM_1] = static_cast<float>(colorG) / colorMax;
+    values[NUM_2] = static_cast<float>(colorB) / colorMax;
+    values[NUM_3] = static_cast<float>(colorA) / colorMax;
     return true;
 }
 

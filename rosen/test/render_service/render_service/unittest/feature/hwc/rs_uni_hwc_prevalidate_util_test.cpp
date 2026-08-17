@@ -17,6 +17,7 @@
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "gtest/gtest.h"
+#include "hwc_param.h"
 #include "params/rs_surface_render_params.h"
 
 using namespace testing;
@@ -40,6 +41,10 @@ public:
 
 void RSUniHwcPrevalidateUtilTest::SetUpTestCase()
 {
+    auto& util = RSUniHwcPrevalidateUtil::GetInstance();
+    if (!util.IsPrevalidateEnable()) {
+        GTEST_SKIP() << "Skip all tests: prevalidate not enabled on this device";
+    }
     RSTestUtil::InitRenderNodeGC();
 }
 void RSUniHwcPrevalidateUtilTest::TearDownTestCase() {}
@@ -378,6 +383,34 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateScreenNodeLayerInfo003, TestSize.Lev
     if (screenNode->GetRenderDrawable() == nullptr) {
         screenNode->renderDrawable_ = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(screenNode);
     }
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateScreenNodeLayerInfo(
+        DEFAULT_Z_ORDER, screenNode, defaultProperty_, DEFAULT_FPS, info);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CreateScreenNodeLayerInfo004
+ * @tc.desc: CreateScreenNodeLayerInfo with null surfaceHandler
+ * @tc.type: FUNC
+ * @tc.require: #IBIA3V
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateScreenNodeLayerInfo004, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    NodeId id = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
+    if (screenNode->GetRenderDrawable() == nullptr) {
+        screenNode->renderDrawable_ = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(screenNode);
+    }
+    auto screenDrawable = static_cast<DrawableV2::RSScreenRenderNodeDrawable*>(screenNode->GetRenderDrawable().get());
+    ASSERT_NE(screenDrawable, nullptr);
+    
+    screenDrawable->surfaceHandler_ = nullptr;
+    
     RequestLayerInfo info;
     bool ret = uniHwcPrevalidateUtil.CreateScreenNodeLayerInfo(
         DEFAULT_Z_ORDER, screenNode, defaultProperty_, DEFAULT_FPS, info);
@@ -882,5 +915,145 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo005, TestSize.L
     uint32_t zOrder = DEFAULT_Z_ORDER;
     uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, nullptr, DEFAULT_FPS, zOrder, defaultProperty_);
     ASSERT_EQ(prevalidLayers.size(), 0);
+}
+
+/**
+ * @tc.name: CreateSurfaceNodeLayerInfoHmsAppEnabled
+ * @tc.desc: Verify HMS app with value "1" in SourceTuningForHmsApp skips ARSR enhancement
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppEnabled, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    uniHwcPrevalidateUtil.arsrPreEnabled_ = true;
+    HWCParam::SetSourceTuningForHmsApp("com.hms.excluded.app", "1");
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
+    surfaceNode->bundleName_ = "com.hms.excluded.app";
+
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
+    ASSERT_EQ(ret, true);
+    EXPECT_EQ(surfaceNode->GetArsrTag(), false);
+    EXPECT_EQ(info.perFrameParameters.find("ArsrDoEnhance"), info.perFrameParameters.end());
+}
+
+/**
+ * @tc.name: CreateSurfaceNodeLayerInfoHmsAppNotEnabled
+ * @tc.desc: Verify HMS app with value "0" in SourceTuningForHmsApp applies normal ARSR enhancement
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppNotEnabled, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    uniHwcPrevalidateUtil.arsrPreEnabled_ = true;
+    HWCParam::SetSourceTuningForHmsApp("com.hms.disabled.app", "0");
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
+    surfaceNode->bundleName_ = "com.hms.disabled.app";
+
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
+    ASSERT_EQ(ret, true);
+    EXPECT_EQ(surfaceNode->GetArsrTag(), true);
+    auto it = info.perFrameParameters.find("ArsrDoEnhance");
+    EXPECT_NE(it, info.perFrameParameters.end());
+    if (it != info.perFrameParameters.end()) {
+        EXPECT_EQ(it->second[0], 1);
+    }
+}
+
+/**
+ * @tc.name: CreateSurfaceNodeLayerInfoHmsAppNotFound
+ * @tc.desc: Verify app not in HMS map gets normal ARSR enhancement
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppNotFound, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    uniHwcPrevalidateUtil.arsrPreEnabled_ = true;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
+    surfaceNode->bundleName_ = "com.normal.app";
+
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
+    ASSERT_EQ(ret, true);
+    EXPECT_EQ(surfaceNode->GetArsrTag(), true);
+    auto it = info.perFrameParameters.find("ArsrDoEnhance");
+    EXPECT_NE(it, info.perFrameParameters.end());
+    if (it != info.perFrameParameters.end()) {
+        EXPECT_EQ(it->second[0], 1);
+    }
+}
+
+/**
+ * @tc.name: CreateSurfaceNodeLayerInfoHmsAppArsrPreDisabled
+ * @tc.desc: Verify when arsrPreEnabled_ is false HMS app config has no effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppArsrPreDisabled, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    uniHwcPrevalidateUtil.arsrPreEnabled_ = false;
+    HWCParam::SetSourceTuningForHmsApp("com.hms.disabled.arsr", "1");
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
+    surfaceNode->bundleName_ = "com.hms.disabled.arsr";
+
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
+    ASSERT_EQ(ret, true);
+    EXPECT_EQ(info.perFrameParameters.find("ArsrDoEnhance"), info.perFrameParameters.end());
+}
+
+/**
+ * @tc.name: CreateSurfaceNodeLayerInfoHmsAppNonYuvBuffer
+ * @tc.desc: Verify HMS app config only applies when CheckIfDoArsrPre returns true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfoHmsAppNonYuvBuffer, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    uniHwcPrevalidateUtil.arsrPreEnabled_ = true;
+    HWCParam::SetSourceTuningForHmsApp("com.hms.rgba.app", "1");
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    surfaceNode->bundleName_ = "com.hms.rgba.app";
+
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, defaultProperty_, info);
+    ASSERT_EQ(ret, true);
+    EXPECT_EQ(info.perFrameParameters.find("ArsrDoEnhance"), info.perFrameParameters.end());
 }
 }

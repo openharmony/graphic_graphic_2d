@@ -71,7 +71,8 @@ GSError RSBaseSurfaceUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, ui
                 surfaceHandler.GetNodeId(), ret);
         }
         surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
-        RS_LOGD("RsDebug RSBaseSurfaceUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug RSBaseSurfaceUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
             surfaceHandler.GetNodeId());
     }
 
@@ -114,7 +115,7 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
     if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
         consumer->SetDropFrameLevel(dropFrameConfig.level);
-        RS_LOGD("RsDebug RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
+        RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
             "), set drop frame level=%{public}d", surfaceHandler.GetNodeId(), dropFrameConfig.level);
     }
 
@@ -123,7 +124,7 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
     uint64_t acquireTimeStamp = presentWhen;
     if (!presentWhenValid || !acqiureWithPTSEnable) {
         acquireTimeStamp = CONSUME_DIRECTLY;
-        RS_LOGD("RSBaseSurfaceUtil::ConsumeAndUpdateBuffer ignore presentWhen "\
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSBaseSurfaceUtil::ConsumeAndUpdateBuffer ignore presentWhen "\
             "[acqiureWithPTSEnable:%{public}d, presentWhenValid:%{public}d]", acqiureWithPTSEnable, presentWhenValid);
     }
 
@@ -133,7 +134,14 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
         IConsumerSurface::AcquireBufferReturnValue returnValue;
         availableBufferCount = static_cast<int32_t>(consumer->GetAvailableBufferCount());
         int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
-
+        bool isAutoTimeStamp = true;
+        int64_t frontDesiredPresentTimeStamp = 0;
+        auto result = consumer->GetFrontDesiredPresentTimeStamp(frontDesiredPresentTimeStamp, isAutoTimeStamp);
+        // isBufferingReasonable: true when there is buffer accumulation AND it's in producer-set timestamp mode
+        // AND producer timestamp > system timestamp (reasonable accumulation)
+        bool isBufferingReasonable = result == 0 && !isAutoTimeStamp
+            && static_cast<uint64_t>(frontDesiredPresentTimeStamp) > presentWhen;
+        availableBufferCount = isBufferingReasonable ? 0 : availableBufferCount;
         // Reset drop frame level after acquire to avoid affecting subsequent acquires
         if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
             consumer->SetDropFrameLevel(0);

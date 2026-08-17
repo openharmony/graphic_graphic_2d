@@ -1624,6 +1624,7 @@ void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilter
     isParallelCanvas_ = other.isParallelCanvas_;
     disableFilterCache_ = other.disableFilterCache_;
     threadIndex_ = other.threadIndex_;
+    SetRenderEngineType(other.GetRenderEngineType());
 }
 
 void RSPaintFilterCanvas::SetHighContrast(bool enabled)

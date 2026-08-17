@@ -18,7 +18,7 @@
 
 #include "effect/rs_render_effect_common_def.h"
 #include "pipeline/rs_render_node.h"
-#include "property/rs_properties.h"
+#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
 
@@ -31,8 +31,22 @@ public:
     // true：causes filter cache to be generated offscreen.
     static bool IsOffscreenForFilterCache(RSRenderNode& node);
 
-    // true: has filter that only depends on background
-    static bool HasBackgroundDependentFilter(const RSProperties& properties);
+    // Check if filter node check can be skipped in occluded sub tree.
+    // Returns true when:
+    // 1. curSurfaceNode exists (current surface is being processed)
+    // 2. curSurfaceNode is opaque, no need to consider dirty regions of surface nodes below it
+    // 3. Current frame dirty region is empty (no content needs update)
+    // In this case, the sub tree is fully occluded and clean, so filter check can be skipped.
+    static bool ShouldSkipFilterNodeCheckInOccludedSubTree(
+        const std::shared_ptr<RSSurfaceRenderNode>& curSurfaceNode, const RSRenderNode& rootNode,
+        RSDirtyRegionManager& dirtyManager);
+
+    // Update filter cache with current frame dirty region and pending purge filter dirty rect.
+    // This function processes both material filter and background filter:
+    // 1. Updates filter cache with current frame dirty region
+    // 2. Updates pending purge filter dirty rect for cache management
+    static void UpdateFilterCacheWithBelowDirtyAndPendingPurge(RSRenderNode& node,
+        RSDirtyRegionManager& dirtyManager);
 };
 } // namespace Rosen
 } // namespace OHOS

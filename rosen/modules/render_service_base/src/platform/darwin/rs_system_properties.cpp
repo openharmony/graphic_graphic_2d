@@ -375,7 +375,7 @@ bool RSSystemProperties::GetKawaseEnabled()
 
 void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 {
-    forceHpsBlurDisabled_ = flag;
+    forceHpsBlurDisabled_.store(flag);
 }
 
 bool RSSystemProperties::GetHpsBlurEnabled()
@@ -752,6 +752,11 @@ bool RSSystemProperties::GetDebugFmtTraceEnabled()
     return GetDebugTraceEnabled();
 }
 
+bool RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()
+{
+    return false;
+}
+
 void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
 {
 }
@@ -794,11 +799,6 @@ bool RSSystemProperties::GetSupportScreenFreezeEnabled()
 bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
 {
     return false;
-}
-
-bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
-{
-    return {};
 }
 
 bool RSSystemProperties::GetGpuDirtyApsEnabled()
@@ -886,6 +886,11 @@ bool RSSystemProperties::GetXcomponentEdrEnabled()
 }
 
 bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetVirtualScreenParallelEnabled()
 {
     return false;
 }

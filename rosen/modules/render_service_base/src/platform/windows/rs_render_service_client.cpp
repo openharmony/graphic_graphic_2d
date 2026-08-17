@@ -38,9 +38,9 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     return {};
 }
 
-bool RSRenderServiceClient::GetBackgroundRebuildEnabled()
+uint8_t RSRenderServiceClient::GetBackgroundRebuildEnabled()
 {
-    return {};
+    return 0;
 }
 
 MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
@@ -90,7 +90,11 @@ public:
         }
 
         auto func = [callback](int64_t time, int64_t frameCount) {
-            callback.callbackWithId_(time, frameCount, callback.userData_);
+            if (callback.callbackWithId_ != nullptr) {
+                callback.callbackWithId_(time, frameCount, callback.userData_);
+            } else if (callback.callback_ != nullptr) {
+                callback.callback_(time, callback.userData_);
+            }
         };
         client_->SetVsyncCallback(func);
         client_->RequestNextVsync();
@@ -401,7 +405,8 @@ int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCa
 
 int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
 {
-    return {};
+    pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BUTT;
+    return RS_CONNECTION_ERROR;
 }
 
 int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
@@ -443,7 +448,8 @@ int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorS
 
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
-    return {};
+    screenType = RSScreenType::UNKNOWN_TYPE_SCREEN;
+    return RS_CONNECTION_ERROR;
 }
 
 bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)

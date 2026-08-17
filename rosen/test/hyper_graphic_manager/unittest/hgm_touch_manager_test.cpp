@@ -72,63 +72,6 @@ HWTEST_F(HgmTouchManagerTest, TestInitTouchManager, Function | SmallTest | Level
 }
 
 /**
- * @tc.name: QuickTouch
- * @tc.desc: Verify the result of QuickTouch function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level0)
-{
-    int32_t clickNum = 100;
-    auto touchManager = HgmTouchManager();
-    for (int i = 0; i < clickNum; i++) {
-        touchManager.ChangeState(TouchState::DOWN_STATE);
-        touchManager.ChangeState(TouchState::UP_STATE);
-    }
-    touchManager.ChangeState(TouchState::IDLE_STATE);
-    sleep(1); // wait for 1s for the async task to complete
-    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
-}
-
-/**
- * @tc.name: ChangeState
- * @tc.desc: Verify the result of ChangeState function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level0)
-{
-    auto touchManager = HgmTouchManager();
-    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
-
-    touchManager.ChangeState(TouchState::UP_STATE);
-    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
-
-    touchManager.ChangeState(TouchState::DOWN_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
-
-    touchManager.ChangeState(TouchState::IDLE_STATE);
-    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
-
-    touchManager.ChangeState(TouchState::UP_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
-
-    touchManager.ChangeState(TouchState::DOWN_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
-
-    touchManager.ChangeState(TouchState::UP_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
-
-    touchManager.ChangeState(TouchState::IDLE_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
-}
-
-/**
  * @tc.name: Up2IdleState
  * @tc.desc: Verify the result of Up2IdleState function
  * @tc.type: FUNC
@@ -219,6 +162,63 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level0)
     touchManager.ExecuteCallback(nullptr);
 
     sleep(1); // wait for task finished
+}
+
+/**
+ * @tc.name: QuickTouch
+ * @tc.desc: Verify the result of QuickTouch function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level0)
+{
+    int32_t clickNum = 100;
+    auto touchManager = HgmTouchManager();
+    for (int i = 0; i < clickNum; i++) {
+        touchManager.ChangeState(TouchState::DOWN_STATE);
+        touchManager.ChangeState(TouchState::UP_STATE);
+    }
+    touchManager.ChangeState(TouchState::IDLE_STATE);
+    sleep(1); // wait for 1s for the async task to complete
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+}
+
+/**
+ * @tc.name: ChangeState
+ * @tc.desc: Verify the result of ChangeState function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level0)
+{
+    auto touchManager = HgmTouchManager();
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+
+    touchManager.ChangeState(TouchState::UP_STATE);
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+
+    touchManager.ChangeState(TouchState::DOWN_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
+
+    touchManager.ChangeState(TouchState::IDLE_STATE);
+    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
+
+    touchManager.ChangeState(TouchState::UP_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+
+    touchManager.ChangeState(TouchState::DOWN_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
+
+    touchManager.ChangeState(TouchState::UP_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+
+    touchManager.ChangeState(TouchState::IDLE_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
 }
 } // namespace Rosen
 } // namespace OHOS

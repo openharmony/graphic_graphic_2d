@@ -50,8 +50,10 @@ void RSNodeCommandHelper::UpdatePropertyDrawCmdList(
     }
 
     if (auto property = node->GetProperty(id)) {
-        std::static_pointer_cast<RSRenderProperty<SimpleDrawCmdListPtr>>(property)->Set(
-            RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList), type);
+        auto typedProperty = property->CastToPropertyOf<SimpleDrawCmdListPtr>(__func__);
+        if (typedProperty) {
+            typedProperty->Set(RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList), type);
+        }
     }
 }
 
@@ -100,12 +102,13 @@ void RSNodeCommandHelper::MarkRepaintBoundary(RSContext& context, NodeId nodeId,
 }
 
 void RSNodeCommandHelper::MarkNodeSingleFrameComposer(RSContext& context,
-    NodeId nodeId, bool isNodeSingleFrameComposer, pid_t pid)
+    NodeId nodeId, bool isNodeSingleFrameComposer)
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
-        RSSingleFrameComposer::AddOrRemoveAppPidToMap(isNodeSingleFrameComposer, pid);
-        node->MarkNodeSingleFrameComposer(isNodeSingleFrameComposer, pid);
+        pid_t nodePid = ExtractPid(nodeId);
+        RSSingleFrameComposer::AddOrRemoveAppPidToMap(isNodeSingleFrameComposer, nodePid);
+        node->MarkNodeSingleFrameComposer(isNodeSingleFrameComposer);
     }
 }
 
@@ -353,10 +356,10 @@ void RSNodeCommandHelper::UpdateModifierNGDrawCmdList(
     if (!baseProperty) {
         return;
     }
-    if (UNLIKELY(!CheckPropertyType(__func__, *baseProperty, RSPropertyType::SIMPLE_DRAW_CMD_LIST, nodeId))) {
+    auto property = baseProperty->CastToPropertyOf<SimpleDrawCmdListPtr>(__func__);
+    if (!property) {
         return;
     }
-    auto property = std::static_pointer_cast<RSRenderProperty<SimpleDrawCmdListPtr>>(baseProperty);
     auto simpleDrawCmds = value != nullptr ? RSSimpleDrawCmdList::CreateFromDrawCmdList(value) : nullptr;
     property->Set(simpleDrawCmds);
     if (simpleDrawCmds) {
@@ -456,18 +459,6 @@ void RSNodeCommandHelper::ReSortChildrenByZIndex(RSContext& context, NodeId node
     if (node) {
         node->ReSortChildrenByZIndex();
     }
-}
-
-bool RSNodeCommandHelper::CheckPropertyType(const char* funcName,
-    RSRenderPropertyBase& prop, RSPropertyType updateType, NodeId nodeId)
-{
-    if (prop.GetPropertyType() != updateType) {
-        RS_COLD_LOGE("%{public}s type mismatch, nodeId=%{public}" PRIu64 ", propertyId=%{public}" PRIu64
-            " update type:%{public}hhu, property type:%{public}hhu", funcName, nodeId, prop.GetId(),
-            updateType, prop.GetPropertyType());
-        return false;
-    }
-    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

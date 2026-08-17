@@ -437,17 +437,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
     }
 
-#if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::IsUseVulkan()) {
-        auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        if (skContext == nullptr) {
-            ROSEN_LOGE("RSRenderThreadVisitor::ProcessRootRenderNode CreateDrawingContext is null");
-            return;
-        }
-        rsSurface->SetSkContext(skContext);
-    }
-#endif
-
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
     RS_TRACE_BEGIN(ptr->GetName() + " rsSurface->RequestFrame");
 #ifdef ROSEN_OHOS
@@ -745,7 +734,7 @@ void RSRenderThreadVisitor::FlipMatrix(GraphicTransformType transform, Drawing::
      
     const int angle = 180;
     Drawing::Camera3D camera3D;
-    if (GraphicTransformType::GRAPHIC_FLIP_H) {
+    if (type == GraphicTransformType::GRAPHIC_FLIP_H) {
         camera3D.RotateYDegrees(angle);
     } else {
         camera3D.RotateXDegrees(angle);
@@ -773,6 +762,7 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
         RS_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %" PRIu64
                 " cannot find surface by surfaceId %" PRIu64 "",
             node.GetId(), node.GetSurfaceId());
+        canvas_->Restore();
         return;
     }
     sptr<SurfaceBuffer> surfaceBuffer;
@@ -790,6 +780,7 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
             "RSRenderThreadVisitor::ProcessSurfaceViewInRT:GetLastFlushedBuffer failed, err: %d", ret);
         RS_LOGE_LIMIT(__func__, __line__,
             "GetLastFlushedBuffer failed, err: %{public}d", ret);
+        canvas_->Restore();
         return;
     }
     if (fence != nullptr) {

@@ -97,9 +97,8 @@ public:
 
 private:
     static ani_object PathTransferStatic(
-        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
-    static ani_long GetPathAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    std::shared_ptr<Path>* GetPathPtrAddr();
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    static ani_object PathTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
     std::shared_ptr<Path> path_ = nullptr;
 };
 } // namespace Drawing

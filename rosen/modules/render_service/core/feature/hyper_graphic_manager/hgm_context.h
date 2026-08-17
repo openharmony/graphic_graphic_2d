@@ -70,7 +70,7 @@ public:
     ErrCode NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus);
     ErrCode NotifyAppStrategyConfigChangeEvent(pid_t pid, const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig);
-        void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
+    void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
     void NotifyPackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void NotifyHgmConfigEvent(const std::string& eventName, bool state);
     void NotifyPageName(pid_t pid, const std::string& packageName, const std::string& pageName, bool isEnter);
@@ -116,7 +116,7 @@ private:
     std::shared_ptr<RPHgmConfigData> rpHgmConfigData_ = nullptr;
 
     int32_t isAdaptive_ = SupportASStatus::NOT_SUPPORT;
-    std::string gameNodeName_;
+    std::string gameNodeName_ = "";
 };
 } // namespace OHOS
 } // namespace Rosen
