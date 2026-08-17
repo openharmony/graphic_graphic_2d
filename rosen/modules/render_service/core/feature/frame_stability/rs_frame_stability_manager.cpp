@@ -36,7 +36,7 @@ void RSFrameStabilityManager::CleanResourcesByPid(pid_t pid)
 {
 }
 
-void RSFrameStabilityManager::CleanResourcesByNodeId(ScreenId screenId)
+void RSFrameStabilityManager::CleanResourcesByNodeId(NodeId id)
 {
 }
 
