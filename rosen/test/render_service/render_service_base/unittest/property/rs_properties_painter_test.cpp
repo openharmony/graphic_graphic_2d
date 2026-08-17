@@ -881,31 +881,6 @@ HWTEST_F(RSPropertiesPainterTest, CalcAverageColor001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetBgAntiAlias001
- * @tc.desc: test results of SetBgAntiAlias
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesPainterTest, SetBgAntiAlias001, TestSize.Level1)
-{
-    bool forceBgAntiAlias = true;
-    RSPropertiesPainter::SetBgAntiAlias(forceBgAntiAlias);
-    EXPECT_TRUE(true);
-}
-
-/**
- * @tc.name: GetBgAntiAlias001
- * @tc.desc: test results of GetBgAntiAlias
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesPainterTest, GetBgAntiAlias001, TestSize.Level1)
-{
-    bool res = RSPropertiesPainter::GetBgAntiAlias();
-    EXPECT_EQ(res, true);
-}
-
-/**
  * @tc.name: GetRRectForDrawingBorder001
  * @tc.desc: test results of GetRRectForDrawingBorder
  * @tc.type:FUNC

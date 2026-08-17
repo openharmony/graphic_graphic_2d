@@ -591,6 +591,54 @@ HWTEST_F(RSBorderTest, GetIPTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetIPZeroSlopeTest
+ * @tc.desc: Verify GetTRIP/GetBLIP/GetBRIP skip division when ratio k is 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBorderTest, GetIPZeroSlopeTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    Drawing::RoundRect rrect;
+    rrect.rect_.SetLeft(0.f);
+    rrect.rect_.SetTop(0.f);
+    rrect.rect_.SetRight(10.f);
+    // inner height (2 - TOPW - BOTTOMW) is negative, so k == 0 falls into k > kc branch
+    rrect.rect_.SetBottom(2.f);
+    Drawing::Point innerRectCenter(4.f, 1.f);
+    // TOPW == 0 makes k = TOPW / RIGHTW == 0, division by k must be skipped
+    border->SetWidthFour(Vector4f(0.f, 0.f, 2.f, 4.f));
+    EXPECT_EQ(border->GetTRIP(rrect, innerRectCenter).GetX(), 4);
+    // BOTTOMW == 0 makes k = BOTTOMW / LEFTW == 0
+    border->SetWidthFour(Vector4f(2.f, 4.f, 0.f, 0.f));
+    EXPECT_EQ(border->GetBLIP(rrect, innerRectCenter).GetX(), 4);
+    // BOTTOMW == 0 makes k = BOTTOMW / RIGHTW == 0
+    border->SetWidthFour(Vector4f(0.f, 4.f, 2.f, 0.f));
+    EXPECT_EQ(border->GetBRIP(rrect, innerRectCenter).GetX(), 4);
+}
+
+/**
+ * @tc.name: SetBorderEffectDashedTest
+ * @tc.desc: Verify SetBorderEffect dashed path with zero and non-zero segment count
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBorderTest, SetBorderEffectDashedTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    border->SetStyle(BorderStyle::DASHED);
+    border->SetWidth(1.f);
+    Drawing::Pen pen;
+    // count = 5.5: leftLen = 2.5 > 2, delLen branch with segCount = 2
+    border->SetBorderEffect(pen, 0, 0.f, 5.5f);
+    // count = 20: leftLen = 1 <= 2, addLen branch with segCount = 4
+    border->SetBorderEffect(pen, 0, 0.f, 20.f);
+    // count = 2: leftLen = -1 <= 2, segCount casts to 0, division must be skipped
+    border->SetBorderEffect(pen, 0, 0.f, 2.f);
+    EXPECT_TRUE(true);
+}
+
+/**
  * @tc.name: GetDashWidthTest
  * @tc.desc: Verify function GetDashWidth
  * @tc.type:FUNC

@@ -381,7 +381,7 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
             rsImage_->GetUniqueId(), threadId);
     }
     bool needMakeFromTexture = !imageCache || (imageCache && pixelMap->IsHdr() &&
-        !colorSpace->Equals(imageCache->GetImageInfo().GetColorSpace()));
+        colorSpace && !colorSpace->Equals(imageCache->GetImageInfo().GetColorSpace()));
     if (!needMakeFromTexture) {
         this->image_ = imageCache;
     } else {

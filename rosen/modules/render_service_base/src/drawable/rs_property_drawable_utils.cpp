@@ -1865,33 +1865,6 @@ Drawing::RectI RSPropertyDrawableUtils::GetRectByStrategy(
     }
 }
 
-Drawing::RectI RSPropertyDrawableUtils::GetAbsRectByStrategy(const Drawing::Surface* surface,
-    const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect, RoundingStrategyType roundingStrategy)
-{
-    Drawing::Rect absRect;
-    totalMatrix.MapRect(absRect, relativeRect);
-    Drawing::RectI absRectI = GetRectByStrategy(absRect, roundingStrategy);
-    Drawing::RectI deviceRect(0, 0, surface->Width(), surface->Height());
-    absRectI.Intersect(deviceRect);
-    return absRectI;
-}
-
-std::tuple<Drawing::RectI, Drawing::RectI> RSPropertyDrawableUtils::GetAbsRectByStrategyForImage(
-    const Drawing::Surface* surface, const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect)
-{
-    Drawing::Rect absRect;
-    totalMatrix.MapRect(absRect, relativeRect);
-    Drawing::RectI deviceRect(0, 0, surface->Width(), surface->Height());
-
-    Drawing::RectI absImageRect = GetRectByStrategy(absRect, RoundingStrategyType::ROUND_IN);
-    absImageRect.Intersect(deviceRect);
-
-    Drawing::RectI absDrawRect = GetRectByStrategy(absRect, RoundingStrategyType::ROUND_OUT);
-    absDrawRect.Intersect(deviceRect);
-
-    return {absImageRect, absDrawRect};
-}
-
 void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properties,
     const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId)
 {

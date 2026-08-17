@@ -1077,4 +1077,22 @@ HWTEST_F(RSPropertyTest, Set004, TestSize.Level1)
     prop2->Set(nullptr);
     EXPECT_EQ(prop2->stagingValue_, nullptr);
 }
+
+/**
+ * @tc.name: FloatPropertyInvalidValueTest
+ * @tc.desc: Test RSProperty<float> rejects inf and nan values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyTest, FloatPropertyInvalidValueTest, TestSize.Level1)
+{
+    RSProperty<float> property(1.0f);
+    EXPECT_EQ(property.Get(), 1.0f);
+    property.Set(std::numeric_limits<float>::infinity());
+    EXPECT_EQ(property.Get(), 1.0f);
+    property.Set(std::numeric_limits<float>::quiet_NaN());
+    EXPECT_EQ(property.Get(), 1.0f);
+    property.Set(2.0f);
+    EXPECT_EQ(property.Get(), 2.0f);
+}
 } // namespace OHOS::Rosen

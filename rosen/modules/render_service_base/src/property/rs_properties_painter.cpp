@@ -52,7 +52,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-bool g_forceBgAntiAlias = true;
 constexpr int ONE_PIXEL = 1;
 constexpr int PARAM_DOUBLE = 2;
 constexpr int TRACE_LEVEL_TWO = 2;
@@ -658,7 +657,15 @@ void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& proper
     }
     // create offscreen surface with same size as current surface (PLANNING: use bounds size instead)
     auto offscreenSurface = surface->MakeSurface(canvas.GetWidth(), canvas.GetHeight());
+    if (!offscreenSurface) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundImageAsEffect offscreenSurface null");
+        return;
+    }
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
+    if (!offscreenCanvas) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundImageAsEffect offscreenCanvas null");
+        return;
+    }
     // copy matrix and other properties to offscreen canvas
     offscreenCanvas->SetMatrix(canvas.GetTotalMatrix());
     offscreenCanvas->CopyConfigurationToOffscreenCanvas(canvas);
@@ -897,24 +904,22 @@ int RSPropertiesPainter::GetAndResetBlurCnt()
 void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     bool isAntiAlias, bool isSurfaceView)
 {
-    // only disable antialias when background is rect and g_forceBgAntiAlias is false
-    bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
     // clip
     if (properties.GetClipBounds() != nullptr) {
         auto& path = properties.GetClipBounds()->GetDrawingPath();
-        canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, antiAlias);
+        canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, true);
     } else if (properties.GetClipToBounds()) {
         if (properties.GetCornerRadius().IsZero()) {
             canvas.ClipRect(Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, isAntiAlias);
         } else {
-            canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+            canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
         }
     } else if (properties.GetClipToRRect()) {
-        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, true);
     }
     // paint backgroundColor
     Drawing::Brush brush;
-    brush.SetAntiAlias(antiAlias);
+    brush.SetAntiAlias(true);
     auto bgColor = properties.GetBackgroundColor();
     if (bgColor != RgbPalette::Transparent() && !isSurfaceView) {
         brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
@@ -924,30 +929,20 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     }
     if (const auto& bgShader = properties.GetBackgroundShader()) {
         Drawing::AutoCanvasRestore acr(canvas, true);
-        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
         auto shaderEffect = bgShader->GetDrawingShader();
         brush.SetShaderEffect(shaderEffect);
         canvas.DrawBackground(brush);
     }
     if (const auto& bgImage = properties.GetBgImage()) {
         Drawing::AutoCanvasRestore acr(canvas, true);
-        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
+        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
         auto boundsRect = Rect2DrawingRect(properties.GetBoundsRect());
         bgImage->SetDstRect(properties.GetBgImageRect());
         canvas.AttachBrush(brush);
         bgImage->CanvasDrawImage(canvas, boundsRect, Drawing::SamplingOptions(), true);
         canvas.DetachBrush();
     }
-}
-
-void RSPropertiesPainter::SetBgAntiAlias(bool forceBgAntiAlias)
-{
-    g_forceBgAntiAlias = forceBgAntiAlias;
-}
-
-bool RSPropertiesPainter::GetBgAntiAlias()
-{
-    return g_forceBgAntiAlias;
 }
 
 void RSPropertiesPainter::DrawFrame(
