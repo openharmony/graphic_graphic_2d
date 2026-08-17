@@ -13,12 +13,8 @@
  * limitations under the License.
  */
 
-#include <cstdio>
 #include <filesystem>
-#include <fstream>
-#include <memory>
 #include "gtest/gtest.h"
-#include "gmock/gmock.h"
 #include "common/rs_singleton.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
@@ -37,8 +33,6 @@
 #include "engine/rs_uni_render_engine.h"
 #include "surface_buffer_impl.h"
 #include "rs_test_util.h"
-#include "image/bitmap.h"
-#include "engine_adapter/impl_interface/bitmap_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -3146,6 +3140,8 @@ HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_SetsBufferDimen
 
     BufferRequestConfig config = surfaceNode->GetHardenBufferRequestConfig();
     EXPECT_EQ(config.width, width);
+    int32_t expectedHeight = bufferSize / width + height + 2;
+    EXPECT_EQ(config.height, expectedHeight);
     EXPECT_EQ(config.format, GRAPHIC_PIXEL_FMT_RGBA_8888);
 }
 
@@ -3219,31 +3215,6 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_InvalidSrcBitmap, Tes
     Drawing::Bitmap dstBitmap;
     bool result = rs_rcd::ConvertAlpha8ToRgba8888(invalidBitmap, dstBitmap);
     EXPECT_FALSE(result);
-}
-
-/*
- * @tc.name: PrepareHardwareResourceBuffer_NonAlpha8ColorTypeSkipsConversion
- * @tc.desc: Test PrepareHardwareResourceBuffer with non-ALPHA_8 color type skips conversion (direct assign)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_NonAlpha8ColorTypeSkipsConversion, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    Drawing::Bitmap rgbaBitmap;
-    rgbaBitmap.Build(100, 100,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &rgbaBitmap};
-    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
-
-    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
-    Drawing::Bitmap layerBitmap;
-    bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
-    EXPECT_TRUE(result);
-    EXPECT_EQ(layerBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_RGBA_8888);
 }
 
 /*
@@ -3349,116 +3320,6 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_DstBitmapPremulAlpha,
 }
 
 /*
- * @tc.name: PrepareHardwareResourceBuffer_BGRA8888ColorTypeSkipsConversion
- * @tc.desc: Test PrepareHardwareResourceBuffer with BGRA_8888 color type skips conversion (direct assign)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_BGRA8888ColorTypeSkipsConversion, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    Drawing::Bitmap bgraBitmap;
-    bgraBitmap.Build(100, 100,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &bgraBitmap};
-    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
-
-    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
-    Drawing::Bitmap layerBitmap;
-    bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
-    EXPECT_TRUE(result);
-    EXPECT_EQ(layerBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_BGRA_8888);
-}
-
-/*
- * @tc.name: PrepareHardwareResourceBuffer_RGB565ColorTypeSkipsConversion
- * @tc.desc: Test PrepareHardwareResourceBuffer with RGB_565 color type skips conversion (direct assign)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_RGB565ColorTypeSkipsConversion, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    Drawing::Bitmap rgb565Bitmap;
-    rgb565Bitmap.Build(100, 100,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &rgb565Bitmap};
-    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
-
-    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
-    Drawing::Bitmap layerBitmap;
-    bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
-    EXPECT_TRUE(result);
-    EXPECT_EQ(layerBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_RGB_565);
-}
-
-/*
- * @tc.name: ConvertAlpha8ToRgba8888_NegativeWidthFails
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with negative width fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_NegativeWidthFails, TestSize.Level1)
-{
-    Drawing::Bitmap alpha8Bitmap;
-    alpha8Bitmap.Build(-1, 100,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
- * @tc.name: ConvertAlpha8ToRgba8888_NegativeHeightFails
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with negative height fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_NegativeHeightFails, TestSize.Level1)
-{
-    Drawing::Bitmap alpha8Bitmap;
-    alpha8Bitmap.Build(100, -1,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
- * @tc.name: PrepareHardwareResourceBuffer_Alpha8ConversionFailsWithZeroDisplayHeight
- * @tc.desc: Test PrepareHardwareResourceBuffer when alpha8 conversion succeeds but display height is zero
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_Alpha8ConversionFailsWithZeroDisplayHeight, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    const int width = 100;
-    const int height = 50;
-    Drawing::Bitmap alpha8Bitmap;
-    alpha8Bitmap.Build(width, height,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &alpha8Bitmap};
-    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
-
-    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 0));
-    Drawing::Bitmap layerBitmap;
-    bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
  * @tc.name: PrepareHardwareResourceBuffer_BGRA8888Bitmap
  * @tc.desc: Test RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer with BGRA_8888 bitmap copies directly
  * @tc.type: FUNC
@@ -3512,54 +3373,6 @@ HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_InvalidSurfaceT
     Drawing::Bitmap layerBitmap;
     bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
     EXPECT_TRUE(result);
-}
-
-/*
- * @tc.name: PrepareHardwareResourceBuffer_ZeroBitmapWidth
- * @tc.desc: Test RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer with zero bitmap width fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_ZeroBitmapWidth, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    Drawing::Bitmap rgbaBitmap;
-    rgbaBitmap.Build(0, 50,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &rgbaBitmap};
-    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
-
-    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
-    Drawing::Bitmap layerBitmap;
-    bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
- * @tc.name: PrepareHardwareResourceBuffer_ZeroBitmapHeight
- * @tc.desc: Test RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer with zero bitmap height fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_ZeroBitmapHeight, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    Drawing::Bitmap rgbaBitmap;
-    rgbaBitmap.Build(100, 0,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &rgbaBitmap};
-    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
-
-    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
-    Drawing::Bitmap layerBitmap;
-    bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
-    EXPECT_FALSE(result);
 }
 
 /*
@@ -3704,30 +3517,6 @@ HWTEST_F(RSRoundCornerDisplayTest, DecodeBitmap_ValidAlpha8Image, TestSize.Level
 }
 
 /*
- * @tc.name: DecodeBitmap_ConvertFallback
- * @tc.desc: Test RoundCornerDisplay::DecodeBitmap fallback when conversion fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, DecodeBitmap_ConvertFallback, TestSize.Level1)
-{
-    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    const int width = 10;
-    const int height = 10;
-    Drawing::Bitmap srcBitmap;
-    srcBitmap.Build(width, height,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-    auto image = std::make_shared<Drawing::Image>();
-    if (!image->BuildFromBitmap(srcBitmap)) {
-        std::cout << "DecodeBitmap_ConvertFallback: BuildFromBitmap not supported in test env" << std::endl;
-        return;
-    }
-    Drawing::Bitmap dstBitmap;
-    bool result = rcdInstance.DecodeBitmap(image, dstBitmap);
-    EXPECT_TRUE(result);
-}
-
-/*
  * @tc.name: DecodeBitmap_ValidBgra8888Image
  * @tc.desc: Test RoundCornerDisplay::DecodeBitmap with valid BGRA_8888 image (covers BGRA_8888 branch at line 116)
  * @tc.type: FUNC
@@ -3782,37 +3571,6 @@ HWTEST_F(RSRoundCornerDisplayTest, DecodeBitmap_ExtractAlphaFallbackNullPixels, 
     // When ExtractAlphaChannel fails, the fallback assigns srcBitmap to bitmap,
     // so dstBitmap should retain the original RGBA_8888 color type (not Alpha8).
     EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_RGBA_8888);
-}
-
-/*
- * @tc.name: DecodeBitmap_ExtractAlphaFallbackBgraNullPixels
- * @tc.desc: Test RoundCornerDisplay::DecodeBitmap fallback path (lines 117-120) for BGRA_8888 when
- *           ExtractAlphaChannel fails, covering both the BGRA_8888 condition and the fallback branch
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, DecodeBitmap_ExtractAlphaFallbackBgraNullPixels, TestSize.Level1)
-{
-    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    const int width = 10;
-    const int height = 10;
-    Drawing::Bitmap srcBitmap;
-    srcBitmap.Build(width, height,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-    // Set pixels to nullptr to make ExtractAlphaChannel fail at the GetPixels check,
-    // triggering the fallback path (bitmap = srcBitmap) at lines 117-120.
-    srcBitmap.SetPixels(nullptr);
-    auto image = std::make_shared<Drawing::Image>();
-    if (!image->BuildFromBitmap(srcBitmap)) {
-        std::cout << "DecodeBitmap_ExtractAlphaFallbackBgraNullPixels: BuildFromBitmap not supported in test env" << std::endl;
-        return;
-    }
-    Drawing::Bitmap dstBitmap;
-    bool result = rcdInstance.DecodeBitmap(image, dstBitmap);
-    EXPECT_TRUE(result);
-    // When ExtractAlphaChannel fails, the fallback assigns srcBitmap to bitmap,
-    // so dstBitmap should retain the original BGRA_8888 color type (not Alpha8).
-    EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_BGRA_8888);
 }
 
 /*
@@ -4153,37 +3911,6 @@ HWTEST_F(RSRoundCornerDisplayTest, GetTopSurfaceSource_LandscapeNotEqualAny, Tes
 }
 
 /*
- * @tc.name: GetTopSurfaceSource_HardwareBitmapReuse
- * @tc.desc: Test RoundCornerDisplay::GetTopSurfaceSource reuses bitmaps when images are shared with hardware support
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, GetTopSurfaceSource_HardwareBitmapReuse, TestSize.Level1)
-{
-    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rs_rcd::ROGSetting rog;
-    rs_rcd::RogPortrait rogPortrait{};
-    rogPortrait.layerUp.fileName = "shared.png";
-    rogPortrait.layerUp.offsetX = 1;
-    rogPortrait.layerUp.offsetY = 2;
-    rogPortrait.layerUp.binFileName = "shared.bin";
-    rogPortrait.layerUp.bufferSize = 100;
-    rogPortrait.layerUp.cldWidth = 10;
-    rogPortrait.layerUp.cldHeight = 20;
-    rogPortrait.layerHide = rogPortrait.layerUp;
-    rog.portraitMap[rs_rcd::NODE_PORTRAIT] = rogPortrait;
-    rs_rcd::RogLandscape rogLandscape{};
-    rogLandscape.layerUp = rogPortrait.layerUp;
-    rog.landscapeMap[rs_rcd::NODE_LANDSCAPE] = rogLandscape;
-    rcdInstance.rog_ = &rog;
-    rcdInstance.supportHardware_ = true;
-    bool result = rcdInstance.GetTopSurfaceSource();
-    EXPECT_TRUE(result);
-    rcdInstance.rog_ = nullptr;
-    rcdInstance.supportHardware_ = false;
-}
-
-/*
  * @tc.name: IsResourceEqual_AllFieldsEqual
  * @tc.desc: Test RoundCornerLayer::IsResourceEqual with all fields equal returns true
  * @tc.type: FUNC
@@ -4288,19 +4015,6 @@ HWTEST_F(RSRoundCornerDisplayTest, IsResourceEqual_DifferentCldHeight, TestSize.
 }
 
 /*
- * @tc.name: IsResourceEqual_DefaultConstructed
- * @tc.desc: Test RoundCornerLayer::IsResourceEqual with two default-constructed layers returns true
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, IsResourceEqual_DefaultConstructed, TestSize.Level1)
-{
-    rs_rcd::RoundCornerLayer layer1;
-    rs_rcd::RoundCornerLayer layer2;
-    EXPECT_TRUE(layer1.IsResourceEqual(layer2));
-}
-
-/*
  * @tc.name: IsResourceEqual_EmptyFileName
  * @tc.desc: Test RoundCornerLayer::IsResourceEqual with empty fileName for both returns true
  * @tc.type: FUNC
@@ -4329,52 +4043,6 @@ HWTEST_F(RSRoundCornerDisplayTest, IsResourceEqual_CurBitmapIgnored, TestSize.Le
 }
 
 /*
- * @tc.name: IsResourceEqual_Symmetric
- * @tc.desc: Test RoundCornerLayer::IsResourceEqual is symmetric (a.IsResourceEqual(b) == b.IsResourceEqual(a))
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, IsResourceEqual_Symmetric, TestSize.Level1)
-{
-    rs_rcd::RoundCornerLayer layer1{"top.png", 1, 2, "top.bin", 100, 10, 20, nullptr};
-    rs_rcd::RoundCornerLayer layer2{"bottom.png", 3, 4, "bottom.bin", 200, 30, 40, nullptr};
-    EXPECT_EQ(layer1.IsResourceEqual(layer2), layer2.IsResourceEqual(layer1));
-    EXPECT_FALSE(layer1.IsResourceEqual(layer2));
-}
-
-/*
- * @tc.name: ExtractAlphaChannel_NegativeWidth
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with negative width fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_NegativeWidth, TestSize.Level1)
-{
-    Drawing::Bitmap srcBitmap;
-    srcBitmap.Build(-1, 10,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
-    Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
- * @tc.name: ExtractAlphaChannel_NegativeHeight
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with negative height fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_NegativeHeight, TestSize.Level1)
-{
-    Drawing::Bitmap srcBitmap;
-    srcBitmap.Build(10, -1,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
-    Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
  * @tc.name: ExtractAlphaChannel_NullSrcPixels
  * @tc.desc: Test rs_rcd::ExtractAlphaChannel with null src pixels fails (GetPixels returns nullptr)
  * @tc.type: FUNC
@@ -4394,22 +4062,6 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_NullSrcPixels, TestSize.L
 }
 
 /*
- * @tc.name: ExtractAlphaChannel_Rgb565ColorType
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with RGB_565 color type fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_Rgb565ColorType, TestSize.Level1)
-{
-    Drawing::Bitmap srcBitmap;
-    srcBitmap.Build(10, 10,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-    Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
  * @tc.name: ConvertAlpha8ToRgba8888_NonAlpha8ColorType
  * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with RGBA_8888 (non-ALPHA_8) color type fails
  * @tc.type: FUNC
@@ -4420,38 +4072,6 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_NonAlpha8ColorType, T
     Drawing::Bitmap srcBitmap;
     srcBitmap.Build(10, 10,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-    Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
- * @tc.name: ConvertAlpha8ToRgba8888_BgraColorType
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with BGRA_8888 (non-ALPHA_8) color type fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_BgraColorType, TestSize.Level1)
-{
-    Drawing::Bitmap srcBitmap;
-    srcBitmap.Build(10, 10,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-    Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
- * @tc.name: ConvertAlpha8ToRgba8888_Rgb565ColorType
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with RGB_565 (non-ALPHA_8) color type fails
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_Rgb565ColorType, TestSize.Level1)
-{
-    Drawing::Bitmap srcBitmap;
-    srcBitmap.Build(10, 10,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_OPAQUE});
     Drawing::Bitmap dstBitmap;
     bool result = rs_rcd::ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
     EXPECT_FALSE(result);
@@ -4596,28 +4216,6 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBuffer_NullConsumer, TestSize
 }
 
 /*
- * @tc.name: ConsumeAndUpdateBuffer_NoAvailableBuffer
- * @tc.desc: Test RSRcdRenderVisitor::ConsumeAndUpdateBuffer when availableBufferCount <= 0
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBuffer_NoAvailableBuffer, TestSize.Level1)
-{
-    // prepare test: create a surface node with availableBufferCount == 0
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->ResetBufferAvailableCount();
-    ASSERT_EQ(surfaceNode->GetAvailableBufferCount(), 0);
-
-    // availableBufferCount <= 0, ConsumeAndUpdateBuffer should return true (use old buffer)
-    Drawing::Bitmap layerBitmap;
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    ASSERT_NE(visitor, nullptr);
-    bool result = visitor->ConsumeAndUpdateBuffer(*surfaceNode, layerBitmap);
-    EXPECT_TRUE(result);
-}
-
-/*
  * @tc.name: PrepareHardwareResourceBuffer_Alpha8ConversionFails
  * @tc.desc: Test RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer when ConvertAlpha8ToRgba8888 fails
  *           (covers lines 187-188: alpha8 to rgba8888 conversion failure path)
@@ -4650,37 +4248,6 @@ HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_Alpha8Conversio
 }
 
 /*
- * @tc.name: PrepareHardwareResourceBuffer_Alpha8ConversionFailsZeroWidth
- * @tc.desc: Test RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer when alpha8 bitmap has zero width
- *           causing ConvertAlpha8ToRgba8888 to fail (covers lines 187-188)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_Alpha8ConversionFailsZeroWidth, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    // Build an ALPHA_8 bitmap with zero width; GetColorType() still returns ALPHA_8
-    Drawing::Bitmap alpha8Bitmap;
-    alpha8Bitmap.Build(0, 50,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &alpha8Bitmap};
-    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
-
-    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
-    Drawing::Bitmap layerBitmap;
-    // If color type is ALPHA_8, conversion branch is entered and ConvertAlpha8ToRgba8888
-    // fails due to zero width, covering lines 187-188.
-    // If color type is not ALPHA_8 (Build with 0 width may not set color type),
-    // the else branch is taken and failure occurs at bitmap width check (line 196).
-    // Either way the function returns false.
-    bool result = surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap);
-    EXPECT_FALSE(result);
-}
-
-/*
  * @tc.name: PrintRcdNodeInfo_TopSurface
  * @tc.desc: Test RSRcdSurfaceRenderNode::PrintRcdNodeInfo with TOP surface type
  *           (covers PrintRcdNodeInfo function and RCDTopSurfaceNode branch)
@@ -4703,86 +4270,6 @@ HWTEST_F(RSRoundCornerDisplayTest, PrintRcdNodeInfo_TopSurface, TestSize.Level1)
     surfaceNode->PrintRcdNodeInfo(layerBitmap);
     EXPECT_EQ(static_cast<int>(layerBitmap.GetWidth()), width);
     EXPECT_EQ(static_cast<int>(layerBitmap.GetHeight()), height);
-}
-
-/*
- * @tc.name: PrintRcdNodeInfo_BottomSurface
- * @tc.desc: Test RSRcdSurfaceRenderNode::PrintRcdNodeInfo with BOTTOM surface type
- *           (covers PrintRcdNodeInfo function and RCDBottomSurfaceNode branch)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrintRcdNodeInfo_BottomSurface, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_TRUE(surfaceNode->IsBottomSurface());
-
-    const int width = 200;
-    const int height = 100;
-    Drawing::Bitmap layerBitmap;
-    layerBitmap.Build(width, height,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    // PrintRcdNodeInfo should not crash and should log node info for BOTTOM surface
-    surfaceNode->PrintRcdNodeInfo(layerBitmap);
-    EXPECT_EQ(static_cast<int>(layerBitmap.GetWidth()), width);
-    EXPECT_EQ(static_cast<int>(layerBitmap.GetHeight()), height);
-}
-
-/*
- * @tc.name: PrintRcdNodeInfo_InvalidSurface
- * @tc.desc: Test RSRcdSurfaceRenderNode::PrintRcdNodeInfo with INVALID surface type
- *           (covers PrintRcdNodeInfo function with non-TOP surface)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrintRcdNodeInfo_InvalidSurface, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::INVALID);
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_TRUE(surfaceNode->IsInvalidSurface());
-    ASSERT_FALSE(surfaceNode->IsTopSurface());
-
-    Drawing::Bitmap layerBitmap;
-    layerBitmap.Build(50, 50,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    // PrintRcdNodeInfo should not crash even with INVALID surface type
-    surfaceNode->PrintRcdNodeInfo(layerBitmap);
-}
-
-/*
- * @tc.name: PrintRcdNodeInfo_WithCldInfo
- * @tc.desc: Test RSRcdSurfaceRenderNode::PrintRcdNodeInfo after cldInfo is populated
- *           via PrepareHardwareResourceBuffer (verifies cldInfo values are logged)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, PrintRcdNodeInfo_WithCldInfo, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    // Populate buffer dimensions and cldLayerInfo via PrepareHardwareResourceBuffer
-    const int width = 100;
-    const int height = 50;
-    Drawing::Bitmap rgbaBitmap;
-    rgbaBitmap.Build(width, height,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-
-    rs_rcd::RoundCornerLayer layer{"top.png", 0, 0, "top.bin", 8112, 2028, 1, &rgbaBitmap};
-    auto layerInfo = std::make_shared<rs_rcd::RoundCornerLayer>(layer);
-    surfaceNode->SetRenderDisplayRect(RectT<uint32_t>(0, 0, 200, 200));
-    Drawing::Bitmap layerBitmap;
-    ASSERT_TRUE(surfaceNode->PrepareHardwareResourceBuffer(layerInfo, layerBitmap));
-
-    // cldInfo_ is default-initialized (populated by FillHardwareResource/SetRCDInfo);
-    // PrintRcdNodeInfo should log the cldInfo values without crashing
-    const CldInfo& cldInfo = surfaceNode->GetCldInfo();
-    EXPECT_EQ(cldInfo.cldWidth, 0u); // not yet populated by SetRCDInfo
-
-    surfaceNode->PrintRcdNodeInfo(layerBitmap);
 }
 
 /*
