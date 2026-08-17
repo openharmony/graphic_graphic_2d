@@ -127,8 +127,8 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     RSRenderServiceConnectHub::GetClientToServiceConnection();
     RSApplicationAgentImpl::Instance();
-    RSApplicationAgentImpl::Release();
-    RSApplicationAgentImpl::Release();
+    RSApplicationAgentImpl::Release(true);
+    RSApplicationAgentImpl::Release(true);
     RSRenderServiceConnectHub::Destroy();
     RSRenderServiceConnectHub::Init();
     RSApplicationAgentImpl::Instance();

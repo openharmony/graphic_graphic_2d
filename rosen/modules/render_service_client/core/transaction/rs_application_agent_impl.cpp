@@ -27,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 #ifdef OHOS_PLATFORM
 static sptr<RSApplicationAgentImpl> gRSApplicationAgentImplInstance;
+constexpr int32_t TOKEN_STRONG_REF_COUNT = 1;
 #endif
 RSApplicationAgentImpl::~RSApplicationAgentImpl()
 {
@@ -47,7 +48,7 @@ RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
 #endif
 }
 
-void RSApplicationAgentImpl::Release()
+void RSApplicationAgentImpl::Release(bool isRegistered)
 {
 #ifdef OHOS_PLATFORM
     std::lock_guard<std::mutex> lock(mutex_);
@@ -59,10 +60,13 @@ void RSApplicationAgentImpl::Release()
     // survives until the server releases that proxy. UnregisterFromAllConnections is static and
     // sends the unregister IPC through the render connection proxy, which does not need the stub;
     // the stub is finally released on the binder thread once the server drops its proxy (BR_RELEASE).
-    bool needCleanup = false;
-    needCleanup = gRSApplicationAgentImplInstance->isRegistered_.load();
+    while (gRSApplicationAgentImplInstance->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
+        gRSApplicationAgentImplInstance->DecStrongRef(gRSApplicationAgentImplInstance);
+    }
+    
     gRSApplicationAgentImplInstance = nullptr;
-    if (needCleanup) {
+    if (isRegistered) {
+        ROSEN_LOGI("RSApplicationAgentImpl::Release UnregisterFromAllConnections");
         UnregisterFromAllConnections();
     }
 #endif
@@ -96,9 +100,6 @@ void RSApplicationAgentImpl::RegisterRSApplicationAgent(std::shared_ptr<RSUICont
 {
 #ifdef ROSEN_OHOS
     std::lock_guard<std::mutex> lock(mutex_);
-    if (isRegistered_.load()) {
-        return;
-    }
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSApplicationAgentImpl::RegisterRSApplicationAgent rsUIContext return");
         return;
@@ -107,7 +108,6 @@ void RSApplicationAgentImpl::RegisterRSApplicationAgent(std::shared_ptr<RSUICont
         if (auto renderPipelineClient = renderInterface->GetRSRenderPipelineClient()) {
             ROSEN_LOGI("RSApplicationAgentImpl::RegisterRSApplicationAgent!");
             renderPipelineClient->RegisterApplicationAgent(0, sptr<RSApplicationAgentImpl>(this));
-            isRegistered_.store(true);
         }
     }
 #endif
@@ -131,13 +131,19 @@ RSApplicationAgentLifecycleOwner& RSApplicationAgentLifecycleOwner::Instance()
 
 RSApplicationAgentLifecycleOwner::~RSApplicationAgentLifecycleOwner()
 {
-    RSApplicationAgentImpl::Release();
+#ifdef OHOS_PLATFORM
+    ROSEN_LOGI("RSApplicationAgentLifecycleOwner::~RSApplicationAgentImpl");
+    RSApplicationAgentImpl::Release(isRegistered_.load());
+#endif
 }
 
 void RSApplicationAgentLifecycleOwner::EnsureRegistered(std::shared_ptr<RSUIContext> rsUIContext)
 {
-    if (auto agent = RSApplicationAgentImpl::Instance()) {
-        agent->RegisterRSApplicationAgent(rsUIContext);
+    if (!isRegistered_.load()) {
+        if (auto agent = RSApplicationAgentImpl::Instance()) {
+            agent->RegisterRSApplicationAgent(rsUIContext);
+            isRegistered_.store(true);
+        }
     }
 }
 }
