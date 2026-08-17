@@ -38,7 +38,6 @@ bool DoNodeCommand(FuzzedDataProvider& fdp)
     bool isExcluded = fdp.ConsumeBool();
     bool isRepaintBoundary = fdp.ConsumeBool();
     bool isUifirstNode = fdp.ConsumeBool();
-    pid_t pid = fdp.ConsumeIntegral<pid_t>();
     float brightness = fdp.ConsumeFloatingPoint<float>();
     int8_t colorSpace = fdp.ConsumeIntegral<int8_t>();
     bool isLayer = fdp.ConsumeBool();
@@ -64,8 +63,6 @@ bool DoNodeCommand(FuzzedDataProvider& fdp)
     RSNodeCommandHelper::SetDrawNodeType(context, nodeId, nodeType);
     RSNodeCommandHelper::UpdateOcclusionCullingStatus(context, nodeId, enable, keyOcclusionNodeId);
     RSNodeCommandHelper::SetUIToken(context, nodeId, token);
-    RSNodeCommandHelper::ColorPickerDestroyInRender(
-        context, nodeId, pid, token, fdp.ConsumeIntegral<uint8_t>());
     RSNodeCommandHelper::ReSortChildrenByZIndex(context, nodeId);
     return true;
 }

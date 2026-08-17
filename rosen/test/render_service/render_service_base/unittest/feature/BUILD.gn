@@ -260,6 +260,7 @@ ohos_unittest("RSColorPickerTest") {
     "color_picker/rs_color_picker_manager_test.cpp",
     "color_picker/rs_color_picker_thread_test.cpp",
     "color_picker/rs_color_picker_utils_test.cpp",
+    "color_picker/rs_contrast_color_scheme_property_test.cpp",
     "color_picker/rs_hetero_color_picker_test.cpp",
   ]
 

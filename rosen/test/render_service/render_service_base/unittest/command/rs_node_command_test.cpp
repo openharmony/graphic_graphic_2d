@@ -863,60 +863,6 @@ HWTEST_F(RSNodeCommandTest, SetColorPickerCallbackProcessorTest, TestSize.Level1
 }
 
 /**
- * @tc.name: ColorPickerDestroyInRenderTest001
- * @tc.desc: Test ColorPickerDestroyInRender with null processor
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandTest, ColorPickerDestroyInRenderTest001, TestSize.Level1)
-{
-    RSContext context;
-    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(nullptr);
-    RSNodeCommandHelper::ColorPickerDestroyInRender(
-        context, 1, 0, 100, static_cast<uint8_t>(ContrastColorScheme::LIGHT));
-    EXPECT_TRUE(true);
-}
-
-/**
- * @tc.name: ColorPickerDestroyInRenderTest002
- * @tc.desc: Test ColorPickerDestroyInRender with valid processor
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandTest, ColorPickerDestroyInRenderTest002, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = 1;
-    uint64_t token = 100;
-    auto colorScheme = ContrastColorScheme::DARK;
-
-    static bool callbackInvoked = false;
-    static NodeId receivedNodeId = 0;
-    static uint64_t receivedToken = 0;
-    static ContrastColorScheme receivedColorScheme = ContrastColorScheme::INVALID;
-
-    callbackInvoked = false;
-    receivedNodeId = 0;
-    receivedToken = 0;
-    receivedColorScheme = ContrastColorScheme::INVALID;
-
-    auto processor = [](NodeId nid, uint64_t tokenValue, ContrastColorScheme lastContrastColorScheme) {
-        callbackInvoked = true;
-        receivedNodeId = nid;
-        receivedToken = tokenValue;
-        receivedColorScheme = lastContrastColorScheme;
-    };
-
-    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(processor);
-    RSNodeCommandHelper::ColorPickerDestroyInRender(context, nodeId, 0, token, static_cast<uint8_t>(colorScheme));
-
-    EXPECT_TRUE(callbackInvoked);
-    EXPECT_EQ(receivedNodeId, nodeId);
-    EXPECT_EQ(receivedToken, token);
-    EXPECT_EQ(receivedColorScheme, colorScheme);
-
-    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(nullptr);
-}
-
-/**
  * @tc.name: ReSortChildrenByZIndexTest
  * @tc.desc: Test ReSortChildrenByZIndex
  * @tc.type: FUNC

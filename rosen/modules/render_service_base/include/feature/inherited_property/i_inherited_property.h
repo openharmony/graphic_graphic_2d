@@ -24,6 +24,7 @@ namespace Rosen {
 // Extensible property type discriminator, append new entries at the end.
 enum class InheritedPropertyType : uint32_t {
     NONE = 0,
+    CONTRAST_COLOR_SCHEME,
 };
 
 // Unified base class for inheritable node properties (e.g. ColorPicker-like attributes).

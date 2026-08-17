@@ -26,7 +26,6 @@
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
-#include "modifier_ng/appearance/rs_color_picker_render_modifier.h"
 #include "modifier_ng/appearance/rs_use_union_render_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_render_modifier.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -408,23 +407,6 @@ HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyTest, TestSize.Level1)
     modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
     modifier->ApplyLegacyProperty(properties);
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::ALPHA));
-}
-
-/**
- * @tc.name: ColorPickerLastContrastColorSchemeApplyLegacyPropertyTest
- * @tc.desc: test color picker last equivalent dark mode legacy property apply
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderModifierNGTest, ColorPickerLastContrastColorSchemeApplyLegacyPropertyTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSColorPickerRenderModifier>();
-    RSProperties properties;
-    auto property = std::make_shared<RSRenderProperty<int>>(static_cast<int>(ContrastColorScheme::LIGHT), 0);
-    modifier->AttachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME, property);
-    modifier->ApplyLegacyProperty(properties);
-
-    ASSERT_NE(properties.GetColorPicker(), nullptr);
-    EXPECT_EQ(properties.GetColorPicker()->lastContrastColorScheme, ContrastColorScheme::LIGHT);
 }
 
 /**
