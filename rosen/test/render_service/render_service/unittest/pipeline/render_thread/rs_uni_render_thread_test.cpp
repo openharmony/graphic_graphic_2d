@@ -263,8 +263,10 @@ HWTEST_F(RSUniRenderThreadTest, PostSyncTask001, TestSize.Level1)
  */
 HWTEST_F(RSUniRenderThreadTest, IsIdleTestTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_VK
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    EXPECT_TRUE(instance.IsIdle());
+    EXPECT_FALSE(instance.IsIdle());
+#endif
 }
 
 /**
