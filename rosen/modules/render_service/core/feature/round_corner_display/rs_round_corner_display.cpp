@@ -112,15 +112,11 @@ bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Dra
     // to an Alpha8 bitmap to reduce memory and match the hardware layer mask format.
     // If extraction fails, fall back to using the original bitmap directly, which is
     // still acceptable for downstream hardware resource processing.
-    if (srcBitmap.GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_8888 ||
-        srcBitmap.GetColorType() == Drawing::ColorType::COLORTYPE_BGRA_8888) {
-        if (!rs_rcd::ExtractAlphaChannel(srcBitmap, bitmap)) {
-            RS_LOGW("[%{public}s] Extract alpha channel failed, fallback to original bitmap \n", __func__);
-            bitmap = srcBitmap;
-        }
-    } else {
+    bool succeeded = rs_rcd::ExtractAlphaChannel(srcBitmap, bitmap);
+    if (!succeeded) {
         bitmap = srcBitmap;
     }
+
     return true;
 }
 
