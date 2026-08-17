@@ -157,16 +157,22 @@ void RSRenderNodeMap::RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfa
 void RSRenderNodeMap::RegisterSurfaceRenderNode(pid_t pid, uint64_t token)
 {
     auto iter = backgroundSurfaceNodeMap_.find(pid);
-    if (iter != backgroundSurfaceNodeMap_.end()) {
-        auto& subMap = iter->second;
-        auto nodeIter = subMap.find(token);
-        if (nodeIter != subMap.end()) {
-            for (auto& node : nodeIter->second) {
+    if (iter == backgroundSurfaceNodeMap_.end()) {
+        return;
+    }
+    auto& subMap = iter->second;
+    auto nodeIter = subMap.find(token);
+    if (nodeIter != subMap.end()) {
+        for (auto& node : nodeIter->second) {
+            if (node) {
                 node->SetUIRenderDirectorStopped(false);
                 surfaceNodeMap_[node->GetId()] = node;
             }
         }
-        iter->second.erase(nodeIter);
+        subMap.erase(nodeIter);
+    }
+    if (subMap.empty()) {
+        backgroundSurfaceNodeMap_.erase(iter);
     }
 }
 
