@@ -218,7 +218,7 @@ public:
     sptr<IApplicationAgent> UnRegisterApplicationAgent(uint32_t pid);
     bool RemoveConnection(pid_t remotePid, const sptr<RSIConnectionToken>& token);
     void AddTransactionDataPidInfo(pid_t remotePid);
-    void AddConnection(pid_t remotePid, uint64_t tokenMaskId,
+    std::pair<sptr<RSIClientToRenderConnection>, uint64_t> AddConnection(pid_t remotePid, uint64_t tokenMaskId,
         sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
     void SetCacheEnabledForRotation(bool enabled);
     std::pair<sptr<RSIClientToRenderConnection>, uint64_t> FindClientToRenderConnection(uint64_t remotePid);

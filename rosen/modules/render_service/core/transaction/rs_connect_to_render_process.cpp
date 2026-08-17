@@ -33,15 +33,10 @@ std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSConnectToRenderProcess:
     auto tokenObj = token->AsObject();
     pid_t remotePid = GetCallingPid();
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
-    auto [renderConnection, oldTokenMaskId] = renderPipelineAgent_->FindClientToRenderConnection(remotePid);
-    if (renderConnection != nullptr) {
-        return {renderConnection, INVALID_TOKEN_MASK_ID};
-    }
     auto newRenderConn =
         sptr<RSClientToRenderConnection>::MakeSptr(remotePid, renderPipelineAgent_, tokenObj, needRefresh);
     renderPipelineAgent_->AddTransactionDataPidInfo(remotePid);
-    renderPipelineAgent_->AddConnection(remotePid, tokenMaskId, tokenObj, newRenderConn);
-    return {newRenderConn, INVALID_TOKEN_MASK_ID};
+    return renderPipelineAgent_->AddConnection(remotePid, tokenMaskId, tokenObj, newRenderConn);
 }
 
 std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSConnectToRenderProcess::FindClientToRenderConnection()
