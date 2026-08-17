@@ -302,9 +302,6 @@ void RSUifirstManager::RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRe
         return;
     }
     auto surfaceNode = std::static_pointer_cast<const RSSurfaceRenderNode>(nodeSp);
-    if (surfaceNode == nullptr) {
-        return;
-    }
     // mark all parent rendergroup need update; planning: mark autoCache need update
     auto node = surfaceNode->GetParent().lock();
 
@@ -933,11 +930,9 @@ void RSUifirstManager::PostSubTask(NodeId id)
 
     // 1.find in cache list(done to delete) 2.find in global list
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
-    if (drawable) {
+    if (drawable && drawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        if (surfaceNodeDrawable) {
-            surfaceNodeDrawable->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceNodeDrawable.get());
-        }
+        surfaceNodeDrawable->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceNodeDrawable.get());
         // ref drawable
         subthreadProcessingNode_.emplace(id, drawable);
         // post task
