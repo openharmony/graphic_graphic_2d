@@ -110,14 +110,14 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
     if (surfaceNodePtr == nullptr || (!node.IsSurfaceCreated())) {
         sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNodePtr);
         if (listener == nullptr || (!node.CreateSurface(listener))) {
-            RS_LOGE("RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode CreateSurface failed");
+            RS_LOGE("RSRcdRenderVisitor::RenderExpandedFrame CreateSurface failed");
             return false;
         }
     }
 
     auto rsSurface = std::static_pointer_cast<RSSurfaceOhos>(node.GetRSSurface());
     if (rsSurface == nullptr) {
-        RS_LOGE("RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode no RSSurface found");
+        RS_LOGE("RSRcdRenderVisitor::RenderExpandedFrame no RSSurface found");
         return false;
     }
 

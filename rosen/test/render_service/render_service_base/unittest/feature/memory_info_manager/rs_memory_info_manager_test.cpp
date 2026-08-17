@@ -59,13 +59,15 @@ HWTEST_F(RSMemoryInfoManagerTest, SetSurfaceMemoryInfoTest001, TestSize.Level1)
 {
     NodeId id = 1;
     RSSurfaceNodeType type = RSSurfaceNodeType::DEFAULT;
-    RSSurfaceRenderNodeConfig = { .id = id, .nodeType = type };
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = type };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     auto buffer = SurfaceBuffer::Create();
     node->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     MemoryTrack::Instance().SetGlobalRootNodeStatusChangeFlag(true);
+    RSMemoryInfoManager::SetSurfaceMemoryInfo(false, null);
     RSMemoryInfoManager::SetSurfaceMemoryInfo(false, node->GetRSSurfaceHandler());
     RSMemoryInfoManager::SetSurfaceMemoryInfo(true, node->GetRSSurfaceHandler());
+    MemoryTrack::Instance().SetGlobalRootNodeStatusChangeFlag(false);
     EXPECT_NE(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
 }
 
@@ -77,10 +79,18 @@ HWTEST_F(RSMemoryInfoManagerTest, SetSurfaceMemoryInfoTest001, TestSize.Level1)
  */
 HWTEST_F(RSMemoryInfoManagerTest, SetImageMemoryInfoTest001, TestSize.Level1)
 {
-    auto pixelMap =std::make_shared<Media::PixelMap>();
-    pixelMap->SetPixelsAddr(NULL, NULL, 0, Media::AllocatorType::DMA_ALLOC, NULL);
-    RSMemoryInfoManager::SetImageMemoryInfo(pixelMap);
-    EXPECT_NE(pixelMap, nullptr);
+    sptr<SurfaceBuffer> sufaceBuffer = SurfaceBuffer::Create();
+    void* nativeBuffer = surfaceBuffer.GetRefPtr();
+    auto pixelMap1 =std::make_shared<Media::PixelMap>();
+    auto pixelMap2 =std::make_shared<Media::PixelMap>();
+    auto pixelMap2 =std::make_shared<Media::PixelMap>();
+    pixelMap1->SetPixelsAddr(NULL, NULL, 0, Media::AllocatorType::DMA_ALLOC, NULL);
+    pixelMap2->SetPixelsAddr(NULL, NULL, 0, Media::AllocatorType::DEFAULT, NULL);
+    pixelMap3->SetPixelsAddr(NULL, nativeBuffer, 0, Media::AllocatorType::DMA_ALLOC, NULL);
+    RSMemoryInfoManager::SetImageMemoryInfo(pixelMap1);
+    RSMemoryInfoManager::SetImageMemoryInfo(pixelMap2);
+    RSMemoryInfoManager::SetImageMemoryInfo(pixelMap3);
+    EXPECT_NE(pixelMap1, nullptr);
 }
 
 /**
@@ -103,7 +113,7 @@ HWTEST_F(RSMemoryInfoManagerTest, SetImageMemoryInfoTest001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryInfoManagerTest, RecordNodeOnTreeStatusTest001 TestSize.Level1)
+HWTEST_F(RSMemoryInfoManagerTest, RecordNodeOnTreeStatusTest001, TestSize.Level1)
 {
     MemoryTrack::Instance().SetGlobalRootNodeStatusChangeFlag(false);
     RSMemoryInfoManager::RecordNodeOnTreeStatus(true, 1111, 1111);
@@ -119,7 +129,7 @@ HWTEST_F(RSMemoryInfoManagerTest, RecordNodeOnTreeStatusTest001 TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryInfoManagerTest, ResetRootNodeStatusChangeFlagTest001 TestSize.Level1)
+HWTEST_F(RSMemoryInfoManagerTest, ResetRootNodeStatusChangeFlagTest001, TestSize.Level1)
 {
     MemoryTrack::Instance().SetGlobalRootNodeStatusChangeFlag(true);
     RSMemoryInfoManager::ResetRootNodeStatusChangeFlag(1111, 1111);

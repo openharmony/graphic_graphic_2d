@@ -1227,6 +1227,27 @@ bool DONotifyDynamicModeEvent()
     return true;
 }
 
+bool DOSetHgmExclusiveScreen()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    uint64_t screenId = GetData<uint64_t>();
+    std::optional<ScreenId> optScreenId;
+    if (screenId != INVALID_SCREEN_ID) {
+        optScreenId = screenId;
+    }
+    rsToServiceConn_->SetHgmExclusiveScreen(optScreenId);
+
+    optScreenId = 0;
+    rsToServiceConn_->SetHgmExclusiveScreen(optScreenId);
+
+    std::optional<ScreenId> optScreenId2;
+    rsToServiceConn_->SetHgmExclusiveScreen(optScreenId2);
+
+    return true;
+}
+
 bool DONotifyHgmConfigEvent()
 {
     if (rsToServiceConn_ == nullptr) {
@@ -1413,6 +1434,19 @@ bool DoSetOverlayDisplayMode()
     return true;
 }
 #endif
+
+bool DoSendVideoRateInfo()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    std::unordered_map<std::string, std::string> videoRateInfo;
+    std::string key = GetData<std::string>();
+    std::string value = GetData<std::string>();
+    videoRateInfo[key] = value;
+    rsToServiceConn_->SendVideoRateInfo(videoRateInfo);
+    return true;
+}
 
 bool DoSetBehindWindowFilterEnabled()
 {
@@ -1662,6 +1696,7 @@ void DoFuzzerTest2()
     DONotifyRefreshRateEvent();
     DONotifyTouchEvent();
     DONotifyDynamicModeEvent();
+    DOSetHgmExclusiveScreen();
     DOSetCacheEnabledForRotation();
     DOSetOnRemoteDiedCallback();
     DOSetVmaCacheStatus();
@@ -1686,6 +1721,7 @@ void DoFuzzerTest3()
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     DoSetOverlayDisplayMode();
 #endif
+    DoSendVideoRateInfo();
     DoRegisterFirstFrameCommitCallback();
     DoRegisterExposedEventCallback();
     DoNotifySoftVsyncRateDiscountEvent();

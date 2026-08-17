@@ -2159,13 +2159,13 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut001, TestSize.Level1)
     EXPECT_EQ(ret, GSERROR_OK);
 
     GraphicColorGamut colorGamut = rsRenderComposer_->ComputeTargetColorGamut(buffer);
-    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_INVALID);
 
     requestConfig.colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
     EXPECT_EQ(ret, GSERROR_OK);
     colorGamut = rsRenderComposer_->ComputeTargetColorGamut(buffer);
-    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_INVALID);
     cSurface->UnregisterConsumerListener();
 }
 
@@ -5010,6 +5010,76 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ClearOutputOnDisconnect_Fals
     EXPECT_FALSE(tmpRsRenderComposer->isDisconnected_);
     EXPECT_NE(tmpRsRenderComposer->rsRenderComposerContext_, nullptr);
     EXPECT_NE(tmpRsRenderComposer->hdiOutput_, nullptr);
+}
+
+/**
+ * Function: ProcessComposerFrame_UnExecuteTaskNumDecrement_True
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set unExecuteTaskNum_ to a positive value (line 330 condition true)
+ *                  3. call ProcessComposerFrame
+ *                  4. verify unExecuteTaskNum_ is decremented by 1
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_UnExecuteTaskNumDecrement_True, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
+
+    // Set unExecuteTaskNum_ > 0 (line 330 condition true)
+    constexpr int32_t initUnExecuteTaskNum = 5;
+    tmpRsRenderComposer->unExecuteTaskNum_.store(initUnExecuteTaskNum);
+    tmpRsRenderComposer->isDisconnected_ = false;
+
+    std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetLayerSize({ 100, 100, 100, 100 });
+    tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+
+    // Verify unExecuteTaskNum_ was decremented by 1 (line 330-331)
+    EXPECT_EQ(tmpRsRenderComposer->unExecuteTaskNum_.load(), initUnExecuteTaskNum - 1);
+}
+
+/**
+ * Function: ProcessComposerFrame_UnExecuteTaskNumDecrement_False
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set unExecuteTaskNum_ to 0 (line 330 condition false)
+ *                  3. call ProcessComposerFrame
+ *                  4. verify unExecuteTaskNum_ is not decremented
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_UnExecuteTaskNumDecrement_False, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
+
+    // Set unExecuteTaskNum_ <= 0 (line 330 condition false)
+    constexpr int32_t initUnExecuteTaskNum = 0;
+    tmpRsRenderComposer->unExecuteTaskNum_.store(initUnExecuteTaskNum);
+    tmpRsRenderComposer->isDisconnected_ = false;
+
+    std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetLayerSize({ 100, 100, 100, 100 });
+    tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+
+    // Verify unExecuteTaskNum_ is not decremented (line 330 condition false, branch skipped)
+    EXPECT_EQ(tmpRsRenderComposer->unExecuteTaskNum_.load(), initUnExecuteTaskNum);
 }
 
 /**
@@ -9546,6 +9616,235 @@ HWTEST_F(RsRenderComposerTest, AddSolidColorLayer_IsSolidFilledColorLayer_False,
     tmpRsRenderComposer->AddSolidColorLayer(layers);
 
     EXPECT_EQ(layers.size(), initialSize);
+}
+
+/**
+ * Function: DumpVKImageInfo_NullUniRenderEngine_EarlyReturn
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set uniRenderEngine_ to nullptr
+ *                  2. call DumpVKImageInfo
+ *                  3. verify early return without crash (if branch true: uniRenderEngine_ == nullptr)
+ */
+HWTEST_F(RsRenderComposerTest, DumpVKImageInfo_NullUniRenderEngine_EarlyReturn, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    // Force uniRenderEngine_ to nullptr to trigger the if branch (true)
+    rsRenderComposerTmp->uniRenderEngine_ = nullptr;
+
+    std::string dumpString = "initial";
+    rsRenderComposerTmp->DumpVKImageInfo(dumpString);
+    // Early return: dumpString should not be modified
+    EXPECT_EQ(dumpString, "initial");
+}
+
+/**
+ * Function: DumpVKImageInfo_ValidUniRenderEngine_NoCrash
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. use the shared rsRenderComposer_ which has a valid uniRenderEngine_
+ *                  2. call DumpVKImageInfo
+ *                  3. verify no crash (if branch false: uniRenderEngine_ != nullptr, forwards to engine)
+ */
+HWTEST_F(RsRenderComposerTest, DumpVKImageInfo_ValidUniRenderEngine_NoCrash, TestSize.Level1)
+{
+    ASSERT_NE(rsRenderComposer_, nullptr);
+    ASSERT_NE(rsRenderComposer_->uniRenderEngine_, nullptr);
+    std::string dumpString;
+    // The if branch (uniRenderEngine_ == nullptr) is false, so DumpVkImageInfo is forwarded to the engine
+    EXPECT_NO_FATAL_FAILURE(rsRenderComposer_->DumpVKImageInfo(dumpString));
+}
+
+/**
+ * Function: Redraw_PreAllocMutexLocked_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. hold preAllocMutex_ on the test thread
+ *                  3. call Redraw from another thread (try_to_lock fails, owns_lock() false)
+ *                  4. verify no crash (Redraw returns early via the new if branch)
+ */
+HWTEST_F(RsRenderComposerTest, Redraw_PreAllocMutexLocked_TrueBranch, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(rsRenderComposerTmp, nullptr);
+
+    std::unique_lock<std::mutex> testLock(rsRenderComposerTmp->preAllocMutex_);
+
+    std::vector<RSLayerPtr> layers;
+    bool noCrash = true;
+    std::thread t([&]() {
+        rsRenderComposerTmp->Redraw(nullptr, layers, output);
+    });
+    t.join();
+
+    testLock.unlock();
+    EXPECT_TRUE(noCrash);
+}
+
+/**
+ * Function: Redraw_PreAllocMutexUnlocked_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. do not hold preAllocMutex_
+ *                  3. call Redraw (try_to_lock succeeds, owns_lock() true, if condition false)
+ *                  4. verify no crash
+ */
+HWTEST_F(RsRenderComposerTest, Redraw_PreAllocMutexUnlocked_FalseBranch, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(rsRenderComposerTmp, nullptr);
+
+    std::vector<RSLayerPtr> layers;
+    rsRenderComposerTmp->Redraw(nullptr, layers, output);
+    EXPECT_TRUE(true);
+}
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * Function: GetDisplayClientTargetProperty_PixelFormatExceedsButt
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. mock GetDisplayClientTargetProperty to return SUCCESS
+ *                  2. set pixelFormatInt to GRAPHIC_PIXEL_FMT_BUTT (>= BUTT)
+ *                  3. expect GetDisplayClientTargetProperty returns false
+ *                  4. covers: ret==SUCCESS(true) && pixelFormatInt<BUTT(false)
+ */
+HWTEST_F(RsRenderComposerTest, GetDisplayClientTargetProperty_PixelFormatExceedsButt, TestSize.Level1)
+{
+    auto hdiOutput = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(hdiOutput, nullptr);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(hdiOutput, property);
+    tmpRsRenderComposer->hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+
+    std::vector<RSLayerPtr> layers;
+    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+
+    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(testing::_, testing::_, testing::_))
+        .WillOnce(testing::DoAll(
+            testing::SetArgReferee<1>(static_cast<int32_t>(GRAPHIC_PIXEL_FMT_BUTT)),
+            testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+
+    bool ret = tmpRsRenderComposer->GetDisplayClientTargetProperty(pixelFormat, colorGamut, layers);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * Function: GetDisplayClientTargetProperty_PixelFormatValid
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. mock GetDisplayClientTargetProperty to return SUCCESS
+ *                  2. set pixelFormatInt to a valid format (< BUTT)
+ *                  3. expect GetDisplayClientTargetProperty returns true
+ *                  4. covers: ret==SUCCESS(true) && pixelFormatInt<BUTT(true)
+ */
+HWTEST_F(RsRenderComposerTest, GetDisplayClientTargetProperty_PixelFormatValid, TestSize.Level1)
+{
+    auto hdiOutput = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(hdiOutput, nullptr);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(hdiOutput, property);
+    tmpRsRenderComposer->hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+
+    std::vector<RSLayerPtr> layers;
+    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+
+    constexpr int32_t validFormat = static_cast<int32_t>(GRAPHIC_PIXEL_FMT_RGBA_8888);
+    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(testing::_, testing::_, testing::_))
+        .WillOnce(testing::DoAll(
+            testing::SetArgReferee<1>(validFormat),
+            testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+
+    bool ret = tmpRsRenderComposer->GetDisplayClientTargetProperty(pixelFormat, colorGamut, layers);
+    EXPECT_TRUE(ret);
+}
+#endif // USE_VIDEO_PROCESSING_ENGINE
+
+/**
+ * Function: ContextRegisterPostTask_WeakThisLock_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer as shared_ptr
+ *                  2. obtain weak_ptr via weak_from_this()
+ *                  3. invoke the lambda pattern from ContextRegisterPostTask
+ *                  4. verify no crash (weakThis.lock() succeeds, PostTask called)
+ *                  5. covers: weakThis.lock() != nullptr (true branch)
+ */
+HWTEST_F(RsRenderComposerTest, ContextRegisterPostTask_WeakThisLock_TrueBranch, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(rsRenderComposerTmp, nullptr);
+
+    auto weakThis = rsRenderComposerTmp->weak_from_this();
+    auto postFunc = [weakThis](const std::function<void()>& task) {
+        if (auto sp = weakThis.lock()) {
+            sp->PostTask(task);
+        }
+    };
+
+    std::atomic<bool> taskExecuted { false };
+    postFunc([&taskExecuted]() { taskExecuted.store(true); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    EXPECT_NE(rsRenderComposerTmp->handler_, nullptr);
+}
+
+/**
+ * Function: ContextRegisterPostTask_WeakThisLock_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer as shared_ptr and obtain weak_ptr
+ *                  2. destroy the shared_ptr (composer is deallocated)
+ *                  3. invoke the lambda pattern from ContextRegisterPostTask
+ *                  4. verify task is NOT executed (weakThis.lock() returns nullptr)
+ *                  5. covers: weakThis.lock() == nullptr (false branch)
+ */
+HWTEST_F(RsRenderComposerTest, ContextRegisterPostTask_WeakThisLock_FalseBranch, TestSize.Level1)
+{
+    std::atomic<bool> taskExecuted { false };
+    std::function<void(const std::function<void()>&)> postFunc;
+
+    {
+        auto output = std::make_shared<HdiOutput>(0u);
+        output->Init();
+        sptr<RSScreenProperty> property = new RSScreenProperty();
+        auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+        ASSERT_NE(rsRenderComposerTmp, nullptr);
+
+        auto weakThis = rsRenderComposerTmp->weak_from_this();
+        postFunc = [weakThis](const std::function<void()>& task) {
+            if (auto sp = weakThis.lock()) {
+                sp->PostTask(task);
+            }
+        };
+    }
+
+    postFunc([&taskExecuted]() { taskExecuted.store(true); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    EXPECT_FALSE(taskExecuted.load());
 }
 } // namespace Rosen
 } // namespace OHOS

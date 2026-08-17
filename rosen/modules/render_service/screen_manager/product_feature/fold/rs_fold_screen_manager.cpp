@@ -74,15 +74,14 @@ void RSFoldScreenManager::HandleSensorData(float angle, float abAngle)
 {
     if (std::isless(angle, ANGLE_MIN_VAL) || std::isgreater(angle, ANGLE_MAX_VAL) ||
         std::isless(abAngle, ANGLE_MIN_VAL) || std::isgreater(abAngle, ANGLE_MAX_VAL)) {
-        RS_LOGW("%{public}s Invalid angle value, angle is %{public}f. abAngle is %{public}f",
-            __func__, angle, abAngle);
+        RS_LOGW("%{public}s Invalid angle value, angle is %{public}f. abAngle:%{public}f", __func__, angle, abAngle);
         return;
     }
 
     // abAngle(default is 0) and angle both fold, and externalScreenId_ not be INVALID_SCREEN_ID,
     // targetScreenId will be externalScreenId_
-    ScreenId targetScreenId = ((TransferAngleToScreenState(angle) == FoldState::FOLDED) &&
-        (TransferAngleToScreenState(abAngle) == FoldState::FOLDED) && (externalScreenId_ != INVALID_SCREEN_ID))
+    ScreenId targetScreenId = (TransferAngleToScreenState(angle) == FoldState::FOLDED &&
+        TransferAngleToScreenState(abAngle) == FoldState::FOLDED && externalScreenId_ != INVALID_SCREEN_ID)
         ? externalScreenId_ : innerScreenId_;
     std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
     if (activeScreenId_ != targetScreenId) {
@@ -201,7 +200,8 @@ void RSFoldScreenManager::HandlePostureData(const SensorEvent* const event)
     PostureData* postureData = reinterpret_cast<PostureData*>(event[SENSOR_EVENT_FIRST_DATA].data);
     float angle = postureData->angle;
     float abAngle = postureData->abAngle;
-    RS_LOGD("%{public}s angle value in PostureData is: %{public}f. abAngle:%{public}f", __func__, angle, abAngle);
+    RS_LOGD_IF(DEBUG_SCREEN, "%{public}s angle value in PostureData is: %{public}f. abAngle:%{public}f",
+        __func__, angle, abAngle);
     mainHandler_->PostTask([this, angle, abAngle]() { HandleSensorData(angle, abAngle); },
         AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }

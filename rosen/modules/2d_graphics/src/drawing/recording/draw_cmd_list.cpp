@@ -139,6 +139,7 @@ void DrawCmdList::SetNoNeedUICaptured(bool noNeedUICaptured)
 
 bool DrawCmdList::IsEmpty() const
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
         return drawOpItems_.empty();
     }
@@ -217,7 +218,8 @@ void DrawCmdList::MarshallingDrawOps()
         if (drawOpItems_[index]) {
             drawOpItems_[index]->Marshalling(*this);
         }
-        if (index == static_cast<size_t>(replacedOpListForVector_[opReplaceIndex].first)) {
+        if (opReplaceIndex < replacedOpListForVector_.size() &&
+            index == static_cast<size_t>(replacedOpListForVector_[opReplaceIndex].first)) {
             opIndexForCache[opReplaceIndex] = lastOpItemOffset_.value();
             ++opReplaceIndex;
         }
@@ -484,7 +486,9 @@ void DrawCmdList::ClearCache()
 #ifdef ROSEN_OHOS
     // restore the original op
     for (auto& [index, op] : replacedOpListForVector_) {
-        op.swap(drawOpItems_[index]);
+        if (index < static_cast<int>(drawOpItems_.size())) {
+            op.swap(drawOpItems_[index]);
+        }
     }
     replacedOpListForVector_.clear();
     replacedOpListForBuffer_.clear();

@@ -37,6 +37,7 @@ group("unittest") {
     "animation:RSAnimationTest3",
     "animation:RSAnimationTest4",
     "animation:RSAnimationTest5",
+    "animation:RSSymbolAnimationTest",
     "ui_effect:unittest",
   ]
 

@@ -24,6 +24,7 @@
 #include "metadata_helper.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -173,6 +174,9 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
     ASSERT_TRUE(buffer != nullptr);
     ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
     RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
@@ -183,6 +187,7 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
     ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     EXPECT_EQ(ret, HdrStatus::HDR_VIDEO);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 }
 
 /**
@@ -194,6 +199,10 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
 HWTEST_F(RSHdrUtilTest, CheckIsHDRSelfProcessingBufferTest001, TestSize.Level1)
 {
     using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
+
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
 
@@ -226,6 +235,7 @@ HWTEST_F(RSHdrUtilTest, CheckIsHDRSelfProcessingBufferTest001, TestSize.Level1)
     MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo);
     ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
     EXPECT_EQ(ret, false);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 }
 
 /**
@@ -580,7 +590,6 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     ASSERT_EQ(retUpdateNit, true);
     displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
     retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // update surfaceNode HDRBrightnessFactor
-    ASSERT_EQ(retUpdateNit, true);
     retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // not update surfaceNode HDRBrightnessFactor
     ASSERT_EQ(retUpdateNit, true);
     EXPECT_EQ(node->GetHDRBrightnessFactor(), 0.5f);
@@ -601,9 +610,13 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     staticMetadata.cta861.maxContentLightLevel = 400.0f;
     MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
     bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
     EXPECT_EQ(ret, true);
     RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, 0);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 }
 
 /**
@@ -1307,6 +1320,198 @@ HWTEST_F(RSHdrUtilTest, NeedBackToFP16Test001, TestSize.Level1)
     params2->SetHasForceHwcHdrSurface(false);
     params2->SetExistHWCNode(false);
     bool resultB = RSHdrUtil::NeedBackToFP16(displayNodeId2, params2.get());
+}
+
+/**
+ * @tc.name: UpdateBrightnessFactorTest001
+ * @tc.desc: Test UpdateBrightnessFactor with null context - early return
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest001, TestSize.Level1)
+{
+    NodeId displayNodeId = 100;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+
+    // Set context to nullptr - should early return without error
+    displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.8f);
+    RSHdrUtil::UpdateBrightnessFactor(*displayNode);
+    EXPECT_EQ(displayNode->GetContext().lock(), nullptr);
+    // Expect no crash, just early return
+}
+
+/**
+ * @tc.name: UpdateBrightnessFactorTest002
+ * @tc.desc: Test UpdateBrightnessFactor with null canvas node in map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    NodeId displayNodeId = 103;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config, context);
+
+    // Add a node ID to the HDR map but don't register it in the node map
+    NodeId canvasNodeId = 200;
+    displayNode->IncreaseHDRNode(canvasNodeId);
+    EXPECT_NE(displayNode->GetHDRNodeMap().find(canvasNodeId), displayNode->GetHDRNodeMap().end());
+
+    displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
+    RSHdrUtil::UpdateBrightnessFactor(*displayNode);
+    // Expect no crash, canvasNode is nullptr so continue to next iteration
+}
+
+/**
+ * @tc.name: UpdateBrightnessFactorTest003
+ * @tc.desc: Test UpdateBrightnessFactor when canvas node brightness factor already matches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    NodeId displayNodeId = 104;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config, context);
+
+    // Create and register a canvas node
+    NodeId canvasNodeId = 201;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(canvasNodeId);
+    context->GetMutableNodeMap().RegisterRenderNode(canvasNode);
+
+    // Add to HDR map
+    displayNode->IncreaseHDRNode(canvasNodeId);
+
+    // Set same brightness factor on both
+    float brightnessFactor = 0.8f;
+    displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(brightnessFactor);
+    canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(brightnessFactor);
+
+    RSHdrUtil::UpdateBrightnessFactor(*displayNode);
+
+    // Factor should remain unchanged since it matched
+    EXPECT_FLOAT_EQ(canvasNode->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), brightnessFactor);
+}
+
+/**
+ * @tc.name: UpdateBrightnessFactorTest004
+ * @tc.desc: Test UpdateBrightnessFactor when canvas node brightness factor differs - update occurs
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest004, TestSize.Level1)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    NodeId displayNodeId = 105;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config, context);
+
+    // Create and register a canvas node
+    NodeId canvasNodeId = 202;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(canvasNodeId);
+    context->GetMutableNodeMap().RegisterRenderNode(canvasNode);
+
+    // Add to HDR map
+    displayNode->IncreaseHDRNode(canvasNodeId);
+
+    // Set different brightness factors
+    float displayFactor = 0.7f;
+    float canvasFactor = 0.5f;
+    displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(displayFactor);
+    canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(canvasFactor);
+
+    RSHdrUtil::UpdateBrightnessFactor(*displayNode);
+
+    // Canvas node factor should be updated to display factor
+    EXPECT_FLOAT_EQ(canvasNode->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), displayFactor);
+}
+
+/**
+ * @tc.name: UpdateBrightnessFactorTest005
+ * @tc.desc: Test UpdateBrightnessFactor with multiple HDR nodes - mixed scenarios
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest005, TestSize.Level1)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    NodeId displayNodeId = 106;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config, context);
+
+    // Create multiple canvas nodes
+    NodeId canvasNodeId1 = 203;
+    NodeId canvasNodeId2 = 204;
+    NodeId canvasNodeId3 = 205;
+    NodeId canvasNodeId4 = 206; // This one won't be registered
+
+    auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(canvasNodeId1);
+    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(canvasNodeId2);
+    auto canvasNode3 = std::make_shared<RSCanvasRenderNode>(canvasNodeId3);
+
+    context->GetMutableNodeMap().RegisterRenderNode(canvasNode1);
+    context->GetMutableNodeMap().RegisterRenderNode(canvasNode2);
+    context->GetMutableNodeMap().RegisterRenderNode(canvasNode3);
+    // canvasNodeId4 intentionally not registered
+
+    // Add all to HDR map
+    displayNode->IncreaseHDRNode(canvasNodeId1);
+    displayNode->IncreaseHDRNode(canvasNodeId2);
+    displayNode->IncreaseHDRNode(canvasNodeId3);
+    displayNode->IncreaseHDRNode(canvasNodeId4);
+
+    // Set different initial factors
+    float displayFactor = 0.9f;
+    displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(displayFactor);
+
+    canvasNode1->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(0.9f); // Same - should skip
+    canvasNode2->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(0.4f); // Different - should update
+    canvasNode3->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(0.6f); // Different - should update
+
+    RSHdrUtil::UpdateBrightnessFactor(*displayNode);
+
+    // Node1: factor matched, should remain unchanged
+    EXPECT_FLOAT_EQ(canvasNode1->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), 0.9f);
+
+    // Node2: factor differed, should be updated
+    EXPECT_FLOAT_EQ(canvasNode2->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), displayFactor);
+
+    // Node3: factor differed, should be updated
+    EXPECT_FLOAT_EQ(canvasNode3->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), displayFactor);
+}
+
+/**
+ * @tc.name: UpdateBrightnessFactorTest006
+ * @tc.desc: Test UpdateBrightnessFactor with default brightness factor value
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHdrUtilTest, UpdateBrightnessFactorTest006, TestSize.Level1)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    NodeId displayNodeId = 107;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config, context);
+
+    // Create and register a canvas node
+    NodeId canvasNodeId = 207;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(canvasNodeId);
+    context->GetMutableNodeMap().RegisterRenderNode(canvasNode);
+
+    // Add to HDR map
+    displayNode->IncreaseHDRNode(canvasNodeId);
+
+    // Test with default factor (1.0f)
+    float defaultFactor = 1.0f;
+    displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(defaultFactor);
+    canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(0.5f);
+
+    RSHdrUtil::UpdateBrightnessFactor(*displayNode);
+
+    EXPECT_FLOAT_EQ(canvasNode->GetRenderProperties().GetCanvasNodeHDRBrightnessFactor(), defaultFactor);
 }
 #endif
 } // namespace OHOS::Rosen

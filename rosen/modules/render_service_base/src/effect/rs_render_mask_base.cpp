@@ -97,7 +97,7 @@ std::shared_ptr<RSNGRenderMaskBase> RSNGRenderMaskBase::Create(RSNGEffectType ty
         }
 
         auto mask = Create(static_cast<RSNGEffectType>(type));
-        if (mask && !mask->OnUnmarshalling(parcel)) {
+        if (!mask || !mask->OnUnmarshalling(parcel)) {
             ROSEN_LOGE("RSNGRenderMaskBase: Unmarshalling mask failed with type %{public}d", type);
             return false;
         }

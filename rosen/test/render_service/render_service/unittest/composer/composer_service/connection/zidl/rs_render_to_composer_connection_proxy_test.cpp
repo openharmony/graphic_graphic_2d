@@ -459,4 +459,47 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest,
     EXPECT_TRUE(stub->markTunnelInvalidCalled);
     EXPECT_EQ(stub->markTunnelInvalidSurfaceId, surfaceId3);
 }
+
+/**
+ * Function: Proxy_SendLayers_RemoteNull_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with nullptr remote
+ *                  2. call SendLayers
+ *                  3. expect COMPOSITOR_ERROR_BINDER_ERROR (remote == nullptr true branch)
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendLayers_RemoteNull_TrueBranch, TestSize.Level1)
+{
+    sptr<IRemoteObject> nullObj = nullptr;
+    RSRenderToComposerConnectionProxy proxy(nullObj);
+    ASSERT_EQ(nullObj, nullptr);
+
+    std::vector<std::shared_ptr<MessageParcel>> parcels;
+    auto parcel = std::make_shared<MessageParcel>();
+    parcels.push_back(parcel);
+    RSComposerError ret = proxy.SendLayers(parcels);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * Function: Proxy_SendLayers_RemoteValid_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create stub/proxy pair with valid remote
+ *                  2. call SendLayers with empty parcels
+ *                  3. expect COMPOSITOR_ERROR_OK (remote != nullptr false branch, loop body skipped)
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendLayers_RemoteValid_FalseBranch, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+    ASSERT_NE(stub->AsObject(), nullptr);
+
+    std::vector<std::shared_ptr<MessageParcel>> parcels;
+    RSComposerError ret = proxy.SendLayers(parcels);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+}
 } // namespace OHOS::Rosen

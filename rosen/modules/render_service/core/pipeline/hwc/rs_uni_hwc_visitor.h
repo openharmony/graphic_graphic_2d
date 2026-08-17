@@ -47,16 +47,13 @@ public:
     void CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
     void UpdateHwcNodeEnable();
-#ifdef RS_ENABLE_TV_SHUTTER_3D
-    void UpdateHwcNodeEnableByShutter3DLayer();
-#endif
     void UpdateHwcNodeEnableByNodeBelow();
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
     void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         std::vector<RectI>& hwcRects);
     void UpdateHardwareStateByBoundNEDstRectInApps(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
-        std::vector<RectI>& abovedBounds);
+        std::vector<std::pair<RectI, RectI>>& abovedBoundDstRects);
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
         RectI& backgroundAlphaRect, bool& isHardwareEnableByBackgroundAlpha);
@@ -106,7 +103,7 @@ private:
 
     // Functions
     void CheckHwcNodeFilterIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-        const std::vector<std::pair<std::shared_ptr<RSRenderNode>, RectI>>& filterNodes);
+        const std::vector<std::tuple<std::shared_ptr<RSRenderNode>, RectI, bool>>& filterNodes);
     bool IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
     void UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
         Drawing::Rect& childRectMapped);

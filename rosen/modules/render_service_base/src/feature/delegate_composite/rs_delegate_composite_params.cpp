@@ -38,8 +38,7 @@ const Vector4f& RsDelegateCompositeParams::GetDelegateDstRect()
     return delegateDstRect_;
 }
 
-void RsDelegateCompositeParams::SetDelegateSrcRect(float positionX, float positionY,
-    float positionZ, float positionW)
+void RsDelegateCompositeParams::SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW)
 {
     delegateSrcRect_.x_ = positionX;
     delegateSrcRect_.y_ = positionY;

@@ -110,8 +110,12 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
                 uint32_t solidFilledColor = 0;
                 auto ret = output->GetLayerSolidFilledColor(layer->GetRSLayerId(), solidFilledColor);
                 if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+                    RS_TRACE_NAME_FMT("GetLayerSolidFilledColor fail ret:%d, layerId:%" PRIu64,
+                        ret, layer->GetRSLayerId());
                     continue;
                 }
+                RS_TRACE_NAME_FMT("GetLayerSolidFilledColor layerId:%" PRIu64 " solidFilledColor %u",
+                    layer->GetRSLayerId(), solidFilledColor);
                 Drawing::AutoCanvasRestore acr(canvas, true);
                 const auto& dstRect = layer->GetLayerSize();
                 Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
@@ -184,6 +188,7 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const R
         layerBackgroundColor.r, layerBackgroundColor.g,
         layerBackgroundColor.b, layerBackgroundColor.a
     };
+
     // clip round rect when drm has radius info
     if (!drmCornerRadiusInfo.empty()) {
         auto rect = RectF();

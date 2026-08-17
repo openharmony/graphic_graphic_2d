@@ -160,7 +160,7 @@ public:
 
     const std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const
     {
-        RS_LOGD("You'd better to call GetRenderEngine from RSUniRenderThread directly");
+        RS_LOGD_IF(DEBUG_PIPELINE, "You'd better to call GetRenderEngine from RSUniRenderThread directly");
 #ifdef RS_ENABLE_GPU
         return isUniRender_ ? std::move(RSUniRenderThread::Instance().GetRenderEngine()) : renderEngine_;
 #else
@@ -341,6 +341,7 @@ public:
 
     bool IsPCThreeFingerScenesListScene() const
     {
+        std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
         return !threeFingerScenesList_.empty();
     }
 
@@ -509,7 +510,7 @@ public:
     // for surface fps op
     void AddSurfaceFpsOp(const SurfaceFpsOp& op);
     std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
-    void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
+    void RemoveSurfaceFpsOp(const std::vector<SurfaceFpsOp>& removeList);
 
     // for rebuild transaction
     bool IsRebuildTransactionInProgress() const;
@@ -535,11 +536,14 @@ private:
     void ProcessCommand();
     void CreateScreenNode(const sptr<RSScreenProperty>& property);
     void DestroyScreenNode(ScreenId screenId);
+    void CreateProtectiveSolidRenderNode(ScreenId screenId);
+    void DestroyProtectiveSolidRenderNode(ScreenId screenId, NodeId nodeId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void HandlePhysicalModeParamsChanged(
         ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void HandleProtectiveSolidNode(ScreenId id);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
@@ -862,7 +866,7 @@ private:
     // for surface occlusion change callback
     std::mutex surfaceOcclusionMutex_;
     std::vector<NodeId> lastRegisteredSurfaceOnTree_;
-    std::mutex systemAnimatedScenesMutex_;
+    mutable std::mutex systemAnimatedScenesMutex_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> systemAnimatedScenesList_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> threeFingerScenesList_;
     std::unordered_map<NodeId, // map<node ID, <pid, callback, partition points vector, level>>
@@ -927,11 +931,14 @@ private:
 
     // for surface fps op
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
-    std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
+    std::unordered_map<NodeId, SurfaceFpsOp> removeSurfaceFpsOpMap_;
 
     // for rebuild transaction
     std::deque<std::unique_ptr<RSTransactionData>> pendingSplitTransactions_;
     pid_t pendingSplitPid_ = -1;
+
+    // for protectiveSolidNode
+    std::unordered_map<ScreenId, NodeId> protectiveSolidNodeIdMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

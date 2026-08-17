@@ -91,8 +91,6 @@ private:
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSLogicalDisplayRenderNode> node,
         bool isHDRCapture = false);
-    
-    bool CreateResourcesForClientPixelMap(const std::shared_ptr<RSRenderNode>& node);
 
     void AddBlur(RSPaintFilterCanvas& canvas, const std::shared_ptr<Drawing::Surface>& surface, float blurRadius);
 

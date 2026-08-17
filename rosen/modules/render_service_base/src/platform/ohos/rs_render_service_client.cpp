@@ -1677,6 +1677,15 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     }
 }
 
+bool RSRenderServiceClient::SetHgmExclusiveScreen(std::optional<ScreenId> screenId)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService != nullptr) {
+        return clientToService->SetHgmExclusiveScreen(screenId);
+    }
+    return false;
+}
+
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();
@@ -1749,15 +1758,6 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
     if (clientToService != nullptr) {
         clientToService->SetOnRemoteDiedCallback(callback);
     }
-}
-
-int32_t RSRenderServiceClient::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
-{
-    auto clientToService = RSConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
-    return clientToService->SendVideoRateInfo(videoRateInfo);
 }
 
 #ifndef ENABLE_RS_PROXY
@@ -1865,7 +1865,7 @@ public:
 
     void OnUIExtension(std::shared_ptr<RSUIExtensionData> uiExtensionData, uint64_t userId) override
     {
-        if (cb_ != nullptr) {
+        if (cb_ != nullptr && uiExtensionData != nullptr) {
             cb_(uiExtensionData, userId);
         }
     }
@@ -1925,7 +1925,7 @@ public:
     ~TransactionDataCallbackDirector() noexcept override = default;
     void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
-        RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
+        RS_LOGD_IF(DEBUG_IPC, "OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
             PRIu64 " token: %{public}" PRIu64, timeStamp, token);
         client_->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     }
@@ -2011,6 +2011,16 @@ int32_t RSRenderServiceClient::SetOverlayDisplayMode(int32_t mode)
     return clientToService->SetOverlayDisplayMode(mode);
 }
 #endif
+
+int32_t RSRenderServiceClient::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    int32_t ret = RENDER_SERVICE_NULL;
+    if (clientToService != nullptr) {
+        ret = clientToService->SendVideoRateInfo(videoRateInfo);
+    }
+    return ret;
+}
 
 void RSRenderServiceClient::NotifyPageName(const std::string& packageName,
     const std::string& pageName, bool isEnter)

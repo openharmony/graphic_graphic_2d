@@ -17,13 +17,13 @@
 
 #include <ibuffer_consumer_listener.h>
 
-#include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_surface_handler.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSCanvasDrawingNodeBufferConsumerListener : public IBufferConsumerListener {
 public:
-    explicit RSCanvasDrawingNodeBufferConsumerListener(std::weak_ptr<RSContext> rsContext, NodeId nodeId);
+    explicit RSCanvasDrawingNodeBufferConsumerListener(std::weak_ptr<RSSurfaceHandler> surfaceHandler, NodeId nodeId);
     ~RSCanvasDrawingNodeBufferConsumerListener() override;
 
     void OnBufferAvailable() override;
@@ -33,15 +33,12 @@ public:
     void OnTransformChange() override;
 
 private:
-    std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler(std::shared_ptr<RSContext> rsContext);
-
     void CleanBuffers();
 
     static void CollectBuffersForClean(
         std::set<uint64_t>& bufferCacheSet, std::shared_ptr<RSSurfaceHandler> surfaceHandler);
 
-    std::weak_ptr<RSContext> rsContext_ = {};
-    std::weak_ptr<RSCanvasDrawingRenderNode> node_ = {};
+    std::weak_ptr<RSSurfaceHandler> surfaceHandler_ = {};
     NodeId nodeId_ = 0;
 };
 } // namespace Rosen

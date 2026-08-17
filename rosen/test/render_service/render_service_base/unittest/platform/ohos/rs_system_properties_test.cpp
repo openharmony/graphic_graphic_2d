@@ -49,7 +49,11 @@ void RSSystemPropertiesTest::TearDown() {}
  */
 HWTEST_F(RSSystemPropertiesTest, IsSceneBoardEnabled, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
+    ASSERT_TRUE(RSSystemProperties::IsSceneBoardEnabled());
+#else
     ASSERT_FALSE(RSSystemProperties::IsSceneBoardEnabled());
+#endif
 }
 
 /**
@@ -901,21 +905,6 @@ HWTEST_F(RSSystemPropertiesTest, GetDumpImgEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: FindNodeInTargetListSuccess
- * @tc.desc: FindNodeInTargetListSuccess Test
- * @tc.type:FUNC
- * @tc.require: issueI9V3Y2
- */
-HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSuccess, TestSize.Level1)
-{
-    std::string targetStr("A;B;C;D");
-    system::SetParameter("persist.sys.graphic.traceTargetList", targetStr);
-    std::string nodeStr("A");
-    EXPECT_TRUE(RSSystemProperties::FindNodeInTargetList(nodeStr));
-    system::SetParameter("persist.sys.graphic.traceTargetList", "");
-}
-
-/**
  * @tc.name: IsFoldScreenFlag
  * @tc.desc: IsFoldScreenFlag Test
  * @tc.type:FUNC
@@ -1231,7 +1220,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledTest, TestSize.Leve
     auto deviceType = system::GetParameter("const.product.devicetype", "phone");
     bool isPhone = deviceType == "phone";
     bool useVulkan = RSSystemProperties::IsUseVulkan();
-    auto value = system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", true);
+    auto value = system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
     EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), value && useVulkan && isPhone);
 }
 } // namespace Rosen

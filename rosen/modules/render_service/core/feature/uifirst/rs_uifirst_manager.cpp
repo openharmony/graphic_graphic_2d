@@ -823,7 +823,13 @@ void RSUifirstManager::DoPurgePendingPostNodes(PendingPostNodeMap& pendingNode)
         // Reset contentStatic if not purged
         subThreadCache.SetUifirstSurfaceCacheContentStatic(true);
 
-        SyncHDRDisplayParam(drawable, node->GetFirstLevelNodeColorGamut());
+        auto uifirstColorGamut = node->GetFirstLevelNodeColorGamut();
+        bool useNodeColorSpace = node->GetUifirstRootNodeId() != INVALID_NODEID &&
+            ColorGamutParam::IsAdaptiveColorGamutEnabled();
+        if (useNodeColorSpace) {
+            uifirstColorGamut = node->GetNodeColorSpace();
+        }
+        SyncHDRDisplayParam(drawable, uifirstColorGamut);
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         if (!surfaceParams) {
             ++it;
@@ -1243,8 +1249,7 @@ void RSUifirstManager::SetNodePriority(std::list<NodeId>& result, PendingPostNod
                 focusNodeThreadIndex_ = rsSubThreadCache.GetLastFrameUsedThreadIndex();
             }
         }
-        if (RSSystemProperties::GetUIFirstOptScheduleEnabled() &&
-            rsSubThreadCache.GetSurfaceSkipCount() >= UIFIRST_TASKSKIP_PRIO_THRESHOLD) {
+        if (rsSubThreadCache.GetSurfaceSkipCount() >= UIFIRST_TASKSKIP_PRIO_THRESHOLD) {
             postOrder += rsSubThreadCache.GetSurfaceSkipPriority();
         }
         rsSubThreadCache.SetUifirstPostOrder(postOrder);
@@ -1293,9 +1298,6 @@ void RSUifirstManager::SortSubThreadNodesPriority()
 
 void RSUifirstManager::MarkPostNodesPriority()
 {
-    if (!RSSystemProperties::GetUIFirstOptScheduleEnabled()) {
-        return;
-    }
     int postTaskCount = 0;
     for (auto& id : sortedSubThreadNodeIds_) {
         auto drawable = GetSurfaceDrawableByID(id);

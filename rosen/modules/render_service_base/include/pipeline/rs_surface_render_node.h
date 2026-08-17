@@ -685,7 +685,7 @@ public:
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
         bool isParentPrepareInReverseOrder = false) override;
     // keep specified nodetype preparation
-    virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -830,8 +830,6 @@ public:
     {
         uifirstState_.forceUpdate = b;
     }
-
-    bool IsFullScreen() const;
 
     VideoDimType GetVideoDimType() const;
 
@@ -2248,7 +2246,6 @@ private:
     float hdrBrightnessFactor_ = 1.0f; // no discount by default
     float hdrDimmingFactor_ = 1.0f; // no discount by default
     float localZOrder_ = 0.0f;
-    uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     uint32_t wideColorGamutWindowCount_ = 0;

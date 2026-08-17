@@ -47,8 +47,6 @@
 #include "opinc_param.h"
 #include "rotateoffscreen_param_parse.h"
 #include "rotateoffscreen_param.h"
-#include "speciallayer_param.h"
-#include "speciallayer_param_parse.h"
 #include "subtree_parallel_param.h"
 #include "subtree_parallel_param_parse.h"
 #include "uifirst_param_parse.h"
@@ -65,6 +63,8 @@
 #include "surface_capture_param.h"
 #include "gpu_resource_release_param_parse.h"
 #include "gpu_resource_release_param.h"
+#include "speciallayer_param.h"
+#include "speciallayer_param_parse.h"
 #include "ui_capture_param_parse.h"
 #include "ui_capture_param.h"
 #include "image_enhance_param_parse.h"
@@ -89,6 +89,7 @@ struct ModuleConfig {
     std::function<std::unique_ptr<XMLParserBase>()> xmlParser;
     std::function<std::unique_ptr<FeatureParam>()> featureParam;
 };
+
 
 class GraphicFeatureParamManager : public RefBase {
 public:

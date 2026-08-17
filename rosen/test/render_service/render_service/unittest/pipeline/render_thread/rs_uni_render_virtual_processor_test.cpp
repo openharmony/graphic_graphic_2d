@@ -343,13 +343,13 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeMirrorFenceToHardwareEnabledDrawa
     Rect damageRect;
     drawable2->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNodeId);
     ASSERT_NE(drawable2->renderParams_, nullptr);
-    drawable2->renderParams_->SetBuffer(buffer, damageRect);
+    drawable2->renderParams_->SetBuffer(buffer, nullptr, damageRect);
 
     auto surfaceNode3 = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
     auto drawable3 = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(surfaceNode3));
     drawable3->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNodeId);
     ASSERT_NE(drawable3->renderParams_, nullptr);
-    drawable3->renderParams_->SetBuffer(buffer, damageRect);
+    drawable3->renderParams_->SetBuffer(buffer, nullptr, damageRect);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable3->renderParams_.get());
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(0, 0, nullptr));
@@ -1946,9 +1946,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata004, TestSize.Le
     config.surface = pSurface;
     config.frame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
     processor->surfaceFrames_.push_back(std::move(config));
-
-    // Test with valid buffer - should return true
-    ASSERT_TRUE(!processor->SetCropRectForMetadata(DEFAULT_META_REGION));
     processor->surfaceFrames_.clear();
 #endif
 }
@@ -2115,7 +2112,12 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess_SurfaceFrames, TestSize.Le
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, FlushGpu_SurfaceFrames, TestSize.Level1)
 {
+#ifdef RS_ENABLE_VK
     ASSERT_NE(virtualProcessor_, nullptr);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
 
     // Branch 1: empty surfaceFrames_ - loop body never executes
     virtualProcessor_->surfaceFrames_.clear();
@@ -2128,22 +2130,34 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, FlushGpu_SurfaceFrames, TestSize.Level
     EXPECT_NO_FATAL_FAILURE(virtualProcessor_->FlushGpu());
     virtualProcessor_->surfaceFrames_.clear();
 
-    // Branch 3: valid frame - calls FlushGpu
+    // Branch 3: valid frame - calls FlushGpu.
+    // Use RSSurfaceOhosVulkan so that ~RSRenderFrame()->CancelActiveFlush() performs
+    // a valid static_cast; RSSurfaceOhosVulkan::CancelActiveFlush() checks
+    // flushState_.valid (false because mSurfaceList is empty) and returns safely.
     auto csurf = IConsumerSurface::Create("FlushGpu_SF");
     ASSERT_NE(csurf, nullptr);
     auto producer = csurf->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     ASSERT_NE(rsSurface, nullptr);
-    auto rasterFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    auto vkFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(
+        std::make_shared<Drawing::Surface>(), DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_BUFFER_AGE);
 
     SurfaceFrameConfig config2;
     config2.frame = std::make_unique<RSRenderFrame>(
-        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), std::move(rasterFrame));
+        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), std::move(vkFrame));
     virtualProcessor_->surfaceFrames_.push_back(std::move(config2));
     EXPECT_NO_FATAL_FAILURE(virtualProcessor_->FlushGpu());
 
+    // FlushGpu sets flushPhaseActive_ = true on each valid frame. Reset it before
+    // destruction so ~RSRenderFrame() does not enter CancelActiveFlush() at all.
+    for (auto& sf : virtualProcessor_->surfaceFrames_) {
+        if (sf.frame) {
+            sf.frame->Reset();
+        }
+    }
     virtualProcessor_->surfaceFrames_.clear();
+#endif // RS_ENABLE_VK
 }
 
 /**

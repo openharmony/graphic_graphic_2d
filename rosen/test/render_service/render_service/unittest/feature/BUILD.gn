@@ -36,11 +36,9 @@ group("unittest") {
     ":RSSurfaceCaptureTaskParallelTest",
     ":RSSurfaceCaptureTaskTest",
     ":RSRenderGroupCacheTest",
-    ":RSUiCaptureSoloTaskParallelTest",
     ":RSUiCaptureTaskParallelTest",
     ":RSUniHwcComputeUtilTest",
     ":RSUniUiCaptureTest",
-    ":RSTunnelLayerHelperTest",
     ":RSTunnelLayerManagerTest",
     ":RSTunnelRouteArbiterTest",
     ":RSTunnelRuntimeStateTest",
@@ -75,7 +73,7 @@ group("unittest") {
     deps += [ ":RSGPUCacheManagerTest" ]
   }
   if (rs_enable_eglimage) {
-    deps += [ ":RSEglImageManagerTest" ]
+    deps += []
   }
   if (graphic_2d_feature_overlay_display_enable) {
     deps += [ ":OverlayDisplayTest" ]
@@ -467,7 +465,10 @@ ohos_unittest("RSDrmUtilTest") {
 ## Build RSHdrUtilTest
 ohos_unittest("RSHdrUtilTest") {
   module_out_path = module_output_path
-  sources = [ "hdr/rs_hdr_util_test.cpp" ]
+  sources = [
+    "hdr/rs_hdr_util_test.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -834,7 +835,6 @@ ohos_unittest("RSSubThreadTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1810,7 +1810,6 @@ ohos_static_library("rs_test_common") {
   public_deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",

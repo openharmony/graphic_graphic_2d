@@ -1374,7 +1374,7 @@ HWTEST_F(RSTransactionHandlerTest, DumpCommandTest, TestSize.Level1)
     transaction->FlushImplicitTransaction();
     dumpString.clear();
     transaction->DumpCommand(dumpString);
-    ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionData") == std::string::npos);
+    ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionData") != std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionData") == std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionDataStack") == std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionDataStack") == std::string::npos);
@@ -2170,5 +2170,34 @@ HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdExcludeTreeCommands0
     EXPECT_FALSE(curTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
 }
 
+/**
+ * @tc.name: GetTransactionDataIndex001
+ * @tc.desc: Test GetTransactionDataIndex with atomic load/store on callback and direct paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, GetTransactionDataIndex001, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_EQ(transaction->GetTransactionDataIndex(), 0);
+    auto pipelineClient = std::make_shared<RSRenderPipelineClient>();
+    transaction->renderPipelineClient_ = pipelineClient;
+    constexpr uint32_t expectedIndex = 42;
+    transaction->SetCommitTransactionCallback(
+        [&expectedIndex](std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&,
+            std::atomic<uint32_t>& index) { index.store(expectedIndex, std::memory_order_relaxed); });
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    transaction->FlushImplicitTransaction(1);
+    ASSERT_EQ(transaction->GetTransactionDataIndex(), expectedIndex);
+    // Direct path: remove callback, store comes from GetIndex()
+    transaction->SetCommitTransactionCallback(nullptr);
+    std::unique_ptr<RSCommand> command2 =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    transaction->AddRemoteCommand(command2, nodeId, FollowType::NONE);
+    transaction->FlushImplicitTransaction(1);
+    ASSERT_NE(transaction->GetTransactionDataIndex(), expectedIndex);
+}
 } // namespace Rosen
 } // namespace OHOS

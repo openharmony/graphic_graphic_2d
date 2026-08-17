@@ -146,7 +146,15 @@ void RSKeyframeAnimation::OnStart()
         return;
     }
     auto animation = CreateRenderAnimation();
+    if (animation == nullptr) {
+        ROSEN_LOGE("RSKeyframeAnimation::OnStart, CreateRenderAnimation failed");
+        return;
+    }
     if (isCustom_) {
+        if (property_ == nullptr) {
+            ROSEN_LOGE("RSKeyframeAnimation::OnStart, property is null");
+            return;
+        }
         SetPropertyValue(originValue_);
         property_->UpdateCustomAnimation();
         animation->AttachRenderProperty(property_->GetRenderProperty());
@@ -158,6 +166,10 @@ void RSKeyframeAnimation::OnStart()
 
 std::shared_ptr<RSRenderKeyframeAnimation> RSKeyframeAnimation::CreateRenderAnimation()
 {
+    if (originValue_ == nullptr) {
+        ROSEN_LOGE("RSKeyframeAnimation::CreateRenderAnimation, originValue is null");
+        return nullptr;
+    }
     auto animation = std::make_shared<RSRenderKeyframeAnimation>(GetId(), GetPropertyId(),
         originValue_->GetRenderProperty());
     animation->SetDurationKeyframe(isDurationKeyframe_);
@@ -188,6 +200,10 @@ void RSKeyframeAnimation::RebuildInRender()
         return;
     }
     auto animation = CreateRenderAnimation();
+    if (animation == nullptr) {
+        ROSEN_LOGE("RSKeyframeAnimation::RebuildInRender, CreateRenderAnimation failed");
+        return;
+    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationRebuildKeyframe>(
         target->GetId(), animation, GetRebuildParam().fraction, GetRebuildParam().isReverseCycle);
     target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());

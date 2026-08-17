@@ -476,4 +476,119 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLppLayerToRender_Rea
     int32_t r = proxy.NotifyLppLayerToRender(100u, ids);
     EXPECT_EQ(r, -1);
 }
+
+/**
+ * Function: Proxy_ReleaseLayerBuffers_RemoteNullptr_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with nullptr remote
+ *                  2. call ReleaseLayerBuffers and verify it returns COMPOSITOR_ERROR_BINDER_ERROR
+ *                  3. covers the (remote == nullptr) true branch added in the fix commit
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_RemoteNullptr_TrueBranch, TestSize.Level1)
+{
+    RSComposerToRenderConnectionProxy proxy(nullptr);
+    ReleaseLayerBuffersInfo info;
+    info.screenId = 1u;
+    int32_t r = proxy.ReleaseLayerBuffers(info);
+    EXPECT_EQ(r, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * Function: Proxy_NotifyLppLayerToRender_RemoteNullptr_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with nullptr remote
+ *                  2. call NotifyLppLayerToRender and verify it returns COMPOSITOR_ERROR_BINDER_ERROR
+ *                  3. covers the (remote == nullptr) true branch added in the fix commit
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLppLayerToRender_RemoteNullptr_TrueBranch, TestSize.Level1)
+{
+    RSComposerToRenderConnectionProxy proxy(nullptr);
+    std::unordered_set<uint64_t> ids { 1u, 2u };
+    int32_t r = proxy.NotifyLppLayerToRender(100u, ids);
+    EXPECT_EQ(r, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * Function: Proxy_NotifyLayerStateChangedToRender_RemoteNullptr_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with nullptr remote
+ *                  2. call NotifyLayerStateChangedToRender and verify it returns COMPOSITOR_ERROR_BINDER_ERROR
+ *                  3. covers the (remote == nullptr) true branch added in the fix commit
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLayerStateChangedToRender_RemoteNullptr_TrueBranch,
+    TestSize.Level1)
+{
+    RSComposerToRenderConnectionProxy proxy(nullptr);
+    int32_t r = proxy.NotifyLayerStateChangedToRender(999u, LayerStateChange::UNAVAILABLE, 77u);
+    EXPECT_EQ(r, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * Function: Proxy_ReleaseLayerBuffers_RemoteNotNull_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with a valid (non-null) remote
+ *                  2. call ReleaseLayerBuffers and verify it does NOT return COMPOSITOR_ERROR_BINDER_ERROR
+ *                  3. covers the (remote == nullptr) false branch added in the fix commit
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_RemoteNotNull_FalseBranch, TestSize.Level1)
+{
+    sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
+    bool cbCalled = false;
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) {
+        cbCalled = true;
+    });
+    RSComposerToRenderConnectionProxy proxy(stub->AsObject());
+
+    ReleaseLayerBuffersInfo info;
+    info.screenId = 7u;
+    int32_t r = proxy.ReleaseLayerBuffers(info);
+    EXPECT_NE(r, COMPOSITOR_ERROR_BINDER_ERROR);
+    EXPECT_TRUE(cbCalled);
+}
+
+/**
+ * Function: Proxy_NotifyLppLayerToRender_RemoteNotNull_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with a valid (non-null) remote
+ *                  2. call NotifyLppLayerToRender and verify it does NOT return COMPOSITOR_ERROR_BINDER_ERROR
+ *                  3. covers the (remote == nullptr) false branch added in the fix commit
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLppLayerToRender_RemoteNotNull_FalseBranch, TestSize.Level1)
+{
+    sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
+    RSComposerToRenderConnectionProxy proxy(stub->AsObject());
+
+    std::unordered_set<uint64_t> ids { 1u };
+    int32_t r = proxy.NotifyLppLayerToRender(100u, ids);
+    EXPECT_NE(r, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * Function: Proxy_NotifyLayerStateChangedToRender_RemoteNotNull_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with a valid (non-null) remote
+ *                  2. call NotifyLayerStateChangedToRender and verify it does NOT return COMPOSITOR_ERROR_BINDER_ERROR
+ *                  3. covers the (remote == nullptr) false branch added in the fix commit
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLayerStateChangedToRender_RemoteNotNull_FalseBranch,
+    TestSize.Level1)
+{
+    sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
+    RSComposerToRenderConnectionProxy proxy(stub->AsObject());
+
+    int32_t r = proxy.NotifyLayerStateChangedToRender(999u, LayerStateChange::UNAVAILABLE, 77u);
+    EXPECT_NE(r, COMPOSITOR_ERROR_BINDER_ERROR);
+}
 } // namespace OHOS::Rosen

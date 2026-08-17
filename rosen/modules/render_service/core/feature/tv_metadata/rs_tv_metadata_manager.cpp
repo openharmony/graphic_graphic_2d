@@ -36,9 +36,10 @@ constexpr uint8_t WIND_SIZE_SMALLSCREEN = 1;
 constexpr uint8_t SCALER_MODE_GPU = 3;
 constexpr uint8_t VIDEO_PLAYING_SCENE = 1;
 constexpr uint8_t VIDEO_PLAYING_NO_AIHDR_SCENE = 2;
-constexpr uint8_t PRIORITY_FOR_FULLSCREEN = 1;
+constexpr uint8_t PRIORITY_FOR_FULLSCREEN = 2;
 constexpr uint8_t PRIORITY_FOR_SMALLSCREEN = 1;
-constexpr uint8_t PRIORITY_FOR_VIDEO_EFFECT = 2;
+constexpr uint8_t PRIORITY_FOR_VIDEO_EFFECT = 4;
+constexpr uint8_t PRIORITY_FOR_VPE = 1;
 constexpr uint8_t RESERVED_INDEX_FOR_NODE_ID = 0;
 constexpr uint8_t RESERVED_INDEX_FOR_CACHE = 1;
 constexpr uint8_t RESERVED_INDEX_FOR_DIM = 2;
@@ -270,6 +271,9 @@ uint8_t RSTvMetadataManager::GetPriority(TvPQMetadata& metadata)
         return priority;
     }
     priority += PRIORITY_FOR_SMALLSCREEN;
+    if (metadata.sceneTag != VIDEO_PLAYING_NO_AIHDR_SCENE) {
+        priority += PRIORITY_FOR_VPE;
+    }
     if (metadata.vidWinSize == WIND_SIZE_FULLSCREEN) {
         priority += PRIORITY_FOR_FULLSCREEN;
     }
@@ -301,13 +305,15 @@ int32_t RSTvMetadataManager::SendVideoRateInfo(const std::unordered_map<std::str
 {
     auto rateIt = videoRateInfo.find(VIDEO_RATE_KEY);
     uint16_t rate{0};
-    if (rateIt != videoRateInfo.end()) {
-        auto resultRate =
-            std::from_chars(rateIt->second.data(), rateIt->second.data() + rateIt->second.size(), rate);
-        if (resultRate.ec != std::errc()) {
-            return -1;
-        }
+    if (rateIt == videoRateInfo.end()) {
+        return -1;
     }
+    auto resultRate =
+        std::from_chars(rateIt->second.data(), rateIt->second.data() + rateIt->second.size(), rate);
+    if (resultRate.ec != std::errc()) {
+        return -1;
+    }
+    videoRate_ = rate;
     uint32_t decSpeed{0};
     auto speedIt = videoRateInfo.find(VIDEO_DECSPEED_KEY);
     if (speedIt != videoRateInfo.end()) {
@@ -317,9 +323,8 @@ int32_t RSTvMetadataManager::SendVideoRateInfo(const std::unordered_map<std::str
             decSpeed = 0;
         }
     }
-    videoRate_ = rate;
-    if (decSpeed > DECODE_SPEED_BASE) {
-        videoRate_ = 0; // 倍速播放时，设置帧率信息无效，设置为0，不生效策略
+    if (decSpeed > 0 && decSpeed != DECODE_SPEED_BASE) {
+        videoRate_ = 0;
     }
     RS_LOGI("SendVideoRateInfo rate:%{public}d, decSpeed:%{public}d", rate, decSpeed);
     return 0;

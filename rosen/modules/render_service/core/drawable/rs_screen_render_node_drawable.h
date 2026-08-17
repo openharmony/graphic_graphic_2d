@@ -154,6 +154,17 @@ public:
     {
         firstBufferRotation_ = bufferRotation;
     }
+
+    bool IsFirstFrameFlushed() const
+    {
+        return firstFrameFlushed_;
+    }
+
+    void SetFirstFrameFlushed(bool flushed)
+    {
+        firstFrameFlushed_ = flushed;
+    }
+
     void CheckAndUpdateFilterCacheOcclusionFast();
 
 private:
@@ -224,12 +235,19 @@ private:
 
     bool accumulateDirtyInSkipFrame_ = false;
 
+    bool firstFrameFlushed_ = false;
+
 #ifdef USE_PRIMITIVE
     std::vector<RectI> lastDamageRegionrects_;
     bool lastIsRegionClipped_ = false;
 #endif
     friend class RSMultiScreenUtil;
 };
+
+void DrawEdgeGradientStrip(RSPaintFilterCanvas& canvas, float left, float top, float right, float bottom,
+    float gradStartY, float gradEndY);
+void DrawVerticalEdgeGradients(RSPaintFilterCanvas& canvas, const RectI& activeRect, int32_t canvasWidth,
+    int32_t canvasHeight);
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_DRAWABLE_RS_SCREEN_RENDER_NODE_DRAWABLE_H

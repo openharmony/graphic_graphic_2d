@@ -434,6 +434,10 @@ std::shared_ptr<Data> SkiaTypeface::Serialize() const
 
 std::shared_ptr<Typeface> SkiaTypeface::Deserialize(const void* data, size_t size)
 {
+    if (data == nullptr) {
+        LOGD("data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
     SkMemoryStream stream(data, size);
     auto skTypeface = SkTypeface::MakeDeserialize(&stream);
     if (!skTypeface) {

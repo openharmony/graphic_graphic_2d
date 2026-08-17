@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <refbase.h>
 #include "common/rs_common_def.h"
@@ -349,6 +350,8 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId);
+
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos);
@@ -379,8 +382,6 @@ public:
 #endif
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
-    int32_t SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
-
 #ifndef ENABLE_RS_PROXY
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
  
@@ -407,6 +408,7 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
+    int32_t SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
 

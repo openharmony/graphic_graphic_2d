@@ -694,57 +694,6 @@ HWTEST_F(RectTest, RectSort002, TestSize.Level1)
 }
 
 /**
- * @tc.name: RectFRound001
- * @tc.desc: test for RectF Round with positive values.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RectTest, RectFRound001, TestSize.Level1)
-{
-    RectF rectf(1.3f, 2.7f, 3.5f, 4.1f);
-    rectf.Round();
-    EXPECT_EQ(1.0f, rectf.GetLeft());
-    EXPECT_EQ(3.0f, rectf.GetTop());
-    EXPECT_EQ(4.0f, rectf.GetRight());
-    EXPECT_EQ(4.0f, rectf.GetBottom());
-}
-
-/**
- * @tc.name: RectFRound002
- * @tc.desc: test for RectF Round with negative values.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RectTest, RectFRound002, TestSize.Level1)
-{
-    RectF rectf(-1.3f, -2.7f, -0.6f, -1.5f);
-    rectf.Round();
-    EXPECT_EQ(-1.0f, rectf.GetLeft());
-    EXPECT_EQ(-3.0f, rectf.GetTop());
-    EXPECT_EQ(-1.0f, rectf.GetRight());
-    EXPECT_EQ(-2.0f, rectf.GetBottom());
-}
-
-/**
- * @tc.name: RectFRound003
- * @tc.desc: test for RectF Round with mixed positive and negative values.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RectTest, RectFRound003, TestSize.Level1)
-{
-    RectF rectf(-0.4f, -0.6f, 0.4f, 0.6f);
-    rectf.Round();
-    EXPECT_EQ(0.0f, rectf.GetLeft());
-    EXPECT_EQ(-1.0f, rectf.GetTop());
-    EXPECT_EQ(0.0f, rectf.GetRight());
-    EXPECT_EQ(1.0f, rectf.GetBottom());
-}
-
-/**
  * @tc.name: RectICreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC

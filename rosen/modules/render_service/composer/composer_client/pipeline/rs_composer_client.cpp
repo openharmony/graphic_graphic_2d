@@ -21,7 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t COMPOSER_THREAD_TASK_NUM = 2;
+constexpr int32_t COMPOSER_THREAD_TASK_NUM = 2;
 constexpr uint32_t WAIT_FOR_COMPOSER_THREAD_TASK_TIMEOUT = 3000;
 };
 
@@ -51,9 +51,9 @@ std::shared_ptr<HdiOutput> RSComposerClient::GetOutput() const
     return output_;
 }
 
-void RSComposerClient::SetRmvSurfaceFpsOpCallback(RmvSurfaceFpsOpCB callback)
+void RSComposerClient::SetRemoveSurfaceFpsOpCallback(RemoveSurfaceFpsOpCB callback)
 {
-    rmvSurfaceFpsOpCallback_ = std::move(callback);
+    removeSurfaceFpsOpCallback_ = std::move(callback);
 }
 
 bool RSComposerClient::IsFindRSLayer(RSLayerId rsLayerId)
@@ -75,8 +75,8 @@ void RSComposerClient::CommitLayers(ComposerInfo& composerInfo)
     if (!rsComposerContext_->CommitLayers(composerInfo)) {
         SubUnExecuteTaskNum();
         RS_LOGE("%{public}s failed, restore task count", __func__);
-    } else if (!pipelineParam_.SurfaceFpsOpList.empty() && rmvSurfaceFpsOpCallback_) {
-        rmvSurfaceFpsOpCallback_(pipelineParam_.SurfaceFpsOpList);
+    } else if (!pipelineParam_.SurfaceFpsOpList.empty() && removeSurfaceFpsOpCallback_) {
+        removeSurfaceFpsOpCallback_(pipelineParam_.SurfaceFpsOpList);
     }
 }
 
@@ -162,7 +162,7 @@ void RSComposerClient::SetScreenLinearMatrix(const std::vector<float>& matrix)
     rsComposerContext_->SetScreenLinearMatrix(matrix);
 }
 
-uint32_t RSComposerClient::GetUnExecuteTaskNum() const
+int32_t RSComposerClient::GetUnExecuteTaskNum() const
 {
     return unExecuteTaskNum_.load();
 }
@@ -170,15 +170,19 @@ uint32_t RSComposerClient::GetUnExecuteTaskNum() const
 void RSComposerClient::IncUnExecuteTaskNum()
 {
     acquiredBufferCount_.fetch_add(1);
-    RS_TRACE_NAME_FMT("Inc Acq BufferCount %d", acquiredBufferCount_.load());
     unExecuteTaskNum_.fetch_add(1);
+    RS_TRACE_NAME_FMT("Inc Acq BufferCount %d unExecuteTaskNum %d",
+        acquiredBufferCount_.load(), unExecuteTaskNum_.load());
 }
 
 void RSComposerClient::SubUnExecuteTaskNum()
 {
-    acquiredBufferCount_.fetch_sub(1);
-    RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
-    unExecuteTaskNum_.fetch_sub(1);
+    RS_TRACE_NAME_FMT("Dec Acq BufferCount %d unExecuteTaskNum %d",
+        acquiredBufferCount_.load(), unExecuteTaskNum_.load());
+    if (unExecuteTaskNum_.load() > 0 && acquiredBufferCount_.load() > 0) {
+        acquiredBufferCount_.fetch_sub(1);
+        unExecuteTaskNum_.fetch_sub(1);
+    }
 }
 
 bool RSComposerClient::WaitComposerThreadTaskExecute(std::unique_lock<std::mutex>& lock)

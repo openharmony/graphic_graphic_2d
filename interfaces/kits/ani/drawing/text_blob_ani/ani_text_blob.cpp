@@ -203,6 +203,10 @@ ani_object AniTextBlob::MakeFromRunBuffer(ani_env* env, ani_object obj, ani_arra
         return CreateAniUndefined(env);
     }
     uint32_t size = static_cast<uint32_t>(aniLength);
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("AniTextBlob::MakeFromRunBuffer failed. size exceeds the upper limit.");
+        return CreateAniUndefined(env);
+    }
     auto aniFont = GetNativeFromObj<AniFont>(env, aniFontObj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");

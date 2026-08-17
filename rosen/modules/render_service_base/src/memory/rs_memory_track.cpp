@@ -14,7 +14,7 @@
  */
 #include "memory/rs_memory_track.h"
 
-#ifdef RS_ENABLE_UNI_RENDER
+#ifdef ROSEN_OHOS
 #include "ability_manager_client.h"
 #include "platform/common/rs_hisysevent.h"
 #include "xcollie/process_kill_reason.h"
@@ -29,7 +29,6 @@ namespace Rosen {
 namespace {
 constexpr uint32_t MEM_MAX_SIZE = 2;
 constexpr uint32_t MEM_SIZE_STRING_LEN = 10;
-constexpr uint32_t MEM_ADDR_STRING_LEN = 16;
 constexpr uint32_t MEM_TYPE_STRING_LEN = 16;
 constexpr uint32_t PIXELMAP_INFO_STRING_LEN = 36;
 constexpr uint32_t MEM_PID_STRING_LEN = 8;
@@ -56,19 +55,7 @@ struct MemoryStats {
     };
 }
 
-MemoryNodeOfPid::MemoryNodeOfPid(size_t size, NodeId id, size_t drawableNodeSize)
-    : nodeSize_(size), nodeId_(id), drawableNodeSize_(drawableNodeSize) {}
-
-size_t MemoryNodeOfPid::GetDrawableMemSize() const
-{
-    return drawableNodeSize_;
-}
-
-void MemoryNodeOfPid::SetDrawableMemSize(size_t size)
-{
-    drawableNodeSize_ += size;
-}
-
+MemoryNodeOfPid::MemoryNodeOfPid(size_t size, NodeId id) : nodeSize_(size), nodeId_(id) {}
 
 size_t MemoryNodeOfPid::GetMemSize()
 {
@@ -91,7 +78,7 @@ MemoryTrack& MemoryTrack::Instance()
     return instance;
 }
 
-void MemoryTrack::RegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type)
+void MemoryTrack::RegisterNodeMem(pid_t pid, size_t size, MEMORY_TYPE type)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (pid == 0) {
@@ -108,15 +95,13 @@ void MemoryTrack::RegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type
         case MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE:
             memData.second += size;
             break;
-        case MEMORY_TYPE::MEM_PIXELMAP:
-        case MEMORY_TYPE::MEM_SKIMAGE:
         default:
             RS_LOGE("MemoryTrack::RegisterNodeMem: invalid memory type");
             break;
     }
 }
 
-void MemoryTrack::UnRegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type)
+void MemoryTrack::UnRegisterNodeMem(pid_t pid, size_t size, MEMORY_TYPE type)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = nodeMemOfPid_.find(pid);
@@ -139,13 +124,11 @@ void MemoryTrack::UnRegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE ty
                     memData.second = 0;
                 }
                 break;
-            case MEMORY_TYPE::MEM_PIXELMAP:
-            case MEMORY_TYPE::MEM_SKIMAGE:
             default:
                 RS_LOGE("MemoryTrack::UnRegisterNodeMem: invalid memory type");
                 break;
         }
-        // remove no exist pid
+        //remove no exist pid
         if (memData.first == 0 && memData.second == 0) {
             nodeMemOfPid_.erase(it);
         }
@@ -166,8 +149,6 @@ size_t MemoryTrack::GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type)
         case MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE:
             return itr->second.second / BYTE_CONVERT;
             break;
-        case MEMORY_TYPE::MEM_PIXELMAP:
-        case MEMORY_TYPE::MEM_SKIMAGE:
         default:
             RS_LOGE("MemoryTrack::GetNodeMemoryOfPid: invalid memory type");
             break;
@@ -444,9 +425,8 @@ std::string MemoryTrack::GenerateDumpTitle()
     std::string surfaceNode_title = Data2String("SurfaceName", MEM_SURNODE_STRING_LEN);
     std::string frame_title = Data2String("Frame", MEM_FRAME_STRING_LEN);
     std::string nid_title = Data2String("NodeId", MEM_NODEID_STRING_LEN);
-    std::string addr_tile = Data2String("Addr", MEM_ADDR_STRING_LEN);
     return size_title + "\t" + type_title + "\t" + pixelmap_info_title + "\t" + pid_title + "\t" + wid_title + "\t" +
-        uid_title + "\t" + surfaceNode_title + "\t" + frame_title + nid_title + "\t" + addr_tile;
+        uid_title + "\t" + surfaceNode_title + "\t" + frame_title + nid_title;
 }
 
 std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::string& wName, RectI& nFrame)

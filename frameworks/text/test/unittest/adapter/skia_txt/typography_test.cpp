@@ -1677,6 +1677,50 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText008, TestS
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographySplitRunsText009
+ * @tc.desc: test for OOB in globalClusterIndex after splitRuns on combining-mark text
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText009, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    typographyStyle.textDirection = TextDirection::RTL;
+    typographyStyle.firstLineIndent = 391;
+    typographyStyle.headIndents = {486, 231, 473, 254, 458, 476, 338, 365, 14};
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    style.fontSize = 68;
+    style.letterSpacing = 24;
+    style.wordSpacing = -12;
+    style.heightOnly = true;
+    style.heightScale = 0.7;
+    style.fontStyle = FontStyle::ITALIC;
+    style.fontWeight = FontWeight::W100;
+    style.fontVariations.SetAxisValue("wght", 993);
+    style.fontVariations.SetAxisValue("wdth", 183);
+    std::u16string text = u"\u{0061}\u{0300}\u{0301}\u{0302}\u{0303}\u{0304}\u{0305}\u{0306}\u{0307}\u{0308}\u{0309}"
+        u"\u{030A}\u{030B}\u{030C}\u{030D}\u{030E}\u{030F}\u{0310}";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(357.16064314960914);
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->GetCharacterPositionAtCoordinate(655, 14, Drawing::TextEncoding::UTF8);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    size_t expectRunSize = 9;
+    EXPECT_EQ(runs.size(), expectRunSize);
+    size_t expectLineSize = 9;
+    EXPECT_EQ(paragraph->GetLineCount(), expectLineSize);
+}
+
+/*
  * @tc.name: OH_Drawing_TypographyRtlClusterIndexOffset001
  * @tc.desc: test for rtl's text adjusting textRange
  * @tc.type: FUNC
@@ -2451,5 +2495,87 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetImageBounds001, Test
         }
     }
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyGetImageBounds002
+ * @tc.desc: test for run get image bounds with special characters
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetImageBounds002, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.fontSize = 30;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    std::u16string text =
+        u"\u{0626}\u{064F}\u{064A}\u{063A}\u{0672}\u{0631}\u{0686}\u{06D5}\u{060C}\u{0020}\u{064A}\u{0627}\u{0643}"
+        u"\u{064A}\u{0020}\u{0626}\u{064F}\u{064A}\u{063A}\u{0672}\u{0631}\u{0020}\u{062A}\u{067D}\u{0644}\u{067D}"
+        u"\u{060C}\u{0020}\u{0626}\u{0627}\u{0633}\u{0627}\u{0633}\u{0644}\u{067D}\u{0642}\u{06D5}\u{0020}\u{0634}"
+        u"\u{067D}\u{0646}\u{062C}\u{0F0B}\u{06A9}\u{0627}\u{0020}\u{0626}\u{064F}\u{064A}\u{063A}\u{0672}\u{0631}"
+        u"\u{0020}\u{0626}\u{0627}\u{067E}\u{062A}\u{0648}\u{0646}\u{0648}\u{06CB}\u{0020}\u{0631}\u{0627}\u{064A}"
+        u"\u{0648}\u{0646}\u{067D}\u{0020}\u{06DC}\u{06D5}\u{0020}\u{0626}\u{06D5}\u{062A}\u{0631}\u{0627}\u{067E}"
+        u"\u{067D}\u{062F}\u{067D}\u{0643}\u{067D}\u{0020}\u{0631}\u{0627}\u{064A}\u{0648}\u{0646}\u{0644}\u{0627}"
+        u"\u{0631}\u{062F}\u{0627}\u{0020}\u{0626}\u{067D}\u{0634}\u{0644}\u{067D}\u{062A}\u{067D}\u{0644}\u{067D}"
+        u"\u{062F}\u{067D}\u{0F0D}\u{0020}\u{0626}\u{064F}\u{064A}\u{063A}\u{0672}\u{0631}\u{0686}\u{06D5}\u{0020}"
+        u"\u{0626}\u{064F}\u{064A}\u{063A}\u{0672}\u{0631}\u{0644}\u{0627}\u{0631}\u{0646}\u{067D}\u{06AD}\u{0020}"
+        u"\u{0626}\u{0627}\u{0646}\u{067D}\u{0644}\u{067D}\u{0643}\u{0020}\u{062A}\u{067D}\u{0644}\u{067D}\u{0020}"
+        u"\u{0620}\u{0648}\u{0644}\u{062D}\u{067E}\u{060C}\u{0020}\u{0626}\u{064F}\u{0632}\u{0627}\u{0642}\u{0020}"
+        u"\u{062A}\u{0627}\u{0631}\u{067D}\u{062E}\u{0642}\u{0627}\u{0020}\u{06DC}\u{06D5}\u{0020}\u{0645}\u{0648}"
+        u"\u{0644}\u{0020}\u{0645}\u{06D5}\u{062F}\u{06D5}\u{0646}\u{067D}\u{064A}\u{06D5}\u{062A}\u{0020}\u{0645}"
+        u"\u{067D}\u{0631}\u{0627}\u{0633}\u{0642}\u{0627}\u{0020}\u{0626}\u{067D}\u{062A}\u{06D5}";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(200);
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto lines = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->GetTextLines();
+    static size_t expectLineSize = 6;
+    static std::vector<RSRect> expectLineRect = { RSRect(-1, 4, 186.68925, 24), RSRect(-1, 4, 158.4072, 24),
+        RSRect(-1, 6, 186.66522, 25), RSRect(-1, 3, 171.75935, 22), RSRect(0, 4, 147.02551, 24),
+        RSRect(-1, 2, 122.94751, 17) };
+    EXPECT_EQ(lines.size(), expectLineSize);
+    for (size_t i = 0; i < lines.size(); i++) {
+        const auto line = lines[i];
+        RSRect lineRect = line->getImageBounds();
+        EXPECT_FLOAT_EQ(lineRect.GetLeft(), expectLineRect[i].GetLeft()) << "Index: " << i;
+        EXPECT_FLOAT_EQ(lineRect.GetRight(), expectLineRect[i].GetRight()) << "Index: " << i;
+        EXPECT_FLOAT_EQ(lineRect.GetTop(), expectLineRect[i].GetTop()) << "Index: " << i;
+        EXPECT_FLOAT_EQ(lineRect.GetBottom(), expectLineRect[i].GetBottom()) << "Index: " << i;
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyNegativeIndentsTest001
+ * @tc.desc: TDD test for paragraph with negative firstLineIndent and negative tailIndents, no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyNegativeIndentsTest001, TestSize.Level0)
+{
+    // Scenario from fuzzer: firstLineIndent and tailIndents can be negative.
+    // Paragraph should handle negative indents without crash.
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.tailIndents = {199.999};
+    typographyStyle.breakStrategy = BreakStrategy::BALANCED;
+    typographyStyle.maxLines = std::numeric_limits<size_t>::max();
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    style.fontSize = 14;
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(u"negative indent test text for layout");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(200);
+}
+
 } // namespace Rosen
 } // namespace OHOS

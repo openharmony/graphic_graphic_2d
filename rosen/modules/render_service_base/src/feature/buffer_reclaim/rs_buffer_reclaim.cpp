@@ -49,7 +49,7 @@ bool RSBufferReclaim::DoBufferReclaim(sptr<SurfaceBuffer> buffer)
 
     bool ret = false;
     if (buffer->TryReclaim() == GSERROR_OK) {
-        buffer->RegisterBufferDestructorCallBack(&RSBufferReclaim::BufferDestructorCallback);
+        buffer->RegisterBufferDestructorCallback(&RSBufferReclaim::BufferDestructorCallback);
         ret = true;
     } else {
         bufferReclaimNumsSet_.erase(buffer->GetBufferId());
@@ -70,7 +70,7 @@ bool RSBufferReclaim::DoBufferResume(sptr<SurfaceBuffer> buffer)
     RS_LOGI("DoBufferResume: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
     bool ret = false;
     if (buffer->TryResumeIfNeeded() == GSERROR_OK) {
-        buffer->UnRegisterBufferDestructorCallBack();
+        buffer->UnRegisterBufferDestructorCallback();
         ret = true;
     } else {
         bufferReclaimNumsSet_.insert(buffer->GetBufferId());

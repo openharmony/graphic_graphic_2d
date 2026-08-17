@@ -95,6 +95,12 @@ double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, uint32_t mod
     return 1.0; // 1.0 refers to default value, no need to process.
 }
 
+float RSLuminanceControl::CalAIHDRScaler(const RSSurfaceRenderNode& surfaceNode, const float& ratio,
+    HdrStatus hdrStatus)
+{
+    return HDR_DEFAULT_SCALER;
+}
+
 float RSLuminanceControl::CalScaler(const float& maxContentLightLevel,
     const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus)
 {
@@ -168,7 +174,7 @@ void RSLuminanceControl::SetDualScreenStatus(ScreenId screenId, DualScreenStatus
     // Set dual screen coordination status
 }
 
-float RSLuminanceControl::HdrDimmingProcess(ScreenId screenId, RSSurfaceRenderNode& surfaceNode)
+float RSLuminanceControl::HdrDimmingProcess(ScreenId screenId, const RSSurfaceRenderNode& surfaceNode)
 {
     return 1.0f;
 }

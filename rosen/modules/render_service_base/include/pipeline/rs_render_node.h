@@ -195,7 +195,7 @@ public:
     void PrepareSelfNodeForApplyModifiers();
     void PrepareChildrenForApplyModifiers();
     // if subtree dirty or child filter need prepare
-    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false);
+    virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirty, bool isOccluded = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool SetAccumulatedClipFlag(bool clipChange);
@@ -539,7 +539,7 @@ public:
 
     std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
     std::shared_ptr<RSAnimationManager> GetOrCreateAnimationManager();
-    void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
+    bool AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void DestroyAnimationInRender();
 
     void ApplyAlphaAndBoundsGeometry(RSPaintFilterCanvas& canvas);
@@ -1037,19 +1037,9 @@ public:
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
-    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
-    {
-        if (isAccessibilityConfigChanged) {
-            accessibilityConfigChangedNodeSet_.insert(GetId());
-        } else {
-            accessibilityConfigChangedNodeSet_.erase(GetId());
-        }
-    }
+    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged);
 
-    bool IsAccessibilityConfigChangedNode() const
-    {
-        return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
-    }
+    bool IsAccessibilityConfigChangedNode() const;
 
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
@@ -1132,7 +1122,11 @@ public:
 
     void ReSortChildrenByZIndex();
 
-    void AccumulateParentGeoDirty();
+    virtual bool IsBufferDirty() const
+    {
+        return false;
+    }
+
 protected:
     void ResetDirtyStatus();
 
@@ -1258,6 +1252,14 @@ protected:
     PrimitiveDirtyBitmap stagingSelfPrimDirtyBitmap_;
     PrimitiveDirtyBitmap stagingInfectiousPrimDirtyBitmap_;
 #endif
+    inline RSDrawable::Vec& GetDrawableVec(const char* func) const
+    {
+        if (LIKELY(drawableVec_ != nullptr)) {
+            return *drawableVec_;
+        }
+        drawableVec_ = std::make_unique<RSDrawable::Vec>();
+        return *drawableVec_;
+    }
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
@@ -1280,7 +1282,6 @@ private:
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
     bool lastFrameSubTreeSkipped_ = false;
-    std::shared_ptr<RSAnimationManager> animationManager_;
     bool curFrameHasAnimation_ = false;
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
@@ -1307,6 +1308,8 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isForcePrepare_ = false;
     bool isParentTreeDirty_ = false;
+    // marks the node as "on the traversal path"
+    bool inTraversalPath_ = false;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> commandExecuted_ = false;
@@ -1334,11 +1337,9 @@ private:
     static const inline RS_HIDDEN auto EmptyChildrenList =
         std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     static inline std::unordered_set<NodeId> containBootAnimationNodeSet_;
-    static inline std::unordered_set<NodeId> accessibilityConfigChangedNodeSet_;
     static inline std::unordered_map<NodeId, int> subSurfaceCntMap_;
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
-    std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
     std::weak_ptr<RSContext> context_ = {};
@@ -1387,6 +1388,7 @@ private:
     Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
+    std::shared_ptr<RSAnimationManager> animationManager_;
     bool released_ = false;
     RSOpincCache opincCache_;
     std::unique_ptr<RSOpincRootCache> opincRootCache_ = nullptr;
@@ -1477,7 +1479,6 @@ private:
 
     bool HasValidModifierInOpincSplit(int8_t slot) const;
 
-    RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();
     friend class DrawFuncOpItem;
     friend class RSContext;

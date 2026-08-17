@@ -31,7 +31,7 @@ namespace Rosen {
 
 class RSProtectiveSolidRenderNode : public RSSurfaceRenderNode {
 public:
-    static inline constexpr RSRenderNodeType type = RSRenderNodeType::PROTECTIVE_SOLID_NODE;
+    static inline constexpr RSRenderNodeType Type = RSRenderNodeType::PROTECTIVE_SOLID_NODE;
     using WeakPtr = std::weak_ptr<RSProtectiveSolidRenderNode>;
     using SharedPtr = std::shared_ptr<RSProtectiveSolidRenderNode>;
 

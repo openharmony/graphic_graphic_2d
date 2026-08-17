@@ -35,10 +35,6 @@ public:
     void TearDown() override;
 };
 
-void RsFrameReportTest::SetUpTestCase() {}
-void RsFrameReportTest::TearDownTestCase() {}
-void RsFrameReportTest::SetUp() {}
-void RsFrameReportTest::TearDown() {}
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 class MockDlopen {
 public:
@@ -76,6 +72,11 @@ VkResult mockvkCreateInstance(const VkInstanceCreateInfo*, const VkAllocationCal
 VkResult (*mockvkCreateInstanceFunc)(const VkInstanceCreateInfo*, const VkAllocationCallbacks*, VkInstance*) =
     mockvkCreateInstance;
 #endif
+
+void RsFrameReportTest::SetUpTestCase() {}
+void RsFrameReportTest::TearDownTestCase() {}
+void RsFrameReportTest::SetUp() {}
+void RsFrameReportTest::TearDown() {}
 
 /**
  * @tc.name: NoBranchTestCase001
@@ -193,7 +194,7 @@ HWTEST_F(RsFrameReportTest, ReportUnmarshalData001, TestSize.Level1)
     ASSERT_TRUE(RsFrameReport::IsInitSchedCompleted());
 }
 
-#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X) && defined (RS_MULTI_DISPLAY_FEATURES)
 /**
  * @tc.name: ReportWindowInfo001
  * @tc.desc: test

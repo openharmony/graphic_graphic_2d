@@ -552,7 +552,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdateDimensionsTest, TestSize.Level1)
 
 /**
  * @tc.name: IsOnlyHDRAnimationWithNullManager001
- * @tc.desc: Verify IsOnlyHDRAnimation returns false with null animationManager and HDR modifiers
+ * @tc.desc: Verify IsOnlyHDRAnimation returns true when HDR modifiers exist and no non-HDR animations are persent
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -562,7 +562,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationWithNullManager001, T
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
 
-    // Add HDR modifiers but NO animationManager (don't add any animation)
+    // Add HDR modifiers but no animations
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
@@ -574,9 +574,12 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationWithNullManager001, T
     RSRootRenderNode::ModifierNGContainer modifiers { modifier };
     displayNode->modifiersNG_.emplace(ModifierNG::RSModifierType::HDR_BRIGHTNESS, modifiers);
 
-    // animationManager_ is null since no animations were added
-    EXPECT_EQ(displayNode->GetAnimationManager(), nullptr);
-    EXPECT_FALSE(displayNode->IsOnlyHDRAnimation());
+    // animationManager_ exists (created by constructor) but has no animations,
+    // so no non-HDR animations -> IsOnlyHDRAnimation returns true
+    auto animationManager = displayNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    EXPECT_TRUE(animationManager->GetAnimations().empty());
+    EXPECT_TRUE(displayNode->IsOnlyHDRAnimation());
 }
 
 /**

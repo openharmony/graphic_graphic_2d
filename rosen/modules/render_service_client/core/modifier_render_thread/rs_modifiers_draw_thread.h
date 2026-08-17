@@ -64,8 +64,11 @@ public:
 
 private:
     void Start();
+    void WaitAllTasksFinish();
+    void Destroy();
 
-    void PostTask(const std::function<void()>&& task, const std::string& name = std::string(), int64_t delayTime = 0);
+    void PostTask(const std::function<void()>& task, const std::string& name = std::string(), int64_t delayTime = 0);
+    void PostSyncTask(const std::function<void()>& task);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -77,12 +80,13 @@ private:
 
     void CommitTransaction(std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent,
         std::shared_ptr<RSRenderPipelineClient> renderPiplineClient, std::unique_ptr<RSTransactionData> transactionData,
-        uint32_t& transactionDataIndex);
+        std::atomic<uint32_t>& transactionDataIndex);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::shared_ptr<RSModifiersDraw> modifiersDraw_ = nullptr;
-    bool started_ = false;
+    std::atomic<bool> started_ = false;
+    std::atomic<bool> destroyed_ = false;
 
     friend class RSUIContext;
 };

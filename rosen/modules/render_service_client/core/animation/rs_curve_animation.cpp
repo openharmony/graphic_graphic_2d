@@ -77,7 +77,15 @@ void RSCurveAnimation::OnStart()
 {
     RSPropertyAnimation::OnStart();
     auto animation = CreateRenderAnimation();
+    if (animation == nullptr) {
+        ROSEN_LOGE("RSCurveAnimation::OnStart, CreateRenderAnimation failed");
+        return;
+    }
     if (isCustom_) {
+        if (property_ == nullptr) {
+            ROSEN_LOGE("RSCurveAnimation::OnStart, property is null");
+            return;
+        }
         animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
     } else {
@@ -101,6 +109,12 @@ bool RSCurveAnimation::IsSupportInteractiveAnimator()
 
 std::shared_ptr<RSRenderCurveAnimation> RSCurveAnimation::CreateRenderAnimation()
 {
+    if (originValue_ == nullptr || startValue_ == nullptr || endValue_ == nullptr) {
+        ROSEN_LOGE("RSCurveAnimation::CreateRenderAnimation, "
+            "originValue[%{public}d] startValue[%{public}d] endValue[%{public}d]",
+            originValue_ != nullptr, startValue_ != nullptr, endValue_ != nullptr);
+        return nullptr;
+    }
     auto interpolator = timingCurve_.GetInterpolator(GetDuration());
     auto animation = std::make_shared<RSRenderCurveAnimation>(GetId(), GetPropertyId(),
         originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty());
@@ -118,6 +132,10 @@ void RSCurveAnimation::RebuildInRender()
         return;
     }
     auto animation = CreateRenderAnimation();
+    if (animation == nullptr) {
+        ROSEN_LOGE("RSCurveAnimation::RebuildInRender, CreateRenderAnimation failed");
+        return;
+    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationRebuildCurve>(
         target->GetId(), animation, GetRebuildParam().fraction, GetRebuildParam().isReverseCycle);
     target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());

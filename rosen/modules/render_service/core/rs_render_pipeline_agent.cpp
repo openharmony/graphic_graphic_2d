@@ -1017,27 +1017,65 @@ ErrCode RSRenderPipelineAgent::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t&
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+bool RSRenderPipelineAgent::IsBufferConfigValid(const sptr<SurfaceBuffer>& buffer)
+{
+    if (buffer == nullptr) {
+        return true;
+    }
+
+    int32_t width = buffer->GetWidth();
+    int32_t height = buffer->GetHeight();
+    if (width <= 0 || height <= 0) {
+        RS_LOGE("IsBufferConfigValid: invalid dimensions, width=%{public}d, height=%{public}d", width, height);
+        return false;
+    }
+
+    int32_t format = buffer->GetFormat();
+    if (format != GRAPHIC_PIXEL_FMT_RGBA_8888) {
+        RS_LOGE("IsBufferConfigValid: unsupported format=%{public}d", format);
+        return false;
+    }
+
+    int32_t stride = buffer->GetStride();
+    int32_t bytesPerPixel = 4; // Bytes per pixel for RGBA_8888 is 4
+    uint64_t minStride = static_cast<uint64_t>(width) * static_cast<uint64_t>(bytesPerPixel);
+    if (static_cast<uint64_t>(stride) < minStride) {
+        RS_LOGE("IsBufferConfigValid: stride(%{public}d) < width(%{public}d) * bpp(%{public}d)", stride, width,
+            bytesPerPixel);
+        return false;
+    }
+
+    uint32_t size = buffer->GetSize();
+    uint64_t minSize = static_cast<uint64_t>(stride) * static_cast<uint64_t>(height);
+    if (static_cast<uint64_t>(size) < minSize) {
+        RS_LOGE(
+            "IsBufferConfigValid: size(%{public}u) < stride(%{public}d) * height(%{public}d)", size, stride, height);
+        return false;
+    }
+    return true;
+}
+
 void RSRenderPipelineAgent::RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback)
 {
     RSCanvasDmaBufferCache::GetInstance().RegisterCanvasCallback(remotePid, callback);
 }
 
 int32_t RSRenderPipelineAgent::SubmitCanvasPreAllocatedBuffer(
-    pid_t remotePid, NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
-    if (!NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
-        return FEATURE_DISABLED;
+    if (!IsBufferConfigValid(buffer)) {
+        return INVALID_ARGUMENTS;
     }
     auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
+    if (pipeline == nullptr) {
         return INVALID_ARGUMENTS;
     }
-    if (ExtractPid(nodeId) != remotePid) {
-        RS_LOGE("SubmitCanvasPreAllocatedBuffer: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d",
-            nodeId, remotePid);
-        return INVALID_ARGUMENTS;
-    }
-    auto task = [nodeId, buffer, resetSurfaceIndex]() {
+    auto& nodeMap = pipeline->GetMainThread()->GetContext().GetMutableNodeMap();
+    auto task = [nodeId, buffer, resetSurfaceIndex, &nodeMap]() {
+        const auto& node = nodeMap.GetRenderNode(nodeId);
+        if (node != nullptr && node->GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE) {
+            return INVALID_ARGUMENTS;
+        }
         bool success = RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(nodeId, buffer, resetSurfaceIndex);
         return success ? SUCCESS : INVALID_ARGUMENTS;
     };
@@ -1084,6 +1122,11 @@ ErrCode RSRenderPipelineAgent::GetBitmap(NodeId id, Drawing::Bitmap& bitmap, boo
         }
         auto grContext = renderThread->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
         auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+        if (drawableNode == nullptr) {
+            RS_LOGE("GetBitmap null drawable, NodeId: [%{public}" PRIu64 "]", id);
+            result.set_value(false);
+            return;
+        }
         auto getDrawableBitmapTask = [drawableNode, &bitmap, grContext, &result]() {
             bitmap = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)
                 ->GetBitmap(grContext);
@@ -1092,6 +1135,8 @@ ErrCode RSRenderPipelineAgent::GetBitmap(NodeId id, Drawing::Bitmap& bitmap, boo
         renderThread->PostTask(getDrawableBitmapTask);
     };
     pipeline->PostMainThreadTask(getBitmapTask);
+#else
+    result.set_value(false);
 #endif
     success = future.get();
     return ERR_OK;
@@ -1421,6 +1466,11 @@ int32_t RSRenderPipelineAgent::RegisterOcclusionChangeCallback(pid_t pid, sptr<R
 int32_t RSRenderPipelineAgent::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {
+    if (partitionPoints.size() > MAX_PARTITION_POINTS) {
+        RS_LOGE("RegisterSurfaceOcclusionChangeCallback invalid partitionPoints size: %{public}zu",
+            partitionPoints.size());
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     auto pipeline = rsRenderPipeline_.lock();
     if (!pipeline) {
         return StatusCode::INVALID_ARGUMENTS;
@@ -2033,7 +2083,15 @@ bool RSRenderPipelineAgent::UnRegisterTypeface(uint64_t globalUniqueId)
     uint32_t uniqueId = typeface->GetUniqueID();
     // Free cpu cache, this only valid in skia path. When deprecating skia, this can be removed.
     auto task = [uniqueId]() {
-        auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        if (!renderEngine) {
+            return;
+        }
+        auto renderContext = renderEngine->GetRenderContext();
+        if (!renderContext) {
+            return;
+        }
+        auto context = renderContext->GetDrGPUContext();
         if (context) {
             context->FreeCpuCache(uniqueId);
             context->PurgeUnlockAndSafeCacheGpuResources();
@@ -2572,15 +2630,6 @@ sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeI
             remotePid);
         return nullptr;
     }
-    auto bundleName = GetBundleName(remotePid);
-    if (!NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled()) {
-        RS_LOGE("CreateCanvasDrawingNodeSurface: ccm disabled, nodeId=%{public}" PRIu64, nodeId);
-        return nullptr;
-    }
-    if (!bundleName.empty() && !NodeMemReleaseParam::IsCanvasBufferEnabled(bundleName)) {
-        RS_LOGE("CreateCanvasDrawingNodeSurface: bundleName ccm blacklist, nodeId=%{public}" PRIu64, nodeId);
-        return nullptr;
-    }
  
     sptr<Surface> producerPurface = nullptr;
     auto task = [&producerPurface, nodeId, mainThread = rsRenderPipeline->GetMainThread()]() -> void {
@@ -2605,9 +2654,8 @@ sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeI
             RS_LOGE("CreateCanvasDrawingNodeSurface: null producerPurface, nodeId=%{public}" PRIu64, nodeId);
             return;
         }
- 
-        sptr<IBufferConsumerListener> listener =
-            new RSCanvasDrawingNodeBufferConsumerListener(mainThread->GetWeakContext(), nodeId);
+
+        sptr<IBufferConsumerListener> listener = new RSCanvasDrawingNodeBufferConsumerListener(surfaceHandler, nodeId);
         consumerSurface->RegisterConsumerListener(listener);
         auto& nodeMap = rsContext->GetMutableNodeMap();
         auto canvasDrawingNode = nodeMap.GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);

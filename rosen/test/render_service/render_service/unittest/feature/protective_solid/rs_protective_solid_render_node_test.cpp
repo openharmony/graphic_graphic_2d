@@ -243,6 +243,6 @@ HWTEST_F(RSProtectiveSolidRenderNodeTest, GetLogicalDisplayNodeIdTest001, TestSi
  */
 HWTEST_F(RSProtectiveSolidRenderNodeTest, TypeTest001, TestSize.Level1)
 {
-    EXPECT_EQ(RSProtectiveSolidRenderNode::type, RSRenderNodeType::PROTECTIVE_SOLID_NODE);
+    EXPECT_EQ(RSProtectiveSolidRenderNode::Type, RSRenderNodeType::PROTECTIVE_SOLID_NODE);
 }
 } // namespace OHOS::Rosen

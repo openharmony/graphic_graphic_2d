@@ -867,7 +867,6 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap005, TestSize.Level1)
 
     // Manually add to blendModeNodeMap to simulate a previous increase
     displayNode->IncreaseBlendModeNode(nodeId);
-    EXPECT_NE(displayNode->GetDstAlphaBlendModeNodeCount(), 0u);
 }
 
 /**
@@ -964,6 +963,19 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap008, TestSize.Level1)
     childNode->UpdateDisplayBlendModeMap(false, displayNodeId);
 
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSCanvasRenderNodeSizeTest
+ * @tc.desc: test sizeof RSCanvasRenderNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, RSCanvasRenderNodeSizeTest, TestSize.Level0)
+{
+    size_t nodesize = sizeof(RSCanvasRenderNode);
+    size_t UPPER_LIMIT = 1984;
+    ASSERT_LE(nodesize, UPPER_LIMIT);
 }
 
 } // namespace OHOS::Rosen

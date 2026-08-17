@@ -98,7 +98,9 @@ void AnimationCommandHelper::CreateAnimation(
         return;
     }
     RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
-    node->AddAnimation(animation);
+    if (!node->AddAnimation(animation)) {
+        return;
+    }
     if (auto property = node->GetProperty(animation->GetPropertyId())) {
         animation->AttachRenderProperty(property);
     }
@@ -131,7 +133,9 @@ void AnimationCommandHelper::RebuildAnimation(RSContext& context, NodeId targetI
         animation->AttachRenderProperty(property);
         animation->Rebuild(fraction, currentTime, isReverseCycle);
     }
-    node->AddAnimation(animation);
+    if (!node->AddAnimation(animation)) {
+        return;
+    }
     animation->Attach(node.get());
     context.RegisterAnimatingRenderNode(node);
 }
@@ -177,6 +181,10 @@ void AnimationCommandHelper::CreateInteractiveAnimator(RSContext& context,
     InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations,
     bool startImmediately)
 {
+    if (!IsAnimationsPidValid(context, targetId, animations, __PRETTY_FUNCTION__)) {
+        return;
+    }
+
     RS_TRACE_NAME_FMT("CreateInteractiveAnimator animator[%llu] animations[%zu] start[%d]",
         targetId, animations.size(), startImmediately);
     ROSEN_LOGI("AnimationCommandHelper::CreateInteractiveAnimator - id: %{public}" PRIu64
@@ -197,6 +205,10 @@ void AnimationCommandHelper::CreateInteractiveAnimatorGroup(RSContext& context,
     InteractiveImplictAnimatorId groupId, std::vector<std::pair<NodeId, AnimationId>> animations,
     bool startImmediately, const RSAnimationTimingProtocol& timingProtocol)
 {
+    if (!IsAnimationsPidValid(context, groupId, animations, __PRETTY_FUNCTION__)) {
+        return;
+    }
+
     RS_TRACE_NAME_FMT("CreateInteractiveAnimatorGroup animator[%llu] animations[%zu] start[%d]",
         groupId, animations.size(), startImmediately);
     ROSEN_LOGI("AnimationCommandHelper::CreateInteractiveAnimatorGroup - id: %{public}" PRIu64
@@ -231,6 +243,10 @@ void AnimationCommandHelper::DestoryInteractiveAnimator(RSContext& context, Inte
 void AnimationCommandHelper::InteractiveAnimatorAddAnimations(RSContext& context,
     InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations)
 {
+    if (!IsAnimationsPidValid(context, targetId, animations, __PRETTY_FUNCTION__)) {
+        return;
+    }
+
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
         return;
@@ -299,6 +315,10 @@ void AnimationCommandHelper::ReverseInteractiveAnimator(RSContext& context, Inte
 void AnimationCommandHelper::SetFractionInteractiveAnimator(
     RSContext& context, InteractiveImplictAnimatorId targetId, float fraction)
 {
+    if (!std::isfinite(fraction)) {
+        ROSEN_LOGE("AnimationCommandHelper::SetFractionInteractiveAnimator - invalid fraction(NaN/Inf)");
+        return;
+    }
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
         ROSEN_LOGW("AnimationCommandHelper::SetFractionInteractiveAnimator - animator[%{public}" PRIu64 "] not found",
@@ -306,6 +326,21 @@ void AnimationCommandHelper::SetFractionInteractiveAnimator(
         return;
     }
     animator->SetFractionAnimator(fraction);
+}
+
+bool AnimationCommandHelper::IsAnimationsPidValid(const RSContext& context, InteractiveImplictAnimatorId callerId,
+    const std::vector<std::pair<NodeId, AnimationId>>& animations, const char* funcName)
+{
+    pid_t callingPid = ExtractPid(callerId);
+    const auto& nodeMap = context.GetNodeMap();
+    for (auto [nodeId, animationId] : animations) {
+        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+            ROSEN_LOGE("%{public}s, callingPid [%{public}d] no permission on node [%{public}" PRIu64 "]",
+                funcName, static_cast<int>(callingPid), nodeId);
+            return false;
+        }
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

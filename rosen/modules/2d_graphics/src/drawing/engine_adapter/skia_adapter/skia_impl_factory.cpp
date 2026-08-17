@@ -112,6 +112,10 @@ std::unique_ptr<ImageImpl> SkiaImplFactory::CreateImage()
 
 std::unique_ptr<ImageImpl> SkiaImplFactory::CreateImage(void* rawImg)
 {
+    if (!rawImg) {
+        LOGE("rawImg is nullptr ! %{public}s return", __FUNCTION__);
+        return nullptr;
+    }
     auto skImg = reinterpret_cast<sk_sp<SkImage>*>(rawImg);
     return std::make_unique<SkiaImage>(*skImg);
 }

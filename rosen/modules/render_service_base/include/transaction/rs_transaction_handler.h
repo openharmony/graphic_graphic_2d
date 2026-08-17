@@ -36,8 +36,8 @@ using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 class RSTransactionHandler;
 class RSSyncTask;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
-using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
+using CommitTransactionCallback = std::function<void(
+    std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&, std::atomic<uint32_t>&)>;
 class RSB_EXPORT RSTransactionHandler : public std::enable_shared_from_this<RSTransactionHandler> {
 public:
     RSTransactionHandler() = default;
@@ -135,7 +135,7 @@ private:
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
     CommitTransactionCallback commitTransactionCallback_ = nullptr;
-    uint32_t transactionDataIndex_ = 0;
+    std::atomic<uint32_t> transactionDataIndex_ = 0;
     TaskRunner taskRunner_ = TaskRunner();
 
     friend class RSUIDirector;

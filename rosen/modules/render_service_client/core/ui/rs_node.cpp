@@ -383,6 +383,10 @@ void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float f
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
     }
+    if (!propertyCallback) {
+        ROSEN_LOGE("RSNode::AddKeyFrame, propertyCallback is null!");
+        return;
+    }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     implicitAnimator->BeginImplicitKeyFrameAnimation(fraction, timingCurve);
@@ -397,6 +401,10 @@ void RSNode::AddKeyFrame(
         ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
     }
+    if (!propertyCallback) {
+        ROSEN_LOGE("RSNode::AddKeyFrame, propertyCallback is null!");
+        return;
+    }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     implicitAnimator->BeginImplicitKeyFrameAnimation(fraction);
@@ -409,6 +417,10 @@ void RSNode::AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
 {
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::AddDurationKeyFrame, rsUIContext is null!");
+        return;
+    }
+    if (!propertyCallback) {
+        ROSEN_LOGE("RSNode::AddDurationKeyFrame, propertyCallback is null!");
         return;
     }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
@@ -641,16 +653,18 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
             ROSEN_LOGE("Failed to add animation, animation already exists!");
             return;
         }
+
+        // Note: Animation cancellation logic is now handled by RSImplicitAnimator. The code below might cause Spring
+        // Animations with a zero duration to not inherit velocity correctly, an issue slated for future resolution.
+        // This code is retained to ensure backward compatibility with specific arkui component animations.
+        if (animation->GetDuration() <= 0 && id_ != 0) {
+            FinishAnimationByProperty(animation->GetPropertyId());
+        }
+
+        AddAnimationInner(animation);
     }
 
-    // Note: Animation cancellation logic is now handled by RSImplicitAnimator. The code below might cause Spring
-    // Animations with a zero duration to not inherit velocity correctly, an issue slated for future resolution.
-    // This code is retained to ensure backward compatibility with specific arkui component animations.
-    if (animation->GetDuration() <= 0 && id_ != 0) {
-        FinishAnimationByProperty(animation->GetPropertyId());
-    }
-
-    AddAnimationInner(animation);
+    RebuildTree();
 
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
@@ -794,16 +808,16 @@ void RSNode::UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& paren
     globalPositionY_ = parentGlobalPositionY + localGeometry_->GetY();
 }
 
-bool RSNode::isNeedCallbackNodeChange_ = true;
+std::atomic<bool> RSNode::isNeedCallbackNodeChange_ = true;
 void RSNode::SetNeedCallbackNodeChange(bool needCallback)
 {
-    isNeedCallbackNodeChange_ = needCallback;
+    isNeedCallbackNodeChange_.store(needCallback, std::memory_order_relaxed);
 }
 
 // Notifies UI observer about page node modifications.
 void RSNode::NotifyPageNodeChanged() const
 {
-    if (isNeedCallbackNodeChange_ && propertyNodeChangeCallback_) {
+    if (isNeedCallbackNodeChange_.load(std::memory_order_relaxed) && propertyNodeChangeCallback_) {
         propertyNodeChangeCallback_();
     }
 }
@@ -4689,11 +4703,11 @@ std::string RSCmdModifierTypeToString(RSCmdModifierType type)
 void RSNode::DumpRSCmdModifiers(std::string& out) const
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    if (rsCmdModifiers_.empty()) {
+    if (rsCmdModifiers_.empty() && rsCmdModifierQueue_.empty()) {
         out += "RSCmdModifiers: [empty]";
         return;
     }
- 
+
     out += "RSCmdModifiers: [";
     bool first = true;
     for (const auto& [type, modifier] : rsCmdModifiers_) {
@@ -4704,6 +4718,18 @@ void RSNode::DumpRSCmdModifiers(std::string& out) const
             out += ", ";
         }
         out += "type=" + RSCmdModifierTypeToString(type);
+        out += ", param=";
+        modifier->DumpParam(out);
+        first = false;
+    }
+    for (const auto& modifier : rsCmdModifierQueue_) {
+        if (!modifier) {
+            continue;
+        }
+        if (!first) {
+            out += ", ";
+        }
+        out += "type=" + RSCmdModifierTypeToString(modifier->GetType());
         out += ", param=";
         modifier->DumpParam(out);
         first = false;

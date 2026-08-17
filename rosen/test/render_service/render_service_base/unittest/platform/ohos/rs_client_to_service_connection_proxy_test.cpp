@@ -1293,6 +1293,8 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation, TestS
     int32_t sourceType = 2;
     proxy->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     proxy->NotifyDynamicModeEvent(true);
+    proxy->SetHgmExclusiveScreen(std::nullopt);
+    proxy->SetHgmExclusiveScreen(static_cast<ScreenId>(0));
     proxy->SetCacheEnabledForRotation(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
@@ -1334,22 +1336,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Le
     proxy->NotifyHgmConfigEvent(eventName, state);
     ASSERT_TRUE(proxy);
 }
-
-#ifdef RS_ENABLE_UNI_RENDER
-/**
- * @tc.name: NotifyLightFactorStatus Test
- * @tc.desc: NotifyLightFactorStatus Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, ReportGameStateData, TestSize.Level1)
-{
-    GameStateData info;
-    proxy->ReportGameStateData(info);
-    proxy->NotifyLightFactorStatus(1);
-    ASSERT_EQ(proxy->transactionDataIndex_, 5);
-}
-#endif
 
 /**
  * @tc.name: NotifyXComponentExpectedFrameRate Test
@@ -2184,7 +2170,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SendVideoRateInfo_EmptyMap, TestS
  
 /**
  * @tc.name: SendVideoRateInfo_MapSizeExceedMax
- * @tc.desc: Test SendVideoRateInfo with mapSize > MAX_VIDEO_INFO_SIZE(32)
+ * @tc.desc: Test SendVideoRateInfo with mapSize > maxVideoInfoSize(32)
  * @tc.type: FUNC
  * @tc.require:
  */

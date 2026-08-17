@@ -64,6 +64,7 @@ constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
 constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;
 constexpr int32_t UI_PiPLINE_NUM_UNDEFINED = -1;
+constexpr int32_t EDGE_GRADIENT_STRIP_WIDTH = 200;
 
 template<typename T>
 inline constexpr bool ROSEN_EQ(const T& x, const T& y)

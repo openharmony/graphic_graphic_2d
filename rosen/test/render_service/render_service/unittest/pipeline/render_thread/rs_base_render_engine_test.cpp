@@ -72,16 +72,16 @@ public:
     void SetUp() override;
     void TearDown() override;
 #ifdef RS_ENABLE_VK
-    static std::set<uint64_t> CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+    static std::unordered_set<uint64_t> CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
         uint32_t imageNums);
 #endif
 };
 
 #ifdef RS_ENABLE_VK
-std::set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+std::unordered_set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
     uint32_t imageNums)
 {
-    std::set<uint64_t> bufferIdCache;
+    std::unordered_set<uint64_t> bufferIdCache;
     for (uint32_t i = 0; i < imageNums; i++) {
         auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
         drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
@@ -735,6 +735,31 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation, TestSize.Level1)
     ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
 }
 
+/**
+ * @tc.name: NeedBilinearInterpolation002
+ * @tc.desc: Test NeedBilinearInterpolation when matrix has half pixel translate Y offset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation002, TestSize.Level1)
+{
+    BufferDrawParam params;
+    params.useBilinearInterpolation = true;
+    params.srcRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    params.dstRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    Drawing::Matrix matrix;
+    matrix.Reset();
+    ASSERT_FALSE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_Y, 0.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_Y, 1.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_Y, 2.0f);
+    ASSERT_FALSE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::TRANS_Y, -0.5f);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: ColorSpaceConvertorTest001
@@ -782,17 +807,23 @@ HWTEST_F(RSBaseRenderEngineUnitTest, SetColorSpaceConverterDisplayParameterTest,
     params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
     ASSERT_EQ(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter), true);
+    RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
     bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     EXPECT_EQ(ret, false);
 
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
+
     staticMetadata.cta861.maxContentLightLevel = 400.0f;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
     ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter);
     EXPECT_EQ(ret, true);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 #endif
 }
 

@@ -188,12 +188,12 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
         return;
     }
     renderPipelineClient_->CommitTransaction(transactionData);
-    transactionDataIndex_ = transactionData->GetIndex();
+    transactionDataIndex_.store(transactionData->GetIndex(), std::memory_order_relaxed);
 }
 
 uint32_t RSTransactionHandler::GetTransactionDataIndex() const
 {
-    return transactionDataIndex_;
+    return transactionDataIndex_.load(std::memory_order_relaxed);
 }
 
 void RSTransactionHandler::SetRSTransactionDataScene(RSTransactionDataScenes scene)

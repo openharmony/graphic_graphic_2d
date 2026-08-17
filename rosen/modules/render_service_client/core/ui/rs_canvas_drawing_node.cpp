@@ -42,9 +42,6 @@ bool RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
 #endif
 namespace {
 constexpr int EDGE_WIDTH_LIMIT = 1000;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-const bool HYBRID_ENABLED = RSSystemProperties::GetHybridRenderCanvasEnabled();
-#endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 const bool PRE_ALLOCATE_DMA_ENABLED =
     RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled();
@@ -78,7 +75,7 @@ RSCanvasDrawingNode::RSCanvasDrawingNode(
 RSCanvasDrawingNode::~RSCanvasDrawingNode()
 {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (HYBRID_ENABLED) {
+    if (hybridEnabled_) {
         auto uiContext = GetRSUIContext();
         auto canvasModifiersDrawAgent = uiContext != nullptr ? uiContext->GetCanvasModifiersDrawAgent() : nullptr;
         if (canvasModifiersDrawAgent != nullptr) {
@@ -123,15 +120,21 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
         RSNodeMap::MutableInstance().RegisterNode(node);
     }
 
-    bool hybridEnabled = false;
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    hybridEnabled = HYBRID_ENABLED;
+    static std::once_flag hybridEnabledFlag;
+    std::call_once(
+        hybridEnabledFlag, []() { globalHybridEnabled_ = RSSystemProperties::GetHybridRenderCanvasEnabled(); });
+    node->hybridEnabled_ = globalHybridEnabled_ && !isTextureExportNode;
 #endif
-    if (hybridEnabled) {
+    if (node->hybridEnabled_) {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
         auto uiContext = node->GetRSUIContext();
         auto canvasModifiersDrawAgent = uiContext != nullptr ? uiContext->GetCanvasModifiersDrawAgent() : nullptr;
         if (canvasModifiersDrawAgent != nullptr) {
+            static std::once_flag flag;
+            std::call_once(flag, [canvasModifiersDrawAgent]() {
+                canvasModifiersDrawAgent->QueryMaxGpuBufferSize(maxGpuSupportedWidth_, maxGpuSupportedHeight_);
+            });
             std::weak_ptr<RSRenderInterface> weakInterface = uiContext->GetRSRenderInterface();
             canvasModifiersDrawAgent->OnNodeCreate(node->GetId(), weakInterface);
         }
@@ -173,11 +176,7 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
     }
 
     uint32_t resetSurfaceIndex = 0;
-    bool hybridEnabled = false;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    hybridEnabled = HYBRID_ENABLED;
-#endif
-    if (hybridEnabled) {
+    if (hybridEnabled_) {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
         ResetSurfaceForClientRender(width, height);
 #endif
@@ -213,14 +212,8 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 void RSCanvasDrawingNode::ResetSurfaceForClientRender(int width, int height)
 {
-    static uint32_t maxGpuSupportedWidth = 0;
-    static uint32_t maxGpuSupportedHeight = 0;
-    static std::once_flag flag;
-    std::call_once(flag, []() {
-        RenderContext::Create()->QueryMaxGpuBufferSize(maxGpuSupportedWidth, maxGpuSupportedHeight);
-    });
-    sizeOutOfGpuLimit_ = width > static_cast<int>(maxGpuSupportedWidth) ||
-        height > static_cast<int>(maxGpuSupportedHeight) || width <= 0 || height <= 0;
+    sizeOutOfGpuLimit_ = width > static_cast<int>(maxGpuSupportedWidth_) ||
+        height > static_cast<int>(maxGpuSupportedHeight_) || width <= 0 || height <= 0;
     if (auto uiContext = GetRSUIContext()) {
         if (auto canvasModifiersDrawAgent = uiContext->GetCanvasModifiersDrawAgent()) {
             uiContext->OnCanvasDrawingNodeUpdate();
@@ -337,7 +330,7 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
 {
     bool clientRender = false;
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    if ((clientRender = HYBRID_ENABLED && !sizeOutOfGpuLimit_)) {
+    if ((clientRender = hybridEnabled_ && !sizeOutOfGpuLimit_)) {
         auto uiContext = GetRSUIContext();
         auto canvasModifiersDrawAgent = uiContext != nullptr ? uiContext->GetCanvasModifiersDrawAgent() : nullptr;
         if (canvasModifiersDrawAgent == nullptr || !canvasModifiersDrawAgent->GetBitmap(GetId(), bitmap)) {
@@ -370,7 +363,7 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
             }
             auto getBitmapTask = [&node, &bitmap]() { bitmap = node->GetBitmap(); };
             RSRenderThread::Instance().PostSyncTask(getBitmapTask);
-            if (bitmap.IsValid()) {
+            if (!bitmap.IsValid()) {
                 return false;
             }
         }
@@ -393,7 +386,7 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         return false;
     }
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (HYBRID_ENABLED && !sizeOutOfGpuLimit_) {
+    if (hybridEnabled_ && !sizeOutOfGpuLimit_) {
         return GetPixelmapForClientRender(pixelmap, drawCmdList, rect);
     }
 #endif
@@ -458,14 +451,14 @@ void RSCanvasDrawingNode::OnFinishRecording(
  
     if (RenderInClient(drawCmdList)) {
         drawCmdList = nullptr;
-    } else {
-        RSCanvasNode::OnFinishRecording(drawCmdList, modifierType);
+        return;
     }
+    RSCanvasNode::OnFinishRecording(drawCmdList, modifierType);
 }
  
 bool RSCanvasDrawingNode::RenderInClient(Drawing::DrawCmdListPtr drawCmdList)
 {
-    if (!HYBRID_ENABLED || sizeOutOfGpuLimit_) {
+    if (!hybridEnabled_ || sizeOutOfGpuLimit_) {
         return false;
     }
     auto uiContext = GetRSUIContext();
@@ -519,7 +512,7 @@ void RSCanvasDrawingNode::SetIsOnTheTree(bool onTheTree)
 bool RSCanvasDrawingNode::SetNodeState(RSNodeState state)
 {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (!HYBRID_ENABLED || sizeOutOfGpuLimit_) {
+    if (!hybridEnabled_ || sizeOutOfGpuLimit_) {
         return false;
     }
     if (GetNodeState() == state) {

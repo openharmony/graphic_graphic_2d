@@ -112,6 +112,7 @@ void RSHpaeOfflineDevice::LoadPreProcessHandle()
     if ((initFunc == nullptr) || (initFunc() != 0)) {
         RS_OFFLINE_LOGW("prevalidate init failed");
         dlclose(preProcessHandle_);
+        preProcessHandle_ = nullptr;
         return;
     }
 
@@ -191,6 +192,10 @@ bool RSHpaeOfflineDevice::IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRender
             offlineDeviceEnable);
         return false;
     }
+    if (surfaceNode == nullptr) {
+        RS_OFFLINE_LOGW("surface node is null.");
+        return false;
+    }
     if (!loadSuccess_) {
         RS_OFFLINE_LOGW("hpae so is not loaded.");
         return false;
@@ -235,13 +240,6 @@ bool RSHpaeOfflineDevice::IsOfflineDeviceEnable(std::shared_ptr<RSHpaeOfflineCon
     if (RSHeteroHDRManager::Instance().GetNeedClearBufferAndMHC()) {
         RSHeteroHDRManager::Instance().SetHeteroEnable(false);
         RS_OFFLINE_LOGD("hetero can`t clear buffer, (node: %{public}" PRIu64 ").", context->nodeId);
-        return false;
-    }
-    if (context->heteroEnableFrames < MAX_HETERO_ENABLE_FRAME) {
-        RSHeteroHDRManager::Instance().SetHeteroEnable(false);
-        RS_OFFLINE_LOGD("disable offline process, validFrames: %{public}zu, (node: %{public}" PRIu64 ").",
-            context->heteroEnableFrames.load(), context->nodeId);
-        context->heteroEnableFrames++;
         return false;
     }
     RSHeteroHDRManager::Instance().SetHeteroEnable(true);
@@ -313,8 +311,13 @@ bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params, 
         return false;
     }
     auto srcSurfaceBuffer = params.GetBuffer();
+    BufferHandle* srcHandle = srcSurfaceBuffer->GetBufferHandle();
+    if (!srcHandle) {
+        RS_OFFLINE_LOGW("Source buffer handle is not available.");
+        return false;
+    }
     inputInfo.id = params.GetId();
-    inputInfo.srcHandle = srcSurfaceBuffer->GetBufferHandle();
+    inputInfo.srcHandle = srcHandle;
     inputInfo.dstHandle = dstHandle;
     auto src = params.GetLayerInfo().srcRect;
     if (taskData.contextType == OfflineContextType::AI2020) {
@@ -390,7 +393,9 @@ static void WaitFence(const sptr<SyncFence>& srcAcquireFence, int32_t releaseFen
     RS_OFFLINE_LOGD("start to wait fence.");
     sptr<SyncFence> dstReleaseFence = sptr<SyncFence>::MakeSptr(releaseFenceFd);
     dstReleaseFence->Wait(WAIT_FENCE_TIMEOUT_MS);
-    srcAcquireFence->Wait(WAIT_FENCE_TIMEOUT_MS);
+    if (srcAcquireFence != nullptr) {
+        srcAcquireFence->Wait(WAIT_FENCE_TIMEOUT_MS);
+    }
     RS_OFFLINE_LOGD("wait fence done.");
 }
 
@@ -563,6 +568,10 @@ bool RSHpaeOfflineDevice::PostProcessOfflineTask(
 bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineContext>& context,
     RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId)
 {
+    if (surfaceParams == nullptr) {
+        RS_OFFLINE_LOGW("surfaceParams is nullptr");
+        return false;
+    }
     if (context->IsSkipDraw()) {
         return SetResultWhenSkipDraw(context, surfaceParams, taskId);
     }

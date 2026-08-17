@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr size_t MAX_PARTITION_POINTS = 128;
 enum WINDOW_LAYER_INFO_TYPE : uint32_t {
     ALL_VISIBLE = 0,
     SEMI_VISIBLE,

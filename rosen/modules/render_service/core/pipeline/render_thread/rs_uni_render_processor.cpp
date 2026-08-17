@@ -147,7 +147,7 @@ void RSUniRenderProcessor::PostProcess()
         RSUniRenderThread::Instance().NotifyCommitDone(screenInfo_.id);
     }
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers_.size());
-    RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
 static void SetDeviceOfflineOriginalInfo(RSLayerPtr& layer, RSSurfaceRenderParams& params)
@@ -283,7 +283,8 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio(),
         uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio());
     HandleDelegateComposerLayer(layer, params);
-    RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "dirty:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "buffer:[%{public}d, %{public}d] alpha:[%{public}f]"
@@ -311,7 +312,7 @@ void RSUniRenderProcessor::CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRend
     }
     GraphicSolidColorLayerProperty solidColorLayerProperty;
     if (layer->GetZorder() > 0) {
-        solidColorLayerProperty.zOrder = layer->GetZorder() - 1;
+        solidColorLayerProperty.zOrder = static_cast<int32_t>(layer->GetZorder()) - 1;
     }
     solidColorLayerProperty.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     auto layerRect = layer->GetLayerSize();
@@ -380,7 +381,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     if (offlineResult) {
         SetDeviceOfflineOriginalInfo(layer, params);
     }
-    params.SetPreBuffer(nullptr, nullptr);
+    params.ClearPreBufferOnly();
     layer->SetZorder(layerInfo.zOrder);
     layer->SetRotationFixed(params.GetFixRotationByUser());
     RSRenderThreadParams::TunnelLayerSnapshot tunnelLayerSnapshot;
@@ -421,7 +422,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     bool forceClientForDRM = GetForceClientForDRM(params);
     RS_OPTIONAL_TRACE_NAME_FMT("%s nodeName[%s] forceClientForDRM[%d]",
         __func__, params.GetName().c_str(), forceClientForDRM);
-    RS_LOGD("%{public}s nodeName[%{public}s] forceClientForDRM[%{public}d]",
+    RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s nodeName[%{public}s] forceClientForDRM[%{public}d]",
         __func__, params.GetName().c_str(), forceClientForDRM);
     bool forceClient = RSSystemProperties::IsForceClient() || forceClientForDRM;
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
@@ -577,7 +578,7 @@ void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
     }
     if (node.GetFingerprint()) {
         layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
-        RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
         layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
     }
@@ -609,7 +610,7 @@ void RSUniRenderProcessor::ProcessScreenSurfaceForRenderThread(
     }
     if (params->GetFingerprint()) {
         layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
-        RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
+        RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
         layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
     }

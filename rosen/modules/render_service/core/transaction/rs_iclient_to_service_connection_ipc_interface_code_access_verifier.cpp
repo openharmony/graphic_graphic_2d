@@ -349,6 +349,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_REFRESH_RATE_EVENT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HGM_EXCLUSIVE_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_HGM_EXCLUSIVE_SCREEN");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID");
             break;
@@ -379,6 +383,14 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHICS): {
             hasPermission = CheckPermission(code);
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHIC): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHIC");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO_TO_SP): {

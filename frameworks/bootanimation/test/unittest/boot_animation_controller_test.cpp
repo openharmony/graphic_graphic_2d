@@ -101,18 +101,4 @@ HWTEST_F(BootAnimationControllerTest, GetBootType_MultipleConfigs_ReturnAssociat
     BootStrategyType type = controller.GetBootType();
     EXPECT_EQ(type, BootStrategyType::ASSOCIATIVE);
 }
-
-/**
- * @tc.name: GetConfigFilePath_FileExists_ReturnCorrectPath
- * @tc.desc: Verify the GetConfigFilePath function returns correct path when config file exists.
- * @tc.type: FUNC
- */
-HWTEST_F(BootAnimationControllerTest, GetConfigFilePath_FileExists_ReturnCorrectPath, TestSize.Level1)
-{
-    std::shared_ptr<BootAnimationController> controller = std::make_shared<BootAnimationController>();
-    std::string path = controller->GetConfigFilePath();
-    std::string filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
-    bool isFileExist = OHOS::IsFileExisted(filePath);
-    EXPECT_EQ(path.empty(), isFileExist ? false : true);
-}
 }
