@@ -6795,5 +6795,124 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetDisplayEngineControlStubTest, T
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
+
+/**
+ * @tc.name: SetScreenSecurityMask001
+ * @tc.desc: Test SET_SCREEN_SECURITY_MASK with nullptr and normal size securityMask
+ * @tc.type: FUNC
+ * @tc.require: issue#25929
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenSecurityMask001, TestSize.Level1)
+{
+    constexpr uint32_t FOUNDATION_UID = 5523;
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerUid_ = FOUNDATION_UID;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK);
+
+    constexpr ScreenId screenId = 1;
+    constexpr bool enable = true;
+
+    // case 1: nullptr securityMask
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(screenId);
+        data.WriteBool(enable);
+        auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(ret, ERR_NONE);
+    }
+
+    // case 2: normal size PixelMap
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(screenId);
+        data.WriteBool(enable);
+        Media::InitializationOptions opts;
+        opts.size.width = 100;
+        opts.size.height = 100;
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+        opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+        std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+        if (pixelMap) {
+            data.WriteParcelable(pixelMap.get());
+            auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+            EXPECT_EQ(ret, ERR_NONE);
+        }
+    }
+}
+
+/**
+ * @tc.name: SetScreenSecurityMask002
+ * @tc.desc: Test SET_SCREEN_SECURITY_MASK with oversized securityMask
+ * @tc.type: FUNC
+ * @tc.require: issue#25929
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenSecurityMask002, TestSize.Level1)
+{
+    constexpr uint32_t FOUNDATION_UID = 5523;
+    BinderInvoker *invoker = new BinderInvoker();
+    invoker->status_ = IRemoteInvoker::ACTIVE_INVOKER;
+    invoker->callerUid_ = FOUNDATION_UID;
+    IPCThreadSkeleton *current = IPCThreadSkeleton::GetCurrent();
+    current->invokers_[IRemoteObject::IF_PROT_DEFAULT] = invoker;
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK);
+
+    constexpr ScreenId screenId = 1;
+    constexpr bool enable = true;
+
+    // case 3: width over limit
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(screenId);
+        data.WriteBool(enable);
+        Media::InitializationOptions opts;
+        opts.size.width = SECURITYMASK_IMAGE_SIZE_LIMIT + 1;
+        opts.size.height = 1;
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+        opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+        std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+        if (pixelMap) {
+            data.WriteParcelable(pixelMap.get());
+            auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+            EXPECT_EQ(ret, ERR_INVALID_DATA);
+        }
+    }
+
+    // case 4: height over limit
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(screenId);
+        data.WriteBool(enable);
+        Media::InitializationOptions opts;
+        opts.size.width = 1;
+        opts.size.height = SECURITYMASK_IMAGE_SIZE_LIMIT + 1;
+        opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+        opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+        std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+        if (pixelMap) {
+            data.WriteParcelable(pixelMap.get());
+            auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+            EXPECT_EQ(ret, ERR_INVALID_DATA);
+        }
+    }
+}
 } // namespace OHOS::Rosen
 #endif

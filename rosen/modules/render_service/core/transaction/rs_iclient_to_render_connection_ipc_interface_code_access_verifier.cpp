@@ -150,6 +150,10 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FREE_MULTI_WINDOW_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE): {
+            hasPermission = CheckPermission(code);
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::COMMIT_TRANSACTION):
         case static_cast<CodeUnderlyingType>(CodeEnumType::EXECUTE_SYNCHRONOUS_TASK):
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_NODE):
@@ -169,7 +173,6 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
         case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_BUFFER_CALLBACK):
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK):
         case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SELF_SURFACE_CAPTURE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE_SOLO):
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HIDE_PRIVACY_CONTENT):
