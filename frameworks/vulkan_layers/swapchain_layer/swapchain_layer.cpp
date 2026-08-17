@@ -1961,6 +1961,7 @@ VKAPI_ATTR void VKAPI_CALL GetPhysicalDeviceFeatures2(
             VkPhysicalDeviceHdrVividFeaturesHUAWEI* vividFeature =
                 reinterpret_cast<VkPhysicalDeviceHdrVividFeaturesHUAWEI*>(featureStruct);
             vividFeature->hdrVivid = VK_TRUE;
+            break;
         }
         featureStruct = reinterpret_cast<VkBaseOutStructure*>(featureStruct->pNext);
     }

@@ -66,4 +66,14 @@ void MultiScreenParam::SetForceRenderForMirror(bool isEnabled)
 {
     isForceRenderForMirror_ = isEnabled;
 }
+
+bool MultiScreenParam::IsSkipFrameByActiveRefreshRate()
+{
+    return isSkipFrameByActiveRefreshRate_;
+}
+
+void MultiScreenParam::SetSkipFrameByActiveRefreshRate(bool isEnabled)
+{
+    isSkipFrameByActiveRefreshRate_ = isEnabled;
+}
 } // namespace OHOS::Rosen

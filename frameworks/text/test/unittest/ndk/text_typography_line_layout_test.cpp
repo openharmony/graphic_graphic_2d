@@ -555,6 +555,99 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy005, TestSize.Lev
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographyInnerBalanceTest
+ * @tc.desc: Test for balance strategy with hard break in paragraph's tail
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy006, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for balance strategy 2
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "d\n";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, 10);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineCount(typography), 2);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyInnerBalanceTest
+ * @tc.desc: Test for balance strategy with hard break in paragraph's
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy007, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for balance strategy 2
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "\n\nHe\nllo World\n\n";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, 10);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineCount(typography), 14);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyInnerBalanceTest
+ * @tc.desc: Test for balance strategy with hard break in paragraph's
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy008, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for balance strategy 2
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "\n\n\n";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, 10);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineCount(typography), 4);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
  * @tc.name: TypographyLineSpacingBasic
  * @tc.desc: Test for lineSpacing basic functions
  * @tc.type: FUNC

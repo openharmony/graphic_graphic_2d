@@ -21,13 +21,22 @@
 #include <mutex>
 #include <scoped_bytrace.h>
 #include <securec.h>
+#include "platform/common/rs_log.h"
 #include "v1_5/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
     do {                                                             \
         if ((composerSptr) == nullptr) {                             \
-            HLOGD("[%{public}s]composerSptr is nullptr.", __func__); \
+            RS_LOGD_IF(DEBUG_COMPOSER, "[%{public}s]composerSptr is nullptr.", __func__); \
             return GRAPHIC_DISPLAY_NULL_PTR;                         \
+        }                                                            \
+    } while (0)
+
+#define CHECK_FUNC_RETURN_BOOL(composerSptr)                                     \
+    do {                                                             \
+        if ((composerSptr) == nullptr) {                             \
+            RS_LOGD_IF(DEBUG_COMPOSER, "[%{public}s]composerSptr is nullptr.", __func__); \
+            return false;                         \
         }                                                            \
     } while (0)
 
@@ -106,7 +115,7 @@ int32_t HdiDeviceImpl::RegHotPlugCallback(HotPlugCallback callback, void *data)
 
 bool HdiDeviceImpl::RegHwcDeadCallback(OnHwcDeadCallback callback, void *data)
 {
-    CHECK_FUNC(g_composer);
+    CHECK_FUNC_RETURN_BOOL(g_composer);
     sptr<HwcDeathRecipient> recipient = new HwcDeathRecipient(callback, data);
     return g_composer->AddDeathRecipient(recipient);
 }

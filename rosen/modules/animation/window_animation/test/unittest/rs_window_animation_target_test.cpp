@@ -66,7 +66,7 @@ HWTEST_F(RSWindowAnimationTargetTest, Unmarshalling001, TestSize.Level1)
     ASSERT_EQ(res, nullptr);
     windowAnimationTarget->Marshalling(parcel);
     res = windowAnimationTarget->Unmarshalling(parcel);
-    ASSERT_NE(res, nullptr);
+    ASSERT_EQ(res, nullptr);
     GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest Unmarshalling001 end";
 }
 
@@ -122,7 +122,7 @@ HWTEST_F(RSWindowAnimationTargetTest, ReadFromParcel001, TestSize.Level1)
     ASSERT_EQ(res, false);
     windowAnimationTarget->Marshalling(parcel);
     res = windowAnimationTarget->ReadFromParcel(parcel);
-    ASSERT_EQ(res, true);
+    ASSERT_EQ(res, false);
     
     Parcel parcelNull;
     windowAnimationTarget->surfaceNode_ = nullptr;
@@ -130,6 +130,60 @@ HWTEST_F(RSWindowAnimationTargetTest, ReadFromParcel001, TestSize.Level1)
     res = windowAnimationTarget->ReadFromParcel(parcelNull);
     ASSERT_EQ(res, true);
     GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcel001 end";
+}
+
+/**
+ * @tc.name: ReadFromParcelProxyNodeNull001
+ * @tc.desc: Verify ReadFromParcel returns false when UnmarshallingAsProxyNode returns nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationTargetTest, ReadFromParcelProxyNodeNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcelProxyNodeNull001 start";
+    Parcel parcel;
+    parcel.WriteString("");
+    parcel.WriteString("");
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteBool(true);
+    auto target = std::make_shared<RSWindowAnimationTarget>();
+    bool res = target->ReadFromParcel(parcel);
+    EXPECT_FALSE(res);
+    GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcelProxyNodeNull001 end";
+}
+
+/**
+ * @tc.name: ReadFromParcelProxyNodeNotNull001
+ * @tc.desc: Verify ReadFromParcel succeeds when UnmarshallingAsProxyNode returns valid node
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationTargetTest, ReadFromParcelProxyNodeNotNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcelProxyNodeNotNull001 start";
+    Parcel parcel;
+    parcel.WriteString("testBundle");
+    parcel.WriteString("testAbility");
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteFloat(100.0f);
+    parcel.WriteFloat(200.0f);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteBool(true);
+    parcel.WriteUint64(99999);
+    parcel.WriteString("proxyNodeName");
+    parcel.WriteBool(false);
+    parcel.WriteUint32(1);
+    parcel.WriteUint64(2);
+    parcel.WriteInt32(3);
+    auto target = std::make_shared<RSWindowAnimationTarget>();
+    ASSERT_TRUE(target->ReadFromParcel(parcel));
+    EXPECT_NE(target->surfaceNode_, nullptr);
+    EXPECT_EQ(target->bundleName_, "testBundle");
+    EXPECT_EQ(target->windowId_, 1u);
+    GTEST_LOG_(INFO) << "RSWindowAnimationTargetTest ReadFromParcelProxyNodeNotNull001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

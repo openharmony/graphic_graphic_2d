@@ -515,6 +515,7 @@ bool RSCoverageNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     stagingNodeId_ = node.GetId();
     stagingScreenNodeId_ = node.GetScreenNodeId();
     auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    // Use GetResolvedSDFShape to handle dual non-linear distortion (distort op + distortion collapse)
     if (sdfShape) {
         std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
         std::shared_ptr<Drawing::GEShaderShape> geShape =
@@ -870,7 +871,12 @@ void RSCoverageNGShaderDrawable::DrawLight(Drawing::Canvas* canvas) const
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetPhongShaderBuilder
     (size_t lightLength)
 {
-    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> singleLightShaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> multiLightShaderBuilder;
+    auto& shaderBuilder = lightLength == 1 ? singleLightShaderBuilder : multiLightShaderBuilder;
+    if (shaderBuilder) {
+        return shaderBuilder;
+    }
     Drawing::RuntimeEffectOptions reo;
     reo.useHighpLocalCoords = true;
     std::shared_ptr<Drawing::RuntimeEffect> effect = lightLength == 1 ?
@@ -887,7 +893,12 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetPh
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetFeatheringBorderLightShaderBuilder
     (size_t lightLength)
 {
-    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> singleLightShaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> multiLightShaderBuilder;
+    auto& shaderBuilder = lightLength == 1 ? singleLightShaderBuilder : multiLightShaderBuilder;
+    if (shaderBuilder) {
+        return shaderBuilder;
+    }
     Drawing::RuntimeEffectOptions reo;
     reo.useHighpLocalCoords = true;
     std::shared_ptr<Drawing::RuntimeEffect> effect = lightLength == 1 ?
@@ -904,7 +915,12 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetFe
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSCoverageNGShaderDrawable::GetNormalLightShaderBuilder
     (size_t lightLength)
 {
-    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> singleLightShaderBuilder;
+    static thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> multiLightShaderBuilder;
+    auto& shaderBuilder = lightLength == 1 ? singleLightShaderBuilder : multiLightShaderBuilder;
+    if (shaderBuilder) {
+        return shaderBuilder;
+    }
     Drawing::RuntimeEffectOptions reo;
     reo.useHighpLocalCoords = true;
     std::shared_ptr<Drawing::RuntimeEffect> effect = lightLength == 1 ?

@@ -246,6 +246,11 @@ void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>&
         return;
     }
 
+    if (duration_ < 0) {
+        ROSEN_LOGE("RSImplicitKeyframeAnimationParam::AddKeyframe, invalid duration:%{public}d", duration_);
+        return;
+    }
+
     auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
     if (keyframeAnimation != nullptr) {
         if (startDuration > INT32_MAX - duration_) {

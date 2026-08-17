@@ -53,7 +53,10 @@ void HgmHardwareUtilsTest::TearDownTestCase()
 }
 
 void HgmHardwareUtilsTest::SetUp() {}
-void HgmHardwareUtilsTest::TearDown() {}
+void HgmHardwareUtilsTest::TearDown()
+{
+    HgmCore::Instance().RegisterScreenManagerCallbacks({});
+}
 
 /**
  * @tc.name: ExecuteSwitchRefreshRateTest

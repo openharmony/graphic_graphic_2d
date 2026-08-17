@@ -433,7 +433,7 @@ void RSCanvasModifiersDraw::WaitAllTasksFinish()
     PostSyncTask([canvasModifiersDraw = shared_from_this()]() {
         RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish");
         if (canvasModifiersDraw->gpuContext_ != nullptr) {
-            canvasModifiersDraw->gpuContext_->FlushAndSubmit(true);
+            canvasModifiersDraw->gpuContext_->FlushAndSubmit(false);
             canvasModifiersDraw->gpuContext_->PurgeUnlockedResources(true);
             canvasModifiersDraw->gpuContext_ = nullptr;
         }
@@ -735,9 +735,6 @@ void RSCanvasModifiersDraw::DoCleanFreeBuffers(int64_t maxDuration)
     }
     if (freeDrawableList.empty()) {
         return;
-    }
-    if (gpuContext_ != nullptr) {
-        gpuContext_->FlushAndSubmit(true);
     }
     for (auto* drawable : freeDrawableList) {
         drawable->CleanBuffer();

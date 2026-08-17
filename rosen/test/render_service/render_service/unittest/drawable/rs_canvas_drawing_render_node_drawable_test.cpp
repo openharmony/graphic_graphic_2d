@@ -1099,11 +1099,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CheckBackendTextureTest, TestSiz
 }
 
 /**
- * @tc.name: OnDrawAbnormalProcessTest
+ * @tc.name: OnDrawAbnormalProcessTest002
  * @tc.desc: Test OnDraw with abnormal process check
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest002, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     NodeId nodeId = 1;

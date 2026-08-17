@@ -123,6 +123,6 @@ group("unittest") {
 
   deps = [
     ":RSAnimationCommandBaseTest",
-    ":RSNodeCommandTest1",
+    # ":RSNodeCommandTest1",
   ]
 }

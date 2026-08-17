@@ -27,6 +27,7 @@
 
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_gl.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "render_context/render_context.h"
 namespace OHOS {
 namespace Rosen {

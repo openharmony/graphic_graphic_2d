@@ -21,6 +21,16 @@ namespace OHOS::Rosen {
 namespace {
 static std::atomic<bool> g_releaseResourceEnabled_ = true;
 }
+
+Drawing::GPUResourceTag RSTagTracker::GetCurrentGpuResourceTag(Drawing::GPUContext* gpuContext)
+{
+    Drawing::GPUResourceTag tag;
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
+    tag = gpuContext->GetCurrentGpuResourceTag();
+#endif
+    return tag;
+}
+
 RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext,
     RSTagTracker::TAGTYPE tagType) : gpuContext_(gpuContext)
 {
@@ -182,14 +192,5 @@ RSTagTracker::~RSTagTracker()
         gpuContext_->SetCurrentGpuResourceTag(tagEnd);
     }
 #endif
-}
-
-Drawing::GPUResourceTag RSTagTracker::GetCurrentGpuResourceTag(Drawing::GPUContext* gpuContext)
-{
-    Drawing::GPUResourceTag tag;
-#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-    tag = gpuContext->GetCurrentGpuResourceTag();
-#endif
-    return tag;
 }
 } // namespace OHOS::Rosen

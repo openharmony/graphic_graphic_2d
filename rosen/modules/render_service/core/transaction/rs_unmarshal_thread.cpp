@@ -20,7 +20,6 @@
 #include "ffrt_inner.h"
 #include "hisysevent.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_unmarshal_task_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction_data.h"

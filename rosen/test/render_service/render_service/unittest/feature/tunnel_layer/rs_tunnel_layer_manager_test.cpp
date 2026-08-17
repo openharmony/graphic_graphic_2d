@@ -421,4 +421,61 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState_ReceivesInfo_Processes
     EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetTunnelState(),
         RSTunnelRuntimeState::TunnelState::BUILDING);
 }
+
+/**
+ * @tc.name: UpdateTunnelLayerState_NullptrSurfaceHandler_TrueBranch
+ * @tc.desc: Test UpdateTunnelLayerState returns immediately when surfaceHandler is nullptr,
+ *           covering the (surfaceHandler == nullptr) true branch added in the fix commit.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState_NullptrSurfaceHandler_TrueBranch, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSTunnelLayerManager tunnelLayerManager(rsContext);
+
+    auto context = CreateTunnelContext(MakeNodeId(TEST_PID_ONE, TEST_NODE_UID_ONE));
+    ASSERT_TRUE(context.IsProducerReady());
+    ASSERT_TRUE(RegisterSurfaceNode(rsContext, context.node));
+    TunnelLayerState tunnelState;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, tunnelState));
+    RSTunnelRuntimeStore::SetLayerInfo(
+        context.node->GetId(), tunnelState.tunnelLayerId, tunnelState.property);
+
+    // Call with nullptr surfaceHandler, expect early return without modifying tunnel state
+    tunnelLayerManager.UpdateTunnelLayerState(context.node->GetId(), nullptr);
+
+    // True branch: surfaceHandler == nullptr, the cached tunnel info should be unchanged
+    ExpectTunnelLayerInfo(context.node, tunnelState.tunnelLayerId, tunnelState.property);
+}
+
+/**
+ * @tc.name: UpdateTunnelLayerState_NotNullSurfaceHandler_FalseBranch
+ * @tc.desc: Test UpdateTunnelLayerState proceeds past the nullptr guard when surfaceHandler is
+ *           valid, covering the (surfaceHandler == nullptr) false branch added in the fix commit.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState_NotNullSurfaceHandler_FalseBranch, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto rsContext = std::make_shared<RSContext>();
+    RSTunnelLayerManager tunnelLayerManager(rsContext);
+
+    auto context = CreateTunnelContext(MakeNodeId(TEST_PID_ONE, TEST_NODE_UID_TWO));
+    ASSERT_TRUE(context.IsProducerReady());
+    ASSERT_TRUE(RegisterSurfaceNode(rsContext, context.node));
+    TunnelLayerState tunnelState;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, tunnelState));
+    RSTunnelRuntimeStore::SetLayerInfo(
+        context.node->GetId(), tunnelState.tunnelLayerId, tunnelState.property);
+    context.surfaceHandler->MarkTunnelLayerInfoReceived();
+    ASSERT_TRUE(context.surfaceHandler->HasReceivedTunnelLayerInfo());
+
+    // Call with a valid (non-null) surfaceHandler, expect the false branch to be taken
+    // and the runtime state to be advanced to BUILDING
+    tunnelLayerManager.UpdateTunnelLayerState(context.node->GetId(), context.surfaceHandler);
+
+    ExpectTunnelLayerInfo(context.node, tunnelState.tunnelLayerId, tunnelState.property);
+    EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetTunnelState(),
+        RSTunnelRuntimeState::TunnelState::BUILDING);
+}
 } // namespace OHOS::Rosen

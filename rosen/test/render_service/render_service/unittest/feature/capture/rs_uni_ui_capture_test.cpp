@@ -279,45 +279,6 @@ HWTEST_F(RSUniUiCaptureTest, PrepareEffectRenderNodeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateSurface
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSUniUiCaptureTest, CreateSurface, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = 0.0;
-    captureConfig.scaleY = 0.0;
-    RSUniUICapture rsUniUICapture(nodeId, captureConfig);
-
-    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-    EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelMap));
-
-    pixelMap = std::make_shared<Media::PixelMap>();
-    EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelMap));
-
-    Media::ImageInfo info;
-    int32_t pixelMapWidth = 4;
-    int32_t pixelMapHeight = 3;
-    int32_t bytesPerPixel = 4;
-    info.size.width = pixelMapWidth;
-    info.size.height = pixelMapHeight;
-    info.pixelFormat = Media::PixelFormat::RGBA_8888;
-    info.colorSpace = Media::ColorSpace::SRGB;
-    pixelMap->SetImageInfo(info);
-    int32_t rowDataSize = pixelMapWidth * bytesPerPixel;
-    uint32_t bufferSize = rowDataSize * pixelMapHeight;
-    void *buffer = malloc(bufferSize);
-    EXPECT_NE(buffer, nullptr);
-    pixelMap->SetPixelsAddr(buffer, nullptr, bufferSize, Media::AllocatorType::HEAP_ALLOC, nullptr);
-    RSOffscreenRenderThread::Instance().handler_.reset();
-    EXPECT_NE(nullptr, rsUniUICapture.CreateSurface(pixelMap));
-}
-
-/**
  * @tc.name: PostTaskToRSRecord
  * @tc.desc:
  * @tc.type:

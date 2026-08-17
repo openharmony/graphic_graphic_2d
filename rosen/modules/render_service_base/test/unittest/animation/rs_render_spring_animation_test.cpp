@@ -1176,5 +1176,59 @@ HWTEST_F(RSRenderSpringAnimationTest, RebuildPropertyValue005, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue005 end";
 }
 
+/**
+ * @tc.name: OnAnimateVelocityNull001
+ * @tc.desc: Verify OnAnimate handles GetPropertyVelocity returning nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimateVelocityNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimateVelocityNull001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderSpringAnimation->SetDuration(300);
+    renderSpringAnimation->property_ = property;
+    renderSpringAnimation->lastValue_ = property;
+    renderSpringAnimation->needLogicallyFinishCallback_ = true;
+    renderSpringAnimation->SetRepeatCount(1);
+    renderSpringAnimation->animationFraction_.currentRepeatCount_ = 0;
+    renderSpringAnimation->InitValueEstimator();
+    auto springEstimator =
+        std::static_pointer_cast<RSSpringValueEstimator<float>>(renderSpringAnimation->springValueEstimator_);
+    springEstimator->springModel_ = nullptr;
+    renderSpringAnimation->OnAnimate(0.5f);
+    EXPECT_TRUE(renderSpringAnimation->needLogicallyFinishCallback_);
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimateVelocityNull001 end";
+}
+
+/**
+ * @tc.name: OnAnimateVelocityNotNull001
+ * @tc.desc: Verify OnAnimate proceeds when velocity is not nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimateVelocityNotNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimateVelocityNotNull001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderSpringAnimation->SetDuration(300);
+    renderSpringAnimation->property_ = property;
+    renderSpringAnimation->lastValue_ = property;
+    renderSpringAnimation->needLogicallyFinishCallback_ = true;
+    renderSpringAnimation->SetRepeatCount(1);
+    renderSpringAnimation->animationFraction_.currentRepeatCount_ = 0;
+    renderSpringAnimation->SetSpringParameters(1.0f, 1.0f);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnAnimate(0.5f);
+    EXPECT_FALSE(renderSpringAnimation->needLogicallyFinishCallback_);
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimateVelocityNotNull001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

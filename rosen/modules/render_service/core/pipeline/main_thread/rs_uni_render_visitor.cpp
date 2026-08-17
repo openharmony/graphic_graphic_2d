@@ -51,6 +51,9 @@
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
+#ifdef RS_ENABLE_TV_SHUTTER_3D
+#include "feature/video_3d/rs_tv_shutter_3d_manager.h"
+#endif
 #include "memory/rs_tag_tracker.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_screen_render_params.h"
@@ -836,11 +839,8 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
     curScreenNode_->SetFingerprint(hasFingerprint_);
     curScreenNode_->UpdateScreenRenderParams();
 #ifdef RS_ENABLE_TV_SHUTTER_3D
-    UIMode3D uiMode3D = RSMainThread::Instance()->GetUIMode3D();
-    if (uiMode3D == UIMode3D::MODE_SHUTTER_3D) {
-        curScreenNode_->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
-        hwcVisitor_->UpdateHwcNodeEnableByShutter3DLayer();
-    }
+    RSTvShutter3DManager::Instance().UpdateHwcNodeEnableByShutter3DLayer(
+        *curScreenNode_, RSMainThread::Instance()->GetUIMode3D());
 #endif
     UpdateColorSpaceAfterHwcCalc(node);
     RSHdrUtil::UpdatePixelFormatAfterHwcCalc(node);
@@ -1180,6 +1180,26 @@ void RSUniRenderVisitor::CollectHwcAndFilterNodesToParent(RSRenderNode& node, bo
     }
 }
 
+void RSUniRenderVisitor::CollectHwcAndFilterNodesForCrossNode(RSSurfaceRenderNode& node,
+    bool isParentPrepareInReverseOrder)
+{
+    auto sourceRenderNode = node.GetSourceCrossNode().lock();
+    auto sourceSurfaceNode = sourceRenderNode ?
+        sourceRenderNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+    if (sourceSurfaceNode) {
+        // Clone: mirror the source's aggregated list into the current node.
+        auto& cloneNodeList = node.GetAllHwcNodeAndFilterNode();
+        cloneNodeList = sourceSurfaceNode->GetAllHwcNodeAndFilterNode();
+    } else if (node.IsCloneCrossNode()) {
+        // Error case: no resolvable source, drop stale data.
+        node.ClearAllHwcNodeAndFilterNode();
+    }
+    if (curScreenNode_ && curScreenNode_->GetId() != node.GetId()) {
+        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder,
+            RSUniHwcComputeUtil::IsBlendNeedFilter(node));
+    }
+}
+
 void RSUniRenderVisitor::QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareDepthRenderNode nodeId[%llu]", node.GetId());
@@ -1302,6 +1322,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     RSSpecialLayerUtils::DealWithSpecialLayer(node, *curLogicalDisplayNode_, needCalcScreenSpecialLayer);
     // avoid cross node subtree visited twice or more
     if (CheckSkipAndPrepareForCrossNode(node)) {
+        CollectHwcAndFilterNodesForCrossNode(node, isParentPrepareInReverseOrder);
         return;
     }
     // 0. init curSurface info and check node info
@@ -2874,7 +2895,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
         bool isInvalidZorder = hwcNodePtr->IsHardwareForcedDisabled() &&
             !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
 #ifdef RS_ENABLE_TV_SHUTTER_3D
-        if (RSMainThread::Instance()->GetUIMode3D() == UIMode3D::MODE_SHUTTER_3D && hwcNodePtr->IsFullScreen()) {
+        if (RSMainThread::Instance()->GetUIMode3D() == UIMode3D::MODE_SHUTTER_3D &&
+            RSTvShutter3DManager::Instance().IsFullScreen(*hwcNodePtr)) {
             isInvalidZorder = false;
         }
 #endif
@@ -4551,6 +4573,11 @@ bool RSUniRenderVisitor::IsCurrentSubTreeForcePrepare(RSRenderNode& node)
     // planning: merge with RSUniRenderVisitor::ForcePrepareSubTree()
     if (node.IsRenderGroupExcludedStateChanged()) {
         node.SetRenderGroupExcludedStateChanged(false);
+        // excluded membership changed this frame: directly mark the enclosing cache root(s) so their
+        // cached surface refreshes (SetDrawingCacheChanged flows staging -> render thread).
+        for (auto& [_, nodePtr] : renderGroupCacheRoots_) {
+            nodePtr->SetDrawingCacheChanged(true);
+        }
         // if node's excluded state changed this frame, force prepare its whole subtree to disable sub rendergroup
         return true;
     }

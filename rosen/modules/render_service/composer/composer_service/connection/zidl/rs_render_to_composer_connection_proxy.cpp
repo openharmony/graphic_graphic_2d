@@ -82,12 +82,17 @@ RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::s
 {
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        RS_LOGE("Remote is nullptr.");
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     for (const auto& parcel : parcels) {
         MessageParcel reply;
         int32_t retryCount = 0;
         int32_t err = NO_ERROR;
         do {
-            err = Remote()->SendRequest(IRENDER_TO_COMPOSER_CONNECTION_COMMIT_LAYERS, *parcel, reply, option);
+            err = remote->SendRequest(IRENDER_TO_COMPOSER_CONNECTION_COMMIT_LAYERS, *parcel, reply, option);
             if (err == NO_ERROR) {
                 break;
             }

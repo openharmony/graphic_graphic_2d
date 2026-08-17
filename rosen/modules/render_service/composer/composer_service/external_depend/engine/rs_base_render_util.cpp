@@ -16,6 +16,7 @@
 
 #include "engine/rs_base_render_util.h"
 
+#include <limits>
 #include <parameters.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -53,6 +54,7 @@ const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
 constexpr uint32_t API14 = 14;
 constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
+constexpr uint32_t COLOR_CHANNEL_COUNT = 4;
 constexpr int32_t SCREEN_SCAN_DIRECTION_VERTICAL = 1;
 
 inline int64_t GenerateCurrentTimeStamp()
@@ -767,12 +769,23 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
         bufferHeight = ((bufferHeight - 1) / paddingBase + 1) * paddingBase;
     }
 #endif
-    float yuvSizeFactor = 1.5f; // y:uv = 2:1
-    int32_t len = bufferStride * bufferHeight;
-    int32_t totalLen = static_cast<int32_t>(len * yuvSizeFactor);
+    constexpr int64_t MAX_SAFE_BUFFER_SIZE = INT32_MAX;
+    constexpr float yuvSizeFactor = 1.5f;
+    int64_t len = static_cast<int64_t>(bufferStride) * bufferHeight;
+    if (len > MAX_SAFE_BUFFER_SIZE) {
+        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA buffer len overflow, stride/height = [%{public}d, %{public}d]",
+            bufferStride, bufferHeight);
+        return false;
+    }
+    int64_t totalLen = static_cast<int64_t>(len * yuvSizeFactor);
+    if (totalLen > MAX_SAFE_BUFFER_SIZE) {
+        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA totalLen overflow, len/factor = [%{public}" PRId64 ", %.1f]",
+            len, yuvSizeFactor);
+        return false;
+    }
     if (bufferSize < totalLen) {
         RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid buffer size, "
-            "w/h/stride/size/totalLen = [%{public}d, %{public}d, %{public}d, %{public}d, %{public}d]",
+            "w/h/stride/size/totalLen = [%{public}d, %{public}d, %{public}d, %{public}d, %{public}" PRId64 "]",
             bufferWidth, srcBuf->GetHeight(), bufferStride, bufferSize, totalLen);
         return false;
     }
@@ -785,6 +798,9 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
     int invgdif = 0;
     int bdif = 0;
     for (int i = 0; i < bufferHeight; i++) {
+        if (i >= srcBuf->GetHeight()) {
+            continue;
+        }
         for (int j = 0; j < bufferWidth; j++) {
             int Y = static_cast<int>(ybase[i * bufferStride + j]);
             int U = static_cast<int>(ubase[i / 2 * bufferStride + (j / 2) * 2 + 1]);
@@ -802,11 +818,7 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
 
             for (int k = 0; k < 3; k++) { // 3 is index
                 idx = (i * bufferWidth + j) * 4 + k; // 4 is color channel
-                if (rgb[k] >= 0 && rgb[k] <= 255) { // 255 is upper threshold
-                    rgbaDst[idx] = static_cast<uint8_t>(rgb[k]);
-                } else {
-                    rgbaDst[idx] = (rgb[k] < 0) ? 0 : 255; // 255 is upper threshold
-                }
+                rgbaDst[idx] = static_cast<uint8_t>(std::clamp(rgb[k], 0, 255)); // 255 is upper threshold
             }
             ++idx;
             rgbaDst[idx] = 255; // 255 is upper threshold
@@ -1355,14 +1367,27 @@ bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::ve
 bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
     Drawing::Bitmap& bitmap)
 {
-    newBuffer.resize(buffer->GetWidth() * buffer->GetHeight() * 4, 0); // 4 is color channel
+    int32_t width = buffer->GetWidth();
+    int32_t height = buffer->GetHeight();
+    if (width <= 0 || height <= 0) {
+        RS_LOGE("RSBaseRenderUtil::CreateYuvToRGBABitMap: invalid size, width:%{public}d height:%{public}d",
+            width, height);
+        return false;
+    }
+    uint64_t bufferSize = static_cast<uint64_t>(width) * static_cast<uint64_t>(height) * COLOR_CHANNEL_COUNT;
+    if (bufferSize > std::numeric_limits<size_t>::max()) {
+        RS_LOGE("RSBaseRenderUtil::CreateYuvToRGBABitMap: buffer size overflow, width:%{public}d height:%{public}d",
+            width, height);
+        return false;
+    }
+    newBuffer.resize(static_cast<size_t>(bufferSize), 0);
     if (!Detail::ConvertYUV420SPToRGBA(newBuffer, buffer)) {
         return false;
     }
 
-    Drawing::ImageInfo imageInfo(buffer->GetWidth(), buffer->GetHeight(),
+    Drawing::ImageInfo imageInfo(width, height,
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
-    bitmap.InstallPixels(imageInfo, newBuffer.data(), buffer->GetWidth() * 4);
+    bitmap.InstallPixels(imageInfo, newBuffer.data(), width * COLOR_CHANNEL_COUNT);
     return true;
 }
 

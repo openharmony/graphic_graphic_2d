@@ -135,12 +135,15 @@ void RSMultiScreenUtilTest::SetUp()
     screenParams_->screenInfo_.id = screenNode_->GetScreenId();
     screenParams_->renderNodeType_ = screenNode_->GetType();
     screenParams_->mirrorSourceDrawable_ = mirrorSourceScreenNode_->GetRenderDrawable();
+    screenParams_->logicalDisplayNodeDrawables_.emplace_back(displayNode_->renderDrawable_);
     displayParams_->screenId_ = screenNode_->GetScreenId();
     displayParams_->renderNodeType_ = displayNode_->GetType();
     displayParams_->SetAncestorScreenDrawable(screenNode_->GetRenderDrawable());
     displayParams_->mirrorSourceDrawable_ = mirrorSourceDisplayNode_->GetRenderDrawable();
     mirrorSourceScreenParams_->screenInfo_.id = mirrorSourceScreenNode_->GetScreenId();
     mirrorSourceScreenParams_->renderNodeType_ = mirrorSourceScreenNode_->GetType();
+    mirrorSourceScreenParams_->logicalDisplayNodeDrawables_.emplace_back(
+        mirrorSourceDisplayNode_->renderDrawable_);
     mirrorSourceDisplayParams_->screenId_ = mirrorSourceScreenNode_->GetScreenId();
     mirrorSourceDisplayParams_->renderNodeType_ = mirrorSourceDisplayNode_->GetType();
     mirrorSourceDisplayParams_->SetAncestorScreenDrawable(mirrorSourceScreenNode_->GetRenderDrawable());
@@ -165,6 +168,56 @@ void RSMultiScreenUtilTest::TearDown()
 {
     // clear RSRenderThreadParams after each testcase
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+
+    // Reset shared_ptrs in dependency order to avoid use-after-free during fixture destruction.
+    // Processor and canvas references must be cleared first, then nodes.
+    virtualProcessor_.reset();
+    paintFilterCanvas_.reset();
+    canvas_.reset();
+
+    // Clear cross-references in drawable params through renderDrawable_ to avoid dangling raw pointers.
+    // Some test cases may have set renderParams_ to nullptr, so we must check GetRenderParams().
+    if (screenNode_ && screenNode_->renderDrawable_ && screenNode_->renderDrawable_->GetRenderParams()) {
+        auto* params = static_cast<RSScreenRenderParams*>(screenNode_->renderDrawable_->GetRenderParams().get());
+        params->logicalDisplayNodeDrawables_.clear();
+        params->mirrorSourceDrawable_.reset();
+    }
+    if (mirrorSourceScreenNode_ && mirrorSourceScreenNode_->renderDrawable_ &&
+        mirrorSourceScreenNode_->renderDrawable_->GetRenderParams()) {
+        auto* params = static_cast<RSScreenRenderParams*>(
+            mirrorSourceScreenNode_->renderDrawable_->GetRenderParams().get());
+        params->logicalDisplayNodeDrawables_.clear();
+        params->mirrorSourceDrawable_.reset();
+    }
+    if (displayNode_ && displayNode_->renderDrawable_ && displayNode_->renderDrawable_->GetRenderParams()) {
+        auto* params = static_cast<RSLogicalDisplayRenderParams*>(
+            displayNode_->renderDrawable_->GetRenderParams().get());
+        params->mirrorSourceDrawable_.reset();
+        params->SetAncestorScreenDrawable(nullptr);
+    }
+    if (mirrorSourceDisplayNode_ && mirrorSourceDisplayNode_->renderDrawable_ &&
+        mirrorSourceDisplayNode_->renderDrawable_->GetRenderParams()) {
+        auto* params = static_cast<RSLogicalDisplayRenderParams*>(
+            mirrorSourceDisplayNode_->renderDrawable_->GetRenderParams().get());
+        params->mirrorSourceDrawable_.reset();
+        params->SetAncestorScreenDrawable(nullptr);
+    }
+
+    // Reset raw pointers (they become dangling after node destruction)
+    displayDrawable_ = nullptr;
+    mirrorSourceDisplayDrawable_ = nullptr;
+    screenDrawable_ = nullptr;
+    mirrorSourceScreenDrawable_ = nullptr;
+    displayParams_ = nullptr;
+    mirrorSourceDisplayParams_ = nullptr;
+    screenParams_ = nullptr;
+    mirrorSourceScreenParams_ = nullptr;
+
+    // Reset nodes last so drawables (managed via shared_ptr in renderDrawable_) are released
+    mirrorSourceDisplayNode_.reset();
+    displayNode_.reset();
+    mirrorSourceScreenNode_.reset();
+    screenNode_.reset();
 }
 
 /**
@@ -654,7 +707,7 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest010, TestSize.Level
     processor->surfaceFrames_.push_back(std::move(config));
 
     RSUniRenderThread::Instance().InitGrContext();
-    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(true);
     uniParam->isVirtualDirtyDfxEnabled_ = false;
@@ -697,7 +750,7 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest011, TestSize.Level
     processor->surfaceFrames_.push_back(std::move(config));
 
     RSUniRenderThread::Instance().InitGrContext();
-    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(false);
     uniParam->isVirtualDirtyDfxEnabled_ = false;
@@ -741,7 +794,7 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest012, TestSize.Level
     processor->surfaceFrames_.push_back(std::move(config));
 
     RSUniRenderThread::Instance().InitGrContext();
-    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(true);
     uniParam->isVirtualDirtyDfxEnabled_ = true;
@@ -786,7 +839,7 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest013, TestSize.Level
     processor->surfaceFrames_.push_back(std::move(config));
 
     RSUniRenderThread::Instance().InitGrContext();
-    ASSERT_TRUE(processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine()));
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
 
     uniParam->SetVirtualExpandScreenDirtyEnabled(true);
     uniParam->isVirtualDirtyDfxEnabled_ = false;

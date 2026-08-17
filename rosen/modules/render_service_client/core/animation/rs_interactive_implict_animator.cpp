@@ -16,6 +16,7 @@
 #include "animation/rs_interactive_implict_animator.h"
 
 #include <cmath>
+#include <mutex>
 
 #include "sandbox_utils.h"
 
@@ -149,12 +150,11 @@ bool RSInteractiveImplictAnimator::IsUniRenderEnabled() const
 
 void RSInteractiveImplictAnimator::InitUniRenderEnabled()
 {
-    static bool inited = false;
-    if (!inited) {
-        inited = true;
+    static std::once_flag flag;
+    std::call_once(flag, []() {
         g_isUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
         ROSEN_LOGD("RSInteractiveImplictAnimator::InitUniRenderEnabled:%{public}d", g_isUniRenderEnabled);
-    }
+    });
 }
 
 std::shared_ptr<InteractiveAnimatorFinishCallback> RSInteractiveImplictAnimator::GetAnimatorFinishCallback()

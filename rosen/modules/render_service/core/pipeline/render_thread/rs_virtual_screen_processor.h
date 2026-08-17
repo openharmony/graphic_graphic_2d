@@ -39,6 +39,7 @@ public:
     void PostProcess() override;
 
 private:
+    sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
 };

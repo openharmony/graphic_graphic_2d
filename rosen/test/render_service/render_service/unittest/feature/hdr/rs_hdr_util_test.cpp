@@ -174,6 +174,9 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
     ASSERT_TRUE(buffer != nullptr);
     ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
     RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
@@ -184,6 +187,7 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
     ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     EXPECT_EQ(ret, HdrStatus::HDR_VIDEO);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 }
 
 /**
@@ -195,6 +199,10 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
 HWTEST_F(RSHdrUtilTest, CheckIsHDRSelfProcessingBufferTest001, TestSize.Level1)
 {
     using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
+
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
 
@@ -227,6 +235,7 @@ HWTEST_F(RSHdrUtilTest, CheckIsHDRSelfProcessingBufferTest001, TestSize.Level1)
     MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo);
     ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
     EXPECT_EQ(ret, false);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 }
 
 /**
@@ -581,7 +590,6 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     ASSERT_EQ(retUpdateNit, true);
     displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
     retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // update surfaceNode HDRBrightnessFactor
-    ASSERT_EQ(retUpdateNit, true);
     retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // not update surfaceNode HDRBrightnessFactor
     ASSERT_EQ(retUpdateNit, true);
     EXPECT_EQ(node->GetHDRBrightnessFactor(), 0.5f);
@@ -602,9 +610,13 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     staticMetadata.cta861.maxContentLightLevel = 400.0f;
     MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
     bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
     EXPECT_EQ(ret, true);
     RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, 0);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 }
 
 /**

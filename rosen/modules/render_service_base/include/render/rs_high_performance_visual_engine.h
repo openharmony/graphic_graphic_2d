@@ -64,6 +64,7 @@ private:
     HveFilter() = default;
     std::vector<SurfaceNodeInfo> surfaceNodeInfo_;
     mutable std::mutex hveFilterMtx_;
+    mutable std::mutex surfaceInfoMtx_;
 
     std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeStagingMap_ = {};
     std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeMap_ = {};

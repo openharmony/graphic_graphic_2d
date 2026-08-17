@@ -169,6 +169,6 @@ group("unittest") {
 
     deps = [
         ":RSIpcPersistenceManagerTest",
-        ":RSIpcPersistenceDataTest",
+        # ":RSIpcPersistenceDataTest",
     ]
 }

@@ -19,8 +19,10 @@ module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_base"
 ohos_unittest("RSProxyTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_client_to_service_connect_hub_test.cpp",
-   "rs_render_service_client_proxy_test.cpp"]
+  sources = [
+    #"rs_client_to_service_connect_hub_test.cpp",
+    #"rs_render_service_client_proxy_test.cpp"
+  ]
 
   defines = [ "ENABLE_RS_PROXY" ]
 

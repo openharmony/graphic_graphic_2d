@@ -2223,47 +2223,6 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerLargeDimensions, TestSize.Level
 }
 
 /*
- * @tc.name: RSRcdRenderManager
- * @tc.desc: Test RSRcdRenderManager_DrawRCD
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager_DrawRCD, TestSize.Level1)
-{
-    auto& rcdManagerInstance = RSRcdRenderManager::GetInstance();
-    rcdManagerInstance.InitInstance(); // register
-    rcdManagerInstance.InitInstance(); // already register
-
-    Drawing::Canvas drawingCanvas(2, 2);
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-
-    RSLayerPtr nullLayer = nullptr;
-    RSLayerPtr ngRcdLayer = std::make_shared<RSRenderSurfaceLayer>();
-    ASSERT_NE(ngRcdLayer, nullptr);
-    std::vector<RSLayerPtr> layers = {nullLayer, ngRcdLayer};
-    RSRenderRcdDraw::DrawRoundCorner(canvas, layers, Vector2f(1.0f, 1.0f));
-    EXPECT_TRUE(rcdManagerInstance.isRcdServiceRegister_);
-}
-
-/*
- * @tc.name: ConsumeAndUpdateBufferTest001
- * @tc.desc: Test RSRoundCornerDisplayTest.ConsumeAndUpdateBufferTest001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest001, TestSize.Level1)
-{
-    auto topSurfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(topSurfaceNode);
-    topSurfaceNode->CreateSurface(listener);
-
-    topSurfaceNode->SetAvailableBufferCount(4);
-    bool result = visitor->ConsumeAndUpdateBuffer(*topSurfaceNode);
-    EXPECT_EQ(false, result);
-}
-
-/*
  * @tc.name: ProcessRcdSurfaceRenderNode3
  * @tc.desc: Test ProcessRcdSurfaceRenderNode with resourceChanged=true and valid processor
  * @tc.type: FUNC

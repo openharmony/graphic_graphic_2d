@@ -432,4 +432,59 @@ HWTEST_F(RSImplicitAnimationParamTest, UpdateStatusByPriority_ReturnEmptyPending
 
     GTEST_LOG_(INFO) << "RSAnimationTest UpdateStatusByPriority_ReturnEmptyPendingSyncList end";
 }
+
+/**
+ * @tc.name: AddKeyframeDurationZero001
+ * @tc.desc: Verify AddKeyframe accepts duration_ == 0 as valid one-frame jump
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, AddKeyframeDurationZero001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AddKeyframeDurationZero001 start";
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(0);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    float fraction = 0.1f;
+    int duration = 0;
+    auto animationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
+        timingProtocol, timingCurve, fraction, duration);
+
+    auto property = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
+    auto rsUIContext = CreateRSUIContext();
+    std::shared_ptr<RSAnimation> keyframeAnimation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
+    animationParam->AddKeyframe(keyframeAnimation, 0, startValue, endValue);
+    auto kfAnim = std::static_pointer_cast<RSKeyframeAnimation>(keyframeAnimation);
+    EXPECT_NE(kfAnim->durationKeyframes_.size(), 0u);
+    GTEST_LOG_(INFO) << "RSAnimationTest AddKeyframeDurationZero001 end";
+}
+
+/**
+ * @tc.name: AddKeyframeDurationNegative001
+ * @tc.desc: Verify AddKeyframe rejects negative duration_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, AddKeyframeDurationNegative001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AddKeyframeDurationNegative001 start";
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(300);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    float fraction = 0.1f;
+    int duration = 300;
+    auto animationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
+        timingProtocol, timingCurve, fraction, duration);
+    animationParam->duration_ = -1;
+
+    auto property = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
+    auto rsUIContext = CreateRSUIContext();
+    std::shared_ptr<RSAnimation> keyframeAnimation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
+    animationParam->AddKeyframe(keyframeAnimation, 0, startValue, endValue);
+    auto kfAnim = std::static_pointer_cast<RSKeyframeAnimation>(keyframeAnimation);
+    EXPECT_EQ(kfAnim->durationKeyframes_.size(), 0u);
+    GTEST_LOG_(INFO) << "RSAnimationTest AddKeyframeDurationNegative001 end";
+}
 } // namespace OHOS::Rosen

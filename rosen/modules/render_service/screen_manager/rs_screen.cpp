@@ -50,10 +50,10 @@ std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RSScreen::RS_TO_COMMON_COL
     {GRAPHIC_COLOR_GAMUT_SRGB, GRAPHIC_CM_SRGB_FULL},
     {GRAPHIC_COLOR_GAMUT_ADOBE_RGB, GRAPHIC_CM_ADOBERGB_FULL},
     {GRAPHIC_COLOR_GAMUT_DISPLAY_P3, GRAPHIC_CM_P3_FULL},
-    {GRAPHIC_COLOR_GAMUT_BT2020, GRAPHIC_CM_DISPLAY_BT2020_SRGB},
+    {GRAPHIC_COLOR_GAMUT_BT2020, GRAPHIC_CM_P3_FULL},
     {GRAPHIC_COLOR_GAMUT_BT2100_PQ, GRAPHIC_CM_BT2020_PQ_FULL},
     {GRAPHIC_COLOR_GAMUT_BT2100_HLG, GRAPHIC_CM_BT2020_HLG_FULL},
-    {GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, GRAPHIC_CM_DISPLAY_BT2020_SRGB},
+    {GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, GRAPHIC_CM_P3_FULL},
     {GRAPHIC_COLOR_GAMUT_NATIVE, GRAPHIC_CM_COLORSPACE_NONE},
 };
 std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> RSScreen::COMMON_COLOR_SPACE_TYPE_TO_RS_MAP {
@@ -221,7 +221,8 @@ void RSScreen::PhysicalScreenInit() noexcept
     property_.SetSupportedColorGamuts(supportedPhysicalColorGamuts_);
     backlightLevel_ = GetScreenBacklight();
     // Enable when an external screen is connected and the vsync rate doesn't match the active refresh rate.
-    if (property_.GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL) {
+    if (property_.GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL ||
+        MultiScreenParam::IsSkipFrameByActiveRefreshRate()) {
         property_.SetSkipFrameOption(
             DEFAULT_SKIP_FRAME_INTERVAL, INVALID_EXPECTED_REFRESH_RATE, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
     }
@@ -457,7 +458,7 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     }
 
     if (width == 0 || height == 0) {
-        RS_LOGD_IF(DEBUG_SCREEN, "%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
+        RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
         return;
     }
 
@@ -1363,8 +1364,17 @@ int32_t RSScreen::GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) cons
 {
     ScreenColorGamut curGamut;
     int32_t result = GetScreenColorGamut(curGamut);
-    colorSpace = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(curGamut)];
-    return result;
+    if (result != StatusCode::SUCCESS) {
+        RS_LOGE("%{public}s failed, GetScreenColorGamut returned error", __func__);
+        return result;
+    }
+    auto iter = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(static_cast<GraphicColorGamut>(curGamut));
+    if (iter == RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
+        RS_LOGE("%{public}s failed, color gamut not found in map", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    colorSpace = iter->second;
+    return StatusCode::SUCCESS;
 }
 
 int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)

@@ -32,6 +32,7 @@ public:
     static ThreadPrivateData* GetPrivateData();
     static void ClearError();
     static void ClearPrivateData();
+    static void DestroyKeys();
     static EGLint GetError();
     static void SetError(EGLint error);
     static void SetContext(EGLContext ctx);

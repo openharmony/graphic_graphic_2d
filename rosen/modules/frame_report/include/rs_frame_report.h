@@ -58,6 +58,9 @@ public:
     static void ReportWindowInfo(bool isSingleFullScreenApp, const char* firstFrontBundleName);
 #endif
 private:
+    static void InitSched();
+    static std::once_flag initFlag_;
+    static bool inited;
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     struct VkHandleDeleter {
         void operator()(void* ptr) const;
@@ -87,9 +90,6 @@ private:
     static std::function<void*(const char*, int)> dlopenFunc;
     static std::function<void*(void*, const char*)> dlsymFunc;
 #endif
-    static void InitSched();
-    static std::once_flag initFlag_;
-    static bool inited;
 };
 } // namespace Rosen
 } // namespace OHOS

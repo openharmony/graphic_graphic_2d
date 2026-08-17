@@ -831,8 +831,6 @@ public:
         uifirstState_.forceUpdate = b;
     }
 
-    bool IsFullScreen() const;
-
     VideoDimType GetVideoDimType() const;
 
     RSUIFirstSwitch GetUIFirstSwitch() const

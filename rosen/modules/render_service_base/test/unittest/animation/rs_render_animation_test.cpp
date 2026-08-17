@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include <limits>
 #include "animation/rs_render_animation.h"
 #include "animation/rs_render_interactive_implict_animator.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -1240,6 +1241,151 @@ HWTEST_F(RSRenderAnimationTest, Rebuild003, TestSize.Level1)
     renderAnimation->Rebuild(TEST_FRACTION, TEST_TIME, true);
     EXPECT_FLOAT_EQ(renderAnimation->GetCurrentFraction(), TEST_FRACTION);
     GTEST_LOG_(INFO) << "RSRenderAnimationTest Rebuild003 end";
+}
+
+/**
+ * @tc.name: ParseParamInvalidSpeed001
+ * @tc.desc: Verify ParseParam rejects speed <= 0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, ParseParamInvalidSpeed001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamInvalidSpeed001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    Parcel parcel;
+    parcel.WriteUint64(0);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(0);
+    parcel.WriteFloat(-1.0f);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(0);
+    bool result = renderAnimation->ParseParam(parcel);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamInvalidSpeed001 end";
+}
+
+/**
+ * @tc.name: ParseParamInvalidSpeed002
+ * @tc.desc: Verify ParseParam rejects NaN speed
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, ParseParamInvalidSpeed002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamInvalidSpeed002 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    Parcel parcel;
+    parcel.WriteUint64(0);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(0);
+    parcel.WriteFloat(std::numeric_limits<float>::quiet_NaN());
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(0);
+    bool result = renderAnimation->ParseParam(parcel);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamInvalidSpeed002 end";
+}
+
+/**
+ * @tc.name: ParseParamInvalidSpeed003
+ * @tc.desc: Verify ParseParam rejects infinity speed
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, ParseParamInvalidSpeed003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamInvalidSpeed003 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    Parcel parcel;
+    parcel.WriteUint64(0);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(0);
+    parcel.WriteFloat(std::numeric_limits<float>::infinity());
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(0);
+    bool result = renderAnimation->ParseParam(parcel);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamInvalidSpeed003 end";
+}
+
+/**
+ * @tc.name: ParseParamInvalidSpeed004
+ * @tc.desc: Verify ParseParam rejects speed equal to zero via ROSEN_LE epsilon
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, ParseParamInvalidSpeed004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamInvalidSpeed004 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    Parcel parcel;
+    parcel.WriteUint64(0);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(0);
+    parcel.WriteFloat(0.0f);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(0);
+    bool result = renderAnimation->ParseParam(parcel);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamInvalidSpeed004 end";
+}
+
+/**
+ * @tc.name: ParseParamValidSpeed001
+ * @tc.desc: Verify ParseParam accepts valid positive finite speed
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationTest, ParseParamValidSpeed001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamValidSpeed001 start";
+    auto renderAnimation = std::make_shared<RSRenderAnimationMock>();
+    Parcel parcel;
+    parcel.WriteUint64(0);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(0);
+    parcel.WriteFloat(1.0f);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(0);
+    bool result = renderAnimation->ParseParam(parcel);
+    EXPECT_TRUE(result);
+    GTEST_LOG_(INFO) << "RSRenderAnimationTest ParseParamValidSpeed001 end";
 }
 
 } // namespace Rosen

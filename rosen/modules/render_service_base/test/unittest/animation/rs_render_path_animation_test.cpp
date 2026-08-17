@@ -682,5 +682,142 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimate007, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate007 end";
 }
 
+/**
+ * @tc.name: OnAnimateInterpolatorNull001
+ * @tc.desc: Verify OnAnimate handles interpolator_ being nullptr in !isNeedPath_ branch
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimateInterpolatorNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateInterpolatorNull001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 300.f, 300.f));
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    renderPathAnimation->SetIsNeedPath(false);
+    renderPathAnimation->interpolator_ = nullptr;
+    renderPathAnimation->valueEstimator_ = std::make_shared<RSCurveValueEstimator<Vector4f>>();
+    renderPathAnimation->OnAnimate(0.5f);
+    EXPECT_EQ(property->Get(), Vector4f(100.f, 100.f, 200.f, 300.f));
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateInterpolatorNull001 end";
+}
+
+/**
+ * @tc.name: OnAnimateInterpolatorNull002
+ * @tc.desc: Verify OnAnimate handles interpolator_ being nullptr in isNeedPath_ VECTOR4F branch
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimateInterpolatorNull002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateInterpolatorNull002 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 300.f, 300.f));
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    renderPathAnimation->SetIsNeedPath(true);
+    renderPathAnimation->interpolator_ = nullptr;
+    renderPathAnimation->valueEstimator_ = std::make_shared<RSCurveValueEstimator<Vector4f>>();
+    renderPathAnimation->OnAnimate(0.5f);
+    EXPECT_EQ(property->Get(), Vector4f(100.f, 100.f, 200.f, 300.f));
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateInterpolatorNull002 end";
+}
+
+/**
+ * @tc.name: OnAnimateValueEstimatorNull001
+ * @tc.desc: Verify OnAnimate handles valueEstimator_ being nullptr in !isNeedPath_ branch
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimateValueEstimatorNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateValueEstimatorNull001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 300.f, 300.f));
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    renderPathAnimation->SetIsNeedPath(false);
+    renderPathAnimation->valueEstimator_ = nullptr;
+    renderPathAnimation->interpolator_ = std::make_shared<LinearInterpolator>();
+    renderPathAnimation->OnAnimate(0.5f);
+    EXPECT_EQ(property->Get(), Vector4f(100.f, 100.f, 200.f, 300.f));
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateValueEstimatorNull001 end";
+}
+
+/**
+ * @tc.name: OnAnimateBothNotNull001
+ * @tc.desc: Verify OnAnimate proceeds normally when both valueEstimator_ and interpolator_ are valid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimateBothNotNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateBothNotNull001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 300.f, 300.f));
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    renderPathAnimation->SetIsNeedPath(false);
+    auto estimator = std::make_shared<RSCurveValueEstimator<Vector4f>>();
+    estimator->InitCurveAnimationValue(property, startProperty, endProperty, property);
+    renderPathAnimation->valueEstimator_ = estimator;
+    renderPathAnimation->interpolator_ = std::make_shared<LinearInterpolator>();
+    renderPathAnimation->OnAnimate(0.5f);
+    EXPECT_NE(property->Get(), Vector4f(100.f, 100.f, 200.f, 300.f));
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateBothNotNull001 end";
+}
+
+/**
+ * @tc.name: OnAnimateVector4fEstimatorNull001
+ * @tc.desc: Verify OnAnimate skips body when vector4fValueEstimator is nullptr in isNeedPath_ branch
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimateVector4fEstimatorNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateVector4fEstimatorNull001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 300.f, 300.f));
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    renderPathAnimation->SetIsNeedPath(true);
+    renderPathAnimation->valueEstimator_ = nullptr;
+    renderPathAnimation->interpolator_ = std::make_shared<LinearInterpolator>();
+    renderPathAnimation->OnAnimate(0.5f);
+    EXPECT_EQ(property->Get(), Vector4f(100.f, 100.f, 200.f, 300.f));
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateVector4fEstimatorNull001 end";
+}
+
+/**
+ * @tc.name: OnAnimateIsNeedPathBothNotNull001
+ * @tc.desc: Verify OnAnimate proceeds normally when both vector4fValueEstimator and interpolator_ are valid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimateIsNeedPathBothNotNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateIsNeedPathBothNotNull001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto startProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 200.f, 300.f));
+    auto endProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(100.f, 100.f, 300.f, 300.f));
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, startProperty, endProperty, 1.0f, path);
+    renderPathAnimation->SetIsNeedPath(true);
+    renderPathAnimation->property_ = property;
+    auto estimator = std::make_shared<RSCurveValueEstimator<Vector4f>>();
+    estimator->InitCurveAnimationValue(property, startProperty, endProperty, property);
+    renderPathAnimation->valueEstimator_ = estimator;
+    renderPathAnimation->interpolator_ = std::make_shared<LinearInterpolator>();
+    renderPathAnimation->OnAnimate(0.5f);
+    EXPECT_NE(property->Get(), Vector4f(100.f, 100.f, 200.f, 300.f));
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimateIsNeedPathBothNotNull001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

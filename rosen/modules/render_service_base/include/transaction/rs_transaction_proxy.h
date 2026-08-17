@@ -122,6 +122,7 @@ private:
     std::atomic<uint32_t> uiSkipCount_ = 0;
     uint32_t transactionDataIndex_ = 0;
     std::queue<std::string> taskNames_ {};
+    std::mutex closeSyncFallBackMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

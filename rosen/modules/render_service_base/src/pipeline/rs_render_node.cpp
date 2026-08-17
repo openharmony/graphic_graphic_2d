@@ -128,6 +128,8 @@ static void InitRsDrawableSlotToIndexVec()
     for (size_t i = 0; i < static_cast<size_t>(RSDrawableSlot::MAX); i++) {
         rsDrawableSlotToIndexVec[i] = nullptr;
     }
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::MASK)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.maskIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::TRANSITION)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.transitionIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR)] =
@@ -3578,6 +3580,8 @@ void RSRenderNode::UpdateDisplayList()
         return (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(endIndex))
             != nullptr ? stagingDrawCmdList_.size() - 1 : -1);
     };
+    // Update index of MASK
+    stagingDrawCmdIndex_.maskIndex_ = AppendDrawFunc(RSDrawableSlot::MASK);
     // Update index of TRANSITION
     stagingDrawCmdIndex_.transitionIndex_ = AppendDrawFunc(RSDrawableSlot::TRANSITION);
 
@@ -4561,7 +4565,9 @@ void RSRenderNode::SetStaticCached(bool isStaticCached, bool isMarkedByUI)
     isStaticCached_ = isStaticCached;
     // ensure defrost subtree would be updated
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetRSFreezeFlag(isStaticCached, isMarkedByUI);
+    if (stagingRenderParams_->SetRSFreezeFlag(isStaticCached, isMarkedByUI)) {
+        SetDirty();
+    }
 #else
     isStaticCached = false;
 #endif
@@ -4857,9 +4863,10 @@ void RSRenderNode::OnSync()
         return;
     }
     // uifirstSkipPartialSync means don't need to trylock whether drawable is onDraw or not
+    bool skipPartialSync = IsUifirstSkipPartialSync();
     DrawableV2::RSRenderNodeSingleDrawableLocker
-        singleLocker(IsUifirstSkipPartialSync() ? nullptr : renderDrawable_.get());
-    if (!IsUifirstSkipPartialSync() && UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker(skipPartialSync ? nullptr : renderDrawable_.get());
+    if (!skipPartialSync && UNLIKELY(!singleLocker.IsLocked())) {
 #ifdef RS_ENABLE_GPU
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
 #endif
@@ -4917,7 +4924,7 @@ void RSRenderNode::OnSync()
         }
         unobscuredUECChildrenNeedSync_ = false;
     }
-    if (!IsUifirstSkipPartialSync()) {
+    if (!skipPartialSync) {
         if (!dirtySlots_.empty()) {
             auto& drawableMap = GetDrawableVec(__func__);
             for (const auto& slot : dirtySlots_) {

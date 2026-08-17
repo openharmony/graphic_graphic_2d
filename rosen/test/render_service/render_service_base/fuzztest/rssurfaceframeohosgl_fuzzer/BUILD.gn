@@ -36,7 +36,13 @@ ohos_fuzztest("RSSurfaceFrameOhosGlFuzzTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "vulkan-headers:vulkan_headers",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
+
   cflags = [
     "-g",
     "-O0",

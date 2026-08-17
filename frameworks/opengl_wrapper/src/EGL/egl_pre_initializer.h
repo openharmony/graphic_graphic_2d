@@ -32,6 +32,10 @@ public:
         ThreadPrivateDataCtl::SetGlHookTable(&gGlHookNoContext);
         preInitFlag = true;
     }
+    ~EglPreInitializer()
+    {
+        ThreadPrivateDataCtl::DestroyKeys();
+    }
     static void CallGlApiNoContext(void)
     {
         WLOGD("Call To OpenGL ES API With No Current Context.");

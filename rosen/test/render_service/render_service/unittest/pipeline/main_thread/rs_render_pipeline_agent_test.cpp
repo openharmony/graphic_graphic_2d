@@ -1580,6 +1580,40 @@ HWTEST_F(RSRenderPipelineAgentTest, ReportRsSceneJankStart001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUIMode3D_001
+ * @tc.desc: Verify SetUIMode3D returns ERR_INVALID_VALUE when pipeline is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetUIMode3D_001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    ErrCode ret = agent->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_002
+ * @tc.desc: Verify SetUIMode3D returns ERR_OK when pipeline exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetUIMode3D_002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    ErrCode ret2D = agent->SetUIMode3D(UIMode3D::MODE_2D);
+    ErrCode retShutter = agent->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    ErrCode retGlassesFree = agent->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(ret2D, ERR_OK);
+    EXPECT_EQ(retShutter, ERR_OK);
+    EXPECT_EQ(retGlassesFree, ERR_OK);
+}
+
+/**
  * @tc.name: ReportRsSceneJankEnd001
  * @tc.desc: Verify ReportRsSceneJankEnd when pipeline is null
  * @tc.type: FUNC

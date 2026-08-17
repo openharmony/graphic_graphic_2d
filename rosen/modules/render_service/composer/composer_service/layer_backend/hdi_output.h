@@ -246,6 +246,7 @@ private:
     void DirtyRegions(const std::shared_ptr<RSLayer>& rsLayer);
     OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
     void* onPrepareCompleteCbData_ = nullptr;
+    mutable std::mutex callBackMutex_;
     OnLayerCreatedFunc onLayerCreatedCb_ = nullptr;
     void* onLayerCreatedCbData_ = nullptr;
     int32_t thirdFrameAheadPresentFenceFd_ = 0;

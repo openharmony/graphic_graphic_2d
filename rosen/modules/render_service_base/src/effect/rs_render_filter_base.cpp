@@ -297,7 +297,7 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectTyp
         }
 
         auto filter = Create(static_cast<RSNGEffectType>(type));
-        if (filter && !filter->OnUnmarshalling(parcel)) {
+        if (!filter || !filter->OnUnmarshalling(parcel)) {
             ROSEN_LOGE("RSNGRenderFilterBase: Unmarshalling filter failed with type %{public}d", type);
             return false;
         }

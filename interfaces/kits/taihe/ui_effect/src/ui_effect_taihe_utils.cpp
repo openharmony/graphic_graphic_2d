@@ -199,6 +199,10 @@ ani_status GetRectPropertyValue(
 bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values)
 {
     ani_env *env = get_env();
+    if (env == nullptr) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniRect env is nullptr");
+        return false;
+    }
     ani_class rectClass = nullptr;
     if (env->FindClass(ANI_INTERFACE_RECT, &rectClass) != ANI_OK) {
         UIEFFECT_LOG_E("ConvertVector4fFromAniRect FindClass failed");

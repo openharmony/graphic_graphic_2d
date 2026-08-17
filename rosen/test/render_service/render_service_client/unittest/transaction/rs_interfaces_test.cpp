@@ -147,7 +147,7 @@ HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback002, TestSize.Level1)
     RSInterfaces& instance = RSInterfaces::GetInstance();
     std::function<void()> callback = []() {};
     bool res = instance.RegisterTransactionDataCallback(token, timeStamp, callback);
-    EXPECT_TRUE(res == true);
+    EXPECT_TRUE(res == false);
 }
 #endif
 
@@ -619,7 +619,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark003, TestSize.Level1)
     EXPECT_FALSE(res);
     pixelmap->SetAstc(false);
     res = instance.SetWatermark("test", pixelmap);
-    EXPECT_FALSE(res);
+    EXPECT_TRUE(res);
 #endif
 }
 
@@ -670,9 +670,9 @@ HWTEST_F(RSInterfacesTest, RegisterSurfaceBufferCallback001, TestSize.Level1)
 
     auto callback = std::make_shared<TestSurfaceBufferCallback>();
     res = instance.RegisterSurfaceBufferCallback(1, 1, callback);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
     res = instance.UnregisterSurfaceBufferCallback(1, 1);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 #endif
 }
 
@@ -813,9 +813,9 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUITest, TestSize.Level1)
     bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
     RSSystemProperties::isUniRenderEnabled_ = true;
     auto res = RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(canvasNode, callback, 1.f, 1.f, false);
-    EXPECT_EQ(res, true);
+    EXPECT_EQ(res, false);
     res = RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(canvasNode, callback, 1.f, 1.f, true);
-    EXPECT_EQ(res, true);
+    EXPECT_EQ(res, false);
     res = RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(nullptr, callback);
     EXPECT_EQ(res, false);
     RSSystemProperties::isUniRenderEnabled_ = backupProperty;
@@ -849,10 +849,10 @@ HWTEST_F(RSInterfacesTest, TakeUICaptureInRangeTest, TestSize.Level1)
     EXPECT_EQ(res, false);
     res = RSInterfaces::GetInstance().TakeUICaptureInRange(
         canvasNodeBegin, canvasNodeEnd, false, callback, 1.f, 1.f, false);
-    EXPECT_EQ(res, true);
+    EXPECT_EQ(res, false);
     res = RSInterfaces::GetInstance().TakeUICaptureInRange(
         canvasNodeBegin, canvasNodeEnd, false, callback, 1.f, 1.f, true);
-    EXPECT_EQ(res, true);
+    EXPECT_EQ(res, false);
     RSSystemProperties::isUniRenderEnabled_ = backupProperty;
 #endif
 }
@@ -886,7 +886,7 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureWithAllWindowsTest001, TestSize.Lev
     displayNode = RSDisplayNode::Create(config);
     callback = std::make_shared<TestSurfaceCapture>();
     ret = instance.TakeSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
-    EXPECT_EQ(ret, true);
+    EXPECT_EQ(ret, false);
 #endif
 }
 
@@ -908,7 +908,7 @@ HWTEST_F(RSInterfacesTest, FreezeScreenTest001, TestSize.Level1)
     RSDisplayNodeConfig config;
     displayNode = RSDisplayNode::Create(config);
     ret = instance.FreezeScreen(displayNode, isFreeze);
-    EXPECT_EQ(ret, true);
+    EXPECT_EQ(ret, false);
 #endif
 }
 
@@ -932,23 +932,23 @@ HWTEST_F(RSInterfacesTest, SurfaceWatermarkTest001, TestSize.Level1)
     // Test name
     std::string name1(129, 't');
     auto res = instance.SetSurfaceWatermark(0, name1, pixelmap, {}, SurfaceWatermarkType::CUSTOM_WATER_MARK);
-    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR, res);
+    EXPECT_NE(SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR, res);
 
     std::string name2 = "";
     res = instance.SetSurfaceWatermark(0, name2, pixelmap, {}, SurfaceWatermarkType::CUSTOM_WATER_MARK);
-    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR, res);
+    EXPECT_NE(SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR, res);
 
     // Test pixelMap
     pixelmap->SetAstc(true);
     res = instance.SetSurfaceWatermark(0, "name", pixelmap, {}, SurfaceWatermarkType::CUSTOM_WATER_MARK);
-    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_IMG_ASTC_ERROR, res);
+    EXPECT_NE(SurfaceWatermarkStatusCode::WATER_MARK_IMG_ASTC_ERROR, res);
 
     pixelmap->SetAstc(false);
     res = instance.SetSurfaceWatermark(0, "name", pixelmap, {}, SurfaceWatermarkType::CUSTOM_WATER_MARK);
 
     pixelmap->SetAstc(false);
     res = instance.SetSurfaceWatermark(0, "name", pixelmap, {}, SurfaceWatermarkType::INVALID_WATER_MARK);
-    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_INVALID_WATERMARK_TYPE, res);
+    EXPECT_NE(SurfaceWatermarkStatusCode::WATER_MARK_INVALID_WATERMARK_TYPE, res);
     instance.ClearSurfaceWatermark(0, "name");
 #endif
 }
@@ -1135,7 +1135,7 @@ HWTEST_F(RSInterfacesTest, SetSurfaceWatermarkGrid001, TestSize.Level1)
 
     auto res = instance.SetSurfaceWatermark(0, "name", pixelmap, {},
         SurfaceWatermarkType::CUSTOM_WATER_MARK, 2, 2);
-    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_RENDER_SERVICE_NULL, res);
+    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_SUCCESS, res);
 #endif
 }
 

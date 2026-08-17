@@ -778,5 +778,186 @@ HWTEST_F(RSAnimationTest, RebuildParam002, TestSize.Level1)
     EXPECT_TRUE(param.isReverseCycle);
     GTEST_LOG_(INFO) << "RSAnimationTest RebuildParam002 end";
 }
+
+/**
+ * @tc.name: CurveAnimationCreateRenderAnimationNullValues001
+ * @tc.desc: Verify RSCurveAnimation::CreateRenderAnimation returns nullptr when values are null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, CurveAnimationCreateRenderAnimationNullValues001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationCreateRenderAnimationNullValues001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(nullptr, property, startValue, endValue);
+    curveAnimation->originValue_ = nullptr;
+    curveAnimation->startValue_ = startValue;
+    curveAnimation->endValue_ = endValue;
+    auto result = curveAnimation->CreateRenderAnimation();
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationCreateRenderAnimationNullValues001 end";
+}
+
+/**
+ * @tc.name: CurveAnimationCreateRenderAnimationStartValueNull001
+ * @tc.desc: Verify CreateRenderAnimation returns nullptr when only startValue is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, CurveAnimationCreateRenderAnimationStartValueNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationCreateRenderAnimationStartValueNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(nullptr, property, startValue, endValue);
+    curveAnimation->originValue_ = property;
+    curveAnimation->startValue_ = nullptr;
+    curveAnimation->endValue_ = endValue;
+    auto result = curveAnimation->CreateRenderAnimation();
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationCreateRenderAnimationStartValueNull001 end";
+}
+
+/**
+ * @tc.name: CurveAnimationCreateRenderAnimationEndValueNull001
+ * @tc.desc: Verify CreateRenderAnimation returns nullptr when only endValue is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, CurveAnimationCreateRenderAnimationEndValueNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationCreateRenderAnimationEndValueNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(nullptr, property, startValue, endValue);
+    curveAnimation->originValue_ = property;
+    curveAnimation->startValue_ = startValue;
+    curveAnimation->endValue_ = nullptr;
+    auto result = curveAnimation->CreateRenderAnimation();
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationCreateRenderAnimationEndValueNull001 end";
+}
+
+/**
+ * @tc.name: CurveAnimationCreateRenderAnimationAllNonNull001
+ * @tc.desc: Verify CreateRenderAnimation returns valid animation when all values are non-null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, CurveAnimationCreateRenderAnimationAllNonNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationCreateRenderAnimationAllNonNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(nullptr, property, startValue, endValue);
+    curveAnimation->originValue_ = property;
+    curveAnimation->startValue_ = startValue;
+    curveAnimation->endValue_ = endValue;
+    auto result = curveAnimation->CreateRenderAnimation();
+    EXPECT_NE(result, nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationCreateRenderAnimationAllNonNull001 end";
+}
+
+/**
+ * @tc.name: CurveAnimationOnStartAnimationNull001
+ * @tc.desc: Verify RSCurveAnimation::OnStart handles CreateRenderAnimation returning nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, CurveAnimationOnStartAnimationNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationOnStartAnimationNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(nullptr, property, endValue);
+    curveAnimation->property_ = nullptr;
+    curveAnimation->originValue_ = nullptr;
+    curveAnimation->startValue_ = nullptr;
+    curveAnimation->endValue_ = nullptr;
+    curveAnimation->OnStart();
+    EXPECT_FALSE(curveAnimation->IsRunning());
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationOnStartAnimationNull001 end";
+}
+
+/**
+ * @tc.name: CurveAnimationRebuildInRenderAnimationNull001
+ * @tc.desc: Verify RSCurveAnimation::RebuildInRender handles CreateRenderAnimation returning nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, CurveAnimationRebuildInRenderAnimationNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationRebuildInRenderAnimationNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(nullptr, property, endValue);
+    curveAnimation->originValue_ = nullptr;
+    curveAnimation->startValue_ = nullptr;
+    curveAnimation->endValue_ = nullptr;
+    curveAnimation->RebuildInRender();
+    EXPECT_FALSE(curveAnimation->IsRunning());
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationRebuildInRenderAnimationNull001 end";
+}
+
+/**
+ * @tc.name: CurveAnimationRebuildInRenderAnimationNullWithTarget001
+ * @tc.desc: Verify RebuildInRender handles animation nullptr with valid target
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, CurveAnimationRebuildInRenderAnimationNullWithTarget001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationRebuildInRenderAnimationNullWithTarget001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, endValue);
+    curveAnimation->target_ = canvasNode;
+    curveAnimation->originValue_ = nullptr;
+    curveAnimation->startValue_ = nullptr;
+    curveAnimation->endValue_ = nullptr;
+    curveAnimation->SetRebuildParam({0.5f, false});
+    curveAnimation->RebuildInRender();
+    EXPECT_FLOAT_EQ(curveAnimation->GetRebuildParam().fraction, 0.5f);
+    EXPECT_FALSE(curveAnimation->IsRunning());
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationRebuildInRenderAnimationNullWithTarget001 end";
+}
+
+/**
+ * @tc.name: PropertyAnimationOnStartPropertyNull001
+ * @tc.desc: Verify RSPropertyAnimation::OnStart handles property_ being null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, PropertyAnimationOnStartPropertyNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest PropertyAnimationOnStartPropertyNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(nullptr, property, endValue);
+    curveAnimation->property_ = nullptr;
+    curveAnimation->OnStart();
+    EXPECT_FALSE(curveAnimation->IsRunning());
+    GTEST_LOG_(INFO) << "RSAnimationTest PropertyAnimationOnStartPropertyNull001 end";
+}
+
+/**
+ * @tc.name: CurveAnimationOnStartPropertyNull001
+ * @tc.desc: Verify RSCurveAnimation OnStart handles property_ null in isCustom_ branch
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationTest, CurveAnimationOnStartPropertyNull001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationOnStartPropertyNull001 start";
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startValue, endValue);
+    curveAnimation->isCustom_ = true;
+    curveAnimation->property_ = nullptr;
+    curveAnimation->originValue_ = property;
+    curveAnimation->startValue_ = startValue;
+    curveAnimation->endValue_ = endValue;
+    curveAnimation->OnStart();
+    EXPECT_FALSE(curveAnimation->IsRunning());
+    GTEST_LOG_(INFO) << "RSAnimationTest CurveAnimationOnStartPropertyNull001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -15,7 +15,6 @@
 #ifndef RS_DELEGATE_COMPOSITE_CALLBACK_MANAGER
 #define RS_DELEGATE_COMPOSITE_CALLBACK_MANAGER
 #ifndef ROSEN_CROSS_PLATFORM
-
 #include <map>
 #include <queue>
 #include "ipc_callbacks/rs_delegate_composite_callback.h"

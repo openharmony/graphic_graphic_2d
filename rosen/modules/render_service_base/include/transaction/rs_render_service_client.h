@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <refbase.h>
 #include "common/rs_common_def.h"
@@ -348,6 +349,8 @@ public:
         const std::vector<std::pair<std::string, std::string>>& newConfig);
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
+
+    bool SetHgmExclusiveScreen(std::optional<ScreenId> screenId);
 
     void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
 

@@ -83,7 +83,7 @@ HWTEST_F(RSServiceDumpManagerTest, IsServiceDumpCmd_InvalidServiceCommand, TestS
     // Given: A list of invalid commands
     std::vector<std::u16string> invalidCmds = {
         u"invalid", u"RSTree", u"nodeNotOnTree",
-        u"EventParamList", u"dumpMem", u"client"
+        u"EventParamList", u"client"
     };
 
     // When & Then: None should be identified as service dump commands

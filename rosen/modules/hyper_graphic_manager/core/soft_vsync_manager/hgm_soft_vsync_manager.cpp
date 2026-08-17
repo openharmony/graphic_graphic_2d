@@ -89,7 +89,20 @@ void HgmSoftVSyncManager::HandleLinkers()
     // Clear votes for non-existent linkers
     for (auto iter = linkerVoteMap_.begin(); iter != linkerVoteMap_.end();) {
         if (appFrameRateLinkers_.count(iter->first) == 0) {
+            RS_TRACE_NAME_FMT("HandleLinkers linkerVote linkerId=%" PRIu64, iter->first);
+            HGM_LOGI("linkerVote linkerId=%{public}" PRIu64, iter->first);
             iter = linkerVoteMap_.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+
+    // Clear soft frame rate decision data for non-existent linkers to avoid stale residue on re-enable
+    for (auto iter = appVoteData_.begin(); iter != appVoteData_.end();) {
+        if (appFrameRateLinkers_.count(iter->first) == 0) {
+            RS_TRACE_NAME_FMT("HandleLinkers appVote linkerId=%" PRIu64, iter->first);
+            HGM_LOGI("appVote linkerId=%{public}" PRIu64, iter->first);
+            iter = appVoteData_.erase(iter);
         } else {
             ++iter;
         }

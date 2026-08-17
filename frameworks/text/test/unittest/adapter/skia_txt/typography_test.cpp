@@ -1677,6 +1677,50 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText008, TestS
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographySplitRunsText009
+ * @tc.desc: test for OOB in globalClusterIndex after splitRuns on combining-mark text
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText009, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    typographyStyle.textDirection = TextDirection::RTL;
+    typographyStyle.firstLineIndent = 391;
+    typographyStyle.headIndents = {486, 231, 473, 254, 458, 476, 338, 365, 14};
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    style.fontSize = 68;
+    style.letterSpacing = 24;
+    style.wordSpacing = -12;
+    style.heightOnly = true;
+    style.heightScale = 0.7;
+    style.fontStyle = FontStyle::ITALIC;
+    style.fontWeight = FontWeight::W100;
+    style.fontVariations.SetAxisValue("wght", 993);
+    style.fontVariations.SetAxisValue("wdth", 183);
+    std::u16string text = u"\u{0061}\u{0300}\u{0301}\u{0302}\u{0303}\u{0304}\u{0305}\u{0306}\u{0307}\u{0308}\u{0309}"
+        u"\u{030A}\u{030B}\u{030C}\u{030D}\u{030E}\u{030F}\u{0310}";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(357.16064314960914);
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->GetCharacterPositionAtCoordinate(655, 14, Drawing::TextEncoding::UTF8);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    size_t expectRunSize = 9;
+    EXPECT_EQ(runs.size(), expectRunSize);
+    size_t expectLineSize = 9;
+    EXPECT_EQ(paragraph->GetLineCount(), expectLineSize);
+}
+
+/*
  * @tc.name: OH_Drawing_TypographyRtlClusterIndexOffset001
  * @tc.desc: test for rtl's text adjusting textRange
  * @tc.type: FUNC

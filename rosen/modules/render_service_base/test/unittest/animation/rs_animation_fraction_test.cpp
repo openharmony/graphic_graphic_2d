@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <cstdint>
+
 #include "gtest/gtest.h"
 
 #include "animation/rs_animation_fraction.h"
@@ -719,12 +721,12 @@ HWTEST_F(RSAnimationFractionTest, SetRebuildFraction001, TestSize.Level1)
     RSAnimationFraction fraction;
     fraction.SetDuration(300);
     fraction.SetAnimationId(1);
-    constexpr int64_t TEST_TIME = 1000000000;
-    fraction.SetRebuildFraction(0.5f, TEST_TIME, false);
+    int64_t testTime = 1000000000;
+    fraction.SetRebuildFraction(0.5f, testTime, false);
     EXPECT_EQ(fraction.currentIsReverseCycle_, false);
     EXPECT_EQ(fraction.currentRepeatCount_, 0);
     EXPECT_FLOAT_EQ(fraction.currentTimeFraction_, 0.5f);
-    EXPECT_EQ(fraction.lastFrameTime_, TEST_TIME);
+    EXPECT_EQ(fraction.lastFrameTime_, testTime);
     GTEST_LOG_(INFO) << "RSAnimationFractionTest SetRebuildFraction001 end";
 }
 
@@ -740,8 +742,8 @@ HWTEST_F(RSAnimationFractionTest, SetRebuildFraction002, TestSize.Level1)
     fraction.SetDuration(300);
     fraction.SetAutoReverse(true);
     fraction.SetAnimationId(2);
-    constexpr int64_t TEST_TIME = 2000000000;
-    fraction.SetRebuildFraction(0.3f, TEST_TIME, true);
+    int64_t testTime = 2000000000;
+    fraction.SetRebuildFraction(0.3f, testTime, true);
     EXPECT_EQ(fraction.currentIsReverseCycle_, true);
     EXPECT_EQ(fraction.currentRepeatCount_, 1);
     EXPECT_FLOAT_EQ(fraction.currentTimeFraction_, 0.3f);
@@ -760,8 +762,8 @@ HWTEST_F(RSAnimationFractionTest, SetRebuildFraction003, TestSize.Level1)
     fraction.SetDuration(300);
     fraction.SetAutoReverse(false);
     fraction.SetAnimationId(3);
-    constexpr int64_t TEST_TIME = 3000000000;
-    fraction.SetRebuildFraction(0.4f, TEST_TIME, true);
+    int64_t testTime = 3000000000;
+    fraction.SetRebuildFraction(0.4f, testTime, true);
     EXPECT_EQ(fraction.currentIsReverseCycle_, true);
     EXPECT_EQ(fraction.currentRepeatCount_, 0);
     GTEST_LOG_(INFO) << "RSAnimationFractionTest SetRebuildFraction003 end";
@@ -814,6 +816,24 @@ HWTEST_F(RSAnimationFractionTest, SetRebuildFraction006, TestSize.Level1)
     fraction.SetRebuildFraction(0.5f, 0, false);
     EXPECT_FLOAT_EQ(fraction.currentTimeFraction_, 0.5f);
     GTEST_LOG_(INFO) << "RSAnimationFractionTest SetRebuildFraction006 end";
+}
+
+/**
+ * @tc.name: IsFinishedOverflow001
+ * @tc.desc: Verify IsFinished returns true when totalDuration overflows
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, IsFinishedOverflow001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest IsFinishedOverflow001 start";
+    RSAnimationFraction fraction;
+    fraction.direction_ = ForwardDirection::NORMAL;
+    fraction.duration_ = INT32_MAX;
+    fraction.repeatCount_ = INT32_MAX;
+    fraction.startDelay_ = 0;
+    fraction.runningTime_ = 0;
+    EXPECT_TRUE(fraction.IsFinished(false));
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest IsFinishedOverflow001 end";
 }
 
 } // namespace Rosen

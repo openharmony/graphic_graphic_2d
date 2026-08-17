@@ -182,11 +182,10 @@ void HdiLayer::CloseLayer()
     retCode = device_->CloseLayer(screenId_, layerId_);
     if (retCode != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Close hwc layer[%{public}u] failed, ret is %{public}d", layerId_, retCode);
+        return;
     }
 
     HLOGD("Close hwc layer succeed, layerId is %{public}u", layerId_);
-    layerId_ = INT_MAX;
-    layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
 }
 
 int32_t HdiLayer::SetLayerAlpha()
@@ -325,6 +324,7 @@ int32_t HdiLayer::SetLayerBuffer()
         layerBuffer.handle = currBuffer_->GetBufferHandle();
         if (layerBuffer.handle == nullptr) {
             HLOGE("Get buffer handle failed.");
+            return GRAPHIC_DISPLAY_NULL_PTR;
         }
     }
 
@@ -512,7 +512,7 @@ int32_t HdiLayer::SetLayerTunnelHandle()
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    if (rsLayer_->GetTunnelHandle() == nullptr) {
+    if (rsLayer_->GetTunnelHandle() == nullptr || rsLayer_->GetTunnelHandle()->GetHandle() == nullptr) {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, nullptr);
     } else {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, rsLayer_->GetTunnelHandle()->GetHandle());

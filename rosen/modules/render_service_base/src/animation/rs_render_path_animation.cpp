@@ -145,7 +145,7 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
     }
 
     if (!isNeedPath_) {
-        if (valueEstimator_ == nullptr) {
+        if (valueEstimator_ == nullptr || interpolator_ == nullptr) {
             return;
         }
         valueEstimator_->UpdateAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
@@ -157,7 +157,7 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
         return;
     }
     auto vector4fValueEstimator = std::static_pointer_cast<RSCurveValueEstimator<Vector4f>>(valueEstimator_);
-    if (vector4fValueEstimator != nullptr) {
+    if (vector4fValueEstimator != nullptr && interpolator_ != nullptr) {
         auto animationValue =
             vector4fValueEstimator->GetAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
         UpdateVector4fPathValue(animationValue, position);

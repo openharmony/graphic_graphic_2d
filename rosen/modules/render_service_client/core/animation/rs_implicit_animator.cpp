@@ -401,6 +401,11 @@ void RSImplicitAnimator::BeginImplicitDurationKeyFrameAnimation(int duration, co
         return;
     }
 
+    if (duration < 0) {
+        ROSEN_LOGE("BeginImplicitDurationKeyFrameAnimation, invalid duration:%{public}d", duration);
+        return;
+    }
+
     if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
         ROSEN_LOGE("Wrong type of timing curve!");
         return;
@@ -424,6 +429,10 @@ void RSImplicitAnimator::EndImplicitDurationKeyFrameAnimation()
     if (implicitAnimationParams_.empty() ||
         implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::KEYFRAME) {
         ROSEN_LOGD("Failed to end keyframe implicit animation, need to begin keyframe implicit animation firstly!");
+        return;
+    }
+    if (durationKeyframeParams_.empty()) {
+        ROSEN_LOGE("EndImplicitDurationKeyFrameAnimation, durationKeyframeParams_ is empty");
         return;
     }
     [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();

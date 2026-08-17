@@ -385,17 +385,19 @@ bool RSRenderParams::IsRenderGroupIncludeProperty() const
     return false;
 }
 
-void RSRenderParams::SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI)
+bool RSRenderParams::SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI)
 {
     if (GetRSFreezeFlag() == freezeFlag) {
-        return;
+        return false;
     }
     if (!renderGroupCache_) {
         renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
     }
-    if (renderGroupCache_->SetRSFreezeFlag(freezeFlag, isMarkedByUI)) {
+    if (renderGroupCache_ && renderGroupCache_->SetRSFreezeFlag(freezeFlag, isMarkedByUI)) {
         needSync_ = true;
+        return true;
     }
+    return false;
 }
 
 bool RSRenderParams::GetRSFreezeFlag() const

@@ -823,7 +823,13 @@ void RSUifirstManager::DoPurgePendingPostNodes(PendingPostNodeMap& pendingNode)
         // Reset contentStatic if not purged
         subThreadCache.SetUifirstSurfaceCacheContentStatic(true);
 
-        SyncHDRDisplayParam(drawable, node->GetFirstLevelNodeColorGamut());
+        auto uifirstColorGamut = node->GetFirstLevelNodeColorGamut();
+        bool useNodeColorSpace = node->GetUifirstRootNodeId() != INVALID_NODEID &&
+            ColorGamutParam::IsAdaptiveColorGamutEnabled();
+        if (useNodeColorSpace) {
+            uifirstColorGamut = node->GetNodeColorSpace();
+        }
+        SyncHDRDisplayParam(drawable, uifirstColorGamut);
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         if (!surfaceParams) {
             ++it;

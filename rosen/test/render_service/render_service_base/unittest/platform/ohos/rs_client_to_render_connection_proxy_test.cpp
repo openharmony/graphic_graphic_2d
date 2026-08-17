@@ -134,6 +134,8 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, CommitTransaction, TestSize.Level1
     proxy->CommitTransaction(transactionData);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(proxy->transactionDataIndex_, 1);
+#else
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 #endif
 }
 
@@ -377,7 +379,11 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, TakeSurfaceCapture, TestSize.Level
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
     captureConfig.windowSync = true;
     proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect);
+#ifdef RS_ENABLE_UNI_RENDER
+    ASSERT_NE(proxy->transactionDataIndex_, 0);
+#else
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
+#endif
 }
 
 /**
@@ -451,6 +457,11 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetHwcNodeBounds, TestSize.Level1)
 {
     NodeId id = 1;
     proxy->SetHwcNodeBounds(id, 1.0f, 1.0f, 1.0f, 1.0f);
+#ifdef RS_ENABLE_UNI_RENDER
+    ASSERT_NE(proxy->transactionDataIndex_, 0);
+#else
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+#endif
 }
 
 /**
@@ -514,7 +525,9 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, NotifyLightFactorStatus, TestSize.
     NodeId id = 1;
     proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT, true);
 #ifdef RS_ENABLE_UNI_RENDER
-    ASSERT_EQ(proxy->transactionDataIndex_, 5);
+    ASSERT_EQ(proxy->transactionDataIndex_, 1);
+#else
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 #endif
 }
 
