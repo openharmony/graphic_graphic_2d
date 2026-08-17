@@ -779,9 +779,9 @@ void RSUniRenderVisitor::CollectVirtualScreenNodeId(RSScreenRenderNode& node)
         auto screenParams = static_cast<RSScreenRenderParams*>(node.GetRenderParams().get());
         if (screenParams) {
             screenParams->SetVirtualScreenParallelManager(virtualScreenParallelManager_);
+            virtualScreenParallelManager_->CollectVirtualScreenNodeId(
+                screenParams->GetScreenId(), node.GetId(), node.GetCompositeType());
         }
-        virtualScreenParallelManager_->CollectVirtualScreenNodeId(
-            screenParams->GetScreenId(), node.GetId(), node.GetCompositeType());
     }
 }
 
