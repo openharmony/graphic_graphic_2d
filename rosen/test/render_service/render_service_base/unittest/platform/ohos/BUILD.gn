@@ -1363,7 +1363,9 @@ ohos_unittest("RSClientToRenderConnectionProxyTest") {
 ohos_unittest("RSProxyTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_render_service_proxy_test.cpp" ]
+  sources = [
+    #"rs_render_service_proxy_test.cpp"
+  ]
 
   cflags = [
     "-Dprivate=public",

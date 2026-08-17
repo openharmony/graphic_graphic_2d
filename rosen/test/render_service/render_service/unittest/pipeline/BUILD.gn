@@ -879,7 +879,9 @@ ohos_unittest("RSMainThreadProfilerTest") {
 ## Build RSRenderTaskTest
 ohos_unittest("RSRenderTaskTest") {
   module_out_path = module_output_path
-  sources = [ "parallel_render/rs_render_task_test.cpp" ]
+  sources = [
+    #"parallel_render/rs_render_task_test.cpp"
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",

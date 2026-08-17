@@ -49,7 +49,11 @@ void RSSystemPropertiesTest::TearDown() {}
  */
 HWTEST_F(RSSystemPropertiesTest, IsSceneBoardEnabled, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
+    ASSERT_TRUE(RSSystemProperties::IsSceneBoardEnabled());
+#else
     ASSERT_FALSE(RSSystemProperties::IsSceneBoardEnabled());
+#endif
 }
 
 /**
