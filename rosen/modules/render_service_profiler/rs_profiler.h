@@ -688,11 +688,6 @@ private:
     RSB_EXPORT static uint32_t GetCommandExecuteCount();
     RSB_EXPORT static std::string GetParcelCommandList();
 
-    RSB_EXPORT static const std::vector<pid_t>& GetPids();
-    RSB_EXPORT static NodeId GetParentNode();
-    RSB_EXPORT static void SetSubstitutingPid(const std::vector<pid_t>& pids, pid_t pid, NodeId parent);
-    RSB_EXPORT static pid_t GetSubstitutingPid();
-
     RSB_EXPORT static void BetaRecordOnFrameBegin();
     RSB_EXPORT static void BetaRecordOnFrameEnd();
 
@@ -713,15 +708,13 @@ private:
     RSB_EXPORT static void FilterForPlayback(RSContext& context, pid_t pid);
     RSB_EXPORT static void FilterMockNode(RSContext& context);
 
-    RSB_EXPORT static void GetSurfacesTrees(
-        const RSContext& context, std::map<std::string, std::tuple<NodeId, std::string>>& list);
-    RSB_EXPORT static void GetSurfacesTrees(const RSContext& context, pid_t pid, std::map<NodeId, std::string>& list);
     RSB_EXPORT static size_t GetRenderNodeCount(const RSContext& context);
     RSB_EXPORT static NodeId GetRandomSurfaceNode(const RSContext& context);
 
     RSB_EXPORT static void MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion,
         std::shared_ptr<ProfilerMarshallingJob> job);
-    RSB_EXPORT static void MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static void MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
+        uint32_t depth = 0u);
     RSB_EXPORT static void MarshalNode(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
         bool skipDrawCmdMoifiers = false, bool isBetaRecording = false);
     RSB_EXPORT static void MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
@@ -730,21 +723,22 @@ private:
         std::stringstream& data, bool skipDrawCmdModifiers, bool isBetaRecording);
 
     RSB_EXPORT static std::string UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
-    RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion,
+        uint32_t depth = 0u);
     RSB_EXPORT static std::string UnmarshalNode(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalNode(
-        RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion, RSRenderNodeType nodeType);
+        RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalNodeModifiers(
-        RSRenderNode& node, std::stringstream& data, uint32_t fileVersion, RSRenderNodeType nodeType);
+        RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
 
     RSB_EXPORT static void MarshalSubTree(RSContext& context, std::stringstream& data, const RSRenderNode& node,
         uint32_t fileVersion, bool clearImageCache = true);
-    RSB_EXPORT static void MarshalSubTreeLo(
-        RSContext& context, std::stringstream& data, const RSRenderNode& node, uint32_t fileVersion);
+    RSB_EXPORT static void MarshalSubTreeLo(RSContext& context, std::stringstream& data, const RSRenderNode& node,
+        uint32_t fileVersion, uint32_t depth = 0u);
     RSB_EXPORT static std::string UnmarshalSubTree(RSContext& context, std::stringstream& data,
         RSRenderNode& attachNode, uint32_t fileVersion, bool clearImageCache = true);
-    RSB_EXPORT static std::string UnmarshalSubTreeLo(
-        RSContext& context, std::stringstream& data, RSRenderNode& attachNode, uint32_t fileVersion);
+    RSB_EXPORT static std::string UnmarshalSubTreeLo(RSContext& context, std::stringstream& data,
+        RSRenderNode& attachNode, uint32_t fileVersion, uint32_t depth = 0u);
 
     RSB_EXPORT static NodeId AdjustNodeId(NodeId nodeId, bool clearMockFlag);
 
@@ -843,14 +837,12 @@ private:
     static void DumpNodeModifiers(const ArgList& args);
     static void DumpConnections(const ArgList& args);
     static void DumpNodeProperties(const ArgList& args);
-    static void DumpTree(const ArgList& args);
     static void DumpTreeToJson(const ArgList& args);
     static void DumpNodeSurface(const ArgList& args);
     static void ClearFilter(const ArgList& args);
     static void ClearCaches(const ArgList& args);
     static void PrintNodeCache(const ArgList& args);
     static void PrintNodeCacheAll(const ArgList& args);
-    static void PatchNode(const ArgList& args);
     static void KillNode(const ArgList& args);
     static void BlinkNode(const ArgList& args);
     static void AttachChild(const ArgList& args);
@@ -858,9 +850,6 @@ private:
     static void GetDeviceInfo(const ArgList& args);
     static void GetDeviceFrequency(const ArgList& args);
     static void FixDeviceEnv(const ArgList& args);
-    static void GetPerfTree(const ArgList& args);
-    static void CalcPerfNode(const ArgList& args);
-    static void CalcPerfNodeAll(const ArgList& args);
     static void SocketShutdown(const ArgList& args);
     static void DumpDrawingCanvasNodes(const ArgList& args);
 
@@ -956,7 +945,7 @@ private:
     RSB_EXPORT static bool hrpServiceEnabled_;
     RSB_EXPORT static std::atomic_uint32_t mode_;
     // flag for enabling profiler beta recording feature
-    RSB_EXPORT static bool betaRecordingEnabled_;
+    RSB_EXPORT static std::atomic<bool> betaRecordingEnabled_;
     // flag to start network thread
     RSB_EXPORT static std::atomic<int8_t> signalFlagChanged_;
 

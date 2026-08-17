@@ -32,10 +32,13 @@
 
 namespace OHOS::Rosen {
 
-std::atomic<bool> Network::isRunning_ = false;
+std::atomic<bool> Network::isRunning_ = false; // if network thread is running
+std::atomic<bool> Network::requestStopRunning_ = false; // request to stop network thread
 std::atomic<bool> Network::forceShutdown_ = false;
 std::atomic<bool> Network::blockBinary_ = false;
 std::chrono::steady_clock::time_point Network::ping_;
+
+std::mutex Network::isRunningMutex_ {};
 
 std::mutex Network::incomingMutex_ {};
 std::queue<std::vector<std::string>> Network::incoming_ {};
@@ -62,9 +65,15 @@ static std::string GetSocketName()
     return process;
 }
 
-bool Network::IsRunning()
+bool Network::IfThreadCanBeStarted()
 {
-    return isRunning_;
+    const std::lock_guard<std::mutex> guard(isRunningMutex_);
+    if (isRunning_) {
+        return false;
+    }
+    isRunning_ = true;
+    requestStopRunning_ = false;
+    return true;
 }
 
 void Network::ResetPing()
@@ -94,10 +103,9 @@ void Network::Run()
 {
     Socket* socket = nullptr;
 
-    isRunning_ = true;
     forceShutdown_ = false;
 
-    while (isRunning_) {
+    while (!requestStopRunning_) {
         if (!socket) {
             socket = new Socket();
         }
@@ -125,11 +133,20 @@ void Network::Run()
     }
 
     delete socket;
+
+    {
+        const std::lock_guard<std::mutex> guard(isRunningMutex_);
+        isRunning_ = false;
+        requestStopRunning_ = false;
+    }
 }
 
 void Network::Stop()
 {
-    isRunning_ = false;
+    const std::lock_guard<std::mutex> guard(isRunningMutex_);
+    if (isRunning_) {
+        requestStopRunning_ = true;
+    }
 }
 
 void Network::SendPacket(Packet& packet)
@@ -347,17 +364,17 @@ void Network::ProcessBinary(const std::vector<char>& data)
     const auto offset = std::min(path.size() + 1, data.size());
     const auto size = data.size() - offset;
     if (size == 0) {
-        HRPE("Network: Receive file: Invalid file size");
+        HRPE("Network: ProcessBinary: Invalid file size");
         return;
     }
 
-    HRPI("Receive file: %s %.2fMB (%zu)", path.data(), Utils::Megabytes(size), size);
+    HRPI("Network: ProcessBinary: %s %.2fMB (%zu)", path.data(), Utils::Megabytes(size), size);
     if (auto file = Utils::FileOpen(path, "wb")) {
         Utils::FileWrite(file, data.data() + offset, size);
         Utils::FileClose(file);
-        HRPI("Network: Receive file: Done");
+        HRPI("Network: ProcessBinary: Done");
     } else {
-        HRPE("Network: Receive file: Cannot open file: %s", path.data());
+        HRPE("Network: ProcessBinary: Cannot open file: %s", path.data());
     }
 }
 
@@ -395,12 +412,13 @@ void Network::Receive(Socket& socket)
     }
 
     const size_t size = packet.GetPayloadLength();
-    if (size == 0) {
+    static const auto MAX_SIZE = std::vector<char>().max_size();
+    if ((size == 0) || (size > MAX_SIZE)) {
+        HRPE("Network: Receive: Invalid payload size %zu", size);
         return;
     }
 
-    std::vector<char> data;
-    data.resize(size);
+    std::vector<char> data(size, 0);
     if (!socket.Receive(data.data(), data.size())) {
         return;
     }

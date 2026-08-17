@@ -62,7 +62,7 @@ uint32_t Packet::GetLength() const
 
 uint32_t Packet::GetPayloadLength() const
 {
-    return GetLength() - Packet::HEADER_SIZE;
+    return std::max(GetLength(), static_cast<uint32_t>(Packet::HEADER_SIZE)) - Packet::HEADER_SIZE;
 }
 
 std::vector<char> Packet::Release()
