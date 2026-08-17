@@ -113,6 +113,42 @@ HWTEST_F(RSRefreshRateDfxTest, OnDrawTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnDrawTest003
+ * @tc.desc: Test RSRefreshRateDfx::OnDraw
+ * @tc.type: FUNC
+ * @tc.require: #25873
+ */
+HWTEST_F(RSRefreshRateDfxTest, OnDrawTest003, TestSize.Level1)
+{
+    auto& instance = RSRealtimeRefreshRateManager::Instance();
+    instance.SetShowRefreshRateEnabled(true, static_cast<int32_t>(RealtimeRefreshRateType::SHOW));
+    EXPECT_TRUE(instance.GetShowRefreshRateEnabled());
+
+    EXPECT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+
+    // test when screen is not virtual, RSRefreshRateDfx::OnDraw should not return early
+    auto isVirtualProperty = sptr<ScreenProperty<bool>>::MakeSptr(false);
+    screenParams->screenProperty_.Set(ScreenPropertyType::IS_VIRTUAL, isVirtualProperty);
+
+    RSRefreshRateDfx rsRefreshRateDfx(*displayDrawable_);
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    rsRefreshRateDfx.OnDraw(*canvas);
+
+    // test when screen is virtual, RSRefreshRateDfx::OnDraw should return early
+    isVirtualProperty = sptr<ScreenProperty<bool>>::MakeSptr(true);
+    screenParams->screenProperty_.Set(ScreenPropertyType::IS_VIRTUAL, isVirtualProperty);
+    rsRefreshRateDfx.OnDraw(*canvas);
+
+    // test when screenParams is nullptr, RSRefreshRateDfx::OnDraw should return early
+    screenDrawable_->renderParams_ = nullptr;
+    rsRefreshRateDfx.OnDraw(*canvas);
+}
+
+/**
  * @tc.name: RefreshRateRotationProcessTest001
  * @tc.desc:
  * @tc.type: FUNC
