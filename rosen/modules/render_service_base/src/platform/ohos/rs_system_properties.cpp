@@ -1628,6 +1628,13 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
         return canvasEnabled;
     }
 
+    static int isAccessToVulkanConfigFile = access(VULKAN_CONFIG_FILE_PATH, F_OK);
+    if (isAccessToVulkanConfigFile == -1) {
+        ROSEN_LOGE("GetHybridRenderCanvasEnabled access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
+        canvasEnabled = false;
+        inited = true;
+        return canvasEnabled;
+    }
     canvasEnabled = GetHybridRenderCanvasEnabledWithoutCCM();
     if (canvasEnabled) {
         GetBackgroundRebuildEnabled();

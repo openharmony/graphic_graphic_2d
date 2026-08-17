@@ -756,7 +756,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_WeakPtrExpired001, TestS
 HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_DestroySemaphoreInfo001, TestSize.Level1)
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
-    canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext("/data/local/tmp");
+    canvasModifiersDraw->GetGpuContext();
     if (canvasModifiersDraw->gpuContext_ == nullptr) {
         GTEST_SKIP() << "Vulkan not available, cannot cover DestroySemaphoreInfo path";
     }
@@ -768,6 +768,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_DestroySemaphoreInfo001,
     auto rasterSurface = Drawing::Surface::MakeRaster(imageInfo);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("TestDrawSemaphore");
     sptr<IBufferProducer> bp = cSurface->GetProducer();
+    drawable.renderContext_ = canvasModifiersDraw->renderContext_;
     drawable.producerSurface_ = std::make_shared<TestRSSurfaceOhosVulkan>(
         Surface::CreateSurfaceAsProducer(bp), rasterSurface);
     drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
