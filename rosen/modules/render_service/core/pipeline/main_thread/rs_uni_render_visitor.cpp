@@ -1199,6 +1199,26 @@ void RSUniRenderVisitor::CollectHwcAndFilterNodesToParent(RSRenderNode& node, bo
     }
 }
 
+void RSUniRenderVisitor::CollectHwcAndFilterNodesForCrossNode(RSSurfaceRenderNode& node,
+    bool isParentPrepareInReverseOrder)
+{
+    auto sourceRenderNode = node.GetSourceCrossNode().lock();
+    auto sourceSurfaceNode = sourceRenderNode ?
+        sourceRenderNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+    if (sourceSurfaceNode) {
+        // Clone: mirror the source's aggregated list into the current node.
+        auto& cloneNodeList = node.GetAllHwcNodeAndFilterNode();
+        cloneNodeList = sourceSurfaceNode->GetAllHwcNodeAndFilterNode();
+    } else if (node.IsCloneCrossNode()) {
+        // Error case: no resolvable source, drop stale data.
+        node.ClearAllHwcNodeAndFilterNode();
+    }
+    if (curScreenNode_ && curScreenNode_->GetId() != node.GetId()) {
+        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder,
+            RSUniHwcComputeUtil::IsBlendNeedFilter(node));
+    }
+}
+
 void RSUniRenderVisitor::QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareDepthRenderNode nodeId[%llu]", node.GetId());
@@ -1328,6 +1348,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     RSSpecialLayerUtils::DealWithSpecialLayer(node, *curLogicalDisplayNode_, needCalcScreenSpecialLayer);
     // avoid cross node subtree visited twice or more
     if (CheckSkipAndPrepareForCrossNode(node)) {
+        CollectHwcAndFilterNodesForCrossNode(node, isParentPrepareInReverseOrder);
         return;
     }
     // 0. init curSurface info and check node info
