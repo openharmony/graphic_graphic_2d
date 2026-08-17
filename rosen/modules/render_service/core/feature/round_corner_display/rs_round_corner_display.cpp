@@ -116,7 +116,6 @@ bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Dra
     if (!succeeded) {
         bitmap = srcBitmap;
     }
-
     return true;
 }
 
