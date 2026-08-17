@@ -192,6 +192,29 @@ HWTEST_F(RSDrawFrameTest, ClearDrawableResourceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ClearDrawableResource_WithResourcesToClear
+ * @tc.desc: Test ClearDrawableResource when NeedClearResource returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawFrameTest, ClearDrawableResource_WithResourcesToClear, TestSize.Level1)
+{
+    // Set needClearResource_=true via AddToClearCmdList to reach the else branch
+    DrawableV2::RSRenderNodeDrawableAdapter::CmdListVec cmdListVec;
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(1, 1);
+    cmdListVec.emplace_back(cmdList);
+    DrawableV2::RSRenderNodeDrawableAdapter::AddToClearCmdList(cmdListVec);
+    ASSERT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::NeedClearResource());
+
+    // SINGLE_THREAD calls ClearResource() directly (no PostTask dependency)
+    RSDrawFrame drawFrame;
+    drawFrame.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD;
+    drawFrame.ClearDrawableResource();
+    EXPECT_FALSE(DrawableV2::RSRenderNodeDrawableAdapter::NeedClearResource());
+    EXPECT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearDrawableVec_.empty());
+    EXPECT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearCmdListVec_.empty());
+}
+
+/**
  * @tc.name: ClearDrawableMemory
  * @tc.desc: test ClearDrawableMemory
  * @tc.type: FUNC
