@@ -3866,6 +3866,37 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_003, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateHwcNodeInfo_004
+ * @tc.desc: Test UpdateHwcNodeInfo with curScreenNode_ nullptr (no crash, screenChanged=false)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_004, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+    // curScreenNode_ is nullptr by default
+
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    config.name = "UpdateHwcNodeInfo_004";
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    rsSurfaceRenderNode->SetNodeName("testNode");
+    rsSurfaceRenderNode->SetHardwareForcedDisabledState(false);
+
+    Drawing::Matrix absMatrix;
+    absMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+
+    // Should not crash when curScreenNode_ is nullptr; screenChanged is false via short-circuit
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, false);
+    SUCCEED();
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnableByGlobalPosition_001
  * @tc.desc: Test UpdateHwcNodeEnableByGlobalPosition when firstLevelNode is null
  * @tc.type: FUNC

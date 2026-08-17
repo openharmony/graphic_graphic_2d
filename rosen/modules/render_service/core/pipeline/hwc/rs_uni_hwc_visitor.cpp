@@ -142,8 +142,6 @@ void RSUniHwcVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const 
     if (!node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
         return;
     }
-    node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
-        uniRenderVisitor_.isScreenRotationAnimating_);
     const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
     auto surfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
     ((surfaceParams != nullptr && surfaceParams->GetIsHwcEnabledBySolidLayer()) || apiCompatibleVersion >= API18 ||
@@ -1333,8 +1331,10 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     const Drawing::Matrix& absMatrix, bool subTreeSkipped)
 {
     node.SetHardwareForcedDisabledState(false);
+    bool screenChanged = uniRenderVisitor_.curScreenNode_ != nullptr &&
+        node.CheckScreenChanged(uniRenderVisitor_.curScreenNode_->GetScreenId());
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
-                            uniRenderVisitor_.isScreenRotationAnimating_);
+                            uniRenderVisitor_.isScreenRotationAnimating_, screenChanged);
     bool isHardwareForcedDisabled = !node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) &&
         (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
          IsDisableHwcOnExpandScreen() ||

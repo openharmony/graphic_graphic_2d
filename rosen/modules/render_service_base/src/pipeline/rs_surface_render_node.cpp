@@ -988,21 +988,31 @@ bool RSSurfaceRenderNode::IsInFixedRotation() const
     return isInFixedRotation_;
 }
 
-void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating)
+void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating, bool screenChanged)
 {
-    if (isFixRotationByUser_ && !isInFixedRotation_ && isRotating) {
+    if (isFixRotationByUser_) {
+        if (!isInFixedRotation_ && isRotating) {
 #ifndef ROSEN_CROSS_PLATFORM
 #ifdef RS_ENABLE_GPU
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-        if (surfaceParams) {
-            auto layer = surfaceParams->GetLayerInfo();
-            originalSrcRect_ = { layer.srcRect.x, layer.srcRect.y, layer.srcRect.w, layer.srcRect.h };
-            originalDstRect_ = { layer.dstRect.x, layer.dstRect.y, layer.dstRect.w, layer.dstRect.h };
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+            if (surfaceParams) {
+                auto layer = surfaceParams->GetLayerInfo();
+                originalSrcRect_ = { layer.srcRect.x, layer.srcRect.y, layer.srcRect.w, layer.srcRect.h };
+                originalDstRect_ = { layer.dstRect.x, layer.dstRect.y, layer.dstRect.w, layer.dstRect.h };
+            }
+#endif
+#endif
         }
-#endif
-#endif
     }
-    isInFixedRotation_ = isFixRotationByUser_ && isRotating;
+    isInFixedRotation_ = isFixRotationByUser_ && isRotating && !haveScreenChangeInRotation_;
+    if (screenChanged && isRotating) {
+        isInFixedRotation_ = false;
+        haveScreenChangeInRotation_ = true;
+        RS_TRACE_NAME_FMT("SetInFixedRotation, screen changed in rotation, node id:%" PRIu64, GetId());
+    }
+    if (haveScreenChangeInRotation_ && !isRotating) {
+        haveScreenChangeInRotation_ = false;
+    }
 }
 
 void RSSurfaceRenderNode::SetHidePrivacyContent(bool needHidePrivacyContent)
