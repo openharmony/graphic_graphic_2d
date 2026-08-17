@@ -195,9 +195,9 @@ public:
     bool SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount);
     HgmSoftVSyncManager& SoftVSyncMgrRef() { return softVSyncManager_; }
     void UpdateSoftVSync(bool followRs);
+
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
-
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
 private:

@@ -330,8 +330,8 @@ void RSRenderKeyframeAnimationMarshalling(FuzzedDataProvider& FD)
         FD.ConsumeFloatingPoint<float>(), propertyId);
     auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
         FD.ConsumeIntegral<AnimationId>(), propertyId, property);
-    auto keyFrameNum = FD.ConsumeIntegralInRange<int>(0, 5); // max key frame number
-    for (int i = 0; i <= keyFrameNum; i++) {
+    auto keyframeNum = FD.ConsumeIntegralInRange<int>(0, 5); // max key frame number
+    for (int i = 0; i <= keyframeNum; i++) {
         auto fraction = FD.ConsumeFloatingPoint<float>();
         auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(FD.ConsumeFloatingPoint<float>());
         auto interpolator = std::make_shared<RSStepsInterpolator>(FD.ConsumeIntegral<int32_t>());
@@ -364,9 +364,9 @@ void RSRenderKeyframeAnimationMarshallingWithDrawCmdList(FuzzedDataProvider& FD)
         FD.ConsumeFloatingPoint<float>(), propertyId);
     auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
         FD.ConsumeIntegral<AnimationId>(), propertyId, property);
-    // Use MockCmdListProperty for keyFrame values to exercise DRAW_CMD_LIST branch
-    auto keyFrameNum = FD.ConsumeIntegralInRange<int>(0, 5);
-    for (int i = 0; i <= keyFrameNum; i++) {
+    // Use MockCmdListProperty for keyframe values to exercise DRAW_CMD_LIST branch
+    auto keyframeNum = FD.ConsumeIntegralInRange<int>(0, 5);
+    for (int i = 0; i <= keyframeNum; i++) {
         auto fraction = FD.ConsumeFloatingPoint<float>();
         auto endValue = std::make_shared<MockCmdListProperty>(FD.ConsumeFloatingPoint<float>());
         auto interpolator = std::make_shared<RSStepsInterpolator>(FD.ConsumeIntegral<int32_t>());

@@ -710,7 +710,7 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, ParseParamDrawCmdList002, Tes
 /**
  * @tc.name: ParseParamDrawCmdListRealTypeTest
  * @desc: Verify ParseParam with real RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>
-          to trigger DRAW_CMD_LIST conversion branch in ParseParam
+ *        to trigger DRAW_CMD_LIST conversion branch in ParseParam
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, ParseParamDrawCmdListRealTypeTest, TestSize.Level1)

@@ -222,12 +222,12 @@ HWTEST_F(RSRenderKeyframeAnimationTest, OnAnimateTest, Level1)
     rsRenderKeyframeAnimation.OnAnimate(fraction);
 }
 
-class MockKeyFrameCmdListProperty : public RSRenderAnimatableProperty<float> {
+class MockKeyframeCmdListProperty : public RSRenderAnimatableProperty<float> {
 public:
-    explicit MockKeyFrameCmdListProperty(const float& value, const PropertyId& id)
+    explicit MockKeyframeCmdListProperty(const float& value, const PropertyId& id)
         : RSRenderAnimatableProperty<float>(value, id)
     {}
-    ~MockKeyFrameCmdListProperty() = default;
+    ~MockKeyframeCmdListProperty() = default;
 
     RSPropertyType typeTest_ = RSPropertyType::DRAW_CMD_LIST;
 

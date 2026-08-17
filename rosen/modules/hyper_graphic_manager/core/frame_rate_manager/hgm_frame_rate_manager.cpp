@@ -703,6 +703,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         }
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
+        HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
         RS_TRACE_NAME_FMT("%s: stylusVec size = %zu", __func__, stylusVec_.size());
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
@@ -1304,7 +1305,9 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
         return;
     }
 
-    if (isGameSupportAS_ == SupportASStatus::GAME_SCENE_SKIP) {
+    if (IsSupportLiteAS(isGameSupportAS_)) {
+        HGM_LOGI("ProcessAdaptiveSync RSAdaptiveVsync mode: %{public}d", isGameSupportAS_);
+        RS_TRACE_NAME_FMT("ProcessAdaptiveSync RSAdaptiveVsync mode: %d", isGameSupportAS_);
         isAdaptive_.store(isGameSupportAS_);
         return;
     }

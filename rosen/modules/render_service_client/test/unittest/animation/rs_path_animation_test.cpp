@@ -62,7 +62,7 @@ HWTEST_F(RSPathAnimationTest, SetRotationTest001, TestSize.Level1)
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
     auto pathAnimation =
         std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startProperty, endProperty);
-    auto node = RSCanvasNode::Create();
+    auto node = RSCanvasNode::Create(false, false, rsUIContext);
     EXPECT_EQ(node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM), nullptr);
     pathAnimation->SetRotation(node, 1.0f);
 
