@@ -32,7 +32,8 @@ using RecordVSyncFunc = void (*)(const sptr<VSyncDistributor>& distributor, int6
     uint32_t refreshRate, bool isDVSyncController);
 using GetConnectionAppFunc = void (*)(sptr<VSyncConnection>& connection);
 using MarkRSRenderingFunc = void (*)(bool isRender);
-using SetAppDVSyncSwitchFunc = void (*)(const sptr<VSyncConnection>& connection, bool start, bool isNative);
+using SetAppDVSyncSwitchFunc = void (*)(const sptr<VSyncConnection>& connection, bool start, bool isNative,
+    FromWhom fromWhom);
 using SetUiDVSyncConfigFunc = void (*)(int32_t bufferCount, bool compositeSceneEnable, bool nativeDelayEnable,
     const std::vector<std::string>& rsDvsyncAnimationList);
 using GetUiCommandDelayTimeFunc = int64_t (*)();
@@ -100,7 +101,8 @@ public:
         uint32_t refreshRate, bool isDVSyncController);
     void GetConnectionApp(sptr<VSyncConnection>& connection);
     void MarkRSRendering(bool isRender);
-    void SetAppDVSyncSwitch(const sptr<VSyncConnection>& connection, bool start, bool isNative);
+    void SetAppDVSyncSwitch(const sptr<VSyncConnection>& connection, bool start, bool isNative,
+        FromWhom fromWhom);
     void SetUiDVSyncConfig(int32_t bufferCount, bool compositeSceneEnable, bool nativeDelayEnable,
         const std::vector<std::string>& rsDvsyncAnimationList);
     int64_t GetUiCommandDelayTime();
