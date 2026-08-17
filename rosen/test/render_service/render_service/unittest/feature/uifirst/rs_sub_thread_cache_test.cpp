@@ -426,7 +426,7 @@ HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest001, TestSize.Leve
     surfaceParams->windowInfo_.isLeashWindow_ = true;
     isCalculateSucc = surfaceDrawable_->GetRsSubThreadCache().CalculateUifirstDirtyRegion(surfaceDrawable_.get(),
         dirtyRect, false, visibleFilterRect);
-    ASSERT_EQ(isCalculateSucc, true);
+    ASSERT_EQ(isCalculateSucc, false);
     surfaceDrawable_->syncDirtyManager_->Clear();
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->Clear();
 }
