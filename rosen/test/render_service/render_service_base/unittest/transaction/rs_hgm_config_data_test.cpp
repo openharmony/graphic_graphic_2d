@@ -449,7 +449,7 @@ HWTEST_F(RSHgmConfigDataTest, MarshallingTest002, TestSize.Level1)
     for (int32_t i = 0; i < 100; i = i + 4) {
         Parcel parcel;
         SetLeftSize(parcel, i);
-        rsHgmConfigData.Marshalling(parcel)
+        rsHgmConfigData.Marshalling(parcel);
     }
     Parcel parcelOk;
     SetLeftSize(parcelOk, 100);
