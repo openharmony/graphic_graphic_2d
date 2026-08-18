@@ -364,6 +364,11 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
 
 bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
 {
+    // Asynchronous binder calls may report callingPid == 0 on some platforms; ownership cannot be
+    // validated against an unknown caller, so skip marking instead of invalidating every command.
+    if (callingPid <= 0) {
+        return true;
+    }
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<
         std::pair<uint16_t, uint16_t>>>> inaccessibleCommandMap;
     std::unique_lock<std::mutex> lock(commandMutex_);
