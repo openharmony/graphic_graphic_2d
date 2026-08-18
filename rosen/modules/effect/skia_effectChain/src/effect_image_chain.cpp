@@ -43,6 +43,7 @@
 #endif
 
 namespace OHOS::Rosen {
+thread_local std::shared_ptr<Drawing::GPUContext> EffectImageChain::gpuContext_ = nullptr;
 Drawing::ColorType ImageUtil::PixelFormatToDrawingColorType(const Media::PixelFormat& pixelFormat)
 {
     switch (pixelFormat) {
@@ -217,7 +218,12 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
  
-    image_ = RSPixelMapUtil::ExtractDrawingImageNoCache(srcPixelMap_);
+    image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+#if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
+    // If image_ release earrlier, grContext my release and cause null pointer error
+    // Store image_ pointer to maintain correct image life cycle when use DDGR
+    srcImage_ = image_;
+#endif
     if (image_ == nullptr) {
         EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: extract drawing image failed.");
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -225,11 +231,13 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
     }
 
     if (RSSystemProperties::IsUseVulkan()) {
-        if (renderContext_ == nullptr) {
-            renderContext_ = RenderContext::Create();
-            renderContext_->Init();
+        if (gpuContext_ == nullptr) {
+            if (renderContext_ == nullptr) {
+                renderContext_ = RenderContext::Create();
+                renderContext_->Init();
+            }
+            gpuContext_ = renderContext_->GetSharedDrGPUContext();
         }
-        gpuContext_ = renderContext_->GetSharedDrGPUContext();
         if (gpuContext_ != nullptr) {
             gpuContext_->SetResourceCacheLimits(0, 0);
         }
@@ -249,7 +257,7 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
     surface_ = NativeBufferUtils::CreateSurfaceFromNativeBuffer(
-        RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface(),
+        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
         gpuContext_.get(), info, dstNativeBuffer.get(), info.GetColorSpace());
     if (surface_ == nullptr) {
         EFFECT_LOG_E("EffectImageChain::PrepareNativeBuffer: Failed to create surface %{public}d.", forceCPU_);
@@ -588,7 +596,7 @@ DrawingError EffectImageChain::ApplyMaskTransitionFilter(const std::shared_ptr<M
     canvasInfo.geoWidth = srcPixelMap_->GetWidth();
     canvasInfo.geoHeight = srcPixelMap_->GetHeight();
 
-    auto topLayer = RSPixelMapUtil::ExtractDrawingImageNoCache(topLayerMap);
+    auto topLayer = RSPixelMapUtil::ExtractDrawingImage(topLayerMap);
     if (!topLayer || canvasInfo.geoHeight <= 0 || canvasInfo.geoWidth <= 0) {
         EFFECT_LOG_E("EffectImageChain::ApplyMaskTransitionFilter: input image is null or invalid.");
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -660,7 +668,7 @@ DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shar
         EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: geWaterDropletParams is null.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    geWaterDropletParams->topLayer = RSPixelMapUtil::ExtractDrawingImageNoCache(topLayerMap);
+    geWaterDropletParams->topLayer = RSPixelMapUtil::ExtractDrawingImage(topLayerMap);
     if (!geWaterDropletParams->topLayer) {
         EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: ConvertPixelMapToDrawingImage null.");
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -775,7 +783,7 @@ DrawingError EffectImageChain::DrawNativeBuffer()
         DrawOnFilter();
 
         VkSemaphore semaphore = VK_NULL_HANDLE;
-        auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
+        auto vkInterface = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface();
         NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore);
         if (semaphore == VK_NULL_HANDLE) {
             EFFECT_COMM_LOG_E("EffectImageChain::DrawNativeBuffer: CreateVkSemaphore failed");
@@ -851,7 +859,7 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_) };
 
 #if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
-    image_ = RSPixelMapUtil::ExtractDrawingImageNoCache(srcPixelMap_);
+    image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
 #if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
     // If image_ release earlier, grContext may release and cause null pointer error
     // Store image_ pointer to maintain correct image life cycle when use DDGR
@@ -903,9 +911,11 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
     }
 
 #ifdef RS_ENABLE_GPU
-    if (renderContext_ == nullptr) {
-        renderContext_ = RenderContext::Create();
-        renderContext_->Init();
+    if (gpuContext_ == nullptr) {
+        if (renderContext_ == nullptr) {
+            renderContext_ = RenderContext::Create();
+            renderContext_->Init();
+        }
         gpuContext_ = renderContext_->GetSharedDrGPUContext();
     }
     if (RSSystemProperties::IsUseVulkan()) {
@@ -934,7 +944,9 @@ EffectImageChain::~EffectImageChain()
     surface_.reset();
     if (gpuContext_ && forceReleaseGpuContext_) {
         gpuContext_->ReleaseResourcesAndAbandonContext();
+#if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
         gpuContext_ = nullptr;
+#endif
     }
 }
 
