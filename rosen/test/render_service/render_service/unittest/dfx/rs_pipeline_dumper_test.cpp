@@ -378,6 +378,10 @@ HWTEST_F(RSPipelineDumperTest, RegisterRSTreeFuncs_SurfaceNode, TestSize.Level1)
     std::string out;
     dumpManager_->CmdExec(argSets, out, nullptr);
 
+    std::unordered_set<std::u16string> argSets2 = { u"surfacenode", u"" };
+    std::string out2;
+    dumpManager_->CmdExec(argSets2, out2, nullptr);
+
     EXPECT_FALSE(out.empty());
 }
 
@@ -465,6 +469,10 @@ HWTEST_F(RSPipelineDumperTest, RegisterMemFuncs_ExistPidMem, TestSize.Level1)
     std::unordered_set<std::u16string> argSets = { u"dumpExistPidMem", u"123" };
     std::string out;
     dumpManager_->CmdExec(argSets, out, nullptr);
+
+    std::unordered_set<std::u16string> argSets2 = { u"dumpExistPidMem", u"" };
+    std::string out2;
+    dumpManager_->CmdExec(argSets2, out2, nullptr);
 
     EXPECT_FALSE(out.empty());
 }
@@ -607,7 +615,7 @@ HWTEST_F(RSPipelineDumperTest, ScheduleTask_WithNullHandler, TestSize.Level1)
 HWTEST_F(RSPipelineDumperTest, IsNumber_ValidNumbers, TestSize.Level1)
 {
     // Given: Various number strings
-    std::vector<std::string> validNumbers = { "0", "123", "99999", "007", "42" };
+    std::vector<std::string> validNumbers = { "0", "123", "99999", "007", "42", "" };
 
     // When & Then: All should be recognized as numbers
     for (const auto& numStr : validNumbers) {
@@ -2118,6 +2126,10 @@ HWTEST_F(RSPipelineDumperTest, RegisterContextStatesFuncs_ValidArgs, TestSize.Le
     std::unordered_set<std::u16string> argSets = { u"uiContextState", u"12345", u"67890" };
     std::string out;
     dumpManager_->CmdExec(argSets, out, nullptr);
+
+    std::unordered_set<std::u16string> argSets2 = { u"uiContextState", u"", u"11111111111111111111111" };
+    std::string out2;
+    dumpManager_->CmdExec(argSets2, out2, nullptr);
 
     // With a null handler the scheduled dump task is not executed, so output remains empty.
     EXPECT_FALSE(out.empty());

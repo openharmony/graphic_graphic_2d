@@ -297,12 +297,14 @@ HWTEST_F(RSServiceDumpManagerTest, CollectDump_EmptyString, TestSize.Level1)
 HWTEST_F(RSServiceDumpManagerTest, CollectDump_ExceedsProcessCount, TestSize.Level1)
 {
     // Given: A dump manager instance initialized with 1 process
-    dumpManager_->InitProcessDumpTask(1);
+    dumpManager_->InitProcessDumpTask(2);
     std::string firstData = "First dump data";
+    std::string emptyData = "";
     std::string extraData = "Extra dump data";
 
     // When: Collect dump data more times than process count
     dumpManager_->CollectDump(firstData);
+    dumpManager_->CollectDump(emptyData);
     dumpManager_->CollectDump(extraData);
 
     // Then: Only the first collection is kept

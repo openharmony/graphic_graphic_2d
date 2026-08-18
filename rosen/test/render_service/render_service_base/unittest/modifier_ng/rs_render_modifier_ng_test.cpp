@@ -440,6 +440,17 @@ HWTEST_F(RSRenderModifierNGTest, ConvertDrawCmdListToSimpleNullPropertyTest, Tes
     modifier->ConvertDrawCmdListToSimple();
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::ALPHA));
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::BOUNDS));
+
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
+    drawCmdList->width_ = 100;
+    drawCmdList->height_ = 100;
+    auto propertyCmd = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
+    propertyCmd->GetRef() = drawCmdList;
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, propertyCmd);
+    modifier->AttachProperty(ModifierNG::RSPropertyType::FOREGROUND_STYLE, propertyCmd);
+    modifier->ConvertDrawCmdListToSimple();
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::FOREGROUND_STYLE));
 }
 
 /**

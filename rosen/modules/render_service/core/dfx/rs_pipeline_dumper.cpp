@@ -607,10 +607,7 @@ void RSPipelineDumper::DumpExistPidMem(std::unordered_set<std::u16string>& argSe
     }
     int pid = 0;
     if (!type.empty() && IsNumber(type)) {
-        uint64_t pidVal = 0;
-        if (SafeStrToU64(type, pidVal) && pidVal <= MAX_PID_VALUE) {
-            pid = static_cast<int>(pidVal);
-        }
+        pid = std::atoi(type.c_str());
         MemoryManager::DumpExitPidMem(dumpString, pid);
     } else {
         dumpString.append("\n---------------\n Pid is error \n" + type);
@@ -679,10 +676,7 @@ void RSPipelineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std:
     }
     int pid = 0;
     if (!type.empty() && IsNumber(type)) {
-        uint64_t pidVal = 0;
-        if (SafeStrToU64(type, pidVal) && pidVal <= MAX_PID_VALUE) {
-            pid = static_cast<int>(pidVal);
-        }
+        pid = std::atoi(type.c_str());
     }
     ScheduleTask([this, &argSets, &dumpString, &type, &pid, isLite]() {
         return MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
