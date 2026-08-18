@@ -37,7 +37,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t MAX_NUM_INVALID_FRAME = 10;
-constexpr float BRIGHTNESS_RATIO_EPSILON = 1e-6;
+constexpr float BRIGHTNESS_RATIO_EPSILON = 1e-6f;
 }
 using namespace HDI::Display::Graphic::Common::V1_0;
 
