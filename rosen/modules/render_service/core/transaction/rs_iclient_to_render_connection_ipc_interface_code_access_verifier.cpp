@@ -75,7 +75,7 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_POSITION): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_POINTER_POSITION");
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ANCO_FORCE_DO_DIRECT): {
