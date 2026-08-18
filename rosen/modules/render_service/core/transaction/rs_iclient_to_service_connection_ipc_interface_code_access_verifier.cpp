@@ -596,10 +596,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_IS_SECURE_SCREEN");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST");
             break;

@@ -190,7 +190,6 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId screenId);
     void SetShowRefreshRateEnabled(bool enabled, int32_t type);
     ErrCode GetShowRefreshRateEnabled(bool& enable);
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();

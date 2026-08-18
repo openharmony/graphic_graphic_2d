@@ -27,7 +27,6 @@
 
 #include "command/rs_base_node_command.h"
 #include "common/rs_tunnel_layer_utils.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"

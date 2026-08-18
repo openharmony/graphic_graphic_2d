@@ -80,7 +80,6 @@ const uint8_t DO_SET_OVERLAY_DISPLAY_MODE = 1;
 const uint8_t DO_GET_EHIND_WINDOW_FILTER_ENABLED = 2;
 const uint8_t DO_NOTIFY_XCOMPONENT_EXPECTED_FRAME_RATE = 3;
 const uint8_t DO_SET_OPTIMIZE_CANVAS_DRITY_PIDLIST = 4;
-const uint8_t DO_SET_GPU_CRCDIRTY_ENABLE_PIDLIST = 5;
 const uint8_t DO_SET_VIRTUAL_SCREEN_AUTO_ROTATION = 6;
 const uint8_t DO_GET_SCREEN_VCP_FEATURE = 7;
 const uint8_t DO_SET_SCREEN_VCP_FEATURE = 8;
@@ -293,33 +292,6 @@ bool DoSetOptimizeCanvasDirtyPidList()
 
     uint32_t code =
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
-    if (g_serviceConnection == nullptr) {
-        return false;
-    }
-    g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
-    return true;
-}
-
-bool DoSetGpuCrcDirtyEnabledPidList()
-{
-    std::vector<int32_t> pidList;
-    uint8_t pidListSize = GetData<uint8_t>();
-    for (size_t i = 0; i < pidListSize; i++) {
-        pidList.push_back(GetData<int32_t>());
-    }
- 
-    MessageParcel dataP;
-    MessageParcel reply;
-    MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        return false;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!dataP.WriteInt32Vector(pidList)) {
-        return false;
-    }
- 
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     if (g_serviceConnection == nullptr) {
         return false;
     }
@@ -622,9 +594,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_OPTIMIZE_CANVAS_DRITY_PIDLIST:
             OHOS::Rosen::DoSetOptimizeCanvasDirtyPidList();
-            break;
-        case OHOS::Rosen::DO_SET_GPU_CRCDIRTY_ENABLE_PIDLIST:
-            OHOS::Rosen::DoSetGpuCrcDirtyEnabledPidList();
             break;
         case OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_AUTO_ROTATION:
             OHOS::Rosen::DoSetVirtualScreenAutoRotation();

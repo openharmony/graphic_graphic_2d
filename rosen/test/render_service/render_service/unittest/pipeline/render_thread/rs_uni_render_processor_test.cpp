@@ -15,15 +15,12 @@
 
 #include "gtest/gtest.h"
 
-#include <parameters.h>
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/protective_solid/rs_protective_solid_render_node.h"
 #include "limit_number.h"
-#include "metadata_helper.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -43,7 +40,6 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 constexpr Rect DEFAULT_RECT = {0, 0, 200, 200};
-constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 }
 class RSUniRenderProcessorTest : public testing::Test {
 public:
@@ -52,20 +48,10 @@ public:
         .height = 200,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_GPU_RENDER_DIRTY,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
     };
-
-    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
-        .gpuDirtyEnable = true,
-        .curFrameDirtyEnable = true,
-        .left = 0,
-        .top = 0,
-        .right = 100,
-        .bottom = 100,
-    };
-
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -848,39 +834,6 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
     auto composerClient = RSComposerClient::Create(nullptr, nullptr);
     renderProcessor->composerClient_ = composerClient;
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
-    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
-}
-
-/**
- * @tc.name: GetLayerInfo006
- * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo when layer have selfDrawingDirtyRegion
- * @tc.type:FUNC
- * @tc.require: issuesICA3L1
- */
-HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
-{
-    ASSERT_NE(renderProcessor, nullptr);
-    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
-    renderProcessor->composerClient_ = composerClient;
-    RSSurfaceRenderParams params(0);
-    SetTunnelLayerSnapshot(params.GetId());
-    sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    sptr<SyncFence> acquireFence = nullptr;
-    auto buffer = SurfaceBuffer::Create();
-    auto ret = buffer->Alloc(RSUniRenderProcessorTest::requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    ASSERT_EQ(src, nullptr);
-
-    params.SetBuffer(buffer, nullptr, DEFAULT_RECT);
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
-    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
-    result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
 
