@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <fstream>
 #include <fuzzer/FuzzedDataProvider.h>
+#include <memory>
 #include <securec.h>
 
 #include "get_object.h"
@@ -66,7 +67,7 @@ bool FontMgrFuzzTest002(const uint8_t* data, size_t size)
 
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     int index = GetObject<int>() % MAX_SIZE;
-    fontMgr->CreateStyleSet(index);
+    std::unique_ptr<FontStyleSet> fontStyleSet(fontMgr->CreateStyleSet(index));
     return true;
 }
 
@@ -99,7 +100,7 @@ bool FontMgrFuzzTest003(const uint8_t* data, size_t size)
     for (size_t i = 0; i < dataLength; i++) {
         dataText[i] =  GetObject<uint8_t>();
     }
-    fontMgr->LoadDynamicFont(str, dataText, dataLength);
+    std::unique_ptr<Typeface> typeface(fontMgr->LoadDynamicFont(str, dataText, dataLength));
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -140,7 +141,7 @@ bool FontMgrFuzzTest004(const uint8_t* data, size_t size)
     for (size_t i = 0; i < dataLength; i++) {
         dataText[i] =  GetObject<uint8_t>();
     }
-    fontMgr->LoadDynamicFont(str, dataText, dataLength);
+    std::unique_ptr<Typeface> typeface(fontMgr->LoadDynamicFont(str, dataText, dataLength));
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -199,7 +200,7 @@ bool FontMgrFuzzTest005(const uint8_t* data, size_t size)
     for (size_t i = 0; i < dataLength; i++) {
         dataText[i] =  GetObject<uint8_t>();
     }
-    fontMgr->LoadThemeFont(str, strTheme, dataText, dataLength);
+    std::unique_ptr<Typeface> typeface(fontMgr->LoadThemeFont(str, strTheme, dataText, dataLength));
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -238,7 +239,8 @@ bool FontMgrFuzzTest006(const uint8_t* data, size_t size)
     size_t bcp47Count = GetObject<size_t>() % MAX_SIZE;
     const char* bcp47[] = {"zh-Hans", "zh-CN"};
     int32_t character = GetObject<int32_t>();
-    fontMgr->MatchFamilyStyleCharacter(familyName, fontStyle, bcp47, bcp47Count, character);
+    std::unique_ptr<Typeface> typeface(fontMgr->MatchFamilyStyleCharacter(
+        familyName, fontStyle, bcp47, bcp47Count, character));
     if (familyName != nullptr) {
         delete [] familyName;
         familyName = nullptr;
@@ -262,7 +264,7 @@ bool FontMgrFuzzTest007(const uint8_t* data, size_t size)
         familyName[i] =  GetObject<char>();
     }
     familyName[count - 1] = '\0';
-    fontMgr->MatchFamily(familyName);
+    std::unique_ptr<FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName));
     if (familyName != nullptr) {
         delete [] familyName;
         familyName = nullptr;
@@ -290,7 +292,7 @@ bool FontMgrFuzzTest008(const uint8_t* data, size_t size)
     int width = GetObject<int>() % MAX_SIZE;
     uint32_t slant = GetObject<uint32_t>();
     FontStyle fontStyle = FontStyle(weight, width, static_cast<FontStyle::Slant>(slant % SLANT_SIZE));
-    fontMgr->MatchFamilyStyle(familyName, fontStyle);
+    std::unique_ptr<Typeface> typeface(fontMgr->MatchFamilyStyle(familyName, fontStyle));
     fontMgr->CountFamilies();
     if (familyName != nullptr) {
         delete [] familyName;
