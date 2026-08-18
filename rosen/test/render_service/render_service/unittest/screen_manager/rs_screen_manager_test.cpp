@@ -92,9 +92,6 @@ void RSScreenManagerTest::SetUpTestCase()
         DoAll(SetArgReferee<1>(ByRef(Mock::HdiDeviceMock::powerStatusMock_)), testing::Return(0)));
     EXPECT_CALL(*hdiDeviceMock_, GetPanelPowerStatus(mockScreenId_, _)).WillRepeatedly(
         DoAll(SetArgReferee<1>(ByRef(Mock::HdiDeviceMock::panelPowerStatusMock_)), testing::Return(0)));
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
 }
 
 void RSScreenManagerTest::TearDownTestCase()

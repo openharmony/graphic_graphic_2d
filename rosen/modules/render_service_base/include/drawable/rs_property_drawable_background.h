@@ -82,7 +82,7 @@ private:
 
 class RSMaskDrawable : public RSPropertyDrawable {
 public:
-    RSMaskDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList)) {}
+    RSMaskDrawable(SimpleDrawCmdListPtr&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList)) {}
     RSMaskDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
@@ -94,7 +94,7 @@ private:
 // Background
 class RSBackgroundColorDrawable : public RSPropertyDrawable {
 public:
-    RSBackgroundColorDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+    RSBackgroundColorDrawable(SimpleDrawCmdListPtr&& drawCmdList)
         : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSBackgroundColorDrawable() = default;
@@ -104,7 +104,7 @@ public:
 
 class RSBackgroundShaderDrawable : public RSPropertyDrawable {
 public:
-    RSBackgroundShaderDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+    RSBackgroundShaderDrawable(SimpleDrawCmdListPtr&& drawCmdList)
         : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSBackgroundShaderDrawable() = default;
@@ -139,7 +139,7 @@ private:
 
 class RSBackgroundImageDrawable : public RSPropertyDrawable {
 public:
-    RSBackgroundImageDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+    RSBackgroundImageDrawable(SimpleDrawCmdListPtr&& drawCmdList)
         : RSPropertyDrawable(std::move(drawCmdList))
     {}
     ~RSBackgroundImageDrawable() override;

@@ -38,8 +38,7 @@ public:
 
 private:
     static ani_object LatticeTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    static ani_long GetLatticeAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
-    std::shared_ptr<Lattice>* GetLatticePtrAddr();
+    static ani_object LatticeTransferDynamic(ani_env* env, [[maybe_unused]] ani_object obj, ani_object nativeObj);
     std::shared_ptr<Lattice> lattice_ = nullptr;
 };
 } // namespace Drawing

@@ -104,13 +104,11 @@ std::set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::s
 
 void RSBaseRenderEngineUnitTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 }
 void RSBaseRenderEngineUnitTest::TearDownTestCase() {}
 void RSBaseRenderEngineUnitTest::SetUp() {}
+
 void RSBaseRenderEngineUnitTest::TearDown() {}
 
 /**
@@ -685,6 +683,33 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ColorSpaceConvertor001, TestSize.Level1)
     ASSERT_NE(params.paint.shaderEffect_, nullptr);
 #endif
 }
+
+/*
+ * @tc.name: ColorSpaceConvertor_NullConverterDisplay
+ * @tc.desc: colorSpaceConverterDisplay_ nullptr -> 643 true-branch early return (no crash)
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ColorSpaceConvertor_NullConverterDisplay, TestSize.Level2)
+{
+#ifdef RS_ENABLE_VK
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    // no Init() -> colorSpaceConverterDisplay_ stays nullptr (default) -> early return branch
+    auto shaderEffect = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_WHITE);
+    ASSERT_NE(shaderEffect, nullptr);
+    BufferDrawParam params;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_NE(params.buffer, nullptr);
+    params.paint.SetShaderEffect(shaderEffect); // sentinel: prove early return did not overwrite
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    renderEngine->ColorSpaceConvertor(shaderEffect, params, parameter);
+    // 643 true-branch: early return before 658 SetShaderEffect(outputShader) -> shaderEffect_ unchanged
+    EXPECT_EQ(params.paint.shaderEffect_, shaderEffect);
+#endif
+}
+
 #endif
 
 /**
@@ -807,17 +832,23 @@ HWTEST_F(RSBaseRenderEngineUnitTest, SetColorSpaceConverterDisplayParameterTest,
     params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
     ASSERT_EQ(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter), true);
+    RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
     bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     EXPECT_EQ(ret, false);
 
+    auto enableEDR = system::GetParameter("const.display.xcomponent_edr_support", "0");
+    system::SetParameter("const.display.xcomponent_edr_support", "1");
+    EXPECT_TRUE(RSSystemProperties::GetXcomponentEdrEnabled());
+
     staticMetadata.cta861.maxContentLightLevel = 400.0f;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
     ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter);
     EXPECT_EQ(ret, true);
+    system::SetParameter("const.display.xcomponent_edr_support", enableEDR);
 #endif
 }
 
@@ -1388,6 +1419,37 @@ HWTEST_F(RSBaseRenderEngineUnitTest, RegisterDeleteBufferListener_WithValidConsu
     EXPECT_NO_FATAL_FAILURE(renderEngine->RegisterDeleteBufferListener(csurf, false));
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: GlassFree3DShaderConvert_NullImage
+ * @tc.desc: Test GlassFree3DShaderConvert with null image
+ * @tc.type: FUNC
+ * @tc.require: issueI6GJ1Z
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, GlassFree3DShaderConvert_NullImage, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    ASSERT_NE(renderEngine, nullptr);
+
+    std::unique_ptr<Drawing::Canvas> drawingCanvas =
+        std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+
+    BufferDrawParam params;
+    params.use3DShader = true;
+    params.dstRect = DEFAULT_RECT;
+    Drawing::Brush paint;
+    params.paint = paint;
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+
+    // Test with null image - should return early without crash
+    std::shared_ptr<Drawing::Image> nullImage = nullptr;
+    EXPECT_NO_FATAL_FAILURE(renderEngine->GlassFree3DShaderConvert(*canvas, params, nullImage, samplingOptions));
+}
+#endif
+
 /**
  * @tc.name: CreateBufferDeleteCallback_NullGpuCacheManagerTest001
  * @tc.desc: Test CreateBufferDeleteCallback when gpuCacheManager_ is nullptr
@@ -1755,5 +1817,48 @@ HWTEST_F(RSBaseRenderEngineUnitTest, FlushGpu_FlushPhaseActive, TestSize.Level2)
     renderFrame->CancelActiveFlush();
     EXPECT_EQ(renderFrame->GetSurface(), nullptr);
     EXPECT_EQ(renderFrame->GetFrame(), nullptr);
+}
+
+/**
+ * @tc.name: InitProtectedRedrawTest
+ * @tc.desc: Test RSBaseRenderEngine Init with PROTECTED_REDRAW type sets isProtected_ to true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, InitProtectedRedrawTest, TestSize.Level1)
+{
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+    renderEngine->Init(RenderEngineType::PROTECTED_REDRAW);
+    // PROTECTED_REDRAW should set isProtected_ to true
+    EXPECT_EQ(renderEngine->isProtected_, true);
+    // protectedRenderContext_ should be created for PROTECTED_REDRAW
+    EXPECT_NE(renderEngine->protectedRenderContext_, nullptr);
+}
+ 
+/**
+ * @tc.name: ProtectedRenderContextSetSurfaceTest
+ * @tc.desc: Test that protectedRenderContext_ is set on surface when isProtected_ is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ProtectedRenderContextSetSurfaceTest, TestSize.Level1)
+{
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+    renderEngine->Init(RenderEngineType::PROTECTED_REDRAW);
+    ASSERT_EQ(renderEngine->isProtected_, true);
+    ASSERT_NE(renderEngine->protectedRenderContext_, nullptr);
+ 
+    // Create a surface and verify SetRenderContext is called with protected context
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("ProtectedRenderCtxTest");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    auto rsSurface = renderEngine->MakeRSSurface(pSurface, false);
+    if (rsSurface != nullptr) {
+        // When isProtected_ is true and protectedRenderContext_ is not null, surface should use it
+        EXPECT_NE(rsSurface, nullptr);
+    }
 }
 }

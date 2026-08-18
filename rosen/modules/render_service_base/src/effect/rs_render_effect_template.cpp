@@ -267,8 +267,9 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
     if (!value) {
         return;
     }
-    auto pathDistance = value->GetDistance();
-    hash = hashFunc_(&pathDistance, sizeof(pathDistance), hash);
+    auto data = value->GetDrawingPath().Serialize();
+    uint32_t nullPath = 0;
+    hash = data ? hashFunc_(data->GetData(), data->GetSize(), hash) : hashFunc_(&nullPath, sizeof(nullPath), hash);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

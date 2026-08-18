@@ -839,7 +839,8 @@ std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifie
     const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType)
 {
     if (auto modifier = node.GetModifierNG(modifierType)) {
-        return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty(propertyType));
+        auto baseProperty = modifier->GetProperty(propertyType);
+        return baseProperty ? baseProperty->CastToPropertyOf<T>(__func__) : nullptr;
     }
     return nullptr;
 }

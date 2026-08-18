@@ -33,14 +33,16 @@ void LppVideoHandler::ConsumeAndUpdateLppBuffer(
     std::shared_ptr<RSSurfaceHandler> surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     const auto& consumer = surfaceHandler->GetConsumer();
     hasLppVideo_ = true;
-    std::lock_guard<std::mutex> lock(mutex_);
-    bool needRemoveTopNode = lppConsumerMap_.find(vsyncId) == lppConsumerMap_.end() &&
-                             lppConsumerMap_.size() >= LPP_SURFACE_NODE_MAX_SIZE;
-    if (needRemoveTopNode) {
-        RS_TRACE_NAME_FMT("ConsumeAndUpdateLowPowerBuffer erase Node Id = %ld", lppConsumerMap_.begin()->first);
-        lppConsumerMap_.erase(lppConsumerMap_.begin());
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        bool needRemoveTopNode = lppConsumerMap_.find(vsyncId) == lppConsumerMap_.end() &&
+                                 lppConsumerMap_.size() >= LPP_SURFACE_NODE_MAX_SIZE;
+        if (needRemoveTopNode) {
+            RS_TRACE_NAME_FMT("ConsumeAndUpdateLowPowerBuffer erase Node Id = %ld", lppConsumerMap_.begin()->first);
+            lppConsumerMap_.erase(lppConsumerMap_.begin());
+        }
+        lppConsumerMap_[vsyncId].push_back(consumer);
     }
-    lppConsumerMap_[vsyncId].push_back(consumer);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;

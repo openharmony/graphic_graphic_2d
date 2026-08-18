@@ -696,12 +696,12 @@ napi_value WebGL2RenderingContextBase::TexImage3D(napi_env env, napi_callback_in
         return NVal::CreateNull(env).val_;
     }
     if (NVal(env, funcArg[NARG_POS::TENTH]).TypeIs(napi_number)) {
-        int64_t pboOffset = 0;
-        tie(succ, pboOffset) = NVal(env, funcArg[NARG_POS::TENTH]).ToInt64();
+        GLintptr pboOffset = 0;
+        tie(succ, pboOffset) = NVal(env, funcArg[NARG_POS::TENTH]).ToGLintptr();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        return context->GetWebGL2RenderingContextImpl().TexImage3D(env, imgArg, static_cast<GLintptr>(pboOffset));
+        return context->GetWebGL2RenderingContextImpl().TexImage3D(env, imgArg, pboOffset);
     }
     if (NVal(env, funcArg[NARG_POS::TENTH]).IsBufferArray()) {
         GLuint srcOffset = 0;
@@ -770,12 +770,12 @@ napi_value WebGL2RenderingContextBase::TexSubImage3D(napi_env env, napi_callback
         return NVal::CreateNull(env).val_;
     }
     if (NVal(env, funcArg[NARG_POS::ELEVENTH]).TypeIs(napi_number)) {
-        int64_t pboOffset = 0;
-        tie(succ, pboOffset) = NVal(env, funcArg[NARG_POS::ELEVENTH]).ToInt64();
+        GLintptr pboOffset = 0;
+        tie(succ, pboOffset) = NVal(env, funcArg[NARG_POS::ELEVENTH]).ToGLintptr();
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        return context->GetWebGL2RenderingContextImpl().TexSubImage3D(env, imgArg, static_cast<GLintptr>(pboOffset));
+        return context->GetWebGL2RenderingContextImpl().TexSubImage3D(env, imgArg, pboOffset);
     }
     if (NVal(env, funcArg[NARG_POS::ELEVENTH]).IsBufferArray()) {
         GLuint srcOffset = 0;
@@ -907,10 +907,10 @@ napi_value WebGL2RenderingContextBase::CompressedTexImage3D(napi_env env, napi_c
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        int64_t srcOffset;
-        tie(succ, srcOffset) = NVal(env, funcArg[NARG_POS::NINTH]).ToInt64();
+        GLintptr srcOffset = 0;
+        tie(succ, srcOffset) = NVal(env, funcArg[NARG_POS::NINTH]).ToGLintptr();
         return !succ ? NVal::CreateNull(env).val_ : context->GetWebGL2RenderingContextImpl().CompressedTexImage3D(
-            env, imgArg, imageSize, static_cast<GLintptr>(srcOffset));
+            env, imgArg, imageSize, srcOffset);
     }
 }
 
@@ -986,10 +986,10 @@ napi_value WebGL2RenderingContextBase::CompressedTexSubImage3D(napi_env env, nap
         if (!succ) {
             return NVal::CreateNull(env).val_;
         }
-        int64_t srcOffset;
-        tie(succ, srcOffset) = NVal(env, funcArg[NARG_POS::ELEVENTH]).ToInt64();
+        GLintptr srcOffset = 0;
+        tie(succ, srcOffset) = NVal(env, funcArg[NARG_POS::ELEVENTH]).ToGLintptr();
         return !succ ? NVal::CreateNull(env).val_ : context->GetWebGL2RenderingContextImpl().CompressedTexSubImage3D(
-            env, imgArg, imageSize, static_cast<GLintptr>(srcOffset));
+            env, imgArg, imageSize, srcOffset);
     }
 }
 
@@ -1177,7 +1177,7 @@ napi_value WebGL2RenderingContextBase::VertexAttribIPointer(napi_env env, napi_c
         return NVal::CreateNull(env).val_;
     }
     GLenum result;
-    tie(result, vertexInfo.offset) = WebGLArg::ToGLintptr(env, funcArg[NARG_POS::FOURTH]);
+    tie(result, vertexInfo.offset) = WebGLArg::ToGLintptr(env, funcArg[NARG_POS::FIFTH]);
     if (result) {
         context->GetWebGL2RenderingContextImpl().SetError(result);
         return NVal::CreateNull(env).val_;
@@ -1632,13 +1632,13 @@ napi_value WebGL2RenderingContextBase::BindBufferRange(napi_env env, napi_callba
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t offset = 0;
-    tie(succ, offset) = NVal(env, funcArg[NARG_POS::FOURTH]).ToInt64();
+    GLintptr offset = 0;
+    tie(succ, offset) = NVal(env, funcArg[NARG_POS::FOURTH]).ToGLintptr();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t size = 0;
-    tie(succ, size) = NVal(env, funcArg[NARG_POS::FIFTH]).ToInt64();
+    GLsizeiptr size = 0;
+    tie(succ, size) = NVal(env, funcArg[NARG_POS::FIFTH]).ToGLsizeiptr();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
@@ -1651,8 +1651,7 @@ napi_value WebGL2RenderingContextBase::BindBufferRange(napi_env env, napi_callba
         context->GetWebGL2RenderingContextImpl().SetError(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
-    return context->GetWebGL2RenderingContextImpl().BindBufferRange(
-        env, arg, funcArg[NARG_POS::THIRD], static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size));
+    return context->GetWebGL2RenderingContextImpl().BindBufferRange(env, arg, funcArg[NARG_POS::THIRD], offset, size);
 }
 
 napi_value WebGL2RenderingContextBase::GetIndexedParameter(napi_env env, napi_callback_info info)
@@ -1667,14 +1666,14 @@ napi_value WebGL2RenderingContextBase::GetIndexedParameter(napi_env env, napi_ca
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
-    int64_t index = 0;
-    tie(succ, index) = NVal(env, funcArg[NARG_POS::SECOND]).ToInt64();
+    GLuint index = 0;
+    tie(succ, index) = NVal(env, funcArg[NARG_POS::SECOND]).ToGLuint();
     if (!succ) {
         return NVal::CreateNull(env).val_;
     }
     WebGL2RenderingContext* context = GetWebGL2RenderingContext(env, funcArg.GetThisVar());
     return (context == nullptr) ? NVal::CreateNull(env).val_ :
-        context->GetWebGL2RenderingContextImpl().GetIndexedParameter(env, target, static_cast<GLuint>(index));
+        context->GetWebGL2RenderingContextImpl().GetIndexedParameter(env, target, index);
 }
 
 napi_value WebGL2RenderingContextBase::GetUniformBlockIndex(napi_env env, napi_callback_info info)

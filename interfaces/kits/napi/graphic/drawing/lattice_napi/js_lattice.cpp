@@ -15,6 +15,7 @@
 
 #include "js_lattice.h"
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "native_value.h"
 
 namespace OHOS::Rosen {
@@ -25,7 +26,6 @@ napi_value JsLattice::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createImageLattice", JsLattice::CreateImageLattice),
-        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsLattice::LatticeTransferDynamic),
     };
 
     napi_value constructor = nullptr;
@@ -77,7 +77,7 @@ napi_value JsLattice::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsLattice *jsLattice = new JsLattice();
-    status = napi_wrap(env, jsThis, jsLattice, JsLattice::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsLattice, JsLattice::Destructor, nullptr, &LATTICE_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsLattice;
         ROSEN_LOGE("JsLattice::Constructor failed to wrap native instance");
@@ -228,44 +228,27 @@ napi_value JsLattice::CreateImageLattice(napi_env env, napi_callback_info info)
 
 napi_value JsLattice::Create(napi_env env, std::shared_ptr<Lattice> lattice)
 {
+    if (lattice == nullptr) {
+        ROSEN_LOGE("JsLattice::Create lattice is null!");
+        return nullptr;
+    }
+
     napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    if (objValue == nullptr || lattice == nullptr) {
-        ROSEN_LOGE("JsLattice::Create object is null!");
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        ROSEN_LOGE("JsLattice::Create napi_create_object failed");
         return nullptr;
     }
 
     std::unique_ptr<JsLattice> jsLattice = std::make_unique<JsLattice>(lattice);
-    napi_wrap(env, objValue, jsLattice.release(), JsLattice::Finalizer, nullptr, nullptr);
-
-    if (objValue == nullptr) {
-        ROSEN_LOGE("JsLattice::Create object value is null!");
+    status = napi_wrap_s(env, objValue, jsLattice.get(), JsLattice::Finalizer,
+        nullptr, &LATTICE_TYPE_TAG, nullptr);
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsLattice::Create failed to wrap native instance");
         return nullptr;
     }
+    jsLattice.release();
     return objValue;
-}
-
-napi_value JsLattice::LatticeTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
-        return nullptr;
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Lattice> lattice = *reinterpret_cast<std::shared_ptr<Lattice>*>(addr);
-    if (lattice == nullptr) {
-        return nullptr;
-    }
-    return JsLattice::Create(env, lattice);
 }
 
 std::shared_ptr<Lattice> JsLattice::GetLattice()

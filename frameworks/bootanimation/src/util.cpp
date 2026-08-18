@@ -231,6 +231,17 @@ cJSON* ParseFileConfig(const std::string& path)
         return nullptr;
     }
 
+    struct stat fileStat = {0};
+    if (stat(newpath, &fileStat) != 0) {
+        LOGE("stat config file fail! %{public}s %{public}d %{public}s", newpath, errno, ::strerror(errno));
+        return nullptr;
+    }
+    if (fileStat.st_size < 0 || fileStat.st_size > static_cast<off_t>(MAX_CONFIG_FILE_SIZE)) {
+        LOGE("config file size invalid or too large: %{public}s, size: %{public}lld", newpath,
+             static_cast<long long>(fileStat.st_size));
+        return nullptr;
+    }
+
     std::ifstream configFile;
     configFile.open(newpath);
     if (!configFile.is_open()) {

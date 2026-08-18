@@ -22,20 +22,22 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "params/rs_screen_render_params.h"
+#include "params/rs_surface_render_params.h"
+#include "pipeline/rs_screen_render_node.h"
 
 namespace OHOS::Rosen {
 class RSTvShutter3DManager {
 public:
     static RSTvShutter3DManager& Instance();
 
-    void UpdateSurfaceNodeCompositionType(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, UIMode3D uiMode3D);
-
+    bool IsFullScreen(const RSSurfaceRenderNode& surfaceNode) const;
     bool Prepare3DForDraw(const RSScreenRenderParams& params,
         const std::shared_ptr<Drawing::Surface>& drSurface, std::shared_ptr<RSPaintFilterCanvas>& curCanvas);
-
     bool Process3DForFlush(UIMode3D uiMode3D, std::shared_ptr<RSPaintFilterCanvas>& curCanvas);
 
     void SetVideoDimType(VideoDimType type);
+    void UpdateHwcNodeEnableByShutter3DLayer(RSScreenRenderNode& screenNode, UIMode3D uiMode3D);
+    void UpdateSurfaceNodeCompositionType(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, UIMode3D uiMode3D);
     VideoDimType GetVideoDimType() const;
 
 private:
@@ -46,15 +48,11 @@ private:
 
     bool Is3DEnabled(UIMode3D uiMode3D) const;
     bool ShouldSet3DShutterComposition(UIMode3D uiMode3D, VideoDimType videoDimType) const;
-
-    void Init3DContext(UIMode3D uiMode3D, int32_t width, int32_t height,
-        std::shared_ptr<RSPaintFilterCanvas>& curCanvas);
+    bool Init3DContext(int32_t width, int32_t height, std::shared_ptr<RSPaintFilterCanvas>& curCanvas);
 
     void Process3DImage(std::shared_ptr<RSPaintFilterCanvas> targetCanvas,
         std::shared_ptr<Drawing::Image> snapshot, VideoDimType type);
-
     void Release3DContext();
-
     std::shared_ptr<RSPaintFilterCanvas> GetOffscreenCanvas() const;
 
     std::shared_ptr<RSPaintFilterCanvas> GetBackupCanvas() const;

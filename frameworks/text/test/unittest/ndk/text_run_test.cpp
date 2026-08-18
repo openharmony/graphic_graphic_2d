@@ -38,12 +38,7 @@ constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
 
 class NdkRunTest : public testing::Test {
 public:
-    static void SetUpTestCase()
-    {
-#ifdef RS_ENABLE_VK
-        Rosen::RsVulkanContext::SetRecyclable(false);
-#endif
-    }
+    static void SetUpTestCase() {}
     static void TearDownTestCase() {}
     void SetUp() override {};
     void TearDown() override;

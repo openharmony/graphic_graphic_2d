@@ -57,9 +57,6 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
 {
     // IsSpecialFoldDisplay() caches a static const on first call; set before any code path triggers it.
     system::SetParameter("const.window.foldscreen.type", "8,0,0,0");
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     RSTestUtil::InitRenderNodeGC();
 
     output_ = HdiOutput::CreateHdiOutput(screenId_);
@@ -592,6 +589,38 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity001, TestSize.Level2
         delete buffer;
         buffer = nullptr;
     }
+}
+
+/**
+ * @tc.name: DealWithNodeGravity_NullBuffer
+ * @tc.desc: info.buffer nullptr -> early return, gravity not modified (no crash)
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity_NullBuffer, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    ComposeInfo composeInfo{};
+    composeInfo.gravity = -999; // sentinel to prove early return
+    ASSERT_EQ(composeInfo.buffer, nullptr);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, composeInfo);
+    EXPECT_EQ(composeInfo.gravity, -999);
+}
+
+/**
+ * @tc.name: SetComposeInfoToLayer_NullSurface
+ * @tc.desc: surface nullptr -> early return (no crash)
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, SetComposeInfoToLayer_NullSurface, TestSize.Level2)
+{
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(layer, nullptr);
+    ComposeInfo composeInfo{};
+    composerAdapter_->SetComposeInfoToLayer(layer, composeInfo, nullptr);
+    SUCCEED();
 }
 
 /**

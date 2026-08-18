@@ -24,6 +24,7 @@ ohos_unittest("RSRenderAnimationTest") {
     "rs_animation_fraction_test.cpp",
     "rs_animation_manager_test.cpp",
     "rs_animation_timing_protocol_test.cpp",
+    "rs_animation_trace_utils_test.cpp",
     "rs_interpolator_test.cpp",
     "rs_node_showing_command_test.cpp",
     "rs_property_trace_test.cpp",

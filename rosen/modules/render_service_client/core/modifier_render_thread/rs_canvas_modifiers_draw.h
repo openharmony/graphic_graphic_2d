@@ -92,6 +92,8 @@ private:
     std::shared_ptr<Drawing::Image> GetImage(
         const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<Drawing::GPUContext> gpuContext);
 
+    static std::shared_ptr<Drawing::GPUContext> CreateGPUContext(const std::string& cacheDir);
+
     NodeId nodeId_ = 0;
     int width_ = 0;
     int height_ = 0;
@@ -104,6 +106,8 @@ private:
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_ = nullptr;
     VkSemaphore semaphore_ = VK_NULL_HANDLE;
     std::unique_ptr<std::vector<Drawing::DrawCmdListPtr>> drawCmdListCache_ = nullptr;
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
+
 
     friend class RSCanvasModifiersDraw;
 };
@@ -138,8 +142,6 @@ private:
     std::shared_ptr<Drawing::GPUContext> GetGpuContext();
 
     void SetCacheDir(const std::string& cacheDir);
-
-    void QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     void OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
 
@@ -178,6 +180,7 @@ private:
     // End of thread-related members
 
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
 
     std::string cacheDir_;
 

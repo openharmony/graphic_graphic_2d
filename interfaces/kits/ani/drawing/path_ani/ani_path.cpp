@@ -14,6 +14,7 @@
  */
 
 #include "ani_path.h"
+#include "ani_drawing_transfer_util.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
@@ -103,7 +104,7 @@ ani_status AniPath::AniInit(ani_env *env)
 
     std::array staticMethods = {
         ani_native_function { "pathTransferStaticNative", nullptr, reinterpret_cast<void*>(PathTransferStatic) },
-        ani_native_function { "getPathAddr", nullptr, reinterpret_cast<void*>(GetPathAddr) },
+        ani_native_function { "pathTransferDynamicNative", nullptr, reinterpret_cast<void*>(PathTransferDynamic) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
@@ -916,7 +917,9 @@ ani_object AniPath::GetLastPoint(ani_env* env, ani_object obj)
     Drawing::Point point;
     path->GetLastPoint(point);
     ani_object aniPointObj;
-    CreatePointObjAndCheck(env, point, aniPointObj);
+    if (!CreatePointObjAndCheck(env, point, aniPointObj)) {
+        return CreateAniUndefined(env);
+    }
     return aniPointObj;
 }
 
@@ -1043,48 +1046,42 @@ ani_boolean AniPath::IsEmpty(ani_env* env, ani_object obj)
 }
 
 ani_object AniPath::PathTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniPath::PathTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniPath::PathTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsPath = reinterpret_cast<JsPath*>(unwrapResult);
-    if (jsPath->GetPathPtr() == nullptr) {
-        ROSEN_LOGE("AniPath::PathTransferStatic jsPath is null");
-        return CreateAniUndefined(env);
-    }
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsPath = reinterpret_cast<JsPath*>(unwrapResult);
+        if (jsPath == nullptr || jsPath->GetPathPtr() == nullptr) {
+            ROSEN_LOGE("AniPath::PathTransferStatic jsPath is null");
+            return CreateAniUndefined(env);
+        }
 
-    auto aniPath = new AniPath(jsPath->GetPathPtr());
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
-        AniGlobalMethod::GetInstance().pathCtorWithPtr, reinterpret_cast<ani_long>(aniPath));
-    if (IsUndefined(env, aniObj)) {
-        ROSEN_LOGE("AniPath::PathTransferStatic failed create aniPath");
-        delete aniPath;
-        return CreateAniUndefined(env);
-    }
-    return aniObj;
+        auto aniPath = new AniPath(jsPath->GetPathPtr());
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
+            AniGlobalMethod::GetInstance().pathCtorWithPtr, reinterpret_cast<ani_long>(aniPath));
+        if (IsUndefined(env, aniObj)) {
+            delete aniPath;
+            ROSEN_LOGE("AniPath::PathTransferStatic failed cause aniObj is undefined");
+        }
+        return aniObj;
+    });
 }
 
-ani_long AniPath::GetPathAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniPath::PathTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, input, AniGlobalField::GetInstance().pathNativeObj);
-    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
-        ROSEN_LOGE("AniPath::GetPathAddr aniPath is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().path)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniPath->GetPathPtrAddr());
-}
-
-std::shared_ptr<Path>* AniPath::GetPathPtrAddr()
-{
-    return &path_;
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniPath = GetNativeFromObj<AniPath>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().pathNativeObj);
+            if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+                ROSEN_LOGE("AniPath::PathTransferDynamic null aniPath");
+                return nullptr;
+            }
+            return JsPath::CreateJsPathDynamic(napiEnv, aniPath->GetPath());
+        });
 }
 
 std::shared_ptr<Path> AniPath::GetPath()

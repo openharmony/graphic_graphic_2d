@@ -1427,22 +1427,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Le
     ASSERT_TRUE(proxy);
 }
 
-#ifdef RS_ENABLE_UNI_RENDER
-/**
- * @tc.name: NotifyLightFactorStatus Test
- * @tc.desc: NotifyLightFactorStatus Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, ReportGameStateData, TestSize.Level1)
-{
-    GameStateData info;
-    proxy->ReportGameStateData(info);
-    proxy->NotifyLightFactorStatus(1);
-    ASSERT_EQ(proxy->transactionDataIndex_, 5);
-}
-#endif
-
 /**
  * @tc.name: NotifyXComponentExpectedFrameRate Test
  * @tc.desc: NotifyXComponentExpectedFrameRate Test
@@ -2374,6 +2358,23 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetApsConfigParams_Success, TestS
     std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
     ErrCode ret = mockProxy->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
     EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: GetDisplayEngineControl_Success
+ * @tc.desc: Test GetDisplayEngineControl with successful response
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetDisplayEngineControl_Success, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL);
+    EXPECT_CALL(*remoteObject, SendRequest(code, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockProxy->GetDisplayEngineControl();
+    EXPECT_EQ(ret, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

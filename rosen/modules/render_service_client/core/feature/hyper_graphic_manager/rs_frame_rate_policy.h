@@ -62,6 +62,8 @@ public:
 
     std::unordered_set<std::string> GetPageNameList() const;
 
+    bool IsAppBufferNode(const std::string& nodeName) const;
+
 private:
     RSFrameRatePolicy() = default;
     ~RSFrameRatePolicy();
@@ -78,6 +80,8 @@ private:
     mutable std::mutex mutex_;
     std::atomic<std::chrono::steady_clock::time_point> sendMoveTime_ = std::chrono::steady_clock::now();
     std::atomic<std::chrono::steady_clock::time_point> sendAxisUpdateTime_ = std::chrono::steady_clock::now();
+
+    std::shared_ptr<const std::vector<std::string>> sortedAppBufferList_;
 };
 } // namespace Rosen
 } // namespace OHOS

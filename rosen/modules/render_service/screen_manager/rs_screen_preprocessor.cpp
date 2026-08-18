@@ -15,7 +15,7 @@
 
 #include "rs_screen_preprocessor.h"
 
-#include "parameter.h"
+#include <parameter.h>
 #include <parameters.h>
 #include "common/rs_optional_trace.h"
 #include "graphic_feature_param_manager.h"
@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 RSScreenPreprocessor::RSScreenPreprocessor(RSScreenManager& screenManager,
     RSScreenCallbackManager& callbackMgr, std::shared_ptr<AppExecFwk::EventHandler> handler,
     bool isFoldScreen)
@@ -69,8 +70,8 @@ void RSScreenPreprocessor::OnHwcDead(void* data)
     processor->OnHwcDeadEvent();
 }
 
-void RSScreenPreprocessor::OnHwcEvent(
-    uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data)
+void RSScreenPreprocessor::OnHwcEvent(uint32_t deviceId, uint32_t eventId,
+    const std::vector<int32_t>& eventData, void* data)
 {
     RS_LOGI("%{public}s: deviceId:%{public}" PRIu32 ", eventId:%{public}" PRIu32 "",
         __func__, deviceId, eventId);
@@ -169,6 +170,7 @@ void RSScreenPreprocessor::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bo
         ProcessScreenHotPlugEvents();
     });
 }
+
 void RSScreenPreprocessor::ProcessScreenHotPlugEvents()
 {
     std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents;

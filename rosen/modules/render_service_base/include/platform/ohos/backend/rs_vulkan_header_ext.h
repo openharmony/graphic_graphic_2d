@@ -23,6 +23,18 @@ extern "C" {
 namespace OHOS {
 namespace Rosen {
 
+// VulkanDeviceStatus - Vulkan 设备状态
+enum class VulkanDeviceStatus : uint32_t {
+    UNINITIALIZED = 0,
+    CREATE_SUCCESS,
+    CREATE_FAIL,
+    MAX_DEVICE_STATUS,
+};
+
+static constexpr int GR_CACHE_MAX_COUNT = 8192;
+static constexpr size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20); // 96 MB
+static constexpr int32_t CACHE_LIMITS_TIMES = 5;
+
 typedef enum VkStructureTypeHUAWEI {
     VK_STRUCTURE_TYPE_DEVICE_MEMORY_EXCLUSIVE_THRESHOLD_INFO = VK_STRUCTURE_TYPE_MAX_ENUM - 37,
 } VkstructureTypeHUAWEI;

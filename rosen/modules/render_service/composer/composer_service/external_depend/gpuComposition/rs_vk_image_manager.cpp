@@ -68,7 +68,8 @@ VkImageResource::~VkImageResource()
     DestroyNativeWindowBuffer(mNativeWindowBuffer);
 }
 
-std::shared_ptr<VkImageResource> VkImageResource::Create(sptr<OHOS::SurfaceBuffer> buffer)
+std::shared_ptr<VkImageResource> VkImageResource::Create(
+    sptr<OHOS::SurfaceBuffer> buffer, std::shared_ptr<RsVulkanInterface> vkInterface)
 {
     if (buffer == nullptr) {
         ROSEN_LOGE("VkImageResource::Create buffer is nullptr");
@@ -78,8 +79,8 @@ std::shared_ptr<VkImageResource> VkImageResource::Create(sptr<OHOS::SurfaceBuffe
     auto height = buffer->GetSurfaceBufferHeight();
     NativeWindowBuffer* nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
     bool isProtected = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
-    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer,
-        width, height, isProtected);
+    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        vkInterface, nativeWindowBuffer, width, height, isProtected);
     if (!backendTexture.IsValid() || !backendTexture.GetTextureInfo().GetVKTextureInfo()) {
         DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
@@ -87,7 +88,7 @@ std::shared_ptr<VkImageResource> VkImageResource::Create(sptr<OHOS::SurfaceBuffe
     return std::make_unique<VkImageResource>(
         nativeWindowBuffer,
         backendTexture,
-        new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+        new NativeBufferUtils::VulkanCleanupHelper(vkInterface,
             backendTexture.GetTextureInfo().GetVKTextureInfo()->vkImage,
             backendTexture.GetTextureInfo().GetVKTextureInfo()->vkAlloc.memory));
 }
@@ -103,8 +104,8 @@ bool RSVkImageManager::WaitVKSemaphore(Drawing::Surface *drawingSurface, const s
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = nullptr;
     semaphoreInfo.flags = 0;
-    auto& vkInterface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    auto res = vkInterface.vkCreateSemaphore(vkInterface.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
+    auto res = vkInterface->vkCreateSemaphore(vkInterface->GetDevice(), &semaphoreInfo, nullptr, &semaphore);
     if (res != VK_SUCCESS) {
         ROSEN_LOGE("RSVkImageManager: CreateVkSemaphore vkCreateSemaphore failed %{public}d", res);
         return false;
@@ -117,10 +118,10 @@ bool RSVkImageManager::WaitVKSemaphore(Drawing::Surface *drawingSurface, const s
     importSemaphoreFdInfo.flags = VK_SEMAPHORE_IMPORT_TEMPORARY_BIT;
     importSemaphoreFdInfo.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
     importSemaphoreFdInfo.fd = acquireFence->Dup();
-    res = vkInterface.vkImportSemaphoreFdKHR(vkInterface.GetDevice(), &importSemaphoreFdInfo);
+    res = vkInterface->vkImportSemaphoreFdKHR(vkInterface->GetDevice(), &importSemaphoreFdInfo);
     if (res != VK_SUCCESS) {
         ROSEN_LOGE("RSVkImageManager: CreateVkSemaphore vkImportSemaphoreFdKHR failed %{public}d", res);
-        vkInterface.vkDestroySemaphore(vkInterface.GetDevice(), semaphore, nullptr);
+        vkInterface->vkDestroySemaphore(vkInterface->GetDevice(), semaphore, nullptr);
         close(importSemaphoreFdInfo.fd);
         return false;
     }
@@ -142,8 +143,11 @@ std::shared_ptr<VkImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
         WaitAcquireFence(acquireFence);
     }
     std::lock_guard<std::mutex> lock(opMutex_);
-    bool isProtectedCondition = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) ||
-        RsVulkanContext::GetSingleton().GetIsProtected();
+    bool isProtectedFromContext = false;
+    if (renderContext_) {
+        isProtectedFromContext = renderContext_->GetType() == RenderEngineType::PROTECTED_REDRAW;
+    }
+    bool isProtectedCondition = isProtectedFromContext || (buffer->GetUsage() & BUFFER_USAGE_PROTECTED);
     auto bufferId = buffer->GetBufferId();
     auto iter = imageCacheSeqs_.find(bufferId);
     if (isProtectedCondition || iter == imageCacheSeqs_.end()) {
@@ -161,6 +165,7 @@ std::shared_ptr<VkImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
         const auto& ycbcrInfo = textureInfo->ycbcrConversionInfo;
         OH_NativeBuffer* nativeBuffer = buffer->SurfaceBufferToNativeBuffer();
         bool imageCacheNeedUpdate = NativeBufferUtils::IsYcbcrModelOrRangeNotEqual(
+            RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface(),
             nativeBuffer, ycbcrInfo.ycbcrModel, ycbcrInfo.ycbcrRange);
         if (imageCacheNeedUpdate) {
             RS_TRACE_NAME_FMT("clear cache and create vkImage, bufferId=%" PRIu64 ", model:%d, range:%d",
@@ -181,8 +186,13 @@ std::shared_ptr<VkImageResource> RSVkImageManager::CreateImageCacheFromBuffer(co
         ROSEN_LOGE("RSVkImageManager::CreateImageCacheFromBuffer buffer is nullptr");
         return nullptr;
     }
+    if (renderContext_ == nullptr) {
+        ROSEN_LOGE("RSVkImageManager::CreateImageCacheFromBuffer renderContext_ is nullptr");
+        return nullptr;
+    }
     auto bufferId = buffer->GetBufferId();
-    auto imageCache = VkImageResource::Create(buffer);
+    auto imageCache =
+        VkImageResource::Create(buffer, RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface());
     if (imageCache == nullptr) {
         ROSEN_LOGE("RSVkImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for bufferId:"
             "%{public}" PRIu64 ".", bufferId);
@@ -198,6 +208,10 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
         ROSEN_LOGE("RSVkImageManager::NewImageCacheFromBuffer buffer is nullptr");
         return {};
     }
+    if (renderContext_ == nullptr) {
+        ROSEN_LOGE("RSVkImageManager::NewImageCacheFromBuffer renderContext_ is nullptr");
+        return {};
+    }
     BufferInfoCache bufferInfoCache{
         .bufferId = buffer->GetBufferId(),
         .width = buffer->GetWidth(),
@@ -206,7 +220,8 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
         .size = buffer->GetSize(),
         .bufferDeletedFlag = buffer->GetBufferDeletedFlag()
     };
-    auto imageCache = VkImageResource::Create(buffer);
+    auto imageCache = VkImageResource::Create(buffer,
+        RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface());
     if (imageCache == nullptr) {
         HILOG_COMM_ERROR(
             "RSVkImageManager::NewImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}" PRIu64 ".",

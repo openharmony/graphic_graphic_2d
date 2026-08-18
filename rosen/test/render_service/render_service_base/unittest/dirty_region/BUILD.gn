@@ -23,7 +23,6 @@ ohos_unittest("RSRenderServiceBaseDirtyRegionTest") {
 
   sources = [ 
     "rs_filter_dirty_collector_test.cpp",
-    "rs_gpu_dirty_collector_test.cpp",
     "rs_optimize_canvas_dirty_collector_test.cpp",
   ]
 
@@ -52,6 +51,7 @@ ohos_unittest("RSRenderServiceBaseDirtyRegionTest") {
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "googletest:gtest_main",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 

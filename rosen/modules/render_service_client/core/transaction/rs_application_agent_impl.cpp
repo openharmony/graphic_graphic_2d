@@ -27,13 +27,10 @@ namespace OHOS {
 namespace Rosen {
 #ifdef OHOS_PLATFORM
 static sptr<RSApplicationAgentImpl> gRSApplicationAgentImplInstance;
+constexpr int32_t TOKEN_STRONG_REF_COUNT = 1;
 #endif
-
 RSApplicationAgentImpl::~RSApplicationAgentImpl()
 {
-#ifdef OHOS_PLATFORM
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, isDestreuctionProcess_);
-#endif
 }
 
 RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
@@ -45,40 +42,65 @@ RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
             gRSApplicationAgentImplInstance = new RSApplicationAgentImpl();
         }
     }
-
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
-        RSApplicationAgentImpl::Destroy();
-    });
     return gRSApplicationAgentImplInstance.GetRefPtr();
 #else
     return nullptr;
 #endif
 }
 
-void RSApplicationAgentImpl::Destroy()
+void RSApplicationAgentImpl::Release(bool isRegistered)
 {
 #ifdef OHOS_PLATFORM
     std::lock_guard<std::mutex> lock(mutex_);
-    if (gRSApplicationAgentImplInstance) {
-        gRSApplicationAgentImplInstance->SetDestreuctionProcess(true);
-        gRSApplicationAgentImplInstance = nullptr;
+    if (gRSApplicationAgentImplInstance == nullptr) {
+        return;
+    }
+    // Drop the client-side reference first. The stub is NOT destroyed here: while the server holds
+    // a proxy, the binder kernel keeps a strong reference on it (BR_ACQUIRE -> IncStrongRef), so it
+    // survives until the server releases that proxy. UnregisterFromAllConnections is static and
+    // sends the unregister IPC through the render connection proxy, which does not need the stub;
+    // the stub is finally released on the binder thread once the server drops its proxy (BR_RELEASE).
+    while (gRSApplicationAgentImplInstance->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
+        gRSApplicationAgentImplInstance->DecStrongRef(gRSApplicationAgentImplInstance);
+    }
+    
+    gRSApplicationAgentImplInstance = nullptr;
+    if (isRegistered) {
+        ROSEN_LOGI("RSApplicationAgentImpl::Release UnregisterFromAllConnections");
+        UnregisterFromAllConnections();
     }
 #endif
 }
 
-void RSApplicationAgentImpl::SetDestreuctionProcess(bool isDestreuctionProcess)
+void RSApplicationAgentImpl::UnregisterFromAllConnections()
 {
-    isDestreuctionProcess_ = isDestreuctionProcess;
+#ifdef ROSEN_OHOS
+    // Cover every render-process connection the agent may have been registered with, so that no UI
+    // director / render process leaks a server-side proxy reference. The server resolves the agent by
+    // the calling pid, so nothing needs to be passed across the IPC.
+    auto connRenderProcesses = RSRenderServiceConnectHub::GetAllClientToRenderConnections();
+    if (connRenderProcesses.size() == 0) {
+        auto connection = RSRenderServiceConnectHub::GetClientToRenderConnection(INVALID_TOKEN_MASK_ID);
+        if (connection != nullptr) {
+            connection->UnRegisterApplicationAgent();
+            return;
+        }
+        ROSEN_LOGE("RSApplicationAgentImpl::UnregisterFromAllConnections has not connection");
+    }
+    for (const auto& entry : connRenderProcesses) {
+        const auto& info = entry.second;
+        if (info.clientToRenderConnection != nullptr) {
+            info.clientToRenderConnection->UnRegisterApplicationAgent();
+        }
+    }
+#endif
 }
 
 void RSApplicationAgentImpl::RegisterRSApplicationAgent(std::shared_ptr<RSUIContext> rsUIContext)
 {
-    static std::atomic<bool> isRegistered {false};
-    if (isRegistered.exchange(true)) {
-        return;
-    }
 #ifdef ROSEN_OHOS
-     if (rsUIContext == nullptr) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSApplicationAgentImpl::RegisterRSApplicationAgent rsUIContext return");
         return;
     }
@@ -98,5 +120,31 @@ void RSApplicationAgentImpl::OnTransaction(std::shared_ptr<RSTransactionData> tr
     RSUIDirector::RecvMessages(transactionData);
 }
 #endif
+
+RSApplicationAgentLifecycleOwner& RSApplicationAgentLifecycleOwner::Instance()
+{
+    // Function-local static: constructed on first use (RSUIDirector::Init) and destroyed at static
+    // teardown, which drives RSApplicationAgentImpl::Release() once.
+    static RSApplicationAgentLifecycleOwner instance;
+    return instance;
+}
+
+RSApplicationAgentLifecycleOwner::~RSApplicationAgentLifecycleOwner()
+{
+#ifdef OHOS_PLATFORM
+    ROSEN_LOGI("RSApplicationAgentLifecycleOwner::~RSApplicationAgentImpl");
+    RSApplicationAgentImpl::Release(isRegistered_.load());
+#endif
+}
+
+void RSApplicationAgentLifecycleOwner::EnsureRegistered(std::shared_ptr<RSUIContext> rsUIContext)
+{
+    if (!isRegistered_.load()) {
+        if (auto agent = RSApplicationAgentImpl::Instance()) {
+            agent->RegisterRSApplicationAgent(rsUIContext);
+            isRegistered_.store(true);
+        }
+    }
+}
 }
 }

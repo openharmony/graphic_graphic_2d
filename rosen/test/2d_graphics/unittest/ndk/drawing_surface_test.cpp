@@ -25,8 +25,10 @@
 #include "drawing_gpu_context.h"
 #include "drawing_surface.h"
 #include "drawing_surface_utils.h"
-
 #ifdef RS_ENABLE_VK
+#include "drawing_gpu_context_manager.h"
+#include "drawing_surface_utils.cpp"
+#include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
@@ -58,12 +60,7 @@ protected:
     std::shared_ptr<RSSurfaceNode> surfaceNode = nullptr;
 };
 
-void NativeDrawingSurfaceTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeDrawingSurfaceTest::SetUpTestCase() {}
 void NativeDrawingSurfaceTest::TearDownTestCase() {}
 void NativeDrawingSurfaceTest::SetUp()
 {
@@ -284,6 +281,157 @@ HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_CreateOnScreen002, T
     OH_Drawing_SurfaceDestroy(surface_);
     OH_Drawing_GpuContextDestroy(gpuContext_);
 }
+
+#ifdef RS_ENABLE_VK
+// Include the cpp directly to access file-scope static variables and functions
+
+/**
+ * @tc.name: NativeDrawingSurfaceTest_FlushVulkanSurfaceNotFound
+ * @tc.desc: test FlushVulkanSurface when surface is not found in the map
+ *           covers iter == end() branch (line 149)
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_FlushVulkanSurfaceNotFound, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (!Drawing::SystemProperties::IsUseVulkan()) {
+        GTEST_SKIP() << "Not using Vulkan";
+    }
+    auto surface = std::make_shared<Drawing::Surface>();
+    bool ret = FlushVulkanSurface(surface.get());
+    EXPECT_EQ(ret, false);
+#else
+    GTEST_SKIP() << "RS_ENABLE_VK not defined";
+#endif
+}
+
+/**
+ * @tc.name: NativeDrawingSurfaceTest_FlushVulkanSurfaceNullNativeSurface
+ * @tc.desc: test FlushVulkanSurface when nativeSurface is nullptr
+ *           covers nativeSurface == nullptr branch (line 156-158)
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_FlushVulkanSurfaceNullNativeSurface, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (!Drawing::SystemProperties::IsUseVulkan()) {
+        GTEST_SKIP() << "Not using Vulkan";
+    }
+    auto surface = std::make_shared<Drawing::Surface>();
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    DrawingSurfaceUtils::InsertSurface(surface, gpuContext.get());
+    // InsertSurface inserts nativeSurface=nullptr → FlushAndSubmit + return true
+    bool ret = FlushVulkanSurface(surface.get());
+    EXPECT_EQ(ret, true);
+    g_vulkanSurfaceMap_.erase(surface.get());
+#else
+    GTEST_SKIP() << "RS_ENABLE_VK not defined";
+#endif
+}
+
+/**
+ * @tc.name: NativeDrawingSurfaceTest_FlushVulkanSurfaceNullRenderContext
+ * @tc.desc: test FlushVulkanSurface when renderContext is nullptr
+ *           covers renderContext == nullptr branch (line 162-164)
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_FlushVulkanSurfaceNullRenderContext, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (!Drawing::SystemProperties::IsUseVulkan()) {
+        GTEST_SKIP() << "Not using Vulkan";
+    }
+    auto surface = std::make_shared<Drawing::Surface>();
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    // Insert a non-null NativeSurfaceInfo directly into g_vulkanSurfaceMap_
+    auto nativeSurface = new NativeBufferUtils::NativeSurfaceInfo();
+    g_vulkanSurfaceMap_.insert({surface.get(),
+        std::make_tuple(surface, gpuContext.get(), nativeSurface)});
+
+    auto& manager = DrawingGpuContextManager::GetInstance();
+    auto origRenderContext = manager.renderContext_;
+    manager.renderContext_ = nullptr;
+
+    bool ret = FlushVulkanSurface(surface.get());
+    EXPECT_EQ(ret, false);
+
+    manager.renderContext_ = origRenderContext;
+    g_vulkanSurfaceMap_.erase(surface.get());
+    delete nativeSurface;
+#else
+    GTEST_SKIP() << "RS_ENABLE_VK not defined";
+#endif
+}
+
+/**
+ * @tc.name: NativeDrawingSurfaceTest_FlushVulkanSurfaceNullVkInterface
+ * @tc.desc: test FlushVulkanSurface when vkInterface is nullptr
+ *           covers vkInterface == nullptr branch (line 167-169)
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_FlushVulkanSurfaceNullVkInterface, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (!Drawing::SystemProperties::IsUseVulkan()) {
+        GTEST_SKIP() << "Not using Vulkan";
+    }
+    auto surface = std::make_shared<Drawing::Surface>();
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    auto nativeSurface = new NativeBufferUtils::NativeSurfaceInfo();
+    g_vulkanSurfaceMap_.insert({surface.get(),
+        std::make_tuple(surface, gpuContext.get(), nativeSurface)});
+
+    auto& manager = DrawingGpuContextManager::GetInstance();
+    auto origRenderContext = manager.renderContext_;
+    // Set renderContext to one whose RsVulkanContext::Get returns invalid interface
+    auto emptyCtx = std::make_shared<RenderContextGL>();
+    manager.renderContext_ = emptyCtx;
+
+    bool ret = FlushVulkanSurface(surface.get());
+    // With invalid Vulkan, vkInterface may be nullptr → return false
+    EXPECT_EQ(ret, false);
+
+    manager.renderContext_ = origRenderContext;
+    g_vulkanSurfaceMap_.erase(surface.get());
+    delete nativeSurface;
+#else
+    GTEST_SKIP() << "RS_ENABLE_VK not defined";
+#endif
+}
+
+/**
+ * @tc.name: NativeDrawingSurfaceTest_CreateVulkanWindowSurfaceNullRenderContext
+ * @tc.desc: test CreateVulkanWindowSurface when renderContext is nullptr
+ *           covers renderContext == nullptr branch (line 108-110)
+ * @tc.type: FUNC
+ * @tc.require: issueI9O4BN
+ */
+HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_CreateVulkanWindowSurfaceNullRenderContext, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (!Drawing::SystemProperties::IsUseVulkan()) {
+        GTEST_SKIP() << "Not using Vulkan";
+    }
+    auto& manager = DrawingGpuContextManager::GetInstance();
+    auto origRenderContext = manager.renderContext_;
+    manager.renderContext_ = nullptr;
+
+    const int32_t width = 500;
+    const int32_t height = 500;
+    ImageInfo imageInfo(width, height, COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE);
+    auto surface = CreateVulkanWindowSurface(nullptr, imageInfo, window_);
+    EXPECT_EQ(surface, nullptr);
+
+    manager.renderContext_ = origRenderContext;
+#else
+    GTEST_SKIP() << "RS_ENABLE_VK not defined";
+#endif
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

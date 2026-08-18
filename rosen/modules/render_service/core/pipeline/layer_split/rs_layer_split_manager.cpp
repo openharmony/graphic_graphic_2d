@@ -53,21 +53,21 @@ void RSLayerSplitManager::Reset()
         }
         selectorVec_.clear();
     }
-    for (const auto& [id, planner] : plannerMap_) {
+    for (const auto& [node, planner] : plannerMap_) {
         planner->Reset();
     }
 }
 
 void RSLayerSplitManager::MoveSplitSurfaceNode()
 {
-    for (const auto& [id, planner] : plannerMap_) {
+    for (const auto& [node, planner] : plannerMap_) {
         planner->MoveSplitSurfaceNode();
     }
 }
 
 void RSLayerSplitManager::InitSplitSurface(const ScreenInfo& screenInfo)
 {
-    for (const auto& [id, planner] : plannerMap_) {
+    for (const auto& [node, planner] : plannerMap_) {
         planner->InitSplitSurface(screenInfo);
     }
 }
@@ -82,7 +82,7 @@ void RSLayerSplitManager::RecordSplitNode(std::shared_ptr<RSRenderNode> node)
     }
 }
 
-void RSLayerSplitManager::CheckNeedLeave()
+void RSLayerSplitManager::CheckNeedLeave(RSScreenRenderNode& screenNode)
 {
     for (const auto& selector : selectorVec_) {
         auto parentNode = selector->SelectParentNode();
@@ -92,26 +92,27 @@ void RSLayerSplitManager::CheckNeedLeave()
         }
 
         auto lastParentNode = selector->GetLastParentNode();
-        if (lastParentNode && parentNode->GetId() != lastParentNode->GetId()) {
-            auto plannerIt = plannerMap_.find(lastParentNode->GetId());
+        if (lastParentNode && parentNode != lastParentNode) {
+            auto plannerIt = plannerMap_.find(lastParentNode);
             if (plannerIt != plannerMap_.end() && plannerIt->second) {
                 plannerIt->second->UnregisterSplitSurfaceNode();
             }
         }
 
-        NodeId nodeId = parentNode->GetId();
-        auto plannerIt = plannerMap_.find(nodeId);
+        auto plannerIt = plannerMap_.find(parentNode);
         if (plannerIt == plannerMap_.end()) {
             auto planner = selector->MakePlanner();
             auto processor = selector->MakeProcessor();
             planner->SetOpIncParentNode(parentNode);
-            plannerMap_[nodeId] = planner;
-            parentNodeMap_[nodeId] = parentNode;
-            processorMap_[nodeId] = processor;
+            plannerMap_[parentNode] = planner;
+            processorMap_[parentNode] = processor;
         }
     }
 
-    for (const auto& [id, planner] : plannerMap_) {
+    for (const auto& [node, planner] : plannerMap_) {
+        if (node->GetScreenNodeId() != screenNode.GetId()) {
+            continue;
+        }
         planner->CheckNeedLeave();
     }
 }
@@ -121,17 +122,21 @@ void RSLayerSplitManager::CheckSplitNodeIntersectFilter(const std::shared_ptr<RS
     if (plannerMap_.empty()) {
         return;
     }
-    for (const auto& [id, planner] : plannerMap_) {
+    for (const auto& [node, planner] : plannerMap_) {
         planner->CheckSplitNodeIntersectFilter(hwcNode);
     }
 }
 
-void RSLayerSplitManager::UpdatePlanAndDirtyRegion(std::shared_ptr<RSDirtyRegionManager> dirtyManager)
+void RSLayerSplitManager::UpdatePlanAndDirtyRegion(RSScreenRenderNode& screenNode,
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager)
 {
     if (plannerMap_.empty()) {
         return;
     }
-    for (const auto& [id, planner] : plannerMap_) {
+    for (const auto& [node, planner] : plannerMap_) {
+        if (node->GetScreenNodeId() != screenNode.GetId()) {
+            continue;
+        }
         planner->UpdateSplitPlan();
         planner->UpdateScreenDirtyRegion(dirtyManager);
     }
@@ -139,36 +144,31 @@ void RSLayerSplitManager::UpdatePlanAndDirtyRegion(std::shared_ptr<RSDirtyRegion
 
 void RSLayerSplitManager::Sync()
 {
-    std::vector<NodeId> nodeId2RemoveVec;
+    std::vector<std::shared_ptr<RSRenderNode>> nodeId2RemoveVec;
 
-    for (const auto& [id, planner] : plannerMap_) {
+    for (const auto& [node, planner] : plannerMap_) {
+        planner->CheckParentNodeOnTheTree();
         if (planner->GetSurfaceStatus() == SurfaceStatus::UNREGISTER) {
-            nodeId2RemoveVec.push_back(id);
+            nodeId2RemoveVec.push_back(node);
         }
     }
 
-    for (auto nodeId : nodeId2RemoveVec) {
-        plannerMap_.erase(nodeId);
-        processorMap_.erase(nodeId);
-        parentNodeMap_.erase(nodeId);
+    for (auto node : nodeId2RemoveVec) {
+        plannerMap_.erase(node);
+        processorMap_.erase(node);
     }
 
-    for (const auto& [id, planner] : plannerMap_) {
-        auto parentIt = parentNodeMap_.find(id);
-        if (parentIt == parentNodeMap_.end()) {
-            continue;
-        }
-        auto parent = parentIt->second;
-        if (!parent) {
+    for (const auto& [node, planner] : plannerMap_) {
+        if (!node) {
             continue;
         }
 
-        auto processorIt = processorMap_.find(id);
+        auto processorIt = processorMap_.find(node);
         if (processorIt == processorMap_.end()) {
             continue;
         }
 
-        planner->UpdateChildren(parent);
+        planner->UpdateChildren(node);
         if (processorIt->second) {
             processorIt->second->Sync(planner);
             planner->Sync(processorIt->second);
@@ -182,7 +182,7 @@ bool RSLayerSplitManager::CheckOpIncNodeFromCommand(std::unique_ptr<RSTransactio
         return false;
     }
 
-    for (const auto& [id, planner] : plannerMap_) {
+    for (const auto& [node, planner] : plannerMap_) {
         for (auto& [nodeId, followType, command] : rsTransactionData->GetPayload()) {
             if (command == nullptr) {
                 continue;
@@ -203,7 +203,7 @@ bool RSLayerSplitManager::CheckDoDirectCompositionWithSplitLayer()
         return false;
     }
 
-    for (const auto& [id, planner] : plannerMap_) {
+    for (const auto& [node, planner] : plannerMap_) {
         if (!planner->CheckCanDoDirectComposition()) {
             return false;
         }

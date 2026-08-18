@@ -55,7 +55,7 @@ void RSRenderServiceListener::OnBufferAvailable()
         return;
     }
     RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, nodeId_);
-    auto *surfaceNodeRaw = node->AsRSSurfaceRenderNode();
+    auto* surfaceNodeRaw = node->AsRSSurfaceRenderNode();
     if (surfaceNodeRaw != nullptr && surfaceNodeRaw->IsUIRenderDirectorStopped()) {
         ConsumeBufferToKeepQueueRunning(surfaceHandler_);
         return;

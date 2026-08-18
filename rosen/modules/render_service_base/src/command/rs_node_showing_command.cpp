@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr size_t MAX_PROPERTIES_MAP_SIZE = 1024;
 RSNodeGetShowingPropertyAndCancelAnimation::Registrar RSNodeGetShowingPropertyAndCancelAnimation::instance_;
 RSNodeGetShowingPropertiesAndCancelAnimation::Registrar RSNodeGetShowingPropertiesAndCancelAnimation::instance_;
 
@@ -111,7 +112,7 @@ bool RSNodeGetShowingPropertiesAndCancelAnimation::Marshalling(Parcel& parcel) c
                   RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
                   RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
                   RSMarshallingHelper::Marshalling(parcel, success_) &&
-                  RSMarshallingHelper::Marshalling(parcel, propertiesMap_) &&
+                  RSMarshallingHelper::Marshalling(parcel, propertiesMap_, MAX_PROPERTIES_MAP_SIZE) &&
                   RSMarshallingHelper::Marshalling(parcel, nodeNotFound_);
     return result;
 }
@@ -147,7 +148,7 @@ bool RSNodeGetShowingPropertiesAndCancelAnimation::ReadFromParcel(Parcel& parcel
     if (!RSMarshallingHelper::Unmarshalling(parcel, success_)) {
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, propertiesMap_)) {
+    if (!RSMarshallingHelper::Unmarshalling(parcel, propertiesMap_, MAX_PROPERTIES_MAP_SIZE)) {
         return false;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, nodeNotFound_)) {

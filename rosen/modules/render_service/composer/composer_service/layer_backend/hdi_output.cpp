@@ -315,6 +315,10 @@ void HdiOutput::DirtyRegions(const std::shared_ptr<RSLayer>& rsLayer)
 void HdiOutput::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
     RS_TRACE_NAME_FMT("HdiOutput::CleanLayerBufferById, screenId=%u, surfaceId=%lu", screenId_, surfaceId);
+    if (device_ == nullptr) {
+        HLOGE("%{public}s device is nullptr", __func__);
+        return;
+    }
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = surfaceIdMap_.find(surfaceId);
     if (iter == surfaceIdMap_.end()) {
@@ -1186,8 +1190,7 @@ std::unordered_map<std::shared_ptr<RSLayer>, sptr<SyncFence>> HdiOutput::GetLaye
 std::unordered_map<std::shared_ptr<RSLayer>, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
 {
     std::unordered_map<std::shared_ptr<RSLayer>, sptr<SyncFence>> res;
-    size_t layerNum = layersId_.size();
-    for (size_t i = 0; i < layerNum; i++) {
+    for (size_t i = 0; i < layersId_.size() && i < fences_.size(); i++) {
         auto iter = layerIdMap_.find(layersId_[i]);
         if (iter == layerIdMap_.end()) {
             HLOGE("Invalid hdi hdiLayer id [%{public}u]", layersId_[i]);
@@ -1422,6 +1425,10 @@ void HdiOutput::ClearBufferCache()
 
 void HdiOutput::SetActiveRectSwitchStatus(bool flag, const GraphicIRect& activeRect)
 {
+    if (device_ == nullptr) {
+        HLOGW("%{public}s: device_ is nullptr, screenId:%{public}u", __func__, screenId_);
+        return;
+    }
     if (flag) {
         int32_t ret = device_->SetScreenActiveRect(screenId_, activeRect);
         if (ret != GRAPHIC_DISPLAY_SUCCESS) {

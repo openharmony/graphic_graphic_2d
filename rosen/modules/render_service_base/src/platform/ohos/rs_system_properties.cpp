@@ -1158,11 +1158,8 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
 
 bool RSSystemProperties::GetNewTunnelEnabled()
 {
-    static CachedHandle handle = CachedParameterCreate("rosen.debug.new_tunnel", "false");
-    int changed = 0;
-    const char* enabled = CachedParameterGetChanged(handle, &changed);
-    return enabled != nullptr &&
-        (strcmp(enabled, "1") == 0 || strcmp(enabled, "true") == 0);
+    static bool tunnelEnabled = std::atoi(system::GetParameter("persist.rosen.debug.new_tunnel", "1").c_str()) == 1;
+    return tunnelEnabled;
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
@@ -1724,14 +1721,6 @@ bool RSSystemProperties::GetRSMemoryInfoManagerParam()
     return dmaMarkEnable;
 }
 
-bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
 bool RSSystemProperties::GetGpuDirtyApsEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.gpudirtyaps.enabled", "1");
@@ -1886,6 +1875,12 @@ bool RSSystemProperties::GetVirtualScreenParallelEnabled()
     static bool virtualScreenParallelEnabled = system::GetBoolParameter(
         "persist.sys.graphic.virtualScreenParallel.enabled", true);
     return virtualScreenParallelEnabled;
+}
+
+bool RSSystemProperties::IsSimulateTest()
+{
+    static bool isSimulateTest = system::GetParameter("persist.sys.graphic.simulate.test", "0") == "1";
+    return isSimulateTest;
 }
 } // namespace Rosen
 } // namespace OHOS

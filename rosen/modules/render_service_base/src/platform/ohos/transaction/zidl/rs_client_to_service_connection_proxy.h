@@ -82,6 +82,8 @@ public:
 
     ErrCode SetUifirstScale(float scaleFactor) override;
 
+    sptr<IRemoteObject> GetDisplayEngineControl() override;
+
     void ForceRefreshOneFrameWithNextVSync() override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
@@ -362,8 +364,6 @@ public:
     RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
-
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 

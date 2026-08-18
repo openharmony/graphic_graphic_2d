@@ -170,7 +170,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
 #ifndef ROSEN_CROSS_PLATFORM
     if (ROSEN_GNE(sdrNits, 0.0f)) {
         scaler = std::clamp(scaler, 1.0f, displayNits / sdrNits);
-        rsLuminance.UpdateMetadataBasedOnScaler(surfaceBuffer, surfaceNode, scaler, hdrStatus);
+        rsLuminance.UpdateMetadataBasedOnScaler(surfaceBuffer, scaler, hdrStatus);
     }
 #endif
 

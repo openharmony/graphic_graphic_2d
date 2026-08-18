@@ -98,10 +98,15 @@ void RSOpincLayerSplitterProcessor::CalSplitCanvasMatrix(Drawing::Canvas& canvas
         return;
     }
     auto totalMatrix = canvas.GetTotalMatrix();
+    float scaleX = totalMatrix.Get(Drawing::Matrix::SCALE_X);
+    float scaleY = totalMatrix.Get(Drawing::Matrix::SCALE_Y);
+    if (ROSEN_EQ(scaleX, 0.0f) || ROSEN_EQ(scaleY, 0.0f)) {
+        return;
+    }
     splitSurface_->splitCanvas_->SetMatrix(totalMatrix);
     splitSurface_->splitCanvas_->Translate(
-        (srcRect_.GetLeft() - dstRect_.GetLeft()) / totalMatrix.Get(Drawing::Matrix::SCALE_X),
-        (srcRect_.GetTop() - dstRect_.GetTop()) / totalMatrix.Get(Drawing::Matrix::SCALE_Y)
+        (srcRect_.GetLeft() - dstRect_.GetLeft()) / scaleX,
+        (srcRect_.GetTop() - dstRect_.GetTop()) / scaleY
     );
 }
 

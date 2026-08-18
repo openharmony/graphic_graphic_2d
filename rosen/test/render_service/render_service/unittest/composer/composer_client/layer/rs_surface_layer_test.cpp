@@ -52,14 +52,15 @@ constexpr uint64_t TEST_LAYER_ID_BASE = 1200u;
 
 class ScopedNewTunnelSwitch {
 public:
-    explicit ScopedNewTunnelSwitch(bool enabled) : oldValue_(Rosen::IsNewTunnelEnabled())
+    explicit ScopedNewTunnelSwitch(bool enabled)
     {
-        system::SetParameter("rosen.debug.new_tunnel", enabled ? "true" : "false");
+        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
+        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
     }
 
     ~ScopedNewTunnelSwitch()
     {
-        system::SetParameter("rosen.debug.new_tunnel", oldValue_ ? "true" : "false");
+        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
     }
 
 private:
@@ -102,9 +103,6 @@ public:
 
 void RSSurfaceLayerTest::SetUpTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
     sMgr = std::make_shared<RSRenderComposerManager>(handler);
     auto output = std::make_shared<HdiOutput>(screenId);
@@ -261,7 +259,6 @@ HWTEST_F(RSSurfaceLayerTest, TunnelLayerDestroyedCallback003, Function | SmallTe
         uint32_t layerProperty;
     };
     const std::vector<TestCase> testCases = {
-        { "new_tunnel_disabled", false, true, true, TEST_TUNNEL_LAYER_ID, TUNNEL_PROP_BUFFER_ADDR },
         { "surface_null", true, false, false, TEST_TUNNEL_LAYER_ID, TUNNEL_PROP_BUFFER_ADDR },
         { "fallback_get_info_failed", true, true, false, 0, TUNNEL_PROP_INVALID },
         { "fallback_tunnel_layer_id_zero", true, true, true, 0, TUNNEL_PROP_INVALID },

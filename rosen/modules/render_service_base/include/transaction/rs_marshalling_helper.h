@@ -558,14 +558,13 @@ public:
 
     static bool Marshalling(Parcel& parcel, sptr<Surface> surface);
     static bool Unmarshalling(Parcel& parcel, sptr<Surface>& surface);
-    static bool Marshalling(Parcel& parcel, const sptr<IRemoteObject>& val);
-    static bool Unmarshalling(Parcel& parcel, sptr<IRemoteObject>& val);
     static void BeginNoSharedMem(std::thread::id tid);
     static void EndNoSharedMem();
     static bool GetUseSharedMem(std::thread::id tid);
     static bool CheckReadPosition(Parcel& parcel);
 
     static void SetCallingPid(pid_t callingPid);
+    static pid_t GetCallingPid();
 
     static bool MarshallingTransactionVer(Parcel& parcel);
     static bool UnmarshallingTransactionVer(Parcel& parcel);

@@ -35,7 +35,6 @@
 #include "common/rs_common_tools.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
-#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
@@ -65,7 +64,6 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_ui_render_director.h"
 #include "pipeline/rs_union_render_node.h"
 #include "pipeline/sk_resource_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
@@ -129,6 +127,8 @@ static void InitRsDrawableSlotToIndexVec()
     for (size_t i = 0; i < static_cast<size_t>(RSDrawableSlot::MAX); i++) {
         rsDrawableSlotToIndexVec[i] = nullptr;
     }
+    rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::MASK)] =
+        [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.maskIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::TRANSITION)] =
         [](DrawCmdIndex& drawCmdIndex, int index) {drawCmdIndex.transitionIndex_ = index;};
     rsDrawableSlotToIndexVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR)] =
@@ -957,8 +957,21 @@ void RSRenderNode::AddCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
     // so this child will not remove from the old parent.
-    if (child == nullptr) {
+    if (child == nullptr || GetId() == child->GetId()) {
         return;
+    }
+    // The child node cannot be an ancestor of the current node
+    {
+        auto parent = parent_.lock();
+        auto childId = child->GetId();
+        while (parent != nullptr) {
+            if (parent->GetId() == childId) {
+                ROSEN_LOGE("RSRenderNode::AddCrossParentChild child is ancestor of current node, "
+                    "nodeId=%{public}" PRIu64 " childId=%{public}" PRIu64, GetId(), childId);
+                return;
+            }
+            parent = parent->GetParent().lock();
+        }
     }
     // Set parent-child relationship
     child->SetParent(weak_from_this());
@@ -2067,17 +2080,6 @@ void RSRenderNode::UpdateBufferDirtyRegion()
         // Use the matrix from buffer to relative coordinate and the absolute matrix
         // to calculate the buffer damageRegion's absolute rect
         auto rect = surfaceNode->GetRSSurfaceHandler()->GetDamageRegion();
-        bool isUseSelfDrawingDirtyRegion = buffer->GetSurfaceBufferWidth() == rect.w &&
-            buffer->GetSurfaceBufferHeight() == rect.h && rect.x == 0 && rect.y == 0;
-        if (isUseSelfDrawingDirtyRegion) {
-            Rect selfDrawingDirtyRect;
-            bool isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
-            if (isDirtyRectValid) {
-                rect = { selfDrawingDirtyRect.x, selfDrawingDirtyRect.y,
-                    selfDrawingDirtyRect.w, selfDrawingDirtyRect.h };
-                RS_OPTIONAL_TRACE_NAME_FMT("selfDrawingDirtyRect:[%d, %d, %d, %d]", rect.x, rect.y, rect.w, rect.h);
-            }
-        }
         auto matrix = surfaceNode->GetBufferRelMatrix();
         auto bufferDirtyRect = GetRenderProperties().GetBoundsGeometry()->MapRect(
             RectF(rect.x, rect.y, rect.w, rect.h), matrix).ConvertTo<float>();
@@ -3603,6 +3605,8 @@ void RSRenderNode::UpdateDisplayList()
         return (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(endIndex))
             != nullptr ? stagingDrawCmdList_.size() - 1 : -1);
     };
+    // Update index of MASK
+    stagingDrawCmdIndex_.maskIndex_ = AppendDrawFunc(RSDrawableSlot::MASK);
     // Update index of TRANSITION
     stagingDrawCmdIndex_.transitionIndex_ = AppendDrawFunc(RSDrawableSlot::TRANSITION);
 
@@ -4600,7 +4604,9 @@ void RSRenderNode::SetStaticCached(bool isStaticCached, bool isMarkedByUI)
     isStaticCached_ = isStaticCached;
     // ensure defrost subtree would be updated
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetRSFreezeFlag(isStaticCached, isMarkedByUI);
+    if (stagingRenderParams_->SetRSFreezeFlag(isStaticCached, isMarkedByUI)) {
+        SetDirty();
+    }
 #else
     isStaticCached = false;
 #endif
@@ -4665,20 +4671,6 @@ void RSRenderNode::ResetGeoUpdateDelay()
 bool RSRenderNode::GetGeoUpdateDelay() const
 {
     return geoUpdateDelay_;
-}
-
-bool RSRenderNode::IsUIRenderDirectorStopped() const
-{
-    auto context = context_.lock();
-    if (context == nullptr) {
-        return false;
-    }
-    std::shared_ptr<RSUIRenderDirector> director =
-        context->GetUIRenderDirector(ExtractPid(GetId()), GetUIContextToken());
-    if (director == nullptr) {
-        return false;
-    }
-    return director->GetCurrentState() == RSUIDirectorLifecycleState::STOP;
 }
 
 void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent)

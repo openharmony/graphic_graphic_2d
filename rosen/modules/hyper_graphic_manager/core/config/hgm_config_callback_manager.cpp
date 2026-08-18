@@ -51,7 +51,7 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
     pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback)
 {
     if (callback == nullptr) {
-        HILOG_COMM_ERROR("HgmConfigCallbackManager %{public}s : callback is null.", __func__);
+        HILOG_COMM_ERROR("HgmConfigCallbackManager %{public}s : callback is null", __func__);
         return;
     }
     if (animDynamicCfgCallbacks_.size() >= MAX_CALLBACK_PID_KEYS &&
@@ -76,6 +76,7 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
                     animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferredFps});
             }
         }
+        data->SetAppBufferList(configData->appBufferList_);
     }
 
     if (configData != nullptr) {
@@ -97,7 +98,7 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
     pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback)
 {
     if (callback == nullptr) {
-        HILOG_COMM_ERROR("HgmRefreshRateModeCallbackManager %{public}s : callback is null.", __func__);
+        HILOG_COMM_ERROR("HgmRefreshRateModeCallbackManager %{public}s : callback is null", __func__);
         return;
     }
     if (refreshRateModeCallbacks_.size() >= MAX_CALLBACK_PID_KEYS &&
@@ -209,6 +210,7 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
                     animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferredFps});
             }
         }
+        data->SetAppBufferList(configData->appBufferList_);
     }
 
     if (configData != nullptr) {

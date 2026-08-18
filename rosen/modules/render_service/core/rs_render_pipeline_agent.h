@@ -112,8 +112,7 @@ public:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback);
 
-    int32_t SubmitCanvasPreAllocatedBuffer(
-        pid_t remotePid, NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+    int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success);
@@ -196,7 +195,6 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId screenId);
     void SetShowRefreshRateEnabled(bool enabled, int32_t type);
     ErrCode GetShowRefreshRateEnabled(bool& enable);
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
@@ -220,7 +218,7 @@ public:
     sptr<IApplicationAgent> UnRegisterApplicationAgent(uint32_t pid);
     bool RemoveConnection(pid_t remotePid, const sptr<RSIConnectionToken>& token);
     void AddTransactionDataPidInfo(pid_t remotePid);
-    void AddConnection(pid_t remotePid, uint64_t tokenMaskId,
+    std::pair<sptr<RSIClientToRenderConnection>, uint64_t> AddConnection(pid_t remotePid, uint64_t tokenMaskId,
         sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
     void SetCacheEnabledForRotation(bool enabled);
     std::pair<sptr<RSIClientToRenderConnection>, uint64_t> FindClientToRenderConnection(uint64_t remotePid);
@@ -260,6 +258,9 @@ private:
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     static std::shared_ptr<RSSurfaceHandler> CreateCanvasSurfaceHandler(NodeId nodeId);
+#endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static bool IsBufferConfigValid(const sptr<SurfaceBuffer>& buffer);
 #endif
     std::weak_ptr<RSRenderPipeline> rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;

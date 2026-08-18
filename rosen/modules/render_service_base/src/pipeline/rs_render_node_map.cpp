@@ -154,6 +154,28 @@ void RSRenderNodeMap::RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfa
     }
 }
 
+void RSRenderNodeMap::RegisterSurfaceRenderNode(pid_t pid, uint64_t token)
+{
+    auto iter = backgroundSurfaceNodeMap_.find(pid);
+    if (iter == backgroundSurfaceNodeMap_.end()) {
+        return;
+    }
+    auto& subMap = iter->second;
+    auto nodeIter = subMap.find(token);
+    if (nodeIter != subMap.end()) {
+        for (auto& node : nodeIter->second) {
+            if (node) {
+                node->SetUIRenderDirectorStopped(false);
+                surfaceNodeMap_[node->GetId()] = node;
+            }
+        }
+        subMap.erase(nodeIter);
+    }
+    if (subMap.empty()) {
+        backgroundSurfaceNodeMap_.erase(iter);
+    }
+}
+
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();
@@ -373,6 +395,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
     });
     RS_TRACE_END();
 
+    EraseIf(backgroundSurfaceNodeMap_, [pid](const auto& pair) -> bool {
+        return pair.first == pid;
+    });
+
     if (auto fallbackNode = GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid
         if (auto animationManager = fallbackNode->GetAnimationManager()) {
@@ -380,6 +406,20 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         }
     }
     RSRenderNodeGC::Instance().ReleaseNodeNotOnTree(pid);
+}
+
+void RSRenderNodeMap::RemoveSurfaceNodeMap(pid_t pid, uint64_t token)
+{
+    EraseIf(surfaceNodeMap_, [pid, token, this](const auto& pair) -> bool {
+        bool shouldErase = (ExtractPid(pair.first) == pid) && pair.second &&
+                           (pair.second->GetUIContextToken() == token) && pair.second->IsSelfDrawingType() &&
+                           !pair.second->GetIsTextureExportNode();
+        if (shouldErase) {
+            pair.second->SetUIRenderDirectorStopped(true);
+            backgroundSurfaceNodeMap_[pid][token].emplace_back(pair.second);
+        }
+        return shouldErase;
+    });
 }
 
 void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)

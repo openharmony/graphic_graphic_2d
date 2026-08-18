@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_context.h"
 #include "property/rs_point_light_manager.h"
 
 using namespace testing;
@@ -395,6 +396,192 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PrepareLightGraftingRegisterTest
+ * @tc.desc: PrepareLight registers dirty nodes not yet in maps (grafted nodes)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightGraftingRegisterTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    instance->AddDirtyIlluminated(node);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 0u);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightKeepOffTreeTest
+ * @tc.desc: PrepareLight keeps off-tree nodes whose ldid still matches (no repeated unregister)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightKeepOffTreeTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    instance->RegisterIlluminated(node);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+    node->isOnTheTree_ = false;
+    instance->AddDirtyIlluminated(node);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightEraseStaleLdidTest
+ * @tc.desc: PrepareLight erases nodes whose logicalDisplayNodeId does not match (grafted to other display)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightEraseStaleLdidTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    instance->RegisterIlluminated(node);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+    node->isOnTheTree_ = true;
+    node->logicalDisplayNodeId_ = 5;
+    instance->AddDirtyIlluminated(node);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 0u);
+}
+
+/**
+ * @tc.name: PrepareLightGraftingRegisterLightSourceTest
+ * @tc.desc: PrepareLight registers dirty light sources not yet in maps
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightGraftingRegisterLightSourceTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->lightSourceNodeMap_.clear();
+    instance->dirtyLightSourceList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffect().lightSourcePtr_->intensity_ = 1.0f;
+    instance->AddDirtyLightSource(node);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 0u);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightNullDirtyNodeTest
+ * @tc.desc: PrepareLight skips expired weak_ptr in dirty list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightNullDirtyNodeTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    {
+        auto tmp = std::make_shared<RSRenderNode>(1);
+        instance->AddDirtyIlluminated(tmp);
+    }
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.size(), 0u);
+}
+
+/**
+ * @tc.name: PrepareLightKeepMatchingLdidTest
+ * @tc.desc: PrepareLight keeps on-tree nodes whose ldid matches (no erase, continues pairing)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightKeepMatchingLdidTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->illuminatedNodeMap_.clear();
+    instance->dirtyIlluminatedList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.GetEffect().illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
+    instance->RegisterIlluminated(node);
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+    node->isOnTheTree_ = true;
+    instance->AddDirtyIlluminated(node);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->illuminatedNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightKeepRegisteredLightSourceTest
+ * @tc.desc: PrepareLight skips light sources already in map (no repeated register)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightKeepRegisteredLightSourceTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->lightSourceNodeMap_.clear();
+    instance->dirtyLightSourceList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    auto node = std::make_shared<RSRenderNode>(1);
+    node->InitRenderParams();
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.GetEffect().lightSourcePtr_->intensity_ = 1.0f;
+    instance->RegisterLightSource(node);
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+    instance->AddDirtyLightSource(node);
+    instance->PrepareLight();
+    EXPECT_EQ(instance->lightSourceNodeMap_.count(node->GetId()), 1u);
+}
+
+/**
+ * @tc.name: PrepareLightNullDirtyLightSourceTest
+ * @tc.desc: PrepareLight skips expired weak_ptr in dirty light source list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLightNullDirtyLightSourceTest, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->lightSourceNodeMap_.clear();
+    instance->dirtyLightSourceList_.clear();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    {
+        auto tmp = std::make_shared<RSRenderNode>(1);
+        instance->AddDirtyLightSource(tmp);
+    }
+    instance->PrepareLight();
+    EXPECT_EQ(instance->lightSourceNodeMap_.size(), 0u);
+}
+
+/**
  * @tc.name: PrepareLight002
  * @tc.desc: test results of PrepareLight
  * @tc.type:FUNC
@@ -552,18 +739,18 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated002, TestSize.Level1)
     auto lightSourceNode = std::make_shared<RSRenderNode>(0);
     auto illuminatedNode = std::make_shared<RSRenderNode>(0);
     illuminatedNode->isOnTheTree_ = true;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
     illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_FALSE(illuminatedNode->IsDirty());
     lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
     lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_TRUE(illuminatedNode->IsDirty());
 }
 
@@ -580,28 +767,28 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
     auto lightSourceNode = std::make_shared<RSRenderNode>(0);
     auto illuminatedNode = std::make_shared<RSRenderNode>(0);
     illuminatedNode->isOnTheTree_ = true;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     
     illuminatedNode->instanceRootNodeId_ = 1;
     lightSourceNode->instanceRootNodeId_ = 0;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     illuminatedNode->instanceRootNodeId_ = 0;
     lightSourceNode->instanceRootNodeId_ = 0;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_FALSE(illuminatedNode->IsDirty());
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
     illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
@@ -610,11 +797,11 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
 
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
         lightSourceNode->GetId(), std::make_pair(RSLightSource{}, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
     illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.clear();
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_TRUE(illuminatedNode->IsDirty());
 }
 
@@ -640,10 +827,216 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated004, TestSize.Level1)
     lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
     lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
 
-    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
     EXPECT_FALSE(illuminatedNode->IsDirty());
     EXPECT_TRUE(illuminatedNode->GetMutableRenderProperties().GetIlluminated()
         ->GetLightSourcesAndPosMap().empty());
+}
+
+/**
+ * @tc.name: CheckIlluminated005
+ * @tc.desc: test CheckIlluminated isLightSourceDirty=false, light source not in dirty list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, CheckIlluminated005, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->dirtyLightSourceList_.clear();
+    instance->dirtyIlluminatedList_.clear();
+
+    auto lightSourceNode = std::make_shared<RSRenderNode>(0);
+    auto illuminatedNode = std::make_shared<RSRenderNode>(1);
+    illuminatedNode->isOnTheTree_ = true;
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+
+    // Empty dirtyLightSourceList_ → notInList returns true → EnsureAbsMatrixUpdated called (no ctx, early return)
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
+    EXPECT_TRUE(illuminatedNode->IsDirty());
+}
+
+/**
+ * @tc.name: CheckIlluminated006
+ * @tc.desc: test CheckIlluminated isLightSourceDirty=false, light source in dirty list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, CheckIlluminated006, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->dirtyLightSourceList_.clear();
+    instance->dirtyIlluminatedList_.clear();
+
+    auto lightSourceNode = std::make_shared<RSRenderNode>(0);
+    auto illuminatedNode = std::make_shared<RSRenderNode>(1);
+    illuminatedNode->isOnTheTree_ = true;
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+
+    // Light source IS in dirtyLightSourceList_ → notInList returns false → EnsureAbsMatrixUpdated skipped
+    instance->dirtyLightSourceList_.push_back(lightSourceNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
+    EXPECT_TRUE(illuminatedNode->IsDirty());
+}
+
+/**
+ * @tc.name: CheckIlluminated007
+ * @tc.desc: test CheckIlluminated isLightSourceDirty=true, illuminated not in dirty list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, CheckIlluminated007, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->dirtyLightSourceList_.clear();
+    instance->dirtyIlluminatedList_.clear();
+
+    auto lightSourceNode = std::make_shared<RSRenderNode>(0);
+    auto illuminatedNode = std::make_shared<RSRenderNode>(1);
+    illuminatedNode->isOnTheTree_ = true;
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+
+    // Empty dirtyIlluminatedList_ → notInList returns true → EnsureAbsMatrixUpdated called (no ctx, early return)
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, true);
+    EXPECT_TRUE(illuminatedNode->IsDirty());
+}
+
+/**
+ * @tc.name: CheckIlluminated008
+ * @tc.desc: test CheckIlluminated isLightSourceDirty=true, illuminated in dirty list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, CheckIlluminated008, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->dirtyLightSourceList_.clear();
+    instance->dirtyIlluminatedList_.clear();
+
+    auto lightSourceNode = std::make_shared<RSRenderNode>(0);
+    auto illuminatedNode = std::make_shared<RSRenderNode>(1);
+    illuminatedNode->isOnTheTree_ = true;
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+
+    // Illuminated IS in dirtyIlluminatedList_ → notInList returns false → EnsureAbsMatrixUpdated skipped
+    instance->dirtyIlluminatedList_.push_back(illuminatedNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, true);
+    EXPECT_TRUE(illuminatedNode->IsDirty());
+}
+
+/**
+ * @tc.name: CheckIlluminated009
+ * @tc.desc: test notInList with expired and non-matching entries in dirty list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, CheckIlluminated009, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    instance->dirtyLightSourceList_.clear();
+    instance->dirtyIlluminatedList_.clear();
+
+    auto lightSourceNode = std::make_shared<RSRenderNode>(0);
+    auto illuminatedNode = std::make_shared<RSRenderNode>(1);
+    illuminatedNode->isOnTheTree_ = true;
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    lightSourceNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+
+    // Dirty list has expired weak_ptr and a non-matching node → notInList returns true
+    instance->dirtyLightSourceList_.push_back(std::weak_ptr<RSRenderNode>{});
+    auto otherNode = std::make_shared<RSRenderNode>(999);
+    instance->dirtyLightSourceList_.push_back(otherNode);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode, false);
+    EXPECT_TRUE(illuminatedNode->IsDirty());
+}
+
+/**
+ * @tc.name: EnsureAbsMatrixUpdated001
+ * @tc.desc: test EnsureAbsMatrixUpdated with no context (GetInstanceRootNode returns null)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, EnsureAbsMatrixUpdated001, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    auto node = std::make_shared<RSRenderNode>(0);
+    // GetInstanceRootNode returns null → early return, no crash
+    instance->EnsureAbsMatrixUpdated(node);
+    auto geo = node->GetRenderProperties().GetBoundsGeometry();
+    EXPECT_TRUE(geo->GetAbsMatrix().IsIdentity());
+}
+
+/**
+ * @tc.name: EnsureAbsMatrixUpdated002
+ * @tc.desc: test EnsureAbsMatrixUpdated with context and parent chain (GetAbsMatrixReverse true)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, EnsureAbsMatrixUpdated002, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    auto context = std::make_shared<RSContext>();
+    context->nodeMap.context_ = context;
+
+    auto rootNode = std::make_shared<RSRenderNode>(0, context);
+    context->GetMutableNodeMap().RegisterRenderNode(rootNode);
+
+    auto childNode = std::make_shared<RSRenderNode>(1, context);
+    childNode->instanceRootNodeId_ = 0;
+    rootNode->AddChild(childNode);
+
+    auto childGeo = childNode->GetRenderProperties().GetBoundsGeometry();
+    EXPECT_TRUE(childGeo->GetAbsMatrix().IsIdentity());
+    instance->EnsureAbsMatrixUpdated(childNode);
+    EXPECT_TRUE(childGeo->GetAbsMatrix().IsIdentity());
+}
+
+/**
+ * @tc.name: EnsureAbsMatrixUpdated003
+ * @tc.desc: test EnsureAbsMatrixUpdated with context but no parent chain (GetAbsMatrixReverse false)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, EnsureAbsMatrixUpdated003, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    auto context = std::make_shared<RSContext>();
+    context->nodeMap.context_ = context;
+
+    auto rootNode = std::make_shared<RSRenderNode>(0, context);
+    context->GetMutableNodeMap().RegisterRenderNode(rootNode);
+
+    auto childNode = std::make_shared<RSRenderNode>(1, context);
+    childNode->instanceRootNodeId_ = 0;
+    // No parent chain → GetAbsMatrixReverse returns false → SetAbsMatrix not called
+
+    auto childGeo = childNode->GetRenderProperties().GetBoundsGeometry();
+    EXPECT_TRUE(childGeo->GetAbsMatrix().IsIdentity());
+    instance->EnsureAbsMatrixUpdated(childNode);
+    EXPECT_TRUE(childGeo->GetAbsMatrix().IsIdentity());
 }
 
 /**

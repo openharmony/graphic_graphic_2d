@@ -14,6 +14,9 @@
  */
 
 #include "surface_capture_callback_stub.h"
+
+#include <memory>
+
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -41,7 +44,7 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
                 RS_LOGE("RSSurfaceCaptureCallbackStub: ReadSurfaceCaptureConfig failed");
                 break;
             }
-            auto pixelmap = data.ReadParcelable<OHOS::Media::PixelMap>();
+            std::unique_ptr<OHOS::Media::PixelMap> pixelmap(data.ReadParcelable<OHOS::Media::PixelMap>());
             uint8_t captureErrCode {0};
             if (!data.ReadUint8(captureErrCode)) {
                 RS_LOGE("SISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE read captureErrCode failed!");
@@ -55,7 +58,7 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
                 break;
             }
             CaptureError captureErrCodeResult = static_cast<CaptureError>(captureErrCode);
-            OnSurfaceCapture(id, captureConfig, pixelmap, captureErrCodeResult);
+            OnSurfaceCapture(id, captureConfig, pixelmap.release(), captureErrCodeResult);
             break;
         }
         case static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR): {
@@ -71,7 +74,7 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
                 RS_LOGE("RSSurfaceCaptureCallbackStub: ReadSurfaceCaptureConfig failed");
                 break;
             }
-            auto pixelmap = data.ReadParcelable<OHOS::Media::PixelMap>();
+            std::unique_ptr<OHOS::Media::PixelMap> pixelmap(data.ReadParcelable<OHOS::Media::PixelMap>());
             uint8_t captureErrCode {0};
             if (!data.ReadUint8(captureErrCode)) {
                 RS_LOGE("RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR read captureErrCode failed!");
@@ -85,8 +88,8 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
                 break;
             }
             CaptureError captureErrCodeResult = static_cast<CaptureError>(captureErrCode);
-            auto pixelmapHDR = data.ReadParcelable<OHOS::Media::PixelMap>();
-            OnSurfaceCapture(id, captureConfig, pixelmap, captureErrCodeResult, pixelmapHDR);
+            std::unique_ptr<OHOS::Media::PixelMap> pixelmapHDR(data.ReadParcelable<OHOS::Media::PixelMap>());
+            OnSurfaceCapture(id, captureConfig, pixelmap.release(), captureErrCodeResult, pixelmapHDR.release());
             break;
         }
         default: {

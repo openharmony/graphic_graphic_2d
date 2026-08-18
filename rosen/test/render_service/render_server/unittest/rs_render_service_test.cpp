@@ -72,6 +72,7 @@ void RSRenderServiceTest::SetUpTestCase()
 void RSRenderServiceTest::TearDownTestCase()
 {
     if (RSSystemProperties::IsUseVulkan()) {
+        RSUniRenderThread::Instance().uniRenderEngine_->skContext_ = nullptr;
         RSUniRenderThread::Instance().uniRenderEngine_.reset();
     }
     screenManager_ = nullptr;
@@ -149,6 +150,15 @@ HWTEST_F(RSRenderServiceTest, RenderProcessManagerInit001, TestSize.Level1)
     }
     renderService->RenderProcessManagerInit();
     ASSERT_NE(renderService->renderProcessManager_, nullptr);
+    if (renderService->vsyncManager_ != nullptr) {
+        auto rsDistributor = renderService->vsyncManager_->GetVsyncRSDistributor();
+        if (rsDistributor != nullptr) {
+            auto conn = rsDistributor->GetVSyncConnection(0);
+            if (conn != nullptr) {
+                conn->CloseReceiveFd();
+            }
+        }
+    }
 }
 
 HWTEST_F(RSRenderServiceTest, SAMgrRegister001, TestSize.Level1)

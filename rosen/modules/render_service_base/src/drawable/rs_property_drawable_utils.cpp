@@ -303,6 +303,10 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(
         return nullptr;
     }
     auto canvas = offscreenSurface->GetCanvas();
+    if (UNLIKELY(canvas == nullptr)) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage failed to get offscreen canvas");
+        return nullptr;
+    }
     effectBuilder->SetChild("imageInput",
         Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
             Drawing::SamplingOptions { Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE }, matrix));
@@ -1320,6 +1324,10 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
 void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
     const float& offsetY, const float& radius, const bool& isFilled, Color spotColor, bool disableSDFBlur)
 {
+    if (UNLIKELY(canvas == nullptr)) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawShadowMaskFilter canvas is null");
+        return;
+    }
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::DrawShadowMaskFilter, Radius: %f, ShadowOffsetX: "
         "%f, ShadowOffsetY: %f, bounds: %s",
@@ -1459,6 +1467,10 @@ void RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, 
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
     const std::string& shapeTag)
 {
+    if (UNLIKELY(canvas == nullptr)) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM canvas is null");
+        return;
+    }
     if (rect == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM rect is null");
         return;
@@ -1958,22 +1970,13 @@ void RSPropertyDrawableUtils::ApplySDFShapeToEffect(const RSProperties& properti
         return;
     }
     auto sdfShape = GetResolvedSDFShape(properties);
-    if (shader->GetType() == RSNGEffectType::SDF_EDGE_LIGHT_EFFECT) {
-        const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
-        if (sdfShape) {
-            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToEffect, SDF_EDGE_LIGHT_EFFECT, node %{public}" PRIu64,
-                nodeId);
-            effectShader->Setter<SDFEdgeLightEffectSDFShapeRenderTag>(sdfShape,
-                PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
-        } else {
-            auto sdfRRect = properties.GetRRectForSDF();
-            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToEffect, rrect %{public}s, node %{public}" PRIu64,
-                sdfRRect.ToString().c_str(), nodeId);
-            auto sdfRRectShape = CreateDefaultRRectShape(sdfRRect, nodeId);
-            effectShader->Setter<SDFEdgeLightEffectSDFShapeRenderTag>(sdfRRectShape,
-                PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
-            RSNGRenderShapeHelper::CalcRect(sdfRRectShape, properties.GetBoundsRect());
-        }
+    if (sdfShape) {
+        RSNGRenderShaderHelper::SetSDFShape(shader, sdfShape);
+    } else {
+        auto sdfRRect = properties.GetRRectForSDF();
+        ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToEffect, rrect %{public}s, node %{public}" PRIu64,
+            sdfRRect.ToString().c_str(), nodeId);
+        RSNGRenderShaderHelper::SetSDFShape(shader, CreateDefaultRRectShape(sdfRRect, nodeId));
     }
 }
 
@@ -2025,32 +2028,5 @@ void RSPropertyDrawableUtils::ApplySDFShapeToMagnifier(
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<MagnifierSDFShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
 }
-
-void RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(const RSProperties& properties,
-    const std::shared_ptr<RSNGRenderShaderBase>& shader, NodeId nodeId)
-{
-    if (!shader || shader->GetType() != RSNGEffectType::SPATIAL_GLASS_EFFECT) {
-        return;
-    }
-    const auto& effectShader = std::static_pointer_cast<RSNGRenderSpatialGlassEffect>(shader);
-
-    auto sdfShape = properties.GetSDFShape();
-    if (sdfShape) {
-        ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect sdfShape, node %{public}" PRIu64,
-            nodeId);
-        effectShader->Setter<SpatialGlassEffectSdfShapeRenderTag>(sdfShape,
-            PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
-        return;
-    }
-    auto sdfRRect = properties.GetRRectForSDF();
-    auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
-        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
-    ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect rrect %{public}s, node %{public}" PRIu64,
-        sdfRRect.ToString().c_str(), nodeId);
-    sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
-    effectShader->Setter<SpatialGlassEffectSdfShapeRenderTag>(sdfRRectShape,
-        PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
-}
-
 } // namespace Rosen
 } // namespace OHOS

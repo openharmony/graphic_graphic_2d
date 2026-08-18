@@ -81,7 +81,7 @@ template("effect_ndk_source_set") {
     if (platform == "ohos" || platform == "ohos_ng") {
       defines += [ "OHOS_PLATFORM" ]
       external_deps += [
-        "bounds_checking_function:libsec_static",
+        "bounds_checking_function:libsec_shared",
         "image_framework:pixelmap",
         "napi:ace_napi",
         "image_framework:pixelmap_ndk",

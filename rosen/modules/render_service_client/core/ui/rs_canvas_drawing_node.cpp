@@ -128,16 +128,7 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
 #endif
     if (node->hybridEnabled_) {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-        auto uiContext = node->GetRSUIContext();
-        auto canvasModifiersDrawAgent = uiContext != nullptr ? uiContext->GetCanvasModifiersDrawAgent() : nullptr;
-        if (canvasModifiersDrawAgent != nullptr) {
-            static std::once_flag flag;
-            std::call_once(flag, [canvasModifiersDrawAgent]() {
-                canvasModifiersDrawAgent->QueryMaxGpuBufferSize(maxGpuSupportedWidth_, maxGpuSupportedHeight_);
-            });
-            std::weak_ptr<RSRenderInterface> weakInterface = uiContext->GetRSRenderInterface();
-            canvasModifiersDrawAgent->OnNodeCreate(node->GetId(), weakInterface);
-        }
+        node->OnCreate();
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         preAllocateDmaCcm_ = false;
@@ -160,6 +151,34 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
     node->SetUIContextToken();
     return node;
 }
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+void RSCanvasDrawingNode::OnCreate()
+{
+    auto nodeId = GetId();
+    auto uiContext = GetRSUIContext();
+    if (uiContext == nullptr) {
+        RS_LOGE("RSCanvasDrawingNode::OnCreate, null uiContext, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+    auto canvasModifiersDrawAgent = uiContext->GetCanvasModifiersDrawAgent();
+    if (canvasModifiersDrawAgent == nullptr) {
+        RS_LOGE("RSCanvasDrawingNode::OnCreate, null canvasModifiersDrawAgent, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+    auto renderInterface = uiContext->GetRSRenderInterface();
+    if (renderInterface == nullptr) {
+        RS_LOGE("RSCanvasDrawingNode::OnCreate, null renderInterface, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+
+    static std::once_flag flag;
+    std::call_once(flag,
+        [renderInterface]() { renderInterface->GetMaxGpuBufferSize(maxGpuSupportedWidth_, maxGpuSupportedHeight_); });
+    std::weak_ptr<RSRenderInterface> weakInterface = renderInterface;
+    canvasModifiersDrawAgent->OnNodeCreate(nodeId, weakInterface);
+}
+#endif
 
 void RSCanvasDrawingNode::CreateRenderNode()
 {

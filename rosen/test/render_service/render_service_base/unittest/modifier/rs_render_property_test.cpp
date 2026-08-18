@@ -447,7 +447,36 @@ HWTEST_F(RSRenderPropertyTest, dumptest, TestSize.Level1)
 HWTEST_F(RSRenderPropertyTest, tofloattest, TestSize.Level1)
 {
     RSRenderAnimatableProperty<Vector3f> property3f(Vector3f(1.f, 1.f, 1.f)); // 1.f for test
-    EXPECT_NEAR(property3f.ToFloat(), 1.73205f, 1e-4);  // 1.73205.f mod result
+    EXPECT_NEAR(property3f.ToFloat(), 1.73205f, 1e-4);                        // 1.73205.f mod result
+}
+
+/**
+ * @tc.name: DepthCameraParaDump
+ * @tc.desc: Test dump for RSRenderProperty<DepthCameraPara>
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, DepthCameraParaDump, TestSize.Level1)
+{
+    DepthCameraPara para;
+    auto prop = std::make_shared<RSRenderProperty<DepthCameraPara>>();
+    std::string out;
+    prop->Dump(out);
+    EXPECT_EQ(out, "[position: (0.0, 0.0, 0.0), quaternion: (0.0, 0.0, 0.0, 0.0), yFov: 0.0, zNear: 0.1, zFar: 100.0, "
+        "offset: (0.0, 0.0)]");
+}
+
+/**
+ * @tc.name: DepthLightParaDump
+ * @tc.desc: Test dump for RSRenderProperty<DepthLightPara>
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, DepthLightParaDump, TestSize.Level1)
+{
+    DepthLightPara para;
+    auto prop = std::make_shared<RSRenderProperty<DepthLightPara>>();
+    std::string out;
+    prop->Dump(out);
+    EXPECT_EQ(out, "[direction: (0.0, 0.0, 0.0), color: (0.0, 0.0, 0.0), intensity: 0.0]");
 }
 
 /**
@@ -1698,5 +1727,37 @@ HWTEST_F(RSRenderPropertyTest, ShapeBorrowerDetachPreservesOwnerSubProperties, T
     EXPECT_EQ(shape->GetOwnerId(), reinterpret_cast<uintptr_t>(ownerProp.get()));
     ownerProp->Detach(); // owner now cascades
     EXPECT_EQ(node->GetProperty(0), nullptr);
+}
+
+/**
+ * @tc.name: CastToPropertyOfTypeMatch001
+ * @tc.desc: CastToPropertyOf returns valid pointer when type matches, nullptr when mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, CastToPropertyOfTypeMatch001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderProperty<float>>(1.0f, id);
+    auto matched = prop->CastToPropertyOf<float>(__func__);
+    ASSERT_NE(matched, nullptr);
+    EXPECT_EQ(matched->Get(), 1.0f);
+
+    auto mismatched = prop->CastToPropertyOf<Color>(__func__);
+    EXPECT_EQ(mismatched, nullptr);
+}
+
+/**
+ * @tc.name: CastToAnimatablePropertyOfTypeMatch001
+ * @tc.desc: CastToAnimatablePropertyOfType returns valid pointer when type matches, nullptr when mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, CastToAnimatablePropertyOfTypeMatch001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, id);
+    auto matched = prop->CastToAnimatablePropertyOf<float>(__func__);
+    ASSERT_NE(matched, nullptr);
+    EXPECT_EQ(matched->Get(), 1.0f);
+
+    auto mismatched = prop->CastToAnimatablePropertyOf<Vector4f>(__func__);
+    EXPECT_EQ(mismatched, nullptr);
 }
 } // namespace OHOS::Rosen

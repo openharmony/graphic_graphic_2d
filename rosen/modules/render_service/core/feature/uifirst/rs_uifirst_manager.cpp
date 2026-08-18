@@ -302,9 +302,6 @@ void RSUifirstManager::RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRe
         return;
     }
     auto surfaceNode = std::static_pointer_cast<const RSSurfaceRenderNode>(nodeSp);
-    if (surfaceNode == nullptr) {
-        return;
-    }
     // mark all parent rendergroup need update; planning: mark autoCache need update
     auto node = surfaceNode->GetParent().lock();
 
@@ -933,11 +930,9 @@ void RSUifirstManager::PostSubTask(NodeId id)
 
     // 1.find in cache list(done to delete) 2.find in global list
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
-    if (drawable) {
+    if (drawable && drawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        if (surfaceNodeDrawable) {
-            surfaceNodeDrawable->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceNodeDrawable.get());
-        }
+        surfaceNodeDrawable->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceNodeDrawable.get());
         // ref drawable
         subthreadProcessingNode_.emplace(id, drawable);
         // post task
@@ -1381,6 +1376,7 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
     int mainwindowNum = 0;
     int canvasNodeNum = 0;
     bool support = true;
+    bool startingWindowEnabled = true;
     std::shared_ptr<RSRenderNode> startingWindow = nullptr;
     bool hasContentAppWindow = false;
     for (auto& child : *(node.GetSortedChildren())) {
@@ -1399,9 +1395,9 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
             continue;
         }
         auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceChild && surfaceChild->IsMainWindowType() && surfaceChild->ShouldPaint() &&
-            canvasNodeNum == 0 && !surfaceChild->IsNotifyUIBufferAvailable()) {
+        if (surfaceChild && surfaceChild->IsMainWindowType() && canvasNodeNum == 0) {
             mainwindowNum++;
+            startingWindowEnabled &= surfaceChild->ShouldPaint() && !surfaceChild->IsNotifyUIBufferAvailable();
             if (IsContentAppWindow(surfaceChild)) {
                 hasContentAppWindow = true;
             }
@@ -1410,9 +1406,10 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         support = false;
     }
     node.SetUifirstHasContentAppWindow(hasContentAppWindow);
-    RS_TRACE_NAME_FMT("support:%d, canvasNodeNum:%d, mainwindowNum:%d, hasStarting:%d, hasContent:%d", support,
-        canvasNodeNum, mainwindowNum, startingWindow != nullptr, hasContentAppWindow);
-    if (support && canvasNodeNum == 1 && mainwindowNum > 0 && startingWindow) { // starting window & appwindow
+    RS_TRACE_NAME_FMT("support:%d, canvasNodeNum:%d, mainwindowNum:%d, hasStarting:%d, "
+        "hasContent:%d, startingWindowEnable:%d", support, canvasNodeNum, mainwindowNum,
+        startingWindow != nullptr, hasContentAppWindow, startingWindowEnabled);
+    if (support && canvasNodeNum == 1 && mainwindowNum > 0 && startingWindow && startingWindowEnabled) {
         startingWindow->SetStartingWindowFlag(true);
         return startingWindow->GetId();
     } else {
@@ -1922,13 +1919,18 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
-    bool focus = RSUifirstManager::Instance().IsFocusedNode(node);
+    // when system do animation assigh focus window not on top to subthread
+    bool focus = RSUifirstManager::Instance().IsFocusedNode(node) &&
+    !(RSUifirstManager::Instance().IsInSystemWindowAnimate() &&
+    !RSUifirstManager::Instance().IsTopLeashWindow(node.GetId()));
     // open app with modal window animation, close uifirst
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
     bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
     if (optFocus && (node.GetHasSharedTransitionNode() || !animation || modalAnimation)) {
-        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
-            surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
+        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d"
+            "IsInSystemWindowAnimate: %d IsTopLeashWindow: %d", surfaceName.c_str(), focus, optFocus, animation,
+            node.GetUIFirstSwitch(), RSUifirstManager::Instance().IsInSystemWindowAnimate(),
+            RSUifirstManager::Instance().IsTopLeashWindow(node.GetId()));
         return false;
     }
     // disable uifirst when leash window has no app window at recent task scene or split screen scene
@@ -2033,14 +2035,35 @@ bool RSUifirstManager::QuerySubAssignable(RSSurfaceRenderNode& node, bool isRota
     return assignable;
 }
 
+bool RSUifirstManager::IsRebuildForceDisable(const RSSurfaceRenderNode& node) const
+{
+    if (RSMainThread::Instance()->IsPidRebuilding(ExtractPid(node.GetId()))) {
+        return true;
+    }
+    if (!node.IsLeashWindow()) {
+        return false;
+    }
+    for (auto& child : *(node.GetChildren())) {
+        if (!child) {
+            continue;
+        }
+        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceChild && RSMainThread::Instance()->IsPidRebuilding(ExtractPid(surfaceChild->GetId()))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 {
     bool isForceDisabled = (node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE);
     bool hasProtectedLayer = node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED);
-    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || isForceDisabled || hasProtectedLayer) {
+    bool isRebuilding = IsRebuildForceDisable(node);
+    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || isForceDisabled || hasProtectedLayer || isRebuilding) {
         RS_LOGD("uifirst disabled. id:%{public}" PRIu64 ",uifirstOn:%{public}d,support:%{public}d,"
-            "forceDisabled:%{public}d,protectLayer:%{public}d",
-            node.GetId(), isUiFirstOn_, node.GetUifirstSupportFlag(), isForceDisabled, hasProtectedLayer);
+            "forceDisabled:%{public}d,protectLayer:%{public}d,isRebuilding:%{public}d",
+            node.GetId(), isUiFirstOn_, node.GetUifirstSupportFlag(), isForceDisabled, hasProtectedLayer, isRebuilding);
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         return true;
     }

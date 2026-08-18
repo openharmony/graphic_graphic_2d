@@ -252,10 +252,10 @@ bool ConvertVector4fFromAniColor(uintptr_t color, OHOS::Rosen::Vector4f& values)
         return false;
     }
     const float colorMax = 255.0; // colorMax: color max value
-    values[NUM_0] = static_cast<float>(colorR / colorMax);
-    values[NUM_1] = static_cast<float>(colorG / colorMax);
-    values[NUM_2] = static_cast<float>(colorB / colorMax);
-    values[NUM_3] = static_cast<float>(colorA / colorMax);
+    values[NUM_0] = static_cast<float>(colorR) / colorMax;
+    values[NUM_1] = static_cast<float>(colorG) / colorMax;
+    values[NUM_2] = static_cast<float>(colorB) / colorMax;
+    values[NUM_3] = static_cast<float>(colorA) / colorMax;
     return true;
 }
 

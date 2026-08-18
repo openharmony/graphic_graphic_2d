@@ -398,6 +398,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
         }
         cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
+            RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
             width, height, ExtractPid(nodeDrawable->nodeId_), format);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {
@@ -410,8 +411,15 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             RS_LOGE("InitCacheSurface !cacheBackendTexture_.IsValid() || !vkTextureInfo");
             return;
         }
-        cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid);
+        cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+            vkTextureInfo->vkImage,
+            vkTextureInfo->vkAlloc.memory,
+            vkTextureInfo->vkAlloc.source == Drawing::VKMemSource::NATIVE
+                ? NativeBufferUtils::VulkanCleanType::NATIVE
+                : NativeBufferUtils::VulkanCleanType::EXTERNAL,
+            RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid,
+            vkTextureInfo->vkAlloc.size);
         cacheSurface_ = Drawing::Surface::MakeFromBackendTexture(
             gpuContext, cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
             1, colorType, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
@@ -1319,7 +1327,9 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
     RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     if (surfaceDrawable && cacheCompletedSurfaceInfo_.isContainShadow) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-        surfaceDrawable->DrawClipBounds(canvas, surfaceParams->GetBounds());
+        if (surfaceParams) {
+            surfaceDrawable->DrawClipBounds(canvas, surfaceParams->GetBounds());
+        }
     }
     canvas.Translate(px, py);
     Drawing::Rect absRect;

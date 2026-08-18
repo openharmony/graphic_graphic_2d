@@ -156,7 +156,7 @@ private:
 
 class RSForegroundColorDrawable : public RSPropertyDrawable {
 public:
-    RSForegroundColorDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
+    RSForegroundColorDrawable(SimpleDrawCmdListPtr&& drawCmdList)
         : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSForegroundColorDrawable() = default;
@@ -197,7 +197,7 @@ class RSBorderDrawable : public RSPropertyDrawable {
     friend class RSOutlineDrawable;
 
 public:
-    RSBorderDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
+    RSBorderDrawable(SimpleDrawCmdListPtr&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSBorderDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
@@ -222,7 +222,7 @@ private:
 
 class RSOutlineDrawable : public RSPropertyDrawable {
 public:
-    RSOutlineDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
+    RSOutlineDrawable(SimpleDrawCmdListPtr&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSOutlineDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
@@ -242,7 +242,7 @@ private:
 
 class RSParticleDrawable : public RSPropertyDrawable {
 public:
-    RSParticleDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
+    RSParticleDrawable(SimpleDrawCmdListPtr&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList))
     {}
     RSParticleDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);

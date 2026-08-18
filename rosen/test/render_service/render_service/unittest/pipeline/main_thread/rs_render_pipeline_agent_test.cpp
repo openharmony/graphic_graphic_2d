@@ -19,6 +19,8 @@
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "node_mem_release_param.h"
+#include "surface_buffer_impl.h"
+#include "buffer_handle_utils.h"
 #endif
 
 #include "consumer_surface.h"
@@ -1578,6 +1580,40 @@ HWTEST_F(RSRenderPipelineAgentTest, ReportRsSceneJankStart001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUIMode3D_001
+ * @tc.desc: Verify SetUIMode3D returns ERR_INVALID_VALUE when pipeline is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetUIMode3D_001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    ErrCode ret = agent->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetUIMode3D_002
+ * @tc.desc: Verify SetUIMode3D returns ERR_OK when pipeline exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetUIMode3D_002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    ErrCode ret2D = agent->SetUIMode3D(UIMode3D::MODE_2D);
+    ErrCode retShutter = agent->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    ErrCode retGlassesFree = agent->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(ret2D, ERR_OK);
+    EXPECT_EQ(retShutter, ERR_OK);
+    EXPECT_EQ(retGlassesFree, ERR_OK);
+}
+
+/**
  * @tc.name: ReportRsSceneJankEnd001
  * @tc.desc: Verify ReportRsSceneJankEnd when pipeline is null
  * @tc.type: FUNC
@@ -1883,12 +1919,12 @@ HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBufferTest, TestSize
     ASSERT_NE(agent, nullptr);
     ASSERT_NE(mainThread_, nullptr);
     renderPipeline->mainThread_ = mainThread_;
-    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
-    auto ret = agent->SubmitCanvasPreAllocatedBuffer(1, 1, nullptr, 1);
-    EXPECT_NE(ret, 0);
-    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
-    ret = agent->SubmitCanvasPreAllocatedBuffer(1, 1, nullptr, 1);
-    EXPECT_NE(ret, 0);
+    // nullptr buffer is valid (used for clearing pending buffer), should succeed
+    auto ret = agent->SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
+    EXPECT_EQ(ret, 0);
+    // Duplicate nodeId + resetSurfaceIndex causes AddPendingBuffer to fail
+    ret = agent->SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
+    ASSERT_NE(ret, 0);
 }
 
 /**
@@ -1903,16 +1939,164 @@ HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBuffer_NodeTypeCheck
     ASSERT_NE(agent, nullptr);
     ASSERT_NE(mainThread_, nullptr);
     renderPipeline->mainThread_ = mainThread_;
-    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
     // Register a non-CANVAS_DRAWING_NODE (SURFACE_NODE) in the node map
     pid_t pid = 1;
     NodeId surfaceNodeId = static_cast<NodeId>(pid) << 32 | 100;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
     mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
-    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-    auto ret = agent->SubmitCanvasPreAllocatedBuffer(pid, surfaceNodeId, buffer, 1);
+    // nullptr buffer passes IsBufferConfigValid, execution reaches node type check
+    auto ret = agent->SubmitCanvasPreAllocatedBuffer(surfaceNodeId, nullptr, 1);
     ASSERT_EQ(ret, INVALID_ARGUMENTS);
     mainThread_->GetContext().GetMutableNodeMap().UnregisterRenderNode(surfaceNodeId);
+}
+
+/**
+ * @tc.name: SubmitCanvasPreAllocatedBuffer_InvalidBufferConfig
+ * @tc.desc: Verify SubmitCanvasPreAllocatedBuffer rejects buffer with invalid config
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBuffer_InvalidBufferConfig, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(mainThread_, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+    // SurfaceBuffer::Create() has no handle, GetWidth()/GetHeight() return -1 -> IsBufferConfigValid fails
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    auto ret = agent->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
+    ASSERT_EQ(ret, INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid001
+ * @tc.desc: Verify IsBufferConfigValid returns true for nullptr buffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = nullptr;
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    EXPECT_TRUE(ret);
+    ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid002
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with invalid dimensions
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid002, TestSize.Level1)
+{
+    // SurfaceBuffer::Create() has no handle, GetWidth/Height return -1
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    EXPECT_LT(buffer->GetWidth(), 1);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid003
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with non-RGBA_8888 format
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid003, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 400;
+    handle->size = 40000;
+    handle->format = GRAPHIC_PIXEL_FMT_RGB_565;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    EXPECT_NE(buffer->GetFormat(), GRAPHIC_PIXEL_FMT_RGBA_8888);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid004
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with stride less than width * bpp
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid004, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 100; // stride < width * 4 = 400
+    handle->size = 10000;
+    handle->format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    EXPECT_LT(buffer->GetStride(), buffer->GetWidth() * 4);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid005
+ * @tc.desc: Verify IsBufferConfigValid rejects buffer with size less than stride * height
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid005, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 400;
+    handle->size = 100; // size < stride * height = 40000
+    handle->format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    uint64_t minSize = static_cast<uint64_t>(buffer->GetStride()) * static_cast<uint64_t>(buffer->GetHeight());
+    EXPECT_LT(static_cast<uint64_t>(buffer->GetSize()), minSize);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsBufferConfigValid006
+ * @tc.desc: Verify IsBufferConfigValid accepts valid RGBA_8888 buffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, IsBufferConfigValid006, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    BufferHandle* handle = AllocateBufferHandle(0, 0);
+    ASSERT_NE(handle, nullptr);
+    handle->width = 100;
+    handle->height = 100;
+    handle->stride = 400;
+    handle->size = 40000;
+    handle->format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    auto* impl = static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
+    impl->handle_ = handle;
+    EXPECT_EQ(buffer->GetFormat(), GRAPHIC_PIXEL_FMT_RGBA_8888);
+    bool ret = RSRenderPipelineAgent::IsBufferConfigValid(buffer);
+    impl->handle_ = nullptr;
+    FreeBufferHandle(handle);
+    ASSERT_TRUE(ret);
 }
 #endif
 

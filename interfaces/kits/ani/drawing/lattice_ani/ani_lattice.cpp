@@ -14,6 +14,7 @@
  */
 
 #include "ani_lattice.h"
+#include "ani_drawing_transfer_util.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
@@ -186,7 +187,8 @@ ani_status AniLattice::AniInit(ani_env *env)
             reinterpret_cast<void*>(CreateImageLatticeWithArrayInt) },
         ani_native_function { "latticeTransferStaticNative", nullptr,
             reinterpret_cast<void*>(LatticeTransferStatic) },
-        ani_native_function { "getLatticeAddr", nullptr, reinterpret_cast<void*>(GetLatticeAddr) },
+        ani_native_function { "latticeTransferDynamicNative", nullptr,
+            reinterpret_cast<void*>(LatticeTransferDynamic) },
     };
 
     ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
@@ -274,46 +276,40 @@ ani_object AniLattice::CreateImageLatticeWithArrayInt(ani_env* env,
 
 ani_object AniLattice::LatticeTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniLattice::LatticeTransferStatic failed to unwrap");
-        return CreateAniUndefined(env);
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniLattice::LatticeTransferStatic unwrapResult is null");
-        return CreateAniUndefined(env);
-    }
-    auto jsLattice = reinterpret_cast<JsLattice*>(unwrapResult);
-    if (jsLattice->GetLatticePtr() == nullptr) {
-        ROSEN_LOGE("AniLattice::LatticeTransferStatic jsLattice is null");
-        return CreateAniUndefined(env);
-    }
+    return AniDrawingTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        auto jsLattice = reinterpret_cast<JsLattice*>(unwrapResult);
+        if (jsLattice == nullptr || jsLattice->GetLatticePtr() == nullptr) {
+            ROSEN_LOGE("AniLattice::LatticeTransferStatic jsLattice is null");
+            return CreateAniUndefined(env);
+        }
 
-    auto aniLattice = new AniLattice(jsLattice->GetLatticePtr());
-
-    ani_object aniLatticeObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().lattice,
-        AniGlobalMethod::GetInstance().latticeCtor, AniGlobalMethod::GetInstance().latticeBindNative, aniLattice);
-    if (IsUndefined(env, aniLatticeObj)) {
-        delete aniLattice;
-        ROSEN_LOGE("AniLattice::CreateImageLatticeInternal failed cause aniObj is undefined");
-    }
-    return aniLatticeObj;
+        auto aniLattice = new AniLattice(jsLattice->GetLatticePtr());
+        ani_object aniLatticeObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().lattice,
+            AniGlobalMethod::GetInstance().latticeCtor, AniGlobalMethod::GetInstance().latticeBindNative, aniLattice);
+        if (IsUndefined(env, aniLatticeObj)) {
+            delete aniLattice;
+            ROSEN_LOGE("AniLattice::LatticeTransferStatic failed cause aniObj is undefined");
+        }
+        return aniLatticeObj;
+    });
 }
 
-ani_long AniLattice::GetLatticeAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+ani_object AniLattice::LatticeTransferDynamic(
+    ani_env* aniEnv, [[maybe_unused]] ani_object obj, ani_object nativeObj)
 {
-    auto aniLattice = GetNativeFromObj<AniLattice>(env, input, AniGlobalField::GetInstance().latticeNativeObj);
-    if (aniLattice == nullptr || aniLattice->GetLattice() == nullptr) {
-        ROSEN_LOGE("AniLattice::GetLatticeAddr aniLattice is null");
-        return 0;
+    if (!IsInstanceOf(aniEnv, nativeObj, AniGlobalClass::GetInstance().lattice)) {
+        return CreateAniUndefined(aniEnv);
     }
-    return reinterpret_cast<ani_long>(aniLattice->GetLatticePtrAddr());
-}
-
-std::shared_ptr<Lattice>* AniLattice::GetLatticePtrAddr()
-{
-    return &lattice_;
+    return AniDrawingTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [aniEnv](napi_env napiEnv, ani_object nativeObj, napi_value objValue) -> napi_value {
+            auto aniLattice = GetNativeFromObj<AniLattice>(aniEnv, nativeObj,
+                AniGlobalField::GetInstance().latticeNativeObj);
+            if (aniLattice == nullptr || aniLattice->GetLattice() == nullptr) {
+                ROSEN_LOGE("AniLattice::LatticeTransferDynamic null aniLattice");
+                return nullptr;
+            }
+            return JsLattice::Create(napiEnv, aniLattice->GetLattice());
+        });
 }
 
 std::shared_ptr<Lattice> AniLattice::GetLattice()

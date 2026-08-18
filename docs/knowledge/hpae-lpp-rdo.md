@@ -21,7 +21,7 @@
 
 ### HPAE
 
-`RSHpaeManager` 为单例，管理 HPAE 模糊合成的完整生命周期。详见 hwc-prevalidate.md 中 HPAE 部分。状态机 `HpaeFrameState`：IDLE → ACTIVE → WORKING → DEACTIVE → SWITCH_BLUR → CHANGE_CONFIG → ALLOC_BUF → WAITING。
+`RSHpaeManager` 为单例，管理 HPAE 模糊合成的完整生命周期。状态机 `HpaeFrameState`：IDLE → ACTIVE → WORKING → DEACTIVE → SWITCH_BLUR → CHANGE_CONFIG → ALLOC_BUF → WAITING。
 
 核心数据流：
 

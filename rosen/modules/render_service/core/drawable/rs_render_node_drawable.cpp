@@ -361,16 +361,7 @@ bool RSRenderNodeDrawable::UpdateCurRenderGroupCacheRootFilterState(const RSRend
     if (!renderGroupCacheDrawable_) {
         renderGroupCacheDrawable_ = std::make_unique<RSRenderGroupCacheDrawable>();
     }
-    renderGroupCacheDrawable_->SetLastFrameCacheRootHasExcludedChild(params.HasChildExcludedFromNodeGroup());
     return params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
-}
-
-bool RSRenderNodeDrawable::IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const
-{
-    if (!renderGroupCacheDrawable_) {
-        return false;
-    }
-    return renderGroupCacheDrawable_->IsLastFrameCacheRootHasExcludedChild() != params.HasChildExcludedFromNodeGroup();
 }
 
 void RSRenderNodeDrawable::SetShouldClipHole(bool value)
@@ -896,13 +887,22 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorSpace = Drawing::ColorSpace::CreateSRGB();
         }
-        SetCachedBackendTexture(NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(nodeId_), format));
+        SetCachedBackendTexture(NativeBufferUtils::MakeBackendTexture(
+            RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+            width, height, ExtractPid(nodeId_), format));
         auto vkTextureInfo = GetCachedBackendTexture().GetTextureInfo().GetVKTextureInfo();
         if (!GetCachedBackendTexture().IsValid() || !vkTextureInfo) {
             return;
         }
-        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid);
+        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
+            vkTextureInfo->vkImage,
+            vkTextureInfo->vkAlloc.memory,
+            vkTextureInfo->vkAlloc.source == Drawing::VKMemSource::NATIVE
+                ? NativeBufferUtils::VulkanCleanType::NATIVE
+                : NativeBufferUtils::VulkanCleanType::EXTERNAL,
+            RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid,
+            vkTextureInfo->vkAlloc.size);
         REAL_ALLOC_CONFIG_SET_STATUS(true);
         SetRenderGroupCachedSurface(Drawing::Surface::MakeFromBackendTexture(gpuContext,
             GetCachedBackendTexture().GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,
@@ -1159,9 +1159,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
     }
     if (NeedInitCachedSurface(params.GetCacheSize())) {
         ClearCachedSurface();
-        return true;
-    }
-    if (IsCurRenderGroupCacheRootExcludedStateChanged(params)) {
         return true;
     }
     if (updateTimes == 0 || params.GetDrawingCacheChanged()) {

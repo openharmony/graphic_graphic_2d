@@ -1219,6 +1219,14 @@ HWTEST_F(RSUifirstManagerTest, PostSubTaskAndPostReleaseCacheSurfaceSubTask001, 
     DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.insert(std::make_pair(id, nodeDrawableAdapter));
     uifirstManager_.PostReleaseCacheSurfaceSubTask(id);
     EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
+
+    // drawable exists but not SURFACE_NODE type, should not be added to subthreadProcessingNode_
+    uifirstManager_.subthreadProcessingNode_.clear();
+    constexpr NodeId canvasNodeId = 0xFFFE;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(canvasNodeId);
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode);
+    uifirstManager_.PostSubTask(canvasNodeId);
+    EXPECT_FALSE(uifirstManager_.IsNodeInSubthreadProcessing(canvasNodeId));
 }
 
 /**
@@ -1658,7 +1666,7 @@ HWTEST_F(RSUifirstManagerTest, LeashWindowContainMainWindowAndStarting002, TestS
 
     NodeId resId = uifirstManager_.LeashWindowContainMainWindowAndStarting(node);
     EXPECT_FALSE(resId);
-    EXPECT_FALSE(node.GetUifirstHasContentAppWindow());
+    EXPECT_TRUE(node.GetUifirstHasContentAppWindow());
 }
 
 /**

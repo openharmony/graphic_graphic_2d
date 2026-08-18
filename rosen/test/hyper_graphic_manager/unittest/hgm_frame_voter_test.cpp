@@ -41,6 +41,53 @@ public:
 };
 
 /**
+ * @tc.name: TestDragScene
+ * @tc.desc: Verify the result of DragScene function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, TestDragScene, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    mgr.frameVoter_.SetDragScene(false);
+    EXPECT_EQ(mgr.frameVoter_.IsDragScene(), false);
+    mgr.frameVoter_.SetDragScene(true);
+    EXPECT_EQ(mgr.frameVoter_.IsDragScene(), true);
+}
+
+/**
+ * @tc.name: TestGetVoteRecord
+ * @tc.desc: Verify the result of GetVoteRecord function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, TestGetVoteRecord, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    const auto& voteRecord = mgr.frameVoter_.GetVoteRecord();
+    auto iter = voteRecord.find("VOTER_GAMES");
+    EXPECT_NE(iter, voteRecord.end());
+    iter = voteRecord.find("NULL");
+    EXPECT_EQ(iter, voteRecord.end());
+}
+
+/**
+ * @tc.name: TestGetVoters
+ * @tc.desc: Verify the result of GetVoters function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, TestGetVoters, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    const auto& voters = mgr.frameVoter_.GetVoters();
+    auto iter = std::find(voters.begin(), voters.end(), "VOTER_GAMES");
+    EXPECT_NE(iter, voters.end());
+    iter = std::find(voters.begin(), voters.end(), "NULL");
+    EXPECT_EQ(iter, voters.end());
+}
+
+/**
  * @tc.name: MergeRangeByPriority
  * @tc.desc: Verify the result of MergeRangeByPriority function
  * @tc.type: FUNC
@@ -77,68 +124,6 @@ HWTEST_F(HgmFrameVoterTest, TestMergeRangeByPriority, Function | SmallTest | Lev
 }
 
 /**
- * @tc.name: TestGetVoteRecord
- * @tc.desc: Verify the result of GetVoteRecord function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestGetVoteRecord, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    const auto& voteRecord = mgr.frameVoter_.GetVoteRecord();
-    auto iter = voteRecord.find("VOTER_GAMES");
-    EXPECT_NE(iter, voteRecord.end());
-    iter = voteRecord.find("NULL");
-    EXPECT_EQ(iter, voteRecord.end());
-}
-
-/**
- * @tc.name: TestGetVoters
- * @tc.desc: Verify the result of GetVoters function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestGetVoters, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    const auto& voters = mgr.frameVoter_.GetVoters();
-    auto iter = std::find(voters.begin(), voters.end(), "VOTER_GAMES");
-    EXPECT_NE(iter, voters.end());
-    iter = std::find(voters.begin(), voters.end(), "NULL");
-    EXPECT_EQ(iter, voters.end());
-}
-
-/**
- * @tc.name: TestGetVoterGamesEffective
- * @tc.desc: Verify the result of GetVoterGamesEffective function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestGetVoterGamesEffective, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    mgr.frameVoter_.voterGamesEffective_ = false;
-    EXPECT_EQ(mgr.frameVoter_.GetVoterGamesEffective(), false);
-    mgr.frameVoter_.voterGamesEffective_ = true;
-    EXPECT_EQ(mgr.frameVoter_.GetVoterGamesEffective(), true);
-}
-
-/**
- * @tc.name: TestDragScene
- * @tc.desc: Verify the result of DragScene function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestDragScene, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    mgr.frameVoter_.SetDragScene(false);
-    EXPECT_EQ(mgr.frameVoter_.IsDragScene(), false);
-    mgr.frameVoter_.SetDragScene(true);
-    EXPECT_EQ(mgr.frameVoter_.IsDragScene(), true);
-}
-
-/**
  * @tc.name: TestCleanVote
  * @tc.desc: Verify the result of CleanVote function
  * @tc.type: FUNC
@@ -155,6 +140,21 @@ HWTEST_F(HgmFrameVoterTest, TestCleanVote, Function | SmallTest | Level0)
     EXPECT_EQ(hgmFrameVoter.voteRecord_["VOTER_GAMES"].first.size(), 2);
     hgmFrameVoter.CleanVote(1);
     EXPECT_EQ(hgmFrameVoter.voteRecord_["VOTER_GAMES"].first.size(), 1);
+}
+
+/**
+ * @tc.name: TestGetVoterGamesEffective
+ * @tc.desc: Verify the result of GetVoterGamesEffective function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, TestGetVoterGamesEffective, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    mgr.frameVoter_.voterGamesEffective_ = false;
+    EXPECT_EQ(mgr.frameVoter_.GetVoterGamesEffective(), false);
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    EXPECT_EQ(mgr.frameVoter_.GetVoterGamesEffective(), true);
 }
 
 /**
@@ -208,6 +208,138 @@ HWTEST_F(HgmFrameVoterTest, TestDeliverVote, Function | SmallTest | Level0)
 
     hgmFrameVoter.DeliverVote({ "VOTER_LTPO", OLED_60_HZ, OLED_120_HZ, 4 }, false);
     EXPECT_EQ(hgmFrameVoter.voteRecord_["VOTER_LTPO"].first.back().max, OLED_90_HZ);
+}
+
+/**
+ * @tc.name: TestProcessVote
+ * @tc.desc: Verify the result of ProcessVote function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, TestProcessVote, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
+    std::string screenStrategyId = "LTPO-test";
+    ScreenId screenId = 1;
+    int32_t mode = 1;
+    hgmFrameVoter.voters_.insert(hgmFrameVoter.voters_.end(), "NULL");
+
+    auto [voteInfo, voteRange] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    EXPECT_EQ(voteRange.first, OLED_MIN_HZ);
+
+    hgmFrameVoter.DeliverVote({ "VOTER_ANCO", OLED_90_HZ, OLED_90_HZ, 1 }, true);
+    auto [voteInfo2, voteRange2] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    EXPECT_EQ(voteRange2.first, OLED_90_HZ);
+    hgmFrameVoter.CleanVote(1);
+
+    hgmFrameVoter.DeliverVote({ "VOTER_LTPO", OLED_90_HZ, OLED_90_HZ, 2 }, true);
+    auto [voteInfo3, voteRange3] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    EXPECT_EQ(voteRange3.first, OLED_90_HZ);
+    hgmFrameVoter.CleanVote(2);
+
+    hgmFrameVoter.DeliverVote({ "VOTER_ANCO", OLED_60_HZ, OLED_120_HZ, 1 }, true);
+    hgmFrameVoter.DeliverVote({ "VOTER_PACKAGES", OLED_90_HZ, OLED_90_HZ, 3 }, true);
+    auto [voteInfo4, voteRange4] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    EXPECT_EQ(voteRange4.first, OLED_90_HZ);
+}
+
+/**
+ * @tc.name: TestProcessVoteIter
+ * @tc.desc: Verify the result of ProcessVoteIter function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, TestProcessVoteIter, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
+    bool voterGamesEffective = false;
+
+    auto voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_PACKAGES");
+    VoteRange range { OLED_NULL_HZ, OLED_MAX_HZ };
+    VoteInfo info;
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, range, voterGamesEffective), false);
+
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, range, voterGamesEffective), false);
+
+    VoteRange voteRange0 = { OLED_60_HZ, OLED_120_HZ };
+    hgmFrameVoter.DeliverVote({ "VOTER_SCENE", OLED_60_HZ, OLED_120_HZ, 7 }, true);
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
+
+    voteRange0 = { OLED_90_HZ, OLED_90_HZ };
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
+
+    hgmFrameVoter.DeliverVote({ "VOTER_ANCO", OLED_60_HZ, OLED_120_HZ, 1 }, true);
+    hgmFrameVoter.multiAppStrategy_.backgroundPid_.Put(1);
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_ANCO");
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, range, voterGamesEffective), false);
+
+    voteRange0 = { OLED_60_HZ, OLED_120_HZ };
+    hgmFrameVoter.DeliverVote({ "VOTER_ANCO", OLED_60_HZ, OLED_120_HZ, 2 }, true);
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_ANCO");
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
+
+    voteRange0 = { OLED_90_HZ, OLED_90_HZ };
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_ANCO");
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
+
+    hgmFrameVoter.DeliverVote({ "VOTER_GAMES", OLED_60_HZ, OLED_120_HZ, 3 }, true);
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_GAMES");
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
+
+    hgmFrameVoter.multiAppStrategy_.foregroundPidAppMap_[3] = { 1, "testGame" };
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_GAMES");
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
+    EXPECT_EQ(voterGamesEffective, true);
+
+    hgmFrameVoter.voters_.insert(hgmFrameVoter.voters_.begin(), "NULL");
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "NULL");
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
+}
+
+/**
+ * @tc.name: TestSkipVirtualDisplay
+ * @tc.desc: Verify VOTER_VIRTUALDISPLAY is skipped only when VOTER_GAMES is effective
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, TestSkipVirtualDisplay, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager mgr;
+    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
+    std::string screenStrategyId = "LTPO-test";
+    ScreenId screenId = 1;
+    int32_t mode = 1;
+
+    hgmFrameVoter.DeliverVote({ "VOTER_VIRTUALDISPLAY", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
+    hgmFrameVoter.DeliverVote({ "VOTER_GAMES", OLED_120_HZ, OLED_120_HZ, DEFAULT_PID }, true);
+
+    // Without skip: VOTER_VIRTUALDISPLAY wins (higher priority than VOTER_GAMES)
+    auto [voteInfo, voteRange] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    EXPECT_EQ(voteRange.first, OLED_60_HZ);
+    EXPECT_EQ(voteRange.second, OLED_60_HZ);
+
+    // With skip + VOTER_GAMES effective: VOTER_VIRTUALDISPLAY skipped, VOTER_GAMES wins
+    hgmFrameVoter.SetSkipVirtualDisplay(true);
+    auto [voteInfo2, voteRange2] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    EXPECT_EQ(voteRange2.first, OLED_120_HZ);
+    EXPECT_EQ(voteRange2.second, OLED_120_HZ);
+
+    // checkVote_ rejects VOTER_GAMES: VOTER_VIRTUALDISPLAY NOT skipped
+    hgmFrameVoter.SetCheckVoteCallback([](const std::string& voter, VoteInfo&) -> bool {
+        return voter != "VOTER_GAMES";
+    });
+    auto [voteInfo3, voteRange3] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    EXPECT_EQ(voteRange3.first, OLED_MIN_HZ);
+    EXPECT_EQ(voteRange3.second, OLED_MAX_HZ);
+
+    hgmFrameVoter.SetSkipVirtualDisplay(false);
+    hgmFrameVoter.SetCheckVoteCallback(nullptr);
+    hgmFrameVoter.CleanVote(DEFAULT_PID);
 }
 
 /**
@@ -326,126 +458,6 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote02, Function | SmallTest | Lev
     mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
     mgr.frameVoter_.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(range.second, OLED_120_HZ);
-}
-
-/**
- * @tc.name: TestProcessVoteIter
- * @tc.desc: Verify the result of ProcessVoteIter function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestProcessVoteIter, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
-    bool voterGamesEffective = false;
-
-    auto voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_PACKAGES");
-    VoteRange range { OLED_NULL_HZ, OLED_MAX_HZ };
-    VoteInfo info;
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, range, voterGamesEffective), false);
-
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, range, voterGamesEffective), false);
-
-    VoteRange voteRange0 = { OLED_60_HZ, OLED_120_HZ };
-    hgmFrameVoter.DeliverVote({ "VOTER_SCENE", OLED_60_HZ, OLED_120_HZ, 7 }, true);
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
-
-    voteRange0 = { OLED_90_HZ, OLED_90_HZ };
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
-
-    hgmFrameVoter.DeliverVote({ "VOTER_ANCO", OLED_60_HZ, OLED_120_HZ, 1 }, true);
-    hgmFrameVoter.multiAppStrategy_.backgroundPid_.Put(1);
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_ANCO");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, range, voterGamesEffective), false);
-
-    voteRange0 = { OLED_60_HZ, OLED_120_HZ };
-    hgmFrameVoter.DeliverVote({ "VOTER_ANCO", OLED_60_HZ, OLED_120_HZ, 2 }, true);
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_ANCO");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
-
-    voteRange0 = { OLED_90_HZ, OLED_90_HZ };
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_ANCO");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
-
-    hgmFrameVoter.DeliverVote({ "VOTER_GAMES", OLED_60_HZ, OLED_120_HZ, 3 }, true);
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_GAMES");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
-
-    hgmFrameVoter.multiAppStrategy_.foregroundPidAppMap_[3] = { 1, "testGame" };
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_GAMES");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
-    EXPECT_EQ(voterGamesEffective, true);
-
-    hgmFrameVoter.voters_.insert(hgmFrameVoter.voters_.begin(), "NULL");
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "NULL");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
-}
-
-/**
- * @tc.name: TestProcessVote
- * @tc.desc: Verify the result of ProcessVote function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestProcessVote, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
-    std::string screenStrategyId = "LTPO-test";
-    ScreenId screenId = 1;
-    int32_t mode = 1;
-    hgmFrameVoter.voters_.insert(hgmFrameVoter.voters_.end(), "NULL");
-
-    auto [voteInfo, voteRange] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
-    EXPECT_EQ(voteRange.first, OLED_MIN_HZ);
-
-    hgmFrameVoter.DeliverVote({ "VOTER_ANCO", OLED_90_HZ, OLED_90_HZ, 1 }, true);
-    auto [voteInfo2, voteRange2] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
-    EXPECT_EQ(voteRange2.first, OLED_90_HZ);
-    hgmFrameVoter.CleanVote(1);
-
-    hgmFrameVoter.DeliverVote({ "VOTER_LTPO", OLED_90_HZ, OLED_90_HZ, 2 }, true);
-    auto [voteInfo3, voteRange3] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
-    EXPECT_EQ(voteRange3.first, OLED_90_HZ);
-    hgmFrameVoter.CleanVote(2);
-
-    hgmFrameVoter.DeliverVote({ "VOTER_ANCO", OLED_60_HZ, OLED_120_HZ, 1 }, true);
-    hgmFrameVoter.DeliverVote({ "VOTER_PACKAGES", OLED_90_HZ, OLED_90_HZ, 3 }, true);
-    auto [voteInfo4, voteRange4] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
-    EXPECT_EQ(voteRange4.first, OLED_90_HZ);
-}
-
-/**
- * @tc.name: Callback
- * @tc.desc: Verify the result of Callback function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, Callback, Function | SmallTest | Level0)
-{
-    HgmFrameRateManager mgr;
-    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
-    std::string screenStrategyId = "LTPO-test";
-    ScreenId screenId = 1;
-    int32_t mode = 1;
-
-    hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
-
-    hgmFrameVoter.DeliverVote({ "VOTER_THERMAL", OLED_60_HZ, OLED_120_HZ, 0 }, true);
-    hgmFrameVoter.DeliverVote({ "VOTER_GAMES", OLED_60_HZ, OLED_120_HZ, 0 }, true);
-    hgmFrameVoter.DeliverVote({ "VOTER_TOUCH", OLED_90_HZ, OLED_120_HZ, 0 }, true);
-
-    hgmFrameVoter.SetUpdateVoteRuleCallback([](std::vector<std::string>&) {});
-    hgmFrameVoter.SetCheckVoteCallback([](const std::string&, VoteInfo&) -> bool { return true; });
-    auto [voteInfo, voteRange] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
-    hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
-    hgmFrameVoter.SetCheckVoteCallback([](const std::string&, VoteInfo&) -> bool { return false; });
-    auto [voteInfo1, voteRange1] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
-    EXPECT_EQ(voteRange1.first, OLED_MIN_HZ);
 }
 } // namespace Rosen
 } // namespace OHOS

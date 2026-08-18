@@ -110,7 +110,7 @@ public:
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
     static void SetColorSpace(RSContext& context, NodeId nodeId, GraphicColorGamut colorSpace);
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
-    static void ConnectToNodeInRenderService(RSContext& context, NodeId id, sptr<IRemoteObject> connectToRender);
+    static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
     static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, bool isRefresh);
     static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
     static void SetIsTextureExportNode(RSContext& context, NodeId id, bool isTextureExportNode);
@@ -167,7 +167,7 @@ ADD_COMMAND(RSSurfaceNodeCreate,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CREATE,
         SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
 ADD_COMMAND(RSSurfaceNodeCreateWithConfig,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG,
         SurfaceNodeCommandHelper::CreateWithConfig, NodeId, std::string, uint8_t, enum SurfaceWindowType))
 ADD_COMMAND(RSSurfaceNodeSetContextMatrix,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
@@ -204,7 +204,7 @@ ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize,
         SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize, NodeId, float, float))
 ADD_COMMAND(RSSurfaceNodeConnectToNodeInRenderService,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
-        SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId, sptr<IRemoteObject>))
+        SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId))
 ADD_COMMAND(RSSurfaceNodeSetCallbackForRenderThreadRefresh,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
         SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh, NodeId, bool))
@@ -288,13 +288,13 @@ ADD_COMMAND(RSSurfaceNodeSetHardwareEnableHint,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_HARDWARE_ENABLE_HINT,
         SurfaceNodeCommandHelper::SetHardwareEnableHint, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeAttachToWindowContainer,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER,
         SurfaceNodeCommandHelper::AttachToWindowContainer, NodeId, ScreenId))
 ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
         SurfaceNodeCommandHelper::DetachFromWindowContainer, NodeId, ScreenId))
 ADD_COMMAND(RSSurfaceNodeSetSourceVirtualScreenId,
-    ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_SCREEN_ID,
+    ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_SCREEN_ID,
         SurfaceNodeCommandHelper::SetSourceVirtualScreenId, NodeId, ScreenId))
 ADD_COMMAND(RSSurfaceNodeSetFrameGravityNewVersionEnabled,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, SURFACE_NODE, SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED,

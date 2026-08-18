@@ -65,18 +65,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
-    auto cachedBackendTexture = RSUniRenderUtil::MakeBackendTexture(width, height);
-    auto vkTextureInfo = cachedBackendTexture.GetTextureInfo().GetVKTextureInfo();
-    VulkanCleanupHelper vulkanCleanupHelper(
-        RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
-    vulkanCleanupHelper.Ref();
-    vulkanCleanupHelper.UnRef();
 
-    NativeSurfaceInfo nativeSurfaceInfo;
+    NativeBufferUtils::NativeSurfaceInfo nativeSurfaceInfo;
     auto skContext = std::make_shared<Drawing::GPUContext>();
-    MakeFromNativeWindowBuffer(skContext, nullptr, nativeSurfaceInfo, width, height);
-    MakeBackendTextureFromNativeBuffer(nullptr, width, height);
-    DeleteVkImage(nullptr);
+    auto vkInterface = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface();
+    NativeBufferUtils::MakeFromNativeWindowBuffer(vkInterface, skContext, nullptr, nativeSurfaceInfo, width, height);
+    NativeBufferUtils::MakeBackendTextureFromNativeBuffer(vkInterface, nullptr, width, height);
+    NativeBufferUtils::DeleteVkImage(nullptr);
     return true;
 }
 } // namespace Rosen

@@ -35,12 +35,7 @@ public:
     void TearDown() override;
 };
 
-void NativeErrorCodeTest::SetUpTestCase()
-{
-#ifdef RS_ENABLE_VK
-    RsVulkanContext::SetRecyclable(false);
-#endif
-}
+void NativeErrorCodeTest::SetUpTestCase() {}
 void NativeErrorCodeTest::TearDownTestCase() {}
 void NativeErrorCodeTest::SetUp() {}
 void NativeErrorCodeTest::TearDown() {}

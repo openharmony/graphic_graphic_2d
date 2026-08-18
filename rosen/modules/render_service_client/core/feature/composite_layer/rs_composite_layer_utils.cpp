@@ -73,7 +73,11 @@ bool RSCompositeLayerUtils::CreateCompositeLayer()
     surface->SetQueueSize(COMPOSITE_SURFACE_SIZE);
     textureExport_ = std::make_shared<RSTextureExport>(rootNode_, surfaceId);
     textureExport_->DoTextureExport();
-    RSInterfaces::GetInstance().SetLayerTopForHWC(compositeNode_->GetId(), true, topLayerZOrder_);
+    if (auto rsUIContext = compositeNode_->GetRSUIContext()) {
+        if (auto renderInterface = rsUIContext->GetRSRenderInterface()) {
+            renderInterface->SetLayerTopForHWC(compositeNode_->GetId(), true, topLayerZOrder_);
+        }
+    }
     return true;
 #else
     return false;

@@ -42,7 +42,6 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_ui_render_director.h"
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
@@ -1192,7 +1191,7 @@ HWTEST_F(RSRenderNodeTest, IsNodeParentHasUIFirstCacheTest, TestSize.Level1)
     EXPECT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
 
     auto uiFirstRootNode =
-        node->uiFirstRootNodeId_ != INVALID_NODEID ? node->GetUifirstRootNode() : node->GetFirstLevelNode();
+        node->uifirstRootNodeId_ != INVALID_NODEID ? node->GetUifirstRootNode() : node->GetFirstLevelNode();
     EXPECT_TRUE(uiFirstRootNode);
 
     surfaceNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
@@ -4250,6 +4249,93 @@ HWTEST_F(RSRenderNodeTest, ForceClearFilterCacheWhenBackgroundDirty, TestSize.Le
 }
 
 /**
+ * @tc.name: HasValidModifierInOpincSplit_InvalidSlot_ReturnsFalse
+ * @tc.desc: Check HasValidModifierInOpincSplit returns false for slots other than CONTENT_STYLE and OVERLAY
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_InvalidSlot_ReturnsFalse, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::BLENDER)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::MASK)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY_NG_SHADER)));
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::BORDER)));
+}
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ValidSlot_NoModifier_ReturnsTrue
+ * @tc.desc: Check HasValidModifierInOpincSplit returns true for CONTENT_STYLE and OVERLAY slots
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ValidSlot_NoModifier_ReturnsTrue, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY)));
+}
+/**
+ * @tc.name: HasValidModifierInOpincSplit_AllOtherSlots_ReturnsFalse
+ * @tc.desc: Verify all other slots return false
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_AllOtherSlots_ReturnsFalse, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        if (i != static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE) &&
+            i != static_cast<int8_t>(RSDrawableSlot::OVERLAY)) {
+            EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(i));
+        }
+    }
+}
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyleSlot_ReturnsTrue
+ * @tc.desc: Check CONTENT_STYLE slot returns true
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyleSlot_ReturnsTrue, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+/**
+ * @tc.name: HasValidModifierInOpincSplit_OverlaySlot_ReturnsTrue
+ * @tc.desc: Check OVERLAY slot returns true
+ * @tc.type: FUNC
+ * @tc.require: issueI00000
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_OverlaySlot_ReturnsTrue, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY)));
+}
+
+/**
  * @tc.name: ForceClearForegroundFilterCacheWhenDirty
  * @tc.desc: Test function CheckBlurFilterCacheNeedForceClearOrSave
  * @tc.type: FUNC
@@ -4464,38 +4550,6 @@ HWTEST_F(RSRenderNodeTest, RepaintBoundary, TestSize.Level1)
     ASSERT_EQ(renderNode->IsRepaintBoundary(), true);
 }
 
-/*
- * @tc.name: IsUIRenderDirectorStopped
- * @tc.desc: Test IsUIRenderDirectorStopped returns true only when the context director is in STOP state
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, IsUIRenderDirectorStopped, TestSize.Level1)
-{
-    constexpr pid_t pid = 600;
-    constexpr uint64_t token = 601;
-    constexpr NodeId nodeId = MakeNodeId(pid, 0);
-    auto renderNode = std::make_shared<RSRenderNode>(nodeId);
-    ASSERT_NE(renderNode, nullptr);
-
-    // no context injected
-    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
-
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    renderNode->OnRegister(context);
-    // no director created yet
-    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
-
-    renderNode->SetUIContextToken(token);
-    context->CreateUIRenderDirector(pid, token);
-    auto director = context->GetUIRenderDirector(pid, token);
-    ASSERT_NE(director, nullptr);
-    // director is not in STOP state
-    EXPECT_FALSE(renderNode->IsUIRenderDirectorStopped());
-
-    director->OnStateSync(RSUIDirectorLifecycleState::STOP);
-    EXPECT_TRUE(renderNode->IsUIRenderDirectorStopped());
-}
-
 #ifdef SUBTREE_PARALLEL_ENABLE
 /*
  * @tc.name: UpdateSubTreeParallelNodes
@@ -4573,9 +4627,8 @@ HWTEST_F(RSRenderNodeTest, GetHDRBrightness, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
 
-    SimpleDrawCmdListPtr drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    property->GetRef() = 0.0f;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
         ModifierNG::RSModifierType::HDR_BRIGHTNESS, property, id, ModifierNG::RSPropertyType::HDR_BRIGHTNESS);
@@ -5055,6 +5108,22 @@ HWTEST_F(RSRenderNodeTest, SetChildHasVisibleFlagsWithStagingParams, TestSize.Le
 }
 
 /**
+ * @tc.name: ChildHasSpatialEffect001
+ * @tc.desc: test SetChildHasSpatialEffect and ChildHasSpatialEffect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, ChildHasSpatialEffect001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    EXPECT_FALSE(node.ChildHasSpatialEffect());
+    node.SetChildHasSpatialEffect(true);
+    EXPECT_TRUE(node.ChildHasSpatialEffect());
+    node.SetChildHasSpatialEffect(false);
+    EXPECT_FALSE(node.ChildHasSpatialEffect());
+}
+
+/**
  * @tc.name: MarkAccessibilityConfigChangedTest
  * @tc.desc: Verify MarkAccessibilityConfigChanged inserts/removes node from static set
  * @tc.type: FUNC
@@ -5384,6 +5453,294 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterRenderContextInSkippedSubTree003, TestSiz
     EXPECT_EQ(filterContext.absMatrix.Get(0), identityMatrix.Get(0));
 }
 
+
+/**
+ * @tc.name: IsPureBackgroundColor_OpincSplitTrue_NonPureSlotNoModifier
+ * @tc.desc: Test IsPureBackgroundColor with isOpincSplit=true and a non-pure slot that has no modifier
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsPureBackgroundColor_OpincSplitTrue_NonPureSlotNoModifier, TestSize.Level1)
+{
+    // Test Case: isOpincSplit=true, CONTENT_STYLE slot exist (not in pure set),
+    //            HasValidModifierInOpincSplit returns true (no modifier) → continue on line 173
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
+    for (auto i = static_cast<int8_t>(RSDrawableSlot::SAVE_ALL);
+         i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        drawableVec[i] = nullptr;
+    }
+    // Set CONTENT_STYLE slot (not in pureBackgroundColorSlots) with a drawable
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
+    // No modifiers set → HasValidModifierInOpincSplit returns true → continue is hit
+    bool result = rsRenderNode->IsPureBackgroundColor(true);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsPureBackgroundColor_OpincSplitTrue_NonPureSlotWithoutModifier
+ * @tc.desc: Test IsPureBackgroundColor with isOpincSplit=true and OVERLAY slot (not in pure set)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsPureBackgroundColor_OpincSplitTrue_NonPureSlotWithoutModifier, TestSize.Level1)
+{
+    // Test Case: isOpincSplit=true, OVERLAY slot exist (not in pure set),
+    //            HasValidModifierInOpincSplit returns true (no modifier) → continue
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
+    for (auto i = static_cast<int8_t>(RSDrawableSlot::SAVE_ALL);
+         i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        drawableVec[i] = nullptr;
+    }
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::OVERLAY)] = std::make_shared<DrawableTest>();
+    bool result = rsRenderNode->IsPureBackgroundColor(true);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotClipRect
+ * @tc.desc: Test HasValidModifierInOpincSplit with CONTENT_STYLE slot having modifier with CLIP_RECT opitem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotClipRect, TestSize.Level1)
+{
+    // Test Case: slot=CONTENT_STYLE, GetModifiersNG returns non-empty,
+    //            drawOpItems has single CLIP_RECT → returns true (valid for opinc)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::Rect rect(0, 0, 100, 100);
+    auto clipRectOpItem = std::make_shared<Drawing::ClipRectOpItem>(rect, Drawing::ClipOp::INTERSECT, false);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { clipRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotNonClipRect
+ * @tc.desc: Test HasValidModifierInOpincSplit with CONTENT_STYLE slot having modifier with non-CLIP_RECT opitem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotNonClipRect, TestSize.Level1)
+{
+    // Test Case: slot=CONTENT_STYLE, GetModifiersNG returns non-empty,
+    //            drawOpItems has single non-CLIP_RECT → returns false
+    // Also need OVERLAY_STYLE to return false (both sides of || must be false)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::Rect rect(0, 0, 100, 100);
+    Drawing::Paint paint;
+    auto drawRectOpItem = std::make_shared<Drawing::DrawRectOpItem>(rect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { drawRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    // Also add OVERLAY_STYLE modifier with non-ROUND_RECT to avoid short-circuit OR returning true
+    auto drawCmdListOverlay = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto propertyOverlay = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdListOverlay, 0);
+    auto modifierOverlay =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifierOverlay->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, propertyOverlay);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiersOverlay = { modifierOverlay };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiersOverlay);
+
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_Overlay_NonEmptySlotRoundRect
+ * @tc.desc: Test HasValidModifierInOpincSplit with OVERLAY slot having modifier with ROUND_RECT opitem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_Overlay_NonEmptySlotRoundRect, TestSize.Level1)
+{
+    // Test Case: slot=OVERLAY, GetModifiersNG returns non-empty,
+    //            drawOpItems has single ROUND_RECT → returns true (valid for opinc)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::RoundRect rrect(Drawing::Rect(0, 0, 100, 100), 10, 10);
+    Drawing::Paint paint;
+    auto roundRectOpItem = std::make_shared<Drawing::DrawRoundRectOpItem>(rrect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { roundRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiers);
+
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY)));
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_Overlay_NonEmptySlotNonRoundRect
+ * @tc.desc: Test HasValidModifierInOpincSplit with OVERLAY slot having modifier with non-ROUND_RECT opitem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_Overlay_NonEmptySlotNonRoundRect, TestSize.Level1)
+{
+    // Test Case: slot=OVERLAY, GetModifiersNG returns non-empty,
+    //            drawOpItems has single non-ROUND_RECT → returns false
+    // Also need CONTENT_STYLE to return false (both sides of || must be false)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::Rect rect(0, 0, 100, 100);
+    Drawing::Paint paint;
+    auto drawRectOpItem = std::make_shared<Drawing::DrawRectOpItem>(rect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { drawRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiers);
+
+    // Also add CONTENT_STYLE modifier with non-CLIP_RECT to avoid short-circuit OR returning true
+    auto drawCmdListContent = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto propertyContent = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdListContent, 0);
+    auto modifierContent =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifierContent->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, propertyContent);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiersContent = { modifierContent };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiersContent);
+
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::OVERLAY)));
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotMultipleOpItems
+ * @tc.desc: Test HasValidModifierInOpincSplit with CONTENT_STYLE slot having modifier with multiple opitems
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyle_NonEmptySlotMultipleOpItems, TestSize.Level1)
+{
+    // Test Case: slot=CONTENT_STYLE, GetModifiersNG returns non-empty,
+    //            drawOpItems.size() > 1 (even if one is CLIP_RECT) → returns false
+    // Also need OVERLAY_STYLE to return false (both sides of || must be false)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    Drawing::Rect rect(0, 0, 100, 100);
+    Drawing::Paint paint;
+    auto clipRectOpItem = std::make_shared<Drawing::ClipRectOpItem>(rect, Drawing::ClipOp::INTERSECT, false);
+    auto drawRectOpItem = std::make_shared<Drawing::DrawRectOpItem>(rect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { clipRectOpItem, drawRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    // Also add OVERLAY_STYLE modifier with non-ROUND_RECT to avoid short-circuit OR returning true
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItemsOverlay = { drawRectOpItem };
+    auto drawCmdListOverlay = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItemsOverlay);
+    auto propertyOverlay = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdListOverlay, 0);
+    auto modifierOverlay =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifierOverlay->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, propertyOverlay);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiersOverlay = { modifierOverlay };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiersOverlay);
+
+    EXPECT_FALSE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+
+/**
+ * @tc.name: IsPureBackgroundColor_OpincSplitTrue_NonPureSlotWithModifierInvalid
+ * @tc.desc: Test IsPureBackgroundColor with isOpincSplit=true, CONTENT_STYLE slot with modifier that has
+ *            non-CLIP_RECT opitem → HasValidModifierInOpincSplit returns false → return false from line 175
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsPureBackgroundColor_OpincSplitTrue_NonPureSlotWithModifierInvalid, TestSize.Level1)
+{
+    // Test Case: isOpincSplit=true, CONTENT_STYLE slot with drawable,
+    //            HasValidModifierInOpincSplit returns false (modifier has non-CLIP_RECT opitem)
+    //            → return false from line 175
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
+    for (auto i = static_cast<int8_t>(RSDrawableSlot::SAVE_ALL);
+         i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        drawableVec[i] = nullptr;
+    }
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
+
+    // Add modifier with non-CLIP_RECT draw op → CheckModifier(CONTENT_STYLE, CLIP_RECT) returns false
+    Drawing::Rect rect(0, 0, 100, 100);
+    Drawing::Paint paint;
+    auto drawRectOpItem = std::make_shared<Drawing::DrawRectOpItem>(rect, paint);
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems = { drawRectOpItem };
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    // Also need OVERLAY_STYLE to return false (both sides of || must be false)
+    auto drawCmdListOverlay = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+    auto propertyOverlay = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdListOverlay, 0);
+    auto modifierOverlay =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::OVERLAY_STYLE>>();
+    modifierOverlay->AttachProperty(ModifierNG::RSPropertyType::OVERLAY_STYLE, propertyOverlay);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiersOverlay = { modifierOverlay };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::OVERLAY_STYLE, modifiersOverlay);
+
+    bool result = rsRenderNode->IsPureBackgroundColor(true);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: HasValidModifierInOpincSplit_ContentStyle_EmptyDrawOpItems
+ * @tc.desc: Test HasValidModifierInOpincSplit with CONTENT_STYLE slot having modifier with empty drawOpItems
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasValidModifierInOpincSplit_ContentStyle_EmptyDrawOpItems, TestSize.Level1)
+{
+    // Test Case: slot=CONTENT_STYLE, GetModifiersNG returns non-empty,
+    //            drawOpItems is empty → returns true (drawOpItems.empty() path)
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmdList, 0);
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>> modifiers = { modifier };
+    rsRenderNode->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
+
+    EXPECT_TRUE(rsRenderNode->HasValidModifierInOpincSplit(
+        static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)));
+}
+
 /**
  * @tc.name: GetDrawableVecTest001
  * @tc.desc: Test GetDrawableVec lazy initialization and reference stability
@@ -5480,6 +5837,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest002, TestSize.Level1)
 
     // SHADOW(7)≤MATERIAL_SHADER, BG_COLOR(14)≤CONTENT_STYLE, CONTENT_STYLE(28)→contentIndex_!=-1,
     // CHILDREN(29)>CONTENT_STYLE, FG_COLOR(39) unmapped+>RESTORE_FRAME, RESTORE_ALL(51)>RESTORE_BLENDER
+    vec[static_cast<int8_t>(RSDrawableSlot::MASK)] = std::make_shared<DrawableTest>();
     vec[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = std::make_shared<DrawableTest>();
     vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
     vec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
@@ -5489,6 +5847,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest002, TestSize.Level1)
 
     node->UpdateDisplayListExt();
     EXPECT_FALSE(node->stagingDrawCmdList_.empty());
+    EXPECT_NE(node->stagingDrawCmdIndex_.maskIndex_, -1);
     EXPECT_GT(node->stagingDrawCmdIndex_.renderGroupBeginIndex_, 0);
     EXPECT_EQ(node->stagingDrawCmdIndex_.contentIndex_,
         node->stagingDrawCmdIndex_.backgroundEndIndex_);
@@ -5542,6 +5901,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest004, TestSize.Level1)
         auto params = std::make_unique<RSRenderParams>(node->GetId());
         node->stagingRenderParams_ = std::move(params);
         node->drawableVecStatus_ = status;
+        vec[static_cast<int8_t>(RSDrawableSlot::MASK)] = std::make_shared<DrawableTest>();
         vec[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = std::make_shared<DrawableTest>();
         vec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)] = std::make_shared<DrawableTest>();
         vec[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] = std::make_shared<DrawableTest>();
@@ -5549,6 +5909,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDisplayListExtTest004, TestSize.Level1)
         vec[static_cast<int8_t>(RSDrawableSlot::RESTORE_ALL)] = std::make_shared<DrawableTest>();
     };
     auto assertIndexEqual = [](const DrawCmdIndex& a, const DrawCmdIndex& b) {
+        EXPECT_EQ(a.maskIndex_, b.maskIndex_);
         EXPECT_EQ(a.transitionIndex_, b.transitionIndex_);
         EXPECT_EQ(a.shadowIndex_, b.shadowIndex_);
         EXPECT_EQ(a.backgroundColorIndex_, b.backgroundColorIndex_);

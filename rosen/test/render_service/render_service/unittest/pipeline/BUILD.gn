@@ -65,6 +65,7 @@ group("unittest") {
     ":RSOpincLayerSplitterProcessorTest",
     ":RSSplitSurfaceTest",
     ":RSCanvasDrawingNodeBufferConsumerListenerTest",
+    ":RSSurfacePermissionTest",
   ]
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [ ":RSRenderTaskTest" ]
@@ -966,6 +967,11 @@ ohos_unittest("RSMainThreadProfilerTest") {
 ## Build RSRenderTaskTest
 ohos_unittest("RSRenderTaskTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [ "parallel_render/rs_render_task_test.cpp" ]
   deps = [
     ":rs_test_common",
@@ -1359,6 +1365,11 @@ ohos_unittest("RSUniHwcVisitorTest") {
     "hwc/rs_uni_hwc_visitor_test.cpp",
     "mock/mock_matrix.cpp",
   ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -1429,7 +1440,7 @@ ohos_unittest("RSLayerSplitManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
-
+ 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
@@ -1446,14 +1457,14 @@ ohos_unittest("RSLayerSplitManagerTest") {
     "init:libbegetutil",
   ]
   defines += gpu_defines
-
+ 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
       external_deps += [ "sensor:sensor_interface_native" ]
   }
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
-
+ 
   cflags = [
     "-Wall",
     "-Werror",
@@ -1476,7 +1487,7 @@ ohos_unittest("RSOpincSplitNodeSelectorTest") {
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
-
+ 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
@@ -1493,14 +1504,14 @@ ohos_unittest("RSOpincSplitNodeSelectorTest") {
     "init:libbegetutil",
   ]
   defines += gpu_defines
-
+ 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
       external_deps += [ "sensor:sensor_interface_native" ]
   }
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
-
+ 
   cflags = [
     "-Wall",
     "-Werror",
@@ -1511,7 +1522,7 @@ ohos_unittest("RSOpincSplitNodeSelectorTest") {
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
-
+ 
 ## Build RSOpincLayerSplitterPlannerTest
 ohos_unittest("RSOpincLayerSplitterPlannerTest") {
   module_out_path = module_output_path
@@ -1604,6 +1615,10 @@ ohos_unittest("RSLayerSplitSurfaceBufferTest") {
   sources = [
     "layer_split/rs_layer_split_surface_buffer_test.cpp",
   ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -1675,6 +1690,24 @@ ohos_unittest("RSCanvasDrawingNodeBufferConsumerListenerTest") {
       "main_thread/rs_canvas_drawing_node_buffer_consumer_listener_test.cpp",
     ]
     defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
+  }
+}
+
+## Build RSSurfacePermissionTest
+ohos_unittest("RSSurfacePermissionTest") {
+  module_out_path = module_output_path
+  sources = [
+    "main_thread/rs_surface_permission_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
   }
 }
 

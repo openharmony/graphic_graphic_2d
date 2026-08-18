@@ -336,7 +336,7 @@ ScreenInfo RSScreenProperty::GetScreenInfo() const
 #define UNMARSHALL_CASE(ENUM_TYPE)                                                                      \
     case ENUM_TYPE: {                                                                                   \
         using T = PropertyTypeMapper<ENUM_TYPE>::value_type;                                            \
-        property = sptr<ScreenProperty<T>>(ScreenProperty<T>::Unmarshalling(data));                \
+        property = sptr<ScreenProperty<T>>(ScreenProperty<T>::Unmarshalling(data));                     \
         if (!property) {                                                                                \
             RS_LOGE("%{public}s failed, type: %{public}u", __func__, static_cast<uint32_t>(ENUM_TYPE)); \
             return false;                                                                               \
@@ -396,7 +396,7 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
 bool RSScreenProperty::Marshalling(Parcel& data) const
 {
     if (!data.WriteUint32(static_cast<uint32_t>(screenProperties_.size()))) {
-        RS_LOGE("fdafs");
+        RS_LOGE("%{public}s write size failed", __func__);
         return false;
     }
     for (const auto& [type, prop] : screenProperties_) {

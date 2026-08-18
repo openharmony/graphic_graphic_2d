@@ -192,6 +192,10 @@ bool RSHpaeOfflineDevice::IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRender
             offlineDeviceEnable);
         return false;
     }
+    if (surfaceNode == nullptr) {
+        RS_OFFLINE_LOGW("surface node is null.");
+        return false;
+    }
     if (!loadSuccess_) {
         RS_OFFLINE_LOGW("hpae so is not loaded.");
         return false;
@@ -236,13 +240,6 @@ bool RSHpaeOfflineDevice::IsOfflineDeviceEnable(std::shared_ptr<RSHpaeOfflineCon
     if (RSHeteroHDRManager::Instance().GetNeedClearBufferAndMHC()) {
         RSHeteroHDRManager::Instance().SetHeteroEnable(false);
         RS_OFFLINE_LOGD("hetero can`t clear buffer, (node: %{public}" PRIu64 ").", context->nodeId);
-        return false;
-    }
-    if (context->heteroEnableFrames < MAX_HETERO_ENABLE_FRAME) {
-        RSHeteroHDRManager::Instance().SetHeteroEnable(false);
-        RS_OFFLINE_LOGD("disable offline process, validFrames: %{public}zu, (node: %{public}" PRIu64 ").",
-            context->heteroEnableFrames.load(), context->nodeId);
-        context->heteroEnableFrames++;
         return false;
     }
     RSHeteroHDRManager::Instance().SetHeteroEnable(true);

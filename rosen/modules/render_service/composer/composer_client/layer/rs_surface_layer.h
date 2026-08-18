@@ -196,10 +196,10 @@ private:
     void SetRSLayerCmd(const T& value);
     // rs layer pipeline info
     std::weak_ptr<RSComposerContext> rsComposerContext_;
-    RSLayerId rsLayerId_ = 0;
     bool isNeedComposition_ = false;
 
     // rs layer property info
+    RSLayerId rsLayerId_ = 0;
     int32_t zOrder_ = 0;
     GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     GraphicIRect layerRect_ = {0};

@@ -469,4 +469,64 @@ HWTEST_F(TvMetadataTest, SetUniRenderThreadParam_001, TestSize.Level1)
     ASSERT_EQ(1, renderThreadParams->cachedSurfaceNodeId_);
     ASSERT_EQ(true, renderThreadParams->cachedSurfaceNodeOnTheTree_);
 }
+
+/**
+ * @tc.name: SetVideoDimType_001
+ * @tc.desc: Test SetVideoDimType with different values
+ * @tc.type: FUNC
+ */
+HWTEST_F(TvMetadataTest, SetVideoDimType_001, TestSize.Level1)
+{
+    RSTvMetadataManager::Instance().Reset();
+    TvPQMetadata metadata = { 0 };
+    metadata.sceneTag = 1;
+    RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
+    auto rsSurface = CreateRsSurfaceOhos();
+    ASSERT_NE(rsSurface, nullptr);
+
+    RSTvMetadataManager::SetVideoDimType(1);
+    RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
+    RSTvMetadataManager::Instance().CopyTvMetadataToSurface(rsSurface);
+    auto outBuffer = rsSurface->GetCurrentBuffer();
+    ASSERT_NE(outBuffer, nullptr);
+    TvPQMetadata tvMetadata = { 0 };
+    MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
+    EXPECT_EQ(tvMetadata.reserved[2], 1U);
+
+    RSTvMetadataManager::SetVideoDimType(2);
+    RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
+    RSTvMetadataManager::Instance().CopyTvMetadataToSurface(rsSurface);
+    MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
+    EXPECT_EQ(tvMetadata.reserved[2], 2U);
+}
+
+/**
+ * @tc.name: SetVideoDimType_002
+ * @tc.desc: Test SetVideoDimType with different VideoDimType values
+ * @tc.type: FUNC
+ */
+HWTEST_F(TvMetadataTest, SetVideoDimType_002, TestSize.Level1)
+{
+    RSTvMetadataManager::Instance().Reset();
+    TvPQMetadata metadata = { 0 };
+    metadata.sceneTag = 1;
+    RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
+    auto rsSurface = CreateRsSurfaceOhos();
+    ASSERT_NE(rsSurface, nullptr);
+    auto outBuffer = rsSurface->GetCurrentBuffer();
+    ASSERT_NE(outBuffer, nullptr);
+    TvPQMetadata tvMetadata = { 0 };
+
+    RSTvMetadataManager::SetVideoDimType(static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_SBS));
+    RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
+    RSTvMetadataManager::Instance().CopyTvMetadataToSurface(rsSurface);
+    MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
+    EXPECT_EQ(tvMetadata.reserved[2], static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_SBS));
+
+    RSTvMetadataManager::SetVideoDimType(static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_TAB));
+    RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
+    RSTvMetadataManager::Instance().CopyTvMetadataToSurface(rsSurface);
+    MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
+    EXPECT_EQ(tvMetadata.reserved[2], static_cast<uint32_t>(VideoDimType::VIDEO_DIM_TYPE_3D_TAB));
+}
 }

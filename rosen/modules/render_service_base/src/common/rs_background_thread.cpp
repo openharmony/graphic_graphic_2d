@@ -84,6 +84,11 @@ std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::GetShareGPUContext() co
     return gpuContext_;
 }
 
+std::shared_ptr<RenderContext> RSBackgroundThread::GetRenderContext() const
+{
+    return renderContext_;
+}
+
 void RSBackgroundThread::HoldSurface(std::shared_ptr<Drawing::Surface> surface)
 {
     surfaceHolder_ = surface;
@@ -92,37 +97,13 @@ void RSBackgroundThread::HoldSurface(std::shared_ptr<Drawing::Surface> surface)
 std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
 {
     RS_TRACE_NAME("CreateShareGrContext");
-#ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::IsUseVulkan()) {
-        auto gpuContext = std::make_shared<Drawing::GPUContext>();
-        if (gpuContext == nullptr) {
-            RS_LOGE("BuildFromVK fail");
-            return nullptr;
-        }
-        renderContext_->CreateShareContext();
-
-        Drawing::GPUContextOptions options = {};
-        auto handler = std::make_shared<MemoryHandler>();
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size);
-        if (!gpuContext->BuildFromGL(options)) {
-            RS_LOGE("BuildFromGL fail");
-            return nullptr;
-        }
-        return gpuContext;
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+    gpuContext_ = renderContext_->CreateDrawingGPUContext();
+    if (gpuContext_ == nullptr) {
+        RS_LOGE("CreateShareGPUContext fail");
+        return nullptr;
     }
-#endif
-
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        auto gpuContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        if (gpuContext == nullptr) {
-            RS_LOGE("BuildFromVK fail");
-            return nullptr;
-        }
-        return gpuContext;
-    }
+    return gpuContext_;
 #endif
     return nullptr;
 }

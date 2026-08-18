@@ -34,6 +34,7 @@
 #include "render/rs_pixel_map_util.h"
 #include "rs_render_surface_rcd_layer.h"
 #include "engine/rs_uni_render_engine.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "surface_buffer_impl.h"
 #include "rs_test_util.h"
 
@@ -48,7 +49,33 @@ public:
 };
 
 inline void RSRoundCornerDisplayTest::SetUpTestCase() {}
-inline void RSRoundCornerDisplayTest::TearDownTestCase() {}
+inline void RSRoundCornerDisplayTest::TearDownTestCase()
+{
+    auto& mainThread = *RSMainThread::Instance();
+    if (mainThread.renderEngine_) {
+        if (mainThread.renderEngine_->renderContext_) {
+            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
+            mainThread.renderEngine_->renderContext_ = nullptr;
+        }
+        if (mainThread.renderEngine_->protectedRenderContext_) {
+            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
+        mainThread.renderEngine_ = nullptr;
+    }
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (rtThread.uniRenderEngine_) {
+        if (rtThread.uniRenderEngine_->renderContext_) {
+            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
+            rtThread.uniRenderEngine_->renderContext_ = nullptr;
+        }
+        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
+            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
+        }
+        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread.uniRenderEngine_ = nullptr;
+    }
+}
 inline void RSRoundCornerDisplayTest::SetUp() {}
 inline void RSRoundCornerDisplayTest::TearDown() {}
 

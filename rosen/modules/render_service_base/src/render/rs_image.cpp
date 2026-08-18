@@ -518,11 +518,6 @@ void RSImage::SetFitMatrix(const Drawing::Matrix& matrix)
     fitMatrix_ = matrix;
 }
 
-Drawing::Matrix RSImage::GetFitMatrix() const
-{
-    return fitMatrix_.value();
-}
-
 void RSImage::SetOrientationFit(int orientationFitNum)
 {
     orientationFit_ = static_cast<OrientationFit>(orientationFitNum);
@@ -847,6 +842,10 @@ void RSImage::SetImageRepeat(int repeatNum)
 void RSImage::SetRadius(const std::vector<Drawing::Point>& radius)
 {
     hasRadius_ = false;
+    if (radius.size() < CORNER_SIZE) {
+        RS_LOGE("RSImage::SetRadius radius size invalid, size=%{public}zu", radius.size());
+        return;
+    }
     for (auto i = 0; i < CORNER_SIZE; i++) {
         radius_[i] = radius[i];
         hasRadius_ = hasRadius_ || !radius_[i].IsZero();

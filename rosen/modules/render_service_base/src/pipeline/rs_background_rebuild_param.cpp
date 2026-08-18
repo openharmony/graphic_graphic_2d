@@ -34,5 +34,15 @@ bool RSBackgroundRebuildParam::IsBackgroundRebuildEnabled() const
     return isBackgroundRebuildEnabled_;
 }
 
+void RSBackgroundRebuildParam::SetGoStopNodeMapMode(GoStopNodeMapMode mode)
+{
+    goStopNodeMapMode_ = mode;
+}
+
+GoStopNodeMapMode RSBackgroundRebuildParam::GetGoStopNodeMapMode() const
+{
+    return goStopNodeMapMode_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

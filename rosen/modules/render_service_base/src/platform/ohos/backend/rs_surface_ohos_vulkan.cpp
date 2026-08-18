@@ -113,39 +113,6 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
     NativeWindowHandleOpt(mNativeWindow, SET_TIMEOUT, timeOut_);
 }
 
-void RSSurfaceOhosVulkan::CreateVkSemaphore(
-    VkSemaphore& semaphore, RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface)
-{
-    VkSemaphoreCreateInfo semaphoreInfo;
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    semaphoreInfo.pNext = nullptr;
-    semaphoreInfo.flags = 0;
-    auto& vkInterface = vkContext.GetRsVulkanInterface();
-    auto res = vkInterface.vkCreateSemaphore(vkInterface.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
-    if (res != VK_SUCCESS) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan: CreateVkSemaphore vkCreateSemaphore failed %{public}d", res);
-        semaphore = VK_NULL_HANDLE;
-        nativeSurface.fence->Wait(-1);
-        return;
-    }
-
-    VkImportSemaphoreFdInfoKHR importSemaphoreFdInfo;
-    importSemaphoreFdInfo.sType = VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR;
-    importSemaphoreFdInfo.pNext = nullptr;
-    importSemaphoreFdInfo.semaphore = semaphore;
-    importSemaphoreFdInfo.flags = VK_SEMAPHORE_IMPORT_TEMPORARY_BIT;
-    importSemaphoreFdInfo.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
-    importSemaphoreFdInfo.fd = nativeSurface.fence->Dup();
-    res = vkInterface.vkImportSemaphoreFdKHR(vkInterface.GetDevice(), &importSemaphoreFdInfo);
-    if (res != VK_SUCCESS) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan: CreateVkSemaphore vkImportSemaphoreFdKHR failed %{public}d", res);
-        vkInterface.vkDestroySemaphore(vkInterface.GetDevice(), semaphore, nullptr);
-        semaphore = VK_NULL_HANDLE;
-        close(importSemaphoreFdInfo.fd);
-        nativeSurface.fence->Wait(-1);
-    }
-}
-
 int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer,
     int32_t width, int32_t height, int& fenceFd, bool useAFBC, bool isProtected)
 {
@@ -233,7 +200,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
     }
 
-    if (!mSkContext) {
+    if (!renderContext_) {
         ROSEN_LOGE("RSSurfaceOhosVulkan: skia context is nullptr");
         return nullptr;
     }
@@ -274,12 +241,13 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 #ifdef RS_ENABLE_PREFETCH
     __builtin_prefetch(&(nativeSurface.lastPresentedCount), 0, 1);
 #endif
+    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
     if (nativeSurface.drawingSurface == nullptr) {
         NativeObjectReference(mNativeWindow);
         nativeSurface.window = mNativeWindow;
         nativeSurface.graphicColorGamut = colorSpace_;
-        if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
-            mSkContext, nativeWindowBuffer, nativeSurface, width, height, isProtected)
+        if (!NativeBufferUtils::MakeFromNativeWindowBuffer(vkInterface,
+            renderContext_->GetSharedDrGPUContext(), nativeWindowBuffer, nativeSurface, width, height, isProtected)
             || !nativeSurface.drawingSurface) {
             ROSEN_LOGE("RSSurfaceOhosVulkan: skSurface is null, return");
             mSurfaceList.pop_back();
@@ -301,9 +269,8 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         nativeSurface.fence = std::make_unique<SyncFence>(fenceFd);
         auto status = nativeSurface.fence->GetStatus();
         if (status != SIGNALED) {
-            auto& vkContext = RsVulkanContext::GetSingleton();
             VkSemaphore semaphore = VK_NULL_HANDLE;
-            CreateVkSemaphore(semaphore, vkContext, nativeSurface);
+            NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore, nativeSurface);
             if (semaphore != VK_NULL_HANDLE) {
                 nativeSurface.drawingSurface->Wait(1, semaphore);
             }
@@ -318,7 +285,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     std::unique_ptr<RSSurfaceFrameOhosVulkan> frame =
         std::make_unique<RSSurfaceFrameOhosVulkan>(nativeSurface.drawingSurface, width, height, bufferAge);
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
-    mSkContext->BeginFrame();
+    renderContext_->GetSharedDrGPUContext()->BeginFrame();
     return ret;
 }
 
@@ -341,7 +308,7 @@ bool RSSurfaceOhosVulkan::NeedSubmitWithFFTS()
 }
 
 int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskName,
-    std::shared_ptr<VkSemaphore>& semaNotifyFfts, VkSemaphore& semaWaitFfts)
+    std::shared_ptr<VkSemaphore>& semaNotifyFfts, VkSemaphore& semaWaitFfts, VkDevice vkDevice)
 {
     HPAE_LOGD("GetFftsSemaphore. taskName:=%d, frameId=%lu", taskName, frameId);
 
@@ -356,9 +323,7 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
     }
 
     HPAE_LOGD("mhc_so: taskName:%{public}d, waitevent:%{public}u, notifyevent:%{public}u,"
-         "frameId=%{public}" PRIu64 "\n", taskName, eventId[0], eventId[1], frameId);
-
-    VkDevice vkDevice = RsVulkanContext::GetSingleton().GetDevice();
+        "frameId=%{public}" PRIu64 "\n", taskName, eventId[0], eventId[1], frameId);
 
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -463,11 +428,12 @@ void RSSurfaceOhosVulkan::SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& 
     std::vector<GrBackendSemaphore>& semphoreVec, NativeBufferUtils::NativeSurfaceInfo& surface)
 {
     int ret = -1;
+    VkDevice vkDevice = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface()->GetDevice();
     if (preFrameId > 0) {
         std::shared_ptr<VkSemaphore> preNotifySemaphore;
         VkSemaphore preWaitSemaphore;
-
-        ret = GetFftsSemaphore(preFrameId, MHC_PatternTaskName::BLUR_GPU1, preNotifySemaphore, preWaitSemaphore);
+        ret = GetFftsSemaphore(preFrameId, MHC_PatternTaskName::BLUR_GPU1,
+            preNotifySemaphore, preWaitSemaphore, vkDevice);
         if (ret != -1) {
 #ifdef USE_M133_SKIA
             GrBackendSemaphore htsSemaphore = GrBackendSemaphores::MakeVk(*preNotifySemaphore);
@@ -485,7 +451,7 @@ void RSSurfaceOhosVulkan::SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& 
     if (curFrameId > 0) {
         std::shared_ptr<VkSemaphore> notifySemaphore;
         VkSemaphore waitSemaphore;
-        ret = GetFftsSemaphore(curFrameId, MHC_PatternTaskName::BLUR_GPU0, notifySemaphore, waitSemaphore);
+        ret = GetFftsSemaphore(curFrameId, MHC_PatternTaskName::BLUR_GPU0, notifySemaphore, waitSemaphore, vkDevice);
         if (ret != -1) {
 #ifdef USE_M133_SKIA
             GrBackendSemaphore htsSemaphore = GrBackendSemaphores::MakeVk(*notifySemaphore);
@@ -574,11 +540,10 @@ bool RSSurfaceOhosVulkan::FlushGpu(std::unique_ptr<RSSurfaceFrame>& frame, uint6
     auto& surface = mSurfaceMap[mSurfaceList.front()];
 
 #ifdef RS_ENABLE_PREFETCH
-    __builtin_prefetch(&mSkContext, 0, 1);
+    __builtin_prefetch(renderContext_->GetDrGPUContext(), 0, 1);
 #endif
-    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-
-    VkSemaphore semaphore = vkContext.RequireSemaphore();
+    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
+    VkSemaphore semaphore = vkInterface->RequireSemaphore();
 
 #ifdef USE_M133_SKIA
     GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
@@ -587,19 +552,20 @@ bool RSSurfaceOhosVulkan::FlushGpu(std::unique_ptr<RSSurfaceFrame>& frame, uint6
     backendSemaphore.initVulkan(semaphore);
 #endif
 
-    RSTagTracker tagTracker(mSkContext, RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
+    RSTagTracker tagTracker(renderContext_->GetSharedDrGPUContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 
-    auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
+    auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkInterface, semaphore, -1);
 
     std::vector<GrBackendSemaphore> semaphoreVec = { backendSemaphore };
 #ifdef HETERO_HDR_ENABLE
-    flushState_.hdrFrameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
+    flushState_.hdrFrameIdVec =
+        RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask(vkInterface->GetInterfaceType());
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(
         semaphoreVec, surface.drawingSurface, flushState_.hdrFrameIdVec);
 #endif
 
 #ifdef MHC_ENABLE
-    flushState_.mhcPendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(
+    flushState_.mhcPendingSubmit = RSMhcManager::Instance().PrepareGraphAndSemaphore(vkInterface,
         semaphoreVec, surface.drawingSurface);
 #endif
 
@@ -652,8 +618,8 @@ bool RSSurfaceOhosVulkan::SubmitGpu(std::unique_ptr<RSSurfaceFrame>& frame, uint
     {
         RS_TRACE_NAME("Submit");
         RSTimer timer("Submit", 50); // 50ms
-        mSkContext->Submit();
-        mSkContext->EndFrame();
+        renderContext_->GetSharedDrGPUContext()->Submit();
+        renderContext_->GetSharedDrGPUContext()->EndFrame();
     }
 
     return true;
@@ -687,19 +653,19 @@ bool RSSurfaceOhosVulkan::FlushBuffer(std::unique_ptr<RSSurfaceFrame>& frame, ui
     }
     auto& surface = surfaceIt->second;
     auto* callbackInfo = flushState_.callbackInfo;
-    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
 
     int fenceFd = -1;
     if (mReservedFlushFd != -1) {
         fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
     }
-    auto queue = vkContext.GetQueue();
-    auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
+    auto queue = vkInterface->GetQueue();
+    auto err = vkInterface->QueueSignalReleaseImageOHOS(
         queue, 1, &flushState_.semaphore, surface.image, &fenceFd);
     if (err != VK_SUCCESS) {
         if (err == VK_ERROR_DEVICE_LOST) {
-            vkContext.DestroyAllSemaphoreFence();
+            vkInterface->DestroyAllSemaphoreFence();
         }
         CancelBuffer(flushState_.bufferKey);
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);

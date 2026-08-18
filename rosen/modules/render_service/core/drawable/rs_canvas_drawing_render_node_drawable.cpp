@@ -202,31 +202,6 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<IConsumerSurface> RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface() const
-{
-    if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
-        return nullptr;
-    }
-
-    if (consumerSurface_ != nullptr) {
-        return consumerSurface_;
-    }
-    auto nodeSp = renderNode_.lock();
-    if (nodeSp == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null node, nodeId=%{public}" PRIu64, GetId());
-        return nullptr;
-    }
-    auto canvasDrawingNode = std::static_pointer_cast<const RSCanvasDrawingRenderNode>(nodeSp);
-    auto surfaceHandler = canvasDrawingNode->GetSurfaceHandler();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetConsumerSurface, null surfaceHandler, nodeId=%{public}" PRIu64,
-            GetId());
-        return nullptr;
-    }
-    consumerSurface_ = surfaceHandler->GetConsumer();
-    return consumerSurface_;
-}
-
 void RSCanvasDrawingRenderNodeDrawable::DrawCustomContent(Drawing::Canvas& canvas)
 {
     if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
@@ -958,9 +933,17 @@ void RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface(const Drawing::ImageInf
         return;
     }
     newVulkanCleanupHelper = vulkanCleanupHelper_ == nullptr;
+    auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
     if (newVulkanCleanupHelper) {
-        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext.get()).fPid);
+        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
+            vkTextureInfo->vkImage,
+            vkTextureInfo->vkAlloc.memory,
+            vkTextureInfo->vkAlloc.source == Drawing::VKMemSource::NATIVE
+                ? NativeBufferUtils::VulkanCleanType::NATIVE
+                : NativeBufferUtils::VulkanCleanType::EXTERNAL,
+            RSTagTracker::GetCurrentGpuResourceTag(gpuContext.get()).fPid,
+            vkTextureInfo->vkAlloc.size);
     }
     REAL_ALLOC_CONFIG_SET_STATUS(true);
     surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),
@@ -987,8 +970,11 @@ void RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface(const Drawing::ImageInf
 
 bool RSCanvasDrawingRenderNodeDrawable::CheckBackendTexture(bool needCreateFromGpu, int width, int height, pid_t pid)
 {
+    auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
     if (needCreateFromGpu) {
-        backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, pid);
+        backendTexture_ = NativeBufferUtils::MakeBackendTexture(
+            RsVulkanContext::Get(renderContext->GetType()).GetRsVulkanInterface(),
+            width, height, pid);
     }
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
         ResetResource();

@@ -1488,4 +1488,106 @@ HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationFalseNotPropagateTest, TestSize
     ASSERT_FALSE(node->GetBootAnimation());
     ASSERT_FALSE(node->IsContainBootAnimation());
 }
+
+/**
+ * @tc.name: SetVideoDimType_001
+ * @tc.desc: Test SetVideoDimType with VIDEO_DIM_TYPE_2D
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetVideoDimType_001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_2D);
+    EXPECT_EQ(node->GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_2D);
+}
+
+/**
+ * @tc.name: SetVideoDimType_002
+ * @tc.desc: Test SetVideoDimType with VIDEO_DIM_TYPE_3D_SBS
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetVideoDimType_002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+    EXPECT_EQ(node->GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_3D_SBS);
+}
+
+/**
+ * @tc.name: SetVideoDimType_003
+ * @tc.desc: Test SetVideoDimType with VIDEO_DIM_TYPE_3D_TAB
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetVideoDimType_003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->SetVideoDimType(VideoDimType::VIDEO_DIM_TYPE_3D_TAB);
+    EXPECT_EQ(node->GetVideoDimType(), VideoDimType::VIDEO_DIM_TYPE_3D_TAB);
+}
+
+/**
+ * @tc.name: SetUIMode3D_001
+ * @tc.desc: Test SetUIMode3D with MODE_2D
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetUIMode3D_001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->SetUIMode3D(UIMode3D::MODE_2D);
+    EXPECT_EQ(node->GetUIMode3D(), UIMode3D::MODE_2D);
+}
+
+/**
+ * @tc.name: SetUIMode3D_002
+ * @tc.desc: Test SetUIMode3D with MODE_SHUTTER_3D
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetUIMode3D_002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->SetUIMode3D(UIMode3D::MODE_SHUTTER_3D);
+    EXPECT_EQ(node->GetUIMode3D(), UIMode3D::MODE_SHUTTER_3D);
+}
+
+/**
+ * @tc.name: SetUIMode3D_003
+ * @tc.desc: Test SetUIMode3D with MODE_GLASSESFREE_3D
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetUIMode3D_003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->SetUIMode3D(UIMode3D::MODE_GLASSESFREE_3D);
+    EXPECT_EQ(node->GetUIMode3D(), UIMode3D::MODE_GLASSESFREE_3D);
+}
 } // namespace OHOS::Rosen

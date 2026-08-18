@@ -451,7 +451,6 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetHwcNodeBounds, TestSize.Level1)
 {
     NodeId id = 1;
     proxy->SetHwcNodeBounds(id, 1.0f, 1.0f, 1.0f, 1.0f);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
 /**
@@ -690,7 +689,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, UpdateFrameStabilityDetectionTest0
     FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
     FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
     int32_t ret = proxy->UpdateFrameStabilityDetection(oldTarget, newTarget);
-    EXPECT_EQ(ret, 0);
+    EXPECT_NE(ret, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

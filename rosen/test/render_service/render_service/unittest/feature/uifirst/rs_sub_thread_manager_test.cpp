@@ -377,10 +377,6 @@ HWTEST_F(RsSubThreadManagerTest, GetReThreadIndexMapTest001, TestSize.Level1)
 HWTEST_F(RsSubThreadManagerTest, ScheduleRenderNodeDrawableTest, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
-    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable = nullptr;
-    rsSubThreadManager->ScheduleRenderNodeDrawable(drawable);
-    EXPECT_FALSE(drawable);
-
     auto surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     auto nodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
@@ -391,6 +387,9 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleRenderNodeDrawableTest, TestSize.Level1
     auto context = RenderContext::Create();
     auto threadPtr = std::make_shared<RSSubThread>(context, index);
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    rsSubThreadManager->threadList_.clear();
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_TRUE(nodeDrawable->GetRenderParams());
     rsSubThreadManager->threadList_.push_back(threadPtr);
     rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
@@ -412,6 +411,9 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleRenderNodeDrawableTest, TestSize.Level1
     nodeDrawable->GetRsSubThreadCache().SetLastFrameUsedThreadIndex(tid);
     rsSubThreadManager->threadIndexMap_.insert(std::make_pair(tid, index));
     rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_FALSE(rsSubThreadManager->defaultThreadIndex_);
+
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nullptr);
     EXPECT_FALSE(rsSubThreadManager->defaultThreadIndex_);
 }
 

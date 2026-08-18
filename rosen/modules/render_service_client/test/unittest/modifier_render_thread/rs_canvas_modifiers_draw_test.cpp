@@ -208,6 +208,8 @@ HWTEST_F(RSCanvasModifiersDrawableTest, Draw_EmptyCacheNoForceFlush001, TestSize
 HWTEST_F(RSCanvasModifiersDrawableTest, Draw_WithValidSurfaceAndForceFlush001, TestSize.Level1)
 {
     RSCanvasModifiersDrawable drawable;
+    drawable.renderContext_ = RenderContext::Create();
+    drawable.renderContext_->Init(RenderEngineType::BASIC_RENDER);
     drawable.producerSurface_ = CreateSurface();
     drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
     drawable.forceFlushBuffer_ = true;
@@ -215,6 +217,7 @@ HWTEST_F(RSCanvasModifiersDrawableTest, Draw_WithValidSurfaceAndForceFlush001, T
     drawable.height_ = 100;
     auto result = drawable.Draw();
     EXPECT_EQ(result, nullptr);
+    drawable.renderContext_->drGPUContext_ = nullptr;
 }
 
 HWTEST_F(RSCanvasModifiersDrawableTest, GetFenceFd_Basic001, TestSize.Level1)
@@ -447,7 +450,7 @@ HWTEST_F(RSCanvasModifiersDrawableTest, CreateProducerSurface_WithRenderInterfac
     RSCanvasModifiersDrawable drawable;
     drawable.nodeId_ = RSNode::GenerateId();
     size_t maxGpuResourceBytes = 0;
-    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext("/cache");
+    auto gpuContext = RenderContext::Create()->CreateDrawingGPUContext("/cache");
     drawable.CreateProducerSurface(renderInterface, gpuContext, maxGpuResourceBytes);
     if (RSSystemProperties::GetHybridRenderCanvasEnabled() && gpuContext != nullptr) {
         EXPECT_NE(drawable.producerSurface_, nullptr);
@@ -576,7 +579,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, WaitAllTasksFinish_AfterDestroy002, TestSize
 HWTEST_F(RSCanvasModifiersDrawTest, WaitAllTasksFinish_WithGpuContext001, TestSize.Level1)
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
-    canvasModifiersDraw->gpuContext_ = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext("/data/local/tmp");
+    canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext("/data/local/tmp");
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->WaitAllTasksFinish();
     // gpuContext_ should be reset to nullptr after WaitAllTasksFinish
@@ -593,6 +596,34 @@ HWTEST_F(RSCanvasModifiersDrawTest, Destroy_BeforeStartThread001, TestSize.Level
     canvasModifiersDraw->Destroy();
     EXPECT_TRUE(canvasModifiersDraw->threadDestroyed_.load());
     EXPECT_FALSE(canvasModifiersDraw->threadStarted_.load());
+}
+
+// Verify Destroy() sets runner_ and handler_ to nullptr after Stop/RemoveAllEvents,
+// and the null-safety guards work when runner_/handler_ are already nullptr.
+HWTEST_F(RSCanvasModifiersDrawTest, Destroy_NullptrAfterStopAndNullGuards001, TestSize.Level1)
+{
+    // Case 1: Start then Destroy — runner_/handler_ become nullptr after Stop+RemoveAllEvents
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw->StartThread();
+    ASSERT_NE(canvasModifiersDraw->runner_, nullptr);
+    ASSERT_NE(canvasModifiersDraw->handler_, nullptr);
+    canvasModifiersDraw->Destroy();
+    EXPECT_EQ(canvasModifiersDraw->runner_, nullptr);
+    EXPECT_EQ(canvasModifiersDraw->handler_, nullptr);
+    EXPECT_TRUE(canvasModifiersDraw->threadDestroyed_.load());
+    EXPECT_FALSE(canvasModifiersDraw->threadStarted_.load());
+
+    // Case 2: threadStarted_=true but runner_/handler_ already nullptr —
+    // bypasses early return, exercises null-safety guards (if handler_ != nullptr / if runner_ != nullptr)
+    auto canvasModifiersDraw2 = std::make_shared<RSCanvasModifiersDraw>();
+    canvasModifiersDraw2->threadStarted_ = true;
+    canvasModifiersDraw2->runner_ = nullptr;
+    canvasModifiersDraw2->handler_ = nullptr;
+    canvasModifiersDraw2->Destroy();
+    EXPECT_EQ(canvasModifiersDraw2->runner_, nullptr);
+    EXPECT_EQ(canvasModifiersDraw2->handler_, nullptr);
+    EXPECT_TRUE(canvasModifiersDraw2->threadDestroyed_.load());
+    EXPECT_FALSE(canvasModifiersDraw2->threadStarted_.load());
 }
 
 HWTEST_F(RSCanvasModifiersDrawTest, SetCacheDir_Basic001, TestSize.Level1)
@@ -725,7 +756,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_WeakPtrExpired001, TestS
 HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_DestroySemaphoreInfo001, TestSize.Level1)
 {
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
-    canvasModifiersDraw->gpuContext_ = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext("/data/local/tmp");
+    canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext("/data/local/tmp");
     if (canvasModifiersDraw->gpuContext_ == nullptr) {
         GTEST_SKIP() << "Vulkan not available, cannot cover DestroySemaphoreInfo path";
     }
@@ -836,7 +867,8 @@ HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollectCanvasBuffers_WithSemaphore0
     auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
     drawable.nodeState_ = RSNodeState::ACTIVE;
     drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
-    NativeBufferUtils::CreateVkSemaphore(drawable.semaphore_);
+    auto vkInterface = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface();
+    NativeBufferUtils::CreateVkSemaphore(vkInterface, drawable.semaphore_);
     drawable.width_ = 100;
     drawable.height_ = 100;
     auto drawingSurface = std::make_shared<Drawing::Surface>();
@@ -874,7 +906,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, DoCleanFreeBuffers_RestoreFlag001, TestSize.
     drawable.nodeState_ = RSNodeState::INACTIVE;
     drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
     drawable.lastFlushBufferTime_ = 1; // non-zero, long ago relative to maxDuration=0
-    canvasModifiersDraw->gpuContext_ = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(
+    canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext(
         canvasModifiersDraw->cacheDir_);
     canvasModifiersDraw->DoCleanFreeBuffers(0);
     if (canvasModifiersDraw->gpuContext_ != nullptr) {
@@ -903,7 +935,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, UpdateCanvasContent_GpuCacheLimitRestore001,
     // Case 1: flag=true → restored when gpuContext_ available
     canvasModifiersDraw->needRestoreGpuCacheLimit_ = true;
     canvasModifiersDraw->maxGpuResourceBytes_ = 1024;
-    canvasModifiersDraw->gpuContext_ = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(
+    canvasModifiersDraw->gpuContext_ = RenderContext::Create()->CreateDrawingGPUContext(
         canvasModifiersDraw->cacheDir_);
     canvasModifiersDraw->UpdateCanvasContent(nodeId, nullptr);
     auto future1 = canvasModifiersDraw->ScheduleTask(
@@ -932,7 +964,7 @@ HWTEST_F(RSCanvasModifiersDrawTest, GetGpuContext_LazyInit001, TestSize.Level1)
     // gpuContext_ starts as nullptr, GetGpuContext should initialize it
     EXPECT_EQ(canvasModifiersDraw->gpuContext_, nullptr);
     auto gpuContext = canvasModifiersDraw->GetGpuContext();
-    auto expectedContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext("/data/local/tmp");
+    auto expectedContext = RenderContext::Create()->CreateDrawingGPUContext("/data/local/tmp");
     if (expectedContext != nullptr) {
         EXPECT_NE(gpuContext, nullptr);
         EXPECT_EQ(canvasModifiersDraw->gpuContext_, gpuContext);
@@ -966,6 +998,29 @@ HWTEST_F(RSCanvasModifiersDrawableTest, GetBitmap_AlphaTypeOpaque, TestSize.Leve
     ASSERT_NE(format.alphaType, Drawing::ALPHATYPE_UNKNOWN);
     bool result = drawable.GetBitmap(bitmap, nullptr);
     EXPECT_FALSE(result);
+}
+
+HWTEST_F(RSCanvasModifiersDrawableTest, Draw_WithInValidContext, TestSize.Level1)
+{
+    RSCanvasModifiersDrawable drawable;
+    drawable.producerSurface_ = CreateSurface();
+    drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+    drawable.forceFlushBuffer_ = true;
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    drawable.renderContext_ = nullptr;
+    auto result = drawable.Draw();
+    EXPECT_EQ(result, nullptr);
+}
+
+HWTEST_F(RSCanvasModifiersDrawableTest, FlushSurfaceWithSemaphoreWithInvalidContext, TestSize.Level1)
+{
+    RSCanvasModifiersDrawable drawable;
+    drawable.renderContext_ = nullptr;
+    auto result = drawable.FlushSurfaceWithSemaphore();
+    EXPECT_EQ(result, nullptr);
+    auto res = drawable.GetFenceFd();
+    EXPECT_EQ(res, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

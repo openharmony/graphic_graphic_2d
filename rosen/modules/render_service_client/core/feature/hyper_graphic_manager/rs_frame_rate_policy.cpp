@@ -15,6 +15,8 @@
 
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 
+#include <algorithm>
+
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "transaction/rs_interfaces.h"
@@ -52,12 +54,41 @@ std::unordered_set<std::string> RSFrameRatePolicy::GetPageNameList() const
     return pageNameList_;
 }
 
+bool RSFrameRatePolicy::IsAppBufferNode(const std::string& nodeName) const
+{
+    if (nodeName.empty()) {
+        return false;
+    }
+    auto sortedAppBufferList = std::atomic_load_explicit(&sortedAppBufferList_, std::memory_order_acquire);
+    if (sortedAppBufferList == nullptr) {
+        return false;
+    }
+    for (const auto& uiFwkType : *sortedAppBufferList) {
+        if (nodeName.front() < uiFwkType.front()) {
+            return false;
+        }
+        if (nodeName.size() >= uiFwkType.size() && nodeName.compare(0, uiFwkType.size(), uiFwkType) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData)
 {
     if (configData == nullptr) {
         ROSEN_LOGE("RSFrameRatePolicy configData is null");
         return;
     }
+    auto sortedAppBufferList = std::make_shared<std::vector<std::string>>(configData->GetAppBufferList());
+    sortedAppBufferList->erase(
+        std::remove_if(sortedAppBufferList->begin(), sortedAppBufferList->end(),
+            [](const std::string& item) { return item.empty(); }),
+        sortedAppBufferList->end());
+    std::sort(sortedAppBufferList->begin(), sortedAppBufferList->end());
+    std::atomic_store_explicit(&sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(std::move(sortedAppBufferList)), std::memory_order_release);
+
     std::lock_guard<std::mutex> lock(mutex_);
     pageNameList_ = configData->GetPageNameList();
     auto data = configData->GetConfigData();

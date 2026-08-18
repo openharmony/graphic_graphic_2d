@@ -270,7 +270,7 @@ bool PixelMapStorage::PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMem
     surfaceBuffer->Alloc(config);
 
     memory.base = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
-    if (!CopyImageData(*image, memory.base, image->dmaSize)) {
+    if (!CopyImageData(*image, memory.base, surfaceBuffer->GetSize())) {
         return false;
     }
     surfaceBuffer->FlushCache();

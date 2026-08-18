@@ -21,6 +21,7 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect_container.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
@@ -74,9 +75,10 @@ HWTEST_F(RSPropertyDrawableTest, OnSyncAndOnDrawFuncTest001, TestSize.Level1)
     propertyDrawable->OnSync();
     EXPECT_FALSE(propertyDrawable->needSync_);
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    EXPECT_NE(drawCmdList, nullptr);
-    propertyDrawable->drawCmdList_ = drawCmdList;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    auto simpleDrawCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList);
+    ASSERT_NE(simpleDrawCmdList, nullptr);
+    propertyDrawable->drawCmdList_ = simpleDrawCmdList;
     Drawing::Canvas canvas;
     Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
     propertyDrawable->OnDraw(&canvas, &rect);

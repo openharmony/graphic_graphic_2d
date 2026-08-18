@@ -1608,6 +1608,16 @@ bool DoFreezeScreen()
     return true;
 }
 
+bool DoGetDisplayEngineControl()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+ 
+    rsToServiceConn_->GetDisplayEngineControl();
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1737,6 +1747,7 @@ void DoFuzzerTest3()
     DoClearUifirstCache();
     DoTakeSurfaceCaptureWithAllWindows();
     DoFreezeScreen();
+    DoGetDisplayEngineControl();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -166,21 +166,21 @@ const GraphicIRect& RSRenderSurfaceLayer::GetCropRect() const
 
 void RSRenderSurfaceLayer::SetDelegateModeCropRect(const GraphicIRect& crop)
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateModeCropRect in:layerId=%" PRIu64 ", %d %d %d %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateModeCropRect in:layerId=%" PRIu64 ", %d %d %d %d",
         rsLayerId_, crop.x, crop.y, crop.w, crop.h);
     delegateModeCropRect_ = crop;
 }
 
 GraphicIRect RSRenderSurfaceLayer::GetDelegateModeCropRect()
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateModeCropRect in:layerId=%" PRIu64 ", %d %d %d %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateModeCropRect in:layerId=%" PRIu64 ", %d %d %d %d",
         rsLayerId_, delegateModeCropRect_.x, delegateModeCropRect_.y, delegateModeCropRect_.w, delegateModeCropRect_.h);
     return delegateModeCropRect_;
 }
 
 bool RSRenderSurfaceLayer::GetDelegateMode() const
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateMode in:layerId=%" PRIu64 ", %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateMode in:layerId=%" PRIu64 ", %d",
         rsLayerId_, isDelegateMode_);
     return isDelegateMode_;
 }
@@ -188,7 +188,7 @@ bool RSRenderSurfaceLayer::GetDelegateMode() const
 void RSRenderSurfaceLayer::SetDelegateMode(bool isDelegateMode)
 {
     isDelegateMode_ = isDelegateMode;
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateMode in:layerId=%" PRIu64 ", %d",
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateMode in:layerId=%" PRIu64 ", %d",
         rsLayerId_, isDelegateMode_);
 }
 
@@ -775,8 +775,10 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     ancoSrcRect_ = rsLayer->GetAncoSrcRect();
     splitLayerTag_ = rsLayer->GetSplitLayerTag();
     vcldInfo_ = rsLayer->GetVcldInfo();
-    delegateModeCropRect_ = rsLayer->GetDelegateModeCropRect();
     isDelegateMode_ = rsLayer->GetDelegateMode();
+    if (isDelegateMode_) {
+        delegateModeCropRect_ = rsLayer->GetDelegateModeCropRect();
+    }
 }
 
 void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command)
