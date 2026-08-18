@@ -525,9 +525,8 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             permissions.screenCapturePermission = accessible;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
                 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SURFACE_CAPTURE");
-            // Authoritative selfCapture is recomputed with the connection-level trusted identity in
+            // Authoritative selfCapture is computed with the connection-level trusted identity in
             // RSClientToRenderConnection::TakeSurfaceCapture (GetCallingPid() may be 0 for async binder).
-            permissions.selfCapture = (ExtractPid(id) == callingPid);
             TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect, permissions);
             break;
         }
