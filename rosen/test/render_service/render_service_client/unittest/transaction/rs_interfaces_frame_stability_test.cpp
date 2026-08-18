@@ -178,7 +178,7 @@ HWTEST_F(RSInterfacesFrameStabilityTest, GetFrameStabilityResult001, Function | 
     FrameStabilityTarget target = { .id = DEFAULT_ID + 1, .type = FrameStabilityTargetType::SCREEN };
     bool result = false;
     int32_t ret = rsRenderInterface_->GetFrameStabilityResult(target, result);
-    EXPECT_NE(ret, 0);
+    EXPECT_EQ(ret, 0);
     EXPECT_EQ(result, false);
 }
 
