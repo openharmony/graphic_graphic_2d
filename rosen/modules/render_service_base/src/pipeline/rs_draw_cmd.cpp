@@ -371,7 +371,6 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
     if (rsImage_ == nullptr) {
         return false;
     }
-
     if (colorSpace == nullptr) {
         return false;
     }
