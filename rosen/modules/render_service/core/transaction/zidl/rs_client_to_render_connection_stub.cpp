@@ -952,12 +952,9 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (ExtractPid(id) != callingPid) {
-                RS_LOGW("RSClientToRenderConnectionStub::TakeSelfSurfaceCapture failed, nodeId:[%{public}" PRIu64
-                        "], callingPid:[%{public}d], pid:[%{public}d]", id, callingPid, ExtractPid(id));
-                ret = ERR_INVALID_DATA;
-                break;
-            }
+            // Ownership is enforced with the connection-level trusted identity in
+            // RSClientToRenderConnection::TakeSelfSurfaceCapture (GetCallingPid() may be 0
+            // for asynchronous binder calls and cannot be relied upon here).
             RS_PROFILER_PATCH_NODE_ID(data, id);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {

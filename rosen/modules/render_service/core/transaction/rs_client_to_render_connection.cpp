@@ -281,11 +281,10 @@ ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransact
         // GetCallingPid() may return 0 for asynchronous binder calls, in which case the stub-side
         // ownership check is skipped; run it here with the connection-level trusted identity.
         // The node map access is safe on IPC threads: IsCallingPidValid only queries
-        // IsUIExtensionSurfaceNode, which is mutex-protected.
+        // IsUIExtensionSurfaceNode, which is mutex-protected. Inaccessible commands are only
+        // marked here (with per-command logs) and dropped later by RSMainThread.
         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-        if (!transactionData->IsCallingPidValid(remotePid_, nodeMap)) {
-            RS_LOGE("RSClientToRenderConnection::CommitTransaction IsCallingPidValid check failed");
-        }
+        transactionData->IsCallingPidValid(remotePid_, nodeMap);
     }
     return renderPipelineAgent_->CommitTransaction(
         callingPid, isTokenTypeValid, isNonSystemAppCalling, transactionData);
@@ -470,6 +469,16 @@ void RSClientToRenderConnection::TakeSelfSurfaceCapture(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
     if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+    // remotePid_ is the trusted identity captured from synchronous binder at connection creation;
+    // GetCallingPid() may return 0 for asynchronous binder calls and cannot be relied upon here.
+    if (ExtractPid(id) != remotePid_) {
+        RS_LOGW("RSClientToRenderConnection::TakeSelfSurfaceCapture failed, nodeId:[%{public}" PRIu64
+                "], remotePid:[%{public}d], pid:[%{public}d]", id, remotePid_, ExtractPid(id));
+        if (callback) {
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
+        }
         return;
     }
     bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
