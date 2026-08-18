@@ -122,8 +122,7 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
     }
 
     rsSurface->SetTimeOut(node.GetHardenBufferRequestConfig().timeout);
-    auto renderFrame = renderEngine_->RequestFrame(rsSurface,
-        node.GetHardenBufferRequestConfig(), true, false);
+    auto renderFrame = renderEngine_->RequestFrame(rsSurface, node.GetHardenBufferRequestConfig(), true, false);
     if (renderFrame == nullptr) {
         if (rsSurface->GetSurface() != nullptr) {
             rsSurface->GetSurface()->CleanCache(true);
