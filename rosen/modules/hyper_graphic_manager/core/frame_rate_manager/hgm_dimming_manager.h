@@ -17,9 +17,10 @@
 #define HGM_DIMMING_MANAGER_H
 
 #include <chrono>
+#include <functional>
+#include <vector>
 
 #include "hgm_command.h"
-#include "hgm_frame_rate_manager.h"
 
 namespace OHOS::Rosen {
 enum DimmingStatus : int32_t {
@@ -30,20 +31,23 @@ enum DimmingStatus : int32_t {
 
 class HgmDimmingManager {
 public:
-    static HgmDimmingManager& Instance();
-    void SetLightFactorStatus(const int32_t state) { lightFactorStatus_ = state; }
-    void SetRefreshRateVec(const std::vector<uint32_t> vec) { refreshRateVec_ = vec; }
-    void SetDimmingTimeoutConfig(const std::shared_ptr<PolicyConfigData>& configData);
-    uint32_t CalcDimmingRefreshRate(const uint32_t voteFps);
+    using DimmingEventCallback = std::function<void(uint32_t)>;
 
-private:
     HgmDimmingManager();
     ~HgmDimmingManager() = default;
 
-    int32_t lightFactorStatus_ = LightFactorStatus::NORMAL_HIGH;
+    void SetLightFactorStatus(int32_t state) { lightFactorStatus_ = state; }
+    void SetRefreshRateVec(std::vector<uint32_t> vec);
+    void SetDimmingTimeoutConfig(const std::shared_ptr<PolicyConfigData>& configData);
+    void RegisterDimmingEventCallback(DimmingEventCallback callback);
+    uint32_t CalcDimmingRefreshRate(uint32_t voteFps);
+
+private:
+    int32_t lightFactorStatus_ = 0;
+    std::vector<uint32_t> refreshRateVec_ = {};
     uint32_t dimmingUpTimeoutMs_ = 0;
     uint32_t dimmingDownTimeoutMs_ = 0;
-    std::vector<uint32_t> refreshRateVec_ = {0};
+    DimmingEventCallback dimmingEventCallback_ = nullptr;
     uint32_t currRefreshRate_ = 0;
     int32_t dimmingStatus_ = DimmingStatus::NOT_DIMMING;
     std::chrono::steady_clock::time_point dimmingEndTime_ = std::chrono::steady_clock::now();

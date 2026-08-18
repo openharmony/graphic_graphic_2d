@@ -25,7 +25,6 @@
 #include "hdi_device.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
-#include "hgm_dimming_manager.h"
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_event.h"
 #include "hgm_log.h"
@@ -119,6 +118,11 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController, sptr<VSyncCon
     });
     FrameRateReportTask(FRAME_RATE_REPORT_MAX_RETRY_TIMES);
     userDefine_.Init();
+    dimmingManager_.RegisterDimmingEventCallback([this](uint32_t dimmingTimeoutMs) {
+        HgmTaskHandleThread::Instance().PostEvent("DimmingTask", [this]() {
+            UpdateSoftVSync(false);
+        }, dimmingTimeoutMs);
+    });
 }
 
 void HgmFrameRateManager::InitConfig()
@@ -156,7 +160,7 @@ void HgmFrameRateManager::InitConfig()
         }
         multiAppStrategy_.UpdateXmlConfigCache();
         SetTimeoutParamsFromConfig(configData);
-        HgmDimmingManager::Instance().SetDimmingTimeoutConfig(configData);
+        dimmingManager_.SetDimmingTimeoutConfig(configData);
         GetLowBrightVec(configData);
         GetAncoLowBrightVec(configData);
         GetStylusVec(configData);
@@ -495,7 +499,7 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
         "%s: VoteRes: %s[%d, %d]", __func__, lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
     bool needChangeDssRefreshRate = false;
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
-    refreshRate = HgmDimmingManager::Instance().CalcDimmingRefreshRate(refreshRate);
+    refreshRate = dimmingManager_.CalcDimmingRefreshRate(refreshRate);
     if (currRefreshRate_.load() != refreshRate) {
         currRefreshRate_.store(refreshRate);
         schedulePreferredFpsChange_ = true;
@@ -722,7 +726,6 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         return refreshRate;
     }
     std::sort(supportRefreshRateVec.begin(), supportRefreshRateVec.end());
-    HgmDimmingManager::Instance().SetRefreshRateVec(supportRefreshRateVec);
     // In stylus mode, refresh is the first value of less than or equal to preferred in supportRefreshRateVec;
     // supportRefreshRateVec is not empty when stylusFlag is true;
     // The return value of upper_bound is bigger than preferred, so need subtract one;
@@ -761,7 +764,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
-    HgmDimmingManager::Instance().SetLightFactorStatus(state);
+    dimmingManager_.SetLightFactorStatus(state);
     multiAppStrategy_.SetScreenType(isLtpo_.load());
     multiAppStrategy_.HandleLightFactorStatus(state);
     isAmbientStatus_ = state;
@@ -1300,7 +1303,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     // max used here
     FrameRateRange finalRange = { resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max };
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
-    refreshRate = HgmDimmingManager::Instance().CalcDimmingRefreshRate(refreshRate);
+    refreshRate = dimmingManager_.CalcDimmingRefreshRate(refreshRate);
     if (refreshRate == currRefreshRate_ && !voterTouchEffective_) {
         return;
     }
@@ -1770,6 +1773,7 @@ void HgmFrameRateManager::AddScreenInit()
         GetAncoLowBrightVec(configData);
         GetStylusVec(configData);
     }
+    dimmingManager_.SetRefreshRateVec(HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load()));
 }
 } // namespace Rosen
 } // namespace OHOS

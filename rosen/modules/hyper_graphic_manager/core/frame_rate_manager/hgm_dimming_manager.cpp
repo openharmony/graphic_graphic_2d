@@ -16,6 +16,7 @@
 #include "hgm_dimming_manager.h"
 
 #include "hgm_core.h"
+#include "hgm_frame_rate_manager.h"
 #include "hgm_task_handle_thread.h"
 
 namespace OHOS::Rosen {
@@ -25,10 +26,10 @@ const std::string S_DIMMING_DOWN_TIMEOUT_MS = "dimming_down_timeout_ms";
 }
 HgmDimmingManager::HgmDimmingManager() {}
 
-HgmDimmingManager& HgmDimmingManager::Instance()
+void HgmDimmingManager::SetRefreshRateVec(std::vector<uint32_t> vec)
 {
-    static HgmDimmingManager instance;
-    return instance;
+    refreshRateVec_ = std::move(vec);
+    std::sort(refreshRateVec_.begin(), refreshRateVec_.end());
 }
 
 void HgmDimmingManager::SetDimmingTimeoutConfig(const std::shared_ptr<PolicyConfigData>& configData)
@@ -46,14 +47,14 @@ void HgmDimmingManager::SetDimmingTimeoutConfig(const std::shared_ptr<PolicyConf
     }
 }
 
-uint32_t HgmDimmingManager::CalcDimmingRefreshRate(const uint32_t voteRefreshRate)
+void HgmDimmingManager::RegisterDimmingEventCallback(DimmingEventCallback callback)
 {
-    if ((currRefreshRate_ < voteRefreshRate && dimmingUpTimeoutMs_ == 0) ||
-        (currRefreshRate_ > voteRefreshRate && dimmingDownTimeoutMs_ == 0) ||
-        lightFactorStatus_ == LightFactorStatus::NORMAL_HIGH || lightFactorStatus_ == LightFactorStatus::HIGH_LEVEL) {
-        dimmingStatus_ = DimmingStatus::NOT_DIMMING;
-        HgmTaskHandleThread::Instance().RemoveEvent("DimmingTask");
-        currRefreshRate_ = voteRefreshRate;
+    dimmingEventCallback_ = std::move(callback);
+}
+
+uint32_t HgmDimmingManager::CalcDimmingRefreshRate(uint32_t voteRefreshRate)
+{
+    if (dimmingUpTimeoutMs_ == 0 && dimmingDownTimeoutMs_ == 0) {
         return voteRefreshRate;
     }
     auto currTime = std::chrono::steady_clock::now();
@@ -61,14 +62,23 @@ uint32_t HgmDimmingManager::CalcDimmingRefreshRate(const uint32_t voteRefreshRat
         if (dimmingStatus_ != DimmingStatus::NOT_DIMMING && currTime >= dimmingEndTime_) {
             dimmingStatus_ = DimmingStatus::NOT_DIMMING;
             HgmTaskHandleThread::Instance().RemoveEvent("DimmingTask");
-            HGM_LOGI("Dimming end, currRefreshRate=%{public}d", currRefreshRate_);
+            HGM_LOGD("Dimming end, refresh rate: %{public}d", currRefreshRate_);
+            RS_TRACE_NAME_FMT("%s: Dimming end, refresh rate: %d", __func__, currRefreshRate_);
         }
         return voteRefreshRate;
     }
-    HGM_LOGI("Dimming processing, currRefreshRate=%{public}d, voteRefreshRate=%{public}d, dimmingStatus=%{public}d",
-        currRefreshRate_, voteRefreshRate, dimmingStatus_);
-    int32_t expectStatus = currRefreshRate_ < voteRefreshRate ? DimmingStatus::DIMMING_UP : DimmingStatus::DIMMING_DOWN;
     uint32_t dimmingTimeoutMs = currRefreshRate_ < voteRefreshRate ? dimmingUpTimeoutMs_ : dimmingDownTimeoutMs_;
+    if (dimmingTimeoutMs == 0 || lightFactorStatus_ == LightFactorStatus::NORMAL_HIGH ||
+        lightFactorStatus_ == LightFactorStatus::HIGH_LEVEL) {
+        dimmingStatus_ = DimmingStatus::NOT_DIMMING;
+        HgmTaskHandleThread::Instance().RemoveEvent("DimmingTask");
+        currRefreshRate_ = voteRefreshRate;
+        return voteRefreshRate;
+    }
+    HGM_LOGD("Dimming processing, current refresh rate: %{public}d, vote refresh rate: %{public}d, status: %{public}d",
+        currRefreshRate_, voteRefreshRate, dimmingStatus_);
+    RS_TRACE_NAME_FMT("%s: Dimming processing, current refresh rate: %d, vote refresh rate: %d, status: %d", __func__,
+        currRefreshRate_, voteRefreshRate, dimmingStatus_);
     auto iter = std::lower_bound(refreshRateVec_.begin(), refreshRateVec_.end(), currRefreshRate_);
     if (iter == refreshRateVec_.end() || *iter != currRefreshRate_ ||
         !std::binary_search(refreshRateVec_.begin(), refreshRateVec_.end(), voteRefreshRate)) {
@@ -78,16 +88,17 @@ uint32_t HgmDimmingManager::CalcDimmingRefreshRate(const uint32_t voteRefreshRat
         currRefreshRate_ = voteRefreshRate;
         return voteRefreshRate;
     }
+    int32_t currStatus = currRefreshRate_ < voteRefreshRate ? DimmingStatus::DIMMING_UP : DimmingStatus::DIMMING_DOWN;
     uint32_t index = std::distance(refreshRateVec_.begin(), iter);
-    if (dimmingStatus_ == DimmingStatus::NOT_DIMMING || dimmingStatus_ != expectStatus || currTime >= dimmingEndTime_) {
-        dimmingStatus_ = expectStatus;
+    if (dimmingStatus_ == DimmingStatus::NOT_DIMMING || dimmingStatus_ != currStatus || currTime >= dimmingEndTime_) {
+        dimmingStatus_ = currStatus;
         dimmingEndTime_ = currTime + std::chrono::milliseconds(dimmingTimeoutMs);
-        HgmTaskHandleThread::Instance().PostEvent("DimmingTask", []() {
-            auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-            frameRateMgr->UpdateSoftVSync(false);
-        }, dimmingTimeoutMs);
+        if (dimmingEventCallback_ != nullptr) {
+            dimmingEventCallback_(dimmingTimeoutMs);
+        }
         currRefreshRate_ = refreshRateVec_.at(index + dimmingStatus_);
-        HGM_LOGI("Dimming switch to next refresh rate %{public}d", currRefreshRate_);
+        HGM_LOGD("Dimming switch to next refresh rate: %{public}d", currRefreshRate_);
+        RS_TRACE_NAME_FMT("%s: Dimming switch to next refresh rate: %d", __func__, currRefreshRate_);
     }
     return currRefreshRate_;
 }
