@@ -2424,6 +2424,37 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransactionTest002, TestSize.
     EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: CommitTransactionWithValidData
+ * @tc.desc: Test COMMIT_TRANSACTION with a valid normal parcel so that ParseTransactionData
+ *           succeeds and SetSendingPid is executed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransactionWithValidData, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION);
+
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteInt32(0); // readData = 0, indicate normal parcel
+    // version header: Int64(-1) + 4x Uint64(0) consumed by UnmarshallingTransactionVer
+    data.WriteInt64(-1);
+    data.WriteUint64(0);
+    data.WriteUint64(0);
+    data.WriteUint64(0);
+    data.WriteUint64(0);
+    // Write a valid RSTransactionData parcelable so ParseTransactionData returns non-null
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    ASSERT_TRUE(data.WriteParcelable(transactionData.get()));
+    connectionStub_->OnRemoteRequest(code, data, reply, option);
+}
+#endif
+
 /**
  * @tc.name: ClearSurfaceWatermarkForNodesTest002
  * @tc.desc: Test CLEAR_SURFACE_WATERMARK_FOR_NODES with complete data

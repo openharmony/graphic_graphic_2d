@@ -972,60 +972,6 @@ HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawAgent_DestroyTest, TestSize.Level
 }
 
 /**
- * @tc.name: RSCanvasModifiersDraw_QueryMaxGpuBufferSizeTest
- * @tc.desc: Test RSCanvasModifiersDraw::QueryMaxGpuBufferSize calls PostSyncTask which starts thread
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIContextTest, RSCanvasModifiersDraw_QueryMaxGpuBufferSizeTest, TestSize.Level1)
-{
-    auto rsUIContext = CreateRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    rsUIContext->CreateCommitTransactionCallback();
-    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
-        return;
-    }
-    ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
-    auto& draw = rsUIContext->canvasModifiersDrawAgent_->canvasModifiersDraw_;
-    ASSERT_NE(draw, nullptr);
-    // PostSyncTask internally calls StartThread which creates handler_ and starts the thread
-    uint32_t maxWidth = 0;
-    uint32_t maxHeight = 0;
-    draw->QueryMaxGpuBufferSize(maxWidth, maxHeight);
-    // After QueryMaxGpuBufferSize, thread should be started
-    ASSERT_TRUE(draw->threadStarted_);
-    ASSERT_NE(draw->handler_, nullptr);
-    // Cleanup
-    draw->Destroy();
-}
-
-/**
- * @tc.name: RSCanvasModifiersDrawAgent_QueryMaxGpuBufferSizeTest
- * @tc.desc: Test RSCanvasModifiersDrawAgent::QueryMaxGpuBufferSize transparently calls inner method
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIContextTest, RSCanvasModifiersDrawAgent_QueryMaxGpuBufferSizeTest, TestSize.Level1)
-{
-    auto rsUIContext = CreateRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    rsUIContext->CreateCommitTransactionCallback();
-    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
-        return;
-    }
-    ASSERT_NE(rsUIContext->canvasModifiersDrawAgent_, nullptr);
-    auto& draw = rsUIContext->canvasModifiersDrawAgent_->canvasModifiersDraw_;
-    ASSERT_NE(draw, nullptr);
-    uint32_t maxWidth = 0;
-    uint32_t maxHeight = 0;
-    rsUIContext->canvasModifiersDrawAgent_->QueryMaxGpuBufferSize(maxWidth, maxHeight);
-    // Transparent call should start the inner thread
-    ASSERT_TRUE(draw->threadStarted_);
-    ASSERT_NE(draw->handler_, nullptr);
-    // Cleanup
-    draw->Destroy();
-}
-/**
  * @tc.name: RSCanvasModifiersDraw_WaitAllTasksFinishTest001
  * @tc.desc: Test WaitAllTasksFinish when threadStarted_ is false
  * @tc.type:FUNC

@@ -16,10 +16,19 @@
 #ifndef RS_BACKGROUND_REBUILD_PARAM_H
 #define RS_BACKGROUND_REBUILD_PARAM_H
 
+#include <cstdint>
+
 #include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
+// GoStop node map handling mode: 0 do nothing, 1 only RemoveSurfaceNodeMap, 2 only DestroyTokenNode
+enum class GoStopNodeMapMode : uint8_t {
+    NONE = 0,
+    REMOVE_SURFACE_NODE_MAP,
+    DESTROY_TOKEN_NODE,
+};
+
 class RSB_EXPORT RSBackgroundRebuildParam {
 public:
     static RSBackgroundRebuildParam& Instance();
@@ -27,9 +36,16 @@ public:
     void SetBackgroundRebuildEnabled(bool isEnable);
     bool IsBackgroundRebuildEnabled() const;
 
+    // Written once during feature config parsing at render service startup and read-only afterwards,
+    // so the plain members need no synchronization.
+    void SetGoStopNodeMapMode(GoStopNodeMapMode mode);
+    GoStopNodeMapMode GetGoStopNodeMapMode() const;
+
 private:
     RSBackgroundRebuildParam() = default;
     bool isBackgroundRebuildEnabled_ = false;
+    // Keep consistent with the default of isBackgroundRebuildEnabled_ (disabled -> RemoveSurfaceNodeMap)
+    GoStopNodeMapMode goStopNodeMapMode_ = GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP;
 };
 } // namespace Rosen
 } // namespace OHOS

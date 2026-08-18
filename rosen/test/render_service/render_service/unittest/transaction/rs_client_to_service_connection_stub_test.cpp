@@ -744,7 +744,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     MessageOption option;
 
     int res = connectionStub_->OnRemoteRequest(-1, data, reply, option);
-    ASSERT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 
 /**
@@ -4576,6 +4576,48 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest006, TestSize.
 }
 
 /**
+ * @tc.name: RegisterTypefaceTest007
+ * @tc.desc: test the IPC receiver cap-rejection branch: once the calling pid reaches its per-pid
+ *           base cap, a new ashmem typeface registration is rejected (returns -1, needUpdate = -1).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest007, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    // Drive a dedicated pid to its per-pid base cap so the next ashmem registration is rejected.
+    constexpr pid_t pid = 555555;
+    constexpr uint32_t perPidCap = 1024;
+    auto fillBase = [](uint64_t uniqueId, uint32_t baseHash) {
+        auto tf = Drawing::Typeface::MakeDefault();
+        tf->SetHash(baseHash);
+        static const uint32_t typefaceSize = Drawing::Typeface::MakeDefault()->GetSize();
+        tf->SetSize(typefaceSize);
+        RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, tf);
+    };
+    for (uint32_t i = 1; i <= perPidCap; i++) {
+        fillBase((static_cast<uint64_t>(pid) << 32) | i, i + 1000);
+    }
+
+    // A brand-new ashmem typeface for the at-cap pid: the receiver must reject it at the cap and
+    // surface failure (needUpdate = -1), exercising the cap-rejection branch on the IPC path.
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    ASSERT_FALSE(content.empty());
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = (static_cast<uint64_t>(pid) << 32) | (perPidCap + 1);
+    sharedTypeface.hash_ = 7777; // a base the at-cap pid does not hold
+    sharedTypeface.size_ = content.size();
+    sharedTypeface.fd_ = open("/system/fonts/Roboto-Regular.ttf", O_RDONLY);
+    ASSERT_GE(sharedTypeface.fd_, 0);
+
+    int32_t needUpdate = 0;
+    EXPECT_EQ(connectionStub_->RegisterTypeface(sharedTypeface, needUpdate), -1);
+    EXPECT_EQ(needUpdate, -1);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
+}
+
+/**
  * @tc.name: SetWatermarkTest003
  * @tc.desc: Test SetWatermark normal case
  * @tc.type: FUNC
@@ -6735,6 +6777,23 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetUIMode3D_InvalidMode, TestSize.
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UI_MODE_3D);
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetDisplayEngineControlStubTest
+ * @tc.desc: Test GET_DISPLAY_ENGINE_CONTROL stub
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetDisplayEngineControlStubTest, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_ENGINE_CONTROL);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen
 #endif

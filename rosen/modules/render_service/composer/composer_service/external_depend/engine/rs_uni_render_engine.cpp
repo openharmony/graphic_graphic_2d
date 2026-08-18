@@ -188,6 +188,7 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const R
         layerBackgroundColor.r, layerBackgroundColor.g,
         layerBackgroundColor.b, layerBackgroundColor.a
     };
+
     // clip round rect when drm has radius info
     if (!drmCornerRadiusInfo.empty()) {
         auto rect = RectF();

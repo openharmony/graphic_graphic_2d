@@ -18,6 +18,7 @@
 #include "limit_number.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
+#include "parameters.h"
 #include "system/rs_system_parameters.h"
 
 using namespace testing;
@@ -635,5 +636,37 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CollectSurfaceVsyncInfo003, TestSize.Leve
     properties.boundsGeo_ = nullptr;
     rateReduceManager.CollectSurfaceVsyncInfo(screenInfo, *surfaceNode);
     EXPECT_EQ(true, rateReduceManager.surfaceVRateMap_.empty());
+}
+
+/**
+ * @tc.name: TransformNodeToLinkersRateMapTest
+ * @tc.desc: Test TransformNodeToLinkersRateMap
+ * @tc.type: FUNC
+ * @tc.require: issueIAWXLO
+ */
+HWTEST_F(RSVsyncRateReduceManagerTest, TransformNodeToLinkersRateMapTest, TestSize.Level1)
+{
+    std::unordered_map<NodeId, int> vRateMap;
+    auto vsyncGenerator = CreateVSyncGenerator();
+    sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, 0);
+    sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, 0);
+    sptr<VSyncDistributor> appVSyncDistributor = new VSyncDistributor(appController, "connection");
+    ASSERT_NE(appVSyncDistributor, nullptr);
+    // case1: isNeedRefreshVRate = false;
+    RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(vRateMap, false, appVSyncDistributor);
+    // case2: isNeedRefreshVRate = true;
+    RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(vRateMap, true, appVSyncDistributor);
+
+    vRateMap.emplace(1, 60);
+    vRateMap.emplace(2, 0);
+    RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(vRateMap, true, appVSyncDistributor);
+    ASSERT_EQ(RSVsyncRateReduceUtil::lastVSyncRateMap_.empty(), true);
+
+    RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(vRateMap, true, appVSyncDistributor);
+
+    auto vRateControlEnable = system::GetParameter("rosen.vRateControl.enabled", "1");
+    system::SetParameter("rosen.vRateControl.enabled", "0");
+    RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(vRateMap, true, appVSyncDistributor);
+    system::SetParameter("rosen.vRateControl.enabled", vRateControlEnable);
 }
 } // namespace OHOS::Rosen

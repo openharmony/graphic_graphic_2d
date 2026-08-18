@@ -191,5 +191,10 @@ int32_t RSLuminanceControl::UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer
     return 0;
 }
 #endif
+
+int32_t RSLuminanceControl::NotifyDEStatusChange(const uint32_t sceneKey, const std::vector<uint8_t>& values)
+{
+    return 0;
+}
 } // namespace Rosen
 } // namespace OHOS

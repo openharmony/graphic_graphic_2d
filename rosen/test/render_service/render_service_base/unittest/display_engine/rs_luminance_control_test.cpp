@@ -69,6 +69,8 @@ public:
     MOCK_METHOD(void, HdrDimmingPostProcess, (ScreenId screenId), (override));
     MOCK_METHOD(int32_t, UpdateMetadataBasedOnScaler, (const sptr<SurfaceBuffer>& input, float scaler,
         HdrStatus hdrStatus), (override));
+    MOCK_METHOD(int32_t, NotifyDEStatusChange, (const uint32_t sceneKey, const std::vector<uint8_t>& values),
+        (override));
 
     float CalScaler(const float& maxContentLightLevel,
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) override;
@@ -446,5 +448,23 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl019, TestSize.Level1)
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
     ASSERT_EQ(luminCtrl.GetConfigScaler(0, HDR_EFFECT), 0.0);
+}
+
+/**
+ * @tc.name: LuminanceControl020
+ * @tc.desc: Test LuminanceControl NotifyDEStatusChange
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControl020, TestSize.Level1)
+{
+    auto& luminCtrl = RSLuminanceControl::Get();
+    auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
+    luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
+    ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
+ 
+    uint32_t sceneKey = 123;
+    std::vector<uint8_t> values = {1, 2, 3};
+    ASSERT_EQ(luminCtrl.NotifyDEStatusChange(sceneKey, values), 0);
 }
 } // namespace OHOS::Rosen

@@ -160,10 +160,10 @@ void RSRenderInterpolatingSpringAnimation::RebuildPropertyValue(float fraction)
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::RebuildPropertyValue failed: valueEstimator is nullptr");
         return;
     }
-    float displacement = 1.f;
-    if (!ROSEN_EQ(fraction, 1.f)) {
+    float displacement = 1.0f;
+    if (!ROSEN_EQ(fraction, 1.0f)) {
         auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
-        displacement = 1.f + CalculateDisplacement(mappedTime);
+        displacement = 1.0f + CalculateDisplacement(mappedTime);
     }
     valueEstimator_->RebuildValue(displacement);
 }

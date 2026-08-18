@@ -155,14 +155,15 @@ public:
 
 class ScopedNewTunnelSwitch {
 public:
-    explicit ScopedNewTunnelSwitch(bool enabled) : oldValue_(Rosen::IsNewTunnelEnabled())
+    explicit ScopedNewTunnelSwitch(bool enabled)
     {
-        system::SetParameter("rosen.debug.new_tunnel", enabled ? "true" : "false");
+        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
+        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
     }
 
     ~ScopedNewTunnelSwitch()
     {
-        system::SetParameter("rosen.debug.new_tunnel", oldValue_ ? "true" : "false");
+        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
     }
 
 private:

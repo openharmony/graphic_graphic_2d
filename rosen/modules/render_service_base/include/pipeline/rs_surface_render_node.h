@@ -310,7 +310,15 @@ public:
         return isFixRotationByUser_;
     }
     bool IsInFixedRotation() const;
-    void SetInFixedRotation(bool isRotating);
+    void SetInFixedRotation(bool isRotating, bool screenChanged);
+    // Returns true if the screen the node is being prepared on differs from the last one,
+    // and records the current screen for the next comparison.
+    bool CheckScreenChanged(ScreenId screenId)
+    {
+        bool screenChanged = lastScreenId_ != INVALID_SCREEN_ID && lastScreenId_ != screenId;
+        lastScreenId_ = screenId;
+        return screenChanged;
+    }
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -830,8 +838,6 @@ public:
     {
         uifirstState_.forceUpdate = b;
     }
-
-    bool IsFullScreen() const;
 
     VideoDimType GetVideoDimType() const;
 
@@ -1751,6 +1757,16 @@ public:
         return isContainerWindowTransparent_;
     }
 
+    bool IsUIRenderDirectorStopped() const
+    {
+        return isUIRenderDirectorStopped_.load();
+    }
+
+    void SetUIRenderDirectorStopped(bool isUIRenderDirectorStopped)
+    {
+        isUIRenderDirectorStopped_ = isUIRenderDirectorStopped;
+    }
+
     bool IsSecureUIExtension() const
     {
         return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
@@ -2093,7 +2109,12 @@ private:
     template<typename T>
     void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
         std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
-        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
+        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier)
+    {
+        if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
+            oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
+        }
+    }
 
     void CountRelatedNode(bool isIncrement);
     void ClearRelatedSourceCache(bool value);
@@ -2151,6 +2172,8 @@ private:
     bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
+    bool haveScreenChangeInRotation_ = false;
+    ScreenId lastScreenId_ = INVALID_SCREEN_ID;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isSplitSurfaceNode_ = false;
@@ -2266,6 +2289,7 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     bool isRebuildingState_ = false;
+    std::atomic<bool> isUIRenderDirectorStopped_ = false;
     SurfaceId surfaceId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     struct GamutCollector

@@ -418,6 +418,7 @@ public:
     static bool GetVirtualScreenParallelEnabled();
 
     static bool GetRsDelegateCompositeCleanCacheDfxEnable();
+    static bool IsSimulateTest();
 private:
     RSSystemProperties() = default;
 

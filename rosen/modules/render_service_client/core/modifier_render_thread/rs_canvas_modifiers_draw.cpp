@@ -447,7 +447,7 @@ void RSCanvasModifiersDraw::WaitAllTasksFinish()
     PostSyncTask([canvasModifiersDraw = shared_from_this()]() {
         RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish");
         if (canvasModifiersDraw->gpuContext_ != nullptr) {
-            canvasModifiersDraw->gpuContext_->FlushAndSubmit(true);
+            canvasModifiersDraw->gpuContext_->FlushAndSubmit(false);
             canvasModifiersDraw->gpuContext_->PurgeUnlockedResources(true);
             canvasModifiersDraw->gpuContext_ = nullptr;
         }
@@ -468,12 +468,12 @@ void RSCanvasModifiersDraw::Destroy()
 
     if (handler_ != nullptr) {
         handler_->RemoveAllEvents();
-        handler_ = nullptr;
     }
     if (runner_ != nullptr) {
         runner_->Stop();
-        runner_ = nullptr;
     }
+    runner_ = nullptr;
+    handler_ = nullptr;
 }
 
 void RSCanvasModifiersDraw::PostTask(const std::function<void()>& task, const std::string& name, int64_t delayTime)
@@ -530,13 +530,6 @@ void RSCanvasModifiersDraw::SetCacheDir(const std::string& cacheDir)
             ShaderCache::Instance().SetFilePath(path);
             canvasModifiersDraw->cacheDir_ = path;
         }
-    });
-}
-
-void RSCanvasModifiersDraw::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
-{
-    PostSyncTask([&maxWidth, &maxHeight] {
-        RenderContext::Create()->QueryMaxGpuBufferSize(maxWidth, maxHeight);
     });
 }
 
@@ -753,9 +746,6 @@ void RSCanvasModifiersDraw::DoCleanFreeBuffers(int64_t maxDuration)
     }
     if (freeDrawableList.empty()) {
         return;
-    }
-    if (gpuContext_ != nullptr) {
-        gpuContext_->FlushAndSubmit(true);
     }
     for (auto* drawable : freeDrawableList) {
         drawable->CleanBuffer();

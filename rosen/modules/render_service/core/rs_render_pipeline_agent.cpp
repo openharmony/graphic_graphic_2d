@@ -60,6 +60,7 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
+#include "pipeline/main_thread/rs_surface_permission.h"
 #include "rs_profiler.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
@@ -1394,6 +1395,8 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
         return ERR_INVALID_VALUE;
     }
+    sptr<ISurfacePermission> permission = new RSSurfacePermission();
+    surface->SetPermissionRules(permission);
     ConfigureForceTunnelLayer(config, surface);
 
     RS_TRACE_NAME_FMT("RSRenderPipelineAgent::CreateNodeAndSurface, nodeId: %" PRIu64 ", uniqueId: %" PRIu64
@@ -2006,13 +2009,17 @@ int32_t RSRenderPipelineAgent::RegisterUIExtensionCallback(pid_t pid, uint64_t u
 bool RSRenderPipelineAgent::RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface)
 {
     auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
+    if (pipeline == nullptr) {
         return false;
     }
     RS_LOGI("RSRenderPipeline::RegisterTypeface, pid[%{public}d], familyname:%{public}s, uniqueid:%{public}u",
         RSTypefaceCache::GetTypefacePid(globalUniqueId), typeface->GetFamilyName().c_str(),
         RSTypefaceCache::GetTypefaceId(globalUniqueId));
-    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+    if (!RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface)) {
+        RS_LOGE("RSRenderPipeline::RegisterTypeface rejected by cache cap, uniqueid:%{public}u",
+            RSTypefaceCache::GetTypefaceId(globalUniqueId));
+        return false;
+    }
     return true;
 }
 
@@ -2047,7 +2054,11 @@ bool RSRenderPipelineAgent::RegisterTypeface(Drawing::SharedTypeface& sharedType
         return false;
     }
     RS_LOGI("RSRenderPipelineAgent::RegisterTypeface(new): %{public}s", sharedTypeface.ToString().c_str());
-    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
+    if (!RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf)) {
+        RS_LOGE("RSRenderPipelineAgent::RegisterTypeface rejected by cache cap, %{public}s",
+            sharedTypeface.ToString().c_str());
+        return false;
+    }
     return true;
 }
 
@@ -2524,14 +2535,14 @@ void RSRenderPipelineAgent::AddTransactionDataPidInfo(pid_t remotePid)
     pipeline->AddTransactionDataPidInfo(remotePid);
 }
 
-void RSRenderPipelineAgent::AddConnection(pid_t remotePid, uint64_t tokenMaskId,
-    sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
+std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipelineAgent::AddConnection(pid_t remotePid,
+    uint64_t tokenMaskId, sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
 {
     auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
-        return;
+    if (pipeline == nullptr) {
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
-    pipeline->AddConnection(remotePid, tokenMaskId, token, connectToRenderConnection);
+    return pipeline->AddConnection(remotePid, tokenMaskId, token, connectToRenderConnection);
 }
 
 std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipelineAgent::FindClientToRenderConnection(

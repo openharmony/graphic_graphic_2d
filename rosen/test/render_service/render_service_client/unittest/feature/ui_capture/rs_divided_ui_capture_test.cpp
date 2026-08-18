@@ -317,6 +317,25 @@ HWTEST_F(RSDividedUICaptureTest, CreatePixelMapByNode, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreatePixelMapByNode_DimensionExceedsLimit
+ * @tc.desc: Verify CreatePixelMapByNode returns nullptr when a scaled dimension reaches
+ *           MAX_DIVIDED_UI_CAPTURE_DIM, to prevent the downstream int32 overflow in
+ *           CopyDataToPixelMap where size = GetRowBytes()*GetHeight().
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDividedUICaptureTest, CreatePixelMapByNode_DimensionExceedsLimit, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    RSDividedUICapture rsDividedUICapture(nodeId, 1.0f, 1.0f);
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    node->GetMutableRenderProperties().SetBoundsSize({17000.0f, 1.0f});
+    EXPECT_EQ(rsDividedUICapture.CreatePixelMapByNode(node), nullptr);
+    node->GetMutableRenderProperties().SetBoundsSize({1.0f, 17000.0f});
+    EXPECT_EQ(rsDividedUICapture.CreatePixelMapByNode(node), nullptr);
+}
+
+/**
  * @tc.name: CreateSurfaceTest001
  * @tc.desc: CreateSurface with null pixelmap returns nullptr (branch: pixelmap == nullptr)
  * @tc.type: FUNC

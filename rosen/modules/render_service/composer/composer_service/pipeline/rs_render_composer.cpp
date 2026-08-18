@@ -28,6 +28,7 @@
 #ifdef RS_ENABLE_EGLIMAGE
 #include "gpuComposition/rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
+#include "feature/hdr/rs_hdr_util.h"
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
@@ -445,7 +446,7 @@ void RSRenderComposer::ChangeLayersForActiveRectOutside(std::vector<std::shared_
     RS_LOGD_IF(DEBUG_COMPOSER, "emulator device do not need add layer");
     return;
 #endif
-    if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0) {
+    if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0 || RSSystemProperties::IsSimulateTest()) {
         return;
     }
 
@@ -590,7 +591,7 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
     uint64_t dvsyncOffset = 0;
     int64_t compositionTime = period;
     int64_t delayTime = 0;
-    int64_t preTime = 0;
+    int64_t preTime = 0; // DVSyncRSPretime
 
     if (getRealTimeOffsetOfDvsyncCb_ != nullptr) {
         dvsyncOffset = getRealTimeOffsetOfDvsyncCb_(pipelineParam.frameTimestamp, preTime);
@@ -620,7 +621,6 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         frameOffset = periodNum * idealPeriod + vsyncOffset + static_cast<int64_t>(dvsyncOffset)
             - static_cast<int64_t>(pipelineParam.fastComposeTimeStampDiff);
     }
-    // we use (pipelineParam.frameTimestamp - preTime) to get this frame real vsync timestamp
     expectCommitTime = pipelineParam.frameTimestamp - preTime + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
     if (pipelineParam.dvsyncNeedSkipRsCommitDelay) {

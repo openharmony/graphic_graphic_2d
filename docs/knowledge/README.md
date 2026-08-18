@@ -64,17 +64,19 @@
 | VSync/native_vsync | `vsync-native-vsync.md` | `composer/vsync/`, `native_vsync/`, `VSync*` | vsync/fuzz |
 | 屏幕/虚拟屏 | `screen-manager.md` | `screen_manager/`, `ScreenManager` | screen/fuzz |
 | Dirty/遮挡 | `dirty-region.md` | `dirty/`, `dirty_region/`, `Occlusion` | dirty |
-| UIFirst/OPINC/组渲染 | `uifirst-opinc.md` | `uifirst/`, `opinc/`, `render_group/` | 性能/图测 |
+| OPINC/组渲染 | `opinc-rendergroup.md` | `opinc/`, `render_group/` | 性能/图测 |
+| UIFirst 子线程渲染 | `uifirst.md` | `uifirst/`, `RSUifirstManager`, `SubThread` | 性能/图测 |
 | layer/special/tunnel | `layer-special-tunnel.md` | `layer/`, `special_layer/`, `tunnel_layer/` | layer |
 | overlay/多屏 | `overlay-multi-screen.md` | `overlay_display/`, `multi_screen/`, `Overlay` | 多屏/设备 |
 | HDR | `hdr.md` | `hdr/`, `RSHdrUtil` | HDR/XTS |
 | HGM/LTPO/DVSync | `hyper-graphic-manager.md` | `hyper_graphic_manager/`, `vrate/`, `Hgm*` | HGM |
 | soft VSync/投票 | `hyper-graphic-manager.md` | `frame_rate_vote/`, `soft_vsync_manager/` | HGM/fuzz |
 | chipset_vsync/帧稳定 | `chipset-vsync.md` | `chipset_vsync/`, `frame_stability/` | 性能 |
+| 稳帧检测/采集/配置更新 | `frame_stability_module.md` | `FrameStability`, `DetectorContext`, `CollectorContext`, `RecordCurrentFrameDirty`, `UpdateFrameStabilityConfig` | frame_stability |
 | HPAE/LPP/RDO | `hpae-lpp-rdo.md` | `hpae/`, `lpp/`, `rdo/` | 设备/性能 |
 | capture/截图 | `capture.md` | `capture/`, `Capture` | capture/fuzz |
 | DRM/水印/安全层 | `drm-watermark.md` | `drm/`, `watermark/`, `Watermark` | 安全/设备 |
-| 鼠标/关键帧 | `pointer-window-manager.md` | `pointer_window_manager/` | 功能 |
+| 鼠标/硬光标 | `pointer-window-manager.md` | `pointer_window_manager/`, `HardCursor` | 功能 |
 | 圆角显示/RCD | `round-corner-display.md` | `round_corner_display/`, `RoundCornerDisplay`, `RCD` | RCD/功能 |
 | 后窗滤镜/跳帧 | `behind-window-filter.md` | `behind_window_filter/`, `dynamic_layer_skip/`, `Skip` | feature |
 | buffer 回收/内存 | `buffer-reclaim.md` | `buffer_reclaim/`, `memory_info_manager/`, `Memory` | memory |
@@ -97,7 +99,7 @@
 | PixelMapFromSurface | `pixelmap-from-surface.md` | `create_pixelmap_surface/`, `PixelMap` | pixelmap/fuzz |
 | Text Framework | `text-framework.md` | `frameworks/text/service/`, `interface/mlb/`, `Texgine` | `text_test` |
 | BootAnimation | `boot-animation.md` | `frameworks/bootanimation/`, `BootAnimation` | boot 测试 |
-| effect_common/NDK | `effect-common-ndk.md` | `rosen/modules/effect/`, `Effect`, `ColorPicker` | effect |
+| EffectKit CAPI/JS | `effect-kit-api.md` | `rosen/modules/effect/`, `OH_Filter_*`, `FilterCommon`, `ColorPicker` | effect |
 | ColorSpace | `colorspace.md` | `utils/color_manager/`, `*color_manager/`, `ColorSpace` | color |
 | DDGR/2D engine | `ddgr-2d-engine.md` | `2d_engine/ddgr/`, `DDGR` | DDGR |
 | GLFW 跨平台上下文 | `glfw-render-context.md` | `glfw_render_context/`, `GLFW` | 跨平台 |
@@ -122,11 +124,14 @@
 | soft VSync、voting、刷新率拆分、刷新率投票 | `hyper-graphic-manager.md` |
 | fuzz、sanitize、crash、Parcel、IPC、unmarshal | `fuzzing.md` |
 | 越界、溢出、畸形输入、不可信输入 | `fuzzing.md` |
+| 稳帧、帧稳定、FrameStability、dirty 检测、stableDuration、changePercent | `frame_stability_module.md` |
 
 ## 跨文档补读
 
 | 当前场景 | 同时检查 |
 | --- | --- |
+| 稳帧检测与脏区收集 | `frame_stability_module.md`、`dirty-region.md` |
+| 稳帧检测与 IPC/安全注册 | `frame_stability_module.md`、`fuzzing.md` |
 | HGM 与 VSync/DVSync 交互 | `vsync-native-vsync.md` |
 | HDR、颜色空间 | `hdr.md`、`colorspace.md` |
 | Filter、Effect、HPAE 滤镜缓存、NGEffect、ColorPicker | `rs-ui-effect.md`、`2d-effect-filter.md`、`rs-ng-effect-framework.md`、`rs-color-picker-thread.md` |

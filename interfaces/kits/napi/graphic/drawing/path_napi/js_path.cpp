@@ -732,23 +732,35 @@ napi_value JsPath::OnAddPolygon(napi_env env, napi_callback_info info)
 
     napi_value array = argv[ARGC_ZERO];
     uint32_t size = 0;
-    napi_get_array_length(env, array, &size);
-    if (size == 0) {
+    if (napi_get_array_length(env, array, &size) != napi_ok || size == 0) {
         return nullptr;
+    }
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("JsPath::OnAddPolygon size exceeds the upper limit");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Array size exceeds limit.");
     }
     std::vector<Point> points;
     points.reserve(size);
     for (uint32_t i = 0; i < size; i++) {
         napi_value tempRunBuffer = nullptr;
-        napi_get_element(env, array, i, &tempRunBuffer);
+        if (napi_get_element(env, array, i, &tempRunBuffer) != napi_ok || tempRunBuffer == nullptr) {
+            ROSEN_LOGE("JsPath::OnAddPolygon element access failed at index %{public}u", i);
+            return nullptr;
+        }
 
         napi_value tempValue = nullptr;
         Point point = Point();
         double positionX = 0.0;
         double positionY = 0.0;
-        napi_get_named_property(env, tempRunBuffer, "x", &tempValue);
+        if (napi_get_named_property(env, tempRunBuffer, "x", &tempValue) != napi_ok || tempValue == nullptr) {
+            ROSEN_LOGE("JsPath::OnAddPolygon get x property failed at index %{public}u", i);
+            return nullptr;
+        }
         bool isPositionXOk = ConvertFromJsValue(env, tempValue, positionX);
-        napi_get_named_property(env, tempRunBuffer, "y", &tempValue);
+        if (napi_get_named_property(env, tempRunBuffer, "y", &tempValue) != napi_ok || tempValue == nullptr) {
+            ROSEN_LOGE("JsPath::OnAddPolygon get y property failed at index %{public}u", i);
+            return nullptr;
+        }
         bool isPositionYOk = ConvertFromJsValue(env, tempValue, positionY);
         if (!(isPositionXOk && isPositionYOk)) {
             ROSEN_LOGE("JsPath::OnAddPolygon Argv is invalid");
@@ -1118,8 +1130,18 @@ napi_value JsPath::OnGetPointData(napi_env env, napi_callback_info info)
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create point object failed.");
         }
 
-        if (napi_set_named_property(env, pointObj, "x", CreateJsNumber(env, points[i].GetX())) != napi_ok ||
-            napi_set_named_property(env, pointObj, "y", CreateJsNumber(env, points[i].GetY())) != napi_ok ||
+        napi_value xValue = CreateJsNumber(env, points[i].GetX());
+        if (xValue == nullptr) {
+            ROSEN_LOGE("JsPath::OnGetPointData CreateJsNumber failed for x");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create number failed.");
+        }
+        napi_value yValue = CreateJsNumber(env, points[i].GetY());
+        if (yValue == nullptr) {
+            ROSEN_LOGE("JsPath::OnGetPointData CreateJsNumber failed for y");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create number failed.");
+        }
+        if (napi_set_named_property(env, pointObj, "x", xValue) != napi_ok ||
+            napi_set_named_property(env, pointObj, "y", yValue) != napi_ok ||
             napi_set_element(env, resultArray, i, pointObj) != napi_ok) {
             ROSEN_LOGE("JsPath::OnGetPointData failed to fill point object");
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Fill point object failed.");
@@ -1574,7 +1596,7 @@ napi_value JsPath::CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path>
         return nullptr;
     }
     JsPath* jsPath = new JsPath(path);
-    status = napi_wrap(env, objValue, jsPath, JsPath::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, objValue, jsPath, JsPath::Destructor, nullptr, &PATH_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsPath;
         ROSEN_LOGE("JsPath::CreateJsPathDynamic failed to wrap native instance");

@@ -67,6 +67,21 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+class ScopedNewTunnelSwitch {
+public:
+    explicit ScopedNewTunnelSwitch(bool enabled)
+    {
+        oldValue_ = system::GetParameter("persist.rosen.debug.new_tunnel", "0") == "1";
+        system::SetParameter("persist.rosen.debug.new_tunnel", enabled ? "1" : "0");
+    }
+    ~ScopedNewTunnelSwitch()
+    {
+        system::SetParameter("persist.rosen.debug.new_tunnel", oldValue_ ? "1" : "0");
+    }
+private:
+    bool oldValue_;
+};
+
 class BufferConsumerListener : public ::OHOS::IBufferConsumerListener {
 public:
     void OnBufferAvailable() override {}
@@ -130,6 +145,7 @@ std::shared_ptr<RSSurfaceLayer> CreateTunnelSurfaceLayer(
     if (rsLayer == nullptr) {
         return nullptr;
     }
+    rsLayer->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
     rsLayer->SetSurfaceUniqueId(surfaceId);
     rsLayer->SetNodeId(nodeId);
     rsLayer->SetTunnelLayerId(tunnelLayerId);
@@ -9314,6 +9330,7 @@ HWTEST_F(RsRenderComposerTest, OnScreenConnected_Reconnect_ResetDisconnectedStat
  */
 HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
 {
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
     constexpr uint32_t screenId = 0;
     constexpr uint64_t surfaceId = 8201;
     constexpr uint64_t nodeId = 8202;
@@ -9323,6 +9340,7 @@ HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
 
     auto output = std::make_shared<HdiOutput>(screenId);
     output->Init();
+    output->device_ = hdiDeviceMock_;
     sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
     auto composer = std::make_shared<TestRSRenderComposer>(output, screenProperty);
     sptr<RSComposerToRenderConnection> connection = new RSComposerToRenderConnection();
@@ -9344,6 +9362,9 @@ HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
         .WillOnce(DoAll(SetArgReferee<LAYER_ID_ARG>(layerId), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
         .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    static std::vector<std::string> emptyParamKeys;
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey())
+        .WillRepeatedly(testing::ReturnRef(emptyParamKeys));
     output->SetRSLayers({ rsLayer });
 
     auto buffer = CreateTunnelTestBuffer();

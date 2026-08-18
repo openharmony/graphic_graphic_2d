@@ -217,7 +217,7 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
  
-    image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+    image_ = RSPixelMapUtil::ExtractDrawingImageNoCache(srcPixelMap_);
     if (image_ == nullptr) {
         EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: extract drawing image failed.");
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -588,7 +588,7 @@ DrawingError EffectImageChain::ApplyMaskTransitionFilter(const std::shared_ptr<M
     canvasInfo.geoWidth = srcPixelMap_->GetWidth();
     canvasInfo.geoHeight = srcPixelMap_->GetHeight();
 
-    auto topLayer = RSPixelMapUtil::ExtractDrawingImage(topLayerMap);
+    auto topLayer = RSPixelMapUtil::ExtractDrawingImageNoCache(topLayerMap);
     if (!topLayer || canvasInfo.geoHeight <= 0 || canvasInfo.geoWidth <= 0) {
         EFFECT_LOG_E("EffectImageChain::ApplyMaskTransitionFilter: input image is null or invalid.");
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -660,7 +660,7 @@ DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shar
         EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: geWaterDropletParams is null.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    geWaterDropletParams->topLayer = RSPixelMapUtil::ExtractDrawingImage(topLayerMap);
+    geWaterDropletParams->topLayer = RSPixelMapUtil::ExtractDrawingImageNoCache(topLayerMap);
     if (!geWaterDropletParams->topLayer) {
         EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: ConvertPixelMapToDrawingImage null.");
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -851,7 +851,7 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_) };
 
 #if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
-    image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+    image_ = RSPixelMapUtil::ExtractDrawingImageNoCache(srcPixelMap_);
 #if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
     // If image_ release earlier, grContext may release and cause null pointer error
     // Store image_ pointer to maintain correct image life cycle when use DDGR

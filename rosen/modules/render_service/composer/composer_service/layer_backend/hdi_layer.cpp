@@ -39,7 +39,7 @@ const std::string GENERIC_METADATA_KEY_GLASS_FREE_3D = "GlassFree3D";
 const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 const std::string GENERIC_METADATA_KEY_VCLD_PARAM = "VcldParam";
-const std::string GENERIC_METADATA_KEY_SOLIC_FILL = "SolidFill";
+const std::string GENERIC_METADATA_KEY_SOLID_FILL = "SolidFill";
 }
 
 template<typename T>
@@ -361,7 +361,7 @@ int32_t HdiLayer::SetDelegateModeLayerCrop()
     }
 
     GraphicIRect rect = rsLayer_->GetDelegateModeCropRect();
-    RS_TRACE_NAME_FMT("HdiLayer::SetDelegateModeLayerCrop, layerId=%u, rect={%d, %d, %d, %d}",
+    RS_TRACE_NAME_FMT("HdiLayer::SetDelegateModeLayerCrop, layerId=%u, [%d %d %d %d]",
         layerId_, rect.x, rect.y, rect.w, rect.h);
     int32_t ret = device_->SetLayerCrop(screenId_, layerId_, rect);
     return ret;
@@ -896,7 +896,7 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_VCLD_PARAM) {
             ret = SetPerFrameLayerVcldParam();
             CheckRet(ret, "SetLayerVcldParam");
-        } else if (key == GENERIC_METADATA_KEY_SOLIC_FILL) {
+        } else if (key == GENERIC_METADATA_KEY_SOLID_FILL) {
             ret = SetPerFrameLayerSolidFillParam();
             CheckRet(ret, "SetLayerSolidFillParam");
         }
@@ -1026,7 +1026,7 @@ int32_t HdiLayer::SetPerFrameLayerSolidFillParam()
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = rsLayer_->IsSolidFilledColorLayer();
     return device_->SetLayerPerFrameParameterSmq(
-        screenId_, layerId_, GENERIC_METADATA_KEY_SOLIC_FILL, valueBlob);
+        screenId_, layerId_, GENERIC_METADATA_KEY_SOLID_FILL, valueBlob);
 }
 
 void HdiLayer::ClearBufferCache()
@@ -1050,8 +1050,11 @@ int32_t HdiLayer::SetTunnelLayerParameters()
     if (rsLayer_ == nullptr) {
         return GRAPHIC_DISPLAY_FAILURE;
     }
-    if (prevRSLayer_ == nullptr && rsLayer_->GetTunnelLayerId() == 0 &&
-        rsLayer_->GetTunnelLayerProperty() == TUNNEL_PROP_INVALID) {
+    if (rsLayer_->GetTunnelLayerId() == 0 && rsLayer_->GetTunnelLayerProperty() == TUNNEL_PROP_INVALID) {
+        return GRAPHIC_DISPLAY_SUCCESS;
+    }
+    if (prevRSLayer_ && rsLayer_->GetTunnelLayerId() == prevRSLayer_->GetTunnelLayerId() &&
+        rsLayer_->GetTunnelLayerProperty() == prevRSLayer_->GetTunnelLayerProperty()) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     int32_t tunnelLayerIdRet = SetTunnelLayerId();

@@ -36,6 +36,7 @@
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
 #include "feature/composite_layer/rs_composite_layer_utils.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_color_picker_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
@@ -6386,6 +6387,76 @@ HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
     name = rsNode->GetNodeName();
     EXPECT_EQ(name, nodeName);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: SetNodeNameTest002
+ * @tc.desc: test SetNodeName with LTPO node
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSNodeTest, SetNodeNameTest002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto name = rsNode->GetNodeName();
+    EXPECT_EQ(name, "");
+
+    auto srcAppBufferList = std::atomic_load(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_);
+    std::string ltpoNodeFlag{"ltpoNodeFlag"};
+    auto testList = std::make_shared<const std::vector<std::string>>(std::vector<std::string>{ltpoNodeFlag});
+    std::atomic_store(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(testList));
+    std::string normalNodeFlag{"normalNodeFlag"};
+    rsNode->SetNodeName("");
+    EXPECT_EQ(rsNode->isDrawNode_, false);
+    rsNode->SetNodeName(normalNodeFlag);
+    EXPECT_EQ(rsNode->isDrawNode_, false);
+    rsNode->SetNodeName(ltpoNodeFlag);
+    EXPECT_EQ(rsNode->isDrawNode_, true);
+    std::atomic_store(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_, srcAppBufferList);
+}
+
+/**
+ * @tc.name: SetNodeNameTest003
+ * @tc.desc: test SetNodeName early return when name is same
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSNodeTest, SetNodeNameTest003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::string name = "sameName";
+    rsNode->SetNodeName(name);
+    EXPECT_EQ(rsNode->GetNodeName(), name);
+
+    rsNode->isDrawNode_ = false;
+    rsNode->SetNodeName(name);
+    EXPECT_EQ(rsNode->isDrawNode_, false);
+    EXPECT_EQ(rsNode->GetNodeName(), name);
+}
+
+/**
+ * @tc.name: SetNodeNameTest004
+ * @tc.desc: test SetNodeName skips SetDrawNode when already drawn
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSNodeTest, SetNodeNameTest004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto srcAppBufferList = std::atomic_load(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_);
+
+    std::string ltpoFlag{"ltpoFlag004"};
+    auto testList = std::make_shared<const std::vector<std::string>>(std::vector<std::string>{ltpoFlag});
+    std::atomic_store(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_,
+        std::shared_ptr<const std::vector<std::string>>(testList));
+
+    rsNode->isDrawNode_ = true;
+    rsNode->SetNodeName(ltpoFlag);
+    EXPECT_EQ(rsNode->isDrawNode_, true);
+    EXPECT_EQ(rsNode->GetNodeName(), ltpoFlag);
+
+    std::atomic_store(&RSFrameRatePolicy::GetInstance()->sortedAppBufferList_, srcAppBufferList);
 }
 
 /**

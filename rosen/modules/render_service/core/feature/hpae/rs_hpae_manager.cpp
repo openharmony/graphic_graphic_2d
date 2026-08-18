@@ -91,7 +91,7 @@ void RSHpaeManager::UpdateHpaeState()
     }
 
     if (stagingHpaeStatus_.gotHpaeBlurNode && hpaeBufferNeedInit_.load(std::memory_order_acquire)) {
-        HPAE_LOGI("HPAE::ALLOC_BUF");
+        HPAE_LOGD("ALLOC_BUF");
         RS_TRACE_NAME("HPAE::ALLOC_BUF");
         stagingHpaeStatus_.gotHpaeBlurNode = false;
         hpaeFrameState_ = HpaeFrameState::ALLOC_BUF;
@@ -130,7 +130,7 @@ void RSHpaeManager::OnActive()
     int format = GRAPHIC_PIXEL_FMT_RGBA_8888; // only support RGBA888 now
     RS_TRACE_NAME_FMT("HPAE::ACTIVE: %d, %d, format: %d",
         stagingHpaeStatus_.bufferWidth, stagingHpaeStatus_.bufferHeight, format);
-    HPAE_LOGI("HPAE::ACTIVE");
+    HPAE_LOGI("ACTIVE");
     // can also use: HianimationAlgoInit
     HianimationManager::GetInstance().AlgoInitAsync(stagingHpaeStatus_.bufferWidth,
         stagingHpaeStatus_.bufferHeight, HPAE_MAX_SIGMA, format);
@@ -140,7 +140,7 @@ void RSHpaeManager::OnActive()
 void RSHpaeManager::OnDeActive()
 {
     RS_TRACE_NAME("HPAE::DEACTIVE");
-    HPAE_LOGI("HPAE::DEACTIVE");
+    HPAE_LOGD("DEACTIVE");
     releaseAllDone_.store(false, std::memory_order_release);
     ffrt::submit_h([=]() {
         RSHpaeFfrtPatternManager::Instance().MHCReleaseAll();
@@ -154,7 +154,7 @@ void RSHpaeManager::OnDeActive()
             RS_OPTIONAL_TRACE_END();
         });
         this->releaseAllDone_.store(true, std::memory_order_release);
-        HPAE_LOGI("HPAE::DEACTIVE done");
+        HPAE_LOGI("DEACTIVE done");
         }, {}, {}, ffrt::task_attr().qos(FFRT_QOS_HPAE_HIGH));
 }
 
@@ -353,7 +353,7 @@ void RSHpaeManager::InitIoBuffers()
 void RSHpaeManager::ReleaseIoBuffers()
 {
     RS_OPTIONAL_TRACE_NAME("ReleaseIoBuffers");
-    HPAE_LOGI("ReleaseIoBuffers +");
+    HPAE_LOGD("ReleaseIoBuffers +");
     std::unique_lock<ffrt::mutex> lock(releaseIoBuffersMutex_);
     size_t i = 0;
     if (hpaeBufferIn_ != nullptr) {
@@ -380,7 +380,7 @@ void RSHpaeManager::ReleaseIoBuffers()
     }
     curIndex_ = 0;
     hpaeBufferNeedInit_.store(true, std::memory_order_release);
-    HPAE_LOGI("ReleaseIoBuffers -");
+    HPAE_LOGD("ReleaseIoBuffers -");
 }
 
 bool RSHpaeManager::UpdateBufferIfNeed(const BufferRequestConfig& bufferConfig, bool isHebc)
@@ -477,14 +477,14 @@ void RSHpaeManager::AllocBuffer(const BufferRequestConfig& bufferConfig, bool is
     RSHpaeBaseData::GetInstance().SyncHpaeStatus(HpaeStatus()); // notify no hpae blur
     ffrt::submit_h([this, bufferConfig, isHebc]() {
         RS_TRACE_BEGIN("HpaePreAllocateBuffer");
-        HPAE_LOGI("AllocBuf: +");
+        HPAE_LOGD("AllocBuf: +");
         std::unique_lock<ffrt::mutex> lock(this->releaseIoBuffersMutex_);
         if (this->hpaeBufferIn_ && this->hpaeBufferOut_) {
             this->hpaeBufferIn_->PreAllocateBuffer(bufferConfig.width, bufferConfig.height, isHebc);
             this->hpaeBufferOut_->PreAllocateBuffer(bufferConfig.width, bufferConfig.height, isHebc);
         }
         this->hpaeBufferAllocating_.store(false, std::memory_order_release);
-        HPAE_LOGI("AllocBuf: -");
+        HPAE_LOGD("AllocBuf: -");
         RS_TRACE_END();
         }, {}, {}, ffrt::task_attr().qos(FFRT_QOS_HPAE_HIGH));
 }

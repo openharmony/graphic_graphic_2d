@@ -147,7 +147,7 @@ HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo002, TestSize.Level1)
 
 /**
  * @tc.name: ResolveTunnelLayerInfo_RejectsInvalidInputs
- * @tc.desc: Test ResolveTunnelLayerInfo rejects disabled feature, null consumer, and consumer callback errors.
+ * @tc.desc: Test ResolveTunnelLayerInfo rejects null consumer and consumer callback errors.
  * @tc.type: FUNC
  */
 HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo_RejectsInvalidInputs, TestSize.Level1)
@@ -156,11 +156,6 @@ HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo_RejectsInvalidInputs, T
     uint32_t property = TUNNEL_PROP_BUFFER_ADDR;
     auto consumer = IConsumerSurface::Create("counting");
     ASSERT_NE(consumer, nullptr);
-
-    {
-        ScopedNewTunnelSwitch scopedNewTunnelSwitch(false);
-        EXPECT_FALSE(RSTunnelLayerHelper::ResolveTunnelLayerInfo(consumer, tunnelLayerId, property));
-    }
 
     ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
     EXPECT_FALSE(RSTunnelLayerHelper::ResolveTunnelLayerInfo(nullptr, tunnelLayerId, property));

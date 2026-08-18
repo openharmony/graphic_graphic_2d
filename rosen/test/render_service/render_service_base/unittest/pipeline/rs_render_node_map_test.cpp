@@ -1194,6 +1194,123 @@ HWTEST_F(RSRenderNodeMapTest, DestroyTokenNodeTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RemoveSurfaceNodeMapKeepsNonMatchingNodes
+ * @tc.desc: Cover RemoveSurfaceNodeMap predicate branches: mismatched pid/token, null node entry,
+ *           non-self-drawing type and texture export node are all kept in surfaceNodeMap_.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RemoveSurfaceNodeMapKeepsNonMatchingNodes, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId baseId = static_cast<NodeId>(pid) << 32;
+
+    // pid mismatch
+    RSSurfaceRenderNodeConfig otherPidCfg = { .id = (static_cast<NodeId>(2) << 32) | 1,
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto otherPidNode = std::make_shared<RSSurfaceRenderNode>(otherPidCfg);
+    otherPidNode->SetUIContextToken(token);
+    // token mismatch
+    RSSurfaceRenderNodeConfig otherTokenCfg = { .id = baseId | 1, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto otherTokenNode = std::make_shared<RSSurfaceRenderNode>(otherTokenCfg);
+    otherTokenNode->SetUIContextToken(token + 1);
+    // non-self-drawing type
+    RSSurfaceRenderNodeConfig appCfg = { .id = baseId | 2, .nodeType = RSSurfaceNodeType::APP_WINDOW_NODE };
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(appCfg);
+    appNode->SetUIContextToken(token);
+    // texture export node
+    RSSurfaceRenderNodeConfig exportCfg = { .id = baseId | 3, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto exportNode = std::make_shared<RSSurfaceRenderNode>(exportCfg);
+    exportNode->SetUIContextToken(token);
+    exportNode->SetIsTextureExportNode(true);
+
+    rsRenderNodeMap.surfaceNodeMap_[otherPidNode->GetId()] = otherPidNode;
+    rsRenderNodeMap.surfaceNodeMap_[otherTokenNode->GetId()] = otherTokenNode;
+    rsRenderNodeMap.surfaceNodeMap_[appNode->GetId()] = appNode;
+    rsRenderNodeMap.surfaceNodeMap_[exportNode->GetId()] = exportNode;
+    rsRenderNodeMap.surfaceNodeMap_[baseId | 4] = nullptr; // null node entry is skipped
+
+    rsRenderNodeMap.RemoveSurfaceNodeMap(pid, token);
+
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.size(), 5);
+    EXPECT_TRUE(rsRenderNodeMap.backgroundSurfaceNodeMap_.empty());
+    EXPECT_FALSE(otherPidNode->IsUIRenderDirectorStopped());
+    EXPECT_FALSE(otherTokenNode->IsUIRenderDirectorStopped());
+    EXPECT_FALSE(appNode->IsUIRenderDirectorStopped());
+    EXPECT_FALSE(exportNode->IsUIRenderDirectorStopped());
+}
+
+/**
+ * @tc.name: RemoveAndRegisterSurfaceNodeMapRoundTrip
+ * @tc.desc: Cover RemoveSurfaceNodeMap stash and RegisterSurfaceRenderNode restore with multiple nodes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RemoveAndRegisterSurfaceNodeMapRoundTrip, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId baseId = static_cast<NodeId>(pid) << 32;
+
+    RSSurfaceRenderNodeConfig cfg1 = { .id = baseId | 1, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(cfg1);
+    node1->SetUIContextToken(token);
+    RSSurfaceRenderNodeConfig cfg2 = { .id = baseId | 2, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(cfg2);
+    node2->SetUIContextToken(token);
+    rsRenderNodeMap.surfaceNodeMap_[node1->GetId()] = node1;
+    rsRenderNodeMap.surfaceNodeMap_[node2->GetId()] = node2;
+
+    rsRenderNodeMap.RemoveSurfaceNodeMap(pid, token);
+    EXPECT_TRUE(rsRenderNodeMap.surfaceNodeMap_.empty());
+    ASSERT_EQ(rsRenderNodeMap.backgroundSurfaceNodeMap_[pid][token].size(), 2);
+    EXPECT_TRUE(node1->IsUIRenderDirectorStopped());
+    EXPECT_TRUE(node2->IsUIRenderDirectorStopped());
+
+    rsRenderNodeMap.RegisterSurfaceRenderNode(pid, token);
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.size(), 2);
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.count(node1->GetId()), 1);
+    EXPECT_EQ(rsRenderNodeMap.surfaceNodeMap_.count(node2->GetId()), 1);
+    // the token entry is erased, and the pid key is also removed when sub map becomes empty
+    EXPECT_EQ(rsRenderNodeMap.backgroundSurfaceNodeMap_.count(pid), 0);
+    EXPECT_FALSE(node1->IsUIRenderDirectorStopped());
+    EXPECT_FALSE(node2->IsUIRenderDirectorStopped());
+}
+
+/**
+ * @tc.name: RegisterSurfaceRenderNodeNoMatch
+ * @tc.desc: Cover RegisterSurfaceRenderNode no-op branches: unknown pid and unknown token.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, RegisterSurfaceRenderNodeNoMatch, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    constexpr pid_t pid = 1;
+    constexpr uint64_t token = 1;
+    constexpr NodeId nodeId = (static_cast<NodeId>(pid) << 32) | 1;
+
+    // unknown pid: no-op, must not crash
+    rsRenderNodeMap.RegisterSurfaceRenderNode(pid, token);
+
+    // stash one node, then restore with an unknown token: node must stay stashed
+    RSSurfaceRenderNodeConfig cfg = { .id = nodeId, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto node = std::make_shared<RSSurfaceRenderNode>(cfg);
+    node->SetUIContextToken(token);
+    rsRenderNodeMap.surfaceNodeMap_[nodeId] = node;
+    rsRenderNodeMap.RemoveSurfaceNodeMap(pid, token);
+    ASSERT_TRUE(node->IsUIRenderDirectorStopped());
+
+    rsRenderNodeMap.RegisterSurfaceRenderNode(pid, token + 1);
+    EXPECT_TRUE(node->IsUIRenderDirectorStopped());
+    EXPECT_TRUE(rsRenderNodeMap.surfaceNodeMap_.empty());
+    EXPECT_EQ(rsRenderNodeMap.backgroundSurfaceNodeMap_.at(pid).size(), 1);
+}
+
+/**
  * @tc.name: DestroyTokenNodeAncoNodeProtectedInRenderNodeMap
  * @tc.desc: Verify ANCO surface node is protected from erasure in renderNodeMap_ during DestroyTokenNode
  * @tc.type: FUNC

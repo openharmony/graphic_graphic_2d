@@ -618,7 +618,6 @@ void RSSurfaceRenderNode::GetAllSubSurfaceNodes(
     for (auto& [id, node] : childSubSurfaceNodes_) {
         auto subSubSurfaceNodePtr = node.lock();
         if (!subSubSurfaceNodePtr) {
-            RS_LOGE("RSSurfaceRenderNode::GetAllSubSurfaceNodes subSubSurfaceNodePtr is null");
             continue;
         }
         if (subSubSurfaceNodePtr->HasSubSurfaceNodes()) {
@@ -989,21 +988,31 @@ bool RSSurfaceRenderNode::IsInFixedRotation() const
     return isInFixedRotation_;
 }
 
-void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating)
+void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating, bool screenChanged)
 {
-    if (isFixRotationByUser_ && !isInFixedRotation_ && isRotating) {
+    if (isFixRotationByUser_) {
+        if (!isInFixedRotation_ && isRotating) {
 #ifndef ROSEN_CROSS_PLATFORM
 #ifdef RS_ENABLE_GPU
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-        if (surfaceParams) {
-            auto layer = surfaceParams->GetLayerInfo();
-            originalSrcRect_ = { layer.srcRect.x, layer.srcRect.y, layer.srcRect.w, layer.srcRect.h };
-            originalDstRect_ = { layer.dstRect.x, layer.dstRect.y, layer.dstRect.w, layer.dstRect.h };
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+            if (surfaceParams) {
+                auto layer = surfaceParams->GetLayerInfo();
+                originalSrcRect_ = { layer.srcRect.x, layer.srcRect.y, layer.srcRect.w, layer.srcRect.h };
+                originalDstRect_ = { layer.dstRect.x, layer.dstRect.y, layer.dstRect.w, layer.dstRect.h };
+            }
+#endif
+#endif
         }
-#endif
-#endif
     }
-    isInFixedRotation_ = isFixRotationByUser_ && isRotating;
+    isInFixedRotation_ = isFixRotationByUser_ && isRotating && !haveScreenChangeInRotation_;
+    if (screenChanged && isRotating) {
+        isInFixedRotation_ = false;
+        haveScreenChangeInRotation_ = true;
+        RS_TRACE_NAME_FMT("SetInFixedRotation, screen changed in rotation, node id:%" PRIu64, GetId());
+    }
+    if (haveScreenChangeInRotation_ && !isRotating) {
+        haveScreenChangeInRotation_ = false;
+    }
 }
 
 void RSSurfaceRenderNode::SetHidePrivacyContent(bool needHidePrivacyContent)
@@ -2888,37 +2897,6 @@ void RSSurfaceRenderNode::OnApplyModifiers()
     }
 }
 
-bool RSSurfaceRenderNode::IsFullScreen() const
-{
-    if (!IsOnTheTree()) {
-        return false;
-    }
-    if (GetCompositionType() != CompositionType::COMPOSITION_3D_SHUTTER) {
-        return false;
-    }
-    auto context = GetContext().lock();
-    if (!context) {
-        return false;
-    }
-    const uint32_t percentage = 90; /* 90: 90% of the rect */
-    const uint32_t fullRange = 100; /* 100: full range of the rect */
-    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(GetScreenNodeId());
-    if (screenNode) {
-        const auto& screenInfo = screenNode->GetScreenInfo();
-        const auto& nodeProperties = GetRenderProperties();
-        auto rect = nodeProperties.GetBoundsGeometry()->GetAbsRect();
-        RS_TRACE_NAME_FMT("IsFullScreen: surface width[%d], height[%d], screen width[%d], height[%d]",
-            rect.GetWidth(), rect.GetHeight(), screenInfo.width, screenInfo.height);
-        if (GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_SBS) {
-            return rect.GetWidth() >= screenInfo.width * percentage / fullRange;
-        }
-        if (GetVideoDimType() == VideoDimType::VIDEO_DIM_TYPE_3D_TAB) {
-            return rect.GetHeight() >= screenInfo.height * percentage / fullRange;
-        }
-    }
-    return false;
-}
-
 VideoDimType RSSurfaceRenderNode::GetVideoDimType() const
 {
     if (!IsOnTheTree()) {
@@ -4281,16 +4259,6 @@ void RSSurfaceRenderNode::EmplaceSameTypeModifier(
             default:
                 break;
         }
-    }
-}
-
-template<typename T>
-void RSSurfaceRenderNode::CopyModifierValue(ModifierNG::RSPropertyType propertyType,
-    std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
-    std::shared_ptr<ModifierNG::RSRenderModifier> newModifier)
-{
-    if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
-        oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
     }
 }
 

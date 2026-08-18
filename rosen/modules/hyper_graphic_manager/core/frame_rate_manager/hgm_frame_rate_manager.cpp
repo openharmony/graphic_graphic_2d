@@ -61,6 +61,7 @@ constexpr int DISPLAY_SUCCESS = 1;
 constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
 constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
 constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
+constexpr size_t VOTE_INFO_SIMPLE_PREFIX_LEN = 6;
 
 bool IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType)
 {
@@ -130,12 +131,19 @@ void HgmFrameRateManager::InitConfig()
     std::string curScreenName = "screen" + std::to_string(
         curScreenId_.load()) + "_" + (isLtpo_.load() ? "LTPO" : "LTPS");
     if (auto configData = hgmCore.GetPolicyConfigData()) {
+        bool isNeedFallBack = false;
         if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
             iter != configData->screenStrategyConfigs_.end()) {
             curScreenStrategyId_ = iter->second;
+        } else {
+            isNeedFallBack = true;
         }
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
+            isNeedFallBack = true;
+        }
+        if (isNeedFallBack) {
+            HandleScreenStrategyFallback(configData);
         }
         isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
         if (auto configVisitor = hgmCore.GetPolicyConfigVisitor()) {
@@ -703,6 +711,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
         HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
+        RS_TRACE_NAME_FMT("%s: stylusVec size = %zu", __func__, stylusVec_.size());
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
     }
@@ -1020,6 +1029,30 @@ void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
     HandleScreenFrameRate(curScreenName);
 }
 
+void HgmFrameRateManager::HandleScreenStrategyFallback(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (auto screenConfigsIter = configData->screenConfigs_.find(curScreenStrategyId_);
+        screenConfigsIter == configData->screenConfigs_.end()) {
+        std::string curScreenName = "screen" + std::to_string(
+            curScreenId_.load()) + "_" + (!isLtpo_.load() ? "LTPO" : "LTPS");
+        HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
+        if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
+            iter != configData->screenStrategyConfigs_.end()) {
+            curScreenStrategyId_ = iter->second;
+        } else {
+            curScreenName = "screen" + std::to_string(curScreenId_.load()) + "_" + (isLtpo_.load() ? "LTPO" : "LTPS");
+            HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
+            if (auto iter = configData->screenStrategyConfigs_.find(curScreenName);
+                iter != configData->screenStrategyConfigs_.end()) {
+                curScreenStrategyId_ = iter->second;
+            } else {
+                HGM_LOGE("%{public}s %{public}s get fail", curScreenName.c_str(), curScreenStrategyId_.c_str());
+                curScreenStrategyId_ = "LTPS-DEFAULT";
+            }
+        }
+    }
+}
+
 void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
 {
     auto& hgmCore = HgmCore::Instance();
@@ -1037,6 +1070,7 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
         curScreenStrategyId_ = iter->second;
     } else {
         curScreenStrategyId_ = "LTPO-DEFAULT";
+        HandleScreenStrategyFallback(configData);
     }
     curScreenDefaultStrategyId_ = curScreenStrategyId_;
 
@@ -1253,8 +1287,9 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
         }
     } else {
         lastVoteInfo_ = resultVoteInfo;
-        HGM_LOGI("%{public}s %{public}d %{public}d %{public}s", curScreenStrategyId_.c_str(),
-            static_cast<int>(curScreenId_.load()), curRefreshRateMode_, resultVoteInfo.ToSimpleString().c_str());
+        HGM_LOGI_SHORT("%{public}s %{public}d %{public}d %{public}s", curScreenStrategyId_.c_str(),
+            static_cast<int>(curScreenId_.load()), curRefreshRateMode_,
+            resultVoteInfo.ToSimpleString().erase(0, VOTE_INFO_SIMPLE_PREFIX_LEN).c_str());
     }
 
     // max used here

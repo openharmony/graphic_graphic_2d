@@ -234,14 +234,13 @@ std::shared_ptr<Drawing::Surface> DrawingSurfaceUtils::CreateFromWindow(Drawing:
             LOGE("CreateFromWindow: get renderContext failed.");
             return nullptr;
         }
-
-        EGLSurface eglSurface = std::static_pointer_cast<RenderContextGL>(renderContext)->CreateEGLSurface(
-            reinterpret_cast<EGLNativeWindowType>(window));
+        auto glContext = std::static_pointer_cast<RenderContextGL>(renderContext);
+        EGLSurface eglSurface = glContext->CreateEGLSurface(reinterpret_cast<EGLNativeWindowType>(window));
         if (eglSurface == EGL_NO_SURFACE) {
             LOGE("CreateFromWindow: create eglSurface failed, window is invalid.");
             return nullptr;
         }
-        std::static_pointer_cast<RenderContextGL>(renderContext)->MakeCurrent(eglSurface);
+        glContext->MakeCurrent(eglSurface);
 
         Drawing::FrameBuffer bufferInfo;
         bufferInfo.width = imageInfo.GetWidth();
@@ -254,8 +253,8 @@ std::shared_ptr<Drawing::Surface> DrawingSurfaceUtils::CreateFromWindow(Drawing:
         std::shared_ptr<Drawing::Surface> surface = std::make_shared<Drawing::Surface>();
         if (!surface->Bind(bufferInfo)) {
             LOGE("CreateFromWindow: create surface failed.");
-            std::static_pointer_cast<RenderContextGL>(renderContext)->DestroyEGLSurface(eglSurface);
-            std::static_pointer_cast<RenderContextGL>(renderContext)->MakeCurrent(EGL_NO_SURFACE);
+            glContext->DestroyEGLSurface(eglSurface);
+            glContext->MakeCurrent(EGL_NO_SURFACE);
             return nullptr;
         }
 
@@ -332,8 +331,9 @@ void DrawingSurfaceUtils::RemoveSurface(Drawing::Surface* surface)
         auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
         if (renderContext != nullptr) {
             EGLSurface eglSurface = (iter->second).second;
-            std::static_pointer_cast<RenderContextGL>(renderContext)->DestroyEGLSurface(eglSurface);
-            std::static_pointer_cast<RenderContextGL>(renderContext)->MakeCurrent(EGL_NO_SURFACE);
+            auto glContext = std::static_pointer_cast<RenderContextGL>(renderContext);
+            glContext->DestroyEGLSurface(eglSurface);
+            glContext->MakeCurrent(EGL_NO_SURFACE);
         } else {
             LOGD("RemoveSurface: get renderContext failed.");
         }

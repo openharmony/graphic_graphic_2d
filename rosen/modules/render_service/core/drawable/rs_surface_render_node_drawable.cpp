@@ -33,6 +33,7 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/frame_stability/rs_frame_stability_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -123,6 +124,7 @@ RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
             AddSurfaceFpsOpStatic(SurfaceFpsOpType::SURFACE_FPS_REMOVE, id, name, uniqueId);
         });
     }
+    RSFrameStabilityManager::GetInstance().CleanResourcesByNodeId(id_);
 }
 
 void RSSurfaceRenderNodeDrawable::AddSurfaceFpsOpStatic(
@@ -1203,8 +1205,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_) ||
         surfaceParams->GetSpecialLayerMgr().Find(HAS_GENERAL_SPECIAL)) {
         RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_ = true;
-        RS_LOGW("RSSurfaceRenderNodeDrawable::OnCapture surfaceNode marked as privacy or special layer, "
-            "nodeId:[%{public}" PRIu64 "].", nodeId_);
+        RS_LOGD("Marked as privacy or special layer, nodeId:[%{public}" PRIu64 "].", nodeId_);
     }
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
@@ -1755,12 +1756,8 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(
     uint32_t threadId = canvas.GetParallelThreadId();
     auto params = RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(*this, surfaceParams,
         static_cast<uint32_t>(threadId));
-    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
-    auto bRet = virtualScreenParallelManager->GetRenderEngineByTid(
-        -canvas.GetParallelThreadIdx(), renderEngine);
-    if (!bRet) {
-        renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    }
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    virtualScreenParallelManager->GetRenderEngineByTid(-canvas.GetParallelThreadIdx(), renderEngine);
     renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
     canvas.Restore();
 }

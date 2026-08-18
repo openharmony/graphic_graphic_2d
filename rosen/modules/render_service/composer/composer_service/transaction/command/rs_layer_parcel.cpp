@@ -44,8 +44,8 @@ void RSLayerParcelHelper::DestroyRSLayerCmd(std::shared_ptr<RSRenderComposerCont
 void RSLayerParcelHelper::UpdateRSLayerCmd(std::shared_ptr<RSRenderComposerContext> context, RSLayerId layerId,
     const std::shared_ptr<RSRenderLayerCmd>& command)
 {
-    if (context == nullptr) {
-        ROSEN_LOGE("%{public}s context is nullptr", __func__);
+    if (context == nullptr || command == nullptr) {
+        ROSEN_LOGE("%{public}s context or command is nullptr", __func__);
         return;
     }
     auto rsLayer = context->GetRSRenderLayer(layerId);
@@ -59,8 +59,8 @@ void RSLayerParcelHelper::UpdateRSLayerCmd(std::shared_ptr<RSRenderComposerConte
 void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerContext> context, RSLayerId layerId,
     const std::shared_ptr<RSRenderLayerCmd>& command)
 {
-    if (context == nullptr) {
-        ROSEN_LOGE("%{public}s context is nullptr", __func__);
+    if (context == nullptr || command == nullptr) {
+        ROSEN_LOGE("%{public}s context or command is nullptr", __func__);
         return;
     }
     auto rsLayer = context->GetRSRenderLayer(layerId);
@@ -82,8 +82,8 @@ void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerCo
 void RSLayerParcelHelper::UpdateRSSolidFilledColorLayerCmd(std::shared_ptr<RSRenderComposerContext> context,
     RSLayerId layerId, const std::shared_ptr<RSRenderLayerCmd>& command)
 {
-    if (context == nullptr) {
-        ROSEN_LOGE("%{public}s context is nullptr", __func__);
+    if (context == nullptr || command == nullptr) {
+        ROSEN_LOGE("%{public}s context or command is nullptr", __func__);
         return;
     }
     auto rsLayer = context->GetRSRenderLayer(layerId);
@@ -92,10 +92,10 @@ void RSLayerParcelHelper::UpdateRSSolidFilledColorLayerCmd(std::shared_ptr<RSRen
         context->AddRSRenderLayer(layerId, rsLayer);
     }
     if (!rsLayer->IsSolidFilledColorLayer()) {
-        auto solidFilledColorLayer = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
-        solidFilledColorLayer->CopyLayerInfo(rsLayer);
-        solidFilledColorLayer->UpdateRSLayerCmd(command);
-        context->AddRSRenderLayer(layerId, solidFilledColorLayer);
+        auto solidFilledLayer = std::make_shared<RSRenderSurfaceSolidFilledColorLayer>();
+        solidFilledLayer->CopyLayerInfo(rsLayer);
+        solidFilledLayer->UpdateRSLayerCmd(command);
+        context->AddRSRenderLayer(layerId, solidFilledLayer);
         return;
     }
     rsLayer->UpdateRSLayerCmd(command);

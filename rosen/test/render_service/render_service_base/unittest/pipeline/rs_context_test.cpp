@@ -254,6 +254,48 @@ HWTEST_F(RSContextTest, GetUIFrameworkDirtyNodeNameMapTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetUIFrameworkDirtyNodeNameMapTest002
+ * @tc.desc: node with IsSubTreeDirty but not IsDirty should be included in map
+ * @tc.type: FUNC
+ * @tc.require: issue24889
+ */
+HWTEST_F(RSContextTest, GetUIFrameworkDirtyNodeNameMapTest002, TestSize.Level1)
+{
+    RSContext rSContext;
+
+    constexpr NodeId nodeId1{10};
+    auto node1 = std::make_shared<RSRenderNode>(nodeId1, false);
+    const std::string nodeName1{"subTreeDirtyNode"};
+    node1->SetNodeName(nodeName1);
+    node1->ResetDirtyFlag();
+    node1->SetSubTreeDirty(true);
+    rSContext.uiFrameworkDirtyNodes_.emplace_back(node1);
+
+    constexpr NodeId nodeId2{20};
+    auto node2 = std::make_shared<RSRenderNode>(nodeId2, false);
+    const std::string nodeName2{"cleanNode"};
+    node2->SetNodeName(nodeName2);
+    node2->ResetDirtyFlag();
+    node2->SetSubTreeDirty(false);
+    rSContext.uiFrameworkDirtyNodes_.emplace_back(node2);
+
+    constexpr NodeId nodeId3{30};
+    auto node3 = std::make_shared<RSRenderNode>(nodeId3, false);
+    const std::string nodeName3{"dirtyNode"};
+    node3->SetNodeName(nodeName3);
+    node3->SetDirty();
+    node3->SetSubTreeDirty(false);
+    rSContext.uiFrameworkDirtyNodes_.emplace_back(node3);
+
+    auto result = rSContext.GetUIFrameworkDirtyNodeNameMap();
+    constexpr size_t expectedMapSize{2};
+    EXPECT_EQ(result.size(), expectedMapSize);
+    EXPECT_TRUE(result.count(nodeName1) > 0);
+    EXPECT_TRUE(result.count(nodeName3) > 0);
+    EXPECT_EQ(result.count(nodeName2), 0);
+}
+
+/**
  * @tc.name: SetBrightnessInfoChangeCallbackTest
  * @tc.desc: test SetBrightnessInfoChangeCallback.
  * @tc.type: FUNC

@@ -109,12 +109,16 @@ bool RSImageDetailEnhancerThread::RegisterCallback(const std::function<void(uint
 
 void RSImageDetailEnhancerThread::MarkScaledImageDirty(uint64_t nodeId)
 {
-    std::lock_guard<std::mutex> lock(callbackMutex_);
-    if (callback_ == nullptr) {
+    std::function<void(uint64_t)> callback;
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        callback = callback_;
+    }
+    if (callback == nullptr) {
         RS_LOGE("RSImageDetailEnhancerThread MarkScaledImageDirty failed!");
         return;
     }
-    callback_(nodeId);
+    callback(nodeId);
 }
 
 bool RSImageDetailEnhancerThread::IsSizeSupported(int srcWidth, int srcHeight, int dstWidth, int dstHeight)

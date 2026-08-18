@@ -30,7 +30,7 @@ public:
     void TearDown() override;
 
 protected:
-    std::shared_ptr<HgmRPEnergy> HgmRPEnergy_;
+    std::shared_ptr<HgmRPEnergy> hgmRPEnergy_;
 };
 
 void HgmRPEnergyTest::SetUpTestCase() {}
@@ -248,6 +248,7 @@ HWTEST_F(HgmRPEnergyTest, TestMoveEnergyCommonDataTo, TestSize.Level1)
 
     EXPECT_EQ(hgmRPEnergy_->energyCommonData_.size(), 0);
 }
+
 /**
  * @tc.name: TestAddEnergyCommonDataEmpty
  * @tc.desc: Test the AddEnergyCommonData function when energyCommonData_ is empty

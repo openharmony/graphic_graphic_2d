@@ -142,10 +142,9 @@ private:
         std::shared_ptr<GPUOfflineContext>& offlineContext);
     BufferRequestConfig GetGPUBufferConfig(const GPUOfflineSubThreadData& taskContext);
     GPUOfflineDrawParams CollectDrawParams(std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
-        const std::shared_ptr<RSSurfaceHandler> surfaceHandler, RSSurfaceRenderParams& surfaceParams);
+        RSSurfaceRenderParams& surfaceParams);
     void ClearContextCache(NodeId nodeId);
 
-    SingleBufferMode GetSingleBufferMode(const std::shared_ptr<RSSurfaceHandler> surfaceHandler);
     RSHpaeOfflineProcessSyncer offlineResultSync_;
     RSGPUOfflineThread offlineThread_;
     std::map<NodeId, std::shared_ptr<GPUOfflineContext>> offlineContextCache_;

@@ -212,11 +212,9 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState001, TestSize.Level1)
     auto disabledNoStateContext = CreateTunnelContext(MakeNodeId(TEST_PID_TWO, TEST_NODE_UID_THREE));
     ASSERT_TRUE(disabledNoStateContext.IsProducerReady());
     ASSERT_TRUE(RegisterSurfaceNode(rsContext, disabledNoStateContext.node));
-    {
-        ScopedNewTunnelSwitch scopedNewTunnelSwitch(false);
-        tunnelLayerManager.UpdateTunnelLayerState(
-            disabledNoStateContext.node->GetId(), disabledNoStateContext.surfaceHandler);
-    }
+    RSTunnelRuntimeStore::Erase(disabledNoStateContext.node->GetId());
+    tunnelLayerManager.UpdateTunnelLayerState(
+        disabledNoStateContext.node->GetId(), disabledNoStateContext.surfaceHandler);
     ExpectTunnelLayerInfo(disabledNoStateContext.node, 0, TUNNEL_PROP_INVALID);
 
     auto disabledContext = CreateTunnelContext(MakeNodeId(TEST_PID_ONE, TEST_NODE_UID_TWO));
@@ -226,11 +224,8 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState001, TestSize.Level1)
     RSTunnelRuntimeStore::SetLayerInfo(
         disabledContext.node->GetId(), disabledContext.consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
     RSTunnelRuntimeStore::GetOrCreate(disabledContext.node->GetId()).SetBuilding();
-    {
-        ScopedNewTunnelSwitch scopedNewTunnelSwitch(false);
-        tunnelLayerManager.UpdateTunnelLayerState(disabledContext.node->GetId(),
-            disabledContext.surfaceHandler);
-    }
+    tunnelLayerManager.UpdateTunnelLayerState(disabledContext.node->GetId(),
+        disabledContext.surfaceHandler);
     RSTunnelRuntimeStore::Erase(disabledContext.node->GetId());
     ExpectTunnelLayerInfo(disabledContext.node, 0, TUNNEL_PROP_INVALID);
     EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(disabledContext.node->GetId()).GetTunnelState(),

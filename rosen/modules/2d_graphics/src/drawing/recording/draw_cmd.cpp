@@ -1284,7 +1284,7 @@ std::shared_ptr<DrawOpItem> DrawImageLatticeOpItem::Unmarshalling(const DrawCmdL
 {
     auto* constructorHandle = static_cast<DrawImageLatticeOpItem::ConstructorHandle*>(handle);
     if (constructorHandle->filter < FilterMode::NEAREST || constructorHandle->filter > FilterMode::LINEAR) {
-        LOGD("DrawImageLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
+        LOGE("DrawImageLatticeOpItem Unmarshalling invalid FilterMode: %{public}d",
             static_cast<int>(constructorHandle->filter));
         return nullptr;
     }
@@ -1914,9 +1914,9 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
         uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
         globalUniqueId = (shiftedPid | typefaceId);
     }
-    TextBlobRenderOption opt = TextBlobRenderOption(textBlob_->GetTextContrast(),
-                                                    textBlob_->IsSpeedOverQualityPreferred());
     if (textBlob_) {
+        TextBlobRenderOption opt = TextBlobRenderOption(textBlob_->GetTextContrast(),
+                                                        textBlob_->IsSpeedOverQualityPreferred());
         cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId, opt, x_, y_, paintHandle);
     }
 }

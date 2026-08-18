@@ -19,6 +19,7 @@
 
 #include "common/rs_special_layer_manager.h"
 #include "composer/composer_client/pipeline/rs_composer_client_manager.h"
+#include "engine/rs_uni_render_engine.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
@@ -86,9 +87,13 @@ void RSMultiScreenUtilTest::SetUpTestCase()
     auto& renderNodeGC = RSRenderNodeGC::Instance();
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
 }
 
-void RSMultiScreenUtilTest::TearDownTestCase() {}
+void RSMultiScreenUtilTest::TearDownTestCase()
+{
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
 
 void RSMultiScreenUtilTest::SetUp()
 {
@@ -438,8 +443,15 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest002, TestSize.Level
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     EXPECT_NE(uniParam, nullptr);
 
+    ScreenId screenId = 7;
+    auto &uniThread = RSUniRenderThread::Instance();
+    uniThread.composerClientManager_ = std::make_shared<RSComposerClientManager>();
+    sptr<IRSRenderToComposerConnection> conn = nullptr;
+    auto client = std::make_shared<RSComposerClient>(conn);
+    client->SetOutput(std::make_shared<HdiOutput>(screenId));
+    uniThread.composerClientManager_->AddComposerClient(screenId, client);
     // when processor is not RSUniRenderVirtualProcessor
-    auto processor = std::make_shared<RSUniRenderProcessor>();
+    auto processor = std::make_shared<RSUniRenderProcessor>(screenId);
 
     // processor is not RSUniRenderVirtualProcessor
     processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
@@ -1727,11 +1739,10 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreen_RenderEngineNotNull, T
         CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE, SCREEN_ID);
     ASSERT_NE(processor, nullptr);
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
     int32_t tid = -200;
 
-    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor, renderEngine, tid);
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_,
+        processor, RSUniRenderThread::Instance().uniRenderEngine_, tid);
 }
 
 /**
@@ -1749,10 +1760,9 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreen_RenderEngineNotNull_Ti
         CompositeType::UNI_RENDER_VIRTUAL_INDEPENDENT_COMPOSITE, SCREEN_ID);
     ASSERT_NE(processor, nullptr);
 
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
     int32_t tid = 0;
 
-    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_, processor, renderEngine, tid);
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *screenParams_,
+        processor, RSUniRenderThread::Instance().uniRenderEngine_, tid);
 }
 } // namespace OHOS::Rosen

@@ -28,16 +28,9 @@ RSProtectiveSolidRenderNode::RSProtectiveSolidRenderNode(NodeId id, const std::w
 {
     name_ = "protectiveSolidNode";
     RS_LOGD("RSProtectiveSolidRenderNode: Create RSProtectiveSolidRenderNode");
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
-    MemoryTrack::Instance().AddNodeRecord(id, info);
-    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
 
-RSProtectiveSolidRenderNode::~RSProtectiveSolidRenderNode()
-{
-    MemoryTrack::Instance().RemoveNodeRecord(GetId());
-    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
-}
+RSProtectiveSolidRenderNode::~RSProtectiveSolidRenderNode() {}
 
 void RSProtectiveSolidRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
     bool isParentPrepareInReverseOrder)

@@ -126,9 +126,9 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     if (!cacheDir_.empty()) {
         RSRenderThread::Instance().SetCacheDir(cacheDir_);
     }
-    if (auto rsApplicationAgent = RSApplicationAgentImpl::Instance()) {
-        rsApplicationAgent->RegisterRSApplicationAgent(rsUIContext_);
-    }
+    // First access constructs the process-wide lifecycle owner; its destructor (at static teardown)
+    // calls RSApplicationAgentImpl::Release(), so individual RSUIDirector destruction does not.
+    RSApplicationAgentLifecycleOwner::Instance().EnsureRegistered(rsUIContext_);
     GoCreate();
     GoResume();
     GoForeground();
@@ -431,9 +431,9 @@ void RSUIDirector::GoStop()
         currentUIDirectorState_ == RSUIDirectorLifecycleState::RESUME) {
         if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::GetBackgroundRebuildEnabled()) {
             ExecuteGoStop();
-            AddUIDirectorCommand<RSUIDirectorGoStop>();
         }
     }
+    AddUIDirectorCommand<RSUIDirectorGoStop>();
     currentUIDirectorState_ = RSUIDirectorLifecycleState::STOP;
 }
 

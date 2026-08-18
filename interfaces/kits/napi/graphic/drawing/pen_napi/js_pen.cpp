@@ -809,7 +809,7 @@ napi_value JsPen::CreateJsPenDynamic(napi_env env, const std::shared_ptr<Pen> pe
         return nullptr;
     }
     JsPen* jsPen = new JsPen(pen);
-    status = napi_wrap(env, objValue, jsPen, JsPen::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, objValue, jsPen, JsPen::Destructor, nullptr, &PEN_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsPen;
         ROSEN_LOGE("JsPen::CreateJsPenDynamic failed to wrap native instance");

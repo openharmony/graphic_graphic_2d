@@ -97,10 +97,14 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSScreenRen
     const std::vector<RectI>& dirtyRegion)
 {
     ComposeInfo info {};
-    SetBufferColorSpace(screenDrawable);
     auto surfaceHandler = screenDrawable.GetMutableRSSurfaceHandlerOnDraw();
+    if (!surfaceHandler) {
+        RS_LOGE("RSUniRenderComposerAdapter::BuildComposeInfo surfaceHandler is nullptr");
+        return info;
+    }
+    SetBufferColorSpace(screenDrawable);
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
-    if (!surfaceHandler || !params) {
+    if (!params) {
         RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderComposerAdapter::BuildCInfo surfaceHandler or params is nullptr");
         return info;
     }
@@ -250,10 +254,11 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
 void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     const RSLayerPtr& layer,
     const ComposeInfo& info,
-    const sptr<IConsumerSurface>& surface) const
+    const sptr<IConsumerSurface>& surface,
+    bool isNeedComposition) const
 {
-    if (layer == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::SetCInfoToLayer layer is nullptr");
+    if (layer == nullptr || surface == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::SetCInfoToLayer layer or surface is nullptr");
         return;
     }
     layer->SetSurface(surface);
@@ -293,7 +298,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetCycleBuffersNum(cycleBufferNum);
     layer->SetSurfaceName(surface->GetName());
     layer->SetSurfaceUniqueId(surface->GetUniqueId());
-    layer->SetIsNeedComposition(true);
+    layer->SetIsNeedComposition(isNeedComposition);
     layer->SetBufferOwnerCount(info.bufferOwnerCount);
 }
 
@@ -541,6 +546,10 @@ bool RSUniRenderComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo& in
 
 void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const
 {
+    if (info.buffer == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::DealWithNodeGravity info.buffer is nullptr");
+        return;
+    }
     const auto& property = node.GetRenderProperties();
     const float frameWidth = info.buffer->GetSurfaceBufferWidth();
     const float frameHeight = info.buffer->GetSurfaceBufferHeight();
@@ -895,17 +904,36 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const RSLayerPtr& layer, RSSurfa
         std::swap(dstWidth, dstHeight);
     }
 
-    uint32_t newWidthDstHeight = newWidth * dstHeight;
-    uint32_t newHeightDstWidth = newHeight * dstWidth;
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSD newWidthDstHeight:%{public}u"
-        " newHeightDstWidth:%{public}u newWidth:%{public}u newHeight:%{public}u dstWidth:%{public}u"
+    if (dstWidth == 0 || dstHeight == 0) {
+        RS_LOGE("RSUniRenderComposerAdapter::LayerSD fail, dstWidth or dstHeight is 0");
+        return;
+    }
+
+    uint64_t newWidthDstHeight = static_cast<uint64_t>(newWidth) * dstHeight;
+    uint64_t newHeightDstWidth = static_cast<uint64_t>(newHeight) * dstWidth;
+    if (newWidthDstHeight > UINT32_MAX || newHeightDstWidth > UINT32_MAX) {
+        RS_LOGE("RSUniRenderComposerAdapter::LayerSD fail, multiplication overflow");
+        return;
+    }
+    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSD newWidthDstHeight:%{public}" PRIu64
+        " newHeightDstWidth:%{public}" PRIu64 " newWidth:%{public}u newHeight:%{public}u dstWidth:%{public}u"
         " dstHeight:%{public}u", newWidthDstHeight, newHeightDstWidth, newWidth, newHeight, dstWidth, dstHeight);
     if (newWidthDstHeight > newHeightDstWidth) {
         // too wide
-        newWidth = dstWidth * newHeight / dstHeight;
+        uint64_t scaled = static_cast<uint64_t>(dstWidth) * newHeight / dstHeight;
+        if (scaled > UINT32_MAX) {
+            RS_LOGE("RSUniRenderComposerAdapter::LayerSD fail, scaled newWidth overflow");
+            return;
+        }
+        newWidth = static_cast<uint32_t>(scaled);
     } else if (newWidthDstHeight < newHeightDstWidth) {
         // too tall
-        newHeight = dstHeight * newWidth / dstWidth;
+        uint64_t scaled = static_cast<uint64_t>(dstHeight) * newWidth / dstWidth;
+        if (scaled > UINT32_MAX) {
+            RS_LOGE("RSUniRenderComposerAdapter::LayerSD fail, scaled newHeight overflow");
+            return;
+        }
+        newHeight = static_cast<uint32_t>(scaled);
     } else {
         return;
     }
@@ -963,18 +991,37 @@ void RSUniRenderComposerAdapter::LayerScaleDown(
         std::swap(dstWidth, dstHeight);
     }
 
-    uint32_t newWidthDstHeight = newWidth * dstHeight;
-    uint32_t newHeightDstWidth = newHeight * dstWidth;
+    if (dstWidth == 0 || dstHeight == 0) {
+        RS_LOGE("RSUniRenderComposerAdapter::LayerSD fail, dstWidth or dstHeight is 0");
+        return;
+    }
 
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSD newWidthDstHeight:%{public}u"
-        " newHeightDstWidth:%{public}u newWidth:%{public}u newHeight:%{public}u dstWidth:%{public}u"
+    uint64_t newWidthDstHeight = static_cast<uint64_t>(newWidth) * dstHeight;
+    uint64_t newHeightDstWidth = static_cast<uint64_t>(newHeight) * dstWidth;
+    if (newWidthDstHeight > UINT32_MAX || newHeightDstWidth > UINT32_MAX) {
+        RS_LOGE("RSUniRenderComposerAdapter::LayerSD fail, multiplication overflow");
+        return;
+    }
+
+    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSD newWidthDstHeight:%{public}" PRIu64
+        " newHeightDstWidth:%{public}" PRIu64 " newWidth:%{public}u newHeight:%{public}u dstWidth:%{public}u"
         " dstHeight:%{public}u", newWidthDstHeight, newHeightDstWidth, newWidth, newHeight, dstWidth, dstHeight);
     if (newWidthDstHeight > newHeightDstWidth) {
         // too wide
-        newWidth = dstWidth * newHeight / dstHeight;
+        uint64_t scaled = static_cast<uint64_t>(dstWidth) * newHeight / dstHeight;
+        if (scaled > UINT32_MAX) {
+            RS_LOGE("RSUniRenderComposerAdapter::LayerSD fail, scaled newWidth overflow");
+            return;
+        }
+        newWidth = static_cast<uint32_t>(scaled);
     } else if (newWidthDstHeight < newHeightDstWidth) {
         // too tall
-        newHeight = dstHeight * newWidth / dstWidth;
+        uint64_t scaled = static_cast<uint64_t>(dstHeight) * newWidth / dstWidth;
+        if (scaled > UINT32_MAX) {
+            RS_LOGE("RSUniRenderComposerAdapter::LayerSD fail, scaled newHeight overflow");
+            return;
+        }
+        newHeight = static_cast<uint32_t>(scaled);
     } else {
         return;
     }
@@ -1127,9 +1174,8 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
         layer->SetUniRenderFlag(true);
         screenDrawable.SetRSLayer(screenInfo_.id, layer);
-        SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
+        SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer(), !skipLayerCommit);
         layer->SetNeedBilinearInterpolation(true);
-        layer->SetIsNeedComposition(!skipLayerCommit);
     }
     // do not crop or scale down for displayNode's layer.
     return layer;
@@ -1186,10 +1232,9 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         layer->SetNodeId(node.GetId());
         layer->SetUniRenderFlag(true);
         node.SetRSLayer(screenInfo_.id, layer);
-        SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
+        SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer(), !skipLayerCommit);
         LayerRotate(layer, *screenDrawable);
         layer->SetNeedBilinearInterpolation(true);
-        layer->SetIsNeedComposition(!skipLayerCommit);
     }
     // do not crop or scale down for screenNode's layer.
     return layer;

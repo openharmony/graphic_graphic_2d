@@ -804,6 +804,40 @@ HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_MultipleIds, testing::ext::T
 }
 
 /**
+ * Function: CleanLayerBufferBySurfaceId_DeviceNullCheck
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: cover the new CHECK_DEVICE_NULL(device_) if branch true/false:
+ *                  1. device_ == nullptr: condition true, return early (body not executed)
+ *                  2. device_ != nullptr: condition false, body executes ClearBufferCache
+ */
+HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_DeviceNullCheck, testing::ext::TestSize.Level1)
+{
+    constexpr uint64_t surfaceId = 100u;
+    auto output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    output->surfaceIdMap_.clear();
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    hdiLayer->bufferCache_.push_back(1u);
+    output->surfaceIdMap_[surfaceId] = hdiLayer;
+    ASSERT_EQ(output->surfaceIdMap_[surfaceId]->bufferCache_.size(), 1u);
+
+    // 1. device_ == nullptr: CHECK_DEVICE_NULL is true, function returns early,
+    //    the body that calls ClearBufferCache is NOT executed, bufferCache_ unchanged.
+    output->device_ = nullptr;
+    output->CleanLayerBufferBySurfaceId(surfaceId);
+    EXPECT_EQ(output->surfaceIdMap_[surfaceId]->bufferCache_.size(), 1u);
+
+    // 2. device_ != nullptr: CHECK_DEVICE_NULL is false, body executes,
+    //    ClearBufferCache is called and ResetBufferCache clears bufferCache_.
+    output->device_ = HdiOutputTest::hdiDeviceMock_;
+    output->CleanLayerBufferBySurfaceId(surfaceId);
+    EXPECT_EQ(output->surfaceIdMap_[surfaceId]->bufferCache_.size(), 0u);
+}
+
+/**
  * Function: SetRSLayers_VariousTypes
  * Type: Function
  * Rank: Important(1)
@@ -5440,7 +5474,7 @@ HWTEST_F(HdiOutputTest, GetLayerSolidFilledColor_DeviceNull_TrueBranch, TestSize
     constexpr uint64_t testLayerId = 70099;
     uint32_t solidFilledColor = 0;
     auto ret = output->GetLayerSolidFilledColor(testLayerId, solidFilledColor);
-    EXPECT_EQ(ret, GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_EQ(ret, ROSEN_ERROR_NOT_INIT);
 }
 
 /**

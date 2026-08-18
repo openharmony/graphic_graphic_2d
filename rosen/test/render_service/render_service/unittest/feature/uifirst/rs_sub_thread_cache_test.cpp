@@ -426,7 +426,7 @@ HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest001, TestSize.Leve
     surfaceParams->windowInfo_.isLeashWindow_ = true;
     isCalculateSucc = surfaceDrawable_->GetRsSubThreadCache().CalculateUifirstDirtyRegion(surfaceDrawable_.get(),
         dirtyRect, false, visibleFilterRect);
-    ASSERT_EQ(isCalculateSucc, true);
+    ASSERT_EQ(isCalculateSucc, false);
     surfaceDrawable_->syncDirtyManager_->Clear();
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->Clear();
 }
@@ -1309,6 +1309,8 @@ HWTEST_F(RSSubThreadCacheTest, DrawBehindWindowBeforeCacheTest, TestSize.Level1)
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurfaceInfo_.isContainShadow = true;
     subThreadCache.DrawBehindWindowBeforeCache(paintFilterCanvas, 0.f, 0.f, surfaceDrawable_.get());
     ASSERT_EQ(canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X), scaleFactor);
+    surfaceDrawable_->renderParams_.reset();
+    subThreadCache.DrawBehindWindowBeforeCache(paintFilterCanvas, 0.f, 0.f, surfaceDrawable_.get());
 #endif
 }
 

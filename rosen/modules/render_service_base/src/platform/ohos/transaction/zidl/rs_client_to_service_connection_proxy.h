@@ -82,6 +82,8 @@ public:
 
     ErrCode SetUifirstScale(float scaleFactor) override;
 
+    sptr<IRemoteObject> GetDisplayEngineControl() override;
+
     void ForceRefreshOneFrameWithNextVSync() override;
 
     int32_t SetVirtualScreenSecurityExemptionList(

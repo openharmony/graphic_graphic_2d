@@ -111,7 +111,8 @@ napi_value JsSamplingOptions::CreateJsSamplingOptionsDynamic(
         return nullptr;
     }
     JsSamplingOptions* jsSamplingOptions = new JsSamplingOptions(samplingOptions);
-    status = napi_wrap(env, objValue, jsSamplingOptions, JsSamplingOptions::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, objValue, jsSamplingOptions, JsSamplingOptions::Destructor, nullptr,
+        &SAMPLING_OPTIONS_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsSamplingOptions;
         ROSEN_LOGE("JsSamplingOptions::CreateJsSamplingOptionsDynamic failed to wrap native instance");

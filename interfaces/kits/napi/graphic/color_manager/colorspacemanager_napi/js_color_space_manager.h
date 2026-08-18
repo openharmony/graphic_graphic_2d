@@ -25,6 +25,10 @@ namespace ColorManager {
 napi_value JsColorSpaceManagerInit(napi_env env, napi_value exportObj);
 class JsColorSpaceManager {
 public:
+    static constexpr napi_type_tag NAPI_TYPE_TAG = {
+        .lower = 0xc4b8d2e7f1a93560,
+        .upper = 0x5e2d9f4a8c1b7e03
+    };
     JsColorSpaceManager() {};
     ~JsColorSpaceManager() {};
     static void Finalizer(napi_env env, void* data, void* hint);

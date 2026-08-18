@@ -984,6 +984,10 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
     if (napi_get_array_length(env, array, &size) != napi_ok || (size == 0)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect src array size.");
     }
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("JsCanvas::OnDrawPoints size exceeds the upper limit");
+        return nullptr;
+    }
     if (argc == ARGC_ONE) {
         Point* points = new(std::nothrow) Point[size];
         if (points == nullptr) {
@@ -1139,7 +1143,11 @@ bool GetGlyphIds(napi_env env, napi_value& jsGlyphIds, uint32_t size, std::uniqu
     glyphIds = std::make_unique<uint16_t[]>(size);
     for (uint32_t i = 0; i < size; i++) {
         napi_value tempGlyphIds = nullptr;
-        napi_get_element(env, jsGlyphIds, i, &tempGlyphIds);
+        if (napi_get_element(env, jsGlyphIds, i, &tempGlyphIds) != napi_ok || tempGlyphIds == nullptr) {
+            ROSEN_LOGE("GetGlyphIds element access failed at index %{public}u", i);
+            glyphIds[i] = 0;
+            continue;
+        }
         uint32_t glyphId = 0;
         if (napi_get_value_uint32(env, tempGlyphIds, &glyphId) != napi_ok) {
             ROSEN_LOGE("GetGlyphIds id = %{public}u is Invalid", glyphId);
@@ -2032,7 +2040,7 @@ napi_value JsCanvas::OnClipPath(napi_env env, napi_callback_info info)
     }
 
     int32_t jsClipOp = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsClipOp);
+    GET_ENUM_PARAM(ARGC_ONE, jsClipOp, 0, static_cast<int32_t>(ClipOp::INTERSECT));
 
     if (argc == ARGC_TWO) {
         m_canvas->ClipPath(*path, static_cast<ClipOp>(jsClipOp));
@@ -2268,7 +2276,7 @@ napi_value JsCanvas::OnClipRect(napi_env env, napi_callback_info info)
     }
 
     int32_t clipOpInt = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, clipOpInt);
+    GET_ENUM_PARAM(ARGC_ONE, clipOpInt, 0, static_cast<int32_t>(ClipOp::INTERSECT));
 
     if (argc == ARGC_TWO) {
         m_canvas->ClipRect(drawingRect, static_cast<ClipOp>(clipOpInt));

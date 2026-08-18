@@ -531,7 +531,7 @@ napi_value JsBrush::CreateJsBrushDynamic(napi_env env, const std::shared_ptr<Bru
         return nullptr;
     }
     JsBrush* jsBrush = new JsBrush(brush);
-    status = napi_wrap(env, objValue, jsBrush, JsBrush::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, objValue, jsBrush, JsBrush::Destructor, nullptr, &BRUSH_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsBrush;
         ROSEN_LOGE("JsBrush::CreateJsBrushDynamic failed to wrap native instance");

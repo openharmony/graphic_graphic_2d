@@ -3062,12 +3062,16 @@ void RSNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 
 void RSNode::SetNodeName(const std::string& nodeName)
 {
-    if (nodeName_ != nodeName) {
-        nodeName_ = nodeName;
-        SetRSCmdProperty<NodeNameCmdModifier>(NodeNameCmdParam{
-            nodeName
-        });
+    if (nodeName_ == nodeName) {
+        return;
     }
+    nodeName_ = nodeName;
+    if (!GetIsDrawn() && RSFrameRatePolicy::GetInstance()->IsAppBufferNode(nodeName)) {
+        SetDrawNode();
+    }
+    SetRSCmdProperty<NodeNameCmdModifier>(NodeNameCmdParam{
+        nodeName
+    });
 }
 
 void RSNode::SetTakeSurfaceForUIFlag()

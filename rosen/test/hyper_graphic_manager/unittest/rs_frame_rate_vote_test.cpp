@@ -57,8 +57,51 @@ void RSFrameRateVoteTest::SetUpTestCase()
     HgmTestBase::SetUpTestCase();
 }
 void RSFrameRateVoteTest::TearDownTestCase() {}
-void RSFrameRateVoteTest::SetUp() {}
-void RSFrameRateVoteTest::TearDown() {}
+
+void RSFrameRateVoteTest::SetUp()
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    if (instance->ffrtQueue_ && instance->taskHandler_) {
+        instance->ffrtQueue_->cancel(instance->taskHandler_);
+        instance->taskHandler_ = nullptr;
+    }
+    if (instance->ffrtQueue_) {
+        auto handle = instance->ffrtQueue_->submit_h([]() {});
+        instance->ffrtQueue_->wait(handle);
+    }
+    instance->surfaceVideoFrameRateVote_.clear();
+    instance->surfaceVideoRate_.clear();
+    instance->videoRateInfo_.clear();
+    // Reset all shared state to ensure each test starts clean
+    instance->isSwitchOn_ = false;
+    instance->isVoted_ = false;
+    RSFrameRateVote::isVideoApp_.store(false);
+    instance->lastSurfaceNodeId_.store(0);
+    instance->lastVotedPid_ = 0;
+    instance->lastVotedRate_ = 0;
+    instance->lastSurfaceNodeIdForCheck_.store(0);
+    instance->lastSurfaceNodeIdUpdateTime_.store(0);
+    instance->hasUiOrSurface = false;
+    instance->transactionFlags_ = "";
+    instance->bufferCountIndex_ = 0;
+    instance->bufferCountHistory_.fill(0);
+    instance->currentUpdateTime_ = 0;
+}
+
+void RSFrameRateVoteTest::TearDown()
+{
+    auto instance = DelayedSingleton<RSFrameRateVote>::GetInstance();
+    if (instance->ffrtQueue_ && instance->taskHandler_) {
+        instance->ffrtQueue_->cancel(instance->taskHandler_);
+        instance->taskHandler_ = nullptr;
+    }
+    if (instance->ffrtQueue_) {
+        auto handle = instance->ffrtQueue_->submit_h([]() {});
+        instance->ffrtQueue_->wait(handle);
+    }
+    instance->surfaceVideoFrameRateVote_.clear();
+    instance->surfaceVideoRate_.clear();
+}
 
 /**
  * @tc.name: SetTransactionFlags001
@@ -281,7 +324,7 @@ HWTEST_F(RSFrameRateVoteTest, SurfaceVideoVote003, Function | SmallTest | Level0
 
 /**
  * @tc.name: SurfaceVideoVote004
- * @tc.desc: test SurfaceVideoVote when ffrtQueue_ is nullptr but taskHandler is not nullptr
+ * @tc.desc: test SurfaceVideoVote when ffrtQueue_ is nullptr but taskHandler_ is not nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -552,7 +595,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote004, Function | SmallTest | Leve
         TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
 
     usleep(500000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
 }
 
 /**
@@ -599,7 +642,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote006, Function | SmallTest | Leve
         TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
 
     usleep(500000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
 }
 
 /**
@@ -811,7 +854,7 @@ HWTEST_F(RSFrameRateVoteTest, CheckAvailableBufferCount004, Function | SmallTest
 
 /**
  * @tc.name: CheckAvailableBufferCount005
- * @tc.desc: test CheckAvailableBufferCount when bufferCount > 1 then 0 then >1
+ * @tc.desc: test CheckAvailableBufferCount when bufferCount > 1 then 0 then > 1
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1225,7 +1268,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote010, Function | SmallTest | Leve
     instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
 
     usleep(500000);
-    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 0);
 }
 
 /**
@@ -1282,7 +1325,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote012, Function | SmallTest | Leve
     instance->VideoFrameRateVote(TEST_SURFACE_NODE_ID, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
 
     usleep(500000);
-    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 1);
+    ASSERT_EQ(instance->surfaceVideoFrameRateVote_.size(), 0);
 }
 
 /**

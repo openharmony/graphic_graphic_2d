@@ -28,7 +28,10 @@ public:
     RSRenderTransition(
         AnimationId id, const std::vector<std::shared_ptr<RSRenderTransitionEffect>>& effects, bool isTransitionIn);
 
-    RSRenderAnimationType GetType() const override { return RSRenderAnimationType::TRANSITION; }
+    RSRenderAnimationType GetType() const override
+    {
+        return RSRenderAnimationType::TRANSITION;
+    }
 
     // Transition animation does not need to rebuild property value as it does not evolve
     void RebuildPropertyValue(float fraction) override {}

@@ -102,6 +102,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_APPLICATION_AGENT),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_APPLICATION_AGENT),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO),
@@ -353,6 +354,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                     auto transactionData = RSBaseRenderUtil::ParseTransactionData(data, parcelNumber);
                     if (transactionData) {
                         transactionData->SetCallingPid(callingPid);
+                        transactionData->SetSendingPid(callingPid);
                     }
                     if (transactionData && isNonSystemAppCalling) {
                         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
@@ -403,6 +405,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 }
                 if (transactionData) {
                     transactionData->SetCallingPid(callingPid);
+                    transactionData->SetSendingPid(callingPid);
                 }
                 if (transactionData && isNonSystemAppCalling) {
                     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
@@ -601,6 +604,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             RegisterApplicationAgent(pid, app);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_APPLICATION_AGENT): {
+            ret = UnRegisterApplicationAgent();
             break;
         }
         // LCOV_EXCL_STOP
@@ -1719,9 +1726,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t repCode = RegisterFrameStabilityDetection(target, config, callback);
-            if (repCode != 0) {
-                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }
@@ -1746,9 +1754,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t repCode = UnregisterFrameStabilityDetection(target);
-            if (repCode != 0) {
-                RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }
@@ -1792,9 +1801,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t repCode = StartFrameStabilityCollection(target, config);
-            if (repCode != 0) {
-                RS_LOGE("START_FRAME_STABILITY_COLLECTION failed, repCode: %{public}d", repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }
@@ -1876,9 +1886,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t repCode = UpdateFrameStabilityDetection(oldTarget, newTarget);
-            if (repCode != 0) {
+            if (!reply.WriteInt32(repCode)) {
                 RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }

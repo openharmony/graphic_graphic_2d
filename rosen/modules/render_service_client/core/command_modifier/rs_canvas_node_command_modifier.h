@@ -178,7 +178,6 @@ private:
 
 struct FinishRecordCmdParam {
     uint16_t modifierType_;
-    Drawing::DrawCmdListPtr drawingCmdList_;          // Input parameter, converted to simpleDrawCmdList_ for storage
     SimpleDrawCmdListPtr simpleDrawCmdList_ = nullptr; // Stored data, used when pushed to foreground
 };
 
@@ -217,7 +216,6 @@ private:
 
 struct DrawOnNodeCmdParam {
     uint16_t modifierType_;
-    Drawing::DrawCmdListPtr drawingCmdList_;          // Input parameter, converted to simpleDrawCmdList_ for storage
     SimpleDrawCmdListPtr simpleDrawCmdList_ = nullptr; // Stored data, used when pushed to foreground
 };
 
