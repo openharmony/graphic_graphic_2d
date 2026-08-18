@@ -55,23 +55,27 @@ void BootAnimationController::Start()
 }
 
 #ifdef IS_CAR
-#define CHECK_START_ANIMATION_EXT_PATH "libcar_bootanimation_ext.z.so"
+#include <dlfcn.h>
+#if (defined(__aarch64__) || defined(__x86_64__))
+#define CHECK_START_ANIMATION_EXT_PATH "/system/lib64/libcar_bootanimation_ext.z.so"
+#else
+#define CHECK_START_ANIMATION_EXT_PATH "/system/lib/libcar_bootanimation_ext.z.so"
+#endif
 #define CHECK_START_ANIMATION_EXT_FUNC_NAME "IsActiveState"
-typedef bool (*Func)();
+typedef bool (*IsActiveStateFunc)();
 
 void BootAnimationController::WaitPowerStateChange() const
 {
     LOGI("WaitPowerStateChange");
     void *handler = dlopen(CHECK_START_ANIMATION_EXT_PATH, RTLD_LAZY | RTLD_NODELETE);
     if (handler == nullptr) {
-        LOGI("WaitPowerStateChange Dlopen failed, reason: %{public}s", dlerror());
-        dlclose(handler);
+        LOGE("WaitPowerStateChange Dlopen failed, reason: %{public}s", dlerror());
         return;
     }
     LOGI("WaitPowerStateChange dlopen success");
-    Func CheckPowerStateFunc = (Func)dlsym(handler, CHECK_START_ANIMATION_EXT_FUNC_NAME);
+    IsActiveStateFunc CheckPowerStateFunc = (IsActiveStateFunc)dlsym(handler, CHECK_START_ANIMATION_EXT_FUNC_NAME);
     if (CheckPowerStateFunc == nullptr) {
-        LOGI("WaitPowerStateChange find function failed, reason: %{public}s", dlerror());
+        LOGE("WaitPowerStateChange find function failed, reason: %{public}s", dlerror());
         dlclose(handler);
         return;
     }
