@@ -29,6 +29,7 @@
 #include "modifier/rs_modifier_manager_map.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "rs_frame_report.h"
 #include "transaction/rs_application_agent_impl.h"
@@ -452,6 +453,12 @@ void RSUIDirector::ReleaseRenderNode()
             return;
         }
         auto surfaceNode = baseNode->ReinterpretCastTo<RSSurfaceNode>();
+        if (surfaceNode && (surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "RSUIDirector::ReleaseRenderNode skip release anco node id:%llu, name:%s",
+                surfaceNode->GetId(), surfaceNode->GetName().c_str());
+            return;
+        }
         if (surfaceNode && (surfaceNode->IsAppWindow() || surfaceNode->IsTextureExportNode())) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "RSUIDirector::ReleaseRenderNode skip release AppWindow or TextureExportNode id:%llu, name:%s",

@@ -1801,6 +1801,29 @@ HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeTest003, TestSize.Level1)
     director->ReleaseRenderNode();
     EXPECT_EQ(lazyNode->GetNodeState(), RSNodeState::LAZY_LOAD);
 }
+
+/**
+ * @tc.name: ReleaseRenderNodeAncoNodeSkipTest
+ * @tc.desc: Test RSUIDirector::ReleaseRenderNode; covers branch:
+ *   SURFACE_NODE with IS_ANCO_NODE flag -> skip release (state stays ACTIVE)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeAncoNodeSkipTest, TestSize.Level1)
+{
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    sptr<IRemoteObject> emptyRemote;
+    director->rsUIContext_ = std::make_shared<RSUIContext>(6, emptyRemote);
+    director->skipDestroyUIContext_ = false;
+    RSSurfaceNodeConfig c;
+    auto ancoNode = RSSurfaceNode::Create(c, RSSurfaceNodeType::DEFAULT, true, false,
+        director->GetRSUIContext());
+    ASSERT_NE(ancoNode, nullptr);
+    ancoNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    ancoNode->hasCreateRenderNodeInRS_ = true;
+    director->ReleaseRenderNode();
+    EXPECT_EQ(ancoNode->GetNodeState(), RSNodeState::ACTIVE);
+}
 #endif
 /**
  * @tc.name: RebuildNodeTreeTest001
