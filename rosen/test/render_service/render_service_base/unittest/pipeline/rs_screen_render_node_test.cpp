@@ -1443,7 +1443,7 @@ HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationPropagateToContainTest, TestSiz
 
     node->SetBootAnimation(true);
     ASSERT_TRUE(node->GetBootAnimation());
-    ASSERT_TRUE(node->IsContainBootAnimation());
+    ASSERT_TRUE(node->isContainBootAnimation_);
 
     node->SetBootAnimation(false);
     ASSERT_FALSE(node->GetBootAnimation());
@@ -1464,12 +1464,12 @@ HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationPropagateToParentTest, TestSize
     parentNode->AddChild(childNode);
 
     childNode->SetBootAnimation(true);
-    ASSERT_TRUE(childNode->IsContainBootAnimation());
-    ASSERT_TRUE(parentNode->IsContainBootAnimation());
+    ASSERT_TRUE(childNode->isContainBootAnimation_);
+    ASSERT_TRUE(parentNode->isContainBootAnimation_);
 
     childNode->SetBootAnimation(false);
-    ASSERT_FALSE(childNode->IsContainBootAnimation());
-    ASSERT_FALSE(parentNode->IsContainBootAnimation());
+    ASSERT_FALSE(childNode->isContainBootAnimation_);
+    ASSERT_FALSE(parentNode->isContainBootAnimation_);
 }
 
 /**
@@ -1486,7 +1486,7 @@ HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationFalseNotPropagateTest, TestSize
 
     node->SetBootAnimation(false);
     ASSERT_FALSE(node->GetBootAnimation());
-    ASSERT_FALSE(node->IsContainBootAnimation());
+    ASSERT_FALSE(node->isContainBootAnimation_);
 }
 
 /**

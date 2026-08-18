@@ -986,6 +986,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
             RS_LOGE("RSRenderNodeDrawable::GetRenderGroupCachedImage image BuildFromTexture failed");
             return nullptr;
         }
+        SetRenderGroupCachedImage(cachedImg);
     }
 #endif
 
@@ -1006,6 +1007,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
             RS_LOGE("RSRenderNodeDrawable::GetRenderGroupCachedImage image BuildFromTexture failed");
             return nullptr;
         }
+        SetRenderGroupCachedImage(cachedImg);
     }
 #endif
     return cachedImg;
