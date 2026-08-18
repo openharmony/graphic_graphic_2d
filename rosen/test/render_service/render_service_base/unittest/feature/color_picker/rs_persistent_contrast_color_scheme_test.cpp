@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "feature/color_picker/rs_contrast_color_scheme_property.h"
+#include "feature/color_picker/rs_persistent_contrast_color_scheme.h"
 #include "property/rs_color_picker_def.h"
 
 using namespace testing;
@@ -24,7 +24,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 
-class RSContrastColorSchemePropertyTest : public testing::Test {
+class RSPersistentContrastColorSchemeTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
@@ -37,9 +37,9 @@ public:
  * @tc.desc: Test default constructor initializes value to INVALID
  * @tc.type: FUNC
  */
-HWTEST_F(RSContrastColorSchemePropertyTest, DefaultConstructor, TestSize.Level1)
+HWTEST_F(RSPersistentContrastColorSchemeTest, DefaultConstructor, TestSize.Level1)
 {
-    RSContrastColorSchemeProperty property;
+    RSPersistentContrastColorScheme property;
     EXPECT_EQ(property.GetValue(), ContrastColorScheme::INVALID);
 }
 
@@ -48,11 +48,11 @@ HWTEST_F(RSContrastColorSchemePropertyTest, DefaultConstructor, TestSize.Level1)
  * @tc.desc: Test multiple instances are independent
  * @tc.type: FUNC
  */
-HWTEST_F(RSContrastColorSchemePropertyTest, MultipleInstancesIndependence, TestSize.Level1)
+HWTEST_F(RSPersistentContrastColorSchemeTest, MultipleInstancesIndependence, TestSize.Level1)
 {
-    RSContrastColorSchemeProperty property1(ContrastColorScheme::LIGHT);
-    RSContrastColorSchemeProperty property2(ContrastColorScheme::DARK);
-    RSContrastColorSchemeProperty property3;
+    RSPersistentContrastColorScheme property1(ContrastColorScheme::LIGHT);
+    RSPersistentContrastColorScheme property2(ContrastColorScheme::DARK);
+    RSPersistentContrastColorScheme property3;
 
     EXPECT_EQ(property1.GetValue(), ContrastColorScheme::LIGHT);
     EXPECT_EQ(property2.GetValue(), ContrastColorScheme::DARK);
@@ -72,9 +72,9 @@ HWTEST_F(RSContrastColorSchemePropertyTest, MultipleInstancesIndependence, TestS
  * @tc.desc: Test all ContrastColorScheme enum values
  * @tc.type: FUNC
  */
-HWTEST_F(RSContrastColorSchemePropertyTest, AllEnumValuesCoverage, TestSize.Level1)
+HWTEST_F(RSPersistentContrastColorSchemeTest, AllEnumValuesCoverage, TestSize.Level1)
 {
-    RSContrastColorSchemeProperty property;
+    RSPersistentContrastColorScheme property;
 
     for (int i = 0; i <= static_cast<int>(ContrastColorScheme::DARK); ++i) {
         auto scheme = static_cast<ContrastColorScheme>(i);

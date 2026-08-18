@@ -260,7 +260,7 @@ ohos_unittest("RSColorPickerTest") {
     "color_picker/rs_color_picker_manager_test.cpp",
     "color_picker/rs_color_picker_thread_test.cpp",
     "color_picker/rs_color_picker_utils_test.cpp",
-    "color_picker/rs_contrast_color_scheme_property_test.cpp",
+    "color_picker/rs_persistent_contrast_color_scheme_test.cpp",
     "color_picker/rs_hetero_color_picker_test.cpp",
   ]
 
@@ -563,12 +563,12 @@ ohos_unittest("RSDynamicLayerSkipControllerTest") {
   subsystem_name = "graphic"
 }
 
-##############################  RSInheritedPropertyManagerTest  ##################################
-ohos_unittest("RSInheritedPropertyManagerTest") {
+##############################  RSPersistentPropertyManagerTest  ##################################
+ohos_unittest("RSPersistentPropertyManagerTest") {
   module_out_path = module_output_path
 
   sources =
-      [ "inherited_property/rs_inherited_property_manager_test.cpp" ]
+      [ "persistent_property/rs_persistent_property_manager_test.cpp" ]
 
   cflags = [
     "-Dprivate=public",
@@ -616,6 +616,6 @@ group("unittest") {
     ":RSBufferReclaimTest",
     ":RSPowerOffRenderSkipTest",
     ":RSDynamicLayerSkipControllerTest",
-    ":RSInheritedPropertyManagerTest",
+    ":RSPersistentPropertyManagerTest",
   ]
 }

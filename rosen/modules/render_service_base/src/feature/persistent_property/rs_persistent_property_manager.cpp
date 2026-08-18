@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-#include "feature/inherited_property/rs_inherited_property_manager.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 
 namespace OHOS {
 namespace Rosen {
 
-void RSInheritedPropertyManager::Store(NodeId nodeId, const std::shared_ptr<IInheritedProperty>& property)
+void RSPersistentPropertyManager::Store(NodeId nodeId, const std::shared_ptr<IPersistentProperty>& property)
 {
-    if (property == nullptr || property->GetType() == InheritedPropertyType::NONE) {
+    if (property == nullptr || property->GetType() == PersistentPropertyType::NONE) {
         return;
     }
     properties_[nodeId][property->GetType()] = property;
 }
 
-std::shared_ptr<IInheritedProperty> RSInheritedPropertyManager::Get(NodeId nodeId, InheritedPropertyType type) const
+std::shared_ptr<IPersistentProperty> RSPersistentPropertyManager::Get(NodeId nodeId, PersistentPropertyType type) const
 {
     auto nodeIt = properties_.find(nodeId);
     if (nodeIt == properties_.end()) {
@@ -39,12 +39,12 @@ std::shared_ptr<IInheritedProperty> RSInheritedPropertyManager::Get(NodeId nodeI
     return propertyIt->second;
 }
 
-void RSInheritedPropertyManager::Clear(NodeId nodeId)
+void RSPersistentPropertyManager::Clear(NodeId nodeId)
 {
     properties_.erase(nodeId);
 }
 
-void RSInheritedPropertyManager::Clear(NodeId nodeId, InheritedPropertyType type)
+void RSPersistentPropertyManager::Clear(NodeId nodeId, PersistentPropertyType type)
 {
     auto nodeIt = properties_.find(nodeId);
     if (nodeIt == properties_.end()) {
@@ -56,7 +56,7 @@ void RSInheritedPropertyManager::Clear(NodeId nodeId, InheritedPropertyType type
     }
 }
 
-void RSInheritedPropertyManager::ClearByPid(pid_t pid)
+void RSPersistentPropertyManager::ClearByPid(pid_t pid)
 {
     for (auto it = properties_.begin(); it != properties_.end();) {
         if (ExtractPid(it->first) == pid) {

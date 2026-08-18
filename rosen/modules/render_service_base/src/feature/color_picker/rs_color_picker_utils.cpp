@@ -21,9 +21,9 @@
 
 #include "feature/color_picker/i_color_picker_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
-#include "feature/color_picker/rs_contrast_color_scheme_property.h"
+#include "feature/color_picker/rs_persistent_contrast_color_scheme.h"
 #include "feature/color_picker/rs_hetero_color_picker.h"
-#include "feature/inherited_property/rs_inherited_property_manager.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
@@ -438,14 +438,14 @@ void RestoreContrastColorScheme(RSRenderNode& node)
         return;
     }
 
-    auto property = context->GetMutableInheritedPropertyManager().GetAs<RSContrastColorSchemeProperty>(
-        node.GetId(), InheritedPropertyType::CONTRAST_COLOR_SCHEME);
+    auto property = context->GetMutablePersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        node.GetId(), PersistentPropertyType::CONTRAST_COLOR_SCHEME);
     if (property == nullptr) {
         return;
     }
 
     auto contrastColorScheme = property->GetValue();
     node.GetMutableRenderProperties().SetLastContrastColorScheme(contrastColorScheme);
-    context->GetMutableInheritedPropertyManager().Clear(node.GetId(), InheritedPropertyType::CONTRAST_COLOR_SCHEME);
+    context->GetMutablePersistentPropertyManager().Clear(node.GetId(), PersistentPropertyType::CONTRAST_COLOR_SCHEME);
 }
 } // namespace OHOS::Rosen::RSColorPickerUtils

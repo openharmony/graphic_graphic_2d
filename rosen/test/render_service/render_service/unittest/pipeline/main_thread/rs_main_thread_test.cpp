@@ -3976,14 +3976,14 @@ HWTEST_F(RSMainThreadTest, CleanResourcesForRefreshTest, TestSize.Level1)
 }
 
 namespace {
-constexpr InheritedPropertyType MAIN_THREAD_TEST_PROPERTY_TYPE = static_cast<InheritedPropertyType>(100);
+constexpr PersistentPropertyType MAIN_THREAD_TEST_PROPERTY_TYPE = static_cast<PersistentPropertyType>(100);
 
-class MainThreadTestProperty : public IInheritedProperty {
+class MainThreadTestProperty : public IPersistentProperty {
 public:
     MainThreadTestProperty() = default;
     ~MainThreadTestProperty() override = default;
 
-    InheritedPropertyType GetType() const override
+    PersistentPropertyType GetType() const override
     {
         return MAIN_THREAD_TEST_PROPERTY_TYPE;
     }
@@ -4010,7 +4010,7 @@ HWTEST_F(RSMainThreadTest, ClearInheritedPropertiesTest, TestSize.Level1)
 
     // context_ is valid: properties of the given pid are cleared, other pids kept
     mainThread->context_ = std::make_shared<RSContext>();
-    auto& manager = mainThread->context_->GetMutableInheritedPropertyManager();
+    auto& manager = mainThread->context_->GetMutablePersistentPropertyManager();
     NodeId nodeId = MakeNodeId(pid, 1);
     NodeId nodeIdOther = MakeNodeId(pidOther, 1);
     manager.Store(nodeId, std::make_shared<MainThreadTestProperty>());

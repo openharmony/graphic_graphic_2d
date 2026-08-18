@@ -21,8 +21,8 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "feature/color_picker/rs_color_picker_manager.h"
 #include "feature/color_picker/rs_color_picker_utils.h"
-#include "feature/color_picker/rs_contrast_color_scheme_property.h"
-#include "feature/inherited_property/rs_inherited_property_manager.h"
+#include "feature/color_picker/rs_persistent_contrast_color_scheme.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 #include "gtest/gtest.h"
 
 #include "draw/canvas.h"
@@ -661,9 +661,9 @@ HWTEST_F(RSColorPickerUtilsTest, RestoreContrastColorScheme001, TestSize.Level1)
     constexpr NodeId nodeId = 1;
     RSRenderNode node(nodeId, weakContext);
 
-    // Store LIGHT contrast color scheme in InheritedPropertyManager
-    auto contrastColorSchemeProperty = std::make_shared<RSContrastColorSchemeProperty>(ContrastColorScheme::LIGHT);
-    sContext->GetMutableInheritedPropertyManager().Store(nodeId, contrastColorSchemeProperty);
+    // Store LIGHT contrast color scheme in PersistentPropertyManager
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(ContrastColorScheme::LIGHT);
+    sContext->GetMutablePersistentPropertyManager().Store(nodeId, contrastColorSchemeProperty);
 
     RSColorPickerUtils::RestoreContrastColorScheme(node);
     
@@ -671,9 +671,9 @@ HWTEST_F(RSColorPickerUtilsTest, RestoreContrastColorScheme001, TestSize.Level1)
     ASSERT_NE(colorPicker, nullptr);
     EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::LIGHT);
 
-    // Verify property is cleared from InheritedPropertyManager
-    auto property = sContext->GetInheritedPropertyManager().GetAs<RSContrastColorSchemeProperty>(
-        nodeId, InheritedPropertyType::CONTRAST_COLOR_SCHEME);
+    // Verify property is cleared from PersistentPropertyManager
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
     EXPECT_EQ(property, nullptr);
 }
 
@@ -689,9 +689,8 @@ HWTEST_F(RSColorPickerUtilsTest, RestoreContrastColorScheme002, TestSize.Level1)
     constexpr NodeId nodeId = 2;
     RSRenderNode node(nodeId, weakContext);
 
-    // Store DARK contrast color scheme in InheritedPropertyManager
-    auto contrastColorSchemeProperty = std::make_shared<RSContrastColorSchemeProperty>(ContrastColorScheme::DARK);
-    sContext->GetMutableInheritedPropertyManager().Store(nodeId, contrastColorSchemeProperty);
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(ContrastColorScheme::DARK);
+    sContext->GetMutablePersistentPropertyManager().Store(nodeId, contrastColorSchemeProperty);
 
     RSColorPickerUtils::RestoreContrastColorScheme(node);
     
@@ -699,15 +698,14 @@ HWTEST_F(RSColorPickerUtilsTest, RestoreContrastColorScheme002, TestSize.Level1)
     ASSERT_NE(colorPicker, nullptr);
     EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::DARK);
 
-    // Verify property is cleared from InheritedPropertyManager
-    auto property = sContext->GetInheritedPropertyManager().GetAs<RSContrastColorSchemeProperty>(
-        nodeId, InheritedPropertyType::CONTRAST_COLOR_SCHEME);
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
     EXPECT_EQ(property, nullptr);
 }
 
 /**
  * @tc.name: RestoreContrastColorScheme003
- * @tc.desc: Test RestoreContrastColorScheme with no property in InheritedPropertyManager
+ * @tc.desc: Test RestoreContrastColorScheme with no property in PersistentPropertyManager
  * @tc.type: FUNC
  */
 HWTEST_F(RSColorPickerUtilsTest, RestoreContrastColorScheme003, TestSize.Level1)

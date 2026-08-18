@@ -5479,7 +5479,7 @@ void RSMainThread::ClearSurfaceWatermark(pid_t pid)
 void RSMainThread::ClearInheritedProperties(pid_t pid)
 {
     if (context_) {
-        context_->GetMutableInheritedPropertyManager().ClearByPid(pid);
+        context_->GetMutablePersistentPropertyManager().ClearByPid(pid);
     }
 }
 

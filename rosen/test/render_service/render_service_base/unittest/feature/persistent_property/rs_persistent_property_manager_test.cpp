@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "common/rs_common_def.h"
-#include "feature/inherited_property/rs_inherited_property_manager.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 #include "pipeline/rs_context.h"
 
 using namespace testing;
@@ -25,34 +25,32 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr InheritedPropertyType TEST_TYPE = static_cast<InheritedPropertyType>(1);
-constexpr InheritedPropertyType TEST_TYPE_OTHER = static_cast<InheritedPropertyType>(2);
+constexpr PersistentPropertyType TEST_TYPE = static_cast<PersistentPropertyType>(1);
+constexpr PersistentPropertyType TEST_TYPE_OTHER = static_cast<PersistentPropertyType>(2);
 constexpr pid_t TEST_PID = 100;
 constexpr pid_t TEST_PID_OTHER = 200;
 
-class TestProperty : public IInheritedProperty {
+class TestProperty : public IPersistentProperty {
 public:
-    explicit TestProperty(InheritedPropertyType type) : type_(type) {}
+    explicit TestProperty(PersistentPropertyType type) : type_(type) {}
     ~TestProperty() override = default;
 
-    InheritedPropertyType GetType() const override
+    PersistentPropertyType GetType() const override
     {
         return type_;
     }
 
-    // Test-only hook: simulates a property whose runtime type no longer matches
-    // the map key it was stored under.
-    void SetType(InheritedPropertyType type)
+    void SetType(PersistentPropertyType type)
     {
         type_ = type;
     }
 
 private:
-    InheritedPropertyType type_;
+    PersistentPropertyType type_;
 };
 } // namespace
 
-class RSInheritedPropertyManagerTest : public testing::Test {
+class RSPersistentPropertyManagerTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
@@ -65,9 +63,9 @@ public:
  * @tc.desc: Property stored by nodeId can be read back via Get and GetAs.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, StoreAndGet, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, StoreAndGet, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     auto property = std::make_shared<TestProperty>(TEST_TYPE);
     manager.Store(nodeId, property);
@@ -81,9 +79,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, StoreAndGet, TestSize.Level1)
  * @tc.desc: Get on absent node or type returns nullptr, Clear on absent node is safe.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, GetOnMissing, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, GetOnMissing, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
 
     EXPECT_EQ(manager.Get(nodeId, TEST_TYPE), nullptr);
@@ -97,9 +95,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, GetOnMissing, TestSize.Level1)
  * @tc.desc: Get returns nullptr when the node exists but the requested type is absent.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, GetExistingNodeMissingType, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, GetExistingNodeMissingType, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
 
@@ -109,17 +107,17 @@ HWTEST_F(RSInheritedPropertyManagerTest, GetExistingNodeMissingType, TestSize.Le
 
 /**
  * @tc.name: StoreNullOrNoneTypeIgnored
- * @tc.desc: Null property and InheritedPropertyType::NONE are not stored.
+ * @tc.desc: Null property and PersistentPropertyType::NONE are not stored.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, StoreNullOrNoneTypeIgnored, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, StoreNullOrNoneTypeIgnored, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
 
     manager.Store(nodeId, nullptr);
-    manager.Store(nodeId, std::make_shared<TestProperty>(InheritedPropertyType::NONE));
-    EXPECT_EQ(manager.Get(nodeId, InheritedPropertyType::NONE), nullptr);
+    manager.Store(nodeId, std::make_shared<TestProperty>(PersistentPropertyType::NONE));
+    EXPECT_EQ(manager.Get(nodeId, PersistentPropertyType::NONE), nullptr);
 }
 
 /**
@@ -127,9 +125,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, StoreNullOrNoneTypeIgnored, TestSize.Le
  * @tc.desc: Same node can hold multiple types; storing same type overwrites the old one.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, OverwriteSameTypeAndCoexistTypes, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, OverwriteSameTypeAndCoexistTypes, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     auto property = std::make_shared<TestProperty>(TEST_TYPE);
     auto propertyOther = std::make_shared<TestProperty>(TEST_TYPE_OTHER);
@@ -148,9 +146,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, OverwriteSameTypeAndCoexistTypes, TestS
  * @tc.desc: GetAs returns nullptr when the requested type has no property stored.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, GetAsTypeMismatch, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, GetAsTypeMismatch, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
 
@@ -163,9 +161,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, GetAsTypeMismatch, TestSize.Level1)
  *           no longer matches the map key it was stored under.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, GetAsRuntimeTypeMismatch, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, GetAsRuntimeTypeMismatch, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     auto property = std::make_shared<TestProperty>(TEST_TYPE);
     manager.Store(nodeId, property);
@@ -182,9 +180,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, GetAsRuntimeTypeMismatch, TestSize.Leve
  * @tc.desc: Clear removes all properties of the given node only.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, ClearByNodeId, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, ClearByNodeId, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     NodeId nodeIdOther = MakeNodeId(TEST_PID, 2);
     manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
@@ -201,9 +199,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, ClearByNodeId, TestSize.Level1)
  * @tc.desc: Clear removes every property type of the given node.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, ClearRemovesAllTypesOfNode, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, ClearRemovesAllTypesOfNode, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
     manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE_OTHER));
@@ -220,9 +218,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, ClearRemovesAllTypesOfNode, TestSize.Le
  *           other types of the same node and other nodes are kept.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, ClearByNodeIdAndType, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, ClearByNodeIdAndType, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     NodeId nodeIdOther = MakeNodeId(TEST_PID, 2);
     manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
@@ -241,9 +239,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, ClearByNodeIdAndType, TestSize.Level1)
  * @tc.desc: Clear(nodeId, type) on the last remaining type removes the node entirely.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, ClearLastTypeRemovesNode, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, ClearLastTypeRemovesNode, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
 
@@ -258,9 +256,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, ClearLastTypeRemovesNode, TestSize.Leve
  *           keeps the remaining types untouched.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, ClearByNodeIdAndTypeOnMissing, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, ClearByNodeIdAndTypeOnMissing, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
 
@@ -275,9 +273,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, ClearByNodeIdAndTypeOnMissing, TestSize
  * @tc.desc: ClearByPid removes properties of all nodes of the given pid only.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, ClearByPid, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, ClearByPid, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     NodeId nodeIdSamePid = MakeNodeId(TEST_PID, 2);
     NodeId nodeIdOtherPid = MakeNodeId(TEST_PID_OTHER, 1);
@@ -297,9 +295,9 @@ HWTEST_F(RSInheritedPropertyManagerTest, ClearByPid, TestSize.Level1)
  * @tc.desc: ClearByPid removes every property type of every node belonging to the pid.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, ClearByPidMultipleTypes, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, ClearByPidMultipleTypes, TestSize.Level1)
 {
-    RSInheritedPropertyManager manager;
+    RSPersistentPropertyManager manager;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     NodeId nodeIdOtherPid = MakeNodeId(TEST_PID_OTHER, 1);
     manager.Store(nodeId, std::make_shared<TestProperty>(TEST_TYPE));
@@ -320,18 +318,18 @@ HWTEST_F(RSInheritedPropertyManagerTest, ClearByPidMultipleTypes, TestSize.Level
  * @tc.desc: RSContext exposes the manager through mutable and const accessors.
  * @tc.type: FUNC
  */
-HWTEST_F(RSInheritedPropertyManagerTest, ContextAccessors, TestSize.Level1)
+HWTEST_F(RSPersistentPropertyManagerTest, ContextAccessors, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = MakeNodeId(TEST_PID, 1);
     auto property = std::make_shared<TestProperty>(TEST_TYPE);
 
-    context.GetMutableInheritedPropertyManager().Store(nodeId, property);
+    context.GetMutablePersistentPropertyManager().Store(nodeId, property);
 
     const RSContext& constContext = context;
-    EXPECT_EQ(constContext.GetInheritedPropertyManager().Get(nodeId, TEST_TYPE), property);
-    context.GetMutableInheritedPropertyManager().ClearByPid(TEST_PID);
-    EXPECT_EQ(constContext.GetInheritedPropertyManager().Get(nodeId, TEST_TYPE), nullptr);
+    EXPECT_EQ(constContext.GetPersistentPropertyManager().Get(nodeId, TEST_TYPE), property);
+    context.GetMutablePersistentPropertyManager().ClearByPid(TEST_PID);
+    EXPECT_EQ(constContext.GetPersistentPropertyManager().Get(nodeId, TEST_TYPE), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

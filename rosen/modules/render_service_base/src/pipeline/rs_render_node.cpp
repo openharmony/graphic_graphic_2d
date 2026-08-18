@@ -43,9 +43,9 @@
 #include "effect/rs_render_shader_base.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "feature/color_picker/rs_color_picker_utils.h"
-#include "feature/color_picker/rs_contrast_color_scheme_property.h"
+#include "feature/color_picker/rs_persistent_contrast_color_scheme.h"
 #include "feature/hdr/rs_colorspace_util.h"
-#include "feature/inherited_property/rs_inherited_property_manager.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
@@ -4583,8 +4583,8 @@ void RSRenderNode::DestroyColorPickerInRender()
         return;
     }
 
-    auto contrastColorSchemeProperty = std::make_shared<RSContrastColorSchemeProperty>(lastContrastColorScheme);
-    context->GetMutableInheritedPropertyManager().Store(id_, contrastColorSchemeProperty);
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(lastContrastColorScheme);
+    context->GetMutablePersistentPropertyManager().Store(id_, contrastColorSchemeProperty);
 
     RS_OPTIONAL_TRACE_NAME_FMT("DestroyColorPickerInRender node[%" PRIu64 "] lastContrastColorScheme[%u]",
         id_, static_cast<uint32_t>(lastContrastColorScheme));

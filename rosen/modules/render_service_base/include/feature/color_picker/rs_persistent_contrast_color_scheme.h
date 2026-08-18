@@ -13,24 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_FEATURE_COLOR_PICKER_RS_CONTRAST_COLOR_SCHEME_PROPERTY_H
-#define RENDER_SERVICE_BASE_FEATURE_COLOR_PICKER_RS_CONTRAST_COLOR_SCHEME_PROPERTY_H
+#ifndef RENDER_SERVICE_BASE_FEATURE_COLOR_PICKER_RS_PERSISTENT_CONTRAST_COLOR_SCHEME_H
+#define RENDER_SERVICE_BASE_FEATURE_COLOR_PICKER_RS_PERSISTENT_CONTRAST_COLOR_SCHEME_H
 
-#include "feature/inherited_property/i_inherited_property.h"
+#include "feature/persistent_property/i_persistent_property.h"
 #include "property/rs_color_picker_def.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class RSContrastColorSchemeProperty : public IInheritedProperty {
+class RSPersistentContrastColorScheme : public IPersistentProperty {
 public:
-    RSContrastColorSchemeProperty() = default;
-    explicit RSContrastColorSchemeProperty(ContrastColorScheme value) : value_(value) {}
-    ~RSContrastColorSchemeProperty() override = default;
+    RSPersistentContrastColorScheme() = default;
+    explicit RSPersistentContrastColorScheme(ContrastColorScheme value) : value_(value) {}
+    ~RSPersistentContrastColorScheme() override = default;
 
-    InheritedPropertyType GetType() const override
+    PersistentPropertyType GetType() const override
     {
-        return InheritedPropertyType::CONTRAST_COLOR_SCHEME;
+        return PersistentPropertyType::CONTRAST_COLOR_SCHEME;
     }
 
     ContrastColorScheme GetValue() const
@@ -50,4 +50,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_BASE_FEATURE_COLOR_PICKER_RS_CONTRAST_COLOR_SCHEME_PROPERTY_H
+#endif // RENDER_SERVICE_BASE_FEATURE_COLOR_PICKER_RS_PERSISTENT_CONTRAST_COLOR_SCHEME_H

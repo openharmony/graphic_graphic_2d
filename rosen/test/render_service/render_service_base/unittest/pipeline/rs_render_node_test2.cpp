@@ -34,8 +34,8 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_union_render_node.h"
 #include "feature/color_picker/color_pick_alt_manager.h"
-#include "feature/color_picker/rs_contrast_color_scheme_property.h"
-#include "feature/inherited_property/rs_inherited_property_manager.h"
+#include "feature/color_picker/rs_persistent_contrast_color_scheme.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -3712,7 +3712,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFPixelmapShape_CallsCalcR
 
 /**
  * @tc.name: PrepareColorPicker001
- * @tc.desc: Test PrepareColorPicker with LIGHT contrast color scheme from InheritedPropertyManager
+ * @tc.desc: Test PrepareColorPicker with LIGHT contrast color scheme from PersistentPropertyManager
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3729,9 +3729,9 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker001, TestSize.Level1)
     // Set it at COLOR_PICKER slot
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
-    // Store LIGHT contrast color scheme property in InheritedPropertyManager
-    auto contrastColorSchemeProperty = std::make_shared<RSContrastColorSchemeProperty>(ContrastColorScheme::LIGHT);
-    sContext->GetMutableInheritedPropertyManager().Store(node->GetId(), contrastColorSchemeProperty);
+    // Store LIGHT contrast color scheme property in PersistentPropertyManager
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(ContrastColorScheme::LIGHT);
+    sContext->GetMutablePersistentPropertyManager().Store(node->GetId(), contrastColorSchemeProperty);
 
     // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
     colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
@@ -3743,7 +3743,7 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker001, TestSize.Level1)
 
 /**
  * @tc.name: PrepareColorPicker002
- * @tc.desc: Test PrepareColorPicker with DARK contrast color scheme from InheritedPropertyManager
+ * @tc.desc: Test PrepareColorPicker with DARK contrast color scheme from PersistentPropertyManager
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3760,9 +3760,9 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker002, TestSize.Level1)
     // Set it at COLOR_PICKER slot
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
-    // Store DARK contrast color scheme property in InheritedPropertyManager
-    auto contrastColorSchemeProperty = std::make_shared<RSContrastColorSchemeProperty>(ContrastColorScheme::DARK);
-    sContext->GetMutableInheritedPropertyManager().Store(node->GetId(), contrastColorSchemeProperty);
+    // Store DARK contrast color scheme property in PersistentPropertyManager
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(ContrastColorScheme::DARK);
+    sContext->GetMutablePersistentPropertyManager().Store(node->GetId(), contrastColorSchemeProperty);
 
     // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
     colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
@@ -3774,7 +3774,7 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker002, TestSize.Level1)
 
 /**
  * @tc.name: PrepareColorPicker003
- * @tc.desc: Test PrepareColorPicker with no property in InheritedPropertyManager
+ * @tc.desc: Test PrepareColorPicker with no property in PersistentPropertyManager
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3791,7 +3791,7 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker003, TestSize.Level1)
     // Set it at COLOR_PICKER slot
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
-    // No property stored in InheritedPropertyManager for this node
+    // No property stored in PersistentPropertyManager for this node
     colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
 
     // Call PrepareColorPicker, should use original darkMode
@@ -3840,9 +3840,9 @@ HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender001, TestSize.Level1)
     // No color picker drawable set
     node->DestroyColorPickerInRender();
 
-    // Verify no property is stored in InheritedPropertyManager (early return due to INVALID)
-    auto property = sContext->GetInheritedPropertyManager().GetAs<RSContrastColorSchemeProperty>(
-        nodeId, InheritedPropertyType::CONTRAST_COLOR_SCHEME);
+    // Verify no property is stored in PersistentPropertyManager (early return due to INVALID)
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
     EXPECT_EQ(property, nullptr);
 }
 
@@ -3873,7 +3873,7 @@ HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender002, TestSize.Level1)
 
 /**
  * @tc.name: DestroyColorPickerInRender003
- * @tc.desc: Test DestroyColorPickerInRender stores LIGHT scheme in InheritedPropertyManager
+ * @tc.desc: Test DestroyColorPickerInRender stores LIGHT scheme in PersistentPropertyManager
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3894,16 +3894,16 @@ HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender003, TestSize.Level1)
     // Call DestroyColorPickerInRender
     node->DestroyColorPickerInRender();
 
-    // Verify property is stored in InheritedPropertyManager
-    auto property = sContext->GetInheritedPropertyManager().GetAs<RSContrastColorSchemeProperty>(
-        nodeId, InheritedPropertyType::CONTRAST_COLOR_SCHEME);
+    // Verify property is stored in PersistentPropertyManager
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
     ASSERT_NE(property, nullptr);
     EXPECT_EQ(property->GetValue(), ContrastColorScheme::LIGHT);
 }
 
 /**
  * @tc.name: DestroyColorPickerInRender004
- * @tc.desc: Test DestroyColorPickerInRender stores DARK scheme in InheritedPropertyManager
+ * @tc.desc: Test DestroyColorPickerInRender stores DARK scheme in PersistentPropertyManager
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3927,9 +3927,9 @@ HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender004, TestSize.Level1)
     // Call DestroyColorPickerInRender
     node->DestroyColorPickerInRender();
 
-    // Verify property is stored in InheritedPropertyManager
-    auto property = sContext->GetInheritedPropertyManager().GetAs<RSContrastColorSchemeProperty>(
-        nodeId, InheritedPropertyType::CONTRAST_COLOR_SCHEME);
+    // Verify property is stored in PersistentPropertyManager
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
     ASSERT_NE(property, nullptr);
     EXPECT_EQ(property->GetValue(), ContrastColorScheme::DARK);
 }
