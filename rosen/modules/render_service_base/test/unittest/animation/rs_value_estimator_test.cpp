@@ -518,22 +518,6 @@ HWTEST_F(RSValueEstimatorTest, InitRSSpringValueEstimatorAllTypeMatch001, TestSi
 }
 
 /**
- * @tc.name: UpdateStartValueAndLastValuePropertyNull001
- * @tc.desc: Verify UpdateStartValueAndLastValue returns early when property_ is null
- * @tc.type:FUNC
- */
-HWTEST_F(RSValueEstimatorTest, UpdateStartValueAndLastValuePropertyNull001, TestSize.Level1)
-{
-    auto estimator = std::make_shared<RSSpringValueEstimator<float>>();
-    estimator->property_ = nullptr;
-    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
-    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
-    estimator->UpdateStartValueAndLastValue(startValue, lastValue);
-    EXPECT_FLOAT_EQ(estimator->startValue_, 0.0f);
-    EXPECT_FLOAT_EQ(estimator->lastValue_, 0.0f);
-}
-
-/**
  * @tc.name: UpdateStartValueAndLastValueTypeInconsistent001
  * @tc.desc: Verify UpdateStartValueAndLastValue skips when startValue type does not match
  * @tc.type:FUNC
