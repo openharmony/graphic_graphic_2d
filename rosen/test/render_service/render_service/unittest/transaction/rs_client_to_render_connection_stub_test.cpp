@@ -1039,6 +1039,43 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
     ASSERT_EQ(res, NO_ERROR);
 }
 
+/**
+ * @tc.name: TestRSClientToRenderConnectionStub005
+ * @tc.desc: Test REGISTER_TRANSACTION_DATA_CALLBACK without token and timeStamp
+ * @tc.type: FUNC
+ * @tc.require: issueI60KUK
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+    // Not writing token and timeStamp - should fail at !data.ReadUint64(token)
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: TestRSClientToRenderConnectionStub006
+ * @tc.desc: Test REGISTER_TRANSACTION_DATA_CALLBACK with token but without timeStamp
+ * @tc.type: FUNC
+ * @tc.require: issueI60KUK
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub006, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+    data.WriteUint64(123);
+    // Not writing timeStamp - should fail at !data.ReadUint64(timeStamp)
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: RegisterCanvasCallbackTest
@@ -2092,6 +2129,95 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest003, Test
     EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 
+class RSSurfaceCaptureCallbackErrorRecordMock : public RSSurfaceCaptureCallbackStubMock {
+public:
+    RSSurfaceCaptureCallbackErrorRecordMock() = default;
+    virtual ~RSSurfaceCaptureCallbackErrorRecordMock() = default;
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+        Media::PixelMap* pixelmap, CaptureError captureErrorCode = CaptureError::CAPTURE_OK,
+        Media::PixelMap* pixelmapHDR = nullptr) override
+    {
+        isCalled_ = true;
+        pixelMap_ = pixelmap;
+        captureErrorCode_ = captureErrorCode;
+    }
+
+    bool isCalled_ = false;
+    Media::PixelMap* pixelMap_ = nullptr;
+    CaptureError captureErrorCode_ = CaptureError::CAPTURE_OK;
+};
+
+/**
+ * @tc.name: TakeSelfSurfaceCaptureTest004
+ * @tc.desc: Test TakeSelfSurfaceCapture when node pid mismatches remotePid with callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest004, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    // connectionStub_ is created with remotePid 0, while surfaceNode_ id carries a non-zero pid,
+    // so ExtractPid(id) != remotePid_ and the permission-denied branch is covered.
+    sptr<RSSurfaceCaptureCallbackErrorRecordMock> callback = new RSSurfaceCaptureCallbackErrorRecordMock();
+    ASSERT_NE(callback, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+    connectionStub_->TakeSelfSurfaceCapture(surfaceNode_->GetId(), callback, captureConfig);
+    EXPECT_TRUE(callback->isCalled_);
+    EXPECT_EQ(callback->pixelMap_, nullptr);
+    EXPECT_EQ(callback->captureErrorCode_, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
+}
+
+/**
+ * @tc.name: TakeSelfSurfaceCaptureTest005
+ * @tc.desc: Test TakeSelfSurfaceCapture when node pid mismatches remotePid without callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest005, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    // pid mismatch with a null callback should return early without crash
+    RSSurfaceCaptureConfig captureConfig;
+    connectionStub_->TakeSelfSurfaceCapture(surfaceNode_->GetId(), nullptr, captureConfig);
+}
+
+/**
+ * @tc.name: TakeSelfSurfaceCaptureTest006
+ * @tc.desc: Test TakeSelfSurfaceCapture returns early when renderPipelineAgent is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest006, TestSize.Level1)
+{
+    // a connection with a null renderPipelineAgent must return early without touching the pipeline
+    sptr<RSClientToRenderConnection> nullAgentConnection =
+        new RSClientToRenderConnection(0, nullptr, token_->AsObject());
+    ASSERT_NE(nullAgentConnection, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+    nullAgentConnection->TakeSelfSurfaceCapture(surfaceNode_->GetId(), nullptr, captureConfig);
+}
+
+/**
+ * @tc.name: TakeSelfSurfaceCaptureTest007
+ * @tc.desc: Test TakeSelfSurfaceCapture when node pid matches remotePid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest007, TestSize.Level1)
+{
+    // remotePid equals the pid segment of surfaceNode_ id, so ExtractPid(id) == remotePid_
+    // and the permission-denied branch is not taken. The real pipeline reports the capture
+    // result asynchronously, so only the rejection error code is asserted here.
+    sptr<RSClientToRenderConnection> connection =
+        new RSClientToRenderConnection(SURFACE_NODE_ID, renderPipelineAgent_, token_->AsObject());
+    ASSERT_NE(connection, nullptr);
+    sptr<RSSurfaceCaptureCallbackErrorRecordMock> callback = new RSSurfaceCaptureCallbackErrorRecordMock();
+    ASSERT_NE(callback, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+    connection->TakeSelfSurfaceCapture(surfaceNode_->GetId(), callback, captureConfig);
+    EXPECT_NE(callback->captureErrorCode_, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
+}
+
 /**
  * @tc.name: SetWindowFreezeImmediatelyTest001
  * @tc.desc: Test SET_WINDOW_FREEZE_IMMEDIATELY interface code path
@@ -2422,6 +2548,25 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransactionTest002, TestSize.
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: CommitTransactionTest003
+ * @tc.desc: Test CommitTransaction with null transaction data (first operand of the
+ *           stub-side ownership-check condition is false, IsCallingPidValid is skipped)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransactionTest003, TestSize.Level1)
+{
+    // null transactionData short-circuits the ownership-check condition; RSUnmarshalThread
+    // does not drop null data, so the agent path returns ERR_OK.
+    sptr<RSClientToRenderConnection> connection =
+        new RSClientToRenderConnection(0, renderPipelineAgent_, token_->AsObject());
+    ASSERT_NE(connection, nullptr);
+    std::unique_ptr<RSTransactionData> emptyTransData = nullptr;
+    ErrCode ret = connection->CommitTransaction(emptyTransData);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 #ifdef RS_ENABLE_UNI_RENDER
@@ -3965,6 +4110,26 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest017, TestSize
     ASSERT_NE(callback, nullptr);
     // Test with clean SURFACE_NODE - should not set hasDirtyContentInSurfaceCapture
     renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
+        captureConfig, blurParam, specifiedAreaRect, permissions);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureTest018
+ * @tc.desc: Test TakeSurfaceCapture returns early when renderPipelineAgent is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest018, TestSize.Level1)
+{
+    // a connection with a null renderPipelineAgent must return early without touching the pipeline
+    sptr<RSClientToRenderConnection> nullAgentConnection =
+        new RSClientToRenderConnection(0, nullptr, token_->AsObject());
+    ASSERT_NE(nullAgentConnection, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    nullAgentConnection->TakeSurfaceCapture(surfaceNode_->GetId(), nullptr,
         captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 

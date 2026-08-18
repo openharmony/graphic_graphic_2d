@@ -407,6 +407,33 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessCommandForDividedRender003
+ * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender skips a command
+ *           whose calling pid is marked invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    int dataIndex = 1;
+    rsTransactionData->SetIndex(dataIndex);
+    int dataPayloadSize = 1;
+    rsTransactionData->payload_.resize(dataPayloadSize);
+    NodeId id = 0;
+    auto command = std::make_unique<RSBaseNodeAddChild>(0, 1, 3);
+    command->SetCallingPidValid(false);
+    rsTransactionData->payload_[id] = std::tuple<NodeId,
+        FollowType, std::unique_ptr<RSCommand>>(id, FollowType::NONE, std::move(command));
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
+
+    // the command is non-null but IsCallingPidValid() is false, so Process must be skipped
+    mainThread->ProcessCommandForDividedRender();
+}
+
+/**
  * @tc.name: SetAnimationOcclusionInfo001
  * @tc.desc: Test different animation change isAnimationOcclusion_
  * @tc.type: FUNC
