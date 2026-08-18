@@ -176,10 +176,10 @@ void SortZipFile(ImageStructVec& imgVec);
 bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStructVec& imgVec,
     FrameRateConfig& frameConfig, unsigned long fileSize);
 
-bool ParseImageConfig(const char* fileBuffer, int totalsize, FrameRateConfig& frameConfig);
+bool ParseImageConfig(const char* fileBuffer, size_t totalsize, FrameRateConfig& frameConfig);
 
 bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> imageStruct,
-    int32_t bufferLen, ImageStructVec& imgVec);
+    size_t bufferLen, ImageStructVec& imgVec);
 
 bool CloseZipFile(const unzFile zipFile, bool ret);
 
