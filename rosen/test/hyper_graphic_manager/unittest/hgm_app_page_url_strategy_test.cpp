@@ -152,5 +152,27 @@ HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange002, Function | Sma
     appPageUrlStrategy_->NotifyPageName(DEF_PID, PKG_NAME, PAGE_NAME, false);
     ASSERT_LE(appPageUrlStrategy_->pageUrlConfig_[PKG_NAME].count(PAGE_NAME), 0);
 }
+
+/**
+ * @tc.name: NotifyPageName003
+ * @tc.desc: Verify pid is rejected when pageUrlVoterInfo_ reaches the limit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmAppPageUrlStrategyTest, NotifyPageName003, Function | SmallTest | Level1)
+{
+    PolicyConfigData::ScreenSetting emptySetting;
+    appPageUrlStrategy_->SetPageUrlConfig(emptySetting.pageUrlConfig);
+    constexpr int32_t PID_BASE = 2000;
+    constexpr int32_t MAX_PID_KEYS = 256;
+    for (int32_t i = 0; i <= MAX_PID_KEYS; i++) {
+        appPageUrlStrategy_->NotifyPageName(PID_BASE + i, PKG_NAME, PAGE_NAME, true);
+    }
+    EXPECT_EQ(appPageUrlStrategy_->pageUrlVoterInfo_.size(), static_cast<size_t>(MAX_PID_KEYS + 1));
+    pid_t extraPid = PID_BASE + MAX_PID_KEYS + 1;
+    appPageUrlStrategy_->NotifyPageName(extraPid, PKG_NAME, PAGE_NAME, true);
+    EXPECT_EQ(appPageUrlStrategy_->pageUrlVoterInfo_.size(), static_cast<size_t>(MAX_PID_KEYS + 1));
+    EXPECT_EQ(appPageUrlStrategy_->pageUrlVoterInfo_.count(extraPid), static_cast<size_t>(0));
+}
 } // namespace Rosen
 } // namespace OHOS
