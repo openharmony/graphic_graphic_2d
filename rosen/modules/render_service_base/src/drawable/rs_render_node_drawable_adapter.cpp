@@ -539,8 +539,7 @@ void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canva
     // Validate via GetDrawableById(curDrawingCacheRootId_) — weak_ptr lock returns nullptr if the object was freed.
     auto cacheRootDrawable = GetDrawableById(curDrawingCacheRootId_);
     if (cacheRootDrawable == nullptr || cacheRootDrawable.get() != curDrawingCacheRoot_) {
-        RS_LOGE("curDrawingCacheRoot_ may be dangling, ptr=%{public}p, callerNodeId=%{public}" PRIu64,
-            curDrawingCacheRoot_, GetId());
+        RS_LOGE("curDrawingCacheRoot_ may be dangling, callerNodeId=%{public}" PRIu64, GetId());
         return;
     }
     auto& withoutFilterMatrixMap = cacheRootDrawable->GetWithoutFilterMatrixMap();
