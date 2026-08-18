@@ -1131,7 +1131,7 @@ HWTEST_F(RSRoundCornerDisplayTest, GetTopSurfaceSource_LandscapeReusePortraitHid
 
 /*
  * @tc.name: GetTopSurfaceSource_LandscapeNotEqualAny
- * @tc.desc: Test RoundCornerDisplay::GetTopSurfaceSource loads landscape separately 
+ * @tc.desc: Test RoundCornerDisplay::GetTopSurfaceSource loads landscape separately
              when not equal to any portrait layer
  * @tc.type: FUNC
  * @tc.require:
