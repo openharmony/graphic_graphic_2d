@@ -20,8 +20,6 @@ namespace Rosen {
 
 std::vector<std::pair<RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType, PermissionType>>
     RSIClientToServiceConnectionInterfaceCodeAccessVerifier::permissionRSIRenderServiceConnectionInterfaceMappings_ {
-        { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_REFRESH_RATE_MODE,
-            PermissionType::UPDATE_CONFIGURATION },
         { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS,
             PermissionType::GET_RUNNING_INFO },
         { RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SHOW_WATERMARK,

@@ -37,6 +37,18 @@
 
 namespace OHOS {
 namespace Rosen {
+/*
+ * Trust model of the IPC interface-code access verifier framework:
+ * - Forward, app-facing connections (RSIClientToServiceConnection, RSIClientToRenderConnection)
+ *   are reachable by untrusted applications, so each interface code must pass
+ *   IsInterfaceCodeAccessible (common + per-stub exclusive verification) before dispatch.
+ * - Reverse callbacks (render service -> app, the *_stub.cpp files under ipc_callbacks/) and
+ *   channels (render <-> composer, window animation) are intentionally not verified per code:
+ *   the binder handle is only handed to the intended peer and each request carries a checked
+ *   interface token (ReadInterfaceToken). Handle confidentiality is the security boundary on
+ *   these paths; render <-> render-server stubs additionally reject non-system callers via
+ *   GetAccessType as defense in depth.
+ */
 class RSB_EXPORT RSInterfaceCodeAccessVerifierBase {
 public:
     virtual ~RSInterfaceCodeAccessVerifierBase() noexcept = default;

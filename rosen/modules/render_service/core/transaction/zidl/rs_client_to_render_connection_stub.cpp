@@ -300,7 +300,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
     }
     auto accessible = securityManager_.IsInterfaceCodeAccessible(code);
     if (!accessible &&
-        code != static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE) &&
         code != static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
         code != static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER) &&
         code != static_cast<uint32_t>(
@@ -914,10 +913,9 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             permissions.screenCapturePermission = accessible;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
                 RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SURFACE_CAPTURE");
-            // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
-            // we temporarily add a white list to avoid abnormal functionality or abnormal display.
-            // The white list will be removed after GetCallingPid interface can return real PID.
-            permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
+            // Authoritative selfCapture is recomputed with the connection-level trusted identity in
+            // RSClientToRenderConnection::TakeSurfaceCapture (GetCallingPid() may be 0 for async binder).
+            permissions.selfCapture = (ExtractPid(id) == callingPid);
             TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect, permissions);
             break;
         }
@@ -1301,8 +1299,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(
             RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK): {
-            uint64_t token = data.ReadUint64();
-            uint64_t timeStamp = data.ReadUint64();
+            uint64_t token = 0;
+            uint64_t timeStamp = 0;
+            if (!data.ReadUint64(token) || !data.ReadUint64(timeStamp)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE("RSClientToRenderConnectionStub::OnRemoteRequest read token/timeStamp failed");
+                break;
+            }
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;

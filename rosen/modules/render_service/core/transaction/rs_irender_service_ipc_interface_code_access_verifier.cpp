@@ -38,6 +38,7 @@ bool RSIRenderServiceInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(
             break;
         }
         default: {
+            hasPermission = false;
             break;
         }
     }

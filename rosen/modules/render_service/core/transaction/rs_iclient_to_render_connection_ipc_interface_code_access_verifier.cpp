@@ -75,7 +75,7 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_POSITION): {
-            hasPermission = CheckPermission(code);
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_POINTER_POSITION");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ANCO_FORCE_DO_DIRECT): {
@@ -174,8 +174,6 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE_SOLO):
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HIDE_PRIVACY_CONTENT):
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_LOGICAL_CAMERA_ROTATION_CORRECTION):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HIGH_CONTRAST_TEXT_STATE):
-        case static_cast<CodeUnderlyingType>(CodeEnumType::RECREATE_NODE_AND_SURFACE):
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MAX_GPU_BUFFER_SIZE): {
             hasPermission = true;
             break;
