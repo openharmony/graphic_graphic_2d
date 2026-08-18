@@ -173,7 +173,7 @@ HWTEST_F(RSRenderProcessTest, RunTest001, TestSize.Level1)
 
 /**
  * @tc.name: ConnectToRenderServiceTest001
- * @tc.desc: Test ConnectToRenderService returns nullptr when system services are unavailable
+ * @tc.desc: Test ConnectToRenderService returns nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
