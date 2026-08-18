@@ -15,10 +15,11 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "limit_number.h"
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
+#include "limit_number.h"
 #include "parameters.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_test_util.h"
 #include "system/rs_system_parameters.h"
 
 using namespace testing;
@@ -50,7 +51,10 @@ public:
     void TearDown() override;
 };
 
-void RSVsyncRateReduceManagerTest::SetUpTestCase() {}
+void RSVsyncRateReduceManagerTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSVsyncRateReduceManagerTest::TearDownTestCase() {}
 void RSVsyncRateReduceManagerTest::SetUp() {}
 void RSVsyncRateReduceManagerTest::TearDown() {}
@@ -668,5 +672,157 @@ HWTEST_F(RSVsyncRateReduceManagerTest, TransformNodeToLinkersRateMapTest, TestSi
     system::SetParameter("rosen.vRateControl.enabled", "0");
     RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(vRateMap, true, appVSyncDistributor);
     system::SetParameter("rosen.vRateControl.enabled", vRateControlEnable);
+}
+
+/**
+ * @tc.name: UpdateLastVSyncRateMap001
+ * @tc.desc: Test UpdateLastVSyncRateMap copies vSyncRateMap_ entries to lastVSyncRateMap_
+ * @tc.type: FUNC
+ * @tc.require: issue25816
+ */
+HWTEST_F(RSVsyncRateReduceManagerTest, UpdateLastVSyncRateMap001, TestSize.Level1)
+{
+    RSVsyncRateReduceManager rateReduceManager;
+    NodeId nodeId1 = 1;
+    NodeId nodeId2 = 2;
+    int rate1 = 2;
+    int rate2 = 3;
+    rateReduceManager.vSyncRateMap_.emplace(nodeId1, rate1);
+    rateReduceManager.vSyncRateMap_.emplace(nodeId2, rate2);
+    rateReduceManager.UpdateLastVSyncRateMap();
+    EXPECT_EQ(2, rateReduceManager.lastVSyncRateMap_.size());
+    EXPECT_EQ(rate1, rateReduceManager.lastVSyncRateMap_[nodeId1]);
+    EXPECT_EQ(rate2, rateReduceManager.lastVSyncRateMap_[nodeId2]);
+}
+
+/**
+ * @tc.name: UpdateLastVSyncRateMap002
+ * @tc.desc: Test UpdateLastVSyncRateMap overwrites entry when nodeId exists in vSyncRateMap_
+ * @tc.type: FUNC
+ * @tc.require: issue25816
+ */
+HWTEST_F(RSVsyncRateReduceManagerTest, UpdateLastVSyncRateMap002, TestSize.Level1)
+{
+    RSVsyncRateReduceManager rateReduceManager;
+    NodeId nodeId = 1;
+    int oldRate = 3;
+    int newRate = 2;
+    rateReduceManager.lastVSyncRateMap_.emplace(nodeId, oldRate);
+    rateReduceManager.vSyncRateMap_.emplace(nodeId, newRate);
+    rateReduceManager.UpdateLastVSyncRateMap();
+    EXPECT_EQ(1, rateReduceManager.lastVSyncRateMap_.size());
+    EXPECT_EQ(newRate, rateReduceManager.lastVSyncRateMap_[nodeId]);
+}
+
+/**
+ * @tc.name: UpdateLastVSyncRateMap003
+ * @tc.desc: Test UpdateLastVSyncRateMap erases entry with rate <= DEFAULT_RATE not in vSyncRateMap_
+ * @tc.type: FUNC
+ * @tc.require: issue25816
+ */
+HWTEST_F(RSVsyncRateReduceManagerTest, UpdateLastVSyncRateMap003, TestSize.Level1)
+{
+    RSVsyncRateReduceManager rateReduceManager;
+    NodeId nodeId = 1;
+    rateReduceManager.lastVSyncRateMap_.emplace(nodeId, DEFAULT_RATE);
+    rateReduceManager.UpdateLastVSyncRateMap();
+    EXPECT_EQ(0, rateReduceManager.lastVSyncRateMap_.size());
+}
+
+/**
+ * @tc.name: UpdateLastVSyncRateMap004
+ * @tc.desc: Test UpdateLastVSyncRateMap erases entry with rate > DEFAULT_RATE when node is null
+ * @tc.type: FUNC
+ * @tc.require: issue25816
+ */
+HWTEST_F(RSVsyncRateReduceManagerTest, UpdateLastVSyncRateMap004, TestSize.Level1)
+{
+    RSVsyncRateReduceManager rateReduceManager;
+    NodeId unregisteredNodeId = 999;
+    int rate = 3;
+    rateReduceManager.lastVSyncRateMap_.emplace(unregisteredNodeId, rate);
+    rateReduceManager.UpdateLastVSyncRateMap();
+    EXPECT_EQ(0, rateReduceManager.lastVSyncRateMap_.size());
+}
+
+/**
+ * @tc.name: UpdateLastVSyncRateMap005
+ * @tc.desc: Test UpdateLastVSyncRateMap preserves entry with rate > DEFAULT_RATE when node is alive
+ * @tc.type: FUNC
+ * @tc.require: issue25816
+ */
+HWTEST_F(RSVsyncRateReduceManagerTest, UpdateLastVSyncRateMap005, TestSize.Level1)
+{
+    NodeId registeredNodeId = 998;
+    int rate = 3;
+    RSSurfaceRenderNodeConfig config;
+    config.id = registeredNodeId;
+    config.name = "testSurfaceNode";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(config);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+
+    RSVsyncRateReduceManager rateReduceManager;
+    rateReduceManager.lastVSyncRateMap_.emplace(registeredNodeId, rate);
+    rateReduceManager.UpdateLastVSyncRateMap();
+    EXPECT_EQ(1, rateReduceManager.lastVSyncRateMap_.size());
+    EXPECT_EQ(rate, rateReduceManager.lastVSyncRateMap_[registeredNodeId]);
+
+    nodeMap.UnregisterRenderNode(registeredNodeId);
+}
+
+/**
+ * @tc.name: UpdateLastVSyncRateMap006
+ * @tc.desc: Test UpdateLastVSyncRateMap with mixed entries covering all branches
+ * @tc.type: FUNC
+ * @tc.require: issue25816
+ */
+HWTEST_F(RSVsyncRateReduceManagerTest, UpdateLastVSyncRateMap006, TestSize.Level1)
+{
+    NodeId preservedNodeId = 997;
+    NodeId overwrittenNodeId = 996;
+    NodeId defaultRateNodeId = 995;
+    NodeId deadNodeId = 994;
+    NodeId newNodeId = 993;
+
+    RSSurfaceRenderNodeConfig config;
+    config.id = preservedNodeId;
+    config.name = "preservedNode";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(config);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+
+    RSVsyncRateReduceManager rateReduceManager;
+    // preserved: rate > DEFAULT_RATE, not in vSyncRateMap_, node alive → kept
+    rateReduceManager.lastVSyncRateMap_.emplace(preservedNodeId, 3);
+    // overwritten: in vSyncRateMap_ → will be overwritten
+    rateReduceManager.lastVSyncRateMap_.emplace(overwrittenNodeId, 3);
+    // default rate: rate <= DEFAULT_RATE, not in vSyncRateMap_ → erased
+    rateReduceManager.lastVSyncRateMap_.emplace(defaultRateNodeId, DEFAULT_RATE);
+    // dead node: rate > DEFAULT_RATE, not in vSyncRateMap_, node null → erased
+    rateReduceManager.lastVSyncRateMap_.emplace(deadNodeId, 3);
+    // new entry from vSyncRateMap_
+    rateReduceManager.vSyncRateMap_.emplace(overwrittenNodeId, 2);
+    rateReduceManager.vSyncRateMap_.emplace(newNodeId, 4);
+
+    rateReduceManager.UpdateLastVSyncRateMap();
+
+    // preserved entry kept with original rate
+    EXPECT_NE(rateReduceManager.lastVSyncRateMap_.end(), rateReduceManager.lastVSyncRateMap_.find(preservedNodeId));
+    EXPECT_EQ(3, rateReduceManager.lastVSyncRateMap_[preservedNodeId]);
+    // overwritten entry has new rate
+    EXPECT_EQ(2, rateReduceManager.lastVSyncRateMap_[overwrittenNodeId]);
+    // default rate entry erased
+    EXPECT_EQ(rateReduceManager.lastVSyncRateMap_.end(), rateReduceManager.lastVSyncRateMap_.find(defaultRateNodeId));
+    // dead node entry erased
+    EXPECT_EQ(rateReduceManager.lastVSyncRateMap_.end(), rateReduceManager.lastVSyncRateMap_.find(deadNodeId));
+    // new entry copied
+    EXPECT_EQ(4, rateReduceManager.lastVSyncRateMap_[newNodeId]);
+    // total: preserved + overwritten + new = 3
+    EXPECT_EQ(3, rateReduceManager.lastVSyncRateMap_.size());
+
+    nodeMap.UnregisterRenderNode(preservedNodeId);
 }
 } // namespace OHOS::Rosen
