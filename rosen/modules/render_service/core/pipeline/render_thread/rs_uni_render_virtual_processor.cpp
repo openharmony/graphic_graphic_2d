@@ -848,8 +848,6 @@ void RSUniRenderVirtualProcessor::CopyToSecondarySurfaces()
     Drawing::SamplingOptions sampling(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     // Copy to secondary surfaces
     for (size_t i = 1; i < surfaceFrames_.size(); ++i) {
-        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Copying to surface index %zu", __func__, i);
-
         auto& canvas = surfaceFrames_[i].canvas;
         if (!canvas) {
             RS_LOGE("RSUniRenderVirtualProcessor::%{public}s: Canvas is null for surface index %{public}zu",
@@ -860,7 +858,7 @@ void RSUniRenderVirtualProcessor::CopyToSecondarySurfaces()
 
         RS_LOGD_IF(DEBUG_PIPELINE, "RSUniRenderVirtualProcessor::%{public}s: Copied to surface index %{public}zu",
             __func__, i);
-        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Copied to surface index %zu", __func__, i);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Copied to surface index %zu", __func__, i);
     }
 }
 
@@ -959,7 +957,7 @@ void RSUniRenderVirtualProcessor::BlitRegionsToSurfaces(const std::shared_ptr<Dr
         RS_LOGD_IF(DEBUG_PIPELINE,
             "RSUniRenderVirtualProcessor::%{public}s: Blitted region [%{public}d,%{public}d,%{public}d,%{public}d]"
              " to surface index %{public}zu", __func__, region.left_, region.top_, region.width_, region.height_, i);
-        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Blitted region [%d,%d,%d,%d]"
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: Blitted region [%d,%d,%d,%d]"
              " to surface index %zu", __func__, region.left_, region.top_, region.width_, region.height_, i);
     }
 }
