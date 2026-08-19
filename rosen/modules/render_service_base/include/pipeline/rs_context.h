@@ -27,6 +27,7 @@
 #endif
 #include "animation/rs_render_interactive_implict_animator_map.h"
 #include "feature/capture/rs_ui_capture_helper.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/rs_render_node_map.h"
@@ -81,6 +82,16 @@ public:
     const RSRenderNodeMap& GetNodeMap() const
     {
         return nodeMap;
+    }
+
+    RSPersistentPropertyManager& GetMutablePersistentPropertyManager()
+    {
+        return persistentPropertyManager_;
+    }
+
+    const RSPersistentPropertyManager& GetPersistentPropertyManager() const
+    {
+        return persistentPropertyManager_;
     }
 
     std::set<NodeId>& GetWebNodeMap()
@@ -310,6 +321,7 @@ private:
     std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
     std::atomic<uint32_t> visibleLeashWindowCount_ = 0;
     RSPowerOffRenderController powerOffRenderController_;
+    RSPersistentPropertyManager persistentPropertyManager_;
 
     std::unordered_map<pid_t, std::unordered_map<uint64_t, std::shared_ptr<RSUIRenderDirector>>> uiRenderDirectors_;
     std::mutex uiRenderDirectorsMutex_;

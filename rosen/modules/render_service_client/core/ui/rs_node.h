@@ -2406,7 +2406,6 @@ private:
 
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     void AnimationDestroyInRenderCallback(AnimationId animationId, float fraction, bool isReverseCycle);
-    void ColorPickerDestroyInRenderCallback(ContrastColorScheme lastContrastColorScheme);
     bool FireColorPickerCallback(uint32_t color);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);

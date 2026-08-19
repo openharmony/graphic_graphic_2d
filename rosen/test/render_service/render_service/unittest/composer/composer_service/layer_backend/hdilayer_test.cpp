@@ -956,41 +956,6 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest004, Function | MediumTest| L
 }
 
 /**
- * Function: SetTunnelLayerParametersTest005_NewBranchPrevMatchShortCircuit
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1. prevRSLayer_ non-null, current id and property both match prev
- *                  2. verify new branch short-circuits to SUCCESS without device calls
- *                     (covers TRUE path of new `if(prevRSLayer_ && id_match && prop_match)`)
- */
-HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest005_NewBranchPrevMatchShortCircuit,
-    Function | MediumTest | Level1)
-{
-    NiceMock<Mock::HdiDeviceMock> hdiDeviceMock;
-    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
-    ASSERT_NE(hdiLayer, nullptr);
-    ASSERT_EQ(hdiLayer->SetHdiDeviceMock(&hdiDeviceMock), GRAPHIC_DISPLAY_SUCCESS);
-
-    auto prevRsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
-    prevRsLayer->SetTunnelLayerId(2);
-    prevRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
-    hdiLayer->prevRSLayer_ = prevRsLayer;
-
-    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
-    rsLayer->SetTunnelLayerId(2);
-    rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
-    rsLayer->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
-    hdiLayer->rsLayer_ = rsLayer;
-    hdiLayer->layerType_ = GRAPHIC_LAYER_TYPE_TUNNEL;
-
-    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerId(_, _, _)).Times(0);
-    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, _)).Times(0);
-    auto ret = hdiLayer->SetTunnelLayerParameters();
-    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
-}
-
-/**
  * Function: SetTunnelLayerParametersTest006_NewBranchPrevNullFallThrough
  * Type: Function
  * Rank: Important(1)
@@ -1018,78 +983,6 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest006_NewBranchPrevNullFallThro
     hdiLayer->layerType_ = GRAPHIC_LAYER_TYPE_TUNNEL;
 
     EXPECT_CALL(hdiDeviceMock, SetTunnelLayerId(_, _, 3)).WillOnce(testing::Return(0));
-    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, _)).WillOnce(testing::Return(0));
-    auto ret = hdiLayer->SetTunnelLayerParameters();
-    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
-}
-
-/**
- * Function: SetTunnelLayerParametersTest007_NewBranchIdDiffersFallThrough
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1. prevRSLayer_ non-null, current id differs from prev (id_match FALSE)
- *                  2. verify new branch falls through to SetTunnelLayerId
- *                     (covers FALSE-on-id sub-path of new branch)
- */
-HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest007_NewBranchIdDiffersFallThrough,
-    Function | MediumTest | Level1)
-{
-    NiceMock<Mock::HdiDeviceMock> hdiDeviceMock;
-    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
-    ASSERT_NE(hdiLayer, nullptr);
-    ASSERT_EQ(hdiLayer->SetHdiDeviceMock(&hdiDeviceMock), GRAPHIC_DISPLAY_SUCCESS);
-
-    auto prevRsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
-    prevRsLayer->SetTunnelLayerId(2);
-    prevRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
-    hdiLayer->prevRSLayer_ = prevRsLayer;
-
-    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
-    rsLayer->SetTunnelLayerId(3);
-    rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
-    rsLayer->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
-    hdiLayer->rsLayer_ = rsLayer;
-    hdiLayer->layerType_ = GRAPHIC_LAYER_TYPE_TUNNEL;
-
-    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerId(_, _, 3)).WillOnce(testing::Return(0));
-    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, _)).WillOnce(testing::Return(0));
-    auto ret = hdiLayer->SetTunnelLayerParameters();
-    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
-}
-
-/**
- * Function: SetTunnelLayerParametersTest008_NewBranchPropDiffersFallThrough
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1. prevRSLayer_ non-null, current id matches prev but property differs
- *                  2. verify new branch falls through (id_match TRUE, prop_match FALSE)
- *                     SetTunnelLayerId helper short-circuits (id matches prev) but flow
- *                     reaches SetTunnelLayerProperty.
- *                     (covers FALSE-on-prop sub-path of new branch)
- */
-HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest008_NewBranchPropDiffersFallThrough,
-    Function | MediumTest | Level1)
-{
-    NiceMock<Mock::HdiDeviceMock> hdiDeviceMock;
-    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
-    ASSERT_NE(hdiLayer, nullptr);
-    ASSERT_EQ(hdiLayer->SetHdiDeviceMock(&hdiDeviceMock), GRAPHIC_DISPLAY_SUCCESS);
-
-    auto prevRsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
-    prevRsLayer->SetTunnelLayerId(2);
-    prevRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
-    hdiLayer->prevRSLayer_ = prevRsLayer;
-
-    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
-    rsLayer->SetTunnelLayerId(2);
-    rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_RS_FORCE);
-    rsLayer->SetType(GRAPHIC_LAYER_TYPE_TUNNEL);
-    hdiLayer->rsLayer_ = rsLayer;
-    hdiLayer->layerType_ = GRAPHIC_LAYER_TYPE_TUNNEL;
-
-    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerId(_, _, _)).Times(0);
     EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, _)).WillOnce(testing::Return(0));
     auto ret = hdiLayer->SetTunnelLayerParameters();
     EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);

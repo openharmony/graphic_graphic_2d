@@ -386,15 +386,15 @@ bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStru
     if (totalLen > 0) {
         LOGD("fileName: %{public}s, fileSize: %{public}lu, totalLen: %{public}lu", fileName.c_str(), size, totalLen);
         if (strstr(fileName.c_str(), BOOT_PIC_CONFIG_FILE.c_str()) != nullptr) {
-            ParseImageConfig(imageStruct->memPtr.memBuffer, static_cast<int>(totalLen), frameConfig);
+            ParseImageConfig(imageStruct->memPtr.memBuffer, totalLen, frameConfig);
         } else {
-            CheckImageData(fileName, imageStruct, static_cast<int32_t>(totalLen), imgVec);
+            CheckImageData(fileName, imageStruct, totalLen, imgVec);
         }
     }
     return true;
 }
 
-bool ParseImageConfig(const char* fileBuffer, int totalsize, FrameRateConfig& frameConfig)
+bool ParseImageConfig(const char* fileBuffer, size_t totalsize, FrameRateConfig& frameConfig)
 {
     std::string JParamsString;
     JParamsString.assign(fileBuffer, totalsize);
@@ -413,7 +413,7 @@ bool ParseImageConfig(const char* fileBuffer, int totalsize, FrameRateConfig& fr
 }
 
 bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> imageStruct,
-    int32_t bufferLen, ImageStructVec& imgVec)
+    size_t bufferLen, ImageStructVec& imgVec)
 {
     if (imageStruct->memPtr.memBuffer == nullptr) {
         LOGE("json file buffer is null");

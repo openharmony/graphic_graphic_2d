@@ -120,6 +120,7 @@ bool RSVpeManager::SetVpeVideoParameter(std::shared_ptr<VpeVideo> vpeVideo,
         }
     }
     param = Media::Format{};
+    param.PutStringValue(ParameterKey::SURFACE_NODE_NAME, config.name);
     param.PutLongValue(ParameterKey::DETAIL_ENHANCER_NODE_ID, config.id);
     if (vpeVideo->SetParameter(param) != 0) {
         RS_LOGE("SetParameter nodeId falied");
@@ -200,9 +201,10 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
     }
     sptr<Surface> vpeSurface = surface;
     std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER,
-        VIDEO_TYPE_AI3D_ENHANCER };
+        VIDEO_TYPE_AI3D_ENHANCER, VIDEO_TYPE_AUTO_EFFECT_AISR };
     uint32_t supportType = 0;
     for (auto& type : supportTypes) {
+        parameter.PutStringValue(ParameterKey::SURFACE_NODE_NAME, config.name);
         if (VpeVideo::IsSupported(type, parameter) && VpeVideo::IsSurfaceSupported(type, surface)) {
             supportType |= type;
         }

@@ -26,6 +26,7 @@ namespace Rosen {
 constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
 constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
 constexpr uint32_t MAX_APP_BUFFER_SIZE = 64;
+constexpr size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 
 class RSHgmConfigDataTest : public testing::Test {
 public:
@@ -39,6 +40,29 @@ void RSHgmConfigDataTest::SetUpTestCase() {}
 void RSHgmConfigDataTest::TearDownTestCase() {}
 void RSHgmConfigDataTest::SetUp() {}
 void RSHgmConfigDataTest::TearDown() {}
+
+static void WriteBaseData(Parcel& parcel, uint32_t size)
+{
+    RSHgmConfigData rsHgmConfigData;
+    parcel.WriteFloat(rsHgmConfigData.ppi_);
+    parcel.WriteFloat(rsHgmConfigData.xDpi_);
+    parcel.WriteFloat(rsHgmConfigData.yDpi_);
+    parcel.WriteUint32(size);
+}
+
+static void SetLeftSize(Parcel& parcel, uint32_t leftSize)
+{
+    parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
+    size_t useSize = PARCEL_MAX_CAPACITY - leftSize;
+    size_t writeInt32Count = useSize / sizeof(int32_t);
+    size_t writeBoolCount = useSize % sizeof(int32_t);
+    for (size_t i = 0; i < writeInt32Count; i++) {
+        parcel.WriteInt32(0);
+    }
+    for (size_t j = 0; j < writeBoolCount; j++) {
+        parcel.WriteBoolUnaligned(false);
+    }
+}
 
 /**
  * @tc.name: UnmarshallingTest001
@@ -96,6 +120,7 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest002, TestSize.Level1)
     parcel2.WriteFloat(rsHgmConfigData.yDpi_);
     parcel2.WriteUint32(MAX_ANIM_DYNAMIC_ITEM_SIZE + 1);
     rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel2);
+    EXPECT_EQ(rsHgmConfigDataPtr, nullptr);
 
     Parcel parcel3;
     parcel3.WriteFloat(rsHgmConfigData.ppi_);
@@ -104,6 +129,7 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest002, TestSize.Level1)
     parcel3.WriteUint32(0);
     parcel3.WriteUint32(MAX_PAGE_NAME_SIZE + 1);
     rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel3);
+    EXPECT_EQ(rsHgmConfigDataPtr, nullptr);
     
     Parcel parcel4;
     parcel4.WriteFloat(rsHgmConfigData.ppi_);
@@ -111,6 +137,7 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest002, TestSize.Level1)
     parcel4.WriteFloat(rsHgmConfigData.yDpi_);
     parcel4.WriteUint32(MAX_ANIM_DYNAMIC_ITEM_SIZE);
     rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel4);
+    EXPECT_EQ(rsHgmConfigDataPtr, nullptr);
 
     Parcel parcel5;
     parcel5.WriteFloat(rsHgmConfigData.ppi_);
@@ -119,6 +146,103 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest002, TestSize.Level1)
     parcel5.WriteUint32(0);
     parcel5.WriteUint32(MAX_PAGE_NAME_SIZE);
     rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel5);
+    EXPECT_EQ(rsHgmConfigDataPtr, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingTest003
+ * @tc.desc: Verify Unmarshalling base fields are missing or size exceeds limit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest003, TestSize.Level1)
+{
+    RSHgmConfigData rsHgmConfigData;
+    Parcel parcel1;
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel1), nullptr);
+
+    Parcel parcel2;
+    parcel2.WriteFloat(rsHgmConfigData.ppi_);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel2), nullptr);
+
+    Parcel parcel3;
+    parcel3.WriteFloat(rsHgmConfigData.ppi_);
+    parcel3.WriteFloat(rsHgmConfigData.xDpi_);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel3), nullptr);
+
+    Parcel parcel4;
+    parcel4.WriteFloat(rsHgmConfigData.ppi_);
+    parcel4.WriteFloat(rsHgmConfigData.xDpi_);
+    parcel4.WriteFloat(rsHgmConfigData.yDpi_);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel4), nullptr);
+
+    Parcel parcel5;
+    WriteBaseData(parcel5, MAX_ANIM_DYNAMIC_ITEM_SIZE + 1);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel5), nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingTest004
+ * @tc.desc: Verify Unmarshalling anim dynamic item fields are missing
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest004, TestSize.Level1)
+{
+    RSHgmConfigData rsHgmConfigData;
+    Parcel parcel1;
+    WriteBaseData(parcel1, 1);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel1), nullptr);
+
+    Parcel parcel2;
+    WriteBaseData(parcel2, 1);
+    parcel2.WriteString("type");
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel2), nullptr);
+
+    Parcel parcel3;
+    WriteBaseData(parcel3, 1);
+    parcel3.WriteString("type");
+    parcel3.WriteString("name");
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel3), nullptr);
+
+    Parcel parcel4;
+    WriteBaseData(parcel4, 1);
+    parcel4.WriteString("type");
+    parcel4.WriteString("name");
+    parcel4.WriteInt32(0);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel4), nullptr);
+
+    Parcel parcel5;
+    WriteBaseData(parcel5, 1);
+    parcel5.WriteString("type");
+    parcel5.WriteString("name");
+    parcel5.WriteInt32(0);
+    parcel5.WriteInt32(1000);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel5), nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingTest005
+ * @tc.desc: Verify Unmarshalling page name fields are missing or size exceeds limit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest005, TestSize.Level1)
+{
+    RSHgmConfigData rsHgmConfigData;
+    Parcel parcel1;
+    WriteBaseData(parcel1, 0);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel1), nullptr);
+
+    Parcel parcel2;
+    WriteBaseData(parcel2, 0);
+    parcel2.WriteUint32(MAX_PAGE_NAME_SIZE + 1);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel2), nullptr);
+
+    Parcel parcel3;
+    WriteBaseData(parcel3, 0);
+    parcel3.WriteUint32(1);
+    EXPECT_EQ(rsHgmConfigData.Unmarshalling(parcel3), nullptr);
 }
 
 /**
@@ -308,6 +432,28 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingAppBufferListZeroSizeTest, TestSize.L
     ASSERT_NE(result, nullptr);
     EXPECT_TRUE(result->GetAppBufferList().empty());
     delete result;
+}
+
+/**
+ * @tc.name: MarshallingTest002
+ * @tc.desc: Verify Marshalling returns false when parcel space is insufficient for each field
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHgmConfigDataTest, MarshallingTest002, TestSize.Level1)
+{
+    RSHgmConfigData rsHgmConfigData;
+    rsHgmConfigData.AddAnimDynamicItem({ "xx1", "xx2", 0, 0, 0 });
+    std::string pageName = "xx3";
+    rsHgmConfigData.AddPageName(pageName);
+    for (int32_t i = 0; i < 100; i = i + 4) {
+        Parcel parcel;
+        SetLeftSize(parcel, i);
+        rsHgmConfigData.Marshalling(parcel);
+    }
+    Parcel parcelOk;
+    SetLeftSize(parcelOk, 100);
+    ASSERT_TRUE(rsHgmConfigData.Marshalling(parcelOk));
 }
 } // namespace Rosen
 } // namespace OHOS

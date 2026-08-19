@@ -28,8 +28,6 @@
 #include "rs_trace.h"
 
 #include "animation/rs_render_animation.h"
-#include "command/rs_message_processor.h"
-#include "command/rs_node_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
 #include "common/rs_common_tools.h"
@@ -44,7 +42,10 @@
 #include "effect/rs_render_shape_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "transaction/rs_marshalling_helper.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
+#include "feature/color_picker/rs_persistent_contrast_color_scheme.h"
 #include "feature/hdr/rs_colorspace_util.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
@@ -2854,6 +2855,9 @@ bool RSRenderNode::PrepareColorPicker(bool darkMode)
     if (!drawable) {
         return false;
     }
+
+    RSColorPickerUtils::RestoreContrastColorScheme(*this);
+
     if (GetRenderProperties().GetColorPicker() &&
         GetRenderProperties().GetColorPicker()->lastContrastColorScheme != ContrastColorScheme::INVALID) {
         auto contrastColorScheme = GetRenderProperties().GetColorPicker()->lastContrastColorScheme;
@@ -4573,12 +4577,17 @@ void RSRenderNode::DestroyColorPickerInRender()
     if (lastContrastColorScheme == ContrastColorScheme::INVALID) {
         return;
     }
+
+    auto context = context_.lock();
+    if (context == nullptr) {
+        return;
+    }
+
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(lastContrastColorScheme);
+    context->GetMutablePersistentPropertyManager().Store(id_, contrastColorSchemeProperty);
+
     RS_OPTIONAL_TRACE_NAME_FMT("DestroyColorPickerInRender node[%" PRIu64 "] lastContrastColorScheme[%u]",
-        GetId(), static_cast<uint32_t>(lastContrastColorScheme));
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSColorPickerDestroyInRender>(
-            GetId(), ExtractPid(GetId()), GetUIContextToken(), static_cast<uint8_t>(lastContrastColorScheme));
-    RSMessageProcessor::Instance().AddUIMessage(ExtractPid(GetId()), command);
+        id_, static_cast<uint32_t>(lastContrastColorScheme));
 }
 
 bool RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)

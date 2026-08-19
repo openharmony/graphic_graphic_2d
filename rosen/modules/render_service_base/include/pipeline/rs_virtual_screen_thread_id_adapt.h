@@ -21,7 +21,7 @@ namespace Rosen {
 
 class RSVirtualScreenThreadIdAdapt {
 public:
-    static constexpr std::pair<int32_t, int32_t> VIRTUAL_SCREEN_THREAD_INDEX = {200, 300};
+    static constexpr std::pair<uint32_t, uint32_t> VIRTUAL_SCREEN_THREAD_INDEX = {200, 300};
     static inline void AdaptVirtualScreenFfrtThreadId(Drawing::Canvas& rsCanvas, pid_t& threadId)
     {
         if (rsCanvas.GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {

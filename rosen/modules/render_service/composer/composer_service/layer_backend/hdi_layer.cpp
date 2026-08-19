@@ -1053,10 +1053,6 @@ int32_t HdiLayer::SetTunnelLayerParameters()
     if (rsLayer_->GetTunnelLayerId() == 0 && rsLayer_->GetTunnelLayerProperty() == TUNNEL_PROP_INVALID) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
-    if (prevRSLayer_ && rsLayer_->GetTunnelLayerId() == prevRSLayer_->GetTunnelLayerId() &&
-        rsLayer_->GetTunnelLayerProperty() == prevRSLayer_->GetTunnelLayerProperty()) {
-        return GRAPHIC_DISPLAY_SUCCESS;
-    }
     int32_t tunnelLayerIdRet = SetTunnelLayerId();
     if (tunnelLayerIdRet != GRAPHIC_DISPLAY_SUCCESS) {
         CheckRet(tunnelLayerIdRet, "SetTunnelLayerId");

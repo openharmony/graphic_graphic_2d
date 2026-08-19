@@ -1385,6 +1385,70 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
 }
 
 /**
+ * @tc.name: TestRSClientToRenderServiceConnectionStub043
+ * @tc.desc: Test NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE with oversize id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToRenderServiceConnectionStub043, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+    static constexpr uint32_t MAX_ID_LIMIT = 256;
+    std::string oversizeId(MAX_ID_LIMIT + 1, 'x');
+    data.WriteString(oversizeId);
+    data.WriteInt32(60);
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: TestRSClientToRenderServiceConnectionStub044
+ * @tc.desc: Test NOTIFY_PAGE_NAME with oversize packageName pageName
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToRenderServiceConnectionStub044, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME);
+    static constexpr uint32_t MAX_NAME_LIMIT = 256;
+    std::string oversizeName(MAX_NAME_LIMIT + 1, 'p');
+    data.WriteString(oversizeName);
+    data.WriteString("test");
+    data.WriteBool(true);
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    MessageParcel reply2;
+    MessageOption option2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteString("test");
+    data2.WriteString(oversizeName);
+    data2.WriteBool(true);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply2, option2);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    MessageParcel reply3;
+    MessageOption option3;
+    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data3.WriteString("test");
+    data3.WriteString("test");
+    data3.WriteBool(true);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply3, option3);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/**
  * @tc.name: TestGetRefreshInfoByPidAndUniqueId001
  * @tc.desc: Test
  * @tc.type: FUNC

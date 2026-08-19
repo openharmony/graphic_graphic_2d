@@ -29,6 +29,7 @@
 #include "modifier/rs_modifier_manager_map.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "rs_frame_report.h"
 #include "transaction/rs_application_agent_impl.h"
@@ -90,7 +91,6 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
         RSAnimationFraction::Init();
     });
     RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor);
-    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor);
     std::call_once(g_initDumpNodeTreeProcessorFlag,
         []() { RSNodeCommandHelper::SetDumpNodeTreeProcessor(RSUIDirector::DumpNodeTreeProcessor); });
 
@@ -452,6 +452,12 @@ void RSUIDirector::ReleaseRenderNode()
             return;
         }
         auto surfaceNode = baseNode->ReinterpretCastTo<RSSurfaceNode>();
+        if (surfaceNode && (surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "RSUIDirector::ReleaseRenderNode skip release anco node id:%llu, name:%s",
+                surfaceNode->GetId(), surfaceNode->GetName().c_str());
+            return;
+        }
         if (surfaceNode && (surfaceNode->IsAppWindow() || surfaceNode->IsTextureExportNode())) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "RSUIDirector::ReleaseRenderNode skip release AppWindow or TextureExportNode id:%llu, name:%s",
@@ -979,19 +985,6 @@ void RSUIDirector::ColorPickerCallbackProcessor(NodeId nodeId, uint64_t token, u
         return;
     }
     ROSEN_LOGE("RSUIDirector::ColorPickerCallbackProcessor, could not find node %{public}" PRIu64, nodeId);
-}
-
-void RSUIDirector::ColorPickerDestroyInRenderProcessor(
-    NodeId nodeId, uint64_t token, ContrastColorScheme lastContrastColorScheme)
-{
-    auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
-    if (auto nodePtr =
-            rsUICtx ? rsUICtx->GetNodeMap().GetNode<RSNode>(nodeId) : RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
-        nodePtr->ColorPickerDestroyInRenderCallback(lastContrastColorScheme);
-        return;
-    }
-    ROSEN_LOGE(
-        "RSUIDirector::ColorPickerDestroyInRenderProcessor, could not find node %{public}" PRIu64, nodeId);
 }
 
 void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId)

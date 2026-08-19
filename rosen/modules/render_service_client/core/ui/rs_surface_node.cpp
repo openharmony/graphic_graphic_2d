@@ -1111,9 +1111,15 @@ void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
 
 void RSSurfaceNode::SetAncoFlags(uint32_t flags)
 {
+    ancoFlags_.store(flags);
     SetRSCmdProperty<AncoFlagsCmdModifier>(AncoFlagsCmdParam{
         flags
     });
+}
+
+uint32_t RSSurfaceNode::GetAncoFlags() const
+{
+    return ancoFlags_.load();
 }
 
 void RSSurfaceNode::SetSkipDraw(bool skip)

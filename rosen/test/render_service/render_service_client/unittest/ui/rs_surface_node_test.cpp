@@ -2505,4 +2505,32 @@ HWTEST_F(RSSurfaceNodeTest, SurfaceNodeTypeTest002, TestSize.Level1)
     // Branch: IsAppWindow false
     EXPECT_FALSE(defaultNode->IsAppWindow());
 }
+
+/**
+ * @tc.name: GetAncoFlags_001
+ * @tc.desc: Verify default AncoFlags value is 0 for newly created surface node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, GetAncoFlags_001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_EQ(surfaceNode->GetAncoFlags(), 0u);
+}
+
+/**
+ * @tc.name: SetAndGetAncoFlags_001
+ * @tc.desc: Verify SetAncoFlags with IS_ANCO_NODE and GetAncoFlags returns same value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetAndGetAncoFlags_001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    uint32_t flags = static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE);
+    surfaceNode->SetAncoFlags(flags);
+    EXPECT_EQ(surfaceNode->GetAncoFlags(), flags);
+}
 } // namespace OHOS::Rosen
