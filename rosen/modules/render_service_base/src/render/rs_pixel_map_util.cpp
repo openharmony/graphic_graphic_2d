@@ -180,29 +180,6 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     return image;
 }
 
-std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImageNoCache(std::shared_ptr<Media::PixelMap> pixelMap)
-{
-    if (!pixelMap) {
-        return nullptr;
-    }
-    ImageInfo imageInfo;
-    pixelMap->GetImageInfo(imageInfo);
-    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
-        PixelFormatToDrawingColorType(imageInfo.pixelFormat),
-        AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-        RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName()) };
-    Drawing::Pixmap imagePixmap(drawingImageInfo,
-        reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
-    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
-    auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
-    if (!image) {
-        RS_LOGE("RSPixelMapUtil::ExtractDrawingImage fail");
-        delete releaseContext;
-        releaseContext = nullptr;
-    }
-    return image;
-}
-
 std::pair<float, float> calculateRotatedDimensions(float width, float height, float rotationDegrees)
 {
     float radians = rotationDegrees * M_PI / 180.0f; // Convert degrees to radians
