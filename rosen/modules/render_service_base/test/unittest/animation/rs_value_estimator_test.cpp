@@ -13,8 +13,11 @@
  * limitations under the License.
  */
 
+#include <climits>
+
 #include "gtest/gtest.h"
 
+#include "animation/rs_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
 #include "animation/rs_value_estimator.h"
 #include "modifier/rs_render_property.h"
@@ -680,6 +683,195 @@ HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueNotAnimatableProperty001, 
     auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     estimator->InitCurveAnimationValue(nonAnimatableProperty, startValue, endValue, lastValue);
     EXPECT_EQ(estimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: EstimateFractionWithDurationNullInterpolator001
+ * @tc.desc: Verify EstimateFraction returns FRACTION_MIN when interpolator is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionWithDurationNullInterpolator001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto result = estimator->EstimateFraction(nullptr, 0.5f, 1000);
+    EXPECT_FLOAT_EQ(result, FRACTION_MIN);
+}
+
+/**
+ * @tc.name: EstimateFractionWithDurationNegativeDuration001
+ * @tc.desc: Verify EstimateFraction returns FRACTION_MIN when duration is negative
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionWithDurationNegativeDuration001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFraction(interpolator, 0.5f, -1);
+    EXPECT_FLOAT_EQ(result, FRACTION_MIN);
+}
+
+/**
+ * @tc.name: EstimateFractionWithDurationZeroDuration001
+ * @tc.desc: Verify EstimateFraction returns FRACTION_MIN when duration is 0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionWithDurationZeroDuration001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFraction(interpolator, 0.5f, 0);
+    EXPECT_FLOAT_EQ(result, FRACTION_MIN);
+}
+
+/**
+ * @tc.name: EstimateFractionWithDurationLinearInterpolator001
+ * @tc.desc: Verify EstimateFraction with linear interpolator finds correct time fraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionWithDurationLinearInterpolator001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFraction(interpolator, 0.5f, 1000);
+    EXPECT_GT(result, 0.0f);
+    EXPECT_LT(result, 1.0f);
+}
+
+/**
+ * @tc.name: EstimateFractionWithDurationStepsInterpolator001
+ * @tc.desc: Verify EstimateFraction with steps interpolator finds time fraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionWithDurationStepsInterpolator001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<RSStepsInterpolator>(1, StepsCurvePosition::START);
+    auto result = estimator->EstimateFraction(interpolator, 0.5f, 1000);
+    EXPECT_GT(result, 0.0f);
+    EXPECT_LT(result, 1.0f);
+}
+
+/**
+ * @tc.name: EstimateFractionWithDurationTargetOutOfRange001
+ * @tc.desc: Verify EstimateFraction returns FRACTION_MIN when target is out of output range
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionWithDurationTargetOutOfRange001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFraction(interpolator, 2.0f, 1000);
+    EXPECT_FLOAT_EQ(result, FRACTION_MIN);
+}
+
+/**
+ * @tc.name: EstimateFractionWithDurationLargeDuration001
+ * @tc.desc: Verify EstimateFraction does not hang with very large duration
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionWithDurationLargeDuration001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFraction(interpolator, 0.5f, INT_MAX);
+    EXPECT_GT(result, 0.0f);
+    EXPECT_LT(result, 1.0f);
+}
+
+/**
+ * @tc.name: EstimateFractionWithDurationShortDuration001
+ * @tc.desc: Verify EstimateFraction with very short duration (1ms)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionWithDurationShortDuration001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFraction(interpolator, 0.5f, 1);
+    EXPECT_GT(result, 0.0f);
+    EXPECT_LT(result, 1.0f);
+}
+
+/**
+ * @tc.name: EstimateFractionByCoarseToFineLinear001
+ * @tc.desc: Verify EstimateFractionByCoarseToFine with linear interpolator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionByCoarseToFineLinear001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFractionByCoarseToFine(interpolator, 0.5f, 10, 10);
+    EXPECT_GT(result, 0.0f);
+    EXPECT_LT(result, 1.0f);
+}
+
+/**
+ * @tc.name: EstimateFractionByCoarseToFineTargetAtStart001
+ * @tc.desc: Verify EstimateFractionByCoarseToFine finds target near start
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionByCoarseToFineTargetAtStart001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFractionByCoarseToFine(interpolator, 0.01f, 10, 10);
+    EXPECT_GT(result, 0.0f);
+    EXPECT_LT(result, 0.2f);
+}
+
+/**
+ * @tc.name: EstimateFractionByCoarseToFineTargetAtEnd001
+ * @tc.desc: Verify EstimateFractionByCoarseToFine finds target near end
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionByCoarseToFineTargetAtEnd001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFractionByCoarseToFine(interpolator, 0.99f, 10, 10);
+    EXPECT_GT(result, 0.8f);
+    EXPECT_LT(result, 1.0f);
+}
+
+/**
+ * @tc.name: EstimateFractionByCoarseToFineTargetOutOfRange001
+ * @tc.desc: Verify EstimateFractionByCoarseToFine returns FRACTION_MIN when target is unreachable
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionByCoarseToFineTargetOutOfRange001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFractionByCoarseToFine(interpolator, 5.0f, 10, 10);
+    EXPECT_FLOAT_EQ(result, FRACTION_MIN);
+}
+
+/**
+ * @tc.name: EstimateFractionByCoarseToFineNegativeTarget001
+ * @tc.desc: Verify EstimateFractionByCoarseToFine returns FRACTION_MIN when target is negative
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionByCoarseToFineNegativeTarget001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<LinearInterpolator>();
+    auto result = estimator->EstimateFractionByCoarseToFine(interpolator, -1.0f, 10, 10);
+    EXPECT_FLOAT_EQ(result, FRACTION_MIN);
+}
+
+/**
+ * @tc.name: EstimateFractionByCoarseToFineStepsInterpolator001
+ * @tc.desc: Verify EstimateFractionByCoarseToFine with steps interpolator (non-smooth curve)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, EstimateFractionByCoarseToFineStepsInterpolator001, TestSize.Level1)
+{
+    auto estimator = std::make_shared<RSCurveValueEstimator<float>>();
+    auto interpolator = std::make_shared<RSStepsInterpolator>(4, StepsCurvePosition::START);
+    auto result = estimator->EstimateFractionByCoarseToFine(interpolator, 0.5f, 20, 20);
+    EXPECT_GT(result, 0.0f);
+    EXPECT_LT(result, 1.0f);
 }
 
 } // namespace Rosen
