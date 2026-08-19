@@ -33,6 +33,12 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     if (UNLIKELY(!params)) {
         return;
     }
+    auto screenDrawable = params->GetAncestorScreenDrawable().lock();
+    auto screenParams = screenDrawable ?
+        static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get()) : nullptr;
+    if (screenParams && screenParams->GetScreenProperty().IsVirtual()) {
+        return;
+    }
     auto screenId = params->GetScreenId();
     static const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
     const char dualDisplay = '2';
