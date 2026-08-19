@@ -427,7 +427,7 @@ HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_CldLayerInfoPop
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_ValidAlpha8
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with valid ALPHA_8 bitmap succeeds
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 with valid ALPHA_8 bitmap succeeds
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -440,7 +440,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_ValidAlpha8, TestSize
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
 
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
     EXPECT_TRUE(result);
     EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_RGBA_8888);
     EXPECT_EQ(dstBitmap.GetWidth(), width);
@@ -450,7 +450,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_ValidAlpha8, TestSize
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_InvalidSrcBitmap
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with invalid (unbuilt) src bitmap fails
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 with invalid (unbuilt) src bitmap fails
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -458,13 +458,13 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_InvalidSrcBitmap, Tes
 {
     Drawing::Bitmap invalidBitmap;
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(invalidBitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(invalidBitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_ZeroWidth
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with zero width fails
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 with zero width fails
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -475,13 +475,13 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_ZeroWidth, TestSize.L
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
 
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_ZeroHeight
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with zero height fails
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 with zero height fails
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -492,13 +492,13 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_ZeroHeight, TestSize.
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
 
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_SmallDimensions
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with 1x1 dimensions succeeds
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 with 1x1 dimensions succeeds
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -511,7 +511,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_SmallDimensions, Test
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
 
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
     EXPECT_TRUE(result);
     EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_RGBA_8888);
     EXPECT_EQ(dstBitmap.GetWidth(), width);
@@ -521,7 +521,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_SmallDimensions, Test
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_LargeDimensions
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with large dimensions succeeds
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 with large dimensions succeeds
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -534,7 +534,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_LargeDimensions, Test
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
 
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
     EXPECT_TRUE(result);
     EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_RGBA_8888);
     EXPECT_EQ(dstBitmap.GetWidth(), width);
@@ -544,7 +544,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_LargeDimensions, Test
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_DstBitmapPremulAlpha
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 produces PREMUL alpha type dst bitmap
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 produces PREMUL alpha type dst bitmap
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -557,7 +557,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_DstBitmapPremulAlpha,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
 
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
     EXPECT_TRUE(result);
     Drawing::BitmapFormat format = dstBitmap.GetFormat();
     EXPECT_EQ(format.colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
@@ -622,7 +622,7 @@ HWTEST_F(RSRoundCornerDisplayTest, PrepareHardwareResourceBuffer_InvalidSurfaceT
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_PixelContentTransferred
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 transfers pixel content correctly
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 transfers pixel content correctly
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -642,7 +642,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_PixelContentTransferr
     }
 
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(alpha8Bitmap, dstBitmap);
     EXPECT_TRUE(result);
     EXPECT_NE(dstBitmap.GetPixels(), nullptr);
 
@@ -655,7 +655,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_PixelContentTransferr
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_DstBitmapReused
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 can be called multiple times with different src bitmaps
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 can be called multiple times with different src bitmaps
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -668,7 +668,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_DstBitmapReused, Test
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
 
     Drawing::Bitmap dstBitmap1;
-    bool result1 = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap1, dstBitmap1);
+    bool result1 = ConvertAlpha8ToRgba8888(alpha8Bitmap1, dstBitmap1);
     EXPECT_TRUE(result1);
     EXPECT_EQ(dstBitmap1.GetWidth(), width);
     EXPECT_EQ(dstBitmap1.GetHeight(), height);
@@ -678,7 +678,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_DstBitmapReused, Test
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
 
     Drawing::Bitmap dstBitmap2;
-    bool result2 = rs_rcd::ConvertAlpha8ToRgba8888(alpha8Bitmap2, dstBitmap2);
+    bool result2 = ConvertAlpha8ToRgba8888(alpha8Bitmap2, dstBitmap2);
     EXPECT_TRUE(result2);
     EXPECT_EQ(dstBitmap2.GetWidth(), width * 2);
     EXPECT_EQ(dstBitmap2.GetHeight(), height * 2);
@@ -821,7 +821,7 @@ HWTEST_F(RSRoundCornerDisplayTest, DecodeBitmap_ExtractAlphaFallbackNullPixels, 
 
 /*
  * @tc.name: ExtractAlphaChannel_ValidRgba8888
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with valid RGBA_8888 bitmap
+ * @tc.desc: Test ExtractAlphaChannel with valid RGBA_8888 bitmap
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -833,7 +833,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_ValidRgba8888, TestSize.L
     srcBitmap.Build(width, height,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_TRUE(result);
     EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_ALPHA_8);
     EXPECT_EQ(static_cast<int>(dstBitmap.GetWidth()), width);
@@ -842,7 +842,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_ValidRgba8888, TestSize.L
 
 /*
  * @tc.name: ExtractAlphaChannel_ValidBgra8888
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with valid BGRA_8888 bitmap
+ * @tc.desc: Test ExtractAlphaChannel with valid BGRA_8888 bitmap
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -854,14 +854,14 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_ValidBgra8888, TestSize.L
     srcBitmap.Build(width, height,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_TRUE(result);
     EXPECT_EQ(dstBitmap.GetColorType(), Drawing::ColorType::COLORTYPE_ALPHA_8);
 }
 
 /*
  * @tc.name: ExtractAlphaChannel_InvalidSrcBitmap
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with invalid (unbuilt) src bitmap
+ * @tc.desc: Test ExtractAlphaChannel with invalid (unbuilt) src bitmap
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -869,13 +869,13 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_InvalidSrcBitmap, TestSiz
 {
     Drawing::Bitmap srcBitmap;
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 
 /*
  * @tc.name: ExtractAlphaChannel_NonRgbaColorType
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with non-RGBA/BGRA color type
+ * @tc.desc: Test ExtractAlphaChannel with non-RGBA/BGRA color type
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -885,13 +885,13 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_NonRgbaColorType, TestSiz
     srcBitmap.Build(10, 10,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 
 /*
  * @tc.name: ExtractAlphaChannel_ZeroWidth
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with zero width
+ * @tc.desc: Test ExtractAlphaChannel with zero width
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -901,13 +901,13 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_ZeroWidth, TestSize.Level
     srcBitmap.Build(0, 10,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 
 /*
  * @tc.name: ExtractAlphaChannel_ZeroHeight
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with zero height
+ * @tc.desc: Test ExtractAlphaChannel with zero height
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -917,13 +917,13 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_ZeroHeight, TestSize.Leve
     srcBitmap.Build(10, 0,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 
 /*
  * @tc.name: ExtractAlphaChannel_PixelContentTransferred
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel transfers alpha channel correctly
+ * @tc.desc: Test ExtractAlphaChannel transfers alpha channel correctly
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -947,7 +947,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_PixelContentTransferred, 
         }
     }
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_TRUE(result);
     const uint8_t* dstPixels = static_cast<const uint8_t*>(dstBitmap.GetPixels());
     ASSERT_NE(dstPixels, nullptr);
@@ -959,7 +959,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_PixelContentTransferred, 
 
 /*
  * @tc.name: ExtractAlphaChannel_SmallDimensions
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with 1x1 dimensions
+ * @tc.desc: Test ExtractAlphaChannel with 1x1 dimensions
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -969,7 +969,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_SmallDimensions, TestSize
     srcBitmap.Build(1, 1,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_TRUE(result);
     EXPECT_EQ(dstBitmap.GetWidth(), 1);
     EXPECT_EQ(dstBitmap.GetHeight(), 1);
@@ -977,7 +977,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_SmallDimensions, TestSize
 
 /*
  * @tc.name: ExtractAlphaChannel_LargeDimensions
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with large dimensions
+ * @tc.desc: Test ExtractAlphaChannel with large dimensions
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -989,7 +989,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_LargeDimensions, TestSize
     srcBitmap.Build(width, height,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_TRUE(result);
     EXPECT_EQ(static_cast<int>(dstBitmap.GetWidth()), width);
     EXPECT_EQ(static_cast<int>(dstBitmap.GetHeight()), height);
@@ -1291,7 +1291,7 @@ HWTEST_F(RSRoundCornerDisplayTest, IsResourceEqual_CurBitmapIgnored, TestSize.Le
 
 /*
  * @tc.name: ExtractAlphaChannel_NullSrcPixels
- * @tc.desc: Test rs_rcd::ExtractAlphaChannel with null src pixels fails (GetPixels returns nullptr)
+ * @tc.desc: Test ExtractAlphaChannel with null src pixels fails (GetPixels returns nullptr)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1304,13 +1304,13 @@ HWTEST_F(RSRoundCornerDisplayTest, ExtractAlphaChannel_NullSrcPixels, TestSize.L
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
     srcBitmap.SetPixels(nullptr);
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ExtractAlphaChannel(srcBitmap, dstBitmap);
+    bool result = ExtractAlphaChannel(srcBitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_NonAlpha8ColorType
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with RGBA_8888 (non-ALPHA_8) color type fails
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 with RGBA_8888 (non-ALPHA_8) color type fails
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1320,13 +1320,13 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_NonAlpha8ColorType, T
     srcBitmap.Build(10, 10,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 
 /*
  * @tc.name: ConvertAlpha8ToRgba8888_NullSrcPixels
- * @tc.desc: Test rs_rcd::ConvertAlpha8ToRgba8888 with null src pixels (ReadPixels fails)
+ * @tc.desc: Test ConvertAlpha8ToRgba8888 with null src pixels (ReadPixels fails)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1339,7 +1339,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConvertAlpha8ToRgba8888_NullSrcPixels, TestSi
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE});
     srcBitmap.SetPixels(nullptr);
     Drawing::Bitmap dstBitmap;
-    bool result = rs_rcd::ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
+    bool result = ConvertAlpha8ToRgba8888(srcBitmap, dstBitmap);
     EXPECT_FALSE(result);
 }
 

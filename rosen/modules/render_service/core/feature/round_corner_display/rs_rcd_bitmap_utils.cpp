@@ -20,17 +20,16 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace rs_rcd {
 // RGBA_8888/BGRA_8888: 4 bytes per pixel, the alpha channel is the 4th byte (index 3).
-constexpr int32_t bytesPerPixelRgba8888 = 4;
-constexpr int32_t bytesPerPixelAlpha8 = 1;
+constexpr int32_t BYTES_PER_PIXEL_RGBA8888 = 4;
+constexpr int32_t BYTES_PER_PIXEL_ALPHA8 = 1;
 // Alpha channel offset within a 8888 pixel; for both RGBA_8888 (R,G,B,A) and
 // BGRA_8888 (B,G,R,A) the alpha is the 4th byte (index 3).
-constexpr int32_t alphaChannelOffset = 3;
+constexpr int32_t ALPHA_CHANNEL_OFFSET = 3;
 
 bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap)
 {
-    RS_TRACE_NAME("rs_rcd::ExtractAlphaChannel");
+    RS_TRACE_NAME("ExtractAlphaChannel");
 
     auto colorType = srcBitmap.GetColorType();
     int32_t width = srcBitmap.GetWidth();
@@ -39,7 +38,7 @@ bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstB
     int32_t srcRowBytes = srcBitmap.GetRowBytes();
     bool isInvalid = (srcBitmap.IsValid()) || (colorType != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
         colorType != Drawing::ColorType::COLORTYPE_BGRA_8888) || (width <= 0 || height <= 0) ||
-        (srcPixels == nullptr) || (srcRowBytes < width * bytesPerPixelRgba8888);
+        (srcPixels == nullptr) || (srcRowBytes < width * BYTES_PER_PIXEL_RGBA8888);
     if (isInvalid) {
         RS_LOGE("[%{public}s] srcBitmap is invalid \n", __func__);
         return false;
@@ -49,7 +48,7 @@ bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstB
     bool succeeded = dstBitmap.Build(width, height, format);
     uint8_t* dstPixels = static_cast<uint8_t*>(dstBitmap.GetPixels());
     int32_t dstRowBytes = dstBitmap.GetRowBytes();
-    succeeded &= ((dstPixels != nullptr) & (dstRowBytes >= (width * bytesPerPixelAlpha8)));
+    succeeded = succeeded && (dstPixels != nullptr) && (dstRowBytes >= (width * BYTES_PER_PIXEL_ALPHA8));
     if (!succeeded) {
         RS_LOGE("[%{public}s] Build Alpha8 bitmap failed \n", __func__);
         return false;
@@ -63,13 +62,13 @@ bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstB
         uint8_t* dstRow = dstPixels + y * dstRowBytes;
         // Point to the first alpha byte in the source row; alpha is the 4th byte
         // (index 3) for both RGBA_8888 and BGRA_8888 layouts. Advance srcPtr by
-        // bytesPerPixelRgba8888 and dstPtr by 1 on each iteration.
-        const uint8_t* srcPtr = srcRow + alphaChannelOffset;
+        // BYTES_PER_PIXEL_RGBA8888 and dstPtr by 1 on each iteration.
+        const uint8_t* srcPtr = srcRow + ALPHA_CHANNEL_OFFSET;
         uint8_t* dstPtr = dstRow;
         for (int32_t x = 0; x < width; x++) {
             // Extract alpha from the 8888 pixel via pointer increment.
             *dstPtr++ = *srcPtr;
-            srcPtr += bytesPerPixelRgba8888;
+            srcPtr += BYTES_PER_PIXEL_RGBA8888;
         }
     }
 
@@ -78,7 +77,7 @@ bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstB
 
 bool ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap)
 {
-    RS_TRACE_NAME("rs_rcd::ConvertAlpha8ToRgba8888");
+    RS_TRACE_NAME("ConvertAlpha8ToRgba8888");
 
     int32_t width = srcBitmap.GetWidth();
     int32_t height = srcBitmap.GetHeight();
@@ -110,6 +109,5 @@ bool ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& 
 
     return true;
 }
-} // namespace rs_rcd
 } // namespace Rosen
 } // namespace OHOS

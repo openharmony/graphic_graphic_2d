@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace rs_rcd {
 // Extract the alpha channel from an RGBA_8888/BGRA_8888 bitmap into an Alpha8 bitmap.
 // Used during resource loading to compress a decoded PNG (RGBA/BGRA) into a compact
 // Alpha8 mask that matches the hardware layer mask format.
@@ -30,7 +29,6 @@ bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstB
 // Used during hardware resource preparation to expand the stored Alpha8 mask back to
 // RGBA_8888, which is the format expected by the hardware composer buffer.
 bool ConvertAlpha8ToRgba8888(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstBitmap);
-} // namespace rs_rcd
 } // namespace Rosen
 } // namespace OHOS
 
