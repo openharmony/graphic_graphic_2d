@@ -1961,7 +1961,7 @@ void RSMainThread::ProcessCommandForDividedRender()
     for (auto& [timestamp, commands] : effectiveCommands_) {
         context_->transactionTimestamp_ = timestamp;
         for (auto& command : commands) {
-            if (command) {
+            if (command && command->IsCallingPidValid()) {
                 command->Process(*context_);
             }
         }

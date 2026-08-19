@@ -892,5 +892,68 @@ HWTEST_F(RSTransactionDataTest, IsCallingPidValid008, TestSize.Level1)
     EXPECT_TRUE(rsTransactionData->IsCallingPidValid(1, context.GetNodeMap()));
 }
 
+/**
+ * @tc.name: IsCallingPidValid009
+ * @tc.desc: callingPid == 0 should skip ownership check and not mark commands
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid009, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 0;
+    NodeId nodeId = (static_cast<NodeId>(2) << 32) | 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    rsTransactionData.AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_TRUE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+    ASSERT_EQ(rsTransactionData.payload_.size(), 1u);
+    auto& storedCommand = std::get<2>(rsTransactionData.payload_.front());
+    ASSERT_NE(storedCommand, nullptr);
+    EXPECT_TRUE(storedCommand->IsCallingPidValid());
+}
+
+/**
+ * @tc.name: IsCallingPidValid010
+ * @tc.desc: Negative callingPid should skip ownership check and not mark commands
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid010, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = -1;
+    NodeId nodeId = (static_cast<NodeId>(2) << 32) | 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    rsTransactionData.AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_TRUE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+    ASSERT_EQ(rsTransactionData.payload_.size(), 1u);
+    auto& storedCommand = std::get<2>(rsTransactionData.payload_.front());
+    ASSERT_NE(storedCommand, nullptr);
+    EXPECT_TRUE(storedCommand->IsCallingPidValid());
+}
+
+/**
+ * @tc.name: IsCallingPidValid011
+ * @tc.desc: Non-matching positive callingPid should mark the command as invalid
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSTransactionDataTest, IsCallingPidValid011, TestSize.Level1)
+{
+    RSContext context;
+    RSTransactionData rsTransactionData;
+    pid_t callingPid = 1;
+    NodeId nodeId = (static_cast<NodeId>(2) << 32) | 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    rsTransactionData.AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_FALSE(rsTransactionData.IsCallingPidValid(callingPid, context.GetNodeMap()));
+    ASSERT_EQ(rsTransactionData.payload_.size(), 1u);
+    auto& storedCommand = std::get<2>(rsTransactionData.payload_.front());
+    ASSERT_NE(storedCommand, nullptr);
+    EXPECT_FALSE(storedCommand->IsCallingPidValid());
+}
+
 } // namespace Rosen
 } // namespace OHOS

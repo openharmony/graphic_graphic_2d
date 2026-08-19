@@ -3271,14 +3271,6 @@
     "connectionType": 0
   },
   {
-    "testCaseDesc": "GET_HIGH_CONTRAST_TEXT_STATE_TEST_001",
-    "interfaceName": "GET_HIGH_CONTRAST_TEXT_STATE",
-    "inputParams": "",
-    "writeInterfaceToken": true,
-    "messageOption": "TF_SYNC",
-    "connectionType": 0
-  },
-  {
     "testCaseDesc": "SET_COLOR_FOLLOW_TEST_001",
     "interfaceName": "SET_COLOR_FOLLOW",
     "inputParams": "WriteString;WriteBool",

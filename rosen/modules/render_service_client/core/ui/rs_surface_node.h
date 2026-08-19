@@ -386,7 +386,6 @@ public:
     void SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType);
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
 
-    void RecreateNodeAndSurface(SurfaceId surfaceId = 0, bool unobscured = false);
     void SetIsDepthResource(bool isDepthResource);
 #ifndef ROSEN_CROSS_PLATFORM
     using BufferReleaseCallback = std::function<void(int release_fence_fd)>;
