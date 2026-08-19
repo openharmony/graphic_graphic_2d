@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <climits>
+#include <cmath>
 #include <cstdint>
 #include <regex>
 #include "parcel.h"
@@ -154,16 +156,24 @@ HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON2, Level1)
  */
 HWTEST(RSProfilerBaseTest, ReceiveSendMessageBase, Level1)
 {
-    std::string msg;
+    std::string message;
     do {
-        msg = RSProfiler::ReceiveMessageBase();
-    } while (msg.length());
+        message = RSProfiler::ReceiveMessageBase();
+    } while (message.length());
 
-    std::string checkValue = "TEST_MESSGAE";
-    RSProfiler::SendMessageBase(checkValue);
-    msg = RSProfiler::ReceiveMessageBase();
+    const std::string plainText = "MESSAGE";
+    RSProfiler::SendMessageBase("%s", plainText.c_str());
+    message = RSProfiler::ReceiveMessageBase();
+    EXPECT_EQ(message, plainText);
 
-    EXPECT_EQ((msg == checkValue), true);
+    const std::string formatText = "test%stest%dtest";
+    RSProfiler::SendMessageBase("User input: %s", formatText.c_str());
+    message = RSProfiler::ReceiveMessageBase();
+    EXPECT_EQ(message, "User input: test%stest%dtest");
+
+    RSProfiler::SendMessageBase("Hello %s %d", "world", 42);
+    message = RSProfiler::ReceiveMessageBase();
+    EXPECT_EQ(message, "Hello world 42");
 }
 
 /*
@@ -737,4 +747,373 @@ HWTEST(RSProfilerMarshalTest, MarshalNodeModifiers, TestSize.Level1 | Standard) 
 
     EXPECT_EQ(words, 1u);
 }
+/*
+ * @tc.name: LogShaderCallNullImage
+ * @tc.desc: Test LogShaderCall with null srcImage
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerMetrics, LogShaderCallNullImage, Level1)
+{
+    RSProfiler::testing_ = true;
+    RSProfiler::ResetCustomMetrics();
+    RSProfiler::SetMode(Mode::WRITE);
+
+    RSProfiler::LogShaderCall("KAWASE_BLUR", nullptr, Drawing::Rect(), nullptr);
+    auto blurAreaMetric = RSProfiler::GetCustomMetrics().Get(RSPROFILER_METRIC_BLUR_AREA_SHADER_CALLS);
+    EXPECT_EQ(blurAreaMetric, "0.000000");
+
+    RSProfiler::SetMode(Mode::NONE);
+}
+
+/*
+ * @tc.name: BaseSetPlaybackSpeedNaN
+ * @tc.desc: Test BaseSetPlaybackSpeed with NaN/negative/zero speed
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, BaseSetPlaybackSpeedNaN, Level1)
+{
+    EXPECT_FALSE(RSProfiler::BaseSetPlaybackSpeed(NAN));
+    EXPECT_FALSE(RSProfiler::BaseSetPlaybackSpeed(-1.0));
+    EXPECT_FALSE(RSProfiler::BaseSetPlaybackSpeed(0.0));
+    EXPECT_TRUE(RSProfiler::BaseSetPlaybackSpeed(2.0));
+}
+
+/*
+ * @tc.name: UnmarshalNodesCountOverflow
+ * @tc.desc: Test UnmarshalNodes with count exceeding maxCount
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodesCountOverflow, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    uint32_t hugeCount = 1'000'001u;
+    data.write(reinterpret_cast<const char*>(&hugeCount), sizeof(hugeCount));
+    std::string error = RSProfiler::UnmarshalNodes(*context_sptr, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalNodes: Node count out of range");
+}
+
+/*
+ * @tc.name: UnmarshalNodesEmptyStream
+ * @tc.desc: Test UnmarshalNodes with empty stream
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodesEmptyStream, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    std::string error = RSProfiler::UnmarshalNodes(*context_sptr, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalNodes: Node count out of range");
+}
+
+/*
+ * @tc.name: UnmarshalNodesTreeCountOverflow
+ * @tc.desc: Test UnmarshalNodes with tree count exceeding maxCount
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodesTreeCountOverflow, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    uint32_t nodeCount = 0u;
+    data.write(reinterpret_cast<const char*>(&nodeCount), sizeof(nodeCount));
+    uint32_t treeCount = 1'000'001u;
+    data.write(reinterpret_cast<const char*>(&treeCount), sizeof(treeCount));
+    std::string error = RSProfiler::UnmarshalNodes(*context_sptr, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalNodes: Tree node count out of range");
+}
+
+/*
+ * @tc.name: UnmarshalTreeEmptyStream
+ * @tc.desc: Test UnmarshalTree with empty stream
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalTreeEmptyStream, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    std::string error = RSProfiler::UnmarshalTree(*context_sptr, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalTree: Cannot read node id");
+}
+
+/*
+ * @tc.name: UnmarshalTreeCountOverflow
+ * @tc.desc: Test UnmarshalTree with count exceeding maxCount
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalTreeCountOverflow, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    NodeId nodeId = 123;
+    data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
+    uint32_t count = 1'000'001u;
+    data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    std::string error = RSProfiler::UnmarshalTree(*context_sptr, data, RSFILE_VERSION_LATEST);
+    EXPECT_TRUE(error.find("UnmarshalTree:") != std::string::npos);
+}
+
+/*
+ * @tc.name: UnmarshalTreeInvalidNode
+ * @tc.desc: Test UnmarshalTree with non-existent node id
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalTreeInvalidNode, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    NodeId nodeId = 123;
+    data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
+    uint32_t count = 0u;
+    data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    std::string error = RSProfiler::UnmarshalTree(*context_sptr, data, RSFILE_VERSION_LATEST);
+    EXPECT_TRUE(error.find("UnmarshalTree:") != std::string::npos);
+}
+
+/*
+ * @tc.name: UnmarshalNodeModifiersReadInstanceRootFail
+ * @tc.desc: Test UnmarshalNodeModifiers with empty stream
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodeModifiersReadInstanceRootFail, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    std::string error = RSProfiler::UnmarshalNodeModifiers(node, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalNodeModifiers: Cannot read instance root node id");
+}
+
+/*
+ * @tc.name: UnmarshalNodeModifiersReadFirstLevelFail
+ * @tc.desc: Test UnmarshalNodeModifiers with missing firstLevelNodeId
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodeModifiersReadFirstLevelFail, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    NodeId instanceRoot = 0;
+    data.write(reinterpret_cast<const char*>(&instanceRoot), sizeof(instanceRoot));
+    std::string error = RSProfiler::UnmarshalNodeModifiers(node, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalNodeModifiers: Cannot read first level node id");
+}
+
+/*
+ * @tc.name: UnmarshalNodeModifiersCountOverflow
+ * @tc.desc: Test UnmarshalNodeModifiers with modifier count exceeding maxCount
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodeModifiersCountOverflow, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    NodeId instanceRoot = 0;
+    NodeId firstLevel = 0;
+    data.write(reinterpret_cast<const char*>(&instanceRoot), sizeof(instanceRoot));
+    data.write(reinterpret_cast<const char*>(&firstLevel), sizeof(firstLevel));
+    int32_t count = 10001;
+    data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    std::string error = RSProfiler::UnmarshalNodeModifiers(node, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalNodeModifiers: Modifier count out of range");
+}
+
+/*
+ * @tc.name: UnmarshalNodeModifiersNegativeCount
+ * @tc.desc: Test UnmarshalNodeModifiers with negative modifier count
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodeModifiersNegativeCount, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    NodeId instanceRoot = 0;
+    NodeId firstLevel = 0;
+    data.write(reinterpret_cast<const char*>(&instanceRoot), sizeof(instanceRoot));
+    data.write(reinterpret_cast<const char*>(&firstLevel), sizeof(firstLevel));
+    int32_t count = -1;
+    data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    std::string error = RSProfiler::UnmarshalNodeModifiers(node, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalNodeModifiers: Modifier count out of range");
+}
+
+/*
+ * @tc.name: UnmarshalNodeModifiersEofCheck
+ * @tc.desc: Test UnmarshalNodeModifiers with truncated data causing eof
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodeModifiersEofCheck, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    NodeId instanceRoot = 0;
+    NodeId firstLevel = 0;
+    data.write(reinterpret_cast<const char*>(&instanceRoot), sizeof(instanceRoot));
+    data.write(reinterpret_cast<const char*>(&firstLevel), sizeof(firstLevel));
+    int32_t modifierCount = 0;
+    data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
+    std::string error = RSProfiler::UnmarshalNodeModifiers(node, data, RSFILE_VERSION_LATEST);
+    EXPECT_TRUE(error.empty() || error == "UnmarshalNodeModifiers: File damaged");
+}
+
+/*
+ * @tc.name: UnmarshalSubTreeLoEmptyStream
+ * @tc.desc: Test UnmarshalSubTreeLo with empty stream
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalSubTreeLoEmptyStream, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode attachNode(999, context_sptr, false);
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    std::string error = RSProfiler::UnmarshalSubTreeLo(*context_sptr, data, attachNode, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalSubTreeLo: Cannot read node id");
+}
+
+/*
+ * @tc.name: UnmarshalSubTreeLoInvalidNode
+ * @tc.desc: Test UnmarshalSubTreeLo with non-existent node id
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalSubTreeLoInvalidNode, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode attachNode(999, context_sptr, false);
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    // Outer id that does not match any node created by UnmarshalNode
+    NodeId outerId = 99999;
+    data.write(reinterpret_cast<const char*>(&outerId), sizeof(outerId));
+    // UnmarshalNode reads: nodeType(4), nodeId(8), isTextureExportNode(1)
+    uint32_t nodeType = static_cast<uint32_t>(RSRenderNodeType::RS_NODE);
+    NodeId innerNodeId = 12345;
+    bool isTextureExportNode = false;
+    data.write(reinterpret_cast<const char*>(&nodeType), sizeof(nodeType));
+    data.write(reinterpret_cast<const char*>(&innerNodeId), sizeof(innerNodeId));
+    data.write(reinterpret_cast<const char*>(&isTextureExportNode), sizeof(isTextureExportNode));
+    // UnmarshalNode(nodeId) reads: positionZ(4), pivotZ(4), priority(1), isOnTree(1),
+    // nodeGroupType(1) [if version >= RENDER_METRICS_ADDED], isRepaintBoundary(1) [if version >= ISREPAINT_BOUNDARY]
+    float positionZ = 0.0f;
+    float pivotZ = 0.0f;
+    uint8_t priority = 0;
+    bool isOnTree = false;
+    uint8_t nodeGroupType = 0;
+    bool isRepaintBoundary = false;
+    data.write(reinterpret_cast<const char*>(&positionZ), sizeof(positionZ));
+    data.write(reinterpret_cast<const char*>(&pivotZ), sizeof(pivotZ));
+    data.write(reinterpret_cast<const char*>(&priority), sizeof(priority));
+    data.write(reinterpret_cast<const char*>(&isOnTree), sizeof(isOnTree));
+    data.write(reinterpret_cast<const char*>(&nodeGroupType), sizeof(nodeGroupType));
+    data.write(reinterpret_cast<const char*>(&isRepaintBoundary), sizeof(isRepaintBoundary));
+    // UnmarshalNodeModifiers reads: instanceRootNodeId_(8), firstLevelNodeId_(8), modifierCount(4)
+    NodeId instanceRoot = 0;
+    NodeId firstLevel = 0;
+    int32_t modifierCount = 0;
+    data.write(reinterpret_cast<const char*>(&instanceRoot), sizeof(instanceRoot));
+    data.write(reinterpret_cast<const char*>(&firstLevel), sizeof(firstLevel));
+    data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
+    // Trailing byte to prevent eof() from being true after UnmarshalNodeModifiers
+    char trailing = 0;
+    data.write(&trailing, sizeof(trailing));
+    std::string error = RSProfiler::UnmarshalSubTreeLo(*context_sptr, data, attachNode, RSFILE_VERSION_LATEST);
+    EXPECT_TRUE(error.find("UnmarshalSubTreeLo:") != std::string::npos);
+}
+
+/*
+ * @tc.name: RSFileGetEOFTimeEmptyLayers
+ * @tc.desc: Test RSFile GetEOFTime with empty layerData
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, RSFileGetEOFTimeEmptyLayers, Level1)
+{
+    RSFile file;
+    double time = file.GetEOFTime();
+    EXPECT_EQ(time, 0.0);
+}
+
+/*
+ * @tc.name: UnmarshalNodesTreeCountReadFail
+ * @tc.desc: Test UnmarshalNodes with truncated stream causing second count read failure
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodesTreeCountReadFail, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    uint32_t nodeCount = 0u;
+    data.write(reinterpret_cast<const char*>(&nodeCount), sizeof(nodeCount));
+    // Stream ends here -- second read (treeCount) will fail
+    std::string error = RSProfiler::UnmarshalNodes(*context_sptr, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalNodes: Tree node count out of range");
+}
+
+/*
+ * @tc.name: UnmarshalNodeModifiersCountReadFail
+ * @tc.desc: Test UnmarshalNodeModifiers with truncated stream causing count read failure
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalNodeModifiersCountReadFail, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    NodeId instanceRoot = 0;
+    NodeId firstLevel = 0;
+    data.write(reinterpret_cast<const char*>(&instanceRoot), sizeof(instanceRoot));
+    data.write(reinterpret_cast<const char*>(&firstLevel), sizeof(firstLevel));
+    // Stream ends here -- count read will fail
+    std::string error = RSProfiler::UnmarshalNodeModifiers(node, data, RSFILE_VERSION_LATEST);
+    EXPECT_EQ(error, "UnmarshalNodeModifiers: Modifier count out of range");
+}
+
+/*
+ * @tc.name: UnmarshalTreeDepthExceeded
+ * @tc.desc: Test UnmarshalTree with depth >= maxDepth
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalTreeDepthExceeded, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    std::string error = RSProfiler::UnmarshalTree(*context_sptr, data, RSFILE_VERSION_LATEST, 1024u);
+    EXPECT_EQ(error, "UnmarshalTree: Max depth exceeded");
+}
+
+/*
+ * @tc.name: UnmarshalTreeCountReadFail
+ * @tc.desc: Test UnmarshalTree with truncated stream causing count read failure
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalTreeCountReadFail, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    NodeId nodeId = 123;
+    data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
+    // Stream ends here -- count read will fail
+    std::string error = RSProfiler::UnmarshalTree(*context_sptr, data, RSFILE_VERSION_LATEST);
+    EXPECT_TRUE(error.find("UnmarshalTree:") != std::string::npos);
+}
+
+/*
+ * @tc.name: UnmarshalTreeChildNodeIdReadFail
+ * @tc.desc: Test UnmarshalTree with truncated stream causing child nodeId read failure
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerBaseTest, UnmarshalTreeChildNodeIdReadFail, Level1)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    std::stringstream data(std::ios::in | std::ios::out | std::ios::binary);
+    NodeId nodeId = 123;
+    data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
+    uint32_t count = 1u;
+    data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    // Stream ends here -- child nodeId read will fail
+    std::string error = RSProfiler::UnmarshalTree(*context_sptr, data, RSFILE_VERSION_LATEST);
+    EXPECT_TRUE(error.find("UnmarshalTree:") != std::string::npos);
+}
+
 } // namespace OHOS::Rosen

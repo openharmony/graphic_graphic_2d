@@ -118,6 +118,9 @@ VkResult EnumerateDeviceExtensionProperties(
         }
         result = VK_SUCCESS;
     } else {
+        if (physicalDevice == VK_NULL_HANDLE) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
         DispatchKey physKey = GetDispatchKey(physicalDevice);
         auto instanceLock = g_InstanceStore.LockRead();
         const auto &instanceMap = instanceLock.second;
@@ -189,7 +192,6 @@ VkResult CreateInstance(const VkInstanceCreateInfo *pCreateInfo,
         return result;
     }
     VkInstance instance = *pInstance;
-    DispatchKey instanceKey = GetDispatchKey(instance);
 
     auto fpEnumerateDeviceExtensionProperties = (PFN_vkEnumerateDeviceExtensionProperties)fpGetInstanceProcAddr(
         instance, "vkEnumerateDeviceExtensionProperties");
@@ -203,8 +205,6 @@ VkResult CreateInstance(const VkInstanceCreateInfo *pCreateInfo,
         fpEnumerateDeviceExtensionProperties,
         fpDestroyInstance } ;
 
-    TRACE3D_LOGI("%s:%d() --> instance:%p, instanceKey:%p, vkresult:%d\n",
-        __FUNCTION__, __LINE__, instance, instanceKey, result);
     return result;
 }
 
@@ -219,8 +219,7 @@ void DestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocato
     if (it != instanceMap.end()) {
         auto &instInfo = it->second;
 
-        TRACE3D_LOGI("%s(instance:%p) instanceKey:%p, destroyInstance:%p\n",
-            __FUNCTION__, instance, instanceKey, instInfo.destroyInstance);
+        TRACE3D_LOGI("%s(instance:%p)\n", __FUNCTION__, instance);
         if (instInfo.destroyInstance) {
             instInfo.destroyInstance(instance, pAllocator);
         }
@@ -291,8 +290,7 @@ void DestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator)
     if (it != deviceMap.end()) {
         auto &devInfo = it->second;
 
-        TRACE3D_LOGI("%s(device:%p) deviceKey:%p, destroyDevice:%p\n",
-            __FUNCTION__, device, deviceKey, devInfo.destroyDevice);
+        TRACE3D_LOGI("%s(device:%p)\n", __FUNCTION__, device);
         if (devInfo.destroyDevice) {
             devInfo.destroyDevice(device, pAllocator);
         }
@@ -381,7 +379,9 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL VK_LAYER_TRACE3D_LoaderGetDeviceProcAdd
         TRACE3D_LOGE("%s(device:%p, pName:'%s') ERROR: device is null--> %p\n", __FUNCTION__, device, pName, procAddr);
         return procAddr;
     }
-
+    if (pName == nullptr) {
+        return procAddr;
+    }
     if (strcmp("vkGetDeviceProcAddr", pName) == 0) {
         procAddr = (PFN_vkVoidFunction)VK_LAYER_TRACE3D_LoaderGetDeviceProcAddr;
     } else if (strcmp("vkDestroyDevice", pName) == 0) {
@@ -406,6 +406,9 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL VK_LAYER_TRACE3D_Loader_layerGetPhysica
 {
     PFN_vkVoidFunction procAddr = nullptr;
 
+    if (pName == nullptr) {
+        return procAddr;
+    }
     if (strcmp("vk_layerGetPhysicalDeviceProcAddr", pName) == 0) {
         procAddr = (PFN_vkVoidFunction)VK_LAYER_TRACE3D_Loader_layerGetPhysicalDeviceProcAddr;
     } else {
@@ -452,8 +455,6 @@ VKAPI_ATTR VkResult VKAPI_CALL VK_LAYER_TRACE3D_LoaderNegotiateLoaderLayerInterf
         result = VK_SUCCESS;
     }
 
-    TRACE3D_LOGI("%s(pVerStruct:%p) ifaceVer:%d, libHandle:%p --> vkresult:%d\n", __FUNCTION__,
-        pVersionStruct, (pVersionStruct ? (int)pVersionStruct->loaderLayerInterfaceVersion : 0), libHandle, result);
     return result;
 }
 
@@ -505,8 +506,12 @@ typedef void*(*PFNEGLGETNEXTLAYERPROCADDRESSPROCOHOS)(void *, const char *funcNa
 typedef void* (* DebugLayerInitializeType)(const void *funcTable, PFNEGLGETNEXTLAYERPROCADDRESSPROCOHOS next);
 typedef void* (* DebugLayerGetProcAddrType)(const char *funcName, eglMustCastToProperFunctionPointerType next);
 
-DebugLayerInitializeType g_debugLayerInitialize = nullptr;
-DebugLayerGetProcAddrType g_debugLayerGetProcAddr = nullptr;
+struct DebugLayerPtrs {
+    DebugLayerInitializeType initialize = nullptr;
+    DebugLayerGetProcAddrType getProcAddr = nullptr;
+};
+
+static trace3d::SafeObject<DebugLayerPtrs> g_debugLayerPtrs;
 
 TRACE3D_LOADER_API
 void* DebugLayerInitialize(const void *funcTable, PFNEGLGETNEXTLAYERPROCADDRESSPROCOHOS next)
@@ -515,21 +520,24 @@ void* DebugLayerInitialize(const void *funcTable, PFNEGLGETNEXTLAYERPROCADDRESSP
     void *libHandle = trace3d::CaptureInit();
 
     if (libHandle) {
-        if (!g_debugLayerInitialize) {
-            g_debugLayerInitialize = (DebugLayerInitializeType)dlsym(libHandle, "DebugLayerInitialize");
+        auto lockPtrs = g_debugLayerPtrs.LockWrite();
+        auto &debugLayerPtrs = lockPtrs.second;
+
+        if (!debugLayerPtrs.initialize) {
+            debugLayerPtrs.initialize = (DebugLayerInitializeType)dlsym(libHandle, "DebugLayerInitialize");
         }
-        if (g_debugLayerInitialize && !g_debugLayerGetProcAddr) {
-            g_debugLayerGetProcAddr = (DebugLayerGetProcAddrType)dlsym(libHandle, "DebugLayerGetProcAddr");
-            if (!g_debugLayerGetProcAddr) {
-                g_debugLayerInitialize = nullptr;
+        if (debugLayerPtrs.initialize && !debugLayerPtrs.getProcAddr) {
+            debugLayerPtrs.getProcAddr = (DebugLayerGetProcAddrType)dlsym(libHandle, "DebugLayerGetProcAddr");
+            if (!debugLayerPtrs.getProcAddr) {
+                debugLayerPtrs.initialize = nullptr;
             } else {
                 TRACE3D_LOGI("%s:%d init:%p, getProcAddr:%p\n", __FUNCTION__, __LINE__,
-                    g_debugLayerInitialize, g_debugLayerGetProcAddr);
+                    debugLayerPtrs.initialize, debugLayerPtrs.getProcAddr);
             }
         }
 
-        if (g_debugLayerInitialize) {
-            ret = g_debugLayerInitialize(funcTable, next);
+        if (debugLayerPtrs.initialize) {
+            ret = debugLayerPtrs.initialize(funcTable, next);
         }
     }
     TRACE3D_LOGI("%s:%d funcTable:%p next:%p libHandle:%p\n", __FUNCTION__, __LINE__, funcTable, next, libHandle);
@@ -540,8 +548,11 @@ TRACE3D_LOADER_API
 void* DebugLayerGetProcAddr(const char *funcName, eglMustCastToProperFunctionPointerType next)
 {
     void *ptr = reinterpret_cast<void *>(next);
-    if (g_debugLayerGetProcAddr) {
-        ptr = reinterpret_cast<void *>(g_debugLayerGetProcAddr(funcName, next));
+    auto lockPtrs = g_debugLayerPtrs.LockRead();
+    const auto& debugLayerPtrs = lockPtrs.second;
+
+    if (debugLayerPtrs.getProcAddr) {
+        ptr = debugLayerPtrs.getProcAddr(funcName, next);
     }
     return ptr;
 }
