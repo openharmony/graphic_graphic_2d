@@ -53,6 +53,7 @@ struct HgmServiceToProcessInfo : public RefBase {
     std::string gameNodeName;
 
     bool isPowerIdle = false;
+    pid_t videoCallPid = 0;
 };
 
 struct HgmProcessToServiceInfo : public RefBase {

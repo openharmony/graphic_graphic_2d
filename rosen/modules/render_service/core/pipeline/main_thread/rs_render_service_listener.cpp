@@ -130,7 +130,8 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSu
         RSMainThread::Instance()->RequestNextVSync("UrgentSelfdrawing");
     } else {
         int64_t desiredPresentTimestamp = 0;
-        RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+        int32_t pid = ExtractPid(surfaceHandler->GetNodeId());
+        RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp, pid);
         auto node = surfaceBufferInterface_.lock();
         if (node != nullptr && !node->GetDelegateMode()) {
             RSMainThread::Instance()->RequestNextVSync("Selfdrawing", 0, desiredPresentTimestamp);

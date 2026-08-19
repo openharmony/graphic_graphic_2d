@@ -22,7 +22,12 @@
 
 namespace OHOS {
 namespace Rosen {
+using GetVideoCallOffset = std::function<uint64_t(pid_t, const std::string&)>;
+
 class RSBaseSurfaceUtil {
+private:
+    static GetVideoCallOffset getVideoCallOffset_;
+
 public:
     // Configuration for drop frame by PID feature
     struct DropFrameConfig {
@@ -45,6 +50,7 @@ public:
         uint64_t parentNodeId = 0, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode = nullptr);
     static bool ConsumeAndUpdateBufferSimple(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY);
     static bool DropFirstFlushedBuffer(RSSurfaceHandler& surfaceHandler, NodeId nodeId);
+    static void RegisterVideoCallPtsOffSet(GetVideoCallOffset callback);
 };
 } // namespace Rosen
 } // namespace OHOS

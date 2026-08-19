@@ -1087,7 +1087,7 @@ void RSMainThread::ReleaseImageMem()
 }
 
 void RSMainThread::GetFrontBufferDesiredPresentTimeStamp(
-    const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp)
+    const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp, pid_t pid)
 {
     if (consumer == nullptr) {
         desiredPresentTimeStamp = 0;
@@ -1100,7 +1100,10 @@ void RSMainThread::GetFrontBufferDesiredPresentTimeStamp(
         desiredPresentTimeStamp = 0;
         return;
     }
-
+    uint64_t videoCallPtsOffset = hgmRenderContext_->GetHgmRPEnergy()->GetVideoCallPtsOffset(pid, consumer->GetName());
+    fronDesiredPresentTimeStamp = fronDesiredPresentTimeStamp > videoCallPtsOffset
+                                      ? fronDesiredPresentTimeStamp - videoCallPtsOffset
+                                      : fronDesiredPresentTimeStamp;
     const uint64_t tmp = static_cast<uint64_t>(fronDesiredPresentTimeStamp);
     if (tmp <= vsyncRsTimestamp_.load() ||
         (tmp > ONE_SECOND_TIMESTAMP && tmp - ONE_SECOND_TIMESTAMP > vsyncRsTimestamp_.load())) {
@@ -2254,7 +2257,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (goNormal && surfaceHandler->GetAvailableBufferCount() > 0) {
                 const auto& consumer = surfaceHandler->GetConsumer();
                 int64_t nextVsyncTime = 0;
-                GetFrontBufferDesiredPresentTimeStamp(consumer, nextVsyncTime);
+                GetFrontBufferDesiredPresentTimeStamp(consumer, nextVsyncTime, ExtractPid(surfaceHandler->GetNodeId()));
                 if (requestNextVsyncTime_ == -1 || requestNextVsyncTime_ > nextVsyncTime) {
                     requestNextVsyncTime_ = nextVsyncTime;
                 }

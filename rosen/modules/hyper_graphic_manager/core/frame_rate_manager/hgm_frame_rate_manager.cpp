@@ -1722,6 +1722,7 @@ void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
         }
     }
     data->SetComponentPowerConfig(screenSetting.componentPowerConfig);
+    data->SetVideoCallLayerConfig(configData->videoCallLayerConfig_);
     data->SetVideoSwitch(configData->videoFrameRateVoteSwitch_);
     TriggerHgmConfigUpdateCallback(data,
         hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());

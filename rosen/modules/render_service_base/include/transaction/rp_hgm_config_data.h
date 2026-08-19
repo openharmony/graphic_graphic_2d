@@ -76,6 +76,16 @@ public:
 
     void SetVideoSwitch(bool isVideoSwitchOn) { isVideoSwitchOn_ = isVideoSwitchOn; }
 
+    void SetVideoCallLayerConfig(const std::unordered_map<std::string, std::string>& config)
+    {
+        videoCallLayerConfig_ = config;
+    }
+
+    const std::unordered_map<std::string, std::string>& GetVideoCallLayerConfig() const
+    {
+        return videoCallLayerConfig_;
+    }
+
 private:
     int32_t smallSizeArea_ = -1;
     int32_t smallSizeLength_ = -1;
@@ -85,6 +95,7 @@ private:
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
     std::unordered_map<std::string, int32_t> componentPowerConfig_;
+    std::unordered_map<std::string, std::string> videoCallLayerConfig_;
     bool isVideoSwitchOn_ = false;
 };
 } // namespace Rosen
