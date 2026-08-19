@@ -1907,6 +1907,26 @@ void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScr
     hdrProperties_.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
 }
 
+RSPaintFilterCanvas::DisplaySceneType RSPaintFilterCanvas::GetDisplaySceneType() const
+{
+    return hdrProperties_.displaySceneType;
+}
+ 
+void RSPaintFilterCanvas::SetDisplaySceneType(RSPaintFilterCanvas::DisplaySceneType displaySceneType)
+{
+    hdrProperties_.displaySceneType = displaySceneType;
+}
+ 
+void RSPaintFilterCanvas::UpdateDisplaySceneType()
+{
+    bool isVirtualScreen = IsOnMultipleScreen() || hdrProperties_.isHDREnabledVirtualScreen;
+    if (hdrProperties_.screenshotType != ScreenshotType::NON_SHOT) {
+        hdrProperties_.displaySceneType = DisplaySceneType::SCREEN_SHOT;
+    } else if (isVirtualScreen) {
+        hdrProperties_.displaySceneType = DisplaySceneType::VIRTUAL_SCREEN;
+    }
+}
+
 bool RSPaintFilterCanvas::IsEDRSurface() const
 {
     return hdrProperties_.isEDRSurface;

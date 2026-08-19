@@ -71,6 +71,8 @@ public:
         const RSPaintFilterCanvas::HDRProperties& hdrProperties = RSPaintFilterCanvas::HDRProperties{});
     bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut, HDIV::CM_ColorSpaceInfo& colorSpaceInfo);
     static float GetDefaultHDRScaler();
+    static void ConvertDisplaySceneTypeToVPE(const RSPaintFilterCanvas::DisplaySceneType& displaySceneType,
+        VPEParameter& parameter);
 
 private:
     RSColorSpaceConvert();

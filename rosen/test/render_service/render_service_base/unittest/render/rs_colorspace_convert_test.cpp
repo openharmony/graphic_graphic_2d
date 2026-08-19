@@ -686,4 +686,53 @@ HWTEST_F(RSColorspaceConvertTest, GetSDRDynamicMetadata001, TestSize.Level1)
     ret = MetadataHelper::GetSDRDynamicMetadata(surfaceBuffer, metadataSet);
     ASSERT_TRUE(ret != GSERROR_OK);
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: ConvertDisplaySceneTypeToVPE001
+ * @tc.desc: Test ConvertDisplaySceneTypeToVPE with SCREEN_SHOT
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorspaceConvertTest, ConvertDisplaySceneTypeToVPE001, TestSize.Level1)
+{
+    VPEParameter parameter;
+    auto displaySceneType = RSPaintFilterCanvas::DisplaySceneType::SCREEN_SHOT;
+ 
+    RSColorSpaceConvert::ConvertDisplaySceneTypeToVPE(displaySceneType, parameter);
+ 
+    EXPECT_EQ(parameter.scene, Media::VideoProcessingEngine::DisplaySceneType::SCREEN_SHOT);
+}
+ 
+/**
+ * @tc.name: ConvertDisplaySceneTypeToVPE002
+ * @tc.desc: Test ConvertDisplaySceneTypeToVPE with VIRTUAL_SCREEN
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorspaceConvertTest, ConvertDisplaySceneTypeToVPE002, TestSize.Level1)
+{
+    VPEParameter parameter;
+    auto displaySceneType = RSPaintFilterCanvas::DisplaySceneType::VIRTUAL_SCREEN;
+ 
+    RSColorSpaceConvert::ConvertDisplaySceneTypeToVPE(displaySceneType, parameter);
+ 
+    EXPECT_EQ(parameter.scene, Media::VideoProcessingEngine::DisplaySceneType::VIRTUAL_SCREEN);
+}
+ 
+/**
+ * @tc.name: ConvertDisplaySceneTypeToVPE003
+ * @tc.desc: Test ConvertDisplaySceneTypeToVPE with MAIN_SCREEN (no mapping, scene unchanged)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorspaceConvertTest, ConvertDisplaySceneTypeToVPE003, TestSize.Level1)
+{
+    VPEParameter parameter;
+    auto displaySceneType = RSPaintFilterCanvas::DisplaySceneType::MAIN_SCREEN;
+    auto originalScene = parameter.scene;
+ 
+    RSColorSpaceConvert::ConvertDisplaySceneTypeToVPE(displaySceneType, parameter);
+ 
+    // MAIN_SCREEN has no mapping, parameter.scene should remain unchanged
+    EXPECT_EQ(parameter.scene, originalScene);
+}
+#endif
 } // namespace OHOS::Rosen
