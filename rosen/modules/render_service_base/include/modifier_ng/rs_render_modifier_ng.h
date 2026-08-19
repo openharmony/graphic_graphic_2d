@@ -90,7 +90,9 @@ public:
             if (custom) {
                 out += "[";
             }
-            property->Dump(out);
+            if (property) {
+                property->Dump(out);
+            }
             if (custom) {
                 out += "]";
             }

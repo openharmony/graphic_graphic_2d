@@ -365,6 +365,23 @@ HWTEST_F(RSColorTest, MultiplyAlphaTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MultiplyAlphaNaNTest
+ * @tc.desc: Verify MultiplyAlpha treats NaN alpha as 0 instead of corrupting alpha
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, MultiplyAlphaNaNTest, TestSize.Level1)
+{
+    RSColor color(10, 11, 12, 255);
+    color.MultiplyAlpha(NAN);
+    EXPECT_EQ(color.GetAlpha(), 0);
+    RSColor bt2020Color(10, 11, 12, 255);
+    bt2020Color.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    bt2020Color.MultiplyAlpha(NAN);
+    EXPECT_EQ(bt2020Color.GetAlphaF(), 0.0f);
+}
+
+/**
  * @tc.name: ConvertToP3ColorSpaceTest
  * @tc.desc: Verify function ConvertToP3ColorSpace
  * @tc.type: FUNC

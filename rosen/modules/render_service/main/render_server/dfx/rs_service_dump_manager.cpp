@@ -33,7 +33,7 @@ bool RSServiceDumpManager::IsProcessDumpCmd(const std::u16string& cmd)
 
 void RSServiceDumpManager::InitProcessDumpTask(int32_t processCount)
 {
-    std::unique_lock<std::mutex> lock(collectDumpMutex_);
+    std::unique_lock<std::mutex> lock(dumpMutex_);
     processCount_ = processCount;
     completionCount_ = 0;
     dumpDataList_.clear();
@@ -41,23 +41,20 @@ void RSServiceDumpManager::InitProcessDumpTask(int32_t processCount)
 
 void RSServiceDumpManager::WaitForDump(std::string& dumpString)
 {
-    std::unique_lock<std::mutex> lock(processDumpMutex_);
+    std::unique_lock<std::mutex> lock(dumpMutex_);
     {
         RS_TRACE_NAME_FMT("RSServiceDumpManager::WaitForDump");
-        processDumpCondVar_.wait_for(lock, std::chrono::milliseconds(PROCESS_DUMP_TREE_TIMEOUT), [this] () {
+        dumpCondVar_.wait_for(lock, std::chrono::milliseconds(PROCESS_DUMP_TREE_TIMEOUT), [this] () {
             return IsDumpCompleted();
         });
     }
 
     dumpString += "\n-----RSProcessDump-----";
     RS_TRACE_NAME_FMT("RSServiceDumpManager::WaitForDump Finish wait");
-    {
-        std::unique_lock<std::mutex> lock(collectDumpMutex_);
-        for (const auto& dumpData : dumpDataList_) {
-            if (dumpData != "") {
-                dumpString += "\n";
-                dumpString += dumpData;
-            }
+    for (const auto& dumpData : dumpDataList_) {
+        if (dumpData != "") {
+            dumpString += "\n";
+            dumpString += dumpData;
         }
     }
     RS_LOGI("RSServiceDumpManager::WaitForDump Finish wait");
@@ -70,10 +67,14 @@ bool RSServiceDumpManager::IsDumpCompleted()
 
 void RSServiceDumpManager::CollectDump(std::string& dumpString)
 {
-    std::unique_lock<std::mutex> lock(collectDumpMutex_);
-    dumpDataList_.push_back(dumpString);
-    completionCount_ += 1;
-    processDumpCondVar_.notify_all();
+    {
+        std::unique_lock<std::mutex> lock(dumpMutex_);
+        if (completionCount_ < processCount_) {
+            dumpDataList_.push_back(dumpString);
+            completionCount_ += 1;
+        }
+    }
+    dumpCondVar_.notify_all();
 }
 
 void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::string& dumpString,

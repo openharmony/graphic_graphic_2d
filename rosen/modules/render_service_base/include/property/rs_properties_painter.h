@@ -39,7 +39,6 @@ enum class FilterType {
 };
 class RSB_EXPORT RSPropertiesPainter {
 public:
-    static void SetBgAntiAlias(bool forceBgAntiAlias);
     static bool GetBgAntiAlias();
     static void DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         bool isAntiAlias = true, bool isSurfaceView = false);

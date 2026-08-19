@@ -47,6 +47,7 @@ namespace Rosen {
 
 namespace {
 constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
+constexpr size_t MAX_NUMERIC_LENGTH = 20; // max digits for uint64_t decimal representation
 #ifdef RS_ENABLE_GPU
 static const int INT_INIT_VAL = 0;
 static const int CREAT_NUM_ONE = 1;
@@ -80,10 +81,35 @@ RSPipelineDumper::RSPipelineDumper(std::shared_ptr<AppExecFwk::EventHandler> mai
 
 static bool IsNumber(const std::string& type)
 {
+    if (type.empty() || type.length() > MAX_NUMERIC_LENGTH) {
+        return false;
+    }
     auto number = static_cast<uint32_t>(std::count_if(type.begin(), type.end(), [](unsigned char c) {
         return std::isdigit(c);
     }));
     return number == type.length();
+}
+
+static bool SafeStrToU64(const std::string& str, uint64_t& outVal)
+{
+    if (str.empty()) {
+        return false;
+    }
+    errno = 0;
+    char* end = nullptr;
+    uint64_t val = strtoull(str.c_str(), &end, 10);
+    if (errno == ERANGE || end == str.c_str() || *end != '\0') {
+        return false;
+    }
+    outVal = val;
+    return true;
+}
+
+constexpr uint64_t MAX_PID_VALUE = 2147483647;
+
+static std::string U16ToString(const std::u16string& str)
+{
+    return std::string(str.begin(), str.end());
 }
 
 static bool ExtractDumpInfo(std::unordered_set<std::u16string>& argSets, std::string& dumpInfo, std::u16string title)
@@ -98,7 +124,7 @@ static bool ExtractDumpInfo(std::unordered_set<std::u16string>& argSets, std::st
     }
     argSets.erase(title);
     if (!argSets.empty()) {
-        dumpInfo = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        dumpInfo = U16ToString(*argSets.begin());
     }
     return true;
 }
@@ -209,15 +235,15 @@ void RSPipelineDumper::RegisterContextStatesFuncs(std::shared_ptr<RSPipelineDump
             dumpString.append("Usage: contextStates <pid> <uiContextToken>\n");
             return;
         }
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
         std::vector<uint64_t> numericArgs;
         for (const auto &arg : argSets) {
-            std::string argStr = converter.to_bytes(arg);
-            if (!IsNumber(argStr)) {
+            std::string argStr = U16ToString(arg);
+            uint64_t val = 0;
+            if (!IsNumber(argStr) || !SafeStrToU64(argStr, val)) {
                 dumpString.append("Invalid arguments: pid and uiContextToken must be numbers\n");
                 return;
             }
-            numericArgs.emplace_back(static_cast<uint64_t>(std::stoull(argStr)));
+            numericArgs.emplace_back(val);
         }
         std::sort(numericArgs.begin(), numericArgs.end());
         pid_t pid = static_cast<pid_t>(numericArgs[0]);
@@ -260,8 +286,7 @@ void RSPipelineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPipelineDumpManager>
                                       std::string &dumpString) -> void {
         argSets.erase(cmd);
         if (!argSets.empty()) {
-            std::string logFlag =
-                std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin());
+            std::string logFlag = U16ToString(*argSets.begin());
             if (RSLogManager::GetInstance().SetRSLogFlag(logFlag)) {
                 dumpString.append("Successed to set flag: " + logFlag + "\n");
             } else {
@@ -312,10 +337,13 @@ void RSPipelineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPipelineDumpManager
                                         std::string &dumpString) -> void {
         argSets.erase(cmd);
         if (!argSets.empty()) {
-            NodeId id =
-                static_cast<NodeId>(std::atoll(std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}
-                                                   .to_bytes(*argSets.begin())
-                                                   .c_str()));
+            std::string idStr = U16ToString(*argSets.begin());
+            uint64_t idVal = 0;
+            if (!IsNumber(idStr) || !SafeStrToU64(idStr, idVal)) {
+                dumpString.append("Invalid node ID format\n");
+                return;
+            }
+            NodeId id = static_cast<NodeId>(idVal);
             ScheduleTask([this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); });
         }
     };
@@ -552,6 +580,10 @@ void RSPipelineDumper::DumpVkTextureLimit(std::string& dumpString) const
     dumpString.append("-- vktextureLimit:\n");
     auto vkInterface = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface();
     VkPhysicalDevice physicalDevice = vkInterface->GetPhysicalDevice();
+    if (physicalDevice == VK_NULL_HANDLE) {
+        dumpString.append("Vulkan physical device not available\n");
+        return;
+    }
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
 
@@ -571,7 +603,7 @@ void RSPipelineDumper::DumpExistPidMem(std::unordered_set<std::u16string>& argSe
 
     std::string type;
     if (!argSets.empty()) {
-        type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        type = U16ToString(*argSets.begin());
     }
     int pid = 0;
     if (!type.empty() && IsNumber(type)) {
@@ -640,7 +672,7 @@ void RSPipelineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std:
     std::string type;
     if (argSets.size() > 1) {
         argSets.erase(u"dumpMem");
-        type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        type = U16ToString(*argSets.begin());
     }
     int pid = 0;
     if (!type.empty() && IsNumber(type)) {
@@ -660,7 +692,7 @@ void RSPipelineDumper::DumpGpuMem(std::unordered_set<std::u16string>& argSets, s
     std::string type;
     if (argSets.size() > 1) {
         argSets.erase(u"dumpGpuMem");
-        type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        type = U16ToString(*argSets.begin());
     }
     ScheduleTask([this, &argSets, &dumpString, &type]() {
         return MemoryManager::DumpGpuMem(argSets, dumpString, type);
@@ -675,7 +707,7 @@ void RSPipelineDumper::WindowHitchsDump(
         std::string layerArg;
         argSets.erase(iter);
         if (!argSets.empty()) {
-            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            layerArg = U16ToString(*argSets.begin());
         }
         ScheduleTask([this, &dumpString, &layerArg]() {
             std::vector<std::shared_ptr<HdiOutput>> hdiOutputVec;
