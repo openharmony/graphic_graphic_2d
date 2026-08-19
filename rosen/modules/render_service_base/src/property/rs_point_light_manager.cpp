@@ -61,7 +61,9 @@ void RSPointLightManager::RegisterLightSource(const std::shared_ptr<RSRenderNode
         return;
     }
     NodeId nodeId = renderNode->GetId();
-    lightSourceNodeMap_.emplace(nodeId, renderNode->weak_from_this());
+    RS_LOGD("RSPointLightManager::RegisterLightSource nodeId:%{public}" PRIu64 " logicalDisplay:%{public}" PRIu64 "",
+        nodeId, renderNode->GetLogicalDisplayNodeId());
+    lightSourceNodeMap_.insert_or_assign(nodeId, renderNode->weak_from_this());
 }
 
 void RSPointLightManager::RegisterIlluminated(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -70,7 +72,9 @@ void RSPointLightManager::RegisterIlluminated(const std::shared_ptr<RSRenderNode
         return;
     }
     NodeId nodeId = renderNode->GetId();
-    illuminatedNodeMap_.emplace(nodeId, renderNode->weak_from_this());
+    RS_LOGD("RSPointLightManager::RegisterIlluminated nodeId:%{public}" PRIu64 " logicalDisplay:%{public}" PRIu64 "",
+        nodeId, renderNode->GetLogicalDisplayNodeId());
+    illuminatedNodeMap_.insert_or_assign(nodeId, renderNode->weak_from_this());
 }
 
 void RSPointLightManager::UnRegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -79,6 +83,8 @@ void RSPointLightManager::UnRegisterLightSource(const std::shared_ptr<RSRenderNo
         return;
     }
     NodeId nodeId = renderNode->GetId();
+    RS_LOGD("RSPointLightManager::UnRegisterLightSource nodeId:%{public}" PRIu64 " logicalDisplay:%{public}" PRIu64 "",
+        nodeId, renderNode->GetLogicalDisplayNodeId());
     lightSourceNodeMap_.erase(nodeId);
 }
 void RSPointLightManager::UnRegisterIlluminated(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -87,6 +93,8 @@ void RSPointLightManager::UnRegisterIlluminated(const std::shared_ptr<RSRenderNo
         return;
     }
     NodeId nodeId = renderNode->GetId();
+    RS_LOGD("RSPointLightManager::UnRegisterIlluminated nodeId:%{public}" PRIu64 " logicalDisplay:%{public}" PRIu64 "",
+        nodeId, renderNode->GetLogicalDisplayNodeId());
     illuminatedNodeMap_.erase(nodeId);
 }
 void RSPointLightManager::SetChildHasVisibleIlluminated(
@@ -235,8 +243,8 @@ void RSPointLightManager::CheckIlluminated(
     bool isIlluminated = IsLightSourceAffectIlluminatedNode(lightRelativePos,
         illuminatedNode->GetRenderProperties().GetBoundsRect(), lightSourcePtr->GetLightRadius());
     // Mark the nodes as dirty where light added as dirty.
-    if (isIlluminated && !illuminatedPtr->GetLightSourcesAndPosMap().count(lightSourcePtr)) {
-        illuminatedPtr->AddLightSourcesAndPos(lightSourcePtr, lightRelativePos);
+    if (isIlluminated && !illuminatedPtr->GetLightSourcesAndPosMap().count(lightSourceNode->GetId())) {
+        illuminatedPtr->AddLightSourcesAndPos(lightSourceNode->GetId(), *lightSourcePtr, lightRelativePos);
         MarkIlluminatedNodeDirty(illuminatedNode);
     }
 }

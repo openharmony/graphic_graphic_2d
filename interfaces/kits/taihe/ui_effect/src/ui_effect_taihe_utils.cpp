@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2025-2026 Huawei Device Co., Ltd.
+/*
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,7 +43,7 @@ struct RectPropertyMethodCfg {
     ani_method& method;
     ani_double& result;
 };
-} //namespace
+} // namespace
 
 bool IsSystemApp()
 {
@@ -222,10 +222,10 @@ bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values)
     RectPropertyMethodCfg topConfig = { "top", "<get>top", gGetTopMethod, top };
     RectPropertyMethodCfg rightConfig = { "right", "<get>right", gGetRightMethod, right };
     RectPropertyMethodCfg bottomConfig = { "bottom", "<get>bottom", gGetBottomMethod, bottom };
-    if ((GetRectPropertyValue(env, obj, rectClass, leftConfig) !=ANI_OK) ||
-        (GetRectPropertyValue(env, obj, rectClass, topConfig) !=ANI_OK) ||
-        (GetRectPropertyValue(env, obj, rectClass, rightConfig) !=ANI_OK) ||
-        (GetRectPropertyValue(env, obj, rectClass, bottomConfig) !=ANI_OK)) {
+    if ((GetRectPropertyValue(env, obj, rectClass, leftConfig) != ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, topConfig) != ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, rightConfig) != ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, bottomConfig) != ANI_OK)) {
         UIEFFECT_LOG_E("GetRectFromAniRectObj failed");
         return false;
     }

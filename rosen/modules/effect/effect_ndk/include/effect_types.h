@@ -72,10 +72,10 @@ typedef struct OH_NativeBuffer OH_NativeBuffer;
  * @since 12
  * @version 1.0
  */
-typedef struct OH_Filter_ColorMatrix {
+struct OH_Filter_ColorMatrix {
     /** Custom color matrix. The value is a 5 x 4 array. */
     float val[20];
-} OH_Filter_ColorMatrix;
+};
 
 /**
  * @brief Defines 4-channel Color.

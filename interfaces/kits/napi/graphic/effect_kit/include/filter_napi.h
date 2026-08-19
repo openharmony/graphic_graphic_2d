@@ -39,8 +39,8 @@ public:
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
     static napi_value CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::PixelMap> pixelMap);
+    std::mutex getPixelMapAsyncExecuteMutex_;
     std::mutex getPixelMapAsyncCompleteMutex_;
-    std::mutex renderMutex_;
 
 private:
     static thread_local napi_ref sConstructor_;
