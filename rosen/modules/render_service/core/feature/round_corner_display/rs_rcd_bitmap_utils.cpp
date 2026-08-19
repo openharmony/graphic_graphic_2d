@@ -35,7 +35,7 @@ bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstB
     auto colorType = srcBitmap.GetColorType();
     int32_t width = srcBitmap.GetWidth();
     int32_t height = srcBitmap.GetHeight();
-    const uint8_t *srcPixels = static_cast<const uint8_t *>(srcBitmap.GetPixels());
+    const uint8_t* srcPixels = static_cast<const uint8_t*>(srcBitmap.GetPixels());
     int32_t srcRowBytes = srcBitmap.GetRowBytes();
     bool isInvalid = (srcBitmap.IsValid()) || (colorType != Drawing::ColorType::COLORTYPE_RGBA_8888 &&
         colorType != Drawing::ColorType::COLORTYPE_BGRA_8888) || (width <= 0 || height <= 0) ||
@@ -47,7 +47,7 @@ bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstB
 
     Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_PREMUL };
     bool succeeded = dstBitmap.Build(width, height, format);
-    uint8_t *dstPixels = static_cast<uint8_t *>(dstBitmap.GetPixels());
+    uint8_t* dstPixels = static_cast<uint8_t*>(dstBitmap.GetPixels());
     int32_t dstRowBytes = dstBitmap.GetRowBytes();
     succeeded &= ((dstPixels != nullptr) & (dstRowBytes >= (width * bytesPerPixelAlpha8)));
     if (!succeeded) {
@@ -59,13 +59,13 @@ bool ExtractAlphaChannel(const Drawing::Bitmap& srcBitmap, Drawing::Bitmap& dstB
     // For both RGBA_8888 and BGRA_8888 layouts the alpha is the 4th byte (index 3),
     // so a single loop handles both formats.
     for (int32_t y = 0; y < height; y++) {
-        const uint8_t *srcRow = srcPixels + y * srcRowBytes;
-        uint8_t *dstRow = dstPixels + y * dstRowBytes;
+        const uint8_t* srcRow = srcPixels + y * srcRowBytes;
+        uint8_t* dstRow = dstPixels + y * dstRowBytes;
         // Point to the first alpha byte in the source row; alpha is the 4th byte
         // (index 3) for both RGBA_8888 and BGRA_8888 layouts. Advance srcPtr by
         // bytesPerPixelRgba8888 and dstPtr by 1 on each iteration.
-        const uint8_t *srcPtr = srcRow + alphaChannelOffset;
-        uint8_t *dstPtr = dstRow;
+        const uint8_t* srcPtr = srcRow + alphaChannelOffset;
+        uint8_t* dstPtr = dstRow;
         for (int32_t x = 0; x < width; x++) {
             // Extract alpha from the 8888 pixel via pointer increment.
             *dstPtr++ = *srcPtr;
