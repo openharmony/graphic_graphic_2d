@@ -906,9 +906,6 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
     {
         RS_TRACE_BEGIN(forRefresh ? "ResetTransactionDataPidInfo" : "ClearTransactionDataPidInfo");
         ClearTransactionDataPidInfo(pid, forRefresh);
-        if (IsRequestedNextVSync()) {
-            SetDirtyFlag();
-        }
         RS_TRACE_END();
     }
 
