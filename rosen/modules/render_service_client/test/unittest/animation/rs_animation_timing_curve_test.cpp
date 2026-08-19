@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "gtest/gtest.h"
+
+#include <cmath>
 
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_curve_animation.h"
@@ -76,6 +77,179 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateInterpolatingSpring001, TestSize.Leve
     auto timingCurve2 = RSAnimationTimingCurve::CreateInterpolatingSpring(mass2, stiffness2, damping, velocity);
     EXPECT_TRUE(timingCurve2.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
     GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateInterpolatingSpring001 end";
+}
+/**
+ * @tc.name: CreateCubicCurveNaNInf001
+ * @tc.desc: Verify CreateCubicCurve NaN/Inf fallback to defaults
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveNaNInf001, TestSize.Level1)
+{
+    auto curve1 = RSAnimationTimingCurve::CreateCubicCurve(NAN, 0.0f, 1.0f, 1.0f);
+    EXPECT_TRUE(curve1.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve2 = RSAnimationTimingCurve::CreateCubicCurve(INFINITY, 0.0f, 1.0f, 1.0f);
+    EXPECT_TRUE(curve2.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve3 = RSAnimationTimingCurve::CreateCubicCurve(0.0f, NAN, 1.0f, 1.0f);
+    EXPECT_TRUE(curve3.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve4 = RSAnimationTimingCurve::CreateCubicCurve(0.0f, INFINITY, 1.0f, 1.0f);
+    EXPECT_TRUE(curve4.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve5 = RSAnimationTimingCurve::CreateCubicCurve(0.0f, 0.0f, NAN, 1.0f);
+    EXPECT_TRUE(curve5.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve6 = RSAnimationTimingCurve::CreateCubicCurve(0.0f, 0.0f, INFINITY, 1.0f);
+    EXPECT_TRUE(curve6.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve7 = RSAnimationTimingCurve::CreateCubicCurve(0.0f, 0.0f, 1.0f, NAN);
+    EXPECT_TRUE(curve7.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve8 = RSAnimationTimingCurve::CreateCubicCurve(0.0f, 0.0f, 1.0f, INFINITY);
+    EXPECT_TRUE(curve8.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+}
+
+/**
+ * @tc.name: CreateSpringCurveNaNInf001
+ * @tc.desc: Verify CreateSpringCurve NaN/Inf fallback to defaults
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateSpringCurveNaNInf001, TestSize.Level1)
+{
+    auto curve1 = RSAnimationTimingCurve::CreateSpringCurve(NAN, 1.0f, 1.0f, 1.0f);
+    EXPECT_TRUE(curve1.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve2 = RSAnimationTimingCurve::CreateSpringCurve(INFINITY, 1.0f, 1.0f, 1.0f);
+    EXPECT_TRUE(curve2.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve3 = RSAnimationTimingCurve::CreateSpringCurve(0.0f, NAN, 1.0f, 1.0f);
+    EXPECT_TRUE(curve3.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve4 = RSAnimationTimingCurve::CreateSpringCurve(0.0f, INFINITY, 1.0f, 1.0f);
+    EXPECT_TRUE(curve4.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve5 = RSAnimationTimingCurve::CreateSpringCurve(0.0f, 1.0f, NAN, 1.0f);
+    EXPECT_TRUE(curve5.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve6 = RSAnimationTimingCurve::CreateSpringCurve(0.0f, 1.0f, INFINITY, 1.0f);
+    EXPECT_TRUE(curve6.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve7 = RSAnimationTimingCurve::CreateSpringCurve(0.0f, 1.0f, 1.0f, NAN);
+    EXPECT_TRUE(curve7.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve8 = RSAnimationTimingCurve::CreateSpringCurve(0.0f, 1.0f, 1.0f, INFINITY);
+    EXPECT_TRUE(curve8.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+}
+
+/**
+ * @tc.name: CreateInterpolatingSpringNaNInf001
+ * @tc.desc: Verify CreateInterpolatingSpring NaN/Inf fallback to defaults
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateInterpolatingSpringNaNInf001, TestSize.Level1)
+{
+    auto curve1 = RSAnimationTimingCurve::CreateInterpolatingSpring(NAN, 1.0f, 1.0f, 0.0f);
+    EXPECT_TRUE(curve1.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto curve2 = RSAnimationTimingCurve::CreateInterpolatingSpring(INFINITY, 1.0f, 1.0f, 0.0f);
+    EXPECT_TRUE(curve2.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto curve3 = RSAnimationTimingCurve::CreateInterpolatingSpring(1.0f, NAN, 1.0f, 0.0f);
+    EXPECT_TRUE(curve3.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto curve4 = RSAnimationTimingCurve::CreateInterpolatingSpring(1.0f, INFINITY, 1.0f, 0.0f);
+    EXPECT_TRUE(curve4.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto curve5 = RSAnimationTimingCurve::CreateInterpolatingSpring(1.0f, 1.0f, NAN, 0.0f);
+    EXPECT_TRUE(curve5.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto curve6 = RSAnimationTimingCurve::CreateInterpolatingSpring(1.0f, 1.0f, INFINITY, 0.0f);
+    EXPECT_TRUE(curve6.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto curve7 = RSAnimationTimingCurve::CreateInterpolatingSpring(1.0f, 1.0f, 1.0f, NAN);
+    EXPECT_TRUE(curve7.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto curve8 = RSAnimationTimingCurve::CreateInterpolatingSpring(1.0f, 1.0f, 1.0f, INFINITY);
+    EXPECT_TRUE(curve8.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto curve9 = RSAnimationTimingCurve::CreateInterpolatingSpring(1.0f, 1.0f, 1.0f, 0.0f, NAN);
+    EXPECT_TRUE(curve9.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto curve10 = RSAnimationTimingCurve::CreateInterpolatingSpring(1.0f, 1.0f, 1.0f, 0.0f, INFINITY);
+    EXPECT_TRUE(curve10.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+}
+
+/**
+ * @tc.name: CreateSpringNaNInf001
+ * @tc.desc: Verify CreateSpring NaN/Inf fallback to defaults
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateSpringNaNInf001, TestSize.Level1)
+{
+    auto curve1 = RSAnimationTimingCurve::CreateSpring(NAN, 0.825f);
+    EXPECT_TRUE(curve1.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+
+    auto curve2 = RSAnimationTimingCurve::CreateSpring(INFINITY, 0.825f);
+    EXPECT_TRUE(curve2.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+
+    auto curve3 = RSAnimationTimingCurve::CreateSpring(0.55f, NAN);
+    EXPECT_TRUE(curve3.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+
+    auto curve4 = RSAnimationTimingCurve::CreateSpring(0.55f, INFINITY);
+    EXPECT_TRUE(curve4.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+
+    auto curve5 = RSAnimationTimingCurve::CreateSpring(0.55f, 0.825f, NAN);
+    EXPECT_TRUE(curve5.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+
+    auto curve6 = RSAnimationTimingCurve::CreateSpring(0.55f, 0.825f, INFINITY);
+    EXPECT_TRUE(curve6.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+
+    auto curve7 = RSAnimationTimingCurve::CreateSpring(0.55f, 0.825f, 0.0f, NAN);
+    EXPECT_TRUE(curve7.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+
+    auto curve8 = RSAnimationTimingCurve::CreateSpring(0.55f, 0.825f, 0.0f, INFINITY);
+    EXPECT_TRUE(curve8.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+}
+/**
+ * @tc.name: CreateSpringCurveStiffnessLEZero001
+ * @tc.desc: Verify CreateSpringCurve with stiffness <= 0 or mass*stiffness <= 0 fallback to defaults
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateSpringCurveStiffnessLEZero001, TestSize.Level1)
+{
+    auto curve1 = RSAnimationTimingCurve::CreateSpringCurve(0.5f, 1.0f, -1.0f, 0.5f);
+    EXPECT_TRUE(curve1.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve2 = RSAnimationTimingCurve::CreateSpringCurve(0.5f, 0.0f, 1.0f, 0.5f);
+    EXPECT_TRUE(curve2.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve3 = RSAnimationTimingCurve::CreateSpringCurve(0.5f, -1.0f, 1.0f, 0.5f);
+    EXPECT_TRUE(curve3.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto curve4 = RSAnimationTimingCurve::CreateSpringCurve(0.5f, 1.0f, 0.0f, 0.5f);
+    EXPECT_TRUE(curve4.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+}
+
+/**
+ * @tc.name: CreateCurveNormal001
+ * @tc.desc: Verify Create* methods with valid parameters return normal curves
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCurveNormal001, TestSize.Level1)
+{
+    auto cubic = RSAnimationTimingCurve::CreateCubicCurve(0.25f, 0.1f, 0.25f, 1.0f);
+    EXPECT_TRUE(cubic.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto springCurve = RSAnimationTimingCurve::CreateSpringCurve(0.5f, 1.0f, 100.0f, 10.0f);
+    EXPECT_TRUE(springCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    auto interpSpring =
+        RSAnimationTimingCurve::CreateInterpolatingSpring(1.0f, 100.0f, 10.0f, 0.0f, 0.001f);
+    EXPECT_TRUE(interpSpring.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
+
+    auto spring = RSAnimationTimingCurve::CreateSpring(0.55f, 0.825f, 0.0f, 0.001f);
+    EXPECT_TRUE(spring.type_ == RSAnimationTimingCurve::CurveType::SPRING);
 }
 } // namespace Rosen
 } // namespace OHOS

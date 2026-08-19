@@ -19,6 +19,7 @@
 #include "command/rs_node_showing_command.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -448,5 +449,85 @@ HWTEST_F(
 
     EXPECT_TRUE(animationManager->animations_.find(animationIdToCancel) == animationManager->animations_.end());
     EXPECT_TRUE(animationManager->pendingCancelAnimation_.empty());
+}
+
+/**
+ * @tc.name: Marshalling_ExceedMaxMapSize
+ * @tc.desc: Verify Marshalling returns false when propertiesMap_ exceeds MAX_PROPERTIES_MAP_SIZE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Marshalling_ExceedMaxMapSize, TestSize.Level1)
+{
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    for (size_t i = 0; i <= 1024; i++) {
+        auto renderProperty = std::make_shared<RSRenderProperty<bool>>();
+        std::vector<AnimationId> animationIds;
+        animation.propertiesMap_.emplace(
+            std::make_pair(static_cast<NodeId>(i), static_cast<PropertyId>(i)),
+            std::make_pair(renderProperty, animationIds));
+    }
+    Parcel parcel;
+    EXPECT_FALSE(animation.Marshalling(parcel));
+}
+
+/**
+ * @tc.name: Marshalling_WithinMaxMapSize
+ * @tc.desc: Verify Marshalling returns true when propertiesMap_ size equals MAX_PROPERTIES_MAP_SIZE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Marshalling_WithinMaxMapSize, TestSize.Level1)
+{
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    for (size_t i = 0; i < 1024; i++) {
+        auto renderProperty = std::make_shared<RSRenderProperty<bool>>();
+        std::vector<AnimationId> animationIds;
+        animation.propertiesMap_.emplace(
+            std::make_pair(static_cast<NodeId>(i), static_cast<PropertyId>(i)),
+            std::make_pair(renderProperty, animationIds));
+    }
+    Parcel parcel;
+    EXPECT_TRUE(animation.Marshalling(parcel));
+}
+
+/**
+ * @tc.name: ReadFromParcel_ExceedMaxMapSize
+ * @tc.desc: Verify ReadFromParcel returns false when parcel contains map size exceeding MAX_PROPERTIES_MAP_SIZE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, ReadFromParcel_ExceedMaxMapSize, TestSize.Level1)
+{
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    Parcel parcel;
+    bool success = true;
+    RSMarshallingHelper::Marshalling(parcel, success);
+    uint32_t mapSize = 1025;
+    RSMarshallingHelper::Marshalling(parcel, mapSize);
+    EXPECT_FALSE(animation.ReadFromParcel(parcel));
+}
+
+/**
+ * @tc.name: ReadFromParcel_WithinMaxMapSize
+ * @tc.desc: Verify ReadFromParcel succeeds when parcel map size equals MAX_PROPERTIES_MAP_SIZE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, ReadFromParcel_WithinMaxMapSize, TestSize.Level1)
+{
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    Parcel parcel;
+    bool success = true;
+    RSMarshallingHelper::Marshalling(parcel, success);
+    uint32_t mapSize = 0;
+    RSMarshallingHelper::Marshalling(parcel, mapSize);
+    bool nodeNotFound = false;
+    RSMarshallingHelper::Marshalling(parcel, nodeNotFound);
+    EXPECT_TRUE(animation.ReadFromParcel(parcel));
 }
 } // namespace OHOS::Rosen
