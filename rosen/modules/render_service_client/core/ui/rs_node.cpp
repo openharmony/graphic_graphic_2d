@@ -4550,6 +4550,13 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
         (!isTextureExportNode_ && !hasCreateRenderNodeInRS_)) {
         CreateRenderNodeForTextureExportSwitch();
     }
+    if (!isTextureExportNode_) {
+        // When isTextureExportNode_ is true, commands are flushed to the render thread.
+        // If the node's UIContext changes at that time, the UIContext of the corresponding renderNode on the main
+        // thread will not be updated. Therefore, when isTextureExportNode_ is set to false, a SetUIContextToken()
+        // command needs to be sent additionally.
+        SetUIContextToken();
+    }
     DoFlushModifier();
 }
 
