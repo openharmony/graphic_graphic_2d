@@ -778,6 +778,7 @@ ohos_source_set("render_service_base_src") {
     external_deps += [
       "media_foundation:media_foundation",
       "video_processing_engine:videoprocessingengine",
+      "hiview:xperfservice_client",
     ]
     sources += [
       "src/display_engine/rs_vpe_manager.cpp",
