@@ -104,6 +104,7 @@ napi_value MaskNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("createPixelMapMask", CreatePixelMapMask),
         DECLARE_NAPI_STATIC_FUNCTION("createWaveGradientMask", CreateWaveGradientMask),
         DECLARE_NAPI_STATIC_FUNCTION("createWaveDisturbanceMask", CreateWaveDisturbanceMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createImageMask", CreateImageMask),
         DECLARE_NAPI_STATIC_FUNCTION("createUseEffectMask", CreateUseEffectMask),
     };
 
