@@ -572,26 +572,5 @@ HWTEST_F(RSPixelMapUtilTest, AlphaTypeToDrawingAlphaType005, TestSize.Level1)
     auto drawingAlphaType = RSPixelMapUtil::AlphaTypeToDrawingAlphaType(invalidAlphaType);
     EXPECT_EQ(static_cast<int>(drawingAlphaType), static_cast<int>(Drawing::AlphaType::ALPHATYPE_UNKNOWN));
 }
-
-/**
- * @tc.name: ExtractDrawingImageNoCache001
- * @tc.desc: Verify ExtractDrawingImageNoCache with nullptr pixelMap
- * @tc.type: FUNC
- */
-HWTEST_F(RSPixelMapUtilTest, ExtractDrawingImageNoCache001, TestSize.Level1)
-{
-    std::shared_ptr<Media::PixelMap> pixelMap;
-    auto image = RSPixelMapUtil::ExtractDrawingImageNoCache(pixelMap);
-    EXPECT_EQ(image, nullptr);
-    pixelMap = CreatePixelMap(200, 300);
-    ASSERT_NE(pixelMap, nullptr);
-    image = RSPixelMapUtil::ExtractDrawingImageNoCache(pixelMap);
-    EXPECT_NE(image, nullptr);
-    pixelMap = CreatePixelMap(200, 300);
-    ASSERT_NE(pixelMap, nullptr);
-    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::UNKNOWN;
-    image = RSPixelMapUtil::ExtractDrawingImageNoCache(pixelMap);
-    EXPECT_EQ(image, nullptr);
-}
 } // namespace Rosen
 } // namespace OHOS

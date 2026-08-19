@@ -2830,5 +2830,23 @@ HWTEST_F(RSPaintFilterCanvasTest, UpdateDisplaySceneType007, TestSize.Level1)
     EXPECT_EQ(canvas.GetDisplaySceneType(), RSPaintFilterCanvas::DisplaySceneType::SCREEN_SHOT);
 }
 #endif
+
+/**
+ * @tc.name: NullCanvasGettersTest
+ * @tc.desc: Test base getters return default values when internal canvas is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, NullCanvasGettersTest, TestSize.Level1)
+{
+    RSPaintFilterCanvas nullCanvas(static_cast<Drawing::Canvas*>(nullptr));
+    EXPECT_EQ(nullCanvas.GetTotalMatrix(), Drawing::Matrix());
+    // qualified call: static overload in RSPaintFilterCanvas hides the base no-arg version
+    EXPECT_EQ(nullCanvas.RSPaintFilterCanvasBase::GetLocalClipBounds(), Drawing::Rect());
+    EXPECT_EQ(nullCanvas.GetDeviceClipBounds(), Drawing::RectI());
+    EXPECT_EQ(nullCanvas.GetRoundInDeviceClipBounds(), Drawing::RectI());
+    EXPECT_EQ(nullCanvas.GetSaveCount(), 0);
+}
+
 } // namespace Rosen
 } // namespace OHOS

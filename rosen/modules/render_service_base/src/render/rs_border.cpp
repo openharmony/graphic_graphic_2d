@@ -273,10 +273,15 @@ void RSBorder::SetBorderEffect(Drawing::Pen& pen, int idx, float spaceBetweenDot
             float count = borderLength / width;
             float leftLen = fmod((count - DASHED_LINE_LENGTH), (DASHED_LINE_LENGTH + 1));
             if (leftLen > DASHED_LINE_LENGTH - 1) {
-                delLen = (DASHED_LINE_LENGTH + 1 - leftLen) * width /
-                         static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1) + PARAM_DOUBLE);
+                int segCount = static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1) + PARAM_DOUBLE);
+                if (segCount != 0) {
+                    delLen = (DASHED_LINE_LENGTH + 1 - leftLen) * width / segCount;
+                }
             } else {
-                addLen = leftLen * width / static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1));
+                int segCount = static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1));
+                if (segCount != 0) {
+                    addLen = leftLen * width / segCount;
+                }
             }
         }
         float intervals[] = {
@@ -798,7 +803,7 @@ Drawing::Point RSBorder::GetTRIP(const Drawing::RoundRect& rrect, const Drawing:
                 // calc delta to prevent overlapping of top left corner
                 x = (drx > 0) ? (x - std::min(drx, width / 2.f - dlx)) : (x + width / 2.f);
                 y = rrect.GetRect().GetTop() + (rrect.GetRect().GetRight() - x) * k;
-            } else {
+            } else if (ROSEN_NE<float>(k, 0.0f)) {
                 // right top and bottom raduii for inner round rect
                 float dty = std::max(trRad.GetY() - TOPW, 0.f);
                 float dby = std::max(brRad.GetY() - BOTTOMW, 0.f);
@@ -845,7 +850,7 @@ Drawing::Point RSBorder::GetBLIP(const Drawing::RoundRect& rrect, const Drawing:
                 // calc delta to prevent overlapping of bottom right corner
                 x = (dlx > 0) ? (x + std::min(dlx, width / 2.f - drx)) : (x - width / 2.f);
                 y = rrect.GetRect().GetBottom() - (x - rrect.GetRect().GetLeft()) * k;
-            } else {
+            } else if (ROSEN_NE<float>(k, 0.0f)) {
                 // left bottom and top raduii for inner round rect
                 float dby = std::max(blRad.GetY() - BOTTOMW, 0.f);
                 float dty = std::max(tlRad.GetY() - TOPW, 0.f);
@@ -892,7 +897,7 @@ Drawing::Point RSBorder::GetBRIP(const Drawing::RoundRect& rrect, const Drawing:
                 // calc delta to prevent overlapping of bottom left corner
                 x = (drx > 0) ? (x - std::min(drx, width / 2.f - dlx)) : (x + width / 2.f);
                 y = rrect.GetRect().GetBottom() - (rrect.GetRect().GetRight() - x) * k;
-            } else {
+            } else if (ROSEN_NE<float>(k, 0.0f)) {
                 // right bottom and top raduii for inner round rect
                 float dby = std::max(brRad.GetY() - BOTTOMW, 0.f);
                 float dty = std::max(trRad.GetY() - TOPW, 0.f);

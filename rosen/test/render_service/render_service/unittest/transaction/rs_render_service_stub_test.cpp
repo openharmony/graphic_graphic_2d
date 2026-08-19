@@ -139,6 +139,24 @@ HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TestRSRenderServiceStub006
+ * @tc.desc: Test if the code is denied by the interface code access gate.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub006, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    data.WriteInterfaceToken(RSIRenderService::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(0xFFFF);
+    int res = stub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
  * @tc.name: GetHgmContextTest001
  * @tc.desc: Test GetHgmContext when hgmPolicyEnabled is true
  * @tc.type: FUNC

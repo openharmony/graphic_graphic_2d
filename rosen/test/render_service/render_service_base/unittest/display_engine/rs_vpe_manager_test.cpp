@@ -238,6 +238,65 @@ HWTEST_F(RSVpeManagerTest, CheckAndGetSurface001, TestSize.Level1)
     EXPECT_EQ(result, RSSurface);
 }
 
+HWTEST_F(RSVpeManagerTest, NotifyToXperf001, TestSize.Level1)
+{
+    RSVpeManager manager;
+    manager.NotifyToXperf(nullptr, nullptr);
+}
+ 
+HWTEST_F(RSVpeManagerTest, NotifyToXperf002, TestSize.Level1)
+{
+    bool oldIsSupportReset = IsSupportReset;
+    bool oldIsSurfaceSupport = g_isSurfaceSupport;
+    bool oldIsVpeVideoCreate = g_isVpeVideoCreate;
+    RSVpeManager manager;
+    OHOS::sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
+    OHOS::sptr<IBufferProducer> producer = consumer->GetProducer();
+    OHOS::sptr<OHOS::Surface> RSSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(RSSurface, nullptr);
+    manager.NotifyToXperf(RSSurface, nullptr);
+    IsSupportReset = oldIsSupportReset;
+    g_isSurfaceSupport = oldIsSurfaceSupport;
+    g_isVpeVideoCreate = oldIsVpeVideoCreate;
+}
+ 
+HWTEST_F(RSVpeManagerTest, NotifyToXperf003, TestSize.Level1)
+{
+    bool oldIsSupportReset = IsSupportReset;
+    bool oldIsSurfaceSupport = g_isSurfaceSupport;
+    RSVpeManager manager;
+    OHOS::sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
+    OHOS::sptr<IBufferProducer> producer = consumer->GetProducer();
+    OHOS::sptr<OHOS::Surface> RSSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(RSSurface, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    config.nodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
+    IsSupportReset = false;
+    g_isSurfaceSupport = false;
+    sptr<Surface> result = manager.CheckAndGetSurface(RSSurface, config);
+    EXPECT_EQ(result, RSSurface);
+    manager.NotifyToXperf(RSSurface, result);
+    IsSupportReset = oldIsSupportReset;
+    g_isSurfaceSupport = oldIsSurfaceSupport;
+}
+ 
+HWTEST_F(RSVpeManagerTest, NotifyToXperf004, TestSize.Level1)
+{
+    bool oldIsSupportReset = IsSupportReset;
+    bool oldIsSurfaceSupport = g_isSurfaceSupport;
+    RSVpeManager manager;
+    OHOS::sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
+    OHOS::sptr<IBufferProducer> producer = consumer->GetProducer();
+    OHOS::sptr<OHOS::Surface> RSSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(RSSurface, nullptr);
+    OHOS::sptr<OHOS::Surface> RSSurface2 = OHOS::Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(RSSurface2, nullptr);
+    EXPECT_NE(RSSurface2, RSSurface);
+    manager.NotifyToXperf(RSSurface, RSSurface2);
+    IsSupportReset = oldIsSupportReset;
+    g_isSurfaceSupport = oldIsSurfaceSupport;
+}
+
 HWTEST_F(RSVpeManagerTest, DetailEnhancerAndSetParameterSucceeds, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config = {1};

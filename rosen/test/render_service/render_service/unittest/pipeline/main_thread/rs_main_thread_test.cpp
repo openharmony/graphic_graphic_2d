@@ -407,6 +407,33 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessCommandForDividedRender003
+ * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender skips a command
+ *           whose calling pid is marked invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    int dataIndex = 1;
+    rsTransactionData->SetIndex(dataIndex);
+    int dataPayloadSize = 1;
+    rsTransactionData->payload_.resize(dataPayloadSize);
+    NodeId id = 0;
+    auto command = std::make_unique<RSBaseNodeAddChild>(0, 1, 3);
+    command->SetCallingPidValid(false);
+    rsTransactionData->payload_[id] = std::tuple<NodeId,
+        FollowType, std::unique_ptr<RSCommand>>(id, FollowType::NONE, std::move(command));
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
+
+    // the command is non-null but IsCallingPidValid() is false, so Process must be skipped
+    mainThread->ProcessCommandForDividedRender();
+}
+
+/**
  * @tc.name: SetAnimationOcclusionInfo001
  * @tc.desc: Test different animation change isAnimationOcclusion_
  * @tc.type: FUNC
@@ -3973,6 +4000,56 @@ HWTEST_F(RSMainThreadTest, CleanResourcesForRefreshTest, TestSize.Level1)
     // Cleanup
     mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
     mainThread->isUniRender_ = isUniRender;
+}
+
+namespace {
+constexpr PersistentPropertyType MAIN_THREAD_TEST_PROPERTY_TYPE = static_cast<PersistentPropertyType>(100);
+
+class MainThreadTestProperty : public IPersistentProperty {
+public:
+    MainThreadTestProperty() = default;
+    ~MainThreadTestProperty() override = default;
+
+    PersistentPropertyType GetType() const override
+    {
+        return MAIN_THREAD_TEST_PROPERTY_TYPE;
+    }
+};
+} // namespace
+
+/**
+ * @tc.name: ClearInheritedPropertiesTest
+ * @tc.desc: ClearInheritedProperties clears inherited properties of the given pid,
+ *           tolerates null context and keeps properties of other pids.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearInheritedPropertiesTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    pid_t pid = 12345;
+    pid_t pidOther = 12346;
+    auto savedContext = mainThread->context_;
+
+    // context_ is null: must not crash
+    mainThread->context_ = nullptr;
+    mainThread->ClearInheritedProperties(pid);
+
+    // context_ is valid: properties of the given pid are cleared, other pids kept
+    mainThread->context_ = std::make_shared<RSContext>();
+    auto& manager = mainThread->context_->GetMutablePersistentPropertyManager();
+    NodeId nodeId = MakeNodeId(pid, 1);
+    NodeId nodeIdOther = MakeNodeId(pidOther, 1);
+    manager.Store(nodeId, std::make_shared<MainThreadTestProperty>());
+    manager.Store(nodeIdOther, std::make_shared<MainThreadTestProperty>());
+
+    mainThread->ClearInheritedProperties(pid);
+
+    EXPECT_EQ(manager.Get(nodeId, MAIN_THREAD_TEST_PROPERTY_TYPE), nullptr);
+    EXPECT_NE(manager.Get(nodeIdOther, MAIN_THREAD_TEST_PROPERTY_TYPE), nullptr);
+
+    // Cleanup
+    mainThread->context_ = savedContext;
 }
 
 /**

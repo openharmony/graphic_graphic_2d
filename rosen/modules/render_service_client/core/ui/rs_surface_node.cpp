@@ -669,6 +669,7 @@ template<typename Modifier, typename ValueType>
 std::shared_ptr<ModifierNG::RSModifier> RSSurfaceNode::CreateShadowModifierAndProperty(
     SharedPtr shadowNode, ModifierNG::RSPropertyType propertyType)
 {
+    std::unique_lock<std::recursive_mutex> lock(shadowNode->propertyMutex_);
     auto srcModifier = GetModifierCreatedBySetter(Modifier::Type);
     if (srcModifier == nullptr) {
         RS_LOGE("RSSurfaceNode::CreateShadowModifierAndProperty, no source modifier, nodeId=%{public}" PRIu64
@@ -687,7 +688,6 @@ std::shared_ptr<ModifierNG::RSModifier> RSSurfaceNode::CreateShadowModifierAndPr
         shadowModifier = std::make_shared<Modifier>();
         shadowModifier->id_ = srcModifier->GetId();
         shadowModifier->OnAttach(*shadowNode);
-        std::unique_lock<std::recursive_mutex> lock(shadowNode->propertyMutex_);
         shadowNode->modifiersNG_.emplace(shadowModifier->GetId(), shadowModifier);
         shadowNode->modifiersNGCreatedBySetter_.emplace(shadowModifier->GetType(), shadowModifier);
     }

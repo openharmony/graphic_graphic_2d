@@ -356,7 +356,6 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue006, testing::
 #endif
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO),
         0x010002);
-    EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE), 0x012000);
 
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS), 0X17000);
 

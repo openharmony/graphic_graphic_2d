@@ -1109,6 +1109,31 @@ HWTEST_F(RSDrawCmdTest, GetRsImageCacheTest, TestSize.Level1)
     extendImageObject.image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMapT);
     extendImageObject.GetRsImageCache(canvas, pixelMapT, surfaceBuffer, colorSpace);
 }
+
+/**
+ * @tc.name: GetRsImageCacheNullColorSpace
+ * @tc.desc: test GetRsImageCache with null colorSpace does not dereference it
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDrawCmdTest, GetRsImageCacheNullColorSpaceTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    Drawing::Canvas canvas;
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = false;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_TRUE(pixelMapT);
+    OHOS::SurfaceBuffer* surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    ASSERT_TRUE(surfaceBuffer);
+    extendImageObject.rsImage_ = std::make_shared<RSImage>();
+    extendImageObject.image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMapT);
+    std::shared_ptr<Drawing::ColorSpace> nullColorSpace;
+    extendImageObject.GetRsImageCache(canvas, pixelMapT, surfaceBuffer, Drawing::SamplingOptions(), nullColorSpace);
+    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
+}
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

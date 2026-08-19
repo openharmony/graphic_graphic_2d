@@ -1828,16 +1828,6 @@
     "connectionType": 0
   },
   {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_188",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSColorPickerDestroyInRender*100",
-    "commandListRepeat": 1,
-    "connectionType": 0
-  },
-  {
     "testCaseDesc": "COMMIT_TRANSACTION_TEST_185",
     "interfaceName": "COMMIT_TRANSACTION",
     "inputParams": "WriteRSTransactionData",
@@ -3278,14 +3268,6 @@
     "inputParams": "WriteUint64;WriteBool;WriteBool",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC",
-    "connectionType": 0
-  },
-  {
-    "testCaseDesc": "GET_HIGH_CONTRAST_TEXT_STATE_TEST_001",
-    "interfaceName": "GET_HIGH_CONTRAST_TEXT_STATE",
-    "inputParams": "",
-    "writeInterfaceToken": true,
-    "messageOption": "TF_SYNC",
     "connectionType": 0
   },
   {

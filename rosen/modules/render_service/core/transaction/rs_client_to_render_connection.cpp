@@ -56,6 +56,7 @@
 #endif
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
@@ -276,6 +277,15 @@ ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransact
     bool isTokenTypeValid = true;
     bool isNonSystemAppCalling = false;
     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+    if (transactionData && isNonSystemAppCalling && callingPid <= 0) {
+        // GetCallingPid() may return 0 for asynchronous binder calls, in which case the stub-side
+        // ownership check is skipped; run it here with the connection-level trusted identity.
+        // The node map access is safe on IPC threads: IsCallingPidValid only queries
+        // IsUIExtensionSurfaceNode, which is mutex-protected. Inaccessible commands are only
+        // marked here (with per-command logs) and dropped later by RSMainThread.
+        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        transactionData->IsCallingPidValid(remotePid_, nodeMap);
+    }
     return renderPipelineAgent_->CommitTransaction(
         callingPid, isTokenTypeValid, isNonSystemAppCalling, transactionData);
 }
@@ -439,6 +449,9 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
     if (renderPipelineAgent_ == nullptr) {
         return;
     }
+    // remotePid_ is the trusted identity captured from synchronous binder at connection creation;
+    // GetCallingPid() may return 0 for asynchronous binder calls and cannot be relied upon here.
+    permissions.selfCapture = (ExtractPid(id) == remotePid_);
     renderPipelineAgent_->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
@@ -456,6 +469,16 @@ void RSClientToRenderConnection::TakeSelfSurfaceCapture(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
     if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+    // remotePid_ is the trusted identity captured from synchronous binder at connection creation;
+    // GetCallingPid() may return 0 for asynchronous binder calls and cannot be relied upon here.
+    if (ExtractPid(id) != remotePid_) {
+        RS_LOGW("RSClientToRenderConnection::TakeSelfSurfaceCapture failed, nodeId:[%{public}" PRIu64
+                "], remotePid:[%{public}d], pid:[%{public}d]", id, remotePid_, ExtractPid(id));
+        if (callback) {
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
+        }
         return;
     }
     bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(

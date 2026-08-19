@@ -151,6 +151,16 @@ RSB_EXPORT bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const Rect
  */
 RSB_EXPORT bool DirtyInSurfacesBelow(
     const RSRenderNode& filterNode, const std::vector<std::shared_ptr<RSRenderNode>>& surfaces);
+
+/**
+ * @brief Restore contrast color scheme from PersistentPropertyManager to render node property.
+ *
+ * This function is called when screen node postprepare to restore
+ * the last known contrast color scheme from PersistentPropertyManager.
+ *
+ * @param node The render node to restore contrast color scheme to
+ */
+RSB_EXPORT void RestoreContrastColorScheme(RSRenderNode& node);
 } // namespace RSColorPickerUtils
 } // namespace OHOS::Rosen
 

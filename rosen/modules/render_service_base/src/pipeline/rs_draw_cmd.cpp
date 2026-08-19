@@ -371,6 +371,9 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
     if (rsImage_ == nullptr) {
         return false;
     }
+    if (colorSpace == nullptr) {
+        return false;
+    }
     std::shared_ptr<Drawing::Image> imageCache = nullptr;
     pid_t threadId = gettid();
 #ifdef SUBTREE_PARALLEL_ENABLE

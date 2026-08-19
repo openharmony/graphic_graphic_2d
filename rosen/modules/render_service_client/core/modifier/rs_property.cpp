@@ -726,7 +726,7 @@ void RSProperty<std::shared_ptr<RSNGShapeBase>>::UpdateToRender(
 template<>
 bool RSProperty<float>::IsValid(const float& value)
 {
-    return !std::isinf(value);
+    return !std::isinf(value) && !std::isnan(value);
 }
 template<>
 bool RSProperty<Vector2f>::IsValid(const Vector2f& value)

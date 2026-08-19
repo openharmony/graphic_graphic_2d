@@ -26,7 +26,6 @@
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
-#include "modifier_ng/appearance/rs_color_picker_render_modifier.h"
 #include "modifier_ng/appearance/rs_use_union_render_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_render_modifier.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -411,20 +410,47 @@ HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ColorPickerLastContrastColorSchemeApplyLegacyPropertyTest
- * @tc.desc: test color picker last equivalent dark mode legacy property apply
+ * @tc.name: ApplyLegacyPropertyNullPropertyTest
+ * @tc.desc: test ApplyLegacyProperty skips null property entries without crash
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderModifierNGTest, ColorPickerLastContrastColorSchemeApplyLegacyPropertyTest, TestSize.Level1)
+HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyNullPropertyTest, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSColorPickerRenderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
     RSProperties properties;
-    auto property = std::make_shared<RSRenderProperty<int>>(static_cast<int>(ContrastColorScheme::LIGHT), 0);
-    modifier->AttachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME, property);
+    modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::ALPHA));
+    // null property must be skipped, alpha stays default
     modifier->ApplyLegacyProperty(properties);
+    EXPECT_EQ(properties.GetAlpha(), 1.0f);
+}
 
-    ASSERT_NE(properties.GetColorPicker(), nullptr);
-    EXPECT_EQ(properties.GetColorPicker()->lastContrastColorScheme, ContrastColorScheme::LIGHT);
+/**
+ * @tc.name: ConvertDrawCmdListToSimpleNullPropertyTest
+ * @tc.desc: test ConvertDrawCmdListToSimple skips null and non-draw-cmd-list properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, ConvertDrawCmdListToSimpleNullPropertyTest, TestSize.Level1)
+{
+    auto modifier =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::TRANSITION_STYLE>>();
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, nullptr);
+    modifier->ConvertDrawCmdListToSimple();
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::ALPHA));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::BOUNDS));
+
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
+    drawCmdList->width_ = 100;
+    drawCmdList->height_ = 100;
+    auto propertyCmd = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
+    propertyCmd->GetRef() = drawCmdList;
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, propertyCmd);
+    modifier->AttachProperty(ModifierNG::RSPropertyType::FOREGROUND_STYLE, propertyCmd);
+    modifier->ConvertDrawCmdListToSimple();
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::FOREGROUND_STYLE));
 }
 
 /**

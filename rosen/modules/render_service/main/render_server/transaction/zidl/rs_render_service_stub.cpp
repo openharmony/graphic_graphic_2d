@@ -41,6 +41,10 @@ int RSRenderServiceStub::OnRemoteRequest(
         RS_LOGE("RSRenderServiceStub::OnRemoteRequest Read interfaceToken failed!");
         return ERR_INVALID_STATE;
     }
+    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+        RS_LOGE("RSRenderServiceStub::OnRemoteRequest no permission code:%{public}u", code);
+        return ERR_INVALID_STATE;
+    }
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     auto accessCount = securityUtils_.GetCodeAccessCounter(code);
     if (!securityManager_.IsAccessTimesRestricted(code, accessCount)) {

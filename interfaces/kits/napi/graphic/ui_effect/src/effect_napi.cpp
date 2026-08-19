@@ -577,7 +577,7 @@ bool ParseHarmoniumEffectPara(napi_env env, napi_value jsObject, HarmoniumEffect
         parseTimes++;
     }
 
-    return (parseTimes == NUM_9);
+    return (parseTimes >= NUM_8);
 }
 
 bool ParseHarmoniumSelectablePara(napi_env env, napi_value jsObject, HarmoniumEffectPara* para)
@@ -611,12 +611,14 @@ bool ParseHarmoniumSelectablePara(napi_env env, napi_value jsObject, HarmoniumEf
         parseTimes++;
     }
 
-    if (ParseJsVec3Value(env, jsObject, "posRgb", tmpVector3)) {
+    if (ParseJsVec3Value(env, jsObject, "posRGB", tmpVector3) ||
+        ParseJsVec3Value(env, jsObject, "posRgb", tmpVector3)) {
         para->SetPosRGB(tmpVector3);
         parseTimes++;
     }
 
-    if (ParseJsVec3Value(env, jsObject, "negRgb", tmpVector3)) {
+    if (ParseJsVec3Value(env, jsObject, "negRGB", tmpVector3) ||
+        ParseJsVec3Value(env, jsObject, "negRgb", tmpVector3)) {
         para->SetNegRGB(tmpVector3);
         parseTimes++;
     }

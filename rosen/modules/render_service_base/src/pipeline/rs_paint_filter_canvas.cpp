@@ -66,27 +66,27 @@ void RSPaintFilterCanvasBase::SetParallelRender(bool parallelEnable)
 
 Drawing::Matrix RSPaintFilterCanvasBase::GetTotalMatrix() const
 {
-    return canvas_->GetTotalMatrix();
+    return canvas_ ? canvas_->GetTotalMatrix() : Drawing::Matrix();
 }
 
 Drawing::Rect RSPaintFilterCanvasBase::GetLocalClipBounds() const
 {
-    return canvas_->GetLocalClipBounds();
+    return canvas_ ? canvas_->GetLocalClipBounds() : Drawing::Rect();
 }
 
 Drawing::RectI RSPaintFilterCanvasBase::GetDeviceClipBounds() const
 {
-    return canvas_->GetDeviceClipBounds();
+    return canvas_ ? canvas_->GetDeviceClipBounds() : Drawing::RectI();
 }
 
 Drawing::RectI RSPaintFilterCanvasBase::GetRoundInDeviceClipBounds() const
 {
-    return canvas_->GetRoundInDeviceClipBounds();
+    return canvas_ ? canvas_->GetRoundInDeviceClipBounds() : Drawing::RectI();
 }
 
 CM_INLINE uint32_t RSPaintFilterCanvasBase::GetSaveCount() const
 {
-    return canvas_->GetSaveCount();
+    return canvas_ ? canvas_->GetSaveCount() : 0;
 }
 
 #ifdef RS_ENABLE_GPU

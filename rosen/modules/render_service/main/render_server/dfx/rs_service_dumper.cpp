@@ -40,6 +40,7 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
+constexpr size_t MAX_NUMERIC_LENGTH = 20; // max digits for uint64_t decimal representation
 #ifdef RS_ENABLE_GPU
 static const int INT_INIT_VAL = 0;
 static const int CREAT_NUM_ONE = 1;
@@ -55,10 +56,19 @@ RSServiceDumper::RSServiceDumper(std::shared_ptr<AppExecFwk::EventHandler> mainH
 
 static bool IsNumber(const std::string& type)
 {
+    if (type.empty() || type.length() > MAX_NUMERIC_LENGTH) {
+        return false;
+    }
     auto number = static_cast<uint32_t>(std::count_if(type.begin(), type.end(), [](unsigned char c) {
         return std::isdigit(c);
     }));
     return number == type.length();
+}
+
+// dump args are ASCII; narrow each char16_t instead of using deprecated wstring_convert
+static std::string U16ToString(const std::u16string& str)
+{
+    return std::string(str.begin(), str.end());
 }
 
 #ifdef RS_ENABLE_GPU
@@ -129,8 +139,7 @@ void RSServiceDumper::RegisterRSGfxFuncs(std::shared_ptr<RSServiceDumpManager> r
                                       std::string &dumpString) -> void {
         argSets.erase(cmd);
         if (!argSets.empty()) {
-            std::string logFlag =
-                std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin());
+            std::string logFlag = U16ToString(*argSets.begin());
             if (RSLogManager::GetInstance().SetRSLogFlag(logFlag)) {
                 dumpString.append("Successed to set flag: " + logFlag + "\n");
             } else {
@@ -395,7 +404,7 @@ void RSServiceDumper::WindowHitchsDump(
         std::string layerArg;
         argSets.erase(iter);
         if (!argSets.empty()) {
-            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            layerArg = U16ToString(*argSets.begin());
         }
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {

@@ -47,6 +47,35 @@ HWTEST_F(RSIRenderServiceIpcInterfaceCodeAccessVerifierTest, IsExclusiveVerifica
 }
 
 /**
+ * @tc.name: IsExclusiveVerificationPassedRegisterConnectionTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceIpcInterfaceCodeAccessVerifierTest, IsExclusiveVerificationPassedRegisterConnectionTest,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIRenderServiceInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code =
+        static_cast<CodeUnderlyingType>(RSIRenderServiceInterfaceCode::REGISTER_RENDER_PROCESS_CONNECTION);
+    ASSERT_EQ(verifier->IsExclusiveVerificationPassed(code), true);
+}
+
+/**
+ * @tc.name: IsExclusiveVerificationPassedDefaultDenyTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceIpcInterfaceCodeAccessVerifierTest, IsExclusiveVerificationPassedDefaultDenyTest,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIRenderServiceInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = 999;
+    ASSERT_EQ(verifier->IsExclusiveVerificationPassed(code), false);
+}
+
+/**
  * @tc.name: IsAccessTimesVerificationPassedTest
  * @tc.desc: test
  * @tc.type: FUNC
