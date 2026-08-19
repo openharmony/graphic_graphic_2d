@@ -295,12 +295,20 @@ public:
         HDR_UICAPTURE,
     };
 
+    enum class DisplaySceneType {
+        MAIN_SCREEN = 0,
+        SCREEN_SHOT,
+        VIRTUAL_SCREEN,
+        OTHERS = 2048
+    };
+ 
     struct HDRProperties {
         bool isHDREnabledVirtualScreen = false;
         float hdrBrightness = 1.0f; // Default 1.0f means max available headroom
         ScreenshotType screenshotType = ScreenshotType::NON_SHOT;
         bool isEDRSurface = false;
         DisplayIntent displayIntent = DisplayIntent::CANONICAL;
+        DisplaySceneType displaySceneType = DisplaySceneType::MAIN_SCREEN;
     };
 
     enum SaveType : uint8_t {
@@ -466,6 +474,9 @@ public:
     void SetEDRSurface(bool isEDRSurface);
     bool GetHDREnabledVirtualScreen() const;
     void SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen);
+    DisplaySceneType GetDisplaySceneType() const;
+    void SetDisplaySceneType(DisplaySceneType displaySceneType);
+    void UpdateDisplaySceneType();
     void SetDisplayIntent(DisplayIntent displayIntent);
     const HDRProperties& GetHDRProperties() const;
     bool GetIsWindowFreezeCapture() const;

@@ -650,6 +650,11 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     }
 
+    RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::ColorSpaceConvertor displaySceneType:%{public}d",
+        hdrProperties.displaySceneType);
+ 
+    RSColorSpaceConvert::ConvertDisplaySceneTypeToVPE(hdrProperties.displaySceneType, parameter);
+
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
     if (colorSpaceConverterDisplay_ == nullptr) {
         RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor colorSpaceConverterDisplay_ is nullptr");
@@ -958,6 +963,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (shotType == RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT) {
         params.isTmoNitsFixed = false;
     }
+    canvas.UpdateDisplaySceneType();
     RS_LOGD_IF(DEBUG_COMPOSER, "- Fix tonemapping: %{public}d, tmoToCurSDR: %{public}d, screenId: %{public}" PRIu64 "",
         params.isTmoNitsFixed, params.isTmoToCurrentSDRNits, canvas.GetScreenId());
 

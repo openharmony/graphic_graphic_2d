@@ -145,6 +145,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         shotType == RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT ||
         shotType == RSPaintFilterCanvas::ScreenshotType::SDR_UICAPTURE;
 
+    rscanvas.UpdateDisplaySceneType();
     bool isHDRTmo = LIKELY(!rscanvas.IsOnMultipleScreen() && !isSDRCapture && rscanvas.GetHdrOn() &&
         RSSystemProperties::GetHdrImageEnabled());
     if (!RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_, targetColorSpace,
