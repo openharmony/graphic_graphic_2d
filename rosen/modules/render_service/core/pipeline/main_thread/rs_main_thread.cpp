@@ -921,6 +921,7 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
     }
 
     ClearSurfaceWatermark(pid);
+    ClearInheritedProperties(pid);
 
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
             auto &monitor = SelfDrawingNodeMonitor::GetInstance();
@@ -5470,6 +5471,13 @@ void RSMainThread::ClearSurfaceWatermark(pid_t pid)
     surfaceWatermarkHelper_.ClearSurfaceWatermark(pid, GetContext());
     SetDirtyFlag(true);
     RequestNextVSync();
+}
+
+void RSMainThread::ClearInheritedProperties(pid_t pid)
+{
+    if (context_) {
+        context_->GetMutablePersistentPropertyManager().ClearByPid(pid);
+    }
 }
 
 void RSMainThread::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,

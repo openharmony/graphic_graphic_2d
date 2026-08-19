@@ -3288,12 +3288,6 @@ void RSNode::AnimationDestroyInRenderCallback(AnimationId animationId, float fra
     animationItr->second->SetRebuildParam({fraction, isReverseCycle});
 }
 
-void RSNode::ColorPickerDestroyInRenderCallback(ContrastColorScheme lastContrastColorScheme)
-{
-    SetPropertyNG<ModifierNG::RSColorPickerModifier,
-        &ModifierNG::RSColorPickerModifier::SetColorPickerLastContrastColorScheme>(lastContrastColorScheme);
-}
-
 bool RSNode::FireColorPickerCallback(uint32_t color)
 {
     if (!colorPickerCallback_) {

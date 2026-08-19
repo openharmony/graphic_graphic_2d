@@ -17,7 +17,6 @@
 #include <parameters.h>
 
 #include "animation/rs_render_curve_animation.h"
-#include "command/rs_message_processor.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -35,6 +34,8 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_union_render_node.h"
 #include "feature/color_picker/color_pick_alt_manager.h"
+#include "feature/color_picker/rs_persistent_contrast_color_scheme.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -3711,122 +3712,226 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFPixelmapShape_CallsCalcR
 
 /**
  * @tc.name: PrepareColorPicker001
- * @tc.desc: Test PrepareColorPicker overrides darkMode when lastContrastColorScheme is LIGHT
+ * @tc.desc: Test PrepareColorPicker with LIGHT contrast color scheme from PersistentPropertyManager
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSRenderNodeTest2, PrepareColorPicker001, TestSize.Level1)
 {
-    RSRenderNode node(1);
+    auto sContext = std::make_shared<RSContext>();
+    std::weak_ptr<RSContext> weakContext = sContext;
+    auto node = std::make_shared<RSRenderNode>(1, weakContext);
 
     // Create a ColorPicker drawable
     auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
     ASSERT_NE(colorPickerDrawable, nullptr);
 
     // Set it at COLOR_PICKER slot
-    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
-    // Set lastContrastColorScheme to LIGHT
-    node.GetMutableRenderProperties().SetLastContrastColorScheme(ContrastColorScheme::LIGHT);
+    // Store LIGHT contrast color scheme property in PersistentPropertyManager
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(ContrastColorScheme::LIGHT);
+    sContext->GetMutablePersistentPropertyManager().Store(node->GetId(), contrastColorSchemeProperty);
 
     // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
     colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
 
-    // Call PrepareColorPicker with darkMode = true, should be overridden to false
-    bool needSync = node.PrepareColorPicker(true);
+    // Call PrepareColorPicker with darkMode = true, should be overridden to false (LIGHT scheme)
+    bool needSync = node->PrepareColorPicker(true);
     EXPECT_TRUE(needSync);
 }
 
 /**
  * @tc.name: PrepareColorPicker002
- * @tc.desc: Test PrepareColorPicker keeps darkMode when lastContrastColorScheme is INVALID
+ * @tc.desc: Test PrepareColorPicker with DARK contrast color scheme from PersistentPropertyManager
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSRenderNodeTest2, PrepareColorPicker002, TestSize.Level1)
 {
-    RSRenderNode node(1);
+    auto sContext = std::make_shared<RSContext>();
+    std::weak_ptr<RSContext> weakContext = sContext;
+    auto node = std::make_shared<RSRenderNode>(1, weakContext);
 
     // Create a ColorPicker drawable
     auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
     ASSERT_NE(colorPickerDrawable, nullptr);
 
     // Set it at COLOR_PICKER slot
-    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
-    // Set lastContrastColorScheme to INVALID
-    node.GetMutableRenderProperties().SetLastContrastColorScheme(ContrastColorScheme::INVALID);
+    // Store DARK contrast color scheme property in PersistentPropertyManager
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(ContrastColorScheme::DARK);
+    sContext->GetMutablePersistentPropertyManager().Store(node->GetId(), contrastColorSchemeProperty);
 
     // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
     colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
 
-    // Call PrepareColorPicker with darkMode = true, should not be overridden
-    bool needSync = node.PrepareColorPicker(true);
+    // Call PrepareColorPicker with darkMode = false, should be overridden to true (DARK scheme)
+    bool needSync = node->PrepareColorPicker(false);
     EXPECT_TRUE(needSync);
 }
 
 /**
  * @tc.name: PrepareColorPicker003
- * @tc.desc: Test PrepareColorPicker keeps darkMode when GetColorPicker returns nullptr
+ * @tc.desc: Test PrepareColorPicker with no property in PersistentPropertyManager
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSRenderNodeTest2, PrepareColorPicker003, TestSize.Level1)
 {
-    RSRenderNode node(1);
+    auto sContext = std::make_shared<RSContext>();
+    std::weak_ptr<RSContext> weakContext = sContext;
+    auto node = std::make_shared<RSRenderNode>(1, weakContext);
 
     // Create a ColorPicker drawable
     auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
     ASSERT_NE(colorPickerDrawable, nullptr);
 
     // Set it at COLOR_PICKER slot
-    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // No property stored in PersistentPropertyManager for this node
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+
+    // Call PrepareColorPicker, should use original darkMode
+    bool needSync = node->PrepareColorPicker(true);
+    EXPECT_TRUE(needSync);
+}
+
+/**
+ * @tc.name: PrepareColorPicker004
+ * @tc.desc: Test PrepareColorPicker with context nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareColorPicker004, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at COLOR_PICKER slot
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
     // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
     colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
 
-    // Call PrepareColorPicker with darkMode = true, should not be overridden
-    bool needSync = node.PrepareColorPicker(true);
+    // node has no context, context_.lock() returns nullptr
+    bool needSync = node->PrepareColorPicker(true);
     EXPECT_TRUE(needSync);
 }
 
 /**
  * @tc.name: DestroyColorPickerInRender001
- * @tc.desc: Test DestroyColorPickerInRender sends command from restored property fallback
+ * @tc.desc: Test DestroyColorPickerInRender with colorPickerDrawable nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender001, TestSize.Level1)
 {
-    RSMessageProcessor::Instance().GetAllTransactions().clear();
-    constexpr NodeId nodeId = (static_cast<NodeId>(1) << 32) | 1;
-    RSRenderNode node(nodeId);
-    node.GetMutableRenderProperties().SetLastContrastColorScheme(ContrastColorScheme::LIGHT);
+    auto sContext = std::make_shared<RSContext>();
+    std::weak_ptr<RSContext> weakContext = sContext;
+    constexpr NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId, weakContext);
 
-    node.DestroyColorPickerInRender();
+    // No color picker drawable set
+    node->DestroyColorPickerInRender();
 
-    auto transaction = RSMessageProcessor::Instance().GetTransaction(ExtractPid(nodeId));
-    ASSERT_NE(transaction, nullptr);
-    EXPECT_FALSE(transaction->IsEmpty());
-    RSMessageProcessor::Instance().GetAllTransactions().clear();
+    // Verify no property is stored in PersistentPropertyManager (early return due to INVALID)
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
+    EXPECT_EQ(property, nullptr);
 }
 
 /**
  * @tc.name: DestroyColorPickerInRender002
- * @tc.desc: Test DestroyColorPickerInRender does not send command for invalid state
+ * @tc.desc: Test DestroyColorPickerInRender with context nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender002, TestSize.Level1)
 {
-    RSMessageProcessor::Instance().GetAllTransactions().clear();
-    constexpr NodeId nodeId = (static_cast<NodeId>(1) << 32) | 2;
-    RSRenderNode node(nodeId);
-    node.GetMutableRenderProperties().SetLastContrastColorScheme(ContrastColorScheme::INVALID);
+    auto node = std::make_shared<RSRenderNode>(1);
 
-    node.DestroyColorPickerInRender();
+    // Create a ColorPicker drawable (default returns LIGHT, not INVALID)
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
 
-    EXPECT_EQ(RSMessageProcessor::Instance().GetTransaction(ExtractPid(nodeId)), nullptr);
+    // Set it at COLOR_PICKER slot
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // node has no context, context_.lock() returns nullptr
+    node->DestroyColorPickerInRender();
+
+    // Verify GetLastContrastColorScheme returns LIGHT (non-INVALID)
+    auto scheme = colorPickerDrawable->GetLastContrastColorScheme();
+    EXPECT_NE(scheme, ContrastColorScheme::INVALID);
+}
+
+/**
+ * @tc.name: DestroyColorPickerInRender003
+ * @tc.desc: Test DestroyColorPickerInRender stores LIGHT scheme in PersistentPropertyManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender003, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    std::weak_ptr<RSContext> weakContext = sContext;
+    constexpr NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId, weakContext);
+
+    // Create a ColorPicker drawable (default returns LIGHT)
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at COLOR_PICKER slot
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Call DestroyColorPickerInRender
+    node->DestroyColorPickerInRender();
+
+    // Verify property is stored in PersistentPropertyManager
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
+    ASSERT_NE(property, nullptr);
+    EXPECT_EQ(property->GetValue(), ContrastColorScheme::LIGHT);
+}
+
+/**
+ * @tc.name: DestroyColorPickerInRender004
+ * @tc.desc: Test DestroyColorPickerInRender stores DARK scheme in PersistentPropertyManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender004, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    std::weak_ptr<RSContext> weakContext = sContext;
+    constexpr NodeId nodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId, weakContext);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set system dark mode to get DARK contrast color scheme
+    colorPickerDrawable->colorPickerManager_->SetSystemDarkColorMode(true);
+
+    // Set it at COLOR_PICKER slot
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Call DestroyColorPickerInRender
+    node->DestroyColorPickerInRender();
+
+    // Verify property is stored in PersistentPropertyManager
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
+    ASSERT_NE(property, nullptr);
+    EXPECT_EQ(property->GetValue(), ContrastColorScheme::DARK);
 }
 
 /**

@@ -21,6 +21,8 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "feature/color_picker/rs_color_picker_manager.h"
 #include "feature/color_picker/rs_color_picker_utils.h"
+#include "feature/color_picker/rs_persistent_contrast_color_scheme.h"
+#include "feature/persistent_property/rs_persistent_property_manager.h"
 #include "gtest/gtest.h"
 
 #include "draw/canvas.h"
@@ -645,5 +647,100 @@ HWTEST_F(RSColorPickerUtilsTest, DirtyInSurfacesBelowChecksLowerSurfaces, TestSi
         currentSurface, lowerSurface, nullDirtySurface, nonSurface };
 
     EXPECT_TRUE(RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces));
+}
+
+/**
+ * @tc.name: RestoreContrastColorScheme001
+ * @tc.desc: Test RestoreContrastColorScheme restores LIGHT scheme
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, RestoreContrastColorScheme001, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    std::weak_ptr<RSContext> weakContext = sContext;
+    constexpr NodeId nodeId = 1;
+    RSRenderNode node(nodeId, weakContext);
+
+    // Store LIGHT contrast color scheme in PersistentPropertyManager
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(ContrastColorScheme::LIGHT);
+    sContext->GetMutablePersistentPropertyManager().Store(nodeId, contrastColorSchemeProperty);
+
+    RSColorPickerUtils::RestoreContrastColorScheme(node);
+    
+    auto colorPicker = node.GetMutableRenderProperties().GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::LIGHT);
+
+    // Verify property is cleared from PersistentPropertyManager
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
+    EXPECT_EQ(property, nullptr);
+}
+
+/**
+ * @tc.name: RestoreContrastColorScheme002
+ * @tc.desc: Test RestoreContrastColorScheme restores DARK scheme
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, RestoreContrastColorScheme002, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    std::weak_ptr<RSContext> weakContext = sContext;
+    constexpr NodeId nodeId = 2;
+    RSRenderNode node(nodeId, weakContext);
+
+    auto contrastColorSchemeProperty = std::make_shared<RSPersistentContrastColorScheme>(ContrastColorScheme::DARK);
+    sContext->GetMutablePersistentPropertyManager().Store(nodeId, contrastColorSchemeProperty);
+
+    RSColorPickerUtils::RestoreContrastColorScheme(node);
+    
+    auto colorPicker = node.GetMutableRenderProperties().GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::DARK);
+
+    auto property = sContext->GetPersistentPropertyManager().GetAs<RSPersistentContrastColorScheme>(
+        nodeId, PersistentPropertyType::CONTRAST_COLOR_SCHEME);
+    EXPECT_EQ(property, nullptr);
+}
+
+/**
+ * @tc.name: RestoreContrastColorScheme003
+ * @tc.desc: Test RestoreContrastColorScheme with no property in PersistentPropertyManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, RestoreContrastColorScheme003, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    std::weak_ptr<RSContext> weakContext = sContext;
+    constexpr NodeId nodeId = 3;
+    RSRenderNode node(nodeId, weakContext);
+
+    RSColorPickerUtils::RestoreContrastColorScheme(node);
+    
+    auto colorPicker = node.GetMutableRenderProperties().GetColorPicker();
+    if (colorPicker != nullptr) {
+        EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::INVALID);
+    } else {
+        SUCCEED();
+    }
+}
+
+/**
+ * @tc.name: RestoreContrastColorScheme004
+ * @tc.desc: Test RestoreContrastColorScheme with context nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, RestoreContrastColorScheme004, TestSize.Level1)
+{
+    RSRenderNode node(4);
+
+    RSColorPickerUtils::RestoreContrastColorScheme(node);
+    
+    auto colorPicker = node.GetMutableRenderProperties().GetColorPicker();
+    if (colorPicker != nullptr) {
+        EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::INVALID);
+    } else {
+        SUCCEED();
+    }
 }
 } // namespace OHOS::Rosen
