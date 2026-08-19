@@ -433,7 +433,8 @@ HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyNullPropertyTest, TestSize.L
  */
 HWTEST_F(RSRenderModifierNGTest, ConvertDrawCmdListToSimpleNullPropertyTest, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::TRANSITION_STYLE>>();
+    auto modifier =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::TRANSITION_STYLE>>();
     auto property = std::make_shared<RSRenderProperty<float>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
     modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, nullptr);

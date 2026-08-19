@@ -47,6 +47,7 @@ namespace Rosen {
 
 namespace {
 constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
+constexpr size_t MAX_NUMERIC_LENGTH = 20; // max digits for uint64_t decimal representation
 #ifdef RS_ENABLE_GPU
 static const int INT_INIT_VAL = 0;
 static const int CREAT_NUM_ONE = 1;
@@ -80,7 +81,6 @@ RSPipelineDumper::RSPipelineDumper(std::shared_ptr<AppExecFwk::EventHandler> mai
 
 static bool IsNumber(const std::string& type)
 {
-    constexpr size_t MAX_NUMERIC_LENGTH = 20; // max digits for uint64_t decimal representation
     if (type.empty() || type.length() > MAX_NUMERIC_LENGTH) {
         return false;
     }

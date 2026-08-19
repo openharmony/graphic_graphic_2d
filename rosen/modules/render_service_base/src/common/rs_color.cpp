@@ -429,7 +429,7 @@ void RSColor::SetColorSpace(const GraphicColorGamut colorSpace)
 
 void RSColor::MultiplyAlpha(float alpha)
 {
-    if(std::isnan(alpha)) {
+    if (std::isnan(alpha)) {
         alpha = 0.0f;
     }
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
