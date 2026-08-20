@@ -391,8 +391,10 @@ protected:
     std::unique_ptr<RSRenderGroupCacheAdapter> renderGroupCacheAdapter_ = nullptr;
 #ifdef ROSEN_OHOS
     static thread_local RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
+    static thread_local NodeId curDrawingCacheRootId_;
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
+    static NodeId curDrawingCacheRootId_;
 #endif
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
     // !variables for renderGroup
