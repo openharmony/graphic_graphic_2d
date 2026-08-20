@@ -185,7 +185,7 @@ namespace OHOS {
         };
         vsyncReceiver->SetVSyncRate(fcb, rate);
         vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
-        vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
+        vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch, FromWhom::INNER);
         vsyncReceiver->SetUiDvsyncConfig(bufferCount, compositeSceneEnable, nativeDelayEnable, rsDvsyncAnimationList);
         vsyncReceiver->RequestNextVSync(fcb);
         vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);

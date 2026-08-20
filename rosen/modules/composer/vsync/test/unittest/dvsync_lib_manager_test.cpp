@@ -83,7 +83,7 @@ HWTEST_F(DVSyncLibManagerTest, Initialize001, Function | MediumTest| Level1)
 
     DVSyncLibManagerTest::dvsyncLibManager.GetConnectionApp(vsyncConnection);
     DVSyncLibManagerTest::dvsyncLibManager.MarkRSRendering(vsyncConnection);
-    DVSyncLibManagerTest::dvsyncLibManager.SetAppDVSyncSwitch(vsyncConnection, start, isNative);
+    DVSyncLibManagerTest::dvsyncLibManager.SetAppDVSyncSwitch(vsyncConnection, start, isNative, DEFAULT_FROMWHOM);
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetUiCommandDelayTime(), 0);
     DVSyncLibManagerTest::dvsyncLibManager.UpdatePendingReferenceTime(timeStamp);
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetRealTimeOffsetOfDvsync(time, preTime), 0);
