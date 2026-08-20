@@ -41,7 +41,7 @@ static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map s
 static constexpr int ZERO = 0; // empty map size
 static constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
-static constexpr size_t MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE = 64; // screen supported refresh rates count limit
+static constexpr uint64_t MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE = 64; // screen supported refresh rates count limit
 #endif
 }
 
@@ -1381,7 +1381,7 @@ std::vector<int32_t> RSClientToServiceConnectionProxy::GetScreenSupportedRefresh
         return screenSupportedRates;
     }
     if (rateCount > MAX_SCREEN_SUPPORTED_REFRESH_RATES_SIZE) {
-        RS_LOGE("RSClientToServiceConnectionProxy::GetDescriptor() GetScreenSupportedRefreshRates "
+        RS_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedRefreshRates "
             "fail read vector, size : %{public}" PRIu64, rateCount);
         return screenSupportedRates;
     }
