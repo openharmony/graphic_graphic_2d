@@ -365,7 +365,6 @@ bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     if (!shader) {
         return false;
     }
-    RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(properties, shader, node.GetId());
     needSync_ = true;
     stagingShader_ = shader;
     stagingCornerRadius_ = node.GetRenderProperties().GetCornerRadius().x_;
