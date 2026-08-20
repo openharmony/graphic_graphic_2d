@@ -26,6 +26,7 @@ class Vector2 {
 public:
     static constexpr uint32_t V2SIZE = 2;
     static constexpr size_t DATA_SIZE = sizeof(T) * V2SIZE;
+    uint64_t reserved_ = 0;
     union {
         struct {
             T x_;
@@ -37,7 +38,7 @@ public:
     Vector2();
     Vector2(T x, T y);
     explicit Vector2(const T* v);
-    virtual ~Vector2();
+    ~Vector2();
 
     Vector2 Normalized() const;
     T Dot(const Vector2<T>& other) const;

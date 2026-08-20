@@ -169,6 +169,24 @@ public:
     RSRenderPropertyBase& operator=(const RSRenderPropertyBase&&) = delete;
     virtual ~RSRenderPropertyBase();
 
+    template<typename T>
+    std::shared_ptr<RSRenderProperty<T>> CastToPropertyOf(const char* funcName)
+    {
+        if (UNLIKELY(!CheckPropertyType(RSRenderPropertyTypeTraits<T>::type, funcName))) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<RSRenderProperty<T>>(shared_from_this());
+    }
+
+    template<typename T>
+    std::shared_ptr<RSRenderAnimatableProperty<T>> CastToAnimatablePropertyOf(const char* funcName)
+    {
+        if (UNLIKELY(!CheckPropertyType(RSRenderPropertyTypeTraits<T>::type, funcName))) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<RSRenderAnimatableProperty<T>>(shared_from_this());
+    }
+
     PropertyId GetId() const
     {
         return id_;
@@ -279,6 +297,8 @@ private:
         return true;
     }
 
+    bool CheckPropertyType(const RSPropertyType type, const char* funcName) const;
+
     friend std::shared_ptr<RSRenderPropertyBase> operator+=(
         const std::shared_ptr<RSRenderPropertyBase>& a, const std::shared_ptr<const RSRenderPropertyBase>& b);
     friend std::shared_ptr<RSRenderPropertyBase> operator-=(
@@ -308,7 +328,6 @@ private:
     friend class RSSpringModel;
     friend class RSAnimationTraceUtils;
     friend class ModifierNG::RSRenderModifier;
-    friend class RSNodeCommandHelper;
 };
 
 template<typename T>
@@ -446,8 +465,8 @@ protected:
 
     void SetValue(const std::shared_ptr<RSRenderPropertyBase>& value) override
     {
-        auto property = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(value);
-        if (property != nullptr && property->GetPropertyType() == RSRenderProperty<T>::type_) {
+        auto property = value->template CastToAnimatablePropertyOf<T>(__func__);
+        if (property != nullptr) {
             RSRenderProperty<T>::Set(property->Get());
         }
     }

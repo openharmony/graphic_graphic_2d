@@ -1444,4 +1444,36 @@ HWTEST_F(RSRenderPropertyTest, RSNGRenderShapeBaseSetOnlyValue, TestSize.Level1)
     prop->Set(testShader, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     EXPECT_EQ(prop->stagingValue_, testShader);
 }
+
+/**
+ * @tc.name: CastToPropertyOfTypeMatch001
+ * @tc.desc: CastToPropertyOf returns valid pointer when type matches, nullptr when mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, CastToPropertyOfTypeMatch001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderProperty<float>>(1.0f, id);
+    auto matched = prop->CastToPropertyOf<float>(__func__);
+    ASSERT_NE(matched, nullptr);
+    EXPECT_EQ(matched->Get(), 1.0f);
+
+    auto mismatched = prop->CastToPropertyOf<Color>(__func__);
+    EXPECT_EQ(mismatched, nullptr);
+}
+
+/**
+ * @tc.name: CastToAnimatablePropertyOfTypeMatch001
+ * @tc.desc: CastToAnimatablePropertyOfType returns valid pointer when type matches, nullptr when mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPropertyTest, CastToAnimatablePropertyOfTypeMatch001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, id);
+    auto matched = prop->CastToAnimatablePropertyOf<float>(__func__);
+    ASSERT_NE(matched, nullptr);
+    EXPECT_EQ(matched->Get(), 1.0f);
+
+    auto mismatched = prop->CastToAnimatablePropertyOf<Vector4f>(__func__);
+    EXPECT_EQ(mismatched, nullptr);
+}
 } // namespace OHOS::Rosen

@@ -125,7 +125,6 @@ public:
     RectF GetDstRect();
     void SetFrameRect(RectF frameRect);
     void SetFitMatrix(const Drawing::Matrix& matrix);
-    Drawing::Matrix GetFitMatrix() const;
     std::shared_ptr<Drawing::Image> GetImage() const;
     void SetOrientationFit(int orientationFitNum);
     OrientationFit GetOrientationFit() const;
