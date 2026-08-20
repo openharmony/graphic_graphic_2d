@@ -150,9 +150,11 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
 {
     RS_TRACE_FUNC();
     if (mainTask_) {
-        mainTask_([this]() {
-            ReleaseNodeMemNotOnTree();
-        }, DELETE_NODE_OFF_TREE_TASK, 0, AppExecFwk::EventQueue::Priority::HIGH);
+        if (CheckHasNodeNotOnTree()) {
+            mainTask_([this]() {
+                ReleaseNodeMemNotOnTree();
+            }, DELETE_NODE_OFF_TREE_TASK, 0, AppExecFwk::EventQueue::Priority::HIGH);
+        }
     } else {
         ReleaseNodeMemNotOnTree();
     }
@@ -509,5 +511,27 @@ void RSRenderNodeGC::ReleaseNodeMemNotOnTree()
         }
     }
 }
+
+bool RSRenderNodeGC::CheckHasNodeNotOnTree()
+{
+    constexpr size_t MAX_CHECK_SIZE = 50;
+    if (!nodeNotOnTreeMutex_.try_lock()) {
+        return true;
+    }
+    if (backgroundPidSet_.size() > MAX_CHECK_SIZE) {
+        nodeNotOnTreeMutex_.unlock();
+        return true;
+    }
+    for (auto pidIt = backgroundPidSet_.begin(); pidIt != backgroundPidSet_.end(); pidIt++) {
+        auto mapIt = notOnTreeNodeMap_.find(*pidIt);
+        if (mapIt != notOnTreeNodeMap_.end()) {
+            nodeNotOnTreeMutex_.unlock();
+            return true;
+        }
+    }
+    nodeNotOnTreeMutex_.unlock();
+    return false;
+}
+
 } // namespace Rosen
 } // namespace OHOS
