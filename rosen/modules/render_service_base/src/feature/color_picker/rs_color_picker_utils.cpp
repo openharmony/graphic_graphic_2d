@@ -398,6 +398,15 @@ bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRec
     return dirtyRect.Intersect(GetColorPickerRect(filterNode));
 }
 
+bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRect,
+    const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& drawable)
+{
+    if (!drawable || drawable->GetState() != DrawableV2::ColorPickerState::PREPARING) {
+        return false;
+    }
+    return dirtyRect.Intersect(GetColorPickerRect(filterNode));
+}
+
 bool DirtyInSurfacesBelow(const RSRenderNode& filterNode, const std::vector<std::shared_ptr<RSRenderNode>>& surfaces)
 {
     if (!InPrepareState(filterNode)) {
