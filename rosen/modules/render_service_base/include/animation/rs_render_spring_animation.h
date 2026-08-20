@@ -44,7 +44,7 @@ public:
     [[nodiscard]] static RSRenderSpringAnimation* Unmarshalling(Parcel& parcel);
 #endif
 protected:
-    void OnAnimate(float fraction) override;
+    bool OnAnimate(float fraction) override;
 
     void RebuildPropertyValue(float fraction) override;
 
@@ -52,6 +52,7 @@ protected:
     void OnDetach() override;
     void OnInitialize(int64_t time, bool isCustom = false) override;
     void InitValueEstimator() override;
+    void ProcessOnRepeatFinish() override;
 
 private:
 #ifdef ROSEN_OHOS
@@ -69,6 +70,11 @@ private:
     std::shared_ptr<RSRenderPropertyBase> CalculateVelocity(float time) const;
     bool GetNeedLogicallyFinishCallback() const;
     void CallLogicallyFinishCallback() const;
+    void UpdateSpringConvergeParameters();
+    bool IsConvergeCloseToTarget() const;
+    bool IsConvergeEnd() const;
+    void CheckStartConverge();
+    bool CheckConvergeStatus(float time);
 
     // spring model related
     // oscillation period in seconds
@@ -90,7 +96,15 @@ private:
     // used to determine whether the animation is near finish
     float zeroThreshold_ = 0.0f;
 
+    bool isCustom_ = false;
+
+    // converge related
     std::optional<ConvergeParams> convergeParams_ { std::nullopt };
+    // the general switch of the convergence solution.
+    bool isConverging_ = false;
+    float lastConvergeTime_ = 0.0f;
+    // used to calculate the termination threshold in convergence mode.
+    std::shared_ptr<RSRenderPropertyBase> endThreshold_;
 
     friend class RSSpringAnimation;
 };

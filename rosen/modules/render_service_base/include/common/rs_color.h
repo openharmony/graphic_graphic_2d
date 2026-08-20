@@ -76,11 +76,15 @@ public:
         return !operator==(rhs);
     }
     bool IsNearEqual(const RSColor& other, int16_t threshold = std::numeric_limits<int16_t>::epsilon()) const;
+    bool IsAbsNearEqual(const RSColor& target, const RSColor& threshold) const;
+    void TakeAbsMaxFrom(const RSColor& target);
     RSColor operator+(const RSColor& rhs) const;
     RSColor operator-(const RSColor& rhs) const;
     RSColor operator*(float scale) const;
+    RSColor operator*(const RSColor& other) const;
     RSColor operator/(float scale) const;
     RSColor& operator*=(float scale);
+    RSColor& operator*=(const RSColor& other);
     uint32_t AsRgbaInt() const;
     static RSColor FromRgbaInt(uint32_t rgba);
     uint32_t AsArgbInt() const;

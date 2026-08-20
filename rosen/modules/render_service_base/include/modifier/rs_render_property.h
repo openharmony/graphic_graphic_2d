@@ -291,6 +291,20 @@ protected:
         return true;
     }
 
+    virtual bool IsAbsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& target,
+        const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+    {
+        return false;
+    }
+
+    virtual void TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target) {}
+
+    virtual bool IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+        const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+    {
+        return false;
+    }
+
     PropertyId id_;
     // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderEffectBase>>::Set
     // refactor this to remove the node_ member
@@ -362,6 +376,8 @@ private:
     friend class RSRenderKeyframeAnimation;
     template<typename T>
     friend class RSSpringModel;
+    template<typename T>
+    friend class RSSpringValueEstimator;
     friend class RSAnimationTraceUtils;
     friend class ModifierNG::RSRenderModifier;
 };
@@ -537,6 +553,39 @@ protected:
         return IsEqual(value);
     }
 
+    /**
+     * @brief Determines whether the distance between the source and the target is within the threshold.
+     * True is returned only when the condition is met in each dimension.
+     *
+     * @param target The target object.
+     * @param threshold The threshold object.
+     * @return Whether the distance between the object and the target is within the threshold in each dimension.
+     */
+    bool IsAbsNearEqual(const std::shared_ptr<RSRenderPropertyBase>& target,
+        const std::shared_ptr<RSRenderPropertyBase>& threshold) const override
+    {
+        return IsEqual(target);
+    }
+
+    void TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target) override {}
+
+    /**
+     * @brief Whether the distance between the object and the end reaches the threshold of the total distance.
+     * True is returned only when the condition is met in each dimension.
+     *
+     * @param start The start object.
+     * @param end The end object.
+     * @param threshold Threshold for determining whether the distance is close to end, multiplied by the total distance
+     * between end and start.
+     * @return Whether the distance between the object and the end is within the threshold of the total distance in each
+     * dimension.
+     */
+    bool IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+        const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const override
+    {
+        return IsEqual(end);
+    }
+
     std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type) override;
     std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator() override;
 
@@ -636,6 +685,81 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
 template<>
 bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+
+template<>
+bool RSRenderAnimatableProperty<float>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector4f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Quaternion>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector2f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector3f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Matrix3f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Color>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector4<Color>>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+template<>
+bool RSRenderAnimatableProperty<RRect>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const;
+
+template<>
+void RSRenderAnimatableProperty<float>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Vector4f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Quaternion>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Vector2f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Vector3f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Matrix3f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Color>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<Vector4<Color>>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+template<>
+void RSRenderAnimatableProperty<RRect>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target);
+
+template<>
+bool RSRenderAnimatableProperty<float>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector4f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Quaternion>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector2f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector3f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Matrix3f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Color>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<Vector4<Color>>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
+template<>
+bool RSRenderAnimatableProperty<RRect>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const;
 
 template<>
 size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;

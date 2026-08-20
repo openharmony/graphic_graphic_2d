@@ -43,12 +43,13 @@ public:
 protected:
     void OnSetFraction(float fraction) override;
     void UpdateFractionAfterContinue() override;
-    void OnAnimate(float fraction) override;
+    bool OnAnimate(float fraction) override;
 
     void RebuildPropertyValue(float fraction) override;
 
     void InitValueEstimator() override;
     void OnInitialize(int64_t time, bool isCustom = false) override;
+    void ProcessOnRepeatFinish() override;
 
 private:
 #ifdef ROSEN_OHOS
@@ -57,10 +58,17 @@ private:
 #endif
     bool ValidateSpringParams() const;
     RSRenderInterpolatingSpringAnimation() = default;
+    bool IsStartConverging(float displacement) const;
+    bool IsConvergeCloseToTarget(float displacement) const;
+    bool IsConvergeEnd(float displacement) const;
+    void CheckStartConverge();
+    bool CheckConvergeStatus(float displacement, float time);
+    float GetSpringVelocity(float time) const;
     std::shared_ptr<RSRenderPropertyBase> CalculateVelocity(float time) const;
     bool GetNeedLogicallyFinishCallback() const;
     void CallLogicallyFinishCallback() const;
     float CalculateTimeFraction(float targetFraction);
+    void UpdateSpringConvergeParameters();
 
     std::shared_ptr<RSRenderPropertyBase> startValue_;
     std::shared_ptr<RSRenderPropertyBase> endValue_;
@@ -70,7 +78,14 @@ private:
     // used to determine whether the animation is near finish
     float zeroThreshold_ = 0.0f;
 
+    float prevMappedTime_ = 0.0f;
+
+    // converge related
     std::optional<ConvergeParams> convergeParams_ { std::nullopt };
+    // the general switch of the convergence solution.
+    bool isConverging_ = false;
+    float lastConvergeTime_ = 0.0f;
+    float endThreshold_ = 0.0f;
 
     friend class RSInterpolatingSpringAnimation;
 };

@@ -164,7 +164,7 @@ protected:
 
     virtual void OnInitialize(int64_t time, bool isCustom = false) { needInitialize_ = false; }
 
-    virtual void OnAnimate(float fraction) {}
+    virtual bool OnAnimate(float fraction) { return false; }
 
     virtual void DumpFraction(float fraction, int64_t time) {}
 
@@ -175,6 +175,8 @@ protected:
     virtual void UpdateAnimateVelocity(double frameInterval) {}
 
     virtual void ProcessAnimateVelocityUnderAngleRotation(double frameInterval) {}
+
+    virtual void ProcessOnRepeatFinish();
 
     void FinishOnCurrentPosition();
 
@@ -193,8 +195,6 @@ private:
     void ProcessFillModeOnStart(float startFraction);
 
     void ProcessFillModeOnFinish(float endFraction);
-
-    void ProcessOnRepeatFinish();
 
     void AnimateOnGroupWaiting(int64_t time, bool isCustom);
 

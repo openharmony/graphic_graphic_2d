@@ -121,8 +121,9 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateStepsCurve(int32_t steps, S
     return { std::make_shared<RSStepsInterpolator>(steps, position) };
 }
 
-RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpring(float response, float dampingRatio, float blendDuration,
-    float minimumAmplitudeRatio, std::optional<SpringParams::ConvergeParams> convergeParams)
+RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpring(
+    float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio,
+    std::optional<SpringParams::ConvergeParams> convergeParams)
 {
     if (!std::isfinite(response) || !std::isfinite(dampingRatio) || !std::isfinite(blendDuration) ||
         !std::isfinite(minimumAmplitudeRatio)) {

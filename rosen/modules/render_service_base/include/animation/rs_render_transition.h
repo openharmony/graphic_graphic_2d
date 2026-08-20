@@ -48,7 +48,7 @@ public:
 
 protected:
     bool ParseParam(Parcel& parcel) override;
-    void OnAnimate(float fraction) override;
+    bool OnAnimate(float fraction) override;
     void OnAttach() override;
     void OnDetach() override;
 

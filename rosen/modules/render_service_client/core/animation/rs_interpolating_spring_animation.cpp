@@ -135,8 +135,8 @@ std::shared_ptr<RSRenderInterpolatingSpringAnimation> RSInterpolatingSpringAnima
     if (const auto& springParams = timingCurve_.springParams_) {
         std::optional<ConvergeParams> convergeParams;
         if (springParams->convergeParams_.has_value()) {
-            convergeParams = ConvergeParams { springParams->convergeParams_->convergeResponseFactor_,
-                springParams->convergeParams_->convergeProgressThreshold_ };
+            convergeParams = ConvergeParams { springParams->convergeParams_->convergeProgressThreshold_,
+                springParams->convergeParams_->convergeResponseFactor_ };
         }
         animation->SetSpringParameters(springParams->response_, springParams->dampingRatio_,
             springParams->initialVelocity_, springParams->minimumAmplitudeRatio_, convergeParams);

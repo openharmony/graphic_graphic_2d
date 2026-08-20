@@ -28,6 +28,62 @@ namespace {
 constexpr float FLOAT_NEAR_ZERO_THRESHOLD = 1e-6f;
 constexpr double DOUBLE_NEAR_ZERO_THRESHOLD = 1e-6;
 constexpr float SPRING_MIN_THRESHOLD = 5e-5f;
+
+bool WillOvershootImpl(float response, float dampingRatio, double initialOffset, double initialVelocity)
+{
+    // The underdamped model does not have the overshoot state.
+    if (ROSEN_LNE(dampingRatio, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return false;
+    }
+    // Determine whether the future speed direction will change by calculating the time of the extreme point.
+    // For details, see EstimateDurationForCriticalDampedModel and EstimateDurationForOverDampedModel.
+    double naturalAngularVelocity = 2.0 * FLOAT_PI / response;
+    if (ROSEN_EQ(dampingRatio, 1.0f)) {
+        double tmpCoeff = initialVelocity + naturalAngularVelocity * initialOffset;
+        if (ROSEN_EQ(tmpCoeff, 0.0, DOUBLE_NEAR_ZERO_THRESHOLD)) {
+            return false;
+        }
+        if (ROSEN_EQ(naturalAngularVelocity * tmpCoeff, 0.0)) {
+            return false;
+        }
+        float extremumTime = initialVelocity / (naturalAngularVelocity * tmpCoeff);
+        return extremumTime > 0.0f;
+    } else {
+        double tmpCoeffE = 2.0 * naturalAngularVelocity * sqrt(pow(dampingRatio, 2) - 1.0);
+        if (ROSEN_EQ(tmpCoeffE, 0.0)) {
+            return false;
+        }
+        double tmpCoeffA = dampingRatio + sqrt(pow(dampingRatio, 2) - 1.0);
+        double tmpCoeffC = initialOffset * naturalAngularVelocity + initialVelocity * tmpCoeffA;
+        if (ROSEN_EQ(tmpCoeffC, 0.0, DOUBLE_NEAR_ZERO_THRESHOLD)) {
+            return false;
+        }
+        double tmpCoeffB = dampingRatio - sqrt(pow(dampingRatio, 2) - 1.0);
+        double tmpCoeffD = initialOffset * naturalAngularVelocity + initialVelocity * tmpCoeffB;
+        if (ROSEN_EQ(tmpCoeffD, 0.0, DOUBLE_NEAR_ZERO_THRESHOLD)) {
+            return false;
+        }
+        double tmpCoeffG = tmpCoeffC / tmpCoeffD;
+        if (tmpCoeffG <= DOUBLE_NEAR_ZERO_THRESHOLD) {
+            return false;
+        }
+        double tmpCoeffF = 1.0 / tmpCoeffE;
+        float extremumTime = tmpCoeffF * log(tmpCoeffG);
+        return extremumTime > 0.0f;
+    }
+}
+
+template<size_t N>
+bool WillOvershootByData(float response, float dampingRatio, const float* offsetData, const float* velocityData)
+{
+    // Each dimension must not overshoot to be considered non-overshoot.
+    for (size_t i = 0; i < N; ++i) {
+        if (WillOvershootImpl(response, dampingRatio, offsetData[i], velocityData[i])) {
+            return true;
+        }
+    }
+    return false;
+}
 } // namespace
 
 // Explicit Instantiation
@@ -318,6 +374,337 @@ float RSSpringModel<float>::EstimateDurationForOverDampedModel() const
     }
     return estimatedDuration;
 }
+
+template<>
+bool RSSpringModel<float>::WillOvershootInner(
+    float response, float dampingRatio, const float& initialOffset, const float& initialVelocity)
+{
+    if (response <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized response.", __func__);
+        return false;
+    }
+    return WillOvershootImpl(response, dampingRatio, initialOffset, initialVelocity);
+}
+
+template<>
+bool RSSpringModel<Vector2f>::WillOvershootInner(
+    float response, float dampingRatio, const Vector2f& initialOffset, const Vector2f& initialVelocity)
+{
+    if (response <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized response.", __func__);
+        return false;
+    }
+    return WillOvershootByData<Vector2f::V2SIZE>(response, dampingRatio, initialOffset.data_, initialVelocity.data_);
+}
+
+template<>
+bool RSSpringModel<Vector3f>::WillOvershootInner(
+    float response, float dampingRatio, const Vector3f& initialOffset, const Vector3f& initialVelocity)
+{
+    if (response <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized response.", __func__);
+        return false;
+    }
+    return WillOvershootByData<Vector3f::V3SIZE>(response, dampingRatio, initialOffset.data_, initialVelocity.data_);
+}
+
+template<>
+bool RSSpringModel<Vector4f>::WillOvershootInner(
+    float response, float dampingRatio, const Vector4f& initialOffset, const Vector4f& initialVelocity)
+{
+    if (response <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized response.", __func__);
+        return false;
+    }
+    return WillOvershootByData<Vector4f::V4SIZE>(response, dampingRatio, initialOffset.data_, initialVelocity.data_);
+}
+
+template<>
+bool RSSpringModel<Quaternion>::WillOvershootInner(
+    float response, float dampingRatio, const Quaternion& initialOffset, const Quaternion& initialVelocity)
+{
+    if (response <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized response.", __func__);
+        return false;
+    }
+    return WillOvershootByData<Quaternion::V4SIZE>(response, dampingRatio, initialOffset.data_, initialVelocity.data_);
+}
+
+template<>
+bool RSSpringModel<Matrix3f>::WillOvershootInner(
+    float response, float dampingRatio, const Matrix3f& initialOffset, const Matrix3f& initialVelocity)
+{
+    if (response <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized response.", __func__);
+        return false;
+    }
+    return WillOvershootByData<Matrix3f::MATRIX3_SIZE>(
+        response, dampingRatio, initialOffset.GetConstData(), initialVelocity.GetConstData());
+}
+
+template<>
+bool RSSpringModel<Color>::WillOvershootInner(
+    float response, float dampingRatio, const Color& initialOffset, const Color& initialVelocity)
+{
+    if (response <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized response.", __func__);
+        return false;
+    }
+    if (WillOvershootImpl(response, dampingRatio, initialOffset.GetAlpha(), initialVelocity.GetAlpha())) {
+        return true;
+    }
+    if (WillOvershootImpl(response, dampingRatio, initialOffset.GetBlue(), initialVelocity.GetBlue())) {
+        return true;
+    }
+    if (WillOvershootImpl(response, dampingRatio, initialOffset.GetGreen(), initialVelocity.GetGreen())) {
+        return true;
+    }
+    if (WillOvershootImpl(response, dampingRatio, initialOffset.GetRed(), initialVelocity.GetRed())) {
+        return true;
+    }
+    return false;
+}
+
+template<>
+bool RSSpringModel<Vector4<Color>>::WillOvershootInner(
+    float response, float dampingRatio, const Vector4<Color>& initialOffset, const Vector4<Color>& initialVelocity)
+{
+    if (response <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized response.", __func__);
+        return false;
+    }
+    for (uint32_t i = 0; i < Vector4<Color>::V4SIZE; ++i) {
+        const auto& offset = initialOffset.data_[i];
+        const auto& velocity = initialVelocity.data_[i];
+        if (WillOvershootImpl(response, dampingRatio, offset.GetAlpha(), velocity.GetAlpha())) {
+            return true;
+        }
+        if (WillOvershootImpl(response, dampingRatio, offset.GetBlue(), velocity.GetBlue())) {
+            return true;
+        }
+        if (WillOvershootImpl(response, dampingRatio, offset.GetGreen(), velocity.GetGreen())) {
+            return true;
+        }
+        if (WillOvershootImpl(response, dampingRatio, offset.GetRed(), velocity.GetRed())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<>
+bool RSSpringModel<RRect>::WillOvershootInner(
+    float response, float dampingRatio, const RRect& initialOffset, const RRect& initialVelocity)
+{
+    if (response <= 0.0f) {
+        ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized response.", __func__);
+        return false;
+    }
+    if (WillOvershootByData<4>(response, dampingRatio, initialOffset.rect_.data_, initialVelocity.rect_.data_)) {
+        return true;
+    }
+    for (uint32_t i = 0; i < 4; ++i) {
+        if (WillOvershootByData<Vector2f::V2SIZE>(
+                response, dampingRatio, initialOffset.radius_[i].data_, initialVelocity.radius_[i].data_)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<>
+float RSSpringModel<float>::Sqrt(float value)
+{
+    return sqrt(std::fabs(value));
+}
+
+template<>
+Vector2f RSSpringModel<Vector2f>::Sqrt(Vector2f value)
+{
+    return Vector2f(sqrt(std::fabs(value.x_)), sqrt(std::fabs(value.y_)));
+}
+
+template<>
+Vector3f RSSpringModel<Vector3f>::Sqrt(Vector3f value)
+{
+    return Vector3f(sqrt(std::fabs(value.x_)), sqrt(std::fabs(value.y_)), sqrt(std::fabs(value.z_)));
+}
+
+template<>
+Vector4f RSSpringModel<Vector4f>::Sqrt(Vector4f value)
+{
+    return Vector4f(
+        sqrt(std::fabs(value.x_)), sqrt(std::fabs(value.y_)), sqrt(std::fabs(value.z_)), sqrt(std::fabs(value.w_)));
+}
+
+template<>
+Quaternion RSSpringModel<Quaternion>::Sqrt(Quaternion value)
+{
+    return Quaternion(
+        sqrt(std::fabs(value.x_)), sqrt(std::fabs(value.y_)), sqrt(std::fabs(value.z_)), sqrt(std::fabs(value.w_)));
+}
+
+template<>
+Matrix3f RSSpringModel<Matrix3f>::Sqrt(Matrix3f value)
+{
+    const float* data = value.GetConstData();
+    return Matrix3f(sqrt(std::fabs(data[0])), sqrt(std::fabs(data[1])), sqrt(std::fabs(data[2])),
+        sqrt(std::fabs(data[3])), sqrt(std::fabs(data[4])), sqrt(std::fabs(data[5])),
+        sqrt(std::fabs(data[6])), sqrt(std::fabs(data[7])), sqrt(std::fabs(data[8])));
+}
+
+template<>
+Color RSSpringModel<Color>::Sqrt(Color value)
+{
+    return Color(static_cast<int16_t>(sqrt(std::fabs(value.GetRed()))),
+        static_cast<int16_t>(sqrt(std::fabs(value.GetGreen()))),
+        static_cast<int16_t>(sqrt(std::fabs(value.GetBlue()))),
+        static_cast<int16_t>(sqrt(std::fabs(value.GetAlpha()))));
+}
+
+template<>
+Vector4<Color> RSSpringModel<Vector4<Color>>::Sqrt(Vector4<Color> value)
+{
+    return Vector4<Color>(
+        Color(static_cast<int16_t>(sqrt(std::fabs(value.data_[0].GetRed()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[0].GetGreen()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[0].GetBlue()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[0].GetAlpha())))),
+        Color(static_cast<int16_t>(sqrt(std::fabs(value.data_[1].GetRed()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[1].GetGreen()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[1].GetBlue()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[1].GetAlpha())))),
+        Color(static_cast<int16_t>(sqrt(std::fabs(value.data_[2].GetRed()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[2].GetGreen()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[2].GetBlue()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[2].GetAlpha())))),
+        Color(static_cast<int16_t>(sqrt(std::fabs(value.data_[3].GetRed()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[3].GetGreen()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[3].GetBlue()))),
+            static_cast<int16_t>(sqrt(std::fabs(value.data_[3].GetAlpha())))));
+}
+
+template<>
+RRect RSSpringModel<RRect>::Sqrt(RRect value)
+{
+    RRect result;
+    for (int i = 0; i < 4; ++i) {
+        result.rect_.data_[i] = sqrt(std::fabs(value.rect_.data_[i]));
+    }
+    for (int i = 0; i < 4; ++i) {
+        result.radius_[i] = Vector2f(sqrt(std::fabs(value.radius_[i].x_)), sqrt(std::fabs(value.radius_[i].y_)));
+    }
+    return result;
+}
+
+template<>
+float RSSpringModel<float>::GetFrameThreshold(double time) const
+{
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return CalculateDisplacement(time);
+    }
+    auto squareInitialOffset = initialOffset_ * initialOffset_;
+    auto squareCoeffScale = coeffScale_ * coeffScale_;
+    double coeffDecay = exp(coeffDecay_ * time);
+    return Sqrt(squareInitialOffset + squareCoeffScale) * coeffDecay;
+}
+
+template<>
+Vector2f RSSpringModel<Vector2f>::GetFrameThreshold(double time) const
+{
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return CalculateDisplacement(time);
+    }
+    auto squareInitialOffset = initialOffset_ * initialOffset_;
+    auto squareCoeffScale = coeffScale_ * coeffScale_;
+    double coeffDecay = exp(coeffDecay_ * time);
+    return Sqrt(squareInitialOffset + squareCoeffScale) * coeffDecay;
+}
+
+template<>
+Vector3f RSSpringModel<Vector3f>::GetFrameThreshold(double time) const
+{
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return CalculateDisplacement(time);
+    }
+    auto squareInitialOffset = initialOffset_ * initialOffset_;
+    auto squareCoeffScale = coeffScale_ * coeffScale_;
+    double coeffDecay = exp(coeffDecay_ * time);
+    return Sqrt(squareInitialOffset + squareCoeffScale) * coeffDecay;
+}
+
+template<>
+Vector4f RSSpringModel<Vector4f>::GetFrameThreshold(double time) const
+{
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return CalculateDisplacement(time);
+    }
+    auto squareInitialOffset = initialOffset_ * initialOffset_;
+    auto squareCoeffScale = coeffScale_ * coeffScale_;
+    double coeffDecay = exp(coeffDecay_ * time);
+    return Sqrt(squareInitialOffset + squareCoeffScale) * coeffDecay;
+}
+
+template<>
+Quaternion RSSpringModel<Quaternion>::GetFrameThreshold(double time) const
+{
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return CalculateDisplacement(time);
+    }
+    auto squareInitialOffset = initialOffset_ * initialOffset_;
+    auto squareCoeffScale = coeffScale_ * coeffScale_;
+    double coeffDecay = exp(coeffDecay_ * time);
+    return Sqrt(squareInitialOffset + squareCoeffScale) * coeffDecay;
+}
+
+template<>
+Matrix3f RSSpringModel<Matrix3f>::GetFrameThreshold(double time) const
+{
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return CalculateDisplacement(time);
+    }
+    auto squareInitialOffset = initialOffset_ * initialOffset_;
+    auto squareCoeffScale = coeffScale_ * coeffScale_;
+    double coeffDecay = exp(coeffDecay_ * time);
+    return Sqrt(squareInitialOffset + squareCoeffScale) * coeffDecay;
+}
+
+template<>
+Color RSSpringModel<Color>::GetFrameThreshold(double time) const
+{
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return CalculateDisplacement(time);
+    }
+    auto squareInitialOffset = initialOffset_ * initialOffset_;
+    auto squareCoeffScale = coeffScale_ * coeffScale_;
+    double coeffDecay = exp(coeffDecay_ * time);
+    return Sqrt(squareInitialOffset + squareCoeffScale) * coeffDecay;
+}
+
+template<>
+Vector4<Color> RSSpringModel<Vector4<Color>>::GetFrameThreshold(double time) const
+{
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return CalculateDisplacement(time);
+    }
+    auto squareInitialOffset = initialOffset_ * initialOffset_;
+    auto squareCoeffScale = coeffScale_ * coeffScale_;
+    double coeffDecay = exp(coeffDecay_ * time);
+    return Sqrt(squareInitialOffset + squareCoeffScale) * coeffDecay;
+}
+
+template<>
+RRect RSSpringModel<RRect>::GetFrameThreshold(double time) const
+{
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return CalculateDisplacement(time);
+    }
+    auto squareInitialOffset = initialOffset_ * initialOffset_;
+    auto squareCoeffScale = coeffScale_ * coeffScale_;
+    double coeffDecay = exp(coeffDecay_ * time);
+    return Sqrt(squareInitialOffset + squareCoeffScale) * coeffDecay;
+}
+
 template<>
 float RSSpringModel<float>::toFloat(float value)
 {
