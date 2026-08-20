@@ -4912,22 +4912,69 @@ HWTEST_F(RSNodeTest, SetIsCrossNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTextureExport
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.name: SetTextureExportTest001
+ * @tc.desc: Branches: isTextureExportNode==isTextureExportNode_ true (early return);
+ *           isTextureExportNode!=isTextureExportNode_ false (continue);
+ *           !IsUniRenderEnabled() true (early return after setting flag)
+ * @tc.type: FUNC
  */
-HWTEST_F(RSNodeTest, SetTextureExport, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetTextureExportTest001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->isTextureExportNode_ = true;
     rsNode->SetTextureExport(true);
     ASSERT_TRUE(rsNode->IsTextureExportNode());
-
     rsNode->SetTextureExport(false);
-    ASSERT_EQ(rsNode->IsTextureExportNode(), false);
+    ASSERT_FALSE(rsNode->IsTextureExportNode());
+}
 
+/**
+ * @tc.name: SetTextureExportTest002
+ * @tc.desc: Branches: exportTypeChangedCallback_ set (callback invoked);
+ *           exportTypeChangedCallback_ null (callback skipped);
+ *           GetNodeState()==INACTIVE (RebuildTree, return)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetTextureExportTest002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->InitUniRenderEnabled();
+    bool callbackCalled = false;
+    rsNode->SetExportTypeChangedCallback([&callbackCalled](bool) { callbackCalled = true; });
+    rsNode->nodeState_ = RSNodeState::INACTIVE;
+    rsNode->SetTextureExport(true);
+    ASSERT_TRUE(callbackCalled);
+    ASSERT_TRUE(rsNode->IsTextureExportNode());
+    ASSERT_EQ(rsNode->GetNodeState(), RSNodeState::INACTIVE);
+    rsNode->exportTypeChangedCallback_ = nullptr;
+    rsNode->isTextureExportNode_ = false;
+    rsNode->nodeState_ = RSNodeState::ACTIVE;
+    rsNode->SetTextureExport(true);
+    ASSERT_TRUE(rsNode->IsTextureExportNode());
+}
+
+/**
+ * @tc.name: SetTextureExportTest003
+ * @tc.desc: Branches: create render node condition true (CreateRenderNodeForTextureExportSwitch);
+ *           create render node condition false (skip);
+ *           !isTextureExportNode_ true (SetUIContextToken called)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetTextureExportTest003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->InitUniRenderEnabled();
+    rsNode->hasCreateRenderNodeInRT_ = false;
+    rsNode->SetTextureExport(true);
+    ASSERT_TRUE(rsNode->hasCreateRenderNodeInRT_);
+    ASSERT_TRUE(rsNode->IsTextureExportNode());
     rsNode->isTextureExportNode_ = true;
+    rsNode->hasCreateRenderNodeInRS_ = true;
     rsNode->SetTextureExport(false);
-    EXPECT_TRUE(rsNode->children_.empty());
+    ASSERT_FALSE(rsNode->IsTextureExportNode());
 }
 
 /**
@@ -9282,29 +9329,6 @@ HWTEST_F(RSNodeTest, HasCreateRenderNodeInRS_DefaultTrue, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     ASSERT_NE(rsNode, nullptr);
     EXPECT_TRUE(rsNode->HasCreateRenderNodeInRS());
-}
-
-/**
- * @tc.name: SetTextureExport_BasicFlow
- * @tc.desc: Test SetTextureExport toggles texture export flag without crashing.
- * @tc.type: FUNC
- * @tc.require: issues30915
- */
-HWTEST_F(RSNodeTest, SetTextureExport_BasicFlow, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-    EXPECT_FALSE(rsNode->IsTextureExportNode());
-
-    rsNode->SetTextureExport(true);
-    EXPECT_TRUE(rsNode->IsTextureExportNode());
-
-    // Duplicate call with the same value should be a no-op.
-    rsNode->SetTextureExport(true);
-    EXPECT_TRUE(rsNode->IsTextureExportNode());
-
-    rsNode->SetTextureExport(false);
-    EXPECT_FALSE(rsNode->IsTextureExportNode());
 }
 
 } // namespace OHOS::Rosen
