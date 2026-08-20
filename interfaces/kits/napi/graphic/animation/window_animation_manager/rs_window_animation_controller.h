@@ -32,7 +32,7 @@ namespace Rosen {
 class RSWindowAnimationController : public RSWindowAnimationStub {
 public:
     explicit RSWindowAnimationController(napi_env env);
-    virtual ~RSWindowAnimationController() = default;
+    virtual ~RSWindowAnimationController();
 
     void SetJsController(napi_value jsController);
 
@@ -89,6 +89,8 @@ private:
     void HandleOnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget);
 
     void CallJsFunction(const std::string& methodName, napi_value const *argv, size_t argc);
+
+    static void EnvCleanupHook(void* arg);
 
     napi_env env_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_;
