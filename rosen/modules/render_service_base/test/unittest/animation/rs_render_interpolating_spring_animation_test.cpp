@@ -39,9 +39,10 @@ public:
         RSRenderInterpolatingSpringAnimation::OnSetFraction(fraction);
     }
 
-    void OnAnimate(float fraction) override
+    bool OnAnimate(float fraction) override
     {
         RSRenderInterpolatingSpringAnimation::OnAnimate(fraction);
+        return false;
     }
 
     void InitValueEstimator() override

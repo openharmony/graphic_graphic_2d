@@ -98,6 +98,30 @@ public:
             ROSEN_EQ<T>(width_, rect.width_, threshold) && ROSEN_EQ<T>(height_, rect.height_, threshold);
     }
 
+    inline bool IsAbsNearEqual(const RectT<T>& target, const RectT<T>& threshold) const
+    {
+        return (std::abs(left_ - target.left_) <= std::abs(threshold.left_)) &&
+               (std::abs(top_ - target.top_) <= std::abs(threshold.top_)) &&
+               (std::abs(width_ - target.width_) <= std::abs(threshold.width_)) &&
+               (std::abs(height_ - target.height_) <= std::abs(threshold.height_));
+    }
+
+    inline void TakeAbsMaxFrom(const RectT<T>& target)
+    {
+        if (std::abs(left_) < std::abs(target.left_)) {
+            left_ = target.left_;
+        }
+        if (std::abs(top_) < std::abs(target.top_)) {
+            top_ = target.top_;
+        }
+        if (std::abs(width_) < std::abs(target.width_)) {
+            width_ = target.width_;
+        }
+        if (std::abs(height_) < std::abs(target.height_)) {
+            height_ = target.height_;
+        }
+    }
+
     inline RectT& operator=(const RectT& other)
     {
         // Tell the compiler there is no alias and to select wider load/store
@@ -375,6 +399,7 @@ public:
     RRectT operator+(const RRectT<T>& other) const;
     RRectT operator/(float scale) const;
     RRectT operator*(float scale) const;
+    RRectT operator*(const RRectT& other) const;
     RRectT& operator-=(const RRectT<T>& other);
     RRectT& operator+=(const RRectT<T>& other);
     RRectT& operator*=(float scale);
@@ -382,6 +407,8 @@ public:
     bool operator==(const RRectT& other) const;
     bool operator!=(const RRectT& other) const;
     bool IsNearEqual(const RRectT& other, T threshold = std::numeric_limits<T>::epsilon()) const;
+    bool IsAbsNearEqual(const RRectT& target, const RRectT& threshold) const;
+    void TakeAbsMaxFrom(const RRectT& target);
 };
 
 typedef RRectT<float> RRect;
@@ -453,6 +480,18 @@ RRectT<T> RRectT<T>::operator*(float scale) const
 }
 
 template<typename T>
+RRectT<T> RRectT<T>::operator*(const RRectT& other) const
+{
+    RRectT<T> rrect;
+    rrect.rect_.SetAll(rect_.GetLeft() * other.rect_.GetLeft(), rect_.GetTop() * other.rect_.GetTop(),
+        rect_.GetWidth() * other.rect_.GetWidth(), rect_.GetHeight() * other.rect_.GetHeight());
+    for (int index = 0; index < 4; index++) {
+        rrect.radius_[index] = radius_[index] * other.radius_[index];
+    }
+    return rrect;
+}
+
+template<typename T>
 RRectT<T>& RRectT<T>::operator-=(const RRectT<T>& other)
 {
     rect_.SetAll(rect_.GetLeft() - other.rect_.GetLeft(), rect_.GetTop() - other.rect_.GetTop(),
@@ -516,6 +555,55 @@ inline bool RRectT<T>::IsNearEqual(const RRectT& rrectT, T threshold) const
         (radius_[1].IsNearEqual(rrectT.radius_[1], threshold)) &&
         (radius_[2].IsNearEqual(rrectT.radius_[2], threshold)) &&
         (radius_[3].IsNearEqual(rrectT.radius_[3], threshold));
+}
+
+template<>
+inline bool RectT<float>::IsAbsNearEqual(const RectT<float>& target, const RectT<float>& threshold) const
+{
+    return (fabs(left_ - target.left_) <= fabs(threshold.left_)) &&
+           (fabs(top_ - target.top_) <= fabs(threshold.top_)) &&
+           (fabs(width_ - target.width_) <= fabs(threshold.width_)) &&
+           (fabs(height_ - target.height_) <= fabs(threshold.height_));
+}
+
+template<>
+inline void RectT<float>::TakeAbsMaxFrom(const RectT<float>& target)
+{
+    if (fabs(left_) < fabs(target.left_)) {
+        left_ = target.left_;
+    }
+    if (fabs(top_) < fabs(target.top_)) {
+        top_ = target.top_;
+    }
+    if (fabs(width_) < fabs(target.width_)) {
+        width_ = target.width_;
+    }
+    if (fabs(height_) < fabs(target.height_)) {
+        height_ = target.height_;
+    }
+}
+
+template<typename T>
+inline bool RRectT<T>::IsAbsNearEqual(const RRectT& target, const RRectT& threshold) const
+{
+    if (!rect_.IsAbsNearEqual(target.rect_, threshold.rect_)) {
+        return false;
+    }
+    for (uint32_t i = 0; i < 4; i++) {
+        if (!radius_[i].IsAbsNearEqual(target.radius_[i], threshold.radius_[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
+inline void RRectT<T>::TakeAbsMaxFrom(const RRectT& target)
+{
+    rect_.TakeAbsMaxFrom(target.rect_);
+    for (uint32_t i = 0; i < 4; i++) {
+        radius_[i].TakeAbsMaxFrom(target.radius_[i]);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

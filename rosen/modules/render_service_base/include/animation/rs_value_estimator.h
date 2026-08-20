@@ -351,6 +351,14 @@ public:
     {
         return nullptr;
     }
+    virtual std::shared_ptr<RSRenderPropertyBase> GetInitialOffset() const
+    {
+        return nullptr;
+    }
+    virtual std::shared_ptr<RSRenderPropertyBase> GetLastFrameThreshold() const
+    {
+        return nullptr;
+    }
     virtual std::shared_ptr<RSRenderPropertyBase> GetPropertyVelocity(float time) const
     {
         return nullptr;
@@ -360,6 +368,8 @@ public:
         return 0.0f;
     }
     virtual void UpdateSpringParameters() {}
+    virtual bool IsStartConverging(float time, float convergeProgressThreshold) const { return false; }
+    virtual bool WillOverShoot() const { return false; }
 };
 
 template<typename T>
@@ -489,6 +499,22 @@ public:
         return std::make_shared<RSRenderAnimatableProperty<T>>(lastValue_);
     }
 
+    std::shared_ptr<RSRenderPropertyBase> GetInitialOffset() const override
+    {
+        if (!springModel_) {
+            return nullptr;
+        }
+        return std::make_shared<RSRenderAnimatableProperty<T>>(springModel_->initialOffset_);
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> GetLastFrameThreshold() const override
+    {
+        if (!springModel_) {
+            return nullptr;
+        }
+        return std::make_shared<RSRenderAnimatableProperty<T>>(springModel_->GetFrameThreshold(duration_));
+    }
+
     std::shared_ptr<RSRenderPropertyBase> GetPropertyVelocity(float time) const override
     {
         if (!springModel_ || ROSEN_LE(springModel_->dampingRatio_, 0.0f, SPRING_MIN_DAMPING_RATIO)) {
@@ -513,6 +539,34 @@ public:
         if (springModel_) {
             springModel_->CalculateSpringParameters();
         }
+    }
+
+    bool IsStartConverging(float time, float convergeProgressThreshold) const override
+    {
+        if (!springModel_) {
+            return false;
+        }
+        // The progress of the critical damping/overdamping model is determined by the distance to the end.
+        if (ROSEN_GE(springModel_->dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+            auto currentValue = GetAnimationProperty();
+            auto startValue = std::make_shared<RSRenderAnimatableProperty<T>>(startValue_);
+            auto endValue = std::make_shared<RSRenderAnimatableProperty<T>>(endValue_);
+            if (!currentValue || !startValue || !endValue) {
+                return false;
+            }
+            return currentValue->IsReachProgress(startValue, endValue, 1 - convergeProgressThreshold);
+        }
+        // The progress of the underdamped model is determined by the amplitude.
+        double expCoeffDecay = exp(springModel_->coeffDecay_ * time);
+        return 1 - expCoeffDecay >= convergeProgressThreshold;
+    }
+
+    bool WillOverShoot() const override
+    {
+        if (!springModel_) {
+            return false;
+        }
+        return springModel_->WillOverShoot();
     }
 
 private:

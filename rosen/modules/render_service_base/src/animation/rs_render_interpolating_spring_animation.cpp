@@ -65,7 +65,19 @@ void RSRenderInterpolatingSpringAnimation::SetSpringParameters(float response, f
     dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     normalizedInitialVelocity_ = normalizedInitialVelocity;
     minimumAmplitudeRatio_ = minimumAmplitudeRatio;
-    convergeParams_ = convergeParams;
+    if (convergeParams.has_value()) {
+        if (!std::isfinite(convergeParams->convergeProgressThreshold_) ||
+            convergeParams->convergeProgressThreshold_ < 0.0f || convergeParams->convergeProgressThreshold_ > 1.0f ||
+            !std::isfinite(convergeParams->convergeResponseFactor_) || convergeParams->convergeResponseFactor_ < 0.0f) {
+            ROSEN_LOGE(
+                "RSRenderInterpolatingSpringAnimation::%{public}s, invalid convergeParams, set nullopt", __func__);
+        } else if (!(ROSEN_EQ(convergeParams->convergeProgressThreshold_, 1.0f) ||
+                       ROSEN_EQ(convergeParams->convergeResponseFactor_, 1.0f))) {
+            // Both being set to 1 is the default value for the upper layer and should remain consistent with the
+            // original.
+            convergeParams_ = convergeParams;
+        }
+    }
 }
 
 void RSRenderInterpolatingSpringAnimation::SetZeroThreshold(float zeroThreshold)
@@ -121,37 +133,52 @@ float RSRenderInterpolatingSpringAnimation::CalculateTimeFraction(float targetFr
     return FRACTION_MIN;
 }
 
-void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
+bool RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
 {
     if (valueEstimator_ == nullptr) {
         ROSEN_LOGD("RSRenderInterpolatingSpringAnimation::OnAnimate, valueEstimator_ is nullptr.");
-        return;
+        return false;
     }
     if (GetPropertyId() == 0) {
         // calculateAnimationValue_ is embedded modify for stat animate frame drop
         calculateAnimationValue_ = false;
-        return;
+        return false;
     } else if (ROSEN_EQ(fraction, 1.0f)) {
         valueEstimator_->UpdateAnimationValue(1.0f, GetAdditive());
-        return;
+        return true;
     }
+
+    CheckStartConverge();
     auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
-    float displacement = 1.0f + CalculateDisplacement(mappedTime);
+    if (isConverging_) {
+        UpdateSpringConvergeParameters();
+        // Since the converged spring parameters have been updated, the difference from lastConvergeTime_ should be used
+        // as the time input.
+        prevMappedTime_ = mappedTime - lastConvergeTime_;
+    } else {
+        prevMappedTime_ = mappedTime;
+    }
+    float displacement = 1.0f + CalculateDisplacement(prevMappedTime_);
     SetValueFraction(displacement);
     valueEstimator_->UpdateAnimationValue(displacement, GetAdditive());
+    if (CheckConvergeStatus(displacement, mappedTime)) {
+        return true;
+    }
+
     if (GetNeedLogicallyFinishCallback() && (animationFraction_.GetRemainingRepeatCount() == 1)) {
         auto interpolationValue = valueEstimator_->Estimate(displacement, startValue_, endValue_);
         auto endValue = animationFraction_.GetCurrentIsReverseCycle() ? startValue_ : endValue_;
-        auto velocity = CalculateVelocity(mappedTime);
+        auto velocity = CalculateVelocity(prevMappedTime_);
         auto zeroValue = startValue_ - startValue_;
         if (interpolationValue != nullptr && !interpolationValue->IsNearEqual(endValue, zeroThreshold_)) {
-            return;
+            return false;
         }
         if (velocity != nullptr && (velocity * FRAME_TIME_INTERVAL)->IsNearEqual(zeroValue, zeroThreshold_)) {
             CallLogicallyFinishCallback();
             needLogicallyFinishCallback_ = false;
         }
     }
+    return false;
 }
 
 void RSRenderInterpolatingSpringAnimation::RebuildPropertyValue(float fraction)
@@ -192,6 +219,76 @@ void RSRenderInterpolatingSpringAnimation::InitValueEstimator()
     }
 }
 
+void RSRenderInterpolatingSpringAnimation::UpdateSpringConvergeParameters()
+{
+    initialVelocity_ = GetSpringVelocity(prevMappedTime_);
+    initialOffset_ = CalculateDisplacement(prevMappedTime_);
+    response_ = std::max(convergeParams_->convergeResponseFactor_ * response_, SPRING_MIN_RESPONSE);
+    CalculateSpringParameters();
+}
+
+bool RSRenderInterpolatingSpringAnimation::IsStartConverging(float displacement) const
+{
+    // The progress of the critical damping/overdamping model is determined by the distance to the end.
+    if (ROSEN_GE(dampingRatio_, 1.0f, SPRING_DAMPING_RATIO_EPSILON)) {
+        return displacement >= convergeParams_->convergeProgressThreshold_;
+    }
+    // The progress of the underdamped model is determined by the amplitude.
+    double expCoeffDecay = exp(coeffDecay_ * prevMappedTime_);
+    return 1 - expCoeffDecay >= convergeParams_->convergeProgressThreshold_;
+}
+
+bool RSRenderInterpolatingSpringAnimation::IsConvergeCloseToTarget(float displacement) const
+{
+    return std::fabs(displacement - 1.0f) <= endThreshold_;
+}
+
+bool RSRenderInterpolatingSpringAnimation::IsConvergeEnd(float displacement) const
+{
+    // In convergence mode, it can only stop in advance if it is not in overshoot and is sufficiently close to the
+    // target value.
+    return !WillOverShoot() && IsConvergeCloseToTarget(displacement);
+}
+
+void RSRenderInterpolatingSpringAnimation::CheckStartConverge()
+{
+    if (!convergeParams_.has_value()) {
+        return;
+    }
+    if (isConverging_) {
+        return;
+    }
+    if (float displacement = 1.0f + CalculateDisplacement(prevMappedTime_);
+        IsStartConverging(displacement)) {
+        isConverging_ = true;
+        lastConvergeTime_ = prevMappedTime_;
+
+        endThreshold_ = std::min(minimumAmplitudeRatio_, SPRING_TRAIL_END_THRESHOLD);
+        auto originLastFrameThreshold = GetFrameThreshold(GetDuration() * MILLISECOND_TO_SECOND);
+        endThreshold_ = std::max(endThreshold_, originLastFrameThreshold);
+    }
+}
+
+bool RSRenderInterpolatingSpringAnimation::CheckConvergeStatus(float displacement, float time)
+{
+    if (!isConverging_) {
+        return false;
+    }
+    if (IsConvergeEnd(displacement)) {
+        return true;
+    }
+    // It is the mappedTime of the previous frame, which is used to calculate the time input of the spring model after
+    // the parameters are updated.
+    lastConvergeTime_ = time;
+    return false;
+}
+
+float RSRenderInterpolatingSpringAnimation::GetSpringVelocity(float time) const
+{
+    constexpr float TIME_INTERVAL = 1e-6f; // 1 microsecond
+    return (CalculateDisplacement(time + TIME_INTERVAL) - CalculateDisplacement(time)) * (1 / TIME_INTERVAL);
+}
+
 std::shared_ptr<RSRenderPropertyBase> RSRenderInterpolatingSpringAnimation::CalculateVelocity(float time) const
 {
     if (valueEstimator_ == nullptr) {
@@ -221,6 +318,13 @@ void RSRenderInterpolatingSpringAnimation::CallLogicallyFinishCallback() const
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(
         targetId, animationId, token, AnimationCallbackEvent::LOGICALLY_FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
+}
+
+void RSRenderInterpolatingSpringAnimation::ProcessOnRepeatFinish()
+{
+    RSRenderPropertyAnimation::ProcessOnRepeatFinish();
+    isConverging_ = false;
+    lastConvergeTime_ = 0.0f;
 }
 } // namespace Rosen
 } // namespace OHOS

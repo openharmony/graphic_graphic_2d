@@ -87,17 +87,18 @@ void RSRenderKeyframeAnimation::SetDurationKeyframe(bool isDuration)
     isDurationKeyframe_ = isDuration;
 }
 
-void RSRenderKeyframeAnimation::OnAnimate(float fraction)
+bool RSRenderKeyframeAnimation::OnAnimate(float fraction)
 {
     if (keyframes_.empty() && durationKeyframes_.empty()) {
         ROSEN_LOGE("Failed to animate key frame, keyframes is empty!");
-        return;
+        return false;
     }
 
     if (valueEstimator_ == nullptr) {
-        return;
+        return false;
     }
     valueEstimator_->UpdateAnimationValue(fraction, GetAdditive());
+    return false;
 }
 
 void RSRenderKeyframeAnimation::RebuildPropertyValue(float fraction)

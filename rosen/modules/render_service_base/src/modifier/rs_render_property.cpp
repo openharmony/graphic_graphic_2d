@@ -815,6 +815,350 @@ bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
 }
 
 template<>
+bool RSRenderAnimatableProperty<float>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<float>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<float>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty = threshold ? threshold->CastToAnimatablePropertyOf<float>(__func__) : nullptr;
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<float>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    auto value = RSRenderProperty<float>::stagingValue_;
+    auto targetValue = targetAnimatableProperty->Get();
+    auto thresholdValue = thresholdAnimatableProperty->Get();
+    return fabs(value - targetValue) <= fabs(thresholdValue);
+}
+
+template<>
+bool RSRenderAnimatableProperty<Vector4f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Vector4f>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector4f>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty = threshold ? threshold->CastToAnimatablePropertyOf<Vector4f>(__func__) : nullptr;
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector4f>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    return RSRenderProperty<Vector4f>::stagingValue_.IsAbsNearEqual(
+        targetAnimatableProperty->Get(), thresholdAnimatableProperty->Get());
+}
+
+template<>
+bool RSRenderAnimatableProperty<Quaternion>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Quaternion>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Quaternion>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty =
+        threshold ? threshold->CastToAnimatablePropertyOf<Quaternion>(__func__) : nullptr;
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Quaternion>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    return RSRenderProperty<Quaternion>::stagingValue_.IsAbsNearEqual(
+        targetAnimatableProperty->Get(), thresholdAnimatableProperty->Get());
+}
+
+template<>
+bool RSRenderAnimatableProperty<Vector2f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Vector2f>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector2f>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty = threshold ? threshold->CastToAnimatablePropertyOf<Vector2f>(__func__) : nullptr;
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector2f>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    return RSRenderProperty<Vector2f>::stagingValue_.IsAbsNearEqual(
+        targetAnimatableProperty->Get(), thresholdAnimatableProperty->Get());
+}
+
+template<>
+bool RSRenderAnimatableProperty<Vector3f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Vector3f>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector3f>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty = threshold ? threshold->CastToAnimatablePropertyOf<Vector3f>(__func__) : nullptr;
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector3f>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    return RSRenderProperty<Vector3f>::stagingValue_.IsAbsNearEqual(
+        targetAnimatableProperty->Get(), thresholdAnimatableProperty->Get());
+}
+
+template<>
+bool RSRenderAnimatableProperty<Matrix3f>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Matrix3f>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Matrix3f>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty = threshold ? threshold->CastToAnimatablePropertyOf<Matrix3f>(__func__) : nullptr;
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Matrix3f>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    return RSRenderProperty<Matrix3f>::stagingValue_.IsAbsNearEqual(
+        targetAnimatableProperty->Get(), thresholdAnimatableProperty->Get());
+}
+
+template<>
+bool RSRenderAnimatableProperty<Color>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Color>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Color>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty = threshold ? threshold->CastToAnimatablePropertyOf<Color>(__func__) : nullptr;
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Color>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    return RSRenderProperty<Color>::stagingValue_.IsAbsNearEqual(
+        targetAnimatableProperty->Get(), thresholdAnimatableProperty->Get());
+}
+
+template<>
+bool RSRenderAnimatableProperty<Vector4<Color>>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Vector4<Color>>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector4<Color>>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty =
+        threshold ? threshold->CastToAnimatablePropertyOf<Vector4<Color>>(__func__) : nullptr;
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector4<Color>>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    auto thisData = RSRenderProperty<Vector4<Color>>::stagingValue_.data_;
+    auto targetValue = targetAnimatableProperty->Get();
+    auto& targetData = targetValue.data_;
+    auto thresholdValue = thresholdAnimatableProperty->Get();
+    auto& thresholdData = thresholdValue.data_;
+    for (uint32_t i = 0; i < Vector4<Color>::V4SIZE; i++) {
+        if (!thisData[i].IsAbsNearEqual(targetData[i], thresholdData[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<>
+bool RSRenderAnimatableProperty<RRect>::IsAbsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& target, const std::shared_ptr<RSRenderPropertyBase>& threshold) const
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<RRect>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<RRect>::%{public}s: the target is nullptr", __func__);
+        return false;
+    }
+    auto thresholdAnimatableProperty = threshold ? threshold->CastToAnimatablePropertyOf<RRect>(__func__) : nullptr;
+    if (!thresholdAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<RRect>::%{public}s: the threshold is nullptr", __func__);
+        return false;
+    }
+    return RSRenderProperty<RRect>::stagingValue_.IsAbsNearEqual(
+        targetAnimatableProperty->Get(), thresholdAnimatableProperty->Get());
+}
+
+template<>
+void RSRenderAnimatableProperty<float>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<float>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<float>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    if (fabs(RSRenderProperty<float>::stagingValue_) < fabs(targetAnimatableProperty->Get())) {
+        RSRenderProperty<float>::stagingValue_ = targetAnimatableProperty->Get();
+    }
+}
+
+template<>
+void RSRenderAnimatableProperty<Vector4f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Vector4f>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector4f>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    RSRenderProperty<Vector4f>::stagingValue_.TakeAbsMaxFrom(targetAnimatableProperty->Get());
+}
+
+template<>
+void RSRenderAnimatableProperty<Quaternion>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Quaternion>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Quaternion>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    RSRenderProperty<Quaternion>::stagingValue_.TakeAbsMaxFrom(targetAnimatableProperty->Get());
+}
+
+template<>
+void RSRenderAnimatableProperty<Vector2f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Vector2f>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector2f>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    RSRenderProperty<Vector2f>::stagingValue_.TakeAbsMaxFrom(targetAnimatableProperty->Get());
+}
+
+template<>
+void RSRenderAnimatableProperty<Vector3f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Vector3f>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector3f>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    RSRenderProperty<Vector3f>::stagingValue_.TakeAbsMaxFrom(targetAnimatableProperty->Get());
+}
+
+template<>
+void RSRenderAnimatableProperty<Matrix3f>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Matrix3f>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Matrix3f>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    RSRenderProperty<Matrix3f>::stagingValue_.TakeAbsMaxFrom(targetAnimatableProperty->Get());
+}
+
+template<>
+void RSRenderAnimatableProperty<Color>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Color>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Color>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    RSRenderProperty<Color>::stagingValue_.TakeAbsMaxFrom(targetAnimatableProperty->Get());
+}
+
+template<>
+void RSRenderAnimatableProperty<Vector4<Color>>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<Vector4<Color>>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<Vector4<Color>>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    auto thisData = RSRenderProperty<Vector4<Color>>::stagingValue_.data_;
+    auto targetValue = targetAnimatableProperty->Get();
+    auto& targetData = targetValue.data_;
+    for (uint32_t i = 0; i < Vector4<Color>::V4SIZE; i++) {
+        thisData[i].TakeAbsMaxFrom(targetData[i]);
+    }
+}
+
+template<>
+void RSRenderAnimatableProperty<RRect>::TakeAbsMaxFrom(const std::shared_ptr<RSRenderPropertyBase>& target)
+{
+    auto targetAnimatableProperty = target ? target->CastToAnimatablePropertyOf<RRect>(__func__) : nullptr;
+    if (!targetAnimatableProperty) {
+        ROSEN_LOGE("RSRenderAnimatableProperty<RRect>::%{public}s: the target is nullptr", __func__);
+        return;
+    }
+    RSRenderProperty<RRect>::stagingValue_.TakeAbsMaxFrom(targetAnimatableProperty->Get());
+}
+
+template<>
+bool RSRenderAnimatableProperty<float>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+template<>
+bool RSRenderAnimatableProperty<Vector4f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+template<>
+bool RSRenderAnimatableProperty<Quaternion>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+template<>
+bool RSRenderAnimatableProperty<Vector2f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+template<>
+bool RSRenderAnimatableProperty<Vector3f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+template<>
+bool RSRenderAnimatableProperty<Matrix3f>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+template<>
+bool RSRenderAnimatableProperty<Color>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+template<>
+bool RSRenderAnimatableProperty<Vector4<Color>>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+template<>
+bool RSRenderAnimatableProperty<RRect>::IsReachProgress(const std::shared_ptr<RSRenderPropertyBase>& start,
+    const std::shared_ptr<RSRenderPropertyBase>& end, float threshold) const
+{
+    return IsAbsNearEqual(end, (end - start) * threshold);
+}
+
+template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {

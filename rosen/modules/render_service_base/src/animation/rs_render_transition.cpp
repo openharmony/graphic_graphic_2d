@@ -32,7 +32,7 @@ void RSRenderTransition::DumpAnimationInfo(std::string& out) const
     out.append("Type:RSRenderTransition");
 }
 
-void RSRenderTransition::OnAnimate(float fraction)
+bool RSRenderTransition::OnAnimate(float fraction)
 {
     float valueFraction = interpolator_->Interpolate(fraction);
     if (isTransitionIn_) {
@@ -41,6 +41,7 @@ void RSRenderTransition::OnAnimate(float fraction)
     for (auto& effect : effects_) {
         effect->UpdateFraction(valueFraction);
     }
+    return false;
 }
 
 void RSRenderTransition::OnAttach()

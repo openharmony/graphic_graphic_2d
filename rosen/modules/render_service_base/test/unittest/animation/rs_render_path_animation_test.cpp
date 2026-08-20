@@ -38,9 +38,10 @@ public:
         propertyId, originPosition, startPosition, endPosition, originRotation, animationPath) {}
     ~RSRenderPathAnimationMock() = default;
 
-    void OnAnimate(float fraction) override
+    bool OnAnimate(float fraction) override
     {
         RSRenderPathAnimation::OnAnimate(fraction);
+        return false;
     }
 
     void OnRemoveOnCompletion() override

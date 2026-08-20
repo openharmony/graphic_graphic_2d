@@ -73,9 +73,10 @@ public:
     {
         RSRenderSpringAnimation::OnSetFraction(fraction);
     }
-    void OnAnimate(float fraction)
+    bool OnAnimate(float fraction)
     {
         RSRenderSpringAnimation::OnAnimate(fraction);
+        return false;
     }
     void OnAttach()
     {

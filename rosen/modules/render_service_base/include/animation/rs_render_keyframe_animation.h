@@ -43,7 +43,7 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderKeyframeAnimation* Unmarshalling(Parcel& parcel);
 protected:
-    void OnAnimate(float fraction) override;
+    bool OnAnimate(float fraction) override;
 
     void RebuildPropertyValue(float fraction) override;
 

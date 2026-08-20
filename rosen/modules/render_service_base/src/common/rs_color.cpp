@@ -115,6 +115,44 @@ bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
            OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), Float16ToFloat32(other.headroom_));
 }
 
+bool RSColor::IsAbsNearEqual(const RSColor& target, const RSColor& threshold) const
+{
+    if (colorSpace_ != target.colorSpace_) {
+        RSColor lhsColor(*this);
+        RSColor rhsColor(target);
+        lhsColor.ConvertToBT2020ColorSpace();
+        rhsColor.ConvertToBT2020ColorSpace();
+        return (std::fabs(lhsColor.GetRedF() - rhsColor.GetRedF()) <= std::fabs(threshold.GetRedF())) &&
+               (std::fabs(lhsColor.GetGreenF() - rhsColor.GetGreenF()) <= std::fabs(threshold.GetGreenF())) &&
+               (std::fabs(lhsColor.GetBlueF() - rhsColor.GetBlueF()) <= std::fabs(threshold.GetBlueF())) &&
+               (std::fabs(lhsColor.GetAlphaF() - rhsColor.GetAlphaF()) <= std::fabs(threshold.GetAlphaF())) &&
+               lhsColor.GetPlaceholder() == rhsColor.GetPlaceholder() &&
+               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetHeadroom(), rhsColor.GetHeadroom());
+    }
+    return (std::abs(red_ - target.red_) <= std::abs(threshold.red_)) &&
+           (std::abs(green_ - target.green_) <= std::abs(threshold.green_)) &&
+           (std::abs(blue_ - target.blue_) <= std::abs(threshold.blue_)) &&
+           (std::abs(alpha_ - target.alpha_) <= std::abs(threshold.alpha_)) &&
+           (placeholder_ == target.placeholder_) &&
+           OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), Float16ToFloat32(target.headroom_));
+}
+
+void RSColor::TakeAbsMaxFrom(const RSColor& target)
+{
+    if (std::abs(red_) < std::abs(target.red_)) {
+        red_ = target.red_;
+    }
+    if (std::abs(green_) < std::abs(target.green_)) {
+        green_ = target.green_;
+    }
+    if (std::abs(blue_) < std::abs(target.blue_)) {
+        blue_ = target.blue_;
+    }
+    if (std::abs(alpha_) < std::abs(target.alpha_)) {
+        alpha_ = target.alpha_;
+    }
+}
+
 RSColor RSColor::operator+(const RSColor& rhs) const
 {
     if (UNLIKELY(placeholder_ != 0)) {
@@ -218,6 +256,21 @@ RSColor RSColor::operator*(float scale) const
     return color;
 }
 
+RSColor RSColor::operator*(const RSColor& other) const
+{
+    if (UNLIKELY(placeholder_ != 0)) {
+        return *this;
+    }
+    if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
+        return RSColor(GetRedF() * other.GetRedF(), GetGreenF() * other.GetGreenF(), GetBlueF() * other.GetBlueF(),
+            GetAlphaF() * other.GetAlphaF(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, GetHeadroom());
+    }
+    RSColor color = RSColor(round(red_ * other.red_), round(green_ * other.green_), round(blue_ * other.blue_),
+        round(alpha_ * other.alpha_), GetColorSpace());
+    color.SetHeadroom(GetHeadroom());
+    return color;
+}
+
 RSColor& RSColor::operator*=(float scale)
 {
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
@@ -230,6 +283,25 @@ RSColor& RSColor::operator*=(float scale)
         green_ = round(green_ * scale);
         blue_ = round(blue_ * scale);
         alpha_ = round(alpha_ * scale);
+    }
+    return *this;
+}
+
+RSColor& RSColor::operator*=(const RSColor& other)
+{
+    if (UNLIKELY(placeholder_ != 0)) {
+        return *this;
+    }
+    if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
+        redF_ = Float32ToFloat16(GetRedF() * other.GetRedF());
+        greenF_ = Float32ToFloat16(GetGreenF() * other.GetGreenF());
+        blueF_ = Float32ToFloat16(GetBlueF() * other.GetBlueF());
+        alphaF_ = Float32ToFloat16(GetAlphaF() * other.GetAlphaF());
+    } else {
+        red_ = round(red_ * other.red_);
+        green_ = round(green_ * other.green_);
+        blue_ = round(blue_ * other.blue_);
+        alpha_ = round(alpha_ * other.alpha_);
     }
     return *this;
 }

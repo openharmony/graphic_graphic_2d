@@ -41,8 +41,8 @@ constexpr float DEFAULT_BLEND_DURATION = 0.0f;
 
 struct SpringParams {
     struct ConvergeParams {
-        float convergeResponseFactor_ { 0.0f };
         float convergeProgressThreshold_ { 0.0f };
+        float convergeResponseFactor_ { 0.0f };
     };
 
     float response_ { 0.0f };
