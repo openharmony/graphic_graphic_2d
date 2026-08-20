@@ -63,6 +63,9 @@ constexpr uint32_t MAX_NODE_COUNT_PER_PID = 500000;
 // to prevent a malicious client from exhausting connection and memory resources.
 constexpr uint32_t MAX_CONNECTION_COUNT_PER_PID = 64;
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
+// Max pixel dimension (width or height) for SetScreenSecurityMask,
+// enforced on both client and sever to prevent oversized-mask DoS via IPC.
+constexpr int32_t SECURITYMASK_IMAGE_SIZE_LIMIT = 4096;
 constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
 constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;

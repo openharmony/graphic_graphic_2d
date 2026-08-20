@@ -321,6 +321,22 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, TaskSurfa
 }
 
 /**
+ * @tc.name: TakeSurfaceCapture
+ * @tc.desc: test TAKE_SURFACE_CAPTURE permission checking is enforced via CAPTURE_SCREEN
+ * @tc.type: FUNC
+ * @tc.require: issue#25929
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, TakeSurfaceCapture,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIClientToRenderConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    ASSERT_EQ(hasPermission, false);
+}
+
+/**
  * @tc.name: FreezeScreen
  * @tc.desc: test FreezeScreen permission checking
  * @tc.type: FUNC
