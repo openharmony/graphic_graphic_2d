@@ -18,6 +18,7 @@
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
+#include "js_drawing_type_tags.h"
 #include "matrix_napi/js_matrix.h"
 #include "path_iterator_napi/js_path_iterator.h"
 #include "roundRect_napi/js_roundrect.h"
@@ -130,7 +131,7 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
                 "JsPath::Constructor Argv[0] is invalid");
         }
         JsPath* path = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ZERO, path);
+        GET_UNWRAP_PARAM_S(ARGC_ZERO, path, &PATH_TYPE_TAG);
         std::shared_ptr<Path> other = path->GetPathPtr();
         std::shared_ptr<Path> p = other == nullptr ? std::make_shared<Path>() : std::make_shared<Path>(*other);
         jsPath = new JsPath(p);
@@ -141,8 +142,8 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
         ROSEN_LOGE("Failed to create JsPath");
         return nullptr;
     }
-    status = napi_wrap(env, jsThis, jsPath,
-        JsPath::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, jsThis, jsPath,
+        JsPath::Destructor, nullptr, &PATH_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsPath;
         ROSEN_LOGE("JsPath::Constructor Failed to wrap native instance");
@@ -175,7 +176,7 @@ napi_value JsPath::CreateJsPath(napi_env env, std::shared_ptr<Path> path)
         return nullptr;
     }
     JsPath* jsPath = new JsPath(path);
-    status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
+    status = napi_wrap_s(env, result, jsPath, JsPath::Destructor, nullptr, &PATH_TYPE_TAG, nullptr);
     if (status != napi_ok) {
         delete jsPath;
         ROSEN_LOGE("JsPath::CreateJsPath failed to wrap native instance");
@@ -194,281 +195,281 @@ JsPath::~JsPath()
 
 napi_value JsPath::MoveTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnMoveTo(env, info) : nullptr;
 }
 
 napi_value JsPath::LineTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnLineTo(env, info) : nullptr;
 }
 
 napi_value JsPath::ArcTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnArcTo(env, info) : nullptr;
 }
 
 napi_value JsPath::QuadTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnQuadTo(env, info) : nullptr;
 }
 
 napi_value JsPath::ConicTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnConicTo(env, info) : nullptr;
 }
 
 napi_value JsPath::CubicTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnCubicTo(env, info) : nullptr;
 }
 
 napi_value JsPath::RMoveTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnRMoveTo(env, info) : nullptr;
 }
 
 napi_value JsPath::RLineTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnRLineTo(env, info) : nullptr;
 }
 
 napi_value JsPath::RQuadTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnRQuadTo(env, info) : nullptr;
 }
 
 napi_value JsPath::RConicTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnRConicTo(env, info) : nullptr;
 }
 
 napi_value JsPath::RCubicTo(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnRCubicTo(env, info) : nullptr;
 }
 
 napi_value JsPath::AddPolygon(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnAddPolygon(env, info) : nullptr;
 }
 
 napi_value JsPath::AddOval(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnAddOval(env, info) : nullptr;
 }
 
 napi_value JsPath::AddCircle(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnAddCircle(env, info) : nullptr;
 }
 
 napi_value JsPath::AddArc(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnAddArc(env, info) : nullptr;
 }
 
 napi_value JsPath::AddRect(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnAddRect(env, info) : nullptr;
 }
 
 napi_value JsPath::AddRoundRect(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnAddRoundRect(env, info) : nullptr;
 }
 
 napi_value JsPath::AddPath(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnAddPath(env, info) : nullptr;
 }
 
 napi_value JsPath::Transform(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnTransform(env, info) : nullptr;
 }
 
 napi_value JsPath::Contains(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnContains(env, info) : nullptr;
 }
 
 napi_value JsPath::SetFillType(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnSetFillType(env, info) : nullptr;
 }
 
 napi_value JsPath::GetBounds(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetBounds(env, info) : nullptr;
 }
 
 napi_value JsPath::Close(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnClose(env, info) : nullptr;
 }
 
 napi_value JsPath::Offset(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnOffset(env, info) : nullptr;
 }
 
 napi_value JsPath::Reset(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnReset(env, info) : nullptr;
 }
 
 napi_value JsPath::GetLength(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetLength(env, info) : nullptr;
 }
 
 napi_value JsPath::GetPositionAndTangent(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetPositionAndTangent(env, info) : nullptr;
 }
 
 napi_value JsPath::Set(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnSet(env, info) : nullptr;
 }
 
 napi_value JsPath::SetLastPoint(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnSetLastPoint(env, info) : nullptr;
 }
 
 napi_value JsPath::GetFillType(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetFillType(env, info) : nullptr;
 }
 
 napi_value JsPath::ReWind(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnReWind(env, info) : nullptr;
 }
 
 napi_value JsPath::GetSegment(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetSegment(env, info) : nullptr;
 }
 
 napi_value JsPath::GetMatrix(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetMatrix(env, info) : nullptr;
 }
 
 napi_value JsPath::BuildFromSvgString(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnBuildFromSvgString(env, info) : nullptr;
 }
 
 napi_value JsPath::ConvertToSVGString(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnConvertToSVGString(env, info) : nullptr;
 }
 
 napi_value JsPath::GetPointData(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetPointData(env, info) : nullptr;
 }
 
 napi_value JsPath::GetVerbData(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetVerbData(env, info) : nullptr;
 }
 
 napi_value JsPath::GetConicWeightData(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetConicWeightData(env, info) : nullptr;
 }
 
 napi_value JsPath::IsClosed(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnIsClosed(env, info) : nullptr;
 }
 
 napi_value JsPath::IsEmpty(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnIsEmpty(env, info) : nullptr;
 }
 
 napi_value JsPath::IsRect(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnIsRect(env, info) : nullptr;
 }
 
 napi_value JsPath::Op(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnOp(env, info) : nullptr;
 }
 
 napi_value JsPath::GetPathIterator(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetPathIterator(env, info) : nullptr;
 }
 
 napi_value JsPath::Approximate(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnApproximate(env, info) : nullptr;
 }
 
 napi_value JsPath::Interpolate(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnInterpolate(env, info) : nullptr;
 }
 
 napi_value JsPath::IsInterpolate(napi_env env, napi_callback_info info)
 {
     DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnIsInterpolate(env, info) : nullptr;
 }
 
@@ -786,7 +787,7 @@ napi_value JsPath::OnOp(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
     if (jsPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsPath::OnOp path is nullptr");
         return nullptr;
@@ -908,7 +909,7 @@ napi_value JsPath::OnSet(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsPath* path = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, path);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, path, &PATH_TYPE_TAG);
     if (path->GetPath() == nullptr) {
         return nullptr;
     }
@@ -970,7 +971,7 @@ napi_value JsPath::OnGetSegment(napi_env env, napi_callback_info info)
     bool startWithMoveTo = false;
     GET_BOOLEAN_PARAM(ARGC_THREE, startWithMoveTo);
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_FOUR, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_FOUR, jsPath, &PATH_TYPE_TAG);
 
     Path* dst = jsPath->GetPath();
     if (dst == nullptr) {
@@ -1047,7 +1048,7 @@ napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ONE, distance);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_TWO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_TWO, jsMatrix, &MATRIX_TYPE_TAG);
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsPath::OnGetMatrix jsMatrix is nullptr");
@@ -1317,7 +1318,7 @@ napi_value JsPath::OnAddRoundRect(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
 
     JsRoundRect* jsRoundRect = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsRoundRect);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsRoundRect, &ROUND_RECT_TYPE_TAG);
     if (argc == ARGC_ONE) {
         JS_CALL_DRAWING_FUNC(m_path->AddRoundRect(jsRoundRect->GetRoundRect()));
         return nullptr;
@@ -1341,7 +1342,7 @@ napi_value JsPath::OnAddPath(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
 
     JsPath* jsPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsPath, &PATH_TYPE_TAG);
     if (jsPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsPath::OnAddPath path is nullptr");
         return nullptr;
@@ -1359,7 +1360,7 @@ napi_value JsPath::OnAddPath(napi_env env, napi_callback_info info)
     }
     if (valueType == napi_object) {
         JsMatrix* jsMatrix = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ONE, jsMatrix);
+        GET_UNWRAP_PARAM_S(ARGC_ONE, jsMatrix, &MATRIX_TYPE_TAG);
         if (jsMatrix->GetMatrix() != nullptr) {
             drawingMatrixPtr = jsMatrix->GetMatrix().get();
         }
@@ -1381,7 +1382,7 @@ napi_value JsPath::OnTransform(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMatrix* jsMatrix = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, jsMatrix, &MATRIX_TYPE_TAG);
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsPath::OnAddPath Matrix is nullptr");
         return nullptr;
@@ -1500,7 +1501,7 @@ napi_value JsPath::OnInterpolate(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
 
     JsPath* other = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, other);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, other, &PATH_TYPE_TAG);
     if (other->GetPath() == nullptr) {
         ROSEN_LOGE("JsPath::OnInterpolate other is nullptr");
         return nullptr;
@@ -1512,7 +1513,7 @@ napi_value JsPath::OnInterpolate(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "weight is invalid.");
     }
     JsPath* interpolatedPath = nullptr;
-    GET_UNWRAP_PARAM(ARGC_TWO, interpolatedPath);
+    GET_UNWRAP_PARAM_S(ARGC_TWO, interpolatedPath, &PATH_TYPE_TAG);
     if (interpolatedPath->GetPath() == nullptr) {
         ROSEN_LOGE("JsPath::OnInterpolate interpolatedPath is nullptr");
         return nullptr;
@@ -1531,7 +1532,7 @@ napi_value JsPath::OnIsInterpolate(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
     JsPath* other = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, other);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, other, &PATH_TYPE_TAG);
     if (other->GetPath() == nullptr) {
         ROSEN_LOGE("JsPath::OnIsInterpolate other is nullptr");
         return nullptr;
@@ -1543,7 +1544,7 @@ napi_value JsPath::OnIsInterpolate(napi_env env, napi_callback_info info)
 
 napi_value JsPath::IsEqual(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnIsEqual(env, info) : nullptr;
 }
 
@@ -1556,7 +1557,7 @@ napi_value JsPath::OnIsEqual(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
     JsPath* other = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, other);
+    GET_UNWRAP_PARAM_S(ARGC_ZERO, other, &PATH_TYPE_TAG);
     Path* path = other->GetPath();
     if (path == nullptr) {
         ROSEN_LOGE("JsPath::OnIsEqual other is nullptr");
@@ -1612,7 +1613,7 @@ napi_value JsPath::PathTransferDynamic(napi_env env, napi_callback_info info)
 
 napi_value JsPath::IsInverseFillType(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnIsInverseFillType(env, info) : nullptr;
 }
 
@@ -1629,7 +1630,7 @@ napi_value JsPath::OnIsInverseFillType(napi_env env, napi_callback_info info)
 
 napi_value JsPath::ToggleInverseFillType(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnToggleInverseFillType(env, info) : nullptr;
 }
 
@@ -1646,7 +1647,7 @@ napi_value JsPath::OnToggleInverseFillType(napi_env env, napi_callback_info info
 
 napi_value JsPath::GetLastPoint(napi_env env, napi_callback_info info)
 {
-    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    JsPath* me = CheckParamsAndGetThisWithTag<JsPath>(env, info, &PATH_TYPE_TAG);
     return (me != nullptr) ? me->OnGetLastPoint(env, info) : nullptr;
 }
 
