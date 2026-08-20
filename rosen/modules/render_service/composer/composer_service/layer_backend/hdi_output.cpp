@@ -945,6 +945,9 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
             }
         }
         ClearBufferCache();
+    } else if (layersId_.empty() && !layerIdMap_.empty()) {
+        HLOGE("CommitAndGetReleaseFence returns empty layers, isValidated=%{public}d sent=%{public}zu",
+            isValidated, layerIdMap_.size());
     }
     return ret;
 }
