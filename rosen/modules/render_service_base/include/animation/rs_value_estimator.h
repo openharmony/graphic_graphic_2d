@@ -133,16 +133,40 @@ public:
             return FRACTION_MIN;
         }
         auto frameTimes = MAX_FRAME_TIME_FRACTION * secondTime;
-        float lastFraction = FRACTION_MIN;
-        for (int time = 1; time <= frameTimes; time++) {
-            float frameFraction = static_cast<float>(time) / frameTimes;
-            frameFraction = std::clamp(frameFraction, 0.0f, 1.0f);
-            float fraction = interpolator->Interpolate(frameFraction);
-            if (lastFraction <= targetFraction && fraction >= targetFraction) {
-                return frameFraction;
+        int coarseSamples = std::max(static_cast<int>(std::sqrt(frameTimes)), 1);
+        int refineSamples = std::max(static_cast<int>(std::ceil(static_cast<double>(frameTimes) / coarseSamples)), 1);
+        return EstimateFractionByCoarseToFine(interpolator, targetFraction, coarseSamples, refineSamples);
+    }
+
+    float EstimateFractionByCoarseToFine(const std::shared_ptr<RSInterpolator>& interpolator,
+        float targetFraction, int coarseSamples, int refineSamples)
+    {
+        auto IsCrossingTarget = [](float prev, float curr, float target) -> bool {
+            return (prev <= target && curr >= target) || (prev >= target && curr <= target);
+        };
+        float prevInputFraction = 0.0f;
+        float prevOutputFraction = FRACTION_MIN;
+        // Phase 1: coarse sampling to locate the interval where output crosses targetFraction
+        for (int coarseIdx = 1; coarseIdx <= coarseSamples; coarseIdx++) {
+            float inputFraction = static_cast<float>(coarseIdx) / coarseSamples;
+            float outputFraction = interpolator->Interpolate(inputFraction);
+            if (IsCrossingTarget(prevOutputFraction, outputFraction, targetFraction)) {
+                // Phase 2: refine within the crossing interval [prevInputFraction, inputFraction]
+                float refinePrevOutput = prevOutputFraction;
+                for (int refineIdx = 1; refineIdx <= refineSamples; refineIdx++) {
+                    float refineInput = prevInputFraction +
+                        (inputFraction - prevInputFraction) * static_cast<float>(refineIdx) / refineSamples;
+                    float refineOutput = interpolator->Interpolate(refineInput);
+                    if (IsCrossingTarget(refinePrevOutput, refineOutput, targetFraction)) {
+                        return refineInput;
+                    }
+                    refinePrevOutput = refineOutput;
+                }
             }
-            lastFraction = fraction;
+            prevInputFraction = inputFraction;
+            prevOutputFraction = outputFraction;
         }
+        // targetFraction not found, e.g. extremely narrow spike missed by coarse sampling
         return FRACTION_MIN;
     }
 
