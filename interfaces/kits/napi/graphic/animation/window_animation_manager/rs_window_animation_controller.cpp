@@ -37,11 +37,30 @@ thread_local std::unique_ptr<NativeReference> jsController_ = nullptr;
 RSWindowAnimationController::RSWindowAnimationController(napi_env env)
     : env_(env),
     handler_(std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner()))
-{}
+{
+    napi_add_env_cleanup_hook(env, &RSWindowAnimationController::EnvCleanupHook, this);
+}
+
+RSWindowAnimationController::~RSWindowAnimationController()
+{
+    if (env_ != nullptr) {
+        napi_remove_env_cleanup_hook(env_, &RSWindowAnimationController::EnvCleanupHook, this);
+    }
+    env_ = nullptr;
+}
+
+void RSWindowAnimationController::EnvCleanupHook(void* arg)
+{
+    static_cast<RSWindowAnimationController*>(arg)->env_ = nullptr;
+}
 
 void RSWindowAnimationController::SetJsController(napi_value jsController)
 {
     WALOGD("SetJsController.");
+    if (env_ == nullptr) {
+        WALOGE("SetJsController env is null!");
+        return;
+    }
     napi_ref ref = nullptr;
     napi_create_reference(env_, jsController, ARGC_ONE, &ref);
     jsController_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref));
@@ -276,6 +295,10 @@ void RSWindowAnimationController::HandleOnStartApp(StartingAppType type,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on start app.");
+    if (env_ == nullptr) {
+        WALOGE("HandleOnStartApp env is null!");
+        return;
+    }
     napi_value argv[] = {
         RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, startingWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
@@ -302,6 +325,10 @@ void RSWindowAnimationController::HandleOnAppTransition(const sptr<RSWindowAnima
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on app transition.");
+    if (env_ == nullptr) {
+        WALOGE("HandleOnAppTransition env is null!");
+        return;
+    }
     napi_value argv[] = {
         RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, fromWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, toWindowTarget),
@@ -315,6 +342,10 @@ void RSWindowAnimationController::HandleOnAppBackTransition(const sptr<RSWindowA
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on app back transition.");
+    if (env_ == nullptr) {
+        WALOGE("HandleOnAppBackTransition env is null!");
+        return;
+    }
     napi_value argv[] = {
         RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, fromWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, toWindowTarget),
@@ -327,6 +358,10 @@ void RSWindowAnimationController::HandleOnMinimizeWindow(const sptr<RSWindowAnim
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on minimize window.");
+    if (env_ == nullptr) {
+        WALOGE("HandleOnMinimizeWindow env is null!");
+        return;
+    }
     napi_value argv[] = {
         RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, minimizingWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
@@ -338,6 +373,10 @@ void RSWindowAnimationController::HandleOnCloseWindow(const sptr<RSWindowAnimati
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on close window.");
+    if (env_ == nullptr) {
+        WALOGE("HandleOnCloseWindow env is null!");
+        return;
+    }
     napi_value argv[] = {
         RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, closingWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
@@ -348,6 +387,10 @@ void RSWindowAnimationController::HandleOnCloseWindow(const sptr<RSWindowAnimati
 void RSWindowAnimationController::HandleOnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on screen unlock.");
+    if (env_ == nullptr) {
+        WALOGE("HandleOnScreenUnlock env is null!");
+        return;
+    }
     napi_value argv[] = {
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
     };
@@ -360,6 +403,10 @@ void RSWindowAnimationController::HandleOnWindowAnimationTargetsUpdate(
     const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets)
 {
     WALOGD("Handle on window animation targets update.");
+    if (env_ == nullptr) {
+        WALOGE("HandleOnWindowAnimationTargetsUpdate env is null!");
+        return;
+    }
     napi_value argv[] = {
         RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, fullScreenWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(env_, floatingWindowTargets),
@@ -370,6 +417,10 @@ void RSWindowAnimationController::HandleOnWindowAnimationTargetsUpdate(
 void RSWindowAnimationController::HandleOnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget)
 {
     WALOGD("Handle on wallpaper target update.");
+    if (env_ == nullptr) {
+        WALOGE("HandleOnWallpaperUpdate env is null!");
+        return;
+    }
     napi_value argv[] = {
         RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, wallpaperTarget),
     };
@@ -379,6 +430,10 @@ void RSWindowAnimationController::HandleOnWallpaperUpdate(const sptr<RSWindowAni
 void RSWindowAnimationController::CallJsFunction(const std::string& methodName, napi_value const* argv, size_t argc)
 {
     WALOGD("Call js function:%{public}s.", methodName.c_str());
+    if (env_ == nullptr) {
+        WALOGE("CallJsFunction env is null!");
+        return;
+    }
     if (jsController_ == nullptr) {
         WALOGE("JsController is null!");
         return;
