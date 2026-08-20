@@ -293,7 +293,7 @@ void RSHpaeOfflineDevice::InitHpaeOfflineResource()
     });
 }
 
-bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params, OfflineProcessInputInfo& inputInfo,
+bool RSHpaeOfflineDevice::GetOfflineProcessInput(OfflineProcessInputInfo& inputInfo,
     sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence, HpaeOfflineSubThreadData& taskData)
 {
     // get offline buffer
@@ -310,35 +310,34 @@ bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params, 
         RS_OFFLINE_LOGW("Offline buffer handle is not available.");
         return false;
     }
-    auto srcSurfaceBuffer = params.GetBuffer();
-    BufferHandle* srcHandle = srcSurfaceBuffer->GetBufferHandle();
+    BufferHandle* srcHandle = taskData.srcBuffer->GetBufferHandle();
     if (!srcHandle) {
         RS_OFFLINE_LOGW("Source buffer handle is not available.");
         return false;
     }
-    inputInfo.id = params.GetId();
+    inputInfo.id = taskData.nodeId;
     inputInfo.srcHandle = srcHandle;
     inputInfo.dstHandle = dstHandle;
-    auto src = params.GetLayerInfo().srcRect;
     if (taskData.contextType == OfflineContextType::AI2020) {
         inputInfo.srcRect = {taskData.offlineRect.x, taskData.offlineRect.y,
             taskData.offlineRect.w, taskData.offlineRect.h};
         inputInfo.transform = static_cast<uint32_t>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     } else {
         Rect crop{0, 0, 0, 0};
-        if (srcSurfaceBuffer->GetCropMetadata(crop)) {
-            float scaleX = static_cast<float>(crop.w) / srcSurfaceBuffer->GetWidth();
-            float scaleY = static_cast<float>(crop.h) / srcSurfaceBuffer->GetHeight();
+        if (taskData.srcBuffer->GetCropMetadata(crop)) {
+            float scaleX = static_cast<float>(crop.w) / taskData.srcBuffer->GetWidth();
+            float scaleY = static_cast<float>(crop.h) / taskData.srcBuffer->GetHeight();
             inputInfo.srcRect = {
-                static_cast<uint32_t>(std::ceil(src.x * scaleX)),
-                static_cast<uint32_t>(std::ceil(src.y * scaleY)),
-                static_cast<uint32_t>(std::floor(src.w * scaleX)),
-                static_cast<uint32_t>(std::floor(src.h * scaleY))
+                static_cast<uint32_t>(std::ceil(taskData.srcRect.x * scaleX)),
+                static_cast<uint32_t>(std::ceil(taskData.srcRect.y * scaleY)),
+                static_cast<uint32_t>(std::floor(taskData.srcRect.w * scaleX)),
+                static_cast<uint32_t>(std::floor(taskData.srcRect.h * scaleY))
             };
         } else {
-            inputInfo.srcRect = {src.x, src.y, src.w, src.h};
+            inputInfo.srcRect = {taskData.srcRect.x, taskData.srcRect.y,
+                taskData.srcRect.w, taskData.srcRect.h};
         }
-        inputInfo.transform = static_cast<uint32_t>(params.GetLayerInfo().transformType);
+        inputInfo.transform = static_cast<uint32_t>(taskData.transformType);
     }
     inputInfo.dstRect = {taskData.offlineRect.x, taskData.offlineRect.y,
         taskData.offlineRect.w, taskData.offlineRect.h};
@@ -400,24 +399,22 @@ static void WaitFence(const sptr<SyncFence>& srcAcquireFence, int32_t releaseFen
 }
 
 bool RSHpaeOfflineDevice::DoProcessOffline(
-    RSSurfaceRenderParams& params, ProcessOfflineResult& processOfflineResult, HpaeOfflineSubThreadData& taskData)
+    ProcessOfflineResult& processOfflineResult, HpaeOfflineSubThreadData& taskData)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: do process offline");
     // get Hpae inputInfo
     sptr<SurfaceBuffer> dstSurfaceBuffer = nullptr;
     int32_t releaseFence = -1;
-    auto srcSurfaceBuffer = params.GetBuffer();
-    auto srcBufferOwnerCount = params.GetBufferOwnerCount();
-    if (!srcSurfaceBuffer || !srcBufferOwnerCount) {
+    if (!taskData.srcBuffer || !taskData.bufferOwnerCount) {
         RS_OFFLINE_LOGW("Offline srcSurfaceBuffer get buffer failed!");
         return false;
     }
-    BufferOwnerCountGuard guard(srcBufferOwnerCount);
-    if (!GetOfflineProcessInput(params, taskData.inputInfo, dstSurfaceBuffer, releaseFence, taskData)) {
+    BufferOwnerCountGuard guard(taskData.bufferOwnerCount);
+    if (!GetOfflineProcessInput(taskData.inputInfo, dstSurfaceBuffer, releaseFence, taskData)) {
         RS_OFFLINE_LOGW("Get offline process input failed.");
         return false;
     }
-    WaitFence(params.GetAcquireFence(), releaseFence);
+    WaitFence(taskData.acquireFence, releaseFence);
 
     // hpae offline process
     int32_t ret = -1;
@@ -439,12 +436,11 @@ bool RSHpaeOfflineDevice::DoProcessOffline(
         }
     }
 
-    return SubmitOfflineBuffer(taskData, params, dstSurfaceBuffer, processOfflineResult);
+    return SubmitOfflineBuffer(taskData, dstSurfaceBuffer, processOfflineResult);
 }
 
 bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
     HpaeOfflineSubThreadData& taskData,
-    RSSurfaceRenderParams& params,
     sptr<SurfaceBuffer>& dstSurfaceBuffer,
     ProcessOfflineResult& processOfflineResult)
 {
@@ -470,18 +466,18 @@ bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
             }
         }
     }
-    return FillOfflineResult(processOfflineResult, taskData, params, offlineSurfaceHandler);
+    return FillOfflineResult(processOfflineResult, taskData, offlineSurfaceHandler);
 }
 
 bool RSHpaeOfflineDevice::FillOfflineResult(ProcessOfflineResult& processOfflineResult,
-    HpaeOfflineSubThreadData& taskData, RSSurfaceRenderParams& params,
+    HpaeOfflineSubThreadData& taskData,
     std::shared_ptr<RSSurfaceHandler>& offlineSurfaceHandler)
 {
     // set to offline result
     if (taskData.contextType == OfflineContextType::AI2020) {
-        auto src = params.GetLayerInfo().srcRect;
-        processOfflineResult.bufferRect = {.x = src.x, .y = src.y, .w = src.w, .h = src.h};
-        processOfflineResult.transformType = params.GetLayerInfo().transformType;
+        processOfflineResult.bufferRect = {.x = taskData.srcRect.x, .y = taskData.srcRect.y, 
+            .w = taskData.srcRect.w, .h = taskData.srcRect.h};
+        processOfflineResult.transformType = taskData.transformType;
     } else {
         processOfflineResult.bufferRect = {
             .x = taskData.offlineRect.x, .y = taskData.offlineRect.y,
@@ -504,12 +500,12 @@ bool RSHpaeOfflineDevice::FillOfflineResult(ProcessOfflineResult& processOffline
     return true;
 }
 
-void RSHpaeOfflineDevice::OfflineTaskFunc(RSSurfaceRenderParams* surfaceParams,
+void RSHpaeOfflineDevice::OfflineTaskFunc(
     std::shared_ptr<ProcessOfflineFuture>& futurePtr, HpaeOfflineSubThreadData& taskData)
 {
     ProcessOfflineResult processOfflineResult;
     processOfflineResult.taskSuccess = isInitOfflineFuncSucc_ ?
-        DoProcessOffline(*surfaceParams, processOfflineResult, taskData) : false;
+        DoProcessOffline(processOfflineResult, taskData) : false;
     auto context = GetOfflineContext(taskData.nodeId);
     if (context != nullptr) {
         context->lastProcessSuccess = processOfflineResult.taskSuccess;
@@ -572,8 +568,22 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
         RS_OFFLINE_LOGW("surfaceParams is nullptr.");
         return false;
     }
+    HpaeOfflineSubThreadData taskData;
+    taskData.nodeId = context->nodeId;
+    taskData.layerConfig = context->layerConfig;
+    taskData.offlineRect = context->offlineRect;
+    taskData.offlineLayer = context->offlineLayer;
+    taskData.contextType = context->contextType;
+    taskData.lastProcessSuccess = context->lastProcessSuccess;
+    // snapshot surface params for async processing
+    taskContext.srcBuffer = surfaceParams->GetBuffer();
+    taskContext.bufferOwnerCount = surfaceParams->GetBufferOwnerCount();
+    taskContext.acquireFence = surfaceParams->GetAcquireFence();
+    taskContext.srcRect = surfaceParams->GetLayerInfo().srcRect;
+    taskContext.transformType = surfaceParams.GetLayerInfo().transformType;
+
     if (context->IsSkipDraw()) {
-        return SetResultWhenSkipDraw(context, surfaceParams, taskId);
+        return SetResultWhenSkipDraw(context, taskData, taskId);
     }
     // while posting offline task in rt thread, there is prevalidate to avoid piling up, post directly
     auto futurePtr = offlineResultSync_.RegisterPostedTask(taskId);
@@ -581,38 +591,24 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
         RS_OFFLINE_LOGE("register post task failed!");
         return false;
     }
-    HpaeOfflineSubThreadData taskData;
-    taskData.nodeId = context->nodeId;
-    taskData.layerConfig = context->layerConfig;
-    taskData.offlineRect = context->offlineRect;
-    taskData.offlineLayer = context->offlineLayer;
-    taskData.contextType = context->contextType;
-    taskData.lastProcessSuccess = context->lastProcessSuccess;
-    offlineThreadManager_.PostTask([surfaceParams, futurePtr, taskId, this, taskData = std::move(taskData)]() mutable {
+    offlineThreadManager_.PostTask([futurePtr, taskId, this, taskData = std::move(taskData)]() mutable {
         RS_TRACE_NAME("hpae_offline: ProcessOffline");
         RS_OFFLINE_LOGD("start to proces offline surface (by drawable), task[%{public}" PRIu64 "-%{public}" PRIu64 "]",
             taskId.first, taskId.second);
-        OfflineTaskFunc(surfaceParams, futurePtr, taskData);
+        OfflineTaskFunc(futurePtr, taskData);
     });
     return true;
 }
 
 bool RSHpaeOfflineDevice::SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineContext>& context,
-    RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId)
+    HpaeOfflineSubThreadData& taskData, offlineTaskId taskId)
 {
     RS_OFFLINE_LOGD("RSHpaeOfflineDevice::skipDraw: skip offline task[%{public}" PRIu64 "-%{public}" PRIu64 "]",
         taskId.first, taskId.second);
     ProcessOfflineResult result;
     auto offlineSurfaceHandler = context->offlineLayer->GetMutableRSSurfaceHandler();
 
-    HpaeOfflineSubThreadData taskData;
-    taskData.nodeId = context->nodeId;
-    taskData.layerConfig = context->layerConfig;
-    taskData.offlineRect = context->offlineRect;
-    taskData.offlineLayer = context->offlineLayer;
-    taskData.contextType = context->contextType;
-    taskData.lastProcessSuccess = context->lastProcessSuccess;
-    bool fillOutRet = FillOfflineResult(result, taskData, *surfaceParams, offlineSurfaceHandler);
+    bool fillOutRet = FillOfflineResult(result, taskData, offlineSurfaceHandler);
     if (!fillOutRet) {
         RS_OFFLINE_LOGW("RSHpaeOfflineDevice::FillOfflineResult failed");
         return false;
