@@ -475,7 +475,7 @@ bool RSHpaeOfflineDevice::FillOfflineResult(ProcessOfflineResult& processOffline
 {
     // set to offline result
     if (taskData.contextType == OfflineContextType::AI2020) {
-        processOfflineResult.bufferRect = {.x = taskData.srcRect.x, .y = taskData.srcRect.y, 
+        processOfflineResult.bufferRect = {.x = taskData.srcRect.x, .y = taskData.srcRect.y,
             .w = taskData.srcRect.w, .h = taskData.srcRect.h};
         processOfflineResult.transformType = taskData.transformType;
     } else {
@@ -565,7 +565,7 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
     RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId)
 {
     if (surfaceParams == nullptr) {
-        RS_OFFLINE_LOGW("surfaceParams is nullptr.");
+        RS_OFFLINE_LOGW("surfaceParams is nullptr");
         return false;
     }
     HpaeOfflineSubThreadData taskData;
@@ -576,11 +576,11 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
     taskData.contextType = context->contextType;
     taskData.lastProcessSuccess = context->lastProcessSuccess;
     // snapshot surface params for async processing
-    taskContext.srcBuffer = surfaceParams->GetBuffer();
-    taskContext.bufferOwnerCount = surfaceParams->GetBufferOwnerCount();
-    taskContext.acquireFence = surfaceParams->GetAcquireFence();
-    taskContext.srcRect = surfaceParams->GetLayerInfo().srcRect;
-    taskContext.transformType = surfaceParams.GetLayerInfo().transformType;
+    taskData.srcBuffer = surfaceParams->GetBuffer();
+    taskData.bufferOwnerCount = surfaceParams->GetBufferOwnerCount();
+    taskData.acquireFence = surfaceParams->GetAcquireFence();
+    taskData.srcRect = surfaceParams->GetLayerInfo().srcRect;
+    taskData.transformType = surfaceParams.GetLayerInfo().transformType;
 
     if (context->IsSkipDraw()) {
         return SetResultWhenSkipDraw(context, taskData, taskId);

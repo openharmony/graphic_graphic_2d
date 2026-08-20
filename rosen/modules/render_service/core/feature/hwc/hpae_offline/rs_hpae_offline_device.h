@@ -170,9 +170,9 @@ private:
     bool FillOfflineResult(ProcessOfflineResult& processOfflineResult, HpaeOfflineSubThreadData& taskData,
         std::shared_ptr<RSSurfaceHandler>& offlineSurfaceHandler);
     bool PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineContext>& context,
-        HpaeOfflineSubThreadData& taskData, offlineTaskId taskId);
-    bool SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineContext>& context,
         RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId);
+    bool SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineContext>& context,
+        HpaeOfflineSubThreadData& taskData, offlineTaskId taskId);
     void SetNodeArsrTag(const std::vector<uint64_t>& offlineNodeIds);
     bool IsOfflineDeviceEnable(std::shared_ptr<RSHpaeOfflineContext>& context);
     // so handler

@@ -35,7 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t MAX_NUM_INVALID_FRAME = 10;
-constexpr float BRIGHTNESS_RATIO_EPSILON = 1e-6;
+constexpr float BRIGHTNESS_RATIO_EPSILON = 1e-6f;
 }
 using namespace HDI::Display::Graphic::Common::V1_0;
 
@@ -152,11 +152,11 @@ bool RSGPUOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<GPUOfflineContext
     taskContext.bufferOwnerCount = surfaceParams->GetBufferOwnerCount();
     taskContext.acquireFence = surfaceParams->GetAcquireFence();
     taskContext.srcRect = surfaceParams->GetLayerInfo().srcRect;
-    taskContext.transformType = surfaceParams.GetLayerInfo().transformType;
+    taskContext.transformType = surfaceParams->GetLayerInfo().transformType;
     taskContext.nodeName = surfaceParams->GetName();
 
     if (offlineContext->skipDraw) {
-        return SetResultWhenSkipDraw(offlineContext, surfaceParams, taskId);
+        return SetResultWhenSkipDraw(offlineContext, taskContext, taskId);
     }
     auto futurePtr = offlineResultSync_.RegisterPostedTask(taskId);
     if (!futurePtr) {
@@ -165,9 +165,9 @@ bool RSGPUOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<GPUOfflineContext
     }
     offlineThread_.PostTask([futurePtr, taskId, this,
                              taskContext = std::move(taskContext)]() mutable {
-        RS_TRACE_NAME("RSGPUOfflineDevice::ProcessOffline [%lld %lld] %s", taskId.first,
+        RS_TRACE_NAME_FMT("RSGPUOfflineDevice::ProcessOffline [%lld %lld] %s", taskId.first,
             taskId.second, taskContext.nodeName.c_str());
-        OfflineTaskFuncWithData(surfaceParams, futurePtr, taskContext);
+        OfflineTaskFuncWithData(futurePtr, taskContext);
     });
     return true;
 }
@@ -469,7 +469,7 @@ BufferDrawParam RSGPUOfflineDevice::CreateBufferDrawParam(const GPUOfflineSubThr
     params.targetColorGamut = taskContext.drawParams.targetColorGamut;
     params.sdrNits = taskContext.drawParams.sdrNit;
     params.tmoNits = taskContext.drawParams.displayNit;
-    float clampedRatio = std::max(taskContext.drawParams.brightnessRatio, BRIGHTNESS_RATIO_EPSILON)
+    float clampedRatio = std::max(taskContext.drawParams.brightnessRatio, BRIGHTNESS_RATIO_EPSILON);
     params.displayNits = params.tmoNits / std::pow(clampedRatio, 2.2f);
     params.layerLinearMatrix = taskContext.drawParams.layerLinearMatrix;
     params.isHdrRedraw = true;
