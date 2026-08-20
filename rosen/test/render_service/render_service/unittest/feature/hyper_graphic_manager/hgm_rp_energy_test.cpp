@@ -319,4 +319,110 @@ HWTEST_F(HgmRPEnergyTest, TestStatisticAnimationTime, TestSize.Level1)
     EXPECT_EQ(hgmRPEnergy_->energyCommonData_[EnergyEvent::ANIMATION_EXEC_TIME]["STATIC_ANIMATION_TIME"], "123456");
 }
 
+/**
+ * @tc.name: SetVideoCallPid_Normal
+ * @tc.desc: Test SetVideoCallPid sets videoCallPid_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, SetVideoCallPid_Normal, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    pid_t testPid = 12345;
+    hgmRPEnergy_->SetVideoCallPid(testPid);
+
+    ASSERT_EQ(hgmRPEnergy_->videoCallPid_.load(), testPid);
+}
+
+/**
+ * @tc.name: GetVideoCallPtsOffset_DefaultPid
+ * @tc.desc: Test GetVideoCallPtsOffset returns 0 when videoCallPid_ == DEFAULT_PID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, GetVideoCallPtsOffset_DefaultPid, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->videoCallPid_.store(DEFAULT_PID);
+    hgmRPEnergy_->videoCallLayerConfig_ = { { "package1", "layer1" } };
+
+    uint64_t result = hgmRPEnergy_->GetVideoCallPtsOffset(12345, "layer1");
+
+    ASSERT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: GetVideoCallPtsOffset_PidMismatch
+ * @tc.desc: Test GetVideoCallPtsOffset returns 0 when pid != videoCallPid_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, GetVideoCallPtsOffset_PidMismatch, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->videoCallPid_.store(1000);
+    hgmRPEnergy_->videoCallLayerConfig_ = { { "package1", "layer1" } };
+
+    uint64_t result = hgmRPEnergy_->GetVideoCallPtsOffset(9999, "layer1");
+
+    ASSERT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: GetVideoCallPtsOffset_EmptyConfig
+ * @tc.desc: Test GetVideoCallPtsOffset returns 0 when videoCallLayerConfig_.empty()
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, GetVideoCallPtsOffset_EmptyConfig, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->videoCallPid_.store(1000);
+    hgmRPEnergy_->videoCallLayerConfig_.clear();
+
+    uint64_t result = hgmRPEnergy_->GetVideoCallPtsOffset(1000, "layer1");
+
+    ASSERT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: GetVideoCallPtsOffset_LayerNotFound
+ * @tc.desc: Test GetVideoCallPtsOffset returns 0 when bufferName not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, GetVideoCallPtsOffset_LayerNotFound, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->videoCallPid_.store(1000);
+    hgmRPEnergy_->videoCallLayerConfig_ = { { "package1", "layer1" } };
+
+    uint64_t result = hgmRPEnergy_->GetVideoCallPtsOffset(1000, "wrongLayer");
+
+    ASSERT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: GetVideoCallPtsOffset_LayerFound
+ * @tc.desc: Test GetVideoCallPtsOffset returns offset when bufferName found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, GetVideoCallPtsOffset_LayerFound, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->videoCallPid_.store(1000);
+    hgmRPEnergy_->videoCallLayerConfig_ = { { "package1", "videoLayer" } };
+
+    uint64_t result = hgmRPEnergy_->GetVideoCallPtsOffset(1000, "test_videoLayer_buffer");
+
+    ASSERT_EQ(result, 50000000);
+}
+
 } // namespace OHOS::Rosen

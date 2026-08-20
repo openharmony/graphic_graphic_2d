@@ -2592,6 +2592,7 @@ ErrCode RSClientToServiceConnection::SendVideoRateInfo(
         auto resultPid = std::from_chars(pidIt->second.data(), pidIt->second.data() + pidIt->second.size(), pid);
         if (resultPid.ec == std::errc() && pid > 0) {
             DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
+            HgmEnergyConsumptionPolicy::Instance().NotifyVideoParams(videoRateInfo);
         }
     }
 #endif

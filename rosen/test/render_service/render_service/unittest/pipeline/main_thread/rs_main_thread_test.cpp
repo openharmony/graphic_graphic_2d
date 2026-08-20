@@ -2494,7 +2494,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp001, TestSize.Le
     consumer->Init();
     int64_t resultValue = 100;
     int64_t desiredPresentTimestamp = resultValue;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp, pid);
     ASSERT_EQ(desiredPresentTimestamp, 0);
 }
 
@@ -2516,7 +2517,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp002, TestSize.Le
     consumer->consumer_->bufferQueue_->dirtyList_.clear();
     consumer->consumer_->bufferQueue_->dirtyList_.push_back(seqId);
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].isAutoTimestamp = true;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp, pid);
     ASSERT_EQ(desiredPresentTimestamp, 0);
 }
 
@@ -2531,7 +2533,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp003, TestSize.Le
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     int64_t desiredPresentTimestamp = -1;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(nullptr, desiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(nullptr, desiredPresentTimestamp, pid);
     EXPECT_EQ(desiredPresentTimestamp, 0);
 }
 
@@ -2554,7 +2557,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp004, TestSize.Le
     consumer->consumer_->bufferQueue_->dirtyList_.push_back(seqId);
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].isAutoTimestamp = false;
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].desiredPresentTimestamp = desiredPresentTimestamp;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, desiredPresentTimestamp);
 }
 
@@ -2570,6 +2574,7 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp005, TestSize.Le
     ASSERT_NE(mainThread, nullptr);
     const sptr<ConsumerSurface> consumer = new ConsumerSurface("test5");
     consumer->Init();
+    int32_t pid = 12345;
     int64_t desiredPresentTimestamp = 100000000;
     int64_t getDesiredPresentTimestamp = -1;
     uint32_t seqId = 1;
@@ -2580,23 +2585,23 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp005, TestSize.Le
 
     uint64_t vsyncRsTimestamp = mainThread->vsyncRsTimestamp_.load(); // record
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp - 1);
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, desiredPresentTimestamp);
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp);
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp + 1);
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp + 1000000000); // add 1s
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp + 1000000001); // add 1+s
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     mainThread->vsyncRsTimestamp_.store(vsyncRsTimestamp); // reset
@@ -2615,7 +2620,8 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp006, TestSize.Le
     const sptr<ConsumerSurface> consumer = new ConsumerSurface("test6");
     consumer->Init();
     int64_t getDesiredPresentTimestamp = -1;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    int32_t pid = 12345;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 
     int64_t desiredPresentTimestamp = -1;
@@ -2624,7 +2630,7 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp006, TestSize.Le
     consumer->consumer_->bufferQueue_->dirtyList_.push_back(seqId);
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].isAutoTimestamp = false;
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].desiredPresentTimestamp = desiredPresentTimestamp;
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, 0);
 }
 
@@ -2641,6 +2647,7 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp007, TestSize.Le
     const sptr<ConsumerSurface> consumer = new ConsumerSurface("test7");
     consumer->Init();
     uint32_t seqId = 1;
+    int32_t pid = 12345;
     int64_t desiredPresentTimestamp = 999999999; // 0.999ms
     consumer->consumer_->bufferQueue_->dirtyList_.clear();
     consumer->consumer_->bufferQueue_->dirtyList_.push_back(seqId);
@@ -2650,7 +2657,7 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp007, TestSize.Le
     int64_t getDesiredPresentTimestamp = -1;
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp / 2);
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp, pid);
     EXPECT_EQ(getDesiredPresentTimestamp, desiredPresentTimestamp);
 
     desiredPresentTimestamp = 1100000000; // 1.1ms

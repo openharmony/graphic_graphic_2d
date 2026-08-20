@@ -471,7 +471,7 @@ public:
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void SetBufferInfo(const BufferInfo& bufferInfo);
     void GetFrontBufferDesiredPresentTimeStamp(
-        const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp);
+        const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp, pid_t pid);
 
     // Enable HWCompose
     bool IsHardwareEnabledNodesNeedSync();

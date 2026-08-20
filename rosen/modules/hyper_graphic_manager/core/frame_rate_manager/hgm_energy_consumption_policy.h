@@ -37,6 +37,7 @@ using HandleRPFunc = std::function<void(const std::unordered_map<std::string, st
 class HgmEnergyConsumptionPolicy {
 public:
     static HgmEnergyConsumptionPolicy& Instance();
+    void NotifyVideoParams(const std::unordered_map<std::string, std::string>& videoRateInfo);
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
     void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
@@ -54,6 +55,7 @@ public:
     // called by RSMainThread
     bool GetVideoCallVsyncChange();
     bool GetVideoCallFrameRate(pid_t pid, const std::string& vsyncName, FrameRateRange& finalRange);
+    pid_t GetVideoCallPid();
     void SetCurrentPkgName(const std::vector<std::string>& pkgs);
     void SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo);
     void HandleEnergyCommonData(const EnergyCommonDataMap& commonData);
@@ -75,13 +77,16 @@ private:
     int32_t currentRefreshMode_ = -1;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     std::atomic<pid_t> videoCallPid_ = { DEFAULT_PID };
+    std::atomic<bool> avcodeVideoCallEnable_ = { false };
     std::string videoCallVsyncName_ = "";
-    int videoCallMaxFrameRate_ = 0;
+    std::atomic<int> videoCallMaxFrameRate_ = { 0 };
     std::atomic<bool> isEnableVideoCall_ = { false };
     std::atomic<int32_t> videoBufferCount_ = { 0 };
     std::atomic<bool> isSubmitDecisionTask_ = { false };
     std::atomic<bool> isOnlyVideoCallExist_ = { false };
     std::atomic<bool> isVideoCallVsyncChange_ = { false };
+    std::atomic<bool> isVideoCall_ = { false };
+    bool isSyncVideoCallToRp_ = false;
     // concurrency protection >>>
     mutable std::mutex videoCallLock_;
     std::string videoCallLayerName_ = "";
