@@ -407,7 +407,11 @@ void ProcessGpuOfflineForTopLayer(
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
 
     void HandleColorPickerHwcDisable(RSRenderNode& node);
+    void HandleColorPickerHwcDisable(
+        RSRenderNode& node, const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& colorPicker);
     void ScheduleColorPickIfCurrentSurfaceDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
+    void ScheduleColorPickIfCurrentSurfaceDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager,
+        const std::shared_ptr<DrawableV2::RSColorPickerDrawable>& drawable);
     /**
      * @brief Prepare color pickers with dirty region intersection checking
      */
