@@ -1188,7 +1188,7 @@ ErrCode RSRenderPipelineAgent::GetPixelmap(NodeId id, const std::shared_ptr<Medi
             }
         }
     };
-    pipeline->PostUniRenderThreadTask(getPixelMapTask);
+    pipeline->PostMainThreadTask(getPixelMapTask);
 #endif
     success = future.get();
     return ERR_OK;
