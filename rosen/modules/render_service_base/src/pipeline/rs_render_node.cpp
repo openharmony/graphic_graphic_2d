@@ -2805,7 +2805,10 @@ bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
 
 std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerDrawable() const
 {
-    if (auto& drawable = GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)]) {
+    if (!drawableVec_) {
+        return nullptr;
+    }
+    if (auto& drawable = findMapValueRef(*drawableVec_, static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER))) {
         return std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(drawable);
     }
     return nullptr;
