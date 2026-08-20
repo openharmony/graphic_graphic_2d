@@ -580,7 +580,7 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
     taskData.bufferOwnerCount = surfaceParams->GetBufferOwnerCount();
     taskData.acquireFence = surfaceParams->GetAcquireFence();
     taskData.srcRect = surfaceParams->GetLayerInfo().srcRect;
-    taskData.transformType = surfaceParams.GetLayerInfo().transformType;
+    taskData.transformType = surfaceParams->GetLayerInfo().transformType;
 
     if (context->IsSkipDraw()) {
         return SetResultWhenSkipDraw(context, taskData, taskId);
