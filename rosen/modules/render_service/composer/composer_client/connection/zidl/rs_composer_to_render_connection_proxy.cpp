@@ -87,16 +87,23 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
             return -1;
         }
         if (std::get<1>(releaseBufferFenceVec[i]) != nullptr) {
-            data.WriteBool(true);
+            if (!data.WriteBool(true)) {
+                ROSEN_LOGE("%{public}s write buffer flag true failed", __func__);
+                return -1;
+            }
             if (WriteSurfaceBufferImplWithAllProperties(data, std::get<1>(releaseBufferFenceVec[i])->GetSeqNum(),
                 std::get<1>(releaseBufferFenceVec[i])) != GSERROR_OK) {
                 ROSEN_LOGE("%{public}s write surface buffer failed", __func__);
                 return -1;
             }
         } else {
-            data.WriteBool(false);
+            if (!data.WriteBool(false)) {
+                ROSEN_LOGE("%{public}s write buffer flag false failed", __func__);
+                return -1;
+            }
         }
-        if (!std::get<2>(releaseBufferFenceVec[i])->WriteToMessageParcel(data)) {
+        auto fence = std::get<2>(releaseBufferFenceVec[i]);
+        if (fence && !fence->WriteToMessageParcel(data)) {
             ROSEN_LOGE("%{public}s write Fence failed", __func__);
             return -1;
         }

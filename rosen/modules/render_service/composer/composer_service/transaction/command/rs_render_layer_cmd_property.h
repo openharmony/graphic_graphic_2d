@@ -483,6 +483,9 @@ struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerProperty
         if (!parcel.ReadUint32(transformTypeVal)) {
             return false;
         }
+        if (transformTypeVal > GraphicTransformType::GRAPHIC_ROTATE_BUTT) {
+            return false;
+        }
         value.originalTransformType = static_cast<GraphicTransformType>(transformTypeVal);
         // originalAcquireFence
         if (!UnmarshallingSyncFence(parcel, value.originalAcquireFence)) {

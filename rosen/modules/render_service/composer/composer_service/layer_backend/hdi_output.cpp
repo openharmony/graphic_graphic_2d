@@ -293,7 +293,9 @@ bool HdiOutput::UpdateSolidColorLayerLocked(const std::shared_ptr<RSLayer>& rsLa
         hdiLayer->UpdateRSLayer(rsLayer);
         return true;
     }
-    CreateLayerLocked(rsLayer->GetRSLayerId(), rsLayer);
+    if (CreateLayerLocked(rsLayer->GetRSLayerId(), rsLayer) != GRAPHIC_DISPLAY_SUCCESS) {
+        return false;
+    }
     return true;
 }
 
@@ -511,6 +513,13 @@ void HdiOutput::DeletePrevLayersLocked()
 
 void HdiOutput::ResetLayerStatusLocked()
 {
+    for (auto iter = solidRSLayerIdMap_.begin(); iter != solidRSLayerIdMap_.end(); ++iter) {
+        iter->second->SetLayerStatus(false);
+        auto rsLayer = iter->second->GetRSLayer();
+        if (rsLayer != nullptr) {
+            rsLayer->SetIsNeedComposition(false);
+        }
+    }
     for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
         iter->second->SetLayerStatus(false);
         auto rsLayer = iter->second->GetRSLayer();

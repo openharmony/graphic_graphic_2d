@@ -2975,6 +2975,240 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_LayersToBeReleaseMixed,
 }
 
 /**
+ * Function: ResetLayerStatusLocked_SolidRSLayerIdMapWithRSLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add HdiLayer with RSLayer to solidRSLayerIdMap_
+ *                  2. call ResetLayerStatusLocked
+ *                  3. verify solidRSLayerIdMap_ loop condition is true (rsLayer != nullptr)
+ */
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_SolidRSLayerIdMapWithRSLayer,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing layers
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Create HdiLayer with RSLayer
+    uint64_t solidSurfaceId = 600;
+    uint32_t layerId = 601;
+    std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(layerId);
+    ASSERT_NE(hdiLayer, nullptr);
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(layerId, nullptr);
+    ASSERT_NE(rsLayer, nullptr);
+    hdiLayer->UpdateRSLayer(rsLayer);
+
+    // Set isNeedComposition to true so we can verify SetIsNeedComposition(false) is called
+    rsLayer->SetIsNeedComposition(true);
+    EXPECT_EQ(rsLayer->GetIsNeedComposition(), true);
+
+    // Add to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer;
+
+    // Verify GetRSLayer returns non-null
+    ASSERT_NE(hdiLayer->GetRSLayer(), nullptr);
+
+    // Call ResetLayerStatusLocked - solidRSLayerIdMap_ loop condition is true
+    hdiOutput->ResetLayerStatusLocked();
+
+    // Verify layer status is set to false
+    EXPECT_EQ(hdiLayer->GetLayerStatus(), false);
+    // Verify SetIsNeedComposition(false) was called (true branch executed)
+    EXPECT_EQ(rsLayer->GetIsNeedComposition(), false);
+}
+
+/**
+ * Function: ResetLayerStatusLocked_SolidRSLayerIdMapRsLayerNull
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add HdiLayer without RSLayer to solidRSLayerIdMap_
+ *                  2. call ResetLayerStatusLocked
+ *                  3. verify solidRSLayerIdMap_ loop condition is false (rsLayer == nullptr)
+ */
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_SolidRSLayerIdMapRsLayerNull,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing layers
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Create HdiLayer without RSLayer (GetRSLayer() will return nullptr)
+    uint64_t solidSurfaceId = 610;
+    uint32_t layerId = 611;
+    std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(layerId);
+    ASSERT_NE(hdiLayer, nullptr);
+
+    // Add to solidRSLayerIdMap_ without setting rsLayer
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId] = hdiLayer;
+
+    // Verify GetRSLayer returns nullptr
+    ASSERT_EQ(hdiLayer->GetRSLayer(), nullptr);
+
+    // Call ResetLayerStatusLocked - solidRSLayerIdMap_ loop condition is false
+    hdiOutput->ResetLayerStatusLocked();
+
+    // Verify layer status is set to false
+    EXPECT_EQ(hdiLayer->GetLayerStatus(), false);
+}
+
+/**
+ * Function: ResetLayerStatusLocked_SolidRSLayerIdMapMixed
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add HdiLayers with and without RSLayer to solidRSLayerIdMap_
+ *                  2. call ResetLayerStatusLocked
+ *                  3. verify both true and false branches work correctly
+ */
+HWTEST_F(HdiOutputTest, ResetLayerStatusLocked_SolidRSLayerIdMapMixed,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing layers
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Create first HdiLayer with RSLayer (true branch)
+    uint64_t solidSurfaceId1 = 620;
+    uint32_t layerId1 = 621;
+    std::shared_ptr<HdiLayer> hdiLayer1 = std::make_shared<HdiLayer>(layerId1);
+    ASSERT_NE(hdiLayer1, nullptr);
+    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>(layerId1, nullptr);
+    hdiLayer1->UpdateRSLayer(rsLayer1);
+    rsLayer1->SetIsNeedComposition(true);
+
+    // Create second HdiLayer without RSLayer (false branch)
+    uint64_t solidSurfaceId2 = 630;
+    uint32_t layerId2 = 631;
+    std::shared_ptr<HdiLayer> hdiLayer2 = std::make_shared<HdiLayer>(layerId2);
+    ASSERT_NE(hdiLayer2, nullptr);
+
+    // Add both to solidRSLayerIdMap_
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId1] = hdiLayer1;
+    hdiOutput->solidRSLayerIdMap_[solidSurfaceId2] = hdiLayer2;
+
+    // Verify rsLayer states before call
+    EXPECT_NE(hdiLayer1->GetRSLayer(), nullptr);  // true branch
+    EXPECT_EQ(hdiLayer2->GetRSLayer(), nullptr);  // false branch
+
+    // Call ResetLayerStatusLocked
+    hdiOutput->ResetLayerStatusLocked();
+
+    // Verify layer status is set to false for both
+    EXPECT_EQ(hdiLayer1->GetLayerStatus(), false);
+    EXPECT_EQ(hdiLayer2->GetLayerStatus(), false);
+    // Verify true branch executed SetIsNeedComposition(false)
+    EXPECT_EQ(rsLayer1->GetIsNeedComposition(), false);
+}
+
+/**
+ * Function: UpdateSolidColorLayerLocked_CreateLayerFails_TrueBranch
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid color RSLayer not in solidRSLayerIdMap_
+ *                  2. set createHdiLayerFunc_ to return nullptr so CreateLayerLocked fails
+ *                  3. call UpdateSolidColorLayerLocked
+ *                  4. verify return false (if CreateLayerLocked != SUCCESS true branch)
+ */
+HWTEST_F(HdiOutputTest, UpdateSolidColorLayerLocked_CreateLayerFails_TrueBranch,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing state
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Override createHdiLayerFunc_ to return nullptr, forcing CreateLayerLocked to fail
+    auto prevFunc = hdiOutput->createHdiLayerFunc_;
+    hdiOutput->createHdiLayerFunc_ = [](uint32_t) -> std::shared_ptr<HdiLayer> { return nullptr; };
+
+    uint32_t layerId = 640;
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(layerId, nullptr);
+    ASSERT_NE(rsLayer, nullptr);
+    rsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+
+    // CreateLayerLocked returns FAILURE -> if (!= SUCCESS) true branch -> return false
+    bool ret = hdiOutput->UpdateSolidColorLayerLocked(rsLayer);
+    EXPECT_FALSE(ret);
+
+    // Restore
+    hdiOutput->createHdiLayerFunc_ = prevFunc;
+}
+
+/**
+ * Function: UpdateSolidColorLayerLocked_CreateLayerSucceeds_FalseBranch
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create solid color RSLayer not in solidRSLayerIdMap_
+ *                  2. set up createHdiLayerFunc_ with mock device so CreateLayerLocked succeeds
+ *                  3. call UpdateSolidColorLayerLocked
+ *                  4. verify return true (if CreateLayerLocked != SUCCESS false branch)
+ */
+HWTEST_F(HdiOutputTest, UpdateSolidColorLayerLocked_CreateLayerSucceeds_FalseBranch,
+    Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+
+    // Clear existing state
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+
+    // Use createHdiLayerFunc_ to create HdiLayer with mock device
+    auto prevFunc = hdiOutput->createHdiLayerFunc_;
+    hdiOutput->createHdiLayerFunc_ = [](uint32_t screenId) {
+        auto hdiLayer = std::make_shared<HdiLayer>(screenId);
+        if (hdiLayer != nullptr) {
+            hdiLayer->SetHdiDeviceMock(Mock::HdiDeviceMock::GetInstance());
+        }
+        return hdiLayer;
+    };
+
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey())
+        .WillRepeatedly(testing::ReturnRef(paramKey_));
+    hdiOutput->device_ = hdiDeviceMock_;
+
+    uint32_t layerId = 641;
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(layerId, nullptr);
+    ASSERT_NE(rsLayer, nullptr);
+    rsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+
+    // CreateLayerLocked returns SUCCESS -> if (!= SUCCESS) false branch -> return true
+    bool ret = hdiOutput->UpdateSolidColorLayerLocked(rsLayer);
+    EXPECT_TRUE(ret);
+
+    // Restore and cleanup
+    hdiOutput->createHdiLayerFunc_ = prevFunc;
+    hdiOutput->solidRSLayerIdMap_.clear();
+    hdiOutput->layerIdMap_.clear();
+    hdiOutput->layersTobeRelease_.clear();
+    hdiOutput->maskLayer_ = nullptr;
+}
+
+/**
  * Function: ReleaseLayers_EmptyLayerIdMap
  * Type: Function
  * Rank: Important(1)

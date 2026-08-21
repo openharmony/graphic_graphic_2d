@@ -353,4 +353,67 @@ HWTEST(RenderLayerCmdPropertyTest, Unmarshall_PixelMap_FlagTrue_NoParcelable_Suc
     ASSERT_NE(out, nullptr);
     EXPECT_EQ(out->Get(), nullptr);
 }
+
+/**
+ * Function: Unmarshall_HpaeOriginalInfo_TransformTypeExceedsButt_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. craft parcel with transformTypeVal > GRAPHIC_ROTATE_BUTT
+ *                  2. call OnUnmarshalling for HpaeOriginalInfo
+ *                  3. expect false (if transformTypeVal > BUTT true branch)
+ */
+HWTEST(RenderLayerCmdPropertyTest, Unmarshall_HpaeOriginalInfo_TransformTypeExceedsButt_TrueBranch, TestSize.Level1)
+{
+    MessageParcel parcel;
+    // originalBuffer: hasBuffer=false
+    ASSERT_TRUE(parcel.WriteBool(false));
+    // originalPreBuffer: hasBuffer=false
+    ASSERT_TRUE(parcel.WriteBool(false));
+    // originalTransformType: value exceeding GRAPHIC_ROTATE_BUTT
+    uint32_t invalidTransform = static_cast<uint32_t>(GraphicTransformType::GRAPHIC_ROTATE_BUTT) + 1;
+    ASSERT_TRUE(parcel.WriteUint32(invalidTransform));
+
+    RSRenderLayerCmdProperty<HpaeOriginalInfo> prop(HpaeOriginalInfo{});
+    std::shared_ptr<RSRenderLayerCmdProperty<HpaeOriginalInfo>> out;
+    // transformTypeVal > GRAPHIC_ROTATE_BUTT is true -> returns false
+    EXPECT_FALSE(prop.OnUnmarshalling(parcel, out));
+}
+
+/**
+ * Function: Unmarshall_HpaeOriginalInfo_TransformTypeValid_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. craft parcel with valid transformTypeVal (<= GRAPHIC_ROTATE_BUTT)
+ *                  2. call OnUnmarshalling for HpaeOriginalInfo
+ *                  3. expect true (if transformTypeVal > BUTT false branch) and verify value
+ */
+HWTEST(RenderLayerCmdPropertyTest, Unmarshall_HpaeOriginalInfo_TransformTypeValid_FalseBranch, TestSize.Level1)
+{
+    MessageParcel parcel;
+    // originalBuffer: hasBuffer=false
+    ASSERT_TRUE(parcel.WriteBool(false));
+    // originalPreBuffer: hasBuffer=false
+    ASSERT_TRUE(parcel.WriteBool(false));
+    // originalTransformType: valid value (GRAPHIC_ROTATE_NONE)
+    uint32_t validTransform = static_cast<uint32_t>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    ASSERT_TRUE(parcel.WriteUint32(validTransform));
+    // originalAcquireFence: hasFence=false
+    ASSERT_TRUE(parcel.WriteBool(false));
+    // originalCropRect
+    GraphicIRect rect {10, 20, 30, 40};
+    ASSERT_TRUE(parcel.WriteUnpadBuffer(&rect, sizeof(GraphicIRect)));
+
+    RSRenderLayerCmdProperty<HpaeOriginalInfo> prop(HpaeOriginalInfo{});
+    std::shared_ptr<RSRenderLayerCmdProperty<HpaeOriginalInfo>> out;
+    // transformTypeVal > GRAPHIC_ROTATE_BUTT is false -> continues -> returns true
+    ASSERT_TRUE(prop.OnUnmarshalling(parcel, out));
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(out->Get().originalTransformType, GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    EXPECT_EQ(out->Get().originalCropRect.x, 10);
+    EXPECT_EQ(out->Get().originalCropRect.y, 20);
+    EXPECT_EQ(out->Get().originalCropRect.w, 30);
+    EXPECT_EQ(out->Get().originalCropRect.h, 40);
+}
 } // namespace

@@ -591,4 +591,158 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLayerStateChangedToR
     int32_t r = proxy.NotifyLayerStateChangedToRender(999u, LayerStateChange::UNAVAILABLE, 77u);
     EXPECT_NE(r, COMPOSITOR_ERROR_BINDER_ERROR);
 }
+
+namespace {
+constexpr int32_t PARCEL_REPLY_OK = 0;
+constexpr size_t PARCEL_HEADER_SIZE = 108;
+constexpr size_t NULL_FENCE_ENTRY_SIZE = 12;
+constexpr size_t NONNULL_FENCE_ENTRY_SIZE = 16;
+constexpr size_t PARCEL_MAX_CAPACITY = 204800;
+constexpr size_t FILL_ENTRIES_FOR_BOOL_FAIL =
+    (PARCEL_MAX_CAPACITY - PARCEL_HEADER_SIZE) / NULL_FENCE_ENTRY_SIZE;
+constexpr size_t FILL_ENTRIES_FOR_FENCE_FAIL =
+    (PARCEL_MAX_CAPACITY - PARCEL_HEADER_SIZE - 2 * NONNULL_FENCE_ENTRY_SIZE - NULL_FENCE_ENTRY_SIZE) /
+    NULL_FENCE_ENTRY_SIZE;
+
+class FakeSuccessReplyRemote : public IRemoteObject {
+public:
+    FakeSuccessReplyRemote() : IRemoteObject(IRSComposerToRenderConnection::GetDescriptor()) {}
+    int32_t GetObjectRefCount() override { return 1; }
+    int SendRequest(uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) override
+    {
+        reply.WriteInt32(PARCEL_REPLY_OK);
+        return NO_ERROR;
+    }
+    bool AddDeathRecipient(const sptr<DeathRecipient>&) override { return false; }
+    bool RemoveDeathRecipient(const sptr<DeathRecipient>&) override { return false; }
+    int Dump(int, const std::vector<std::u16string>&) override { return 0; }
+};
+}
+
+/**
+ * Function: Proxy_ReleaseLayerBuffers_FenceNullptr_ShortCircuit
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add one entry with nullptr fence
+ *                  2. verify proxy returns OK (fence && short-circuit false branch)
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_FenceNullptr_ShortCircuit,
+    TestSize.Level1)
+{
+    auto remote = sptr<FakeSuccessReplyRemote>::MakeSptr();
+    RSComposerToRenderConnectionProxy proxy(remote);
+
+    ReleaseLayerBuffersInfo info;
+    info.screenId = 11u;
+    // Entry with null buffer and nullptr fence -> fence && short-circuits to false
+    info.releaseBufferFenceVec.push_back(std::tuple(static_cast<RSLayerId>(100u), nullptr, nullptr));
+    info.lastSwapBufferTime = 111;
+
+    int32_t r = proxy.ReleaseLayerBuffers(info);
+    EXPECT_EQ(r, PARCEL_REPLY_OK);
+}
+
+/**
+ * Function: Proxy_ReleaseLayerBuffers_WriteBoolTrue_Fail_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. fill parcel to near max capacity with null-buffer entries
+ *                  2. add one entry with non-null buffer so WriteBool(true) is called
+ *                  3. verify proxy returns -1 (if (!data.WriteBool(true)) true branch)
+ * Note: Parcel max data capacity is 204800 bytes. After FILL_ENTRIES_FOR_BOOL_FAIL null-fence
+ *       entries (12 bytes each) + header (108 bytes), exactly 8 bytes remain, enough for
+ *       WriteUint64 but not WriteBool.
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_WriteBoolTrue_Fail_TrueBranch,
+    TestSize.Level1)
+{
+    sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
+    RSComposerToRenderConnectionProxy proxy(stub->AsObject());
+
+    ReleaseLayerBuffersInfo info;
+    info.screenId = 12u;
+    // Fill parcel to leave exactly 8 bytes remaining
+    for (size_t i = 0; i < FILL_ENTRIES_FOR_BOOL_FAIL; ++i) {
+        info.releaseBufferFenceVec.push_back(
+            std::tuple(static_cast<RSLayerId>(i), nullptr, nullptr));
+    }
+    // Triggering entry: non-null buffer -> WriteBool(true) path, 0 bytes remain -> fails
+    sptr<SurfaceBuffer> sb = SurfaceBuffer::Create();
+    info.releaseBufferFenceVec.push_back(
+        std::tuple(static_cast<RSLayerId>(99998u), sb, nullptr));
+
+    int32_t r = proxy.ReleaseLayerBuffers(info);
+    EXPECT_EQ(r, -1);
+}
+
+/**
+ * Function: Proxy_ReleaseLayerBuffers_WriteBoolFalse_Fail_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. fill parcel to near max capacity with null-buffer entries
+ *                  2. add one entry with null buffer so WriteBool(false) is called
+ *                  3. verify proxy returns -1 (if (!data.WriteBool(false)) true branch)
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_WriteBoolFalse_Fail_TrueBranch,
+    TestSize.Level1)
+{
+    sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
+    RSComposerToRenderConnectionProxy proxy(stub->AsObject());
+
+    ReleaseLayerBuffersInfo info;
+    info.screenId = 13u;
+    for (size_t i = 0; i < FILL_ENTRIES_FOR_BOOL_FAIL; ++i) {
+        info.releaseBufferFenceVec.push_back(
+            std::tuple(static_cast<RSLayerId>(i), nullptr, nullptr));
+    }
+    // Triggering entry: null buffer -> WriteBool(false) path, 0 bytes remain -> fails
+    info.releaseBufferFenceVec.push_back(
+        std::tuple(static_cast<RSLayerId>(99999u), nullptr, nullptr));
+
+    int32_t r = proxy.ReleaseLayerBuffers(info);
+    EXPECT_EQ(r, -1);
+}
+
+/**
+ * Function: Proxy_ReleaseLayerBuffers_FenceWriteFail_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. fill parcel to leave exactly 12 bytes before the triggering entry
+ *                  2. triggering entry has non-null fence: WriteUint64(8)+WriteBool(4) succeed,
+ *                     but fence WriteToMessageParcel fails (0 bytes remain)
+ *                  3. verify proxy returns -1 (if (fence && !WriteToMessageParcel) true branch)
+ * Note: Uses FILL_ENTRIES_FOR_FENCE_FAIL null-fence entries (12 bytes each) + 2 non-null-fence
+ *       entries (16 bytes each) to leave exactly 12 bytes for the triggering entry.
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_FenceWriteFail_TrueBranch,
+    TestSize.Level1)
+{
+    sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
+    RSComposerToRenderConnectionProxy proxy(stub->AsObject());
+
+    ReleaseLayerBuffersInfo info;
+    info.screenId = 14u;
+    // Fill with null-fence entries (12 bytes each)
+    for (size_t i = 0; i < FILL_ENTRIES_FOR_FENCE_FAIL; ++i) {
+        info.releaseBufferFenceVec.push_back(
+            std::tuple(static_cast<RSLayerId>(i), nullptr, nullptr));
+    }
+    // 2 non-null-fence entries (16 bytes each) to align remaining to 12 bytes
+    sptr<SyncFence> dummyFence = sptr<SyncFence>::MakeSptr(-1);
+    info.releaseBufferFenceVec.push_back(
+        std::tuple(static_cast<RSLayerId>(88888u), nullptr, dummyFence));
+    info.releaseBufferFenceVec.push_back(
+        std::tuple(static_cast<RSLayerId>(88889u), nullptr, dummyFence));
+    // Triggering entry: non-null fence, WriteUint64(8)+WriteBool(4) succeed,
+    // fence WriteToMessageParcel fails (0 bytes remain) -> true branch
+    info.releaseBufferFenceVec.push_back(
+        std::tuple(static_cast<RSLayerId>(77777u), nullptr, dummyFence));
+
+    int32_t r = proxy.ReleaseLayerBuffers(info);
+    EXPECT_EQ(r, -1);
+}
 } // namespace OHOS::Rosen
