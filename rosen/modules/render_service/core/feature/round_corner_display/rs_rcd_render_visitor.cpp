@@ -26,7 +26,7 @@ RSRcdRenderVisitor::RSRcdRenderVisitor()
     renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
 }
 
-bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
+bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node, const Drawing::Bitmap& layerBitmap)
 {
     node.ResetCurrentFrameBufferConsumed();
     auto availableBufferCnt = node.GetAvailableBufferCount();
@@ -61,7 +61,7 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
         bufferOwnerCount);
     node.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
 
-    if (!node.SetHardwareResourceToBuffer()) {
+    if (!node.SetHardwareResourceToBuffer(layerBitmap)) {
         RS_LOGE("RSRcdRenderVisitor SetHardwareResourceToBuffer Failed!");
         return false;
     }
@@ -115,14 +115,14 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
         return false;
     }
 
-    if (layerInfo == nullptr || (!node.PrepareHardwareResourceBuffer(layerInfo))) {
+    Drawing::Bitmap layerBitmap;
+    if (layerInfo == nullptr || (!node.PrepareHardwareResourceBuffer(layerInfo, layerBitmap))) {
         RS_LOGE("PrepareHardwareResourceBuffer is wrong");
         return false;
     }
 
     rsSurface->SetTimeOut(node.GetHardenBufferRequestConfig().timeout);
-    auto renderFrame = renderEngine_->RequestFrame(rsSurface,
-        node.GetHardenBufferRequestConfig(), true, false);
+    auto renderFrame = renderEngine_->RequestFrame(rsSurface, node.GetHardenBufferRequestConfig(), true, false);
     if (renderFrame == nullptr) {
         if (rsSurface->GetSurface() != nullptr) {
             rsSurface->GetSurface()->CleanCache(true);
@@ -131,7 +131,7 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
         return false;
     }
     renderFrame->Flush();
-    if (!ConsumeAndUpdateBuffer(node)) {
+    if (!ConsumeAndUpdateBuffer(node, layerBitmap)) {
         RS_LOGE("RSRcdRenderVisitor ConsumeAndUpdateBuffer Failed");
         return false;
     }
@@ -141,7 +141,7 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
     }
 
     uniProcessor_->ProcessRcdSurface(node);
-    node.PrintRcdNodeInfo();
+    node.PrintRcdNodeInfo(layerBitmap);
     return true;
 }
 

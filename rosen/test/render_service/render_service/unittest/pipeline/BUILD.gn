@@ -1107,7 +1107,11 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
 ## Build RSRoundCornerDisplayTest
 ohos_unittest("RSRoundCornerDisplayTest") {
   module_out_path = module_output_path
-  sources = [ "rs_round_corner_display_test.cpp" ]
+  sources = [
+    "rs_round_corner_display_test.cpp",
+    "rs_round_corner_display_test_common.cpp",
+    "rs_round_corner_display_test_part2.cpp",
+  ]
 
   deps = [
     ":rs_test_common",

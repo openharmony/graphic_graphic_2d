@@ -23,6 +23,8 @@
 #include <mutex>
 #include <shared_mutex>
 #include <condition_variable>
+#include <initializer_list>
+#include <utility>
 #include "render_context/render_context.h"
 #include "event_handler.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -147,12 +149,6 @@ private:
         {"orientation", false}
     };
 
-    // notch resources
-    std::shared_ptr<Drawing::Image> imgTopPortrait_ = nullptr;
-    std::shared_ptr<Drawing::Image> imgTopLadsOrit_ = nullptr;
-    std::shared_ptr<Drawing::Image> imgTopHidden_ = nullptr;
-    std::shared_ptr<Drawing::Image> imgBottomPortrait_ = nullptr;
-
     // notch resources for harden
     Drawing::Bitmap bitmapTopPortrait_;
     Drawing::Bitmap bitmapTopLadsOrit_;
@@ -183,8 +179,8 @@ private:
     bool resourceChanged = false;
 
     // the resource to be drawn
-    std::shared_ptr<Drawing::Image> curTop_ = nullptr;
-    std::shared_ptr<Drawing::Image> curBottom_ = nullptr;
+    Drawing::Bitmap curBitmapTop_;
+    Drawing::Bitmap curBitmapBottom_;
 
     std::shared_mutex resourceMut_;
 
@@ -201,6 +197,22 @@ private:
     static bool LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img);
 
     static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap);
+
+    // Reuse the decoded image when the resource config is identical to avoid
+    // repeated LoadImg. If target is resource-equal to any candidate, reuse the
+    // candidate image; otherwise load the image from file.
+    static void LoadOrReuseImage(const rs_rcd::RoundCornerLayer& target,
+        const std::initializer_list<std::pair<const rs_rcd::RoundCornerLayer&,
+        std::shared_ptr<Drawing::Image>>>& candidates,
+        std::shared_ptr<Drawing::Image>& outImage);
+
+    // Reuse the bitmap when the source image is shared to avoid repeated decoding.
+    // If target image is shared with any candidate, reuse the candidate bitmap;
+    // otherwise decode the bitmap from the image.
+    static void DecodeOrReuseBitmap(const std::shared_ptr<Drawing::Image>& targetImage,
+        const std::initializer_list<std::pair<std::shared_ptr<Drawing::Image>, const Drawing::Bitmap&>>& candidates,
+        Drawing::Bitmap& outBitmap);
+
     bool SetHardwareLayerSize();
 
     // load all images according to the resolution

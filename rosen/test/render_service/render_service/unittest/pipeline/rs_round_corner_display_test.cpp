@@ -13,179 +13,12 @@
  * limitations under the License.
  */
 
-#include <filesystem>
-#include "gtest/gtest.h"
-#include "common/rs_singleton.h"
-#include "feature/uifirst/rs_sub_thread_manager.h"
-#include "feature/round_corner_display/rs_message_bus.h"
-#include "feature/round_corner_display/rs_round_corner_display.h"
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#include "feature/round_corner_display/rs_round_corner_config.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
-#include "feature/round_corner_display/rs_rcd_render_listener.h"
-#include "feature/round_corner_display/rs_rcd_render_visitor.h"
-#include "pipeline/rs_screen_render_node.h"
-#include "rcd/rs_render_rcd_draw.h"
-#include "render/rs_pixel_map_util.h"
-#include "rs_render_surface_rcd_layer.h"
-#include "engine/rs_uni_render_engine.h"
-#include "surface_buffer_impl.h"
-#include "rs_test_util.h"
+#include "rs_round_corner_display_test_common.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class RSRoundCornerDisplayTest : public testing::Test {
-public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-
-    void SetUp() override;
-    void TearDown() override;
-};
-
-void RSRoundCornerDisplayTest::SetUpTestCase() {}
-void RSRoundCornerDisplayTest::TearDownTestCase()
-{
-    auto& mainThread = *RSMainThread::Instance();
-    if (mainThread.renderEngine_) {
-        if (mainThread.renderEngine_->renderContext_) {
-            mainThread.renderEngine_->renderContext_->drGPUContext_ = nullptr;
-            mainThread.renderEngine_->renderContext_ = nullptr;
-        }
-        if (mainThread.renderEngine_->protectedRenderContext_) {
-            mainThread.renderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
-        }
-        mainThread.renderEngine_->protectedRenderContext_ = nullptr;
-        mainThread.renderEngine_ = nullptr;
-    }
-    auto& rtThread = RSUniRenderThread::Instance();
-    if (rtThread.uniRenderEngine_) {
-        if (rtThread.uniRenderEngine_->renderContext_) {
-            rtThread.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
-            rtThread.uniRenderEngine_->renderContext_ = nullptr;
-        }
-        if (rtThread.uniRenderEngine_->protectedRenderContext_) {
-            rtThread.uniRenderEngine_->protectedRenderContext_->drGPUContext_ = nullptr;
-        }
-        rtThread.uniRenderEngine_->protectedRenderContext_ = nullptr;
-        rtThread.uniRenderEngine_ = nullptr;
-    }
-}
-void RSRoundCornerDisplayTest::SetUp() {}
-void RSRoundCornerDisplayTest::TearDown() {}
-
-struct XMLProperty {
-    std::string name;
-    std::string value;
-};
-
-xmlNodePtr CreateNodeWithProperty(const std::string& nodeName, const XMLProperty& property)
-{
-    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
-    xmlNewProp(xmlptr, BAD_CAST(property.name.c_str()), BAD_CAST(property.value.c_str()));
-    return xmlptr;
-}
-
-xmlNodePtr CreateNodeWithProperties(const std::string& nodeName, const std::vector<XMLProperty>& properties)
-{
-    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
-    for (auto& property : properties) {
-        xmlNewProp(xmlptr, BAD_CAST(property.name.c_str()), BAD_CAST(property.value.c_str()));
-    }
-    return xmlptr;
-}
-
-xmlNodePtr CreateRCDLayer(const std::string& nodeName, const rs_rcd::RoundCornerLayer& layer)
-{
-    std::vector<XMLProperty> properties = {
-        {rs_rcd::ATTR_FILENAME, layer.fileName},
-        {rs_rcd::ATTR_OFFSET_X, std::to_string(layer.offsetX)},
-        {rs_rcd::ATTR_OFFSET_Y, std::to_string(layer.offsetY)},
-        {rs_rcd::ATTR_BINFILENAME, layer.binFileName},
-        {rs_rcd::ATTR_BUFFERSIZE, std::to_string(layer.bufferSize)},
-        {rs_rcd::ATTR_CLDWIDTH, std::to_string(layer.cldWidth)},
-        {rs_rcd::ATTR_CLDHEIGHT, std::to_string(layer.cldHeight)}
-    };
-    return CreateNodeWithProperties(nodeName, properties);
-}
-
-bool LoadBitmapFromFile(const char* path, Drawing::Bitmap& bitmap)
-{
-    if (path == nullptr) {
-        return false;
-    }
-
-    std::shared_ptr<Drawing::Image> image;
-    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
-    rcdInstance.LoadImg(path, image);
-    if (image == nullptr) {
-        std::cout << "LoadBitmapFromFile: current os no rcd source" << std::endl;
-        return false;
-    }
-
-    return rcdInstance.DecodeBitmap(image, bitmap);
-}
-
-void InitRcdRenderParamsInvalid01(HardwareLayerInfo* layerInfo, RcdExtInfo* extInfo)
-{
-    if (layerInfo != nullptr) {
-        layerInfo->pathBin = "/sys_prod/etc/display/RoundCornerDisplay/test.bin";
-        layerInfo->bufferSize = -1;  // invalid buffer size
-        layerInfo->cldWidth = 1;
-        layerInfo->cldHeight = 1;
-    }
-    if (extInfo != nullptr) {
-        extInfo->srcRect_ = RectI(0, 0, 1, 1);
-        extInfo->dstRect_ = RectI(0, 0, 1, 1);
-    }
-}
-
-void InitRcdRenderParamsInvalid02(HardwareLayerInfo* layerInfo, RcdExtInfo* extInfo)
-{
-    if (layerInfo != nullptr) {
-        layerInfo->pathBin = "/sys_prod/etc/display/RoundCornerDisplay/test.bin";
-        layerInfo->bufferSize = 1;
-        layerInfo->cldWidth = -1;  // invalid cld height
-        layerInfo->cldHeight = 1;
-    }
-    if (extInfo != nullptr) {
-        extInfo->srcRect_ = RectI(0, 0, 1, 1);
-        extInfo->dstRect_ = RectI(0, 0, 1, 1);
-    }
-}
-
-void InitRcdRenderParamsInvalid03(HardwareLayerInfo* layerInfo, RcdExtInfo* extInfo)
-{
-    if (layerInfo != nullptr) {
-        layerInfo->pathBin = "";  // Invalid path
-        layerInfo->bufferSize = 1;
-        layerInfo->cldWidth = 1;
-        layerInfo->cldHeight = 1;
-    }
-    if (extInfo != nullptr) {
-        extInfo->srcRect_ = RectI(0, 0, 1, 1);
-        extInfo->dstRect_ = RectI(0, 0, 1, 1);
-    }
-}
-
-void InitRcdRenderParamsInvalid04(HardwareLayerInfo* layerInfo, RcdExtInfo* extInfo)
-{
-    if (layerInfo != nullptr) {
-        layerInfo->pathBin = "/sys_prod/etc/display/RoundCornerDisplay/test.bin";
-        layerInfo->bufferSize = 1;
-        layerInfo->cldWidth = 1;
-        layerInfo->cldHeight = 1;
-    }
-    if (extInfo != nullptr) {
-        extInfo->srcRect_ = RectI(0, 0, 1, 1);
-        extInfo->dstRect_ = RectI(0, 0, 1, 1);
-    }
-}
-
 /*
  * @tc.name: RCDLoadConfigFileTest
  * @tc.desc: Test RSRoundCornerDisplayTest.RCDLoadConfigFileTest
@@ -476,7 +309,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
     }
 
     // SetHardwareResourceToBuffer - LayerBitmap is not valid
-    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
+    Drawing::Bitmap layerBitmap1;
+    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer(layerBitmap1) == false);
 
     // SetHardwareResourceToBuffer - buffer is nullptr
     // to create layerInfo
@@ -484,13 +318,14 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
     bitMap->Build(896, 1848,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
     rs_rcd::RoundCornerLayer layerTmp{"top.png", 0, 0, "top.bin", 8112, 2028, 1, bitMap.get()};
-    topSurfaceNode->PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layerTmp));
-    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
+    Drawing::Bitmap layerBitmap2;
+    topSurfaceNode->PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layerTmp), layerBitmap2);
+    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer(layerBitmap2) == false);
 
     // SetHardwareResourceToBuffer - copy layerBitmap to buffer failed
     sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
     topSurfaceNode->buffer_.buffer = surfaceBufferImpl;
-    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
+    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer(layerBitmap2) == false);
 
     // SetHardwareResourceToBuffer - copy hardware resource to buffer failed
     BufferRequestConfig requestConfig = {
@@ -503,7 +338,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
     };
     surfaceBufferImpl->Alloc(requestConfig, nullptr);
-    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer() == false);
+    EXPECT_TRUE(topSurfaceNode->SetHardwareResourceToBuffer(layerBitmap2) == false);
     surfaceBufferImpl->handle_ = nullptr;
     surfaceBufferImpl->FreeBufferHandleLocked();
 }
@@ -547,7 +382,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
     visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer, true);
     visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
 
-    ASSERT_EQ(true, visitor->ConsumeAndUpdateBuffer(*topSurfaceNode));
+    Drawing::Bitmap layerBitmap;
+    ASSERT_EQ(true, visitor->ConsumeAndUpdateBuffer(*topSurfaceNode, layerBitmap));
 }
 
 template<typename T1, typename T2, typename T3>
@@ -954,10 +790,13 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
         rcdRenderNode.SetRcdBufferSize(0);
         rcdRenderNode.SetRcdBufferHeight(0);
         rcdRenderNode.SetRcdBufferWidth(0);
-        rcdRenderNode.SetHardwareResourceToBuffer();
-        rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
-        rs_rcd::RoundCornerLayer layer;
-        rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer));
+        {
+            Drawing::Bitmap layerBitmap;
+            rcdRenderNode.SetHardwareResourceToBuffer(layerBitmap);
+            rcdRenderNode.PrepareHardwareResourceBuffer(nullptr, layerBitmap);
+            rs_rcd::RoundCornerLayer layer;
+            rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer), layerBitmap);
+        }
         uint32_t size = 10;
         rcdRenderNode.SetRcdBufferSize(size);
         auto bufferSize = rcdRenderNode.GetRcdBufferSize();
@@ -973,9 +812,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
         auto bufferWidth = rcdRenderNode.GetRcdBufferWidth();
         EXPECT_EQ(bufferWidth, width);
         rcdRenderNode.GetHardenBufferRequestConfig();
-        rcdRenderNode.SetHardwareResourceToBuffer();
-        rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
-        rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer));
+
         width = 0;
         rcdRenderNode.SetRcdBufferWidth(width);
         rcdRenderNode.GetHardenBufferRequestConfig();
@@ -1094,7 +931,9 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRoundCornerDisplayChooseRS, TestSize.Level1
         ShowTopResourceType type = static_cast<ShowTopResourceType>(i);
         rcdInstance.showResourceType_ = type;
         rcdInstance.RcdChooseRSResource();
-        EXPECT_TRUE(rcdInstance.curBottom_ == rcdInstance.imgBottomPortrait_);
+        // imgBottomPortrait_ is removed, curBitmapBottom_ is now a Bitmap loaded locally
+        // in RcdChooseRSResource. Without rog_ configured, curBitmapBottom_ stays invalid.
+        EXPECT_FALSE(rcdInstance.curBitmapBottom_.IsValid());
     }
 }
 
@@ -1428,22 +1267,26 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRoundCornerDirtyRegion, TestSize.Level1)
     EXPECT_TRUE(flag && dirtyRect.IsEmpty());
 
     // Handle rcd dirty rect with image resource
-    rcdInstance.rcdMap_[id]->curTop_ = std::make_shared<Drawing::Image>();
-    rcdInstance.rcdMap_[id]->curBottom_ = std::make_shared<Drawing::Image>();
+    {
+        Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888,
+            Drawing::AlphaType::ALPHATYPE_PREMUL };
+        rcdInstance.rcdMap_[id]->curBitmapTop_.Build(1, 1, format);
+        rcdInstance.rcdMap_[id]->curBitmapBottom_.Build(1, 1, format);
+    }
     flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
     flag &= rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::BOTTOM);
-    EXPECT_TRUE(flag && dirtyRect.IsEmpty());
+    EXPECT_TRUE(flag && !dirtyRect.IsEmpty());
 
     // Handle rcd dirty rect with resource prepared and reset dirty
     rcdInstance.rcdMap_[id]->hardInfo_.resourceChanged = false;
     flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
     flag &= rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::BOTTOM);
-    EXPECT_TRUE(flag && dirtyRect.IsEmpty());
+    EXPECT_TRUE(flag && !dirtyRect.IsEmpty());
 
     // Handle rcd dirty rect with no dirty
     flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
     flag |= rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::BOTTOM);
-    EXPECT_TRUE(!flag && dirtyRect.IsEmpty());
+    EXPECT_TRUE(!flag && !dirtyRect.IsEmpty());
 }
 
 /*
@@ -2144,7 +1987,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest001, TestSize.Level
     topSurfaceNode->CreateSurface(listener);
 
     topSurfaceNode->SetAvailableBufferCount(3);
-    bool result = visitor->ConsumeAndUpdateBuffer(*topSurfaceNode);
+    Drawing::Bitmap layerBitmap;
+    bool result = visitor->ConsumeAndUpdateBuffer(*topSurfaceNode, layerBitmap);
     EXPECT_EQ(true, result);
 }
 
@@ -2780,136 +2624,5 @@ HWTEST_F(RSRoundCornerDisplayTest, CreatePixelMapFromBitmap_RGBA8888PremulAlpha,
     ASSERT_NE(pixelMap, nullptr);
     EXPECT_EQ(pixelMap->GetWidth(), width);
     EXPECT_EQ(pixelMap->GetHeight(), height);
-}
-
-HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNodeMainThread_Normal, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
-    ASSERT_NE(surfaceNode, nullptr);
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
-    visitor->SetUniProcessor(processor);
-    ASSERT_NE(visitor->uniProcessor_, nullptr);
-    ASSERT_FALSE(surfaceNode->IsInvalidSurface());
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*surfaceNode, false);
-}
-
-HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNodeMainThread_ResourceChangedTrue, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
-    ASSERT_NE(surfaceNode, nullptr);
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
-    visitor->SetUniProcessor(processor);
-    ASSERT_NE(visitor->uniProcessor_, nullptr);
-    ASSERT_FALSE(surfaceNode->IsInvalidSurface());
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*surfaceNode, true);
-}
-
-HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode_RenderEngineNull, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
-    ASSERT_NE(surfaceNode, nullptr);
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
-    visitor->SetUniProcessor(processor);
-    visitor->renderEngine_ = nullptr;
-    ASSERT_NE(visitor->uniProcessor_, nullptr);
-    ASSERT_FALSE(surfaceNode->IsInvalidSurface());
-    ASSERT_EQ(visitor->renderEngine_, nullptr);
-    rs_rcd::RoundCornerHardware hardInfo{};
-    bool result = visitor->ProcessRcdSurfaceRenderNode(*surfaceNode, hardInfo.bottomLayer, true);
-    EXPECT_FALSE(result);
-}
-
-HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode_NullLayerInfo, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
-    ASSERT_NE(surfaceNode, nullptr);
-    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNode);
-    surfaceNode->CreateSurface(listener);
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
-    visitor->SetUniProcessor(processor);
-    ASSERT_NE(visitor->uniProcessor_, nullptr);
-    ASSERT_NE(visitor->renderEngine_, nullptr);
-    ASSERT_FALSE(surfaceNode->IsInvalidSurface());
-    bool result = visitor->ProcessRcdSurfaceRenderNode(*surfaceNode, nullptr, true);
-    EXPECT_FALSE(result);
-}
-
-HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode_ResourceNotChangedWithBuffer, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
-    visitor->SetUniProcessor(processor);
-    ASSERT_NE(visitor->uniProcessor_, nullptr);
-    ASSERT_NE(visitor->renderEngine_, nullptr);
-    ASSERT_FALSE(surfaceNode->IsInvalidSurface());
-
-    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNode);
-    surfaceNode->CreateSurface(listener);
-    surfaceNode->SetAvailableBufferCount(1);
-    ASSERT_NE(visitor->ConsumeAndUpdateBuffer(*surfaceNode), true);
-    ASSERT_EQ(surfaceNode->GetBuffer(), nullptr);
-
-    rs_rcd::RoundCornerHardware hardInfo{};
-    bool result = visitor->ProcessRcdSurfaceRenderNode(*surfaceNode, hardInfo.bottomLayer, false);
-    EXPECT_FALSE(result);
-}
-
-HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode_SurfaceNotCreated, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_FALSE(surfaceNode->IsSurfaceCreated());
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
-    visitor->SetUniProcessor(processor);
-    ASSERT_NE(visitor->uniProcessor_, nullptr);
-    ASSERT_NE(visitor->renderEngine_, nullptr);
-    ASSERT_FALSE(surfaceNode->IsInvalidSurface());
-
-    rs_rcd::RoundCornerHardware hardInfo{};
-    bool result = visitor->ProcessRcdSurfaceRenderNode(*surfaceNode, hardInfo.bottomLayer, true);
-    EXPECT_FALSE(result);
-}
-
-HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNodeMainThread_InvalidSurface, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::INVALID);
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_TRUE(surfaceNode->IsInvalidSurface());
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
-    visitor->SetUniProcessor(processor);
-    ASSERT_NE(visitor->uniProcessor_, nullptr);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*surfaceNode, false);
-}
-
-HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNodeMainThread_NullProcessor, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
-    ASSERT_NE(surfaceNode, nullptr);
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    visitor->SetUniProcessor(nullptr);
-    ASSERT_EQ(visitor->uniProcessor_, nullptr);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*surfaceNode, false);
 }
 } // OHOS::Rosen
