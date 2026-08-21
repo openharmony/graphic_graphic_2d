@@ -15,16 +15,15 @@
 
 #include "hgm_dimming_manager.h"
 
-#include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "hgm_task_handle_thread.h"
+#include "xml_parser.h"
 
 namespace OHOS::Rosen {
 namespace {
 const std::string S_DIMMING_UP_TIMEOUT_MS = "dimming_up_timeout_ms";
 const std::string S_DIMMING_DOWN_TIMEOUT_MS = "dimming_down_timeout_ms";
 }
-HgmDimmingManager::HgmDimmingManager() {}
 
 void HgmDimmingManager::SetRefreshRateVec(std::vector<uint32_t> vec)
 {
@@ -39,11 +38,11 @@ void HgmDimmingManager::SetDimmingTimeoutConfig(const std::shared_ptr<PolicyConf
     }
     if (auto iter = configData->dimmingConfig_.find(S_DIMMING_UP_TIMEOUT_MS);
         iter != configData->dimmingConfig_.end() && XMLParser::IsNumber(iter->second)) {
-        dimmingUpTimeoutMs_ = static_cast<uint32_t>(std::stoi(iter->second));
+        dimmingUpTimeoutMs_ = static_cast<int32_t>(std::stoi(iter->second));
     }
     if (auto iter = configData->dimmingConfig_.find(S_DIMMING_DOWN_TIMEOUT_MS);
         iter != configData->dimmingConfig_.end() && XMLParser::IsNumber(iter->second)) {
-        dimmingDownTimeoutMs_ = static_cast<uint32_t>(std::stoi(iter->second));
+        dimmingDownTimeoutMs_ = static_cast<int32_t>(std::stoi(iter->second));
     }
 }
 
@@ -67,7 +66,7 @@ uint32_t HgmDimmingManager::CalcDimmingRefreshRate(uint32_t voteRefreshRate)
         }
         return voteRefreshRate;
     }
-    uint32_t dimmingTimeoutMs = currRefreshRate_ < voteRefreshRate ? dimmingUpTimeoutMs_ : dimmingDownTimeoutMs_;
+    int32_t dimmingTimeoutMs = currRefreshRate_ < voteRefreshRate ? dimmingUpTimeoutMs_ : dimmingDownTimeoutMs_;
     if (dimmingTimeoutMs == 0 || lightFactorStatus_ == LightFactorStatus::NORMAL_HIGH ||
         lightFactorStatus_ == LightFactorStatus::HIGH_LEVEL) {
         dimmingStatus_ = DimmingStatus::NOT_DIMMING;

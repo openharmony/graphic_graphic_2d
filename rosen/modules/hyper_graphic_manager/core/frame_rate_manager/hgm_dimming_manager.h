@@ -29,11 +29,11 @@ enum DimmingStatus : int32_t {
     DIMMING_UP = 1,
 };
 
-class HgmDimmingManager {
+class HgmDimmingManager final {
 public:
-    using DimmingEventCallback = std::function<void(uint32_t)>;
+    using DimmingEventCallback = std::function<void(int32_t)>;
 
-    HgmDimmingManager();
+    HgmDimmingManager() = default;
     ~HgmDimmingManager() = default;
 
     void SetLightFactorStatus(int32_t state) { lightFactorStatus_ = state; }
@@ -45,8 +45,8 @@ public:
 private:
     int32_t lightFactorStatus_ = 0;
     std::vector<uint32_t> refreshRateVec_ = {};
-    uint32_t dimmingUpTimeoutMs_ = 0;
-    uint32_t dimmingDownTimeoutMs_ = 0;
+    int32_t dimmingUpTimeoutMs_ = 0;
+    int32_t dimmingDownTimeoutMs_ = 0;
     DimmingEventCallback dimmingEventCallback_ = nullptr;
     uint32_t currRefreshRate_ = 0;
     int32_t dimmingStatus_ = DimmingStatus::NOT_DIMMING;

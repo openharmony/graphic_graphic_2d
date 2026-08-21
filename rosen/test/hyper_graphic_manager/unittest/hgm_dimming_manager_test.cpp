@@ -160,7 +160,7 @@ HWTEST_F(HgmDimmingManagerTest, CalcDimmingRefreshRateTest2, TestSize.Level0)
     refreshRate = dimmingManager.CalcDimmingRefreshRate(OLED_60_HZ);
     ASSERT_EQ(refreshRate, OLED_60_HZ);
     // 60->120->60, interrupt, trigger callback
-    dimmingManager.RegisterDimmingEventCallback([](uint32_t dimmingTimeoutMs) {});
+    dimmingManager.RegisterDimmingEventCallback([](int32_t dimmingTimeoutMs) {});
     refreshRate = dimmingManager.CalcDimmingRefreshRate(OLED_120_HZ);
     ASSERT_EQ(refreshRate, OLED_90_HZ);
     refreshRate = dimmingManager.CalcDimmingRefreshRate(OLED_60_HZ);

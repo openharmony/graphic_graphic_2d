@@ -118,7 +118,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController, sptr<VSyncCon
     });
     FrameRateReportTask(FRAME_RATE_REPORT_MAX_RETRY_TIMES);
     userDefine_.Init();
-    dimmingManager_.RegisterDimmingEventCallback([this](uint32_t dimmingTimeoutMs) {
+    dimmingManager_.RegisterDimmingEventCallback([this](int32_t dimmingTimeoutMs) {
         HgmTaskHandleThread::Instance().PostEvent("DimmingTask", [this]() {
             UpdateSoftVSync(false);
         }, dimmingTimeoutMs);
