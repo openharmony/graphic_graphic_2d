@@ -20,6 +20,7 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <unordered_set>
 
 #include "system/rs_system_parameters.h"
 
@@ -49,6 +50,32 @@ public:
     void ClearDrawableMemory(bool highPriority);
 
 private:
+    struct TimeoutRender {
+        int64_t renderTime_ = 0;
+        uint8_t frameCount_ = 0;
+
+        void Update(int64_t renderTime, bool timeout)
+        {
+            if (timeout && frameCount_ == 0) {
+                renderTime_ = renderTime;
+            }
+            if (renderTime_ > 0) {
+                frameCount_++;
+            }
+        }
+
+        bool IsStatFinished() const
+        {
+            return frameCount_ >= 2; // Frame count reaching 2 indicates statistics completion
+        }
+
+        void Reset()
+        {
+            renderTime_ = 0;
+            frameCount_ = 0;
+        }
+    };
+
     void RenderFrame();
     void SetEarlyZEnabled(Drawing::GPUContext* gpuContext);
     void UnblockMainThread();
@@ -59,6 +86,8 @@ private:
     bool CheckCanvasSkipSync(std::shared_ptr<RSRenderNode>);
     void StartCheck();
     void EndCheck();
+    void LockClient();
+    void UnlockClient();
 
     RSUniRenderThread& unirenderInstance_;
 
@@ -67,6 +96,11 @@ private:
     bool canUnblockMainThread = false;
     std::unique_ptr<RSRenderThreadParams> stagingRenderThreadParams_ = nullptr;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> stagingSyncCanvasDrawingNodes_;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    TimeoutRender timeoutRender_;
+    std::unordered_set<pid_t> lockedClientSet_;
+    std::atomic<bool> hasLockedClient_ = false;
+#endif
     RsParallelType rsParallelType_;
     static bool debugTraceEnabled_;
     std::shared_ptr<RSTimer> timer_ = nullptr;

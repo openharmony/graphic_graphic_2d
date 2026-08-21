@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include <thread>
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_draw_frame.h"
@@ -267,4 +268,124 @@ HWTEST_F(RSDrawFrameTest, SetEarlyZEnabled_NullContext, TestSize.Level1)
     // early return should not mutate internal counters
     ASSERT_EQ(drawFrame.longFrameCount_, 0);
 }
+
+/**
+ * @tc.name: PostAndWait_AsyncBlockAndReleaseTest
+ * @tc.desc: PostAndWait ASYNC path blocks on frameCV_ and UnblockMainThread releases it
+ * @tc.type: FUNC
+ * @tc.require: issue23488
+ */
+HWTEST_F(RSDrawFrameTest, PostAndWait_AsyncBlockAndReleaseTest, TestSize.Level1)
+{
+    RSDrawFrame drawFrame;
+    drawFrame.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_ASYNC;
+    ASSERT_FALSE(drawFrame.canUnblockMainThread);
+    // PostAndWait blocks on frameCV_.wait() in ASYNC mode; UnblockMainThread releases it
+    std::thread helper([&drawFrame]() {
+        usleep(50 * 1000); // 50ms: ensure PostAndWait enters wait before UnblockMainThread
+        drawFrame.UnblockMainThread();
+    });
+    drawFrame.PostAndWait();
+    helper.join();
+    ASSERT_TRUE(drawFrame.canUnblockMainThread);
+}
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: TimeoutRender_StateTransitionTest
+ * @tc.desc: TimeoutRender all branches: Update(timeout/normal), IsStatFinished, Reset, and EndCheck integration
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawFrameTest, TimeoutRender_StateTransitionTest, TestSize.Level1)
+{
+    RSDrawFrame drawFrame;
+    auto& tr = drawFrame.timeoutRender_;
+    // Branch: Update with no prior timeout and no current timeout → no increment
+    tr.Update(1000, false);
+    ASSERT_EQ(tr.renderTime_, 0);
+    ASSERT_EQ(tr.frameCount_, 0);
+    ASSERT_FALSE(tr.IsStatFinished());
+    // Branch: Update with timeout=true and frameCount_=0 → sets renderTime_, increments frameCount_
+    tr.Update(3000, true);
+    ASSERT_EQ(tr.renderTime_, 3000);
+    ASSERT_EQ(tr.frameCount_, 1);
+    // Branch: Update with timeout=true and frameCount_!=0 → only increments frameCount_, renderTime_ unchanged
+    tr.Update(2600, true);
+    ASSERT_EQ(tr.renderTime_, 3000);
+    ASSERT_EQ(tr.frameCount_, 2);
+    ASSERT_TRUE(tr.IsStatFinished());
+    // Branch: Reset clears both fields
+    tr.Reset();
+    ASSERT_EQ(tr.renderTime_, 0);
+    ASSERT_EQ(tr.frameCount_, 0);
+    ASSERT_FALSE(tr.IsStatFinished());
+    // EndCheck integration: timeout frame feeds Update via real timer
+    drawFrame.StartCheck();
+    usleep(2600 * 1000); // 2600ms > 2500ms RENDER_TIMEOUT threshold
+    drawFrame.EndCheck();
+    ASSERT_EQ(tr.frameCount_, 1);
+    ASSERT_GT(tr.renderTime_, 0);
+}
+
+/**
+ * @tc.name: LockClient_BranchesTest
+ * @tc.desc: LockClient early-return branches (IsStatFinished, HybridEnabled) and main path with Reset verification
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawFrameTest, LockClient_BranchesTest, TestSize.Level1)
+{
+    RSDrawFrame drawFrame;
+    auto& tr = drawFrame.timeoutRender_;
+    // Branch: IsStatFinished()=false → early return, hasLockedClient_ unchanged
+    ASSERT_FALSE(tr.IsStatFinished());
+    ASSERT_FALSE(drawFrame.hasLockedClient_.load());
+    drawFrame.LockClient();
+    ASSERT_FALSE(drawFrame.hasLockedClient_.load());
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    // Branch: IsHybridEnabled()=true → early return before IsStatFinished check
+    RSCanvasDrawingRenderNode::hybridEnabled_ = true;
+    drawFrame.LockClient();
+    bool stillFalse = !drawFrame.hasLockedClient_.load();
+    RSCanvasDrawingRenderNode::hybridEnabled_ = false;
+    ASSERT_TRUE(stillFalse);
+#endif
+    // Setup: drive TimeoutRender to IsStatFinished()=true
+    tr.Update(3000, true);
+    tr.Update(1000, false);
+    ASSERT_TRUE(tr.IsStatFinished());
+    // Branch: main path → store(true) synchronously, PostTask queued, Reset() clears TimeoutRender
+    drawFrame.LockClient();
+    ASSERT_TRUE(drawFrame.hasLockedClient_.load());
+    ASSERT_EQ(tr.renderTime_, 0); // Reset() called
+    ASSERT_EQ(tr.frameCount_, 0);
+}
+
+/**
+ * @tc.name: LockThenUnlock_SequenceTest
+ * @tc.desc: UnlockClient early return when not locked; Lock→Unlock sequence; lockedClientSet_ non-empty unlock path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawFrameTest, LockThenUnlock_SequenceTest, TestSize.Level1)
+{
+    RSDrawFrame drawFrame;
+    // Branch: UnlockClient with hasLockedClient_=false → early return
+    ASSERT_FALSE(drawFrame.hasLockedClient_.load());
+    drawFrame.UnlockClient();
+    ASSERT_FALSE(drawFrame.hasLockedClient_.load());
+    // Setup: LockClient main path with empty opCountMap → lockedClientSet_ stays empty
+    auto& tr = drawFrame.timeoutRender_;
+    tr.Update(3000, true);
+    tr.Update(1000, false);
+    drawFrame.LockClient();
+    ASSERT_TRUE(drawFrame.hasLockedClient_.load()); // synchronously set
+    ASSERT_EQ(drawFrame.lockedClientSet_.size(), static_cast<size_t>(0));
+    // Simulate PostTask execution: lock a pid into lockedClientSet_ (covers opCount>=LIMIT branch)
+    pid_t testPid = 1234;
+    drawFrame.lockedClientSet_.emplace(testPid);
+    ASSERT_EQ(drawFrame.lockedClientSet_.size(), static_cast<size_t>(1));
+    // Branch: UnlockClient with hasLockedClient_=true and non-empty lockedClientSet_ → posts unlock task
+    drawFrame.UnlockClient();
+    ASSERT_TRUE(drawFrame.hasLockedClient_.load()); // still true before PostTask runs
+}
+#endif
 }

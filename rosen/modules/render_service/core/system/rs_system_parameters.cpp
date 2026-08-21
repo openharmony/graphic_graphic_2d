@@ -267,6 +267,14 @@ bool RSSystemParameters::GetCanvasDrawingNodeRegionEnabled()
     return ConvertToInt(enable, 0) != 0;
 }
 
+bool RSSystemParameters::GetCanvasDrawingNodeLockEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.canvas_drawing_node.lock.enabled", "1");
+    int changed = 0;
+    const char* enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 int32_t RSSystemParameters::GetPurgeableResourceLimit()
 {
     static int32_t purgeableResourceLimit =

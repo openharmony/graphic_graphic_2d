@@ -75,6 +75,7 @@ public:
     void ApplyModifiers() override;
     bool CheckCachedOp();
     bool HasCachedOp() const;
+    size_t GetCurrentOpCount() const;
 
     void SetWaitSync(bool waitSync)
     {
@@ -159,6 +160,7 @@ private:
     std::map<ModifierNG::RSModifierType, ModifierCmdList> drawCmdListsNG_;
     ModifierCmdList outOfLimitCmdList_;
     size_t cachedOpCount_ = 0;
+    size_t currentOpCount_ = 0;
 
     int64_t lastResetSurfaceTime_ = 0;
     size_t opCountAfterReset_ = 0;

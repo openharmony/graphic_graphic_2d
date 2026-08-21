@@ -526,6 +526,11 @@ public:
     void ProcessPendingCommandsDuringRebuild(pid_t pid); // replay normal transactions cached during the pid's rebuild
     void ClearRebuildTransactionData(pid_t pid); // clear this pid's rebuild queue and cached commands
 
+    const std::unordered_map<pid_t, size_t>& GetCanvasDrawingNodeOpCountMap() const
+    {
+        return canvasDrawingNodeOpCountMap_;
+    }
+
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -941,6 +946,8 @@ private:
     // for surface fps op
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
     std::unordered_map<NodeId, SurfaceFpsOp> removeSurfaceFpsOpMap_;
+
+    std::unordered_map<pid_t, size_t> canvasDrawingNodeOpCountMap_;
 
     std::shared_ptr<RSVirtualScreenParallelManager> virtualScreenParallelManager_;
     // for rebuild transaction
