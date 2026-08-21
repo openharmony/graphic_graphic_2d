@@ -265,7 +265,7 @@ void RSDrawFrame::LockClient()
     // true and posts the corresponding unlock task. The PostTask below corrects the value to the precise result
     // (!lockedClientSet_.empty()) after evaluating PIDs.
     hasLockedClient_.store(true);
-    RSMainThread::Instance()->PostTask([this, renderTime = timeoutRender_.renderTime_] {
+    RSMainThread::Instance()->PostTask([this, renderTime = timeoutRender_.renderTime] {
         const auto& canvasDrawingNodeOpCountMap = RSMainThread::Instance()->GetCanvasDrawingNodeOpCountMap();
         for (const auto& [pid, opCount] : canvasDrawingNodeOpCountMap) {
             if (opCount >= CANVAS_DRAWING_NODE_OP_COUNT_LIMIT) {

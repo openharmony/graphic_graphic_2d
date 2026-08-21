@@ -302,29 +302,29 @@ HWTEST_F(RSDrawFrameTest, TimeoutRender_StateTransitionTest, TestSize.Level1)
     auto& tr = drawFrame.timeoutRender_;
     // Branch: Update with no prior timeout and no current timeout → no increment
     tr.Update(1000, false);
-    ASSERT_EQ(tr.renderTime_, 0);
-    ASSERT_EQ(tr.frameCount_, 0);
+    ASSERT_EQ(tr.renderTime, 0);
+    ASSERT_EQ(tr.frameCount, 0);
     ASSERT_FALSE(tr.IsStatFinished());
-    // Branch: Update with timeout=true and frameCount_=0 → sets renderTime_, increments frameCount_
+    // Branch: Update with timeout=true and frameCount=0 → sets renderTime, increments frameCount
     tr.Update(3000, true);
-    ASSERT_EQ(tr.renderTime_, 3000);
-    ASSERT_EQ(tr.frameCount_, 1);
-    // Branch: Update with timeout=true and frameCount_!=0 → only increments frameCount_, renderTime_ unchanged
+    ASSERT_EQ(tr.renderTime, 3000);
+    ASSERT_EQ(tr.frameCount, 1);
+    // Branch: Update with timeout=true and frameCount!=0 → only increments frameCount, renderTime unchanged
     tr.Update(2600, true);
-    ASSERT_EQ(tr.renderTime_, 3000);
-    ASSERT_EQ(tr.frameCount_, 2);
+    ASSERT_EQ(tr.renderTime, 3000);
+    ASSERT_EQ(tr.frameCount, 2);
     ASSERT_TRUE(tr.IsStatFinished());
     // Branch: Reset clears both fields
     tr.Reset();
-    ASSERT_EQ(tr.renderTime_, 0);
-    ASSERT_EQ(tr.frameCount_, 0);
+    ASSERT_EQ(tr.renderTime, 0);
+    ASSERT_EQ(tr.frameCount, 0);
     ASSERT_FALSE(tr.IsStatFinished());
     // EndCheck integration: timeout frame feeds Update via real timer
     drawFrame.StartCheck();
     usleep(2600 * 1000); // 2600ms > 2500ms RENDER_TIMEOUT threshold
     drawFrame.EndCheck();
-    ASSERT_EQ(tr.frameCount_, 1);
-    ASSERT_GT(tr.renderTime_, 0);
+    ASSERT_EQ(tr.frameCount, 1);
+    ASSERT_GT(tr.renderTime, 0);
 }
 
 /**
@@ -356,8 +356,8 @@ HWTEST_F(RSDrawFrameTest, LockClient_BranchesTest, TestSize.Level1)
     // Branch: main path → store(true) synchronously, PostTask queued, Reset() clears TimeoutRender
     drawFrame.LockClient();
     ASSERT_TRUE(drawFrame.hasLockedClient_.load());
-    ASSERT_EQ(tr.renderTime_, 0); // Reset() called
-    ASSERT_EQ(tr.frameCount_, 0);
+    ASSERT_EQ(tr.renderTime, 0); // Reset() called
+    ASSERT_EQ(tr.frameCount, 0);
 }
 
 /**

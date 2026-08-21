@@ -51,28 +51,28 @@ public:
 
 private:
     struct TimeoutRender {
-        int64_t renderTime_ = 0;
-        uint8_t frameCount_ = 0;
+        int64_t renderTime = 0;
+        uint8_t frameCount = 0;
 
-        void Update(int64_t renderTime, bool timeout)
+        void Update(int64_t time, bool timeout)
         {
-            if (timeout && frameCount_ == 0) {
-                renderTime_ = renderTime;
+            if (timeout && frameCount == 0) {
+                renderTime = time;
             }
-            if (renderTime_ > 0) {
-                frameCount_++;
+            if (renderTime > 0) {
+                frameCount++;
             }
         }
 
         bool IsStatFinished() const
         {
-            return frameCount_ >= 2; // Frame count reaching 2 indicates statistics completion
+            return frameCount >= 2; // Frame count reaching 2 indicates statistics completion
         }
 
         void Reset()
         {
-            renderTime_ = 0;
-            frameCount_ = 0;
+            renderTime = 0;
+            frameCount = 0;
         }
     };
 
