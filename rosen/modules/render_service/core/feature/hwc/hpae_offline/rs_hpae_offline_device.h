@@ -83,6 +83,12 @@ struct HpaeOfflineSubThreadData {
     bool lastProcessSuccess = false;
     OfflineProcessInputInfo inputInfo;
     int32_t offlineFenceFd = -1;
+    // snapshot of surface params for async processing
+    sptr<SurfaceBuffer> srcBuffer = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    GraphicIRect srcRect = {0};
+    GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
 };
 
 class RSHpaeOfflineContext {
@@ -145,14 +151,14 @@ private:
     void LoadPreProcessHandle();
     bool GetOutputConfig(std::shared_ptr<RSHpaeOfflineContext>& context, std::shared_ptr<RSSurfaceRenderNode>& node);
     void CheckAndPostPreAllocBuffersTask(std::shared_ptr<RSHpaeOfflineContext>& context);
-    bool GetOfflineProcessInput(RSSurfaceRenderParams& params, OfflineProcessInputInfo& inputInfo,
+    bool GetOfflineProcessInput(OfflineProcessInputInfo& inputInfo,
         sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence, HpaeOfflineSubThreadData& taskData);
     void FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& dstSurfaceBuffer, HpaeOfflineSubThreadData& taskData);
-    void OfflineTaskFunc(RSSurfaceRenderParams* surfaceParams,
+    void OfflineTaskFunc(
         std::shared_ptr<ProcessOfflineFuture>& futurePtr, HpaeOfflineSubThreadData& taskData);
-    bool DoProcessOffline(RSSurfaceRenderParams& params, ProcessOfflineResult& processOfflineResult,
+    bool DoProcessOffline(ProcessOfflineResult& processOfflineResult,
         HpaeOfflineSubThreadData& taskData);
-    bool SubmitOfflineBuffer(HpaeOfflineSubThreadData& taskData, RSSurfaceRenderParams& params,
+    bool SubmitOfflineBuffer(HpaeOfflineSubThreadData& taskData,
         sptr<SurfaceBuffer>& dstSurfaceBuffer, ProcessOfflineResult& processOfflineResult);
     void CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessOfflineFuture>& futurePtr, NodeId nodeId);
     void ClearOfflineContext(const std::vector<uint64_t>& offlineNodeIds);
@@ -162,11 +168,11 @@ private:
     bool UpdateContext(std::shared_ptr<RSSurfaceRenderNode>& node, std::shared_ptr<RSHpaeOfflineContext>& context);
     void InitHpaeOfflineResource();
     bool FillOfflineResult(ProcessOfflineResult& processOfflineResult, HpaeOfflineSubThreadData& taskData,
-        RSSurfaceRenderParams& params, std::shared_ptr<RSSurfaceHandler>& offlineSurfaceHandler);
+        std::shared_ptr<RSSurfaceHandler>& offlineSurfaceHandler);
     bool PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineContext>& context,
         RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId);
     bool SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineContext>& context,
-        RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId);
+        HpaeOfflineSubThreadData& taskData, offlineTaskId taskId);
     void SetNodeArsrTag(const std::vector<uint64_t>& offlineNodeIds);
     bool IsOfflineDeviceEnable(std::shared_ptr<RSHpaeOfflineContext>& context);
     // so handler
