@@ -137,6 +137,8 @@ public:
     ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) override;
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
+    int32_t AuthorizeUIExtensionPid(pid_t pid, NodeId nodeId, pid_t guestPid, bool authorized,
+        bool enforceQuota) override;
     void SetCacheEnabledForRotation(bool enabled) override;
     void SetVmaCacheStatus(bool flag) override;
 

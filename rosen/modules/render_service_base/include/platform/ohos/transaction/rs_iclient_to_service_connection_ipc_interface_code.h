@@ -205,6 +205,8 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_SCREEN_VCP_FEATURE = 0x014003,
     SET_SCREEN_VCP_FEATURE = 0x014004,
 
+    AUTHORIZE_UIEXTENSION_PID = 0x014005,
+
     // DisplayEngine control
     GET_DISPLAY_ENGINE_CONTROL = 0x016000,
 

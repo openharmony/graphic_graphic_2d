@@ -281,7 +281,7 @@ ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransact
         // GetCallingPid() may return 0 for asynchronous binder calls, in which case the stub-side
         // ownership check is skipped; run it here with the connection-level trusted identity.
         // The node map access is safe on IPC threads: IsCallingPidValid only queries
-        // IsUIExtensionSurfaceNode, which is mutex-protected. Inaccessible commands are only
+        // IsUIExtensionAuthorized, which is mutex-protected. Inaccessible commands are only
         // marked here (with per-command logs) and dropped later by RSMainThread.
         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
         transactionData->IsCallingPidValid(remotePid_, nodeMap);

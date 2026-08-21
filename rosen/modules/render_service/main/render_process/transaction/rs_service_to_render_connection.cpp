@@ -259,6 +259,20 @@ int32_t RSServiceToRenderConnection::RegisterUIExtensionCallback(pid_t pid, uint
     return renderPipelineAgent_->RegisterUIExtensionCallback(pid, userId, callback, unobscured);
 }
 
+int32_t RSServiceToRenderConnection::AuthorizeUIExtensionPid(pid_t pid, NodeId nodeId, pid_t guestPid,
+    bool authorized, bool enforceQuota)
+{
+    // defense in depth: render_service already enforced ownership, re-verify the forwarded
+    // host pid matches the NodeId before touching the node map
+    if (ExtractPid(nodeId) != pid) {
+        RS_LOGW("RSServiceToRenderConnection::AuthorizeUIExtensionPid denied, nodeId[%{public}" PRIu64
+                "] hostPid[%{public}d]",
+            nodeId, static_cast<int32_t>(pid));
+        return ERR_INVALID_DATA;
+    }
+    return renderPipelineAgent_->AuthorizeUIExtensionPid(nodeId, guestPid, authorized, enforceQuota);
+}
+
 ErrCode RSServiceToRenderConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     return renderPipelineAgent_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
