@@ -448,14 +448,16 @@ HWTEST_F(RSTunnelRouteArbiterTest,
     auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
     ActivateTunnelRuntime(tunnelRuntime);
     context.surfaceHandler->SetAvailableBufferCount(1);
-    context.node->screenId_ = CLAIMED_SCREEN_ID;
+    auto claimedScreenNode = std::make_shared<RSScreenRenderNode>(0, CLAIMED_SCREEN_ID);
+    context.node->SetAncestorScreenNode(claimedScreenNode);
 
     RSTunnelRouteArbiter arbiter;
     auto outcome = arbiter.ArbitrateAndClaim(context.node);
     ASSERT_EQ(outcome, RSTunnelRouteArbiter::MainThreadOutcome::GO_NORMAL);
     ASSERT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::NORMAL_PREPARING);
 
-    context.node->screenId_ = MIGRATED_SCREEN_ID;
+    auto migratedScreenNode = std::make_shared<RSScreenRenderNode>(0, MIGRATED_SCREEN_ID);
+    context.node->SetAncestorScreenNode(migratedScreenNode);
 
     arbiter.OnRenderCommitDone(UNRELATED_SCREEN_ID);
     EXPECT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::NORMAL_PREPARING);
@@ -482,7 +484,8 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 
         ActivateTunnelRuntime(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()));
         context.surfaceHandler->SetAvailableBufferCount(1);
-        context.node->screenId_ = CLAIMED_SCREEN_ID;
+        auto claimedScreenNode = std::make_shared<RSScreenRenderNode>(0, CLAIMED_SCREEN_ID);
+        context.node->SetAncestorScreenNode(claimedScreenNode);
         ASSERT_EQ(arbiter.ArbitrateAndClaim(context.node), RSTunnelRouteArbiter::MainThreadOutcome::GO_NORMAL);
     }
     ASSERT_EQ(weakNode.lock(), nullptr);
@@ -512,7 +515,8 @@ HWTEST_F(RSTunnelRouteArbiterTest,
     auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
     ActivateTunnelRuntime(tunnelRuntime);
     context.surfaceHandler->SetAvailableBufferCount(1);
-    context.node->screenId_ = CLAIMED_SCREEN_ID;
+    auto claimedScreenNode = std::make_shared<RSScreenRenderNode>(0, CLAIMED_SCREEN_ID);
+    context.node->SetAncestorScreenNode(claimedScreenNode);
 
     RSTunnelRouteArbiter arbiter;
     ASSERT_EQ(arbiter.ArbitrateAndClaim(context.node), RSTunnelRouteArbiter::MainThreadOutcome::GO_NORMAL);

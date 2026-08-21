@@ -373,6 +373,15 @@ void RSSurfaceRenderNode::PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas
     canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
+ScreenId RSSurfaceRenderNode::GetScreenId() const
+{
+    auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(ancestorScreenNode_.lock());
+    if (!screenNode) {
+        return INVALID_SCREEN_ID;
+    }
+    return screenNode->GetScreenId();
+}
+
 void RSSurfaceRenderNode::CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
     std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender, bool onlyFirstLevel)
 {
@@ -451,30 +460,6 @@ void RSSurfaceRenderNode::ClearChildrenCache()
     OnTreeStateChanged();
 }
 
-void RSSurfaceRenderNode::FindScreenId()
-{
-    // The results found across screen windows are inaccurate
-    if (screenId_ != INVALID_SCREEN_ID) {
-        return;
-    }
-    auto nodeTemp = GetParent().lock();
-    while (nodeTemp != nullptr) {
-        if (nodeTemp->GetId() == 0) {
-            break;
-        }
-        if (nodeTemp->GetType() == RSRenderNodeType::SCREEN_NODE) {
-            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(nodeTemp);
-            screenId_ = displayNode->GetScreenId();
-            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-            if (surfaceParams != nullptr) {
-                surfaceParams->SetScreenId(screenId_);
-            }
-            break;
-        }
-        nodeTemp = nodeTemp->GetParent().lock();
-    }
-}
-
 void RSSurfaceRenderNode::AfterTreeStateChanged()
 {
     if (!IsOnTheTree() && attachedInfo_.has_value()) {
@@ -521,8 +506,6 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
             }
         }
         uifirstState_.needSync = true;
-    } else if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
-        FindScreenId();
     }
 #endif
     if (IsAbilityComponent()) {
@@ -3031,7 +3014,6 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
     if (!onTree) {
-        screenId_ = INVALID_SCREEN_ID;
         if (occlusionParams_ != nullptr) {
             occlusionParams_->SetOcclusionHandler(nullptr);
         }

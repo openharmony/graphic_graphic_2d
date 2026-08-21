@@ -378,7 +378,7 @@ GPUOfflineDrawParams RSGPUOfflineDevice::CollectDrawParams(std::shared_ptr<RSSur
     drawParams.useBilinearInterpolation = surfaceParams.NeedBilinearInterpolation();
     drawParams.ignoreAlpha = surfaceParams.GetSurfaceBufferOpaque();
     drawParams.colorFollow = surfaceParams.GetColorFollow();
-    drawParams.screenId = surfaceParams.GetScreenId();
+    drawParams.screenId = surfaceNode->GetScreenId();
     drawParams.hdrPresent = surfaceParams.GetHDRPresent();
     drawParams.gAlpha = static_cast<uint8_t>(std::clamp(surfaceParams.GetLayerInfo().alpha, 0.0f, 1.0f) * RGBA_MAX);
     drawParams.switchType = srcBuffer->GetAndResetSingleBufferMode();
