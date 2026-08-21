@@ -165,8 +165,8 @@ bool RSGPUOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<GPUOfflineContext
     }
     offlineThread_.PostTask([futurePtr, taskId, this,
                              taskContext = std::move(taskContext)]() mutable {
-        RS_TRACE_NAME_FMT("RSGPUOfflineDevice::ProcessOffline [%lld %lld] %s", taskId.first,
-            taskId.second, taskContext.nodeName.c_str());
+        RS_TRACE_NAME_FMT("RSGPUOfflineDevice::ProcessOffline [%{public}" PRIu64 "-%{public}" PRIu64 "] %s",
+            taskId.first, taskId.second, taskContext.nodeName.c_str());
         OfflineTaskFuncWithData(futurePtr, taskContext);
     });
     return true;
