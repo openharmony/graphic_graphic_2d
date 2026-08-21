@@ -198,11 +198,10 @@ void RSBufferManager::DumpPendingReleaseBuffers(std::string& output)
 void RSBufferCollectorHelper::OnCanvasDrawEnd()
 {
     for (auto& info : pendingReleaseBufferInfos_) {
-        if (info.bufferOwnerCount_) {
-            info.bufferOwnerCount_->DecRef();
-        }
         RSUniRenderThread::Instance().AddPendingReleaseBuffer(info.consumer_, info.buffer_, fence_,
             info.bufferOwnerCount_);
+        // bufferOwnerCount_ is guaranteed non-null: OnCanvasDrawBuffer rejects null before push.
+        info.bufferOwnerCount_->DecRef();
     }
 }
 

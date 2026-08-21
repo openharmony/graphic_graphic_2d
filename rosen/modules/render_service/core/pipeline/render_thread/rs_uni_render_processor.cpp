@@ -374,10 +374,14 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     }
     layer->SetNeedBilinearInterpolation(params.NeedBilinearInterpolation());
     layer->SetSurface(consumer);
+    auto layerBuffer = layer->GetBuffer();
+    if (!offlineResult && layerBuffer != buffer) {
+        layer->SetPreBuffer(layerBuffer);
+    }
     layer->SetBuffer(buffer, acquireFence);
-    layer->SetPreBuffer(preBuffer);
     layer->SetSplitLayerTag(params.GetSplitLayerTag());
     if (offlineResult) {
+        layer->SetPreBuffer(preBuffer);
         SetDeviceOfflineOriginalInfo(layer, params);
     }
     params.ClearPreBufferOnly();
