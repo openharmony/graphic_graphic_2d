@@ -748,11 +748,11 @@ HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest, TestSize.Level1)
     // disappearingChildren_ isn't empty
     node->disappearingChildren_.emplace_back(sNode1, id);
     node->GenerateFullChildrenList();
-    EXPECT_FALSE(node->IsContainBootAnimation());
+    EXPECT_FALSE(node->isContainBootAnimation_);
 
     node->SetContainBootAnimation(true);
     node->GenerateFullChildrenList();
-    EXPECT_FALSE(node->IsContainBootAnimation());
+    EXPECT_FALSE(node->isContainBootAnimation_);
 }
 
 /**
@@ -1015,18 +1015,18 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest001, TestSize.Level1)
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
     leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     rootNode->AddChild(leashNode);
-    rootNode->UpdateSubSurfaceCnt(leashNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 1);
+    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
 
     auto selfDrawNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
     selfDrawNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     leashNode->AddChild(selfDrawNode);
-    leashNode->UpdateSubSurfaceCnt(selfDrawNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 1);
+    leashNode->UpdateSubSurfaceCnt(selfDrawNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
 
     rootNode->RemoveChild(leashNode);
-    rootNode->UpdateSubSurfaceCnt(-leashNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt);
+    rootNode->UpdateSubSurfaceCnt(-leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt);
 }
 
 /**
@@ -1043,25 +1043,25 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest002, TestSize.Level1)
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
     leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     rootNode->AddChild(leashNode);
-    rootNode->UpdateSubSurfaceCnt(leashNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 1);
+    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
 
     auto appNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
     appNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     leashNode->AddChild(appNode);
-    leashNode->UpdateSubSurfaceCnt(appNode->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 2);
+    leashNode->UpdateSubSurfaceCnt(appNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
 
     auto antherApp = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 3);
     antherApp->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     appNode->AddChild(antherApp);
-    appNode->UpdateSubSurfaceCnt(antherApp->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 3);
+    appNode->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
 
     // loop tree
     antherApp->AddChild(leashNode);
-    antherApp->UpdateSubSurfaceCnt(antherApp->GetSubSurfaceCnt());
-    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 3);
+    antherApp->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
 }
 
 /**
@@ -2387,37 +2387,37 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest003, TestSize.Level1)
     parent->SetChildHasVisibleFilter(false);
     parent->childHasSharedTransition_ = false;
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(0); // false
+    parent->subSurfaceCnt_ = 0; // false
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->SetSubSurfaceCnt(0); // false
+    parent->subSurfaceCnt_ = 0; // false
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(1); // true
+    parent->subSurfaceCnt_ = 1; // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->SetSubSurfaceCnt(1); // true
+    parent->subSurfaceCnt_ = 1; // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
 
     parent->childHasSharedTransition_ = true;
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(0); // false
+    parent->subSurfaceCnt_ = 0; // false
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->SetSubSurfaceCnt(0); // false
+    parent->subSurfaceCnt_ = 0; // false
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(1); // true
+    parent->subSurfaceCnt_ = 1; // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->SetSubSurfaceCnt(1); // true
+    parent->subSurfaceCnt_ = 1; // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false, isOccluded));
 }
@@ -2480,7 +2480,7 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest005, TestSize.Level1)
     parent->SetSubTreeDirty(false);
     parent->childHasSharedTransition_ = false;
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->SetSubSurfaceCnt(0);
+    parent->subSurfaceCnt_ = 0;
     parent->SetChildHasVisibleFilter(false);
 
     // childHasSpatialEffect_ = true + isAccumGeoDirty = true → prepare
@@ -5124,23 +5124,23 @@ HWTEST_F(RSRenderNodeTest, ChildHasSpatialEffect001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkAccessibilityConfigChangedTest
- * @tc.desc: Verify MarkAccessibilityConfigChanged inserts/removes node from static set
+ * @tc.name: SetIsAccessibilityConfigChangedTest
+ * @tc.desc: Verify SetIsAccessibilityConfigChanged sets isAccessibilityConfigChanged_ correctly
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest, MarkAccessibilityConfigChangedTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, SetIsAccessibilityConfigChangedTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
     ASSERT_NE(node, nullptr);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
     ASSERT_NE(node->stagingRenderParams_, nullptr);
 
-    node->MarkAccessibilityConfigChanged(true);
-    ASSERT_TRUE(node->IsAccessibilityConfigChangedNode());
+    node->SetIsAccessibilityConfigChanged(true);
+    ASSERT_TRUE(node->IsAccessibilityConfigChanged());
 
-    node->MarkAccessibilityConfigChanged(false);
-    ASSERT_FALSE(node->IsAccessibilityConfigChangedNode());
+    node->SetIsAccessibilityConfigChanged(false);
+    ASSERT_FALSE(node->IsAccessibilityConfigChanged());
 }
 
 /**
@@ -5212,39 +5212,39 @@ HWTEST_F(RSRenderNodeTest, SetGlobalAlphaInitParamsTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSubSurfaceCntEraseWhenZeroTest
- * @tc.desc: Verify SetSubSurfaceCnt erases entry when cnt is 0
+ * @tc.name: SubSurfaceCntEraseWhenZeroTest
+ * @tc.desc: Verify subSurfaceCnt_ is 0 when set to 0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest, SetSubSurfaceCntEraseWhenZeroTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, SubSurfaceCntEraseWhenZeroTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
     ASSERT_NE(node, nullptr);
 
-    node->SetSubSurfaceCnt(5);
-    ASSERT_EQ(node->GetSubSurfaceCnt(), 5);
+    node->subSurfaceCnt_ = 5;
+    ASSERT_EQ(node->subSurfaceCnt_, 5);
 
-    node->SetSubSurfaceCnt(0);
-    ASSERT_EQ(node->GetSubSurfaceCnt(), 0);
+    node->subSurfaceCnt_ = 0;
+    ASSERT_EQ(node->subSurfaceCnt_, 0);
 }
 
 /**
- * @tc.name: SetSubSurfaceCntNonZeroTest
- * @tc.desc: Verify SetSubSurfaceCnt stores non-zero value correctly
+ * @tc.name: SubSurfaceCntNonZeroTest
+ * @tc.desc: Verify subSurfaceCnt_ stores non-zero value correctly
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest, SetSubSurfaceCntNonZeroTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, SubSurfaceCntNonZeroTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
     ASSERT_NE(node, nullptr);
 
-    node->SetSubSurfaceCnt(10);
-    ASSERT_EQ(node->GetSubSurfaceCnt(), 10);
+    node->subSurfaceCnt_ = 10;
+    ASSERT_EQ(node->subSurfaceCnt_, 10);
 
-    node->SetSubSurfaceCnt(3);
-    ASSERT_EQ(node->GetSubSurfaceCnt(), 3);
+    node->subSurfaceCnt_ = 3;
+    ASSERT_EQ(node->subSurfaceCnt_, 3);
 }
 
 /**
@@ -5280,10 +5280,10 @@ HWTEST_F(RSRenderNodeTest, SetContainBootAnimationScreenNodeNoParentTest, TestSi
     node->stagingRenderParams_->SetNodeType(RSRenderNodeType::SCREEN_NODE);
 
     node->SetContainBootAnimation(true);
-    ASSERT_TRUE(node->IsContainBootAnimation());
+    ASSERT_TRUE(node->isContainBootAnimation_);
 
     node->SetContainBootAnimation(false);
-    ASSERT_FALSE(node->IsContainBootAnimation());
+    ASSERT_FALSE(node->isContainBootAnimation_);
 }
 
 /**

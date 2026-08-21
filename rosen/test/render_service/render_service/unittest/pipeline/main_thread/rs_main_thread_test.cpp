@@ -5804,7 +5804,7 @@ HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt002, TestSize.Level2)
 
     mainThread->UpdateSubSurfaceCnt();
     // cnt + 2: rootNode contain 2 subSurfaceNodes(leash and app)
-    ASSERT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 2);
+    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
 }
 
 /**
@@ -5839,7 +5839,7 @@ HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt003, TestSize.Level2)
     context->nodeMap.RegisterRenderNode(appNode);
 
     mainThread->UpdateSubSurfaceCnt();
-    ASSERT_EQ(rootNode->GetSubSurfaceCnt(), cnt);
+    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt);
 }
 
 /**

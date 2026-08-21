@@ -1242,7 +1242,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", uifirstRootNodeId_: " + std::to_string(uifirstRootNodeId_);
     }
     if (HasSubSurface()) {
-        out += ", subSurfaceCnt: " + std::to_string(GetSubSurfaceCnt());
+        out += ", subSurfaceCnt: " + std::to_string(subSurfaceCnt_);
     }
 
 #if defined(ROSEN_OHOS)
@@ -1282,14 +1282,14 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (GetBootAnimation()) {
         out += ", GetBootAnimation: true";
     }
-    if (IsContainBootAnimation()) {
+    if (isContainBootAnimation_) {
         out += ", isContainBootAnimation: true";
     }
     out += ", globalAlpha: " + std::to_string(GetGlobalAlpha());
     out += ", isPurgeable: " + std::to_string(IsPurgeAble());
-    out += ", isAccessibilityConfigChanged: " + std::to_string(IsAccessibilityConfigChangedNode());
+    out += ", isAccessibilityConfigChanged: " + std::to_string(IsAccessibilityConfigChanged());
     out += ", drawableVecNeedClear: " + std::to_string(IsDrawableVecNeedClear());
-    out += ", subSurfaceCnt: " + std::to_string(GetSubSurfaceCnt());
+    out += ", subSurfaceCnt: " + std::to_string(subSurfaceCnt_);
     out += ", nodeName: [" + GetNodeName() + "]";
     if (dirtyStatus_ != NodeDirty::CLEAN) {
         out += ", isNodeDirty: " + std::to_string(static_cast<int>(dirtyStatus_));
@@ -1701,7 +1701,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isAccumGeoDirt
     if (childHasSpatialEffect_ && isAccumGeoDirty) {
         return true;
     }
-    if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || GetSubSurfaceCnt() > 0) {
+    if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || subSurfaceCnt_ > 0) {
         return true;
     }
     if (RSPointLightManager::Instance(GetLogicalDisplayNodeId())->GetChildHasVisibleIlluminated(shared_from_this())) {
@@ -1760,15 +1760,12 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, b
     if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
         return;
     }
-    SetDrawingCacheChanged(IsTreeStateChangeDirty() || IsContentDirty() || IsAccessibilityConfigChangedNode());
+    SetDrawingCacheChanged(IsTreeStateChangeDirty() || IsContentDirty() || IsAccessibilityConfigChanged());
     RS_OPTIONAL_TRACE_NAME_FMT(
         "SetDrawingCacheChanged id:%llu nodeGroupType:%u isTreeStateChangeDirty:%d contentDirty:%d propertyDirty:%d "
         "AccessibilityConfigChanged:%d",
         GetId(), nodeGroupType_, IsTreeStateChangeDirty(), isContentDirty_, GetRenderProperties().IsContentDirty(),
-        IsAccessibilityConfigChangedNode());
-#ifdef RS_ENABLE_GPU
-    SetRenderGroupIncludeProperty(stagingRenderParams_->IsRenderGroupIncludeProperty());
-#endif
+        IsAccessibilityConfigChanged());
     // renderGroup memory tagTracer
     auto instanceRootNode = GetInstanceRootNode();
     if (instanceRootNode) {
@@ -1816,9 +1813,6 @@ void RSRenderNode::InternalRemoveSelfFromDisappearingChildren()
 RSRenderNode::~RSRenderNode()
 {
     RS_PROFILER_RENDERNODE_DEC(isOnTheTree_);
-    containBootAnimationNodeSet_.erase(GetId());
-    accessibilityConfigChangedNodeSet_.erase(GetId());
-    subSurfaceCntMap_.erase(GetId());
     FallbackAnimationsToRoot();
     auto context = GetContext().lock();
     if (!context) {
@@ -3847,12 +3841,8 @@ float RSRenderNode::GetGlobalAlpha() const
 
 void RSRenderNode::SetContainBootAnimation(bool isContainBootAnimation)
 {
+    isContainBootAnimation_ = isContainBootAnimation;
     isFullChildrenListValid_ = false;
-    if (isContainBootAnimation) {
-        containBootAnimationNodeSet_.insert(GetId());
-    } else {
-        containBootAnimationNodeSet_.erase(GetId());
-    }
     if (GetType() == RSRenderNodeType::SCREEN_NODE) {
         if (auto parentPtr = GetParent().lock()) {
             parentPtr->SetContainBootAnimation(isContainBootAnimation);
@@ -4331,7 +4321,7 @@ void RSRenderNode::GenerateFullChildrenList()
             ROSEN_LOGI("RSRenderNode::GenerateSortedChildren removing expired child, this is rare but possible.");
             return true;
         }
-        if (IsContainBootAnimation() && !existingChild->GetBootAnimation()) {
+        if (isContainBootAnimation_ && !existingChild->GetBootAnimation()) {
             ROSEN_LOGD("RSRenderNode::GenerateSortedChildren %{public}" PRIu64 " skip"
             " move not bootAnimation displaynode"
             "child(id %{public}" PRIu64 ")"" into children_", GetId(), existingChild->GetId());
@@ -4349,7 +4339,7 @@ void RSRenderNode::GenerateFullChildrenList()
     //     children_ to disappearingChildren_. We hold ownership of the shared_ptr of the child after that.
     std::for_each(disappearingChildren_.begin(), disappearingChildren_.end(), [&](const auto& pair) -> void {
         auto& disappearingChild = pair.first;
-        if (IsContainBootAnimation() && !disappearingChild->GetBootAnimation()) {
+        if (isContainBootAnimation_ && !disappearingChild->GetBootAnimation()) {
             ROSEN_LOGD("RSRenderNode::GenerateSortedChildren %{public}" PRIu64 " skip"
             " move not bootAnimation displaynode"
             "child(id %{public}" PRIu64 ")"" into disappearingChild", GetId(), disappearingChild->GetId());
@@ -4687,20 +4677,16 @@ bool RSRenderNode::GetGeoUpdateDelay() const
 
 void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent)
 {
-    if (GetType() == RSRenderNodeType::SURFACE_NODE) {
+    if (!selfAddForSubSurfaceCnt_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceNode && !surfaceNode->isSelfAddedForSubSurface_) {
-            auto cnt = surfaceNode->IsLeashOrMainWindow() ? GetSubSurfaceCnt() + 1 : GetSubSurfaceCnt();
-            SetSubSurfaceCnt(cnt);
-            surfaceNode->isSelfAddedForSubSurface_ = true;
-        }
+        subSurfaceCnt_ = (surfaceNode && surfaceNode->IsLeashOrMainWindow()) ? subSurfaceCnt_ + 1 : subSurfaceCnt_;
+        selfAddForSubSurfaceCnt_ = true;
     }
-    auto cnt = GetSubSurfaceCnt();
-    if (cnt == 0) {
+    if (subSurfaceCnt_ == 0) {
         return;
     }
     if (auto context = context_.lock()) {
-        context->AddSubSurfaceCntUpdateInfo({cnt,
+        context->AddSubSurfaceCntUpdateInfo({subSurfaceCnt_,
             preParent == nullptr ? INVALID_NODEID : preParent->GetId(),
             curParent == nullptr ? INVALID_NODEID : curParent->GetId()});
     }
@@ -4708,26 +4694,25 @@ void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr prePar
 void RSRenderNode::UpdateSubSurfaceCnt(int updateCnt)
 {
     // avoid loop
-    thread_local std::unordered_set<NodeId> visitedSet;
-    if (visitedSet.count(GetId())) {
-        RS_LOGE("RSRenderNode::UpdateSubSurfaceCnt: %{public}" PRIu64" has loop tree", GetId());
+    if (visitedForSubSurfaceCnt_) {
+        RS_LOGE("RSRenderNode::UpdateSubSurfaceCnt: %{public}" PRIu64 " has loop tree", GetId());
         return;
     }
-    visitedSet.insert(GetId());
+    visitedForSubSurfaceCnt_ = true;
     if (updateCnt == 0) {
-        visitedSet.erase(GetId());
+        visitedForSubSurfaceCnt_ = false;
         return;
     }
-    int cnt = GetSubSurfaceCnt() + updateCnt;
-    SetSubSurfaceCnt(cnt < 0 ? 0 : cnt);
+    int cnt = subSurfaceCnt_ + updateCnt;
+    subSurfaceCnt_ = cnt < 0 ? 0 : cnt;
     if (auto parent = GetParent().lock()) {
         parent->UpdateSubSurfaceCnt(updateCnt);
     }
-    visitedSet.erase(GetId());
+    visitedForSubSurfaceCnt_ = false;
 }
 bool RSRenderNode::HasSubSurface() const
 {
-    return GetSubSurfaceCnt() > 0;
+    return subSurfaceCnt_ > 0;
 }
 bool RSRenderNode::HasAnimation() const
 {
@@ -5911,20 +5896,6 @@ uint32_t RSRenderNode::GetHdrUIComponentHeadroom() const
 void RSRenderNode::ReSortChildrenByZIndex()
 {
     isFullChildrenListValid_ = false;
-}
-
-void RSRenderNode::MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
-{
-    if (isAccessibilityConfigChanged) {
-        accessibilityConfigChangedNodeSet_.insert(GetId());
-    } else {
-        accessibilityConfigChangedNodeSet_.erase(GetId());
-    }
-}
-
-bool RSRenderNode::IsAccessibilityConfigChangedNode() const
-{
-    return accessibilityConfigChangedNodeSet_.count(GetId()) > 0;
 }
 } // namespace Rosen
 } // namespace OHOS

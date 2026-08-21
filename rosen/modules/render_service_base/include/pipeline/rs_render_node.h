@@ -123,11 +123,6 @@ public:
     void AddChild(SharedPtr child, int index = -1);
     void SetContainBootAnimation(bool isContainBootAnimation);
 
-    bool IsContainBootAnimation() const
-    {
-        return containBootAnimationNodeSet_.count(GetId()) > 0;
-    }
-
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;
 
@@ -639,19 +634,6 @@ public:
         return nodeName_ ? *nodeName_ : emptyStr;
     }
     bool HasSubSurface() const;
-    int GetSubSurfaceCnt() const
-    {
-        auto it = subSurfaceCntMap_.find(GetId());
-        return it != subSurfaceCntMap_.end() ? it->second : 0;
-    }
-    void SetSubSurfaceCnt(int cnt)
-    {
-        if (cnt == 0) {
-            subSurfaceCntMap_.erase(GetId());
-        } else {
-            subSurfaceCntMap_[GetId()] = cnt;
-        }
-    }
 
     bool IsPureContainer() const;
     bool IsContentNode() const;
@@ -1038,9 +1020,15 @@ public:
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
-    void MarkAccessibilityConfigChanged(bool isAccessibilityConfigChanged);
+    void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
+    {
+        isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
+    }
 
-    bool IsAccessibilityConfigChangedNode() const;
+    bool IsAccessibilityConfigChanged() const
+    {
+        return isAccessibilityConfigChanged_;
+    }
 
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
@@ -1340,9 +1328,11 @@ private:
     // When an empty list is needed, use EmptyChildrenList instead.
     static const inline RS_HIDDEN auto EmptyChildrenList =
         std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
-    static inline std::unordered_set<NodeId> containBootAnimationNodeSet_;
-    static inline std::unordered_set<NodeId> accessibilityConfigChangedNodeSet_;
-    static inline std::unordered_map<NodeId, int> subSurfaceCntMap_;
+    bool isContainBootAnimation_ = false;
+    int subSurfaceCnt_ = 0;
+    bool selfAddForSubSurfaceCnt_ = false;
+    bool visitedForSubSurfaceCnt_ = false;
+    bool isAccessibilityConfigChanged_ = false;
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
     std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
