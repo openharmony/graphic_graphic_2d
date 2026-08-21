@@ -299,6 +299,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
     }
     auto accessible = securityManager_.IsInterfaceCodeAccessible(code);
     if (!accessible &&
+        code != static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE) &&
         code != static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
         code != static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER) &&
         code != static_cast<uint32_t>(
