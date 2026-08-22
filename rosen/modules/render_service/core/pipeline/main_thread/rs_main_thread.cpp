@@ -6439,6 +6439,24 @@ void RSMainThread::ProcessPendingCommandsDuringRebuild(pid_t pid)
 
 void RSMainThread::AddDisableReason(const std::string& reason)
 {
+    const size_t MAX_TRACE_LENGTH = 400;
+    
+    // Calculate new length after adding this reason
+    size_t newLength = directCompositionDisableReasons_.length();
+    if (!directCompositionDisableReasons_.empty()) {
+        newLength += 3; // " | "
+    }
+    newLength += reason.length();
+    
+    // Check if adding this reason would exceed the limit
+    if (newLength > MAX_TRACE_LENGTH) {
+        // Add truncation marker if not already present
+        if (directCompositionDisableReasons_.find("...") == std::string::npos) {
+            directCompositionDisableReasons_ += " | ...";
+        }
+        return;
+    }
+    
     if (!directCompositionDisableReasons_.empty()) {
         directCompositionDisableReasons_ += " | ";
     }
